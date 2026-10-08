@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - ".github/workflows/memarket-live-test.yml"
+      - "memarket_radar/memarket_deal_radar.py"
   workflow_dispatch:
 
 permissions:
