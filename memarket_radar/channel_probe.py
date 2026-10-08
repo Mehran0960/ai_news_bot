@@ -4,7 +4,7 @@ import re, html, os
 
 def fetch(url, data=None):
     body = urlencode(data).encode() if data else None
-    req = Request(url, data=body, headers={"User-Agent":"Mozilla/5.0","Accept":"text/html"}, method="POST" if data else "GET")
+    req = Request(url, data=body, headers={"User-Agent":"Mozilla/5.0","Accept":"text/html,application/xhtml+xml"}, method="POST" if data else "GET")
     with urlopen(req, timeout=30) as r:
         return r.status, r.geturl(), r.headers, r.read().decode("utf-8","ignore")
 
