@@ -65,14 +65,18 @@ def clean_text(fragment: str) -> str:
 
 
 def extract_posts(page: str):
-    blocks = re.findall(
-        r'<div[^>]+class="[^"]*tgme_widget_message_wrap[^"]*"[^>]+data-post="([^"]+)"[^>]*>(.*?)</div>\s*(?=<div[^>]+class="[^"]*tgme_widget_message_wrap|</div>\s*</div>)',
-        page,
+    posts = []
+
+    # Telegram's public HTML is intentionally kept simple here: find every
+    # message wrapper and then extract its visible text/links from inside.
+    wrapper_re = re.compile(
+        r'<div[^>]+data-post="([^"]+)"[^>]*>(.*?)(?=<div[^>]+data-post="[^"]+"[^>]*>|</main>|\Z)',
         re.S | re.I,
     )
 
-    posts = []
-    for post_key, block in blocks:
+    for m in wrapper_re.finditer(page):
+        post_key, block = m.group(1), m.group(2)
+
         tm = re.search(
             r'<div[^>]+class="[^"]*tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>',
             block,
@@ -86,18 +90,16 @@ def extract_posts(page: str):
         links += re.findall(r'<a[^>]+href=["\']([^"\']+)["\']', block, re.I)
 
         images = re.findall(
-            r'(?:background-image:\s*url\(["\']?|<img[^>]+src=["\'])(https?://[^)"\'\s]+)',
+            r'<img[^>]+src=["\'](https?://[^"\']+)["\']',
             block,
             re.I,
         )
 
         post_id = post_key.rsplit("/", 1)[-1]
-        source_url = f"https://t.me/{post_key}"
-
         posts.append({
             "id": post_id,
             "key": post_key,
-            "url": source_url,
+            "url": f"https://t.me/{post_key}",
             "text": text_value,
             "links": list(dict.fromkeys(links)),
             "image": images[0] if images else "",
