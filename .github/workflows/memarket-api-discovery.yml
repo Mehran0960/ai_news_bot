@@ -82,3 +82,22 @@ jobs:
               if re.search("login",ctx,re.I):
                   print(re.sub(r"\\s+"," ",ctx)[:1200])
           PY3
+
+          echo "CHUNK_SCAN"
+          python - <<'PY4'
+          import re, urllib.request
+          chunks=["Db458ClI.js","StH02Apt.js","D3XhxgFx.js"]
+          for name in chunks:
+              url="https://aff.memarket24.ir/_nuxt/"+name
+              try:
+                  req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0"})
+                  js=urllib.request.urlopen(req,timeout=30).read().decode("utf-8","ignore")
+                  print("CHUNK",name,"BYTES",len(js))
+                  for kind in ("get","post","put","patch","delete"):
+                      for m in re.finditer(r"api\\."+kind+r"\\(",js,re.I):
+                          ctx=js[m.start():m.start()+1800]
+                          if any(k in ctx.lower() for k in ("login","good","product","commission","order","auth","token","user")):
+                              print("CALL",kind.upper(),re.sub(r"\\s+"," ",ctx)[:1600])
+              except Exception as e:
+                  print("CHUNK_ERROR",name,type(e).__name__,str(e))
+          PY4
