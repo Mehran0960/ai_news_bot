@@ -1,0 +1,35 @@
+name: MeMarket Deal Radar
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: memarket-deal-radar
+  cancel-in-progress: true
+
+jobs:
+  radar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run MeMarket radar
+        env:
+          MEMARKET_USERNAME: ${{ secrets.MEMARKET_USERNAME }}
+          MEMARKET_PASSWORD: ${{ secrets.MEMARKET_PASSWORD }}
+          MEMARKET_AFFILIATE_CODE: ${{ secrets.MEMARKET_AFFILIATE_CODE }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python memarket_radar/memarket_deal_radar.py
+
+      - name: Show state diff
+        run: git diff --stat -- memarket_radar/state.json
