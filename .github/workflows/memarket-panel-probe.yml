@@ -1,0 +1,17 @@
+name: MeMarket Panel Probe
+
+on:
+  push:
+    paths:
+      - "memarket_radar/channel_probe.py"
+      - ".github/workflows/memarket-panel-probe.yml"
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe
+        run: python memarket_radar/channel_probe.py
