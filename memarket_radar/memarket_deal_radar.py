@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
+from urllib.error import URLError
 
 BASE = "http://api.memarketbot.ir/api"
 STATE = Path("memarket_radar/state.json")
@@ -78,7 +79,9 @@ def request_json(url, params=None, data=None, timeout=30):
         with urlopen(req, timeout=timeout) as r:
             raw = r.read().decode("utf-8-sig", "replace")
         return json.loads(raw)
-    except socket.gaierror:
+    except (socket.gaierror, URLError) as exc:
+        if isinstance(exc, URLError) and not isinstance(exc.reason, socket.gaierror):
+            raise
         parsed = urlsplit(url)
         if parsed.hostname != "api.memarketbot.ir":
             raise
