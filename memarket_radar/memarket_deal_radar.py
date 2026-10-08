@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 CHANNEL = os.getenv("MEMARKET_CHANNEL", "memarket").strip()
 CHANNEL_URL = f"https://t.me/s/{CHANNEL}"
@@ -227,8 +228,12 @@ def telegram_request(method: str, data: dict):
         headers={"User-Agent": "MeMarketDealRadar/2.0", "Content-Type": "application/x-www-form-urlencoded"},
         method="POST",
     )
-    with urlopen(req, timeout=30) as r:
-        return json.loads(r.read().decode("utf-8", "ignore"))
+    try:
+        with urlopen(req, timeout=30) as r:
+            return json.loads(r.read().decode("utf-8", "ignore"))
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8", "ignore")
+        raise RuntimeError(f"Telegram {method} HTTP {exc.code}: {detail[:700]}") from exc
 
 
 def send_telegram(post):
@@ -252,10 +257,14 @@ def send_telegram(post):
     message = "\n".join(parts)
 
     if post.get("image"):
-        return telegram_request(
-            "sendPhoto",
-            {"chat_id": CHAT, "photo": post["image"], "caption": message, "parse_mode": "HTML"},
-        )
+        try:
+            return telegram_request(
+                "sendPhoto",
+                {"chat_id": CHAT, "photo": post["image"], "caption": message, "parse_mode": "HTML"},
+            )
+        except Exception as exc:
+            print(f"photo_send_failed_fallback={exc}", file=sys.stderr)
+
     return telegram_request(
         "sendMessage",
         {"chat_id": CHAT, "text": message, "parse_mode": "HTML", "disable_web_page_preview": "false"},
