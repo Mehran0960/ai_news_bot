@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - "memarket_radar/channel_probe.py"
+      - "memarket_radar/memarket_deal_radar.py"
       - ".github/workflows/memarket-public-api-probe.yml"
 
 jobs:
