@@ -115,7 +115,11 @@ def affiliate_link(url: str) -> str:
         return ""
 
     host = (p.hostname or "").lower()
-    if "memarketshop.ir" not in host and "memarket24.ir" not in host:
+    if not (
+        "memarketshop.ir" in host
+        or "memarket24.ir" in host
+        or host == "l.memarket.me"
+    ):
         return ""
 
     # Replace an existing seller-code path segment such as /landing/foo/4116.
