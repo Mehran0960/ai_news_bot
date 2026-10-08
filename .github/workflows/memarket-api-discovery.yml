@@ -121,3 +121,22 @@ jobs:
               start=i+5
               seen+=1
           PY5
+
+          echo "DIRECT_API_TEST"
+          python - <<'PY6'
+          import urllib.request
+          base="https://shikmarketcontext.ir/api/appid5/"
+          paths=[
+              "Good/GetStatusActivity",
+              "Good/GetGoodParentOnlyWithSellInfoGroupedDetailWithInventory",
+              "Good/GetGoodParentOnlyFullInfo/g-gn31614",
+          ]
+          for p in paths:
+              try:
+                  req=urllib.request.Request(base+p,headers={"User-Agent":"Mozilla/5.0","Accept":"application/json"})
+                  with urllib.request.urlopen(req,timeout=30) as r:
+                      body=r.read().decode("utf-8","ignore")
+                      print("API_TEST",p,"STATUS",r.status,"BYTES",len(body),"BODY",body[:1200])
+              except Exception as e:
+                  print("API_TEST_ERROR",p,type(e).__name__,str(e))
+          PY6
