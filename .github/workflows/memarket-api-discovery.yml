@@ -64,3 +64,21 @@ jobs:
               if any(k in x.lower() for k in ("login","good","product","commission","order","affiliate","user","auth")):
                   print("API_CALL",x)
           PY2
+
+          echo "TARGETED_CONTEXT"
+          python - <<'PY3'
+          import re, urllib.request
+          req=urllib.request.Request("https://aff.memarket24.ir/_nuxt/BuKelfsT.js",headers={"User-Agent":"Mozilla/5.0"})
+          js=urllib.request.urlopen(req,timeout=30).read().decode("utf-8","ignore")
+          for term in ("login","GetGoodParentOnlyWithSellInfoGroupedDetailWithInventory","GetSellerSoldParentGoodForWmP"):
+              print("TARGET",term)
+              positions=[m.start() for m in re.finditer(re.escape(term),js,re.I)]
+              print("COUNT",len(positions))
+              for p in positions[:10]:
+                  print(re.sub(r"\\s+"," ",js[max(0,p-500):p+1200])[:1800])
+          print("API_METHOD_CONTEXTS_NEAR_LOGIN")
+          for m in re.finditer(r"api\\.(?:get|post|put|patch|delete)\\(",js,re.I):
+              ctx=js[m.start():m.start()+900]
+              if re.search("login",ctx,re.I):
+                  print(re.sub(r"\\s+"," ",ctx)[:1200])
+          PY3
