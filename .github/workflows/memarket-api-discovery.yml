@@ -101,3 +101,23 @@ jobs:
               except Exception as e:
                   print("CHUNK_ERROR",name,type(e).__name__,str(e))
           PY4
+
+          echo "LOGIN_CHUNK_DIRECT"
+          python - <<'PY5'
+          import urllib.request
+          url="https://aff.memarket24.ir/_nuxt/Db458ClI.js"
+          req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0"})
+          js=urllib.request.urlopen(req,timeout=30).read().decode("utf-8","ignore")
+          print("LOGIN_CHUNK_BYTES",len(js))
+          for needle in ("apishared.post(", "api.post(", "Login", "Check"):
+              print("NEEDLE",needle,"COUNT",js.lower().count(needle.lower()))
+          start=0
+          seen=0
+          while True:
+              i=js.find("post(",start)
+              if i<0 or seen>=20: break
+              ctx=js[max(0,i-300):i+900].replace("\\n"," ")
+              print("POST_CTX",ctx[:1200])
+              start=i+5
+              seen+=1
+          PY5
