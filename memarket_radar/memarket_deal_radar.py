@@ -4,15 +4,16 @@ from __future__ import annotations
 import html
 import json
 import os
+import socket
 import subprocess
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
-BASE = "https://api.memarketbot.ir/api"
+BASE = "http://api.memarketbot.ir/api"
 STATE = Path("memarket_radar/state.json")
 
 USER = os.environ.get("MEMARKET_USERNAME", "").strip()
@@ -45,23 +46,50 @@ def fail_missing():
         raise SystemExit("Missing GitHub Actions secrets: " + ", ".join(missing))
 
 
+def _doh_ipv4(host, timeout=10):
+    doh = f"https://dns.google/resolve?name={host}&type=A"
+    req = Request(doh, headers={"User-Agent": "MeMarketDealRadar/1.0", "Accept": "application/dns-json"})
+    with urlopen(req, timeout=timeout) as r:
+        payload = json.loads(r.read().decode("utf-8"))
+    answers = payload.get("Answer", [])
+    for item in answers:
+        value = item.get("data", "")
+        try:
+            socket.inet_aton(value)
+            return value
+        except OSError:
+            continue
+    raise RuntimeError(f"DoH returned no IPv4 address for {host}: {payload.get('Status')}")
+
+
 def request_json(url, params=None, data=None, timeout=30):
     if params:
         url += ("&" if "?" in url else "?") + urlencode(params)
     body = urlencode(data).encode() if data is not None else None
-    req = Request(
-        url,
-        data=body,
-        headers={
-            "User-Agent": "MeMarketDealRadar/1.0",
-            "Accept": "application/json,text/plain,*/*",
-            "Content-Type": "application/x-www-form-urlencoded" if data else "",
-        },
-        method="POST" if data is not None else "GET",
-    )
-    with urlopen(req, timeout=timeout) as r:
-        raw = r.read().decode("utf-8-sig", "replace")
-    return json.loads(raw)
+    headers = {
+        "User-Agent": "MeMarketDealRadar/1.0",
+        "Accept": "application/json,text/plain,*/*",
+    }
+    if data is not None:
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
+
+    req = Request(url, data=body, headers=headers, method="POST" if data is not None else "GET")
+    try:
+        with urlopen(req, timeout=timeout) as r:
+            raw = r.read().decode("utf-8-sig", "replace")
+        return json.loads(raw)
+    except socket.gaierror:
+        parsed = urlsplit(url)
+        if parsed.hostname != "api.memarketbot.ir":
+            raise
+        ip = _doh_ipv4(parsed.hostname, timeout=10)
+        resolved = urlunsplit((parsed.scheme, ip + (f":{parsed.port}" if parsed.port else ""), parsed.path, parsed.query, parsed.fragment))
+        headers["Host"] = parsed.hostname
+        print(f"DNS fallback: {parsed.hostname} -> {ip}")
+        req = Request(resolved, data=body, headers=headers, method="POST" if data is not None else "GET")
+        with urlopen(req, timeout=timeout) as r:
+            raw = r.read().decode("utf-8-sig", "replace")
+        return json.loads(raw)
 
 
 def walk(obj):
