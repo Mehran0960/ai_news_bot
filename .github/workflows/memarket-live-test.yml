@@ -1,0 +1,33 @@
+name: MeMarket Live Test
+
+on:
+  push:
+    paths:
+      - ".github/workflows/memarket-live-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: memarket-deal-radar
+  cancel-in-progress: true
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Send up to 2 live alerts
+        env:
+          MEMARKET_AFFILIATE_CODE: ${{ secrets.MEMARKET_AFFILIATE_CODE }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          BOOTSTRAP_SILENT: "false"
+          DRY_RUN: "false"
+          STATE_COMMIT: "true"
+          MAX_ALERTS: "2"
+        run: python memarket_radar/memarket_deal_radar.py
