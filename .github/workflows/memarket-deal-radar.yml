@@ -2,8 +2,6 @@ name: MeMarket Deal Radar
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 # Scheduling is intentionally disabled until the five repository secrets are configured.
 # After secrets are added, re-enable the 15-minute schedule.
