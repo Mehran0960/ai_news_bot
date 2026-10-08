@@ -11,29 +11,37 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Fetch panel JS
+      - name: Discover
+        shell: bash
         run: |
-          set -e
-          echo "probe_start=true"
-          curl -fsSL -A "Mozilla/5.0" https://aff.memarket24.ir/login -o /tmp/login.html
-          JS_URL=$(grep -oE '<script[^>]+src=["'"'"'][^"'"'"']+["'"'"']' /tmp/login.html | sed -E 's/.*src=["'"'"']([^"'"'"']+)["'"'"'].*/\1/' | head -n1)
-          case "$JS_URL" in
-            /*) JS_URL="https://aff.memarket24.ir$JS_URL" ;;
-          esac
-          echo "JS_URL=$JS_URL"
-          curl -fsSL -A "Mozilla/5.0" "$JS_URL" -o /tmp/app.js
-          echo "JS_BYTES=$(wc -c < /tmp/app.js)"
-          echo "ABS_URLS:"
-          grep -oE 'https?://[^"'''[:space:]<>]{1,220}' /tmp/app.js | sort -u | head -n 100 || true
-          echo "REL_PATHS:"
-          grep -oE '["'"'"'](/[^"'"'"']*(api|login|auth|product|goods|commission|order)[^"'"'"']*)["'"'"']' /tmp/app.js | sort -u | head -n 150 || true
-          echo "KEY_CONTEXT:"
           python - <<'PY'
-          import re
-          s=open('/tmp/app.js',encoding='utf-8',errors='ignore').read()
-          for term in ('api','login','goods','product','commission','order','auth','token'):
-              pos=[m.start() for m in re.finditer(term,s,re.I)]
-              print("TERM",term,"COUNT",len(pos))
-              for p in pos[:3]:
-                  print(s[max(0,p-180):p+360].replace("\\n"," ")[:600])
+          import html, re, urllib.request
+          from urllib.parse import urljoin
+          
+          def get(url):
+              req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0","Accept":"text/html,application/javascript,*/*"})
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  return r.read().decode("utf-8","ignore")
+          
+          page=get("https://aff.memarket24.ir/login")
+          srcs=re.findall(r'<script[^>]+src=["\']([^"\']+)',page,re.I)
+          print("SCRIPTS",srcs[:10])
+          for src in srcs[:10]:
+              url=urljoin("https://aff.memarket24.ir/login",src)
+              js=get(url)
+              print("JS_URL",url)
+              print("JS_BYTES",len(js))
+              urls=sorted(set(re.findall(r'https?://[^"\'\\s<>]{1,220}',js)))
+              print("ABS_URLS")
+              for x in urls[:100]: print(x)
+              print("REL_PATHS")
+              rel=sorted(set(re.findall(r'["\'](/[^"\']*(?:api|login|auth|product|goods|commission|order|affiliate)[^"\']*)["\']',js,re.I)))
+              for x in rel[:200]: print(x)
+              print("KEY_CONTEXT")
+              for term in ("baseURL","api/","login","goods","product","commission","order","affiliate","token"):
+                  positions=[m.start() for m in re.finditer(re.escape(term),js,re.I)]
+                  print("TERM",term,"COUNT",len(positions))
+                  for p in positions[:2]:
+                      ctx=re.sub(r'\\s+',' ',js[max(0,p-220):p+500])
+                      print(ctx[:720])
           PY
