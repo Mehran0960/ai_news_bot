@@ -4,292 +4,270 @@ from __future__ import annotations
 import html
 import json
 import os
-import socket
+import re
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
-from urllib.error import URLError
 
-BASE = "http://api.memarketbot.ir/api"
+CHANNEL = os.getenv("MEMARKET_CHANNEL", "memarket").strip()
+CHANNEL_URL = f"https://t.me/s/{CHANNEL}"
 STATE = Path("memarket_radar/state.json")
 
-USER = os.environ.get("MEMARKET_USERNAME", "").strip()
-PASS = os.environ.get("MEMARKET_PASSWORD", "").strip()
-AFF = os.environ.get("MEMARKET_AFFILIATE_CODE", "").strip()
-BOT = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
-CHAT = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+AFF = os.getenv("MEMARKET_AFFILIATE_CODE", "").strip()
+BOT = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+CHAT = os.getenv("TELEGRAM_CHAT_ID", "").strip()
 
-MIN_DISC = float(os.getenv("MIN_DISCOUNT", "30"))
-DROP = float(os.getenv("PRICE_DROP_THRESHOLD", "8"))
-LOW_STOCK = int(os.getenv("LOW_STOCK", "5"))
-COOLDOWN = float(os.getenv("COOLDOWN_HOURS", "6")) * 3600
+MIN_PERCENT = float(os.getenv("MIN_DISCOUNT", "30"))
 MAX_ALERTS = int(os.getenv("MAX_ALERTS", "3"))
-PER_PAGE = int(os.getenv("PER_PAGE", "200"))
-MAX_PAGES = int(os.getenv("MAX_PAGES", "50"))
+COOLDOWN = float(os.getenv("COOLDOWN_HOURS", "6")) * 3600
 BOOTSTRAP_SILENT = os.getenv("BOOTSTRAP_SILENT", "true").lower() == "true"
+DRY_RUN = os.getenv("DRY_RUN", "false").lower() == "true"
+STATE_COMMIT = os.getenv("STATE_COMMIT", "true").lower() == "true"
+MAX_SEEN = int(os.getenv("MAX_SEEN_POSTS", "500"))
+
+if not DRY_RUN:
+    for n, v in {
+        "MEMARKET_AFFILIATE_CODE": AFF,
+        "TELEGRAM_BOT_TOKEN": BOT,
+        "TELEGRAM_CHAT_ID": CHAT,
+    }.items():
+        if not v:
+            raise SystemExit(f"Missing required secret: {n}")
 
 
-def fail_missing():
-    missing = [
-        k for k, v in {
-            "MEMARKET_USERNAME": USER,
-            "MEMARKET_PASSWORD": PASS,
-            "MEMARKET_AFFILIATE_CODE": AFF,
-            "TELEGRAM_BOT_TOKEN": BOT,
-            "TELEGRAM_CHAT_ID": CHAT,
-        }.items() if not v
-    ]
-    if missing:
-        raise SystemExit("Missing GitHub Actions secrets: " + ", ".join(missing))
-
-
-def _doh_ipv4(host, timeout=10):
-    doh = f"https://dns.google/resolve?name={host}&type=A"
-    req = Request(doh, headers={"User-Agent": "MeMarketDealRadar/1.0", "Accept": "application/dns-json"})
+def fetch(url, timeout=30):
+    req = Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 MeMarketDealRadar/2.0",
+            "Accept": "text/html,application/xhtml+xml,*/*",
+        },
+    )
     with urlopen(req, timeout=timeout) as r:
-        payload = json.loads(r.read().decode("utf-8"))
-    answers = payload.get("Answer", [])
-    for item in answers:
-        value = item.get("data", "")
-        try:
-            socket.inet_aton(value)
-            return value
-        except OSError:
-            continue
-    raise RuntimeError(f"DoH returned no IPv4 address for {host}: {payload.get('Status')}")
+        return r.read().decode("utf-8", "ignore")
 
 
-def request_json(url, params=None, data=None, timeout=30):
-    if params:
-        url += ("&" if "?" in url else "?") + urlencode(params)
-    body = urlencode(data).encode() if data is not None else None
-    headers = {
-        "User-Agent": "MeMarketDealRadar/1.0",
-        "Accept": "application/json,text/plain,*/*",
-    }
-    if data is not None:
-        headers["Content-Type"] = "application/x-www-form-urlencoded"
-
-    req = Request(url, data=body, headers=headers, method="POST" if data is not None else "GET")
-    try:
-        with urlopen(req, timeout=timeout) as r:
-            raw = r.read().decode("utf-8-sig", "replace")
-        return json.loads(raw)
-    except (socket.gaierror, URLError) as exc:
-        if isinstance(exc, URLError) and not isinstance(exc.reason, socket.gaierror):
-            raise
-        parsed = urlsplit(url)
-        if parsed.hostname != "api.memarketbot.ir":
-            raise
-        ip = _doh_ipv4(parsed.hostname, timeout=10)
-        resolved = urlunsplit((parsed.scheme, ip + (f":{parsed.port}" if parsed.port else ""), parsed.path, parsed.query, parsed.fragment))
-        headers["Host"] = parsed.hostname
-        print(f"DNS fallback: {parsed.hostname} -> {ip}")
-        req = Request(resolved, data=body, headers=headers, method="POST" if data is not None else "GET")
-        with urlopen(req, timeout=timeout) as r:
-            raw = r.read().decode("utf-8-sig", "replace")
-        return json.loads(raw)
+def fa_to_en(s: str) -> str:
+    table = str.maketrans("۰۱۲۳۴۵۶۷۸۹٬٫", "0123456789,.")
+    return s.translate(table)
 
 
-def walk(obj):
-    if isinstance(obj, dict):
-        yield obj
-        for v in obj.values():
-            yield from walk(v)
-    elif isinstance(obj, list):
-        for v in obj:
-            yield from walk(v)
+def clean_text(fragment: str) -> str:
+    fragment = re.sub(r"<br\s*/?>", "\n", fragment, flags=re.I)
+    fragment = re.sub(r"<[^>]+>", " ", fragment)
+    fragment = html.unescape(fragment)
+    fragment = re.sub(r"[ \t]+", " ", fragment)
+    fragment = re.sub(r"\n[ \t]+", "\n", fragment)
+    return fragment.strip()
 
 
-def pick(obj, names):
-    wanted = {x.lower() for x in names}
-    for d in walk(obj):
-        for k, v in d.items():
-            if k.lower() in wanted and v not in (None, ""):
-                return v
-    return None
+def extract_posts(page: str):
+    blocks = re.findall(
+        r'<div[^>]+class="[^"]*tgme_widget_message_wrap[^"]*"[^>]+data-post="([^"]+)"[^>]*>(.*?)</div>\s*(?=<div[^>]+class="[^"]*tgme_widget_message_wrap|</div>\s*</div>)',
+        page,
+        re.S | re.I,
+    )
 
-
-def as_num(v, default=0.0):
-    try:
-        s = str(v).replace(",", "").replace("٬", "").strip()
-        return float(s)
-    except Exception:
-        return default
-
-
-def goods_from_response(obj):
-    if isinstance(obj, list):
-        return [x for x in obj if isinstance(x, dict)]
-    if isinstance(obj, dict):
-        for d in walk(obj):
-            for k, v in d.items():
-                if k.lower() in {"data", "goods", "items", "result", "rows", "products"} and isinstance(v, list):
-                    return [x for x in v if isinstance(x, dict)]
-    return []
-
-
-def login():
-    payload = request_json(f"{BASE}/users/Login", params={"u": USER, "p": PASS})
-    token = pick(payload, {"token", "strToken", "access_token", "accessToken", "authToken", "jwt"})
-    if isinstance(token, str) and token.strip():
-        return token.strip().strip('"')
-    if isinstance(payload, str) and payload.strip():
-        return payload.strip().strip('"')
-    raise RuntimeError(f"MeMarket token not found in login response: {str(payload)[:300]}")
-
-
-def get_goods(token):
-    all_goods = []
-    for page in range(1, MAX_PAGES + 1):
-        payload = request_json(
-            f"{BASE}/goods/getAllGoods",
-            params={"page": page, "perpage": PER_PAGE, "token": token},
+    posts = []
+    for post_key, block in blocks:
+        tm = re.search(
+            r'<div[^>]+class="[^"]*tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>',
+            block,
+            re.S | re.I,
         )
-        goods = goods_from_response(payload)
-        print(f"page={page} count={len(goods)}")
-        if not goods:
-            break
-        all_goods.extend(goods)
-        if len(goods) < PER_PAGE:
-            break
-    return all_goods
+        if not tm:
+            continue
+
+        text_value = clean_text(tm.group(1))
+        links = re.findall(r'<a[^>]+href=["\']([^"\']+)["\']', tm.group(1), re.I)
+        links += re.findall(r'<a[^>]+href=["\']([^"\']+)["\']', block, re.I)
+
+        images = re.findall(
+            r'(?:background-image:\s*url\(["\']?|<img[^>]+src=["\'])(https?://[^)"\'\s]+)',
+            block,
+            re.I,
+        )
+
+        post_id = post_key.rsplit("/", 1)[-1]
+        source_url = f"https://t.me/{post_key}"
+
+        posts.append({
+            "id": post_id,
+            "key": post_key,
+            "url": source_url,
+            "text": text_value,
+            "links": list(dict.fromkeys(links)),
+            "image": images[0] if images else "",
+        })
+
+    return posts
 
 
-def normalize(raw):
-    pid = pick(raw, {"numApiGoodRef", "numGoodRef", "id", "productId"})
-    code = str(pick(raw, {"strGoodref", "goodRef", "code", "productCode"}) or pid or "").strip()
-    name = str(pick(raw, {"strGoodName", "goodName", "name", "productName"}) or "").strip()
-    regular = as_num(pick(raw, {"numGoodPrice", "regularPrice", "price"}))
-    sale = as_num(pick(raw, {"numPriceWithDiscount", "discountPrice", "salePrice"}))
-    stock = as_num(pick(raw, {"numStock", "stock", "quantity"}))
-    images = str(pick(raw, {"strGoodImages", "images", "image"}) or "").strip()
-    product_url = str(pick(raw, {"PostLink", "purchaseLink", "buyLink", "productUrl", "url"}) or "").strip()
+def affiliate_link(url: str) -> str:
+    try:
+        p = urlsplit(url)
+    except Exception:
+        return ""
 
-    if not code or not name or regular <= 0 or sale <= 0 or sale >= regular or stock <= 0:
-        return None
+    host = (p.hostname or "").lower()
+    if "memarketshop.ir" not in host and "memarket24.ir" not in host:
+        return ""
 
-    discount = (regular - sale) * 100 / regular
-    if discount < MIN_DISC:
-        return None
+    # Replace an existing seller-code path segment such as /landing/foo/4116.
+    parts = [x for x in p.path.split("/") if x]
+    if "landing" in [x.lower() for x in parts] and parts:
+        if parts[-1].isdigit():
+            parts[-1] = AFF
+            return urlunsplit((p.scheme, p.netloc, "/" + "/".join(parts), p.query, p.fragment))
+        return urlunsplit((p.scheme, p.netloc, p.path.rstrip("/") + "/" + AFF, p.query, p.fragment))
 
-    image = ""
-    for part in images.replace(",", "^").split("^"):
-        part = part.strip()
-        if part.startswith(("http://", "https://")):
-            image = part
+    # Replace an existing ?s=code / &s=code, otherwise append it.
+    query = parse_qsl(p.query, keep_blank_values=True)
+    replaced = False
+    new_query = []
+    for k, v in query:
+        if k.lower() == "s":
+            new_query.append((k, AFF))
+            replaced = True
+        else:
+            new_query.append((k, v))
+    if not replaced:
+        new_query.append(("s", AFF))
 
-    pid_num = int(as_num(pid)) if as_num(pid) > 0 else 0
-    purchase = product_url
-    if pid_num and AFF:
-        purchase = f"https://memarket24.ir/product/{pid_num}?s={AFF}"
+    return urlunsplit((p.scheme, p.netloc, p.path, urlencode(new_query), p.fragment))
 
-    if not purchase:
-        return None
+
+def extract_percent(text: str):
+    nums = []
+    for m in re.finditer(r"(\d{1,3}(?:[.,]\d{1,2})?)\s*(?:٪|%)", fa_to_en(text)):
+        try:
+            nums.append(float(m.group(1).replace(",", "")))
+        except Exception:
+            pass
+    return max(nums) if nums else 0.0
+
+
+def score_post(post):
+    text_value = post["text"]
+    low = text_value.lower()
+    percent = extract_percent(text_value)
+    score = 0
+    reasons = []
+
+    if percent >= MIN_PERCENT:
+        score += 4
+        reasons.append(f"تخفیف {percent:.0f}%")
+        if percent >= 50:
+            score += 2
+    elif any(k in low for k in ("تخفیف", "حراج", "آفر", "کاهش قیمت")):
+        score += 2
+        reasons.append("آفر/تخفیف")
+
+    if "پورسانت" in low or "کمیسیون" in low:
+        score += 2
+        reasons.append("پورسانت")
+
+    if any(k in low for k in ("فقط", "ویژه", "شگفت", "استثنایی", "پولساز")):
+        score += 1
+
+    aff_links = []
+    for u in post["links"]:
+        x = affiliate_link(u)
+        if x:
+            aff_links.append(x)
+
+    if aff_links:
+        score += 4
+
+    # General educational/support posts are not deals unless they contain a real affiliate link.
+    deal_words = ("تخفیف", "حراج", "آفر", "کاهش قیمت", "قیمت ویژه", "کمپین", "فقط", "پورسانت", "کمیسیون")
+    qualifies = score >= 7 and (percent >= MIN_PERCENT or aff_links) and any(k in low for k in deal_words)
 
     return {
-        "code": code,
-        "name": name,
-        "regular": int(regular),
-        "sale": int(sale),
-        "stock": int(stock),
-        "discount": round(discount, 1),
-        "image": image,
-        "purchase": purchase,
+        **post,
+        "score": score,
+        "percent": percent,
+        "reasons": reasons,
+        "affiliate_links": list(dict.fromkeys(aff_links)),
+        "qualifies": qualifies,
     }
 
 
-def evaluate(p, old):
-    previous_sale = as_num(old.get("sale")) if old else 0
-    drop = ((previous_sale - p["sale"]) / previous_sale * 100) if previous_sale > p["sale"] > 0 else 0
+def short_copy(post) -> str:
+    text_value = post["text"]
+    lines = [x.strip() for x in text_value.splitlines() if x.strip()]
+    # Remove repetitive footer lines that do not help the buyer.
+    filtered = []
+    for line in lines:
+        low = line.lower()
+        if any(x in low for x in ("@memarket", "@shop_memarketbiz", "@memarket_content", "@memarketcobot", "@sup_memarket")):
+            continue
+        filtered.append(line)
 
-    score = 45 if p["discount"] >= 50 else 35 if p["discount"] >= 40 else 20
-    reasons = [f"تخفیف {p['discount']:.0f}%"]
+    body = "\n".join(filtered)
+    body = body[:650].strip()
+    return body
 
-    if drop >= 15:
-        score += 30
-        reasons.append(f"افت قیمت {drop:.0f}%")
-    elif drop >= DROP:
-        score += 20
-        reasons.append(f"افت قیمت {drop:.0f}%")
 
-    if 0 < p["stock"] <= LOW_STOCK:
-        score += 12
-        reasons.append(f"موجودی {p['stock']}")
-
-    now = time.time()
-    last_alert_ts = as_num(old.get("last_alert_ts")) if old else 0
-    last_alert_sale = as_num(old.get("last_alert_sale")) if old else 0
-    cooldown_ok = now - last_alert_ts >= COOLDOWN
-    materially_lower = (
-        last_alert_sale > 0 and
-        p["sale"] <= last_alert_sale * (1 - DROP / 100)
+def telegram_request(method: str, data: dict):
+    url = f"https://api.telegram.org/bot{BOT}/{method}"
+    body = urlencode(data).encode()
+    req = Request(
+        url,
+        data=body,
+        headers={"User-Agent": "MeMarketDealRadar/2.0", "Content-Type": "application/x-www-form-urlencoded"},
+        method="POST",
     )
-
-    trigger = (
-        p["discount"] >= 40
-        or drop >= DROP
-        or (p["discount"] >= MIN_DISC and p["stock"] <= LOW_STOCK)
-    )
-    qualifies = trigger and score >= 35 and (cooldown_ok or materially_lower)
-
-    return score, reasons, drop, qualifies
+    with urlopen(req, timeout=30) as r:
+        return json.loads(r.read().decode("utf-8", "ignore"))
 
 
-def send_telegram(p, reasons, drop, score):
-    name = html.escape(p["name"])
-    caption = [
+def send_telegram(post):
+    body = html.escape(short_copy(post))
+    link = post["affiliate_links"][0]
+    source = html.escape(post["url"], quote=True)
+
+    parts = [
         "🔥 <b>آفر داغ می‌مارکت</b>",
-        f"<b>{name}</b>",
         "",
-        f"💰 <s>{p['regular']:,}</s> → <b>{p['sale']:,} ریال</b>",
-        f"🏷 تخفیف: <b>{p['discount']:.0f}%</b>",
-        "📌 " + " • ".join(html.escape(x) for x in reasons),
-    ]
-
-    if drop >= DROP:
-        caption.append(f"📉 افت قیمت مشاهده‌شده: <b>{drop:.1f}%</b>")
-    if 0 < p["stock"] <= LOW_STOCK:
-        caption.append(f"⚠️ موجودی: <b>{p['stock']}</b>")
-
-    caption += [
+        body,
         "",
-        "⚠️ درصد تخفیف بر اساس قیمت مرجع خود می‌مارکت است؛ مقایسه مستقل بازار نیست.",
-        f'🛒 <a href="{html.escape(p["purchase"], quote=True)}">مشاهده / خرید</a>',
-        f"⭐ امتیاز رادار: {score}",
     ]
-    text = "\n".join(caption)
+    if post["reasons"]:
+        parts.append("📌 " + " • ".join(html.escape(x) for x in post["reasons"]))
+    parts += [
+        "",
+        f'🛒 <a href="{html.escape(link, quote=True)}">مشاهده / خرید با لینک همکاری</a>',
+        f'🔗 <a href="{source}">منبع اصلی</a>',
+    ]
+    message = "\n".join(parts)
 
-    if p["image"]:
-        try:
-            request_json(
-                f"https://api.telegram.org/bot{BOT}/sendPhoto",
-                data={"chat_id": CHAT, "photo": p["image"], "caption": text, "parse_mode": "HTML"},
-            )
-            return
-        except Exception as exc:
-            print(f"photo send failed; fallback to message: {exc}")
-
-    request_json(
-        f"https://api.telegram.org/bot{BOT}/sendMessage",
-        data={"chat_id": CHAT, "text": text, "parse_mode": "HTML", "disable_web_page_preview": "false"},
+    if post.get("image"):
+        return telegram_request(
+            "sendPhoto",
+            {"chat_id": CHAT, "photo": post["image"], "caption": message, "parse_mode": "HTML"},
+        )
+    return telegram_request(
+        "sendMessage",
+        {"chat_id": CHAT, "text": message, "parse_mode": "HTML", "disable_web_page_preview": "false"},
     )
 
 
 def load_state():
     if not STATE.exists():
-        return {"products": {}}
+        return {"seen": [], "alerts": {}}
     try:
         data = json.loads(STATE.read_text(encoding="utf-8"))
-        if isinstance(data, dict) and isinstance(data.get("products"), dict):
+        if isinstance(data, dict):
+            data.setdefault("seen", [])
+            data.setdefault("alerts", {})
             return data
     except Exception:
         pass
-    return {"products": {}}
+    return {"seen": [], "alerts": {}}
 
 
 def save_state(state):
@@ -301,9 +279,14 @@ def save_state(state):
 
 
 def commit_state():
+    if not STATE_COMMIT or DRY_RUN:
+        return
+
     changed = subprocess.run(
         ["git", "status", "--porcelain", "--", str(STATE)],
-        capture_output=True, text=True, check=True
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.strip()
     if not changed:
         return
@@ -314,72 +297,65 @@ def commit_state():
         check=True,
     )
     subprocess.run(["git", "add", str(STATE)], check=True)
-
     if subprocess.run(["git", "diff", "--cached", "--quiet"], check=False).returncode == 0:
         return
-
-    subprocess.run(
-        ["git", "commit", "-m", "chore: update MeMarket radar state [skip ci]"],
-        check=True,
-    )
+    subprocess.run(["git", "commit", "-m", "chore: update MeMarket radar state [skip ci]"], check=True)
     subprocess.run(["git", "push"], check=True)
 
 
 def main():
-    fail_missing()
-
     state = load_state()
-    products = state["products"]
-    token = login()
-    goods = get_goods(token)
+    page = fetch(CHANNEL_URL)
+    posts = extract_posts(page)
+    if not posts:
+        raise SystemExit("No Telegram channel posts parsed.")
 
-    candidates = []
-    now = time.time()
+    print(f"channel={CHANNEL} posts={len(posts)}")
 
-    for raw in goods:
-        p = normalize(raw)
-        if not p:
-            continue
+    seen = set(str(x) for x in state.get("seen", []))
+    new_posts = [p for p in posts if p["id"] not in seen]
+    print(f"new_posts={len(new_posts)}")
 
-        old = products.get(p["code"])
-        score, reasons, drop, qualifies = evaluate(p, old)
+    candidates = [score_post(p) for p in new_posts]
+    candidates = [p for p in candidates if p["qualifies"]]
+    candidates.sort(key=lambda p: (p["score"], p["percent"]), reverse=True)
 
-        # First scan is state-building only: no spam on bootstrap.
-        if BOOTSTRAP_SILENT and old is None:
-            qualifies = False
+    for p in candidates[:10]:
+        print(
+            f"CANDIDATE id={p['id']} score={p['score']} percent={p['percent']:.0f} "
+            f"links={len(p['affiliate_links'])} reasons={' | '.join(p['reasons'])} "
+            f"text={short_copy(p)[:450]!r}"
+        )
+        if p["affiliate_links"]:
+            print("AFF_LINK", p["affiliate_links"][0])
 
-        if qualifies:
-            candidates.append((score, p, reasons, drop))
+    if not BOOTSTRAP_SILENT or seen:
+        sent = 0
+        now = time.time()
+        for p in candidates:
+            if sent >= MAX_ALERTS:
+                break
 
-        previous = products.get(p["code"], {})
-        products[p["code"]] = {
-            "regular": p["regular"],
-            "sale": p["sale"],
-            "discount": p["discount"],
-            "last_alert_ts": previous.get("last_alert_ts", 0),
-            "last_alert_sale": previous.get("last_alert_sale", 0),
-            "last_seen_ts": now,
-        }
+            old = state["alerts"].get(p["id"], {})
+            last_alert = float(old.get("ts", 0))
+            if now - last_alert < COOLDOWN:
+                continue
 
-    candidates.sort(
-        key=lambda item: (item[0], item[1]["discount"], -item[1]["sale"]),
-        reverse=True,
-    )
+            if DRY_RUN:
+                print(f"DRY_RUN would_send id={p['id']}")
+            else:
+                send_telegram(p)
 
-    sent = 0
-    for score, p, reasons, drop in candidates[:MAX_ALERTS]:
-        try:
-            send_telegram(p, reasons, drop, score)
-            products[p["code"]]["last_alert_ts"] = now
-            products[p["code"]]["last_alert_sale"] = p["sale"]
+            state["alerts"][p["id"]] = {"ts": now, "score": p["score"]}
             sent += 1
-            time.sleep(0.5)
-        except Exception as exc:
-            print(f"telegram failed code={p['code']}: {exc}", file=sys.stderr)
 
+        print(f"alerts_sent={sent}")
+    else:
+        print("bootstrap=quiet")
+
+    state["seen"] = list(dict.fromkeys([*state.get("seen", []), *[p["id"] for p in posts]]))[-MAX_SEEN:]
     save_state(state)
     commit_state()
-    print(f"goods={len(goods)} qualifying={len(candidates)} alerts_sent={sent}")
 
 
 if __name__ == "__main__":
