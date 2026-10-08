@@ -25,6 +25,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Probe MeMarket product channel
+        run: python memarket_radar/channel_probe.py
+
       - name: Run MeMarket radar
         env:
           MEMARKET_USERNAME: ${{ secrets.MEMARKET_USERNAME }}
