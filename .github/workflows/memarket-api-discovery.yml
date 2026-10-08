@@ -52,3 +52,15 @@ jobs:
                       ctx=re.sub(r'\\s+',' ',js[max(0,p-220):p+500])
                       print(ctx[:720])
           PY
+
+          echo "API_CALL_SCAN"
+          python - <<'PY2'
+          import re, urllib.request
+          req=urllib.request.Request("https://aff.memarket24.ir/_nuxt/BuKelfsT.js",headers={"User-Agent":"Mozilla/5.0"})
+          js=urllib.request.urlopen(req,timeout=30).read().decode("utf-8","ignore")
+          pat = r"api\.(?:get|post|put|patch|delete)\(\s*['\"]([^'\"]{1,220})"
+          found=set(re.findall(pat,js,re.I))
+          for x in sorted(found):
+              if any(k in x.lower() for k in ("login","good","product","commission","order","affiliate","user","auth")):
+                  print("API_CALL",x)
+          PY2
