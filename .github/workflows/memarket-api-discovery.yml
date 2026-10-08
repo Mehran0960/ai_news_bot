@@ -14,6 +14,7 @@ jobs:
       - name: Fetch panel JS
         run: |
           set -e
+          echo "probe_start=true"
           curl -fsSL -A "Mozilla/5.0" https://aff.memarket24.ir/login -o /tmp/login.html
           JS_URL=$(grep -oE '<script[^>]+src=["'"'"'][^"'"'"']+["'"'"']' /tmp/login.html | sed -E 's/.*src=["'"'"']([^"'"'"']+)["'"'"'].*/\1/' | head -n1)
           case "$JS_URL" in
