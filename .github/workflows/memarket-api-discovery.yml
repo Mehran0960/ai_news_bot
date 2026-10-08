@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - ".github/workflows/memarket-api-discovery.yml"
+      - "memarket_radar/channel_probe.py"
 
 jobs:
   discover:
