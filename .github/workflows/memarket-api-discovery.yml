@@ -1,0 +1,38 @@
+name: MeMarket API Discovery
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/memarket-api-discovery.yml"
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Fetch panel JS
+        run: |
+          set -e
+          curl -fsSL -A "Mozilla/5.0" https://aff.memarket24.ir/login -o /tmp/login.html
+          JS_URL=$(grep -oE '<script[^>]+src=["'"'"'][^"'"'"']+["'"'"']' /tmp/login.html | sed -E 's/.*src=["'"'"']([^"'"'"']+)["'"'"'].*/\1/' | head -n1)
+          case "$JS_URL" in
+            /*) JS_URL="https://aff.memarket24.ir$JS_URL" ;;
+          esac
+          echo "JS_URL=$JS_URL"
+          curl -fsSL -A "Mozilla/5.0" "$JS_URL" -o /tmp/app.js
+          echo "JS_BYTES=$(wc -c < /tmp/app.js)"
+          echo "ABS_URLS:"
+          grep -oE 'https?://[^"'''[:space:]<>]{1,220}' /tmp/app.js | sort -u | head -n 100 || true
+          echo "REL_PATHS:"
+          grep -oE '["'"'"'](/[^"'"'"']*(api|login|auth|product|goods|commission|order)[^"'"'"']*)["'"'"']' /tmp/app.js | sort -u | head -n 150 || true
+          echo "KEY_CONTEXT:"
+          python - <<'PY'
+          import re
+          s=open('/tmp/app.js',encoding='utf-8',errors='ignore').read()
+          for term in ('api','login','goods','product','commission','order','auth','token'):
+              pos=[m.start() for m in re.finditer(term,s,re.I)]
+              print("TERM",term,"COUNT",len(pos))
+              for p in pos[:3]:
+                  print(s[max(0,p-180):p+360].replace("\\n"," ")[:600])
+          PY
