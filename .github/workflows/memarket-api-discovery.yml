@@ -27,6 +27,12 @@ jobs:
           page=get("https://aff.memarket24.ir/login")
           srcs=re.findall(r'<script[^>]+src=["\']([^"\']+)',page,re.I)
           print("SCRIPTS",srcs[:10])
+          print("CONFIG_KEYS")
+          for term in ("BaseUrl","SecondaryBaseUrl","BaseUrlDomain","BASE_API"):
+              pos=[m.start() for m in re.finditer(term,page,re.I)]
+              print("PAGE_TERM",term,"COUNT",len(pos))
+              for p in pos[:5]:
+                  print(re.sub(r"\\s+"," ",page[max(0,p-250):p+500])[:900])
           for src in srcs[:10]:
               url=urljoin("https://aff.memarket24.ir/login",src)
               js=get(url)
