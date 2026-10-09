@@ -116,15 +116,24 @@ def affiliate_link(url: str) -> str:
         return ""
 
     host = (p.hostname or "").lower()
-    if not (
-        "memarketshop.ir" in host
-        or "memarket24.ir" in host
-        or host == "l.memarket.me"
-    ):
+
+    # MeMarket has announced that memarketshop/mmkt domains are retired.
+    # Never send buyers to that legacy domain, including custom subdomains.
+    if host == "memarketshop.ir" or host.endswith(".memarketshop.ir") or host == "mmkt.ir" or host.endswith(".mmkt.ir"):
         return ""
 
-    # Replace an existing seller-code path segment such as /landing/foo/4116.
+    is_memarket24 = host == "memarket24.ir" or host.endswith(".memarket24.ir")
+    is_shortlink = host == "l.memarket.me"
+    if not (is_memarket24 or is_shortlink):
+        return ""
+
+    # Current MeMarket short links encode the affiliate code in /lp/{id}/{code}.
     parts = [x for x in p.path.split("/") if x]
+    if is_shortlink and len(parts) >= 3 and parts[-1].isdigit():
+        parts[-1] = AFF
+        return urlunsplit((p.scheme, p.netloc, "/" + "/".join(parts), p.query, p.fragment))
+
+    # Replace an existing seller-code path segment such as /landing/foo/4116.
     if "landing" in [x.lower() for x in parts] and parts:
         if parts[-1].isdigit():
             parts[-1] = AFF
@@ -232,7 +241,8 @@ def score_post(post):
     )
     qualifies = (
         score >= 7
-        and (percent >= MIN_PERCENT or aff_links)
+        and bool(aff_links)  # An alert must have a verified, non-retired buyer link.
+        and (percent >= MIN_PERCENT or any(k in low for k in deal_words))
         and any(k in low for k in deal_words)
     )
 
