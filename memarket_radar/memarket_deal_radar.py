@@ -3,13 +3,15 @@ from __future__ import annotations
 
 import html
 import json
+import mimetypes
 import os
 import re
 import subprocess
+import uuid
 import sys
 import time
 from pathlib import Path
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
@@ -27,6 +29,7 @@ COOLDOWN = float(os.getenv("COOLDOWN_HOURS", "6")) * 3600
 BOOTSTRAP_SILENT = os.getenv("BOOTSTRAP_SILENT", "true").lower() == "true"
 DRY_RUN = os.getenv("DRY_RUN", "false").lower() == "true"
 STATE_COMMIT = os.getenv("STATE_COMMIT", "true").lower() == "true"
+PROBE_STOCK_ALL = os.getenv("PROBE_STOCK_ALL", "false").lower() == "true"
 MAX_SEEN = int(os.getenv("MAX_SEEN_POSTS", "500"))
 
 if not DRY_RUN:
@@ -90,8 +93,14 @@ def extract_posts(page: str):
         links = re.findall(r'<a[^>]+href=["\']([^"\']+)["\']', tm.group(1), re.I)
         links += re.findall(r'<a[^>]+href=["\']([^"\']+)["\']', block, re.I)
 
+        # Telegram post artwork is often stored as a CSS background, not an <img>.
         images = re.findall(
-            r'<img[^>]+src=["\'](https?://[^"\']+)["\']',
+            r'background-image\s*:\s*url\((?:&quot;|["\']?)(https?://[^"\')]+)',
+            block,
+            re.I,
+        )
+        images += re.findall(
+            r'<img[^>]+(?:src|data-src)=["\'](https?://[^"\']+)["\']',
             block,
             re.I,
         )
@@ -272,6 +281,258 @@ def short_copy(post) -> str:
     return body
 
 
+
+def fetch_page(url: str, timeout: int = 25):
+    """Fetch a public product/landing page and retain redirect/HTTP metadata."""
+    req = Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,*/*",
+        },
+    )
+    with urlopen(req, timeout=timeout) as r:
+        body = r.read(3_000_001)
+        if len(body) > 3_000_000:
+            raise RuntimeError("page too large")
+        return r.status, r.geturl(), r.headers.get("Content-Type", ""), body.decode("utf-8", "ignore")
+
+
+def _meta_values(page: str):
+    values = {}
+    for tag in re.findall(r"(?is)<meta\b[^>]*>", page):
+        attrs = {}
+        for m in re.finditer(r"""([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", tag):
+            attrs[m.group(1).lower()] = next((g for g in m.groups()[1:] if g is not None), "")
+        key = (attrs.get("property") or attrs.get("name") or attrs.get("itemprop") or "").lower()
+        if key and attrs.get("content"):
+            values[key] = html.unescape(attrs["content"])
+    return values
+
+
+def _stock_signals(page: str):
+    """Return IN_STOCK, OUT_OF_STOCK, or UNKNOWN; fail closed on ambiguity."""
+    lower = html.unescape(page).lower()
+    structured_statuses = []
+    for chunk in re.findall(
+        r'(?is)<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        page,
+    ):
+        try:
+            obj = json.loads(html.unescape(chunk))
+        except Exception:
+            continue
+
+        def walk(value):
+            if isinstance(value, dict):
+                for k, v in value.items():
+                    if str(k).lower() == "availability":
+                        structured_statuses.append(str(v).lower())
+                    walk(v)
+            elif isinstance(value, list):
+                for v in value:
+                    walk(v)
+        walk(obj)
+
+    joined_status = " ".join(structured_statuses)
+    if any(x in joined_status for x in ("outofstock", "soldout", "discontinued", "preorder")):
+        return "OUT_OF_STOCK"
+    if any(x in joined_status for x in ("instock", "limitedavailability", "onlineonly")):
+        return "IN_STOCK"
+
+    visible_html = re.sub(r"(?is)<script\b.*?</script>|<style\b.*?</style>", " ", page)
+    visible = clean_text(visible_html).lower()
+    visible = visible.replace("ي", "ی").replace("ك", "ک")
+    negative = (
+        r"ناموجود",
+        r"اتمام\s*موجودی",
+        r"موجودی\s+(?:ندارد|تمام\s*شده|به\s*پایان\s*رسیده)",
+        r"در\s*حال\s*حاضر.{0,30}(?:موجود\s*نیست|قابل\s*سفارش\s*نیست)",
+        r"قابل\s*سفارش\s*نیست",
+        r"موقتا.{0,20}ناموجود",
+        r"out\s*of\s*stock",
+        r"sold\s*out",
+    )
+    if any(re.search(p, visible, re.I) for p in negative):
+        return "OUT_OF_STOCK"
+
+    positive = (
+        r"موجود\s*در\s*انبار",
+        r"در\s*انبار\s*موجود\s*است",
+        r"افزودن\s*به\s*سبد\s*خرید",
+        r"افزودن\s*به\s*سبد",
+        r"add\s*to\s*cart",
+        r"add\s*to\s*basket",
+    )
+    if any(re.search(p, visible, re.I) for p in positive):
+        return "IN_STOCK"
+
+    if re.search(r'"(?:isAvailable|available)"\s*:\s*true', lower):
+        return "IN_STOCK"
+    if re.search(r'"(?:isAvailable|available)"\s*:\s*false', lower):
+        return "OUT_OF_STOCK"
+    if re.search(r'"(?:stockQuantity|quantity|inventory)"\s*:\s*0(?:\D|$)', lower):
+        return "OUT_OF_STOCK"
+    return "UNKNOWN"
+
+
+def _product_urls_in_page(page: str, base_url: str):
+    urls = []
+    for raw in re.findall(r'(?is)<a\b[^>]*\bhref\s*=\s*["\']([^"\']+)["\']', page):
+        u = urljoin(base_url, html.unescape(raw))
+        try:
+            p = urlsplit(u)
+        except Exception:
+            continue
+        host = (p.hostname or "").lower()
+        if (host == "memarket24.ir" or host.endswith(".memarket24.ir")) and re.search(r"/product/\d+", p.path, re.I):
+            normalized = affiliate_link(u)
+            urls.append(normalized or u)
+    return list(dict.fromkeys(urls))
+
+
+def _product_image_and_title(page: str, base_url: str):
+    meta = _meta_values(page)
+    image = meta.get("og:image") or meta.get("twitter:image") or meta.get("twitter:image:src") or ""
+    title = meta.get("og:title") or meta.get("twitter:title") or meta.get("title") or ""
+
+    if not title:
+        hm = re.search(r"(?is)<h1\b[^>]*>(.*?)</h1>", page)
+        if hm:
+            title = clean_text(hm.group(1))[:140]
+
+    image_candidates = [image]
+    for tag in re.findall(r"(?is)<img\b[^>]*>", page):
+        attrs = {}
+        for m in re.finditer(r"""([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", tag):
+            attrs[m.group(1).lower()] = next((g for g in m.groups()[1:] if g is not None), "")
+        candidate = attrs.get("data-zoom-image") or attrs.get("data-src") or attrs.get("src") or ""
+        hint = (candidate + " " + attrs.get("alt", "") + " " + attrs.get("class", "")).lower()
+        if candidate and not any(x in hint for x in ("logo", "avatar", "icon", "placeholder", "payment", "banner-logo")):
+            image_candidates.append(candidate)
+
+    for candidate in image_candidates:
+        if not candidate:
+            continue
+        candidate = urljoin(base_url, html.unescape(candidate))
+        if candidate.startswith(("https://", "http://")):
+            return candidate, html.unescape(title).strip()[:140]
+    return "", html.unescape(title).strip()[:140]
+
+
+def verify_offer_stock(post: dict):
+    """Resolve a deal to a public product page; only return sendable if stock is explicit."""
+    product_urls = []
+    for raw in post.get("links", []):
+        try:
+            p = urlsplit(raw)
+        except Exception:
+            continue
+        host = (p.hostname or "").lower()
+        if (host == "memarket24.ir" or host.endswith(".memarket24.ir")) and re.search(r"/product/\d+", p.path, re.I):
+            product_urls.append(affiliate_link(raw) or raw)
+
+    if not product_urls:
+        for landing in post.get("affiliate_links", [])[:2]:
+            try:
+                _, final_url, _, landing_html = fetch_page(landing)
+                if re.search(r"/product/\d+", urlsplit(final_url).path, re.I):
+                    product_urls.append(affiliate_link(final_url) or final_url)
+                product_urls.extend(_product_urls_in_page(landing_html, final_url))
+            except Exception as exc:
+                print(f"LANDING_CHECK_FAILED url={landing.split('?')[0]} error={type(exc).__name__}")
+
+    product_urls = list(dict.fromkeys(product_urls))[:5]
+    if not product_urls:
+        return {"ok": False, "status": "UNKNOWN", "reason": "no concrete product page found"}
+
+    saw_out = False
+    for product_url in product_urls:
+        try:
+            status_code, final_url, _, page = fetch_page(product_url)
+        except Exception as exc:
+            print(f"PRODUCT_CHECK_FAILED url={product_url.split('?')[0]} error={type(exc).__name__}")
+            continue
+        if status_code < 200 or status_code >= 300:
+            saw_out = True
+            print(f"PRODUCT_STATUS url={product_url.split('?')[0]} result=HTTP_{status_code}")
+            continue
+
+        stock = _stock_signals(page)
+        if stock == "OUT_OF_STOCK":
+            saw_out = True
+            print(f"PRODUCT_STATUS url={final_url.split('?')[0]} result=OUT_OF_STOCK")
+            continue
+        if stock != "IN_STOCK":
+            print(f"PRODUCT_STATUS url={final_url.split('?')[0]} result=UNKNOWN")
+            continue
+
+        product_image, title = _product_image_and_title(page, final_url)
+        buyer_link = affiliate_link(final_url) or affiliate_link(product_url) or product_url
+        return {
+            "ok": True,
+            "status": "IN_STOCK",
+            "product_url": buyer_link,
+            "product_image": product_image or post.get("image", ""),
+            "product_title": title,
+            "reason": "explicit in-stock signal",
+        }
+
+    return {
+        "ok": False,
+        "status": "OUT_OF_STOCK" if saw_out else "UNKNOWN",
+        "reason": "no product with a verifiable in-stock signal",
+    }
+
+
+def upload_telegram_photo(image_url: str, caption: str):
+    """Download the picture on the runner and upload bytes; Telegram URL-fetch often fails."""
+    image_req = Request(
+        image_url,
+        headers={
+            "User-Agent": "Mozilla/5.0 MeMarketDealRadar/2.0",
+            "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+        },
+    )
+    with urlopen(image_req, timeout=30) as r:
+        mime = (r.headers.get("Content-Type") or "image/jpeg").split(";", 1)[0].strip().lower()
+        data = r.read(10 * 1024 * 1024 + 1)
+    if len(data) > 10 * 1024 * 1024:
+        raise RuntimeError("image larger than Telegram photo limit")
+    if not mime.startswith("image/") or not data:
+        raise RuntimeError(f"image URL did not return image bytes (content-type={mime})")
+
+    boundary = "----MeMarketRadar" + uuid.uuid4().hex
+    fields = {"chat_id": CHAT, "caption": caption, "parse_mode": "HTML"}
+    chunks = []
+    for key, value in fields.items():
+        chunks.append(f"--{boundary}\r\n".encode())
+        chunks.append(f'Content-Disposition: form-data; name="{key}"\r\n\r\n'.encode())
+        chunks.append(str(value).encode("utf-8"))
+        chunks.append(b"\r\n")
+    ext = mimetypes.guess_extension(mime) or ".jpg"
+    if ext == ".jpe":
+        ext = ".jpg"
+    chunks.append(f"--{boundary}\r\n".encode())
+    chunks.append(f'Content-Disposition: form-data; name="photo"; filename="memarket-product{ext}"\r\n'.encode())
+    chunks.append(f"Content-Type: {mime}\r\n\r\n".encode())
+    chunks.append(data)
+    chunks.append(b"\r\n")
+    chunks.append(f"--{boundary}--\r\n".encode())
+    request = Request(
+        f"https://api.telegram.org/bot{BOT}/sendPhoto",
+        data=b"".join(chunks),
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}", "User-Agent": "MeMarketDealRadar/2.0"},
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=45) as r:
+            return json.loads(r.read().decode("utf-8", "ignore"))
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8", "ignore")
+        raise RuntimeError(f"Telegram sendPhoto upload HTTP {exc.code}: {detail[:700]}") from exc
+
+
 def telegram_request(method: str, data: dict):
     url = f"https://api.telegram.org/bot{BOT}/{method}"
     body = urlencode(data).encode()
@@ -290,33 +551,30 @@ def telegram_request(method: str, data: dict):
 
 
 def send_telegram(post):
-    body = html.escape(short_copy(post))
-    link = post["affiliate_links"][0]
+    body = html.escape(short_copy(post)[:430])
+    link = post.get("product_url") or post["affiliate_links"][0]
     source = html.escape(post["url"], quote=True)
+    product_title = html.escape((post.get("product_title") or "").strip())
 
-    parts = [
-        "🔥 <b>آفر داغ می‌مارکت</b>",
-        "",
-        body,
-        "",
-    ]
+    parts = ["🔥 <b>آفر داغ می‌مارکت</b>"]
+    if product_title:
+        parts += ["", f"🛍️ <b>{product_title}</b>"]
+    parts += ["", body]
     if post["reasons"]:
-        parts.append("📌 " + " • ".join(html.escape(x) for x in post["reasons"]))
+        parts += ["", "📌 " + " • ".join(html.escape(x) for x in post["reasons"])]
     parts += [
         "",
         f'🛒 <a href="{html.escape(link, quote=True)}">مشاهده / خرید با لینک همکاری</a>',
         f'🔗 <a href="{source}">منبع اصلی</a>',
     ]
     message = "\n".join(parts)
+    photo = post.get("product_image") or post.get("image") or ""
 
-    if post.get("image"):
+    if photo:
         try:
-            return telegram_request(
-                "sendPhoto",
-                {"chat_id": CHAT, "photo": post["image"], "caption": message, "parse_mode": "HTML"},
-            )
+            return upload_telegram_photo(photo, message)
         except Exception as exc:
-            print(f"photo_send_failed_fallback={exc}", file=sys.stderr)
+            print(f"photo_upload_failed_fallback_to_link_preview={type(exc).__name__}: {exc}", file=sys.stderr)
 
     return telegram_request(
         "sendMessage",
@@ -384,6 +642,19 @@ def main():
     new_posts = [p for p in posts if p["id"] not in seen]
     print(f"new_posts={len(new_posts)}")
 
+    # Optional one-time probe verifies stock for already-seen examples without reposting them.
+    if PROBE_STOCK_ALL:
+        probe_posts = [score_post(p) for p in posts]
+        probe_candidates = [p for p in probe_posts if p.get("qualifies")]
+        probe_candidates.sort(key=lambda p: (p["score"], p["percent"]), reverse=True)
+        for p in probe_candidates[:3]:
+            outcome = verify_offer_stock(p)
+            print(
+                f"STOCK_PROBE id={p['id']} status={outcome['status']} "
+                f"reason={outcome['reason']} image={'yes' if outcome.get('product_image') else 'no'}"
+            )
+        print(f"stock_probe_count={min(3, len(probe_candidates))}")
+
     scored_posts = [score_post(p) for p in new_posts]
     for p in scored_posts:
         if p.get("filtered_reason"):
@@ -397,8 +668,6 @@ def main():
             f"links={len(p['affiliate_links'])} reasons={' | '.join(p['reasons'])} "
             f"text={short_copy(p)[:450]!r}"
         )
-        if p["affiliate_links"]:
-            print("AFF_LINK", p["affiliate_links"][0])
 
     if not BOOTSTRAP_SILENT or seen:
         sent = 0
@@ -412,10 +681,34 @@ def main():
             if now - last_alert < COOLDOWN:
                 continue
 
+            product_check = verify_offer_stock(p)
+            if not product_check.get("ok"):
+                print(
+                    f"SKIP_STOCK id={p['id']} status={product_check['status']} "
+                    f"reason={product_check['reason']}"
+                )
+                state["seen"].append(str(p["id"]))
+                continue
+
+            p.update(product_check)
+            if not p.get("product_image"):
+                print(f"SKIP_NO_IMAGE id={p['id']} product={p.get('product_title', '')!r}")
+                state["seen"].append(str(p["id"]))
+                continue
+
             if DRY_RUN:
-                print(f"DRY_RUN would_send id={p['id']}")
+                print(
+                    f"DRY_RUN would_send id={p['id']} stock={p['status']} "
+                    f"product={p.get('product_title', '')!r} image=yes"
+                )
             else:
-                send_telegram(p)
+                result = send_telegram(p)
+                if isinstance(result, dict) and result.get("ok") is False:
+                    raise RuntimeError("Telegram returned ok=false for an alert")
+                print(
+                    f"SENT id={p['id']} stock={p['status']} "
+                    f"product={p.get('product_title', '')!r} image=yes"
+                )
 
             state["alerts"][p["id"]] = {"ts": now, "score": p["score"]}
             sent += 1
