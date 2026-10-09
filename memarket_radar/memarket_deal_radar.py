@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import datetime as dt
 import html
 import json
 import mimetypes
@@ -30,6 +31,8 @@ BOOTSTRAP_SILENT = os.getenv("BOOTSTRAP_SILENT", "true").lower() == "true"
 DRY_RUN = os.getenv("DRY_RUN", "false").lower() == "true"
 STATE_COMMIT = os.getenv("STATE_COMMIT", "true").lower() == "true"
 MAX_SEEN = int(os.getenv("MAX_SEEN_POSTS", "500"))
+MAX_POST_AGE_HOURS = float(os.getenv("MAX_POST_AGE_HOURS", "72"))
+PENDING_RETRY_HOURS = float(os.getenv("PENDING_RETRY_HOURS", "6"))
 
 if not DRY_RUN:
     for n, v in {
@@ -104,6 +107,16 @@ def extract_posts(page: str):
             re.I,
         )
 
+        published_ts = None
+        date_match = re.search(r'<time\b[^>]*datetime=["\']([^"\']+)["\']', block, re.I)
+        if date_match:
+            try:
+                published_ts = dt.datetime.fromisoformat(
+                    date_match.group(1).strip().replace("Z", "+00:00")
+                ).timestamp()
+            except (ValueError, OverflowError):
+                published_ts = None
+
         post_id = post_key.rsplit("/", 1)[-1]
         posts.append({
             "id": post_id,
@@ -112,6 +125,7 @@ def extract_posts(page: str):
             "text": text_value,
             "links": list(dict.fromkeys(links)),
             "image": images[0] if images else "",
+            "published_ts": published_ts,
         })
 
     return posts
@@ -176,7 +190,6 @@ def extract_percent(text: str):
 
 MARKETER_ONLY_PATTERNS = [
     ("وبمستر/بازاریاب", r"وب\s*مستر|بازاریاب"),
-    ("پورسانت یا کمیسیون همکاران", r"پورسانت|کمیسیون"),
     ("تارگت فروش همکاران", r"تارگت"),
     ("جذب یا ثبت‌نام همکار", r"جذب.{0,20}(?:همکار|بازاریاب)|ثبت\s*نام.{0,25}(?:همکاری|بازاریاب)"),
     ("پیام مخصوص همکاران", r"همکاران\s+(?:عزیز|محترم)|بات\s+همکار"),
@@ -247,11 +260,13 @@ def score_post(post):
         "تخفیف", "حراج", "آفر", "کاهش قیمت", "قیمت ویژه",
         "کمپین", "فقط", "شگفت", "استثنایی"
     )
+    # Require a shopper-directed CTA, not just discount/commission talk.
     qualifies = (
         score >= 7
-        and bool(aff_links)  # An alert must have a verified, non-retired buyer link.
+        and bool(aff_links)
         and (percent >= MIN_PERCENT or any(k in low for k in deal_words))
         and any(k in low for k in deal_words)
+        and has_buyer_cta(text_value)
     )
 
     return {
@@ -265,19 +280,53 @@ def score_post(post):
     }
 
 def short_copy(post) -> str:
-    text_value = post["text"]
-    lines = [x.strip() for x in text_value.splitlines() if x.strip()]
-    # Remove repetitive footer lines that do not help the buyer.
+    lines = [x.strip() for x in post["text"].splitlines() if x.strip()]
     filtered = []
     for line in lines:
-        low = line.lower()
-        if any(x in low for x in ("@memarket", "@shop_memarketbiz", "@memarket_content", "@memarketcobot", "@sup_memarket")):
+        normalized = line.replace("ي", "ی").replace("ك", "ک").lower()
+        # Remove affiliate-specific code instructions and channel footers from customer copy.
+        if re.search(
+            r"به\s*جای\s*کد|جای\s*کد.{0,30}(?:خودتون|خودتان|همکاری)|"
+            r"کد\s*همکاری\s*(?:خودتون|خودتان)|"
+            r"لطفا.{0,30}(?:کد\s*4116|کد\s*همکاری)",
+            normalized,
+            re.I,
+        ):
+            continue
+        if any(x in normalized for x in (
+            "@memarket", "@shop_memarketbiz", "@memarket_content",
+            "@memarketcobot", "@sup_memarket"
+        )):
             continue
         filtered.append(line)
+    return "\n".join(filtered)[:550].strip()
 
-    body = "\n".join(filtered)
-    body = body[:650].strip()
-    return body
+
+BUYER_CTA_PATTERNS = [
+    r"برای\s+(?:دیدن|مشاهده|خرید)\s+(?:محصولات?|این|همین|محصولات?\s+تخفیفی)?",
+    r"برای\s+خرید\s+بزن",
+    r"بزن\s+رو\s+لینک",
+    r"همین\s+(?:الان|حالا)\s+(?:ببین|خرید|سفارش|مشاهده)",
+    r"(?:همین\s+الان\s+)?خرید\s+کن(?:ید)?",
+    r"مشاهده\s+(?:محصول|محصولات|قیمت)",
+    r"لینک\s+خرید",
+    r"سفارش\s+(?:بده|بدید|ثبت\s+کن)",
+    r"این\s+(?:تخفیف|محصول)\s+(?:مال\s+تو|رو\s+از\s+دست\s+نده)",
+]
+
+
+def has_buyer_cta(text_value: str) -> bool:
+    normalized = text_value.replace("ي", "ی").replace("ك", "ک")
+    normalized = re.sub(r"[\u200c\u200d]", " ", normalized)
+    return any(re.search(pattern, normalized, re.I) for pattern in BUYER_CTA_PATTERNS)
+
+
+def post_is_recent(post: dict, now: float) -> bool:
+    published_ts = post.get("published_ts")
+    if not isinstance(published_ts, (int, float)):
+        return False
+    age_hours = (now - float(published_ts)) / 3600
+    return -0.25 <= age_hours <= MAX_POST_AGE_HOURS
 
 
 
@@ -682,62 +731,106 @@ def commit_state():
 
 def main():
     state = load_state()
+    state.setdefault("pending_stock", {})
+    if not isinstance(state["pending_stock"], dict):
+        state["pending_stock"] = {}
+
     page = fetch(CHANNEL_URL)
     posts = extract_posts(page)
     if not posts:
         raise SystemExit("No Telegram channel posts parsed.")
 
+    now = time.time()
     print(f"channel={CHANNEL} posts={len(posts)}")
     print("stock_verification=fail_closed_explicit_signal_required")
 
     seen = set(str(x) for x in state.get("seen", []))
-    new_posts = [p for p in posts if p["id"] not in seen]
-    print(f"new_posts={len(new_posts)}")
+    pending = state["pending_stock"]
+    current_ids = {str(p["id"]) for p in posts}
 
-    scored_posts = [score_post(p) for p in new_posts]
+    for pid in list(pending):
+        entry = pending.get(pid, {})
+        first_seen = float(entry.get("first_seen", now))
+        if pid not in current_ids or now - first_seen > MAX_POST_AGE_HOURS * 3600:
+            pending.pop(pid, None)
+
+    eligible_posts = []
+    for p in posts:
+        pid = str(p["id"])
+        if not post_is_recent(p, now):
+            if pid not in seen:
+                print(f"SKIP_STALE_OR_UNDATED id={pid}")
+            pending.pop(pid, None)
+            continue
+
+        if pid in pending:
+            last_checked = float(pending[pid].get("last_checked", 0))
+            if now - last_checked >= PENDING_RETRY_HOURS * 3600:
+                eligible_posts.append(p)
+        elif pid not in seen:
+            eligible_posts.append(p)
+
+    print(f"new_or_due_posts={len(eligible_posts)} pending_stock={len(pending)}")
+
+    scored_posts = [score_post(p) for p in eligible_posts]
     for p in scored_posts:
         if p.get("filtered_reason"):
             print(f"FILTERED_MARKETER_POST id={p['id']} reason={p['filtered_reason']}")
+        elif not has_buyer_cta(p["text"]):
+            print(f"FILTERED_NO_BUYER_CTA id={p['id']}")
+
     candidates = [p for p in scored_posts if p["qualifies"]]
     candidates.sort(key=lambda p: (p["score"], p["percent"]), reverse=True)
 
     for p in candidates[:10]:
+        age = (now - float(p["published_ts"])) / 3600
         print(
-            f"CANDIDATE id={p['id']} score={p['score']} percent={p['percent']:.0f} "
-            f"links={len(p['affiliate_links'])} reasons={' | '.join(p['reasons'])} "
-            f"text={short_copy(p)[:450]!r}"
+            f"CANDIDATE id={p['id']} age_hours={age:.1f} score={p['score']} "
+            f"percent={p['percent']:.0f} links={len(p['affiliate_links'])} "
+            f"reasons={' | '.join(p['reasons'])} text={short_copy(p)[:350]!r}"
         )
 
     if not BOOTSTRAP_SILENT or seen:
         sent = 0
-        now = time.time()
         for p in candidates:
             if sent >= MAX_ALERTS:
                 break
 
-            old = state["alerts"].get(p["id"], {})
+            pid = str(p["id"])
+            old = state["alerts"].get(pid, {})
             last_alert = float(old.get("ts", 0))
             if now - last_alert < COOLDOWN:
+                pending.pop(pid, None)
                 continue
 
             product_check = verify_offer_stock(p)
             if not product_check.get("ok"):
                 print(
-                    f"SKIP_STOCK id={p['id']} status={product_check['status']} "
+                    f"SKIP_STOCK id={pid} status={product_check['status']} "
                     f"reason={product_check['reason']}"
                 )
-                state["seen"].append(str(p["id"]))
+                pending[pid] = {
+                    "first_seen": float(pending.get(pid, {}).get("first_seen", now)),
+                    "last_checked": now,
+                    "last_status": product_check["status"],
+                    "last_reason": product_check["reason"],
+                }
                 continue
 
             p.update(product_check)
             if not p.get("product_image"):
-                print(f"SKIP_NO_IMAGE id={p['id']} product={p.get('product_title', '')!r}")
-                state["seen"].append(str(p["id"]))
+                print(f"SKIP_NO_IMAGE id={pid}; will retry while offer is fresh")
+                pending[pid] = {
+                    "first_seen": float(pending.get(pid, {}).get("first_seen", now)),
+                    "last_checked": now,
+                    "last_status": "IN_STOCK_NO_IMAGE",
+                    "last_reason": "no usable product/offer image",
+                }
                 continue
 
             if DRY_RUN:
                 print(
-                    f"DRY_RUN would_send id={p['id']} stock={p['status']} "
+                    f"DRY_RUN would_send id={pid} stock={p['status']} "
                     f"product={p.get('product_title', '')!r} image=yes"
                 )
             else:
@@ -745,18 +838,19 @@ def main():
                 if isinstance(result, dict) and result.get("ok") is False:
                     raise RuntimeError("Telegram returned ok=false for an alert")
                 print(
-                    f"SENT id={p['id']} stock={p['status']} "
+                    f"SENT id={pid} stock={p['status']} "
                     f"product={p.get('product_title', '')!r} image=yes"
                 )
 
-            state["alerts"][p["id"]] = {"ts": now, "score": p["score"]}
+            state["alerts"][pid] = {"ts": now, "score": p["score"]}
+            pending.pop(pid, None)
             sent += 1
 
         print(f"alerts_sent={sent}")
     else:
         print("bootstrap=quiet")
 
-    state["seen"] = list(dict.fromkeys([*state.get("seen", []), *[p["id"] for p in posts]]))[-MAX_SEEN:]
+    state["seen"] = list(dict.fromkeys([*state.get("seen", []), *[str(p["id"]) for p in posts]]))[-MAX_SEEN:]
     save_state(state)
     commit_state()
 
