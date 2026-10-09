@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Compile production script and inspect public catalog endpoints
+      - name: Inspect current product API paths and parameters
         run: python -m py_compile memarket_radar/memarket_deal_radar.py
       - name: Analyze current public feed and test filters (including official product channel)
         env:
