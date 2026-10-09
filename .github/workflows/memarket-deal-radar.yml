@@ -1,6 +1,10 @@
 name: MeMarket Deal Radar
 
 on:
+  push:
+    paths:
+      - "memarket_radar/memarket_deal_radar.py"
+      - ".github/workflows/memarket-deal-radar.yml"
   workflow_dispatch:
   schedule:
     - cron: "7,22,37,52 * * * *"
@@ -27,4 +31,6 @@ jobs:
           MEMARKET_AFFILIATE_CODE: ${{ secrets.MEMARKET_AFFILIATE_CODE }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PROBE_STOCK_ALL: "true"
+          PROBE_REPORT_TELEGRAM: "true"
         run: python memarket_radar/memarket_deal_radar.py
