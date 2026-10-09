@@ -607,6 +607,13 @@ def send_telegram(post):
     for photo in photo_candidates:
         if not photo:
             continue
+        host = (urlsplit(photo).hostname or "").lower()
+        if (
+            host == "mmkt.ir" or host.endswith(".mmkt.ir")
+            or host == "memarketshop.ir" or host.endswith(".memarketshop.ir")
+        ):
+            print("photo_source_skipped_retired_host=" + host, file=sys.stderr)
+            continue
         try:
             result = upload_telegram_photo(photo, message)
             if isinstance(result, dict) and result.get("ok") is False:
