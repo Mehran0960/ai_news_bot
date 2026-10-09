@@ -42,6 +42,31 @@ def main():
             f"images={1 if p.get('image') else 0} aff_links={len(checked['affiliate_links'])}"
         )
 
+    shop_html = radar.fetch("https://t.me/s/shop_memarketbiz")
+    shop_posts = radar.extract_posts(shop_html)
+    shop_dated = [p for p in shop_posts if p.get("published_ts") is not None]
+    shop_recent = [p for p in shop_posts if radar.post_is_recent(p, now)]
+    print(
+        f"SHOP_FEED posts={len(shop_posts)} dated={len(shop_dated)} "
+        f"recent_72h={len(shop_recent)}"
+    )
+    for p in shop_posts[-12:]:
+        ts = p.get("published_ts")
+        age = round((now - ts) / 3600, 1) if ts else "UNKNOWN"
+        links = []
+        for raw in p["links"]:
+            try:
+                host = __import__("urllib.parse", fromlist=["urlsplit"]).urlsplit(raw).hostname or ""
+                if host.endswith("memarket24.ir") or host == "l.memarket.me":
+                    links.append(host)
+            except Exception:
+                pass
+        print(
+            f"SHOP_POST id={p['id']} age_hours={age} text={p['text'][:160]!r} "
+            f"links={len(links)} image={'yes' if p.get('image') else 'no'} "
+            f"codes={','.join(__import__('re').findall(r'\\b[a-z]{1,3}-[a-z0-9]{3,}\\b', p['text'], __import__('re').I)[:3])}"
+        )
+
     promo = base_post(
         "بیش از ۵۰٪ تخفیف روی محصولات منتخب. برای خرید بزن رو لینک 👇",
     )
