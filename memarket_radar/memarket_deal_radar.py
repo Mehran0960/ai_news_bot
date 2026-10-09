@@ -599,14 +599,27 @@ def send_telegram(post):
         f'🔗 <a href="{source}">منبع اصلی</a>',
     ]
     message = "\n".join(parts)
-    photo = post.get("product_image") or post.get("image") or ""
 
-    if photo:
+    photo_candidates = list(dict.fromkeys([
+        post.get("product_image") or "",
+        post.get("image") or "",
+    ]))
+    for photo in photo_candidates:
+        if not photo:
+            continue
         try:
-            return upload_telegram_photo(photo, message)
+            result = upload_telegram_photo(photo, message)
+            if isinstance(result, dict) and result.get("ok") is False:
+                raise RuntimeError("Telegram returned ok=false for sendPhoto")
+            return result
         except Exception as exc:
-            print(f"photo_upload_failed_fallback_to_link_preview={type(exc).__name__}: {exc}", file=sys.stderr)
+            host = urlsplit(photo).hostname or "unknown-host"
+            print(
+                f"photo_upload_failed host={host} error={type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
 
+    # If neither image source can be uploaded, preserve a clickable preview but never fake success.
     return telegram_request(
         "sendMessage",
         {"chat_id": CHAT, "text": message, "parse_mode": "HTML", "disable_web_page_preview": "false"},
