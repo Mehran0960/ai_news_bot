@@ -157,10 +157,55 @@ def extract_percent(text: str):
     return max(nums) if nums else 0.0
 
 
+MARKETER_ONLY_PATTERNS = [
+    ("وبمستر/بازاریاب", r"وب\s*مستر|بازاریاب"),
+    ("پورسانت یا کمیسیون همکاران", r"پورسانت|کمیسیون"),
+    ("تارگت فروش همکاران", r"تارگت"),
+    ("جذب یا ثبت‌نام همکار", r"جذب.{0,20}(?:همکار|بازاریاب)|ثبت\s*نام.{0,25}(?:همکاری|بازاریاب)"),
+    ("پیام مخصوص همکاران", r"همکاران\s+(?:عزیز|محترم)|بات\s+همکار"),
+    ("تبلیغ و جذب سفارش", r"تبلیغ\s+کن(?:ی)?\s+و\s+سفارش\s+بگیر|مخاطبات|مشتریهات"),
+    ("دریافت محتوای تبلیغاتی", r"دریافت\s+کاور|کاور\s+تبلیغی|ویدئوی?\s+هر\s+محصول"),
+    ("اطلاعیه پنل یا تسویه همکاران", r"پشتیبان\s+اختصاصی|شماره\s+شبای?\s+خود|تغییر\s+آدرس.{0,20}پنل"),
+    ("پاداش وابسته به عملکرد فروش", r"(?:پاداش|جایزه).{0,50}(?:فروش|همکار|سفارش)|(?:فروش|همکار|سفارش).{0,50}(?:پاداش|جایزه)"),
+    ("دعوت به کسب درآمد", r"اولین\s+درآمد|درآمد\s+آنلاین|کسب\s+درآمد"),
+]
+
+
+def marketing_only_reason(text: str) -> str:
+    normalized = text.replace("ي", "ی").replace("ك", "ک")
+    normalized = re.sub(r"[\u200c\u200d]", " ", normalized)
+    for reason, pattern in MARKETER_ONLY_PATTERNS:
+        if re.search(pattern, normalized, flags=re.I):
+            return reason
+    return ""
+
+
 def score_post(post):
     text_value = post["text"]
     low = text_value.lower()
     percent = extract_percent(text_value)
+
+    aff_links = []
+    for u in post["links"]:
+        x = affiliate_link(u)
+        if x:
+            aff_links.append(x)
+    aff_links = list(dict.fromkeys(aff_links))
+
+    # Do not send affiliate recruitment, commission, dashboard, or marketer-instruction
+    # messages to the buyer-facing deal feed, even if they mention discounts or links.
+    filtered_reason = marketing_only_reason(text_value)
+    if filtered_reason:
+        return {
+            **post,
+            "score": 0,
+            "percent": percent,
+            "reasons": [],
+            "affiliate_links": aff_links,
+            "qualifies": False,
+            "filtered_reason": filtered_reason,
+        }
+
     score = 0
     reasons = []
 
@@ -173,35 +218,33 @@ def score_post(post):
         score += 2
         reasons.append("آفر/تخفیف")
 
-    if "پورسانت" in low or "کمیسیون" in low:
-        score += 2
-        reasons.append("پورسانت")
-
     if any(k in low for k in ("فقط", "ویژه", "شگفت", "استثنایی", "پولساز")):
         score += 1
-
-    aff_links = []
-    for u in post["links"]:
-        x = affiliate_link(u)
-        if x:
-            aff_links.append(x)
 
     if aff_links:
         score += 4
 
-    # General educational/support posts are not deals unless they contain a real affiliate link.
-    deal_words = ("تخفیف", "حراج", "آفر", "کاهش قیمت", "قیمت ویژه", "کمپین", "فقط", "پورسانت", "کمیسیون")
-    qualifies = score >= 7 and (percent >= MIN_PERCENT or aff_links) and any(k in low for k in deal_words)
+    # Qualification is now buyer-oriented: posts explicitly aimed at marketers
+    # are removed before scoring, and a real offer/link is still required.
+    deal_words = (
+        "تخفیف", "حراج", "آفر", "کاهش قیمت", "قیمت ویژه",
+        "کمپین", "فقط", "شگفت", "استثنایی"
+    )
+    qualifies = (
+        score >= 7
+        and (percent >= MIN_PERCENT or aff_links)
+        and any(k in low for k in deal_words)
+    )
 
     return {
         **post,
         "score": score,
         "percent": percent,
         "reasons": reasons,
-        "affiliate_links": list(dict.fromkeys(aff_links)),
+        "affiliate_links": aff_links,
         "qualifies": qualifies,
+        "filtered_reason": "",
     }
-
 
 def short_copy(post) -> str:
     text_value = post["text"]
@@ -331,8 +374,11 @@ def main():
     new_posts = [p for p in posts if p["id"] not in seen]
     print(f"new_posts={len(new_posts)}")
 
-    candidates = [score_post(p) for p in new_posts]
-    candidates = [p for p in candidates if p["qualifies"]]
+    scored_posts = [score_post(p) for p in new_posts]
+    for p in scored_posts:
+        if p.get("filtered_reason"):
+            print(f"FILTERED_MARKETER_POST id={p['id']} reason={p['filtered_reason']}")
+    candidates = [p for p in scored_posts if p["qualifies"]]
     candidates.sort(key=lambda p: (p["score"], p["percent"]), reverse=True)
 
     for p in candidates[:10]:
