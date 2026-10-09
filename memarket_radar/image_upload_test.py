@@ -9,6 +9,12 @@ import memarket_deal_radar as radar
 
 
 def main():
+    me = radar.telegram_request("getMe", {})
+    if not isinstance(me, dict) or me.get("ok") is not True:
+        print("TELEGRAM_PREFLIGHT=failed (token/API response rejected)", flush=True)
+        raise SystemExit("Telegram bot token/API preflight failed.")
+    print("TELEGRAM_PREFLIGHT=passed", flush=True)
+
     posts = radar.extract_posts(radar.fetch(radar.CHANNEL_URL))
     scored = [radar.score_post(p) for p in posts]
     candidates = [p for p in scored if p.get("qualifies")]
