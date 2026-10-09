@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Upload a clearly labeled private test photo
         env:
-          MEMARKET_AFFILIATE_CODE: \${{ secrets.MEMARKET_AFFILIATE_CODE }}
-          TELEGRAM_BOT_TOKEN: \${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: \${{ secrets.TELEGRAM_CHAT_ID }}
+          MEMARKET_AFFILIATE_CODE: ${{ secrets.MEMARKET_AFFILIATE_CODE }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python memarket_radar/image_upload_test.py
