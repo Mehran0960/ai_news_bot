@@ -101,6 +101,34 @@ def main():
             print(f"STORE_PAGE_FAIL url={url} error={type(exc).__name__}: {exc}")
     print("STOREFRONT_SCAN_END")
 
+    print("CATALOG_LISTING_SCAN_BEGIN")
+    for url in (
+        "https://memarket24.ir/search/shoes",
+        "https://memarket24.ir/search/clothes",
+        "https://memarket24.ir/search/accessories",
+        "https://memarket24.ir/search/taksize",
+    ):
+        try:
+            status_code, final_url, content_type, html_page = radar.fetch_page(url)
+            meta = radar._meta_values(html_page)
+            products = radar._product_urls_in_page(html_page, final_url)
+            visible = radar.clean_text(__import__("re").sub(
+                r"(?is)<script\b.*?</script>|<style\b.*?</style>", " ", html_page
+            ))
+            titles = __import__("re").findall(r'(?is)<h[1-4]\b[^>]*>(.*?)</h[1-4]>', html_page)
+            price_matches = __import__("re").findall(r'(?<!\w)(?:\d{1,3}(?:,\d{3})+|\d{4,9})\s*(?:تومان|تومن|ریال)', visible)
+            print(
+                f"CATALOG_PAGE url={url} status={status_code} final={final_url} bytes={len(html_page)} "
+                f"products={len(products)} prices={len(price_matches)} "
+                f"title={meta.get('title') or meta.get('og:title','')!r} "
+                f"product_urls={products[:8]} price_samples={price_matches[:8]}"
+            )
+            print("CATALOG_HEADINGS", [radar.clean_text(x)[:80] for x in titles[:8]])
+            print("CATALOG_TEXT_SAMPLE", visible[:700].replace("\n"," ") )
+        except Exception as exc:
+            print(f"CATALOG_PAGE_FAIL url={url} error={type(exc).__name__}: {exc}")
+    print("CATALOG_LISTING_SCAN_END")
+
     promo = base_post(
         "بیش از ۵۰٪ تخفیف روی محصولات منتخب. برای خرید بزن رو لینک 👇",
     )
