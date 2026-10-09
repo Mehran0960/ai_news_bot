@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - ".github/workflows/memarket-image-test.yml"
+      - "memarket_radar/image_upload_test.py"
 
 permissions:
   contents: read
@@ -11,7 +12,7 @@ permissions:
 jobs:
   image-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
     steps:
       - name: Checkout
         uses: actions/checkout@v4
