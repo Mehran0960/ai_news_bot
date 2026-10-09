@@ -313,7 +313,6 @@ def _meta_values(page: str):
 
 def _stock_signals(page: str):
     """Return IN_STOCK, OUT_OF_STOCK, or UNKNOWN; fail closed on ambiguity."""
-    lower = html.unescape(page).lower()
     structured_statuses = []
     for chunk in re.findall(
         r'(?is)<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
@@ -671,6 +670,7 @@ def main():
         raise SystemExit("No Telegram channel posts parsed.")
 
     print(f"channel={CHANNEL} posts={len(posts)}")
+    print("stock_verification=fail_closed_explicit_signal_required")
 
     seen = set(str(x) for x in state.get("seen", []))
     new_posts = [p for p in posts if p["id"] not in seen]
