@@ -7,7 +7,7 @@ on:
       - ".github/workflows/memarket-deal-radar.yml"
   workflow_dispatch:
   schedule:
-    - cron: "7,22,37,52 * * * *"
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: write
