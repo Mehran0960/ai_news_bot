@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compile production script
         run: python -m py_compile memarket_radar/memarket_deal_radar.py
-      - name: Analyze current public feed and test filters
+      - name: Analyze current public feed and test filters (including official product channel)
         env:
           MEMARKET_AFFILIATE_CODE: \${{ secrets.MEMARKET_AFFILIATE_CODE }}
           DRY_RUN: "true"
