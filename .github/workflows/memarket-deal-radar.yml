@@ -32,5 +32,5 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           PROBE_STOCK_ALL: "true"
-          PROBE_REPORT_TELEGRAM: "true"
+          PROBE_REPORT_TELEGRAM: "false"
         run: python memarket_radar/memarket_deal_radar.py
