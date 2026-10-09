@@ -127,6 +127,26 @@ def main():
             print("CATALOG_TEXT_SAMPLE", visible[:700].replace("\n"," ") )
         except Exception as exc:
             print(f"CATALOG_PAGE_FAIL url={url} error={type(exc).__name__}: {exc}")
+    print("STORE_JS_ENDPOINT_SCAN_BEGIN")
+    for js_path in (
+        "/_nuxt/Dh97NmRd.js",
+        "/assets/js/jquery-app.js",
+        "/assets/js/app.js",
+    ):
+        try:
+            _, final_js, _, js_text = radar.fetch_page("https://memarket24.ir" + js_path, timeout=20)
+            paths = list(dict.fromkeys(__import__("re").findall(
+                r'(?:"|\')([^"\']{0,180}(?:/api/|/search/|/product/|GetGood|GetProduct|inventory|stock|catalog)[^"\']{0,180})(?:"|\')',
+                js_text,
+                __import__("re").I,
+            )))
+            print(
+                f"JS_SCAN url={js_path} bytes={len(js_text)} paths={paths[:80]}"
+            )
+        except Exception as exc:
+            print(f"JS_SCAN_FAIL url={js_path} error={type(exc).__name__}: {exc}")
+    print("STORE_JS_ENDPOINT_SCAN_END")
+
     print("CATALOG_LISTING_SCAN_END")
 
     promo = base_post(
