@@ -1,0 +1,42 @@
+name: MeMarket One-Time Fresh Delivery
+
+on:
+  push:
+    paths:
+      - "memarket_radar/replay-trigger.txt"
+
+permissions:
+  contents: write
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run buyer-filtered MeMarket radar now
+        env:
+          MEMARKET_AFFILIATE_CODE: ${{ secrets.MEMARKET_AFFILIATE_CODE }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          BOOTSTRAP_SILENT: "false"
+          DRY_RUN: "false"
+          STATE_COMMIT: "true"
+          MAX_ALERTS: "2"
+        run: python memarket_radar/memarket_deal_radar.py
+
+      - name: Remove one-time workflow and trigger
+        if: always()
+        run: |
+          rm -f .github/workflows/memarket-replay-once.yml memarket_radar/replay-trigger.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A .github/workflows/memarket-replay-once.yml memarket_radar/replay-trigger.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: remove one-time MeMarket replay workflow [skip ci]"
+            git push
+          fi
