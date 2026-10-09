@@ -5,6 +5,8 @@ on:
     paths:
       - ".github/workflows/memarket-quality-diagnostic.yml"
   workflow_dispatch:
+  schedule:
+    - cron: "*/1 * * * *"
 
 permissions:
   contents: read
