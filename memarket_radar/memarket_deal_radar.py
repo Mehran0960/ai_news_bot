@@ -446,27 +446,59 @@ def verify_offer_stock(post: dict):
         return {"ok": False, "status": "UNKNOWN", "reason": "no concrete product page found"}
 
     saw_out = False
+    saw_unknown = False
+    last_reason = "no product with a verifiable in-stock signal"
+    last_image = ""
+    last_title = ""
+
     for product_url in product_urls:
         try:
             status_code, final_url, _, page = fetch_page(product_url)
+        except HTTPError as exc:
+            if exc.code in (404, 410):
+                saw_out = True
+                last_reason = f"product page unavailable: HTTP_{exc.code}"
+                print(f"PRODUCT_STATUS url={product_url.split('?')[0]} result=HTTP_{exc.code}")
+            else:
+                saw_unknown = True
+                last_reason = f"stock status unavailable: HTTP_{exc.code}"
+                print(f"PRODUCT_STATUS url={product_url.split('?')[0]} result=UNKNOWN_HTTP_{exc.code}")
+            continue
         except Exception as exc:
+            saw_unknown = True
+            last_reason = f"product page check failed: {type(exc).__name__}"
             print(f"PRODUCT_CHECK_FAILED url={product_url.split('?')[0]} error={type(exc).__name__}")
             continue
-        if status_code < 200 or status_code >= 300:
+
+        if status_code == 404 or status_code == 410:
             saw_out = True
-            print(f"PRODUCT_STATUS url={product_url.split('?')[0]} result=HTTP_{status_code}")
+            last_reason = f"product page unavailable: HTTP_{status_code}"
+            print(f"PRODUCT_STATUS url={final_url.split('?')[0]} result=HTTP_{status_code}")
             continue
+        if status_code < 200 or status_code >= 300:
+            saw_unknown = True
+            last_reason = f"stock status unavailable: HTTP_{status_code}"
+            print(f"PRODUCT_STATUS url={final_url.split('?')[0]} result=UNKNOWN_HTTP_{status_code}")
+            continue
+
+        product_image, title = _product_image_and_title(page, final_url)
+        if product_image:
+            last_image = product_image
+        if title:
+            last_title = title
 
         stock = _stock_signals(page)
         if stock == "OUT_OF_STOCK":
             saw_out = True
+            last_reason = "explicit out-of-stock signal on product page"
             print(f"PRODUCT_STATUS url={final_url.split('?')[0]} result=OUT_OF_STOCK")
             continue
         if stock != "IN_STOCK":
+            saw_unknown = True
+            last_reason = "page does not expose an explicit in-stock signal"
             print(f"PRODUCT_STATUS url={final_url.split('?')[0]} result=UNKNOWN")
             continue
 
-        product_image, title = _product_image_and_title(page, final_url)
         buyer_link = affiliate_link(final_url) or affiliate_link(product_url) or product_url
         return {
             "ok": True,
@@ -477,10 +509,13 @@ def verify_offer_stock(post: dict):
             "reason": "explicit in-stock signal",
         }
 
+    final_status = "OUT_OF_STOCK" if saw_out and not saw_unknown else "UNKNOWN"
     return {
         "ok": False,
-        "status": "OUT_OF_STOCK" if saw_out else "UNKNOWN",
-        "reason": "no product with a verifiable in-stock signal",
+        "status": final_status,
+        "reason": last_reason,
+        "product_image": last_image or post.get("image", ""),
+        "product_title": last_title,
     }
 
 
