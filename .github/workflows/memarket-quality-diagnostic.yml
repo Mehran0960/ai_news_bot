@@ -19,6 +19,6 @@ jobs:
         run: python -m py_compile memarket_radar/memarket_deal_radar.py
       - name: Analyze current public feed and test filters (including official product channel)
         env:
-          MEMARKET_AFFILIATE_CODE: \${{ secrets.MEMARKET_AFFILIATE_CODE }}
+          MEMARKET_AFFILIATE_CODE: ${{ secrets.MEMARKET_AFFILIATE_CODE }}
           DRY_RUN: "true"
         run: python memarket_radar/quality_diagnostic.py
