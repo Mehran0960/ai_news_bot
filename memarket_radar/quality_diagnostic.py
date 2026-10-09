@@ -145,6 +145,31 @@ def main():
             )
         except Exception as exc:
             print(f"JS_SCAN_FAIL url={js_path} error={type(exc).__name__}: {exc}")
+    print("STORE_API_CONTEXT_BEGIN")
+    try:
+        _, _, _, bundle = radar.fetch_page("https://memarket24.ir/_nuxt/Dh97NmRd.js", timeout=25)
+        for needle in (
+            "/api/appid10/product/",
+            "/api/appid10/",
+            "apiBase",
+            "baseURL",
+            "search/clothes",
+            "fetch(",
+        ):
+            positions = []
+            start_at = 0
+            while len(positions) < 6:
+                at = bundle.lower().find(needle.lower(), start_at)
+                if at < 0:
+                    break
+                positions.append(at)
+                start_at = at + len(needle)
+            for at in positions:
+                print(f"JS_CONTEXT needle={needle!r} offset={at} snippet={bundle[max(0,at-250):at+700]!r}")
+    except Exception as exc:
+        print(f"STORE_API_CONTEXT_FAIL {type(exc).__name__}: {exc}")
+    print("STORE_API_CONTEXT_END")
+
     print("STORE_JS_ENDPOINT_SCAN_END")
 
     print("CATALOG_LISTING_SCAN_END")
