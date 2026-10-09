@@ -67,6 +67,40 @@ def main():
             f"codes={','.join(__import__('re').findall(r'\\b[a-z]{1,3}-[a-z0-9]{3,}\\b', p['text'], __import__('re').I)[:3])}"
         )
 
+    print("STOREFRONT_SCAN_BEGIN")
+    for url in (
+        "https://memarket24.ir/",
+        "https://memarket24.ir/shop",
+        "https://aff.memarket24.ir/login",
+    ):
+        try:
+            status_code, final_url, content_type, html_page = radar.fetch_page(url)
+            meta = radar._meta_values(html_page)
+            product_urls = radar._product_urls_in_page(html_page, final_url)
+            internal = []
+            for raw in __import__("re").findall(
+                r'(?is)<a\b[^>]*\bhref\s*=\s*["\']([^"\']+)["\']', html_page
+            ):
+                abs_url = __import__("urllib.parse", fromlist=["urljoin"]).urljoin(final_url, raw)
+                parts = __import__("urllib.parse", fromlist=["urlsplit"]).urlsplit(abs_url)
+                host = parts.hostname or ""
+                if host == "memarket24.ir" or host.endswith(".memarket24.ir"):
+                    internal.append(abs_url)
+            print(
+                f"STORE_PAGE url={url} status={status_code} final={final_url} "
+                f"bytes={len(html_page)} type={content_type} title={meta.get('og:title') or meta.get('title','')!r} "
+                f"products={len(product_urls)} internal_links={len(set(internal))} "
+                f"product_urls={product_urls[:4]}"
+            )
+            print("STORE_INTERNAL_LINKS", list(dict.fromkeys(internal))[:12])
+            scripts = __import__("re").findall(
+                r'(?is)<script[^>]+src=["\']([^"\']+)["\']', html_page
+            )
+            print("STORE_SCRIPTS", scripts[:10])
+        except Exception as exc:
+            print(f"STORE_PAGE_FAIL url={url} error={type(exc).__name__}: {exc}")
+    print("STOREFRONT_SCAN_END")
+
     promo = base_post(
         "بیش از ۵۰٪ تخفیف روی محصولات منتخب. برای خرید بزن رو لینک 👇",
     )
