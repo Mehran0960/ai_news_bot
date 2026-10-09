@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Compile production script
+      - name: Compile production script (storefront catalog scan)
         run: python -m py_compile memarket_radar/memarket_deal_radar.py
       - name: Analyze current public feed and test filters (including official product channel)
         env:
