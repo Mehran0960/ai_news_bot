@@ -30,6 +30,7 @@ BOOTSTRAP_SILENT = os.getenv("BOOTSTRAP_SILENT", "true").lower() == "true"
 DRY_RUN = os.getenv("DRY_RUN", "false").lower() == "true"
 STATE_COMMIT = os.getenv("STATE_COMMIT", "true").lower() == "true"
 PROBE_STOCK_ALL = os.getenv("PROBE_STOCK_ALL", "false").lower() == "true"
+PROBE_REPORT_TELEGRAM = os.getenv("PROBE_REPORT_TELEGRAM", "false").lower() == "true"
 MAX_SEEN = int(os.getenv("MAX_SEEN_POSTS", "500"))
 
 if not DRY_RUN:
@@ -359,19 +360,17 @@ def _stock_signals(page: str):
     positive = (
         r"موجود\s*در\s*انبار",
         r"در\s*انبار\s*موجود\s*است",
-        r"افزودن\s*به\s*سبد\s*خرید",
-        r"افزودن\s*به\s*سبد",
-        r"add\s*to\s*cart",
-        r"add\s*to\s*basket",
+        r"\bin\s*stock\b",
     )
     if any(re.search(p, visible, re.I) for p in positive):
         return "IN_STOCK"
 
-    if re.search(r'"(?:isAvailable|available)"\s*:\s*true', lower):
+    visible_source_lower = html.unescape(visible_html).lower()
+    if re.search(r'"(?:isAvailable|available)"\s*:\s*true', visible_source_lower):
         return "IN_STOCK"
-    if re.search(r'"(?:isAvailable|available)"\s*:\s*false', lower):
+    if re.search(r'"(?:isAvailable|available)"\s*:\s*false', visible_source_lower):
         return "OUT_OF_STOCK"
-    if re.search(r'"(?:stockQuantity|quantity|inventory)"\s*:\s*0(?:\D|$)', lower):
+    if re.search(r'"(?:stockQuantity|quantity|inventory)"\s*:\s*0(?:\D|$)', visible_source_lower):
         return "OUT_OF_STOCK"
     return "UNKNOWN"
 
@@ -642,18 +641,36 @@ def main():
     new_posts = [p for p in posts if p["id"] not in seen]
     print(f"new_posts={len(new_posts)}")
 
-    # Optional one-time probe verifies stock for already-seen examples without reposting them.
-    if PROBE_STOCK_ALL:
+    # One-time probe validates stock parsing on existing examples without reposting them.
+    if PROBE_STOCK_ALL and not state.get("stock_probe_done"):
         probe_posts = [score_post(p) for p in posts]
         probe_candidates = [p for p in probe_posts if p.get("qualifies")]
         probe_candidates.sort(key=lambda p: (p["score"], p["percent"]), reverse=True)
+        report_lines = ["🧪 تست یک‌بارهٔ بررسی موجودی و تصویر می‌مارکت"]
         for p in probe_candidates[:3]:
             outcome = verify_offer_stock(p)
+            has_image = bool(outcome.get("product_image"))
             print(
                 f"STOCK_PROBE id={p['id']} status={outcome['status']} "
-                f"reason={outcome['reason']} image={'yes' if outcome.get('product_image') else 'no'}"
+                f"reason={outcome['reason']} image={'yes' if has_image else 'no'}"
             )
+            report_lines.append(
+                f"پست {p['id']}: وضعیت {outcome['status']}؛ عکس قابل استفاده: {'بله' if has_image else 'خیر'}"
+            )
+        if not probe_candidates:
+            report_lines.append("در پست‌های فعلی آفر واجد شرایطی پیدا نشد.")
         print(f"stock_probe_count={min(3, len(probe_candidates))}")
+        state["stock_probe_done"] = True
+        if PROBE_REPORT_TELEGRAM and not DRY_RUN:
+            result = telegram_request(
+                "sendMessage",
+                {"chat_id": CHAT, "text": "\n".join(report_lines), "disable_web_page_preview": "true"},
+            )
+            if isinstance(result, dict) and result.get("ok") is False:
+                raise RuntimeError("Telegram returned ok=false for stock probe report")
+            print("stock_probe_report_sent=true")
+    elif PROBE_STOCK_ALL:
+        print("stock_probe=already_done")
 
     scored_posts = [score_post(p) for p in new_posts]
     for p in scored_posts:
