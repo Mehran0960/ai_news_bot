@@ -93,6 +93,8 @@ def clean_caption(text):
         low = line.lower()
         if any(term in low for term in SKIP_LINE_TERMS):
             continue
+        # Do not carry over platform-specific promotional tags from Dayan.
+        line = re.sub(r"#اینستاگرام", "", line, flags=re.IGNORECASE)
         line = URL_RE.sub("", line)
         if re.search(r"(?:آدرس|ادرس)\s*فروشگا\S*\s*/\s*(?:lead|fastcart)/\d+", line, re.IGNORECASE):
             continue
@@ -429,14 +431,14 @@ def build_caption(source_caption, affiliate_url, product_details=None, prefix=""
     chunks.append("\n".join(PRODUCT_BENEFITS))
     chunks.append(
         "🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True)
-        + "\n\nℹ️ لینک همکاری در فروش است؛ ممکن است از خرید شما کمیسیون دریافت کنم."
+
     )
 
     caption = "\n\n".join(chunks)
     if len(caption) > 1024:
         # Preserve the fixed buyer benefits, link, and disclosure even when a
         # source caption or product title is unexpectedly long.
-        fixed_tail = "\n".join(PRODUCT_BENEFITS) + "\n\n🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True) + "\n\nℹ️ لینک همکاری در فروش است؛ ممکن است از خرید شما کمیسیون دریافت کنم."
+        fixed_tail = "\n".join(PRODUCT_BENEFITS) + "\n\n🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True)
         title_part = ("🛍 " + title + "\n\n") if title else ""
         price_part = ""
         if original and discounted and original != discounted:
@@ -476,13 +478,12 @@ def refresh_video_url(source_message_id):
         raise RuntimeError("Refusing to download media from an unexpected host; only HTTPS Telegram telesco.pe media URLs are accepted.")
     return media_url
 
-def send_video(bot_token, item, affiliate_url, test_mode=False):
+def send_video(bot_token, item, affiliate_url):
     media_url = refresh_video_url(int(item["source_message_id"]))
-    prefix = "🧪 نمونهٔ آزمایشی انتشار خودکار" if test_mode else ""
     product_details = fetch_product_details(affiliate_url)
     caption = build_caption(
         item.get("source_caption", ""), affiliate_url,
-        product_details=product_details, prefix=prefix
+        product_details=product_details
     )
     payload = {
         "chat_id": TARGET_CHANNEL,
@@ -598,7 +599,7 @@ def run_test_post(source_message_id):
     if not product_ref:
         raise RuntimeError(f"Test source post {source_message_id} has no unambiguous product code/route; refusing to publish.")
     affiliate_url = make_affiliate_url(store_base, product_ref)
-    destination_message_id = send_video(bot_token, item, affiliate_url, test_mode=True)
+    destination_message_id = send_video(bot_token, item, affiliate_url)
     print(
         f"TEST POST SENT source={item['source_url']} target={TARGET_CHANNEL} "
         f"destination_message_id={destination_message_id} "
