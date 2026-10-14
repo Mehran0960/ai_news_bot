@@ -1,5 +1,7 @@
 import unittest
 
+from bs4 import BeautifulSoup
+
 from relay_botapi import (
     extract_product_refs,
     make_affiliate_url,
@@ -9,6 +11,7 @@ from relay_botapi import (
     extract_product_details,
     build_caption,
     CHANNEL_FOLLOW_HTML,
+    photo_url_from_node,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -113,6 +116,31 @@ class DayanRelayTests(unittest.TestCase):
 
     def test_instagram_hashtag_is_removed_from_source_caption(self):
         self.assertEqual(clean_caption("ادرس فروشگااه/lead/51366 #اینستاگرام"), "")
+
+    def test_extracts_photo_url_from_telegram_post(self):
+        html = """<div class="tgme_widget_message_photo_wrap"
+        style="width:640px;background-image:url('https://cdn4.telesco.pe/file/photo.jpg')"></div>"""
+        node = BeautifulSoup(html, "html.parser").div
+        self.assertEqual(
+            photo_url_from_node(node),
+            "https://cdn4.telesco.pe/file/photo.jpg",
+        )
+
+    def test_caption_removes_duplicate_abbreviated_prices_and_source_tags(self):
+        caption = build_caption(
+            "🔥 ۵.۷۸۹ میلیون ۷.۶۳۹ میلیون 🚚 ارسال سریع و ارزان | 💳 پرداخت درب منزل #پیامرسانیداخلی",
+            "https://seller.affdn.ir/fastcart/51366",
+            product_details={
+                "title": "گیم استیک M15 مدل 51366",
+                "original_price": "7,639,000 تومان",
+                "discounted_price": "5,789,000 تومان",
+            },
+        )
+        self.assertNotIn("۵.۷۸۹ میلیون", caption)
+        self.assertNotIn("۷.۶۳۹ میلیون", caption)
+        self.assertNotIn("#پیامرسانیداخلی", caption)
+        self.assertNotIn("💳 پرداخت درب منزل", caption)
+        self.assertTrue(caption.rstrip().endswith(CHANNEL_FOLLOW_HTML))
 
 if __name__ == "__main__":
     unittest.main()
