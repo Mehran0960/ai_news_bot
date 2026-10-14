@@ -564,6 +564,45 @@ def fetch_posts_since(last_seen_id, max_pages=MAX_POLL_PAGES):
     return sorted(collected.values(), key=lambda item: item["source_message_id"])
 
 
+def inspect_source_message(source_message_id):
+    response = SESSION.get(SOURCE_URL, timeout=HTTP_TIMEOUT)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+    for node in soup.select(".tgme_widget_message"):
+        post_ref = node.get("data-post")
+        if not post_ref:
+            parent = node.find_parent(attrs={"data-post": True})
+            post_ref = parent.get("data-post") if parent else None
+        if not post_ref:
+            for parent in node.parents:
+                post_ref = parent.get("data-post")
+                if post_ref:
+                    break
+        if not post_ref or not post_ref.endswith("/" + str(source_message_id)):
+            continue
+
+        text_node = node.select_one(".tgme_widget_message_text")
+        caption = text_node.get_text("\\n", strip=True) if text_node else ""
+        print(f"Source post: https://t.me/{SOURCE_CHANNEL}/{source_message_id}")
+        print(f"Caption: {re.sub(r'\\s+', ' ', caption)[:500] or '(empty)'}")
+        print(f"Message classes: {node.get('class', [])}")
+        media_count = 0
+        for element in node.select("video, source, img, .tgme_widget_message_photo_wrap, a.tgme_widget_message_document_wrap"):
+            attrs = {}
+            for attr in ("src", "data-src", "href", "type", "class", "style"):
+                value = element.get(attr)
+                if value:
+                    attrs[attr] = value[:400] if isinstance(value, str) else value
+            if attrs:
+                print("Media element: " + json.dumps(attrs, ensure_ascii=False))
+                media_count += 1
+                if media_count >= 12:
+                    break
+        print(f"Media elements found: {media_count}")
+        return
+    raise RuntimeError(f"Source message {source_message_id} was not found in the current public preview.")
+
+
 def inspect_product_page(route_and_code):
     match = re.fullmatch(r"(lead|fastcart):(\d{4,8})", route_and_code.strip().lower())
     if not match:
@@ -604,6 +643,13 @@ def run_test_post(source_message_id):
 
 
 def main():
+    if "--inspect-message" in sys.argv:
+        index = sys.argv.index("--inspect-message")
+        if index + 1 >= len(sys.argv) or not re.fullmatch(r"\\d{1,8}", sys.argv[index + 1]):
+            raise RuntimeError("Usage: relay_botapi.py --inspect-message <source_message_id>")
+        inspect_source_message(int(sys.argv[index + 1]))
+        return
+
     if "--inspect-product" in sys.argv:
         index = sys.argv.index("--inspect-product")
         if index + 1 >= len(sys.argv):
