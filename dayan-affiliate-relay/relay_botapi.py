@@ -567,7 +567,7 @@ def fetch_posts_since(last_seen_id, max_pages=MAX_POLL_PAGES):
 
 
 def inspect_product_page(route_and_code):
-    match = re.fullmatch(r"(lead|fastcart):(\\d{4,8})", route_and_code.strip().lower())
+    match = re.fullmatch(r"(lead|fastcart):(\d{4,8})", route_and_code.strip().lower())
     if not match:
         raise RuntimeError("Usage: relay_botapi.py --inspect-product <lead|fastcart>:<product_code>")
     store_base = normalize_store_host(os.getenv("DAYAN_STORE_HOST", ""))
