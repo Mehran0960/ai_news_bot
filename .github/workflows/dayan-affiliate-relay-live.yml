@@ -39,13 +39,13 @@ jobs:
         if: vars.DAYAN_AFFILIATE_RELAY_ENABLED == 'true'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          AFFILIATE_LINKS_JSON: ${{ secrets.AFFILIATE_LINKS_JSON }}
+          DAYAN_STORE_HOST: ${{ secrets.DAYAN_STORE_HOST }}
           PYTHONUNBUFFERED: "1"
         run: python dayan-affiliate-relay/relay_botapi.py
 
       - name: Explain disabled state
         if: vars.DAYAN_AFFILIATE_RELAY_ENABLED != 'true'
-        run: echo "Relay is safely disabled. Add the required Actions secrets and affiliate mapping, then set DAYAN_AFFILIATE_RELAY_ENABLED=true."
+        run: echo "Relay is safely disabled. Add Telegram token and personal Dayan store host as Actions secrets, then set DAYAN_AFFILIATE_RELAY_ENABLED=true."
 
       - name: Commit relay state only when changed
         if: vars.DAYAN_AFFILIATE_RELAY_ENABLED == 'true'

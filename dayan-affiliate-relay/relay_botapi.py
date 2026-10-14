@@ -13,7 +13,6 @@ from bs4 import BeautifulSoup
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config"
 STATE_FILE = ROOT / "state.json"
-LINKS_FILE = CONFIG / "affiliate_links.json"
 OVERRIDES_FILE = CONFIG / "post_overrides.json"
 
 SOURCE_CHANNEL = "Dayan_video"
@@ -27,7 +26,9 @@ MAX_SENT_IDS = 2000
 HTTP_TIMEOUT = 25
 
 DIGIT_TRANSLATION = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
-CODE_RE = re.compile(r"(?<!\d)(\d{4,8})(?!\d)")
+# Only extract codes explicitly labeled as a product code; do not mistake
+# four-digit prices, model numbers, or sizes for product IDs.
+CODE_RE = re.compile(r"(?:کد(?:\s+محصول)?|product\s*code)\s*[:#\-]?\s*(\d{4,8})", re.IGNORECASE)
 URL_RE = re.compile(r"https?://\S+", re.IGNORECASE)
 HANDLE_RE = re.compile(r"(?<!\w)@[A-Za-z0-9_]{4,}")
 SKIP_LINE_TERMS = [
@@ -58,8 +59,6 @@ def normalize_digits(text):
 def extract_codes(caption):
     found = []
     for value in CODE_RE.findall(normalize_digits(caption)):
-        if 1300 <= int(value) <= 1499:
-            continue
         if value not in found:
             found.append(value)
     return found
@@ -80,23 +79,33 @@ def clean_caption(text):
             lines.append(line)
     return "\n".join(lines).strip()
 
+def direct_video_url(element):
+    for attr in ("src", "data-src", "data-video"):
+        value = (element.get(attr) or "").strip()
+        if urlparse(value).scheme in ("http", "https"):
+            return value
+    return None
+
 def video_url_from_node(node):
-    # Accept only explicit video sources, never a poster/thumbnail image.
+    # Do not confuse a thumbnail/image with a playable video.
     selectors = [
-        "video.tgme_widget_message_video[src]",
-        ".tgme_widget_message_video[src]",
-        ".js-video-player video[src]",
-        ".tgme_widget_message_video_player video[src]",
+        "video.tgme_widget_message_video",
+        ".tgme_widget_message_video video",
+        ".js-video-player video",
+        ".tgme_widget_message_video_player video",
+        "video[src]",
+        "video[data-src]",
     ]
     for selector in selectors:
         element = node.select_one(selector)
         if element:
-            url = (element.get("src") or "").strip()
-            if urlparse(url).scheme in ("http", "https"):
+            url = direct_video_url(element)
+            if url:
                 return url
+
     for element in node.select("[data-video]"):
-        url = (element.get("data-video") or "").strip()
-        if urlparse(url).scheme in ("http", "https") and any(x in url.lower() for x in (".mp4", "video")):
+        url = direct_video_url(element)
+        if url and any(part in url.lower() for part in (".mp4", "video", "stream")):
             return url
     return None
 
@@ -127,14 +136,14 @@ def parse_preview(html):
 
         text_node = node.select_one(".tgme_widget_message_text")
         caption = text_node.get_text("\n", strip=True) if text_node else ""
-        video_url = video_url_from_node(node)
+        media_url = video_url_from_node(node)
         time_node = node.select_one(".tgme_widget_message_date time[datetime]")
         parsed.append({
             "source_message_id": message_id,
             "source_url": f"https://t.me/{SOURCE_CHANNEL}/{message_id}",
             "source_caption": caption,
             "product_codes": extract_codes(caption),
-            "video_url": video_url,
+            "video_url": media_url,
             "source_date": time_node.get("datetime") if time_node else None,
         })
     return sorted(parsed, key=lambda item: item["source_message_id"])
@@ -149,22 +158,35 @@ def fetch_preview(before_id=None):
         raise RuntimeError("Telegram preview did not contain expected public-channel message markup.")
     return parse_preview(response.text)
 
-def valid_affiliate_url(url):
-    if not isinstance(url, str):
-        return False
-    parsed = urlparse(url.strip())
-    return parsed.scheme == "https" and bool(parsed.netloc)
+def normalize_store_host(value):
+    raw = (value or "").strip()
+    if not raw:
+        raise RuntimeError("Missing DAYAN_STORE_HOST secret. Add the personal store host from your Dayan affiliate panel.")
+    if "://" not in raw:
+        raw = "https://" + raw
+    parsed = urlparse(raw)
+    host = (parsed.hostname or "").lower()
+    if parsed.scheme != "https" or not host.endswith(".affdn.ir") or host == "affdn.ir":
+        raise RuntimeError("DAYAN_STORE_HOST must be your personal HTTPS subdomain ending in .affdn.ir, not another site's domain.")
+    if parsed.username or parsed.password or parsed.port:
+        raise RuntimeError("DAYAN_STORE_HOST must contain only your store host; do not include credentials or a port.")
+    return f"https://{host}"
 
-def resolve_product_code(item, links, overrides):
+def make_affiliate_url(store_base, product_code):
+    code = str(product_code).strip()
+    if not re.fullmatch(r"\d{4,8}", code):
+        raise RuntimeError("Refusing to create a FastCart URL from an invalid product code.")
+    return f"{store_base}/fastcart/{code}"
+
+def resolve_product_code(item, overrides):
     override = overrides.get(str(item["source_message_id"]))
     if isinstance(override, dict):
         override = override.get("product_code")
     if override:
         code = str(override).strip()
-        return code if code in links and valid_affiliate_url(links[code]) else None
+        return code if re.fullmatch(r"\d{4,8}", code) else None
     codes = [str(code) for code in item.get("product_codes", [])]
-    mapped = [code for code in codes if code in links and valid_affiliate_url(links[code])]
-    return mapped[0] if len(mapped) == 1 else None
+    return codes[0] if len(codes) == 1 else None
 
 def due_slot(now, published_slots):
     today = now.date().isoformat()
@@ -187,6 +209,8 @@ def build_caption(source_caption, affiliate_url):
     return (intro + tail) if intro else tail.lstrip()
 
 def send_video(bot_token, item, affiliate_url):
+    # Telegram CDN URLs can expire. Re-read the source post shortly before
+    # publishing and use a historical preview window if it has scrolled away.
     fresh = None
     try:
         current = fetch_preview()
@@ -201,9 +225,9 @@ def send_video(bot_token, item, affiliate_url):
         except Exception as exc:
             print(f"Historical preview refresh failed: {type(exc).__name__}: {exc}")
 
-    media_url = fresh.get("video_url") if fresh else item.get("video_url")
+    media_url = fresh.get("video_url") if fresh else None
     if not media_url or urlparse(media_url).scheme not in ("http", "https"):
-        raise RuntimeError("Could not resolve a direct video URL for this source post.")
+        raise RuntimeError("No directly fetchable video URL was found for this source post; refusing to publish a thumbnail or text post.")
 
     caption = build_caption(item.get("source_caption", ""), affiliate_url)
     payload = {
@@ -232,38 +256,38 @@ def main():
     if "--check" in sys.argv:
         posts = fetch_preview()
         video_posts = [item for item in posts if item.get("video_url")]
-        print("Public Telegram preview diagnostic")
-        print(f"Parsed channel messages: {len(posts)}")
-        print(f"Messages with direct video source: {len(video_posts)}")
-        print(f"Newest message ID in preview: {max((int(p['source_message_id']) for p in posts), default=0)}")
-        print("Video message IDs and number of extracted product codes:")
+        latest = max(posts, key=lambda item: int(item["source_message_id"])) if posts else None
+        print("Public Telegram preview diagnostic — no publishing occurs.")
+        print(f"Parsed channel messages in current preview: {len(posts)}")
+        print(f"Messages with direct video sources: {len(video_posts)}")
+        if latest:
+            print(f"Newest source post: {latest['source_url']}")
+            print(f"Newest source post date: {latest.get('source_date') or 'not exposed'}")
+        print("Eligible video IDs and explicitly labeled product codes:")
         for item in video_posts[:20]:
-            print(f"- {item['source_message_id']}: {len(item.get('product_codes', []))} product code(s)")
+            print(f"- {item['source_message_id']}: {item.get('product_codes', [])}")
         if not video_posts:
-            print("No direct video URLs were extracted. Do not activate auto-publishing until the parser is corrected.")
+            print("No direct video URLs were extracted from the current public preview.")
             sys.exit(3)
         return
 
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    store_base = normalize_store_host(os.getenv("DAYAN_STORE_HOST", ""))
     if not bot_token:
-        print("Missing GitHub Actions secret TELEGRAM_BOT_TOKEN; workflow remains unconfigured.", file=sys.stderr)
+        print("Missing GitHub Actions secret TELEGRAM_BOT_TOKEN.", file=sys.stderr)
         sys.exit(2)
 
     state = read_json(STATE_FILE, {
         "initialized": False, "last_seen_id": 0, "queue": [],
         "published_slots": [], "sent_source_ids": []
     })
-    raw_link_map = os.getenv("AFFILIATE_LINKS_JSON", "").strip()
-    links = json.loads(raw_link_map) if raw_link_map else read_json(LINKS_FILE, {})
-    if not isinstance(links, dict):
-        raise RuntimeError("AFFILIATE_LINKS_JSON must be a JSON object mapping product codes to personal affiliate URLs.")
     overrides = read_json(OVERRIDES_FILE, {})
     now = datetime.now(TIMEZONE)
     posts = fetch_preview()
     if not posts:
         raise RuntimeError("No channel messages were parsed from the public Telegram preview.")
 
-    latest_id = max(p["source_message_id"] for p in posts)
+    latest_id = max(int(p["source_message_id"]) for p in posts)
     if not state.get("initialized"):
         state["initialized"] = True
         state["last_seen_id"] = latest_id
@@ -282,22 +306,13 @@ def main():
         if mid <= last_seen:
             continue
         new_ids.append(mid)
-        if mid in queued_ids or mid in sent_ids:
+        if mid in queued_ids or mid in sent_ids or not item.get("video_url"):
             continue
-        # Advance the polling cursor for all posts, but queue only actual videos.
-        if not item.get("video_url"):
-            continue
-        queued_item = {
-            "source_message_id": int(item["source_message_id"]),
-            "source_url": item["source_url"],
-            "source_caption": item["source_caption"],
-            "product_codes": item["product_codes"],
-            "source_date": item.get("source_date"),
-            "status": "queued",
-            "queued_at": now.isoformat(),
-        }
-        # Do not persist expiring CDN media URLs in this public repository.
-        queue.append(queued_item)
+        item["status"] = "queued"
+        item["queued_at"] = now.isoformat()
+        # Do not persist expiring media URLs or affiliate URLs in the public repo.
+        item.pop("video_url", None)
+        queue.append(item)
         queued_ids.add(mid)
 
     if new_ids:
@@ -310,12 +325,13 @@ def main():
         chosen = None
         chosen_code = None
         for item in queue:
-            code = resolve_product_code(item, links, overrides)
+            code = resolve_product_code(item, overrides)
             if code:
                 chosen, chosen_code = item, code
                 break
         if chosen:
-            telegram_message_id = send_video(bot_token, chosen, str(links[chosen_code]).strip())
+            affiliate_url = make_affiliate_url(store_base, chosen_code)
+            telegram_message_id = send_video(bot_token, chosen, affiliate_url)
             queue.remove(chosen)
             state.setdefault("sent_source_ids", []).append(int(chosen["source_message_id"]))
             state["sent_source_ids"] = state["sent_source_ids"][-MAX_SENT_IDS:]
@@ -323,12 +339,12 @@ def main():
             state["published_slots"] = state["published_slots"][-60:]
             state["last_published_at"] = now.isoformat()
             state["last_destination_message_id"] = str(telegram_message_id)
-            print(f"Published source {chosen['source_message_id']} to {TARGET_CHANNEL} using affiliate code {chosen_code}.")
+            print(f"Published source {chosen['source_message_id']} to {TARGET_CHANNEL} with FastCart product code {chosen_code}.")
         else:
-            print(f"No video with an unambiguous personal affiliate link for slot {slot_key}; nothing published.")
+            print(f"No new video with one unambiguous product code for slot {slot_key}; nothing published.")
 
     write_state(state)
-    print(f"Completed. Found {len(posts)} recent videos; queued={len(queue)}; newest source ID={state['last_seen_id']}")
+    print(f"Completed. Parsed {len(posts)} source messages; queued={len(queue)}; newest source ID={state['last_seen_id']}")
 
 if __name__ == "__main__":
     main()
