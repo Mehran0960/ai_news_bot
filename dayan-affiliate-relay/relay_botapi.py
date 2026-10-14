@@ -243,8 +243,11 @@ def due_slot(now, published_slots):
             return key
     return None
 
-def build_caption(source_caption, affiliate_url):
+def build_caption(source_caption, affiliate_url, prefix=""):
     intro = clean_caption(source_caption)
+    prefix = (prefix or "").strip()
+    if prefix:
+        intro = prefix + ("\n\n" + intro if intro else "")
     tail = "\n\n🛍 مشاهده و خرید:\n" + affiliate_url + "\n\nℹ️ لینک همکاری در فروش است؛ ممکن است از خرید شما کمیسیون دریافت کنم."
     if len(intro) + len(tail) > 1024:
         intro = intro[:max(0, 1020 - len(tail))].rstrip() + "…"
@@ -273,9 +276,10 @@ def refresh_video_url(source_message_id):
         raise RuntimeError("Refusing to download media from an unexpected host; only HTTPS Telegram telesco.pe media URLs are accepted.")
     return media_url
 
-def send_video(bot_token, item, affiliate_url):
+def send_video(bot_token, item, affiliate_url, test_mode=False):
     media_url = refresh_video_url(int(item["source_message_id"]))
-    caption = build_caption(item.get("source_caption", ""), affiliate_url)
+    prefix = "🧪 نمونهٔ آزمایشی انتشار خودکار" if test_mode else ""
+    caption = build_caption(item.get("source_caption", ""), affiliate_url, prefix=prefix)
     payload = {
         "chat_id": TARGET_CHANNEL,
         "caption": caption,
@@ -358,7 +362,38 @@ def fetch_posts_since(last_seen_id, max_pages=MAX_POLL_PAGES):
     return sorted(collected.values(), key=lambda item: item["source_message_id"])
 
 
+def run_test_post(source_message_id):
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    if not bot_token:
+        raise RuntimeError("Missing GitHub Actions secret TELEGRAM_BOT_TOKEN.")
+    store_base = normalize_store_host(os.getenv("DAYAN_STORE_HOST", ""))
+    posts = fetch_preview()
+    item = next((p for p in posts if int(p["source_message_id"]) == int(source_message_id)), None)
+    if item is None:
+        raise RuntimeError(f"Test source post {source_message_id} was not found in the current public preview.")
+    if not item.get("video_url"):
+        raise RuntimeError(f"Test source post {source_message_id} has no direct video URL; refusing to publish.")
+    overrides = read_json(OVERRIDES_FILE, {})
+    product_ref = resolve_product_ref(item, overrides)
+    if not product_ref:
+        raise RuntimeError(f"Test source post {source_message_id} has no unambiguous product code/route; refusing to publish.")
+    affiliate_url = make_affiliate_url(store_base, product_ref)
+    destination_message_id = send_video(bot_token, item, affiliate_url, test_mode=True)
+    print(
+        f"TEST POST SENT source={item['source_url']} target={TARGET_CHANNEL} "
+        f"destination_message_id={destination_message_id} "
+        f"route={product_ref['route']} product_code={product_ref['code']}"
+    )
+
+
 def main():
+    if "--test-post" in sys.argv:
+        index = sys.argv.index("--test-post")
+        if index + 1 >= len(sys.argv) or not re.fullmatch(r"\d{1,8}", sys.argv[index + 1]):
+            raise RuntimeError("Usage: relay_botapi.py --test-post <source_message_id>")
+        run_test_post(int(sys.argv[index + 1]))
+        return
+
     if "--check" in sys.argv:
         posts = fetch_posts_since(None)
         video_posts = [item for item in posts if item.get("video_url")]
