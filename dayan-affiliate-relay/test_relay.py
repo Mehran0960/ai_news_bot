@@ -120,7 +120,7 @@ class DayanRelayTests(unittest.TestCase):
     def test_extracts_photo_url_from_telegram_post(self):
         html = """<div class="tgme_widget_message_photo_wrap"
         style="width:640px;background-image:url('https://cdn4.telesco.pe/file/photo.jpg')"></div>"""
-        node = BeautifulSoup(html, "html.parser").div
+        node = BeautifulSoup("<div>" + html + "</div>", "html.parser").div
         self.assertEqual(
             photo_url_from_node(node),
             "https://cdn4.telesco.pe/file/photo.jpg",
