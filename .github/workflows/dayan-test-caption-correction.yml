@@ -28,8 +28,8 @@ jobs:
 
       - name: Correct test caption without reposting media
         env:
-          TELEGRAM_BOT_TOKEN: \${{ secrets.TELEGRAM_BOT_TOKEN }}
-          DAYAN_STORE_HOST: \${{ secrets.DAYAN_STORE_HOST }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          DAYAN_STORE_HOST: ${{ secrets.DAYAN_STORE_HOST }}
           PYTHONUNBUFFERED: "1"
         run: |
           set -euo pipefail
