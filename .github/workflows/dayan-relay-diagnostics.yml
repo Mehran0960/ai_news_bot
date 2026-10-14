@@ -2,6 +2,10 @@ name: Dayan Relay Diagnostics
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "dayan-affiliate-relay/**"
+      - ".github/workflows/dayan-relay-diagnostics.yml"
 
 permissions:
   contents: read
