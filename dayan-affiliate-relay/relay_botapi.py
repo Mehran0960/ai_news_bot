@@ -1008,9 +1008,9 @@ def refresh_video_url(source_message_id):
         raise RuntimeError("Refusing to download media from an unexpected host; only HTTPS Telegram telesco.pe media URLs are accepted.")
     return media_url
 
-def send_video(bot_token, item, affiliate_url):
+def send_video(bot_token, item, affiliate_url, product_details=None):
     media_url = refresh_video_url(int(item["source_message_id"]))
-    product_details = fetch_product_details(affiliate_url)
+    product_details = product_details if product_details is not None else fetch_product_details(affiliate_url)
     caption = build_caption(
         item.get("source_caption", ""), affiliate_url,
         product_details=product_details
@@ -1091,9 +1091,123 @@ def refresh_photo_url(source_message_id):
     return photo_url
 
 
-def send_photo(bot_token, item, affiliate_url):
+def _run_tesseract(image_path):
+    try:
+        result = subprocess.run(
+            ["tesseract", str(image_path), "stdout", "-l", "fas+eng", "--psm", "11"],
+            capture_output=True, text=True, timeout=25, check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f"Price OCR unavailable ({type(exc).__name__}).") from None
+    if result.returncode != 0:
+        raise RuntimeError("Tesseract could not process the source creative with Persian/English language data.")
+    return result.stdout or ""
+
+
+def _ocr_video_frames(video_path):
+    try:
+        probe = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+             "-of", "default=noprint_wrappers=1:nokey=1", str(video_path)],
+            capture_output=True, text=True, timeout=15, check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f"Video-frame inspection unavailable ({type(exc).__name__}).") from None
+    try:
+        duration = float((probe.stdout or "").strip()) if probe.returncode == 0 else 0.0
+    except ValueError:
+        duration = 0.0
+    if duration <= 0:
+        raise RuntimeError("Could not determine video duration for price verification.")
+
+    texts = []
+    with tempfile.TemporaryDirectory(prefix="dayan-price-frames-") as frame_dir:
+        for index, fraction in enumerate((0.1, 0.5, 0.9)):
+            timestamp = min(duration * fraction, max(0.0, duration - 0.12))
+            frame_path = Path(frame_dir) / f"frame-{index}.jpg"
+            try:
+                result = subprocess.run(
+                    ["ffmpeg", "-hide_banner", "-loglevel", "error",
+                     "-ss", f"{timestamp:.3f}", "-i", str(video_path),
+                     "-frames:v", "1", "-vf", "scale=1600:-1", "-q:v", "3",
+                     "-y", str(frame_path)],
+                    capture_output=True, text=True, timeout=25, check=False,
+                )
+            except (OSError, subprocess.TimeoutExpired) as exc:
+                raise RuntimeError(f"Video frame extraction unavailable ({type(exc).__name__}).") from None
+            if result.returncode == 0 and frame_path.exists() and frame_path.stat().st_size > 512:
+                texts.append(_run_tesseract(frame_path))
+    if not texts:
+        raise RuntimeError("No readable frames could be extracted for price verification.")
+    return "\n".join(texts)
+
+
+def read_source_media_ocr_text(item):
+    """Download current source media and OCR the photo or three representative video frames."""
+    source_id = int(item["source_message_id"])
+    media_type = item.get("media_type") or ("video" if item.get("video_url") else "photo")
+    if media_type == "video":
+        media_url = refresh_video_url(source_id)
+        suffix, max_bytes, allowed_type = ".mp4", MAX_VIDEO_BYTES, ("video/", "application/octet-stream")
+        timeout = (15, 120)
+    else:
+        media_url = refresh_photo_url(source_id)
+        suffix, max_bytes, allowed_type = ".jpg", MAX_PHOTO_BYTES, ("image/", "application/octet-stream")
+        timeout = (15, 60)
+
+    temp_path = None
+    try:
+        with SESSION.get(media_url, stream=True, timeout=timeout) as response:
+            response.raise_for_status()
+            content_type = (response.headers.get("Content-Type") or "").lower()
+            if not any(content_type.startswith(prefix) for prefix in allowed_type):
+                raise RuntimeError("Source media has an unexpected content type for price verification.")
+            length_header = response.headers.get("Content-Length")
+            if length_header and int(length_header) > max_bytes:
+                raise RuntimeError("Source media exceeds the configured size limit for price verification.")
+            total = 0
+            with tempfile.NamedTemporaryFile(prefix="dayan-price-check-", suffix=suffix, delete=False) as temp_file:
+                temp_path = temp_file.name
+                for chunk in response.iter_content(chunk_size=512 * 1024):
+                    if not chunk:
+                        continue
+                    total += len(chunk)
+                    if total > max_bytes:
+                        raise RuntimeError("Source media exceeded the configured size limit during download.")
+                    temp_file.write(chunk)
+
+        if not temp_path or os.path.getsize(temp_path) < 512:
+            raise RuntimeError("Downloaded source creative is empty or too small for price verification.")
+        if media_type == "video":
+            return _ocr_video_frames(temp_path)
+        return _run_tesseract(temp_path)
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
+
+
+def check_source_media_prices(item, product_details):
+    """Verify OCR-visible photo/video prices against current prices on the affiliate product page."""
+    ocr_text = read_source_media_ocr_text(item)
+    if not ocr_text.strip():
+        return {
+            "ok": False, "status": "unverifiable",
+            "reason": "OCR returned no readable text; the creative price cannot be safely checked",
+            "image_prices": [],
+            "page_prices": sorted({
+                amount for amount in (
+                    _price_to_integer((product_details or {}).get("discounted_price")),
+                    _price_to_integer((product_details or {}).get("original_price")),
+                ) if amount is not None
+            }),
+        }
+    return compare_image_prices_to_product(ocr_text, product_details)
+
+
+
+def send_photo(bot_token, item, affiliate_url, product_details=None):
     photo_url = refresh_photo_url(int(item["source_message_id"]))
-    product_details = fetch_product_details(affiliate_url)
+    product_details = product_details if product_details is not None else fetch_product_details(affiliate_url)
     caption = build_caption(
         item.get("source_caption", ""), affiliate_url,
         product_details=product_details
