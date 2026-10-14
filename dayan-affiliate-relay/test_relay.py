@@ -8,6 +8,7 @@ from relay_botapi import (
     clean_caption,
     extract_product_details,
     build_caption,
+    CHANNEL_FOLLOW_HTML,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -107,6 +108,8 @@ class DayanRelayTests(unittest.TestCase):
         self.assertNotIn("🧪 نمونهٔ آزمایشی انتشار خودکار", caption)
         self.assertNotIn("#اینستاگرام", caption)
         self.assertNotIn("لینک همکاری در فروش است", caption)
+        self.assertTrue(caption.rstrip().endswith(CHANNEL_FOLLOW_HTML))
+        self.assertIn('<a href="https://t.me/Iran_gajet">📣 @Iran_gajet</a>', caption)
 
     def test_instagram_hashtag_is_removed_from_source_caption(self):
         self.assertEqual(clean_caption("ادرس فروشگااه/lead/51366 #اینستاگرام"), "")
