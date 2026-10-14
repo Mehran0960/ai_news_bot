@@ -748,52 +748,6 @@ def fill_price_fallback(source_caption, product_details):
     return details
 
 
-def _amount_from_price(value):
-    if not value:
-        return None
-    digits = re.sub(r"\D", "", normalize_digits(str(value)))
-    try:
-        return int(digits) if digits else None
-    except ValueError:
-        return None
-
-
-def verify_prices_against_source(source_caption, product_details):
-    """
-    Only print a numeric price in the caption when it is independently stated
-    in the source caption and matches the product page. Image-only prices cannot
-    be verified from Telegram text, so omit site prices rather than risk a mismatch.
-    """
-    details = dict(product_details or {})
-    source_amounts = set(extract_source_price_values(source_caption))
-    if not source_amounts:
-        if details.get("original_price") or details.get("discounted_price"):
-            print("Price safety: source caption contains no verifiable numeric price; hiding website prices to avoid image/caption mismatch.")
-        details["original_price"] = None
-        details["discounted_price"] = None
-        return details
-
-    original_match = _amount_from_price(details.get("original_price")) in source_amounts
-    discounted_match = _amount_from_price(details.get("discounted_price")) in source_amounts
-    if original_match and discounted_match:
-        return details
-
-    # Only the current/discounted page price can be shown as a single price.
-    # An old/original price is never substituted for a verified current price.
-    if discounted_match:
-        details["original_price"] = None
-    else:
-        details["original_price"] = None
-        details["discounted_price"] = None
-    print(
-        "Price safety: website/source mismatch; "
-        f"original_match={'yes' if original_match else 'no'}, "
-        f"discounted_match={'yes' if discounted_match else 'no'}. "
-        "Only source-verified prices will be shown."
-    )
-    return details
-
-
 def summarize_source_description(source_caption, original=None, discounted=None, max_chars=150):
     """Return at most one concise feature line rather than repeating sales copy."""
     text = normalize_digits(clean_caption(source_caption))
@@ -842,8 +796,9 @@ def summarize_source_description(source_caption, original=None, discounted=None,
     return first
 
 def build_caption(source_caption, affiliate_url, product_details=None):
+    # The affiliate product page is the current price source of truth.
+    # Source creative/caption may be older than the live product listing.
     details = fill_price_fallback(source_caption, product_details)
-    details = verify_prices_against_source(source_caption, details)
     chunks = []
 
     title = re.sub(r"\s+", " ", str(details.get("title") or "")).strip()
