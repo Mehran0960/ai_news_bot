@@ -748,6 +748,54 @@ def fill_price_fallback(source_caption, product_details):
     return details
 
 
+def _amount_from_price(value):
+    if not value:
+        return None
+    digits = re.sub(r"\D", "", normalize_digits(str(value)))
+    try:
+        return int(digits) if digits else None
+    except ValueError:
+        return None
+
+
+def verify_prices_against_source(source_caption, product_details):
+    """
+    Only print a numeric price in the caption when it is independently stated
+    in the source caption and matches the product page. Image-only prices cannot
+    be verified from Telegram text, so omit site prices rather than risk a mismatch.
+    """
+    details = dict(product_details or {})
+    source_amounts = set(extract_source_price_values(source_caption))
+    if not source_amounts:
+        if details.get("original_price") or details.get("discounted_price"):
+            print("Price safety: source caption contains no verifiable numeric price; hiding website prices to avoid image/caption mismatch.")
+        details["original_price"] = None
+        details["discounted_price"] = None
+        return details
+
+    original_match = _amount_from_price(details.get("original_price")) in source_amounts
+    discounted_match = _amount_from_price(details.get("discounted_price")) in source_amounts
+    if original_match and discounted_match:
+        return details
+
+    # Keep only a single page price that is explicitly verified by the source.
+    # This avoids displaying a mismatched crossed-out or discounted price pair.
+    if discounted_match:
+        details["original_price"] = None
+    elif original_match:
+        details["discounted_price"] = None
+    else:
+        details["original_price"] = None
+        details["discounted_price"] = None
+    print(
+        "Price safety: website/source mismatch; "
+        f"original_match={'yes' if original_match else 'no'}, "
+        f"discounted_match={'yes' if discounted_match else 'no'}. "
+        "Only source-verified prices will be shown."
+    )
+    return details
+
+
 def summarize_source_description(source_caption, original=None, discounted=None, max_chars=150):
     """Return at most one concise feature line rather than repeating sales copy."""
     text = normalize_digits(clean_caption(source_caption))
@@ -758,6 +806,11 @@ def summarize_source_description(source_caption, original=None, discounted=None,
     if original and discounted:
         text = re.sub(r"(?<!\w)\d{1,2}[.,٫٬]\d{3}\s*میلیون(?:\s*تومان)?", "", text)
         text = re.sub(r"(?<!\w)\d{1,3}(?:[,٬،]\d{3})+\s*تومان", "", text)
+    else:
+        # When numeric prices are withheld, do not leak source price claims into
+        # the compact descriptive line either.
+        text = re.sub(r"(?im)^.*(?:قیمت(?:\s*(?:اصلی|تخفیفی|نهایی))?|تومان|میلیون|\d{1,3}(?:[,٬،]\d{3}){2}).*$", "", text)
+        text = re.sub(r"\s*🔥\s*تخفیف[^\n]*", "", text)
 
     # Highlight a few concrete product specifications, when present.
     features = []
@@ -792,6 +845,7 @@ def summarize_source_description(source_caption, original=None, discounted=None,
 
 def build_caption(source_caption, affiliate_url, product_details=None):
     details = fill_price_fallback(source_caption, product_details)
+    details = verify_prices_against_source(source_caption, details)
     chunks = []
 
     title = re.sub(r"\s+", " ", str(details.get("title") or "")).strip()
@@ -1089,7 +1143,18 @@ def inspect_source_message(source_message_id):
                     break
         print(f"Media elements found: {media_count}")
         return
-    raise RuntimeError(f"Source message {source_message_id} was not found in the current public preview.")
+    # Historical archive posts are not necessarily included in the newest page.
+    historical = fetch_preview(before_id=int(source_message_id) + 1)
+    item = next((p for p in historical if int(p["source_message_id"]) == int(source_message_id)), None)
+    if item:
+        print(f"Source post: {item['source_url']}")
+        short_caption = re.sub(r"\\s+", " ", item.get("source_caption", ""))[:500]
+        print("Caption: " + (short_caption or "(empty)"))
+        print(f"Photo URL available: {'yes' if item.get('photo_url') else 'no'}")
+        print(f"Video URL available: {'yes' if item.get('video_url') else 'no'}")
+        print(f"Product refs: {item.get('product_refs', [])}")
+        return
+    raise RuntimeError(f"Source message {source_message_id} was not found in the current or historical public preview.")
 
 
 def inspect_product_page(route_and_code):
@@ -1115,7 +1180,10 @@ def edit_existing_caption(source_message_id, destination_message_id):
     posts = fetch_preview()
     item = next((p for p in posts if int(p["source_message_id"]) == int(source_message_id)), None)
     if item is None:
-        raise RuntimeError(f"Source post {source_message_id} was not found in the current public preview.")
+        posts = fetch_preview(before_id=int(source_message_id) + 1)
+        item = next((p for p in posts if int(p["source_message_id"]) == int(source_message_id)), None)
+    if item is None:
+        raise RuntimeError(f"Source post {source_message_id} was not found in the current or historical public preview.")
     overrides = read_json(OVERRIDES_FILE, {})
     product_ref = resolve_product_ref(item, overrides)
     if not product_ref:
