@@ -19,7 +19,7 @@ OVERRIDES_FILE = CONFIG / "post_overrides.json"
 
 SOURCE_CHANNEL = "Dayan_video"
 TARGET_CHANNEL = "@Iran_gajet"
-CHANNEL_FOLLOW_HTML = '<a href="https://t.me/Iran_gajet">📣 @Iran_gajet</a>'
+CHANNEL_FOLLOW_HTML = '<a href="https://t.me/Iran_gajet">📣 ایران گجت | @Iran_gajet</a>'
 SOURCE_URL = f"https://t.me/s/{SOURCE_CHANNEL}"
 TIMEZONE = ZoneInfo("Asia/Tehran")
 PUBLISH_SLOTS = ["09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "20:30", "22:00"]
@@ -401,11 +401,40 @@ def extract_product_details(page_html):
         details["original_price"] = None
     return details
 
+def is_generic_store_title(title):
+    normalized = re.sub(r"[\s|·\-—_]+", "", str(title or "").lower())
+    return normalized in {"ایرانگجت", "irangadget", "iran-gadget", "ایرانگجتفروشگاه"}
+
 def fetch_product_details(affiliate_url):
     try:
         response = SESSION.get(affiliate_url, timeout=(15, 25), allow_redirects=True)
         response.raise_for_status()
         details = extract_product_details(response.text)
+
+        # Some FastCart pages expose only the store heading. For metadata only,
+        # try the matching Lead route for the same product code; keep the user's
+        # original affiliate route for purchase/conversion tracking.
+        if not details.get("title") or is_generic_store_title(details.get("title")):
+            parsed = urlparse(affiliate_url)
+            match = re.fullmatch(r"/(fastcart|lead)/(\d{4,8})/?", parsed.path or "")
+            if match and parsed.scheme == "https" and parsed.hostname:
+                current_route, code = match.groups()
+                alternate_route = "lead" if current_route == "fastcart" else "fastcart"
+                metadata_url = f"{parsed.scheme}://{parsed.netloc}/{alternate_route}/{code}"
+                try:
+                    alternate_response = SESSION.get(metadata_url, timeout=(12, 20), allow_redirects=True)
+                    alternate_response.raise_for_status()
+                    alternate = extract_product_details(alternate_response.text)
+                    if alternate.get("title") and not is_generic_store_title(alternate["title"]):
+                        details["title"] = alternate["title"]
+                    for price_key in ("original_price", "discounted_price"):
+                        if not details.get(price_key) and alternate.get(price_key):
+                            details[price_key] = alternate[price_key]
+                except Exception as exc:
+                    print(f"Alternate product metadata unavailable ({type(exc).__name__}); continuing with available details.")
+
+        if is_generic_store_title(details.get("title")):
+            details["title"] = None
         found = bool(details.get("title") or details.get("original_price") or details.get("discounted_price"))
         print(
             "Product-page enrichment: "
@@ -414,13 +443,14 @@ def fetch_product_details(affiliate_url):
             f"discounted_price={'yes' if details.get('discounted_price') else 'no'}"
         )
         if not found:
-            print("Product page loaded but no structured title/price fields were recognized; safe fallback caption will be used.")
+            print("Product page loaded but no product-specific title/price fields were recognized; safe fallback caption will be used.")
         return details
     except Exception as exc:
         # Avoid logging the full exception because request exceptions can expose
         # the personal store URL.
         print(f"Product-page enrichment unavailable ({type(exc).__name__}); safe fallback caption will be used.")
         return {"title": None, "original_price": None, "discounted_price": None, "page_found": False}
+
 
 def fill_price_fallback(source_caption, product_details):
     """Use explicit source-caption price pairs only when the product page lacks prices."""
@@ -454,68 +484,87 @@ def fill_price_fallback(source_caption, product_details):
     return details
 
 
+def summarize_source_description(source_caption, original=None, discounted=None, max_chars=150):
+    """Return at most one concise feature line rather than repeating sales copy."""
+    text = normalize_digits(clean_caption(source_caption))
+    if not text:
+        return ""
+
+    # Remove source price values when they are already shown in the price block.
+    if original and discounted:
+        text = re.sub(r"(?<!\w)\d{1,2}[.,٫٬]\d{3}\s*میلیون(?:\s*تومان)?", "", text)
+        text = re.sub(r"(?<!\w)\d{1,3}(?:[,٬،]\d{3})+\s*تومان", "", text)
+
+    # Highlight a few concrete product specifications, when present.
+    features = []
+    patterns = [
+        (r"(?<!\d)(\d{1,3}(?:[,٬.]\d{3})*\+?)\s*بازی", lambda m: f"🎮 {m.group(1).replace(',', '٬')} بازی"),
+        (r"(?:خروجی|رزولوشن)\s*(4k|8k|full\s*hd|1080p|720p)", lambda m: f"📺 خروجی {m.group(1).upper().replace('FULL HD', 'Full HD')}"),
+        (r"حافظه\s*(\d+)\s*(gb|tb|گیگابایت|ترابایت)", lambda m: f"💾 حافظه {m.group(1)}{m.group(2).upper() if m.group(2).lower() in ('gb','tb') else m.group(2)}"),
+        (r"(\d+)\s*دسته\s*بی[\u200c\s-]*سیم", lambda m: f"🎮 {m.group(1)} دستهٔ بی‌سیم"),
+    ]
+    for pattern, formatter in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            feature = formatter(match)
+            if feature not in features:
+                features.append(feature)
+        if len(features) >= 4:
+            break
+    if features:
+        return " | ".join(features)[:max_chars]
+
+    # Generic fallback: strip call-to-action and repeated delivery/payment claims,
+    # then retain only a short excerpt, never an entire promotional paragraph.
+    text = re.sub(r"(?:👇|⬇️?).*$", "", text)
+    text = re.sub(r"پرداخت\s*درب\s*منزل|ارسال(?:\s+\S+){0,4}", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s{2,}", " ", text).strip(" |،;:-")
+    if not text:
+        return ""
+    first = re.split(r"[.!؟\n]", text, maxsplit=1)[0].strip()
+    if len(first) > max_chars:
+        first = first[:max_chars - 1].rstrip() + "…"
+    return first
+
 def build_caption(source_caption, affiliate_url, product_details=None):
     details = fill_price_fallback(source_caption, product_details)
     chunks = []
 
     title = re.sub(r"\s+", " ", str(details.get("title") or "")).strip()
-    if title:
-        chunks.append("🛍 " + title)
+    if title and not is_generic_store_title(title):
+        chunks.append("🛍 " + html_lib.escape(title))
 
     original = details.get("original_price")
     discounted = details.get("discounted_price")
     if original and discounted and original != discounted:
-        chunks.append(f"💸 قیمت اصلی: <s>{html_lib.escape(original)}</s>\n🔥 قیمت با تخفیف: <b>{html_lib.escape(discounted)}</b>")
+        chunks.append(f"💸 قیمت اصلی: <s>{html_lib.escape(original)}</s>\n🔥 قیمت تخفیفی: <b>{html_lib.escape(discounted)}</b>")
     elif discounted:
         chunks.append(f"💰 قیمت: <b>{html_lib.escape(str(discounted))}</b>")
     elif original:
         chunks.append(f"💰 قیمت اعلام‌شده: <b>{html_lib.escape(str(original))}</b>")
 
-    intro = clean_caption(source_caption)
-    if original and discounted and original != discounted:
-        # Remove abbreviated prices already shown in the structured price block.
-        intro = re.sub(
-            r"(?<!\w)[0-9۰-۹٠-٩]{1,2}[.,٫٬][0-9۰-۹٠-٩]{3}\s*میلیون(?:\s*تومان)?",
-            "",
-            intro,
-        )
-        intro = re.sub(
-            r"(?<!\w)[0-9۰-۹٠-٩]{1,3}(?:[,٬،][0-9۰-۹٠-٩]{3})+\s*تومان",
-            "",
-            intro,
-        )
-        intro = re.sub(r"[🔥💰💸]\s*(?=🚚|💳|#|$)", "", intro)
-        intro = re.sub(r"\s*([|])\s*", " | ", intro)
-        intro = re.sub(r"\s{2,}", " ", intro).strip()
-    # Avoid repeating fixed service guarantees in source captions.
-    intro = re.sub(r"پرداخت\s*درب\s*منزل", "", intro)
-    intro = re.sub(r"\s{2,}", " ", intro).strip()
+    intro = summarize_source_description(source_caption, original=original, discounted=discounted)
     if intro:
-        chunks.append(intro)
+        chunks.append(html_lib.escape(intro))
 
-    # These buyer-facing guarantees are intentionally shown on every post,
-    # per the channel owner's request.
     chunks.append("\n".join(PRODUCT_BENEFITS))
     chunks.append("🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True))
-    # Clickable destination-channel handle belongs at the very end of the caption.
     chunks.append(CHANNEL_FOLLOW_HTML)
 
     caption = "\n\n".join(chunks)
     if len(caption) > 1024:
-        # Preserve the fixed buyer benefits and purchase link even when a
-        # source caption or product title is unexpectedly long.
+        # Preserve product title, price, benefits, purchase URL and channel link.
         fixed_tail = "\n".join(PRODUCT_BENEFITS) + "\n\n🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True) + "\n\n" + CHANNEL_FOLLOW_HTML
-        title_part = ("🛍 " + title + "\n\n") if title else ""
+        title_part = ("🛍 " + html_lib.escape(title) + "\n\n") if title and not is_generic_store_title(title) else ""
         price_part = ""
         if original and discounted and original != discounted:
-            price_part = f"💸 قیمت اصلی: <s>{html_lib.escape(original)}</s>\n🔥 قیمت با تخفیف: <b>{html_lib.escape(discounted)}</b>\n\n"
+            price_part = f"💸 قیمت اصلی: <s>{html_lib.escape(original)}</s>\n🔥 قیمت تخفیفی: <b>{html_lib.escape(discounted)}</b>\n\n"
         elif discounted:
             price_part = f"💰 قیمت: <b>{html_lib.escape(str(discounted))}</b>\n\n"
         room = max(0, 1024 - len(fixed_tail) - len(title_part) - len(price_part) - 8)
-        intro = clean_caption(source_caption)[:room].rstrip()
-        caption = title_part + price_part + ((intro + "\n\n") if intro else "") + fixed_tail
+        intro = intro[:room].rstrip()
+        caption = title_part + price_part + ((html_lib.escape(intro) + "\n\n") if intro else "") + fixed_tail
         if len(caption) > 1024:
-            # The title remains useful; trim it only as a last resort.
             overflow = len(caption) - 1024
             caption = caption[:max(0, 1024 - overflow - 1)].rstrip() + "…"
     return caption
