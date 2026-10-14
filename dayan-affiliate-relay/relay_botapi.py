@@ -582,9 +582,10 @@ def inspect_source_message(source_message_id):
             continue
 
         text_node = node.select_one(".tgme_widget_message_text")
-        caption = text_node.get_text("\\n", strip=True) if text_node else ""
+        caption = text_node.get_text("\n", strip=True) if text_node else ""
+        short_caption = re.sub(r"\s+", " ", caption)[:500]
         print(f"Source post: https://t.me/{SOURCE_CHANNEL}/{source_message_id}")
-        print(f"Caption: {re.sub(r'\\s+', ' ', caption)[:500] or '(empty)'}")
+        print("Caption: " + (short_caption or "(empty)"))
         print(f"Message classes: {node.get('class', [])}")
         media_count = 0
         for element in node.select("video, source, img, .tgme_widget_message_photo_wrap, a.tgme_widget_message_document_wrap"):
@@ -645,7 +646,7 @@ def run_test_post(source_message_id):
 def main():
     if "--inspect-message" in sys.argv:
         index = sys.argv.index("--inspect-message")
-        if index + 1 >= len(sys.argv) or not re.fullmatch(r"\\d{1,8}", sys.argv[index + 1]):
+        if index + 1 >= len(sys.argv) or not re.fullmatch(r"\d{1,8}", sys.argv[index + 1]):
             raise RuntimeError("Usage: relay_botapi.py --inspect-message <source_message_id>")
         inspect_source_message(int(sys.argv[index + 1]))
         return
