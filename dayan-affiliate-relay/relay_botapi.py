@@ -229,6 +229,21 @@ def send_video(bot_token, item, affiliate_url):
     return result["result"]["message_id"]
 
 def main():
+    if "--check" in sys.argv:
+        posts = fetch_preview()
+        video_posts = [item for item in posts if item.get("video_url")]
+        print("Public Telegram preview diagnostic")
+        print(f"Parsed channel messages: {len(posts)}")
+        print(f"Messages with direct video source: {len(video_posts)}")
+        print(f"Newest message ID in preview: {max((int(p['source_message_id']) for p in posts), default=0)}")
+        print("Video message IDs and number of extracted product codes:")
+        for item in video_posts[:20]:
+            print(f"- {item['source_message_id']}: {len(item.get('product_codes', []))} product code(s)")
+        if not video_posts:
+            print("No direct video URLs were extracted. Do not activate auto-publishing until the parser is corrected.")
+            sys.exit(3)
+        return
+
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     if not bot_token:
         print("Missing GitHub Actions secret TELEGRAM_BOT_TOKEN; workflow remains unconfigured.", file=sys.stderr)
@@ -272,9 +287,17 @@ def main():
         # Advance the polling cursor for all posts, but queue only actual videos.
         if not item.get("video_url"):
             continue
-        item["status"] = "queued"
-        item["queued_at"] = now.isoformat()
-        queue.append(item)
+        queued_item = {
+            "source_message_id": int(item["source_message_id"]),
+            "source_url": item["source_url"],
+            "source_caption": item["source_caption"],
+            "product_codes": item["product_codes"],
+            "source_date": item.get("source_date"),
+            "status": "queued",
+            "queued_at": now.isoformat(),
+        }
+        # Do not persist expiring CDN media URLs in this public repository.
+        queue.append(queued_item)
         queued_ids.add(mid)
 
     if new_ids:
