@@ -310,6 +310,21 @@ def main():
         if not video_posts:
             print("No direct video URLs were extracted from the current public preview.")
             sys.exit(3)
+        for item in video_posts[:2]:
+            try:
+                media_response = SESSION.get(
+                    item["video_url"], headers={"Range": "bytes=0-1"},
+                    timeout=15, stream=True
+                )
+                print(
+                    f"Media check id={item['source_message_id']}: "
+                    f"HTTP {media_response.status_code}; "
+                    f"type={media_response.headers.get('Content-Type', 'unknown')}; "
+                    f"length={media_response.headers.get('Content-Length', 'unknown')}"
+                )
+                media_response.close()
+            except requests.RequestException as exc:
+                print(f"Media check id={item['source_message_id']} failed: {type(exc).__name__}")
         return
 
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
