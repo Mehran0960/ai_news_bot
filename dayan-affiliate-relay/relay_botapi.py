@@ -218,17 +218,21 @@ def parse_view_count(raw_value):
 
 
 def classify_product_category(text):
-    """Lightweight product category classifier tuned for an Iranian gadget channel."""
+    """Classify products by Iranian online-market demand signals, not media format."""
     value = normalize_digits(text or "").lower()
     patterns = [
+        ("power_backup", r"پاور\s*بانک|پاوربانک|شارژر|باتری|موتور\s*برق|پنل\s*خورشیدی|برق\s*اضطراری|چراغ\s*اضطراری|\bups\b"),
+        ("smartphones", r"گوشی(?:\s*هوشمند)?|موبایل|تلفن\s*همراه|آیفون|iphone|\bsmartphone\b"),
+        ("audio_wearables", r"ایرپاد|هندزفری|هدفون|هدست|اسپیکر|ساعت\s*هوشمند|اسمارت\s*واچ|smartwatch|earbuds"),
+        ("computer_network", r"لپ\s*تاپ|لپ‌تاپ|لپتاپ|کامپیوتر|تبلت|مودم|روتر|مسیریاب|مانیتور|پروژکتور|تلویزیون|\blaptop\b|\brouter\b"),
         ("gaming", r"گیم|بازی|کنسول|پلی\s*استیشن|پلی‌استیشن|ایکس\s*باکس|xbox|ps[345]|گیم\s*استیک|دسته\s*(?:بازی|بی\s*سیم)"),
-        ("digital", r"موبایل|گوشی|شارژر|کابل|پاوربانک|ایرپاد|هندزفری|هدفون|هدست|ساعت\s*هوشمند|اسپیکر|بلوتوث|لپ\s*تاپ|لپ‌تاپ|تبلت|مودم|مانیتور|کیبورد|ماوس|موس|دوربین|پروژکتور|فلش|حافظه"),
+        ("digital_accessories", r"کابل|مبدل|تبدیل\s*usb|کیبورد|ماوس|موس|فلش|حافظه|کارت\s*حافظه|پایه\s*موبایل|قاب\s*گوشی|محافظ\s*صفحه|بلوتوث"),
         ("home", r"آشپزخانه|خانه|نظافت|جارو|سرخ\s*کن|خردکن|قهوه\s*ساز|چای\s*ساز|ظرف\s*شویی|لامپ|چراغ|دکور|سازماندهی|ارگانایزر"),
         ("automotive", r"خودرو|ماشین|موتور\s*سیکلت|داشبورد|کارواش|کمپرسور\s*باد|پمپ\s*باد|دوربین\s*ثبت"),
         ("tools", r"ابزار|دریل|پیچ\s*گوشتی|جوش|متر\s*لیزری|آچار|تراز\s*لیزری"),
         ("personal_care", r"آرایش|پوست|مو\b|ریش|اصلاح|ماساژ|فشار\s*خون|دندان|بهداشت|عطر|ادکلن"),
-        ("fashion", r"لباس|کفش|کیف|ساعت\b|عینک|گردنبند|دستبند"),
         ("kids_sports", r"کودک|نوزاد|اسباب\s*بازی|ورزشی|پیاده\s*روی|سفر|کمپینگ|کوهنوردی"),
+        ("fashion", r"لباس|کفش|کیف|ساعت\b|عینک|گردنبند|دستبند"),
     ]
     for category, pattern in patterns:
         if re.search(pattern, value, re.IGNORECASE):
@@ -260,25 +264,55 @@ def extract_source_price_values(text):
     return sorted(amounts)
 
 
+# Demand profile based on published Iranian online-market reports.
+# Digikala's 1403 report highlighted mobile phones, audio and wearables among
+# its most-searched products. Its 1404 report showed faster growth in searches
+# for "cheap" (+44%) and "discount" (+31%), plus a shift during the reported
+# crisis period toward power banks, chargers and batteries. These are directional
+# market signals, not a guarantee of sales for any individual affiliate product.
+# Sources: https://dmboard.media/news/digikala-annual-report-1404/
+#          https://digiato.com/iran-technology-news/digikala1403-report-has-been-published
 CATEGORY_PRIORS = {
-    # Broad demand categories from Iranian e-commerce reporting, adjusted for
-    # relevance to a gadget-focused channel rather than treated as sales facts.
-    "gaming": 24,
-    "digital": 23,
-    "home": 19,
-    "automotive": 14,
-    "tools": 13,
-    "kids_sports": 12,
-    "personal_care": 10,
-    "fashion": 7,
-    "other": 8,
+    "smartphones": 35,
+    "audio_wearables": 34,
+    "digital_accessories": 33,
+    "power_backup": 32,
+    "computer_network": 30,
+    "gaming": 28,
+    "home": 24,
+    "automotive": 20,
+    "tools": 18,
+    "personal_care": 17,
+    "kids_sports": 16,
+    "fashion": 12,
+    "other": 9,
+}
+
+# A limited trend premium follows observed market movement in published reports.
+# It is intentionally smaller than the direct market-demand and engagement scores.
+CATEGORY_TREND_POINTS = {
+    "power_backup": 10,
+    "smartphones": 7,
+    "audio_wearables": 9,
+    "digital_accessories": 8,
+    "computer_network": 5,
+    "gaming": 5,
+    "home": 4,
+    "automotive": 3,
+    "tools": 2,
+    "personal_care": 3,
+    "kids_sports": 2,
+    "fashion": 1,
+    "other": 1,
 }
 
 
 def score_product_potential(item, now=None):
     """
-    Explainable 0-100 heuristic, not a sales guarantee:
-    category fit + view velocity + affordability + discount + demonstrability + freshness.
+    Explainable 0-100 estimate. The primary 75 points score likely market demand:
+    category demand, observed Telegram view velocity, and reported market trends.
+    Remaining points score purchase fit (affordability/discount), content clarity,
+    and freshness. This is a ranking heuristic, not a sales guarantee.
     """
     now = now or datetime.now(timezone.utc)
     caption = str(item.get("source_caption") or "")
@@ -295,61 +329,74 @@ def score_product_potential(item, now=None):
     except (ValueError, TypeError):
         pass
     if view_count is None or age_hours is None:
-        view_points = 7
+        # Unknown engagement is neutral; it must not punish an item solely
+        # because Telegram did not expose its view count/date in the preview.
+        view_points = 10
     else:
         views_per_hour = max(0, float(view_count)) / max(age_hours, 0.25)
         view_points = min(25, round(25 * math.log1p(views_per_hour) / math.log1p(1000)))
 
+    trend_points = CATEGORY_TREND_POINTS.get(category, CATEGORY_TREND_POINTS["other"])
+    normalized_caption = normalize_digits(caption).lower()
+    # Price sensitivity and discounts are unusually strong current search signals
+    # in Iran; reward explicit value messaging, without letting it outweigh demand.
+    if re.search(r"ارزان|اقتصادی|مقرون\s*به\s*صرفه|قیمت\s*مناسب", normalized_caption):
+        trend_points += 3
+    if re.search(r"تخفیف|حراج|فروش\s*ویژه|قیمت\s*استثنایی", normalized_caption):
+        trend_points += 2
+    trend_points = min(15, trend_points)
+    market_demand_score = min(75, category_points + view_points + trend_points)
+
     prices = extract_source_price_values(caption)
     price = min(prices) if prices else None
     if price is None:
-        affordability_points = 8
+        affordability_points = 5
     elif price <= 2_000_000:
-        affordability_points = 20
-    elif price <= 5_000_000:
-        affordability_points = 17
-    elif price <= 10_000_000:
-        affordability_points = 14
-    elif price <= 20_000_000:
         affordability_points = 10
+    elif price <= 5_000_000:
+        affordability_points = 9
+    elif price <= 10_000_000:
+        affordability_points = 7
+    elif price <= 20_000_000:
+        affordability_points = 5
     elif price <= 40_000_000:
-        affordability_points = 6
-    else:
         affordability_points = 3
+    else:
+        affordability_points = 1
 
     discount_points = 0
-    percent_match = re.search(r"(?<!\d)(\d{1,2})\s*(?:٪|%)\s*(?:تخفیف)?", normalize_digits(caption))
+    percent_match = re.search(r"(?<!\d)(\d{1,2})\s*(?:٪|%)\s*(?:تخفیف)?", normalized_caption)
     if percent_match:
-        discount_points = min(15, round(int(percent_match.group(1)) * 0.45))
+        discount_points = min(10, round(int(percent_match.group(1)) * 0.35))
     elif len(prices) >= 2:
         original, discounted = max(prices), min(prices)
         if original > discounted:
-            discount_points = min(15, round(15 * (original - discounted) / original))
-    if discount_points == 0 and re.search(r"تخفیف|حراج|فروش\s*ویژه|قیمت\s*استثنایی", caption):
-        discount_points = 4
+            discount_points = min(10, round(10 * (original - discounted) / original))
+    if discount_points == 0 and re.search(r"تخفیف|حراج|فروش\s*ویژه|قیمت\s*استثنایی", normalized_caption):
+        discount_points = 3
 
-    content_points = 2
+    content_points = 0
     if len(caption.strip()) >= 50:
-        content_points += 2
-    if re.search(r"\d|ویژگی|قابلیت|ضد\s*آب|بی\s*سیم|هوشمند|چندکاره|قابل\s*حمل|4k|8k", caption, re.IGNORECASE):
-        content_points += 3
-    if re.search(r"[!?؟❗🔥😳🤯✨]", caption):
-        content_points += 2
-    if re.search(r"مشاهده|خرید|ارسال|گارانتی|پرداخت", caption):
         content_points += 1
-    content_points = min(10, content_points)
+    if re.search(r"\d|ویژگی|قابلیت|ضد\s*آب|بی\s*سیم|هوشمند|چندکاره|قابل\s*حمل|4k|8k", caption, re.IGNORECASE):
+        content_points += 1
+    if re.search(r"[!?؟❗🔥😳🤯✨]", caption):
+        content_points += 1
 
     if age_hours is None:
-        freshness_points = 5
+        freshness_points = 1
     else:
         age_days = max(0, age_hours / 24)
-        freshness_points = 10 if age_days <= 1 else 7 if age_days <= 3 else 4 if age_days <= 7 else 1
+        freshness_points = 2 if age_days <= 1 else 1 if age_days <= 7 else 0
 
-    total = min(100, category_points + view_points + affordability_points + discount_points + content_points + freshness_points)
+    total = min(100, market_demand_score + affordability_points + discount_points + content_points + freshness_points)
     return {
         "score": int(total),
+        "market_demand_score": int(market_demand_score),
         "category": category,
+        "category_demand_points": int(category_points),
         "view_points": int(view_points),
+        "trend_points": int(trend_points),
         "affordability_points": int(affordability_points),
         "discount_points": int(discount_points),
         "price_toman": price,
@@ -357,23 +404,25 @@ def score_product_potential(item, now=None):
 
 
 def select_next_candidate(queue, overrides, sent_product_codes=None):
-    """Choose the best candidate: video always outranks photo; score then freshness breaks ties."""
+    """Rank market demand first; use video format only as a secondary preference."""
     sent_codes = {str(code) for code in (sent_product_codes or [])}
     candidates = []
     for item in queue:
         product_ref = resolve_product_ref(item, overrides)
         if not product_ref or str(product_ref.get("code")) in sent_codes:
             continue
-        media_type = item.get("media_type") or ("video" if item.get("video_url") or "popularity_score" in item else "photo")
+        media_type = item.get("media_type") or ("video" if item.get("video_url") else "photo")
         if media_type not in ("video", "photo"):
             continue
-        score = int(item.get("popularity_score", 0) or 0)
+        demand_score = int(item.get("market_demand_score", item.get("popularity_score", 0)) or 0)
+        total_score = int(item.get("popularity_score", 0) or 0)
         message_id = int(item.get("source_message_id", 0) or 0)
-        candidates.append((0 if media_type == "video" else 1, -score, -message_id, item, product_ref))
+        # Sort by market demand first, then overall commercial fit, then video.
+        candidates.append((-demand_score, -total_score, 0 if media_type == "video" else 1, -message_id, item, product_ref))
     if not candidates:
         return None, None
-    candidates.sort(key=lambda candidate: candidate[:3])
-    return candidates[0][3], candidates[0][4]
+    candidates.sort(key=lambda candidate: candidate[:4])
+    return candidates[0][4], candidates[0][5]
 
 
 def fetch_preview(before_id=None):
@@ -1196,6 +1245,7 @@ def main():
         item["queued_at"] = now.isoformat()
         item["media_type"] = media_type
         item["popularity_score"] = ranking["score"]
+        item["market_demand_score"] = ranking["market_demand_score"]
         item["product_category"] = ranking["category"]
         item.pop("video_url", None)
         item.pop("photo_url", None)
@@ -1203,8 +1253,9 @@ def main():
         queued_ids.add(mid)
         queued_product_codes.add(product_code)
         print(
-            f"Queued source {mid}: media={media_type}, score={ranking['score']}/100, "
-            f"category={ranking['category']}, views={item.get('views') if item.get('views') is not None else 'unknown'}, "
+            f"Queued source {mid}: media={media_type}, market_demand={ranking['market_demand_score']}/75, "
+            f"total={ranking['score']}/100, category={ranking['category']}, "
+            f"views={item.get('views') if item.get('views') is not None else 'unknown'}, "
             f"price={ranking['price_toman'] if ranking['price_toman'] is not None else 'unknown'}."
         )
 
@@ -1247,7 +1298,8 @@ def main():
             state.pop("last_publish_error", None)
             print(
                 f"Published source {chosen['source_message_id']} to {TARGET_CHANNEL}: "
-                f"media={media_type}, score={chosen.get('popularity_score', 0)}/100, "
+                f"media={media_type}, market_demand={chosen.get('market_demand_score', 0)}/75, "
+                f"total={chosen.get('popularity_score', 0)}/100, "
                 f"category={chosen.get('product_category', 'unknown')}, "
                 f"product_code={chosen_ref['code']}."
             )
