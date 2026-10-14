@@ -1446,11 +1446,18 @@ def run_test_post(source_message_id):
     if not product_ref:
         raise RuntimeError(f"Test source post {source_message_id} has no unambiguous product code/route; refusing to publish.")
     affiliate_url = make_affiliate_url(store_base, product_ref)
+    product_details = fetch_product_details(affiliate_url)
+    price_check = check_source_media_prices(item, product_details)
+    print(f"Test-post price verification: status={price_check.get('status')}, image_prices={price_check.get('image_prices', [])}, page_prices={price_check.get('page_prices', [])}.")
+    if not price_check.get("ok"):
+        raise RuntimeError(
+            f"Refusing test post because creative price verification failed: {price_check.get('status')}."
+        )
     if item.get("video_url"):
-        destination_message_id = send_video(bot_token, item, affiliate_url)
+        destination_message_id = send_video(bot_token, item, affiliate_url, product_details=product_details)
         media_type = "video"
     else:
-        destination_message_id = send_photo(bot_token, item, affiliate_url)
+        destination_message_id = send_photo(bot_token, item, affiliate_url, product_details=product_details)
         media_type = "photo"
     print(
         f"TEST POST SENT source={item['source_url']} target={TARGET_CHANNEL} "
@@ -1480,17 +1487,22 @@ def publish_best_archive_post():
             sent_codes.add(str(queued_ref["code"]))
     candidates = rank_archive_candidates(
         archive_posts, overrides, sent_product_codes=sent_codes,
-        sent_source_ids=sent_ids, now=now
+        sent_source_ids=sent_ids, now=now,
+        rejected_product_codes=state.get("price_rejected_product_codes", []),
+        rejected_source_ids=state.get("price_rejected_source_ids", []),
     )
-    chosen, product_ref = select_next_candidate(candidates, overrides, sent_codes)
+    chosen, product_ref, product_details = select_next_price_verified_candidate(
+        candidates, overrides, sent_codes, store_base, state
+    )
     if not chosen or not product_ref:
-        raise RuntimeError("No eligible unpublished product with accessible photo/video and product link was found in the scanned archive.")
+        write_state(state)
+        raise RuntimeError("No unpublished archive product with a verifiable image/site price (or no mismatches) was found.")
     affiliate_url = make_affiliate_url(store_base, product_ref)
     media_type = chosen["media_type"]
     if media_type == "video":
-        destination_message_id = send_video(bot_token, chosen, affiliate_url)
+        destination_message_id = send_video(bot_token, chosen, affiliate_url, product_details=product_details)
     else:
-        destination_message_id = send_photo(bot_token, chosen, affiliate_url)
+        destination_message_id = send_photo(bot_token, chosen, affiliate_url, product_details=product_details)
 
     state.setdefault("sent_source_ids", []).append(int(chosen["source_message_id"]))
     state["sent_source_ids"] = state["sent_source_ids"][-MAX_SENT_IDS:]
@@ -1617,6 +1629,8 @@ def main():
     queued_ids = {int(x["source_message_id"]) for x in queue}
     sent_ids = {int(x) for x in state.get("sent_source_ids", [])}
     sent_product_codes = {str(x) for x in state.get("sent_product_codes", [])}
+    rejected_price_source_ids = {int(x) for x in state.get("price_rejected_source_ids", [])}
+    rejected_price_product_codes = {str(x) for x in state.get("price_rejected_product_codes", [])}
     queued_product_codes = set()
     for queued_item in queue:
         queued_ref = resolve_product_ref(queued_item, overrides)
@@ -1628,7 +1642,7 @@ def main():
         mid = int(item["source_message_id"])
         if mid > last_seen:
             new_ids.append(mid)
-        if mid in queued_ids or mid in sent_ids:
+        if mid in queued_ids or mid in sent_ids or mid in rejected_price_source_ids:
             continue
         media_type = "video" if item.get("video_url") else "photo" if item.get("photo_url") else None
         if media_type is None:
@@ -1638,8 +1652,8 @@ def main():
             print(f"Skipping source {mid}: no unambiguous product route/code.")
             continue
         product_code = str(product_ref["code"])
-        if product_code in sent_product_codes or product_code in queued_product_codes:
-            print(f"Skipping source {mid}: product code {product_code} was already published or queued.")
+        if product_code in sent_product_codes or product_code in queued_product_codes or product_code in rejected_price_product_codes:
+            print(f"Skipping source {mid}: product code {product_code} was already published, queued, or rejected by the price check.")
             continue
 
         ranking = score_product_potential(item, now=now)
@@ -1668,15 +1682,17 @@ def main():
 
     slot_key = due_slot(now, state.get("published_slots", []))
     if slot_key:
-        chosen, chosen_ref = select_next_candidate(queue, overrides, sent_product_codes)
+        chosen, chosen_ref, product_details = select_next_price_verified_candidate(
+            queue, overrides, sent_product_codes, store_base, state
+        )
         if chosen:
             affiliate_url = make_affiliate_url(store_base, chosen_ref)
             media_type = chosen.get("media_type") or "video"
             try:
                 if media_type == "video":
-                    telegram_message_id = send_video(bot_token, chosen, affiliate_url)
+                    telegram_message_id = send_video(bot_token, chosen, affiliate_url, product_details=product_details)
                 else:
-                    telegram_message_id = send_photo(bot_token, chosen, affiliate_url)
+                    telegram_message_id = send_photo(bot_token, chosen, affiliate_url, product_details=product_details)
             except Exception as exc:
                 # Persist the cursor and queue before the next scheduled retry.
                 # Never persist exception text because HTTP exceptions may contain URLs/tokens.
@@ -1706,7 +1722,7 @@ def main():
                 f"product_code={chosen_ref['code']}."
             )
         else:
-            print(f"No valid new video/photo candidate with a product route/code for slot {slot_key}; nothing published.")
+            print(f"No price-verified, unpublished photo/video candidate with a valid product link was available for slot {slot_key}; nothing published.")
 
     write_state(state)
     print(f"Completed. Parsed {len(posts)} source messages; queued={len(queue)}; newest source ID={state['last_seen_id']}")
