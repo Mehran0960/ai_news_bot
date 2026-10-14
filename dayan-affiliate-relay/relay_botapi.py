@@ -1311,7 +1311,12 @@ def main():
     })
     overrides = read_json(OVERRIDES_FILE, {})
     now = datetime.now(TIMEZONE)
-    posts = fetch_posts_since(int(state.get("last_seen_id", 0)) if state.get("initialized") else None)
+    # On every hourly run, re-rank the accessible archive, not just new source IDs.
+    # The first run still establishes a baseline and never backfills old content by surprise.
+    if state.get("initialized"):
+        posts = fetch_recent_archive(max_pages=MAX_POLL_PAGES)
+    else:
+        posts = fetch_posts_since(None)
     if not posts:
         raise RuntimeError("No channel messages were parsed from the public Telegram preview.")
 
@@ -1335,11 +1340,10 @@ def main():
             queued_product_codes.add(str(queued_ref["code"]))
     new_ids = []
 
-    for item in posts:
+    for item in sorted(posts, key=lambda post: int(post["source_message_id"]), reverse=True):
         mid = int(item["source_message_id"])
-        if mid <= last_seen:
-            continue
-        new_ids.append(mid)
+        if mid > last_seen:
+            new_ids.append(mid)
         if mid in queued_ids or mid in sent_ids:
             continue
         media_type = "video" if item.get("video_url") else "photo" if item.get("photo_url") else None
