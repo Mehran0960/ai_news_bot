@@ -13,6 +13,8 @@ from relay_botapi import (
     CHANNEL_FOLLOW_HTML,
     photo_url_from_node,
     fill_price_fallback,
+    summarize_source_description,
+    is_generic_store_title,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -113,7 +115,7 @@ class DayanRelayTests(unittest.TestCase):
         self.assertNotIn("#اینستاگرام", caption)
         self.assertNotIn("لینک همکاری در فروش است", caption)
         self.assertTrue(caption.rstrip().endswith(CHANNEL_FOLLOW_HTML))
-        self.assertIn('<a href="https://t.me/Iran_gajet">📣 @Iran_gajet</a>', caption)
+        self.assertIn('<a href="https://t.me/Iran_gajet">📣 ایران گجت | @Iran_gajet</a>', caption)
 
     def test_instagram_hashtag_is_removed_from_source_caption(self):
         self.assertEqual(clean_caption("ادرس فروشگااه/lead/51366 #اینستاگرام"), "")
@@ -146,6 +148,22 @@ class DayanRelayTests(unittest.TestCase):
         self.assertNotIn("ادرس دامنه", caption)
         self.assertNotIn("#پیامرسانیداخلی", caption)
         self.assertTrue(caption.rstrip().endswith(CHANNEL_FOLLOW_HTML))
+
+    def test_store_name_is_not_used_as_product_title(self):
+        self.assertTrue(is_generic_store_title("ایران گجت"))
+        self.assertFalse(is_generic_store_title("گیم استیک M15 مدل 51366"))
+
+    def test_compact_description_extracts_useful_specs(self):
+        summary = summarize_source_description(
+            "😳 ۱۰,۰۰۰+ بازی توی یه کنسول؟! 🔥 فقط وصلش کن به تلویزیون! خروجی 4K | حافظه ۶۴GB | ۲ دسته بی‌سیم 👇 ببین چه بازی‌هایی داخلشه!",
+            original="7,639,000 تومان",
+            discounted="5,789,000 تومان",
+        )
+        self.assertIn("بازی", summary)
+        self.assertIn("4K", summary)
+        self.assertIn("حافظه 64GB", summary)
+        self.assertIn("دستهٔ بی‌سیم", summary)
+        self.assertLessEqual(len(summary), 150)
 
     def test_caption_removes_duplicate_abbreviated_prices_and_source_tags(self):
         caption = build_caption(
