@@ -98,8 +98,12 @@ def clean_caption(text):
         # Do not carry over platform-specific promotional tags from Dayan.
         line = re.sub(r"#(?:اینستاگرام|پیامرسانیداخلی)", "", line, flags=re.IGNORECASE)
         line = URL_RE.sub("", line)
-        if re.search(r"(?:آدرس|ادرس)\s*فروشگا\S*\s*/\s*(?:lead|fastcart)/\d+", line, re.IGNORECASE):
-            continue
+        line = re.sub(
+            r"(?:آدرس|ادرس)\s*(?:فروشگا\S*|دامنه)\s*/\s*(?:lead|fastcart)/\d+",
+            "",
+            line,
+            flags=re.IGNORECASE,
+        )
         line = HANDLE_RE.sub("", line)
         line = re.sub(r"\s+", " ", line).strip(" \t|،;:")
         if line and line not in lines:
@@ -418,8 +422,40 @@ def fetch_product_details(affiliate_url):
         print(f"Product-page enrichment unavailable ({type(exc).__name__}); safe fallback caption will be used.")
         return {"title": None, "original_price": None, "discounted_price": None, "page_found": False}
 
+def fill_price_fallback(source_caption, product_details):
+    """Use explicit source-caption price pairs only when the product page lacks prices."""
+    details = dict(product_details or {})
+    if details.get("original_price") and details.get("discounted_price"):
+        return details
+
+    text = normalize_digits(source_caption or "")
+    amounts = []
+    for match in re.finditer(r"(?<!\d)(\d{1,2})[.,٫٬](\d{3})\s*میلیون(?:\s*تومان)?", text):
+        amount = int(match.group(1)) * 1_000_000 + int(match.group(2)) * 1_000
+        if amount >= 100_000:
+            amounts.append(amount)
+
+    # Also handle fully formatted prices such as 7,639,000, but not
+    # unrelated one-separator quantities such as "10,000+ games".
+    for match in re.finditer(r"(?<!\d)(\d{1,3}(?:[,٬،]\d{3}){2})(?!\d)", text):
+        digits = re.sub(r"\D", "", match.group(1))
+        if digits:
+            amount = int(digits)
+            if amount >= 100_000:
+                amounts.append(amount)
+
+    unique = sorted(set(amounts))
+    sale_cue = "🔥" in text or "تخفیف" in text or "قیمت" in text
+    if len(unique) >= 2 and sale_cue:
+        if not details.get("original_price"):
+            details["original_price"] = _format_price(max(unique))
+        if not details.get("discounted_price"):
+            details["discounted_price"] = _format_price(min(unique))
+    return details
+
+
 def build_caption(source_caption, affiliate_url, product_details=None):
-    details = product_details or {}
+    details = fill_price_fallback(source_caption, product_details)
     chunks = []
 
     title = re.sub(r"\s+", " ", str(details.get("title") or "")).strip()
