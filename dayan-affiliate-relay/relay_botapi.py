@@ -19,6 +19,7 @@ OVERRIDES_FILE = CONFIG / "post_overrides.json"
 
 SOURCE_CHANNEL = "Dayan_video"
 TARGET_CHANNEL = "@Iran_gajet"
+CHANNEL_FOLLOW_HTML = '<a href="https://t.me/Iran_gajet">📣 @Iran_gajet</a>'
 SOURCE_URL = f"https://t.me/s/{SOURCE_CHANNEL}"
 TIMEZONE = ZoneInfo("Asia/Tehran")
 PUBLISH_SLOTS = ["09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "20:30", "22:00"]
@@ -426,15 +427,15 @@ def build_caption(source_caption, affiliate_url, product_details=None):
     # These buyer-facing guarantees are intentionally shown on every post,
     # per the channel owner's request.
     chunks.append("\n".join(PRODUCT_BENEFITS))
-    chunks.append(
-        "🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True)
-    )
+    chunks.append("🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True))
+    # Clickable destination-channel handle belongs at the very end of the caption.
+    chunks.append(CHANNEL_FOLLOW_HTML)
 
     caption = "\n\n".join(chunks)
     if len(caption) > 1024:
         # Preserve the fixed buyer benefits and purchase link even when a
         # source caption or product title is unexpectedly long.
-        fixed_tail = "\n".join(PRODUCT_BENEFITS) + "\n\n🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True)
+        fixed_tail = "\n".join(PRODUCT_BENEFITS) + "\n\n🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True) + "\n\n" + CHANNEL_FOLLOW_HTML
         title_part = ("🛍 " + title + "\n\n") if title else ""
         price_part = ""
         if original and discounted and original != discounted:
