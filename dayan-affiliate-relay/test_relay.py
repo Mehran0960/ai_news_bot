@@ -20,6 +20,7 @@ from relay_botapi import (
     score_product_potential,
     select_next_candidate,
     extract_source_price_values,
+    rank_archive_candidates,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -271,6 +272,77 @@ class DayanRelayTests(unittest.TestCase):
                  "product_refs": [{"route": "lead", "code": "11111"}]}
         chosen, _ = select_next_candidate([photo], {})
         self.assertEqual(chosen["source_message_id"], 100)
+
+
+    def test_archive_candidate_ranking_prioritizes_market_demand_over_video(self):
+        now = __import__("datetime").datetime.fromisoformat("2026-10-15T12:00:00+00:00")
+        posts = [
+            {
+                "source_message_id": 100,
+                "source_caption": "گوشی هوشمند اقتصادی با تخفیف، قیمت 3,000,000 تومان",
+                "product_refs": [{"route": "lead", "code": "11111"}],
+                "photo_url": "https://cdn4.telesco.pe/file/phone.jpg",
+                "views": 1000,
+                "source_date": "2026-10-15T11:00:00+00:00",
+            },
+            {
+                "source_message_id": 101,
+                "source_caption": "گیم استیک با تخفیف، قیمت 3,000,000 تومان",
+                "product_refs": [{"route": "lead", "code": "22222"}],
+                "video_url": "https://cdn4.telesco.pe/file/game.mp4",
+                "views": 1000,
+                "source_date": "2026-10-15T11:00:00+00:00",
+            },
+        ]
+        ranked = rank_archive_candidates(posts, {}, now=now)
+        chosen, product_ref = select_next_candidate(ranked, {})
+        self.assertEqual(chosen["source_message_id"], 100)
+        self.assertEqual(chosen["media_type"], "photo")
+        self.assertEqual(product_ref["code"], "11111")
+
+    def test_archive_candidate_ranking_deduplicates_product_and_uses_freshest_post(self):
+        posts = [
+            {
+                "source_message_id": 100,
+                "source_caption": "گوشی هوشمند اقتصادی",
+                "product_refs": [{"route": "lead", "code": "33333"}],
+                "photo_url": "https://cdn4.telesco.pe/file/older.jpg",
+                "views": 500,
+                "source_date": "2026-10-14T11:00:00+00:00",
+            },
+            {
+                "source_message_id": 120,
+                "source_caption": "گوشی هوشمند اقتصادی",
+                "product_refs": [{"route": "lead", "code": "33333"}],
+                "video_url": "https://cdn4.telesco.pe/file/newer.mp4",
+                "views": 500,
+                "source_date": "2026-10-15T11:00:00+00:00",
+            },
+        ]
+        ranked = rank_archive_candidates(posts, {})
+        self.assertEqual(len(ranked), 1)
+        self.assertEqual(ranked[0]["source_message_id"], 120)
+        self.assertEqual(ranked[0]["media_type"], "video")
+
+    def test_archive_candidate_ranking_excludes_sent_products_and_source_ids(self):
+        posts = [
+            {
+                "source_message_id": 130,
+                "source_caption": "پاوربانک",
+                "product_refs": [{"route": "lead", "code": "44444"}],
+                "photo_url": "https://cdn4.telesco.pe/file/one.jpg",
+            },
+            {
+                "source_message_id": 131,
+                "source_caption": "پاوربانک",
+                "product_refs": [{"route": "lead", "code": "55555"}],
+                "video_url": "https://cdn4.telesco.pe/file/two.mp4",
+            },
+        ]
+        ranked = rank_archive_candidates(
+            posts, {}, sent_product_codes={"44444"}, sent_source_ids={131}
+        )
+        self.assertEqual(ranked, [])
 
 
 if __name__ == "__main__":
