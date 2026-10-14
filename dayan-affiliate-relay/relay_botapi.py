@@ -778,12 +778,10 @@ def verify_prices_against_source(source_caption, product_details):
     if original_match and discounted_match:
         return details
 
-    # Keep only a single page price that is explicitly verified by the source.
-    # This avoids displaying a mismatched crossed-out or discounted price pair.
+    # Only the current/discounted page price can be shown as a single price.
+    # An old/original price is never substituted for a verified current price.
     if discounted_match:
         details["original_price"] = None
-    elif original_match:
-        details["discounted_price"] = None
     else:
         details["original_price"] = None
         details["discounted_price"] = None
