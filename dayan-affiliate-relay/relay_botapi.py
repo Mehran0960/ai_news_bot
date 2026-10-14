@@ -299,18 +299,19 @@ def extract_product_details(page_html):
     visible_text = soup.get_text(" ", strip=True)
     details = {"title": None, "original_price": None, "discounted_price": None, "page_found": bool(page_html)}
 
-    for selector in (
-        'meta[property="og:title"]',
-        'meta[name="twitter:title"]',
-    ):
-        node = soup.select_one(selector)
-        if node and node.get("content", "").strip():
-            details["title"] = node["content"].strip()
-            break
+    # Product H1 should outrank Open Graph metadata, which is often only the store name.
+    node = soup.select_one("h1")
+    if node:
+        details["title"] = node.get_text(" ", strip=True)
     if not details["title"]:
-        node = soup.select_one("h1")
-        if node:
-            details["title"] = node.get_text(" ", strip=True)
+        for selector in (
+            'meta[property="og:title"]',
+            'meta[name="twitter:title"]',
+        ):
+            node = soup.select_one(selector)
+            if node and node.get("content", "").strip():
+                details["title"] = node["content"].strip()
+                break
     if not details["title"] and soup.title:
         details["title"] = soup.title.get_text(" ", strip=True)
 
