@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from bs4 import BeautifulSoup
 
@@ -21,6 +22,9 @@ from relay_botapi import (
     select_next_candidate,
     extract_source_price_values,
     rank_archive_candidates,
+    extract_image_price_values,
+    compare_image_prices_to_product,
+    select_next_price_verified_candidate,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -356,6 +360,79 @@ class DayanRelayTests(unittest.TestCase):
             posts, {}, sent_product_codes={"44444"}, sent_source_ids={131}
         )
         self.assertEqual(ranked, [])
+
+
+    def test_image_price_extraction_handles_persian_and_english_digits(self):
+        self.assertEqual(
+            extract_image_price_values("قیمت اصلی ۱٬۹۶۹٬۰۰۰ تومان\nقیمت تخفیفی 1,499,000 تومان"),
+            [1499000, 1969000],
+        )
+
+    def test_image_price_verification_accepts_prices_that_match_live_product_page(self):
+        result = compare_image_prices_to_product(
+            "قیمت اصلی ۱٬۹۶۹٬۰۰۰ تومان\nقیمت تخفیفی ۱٬۴۹۹٬۰۰۰ تومان",
+            {"original_price": "1,969,000 تومان", "discounted_price": "1,499,000 تومان"},
+        )
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["status"], "match")
+
+    def test_image_price_verification_rejects_mismatched_current_price(self):
+        result = compare_image_prices_to_product(
+            "قیمت تخفیفی ۱٬۲۹۹٬۰۰۰ تومان",
+            {"original_price": "1,969,000 تومان", "discounted_price": "1,499,000 تومان"},
+        )
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["status"], "mismatch")
+        self.assertEqual(result["mismatched_prices"], [1299000])
+
+    def test_image_price_verification_fails_closed_when_price_cue_is_unreadable(self):
+        result = compare_image_prices_to_product(
+            "قیمت تخفیفی ویژه",
+            {"discounted_price": "1,499,000 تومان"},
+        )
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["status"], "unverifiable")
+
+    def test_image_without_price_can_pass_without_comparison(self):
+        result = compare_image_prices_to_product(
+            "هدفون بلوتوثی JBL",
+            {"discounted_price": "1,499,000 تومان"},
+        )
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["status"], "no_image_price")
+
+    @patch("relay_botapi.check_source_media_prices")
+    @patch("relay_botapi.fetch_product_details")
+    def test_price_rejection_skips_first_candidate_and_selects_next(self, fetch_details, check_prices):
+        top = {
+            "source_message_id": 201, "media_type": "photo",
+            "market_demand_score": 70, "popularity_score": 85,
+            "product_refs": [{"route": "lead", "code": "11111"}],
+        }
+        next_item = {
+            "source_message_id": 202, "media_type": "photo",
+            "market_demand_score": 60, "popularity_score": 75,
+            "product_refs": [{"route": "lead", "code": "22222"}],
+        }
+        first_details = {"discounted_price": "1,499,000 تومان"}
+        second_details = {"discounted_price": "799,000 تومان"}
+        fetch_details.side_effect = [first_details, second_details]
+        check_prices.side_effect = [
+            {"ok": False, "status": "mismatch", "image_prices": [1299000], "page_prices": [1499000]},
+            {"ok": True, "status": "match", "image_prices": [799000], "page_prices": [799000]},
+        ]
+        queue = [top, next_item]
+        state = {}
+        chosen, ref, details = select_next_price_verified_candidate(
+            queue, {}, set(), "https://shop.example.affdn.ir", state
+        )
+        self.assertEqual(chosen["source_message_id"], 202)
+        self.assertEqual(ref["code"], "22222")
+        self.assertEqual(details, second_details)
+        self.assertEqual(state["price_rejected_source_ids"], [201])
+        self.assertEqual(state["price_rejected_product_codes"], ["11111"])
+        self.assertNotIn(top, queue)
+
 
 
 if __name__ == "__main__":
