@@ -119,7 +119,7 @@ def photo_url_from_node(node):
     if not wrap:
         return None
     style = wrap.get("style", "")
-    match = re.search(r"background-image\\s*:\\s*url\\([\\'\\\"]?(https://[^)\\'\\\"]+)", style, re.IGNORECASE)
+    match = re.search(r"""https://[^)\'"]+""", style, re.IGNORECASE)
     if match:
         value = match.group(1)
         if urlparse(value).scheme == "https":
@@ -550,6 +550,86 @@ def send_video(bot_token, item, affiliate_url):
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
 
+def refresh_photo_url(source_message_id):
+    try:
+        current = fetch_preview()
+        fresh = next((p for p in current if p["source_message_id"] == source_message_id), None)
+    except Exception as exc:
+        print(f"Current photo preview refresh failed: {type(exc).__name__}")
+        fresh = None
+    if fresh is None or not fresh.get("photo_url"):
+        try:
+            older = fetch_preview(before_id=source_message_id + 1)
+            fresh = next((p for p in older if p["source_message_id"] == source_message_id), None)
+        except Exception as exc:
+            print(f"Historical photo preview refresh failed: {type(exc).__name__}")
+            fresh = None
+    photo_url = fresh.get("photo_url") if fresh else None
+    parsed = urlparse(photo_url or "")
+    host = (parsed.hostname or "").lower()
+    if parsed.scheme != "https" or not (host == "telesco.pe" or host.endswith(".telesco.pe")):
+        raise RuntimeError("Refusing to download photo from an unexpected host; only HTTPS Telegram telesco.pe media URLs are accepted.")
+    return photo_url
+
+
+def send_photo(bot_token, item, affiliate_url):
+    photo_url = refresh_photo_url(int(item["source_message_id"]))
+    product_details = fetch_product_details(affiliate_url)
+    caption = build_caption(
+        item.get("source_caption", ""), affiliate_url,
+        product_details=product_details
+    )
+    payload = {
+        "chat_id": TARGET_CHANNEL,
+        "caption": caption,
+        "parse_mode": "HTML",
+        "reply_markup": json.dumps({
+            "inline_keyboard": [[{"text": "🛍 مشاهده و خرید", "url": affiliate_url}]]
+        }, ensure_ascii=False),
+    }
+
+    temp_path = None
+    try:
+        with SESSION.get(photo_url, stream=True, timeout=(15, 45)) as media_response:
+            media_response.raise_for_status()
+            content_type = (media_response.headers.get("Content-Type") or "").lower()
+            if "image/" not in content_type and "octet-stream" not in content_type:
+                raise RuntimeError(f"Source media is not a recognized image (Content-Type={content_type or 'missing'}).")
+            length_header = media_response.headers.get("Content-Length")
+            if length_header and int(length_header) > MAX_PHOTO_BYTES:
+                raise RuntimeError("Source photo exceeds the configured Telegram upload limit.")
+            total = 0
+            with tempfile.NamedTemporaryFile(prefix="dayan-", suffix=".jpg", delete=False) as temp_file:
+                temp_path = temp_file.name
+                for chunk in media_response.iter_content(chunk_size=512 * 1024):
+                    if not chunk:
+                        continue
+                    total += len(chunk)
+                    if total > MAX_PHOTO_BYTES:
+                        raise RuntimeError("Source photo exceeds the configured Telegram upload limit.")
+                    temp_file.write(chunk)
+        if not temp_path or os.path.getsize(temp_path) < 512:
+            raise RuntimeError("Downloaded photo is empty or unexpectedly small; refusing to publish.")
+        with open(temp_path, "rb") as media_file:
+            files = {"photo": (f"dayan-{item['source_message_id']}.jpg", media_file, "image/jpeg")}
+            response = SESSION.post(
+                f"https://api.telegram.org/bot{bot_token}/sendPhoto",
+                data=payload,
+                files=files,
+                timeout=(20, 120),
+            )
+        try:
+            result = response.json()
+        except ValueError:
+            result = {"description": response.text[:300]}
+        if response.status_code != 200 or not result.get("ok"):
+            raise RuntimeError(f"Telegram sendPhoto failed ({response.status_code}): {result.get('description', 'unknown error')}")
+        return result["result"]["message_id"]
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
+
+
 def fetch_posts_since(last_seen_id, max_pages=MAX_POLL_PAGES):
     """Fetch all preview pages newer than the cursor, up to a safe page cap."""
     first_page = fetch_preview()
@@ -643,17 +723,22 @@ def run_test_post(source_message_id):
     item = next((p for p in posts if int(p["source_message_id"]) == int(source_message_id)), None)
     if item is None:
         raise RuntimeError(f"Test source post {source_message_id} was not found in the current public preview.")
-    if not item.get("video_url"):
-        raise RuntimeError(f"Test source post {source_message_id} has no direct video URL; refusing to publish.")
+    if not item.get("video_url") and not item.get("photo_url"):
+        raise RuntimeError(f"Test source post {source_message_id} has no direct video or photo URL; refusing to publish.")
     overrides = read_json(OVERRIDES_FILE, {})
     product_ref = resolve_product_ref(item, overrides)
     if not product_ref:
         raise RuntimeError(f"Test source post {source_message_id} has no unambiguous product code/route; refusing to publish.")
     affiliate_url = make_affiliate_url(store_base, product_ref)
-    destination_message_id = send_video(bot_token, item, affiliate_url)
+    if item.get("video_url"):
+        destination_message_id = send_video(bot_token, item, affiliate_url)
+        media_type = "video"
+    else:
+        destination_message_id = send_photo(bot_token, item, affiliate_url)
+        media_type = "photo"
     print(
         f"TEST POST SENT source={item['source_url']} target={TARGET_CHANNEL} "
-        f"destination_message_id={destination_message_id} "
+        f"destination_message_id={destination_message_id} media={media_type} "
         f"route={product_ref['route']} product_code={product_ref['code']}"
     )
 
