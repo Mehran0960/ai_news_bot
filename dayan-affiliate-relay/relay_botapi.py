@@ -566,6 +566,21 @@ def fetch_posts_since(last_seen_id, max_pages=MAX_POLL_PAGES):
     return sorted(collected.values(), key=lambda item: item["source_message_id"])
 
 
+def inspect_product_page(route_and_code):
+    match = re.fullmatch(r"(lead|fastcart):(\\d{4,8})", route_and_code.strip().lower())
+    if not match:
+        raise RuntimeError("Usage: relay_botapi.py --inspect-product <lead|fastcart>:<product_code>")
+    store_base = normalize_store_host(os.getenv("DAYAN_STORE_HOST", ""))
+    affiliate_url = make_affiliate_url(store_base, {"route": match.group(1), "code": match.group(2)})
+    details = fetch_product_details(affiliate_url)
+    print("Product-page inspection — no Telegram message was sent.")
+    print(f"Title: {details.get('title') or 'NOT FOUND'}")
+    print(f"Original price: {details.get('original_price') or 'NOT FOUND'}")
+    print(f"Discounted/current price: {details.get('discounted_price') or 'NOT FOUND'}")
+    if not any(details.get(key) for key in ("title", "original_price", "discounted_price")):
+        sys.exit(4)
+
+
 def run_test_post(source_message_id):
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     if not bot_token:
@@ -591,6 +606,13 @@ def run_test_post(source_message_id):
 
 
 def main():
+    if "--inspect-product" in sys.argv:
+        index = sys.argv.index("--inspect-product")
+        if index + 1 >= len(sys.argv):
+            raise RuntimeError("Usage: relay_botapi.py --inspect-product <lead|fastcart>:<product_code>")
+        inspect_product_page(sys.argv[index + 1])
+        return
+
     if "--test-post" in sys.argv:
         index = sys.argv.index("--test-post")
         if index + 1 >= len(sys.argv) or not re.fullmatch(r"\d{1,8}", sys.argv[index + 1]):
