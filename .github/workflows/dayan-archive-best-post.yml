@@ -29,6 +29,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install OCR and video-frame tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-fas ffmpeg
+
       - name: Install dependencies
         run: python -m pip install -r dayan-affiliate-relay/requirements.txt
 
