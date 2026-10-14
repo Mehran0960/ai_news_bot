@@ -15,6 +15,11 @@ from relay_botapi import (
     fill_price_fallback,
     summarize_source_description,
     is_generic_store_title,
+    parse_view_count,
+    classify_product_category,
+    score_product_potential,
+    select_next_candidate,
+    extract_source_price_values,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -180,6 +185,59 @@ class DayanRelayTests(unittest.TestCase):
         self.assertNotIn("#پیامرسانیداخلی", caption)
         self.assertNotIn("💳 پرداخت درب منزل", caption)
         self.assertTrue(caption.rstrip().endswith(CHANNEL_FOLLOW_HTML))
+
+    def test_parses_telegram_view_count_suffixes(self):
+        self.assertEqual(parse_view_count("12.5K"), 12500)
+        self.assertEqual(parse_view_count("1.4M"), 1400000)
+        self.assertEqual(parse_view_count("۱۲۳۴"), 1234)
+
+    def test_classifies_gaming_gadget(self):
+        self.assertEqual(classify_product_category("گیم استیک M15 با بیش از ۱۰٬۰۰۰ بازی"), "gaming")
+
+    def test_extracts_prices_without_confusing_game_count(self):
+        self.assertEqual(
+            extract_source_price_values("۱۰٬۰۰۰ بازی؛ فقط ۵.۷۸۹ میلیون تومان، قیمت قبلی ۷.۶۳۹ میلیون تومان"),
+            [5789000, 7639000],
+        )
+
+    def test_product_score_uses_engagement_and_discount_signals(self):
+        now = __import__("datetime").datetime.fromisoformat("2026-10-15T12:00:00+00:00")
+        high_views = score_product_potential({
+            "source_caption": "گیم استیک M15؛ قیمت 7,639,000 تومان و قیمت تخفیفی 5,789,000 تومان؛ خروجی 4K",
+            "views": 1000,
+            "source_date": "2026-10-15T11:00:00+00:00",
+        }, now=now)
+        low_views = score_product_potential({
+            "source_caption": "گیم استیک M15؛ قیمت 7,639,000 تومان و قیمت تخفیفی 5,789,000 تومان؛ خروجی 4K",
+            "views": 10,
+            "source_date": "2026-10-15T11:00:00+00:00",
+        }, now=now)
+        self.assertEqual(high_views["category"], "gaming")
+        self.assertEqual(high_views["price_toman"], 5789000)
+        self.assertGreater(high_views["score"], low_views["score"])
+
+    def test_video_beats_photo_even_when_photo_score_is_higher(self):
+        photo = {"source_message_id": 100, "media_type": "photo", "popularity_score": 99,
+                 "product_refs": [{"route": "lead", "code": "11111"}]}
+        video = {"source_message_id": 101, "media_type": "video", "popularity_score": 20,
+                 "product_refs": [{"route": "lead", "code": "22222"}]}
+        chosen, product_ref = select_next_candidate([photo, video], {})
+        self.assertEqual(chosen["source_message_id"], 101)
+        self.assertEqual(product_ref["code"], "22222")
+
+    def test_selector_skips_previously_published_product_code(self):
+        candidate = {"source_message_id": 100, "media_type": "video", "popularity_score": 90,
+                     "product_refs": [{"route": "lead", "code": "11111"}]}
+        chosen, product_ref = select_next_candidate([candidate], {}, {"11111"})
+        self.assertIsNone(chosen)
+        self.assertIsNone(product_ref)
+
+    def test_photo_is_fallback_when_no_video_is_queued(self):
+        photo = {"source_message_id": 100, "media_type": "photo", "popularity_score": 30,
+                 "product_refs": [{"route": "lead", "code": "11111"}]}
+        chosen, _ = select_next_candidate([photo], {})
+        self.assertEqual(chosen["source_message_id"], 100)
+
 
 if __name__ == "__main__":
     unittest.main()
