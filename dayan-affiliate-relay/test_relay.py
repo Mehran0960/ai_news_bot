@@ -6,6 +6,8 @@ from relay_botapi import (
     normalize_store_host,
     resolve_product_ref,
     clean_caption,
+    extract_product_details,
+    build_caption,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -72,6 +74,36 @@ class DayanRelayTests(unittest.TestCase):
 
     def test_store_placeholder_is_removed_from_caption(self):
         self.assertEqual(clean_caption("ادرس فروشگااه/lead/51366"), "")
+
+
+    def test_extracts_product_title_and_both_prices(self):
+        page = """
+        <html><head><meta property="og:title" content="دسته های طرح PS5 بی سیم بلوتوثی به همراه دانگل اتصال"></head>
+        <body>
+          <p>قیمت اصلی: 7,639,000 تومان</p>
+          <p>قیمت با تخفیف: 5,789,000 تومان</p>
+        </body></html>
+        """
+        details = extract_product_details(page)
+        self.assertIn("PS5", details["title"])
+        self.assertEqual(details["original_price"], "7,639,000 تومان")
+        self.assertEqual(details["discounted_price"], "5,789,000 تومان")
+
+    def test_caption_contains_benefits_and_strikes_original_price(self):
+        caption = build_caption(
+            "منبع",
+            "https://seller.affdn.ir/lead/51366",
+            product_details={
+                "title": "دسته های PS5",
+                "original_price": "7,639,000 تومان",
+                "discounted_price": "5,789,000 تومان",
+            },
+        )
+        self.assertIn("<s>7,639,000 تومان</s>", caption)
+        self.assertIn("<b>5,789,000 تومان</b>", caption)
+        self.assertIn("✅ پرداخت درب منزل", caption)
+        self.assertIn("✅ ارسال به سراسر کشور", caption)
+        self.assertIn("✅ گارانتی تعویض و برگشت", caption)
 
 if __name__ == "__main__":
     unittest.main()
