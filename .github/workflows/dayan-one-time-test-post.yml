@@ -1,0 +1,55 @@
+name: Dayan One-time Test Post
+
+on:
+  push:
+    paths:
+      - ".github/dayan-test-request.txt"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dayan-one-time-test-post
+  cancel-in-progress: false
+
+jobs:
+  send-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install -r dayan-affiliate-relay/requirements.txt
+
+      - name: Send one clearly labeled test video
+        shell: bash
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          DAYAN_STORE_HOST: ${{ secrets.DAYAN_STORE_HOST }}
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -euo pipefail
+          request="$(tr -d '[:space:]' < .github/dayan-test-request.txt)"
+          if [[ ! "$request" =~ ^[0-9]{1,8}$ ]]; then
+            echo "No pending test request; no Telegram message sent."
+            exit 0
+          fi
+
+          python dayan-affiliate-relay/relay_botapi.py --test-post "$request"
+
+          printf 'sent:%s\n' "$request" > .github/dayan-test-request.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/dayan-test-request.txt
+          git commit -m "Mark Dayan test post as sent"
+          git push
