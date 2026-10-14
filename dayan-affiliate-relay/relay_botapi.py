@@ -1,10 +1,11 @@
 import html as html_lib
 import json
+import math
 import os
 import re
 import sys
 import tempfile
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
@@ -182,6 +183,7 @@ def parse_preview(html):
         caption = text_node.get_text("\n", strip=True) if text_node else ""
         media_url = video_url_from_node(node)
         time_node = node.select_one(".tgme_widget_message_date time[datetime]")
+        views_node = node.select_one(".tgme_widget_message_views")
         parsed.append({
             "source_message_id": message_id,
             "source_url": f"https://t.me/{SOURCE_CHANNEL}/{message_id}",
@@ -190,8 +192,189 @@ def parse_preview(html):
             "video_url": media_url,
             "photo_url": photo_url_from_node(node),
             "source_date": time_node.get("datetime") if time_node else None,
+            "views": parse_view_count(views_node.get_text(" ", strip=True)) if views_node else None,
         })
     return sorted(parsed, key=lambda item: item["source_message_id"])
+
+def parse_view_count(raw_value):
+    """Parse Telegram public-preview view labels such as 1.2K, 345K, or 1.4M."""
+    if not raw_value:
+        return None
+    value = normalize_digits(str(raw_value)).strip().lower()
+    value = value.replace(",", "").replace("٬", "").replace("٫", ".")
+    match = re.search(r"(\d+(?:\.\d+)?)\s*(k|m|هزار|میلیون)?", value)
+    if not match:
+        return None
+    try:
+        count = float(match.group(1))
+    except ValueError:
+        return None
+    unit = match.group(2) or ""
+    if unit in ("k", "هزار"):
+        count *= 1_000
+    elif unit in ("m", "میلیون"):
+        count *= 1_000_000
+    return max(0, int(count))
+
+
+def classify_product_category(text):
+    """Lightweight product category classifier tuned for an Iranian gadget channel."""
+    value = normalize_digits(text or "").lower()
+    patterns = [
+        ("gaming", r"گیم|بازی|کنسول|پلی\s*استیشن|پلی‌استیشن|ایکس\s*باکس|xbox|ps[345]|گیم\s*استیک|دسته\s*(?:بازی|بی\s*سیم)"),
+        ("digital", r"موبایل|گوشی|شارژر|کابل|پاوربانک|ایرپاد|هندزفری|هدفون|هدست|ساعت\s*هوشمند|اسپیکر|بلوتوث|لپ\s*تاپ|لپ‌تاپ|تبلت|مودم|مانیتور|کیبورد|ماوس|موس|دوربین|پروژکتور|فلش|حافظه"),
+        ("home", r"آشپزخانه|خانه|نظافت|جارو|سرخ\s*کن|خردکن|قهوه\s*ساز|چای\s*ساز|ظرف\s*شویی|لامپ|چراغ|دکور|سازماندهی|ارگانایزر"),
+        ("automotive", r"خودرو|ماشین|موتور\s*سیکلت|داشبورد|کارواش|کمپرسور\s*باد|پمپ\s*باد|دوربین\s*ثبت"),
+        ("tools", r"ابزار|دریل|پیچ\s*گوشتی|جوش|متر\s*لیزری|آچار|تراز\s*لیزری"),
+        ("personal_care", r"آرایش|پوست|مو\b|ریش|اصلاح|ماساژ|فشار\s*خون|دندان|بهداشت|عطر|ادکلن"),
+        ("fashion", r"لباس|کفش|کیف|ساعت\b|عینک|گردنبند|دستبند"),
+        ("kids_sports", r"کودک|نوزاد|اسباب\s*بازی|ورزشی|پیاده\s*روی|سفر|کمپینگ|کوهنوردی"),
+    ]
+    for category, pattern in patterns:
+        if re.search(pattern, value, re.IGNORECASE):
+            return category
+    return "other"
+
+
+def extract_source_price_values(text):
+    """Extract likely prices from explicit toman or million-toman price mentions."""
+    value = normalize_digits(text or "").replace("٬", ",").replace("،", ",")
+    amounts = set()
+    for match in re.finditer(r"(?<!\d)(\d{1,2})[.,٫](\d{3})\s*میلیون(?:\s*تومان)?", value):
+        try:
+            amount = int(match.group(1)) * 1_000_000 + int(match.group(2)) * 1_000
+            if amount >= 100_000:
+                amounts.add(amount)
+        except ValueError:
+            pass
+    for match in re.finditer(r"(?<!\d)(\d{1,3}(?:,\d{3}){1,2})(?!\d)", value):
+        start, end = match.span()
+        context = value[max(0, start - 24):min(len(value), end + 18)]
+        if "تومان" not in context and not re.search(r"قیمت|فقط|تخفیف|اصلی|قبلی|فروش ویژه", context):
+            continue
+        digits = re.sub(r"\D", "", match.group(1))
+        if digits:
+            amount = int(digits)
+            if amount >= 100_000:
+                amounts.add(amount)
+    return sorted(amounts)
+
+
+CATEGORY_PRIORS = {
+    # Broad demand categories from Iranian e-commerce reporting, adjusted for
+    # relevance to a gadget-focused channel rather than treated as sales facts.
+    "gaming": 24,
+    "digital": 23,
+    "home": 19,
+    "automotive": 14,
+    "tools": 13,
+    "kids_sports": 12,
+    "personal_care": 10,
+    "fashion": 7,
+    "other": 8,
+}
+
+
+def score_product_potential(item, now=None):
+    """
+    Explainable 0-100 heuristic, not a sales guarantee:
+    category fit + view velocity + affordability + discount + demonstrability + freshness.
+    """
+    now = now or datetime.now(timezone.utc)
+    caption = str(item.get("source_caption") or "")
+    category = classify_product_category(caption)
+    category_points = CATEGORY_PRIORS.get(category, CATEGORY_PRIORS["other"])
+
+    view_count = item.get("views")
+    age_hours = None
+    try:
+        published = datetime.fromisoformat(str(item.get("source_date") or "").replace("Z", "+00:00"))
+        if published.tzinfo is None:
+            published = published.replace(tzinfo=timezone.utc)
+        age_hours = max(0.25, (now.astimezone(timezone.utc) - published.astimezone(timezone.utc)).total_seconds() / 3600)
+    except (ValueError, TypeError):
+        pass
+    if view_count is None or age_hours is None:
+        view_points = 7
+    else:
+        views_per_hour = max(0, float(view_count)) / max(age_hours, 0.25)
+        view_points = min(25, round(25 * math.log1p(views_per_hour) / math.log1p(1000)))
+
+    prices = extract_source_price_values(caption)
+    price = min(prices) if prices else None
+    if price is None:
+        affordability_points = 8
+    elif price <= 2_000_000:
+        affordability_points = 20
+    elif price <= 5_000_000:
+        affordability_points = 17
+    elif price <= 10_000_000:
+        affordability_points = 14
+    elif price <= 20_000_000:
+        affordability_points = 10
+    elif price <= 40_000_000:
+        affordability_points = 6
+    else:
+        affordability_points = 3
+
+    discount_points = 0
+    percent_match = re.search(r"(?<!\d)(\d{1,2})\s*(?:٪|%)\s*(?:تخفیف)?", normalize_digits(caption))
+    if percent_match:
+        discount_points = min(15, round(int(percent_match.group(1)) * 0.45))
+    elif len(prices) >= 2:
+        original, discounted = max(prices), min(prices)
+        if original > discounted:
+            discount_points = min(15, round(15 * (original - discounted) / original))
+    if discount_points == 0 and re.search(r"تخفیف|حراج|فروش\s*ویژه|قیمت\s*استثنایی", caption):
+        discount_points = 4
+
+    content_points = 2
+    if len(caption.strip()) >= 50:
+        content_points += 2
+    if re.search(r"\d|ویژگی|قابلیت|ضد\s*آب|بی\s*سیم|هوشمند|چندکاره|قابل\s*حمل|4k|8k", caption, re.IGNORECASE):
+        content_points += 3
+    if re.search(r"[!?؟❗🔥😳🤯✨]", caption):
+        content_points += 2
+    if re.search(r"مشاهده|خرید|ارسال|گارانتی|پرداخت", caption):
+        content_points += 1
+    content_points = min(10, content_points)
+
+    if age_hours is None:
+        freshness_points = 5
+    else:
+        age_days = max(0, age_hours / 24)
+        freshness_points = 10 if age_days <= 1 else 7 if age_days <= 3 else 4 if age_days <= 7 else 1
+
+    total = min(100, category_points + view_points + affordability_points + discount_points + content_points + freshness_points)
+    return {
+        "score": int(total),
+        "category": category,
+        "view_points": int(view_points),
+        "affordability_points": int(affordability_points),
+        "discount_points": int(discount_points),
+        "price_toman": price,
+    }
+
+
+def select_next_candidate(queue, overrides, sent_product_codes=None):
+    """Choose the best candidate: video always outranks photo; score then freshness breaks ties."""
+    sent_codes = {str(code) for code in (sent_product_codes or [])}
+    candidates = []
+    for item in queue:
+        product_ref = resolve_product_ref(item, overrides)
+        if not product_ref or str(product_ref.get("code")) in sent_codes:
+            continue
+        media_type = item.get("media_type") or ("video" if item.get("video_url") or "popularity_score" in item else "photo")
+        if media_type not in ("video", "photo"):
+            continue
+        score = int(item.get("popularity_score", 0) or 0)
+        message_id = int(item.get("source_message_id", 0) or 0)
+        candidates.append((0 if media_type == "video" else 1, -score, -message_id, item, product_ref))
+    if not candidates:
+        return None, None
+    candidates.sort(key=lambda candidate: candidate[:3])
+    return candidates[0][3], candidates[0][4]
+
 
 def fetch_preview(before_id=None):
     url = SOURCE_URL
@@ -981,6 +1164,12 @@ def main():
     queue = state.setdefault("queue", [])
     queued_ids = {int(x["source_message_id"]) for x in queue}
     sent_ids = {int(x) for x in state.get("sent_source_ids", [])}
+    sent_product_codes = {str(x) for x in state.get("sent_product_codes", [])}
+    queued_product_codes = set()
+    for queued_item in queue:
+        queued_ref = resolve_product_ref(queued_item, overrides)
+        if queued_ref:
+            queued_product_codes.add(str(queued_ref["code"]))
     new_ids = []
 
     for item in posts:
@@ -988,15 +1177,36 @@ def main():
         if mid <= last_seen:
             continue
         new_ids.append(mid)
-        if mid in queued_ids or mid in sent_ids or not item.get("video_url"):
+        if mid in queued_ids or mid in sent_ids:
             continue
+        media_type = "video" if item.get("video_url") else "photo" if item.get("photo_url") else None
+        if media_type is None:
+            continue
+        product_ref = resolve_product_ref(item, overrides)
+        if not product_ref:
+            print(f"Skipping source {mid}: no unambiguous product route/code.")
+            continue
+        product_code = str(product_ref["code"])
+        if product_code in sent_product_codes or product_code in queued_product_codes:
+            print(f"Skipping source {mid}: product code {product_code} was already published or queued.")
+            continue
+
+        ranking = score_product_potential(item, now=now)
         item["status"] = "queued"
         item["queued_at"] = now.isoformat()
-        # Do not persist expiring media URLs or affiliate URLs in the public repo.
+        item["media_type"] = media_type
+        item["popularity_score"] = ranking["score"]
+        item["product_category"] = ranking["category"]
         item.pop("video_url", None)
         item.pop("photo_url", None)
         queue.append(item)
         queued_ids.add(mid)
+        queued_product_codes.add(product_code)
+        print(
+            f"Queued source {mid}: media={media_type}, score={ranking['score']}/100, "
+            f"category={ranking['category']}, views={item.get('views') if item.get('views') is not None else 'unknown'}, "
+            f"price={ranking['price_toman'] if ranking['price_toman'] is not None else 'unknown'}."
+        )
 
     if new_ids:
         state["last_seen_id"] = max([last_seen] + new_ids)
@@ -1005,17 +1215,15 @@ def main():
 
     slot_key = due_slot(now, state.get("published_slots", []))
     if slot_key:
-        chosen = None
-        chosen_ref = None
-        for item in queue:
-            product_ref = resolve_product_ref(item, overrides)
-            if product_ref:
-                chosen, chosen_ref = item, product_ref
-                break
+        chosen, chosen_ref = select_next_candidate(queue, overrides, sent_product_codes)
         if chosen:
             affiliate_url = make_affiliate_url(store_base, chosen_ref)
+            media_type = chosen.get("media_type") or "video"
             try:
-                telegram_message_id = send_video(bot_token, chosen, affiliate_url)
+                if media_type == "video":
+                    telegram_message_id = send_video(bot_token, chosen, affiliate_url)
+                else:
+                    telegram_message_id = send_photo(bot_token, chosen, affiliate_url)
             except Exception as exc:
                 # Persist the cursor and queue before the next scheduled retry.
                 # Never persist exception text because HTTP exceptions may contain URLs/tokens.
@@ -1030,14 +1238,21 @@ def main():
             queue.remove(chosen)
             state.setdefault("sent_source_ids", []).append(int(chosen["source_message_id"]))
             state["sent_source_ids"] = state["sent_source_ids"][-MAX_SENT_IDS:]
+            state.setdefault("sent_product_codes", []).append(str(chosen_ref["code"]))
+            state["sent_product_codes"] = state["sent_product_codes"][-MAX_SENT_IDS:]
             state.setdefault("published_slots", []).append(slot_key)
             state["published_slots"] = state["published_slots"][-60:]
             state["last_published_at"] = now.isoformat()
             state["last_destination_message_id"] = str(telegram_message_id)
             state.pop("last_publish_error", None)
-            print(f"Published source {chosen['source_message_id']} to {TARGET_CHANNEL} with {chosen_ref['route']} code {chosen_ref['code']}.")
+            print(
+                f"Published source {chosen['source_message_id']} to {TARGET_CHANNEL}: "
+                f"media={media_type}, score={chosen.get('popularity_score', 0)}/100, "
+                f"category={chosen.get('product_category', 'unknown')}, "
+                f"product_code={chosen_ref['code']}."
+            )
         else:
-            print(f"No new video with one unambiguous product route/code for slot {slot_key}; nothing published.")
+            print(f"No valid new video/photo candidate with a product route/code for slot {slot_key}; nothing published.")
 
     write_state(state)
     print(f"Completed. Parsed {len(posts)} source messages; queued={len(queue)}; newest source ID={state['last_seen_id']}")
