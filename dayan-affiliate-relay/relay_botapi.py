@@ -32,6 +32,7 @@ MAX_VIDEO_BYTES = 49 * 1024 * 1024
 MAX_PHOTO_BYTES = 9 * 1024 * 1024
 MAX_POLL_PAGES = 28
 MAX_ARCHIVE_POSTS = 500
+MAX_PRICE_CHECK_CANDIDATES_PER_RUN = 8
 HTTP_TIMEOUT = 25
 
 DIGIT_TRANSLATION = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
@@ -537,8 +538,22 @@ def select_next_price_verified_candidate(queue, overrides, sent_product_codes, s
     """Choose by market demand, reject inconsistent/unverifiable prices, and try the next item."""
     rejected_ids = {int(value) for value in state.get("price_rejected_source_ids", [])}
     rejected_codes = {str(value) for value in state.get("price_rejected_product_codes", [])}
+    checks_this_run = 0
 
     while True:
+        if checks_this_run >= MAX_PRICE_CHECK_CANDIDATES_PER_RUN:
+            queue[:] = [
+                item for item in queue
+                if int(item.get("source_message_id", 0) or 0) not in rejected_ids
+                and str((resolve_product_ref(item, overrides) or {}).get("code", "")) not in rejected_codes
+            ]
+            state["price_rejected_source_ids"] = sorted(rejected_ids)[-MAX_SENT_IDS:]
+            state["price_rejected_product_codes"] = sorted(rejected_codes)[-MAX_SENT_IDS:]
+            print(
+                f"::warning::Checked {checks_this_run} candidates without finding a price-verified item; "
+                "the remaining candidates will be assessed on a later scheduled run."
+            )
+            return None, None, None
         eligible = []
         for item in queue:
             source_id = int(item.get("source_message_id", 0) or 0)
@@ -561,6 +576,7 @@ def select_next_price_verified_candidate(queue, overrides, sent_product_codes, s
             state["price_rejected_product_codes"] = sorted(rejected_codes)[-MAX_SENT_IDS:]
             return None, None, None
 
+        checks_this_run += 1
         affiliate_url = make_affiliate_url(store_base, product_ref)
         try:
             product_details = fetch_product_details(affiliate_url)
