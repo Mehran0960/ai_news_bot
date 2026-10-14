@@ -23,7 +23,7 @@ TARGET_CHANNEL = "@Iran_gajet"
 CHANNEL_FOLLOW_HTML = '<a href="https://t.me/Iran_gajet">📣 ایران گجت | @Iran_gajet</a>'
 SOURCE_URL = f"https://t.me/s/{SOURCE_CHANNEL}"
 TIMEZONE = ZoneInfo("Asia/Tehran")
-PUBLISH_SLOTS = ["09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "20:30", "22:00"]
+PUBLISH_SLOTS = [f"{hour:02d}:00" for hour in range(24)]
 SLOT_GRACE_MINUTES = 55
 MAX_QUEUE_ITEMS = 500
 MAX_SENT_IDS = 2000
@@ -423,6 +423,37 @@ def select_next_candidate(queue, overrides, sent_product_codes=None):
         return None, None
     candidates.sort(key=lambda candidate: candidate[:4])
     return candidates[0][4], candidates[0][5]
+
+
+def rank_archive_candidates(posts, overrides, sent_product_codes=None, sent_source_ids=None, now=None):
+    """Score recent archive posts; market demand leads and video breaks ties."""
+    sent_codes = {str(code) for code in (sent_product_codes or [])}
+    sent_ids = {int(value) for value in (sent_source_ids or [])}
+    used_codes = set(sent_codes)
+    prepared_posts = []
+    # Start with newest posts so a repeated product is represented by its freshest post.
+    for item in sorted(posts, key=lambda post: int(post.get("source_message_id", 0) or 0), reverse=True):
+        message_id = int(item.get("source_message_id", 0) or 0)
+        if message_id in sent_ids:
+            continue
+        media_type = "video" if item.get("video_url") else "photo" if item.get("photo_url") else None
+        if media_type is None:
+            continue
+        product_ref = resolve_product_ref(item, overrides)
+        if not product_ref:
+            continue
+        code = str(product_ref.get("code"))
+        if code in used_codes:
+            continue
+        used_codes.add(code)
+        ranking = score_product_potential(item, now=now)
+        candidate = dict(item)
+        candidate["media_type"] = media_type
+        candidate["popularity_score"] = ranking["score"]
+        candidate["market_demand_score"] = ranking["market_demand_score"]
+        candidate["product_category"] = ranking["category"]
+        prepared_posts.append(candidate)
+    return prepared_posts
 
 
 def fetch_preview(before_id=None):
@@ -994,6 +1025,29 @@ def fetch_posts_since(last_seen_id, max_pages=MAX_POLL_PAGES):
     return sorted(collected.values(), key=lambda item: item["source_message_id"])
 
 
+def fetch_recent_archive(max_pages=MAX_POLL_PAGES):
+    """Fetch up to MAX_POLL_PAGES of the public archive even when posts are old."""
+    page = fetch_preview()
+    collected = {int(item["source_message_id"]): item for item in page}
+    pages = 1
+    while page and pages < max_pages:
+        oldest_id = min(int(item["source_message_id"]) for item in page)
+        next_page = fetch_preview(before_id=oldest_id)
+        new_items = []
+        for item in next_page:
+            item_id = int(item["source_message_id"])
+            if item_id not in collected:
+                collected[item_id] = item
+                new_items.append(item)
+        if not new_items:
+            break
+        collected.update({int(item["source_message_id"]): item for item in new_items})
+        page = next_page
+        pages += 1
+    print(f"Archive scan: collected {len(collected)} posts across {pages} page(s), cap={max_pages}.")
+    return sorted(collected.values(), key=lambda item: item["source_message_id"])
+
+
 def inspect_source_message(source_message_id):
     response = SESSION.get(SOURCE_URL, timeout=HTTP_TIMEOUT)
     response.raise_for_status()
@@ -1121,6 +1175,62 @@ def run_test_post(source_message_id):
     )
 
 
+def publish_best_archive_post():
+    """Publish the highest-scoring eligible product from up to 500 recent archive posts."""
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    if not bot_token:
+        raise RuntimeError("Missing GitHub Actions secret TELEGRAM_BOT_TOKEN.")
+    store_base = normalize_store_host(os.getenv("DAYAN_STORE_HOST", ""))
+    state = read_json(STATE_FILE, {
+        "initialized": False, "last_seen_id": 0, "queue": [],
+        "published_slots": [], "sent_source_ids": [], "sent_product_codes": []
+    })
+    overrides = read_json(OVERRIDES_FILE, {})
+    now = datetime.now(TIMEZONE)
+    archive_posts = fetch_recent_archive(max_pages=MAX_POLL_PAGES)
+    sent_codes = {str(code) for code in state.get("sent_product_codes", [])}
+    sent_ids = {int(value) for value in state.get("sent_source_ids", [])}
+    for queued in state.get("queue", []):
+        queued_ref = resolve_product_ref(queued, overrides)
+        if queued_ref:
+            sent_codes.add(str(queued_ref["code"]))
+    candidates = rank_archive_candidates(
+        archive_posts, overrides, sent_product_codes=sent_codes,
+        sent_source_ids=sent_ids, now=now
+    )
+    chosen, product_ref = select_next_candidate(candidates, overrides, sent_codes)
+    if not chosen or not product_ref:
+        raise RuntimeError("No eligible unpublished product with accessible photo/video and product link was found in the scanned archive.")
+    affiliate_url = make_affiliate_url(store_base, product_ref)
+    media_type = chosen["media_type"]
+    if media_type == "video":
+        destination_message_id = send_video(bot_token, chosen, affiliate_url)
+    else:
+        destination_message_id = send_photo(bot_token, chosen, affiliate_url)
+
+    state.setdefault("sent_source_ids", []).append(int(chosen["source_message_id"]))
+    state["sent_source_ids"] = state["sent_source_ids"][-MAX_SENT_IDS:]
+    state.setdefault("sent_product_codes", []).append(str(product_ref["code"]))
+    state["sent_product_codes"] = state["sent_product_codes"][-MAX_SENT_IDS:]
+    # Count this immediate post against the current hourly slot when still within
+    # the normal publication grace window, so the scheduled job won't double-post.
+    if now.minute <= SLOT_GRACE_MINUTES:
+        slot_key = f"{now.date().isoformat()}|{now.hour:02d}:00"
+        state.setdefault("published_slots", []).append(slot_key)
+        state["published_slots"] = list(dict.fromkeys(state["published_slots"]))[-60:]
+    state["last_published_at"] = now.isoformat()
+    state["last_destination_message_id"] = str(destination_message_id)
+    state.pop("last_publish_error", None)
+    write_state(state)
+    print(
+        f"ARCHIVE BEST POST SENT source={chosen['source_url']} target={TARGET_CHANNEL} "
+        f"destination_message_id={destination_message_id} media={media_type} "
+        f"market_demand={chosen.get('market_demand_score', 0)}/75 "
+        f"total={chosen.get('popularity_score', 0)}/100 "
+        f"category={chosen.get('product_category', 'unknown')} product_code={product_ref['code']}"
+    )
+
+
 def main():
     if "--edit-caption" in sys.argv:
         index = sys.argv.index("--edit-caption")
@@ -1148,6 +1258,10 @@ def main():
         if index + 1 >= len(sys.argv) or not re.fullmatch(r"\d{1,8}", sys.argv[index + 1]):
             raise RuntimeError("Usage: relay_botapi.py --test-post <source_message_id>")
         run_test_post(int(sys.argv[index + 1]))
+        return
+
+    if "--publish-best-archive" in sys.argv:
+        publish_best_archive_post()
         return
 
     if "--check" in sys.argv:
