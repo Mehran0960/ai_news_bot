@@ -454,7 +454,19 @@ def main():
                 break
         if chosen:
             affiliate_url = make_affiliate_url(store_base, chosen_ref)
-            telegram_message_id = send_video(bot_token, chosen, affiliate_url)
+            try:
+                telegram_message_id = send_video(bot_token, chosen, affiliate_url)
+            except Exception as exc:
+                # Persist the cursor and queue before the next scheduled retry.
+                # Never persist exception text because HTTP exceptions may contain URLs/tokens.
+                state["last_publish_error"] = {
+                    "source_message_id": int(chosen["source_message_id"]),
+                    "error_type": type(exc).__name__,
+                    "attempted_at": now.isoformat(),
+                }
+                write_state(state)
+                print(f"::warning::Publish attempt for source {chosen['source_message_id']} failed ({type(exc).__name__}); item remains queued for retry.")
+                return
             queue.remove(chosen)
             state.setdefault("sent_source_ids", []).append(int(chosen["source_message_id"]))
             state["sent_source_ids"] = state["sent_source_ids"][-MAX_SENT_IDS:]
@@ -462,11 +474,11 @@ def main():
             state["published_slots"] = state["published_slots"][-60:]
             state["last_published_at"] = now.isoformat()
             state["last_destination_message_id"] = str(telegram_message_id)
+            state.pop("last_publish_error", None)
             print(f"Published source {chosen['source_message_id']} to {TARGET_CHANNEL} with {chosen_ref['route']} code {chosen_ref['code']}.")
         else:
             print(f"No new video with one unambiguous product route/code for slot {slot_key}; nothing published.")
 
-    write_state(state)
     write_state(state)
     print(f"Completed. Parsed {len(posts)} source messages; queued={len(queue)}; newest source ID={state['last_seen_id']}")
 
