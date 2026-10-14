@@ -31,5 +31,8 @@ jobs:
       - name: Check syntax
         run: python -m py_compile dayan-affiliate-relay/relay_botapi.py
 
+      - name: Run offline unit tests
+        run: python -m unittest discover -s dayan-affiliate-relay -p 'test_*.py' -v
+
       - name: Read public preview without posting anything
         run: python dayan-affiliate-relay/relay_botapi.py --check
