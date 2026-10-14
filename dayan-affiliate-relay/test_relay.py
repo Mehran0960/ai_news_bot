@@ -12,6 +12,7 @@ from relay_botapi import (
     build_caption,
     CHANNEL_FOLLOW_HTML,
     photo_url_from_node,
+    fill_price_fallback,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -125,6 +126,26 @@ class DayanRelayTests(unittest.TestCase):
             photo_url_from_node(node),
             "https://cdn4.telesco.pe/file/photo.jpg",
         )
+
+    def test_fallback_price_pair_from_source_caption(self):
+        details = fill_price_fallback(
+            "🔥 ۵.۷۸۹ میلیون ۷.۶۳۹ میلیون 🚚 ارسال سریع و ارزان",
+            {"title": "گیم استیک M15 مدل 51366", "original_price": None, "discounted_price": None},
+        )
+        self.assertEqual(details["original_price"], "7,639,000 تومان")
+        self.assertEqual(details["discounted_price"], "5,789,000 تومان")
+
+    def test_caption_fallback_cleans_source_placeholder(self):
+        caption = build_caption(
+            "گیم استیک M15؛ 🔥 ۵.۷۸۹ میلیون ۷.۶۳۹ میلیون؛ ادرس دامنه/fastcart/51366 #پیامرسانیداخلی",
+            "https://seller.affdn.ir/fastcart/51366",
+            product_details={"title": "گیم استیک M15 مدل 51366", "original_price": None, "discounted_price": None},
+        )
+        self.assertIn("<s>7,639,000 تومان</s>", caption)
+        self.assertIn("<b>5,789,000 تومان</b>", caption)
+        self.assertNotIn("ادرس دامنه", caption)
+        self.assertNotIn("#پیامرسانیداخلی", caption)
+        self.assertTrue(caption.rstrip().endswith(CHANNEL_FOLLOW_HTML))
 
     def test_caption_removes_duplicate_abbreviated_prices_and_source_tags(self):
         caption = build_caption(
