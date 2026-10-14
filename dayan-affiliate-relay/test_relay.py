@@ -104,6 +104,12 @@ class DayanRelayTests(unittest.TestCase):
         self.assertIn("✅ پرداخت درب منزل", caption)
         self.assertIn("✅ ارسال به سراسر کشور", caption)
         self.assertIn("✅ گارانتی تعویض و برگشت", caption)
+        self.assertNotIn("🧪 نمونهٔ آزمایشی انتشار خودکار", caption)
+        self.assertNotIn("#اینستاگرام", caption)
+        self.assertNotIn("لینک همکاری در فروش است", caption)
+
+    def test_instagram_hashtag_is_removed_from_source_caption(self):
+        self.assertEqual(clean_caption("ادرس فروشگااه/lead/51366 #اینستاگرام"), "")
 
 if __name__ == "__main__":
     unittest.main()
