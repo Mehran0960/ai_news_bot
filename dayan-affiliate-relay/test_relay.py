@@ -78,8 +78,8 @@ class DayanRelayTests(unittest.TestCase):
 
     def test_extracts_product_title_and_both_prices(self):
         page = """
-        <html><head><meta property="og:title" content="دسته های طرح PS5 بی سیم بلوتوثی به همراه دانگل اتصال"></head>
-        <body>
+        <html><head><meta property="og:title" content="ایران گجت"></head>
+        <body><h1>دسته های طرح PS5 بی سیم بلوتوثی به همراه دانگل اتصال</h1>
           <p>قیمت اصلی: 7,639,000 تومان</p>
           <p>قیمت با تخفیف: 5,789,000 تومان</p>
         </body></html>
