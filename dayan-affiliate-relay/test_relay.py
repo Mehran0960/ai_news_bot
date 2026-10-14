@@ -20,7 +20,6 @@ from relay_botapi import (
     score_product_potential,
     select_next_candidate,
     extract_source_price_values,
-    verify_prices_against_source,
     rank_archive_candidates,
 )
 
@@ -124,35 +123,18 @@ class DayanRelayTests(unittest.TestCase):
         self.assertTrue(caption.rstrip().endswith(CHANNEL_FOLLOW_HTML))
         self.assertIn('<a href="https://t.me/Iran_gajet">📣 ایران گجت | @Iran_gajet</a>', caption)
 
-    def test_page_price_is_hidden_when_source_caption_has_no_verifiable_price(self):
-        details = verify_prices_against_source(
+    def test_live_product_page_prices_are_kept_when_source_creative_is_older(self):
+        caption = build_caption(
             "هدفون بلوتوثی JBL مدل 48486",
-            {"title": "هدفون بلوتوثی JBL مدل 48486",
-             "original_price": "1,969,000 تومان",
-             "discounted_price": "1,499,000 تومان"},
+            "https://seller.affdn.ir/fastcart/48486",
+            product_details={
+                "title": "هدفون بلوتوثی JBL مدل 48486",
+                "original_price": "1,969,000 تومان",
+                "discounted_price": "1,499,000 تومان",
+            },
         )
-        self.assertIsNone(details["original_price"])
-        self.assertIsNone(details["discounted_price"])
-
-    def test_only_verified_current_price_is_kept_when_original_price_differs(self):
-        details = verify_prices_against_source(
-            "قیمت تخفیفی: 1,499,000 تومان",
-            {"title": "هدفون",
-             "original_price": "1,969,000 تومان",
-             "discounted_price": "1,499,000 تومان"},
-        )
-        self.assertIsNone(details["original_price"])
-        self.assertEqual(details["discounted_price"], "1,499,000 تومان")
-
-    def test_mismatched_website_prices_are_hidden(self):
-        details = verify_prices_against_source(
-            "قیمت تخفیفی: 1,299,000 تومان",
-            {"title": "هدفون",
-             "original_price": "1,969,000 تومان",
-             "discounted_price": "1,499,000 تومان"},
-        )
-        self.assertIsNone(details["original_price"])
-        self.assertIsNone(details["discounted_price"])
+        self.assertIn("<s>1,969,000 تومان</s>", caption)
+        self.assertIn("<b>1,499,000 تومان</b>", caption)
 
     def test_instagram_hashtag_is_removed_from_source_caption(self):
         self.assertEqual(clean_caption("ادرس فروشگااه/lead/51366 #اینستاگرام"), "")
