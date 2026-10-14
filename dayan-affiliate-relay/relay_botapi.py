@@ -2,6 +2,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 from datetime import datetime, time
 from pathlib import Path
 from urllib.parse import urlparse
@@ -23,6 +24,8 @@ PUBLISH_SLOTS = ["09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "20:30", 
 SLOT_GRACE_MINUTES = 55
 MAX_QUEUE_ITEMS = 500
 MAX_SENT_IDS = 2000
+MAX_VIDEO_BYTES = 49 * 1024 * 1024
+MAX_POLL_PAGES = 25
 HTTP_TIMEOUT = 25
 
 DIGIT_TRANSLATION = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
@@ -247,53 +250,117 @@ def build_caption(source_caption, affiliate_url):
         intro = intro[:max(0, 1020 - len(tail))].rstrip() + "…"
     return (intro + tail) if intro else tail.lstrip()
 
-def send_video(bot_token, item, affiliate_url):
-    # Telegram CDN URLs can expire. Re-read the source post shortly before
-    # publishing and use a historical preview window if it has scrolled away.
-    fresh = None
+def refresh_video_url(source_message_id):
+    # Telegram CDN URLs may expire; fetch current public preview near publication.
     try:
         current = fetch_preview()
-        fresh = next((p for p in current if p["source_message_id"] == item["source_message_id"]), None)
+        fresh = next((p for p in current if p["source_message_id"] == source_message_id), None)
     except Exception as exc:
         print(f"Current preview refresh failed: {type(exc).__name__}: {exc}")
+        fresh = None
 
     if fresh is None:
         try:
-            older = fetch_preview(before_id=item["source_message_id"] + 1)
-            fresh = next((p for p in older if p["source_message_id"] == item["source_message_id"]), None)
+            older = fetch_preview(before_id=source_message_id + 1)
+            fresh = next((p for p in older if p["source_message_id"] == source_message_id), None)
         except Exception as exc:
             print(f"Historical preview refresh failed: {type(exc).__name__}: {exc}")
 
     media_url = fresh.get("video_url") if fresh else None
-    if not media_url or urlparse(media_url).scheme not in ("http", "https"):
-        raise RuntimeError("No directly fetchable video URL was found for this source post; refusing to publish a thumbnail or text post.")
+    parsed = urlparse(media_url or "")
+    host = (parsed.hostname or "").lower()
+    if parsed.scheme != "https" or not (host == "telesco.pe" or host.endswith(".telesco.pe")):
+        raise RuntimeError("Refusing to download media from an unexpected host; only HTTPS Telegram telesco.pe media URLs are accepted.")
+    return media_url
 
+def send_video(bot_token, item, affiliate_url):
+    media_url = refresh_video_url(int(item["source_message_id"]))
     caption = build_caption(item.get("source_caption", ""), affiliate_url)
     payload = {
         "chat_id": TARGET_CHANNEL,
-        "video": media_url,
         "caption": caption,
-        "supports_streaming": True,
+        "supports_streaming": "true",
         "reply_markup": json.dumps({
             "inline_keyboard": [[{"text": "🛍 مشاهده و خرید", "url": affiliate_url}]]
         }, ensure_ascii=False),
     }
-    response = SESSION.post(
-        f"https://api.telegram.org/bot{bot_token}/sendVideo",
-        data=payload,
-        timeout=60,
-    )
+
+    # Download to a temporary file, then upload through Bot API. This avoids
+    # depending on Telegram's URL-fetch size/format limitations and never saves
+    # the expiring CDN URL in the repository.
+    temp_path = None
     try:
-        result = response.json()
-    except ValueError:
-        result = {"description": response.text[:300]}
-    if response.status_code != 200 or not result.get("ok"):
-        raise RuntimeError(f"Telegram sendVideo failed ({response.status_code}): {result.get('description', 'unknown error')}")
-    return result["result"]["message_id"]
+        with SESSION.get(media_url, stream=True, timeout=(15, 120)) as media_response:
+            media_response.raise_for_status()
+            content_type = (media_response.headers.get("Content-Type") or "").lower()
+            if "video" not in content_type and "octet-stream" not in content_type:
+                raise RuntimeError(f"Source media is not a recognized video (Content-Type={content_type or 'missing'}).")
+            length_header = media_response.headers.get("Content-Length")
+            if length_header and int(length_header) > MAX_VIDEO_BYTES:
+                raise RuntimeError(f"Video exceeds the configured upload limit of {MAX_VIDEO_BYTES // (1024 * 1024)} MiB.")
+            total = 0
+            with tempfile.NamedTemporaryFile(prefix="dayan-", suffix=".mp4", delete=False) as temp_file:
+                temp_path = temp_file.name
+                for chunk in media_response.iter_content(chunk_size=1024 * 1024):
+                    if not chunk:
+                        continue
+                    total += len(chunk)
+                    if total > MAX_VIDEO_BYTES:
+                        raise RuntimeError(f"Video exceeds the configured upload limit of {MAX_VIDEO_BYTES // (1024 * 1024)} MiB.")
+                    temp_file.write(chunk)
+        if not temp_path or os.path.getsize(temp_path) < 1024:
+            raise RuntimeError("Downloaded video is empty or unexpectedly small; refusing to publish.")
+        with open(temp_path, "rb") as media_file:
+            files = {"video": (f"dayan-{item['source_message_id']}.mp4", media_file, "video/mp4")}
+            response = SESSION.post(
+                f"https://api.telegram.org/bot{bot_token}/sendVideo",
+                data=payload,
+                files=files,
+                timeout=(20, 180),
+            )
+        try:
+            result = response.json()
+        except ValueError:
+            result = {"description": response.text[:300]}
+        if response.status_code != 200 or not result.get("ok"):
+            raise RuntimeError(f"Telegram sendVideo failed ({response.status_code}): {result.get('description', 'unknown error')}")
+        return result["result"]["message_id"]
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
+
+def fetch_posts_since(last_seen_id, max_pages=MAX_POLL_PAGES):
+    """Fetch all preview pages newer than the cursor, up to a safe page cap."""
+    first_page = fetch_preview()
+    collected = {int(item["source_message_id"]): item for item in first_page}
+    if last_seen_id is None or not first_page:
+        return sorted(collected.values(), key=lambda item: item["source_message_id"])
+
+    page = first_page
+    pages = 1
+    while page and pages < max_pages:
+        oldest_id = min(int(item["source_message_id"]) for item in page)
+        if oldest_id <= int(last_seen_id):
+            break
+        next_page = fetch_preview(before_id=oldest_id)
+        new_items = []
+        for item in next_page:
+            item_id = int(item["source_message_id"])
+            if item_id not in collected:
+                collected[item_id] = item
+                new_items.append(item)
+        if not new_items:
+            break
+        page = next_page
+        pages += 1
+    if pages >= max_pages:
+        print(f"Warning: reached MAX_POLL_PAGES={max_pages}; unusually high source volume may require a larger page cap.")
+    return sorted(collected.values(), key=lambda item: item["source_message_id"])
+
 
 def main():
     if "--check" in sys.argv:
-        posts = fetch_preview()
+        posts = fetch_posts_since(None)
         video_posts = [item for item in posts if item.get("video_url")]
         latest = max(posts, key=lambda item: int(item["source_message_id"])) if posts else None
         print("Public Telegram preview diagnostic — no publishing occurs.")
@@ -339,7 +406,7 @@ def main():
     })
     overrides = read_json(OVERRIDES_FILE, {})
     now = datetime.now(TIMEZONE)
-    posts = fetch_preview()
+    posts = fetch_posts_since(int(state.get("last_seen_id", 0)) if state.get("initialized") else None)
     if not posts:
         raise RuntimeError("No channel messages were parsed from the public Telegram preview.")
 
