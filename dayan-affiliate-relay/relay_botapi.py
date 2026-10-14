@@ -1,3 +1,4 @@
+import html as html_lib
 import json
 import os
 import re
@@ -243,15 +244,213 @@ def due_slot(now, published_slots):
             return key
     return None
 
-def build_caption(source_caption, affiliate_url, prefix=""):
-    intro = clean_caption(source_caption)
+PRODUCT_BENEFITS = [
+    "✅ پرداخت درب منزل",
+    "✅ ارسال به سراسر کشور",
+    "✅ گارانتی تعویض و برگشت",
+]
+PRICE_NUMBER_RE = re.compile(r"(?<!\d)(\d{1,3}(?:[,٬،]\d{3})+|\d{4,})(?!\d)")
+
+def _format_price(raw_value):
+    if raw_value is None:
+        return None
+    normalized = normalize_digits(str(raw_value)).replace("٬", ",").replace("،", ",")
+    digits = re.sub(r"\D", "", normalized)
+    if not digits:
+        return None
+    try:
+        amount = int(digits)
+    except ValueError:
+        return None
+    if amount < 1000:
+        return None
+    return f"{amount:,} تومان"
+
+def _price_from_text(text):
+    normalized = normalize_digits(text or "")
+    match = PRICE_NUMBER_RE.search(normalized)
+    return _format_price(match.group(1)) if match else None
+
+def _iter_jsonld(value):
+    if isinstance(value, list):
+        for child in value:
+            yield from _iter_jsonld(child)
+    elif isinstance(value, dict):
+        yield value
+        for key in ("@graph", "mainEntity", "itemListElement"):
+            if key in value:
+                yield from _iter_jsonld(value[key])
+
+def _price_after_label(text, labels):
+    normalized = normalize_digits(text or "").replace("٬", ",").replace("،", ",")
+    for label in labels:
+        for match in re.finditer(re.escape(label), normalized, re.IGNORECASE):
+            excerpt = normalized[match.end():match.end() + 100]
+            price_match = PRICE_NUMBER_RE.search(excerpt)
+            if price_match:
+                formatted = _format_price(price_match.group(1))
+                if formatted:
+                    return formatted
+    return None
+
+def extract_product_details(page_html):
+    """Extract product title/prices from visible HTML and Product JSON-LD."""
+    soup = BeautifulSoup(page_html or "", "html.parser")
+    visible_text = soup.get_text(" ", strip=True)
+    details = {"title": None, "original_price": None, "discounted_price": None, "page_found": bool(page_html)}
+
+    for selector in (
+        'meta[property="og:title"]',
+        'meta[name="twitter:title"]',
+    ):
+        node = soup.select_one(selector)
+        if node and node.get("content", "").strip():
+            details["title"] = node["content"].strip()
+            break
+    if not details["title"]:
+        node = soup.select_one("h1")
+        if node:
+            details["title"] = node.get_text(" ", strip=True)
+    if not details["title"] and soup.title:
+        details["title"] = soup.title.get_text(" ", strip=True)
+
+    original_labels = (
+        "قیمت اصلی", "قیمت قبل از تخفیف", "قیمت اولیه",
+        "قیمت بدون تخفیف", "قیمت قبل تخفیف",
+    )
+    discounted_labels = (
+        "قیمت با تخفیف", "قیمت پس از تخفیف", "قیمت بعد از تخفیف",
+        "قیمت تخفیف خورده", "قیمت نهایی", "قیمت فروش ویژه",
+    )
+    details["original_price"] = _price_after_label(visible_text, original_labels)
+    details["discounted_price"] = _price_after_label(visible_text, discounted_labels)
+
+    # Generic product themes often put the original price in <del>/<s> and
+    # the live price in a sale/current-price element.
+    if not details["original_price"]:
+        for node in soup.select("del, s, strike, .old-price, .old_price, .regular-price, [class*='old-price'], [class*='old_price']"):
+            value = _price_from_text(node.get_text(" ", strip=True))
+            if value:
+                details["original_price"] = value
+                break
+    if not details["discounted_price"]:
+        for node in soup.select(".sale-price, .special-price, .current-price, .current_price, .new-price, [class*='sale-price'], [class*='special-price'], [class*='current-price'], [itemprop='price']"):
+            value = _price_from_text(node.get("content", "") or node.get_text(" ", strip=True))
+            if value:
+                details["discounted_price"] = value
+                break
+
+    # Prefer a valid Schema.org Product name/offer when visible selectors fail.
+    for script in soup.select('script[type="application/ld+json"]'):
+        try:
+            data = json.loads(script.string or script.get_text())
+        except (json.JSONDecodeError, TypeError):
+            continue
+        for entry in _iter_jsonld(data):
+            types = entry.get("@type", [])
+            if isinstance(types, str):
+                types = [types]
+            if "Product" not in types:
+                continue
+            if not details["title"] and isinstance(entry.get("name"), str):
+                details["title"] = entry["name"].strip()
+            offers = entry.get("offers", [])
+            if isinstance(offers, dict):
+                offers = [offers]
+            for offer in offers if isinstance(offers, list) else []:
+                price = offer.get("price") or offer.get("lowPrice")
+                if price and not details["discounted_price"]:
+                    details["discounted_price"] = _format_price(price)
+                for spec in offer.get("priceSpecification", []) if isinstance(offer.get("priceSpecification", []), list) else [offer.get("priceSpecification")]:
+                    if not isinstance(spec, dict):
+                        continue
+                    raw = spec.get("price")
+                    price_type = str(spec.get("priceType", "")).lower()
+                    formatted = _format_price(raw)
+                    if formatted and ("strike" in price_type or "list" in price_type or "regular" in price_type) and not details["original_price"]:
+                        details["original_price"] = formatted
+                    elif formatted and not details["discounted_price"]:
+                        details["discounted_price"] = formatted
+
+    if details["title"]:
+        details["title"] = re.sub(r"\s+", " ", details["title"]).strip()[:180]
+    if details["original_price"] == details["discounted_price"]:
+        details["original_price"] = None
+    return details
+
+def fetch_product_details(affiliate_url):
+    try:
+        response = SESSION.get(affiliate_url, timeout=(15, 25), allow_redirects=True)
+        response.raise_for_status()
+        details = extract_product_details(response.text)
+        found = bool(details.get("title") or details.get("original_price") or details.get("discounted_price"))
+        print(
+            "Product-page enrichment: "
+            f"title={'yes' if details.get('title') else 'no'}, "
+            f"original_price={'yes' if details.get('original_price') else 'no'}, "
+            f"discounted_price={'yes' if details.get('discounted_price') else 'no'}"
+        )
+        if not found:
+            print("Product page loaded but no structured title/price fields were recognized; safe fallback caption will be used.")
+        return details
+    except Exception as exc:
+        # Avoid logging the full exception because request exceptions can expose
+        # the personal store URL.
+        print(f"Product-page enrichment unavailable ({type(exc).__name__}); safe fallback caption will be used.")
+        return {"title": None, "original_price": None, "discounted_price": None, "page_found": False}
+
+def build_caption(source_caption, affiliate_url, product_details=None, prefix=""):
+    details = product_details or {}
+    chunks = []
     prefix = (prefix or "").strip()
     if prefix:
-        intro = prefix + ("\n\n" + intro if intro else "")
-    tail = "\n\n🛍 مشاهده و خرید:\n" + affiliate_url + "\n\nℹ️ لینک همکاری در فروش است؛ ممکن است از خرید شما کمیسیون دریافت کنم."
-    if len(intro) + len(tail) > 1024:
-        intro = intro[:max(0, 1020 - len(tail))].rstrip() + "…"
-    return (intro + tail) if intro else tail.lstrip()
+        chunks.append(prefix)
+
+    title = re.sub(r"\s+", " ", str(details.get("title") or "")).strip()
+    if title:
+        chunks.append("🛍 " + title)
+
+    original = details.get("original_price")
+    discounted = details.get("discounted_price")
+    if original and discounted and original != discounted:
+        chunks.append(f"💸 قیمت اصلی: <s>{html_lib.escape(original)}</s>\n🔥 قیمت با تخفیف: <b>{html_lib.escape(discounted)}</b>")
+    elif discounted:
+        chunks.append(f"💰 قیمت: <b>{html_lib.escape(str(discounted))}</b>")
+    elif original:
+        chunks.append(f"💰 قیمت اعلام‌شده: <b>{html_lib.escape(str(original))}</b>")
+
+    intro = clean_caption(source_caption)
+    if intro:
+        chunks.append(intro)
+
+    # These buyer-facing guarantees are intentionally shown on every post,
+    # per the channel owner's request.
+    chunks.append("\n".join(PRODUCT_BENEFITS))
+    chunks.append(
+        "🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True)
+        + "\n\nℹ️ لینک همکاری در فروش است؛ ممکن است از خرید شما کمیسیون دریافت کنم."
+    )
+
+    caption = "\n\n".join(chunks)
+    if len(caption) > 1024:
+        # Preserve the fixed buyer benefits, link, and disclosure even when a
+        # source caption or product title is unexpectedly long.
+        fixed_tail = "\n".join(PRODUCT_BENEFITS) + "\n\n🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True) + "\n\nℹ️ لینک همکاری در فروش است؛ ممکن است از خرید شما کمیسیون دریافت کنم."
+        title_part = ("🛍 " + title + "\n\n") if title else ""
+        price_part = ""
+        if original and discounted and original != discounted:
+            price_part = f"💸 قیمت اصلی: <s>{html_lib.escape(original)}</s>\n🔥 قیمت با تخفیف: <b>{html_lib.escape(discounted)}</b>\n\n"
+        elif discounted:
+            price_part = f"💰 قیمت: <b>{html_lib.escape(str(discounted))}</b>\n\n"
+        prefix_part = (prefix + "\n\n") if prefix else ""
+        room = max(0, 1024 - len(fixed_tail) - len(title_part) - len(price_part) - len(prefix_part) - 8)
+        intro = clean_caption(source_caption)[:room].rstrip()
+        caption = prefix_part + title_part + price_part + ((intro + "\n\n") if intro else "") + fixed_tail
+        if len(caption) > 1024:
+            # The title remains useful; trim it only as a last resort.
+            overflow = len(caption) - 1024
+            caption = caption[:max(0, 1024 - overflow - 1)].rstrip() + "…"
+    return caption
 
 def refresh_video_url(source_message_id):
     # Telegram CDN URLs may expire; fetch current public preview near publication.
@@ -279,10 +478,15 @@ def refresh_video_url(source_message_id):
 def send_video(bot_token, item, affiliate_url, test_mode=False):
     media_url = refresh_video_url(int(item["source_message_id"]))
     prefix = "🧪 نمونهٔ آزمایشی انتشار خودکار" if test_mode else ""
-    caption = build_caption(item.get("source_caption", ""), affiliate_url, prefix=prefix)
+    product_details = fetch_product_details(affiliate_url)
+    caption = build_caption(
+        item.get("source_caption", ""), affiliate_url,
+        product_details=product_details, prefix=prefix
+    )
     payload = {
         "chat_id": TARGET_CHANNEL,
         "caption": caption,
+        "parse_mode": "HTML",
         "supports_streaming": "true",
         "reply_markup": json.dumps({
             "inline_keyboard": [[{"text": "🛍 مشاهده و خرید", "url": affiliate_url}]]
