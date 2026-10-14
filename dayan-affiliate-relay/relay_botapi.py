@@ -29,6 +29,7 @@ DIGIT_TRANSLATION = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "0
 # Only extract codes explicitly labeled as a product code; do not mistake
 # four-digit prices, model numbers, or sizes for product IDs.
 CODE_RE = re.compile(r"(?:کد(?:\s+محصول)?|product\s*code)\s*[:#\-]?\s*(\d{4,8})", re.IGNORECASE)
+PATH_CODE_RE = re.compile(r"/(lead|fastcart)/(\d{4,8})", re.IGNORECASE)
 URL_RE = re.compile(r"https?://\S+", re.IGNORECASE)
 HANDLE_RE = re.compile(r"(?<!\w)@[A-Za-z0-9_]{4,}")
 SKIP_LINE_TERMS = [
@@ -56,12 +57,28 @@ def write_state(state):
 def normalize_digits(text):
     return (text or "").translate(DIGIT_TRANSLATION)
 
-def extract_codes(caption):
-    found = []
-    for value in CODE_RE.findall(normalize_digits(caption)):
-        if value not in found:
-            found.append(value)
-    return found
+def extract_product_refs(caption):
+    text = normalize_digits(caption)
+    refs = []
+    seen = set()
+    route_codes = set()
+
+    for route, code in PATH_CODE_RE.findall(text):
+        route = route.lower()
+        route_codes.add(code)
+        key = (route, code)
+        if key not in seen:
+            refs.append({"route": route, "code": code})
+            seen.add(key)
+
+    for code in CODE_RE.findall(text):
+        if code in route_codes:
+            continue
+        key = ("fastcart", code)
+        if key not in seen:
+            refs.append({"route": "fastcart", "code": code})
+            seen.add(key)
+    return refs
 
 def clean_caption(text):
     lines = []
@@ -73,6 +90,8 @@ def clean_caption(text):
         if any(term in low for term in SKIP_LINE_TERMS):
             continue
         line = URL_RE.sub("", line)
+        if re.search(r"(?:آدرس|ادرس)\s*فروشگا\S*\s*/\s*(?:lead|fastcart)/\d+", line, re.IGNORECASE):
+            continue
         line = HANDLE_RE.sub("", line)
         line = re.sub(r"\s+", " ", line).strip(" \t|،;:")
         if line and line not in lines:
@@ -142,7 +161,7 @@ def parse_preview(html):
             "source_message_id": message_id,
             "source_url": f"https://t.me/{SOURCE_CHANNEL}/{message_id}",
             "source_caption": caption,
-            "product_codes": extract_codes(caption),
+            "product_refs": extract_product_refs(caption),
             "video_url": media_url,
             "source_date": time_node.get("datetime") if time_node else None,
         })
@@ -161,32 +180,52 @@ def fetch_preview(before_id=None):
 def normalize_store_host(value):
     raw = (value or "").strip()
     if not raw:
-        raise RuntimeError("Missing DAYAN_STORE_HOST secret. Add the personal store host from your Dayan affiliate panel.")
+        raise RuntimeError("Missing DAYAN_STORE_HOST secret. Add your personal Dayan store host from your affiliate panel.")
     if "://" not in raw:
         raw = "https://" + raw
     parsed = urlparse(raw)
     host = (parsed.hostname or "").lower()
-    if parsed.scheme != "https" or not host.endswith(".affdn.ir") or host == "affdn.ir":
-        raise RuntimeError("DAYAN_STORE_HOST must be your personal HTTPS subdomain ending in .affdn.ir, not another site's domain.")
-    if parsed.username or parsed.password or parsed.port:
-        raise RuntimeError("DAYAN_STORE_HOST must contain only your store host; do not include credentials or a port.")
+    supported = host.endswith(".affdn.ir") or host.endswith(".affdn.com")
+    if parsed.scheme != "https" or not supported or host in ("affdn.ir", "affdn.com"):
+        raise RuntimeError("DAYAN_STORE_HOST must be your personal HTTPS subdomain ending in .affdn.ir or .affdn.com.")
+    if parsed.username or parsed.password or parsed.port or parsed.path not in ("", "/") or parsed.query or parsed.fragment:
+        raise RuntimeError("DAYAN_STORE_HOST must contain only your personal hostname, without credentials, a path, query, or port.")
     return f"https://{host}"
 
-def make_affiliate_url(store_base, product_code):
-    code = str(product_code).strip()
-    if not re.fullmatch(r"\d{4,8}", code):
-        raise RuntimeError("Refusing to create a FastCart URL from an invalid product code.")
-    return f"{store_base}/fastcart/{code}"
+def make_affiliate_url(store_base, product_ref):
+    if isinstance(product_ref, str):
+        product_ref = {"route": "fastcart", "code": product_ref}
+    route = str(product_ref.get("route", "fastcart")).lower()
+    code = str(product_ref.get("code", "")).strip()
+    if route not in ("fastcart", "lead") or not re.fullmatch(r"\d{4,8}", code):
+        raise RuntimeError("Refusing to create an affiliate URL from an invalid route or product code.")
+    return f"{store_base}/{route}/{code}"
 
-def resolve_product_code(item, overrides):
+def resolve_product_ref(item, overrides):
     override = overrides.get(str(item["source_message_id"]))
     if isinstance(override, dict):
-        override = override.get("product_code")
+        code = str(override.get("product_code", override.get("code", ""))).strip()
+        route = str(override.get("route", "fastcart")).strip().lower()
+        if route in ("fastcart", "lead") and re.fullmatch(r"\d{4,8}", code):
+            return {"route": route, "code": code}
+        return None
     if override:
         code = str(override).strip()
-        return code if re.fullmatch(r"\d{4,8}", code) else None
-    codes = [str(code) for code in item.get("product_codes", [])]
-    return codes[0] if len(codes) == 1 else None
+        if re.fullmatch(r"\d{4,8}", code):
+            matches = [ref for ref in item.get("product_refs", []) if str(ref.get("code")) == code]
+            if len(matches) == 1:
+                return matches[0]
+            if not matches:
+                return {"route": "fastcart", "code": code}
+        return None
+    refs = item.get("product_refs", [])
+    unique = {(str(ref.get("route", "fastcart")).lower(), str(ref.get("code", ""))) for ref in refs}
+    if len(unique) != 1:
+        return None
+    route, code = next(iter(unique))
+    if route not in ("fastcart", "lead") or not re.fullmatch(r"\d{4,8}", code):
+        return None
+    return {"route": route, "code": code}
 
 def due_slot(now, published_slots):
     today = now.date().isoformat()
@@ -265,9 +304,9 @@ def main():
             print(f"Newest source post date: {latest.get('source_date') or 'not exposed'}")
         print("Recent source entries (newest first):")
         for item in list(reversed(posts))[:20]:
-            snippet = re.sub(r"\\s+", " ", item.get("source_caption", "")).strip()[:110]
+            snippet = re.sub(r"\s+", " ", item.get("source_caption", "")).strip()[:110]
             media_type = "video-url" if item.get("video_url") else "no-video-url"
-            print(f"- id={item['source_message_id']} date={item.get('source_date') or '?'} media={media_type} codes={item.get('product_codes', [])} caption={snippet!r}")
+            print(f"- id={item['source_message_id']} date={item.get('source_date') or '?'} media={media_type} refs={item.get('product_refs', [])} caption={snippet!r}")
         if not video_posts:
             print("No direct video URLs were extracted from the current public preview.")
             sys.exit(3)
@@ -325,14 +364,14 @@ def main():
     slot_key = due_slot(now, state.get("published_slots", []))
     if slot_key:
         chosen = None
-        chosen_code = None
+        chosen_ref = None
         for item in queue:
-            code = resolve_product_code(item, overrides)
-            if code:
-                chosen, chosen_code = item, code
+            product_ref = resolve_product_ref(item, overrides)
+            if product_ref:
+                chosen, chosen_ref = item, product_ref
                 break
         if chosen:
-            affiliate_url = make_affiliate_url(store_base, chosen_code)
+            affiliate_url = make_affiliate_url(store_base, chosen_ref)
             telegram_message_id = send_video(bot_token, chosen, affiliate_url)
             queue.remove(chosen)
             state.setdefault("sent_source_ids", []).append(int(chosen["source_message_id"]))
@@ -341,10 +380,11 @@ def main():
             state["published_slots"] = state["published_slots"][-60:]
             state["last_published_at"] = now.isoformat()
             state["last_destination_message_id"] = str(telegram_message_id)
-            print(f"Published source {chosen['source_message_id']} to {TARGET_CHANNEL} with FastCart product code {chosen_code}.")
+            print(f"Published source {chosen['source_message_id']} to {TARGET_CHANNEL} with {chosen_ref['route']} code {chosen_ref['code']}.")
         else:
-            print(f"No new video with one unambiguous product code for slot {slot_key}; nothing published.")
+            print(f"No new video with one unambiguous product route/code for slot {slot_key}; nothing published.")
 
+    write_state(state)
     write_state(state)
     print(f"Completed. Parsed {len(posts)} source messages; queued={len(queue)}; newest source ID={state['last_seen_id']}")
 
