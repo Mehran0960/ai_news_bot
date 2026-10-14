@@ -768,6 +768,49 @@ def inspect_product_page(route_and_code):
         sys.exit(4)
 
 
+def edit_existing_caption(source_message_id, destination_message_id):
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    if not bot_token:
+        raise RuntimeError("Missing GitHub Actions secret TELEGRAM_BOT_TOKEN.")
+    store_base = normalize_store_host(os.getenv("DAYAN_STORE_HOST", ""))
+    posts = fetch_preview()
+    item = next((p for p in posts if int(p["source_message_id"]) == int(source_message_id)), None)
+    if item is None:
+        raise RuntimeError(f"Source post {source_message_id} was not found in the current public preview.")
+    overrides = read_json(OVERRIDES_FILE, {})
+    product_ref = resolve_product_ref(item, overrides)
+    if not product_ref:
+        raise RuntimeError(f"Source post {source_message_id} has no unambiguous product route/code.")
+    affiliate_url = make_affiliate_url(store_base, product_ref)
+    product_details = fetch_product_details(affiliate_url)
+    caption = build_caption(item.get("source_caption", ""), affiliate_url, product_details=product_details)
+    payload = {
+        "chat_id": TARGET_CHANNEL,
+        "message_id": int(destination_message_id),
+        "caption": caption,
+        "parse_mode": "HTML",
+        "reply_markup": json.dumps({
+            "inline_keyboard": [[{"text": "🛍 مشاهده و خرید", "url": affiliate_url}]]
+        }, ensure_ascii=False),
+    }
+    response = SESSION.post(
+        f"https://api.telegram.org/bot{bot_token}/editMessageCaption",
+        data=payload,
+        timeout=(15, 45),
+    )
+    try:
+        result = response.json()
+    except ValueError:
+        result = {"description": response.text[:300]}
+    if response.status_code != 200 or not result.get("ok"):
+        raise RuntimeError(f"Telegram editMessageCaption failed ({response.status_code}): {result.get('description', 'unknown error')}")
+    print(
+        f"TEST CAPTION UPDATED source={item['source_url']} target={TARGET_CHANNEL} "
+        f"destination_message_id={destination_message_id} route={product_ref['route']} "
+        f"product_code={product_ref['code']}"
+    )
+
+
 def run_test_post(source_message_id):
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     if not bot_token:
@@ -798,6 +841,13 @@ def run_test_post(source_message_id):
 
 
 def main():
+    if "--edit-caption" in sys.argv:
+        index = sys.argv.index("--edit-caption")
+        if index + 2 >= len(sys.argv) or not re.fullmatch(r"\d{1,8}", sys.argv[index + 1]) or not re.fullmatch(r"\d{1,8}", sys.argv[index + 2]):
+            raise RuntimeError("Usage: relay_botapi.py --edit-caption <source_message_id> <destination_message_id>")
+        edit_existing_caption(int(sys.argv[index + 1]), int(sys.argv[index + 2]))
+        return
+
     if "--inspect-message" in sys.argv:
         index = sys.argv.index("--inspect-message")
         if index + 1 >= len(sys.argv) or not re.fullmatch(r"\d{1,8}", sys.argv[index + 1]):
