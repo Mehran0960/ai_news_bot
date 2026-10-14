@@ -27,6 +27,7 @@ SLOT_GRACE_MINUTES = 55
 MAX_QUEUE_ITEMS = 500
 MAX_SENT_IDS = 2000
 MAX_VIDEO_BYTES = 49 * 1024 * 1024
+MAX_PHOTO_BYTES = 9 * 1024 * 1024
 MAX_POLL_PAGES = 25
 HTTP_TIMEOUT = 25
 
@@ -112,6 +113,19 @@ def direct_video_url(element):
             return value
     return None
 
+def photo_url_from_node(node):
+    """Return Telegram's public photo URL from a channel preview message."""
+    wrap = node.select_one(".tgme_widget_message_photo_wrap")
+    if not wrap:
+        return None
+    style = wrap.get("style", "")
+    match = re.search(r"background-image\\s*:\\s*url\\([\\'\\\"]?(https://[^)\\'\\\"]+)", style, re.IGNORECASE)
+    if match:
+        value = match.group(1)
+        if urlparse(value).scheme == "https":
+            return value
+    return None
+
 def video_url_from_node(node):
     # Do not confuse a thumbnail/image with a playable video.
     selectors = [
@@ -170,6 +184,7 @@ def parse_preview(html):
             "source_caption": caption,
             "product_refs": extract_product_refs(caption),
             "video_url": media_url,
+            "photo_url": photo_url_from_node(node),
             "source_date": time_node.get("datetime") if time_node else None,
         })
     return sorted(parsed, key=lambda item: item["source_message_id"])
