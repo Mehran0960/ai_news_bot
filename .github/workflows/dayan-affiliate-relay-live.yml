@@ -2,7 +2,7 @@ name: Dayan Affiliate Relay (live)
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "30 * * * *"
   workflow_dispatch:
   push:
     paths:
