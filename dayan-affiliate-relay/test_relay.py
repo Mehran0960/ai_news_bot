@@ -194,6 +194,12 @@ class DayanRelayTests(unittest.TestCase):
     def test_classifies_gaming_gadget(self):
         self.assertEqual(classify_product_category("گیم استیک M15 با بیش از ۱۰٬۰۰۰ بازی"), "gaming")
 
+    def test_classifies_power_banks_as_a_current_demand_signal(self):
+        self.assertEqual(classify_product_category("پاوربانک 20000mAh با شارژ سریع"), "power_backup")
+
+    def test_classifies_audio_and_wearables_as_high_interest_digital_goods(self):
+        self.assertEqual(classify_product_category("ساعت هوشمند و هندزفری بلوتوثی"), "audio_wearables")
+
     def test_extracts_prices_without_confusing_game_count(self):
         self.assertEqual(
             extract_source_price_values("۱۰٬۰۰۰ بازی؛ فقط ۵.۷۸۹ میلیون تومان، قیمت قبلی ۷.۶۳۹ میلیون تومان"),
@@ -215,15 +221,43 @@ class DayanRelayTests(unittest.TestCase):
         self.assertEqual(high_views["category"], "gaming")
         self.assertEqual(high_views["price_toman"], 5789000)
         self.assertGreater(high_views["score"], low_views["score"])
+        self.assertGreater(high_views["market_demand_score"], low_views["market_demand_score"])
 
-    def test_video_beats_photo_even_when_photo_score_is_higher(self):
-        photo = {"source_message_id": 100, "media_type": "photo", "popularity_score": 99,
+    def test_market_demand_beats_video_format(self):
+        photo = {"source_message_id": 100, "media_type": "photo", "popularity_score": 74,
+                 "market_demand_score": 70,
                  "product_refs": [{"route": "lead", "code": "11111"}]}
-        video = {"source_message_id": 101, "media_type": "video", "popularity_score": 20,
+        video = {"source_message_id": 101, "media_type": "video", "popularity_score": 95,
+                 "market_demand_score": 42,
                  "product_refs": [{"route": "lead", "code": "22222"}]}
-        chosen, product_ref = select_next_candidate([photo, video], {})
-        self.assertEqual(chosen["source_message_id"], 101)
-        self.assertEqual(product_ref["code"], "22222")
+        chosen, product_ref = select_next_candidate([video, photo], {})
+        self.assertEqual(chosen["source_message_id"], 100)
+        self.assertEqual(product_ref["code"], "11111")
+
+    def test_video_wins_only_when_market_demand_and_total_score_tie(self):
+        photo = {"source_message_id": 110, "media_type": "photo", "popularity_score": 75,
+                 "market_demand_score": 65,
+                 "product_refs": [{"route": "lead", "code": "11112"}]}
+        video = {"source_message_id": 111, "media_type": "video", "popularity_score": 75,
+                 "market_demand_score": 65,
+                 "product_refs": [{"route": "lead", "code": "22223"}]}
+        chosen, _ = select_next_candidate([photo, video], {})
+        self.assertEqual(chosen["source_message_id"], 111)
+
+    def test_iran_market_demand_categories_get_higher_score(self):
+        now = __import__("datetime").datetime.fromisoformat("2026-10-15T12:00:00+00:00")
+        demand_product = score_product_potential({
+            "source_caption": "گوشی هوشمند؛ اقتصادی با تخفیف",
+            "views": 100,
+            "source_date": "2026-10-15T11:00:00+00:00",
+        }, now=now)
+        unknown_product = score_product_potential({
+            "source_caption": "وسیله متفرقه برای استفاده روزمره",
+            "views": 100,
+            "source_date": "2026-10-15T11:00:00+00:00",
+        }, now=now)
+        self.assertEqual(demand_product["category"], "smartphones")
+        self.assertGreater(demand_product["market_demand_score"], unknown_product["market_demand_score"])
 
     def test_selector_skips_previously_published_product_code(self):
         candidate = {"source_message_id": 100, "media_type": "video", "popularity_score": 90,
