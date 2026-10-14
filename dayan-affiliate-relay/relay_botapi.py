@@ -499,16 +499,19 @@ def select_next_candidate(queue, overrides, sent_product_codes=None):
     return candidates[0][4], candidates[0][5]
 
 
-def rank_archive_candidates(posts, overrides, sent_product_codes=None, sent_source_ids=None, now=None):
-    """Score recent archive posts; market demand leads and video breaks ties."""
+def rank_archive_candidates(posts, overrides, sent_product_codes=None, sent_source_ids=None, now=None,
+                            rejected_product_codes=None, rejected_source_ids=None):
+    """Score recent archive posts, excluding creatives rejected by the price verifier."""
     sent_codes = {str(code) for code in (sent_product_codes or [])}
     sent_ids = {int(value) for value in (sent_source_ids or [])}
-    used_codes = set(sent_codes)
+    rejected_codes = {str(code) for code in (rejected_product_codes or [])}
+    rejected_ids = {int(value) for value in (rejected_source_ids or [])}
+    used_codes = set(sent_codes) | rejected_codes
     prepared_posts = []
     # Start with newest posts so a repeated product is represented by its freshest post.
     for item in sorted(posts, key=lambda post: int(post.get("source_message_id", 0) or 0), reverse=True):
         message_id = int(item.get("source_message_id", 0) or 0)
-        if message_id in sent_ids:
+        if message_id in sent_ids or message_id in rejected_ids:
             continue
         media_type = "video" if item.get("video_url") else "photo" if item.get("photo_url") else None
         if media_type is None:
@@ -528,6 +531,75 @@ def rank_archive_candidates(posts, overrides, sent_product_codes=None, sent_sour
         candidate["product_category"] = ranking["category"]
         prepared_posts.append(candidate)
     return prepared_posts
+
+
+def select_next_price_verified_candidate(queue, overrides, sent_product_codes, store_base, state):
+    """Choose by market demand, reject inconsistent/unverifiable prices, and try the next item."""
+    rejected_ids = {int(value) for value in state.get("price_rejected_source_ids", [])}
+    rejected_codes = {str(value) for value in state.get("price_rejected_product_codes", [])}
+
+    while True:
+        eligible = []
+        for item in queue:
+            source_id = int(item.get("source_message_id", 0) or 0)
+            product_ref = resolve_product_ref(item, overrides)
+            code = str(product_ref.get("code")) if product_ref else ""
+            if source_id in rejected_ids or code in rejected_codes:
+                continue
+            eligible.append(item)
+
+        chosen, product_ref = select_next_candidate(
+            eligible, overrides, set(sent_product_codes or set()) | rejected_codes
+        )
+        if not chosen or not product_ref:
+            queue[:] = [
+                item for item in queue
+                if int(item.get("source_message_id", 0) or 0) not in rejected_ids
+                and str((resolve_product_ref(item, overrides) or {}).get("code", "")) not in rejected_codes
+            ]
+            state["price_rejected_source_ids"] = sorted(rejected_ids)[-MAX_SENT_IDS:]
+            state["price_rejected_product_codes"] = sorted(rejected_codes)[-MAX_SENT_IDS:]
+            return None, None, None
+
+        affiliate_url = make_affiliate_url(store_base, product_ref)
+        try:
+            product_details = fetch_product_details(affiliate_url)
+            check = check_source_media_prices(chosen, product_details)
+        except Exception as exc:
+            product_details = None
+            check = {
+                "ok": False, "status": "unverifiable",
+                "reason": f"price verification raised {type(exc).__name__}",
+                "image_prices": [], "page_prices": [],
+            }
+
+        source_id = int(chosen.get("source_message_id", 0) or 0)
+        if check.get("ok"):
+            print(
+                f"Price verification passed source={source_id} "
+                f"status={check.get('status')} image_prices={check.get('image_prices', [])} "
+                f"page_prices={check.get('page_prices', [])}."
+            )
+            state["price_rejected_source_ids"] = sorted(rejected_ids)[-MAX_SENT_IDS:]
+            state["price_rejected_product_codes"] = sorted(rejected_codes)[-MAX_SENT_IDS:]
+            return chosen, product_ref, product_details
+
+        rejected_ids.add(source_id)
+        rejected_codes.add(str(product_ref["code"]))
+        queue[:] = [
+            item for item in queue
+            if int(item.get("source_message_id", 0) or 0) != source_id
+            and str((resolve_product_ref(item, overrides) or {}).get("code", "")) != str(product_ref["code"])
+        ]
+        state["price_rejected_source_ids"] = sorted(rejected_ids)[-MAX_SENT_IDS:]
+        state["price_rejected_product_codes"] = sorted(rejected_codes)[-MAX_SENT_IDS:]
+        print(
+            f"::warning::Skipping source={source_id}, product_code={product_ref['code']}: "
+            f"price_check={check.get('status', 'unverifiable')}; "
+            f"image_prices={check.get('image_prices', [])}; page_prices={check.get('page_prices', [])}. "
+            f"Trying the next ranked candidate."
+        )
+
 
 
 def fetch_preview(before_id=None):
