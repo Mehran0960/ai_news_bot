@@ -96,7 +96,7 @@ def clean_caption(text):
         if any(term in low for term in SKIP_LINE_TERMS):
             continue
         # Do not carry over platform-specific promotional tags from Dayan.
-        line = re.sub(r"#اینستاگرام", "", line, flags=re.IGNORECASE)
+        line = re.sub(r"#(?:اینستاگرام|پیامرسانیداخلی)", "", line, flags=re.IGNORECASE)
         line = URL_RE.sub("", line)
         if re.search(r"(?:آدرس|ادرس)\s*فروشگا\S*\s*/\s*(?:lead|fastcart)/\d+", line, re.IGNORECASE):
             continue
@@ -119,7 +119,7 @@ def photo_url_from_node(node):
     if not wrap:
         return None
     style = wrap.get("style", "")
-    match = re.search(r"""https://[^)\'"]+""", style, re.IGNORECASE)
+    match = re.search(r"""(https://[^)'" ]+)""", style, re.IGNORECASE)
     if match:
         value = match.group(1)
         if urlparse(value).scheme == "https":
@@ -436,6 +436,24 @@ def build_caption(source_caption, affiliate_url, product_details=None):
         chunks.append(f"💰 قیمت اعلام‌شده: <b>{html_lib.escape(str(original))}</b>")
 
     intro = clean_caption(source_caption)
+    if original and discounted and original != discounted:
+        # Remove abbreviated prices already shown in the structured price block.
+        intro = re.sub(
+            r"(?<!\w)[0-9۰-۹٠-٩]{1,2}[.,٫٬][0-9۰-۹٠-٩]{3}\s*میلیون(?:\s*تومان)?",
+            "",
+            intro,
+        )
+        intro = re.sub(
+            r"(?<!\w)[0-9۰-۹٠-٩]{1,3}(?:[,٬،][0-9۰-۹٠-٩]{3})+\s*تومان",
+            "",
+            intro,
+        )
+        intro = re.sub(r"[🔥💰💸]\s*(?=🚚|💳|#|$)", "", intro)
+        intro = re.sub(r"\s*([|])\s*", " | ", intro)
+        intro = re.sub(r"\s{2,}", " ", intro).strip()
+    # Avoid repeating fixed service guarantees in source captions.
+    intro = re.sub(r"پرداخت\s*درب\s*منزل", "", intro)
+    intro = re.sub(r"\s{2,}", " ", intro).strip()
     if intro:
         chunks.append(intro)
 
@@ -841,6 +859,7 @@ def main():
         item["queued_at"] = now.isoformat()
         # Do not persist expiring media URLs or affiliate URLs in the public repo.
         item.pop("video_url", None)
+        item.pop("photo_url", None)
         queue.append(item)
         queued_ids.add(mid)
 
