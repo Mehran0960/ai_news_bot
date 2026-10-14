@@ -402,12 +402,9 @@ def fetch_product_details(affiliate_url):
         print(f"Product-page enrichment unavailable ({type(exc).__name__}); safe fallback caption will be used.")
         return {"title": None, "original_price": None, "discounted_price": None, "page_found": False}
 
-def build_caption(source_caption, affiliate_url, product_details=None, prefix=""):
+def build_caption(source_caption, affiliate_url, product_details=None):
     details = product_details or {}
     chunks = []
-    prefix = (prefix or "").strip()
-    if prefix:
-        chunks.append(prefix)
 
     title = re.sub(r"\s+", " ", str(details.get("title") or "")).strip()
     if title:
@@ -431,12 +428,11 @@ def build_caption(source_caption, affiliate_url, product_details=None, prefix=""
     chunks.append("\n".join(PRODUCT_BENEFITS))
     chunks.append(
         "🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True)
-
     )
 
     caption = "\n\n".join(chunks)
     if len(caption) > 1024:
-        # Preserve the fixed buyer benefits, link, and disclosure even when a
+        # Preserve the fixed buyer benefits and purchase link even when a
         # source caption or product title is unexpectedly long.
         fixed_tail = "\n".join(PRODUCT_BENEFITS) + "\n\n🛍 مشاهده و خرید:\n" + html_lib.escape(affiliate_url, quote=True)
         title_part = ("🛍 " + title + "\n\n") if title else ""
@@ -445,10 +441,9 @@ def build_caption(source_caption, affiliate_url, product_details=None, prefix=""
             price_part = f"💸 قیمت اصلی: <s>{html_lib.escape(original)}</s>\n🔥 قیمت با تخفیف: <b>{html_lib.escape(discounted)}</b>\n\n"
         elif discounted:
             price_part = f"💰 قیمت: <b>{html_lib.escape(str(discounted))}</b>\n\n"
-        prefix_part = (prefix + "\n\n") if prefix else ""
-        room = max(0, 1024 - len(fixed_tail) - len(title_part) - len(price_part) - len(prefix_part) - 8)
+        room = max(0, 1024 - len(fixed_tail) - len(title_part) - len(price_part) - 8)
         intro = clean_caption(source_caption)[:room].rstrip()
-        caption = prefix_part + title_part + price_part + ((intro + "\n\n") if intro else "") + fixed_tail
+        caption = title_part + price_part + ((intro + "\n\n") if intro else "") + fixed_tail
         if len(caption) > 1024:
             # The title remains useful; trim it only as a last resort.
             overflow = len(caption) - 1024
