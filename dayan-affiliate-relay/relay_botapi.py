@@ -263,9 +263,11 @@ def main():
         if latest:
             print(f"Newest source post: {latest['source_url']}")
             print(f"Newest source post date: {latest.get('source_date') or 'not exposed'}")
-        print("Eligible video IDs and explicitly labeled product codes:")
-        for item in video_posts[:20]:
-            print(f"- {item['source_message_id']}: {item.get('product_codes', [])}")
+        print("Recent source entries (newest first):")
+        for item in list(reversed(posts))[:20]:
+            snippet = re.sub(r"\\s+", " ", item.get("source_caption", "")).strip()[:110]
+            media_type = "video-url" if item.get("video_url") else "no-video-url"
+            print(f"- id={item['source_message_id']} date={item.get('source_date') or '?'} media={media_type} codes={item.get('product_codes', [])} caption={snippet!r}")
         if not video_posts:
             print("No direct video URLs were extracted from the current public preview.")
             sys.exit(3)
