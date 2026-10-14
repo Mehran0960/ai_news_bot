@@ -3,6 +3,7 @@ import json
 import math
 import os
 import re
+import subprocess
 import sys
 import tempfile
 from datetime import datetime, time, timezone
@@ -263,6 +264,78 @@ def extract_source_price_values(text):
             if amount >= 100_000:
                 amounts.add(amount)
     return sorted(amounts)
+
+
+
+IMAGE_PRICE_CUE_RE = re.compile(r"تومان|ریال|قیمت|میلیون|هزار|فروش\s*ویژه|تخفیف\s*(?:ویژه|تا|\d)", re.IGNORECASE)
+INSTALLMENT_CUE_RE = re.compile(r"قسط|اقساط|پیش[\s‌-]*پرداخت|ماهانه|در\s*\d+\s*ماه", re.IGNORECASE)
+
+
+def extract_image_price_values(text):
+    """Extract plausible toman prices recognized by OCR from a product creative."""
+    value = normalize_digits(text or "")
+    value = value.replace("٬", ",").replace("،", ",").replace("٫", ".").replace("\u00a0", " ")
+    amounts = set()
+    for match in re.finditer(r"(?<!\d)(\d{1,3}(?:[,. ]\d{3}){1,2})(?!\d)", value):
+        start, end = match.span()
+        line_start = value.rfind("\n", 0, start) + 1
+        line_end = value.find("\n", end)
+        if line_end < 0:
+            line_end = len(value)
+        context = value[max(line_start, start - 28):min(line_end, end + 28)]
+        if INSTALLMENT_CUE_RE.search(context):
+            continue
+        digits = re.sub(r"\D", "", match.group(1))
+        if digits and int(digits) >= 100_000:
+            amounts.add(int(digits))
+    for match in re.finditer(r"(?<!\d)(\d{6,9})(?!\d)", value):
+        start, end = match.span()
+        context = value[max(0, start - 32):min(len(value), end + 32)]
+        if IMAGE_PRICE_CUE_RE.search(context) and not INSTALLMENT_CUE_RE.search(context):
+            amount = int(match.group(1))
+            if amount >= 100_000:
+                amounts.add(amount)
+    for match in re.finditer(r"(?<!\d)(\d{1,2})[.,](\d{3})\s*میلیون(?:\s*تومان)?", value):
+        amount = int(match.group(1)) * 1_000_000 + int(match.group(2)) * 1_000
+        if amount >= 100_000:
+            amounts.add(amount)
+    return sorted(amounts)
+
+
+def _price_to_integer(raw_value):
+    if not raw_value:
+        return None
+    digits = re.sub(r"\D", "", normalize_digits(str(raw_value)))
+    if not digits:
+        return None
+    try:
+        amount = int(digits)
+    except ValueError:
+        return None
+    return amount if amount >= 100_000 else None
+
+
+def compare_image_prices_to_product(image_text, product_details):
+    """Compare detected creative prices to current/original prices from the live product page."""
+    text = normalize_digits(image_text or "")
+    image_prices = extract_image_price_values(text)
+    has_price_cues = bool(IMAGE_PRICE_CUE_RE.search(text))
+    page_prices = sorted({
+        amount for amount in (
+            _price_to_integer((product_details or {}).get("discounted_price")),
+            _price_to_integer((product_details or {}).get("original_price")),
+        ) if amount is not None
+    })
+    if not image_prices:
+        if has_price_cues:
+            return {"ok": False, "status": "unverifiable", "reason": "price cue detected but OCR could not reliably read its amount", "image_prices": [], "page_prices": page_prices}
+        return {"ok": True, "status": "no_image_price", "reason": "no price was detected on the creative", "image_prices": [], "page_prices": page_prices}
+    if not page_prices:
+        return {"ok": False, "status": "unverifiable", "reason": "live product page did not expose a comparable price", "image_prices": image_prices, "page_prices": []}
+    mismatched = [amount for amount in image_prices if amount not in page_prices]
+    if mismatched:
+        return {"ok": False, "status": "mismatch", "reason": "creative price differs from live product page", "image_prices": image_prices, "page_prices": page_prices, "mismatched_prices": mismatched}
+    return {"ok": True, "status": "match", "reason": "all detected prices match the live product page", "image_prices": image_prices, "page_prices": page_prices}
 
 
 # Demand profile based on published Iranian online-market reports.
