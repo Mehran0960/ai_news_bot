@@ -29,7 +29,8 @@ MAX_QUEUE_ITEMS = 500
 MAX_SENT_IDS = 2000
 MAX_VIDEO_BYTES = 49 * 1024 * 1024
 MAX_PHOTO_BYTES = 9 * 1024 * 1024
-MAX_POLL_PAGES = 25
+MAX_POLL_PAGES = 28
+MAX_ARCHIVE_POSTS = 500
 HTTP_TIMEOUT = 25
 
 DIGIT_TRANSLATION = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
@@ -1025,12 +1026,12 @@ def fetch_posts_since(last_seen_id, max_pages=MAX_POLL_PAGES):
     return sorted(collected.values(), key=lambda item: item["source_message_id"])
 
 
-def fetch_recent_archive(max_pages=MAX_POLL_PAGES):
-    """Fetch up to MAX_POLL_PAGES of the public archive even when posts are old."""
+def fetch_recent_archive(max_pages=MAX_POLL_PAGES, max_posts=MAX_ARCHIVE_POSTS):
+    """Fetch at most the newest 500 posts from the public archive."""
     page = fetch_preview()
     collected = {int(item["source_message_id"]): item for item in page}
     pages = 1
-    while page and pages < max_pages:
+    while page and pages < max_pages and len(collected) < max_posts:
         oldest_id = min(int(item["source_message_id"]) for item in page)
         next_page = fetch_preview(before_id=oldest_id)
         new_items = []
@@ -1044,8 +1045,11 @@ def fetch_recent_archive(max_pages=MAX_POLL_PAGES):
         collected.update({int(item["source_message_id"]): item for item in new_items})
         page = next_page
         pages += 1
-    print(f"Archive scan: collected {len(collected)} posts across {pages} page(s), cap={max_pages}.")
-    return sorted(collected.values(), key=lambda item: item["source_message_id"])
+    ordered = sorted(collected.values(), key=lambda item: item["source_message_id"])
+    if len(ordered) > max_posts:
+        ordered = ordered[-max_posts:]
+    print(f"Archive scan: collected {len(ordered)} posts across {pages} page(s), max_posts={max_posts}.")
+    return ordered
 
 
 def inspect_source_message(source_message_id):
