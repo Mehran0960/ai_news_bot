@@ -128,8 +128,6 @@ def parse_preview(html):
         text_node = node.select_one(".tgme_widget_message_text")
         caption = text_node.get_text("\n", strip=True) if text_node else ""
         video_url = video_url_from_node(node)
-        if not video_url:
-            continue
         time_node = node.select_one(".tgme_widget_message_date time[datetime]")
         parsed.append({
             "source_message_id": message_id,
@@ -240,12 +238,15 @@ def main():
         "initialized": False, "last_seen_id": 0, "queue": [],
         "published_slots": [], "sent_source_ids": []
     })
-    links = read_json(LINKS_FILE, {})
+    raw_link_map = os.getenv("AFFILIATE_LINKS_JSON", "").strip()
+    links = json.loads(raw_link_map) if raw_link_map else read_json(LINKS_FILE, {})
+    if not isinstance(links, dict):
+        raise RuntimeError("AFFILIATE_LINKS_JSON must be a JSON object mapping product codes to personal affiliate URLs.")
     overrides = read_json(OVERRIDES_FILE, {})
     now = datetime.now(TIMEZONE)
     posts = fetch_preview()
     if not posts:
-        raise RuntimeError("No video posts were parsed from the public Telegram preview.")
+        raise RuntimeError("No channel messages were parsed from the public Telegram preview.")
 
     latest_id = max(p["source_message_id"] for p in posts)
     if not state.get("initialized"):
@@ -267,6 +268,9 @@ def main():
             continue
         new_ids.append(mid)
         if mid in queued_ids or mid in sent_ids:
+            continue
+        # Advance the polling cursor for all posts, but queue only actual videos.
+        if not item.get("video_url"):
             continue
         item["status"] = "queued"
         item["queued_at"] = now.isoformat()
