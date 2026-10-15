@@ -2350,7 +2350,11 @@ def main():
             finally:
                 if sanitized_photo_path and os.path.exists(sanitized_photo_path):
                     os.remove(sanitized_photo_path)
-            queue.remove(chosen)
+            chosen_source_id = int(chosen.get("source_message_id", 0) or 0)
+            queue[:] = [
+                queued_item for queued_item in queue
+                if int(queued_item.get("source_message_id", 0) or 0) != chosen_source_id
+            ]
             state.setdefault("sent_source_ids", []).append(int(chosen["source_message_id"]))
             state["sent_source_ids"] = state["sent_source_ids"][-MAX_SENT_IDS:]
             state.setdefault("sent_product_codes", []).append(str(chosen_ref["code"]))
