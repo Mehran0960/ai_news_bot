@@ -1,5 +1,5 @@
 name: Dayan Affiliate Relay (live)
-# v4: eligible videos are always tried first; photo fallbacks remove and verify embedded price regions.
+# v4.1: eligible videos first; photos only after video checks and embedded prices are cropped/verified.
 
 on:
   schedule:
