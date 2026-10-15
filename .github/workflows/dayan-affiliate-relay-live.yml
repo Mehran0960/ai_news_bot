@@ -1,5 +1,5 @@
 name: Dayan Affiliate Relay (live)
-# v4.6: source-channel videos only; rank every accessible video and repeat only after the sweep.
+# v4.7: source-channel video catalog crawls the full archive across runs; repeats wait for archive completion.
 
 on:
   schedule:
