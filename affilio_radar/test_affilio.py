@@ -1,4 +1,9 @@
 import unittest
+from io import BytesIO
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+from PIL import Image
 
 from affilio_radar import (
     safe_product_url,
@@ -10,6 +15,7 @@ from affilio_radar import (
     _money_to_toman,
     api_search_product_urls,
     parse_product_api,
+    build_promo_video,
 )
 
 
@@ -206,6 +212,20 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("https://affilio.example/tracked", caption)
         self.assertIn("قیمت و موجودی ممکن است تغییر کند", caption)
         self.assertIn("کمیسیون", caption)
+
+    def test_promo_video_renders_as_playable_mp4(self):
+        image_bytes = BytesIO()
+        Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")
+        with TemporaryDirectory(prefix="affilio-test-video-") as td:
+            output = Path(td) / "preview.mp4"
+            build_promo_video({
+                "title": "پاوربانک کاربردی آزمایشی",
+                "current_price": 950_000,
+                "original_price": 1_250_000,
+                "discount_percent": 24,
+            }, image_bytes.getvalue(), output)
+            self.assertTrue(output.exists())
+            self.assertGreater(output.stat().st_size, 20_000)
 
 
 if __name__ == "__main__":
