@@ -542,11 +542,12 @@ def select_next_candidate(queue, overrides, sent_product_codes=None):
         message_id = int(item.get("source_message_id", 0) or 0)
         # Video is an absolute format priority. Only after video/photo class is
         # chosen do demand, commercial fit, and recency order the candidates.
-        candidates.append((0 if media_type == "video" else 1, -demand_score, -total_score, -message_id, item, product_ref))
+        product_repeat = int(item.get("cycle_product_repeat", 0) or 0)
+        candidates.append((0 if media_type == "video" else 1, product_repeat, -demand_score, -total_score, -message_id, item, product_ref))
     if not candidates:
         return None, None
-    candidates.sort(key=lambda candidate: candidate[:4])
-    return candidates[0][4], candidates[0][5]
+    candidates.sort(key=lambda candidate: candidate[:5])
+    return candidates[0][5], candidates[0][6]
 
 
 def rank_archive_candidates(posts, overrides, sent_product_codes=None, sent_source_ids=None, now=None,
@@ -588,6 +589,65 @@ def rank_archive_candidates(posts, overrides, sent_product_codes=None, sent_sour
         candidate["product_category"] = ranking["category"]
         prepared_posts.append(candidate)
     return prepared_posts
+
+
+def rank_video_cycle_candidates(posts, overrides, cycle_seen_source_ids=None,
+                                cycle_seen_product_codes=None, rejected_source_ids=None,
+                                rejected_product_codes=None, now=None):
+    """Rank all usable Dayan source videos not yet consumed in the current rotation cycle.
+
+    Lifetime publication history deliberately does not suppress a video here.
+    Repeats are enabled only after all videos in the current archive have been
+    used once during this cycle.
+    """
+    seen_ids = {int(value) for value in (cycle_seen_source_ids or [])}
+    seen_codes = {str(value) for value in (cycle_seen_product_codes or [])}
+    rejected_ids = {int(value) for value in (rejected_source_ids or [])}
+    rejected_codes = {str(value) for value in (rejected_product_codes or [])}
+    prepared = []
+    for item in posts:
+        if not item.get("video_url"):
+            continue
+        source_id = int(item.get("source_message_id", 0) or 0)
+        if not source_id or source_id in seen_ids or source_id in rejected_ids:
+            continue
+        product_ref = resolve_product_ref(item, overrides)
+        if not product_ref:
+            continue
+        code = str(product_ref.get("code") or "")
+        if not code or code in rejected_codes:
+            continue
+        ranking = score_product_potential(item, now=now)
+        candidate = dict(item)
+        candidate["media_type"] = "video"
+        candidate["popularity_score"] = ranking["score"]
+        candidate["market_demand_score"] = ranking["market_demand_score"]
+        candidate["product_category"] = ranking["category"]
+        candidate["price_toman"] = ranking["price_toman"]
+        prepared.append((candidate, code))
+
+    # For products with multiple source videos, prioritize their best creative,
+    # then let other products have their first turn before repeats of that code.
+    by_code = {}
+    for candidate, code in prepared:
+        by_code.setdefault(code, []).append(candidate)
+    ranked = []
+    for code, candidates in by_code.items():
+        candidates.sort(key=lambda item: (
+            -int(item.get("market_demand_score", 0) or 0),
+            -int(item.get("popularity_score", 0) or 0),
+            -int(item.get("source_message_id", 0) or 0),
+        ))
+        for index, candidate in enumerate(candidates):
+            candidate["cycle_product_repeat"] = 1 if code in seen_codes or index > 0 else 0
+            ranked.append(candidate)
+    ranked.sort(key=lambda item: (
+        int(item.get("cycle_product_repeat", 0) or 0),
+        -int(item.get("market_demand_score", 0) or 0),
+        -int(item.get("popularity_score", 0) or 0),
+        -int(item.get("source_message_id", 0) or 0),
+    ))
+    return ranked
 
 
 def select_next_price_verified_candidate(queue, overrides, sent_product_codes, store_base, state):
@@ -640,50 +700,8 @@ def select_next_price_verified_candidate(queue, overrides, sent_product_codes, s
             product_details = fetch_product_details(affiliate_url)
             media_type = chosen.get("media_type") or ("video" if chosen.get("video_url") else "photo")
             if media_type == "video":
-                # When the affiliate product page exposes its own demo, try that
-                # video first; it is usually the cleanest product-specific asset.
-                # Keep the source-channel video as a video fallback if the site
-                # asset has a price conflict or cannot be verified.
-                check = None
-                if product_details.get("video_url"):
-                    site_video_item = dict(chosen)
-                    site_video_item["media_type"] = "video"
-                    site_video_item["product_video_url"] = product_details["video_url"]
-                    try:
-                        site_video_check = check_source_media_prices(site_video_item, product_details)
-                    except Exception as exc:
-                        site_video_check = {
-                            "ok": False, "status": "unverifiable",
-                            "reason": f"product-page video check raised {type(exc).__name__}",
-                            "image_prices": [], "page_prices": [],
-                        }
-                    if site_video_check.get("ok"):
-                        chosen = site_video_item
-                        check = site_video_check
-                        print(f"Using verified product-page demo video for source={chosen.get('source_message_id')}.")
-                    else:
-                        print(
-                            f"Product-page video failed price verification for source={chosen.get('source_message_id')}; "
-                            "checking the source-channel video before rejecting this product."
-                        )
-                if check is None:
-                    check = check_source_media_prices(chosen, product_details)
-            elif product_details.get("video_url"):
-                # Source-channel videos have already been exhausted before we get here.
-                # Prefer a direct video exposed by this affiliate product page over its image.
-                site_video_item = dict(chosen)
-                site_video_item["media_type"] = "video"
-                site_video_item["product_video_url"] = product_details["video_url"]
-                site_video_check = check_source_media_prices(site_video_item, product_details)
-                if site_video_check.get("ok"):
-                    chosen = site_video_item
-                    check = site_video_check
-                else:
-                    print(
-                        f"Product-page video failed price verification for source={chosen.get('source_message_id')}; "
-                        "trying the price-cropped photo fallback for this product."
-                    )
-                    sanitized_photo_path, check = prepare_price_cropped_photo(chosen, product_details)
+                # Automated relay media must come from the established Dayan source channel.
+                check = check_source_media_prices(chosen, product_details)
             else:
                 sanitized_photo_path, check = prepare_price_cropped_photo(chosen, product_details)
         except Exception as exc:
@@ -2448,91 +2466,67 @@ def main():
         return
 
     last_seen = int(state.get("last_seen_id", 0))
-    queue = state.setdefault("queue", [])
-    sent_ids = {int(x) for x in state.get("sent_source_ids", [])}
-    sent_product_codes = {str(x) for x in state.get("sent_product_codes", [])}
-    rejected_price_source_ids = {int(x) for x in state.get("price_rejected_source_ids", [])}
-    rejected_price_product_codes = {str(x) for x in state.get("price_rejected_product_codes", [])}
-    archive_video_codes = set()
-    for source_item in posts:
-        if not source_item.get("video_url"):
-            continue
-        source_id = int(source_item.get("source_message_id", 0) or 0)
-        source_ref = resolve_product_ref(source_item, overrides)
-        if source_ref and source_id not in sent_ids and source_id not in rejected_price_source_ids:
-            if str(source_ref["code"]) not in sent_product_codes and str(source_ref["code"]) not in rejected_price_product_codes:
-                archive_video_codes.add(str(source_ref["code"]))
-    if archive_video_codes:
-        before_queue_count = len(queue)
-        queue[:] = [
-            queued for queued in queue
-            if not (
-                (queued.get("media_type") or ("video" if queued.get("video_url") else "photo")) == "photo"
-                and str((resolve_product_ref(queued, overrides) or {}).get("code", "")) in archive_video_codes
-            )
-        ]
-        if len(queue) != before_queue_count:
-            print(f"Removed {before_queue_count - len(queue)} queued photo(s) superseded by available videos.")
-    queued_ids = {int(x["source_message_id"]) for x in queue}
-    queued_product_codes = set()
-    for queued_item in queue:
-        queued_ref = resolve_product_ref(queued_item, overrides)
-        if queued_ref:
-            queued_product_codes.add(str(queued_ref["code"]))
-    new_ids = []
+    state["last_seen_id"] = max(last_seen, latest_id)
 
-    for item in sorted(
-        posts,
-        key=lambda post: (
-            0 if post.get("video_url") else 1,
-            -int(post.get("source_message_id", 0) or 0),
-        ),
-    ):
-        mid = int(item["source_message_id"])
-        if mid > last_seen:
-            new_ids.append(mid)
-        if mid in queued_ids or mid in sent_ids or mid in rejected_price_source_ids:
-            continue
-        media_type = "video" if item.get("video_url") else "photo" if item.get("photo_url") else None
-        if media_type is None:
-            continue
-        product_ref = resolve_product_ref(item, overrides)
-        if not product_ref:
-            print(f"Skipping source {mid}: no unambiguous product route/code.")
-            continue
-        product_code = str(product_ref["code"])
-        if product_code in sent_product_codes or product_code in queued_product_codes or product_code in rejected_price_product_codes:
-            print(f"Skipping source {mid}: product code {product_code} was already published, queued, or rejected by the price check.")
-            continue
+    # Rescan the whole accessible archive at each decision; publish only Dayan source videos.
+    # This deliberately discards legacy photo/video queue entries and expired media URLs.
+    state["queue"] = []
+    state.setdefault("video_cycle_number", 1)
+    cycle_seen_ids = {int(value) for value in state.get("video_cycle_seen_source_ids", [])}
+    cycle_seen_codes = {str(value) for value in state.get("video_cycle_seen_product_codes", [])}
+    rejected_ids = {int(value) for value in state.get("price_rejected_source_ids", [])}
+    rejected_codes = {str(value) for value in state.get("price_rejected_product_codes", [])}
 
-        ranking = score_product_potential(item, now=now)
-        item["status"] = "queued"
-        item["queued_at"] = now.isoformat()
-        item["media_type"] = media_type
-        item["popularity_score"] = ranking["score"]
-        item["market_demand_score"] = ranking["market_demand_score"]
-        item["product_category"] = ranking["category"]
-        item.pop("video_url", None)
-        item.pop("photo_url", None)
-        queue.append(item)
-        queued_ids.add(mid)
-        queued_product_codes.add(product_code)
-        print(
-            f"Queued source {mid}: media={media_type}, market_demand={ranking['market_demand_score']}/75, "
-            f"total={ranking['score']}/100, category={ranking['category']}, "
-            f"views={item.get('views') if item.get('views') is not None else 'unknown'}, "
-            f"price={ranking['price_toman'] if ranking['price_toman'] is not None else 'unknown'}."
+    eligible_archive_videos = [
+        item for item in posts
+        if item.get("video_url")
+        and resolve_product_ref(item, overrides)
+        and int(item.get("source_message_id", 0) or 0) not in rejected_ids
+        and str((resolve_product_ref(item, overrides) or {}).get("code", "")) not in rejected_codes
+    ]
+    video_candidates = rank_video_cycle_candidates(
+        posts, overrides,
+        cycle_seen_source_ids=cycle_seen_ids,
+        cycle_seen_product_codes=cycle_seen_codes,
+        rejected_source_ids=rejected_ids,
+        rejected_product_codes=rejected_codes,
+        now=now,
+    )
+
+    # Restart only when no unplayed eligible source video remains in this archive scan.
+    if not video_candidates and eligible_archive_videos:
+        restarted = rank_video_cycle_candidates(
+            posts, overrides,
+            cycle_seen_source_ids=set(),
+            cycle_seen_product_codes=set(),
+            rejected_source_ids=rejected_ids,
+            rejected_product_codes=rejected_codes,
+            now=now,
         )
+        if restarted:
+            state["video_cycle_number"] = int(state.get("video_cycle_number", 1) or 1) + 1
+            state["video_cycle_seen_source_ids"] = []
+            state["video_cycle_seen_product_codes"] = []
+            cycle_seen_ids = set()
+            cycle_seen_codes = set()
+            video_candidates = restarted
+            print(
+                f"Video rotation cycle {state['video_cycle_number']}: every eligible video in the "
+                "current archive has been used and no unseen video is available; restarting the cycle."
+            )
 
-    if new_ids:
-        state["last_seen_id"] = max([last_seen] + new_ids)
-    if len(queue) > MAX_QUEUE_ITEMS:
-        queue[:] = queue[-MAX_QUEUE_ITEMS:]
+    print(
+        f"Video inventory: scanned_posts={len(posts)}, "
+        f"source_videos={sum(1 for item in posts if item.get('video_url'))}, "
+        f"eligible_videos={len(eligible_archive_videos)}, "
+        f"unseen_this_cycle={len(video_candidates)}, "
+        f"cycle={state.get('video_cycle_number', 1)}. Photos are not published."
+    )
 
     slot_key = due_slot(now, state.get("published_slots", []))
     if slot_key:
         chosen, chosen_ref, product_details, sanitized_photo_path = select_next_price_verified_candidate(
-            queue, overrides, sent_product_codes, store_base, state
+            video_candidates, overrides, set(), store_base, state
         )
         if chosen:
             affiliate_url = make_affiliate_url(store_base, chosen_ref)
@@ -2560,31 +2554,42 @@ def main():
                 if sanitized_photo_path and os.path.exists(sanitized_photo_path):
                     os.remove(sanitized_photo_path)
             chosen_source_id = int(chosen.get("source_message_id", 0) or 0)
-            queue[:] = [
-                queued_item for queued_item in queue
-                if int(queued_item.get("source_message_id", 0) or 0) != chosen_source_id
+            video_candidates[:] = [
+                candidate for candidate in video_candidates
+                if int(candidate.get("source_message_id", 0) or 0) != chosen_source_id
             ]
             state.setdefault("sent_source_ids", []).append(int(chosen["source_message_id"]))
             state["sent_source_ids"] = state["sent_source_ids"][-MAX_SENT_IDS:]
             state.setdefault("sent_product_codes", []).append(str(chosen_ref["code"]))
             state["sent_product_codes"] = state["sent_product_codes"][-MAX_SENT_IDS:]
+            state.setdefault("video_cycle_seen_source_ids", []).append(chosen_source_id)
+            state["video_cycle_seen_source_ids"] = list(dict.fromkeys(
+                int(value) for value in state["video_cycle_seen_source_ids"]
+            ))[-MAX_SENT_IDS:]
+            state.setdefault("video_cycle_seen_product_codes", []).append(str(chosen_ref["code"]))
+            state["video_cycle_seen_product_codes"] = list(dict.fromkeys(
+                str(value) for value in state["video_cycle_seen_product_codes"]
+            ))[-MAX_SENT_IDS:]
             state.setdefault("published_slots", []).append(slot_key)
             state["published_slots"] = state["published_slots"][-60:]
             state["last_published_at"] = now.isoformat()
             state["last_destination_message_id"] = str(telegram_message_id)
             state.pop("last_publish_error", None)
             print(
-                f"Published source {chosen['source_message_id']} to {TARGET_CHANNEL}: "
+                f"Published source {chosen['source_message_id']} from @{SOURCE_CHANNEL} to {TARGET_CHANNEL}: "
                 f"media={media_type}, market_demand={chosen.get('market_demand_score', 0)}/75, "
                 f"total={chosen.get('popularity_score', 0)}/100, "
                 f"category={chosen.get('product_category', 'unknown')}, "
                 f"product_code={chosen_ref['code']}."
             )
         else:
-            print(f"No price-verified, unpublished photo/video candidate with a valid product link was available for slot {slot_key}; nothing published.")
+            print(f"No source-channel video passed the current price/link checks for slot {slot_key}; nothing published.")
 
     write_state(state)
-    print(f"Completed. Parsed {len(posts)} source messages; queued={len(queue)}; newest source ID={state['last_seen_id']}")
+    print(
+        f"Completed. Parsed {len(posts)} source messages; "
+        f"video_candidates_remaining={len(video_candidates)}; newest source ID={state['last_seen_id']}"
+    )
 
 if __name__ == "__main__":
     main()
