@@ -30,6 +30,7 @@ SOURCE_URL = f"https://t.me/s/{SOURCE_CHANNEL}"
 TIMEZONE = ZoneInfo("Asia/Tehran")
 PUBLISH_SLOTS = [f"{hour:02d}:{minute:02d}" for hour in range(24) for minute in (0, 30)]
 SLOT_GRACE_MINUTES = 25
+MIN_PUBLISH_INTERVAL_MINUTES = 25
 MAX_QUEUE_ITEMS = 500
 MAX_SENT_IDS = 2000
 MAX_VIDEO_BYTES = 49 * 1024 * 1024
@@ -816,6 +817,24 @@ def due_slot(now, published_slots):
         if 0 <= elapsed <= SLOT_GRACE_MINUTES * 60:
             return key
     return None
+
+
+
+def publish_cooldown_remaining_seconds(state, now=None):
+    """Enforce a minimum gap if a delayed Actions run lands near the next slot."""
+    now = now or datetime.now(TIMEZONE)
+    raw = (state or {}).get("last_published_at")
+    if not raw:
+        return 0
+    try:
+        previous = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+        if previous.tzinfo is None:
+            previous = previous.replace(tzinfo=TIMEZONE)
+        elapsed = (now - previous).total_seconds()
+    except (TypeError, ValueError, OverflowError):
+        return 0
+    minimum = MIN_PUBLISH_INTERVAL_MINUTES * 60
+    return max(0, int(minimum - elapsed))
 
 PRODUCT_BENEFITS = [
     "✅ پرداخت درب منزل",
@@ -2504,6 +2523,15 @@ def main():
     )
 
     slot_key = due_slot(now, state.get("published_slots", []))
+    if slot_key:
+        cooldown_seconds = publish_cooldown_remaining_seconds(state, now=now)
+        if cooldown_seconds > 0:
+            print(
+                f"Skipping slot {slot_key}: minimum inter-post interval has "
+                f"{cooldown_seconds}s remaining."
+            )
+            slot_key = None
+
     # When every eligible source video has been used in this sweep, restart only
     # at a real publishing opportunity. New videos are always included before this test.
     if slot_key and not video_candidates and eligible_archive_videos:
