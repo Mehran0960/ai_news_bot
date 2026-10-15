@@ -1219,6 +1219,20 @@ def _run_tesseract(image_path):
     return "\n".join(texts)
 
 
+def _run_video_frame_ocr(image_path):
+    """Fast single-pass OCR for sampled video frames; unreadable prices fail closed."""
+    try:
+        result = subprocess.run(
+            ["tesseract", str(image_path), "stdout", "-l", "fas+eng", "--psm", "11"],
+            capture_output=True, text=True, timeout=12, check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f"Fast video-frame OCR unavailable ({type(exc).__name__}).") from None
+    if result.returncode != 0 or not (result.stdout or "").strip():
+        return ""
+    return result.stdout
+
+
 def _ocr_video_frames(video_path):
     try:
         probe = subprocess.run(
@@ -1251,7 +1265,7 @@ def _ocr_video_frames(video_path):
             except (OSError, subprocess.TimeoutExpired) as exc:
                 raise RuntimeError(f"Video frame extraction unavailable ({type(exc).__name__}).") from None
             if result.returncode == 0 and frame_path.exists() and frame_path.stat().st_size > 512:
-                texts.append(_run_tesseract(frame_path))
+                texts.append(_run_video_frame_ocr(frame_path))
     if not texts:
         raise RuntimeError("No readable frames could be extracted for price verification.")
     return "\n".join(texts)
