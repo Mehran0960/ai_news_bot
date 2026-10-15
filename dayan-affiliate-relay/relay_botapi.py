@@ -1011,10 +1011,13 @@ def summarize_source_description(source_caption, original=None, discounted=None,
         first = first[:max_chars - 1].rstrip() + "…"
     return first
 
-def build_caption(source_caption, affiliate_url, product_details=None):
+def build_caption(source_caption, affiliate_url, product_details=None, allow_source_price_fallback=True):
     # The affiliate product page is the current price source of truth.
     # Source creative/caption may be older than the live product listing.
-    details = fill_price_fallback(source_caption, product_details)
+    details = (
+        fill_price_fallback(source_caption, product_details)
+        if allow_source_price_fallback else dict(product_details or {})
+    )
     chunks = []
 
     title = re.sub(r"\s+", " ", str(details.get("title") or "")).strip()
@@ -1084,7 +1087,7 @@ def send_video(bot_token, item, affiliate_url, product_details=None):
     product_details = product_details if product_details is not None else fetch_product_details(affiliate_url)
     caption = build_caption(
         item.get("source_caption", ""), affiliate_url,
-        product_details=product_details
+        product_details=product_details, allow_source_price_fallback=False
     )
     payload = {
         "chat_id": TARGET_CHANNEL,
@@ -1637,7 +1640,7 @@ def send_photo(bot_token, item, affiliate_url, product_details=None, sanitized_p
 
     caption = build_caption(
         item.get("source_caption", ""), affiliate_url,
-        product_details=product_details
+        product_details=product_details, allow_source_price_fallback=False
     )
     payload = {
         "chat_id": TARGET_CHANNEL,
