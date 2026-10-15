@@ -13,7 +13,7 @@ permissions:
 jobs:
   inspect-public-preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -36,3 +36,145 @@ jobs:
 
       - name: Read public preview without posting anything
         run: python dayan-affiliate-relay/relay_botapi.py --check
+
+      # Read-only probe of the product routes. Never calls Telegram Bot API.
+      - name: Inspect product 45636 for hidden/lazy-loaded video sources
+        env:
+          DAYAN_STORE_HOST: ${{ secrets.DAYAN_STORE_HOST }}
+          PRODUCT_CODE: "45636"
+          PYTHONUNBUFFERED: "1"
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          from urllib.parse import urljoin, urlparse, urlunparse
+
+          import requests
+          from bs4 import BeautifulSoup
+
+          raw_host = os.environ.get("DAYAN_STORE_HOST", "").strip()
+          code = os.environ.get("PRODUCT_CODE", "45636").strip()
+          if not raw_host:
+              print("PROBE SKIPPED: DAYAN_STORE_HOST secret is unavailable; no request was made.")
+              sys.exit(0)
+          if "://" not in raw_host:
+              raw_host = "https://" + raw_host
+          parsed_host = urlparse(raw_host)
+          if parsed_host.scheme != "https" or not parsed_host.hostname or parsed_host.username or parsed_host.password or parsed_host.port or parsed_host.path not in ("", "/") or parsed_host.query or parsed_host.fragment:
+              print("PROBE SKIPPED: DAYAN_STORE_HOST is not a bare HTTPS host; no request was made.")
+              sys.exit(0)
+          base = f"https://{parsed_host.hostname}"
+          session = requests.Session()
+          session.headers.update({"User-Agent": "Mozilla/5.0 (compatible; DayanProductVideoDiagnostic/1.0)"})
+
+          def safe_ref(value, page_url):
+              value = str(value or "").strip()
+              if not value or value.startswith(("data:", "blob:", "javascript:")):
+                  return None
+              absolute = urljoin(page_url, value)
+              p = urlparse(absolute)
+              if p.scheme not in ("https", "http") or not p.hostname:
+                  return value[:160]
+              # Strip query/fragment because they may contain signed tokens.
+              return urlunparse((p.scheme, p.netloc, p.path, "", "", ""))[:240]
+
+          def walk_json(obj):
+              if isinstance(obj, dict):
+                  yield obj
+                  for value in obj.values():
+                      yield from walk_json(value)
+              elif isinstance(obj, list):
+                  for value in obj:
+                      yield from walk_json(value)
+
+          for route in ("fastcart", "lead"):
+              requested = f"{base}/{route}/{code}"
+              print(f"\n=== ROUTE {route}:{code} ===")
+              try:
+                  response = session.get(requested, timeout=(12, 25), allow_redirects=True)
+                  response.raise_for_status()
+              except Exception as exc:
+                  print(f"REQUEST FAILED: {type(exc).__name__}")
+                  continue
+              html = response.text or ""
+              soup = BeautifulSoup(html, "html.parser")
+              final = urlparse(response.url)
+              title = soup.title.get_text(" ", strip=True) if soup.title else ""
+              h1 = soup.find("h1")
+              print(f"HTTP={response.status_code}; content_type={response.headers.get('Content-Type', '')}; bytes={len(response.content)}")
+              print(f"FINAL_PAGE={final.hostname}{final.path}")
+              print(f"TITLE={(title or '(none)')[:180]}")
+              print(f"H1={(h1.get_text(' ', strip=True) if h1 else '(none)')[:180]}")
+
+              shown = set()
+              selectors = "video, source, iframe, embed, [data-video], [data-video-url], [data-video-src], [data-src*='.mp4'], [src*='.mp4'], [data-lazy-src*='.mp4'], [data-original*='.mp4']"
+              for node in soup.select(selectors)[:40]:
+                  attrs = {}
+                  for key in ("src", "data-src", "data-video", "data-video-url", "data-video-src", "data-lazy-src", "data-original", "href", "poster", "type"):
+                      if node.has_attr(key):
+                          value = node.get(key)
+                          if isinstance(value, list):
+                              value = " ".join(value)
+                          attrs[key] = safe_ref(value, response.url) if key != "type" else str(value)[:80]
+                  ident = (node.name, json.dumps(attrs, sort_keys=True, ensure_ascii=False))
+                  if attrs and ident not in shown:
+                      shown.add(ident)
+                      cls = " ".join(node.get("class", []))[:100] if isinstance(node.get("class", []), list) else str(node.get("class", ""))[:100]
+                      node_id = str(node.get("id", ""))[:80]
+                      print("MEDIA_NODE " + json.dumps({"tag": node.name, "id": node_id, "class": cls, "attrs": attrs}, ensure_ascii=False))
+
+              for node in soup.select('meta[property*="video" i], meta[name*="video" i], link[as="video"], link[type*="video" i]')[:30]:
+                  key = node.get("property") or node.get("name") or node.get("rel") or node.get("as") or "meta"
+                  val = node.get("content") or node.get("href") or node.get("value")
+                  if val:
+                      print("VIDEO_META " + json.dumps({"key": key, "value": safe_ref(val, response.url)}, ensure_ascii=False))
+
+              jsonld_videos = 0
+              for script in soup.select('script[type="application/ld+json"]'):
+                  try:
+                      data = json.loads(script.string or script.get_text())
+                  except Exception:
+                      continue
+                  for entry in walk_json(data):
+                      typ = entry.get("@type", [])
+                      if isinstance(typ, str):
+                          typ = [typ]
+                      if "VideoObject" in typ:
+                          jsonld_videos += 1
+                          item = {"name": str(entry.get("name", ""))[:120]}
+                          for key in ("contentUrl", "url", "embedUrl", "thumbnailUrl"):
+                              if entry.get(key):
+                                  item[key] = safe_ref(entry[key], response.url)
+                          print("JSONLD_VIDEO " + json.dumps(item, ensure_ascii=False))
+              print(f"JSONLD_VIDEO_COUNT={jsonld_videos}")
+
+              # Look through HTML and inline JavaScript after unescaping the common JSON slash forms.
+              normalized = html.replace(r"\\/", "/").replace(r"\u002F", "/").replace("&amp;", "&")
+              media_pattern = re.compile(r"""(?i)(?:https?://[^\s"'<>\\]+?|(?<![A-Za-z0-9])/[A-Za-z0-9_./%\-]+?)\.(?:mp4|m3u8|webm|mov|m4v)(?:\?[^\s"'<>\\]*)?""")
+              media_refs = []
+              for match in media_pattern.findall(normalized):
+                  cleaned = safe_ref(match, response.url)
+                  if cleaned and cleaned not in media_refs:
+                      media_refs.append(cleaned)
+              for candidate in media_refs[:30]:
+                  print("MEDIA_URL_IN_HTML " + candidate)
+              print(f"MEDIA_URL_COUNT={len(media_refs)}")
+
+              relevant_scripts = []
+              for script in soup.select("script[src]"):
+                  src = safe_ref(script.get("src"), response.url)
+                  if src and re.search(r"video|player|product|gallery|media|lazy|chunk|main|app", src, re.I):
+                      if src not in relevant_scripts:
+                          relevant_scripts.append(src)
+              for script in relevant_scripts[:20]:
+                  print("RELEVANT_SCRIPT " + script)
+              print(f"RELEVANT_SCRIPT_COUNT={len(relevant_scripts)}")
+
+              for token in ("videoUrl", "video_url", "productVideo", "video_src", "mediaUrl", "media_url", "m3u8", "mp4", "data-video", "contentUrl", "product-gallery", "product-media"):
+                  count = normalized.lower().count(token.lower())
+                  if count:
+                      print(f"HTML_TOKEN {token}={count}")
+          print("\nEND OF READ-ONLY PROBE. No Telegram post was attempted.")
+          PY
