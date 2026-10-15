@@ -22,6 +22,7 @@ from relay_botapi import (
     select_next_candidate,
     extract_source_price_values,
     rank_archive_candidates,
+    rank_video_cycle_candidates,
     extract_image_price_values,
     compare_image_prices_to_product,
     select_next_price_verified_candidate,
@@ -347,6 +348,91 @@ class DayanRelayTests(unittest.TestCase):
         self.assertEqual(len(ranked), 1)
         self.assertEqual(ranked[0]["source_message_id"], 120)
         self.assertEqual(ranked[0]["media_type"], "video")
+
+    def test_video_cycle_ranker_uses_videos_only_and_does_not_block_lifetime_sent_codes(self):
+        posts = [
+            {
+                "source_message_id": 150,
+                "source_caption": "گیم استیک با تخفیف /lead/11111",
+                "product_refs": [{"route": "lead", "code": "11111"}],
+                "video_url": "https://cdn4.telesco.pe/file/game-a.mp4",
+                "views": 900,
+                "source_date": "2026-10-15T11:00:00+00:00",
+            },
+            {
+                "source_message_id": 151,
+                "source_caption": "پاوربانک اقتصادی /lead/22222",
+                "product_refs": [{"route": "lead", "code": "22222"}],
+                "video_url": "https://cdn4.telesco.pe/file/power.mp4",
+                "views": 800,
+                "source_date": "2026-10-15T11:00:00+00:00",
+            },
+            {
+                "source_message_id": 152,
+                "source_caption": "عکس هدفون /lead/33333",
+                "product_refs": [{"route": "lead", "code": "33333"}],
+                "photo_url": "https://cdn4.telesco.pe/file/photo.jpg",
+                "views": 2000,
+            },
+        ]
+        ranked = rank_video_cycle_candidates(posts, {}, cycle_seen_source_ids=set())
+        self.assertEqual({item["source_message_id"] for item in ranked}, {150, 151})
+        self.assertTrue(all(item["media_type"] == "video" for item in ranked))
+        # There is intentionally no lifetime sent-code parameter: old publications can repeat next cycle.
+        chosen, ref = select_next_candidate(ranked, {}, set())
+        self.assertIn(chosen["source_message_id"], {150, 151})
+        self.assertIn(ref["code"], {"11111", "22222"})
+
+    def test_video_cycle_ranker_skips_seen_ids_and_prioritizes_new_product_before_second_video(self):
+        posts = [
+            {
+                "source_message_id": 200,
+                "source_caption": "پاوربانک پرتقاضا /lead/11111",
+                "product_refs": [{"route": "lead", "code": "11111"}],
+                "video_url": "https://cdn4.telesco.pe/file/power-first.mp4",
+                "views": 1000,
+                "source_date": "2026-10-15T12:00:00+00:00",
+            },
+            {
+                "source_message_id": 201,
+                "source_caption": "پاوربانک نسخه دوم /lead/11111",
+                "product_refs": [{"route": "lead", "code": "11111"}],
+                "video_url": "https://cdn4.telesco.pe/file/power-second.mp4",
+                "views": 1100,
+                "source_date": "2026-10-15T12:10:00+00:00",
+            },
+            {
+                "source_message_id": 202,
+                "source_caption": "کنسول بازی اقتصادی /lead/22222",
+                "product_refs": [{"route": "lead", "code": "22222"}],
+                "video_url": "https://cdn4.telesco.pe/file/console.mp4",
+                "views": 100,
+                "source_date": "2026-10-15T12:00:00+00:00",
+            },
+        ]
+        ranked = rank_video_cycle_candidates(
+            posts, {}, cycle_seen_source_ids={200}, cycle_seen_product_codes=set()
+        )
+        chosen, ref = select_next_candidate(ranked, {})
+        self.assertEqual(chosen["source_message_id"], 202)
+        self.assertEqual(ref["code"], "22222")
+        self.assertIn(201, {item["source_message_id"] for item in ranked})
+
+    def test_video_cycle_ranker_excludes_price_rejected_videos(self):
+        video = {
+            "source_message_id": 300,
+            "source_caption": "محصول اقتصادی /lead/33333",
+            "product_refs": [{"route": "lead", "code": "33333"}],
+            "video_url": "https://cdn4.telesco.pe/file/product.mp4",
+        }
+        self.assertEqual(
+            rank_video_cycle_candidates([video], {}, rejected_source_ids={300}),
+            [],
+        )
+        self.assertEqual(
+            rank_video_cycle_candidates([video], {}, rejected_product_codes={"33333"}),
+            [],
+        )
 
     def test_archive_candidate_ranking_excludes_sent_products_and_source_ids(self):
         posts = [
