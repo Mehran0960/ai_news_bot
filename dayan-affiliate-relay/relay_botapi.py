@@ -1065,6 +1065,98 @@ def extract_product_video_url(page_html, page_url):
     return None
 
 
+def extract_product_availability(page_html):
+    """Conservatively classify stock using product structured data and visible stock labels."""
+    if not page_html:
+        return {"status": "unknown", "source": "no_page"}
+    soup = BeautifulSoup(page_html, "html.parser")
+    out_markers = (
+        "اتمام موجودی", "تمام شده", "ناموجود", "موجود نیست",
+        "موجود نمی باشد", "موجود نمی‌باشد", "فعلا موجود نیست",
+        "فعلاً موجود نیست", "out of stock", "sold out", "unavailable",
+        "discontinued",
+    )
+    in_markers = (
+        "موجود در انبار", "موجود است", "قابل سفارش",
+        "in stock", "instock", "available now",
+    )
+
+    for script in soup.select('script[type="application/ld+json"]'):
+        try:
+            data = json.loads(script.string or script.get_text())
+        except (json.JSONDecodeError, TypeError):
+            continue
+        for entry in _iter_jsonld(data):
+            types = entry.get("@type", [])
+            if isinstance(types, str):
+                types = [types]
+            if "Product" not in types and "Offer" not in types:
+                continue
+            offers = entry.get("offers", [entry]) if "Product" in types else [entry]
+            if isinstance(offers, dict):
+                offers = [offers]
+            for offer in offers if isinstance(offers, list) else []:
+                if not isinstance(offer, dict):
+                    continue
+                value = str(offer.get("availability", "")).lower().rsplit("/", 1)[-1].replace("_", "")
+                if value in {"outofstock", "soldout", "discontinued"}:
+                    return {"status": "out_of_stock", "source": "schema.org"}
+                if value in {"instock", "limitedavailability", "onlineonly"}:
+                    return {"status": "in_stock", "source": "schema.org"}
+
+    selectors = (
+        '[itemprop="availability"]', "[data-stock]", "[data-availability]",
+        '[class*="stock-status"]', '[class*="availability"]',
+        '[class*="out-of-stock"]', '[class*="sold-out"]',
+    )
+    for node in soup.select(", ".join(selectors)):
+        attrs = " ".join(str(node.get(k, "")) for k in ("class", "id", "data-stock", "data-availability", "itemprop", "aria-label", "title"))
+        signal = (attrs + " " + node.get_text(" ", strip=True)).lower().replace("-", " ").replace("_", " ")
+        if any(marker in signal for marker in out_markers):
+            return {"status": "out_of_stock", "source": "product_status"}
+        if any(marker in signal for marker in in_markers) or signal.strip() in {"in stock", "instock"}:
+            return {"status": "in_stock", "source": "product_status"}
+
+    heading = soup.find("h1")
+    if heading:
+        for ancestor in list(heading.parents)[:5]:
+            classes = ancestor.get("class", [])
+            identity = " ".join([str(ancestor.get("id", "")), " ".join(classes) if isinstance(classes, list) else str(classes)])
+            txt = ancestor.get_text(" ", strip=True)
+            if len(txt) > 1800:
+                continue
+            if any(term in identity.lower() for term in ("product", "detail", "lead-page", "fast-cart")):
+                if any(marker in txt.lower() for marker in out_markers):
+                    return {"status": "out_of_stock", "source": "product_context"}
+                if any(marker in txt.lower() for marker in in_markers):
+                    return {"status": "in_stock", "source": "product_context"}
+
+    return {"status": "unknown", "source": "no_reliable_stock_signal"}
+
+
+STOCK_OUT_TTL_HOURS = 6
+STOCK_UNKNOWN_TTL_MINUTES = 30
+
+
+def availability_cache_is_blocked(state, product_code, now=None):
+    """Use short-lived cached stock checks to avoid repeatedly retrying a known bad item."""
+    cache = state.get("product_availability_cache", {})
+    entry = cache.get(str(product_code), {}) if isinstance(cache, dict) else {}
+    status = entry.get("status")
+    if status not in {"out_of_stock", "unknown"} or not entry.get("checked_at"):
+        return False
+    try:
+        checked = datetime.fromisoformat(entry["checked_at"])
+        current = now or datetime.now(TIMEZONE)
+        if checked.tzinfo is None:
+            checked = checked.replace(tzinfo=TIMEZONE)
+        age = max(0.0, (current - checked).total_seconds())
+    except (TypeError, ValueError):
+        return False
+    ttl = STOCK_OUT_TTL_HOURS * 3600 if status == "out_of_stock" else STOCK_UNKNOWN_TTL_MINUTES * 60
+    return age < ttl
+
+
 def extract_product_details(page_html, page_url=None):
     """Extract product title/prices and an optional direct video from the affiliate page."""
     soup = BeautifulSoup(page_html or "", "html.parser")
