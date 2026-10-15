@@ -1319,7 +1319,302 @@ def check_source_media_prices(item, product_details):
 
 
 
-def send_photo(bot_token, item, affiliate_url, product_details=None):
+PRICE_REGION_CUE_RE = re.compile(
+    r"تومان|ریال|قیمت|میلیون|هزار|تخفیف|فروش\s*ویژه",
+    re.IGNORECASE,
+)
+
+
+def _tesseract_text_and_price_boxes(image_path):
+    """Read OCR text and locate lines likely to contain a displayed price."""
+    lines_by_key = {}
+    all_text = []
+    for psm in ("11", "6"):
+        try:
+            result = subprocess.run(
+                ["tesseract", str(image_path), "stdout", "-l", "fas+eng", "--psm", psm, "tsv"],
+                capture_output=True, text=True, timeout=30, check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        if result.returncode != 0 or not result.stdout.strip():
+            continue
+        try:
+            reader = csv.DictReader(io.StringIO(result.stdout), delimiter="\t")
+            rows = list(reader)
+        except Exception:
+            continue
+
+        grouped = {}
+        for row in rows:
+            if row.get("level") != "5":
+                continue
+            word = (row.get("text") or "").strip()
+            if not word:
+                continue
+            try:
+                x, y = int(row["left"]), int(row["top"])
+                width, height = int(row["width"]), int(row["height"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            key = (row.get("page_num"), row.get("block_num"), row.get("par_num"), row.get("line_num"))
+            item = grouped.setdefault(key, {"words": [], "boxes": []})
+            item["words"].append((x, word))
+            item["boxes"].append((x, y, x + width, y + height))
+
+        for key, data in grouped.items():
+            text = " ".join(word for _, word in sorted(data["words"]))
+            boxes = data["boxes"]
+            box = (
+                min(b[0] for b in boxes), min(b[1] for b in boxes),
+                max(b[2] for b in boxes), max(b[3] for b in boxes),
+            )
+            entry = {
+                "text": text,
+                "box": box,
+                "height": max(1, box[3] - box[1]),
+                "has_digits": bool(re.search(r"\d", normalize_digits(text))),
+                "price_cue": bool(PRICE_REGION_CUE_RE.search(text)),
+                "prices": extract_image_price_values(text),
+            }
+            all_text.append(text)
+            # PSM layouts often report the same text with slightly different boxes.
+            existing = next((
+                line for line in lines_by_key.values()
+                if line["text"] == text
+                and abs(line["box"][0] - box[0]) <= 18
+                and abs(line["box"][1] - box[1]) <= 18
+            ), None)
+            if existing is None:
+                lines_by_key[(psm, key)] = entry
+            else:
+                existing["box"] = (
+                    min(existing["box"][0], box[0]), min(existing["box"][1], box[1]),
+                    max(existing["box"][2], box[2]), max(existing["box"][3], box[3]),
+                )
+                existing["height"] = max(existing["height"], entry["height"])
+                existing["price_cue"] = existing["price_cue"] or entry["price_cue"]
+                existing["prices"] = sorted(set(existing["prices"] + entry["prices"]))
+
+    lines = list(lines_by_key.values())
+    selected = set()
+    for index, line in enumerate(lines):
+        if line["price_cue"] or line["prices"]:
+            selected.add(index)
+
+    # A price number and its "price/toman" label may be separate OCR lines.
+    for i, cue_line in enumerate(lines):
+        if not cue_line["price_cue"]:
+            continue
+        x0, y0, x1, y1 = cue_line["box"]
+        for j, number_line in enumerate(lines):
+            if not number_line["has_digits"] or j in selected:
+                continue
+            nx0, ny0, nx1, ny1 = number_line["box"]
+            vertical_gap = max(0, max(y0, ny0) - min(y1, ny1))
+            horizontal_gap = max(0, max(x0, nx0) - min(x1, nx1))
+            max_height = max(cue_line["height"], number_line["height"])
+            if vertical_gap <= max_height * 2.4 and horizontal_gap <= 0.35 * max(x1, nx1, 1):
+                selected.add(j)
+
+    boxes = [lines[index]["box"] for index in selected]
+    full_text = "\n".join(all_text)
+    return full_text, boxes
+
+
+def _merge_price_boxes(boxes, width, height):
+    margin = max(8, int(min(width, height) * 0.012))
+    prepared = []
+    for x0, y0, x1, y1 in boxes:
+        box = (
+            max(0, int(x0) - margin), max(0, int(y0) - margin),
+            min(width, int(x1) + margin), min(height, int(y1) + margin),
+        )
+        if box[2] > box[0] and box[3] > box[1]:
+            prepared.append(box)
+
+    merged = []
+    while prepared:
+        current = prepared.pop(0)
+        changed = True
+        while changed:
+            changed = False
+            kept = []
+            for other in prepared:
+                near = not (
+                    current[2] + 10 < other[0] or other[2] + 10 < current[0]
+                    or current[3] + 10 < other[1] or other[3] + 10 < current[1]
+                )
+                if near:
+                    current = (
+                        min(current[0], other[0]), min(current[1], other[1]),
+                        max(current[2], other[2]), max(current[3], other[3]),
+                    )
+                    changed = True
+                else:
+                    kept.append(other)
+            prepared = kept
+        merged.append(current)
+    return merged
+
+
+def best_price_safe_crop_box(width, height, boxes, min_area_ratio=0.58):
+    """Find the largest rectangular crop that excludes every price-text box."""
+    if width <= 0 or height <= 0 or not boxes:
+        return None
+    xs, ys = {0, width}, {0, height}
+    for x0, y0, x1, y1 in boxes:
+        xs.update((max(0, x0), min(width, x1)))
+        ys.update((max(0, y0), min(height, y1)))
+    xs, ys = sorted(xs), sorted(ys)
+    best, best_area = None, 0
+    for left_i, left in enumerate(xs[:-1]):
+        for right in xs[left_i + 1:]:
+            crop_width = right - left
+            if crop_width < width * 0.52:
+                continue
+            for top_i, top in enumerate(ys[:-1]):
+                for bottom in ys[top_i + 1:]:
+                    crop_height = bottom - top
+                    area = crop_width * crop_height
+                    if crop_height < height * 0.52 or area < width * height * min_area_ratio:
+                        continue
+                    if any(not (right <= x0 or left >= x1 or bottom <= y0 or top >= y1)
+                           for x0, y0, x1, y1 in boxes):
+                        continue
+                    if area > best_area:
+                        best, best_area = (left, top, right, bottom), area
+    return best
+
+
+def _remove_price_boxes(input_path, output_path, boxes, force_blur=False):
+    """Crop price text out where possible; otherwise blur those exact regions."""
+    with Image.open(input_path) as opened:
+        source = opened.convert("RGB")
+    width, height = source.size
+    boxes = _merge_price_boxes(boxes, width, height)
+    if not boxes:
+        source.save(output_path, format="JPEG", quality=93, optimize=True)
+        return "unchanged"
+
+    crop_box = None if force_blur else best_price_safe_crop_box(width, height, boxes)
+    if crop_box is not None:
+        source.crop(crop_box).save(output_path, format="JPEG", quality=93, optimize=True)
+        return "cropped"
+
+    for x0, y0, x1, y1 in boxes:
+        region = source.crop((x0, y0, x1, y1))
+        blur_radius = max(12, int(min(width, height) * 0.022))
+        blurred = region.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+        source.paste(blurred, (x0, y0, x1, y1))
+    source.save(output_path, format="JPEG", quality=93, optimize=True)
+    return "blurred"
+
+
+def prepare_price_cropped_photo(item, product_details):
+    """Create and verify a price-free photo fallback. Returns (path, check)."""
+    page_prices = sorted({
+        amount for amount in (
+            _price_to_integer((product_details or {}).get("discounted_price")),
+            _price_to_integer((product_details or {}).get("original_price")),
+        ) if amount is not None
+    })
+    if not page_prices:
+        return None, {
+            "ok": False, "status": "unverifiable",
+            "reason": "live product page did not expose a price for the photo caption",
+            "image_prices": [], "page_prices": [],
+        }
+
+    photo_url = refresh_photo_url(int(item["source_message_id"]))
+    input_path = output_path = None
+    try:
+        with SESSION.get(photo_url, stream=True, timeout=(15, 60)) as response:
+            response.raise_for_status()
+            content_type = (response.headers.get("Content-Type") or "").lower()
+            if "image/" not in content_type and "octet-stream" not in content_type:
+                raise RuntimeError("Source media is not a recognized image for price cropping.")
+            length_header = response.headers.get("Content-Length")
+            if length_header and int(length_header) > MAX_PHOTO_BYTES:
+                raise RuntimeError("Source image exceeds the configured size limit.")
+            total = 0
+            with tempfile.NamedTemporaryFile(prefix="dayan-photo-original-", suffix=".jpg", delete=False) as file:
+                input_path = file.name
+                for chunk in response.iter_content(chunk_size=512 * 1024):
+                    if not chunk:
+                        continue
+                    total += len(chunk)
+                    if total > MAX_PHOTO_BYTES:
+                        raise RuntimeError("Source image exceeds the configured size limit.")
+                    file.write(chunk)
+        if not input_path or os.path.getsize(input_path) < 512:
+            raise RuntimeError("Downloaded source image is empty or too small.")
+
+        try:
+            ocr_text = _run_tesseract(input_path)
+        except Exception as exc:
+            return None, {
+                "ok": False, "status": "unverifiable",
+                "reason": f"image OCR failed ({type(exc).__name__})",
+                "image_prices": [], "page_prices": page_prices,
+            }
+        raw_prices = extract_image_price_values(ocr_text)
+        _, boxes = _tesseract_text_and_price_boxes(input_path)
+        price_cue = bool(PRICE_REGION_CUE_RE.search(ocr_text))
+        if not boxes:
+            # Only leave the original alone if OCR can actually read the image
+            # and found no displayed-price cue or plausible price amount.
+            if not ocr_text.strip() or price_cue or raw_prices:
+                return None, {
+                    "ok": False, "status": "unverifiable",
+                    "reason": "could not locate a price region to safely crop from the photo",
+                    "image_prices": raw_prices, "page_prices": page_prices,
+                }
+            output_file = tempfile.NamedTemporaryFile(prefix="dayan-photo-clean-", suffix=".jpg", delete=False)
+            output_path = output_file.name
+            output_file.close()
+            shutil.copyfile(input_path, output_path)
+            return output_path, {
+                "ok": True, "status": "no_price_detected",
+                "reason": "OCR found no displayed price; original photo retained",
+                "image_prices": [], "page_prices": page_prices, "crop_method": "none",
+            }
+
+        output_file = tempfile.NamedTemporaryFile(prefix="dayan-photo-clean-", suffix=".jpg", delete=False)
+        output_path = output_file.name
+        output_file.close()
+        method = _remove_price_boxes(input_path, output_path, boxes)
+        try:
+            final_ocr = _run_tesseract(output_path)
+            remaining_prices = extract_image_price_values(final_ocr)
+        except Exception:
+            remaining_prices = raw_prices or [1]
+        if remaining_prices:
+            # If a crop cannot remove an interior price overlay, blur just the
+            # detected region and re-run OCR; never publish if a price remains readable.
+            method = _remove_price_boxes(input_path, output_path, boxes, force_blur=True)
+            try:
+                final_ocr = _run_tesseract(output_path)
+                remaining_prices = extract_image_price_values(final_ocr)
+            except Exception:
+                remaining_prices = raw_prices or [1]
+        if remaining_prices:
+            return None, {
+                "ok": False, "status": "unverifiable",
+                "reason": "price digits remain readable after cropping/redaction",
+                "image_prices": remaining_prices, "page_prices": page_prices,
+            }
+        return output_path, {
+            "ok": True, "status": "price_removed",
+            "reason": "price region was cropped or obscured and post-checked",
+            "image_prices": raw_prices, "page_prices": page_prices, "crop_method": method,
+        }
+    finally:
+        if input_path and os.path.exists(input_path):
+            os.remove(input_path)
+
+
+def send_photo(bot_token, item, affiliate_url, product_details=None, sanitized_photo_path=None):
     photo_url = refresh_photo_url(int(item["source_message_id"]))
     product_details = product_details if product_details is not None else fetch_product_details(affiliate_url)
     caption = build_caption(
