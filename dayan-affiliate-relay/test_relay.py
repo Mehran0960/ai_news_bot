@@ -30,6 +30,8 @@ from relay_botapi import (
     ensure_price_check_version,
     MAX_PRICE_CHECK_CANDIDATES_PER_RUN,
     best_price_safe_crop_box,
+    extract_product_video_url,
+    safe_product_video_url,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -550,6 +552,47 @@ class DayanRelayTests(unittest.TestCase):
         self.assertEqual(path, "/tmp/verified-price-free-photo.jpg")
         crop_photo.assert_called_once_with(photo, page_details)
 
+
+
+    def test_product_page_direct_video_source_is_extracted(self):
+        html = """
+        <html><head><title>Product</title></head><body>
+          <video controls><source src="/media/item-demo.mp4" type="video/mp4"></video>
+        </body></html>
+        """
+        self.assertEqual(
+            extract_product_video_url(html, "https://shop.example.com/fastcart/12345"),
+            "https://shop.example.com/media/item-demo.mp4",
+        )
+
+    def test_product_page_video_from_same_site_cdn_is_allowed(self):
+        html = """
+        <html><head>
+          <meta property="og:video" content="https://cdn.example.com/assets/item.mp4">
+        </head></html>
+        """
+        self.assertEqual(
+            extract_product_video_url(html, "https://shop.example.com/fastcart/12345"),
+            "https://cdn.example.com/assets/item.mp4",
+        )
+
+    def test_unrelated_product_video_host_is_rejected(self):
+        self.assertIsNone(
+            safe_product_video_url(
+                "https://unrelated-video-host.net/item.mp4",
+                "https://shop.example.com/fastcart/12345",
+                explicit_video_source=True,
+            )
+        )
+
+    def test_relative_non_video_file_is_not_treated_as_video(self):
+        self.assertIsNone(
+            safe_product_video_url(
+                "/images/product.jpg",
+                "https://shop.example.com/fastcart/12345",
+                explicit_video_source=False,
+            )
+        )
 
 
 if __name__ == "__main__":
