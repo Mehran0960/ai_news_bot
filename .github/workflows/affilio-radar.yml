@@ -58,7 +58,6 @@ jobs:
           python -m unittest -v test_affilio.py
 
       - name: Discover products and verify live stock (publish is disabled on push)
-        if: github.event_name != 'push'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@Iran_gajet"
@@ -67,7 +66,6 @@ jobs:
         run: python affilio_radar/affilio_radar.py
 
       - name: Commit candidate report and state only when changed
-        if: github.event_name != 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
