@@ -861,14 +861,40 @@ def safe_product_video_url(raw_url, page_url, explicit_video_source=False):
     return url
 
 
+def _has_product_video_context(node):
+    """Reject site-wide hero/promotional videos unless embedded in product media."""
+    for ancestor in [node, *list(node.parents)[:7]]:
+        identity = " ".join([
+            str(ancestor.get("id", "")),
+            " ".join(ancestor.get("class", [])) if isinstance(ancestor.get("class", []), list) else str(ancestor.get("class", "")),
+        ]).lower()
+        if re.search(r"product|gallery|detail|woocommerce|item-media|product-media", identity):
+            return True
+    return False
+
+
 def extract_product_video_url(page_html, page_url):
-    """Find a direct video source exposed by the affiliate product page."""
+    """Find a direct, product-associated video source on the affiliate product page."""
     if not page_html or not page_url:
         return None
     soup = BeautifulSoup(page_html, "html.parser")
+    page_host = urlparse(page_url).hostname or ""
+    route_match = re.search(r"/(?:fastcart|lead)/(\d{4,8})(?:/|$)", urlparse(page_url).path or "")
+    product_code = route_match.group(1) if route_match else None
+    product_title_node = soup.select_one("h1")
+    product_title = product_title_node.get_text(" ", strip=True).lower() if product_title_node else ""
+    title_tokens = {token for token in re.findall(r"[a-z0-9\u0600-\u06ff]{3,}", product_title) if token not in {"مدل", "تومان", "محصول", "product"}}
+
     candidates = []
     for node in soup.select("video[src], video source[src], source[src][type^='video/']"):
-        candidates.append((node.get("src"), True))
+        raw_url = node.get("src")
+        raw_text = str(raw_url or "")
+        code_in_url = bool(product_code and product_code in raw_text)
+        if code_in_url or _has_product_video_context(node):
+            candidates.append((raw_url, True))
+
+    # Open Graph and Twitter video tags are commonly site-wide defaults.
+    # Accept them only when the asset URL itself identifies this product.
     for selector in (
         'meta[property="og:video:secure_url"]',
         'meta[property="og:video:url"]',
@@ -877,8 +903,9 @@ def extract_product_video_url(page_html, page_url):
     ):
         for node in soup.select(selector):
             value = node.get("content")
-            if value:
+            if value and product_code and product_code in str(value):
                 candidates.append((value, True))
+
     for script in soup.select('script[type="application/ld+json"]'):
         try:
             data = json.loads(script.string or script.get_text())
@@ -890,16 +917,27 @@ def extract_product_video_url(page_html, page_url):
                 types = [types]
             if "VideoObject" not in types:
                 continue
+            entry_name = str(entry.get("name", "")).lower()
+            entry_tokens = {token for token in re.findall(r"[a-z0-9\u0600-\u06ff]{3,}", entry_name)}
+            title_overlap = len(title_tokens & entry_tokens)
             for key in ("contentUrl", "url"):
-                if entry.get(key):
-                    candidates.append((entry[key], True))
-    # Also consider obvious direct .mp4/.webm URLs in the HTML, including
-    # lazy-loaded data attributes used by simple product themes.
-    for raw_url in re.findall(
-        r"""(?i)(?:https?:)?//[^\s"'<>]+?\.(?:mp4|m4v|webm|mov)(?:\?[^\s"'<>]*)?|(?:/[A-Za-z0-9_./%\-]+)\.(?:mp4|m4v|webm|mov)(?:\?[^\s"'<>]*)?""",
-        page_html,
-    ):
-        candidates.append((raw_url, False))
+                raw_url = entry.get(key)
+                if raw_url and (
+                    (product_code and product_code in str(raw_url))
+                    or (title_overlap >= min(2, len(title_tokens)) and title_tokens)
+                ):
+                    candidates.append((raw_url, True))
+
+    # Loose .mp4 URLs in arbitrary scripts are NOT sufficient by themselves:
+    # only accept these when the product code is embedded in the asset URL.
+    if product_code:
+        for raw_url in re.findall(
+            r"""(?i)(?:https?:)?//[^\s"'<>]+?\.mp4(?:\?[^\s"'<>]*)?|(?:/[A-Za-z0-9_./%\-]+)\.mp4(?:\?[^\s"'<>]*)?""",
+            page_html,
+        ):
+            if product_code in raw_url:
+                candidates.append((raw_url, False))
+
     seen = set()
     for raw_url, explicit in candidates:
         if isinstance(raw_url, list):
