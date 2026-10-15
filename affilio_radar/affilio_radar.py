@@ -321,6 +321,8 @@ def _api_product_url(obj):
     # also contain category, seller, campaign, and recommendation IDs.
     for key in ("url", "product_url", "web_url", "canonical_url", "productUrl"):
         raw = obj.get(key)
+        if isinstance(raw, dict):
+            raw = raw.get("uri") or raw.get("url") or ""
         if isinstance(raw, str):
             candidate = safe_product_url(urljoin("https://www.digikala.com/", raw))
             if candidate:
@@ -490,13 +492,6 @@ def parse_product_api(payload: dict, url: str) -> dict:
     price_obj = variant.get("price") if isinstance(variant.get("price"), dict) else {}
     if not price_obj:
         price_obj = product_obj.get("price") if isinstance(product_obj.get("price"), dict) else {}
-    print(
-        f"PRODUCT_API_SHAPE id={product_id(url)} "
-        f"root_keys={list(payload.keys())[:12] if isinstance(payload, dict) else type(payload).__name__} "
-        f"product_keys={list(product_obj.keys())[:28]} "
-        f"variant_keys={list(variant.keys())[:24]} price_keys={list(price_obj.keys())[:24]}"
-    )
-
     def price_toman(keys, currency):
         for source in (price_obj, variant, product_obj):
             for key in keys:
@@ -536,7 +531,14 @@ def parse_product_api(payload: dict, url: str) -> dict:
         if raw is not None:
             try:
                 rating = float(normalize_digits(str(raw)))
-                break
+                # Digikala's detail API encodes its average rating on a 0–100
+                # scale (e.g. 68.12), while retailer markup commonly uses 0–5.
+                if 5 < rating <= 100:
+                    rating = round(rating / 20, 2)
+                if rating < 0 or rating > 5:
+                    rating = None
+                if rating is not None:
+                    break
             except ValueError:
                 pass
     for raw in (rating_obj.get("count"), rating_obj.get("rating_count"), rating_obj.get("review_count"),
@@ -658,8 +660,7 @@ def discover_product_urls() -> tuple[list[str], list[dict]]:
             print(
                 f"SEARCH_API term={term!r} status={response.status_code} "
                 f"data_keys={list(payload.get('data', {}).keys())[:24] if isinstance(payload, dict) and isinstance(payload.get('data'), dict) else 'n/a'} "
-                f"structure={json.dumps(_api_structure(payload), ensure_ascii=False)[:2400]} "
-                f"sample={json.dumps(_search_api_sample(payload), ensure_ascii=False)[:1200]}"
+                f"sample={json.dumps(_search_api_sample(payload), ensure_ascii=False)[:1000]}"
             )
             if local:
                 diagnostics.append({"term": term, "ok": True, "products_found": len(local), "source": "public_api", "status": "ok"})
