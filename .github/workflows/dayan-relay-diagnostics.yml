@@ -221,5 +221,24 @@ jobs:
                           field_names.append(raw)
                   if field_names:
                       print("JS_MEDIA_FIELDS " + ", ".join(field_names[:30]))
+                  if "/app/lead/" in jp.path or counts.get("/api/", 0):
+                      lower_bundle = js_text.lower()
+                      context_terms = ("api/client/v3", "api/client/v2", "/api/", "productid", "product_id", "getproduct", "products", "video", "media", "gallery", "fetch(")
+                      contexts_printed = 0
+                      for term in context_terms:
+                          pos = 0
+                          term_hits = 0
+                          while contexts_printed < 16 and term_hits < 2:
+                              hit = lower_bundle.find(term, pos)
+                              if hit < 0:
+                                  break
+                              snippet = js_text[max(0, hit - 100):min(len(js_text), hit + len(term) + 180)]
+                              snippet = re.sub(r"\\s+", " ", snippet)
+                              print("JS_CONTEXT " + term + " " + snippet[:300])
+                              contexts_printed += 1
+                              term_hits += 1
+                              pos = hit + len(term)
+                          if contexts_printed >= 16:
+                              break
           print("\nEND OF READ-ONLY PROBE. No Telegram post was attempted.")
           PY
