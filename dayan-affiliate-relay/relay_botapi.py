@@ -2296,7 +2296,7 @@ def inspect_source_message(source_message_id):
     item = next((p for p in historical if int(p["source_message_id"]) == int(source_message_id)), None)
     if item:
         print(f"Source post: {item['source_url']}")
-        short_caption = re.sub(r"\\s+", " ", item.get("source_caption", ""))[:500]
+        short_caption = re.sub(r"\s+", " ", item.get("source_caption", ""))[:500]
         print("Caption: " + (short_caption or "(empty)"))
         print(f"Photo URL available: {'yes' if item.get('photo_url') else 'no'}")
         print(f"Video URL available: {'yes' if item.get('video_url') else 'no'}")
@@ -2308,7 +2308,7 @@ def inspect_source_message(source_message_id):
 
 def debug_stock_page(route_and_code):
     """Inspect real product-page stock controls without sending a Telegram post."""
-    match = re.fullmatch(r"(lead|fastcart):(\\d{4,8})", route_and_code.strip().lower())
+    match = re.fullmatch(r"(lead|fastcart):(\d{4,8})", route_and_code.strip().lower())
     if not match:
         raise RuntimeError("Usage: relay_botapi.py --debug-stock-page <lead|fastcart>:<product_code>")
     requested_route, code = match.groups()
