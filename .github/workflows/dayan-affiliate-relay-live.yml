@@ -1,5 +1,5 @@
 name: Dayan Affiliate Relay (live)
-# v4.1: eligible videos first; photos only after video checks and embedded prices are cropped/verified.
+# v4.2: video-first; fast frame OCR plus verified photo price cropping; longer run window to avoid cancelled slots.
 
 on:
   schedule:
@@ -19,7 +19,7 @@ concurrency:
 jobs:
   relay:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
