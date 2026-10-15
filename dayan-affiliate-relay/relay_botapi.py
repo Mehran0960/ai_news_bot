@@ -1853,17 +1853,32 @@ def run_test_post(source_message_id):
         raise RuntimeError(f"Test source post {source_message_id} has no unambiguous product code/route; refusing to publish.")
     affiliate_url = make_affiliate_url(store_base, product_ref)
     product_details = fetch_product_details(affiliate_url)
-    price_check = check_source_media_prices(item, product_details)
-    print(f"Test-post price verification: status={price_check.get('status')}, image_prices={price_check.get('image_prices', [])}, page_prices={price_check.get('page_prices', [])}.")
-    if not price_check.get("ok"):
-        raise RuntimeError(
-            f"Refusing test post because creative price verification failed: {price_check.get('status')}."
-        )
+    sanitized_photo_path = None
     if item.get("video_url"):
+        price_check = check_source_media_prices(item, product_details)
+        if not price_check.get("ok"):
+            raise RuntimeError(
+                f"Refusing test video because price verification failed: {price_check.get('status')}."
+            )
         destination_message_id = send_video(bot_token, item, affiliate_url, product_details=product_details)
         media_type = "video"
     else:
-        destination_message_id = send_photo(bot_token, item, affiliate_url, product_details=product_details)
+        sanitized_photo_path, price_check = prepare_price_cropped_photo(item, product_details)
+        print(f"Test photo price handling: status={price_check.get('status')}, image_prices={price_check.get('image_prices', [])}, page_prices={price_check.get('page_prices', [])}, crop_method={price_check.get('crop_method', 'none')}.")
+        if not price_check.get("ok") or not sanitized_photo_path:
+            if sanitized_photo_path and os.path.exists(sanitized_photo_path):
+                os.remove(sanitized_photo_path)
+            raise RuntimeError(
+                f"Refusing test photo because price removal could not be verified: {price_check.get('status')}."
+            )
+        try:
+            destination_message_id = send_photo(
+                bot_token, item, affiliate_url, product_details=product_details,
+                sanitized_photo_path=sanitized_photo_path
+            )
+        finally:
+            if os.path.exists(sanitized_photo_path):
+                os.remove(sanitized_photo_path)
         media_type = "photo"
     print(
         f"TEST POST SENT source={item['source_url']} target={TARGET_CHANNEL} "
@@ -1898,18 +1913,25 @@ def publish_best_archive_post():
         rejected_product_codes=state.get("price_rejected_product_codes", []),
         rejected_source_ids=state.get("price_rejected_source_ids", []),
     )
-    chosen, product_ref, product_details = select_next_price_verified_candidate(
+    chosen, product_ref, product_details, sanitized_photo_path = select_next_price_verified_candidate(
         candidates, overrides, sent_codes, store_base, state
     )
     if not chosen or not product_ref:
         write_state(state)
-        raise RuntimeError("No unpublished archive product with a verifiable image/site price (or no mismatches) was found.")
+        raise RuntimeError("No unpublished product passed the media-specific price checks.")
     affiliate_url = make_affiliate_url(store_base, product_ref)
     media_type = chosen["media_type"]
-    if media_type == "video":
-        destination_message_id = send_video(bot_token, chosen, affiliate_url, product_details=product_details)
-    else:
-        destination_message_id = send_photo(bot_token, chosen, affiliate_url, product_details=product_details)
+    try:
+        if media_type == "video":
+            destination_message_id = send_video(bot_token, chosen, affiliate_url, product_details=product_details)
+        else:
+            destination_message_id = send_photo(
+                bot_token, chosen, affiliate_url, product_details=product_details,
+                sanitized_photo_path=sanitized_photo_path
+            )
+    finally:
+        if sanitized_photo_path and os.path.exists(sanitized_photo_path):
+            os.remove(sanitized_photo_path)
 
     state.setdefault("sent_source_ids", []).append(int(chosen["source_message_id"]))
     state["sent_source_ids"] = state["sent_source_ids"][-MAX_SENT_IDS:]
@@ -2034,6 +2056,26 @@ def main():
 
     last_seen = int(state.get("last_seen_id", 0))
     queue = state.setdefault("queue", [])
+    archive_video_codes = set()
+    for source_item in posts:
+        if not source_item.get("video_url"):
+            continue
+        source_id = int(source_item.get("source_message_id", 0) or 0)
+        source_ref = resolve_product_ref(source_item, overrides)
+        if source_ref and source_id not in sent_ids and source_id not in rejected_price_source_ids:
+            if str(source_ref["code"]) not in sent_product_codes and str(source_ref["code"]) not in rejected_price_product_codes:
+                archive_video_codes.add(str(source_ref["code"]))
+    if archive_video_codes:
+        before_queue_count = len(queue)
+        queue[:] = [
+            queued for queued in queue
+            if not (
+                (queued.get("media_type") or ("video" if queued.get("video_url") else "photo")) == "photo"
+                and str((resolve_product_ref(queued, overrides) or {}).get("code", "")) in archive_video_codes
+            )
+        ]
+        if len(queue) != before_queue_count:
+            print(f"Removed {before_queue_count - len(queue)} queued photo(s) superseded by available videos.")
     queued_ids = {int(x["source_message_id"]) for x in queue}
     sent_ids = {int(x) for x in state.get("sent_source_ids", [])}
     sent_product_codes = {str(x) for x in state.get("sent_product_codes", [])}
@@ -2046,7 +2088,13 @@ def main():
             queued_product_codes.add(str(queued_ref["code"]))
     new_ids = []
 
-    for item in sorted(posts, key=lambda post: int(post["source_message_id"]), reverse=True):
+    for item in sorted(
+        posts,
+        key=lambda post: (
+            0 if post.get("video_url") else 1,
+            -int(post.get("source_message_id", 0) or 0),
+        ),
+    ):
         mid = int(item["source_message_id"])
         if mid > last_seen:
             new_ids.append(mid)
@@ -2090,7 +2138,7 @@ def main():
 
     slot_key = due_slot(now, state.get("published_slots", []))
     if slot_key:
-        chosen, chosen_ref, product_details = select_next_price_verified_candidate(
+        chosen, chosen_ref, product_details, sanitized_photo_path = select_next_price_verified_candidate(
             queue, overrides, sent_product_codes, store_base, state
         )
         if chosen:
@@ -2100,7 +2148,10 @@ def main():
                 if media_type == "video":
                     telegram_message_id = send_video(bot_token, chosen, affiliate_url, product_details=product_details)
                 else:
-                    telegram_message_id = send_photo(bot_token, chosen, affiliate_url, product_details=product_details)
+                    telegram_message_id = send_photo(
+                        bot_token, chosen, affiliate_url, product_details=product_details,
+                        sanitized_photo_path=sanitized_photo_path
+                    )
             except Exception as exc:
                 # Persist the cursor and queue before the next scheduled retry.
                 # Never persist exception text because HTTP exceptions may contain URLs/tokens.
@@ -2112,6 +2163,9 @@ def main():
                 write_state(state)
                 print(f"::warning::Publish attempt for source {chosen['source_message_id']} failed ({type(exc).__name__}); item remains queued for retry.")
                 return
+            finally:
+                if sanitized_photo_path and os.path.exists(sanitized_photo_path):
+                    os.remove(sanitized_photo_path)
             queue.remove(chosen)
             state.setdefault("sent_source_ids", []).append(int(chosen["source_message_id"]))
             state["sent_source_ids"] = state["sent_source_ids"][-MAX_SENT_IDS:]
