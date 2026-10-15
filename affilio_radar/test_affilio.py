@@ -8,6 +8,7 @@ from affilio_radar import (
     is_publish_eligible,
     build_caption,
     _money_to_toman,
+    api_search_product_urls,
 )
 
 
@@ -59,6 +60,42 @@ class AffilioRadarTests(unittest.TestCase):
     def test_product_id_extraction(self):
         self.assertEqual(product_id("https://www.digikala.com/product/dkp-9876/"), "dkp-9876")
         self.assertEqual(product_id("https://www.digikala.com/search/?q=phone"), "")
+
+    def test_search_api_uses_only_product_array_not_category_filter_ids(self):
+        payload = {
+            "data": {
+                "filters": {
+                    "categories": {"options": [{"id": 77, "title_fa": "پاوربانک"}]},
+                    "color_palettes": {"options": [{"id": 1, "title": "صورتی"}]},
+                },
+                "products": [
+                    {
+                        "id": 12345,
+                        "title_fa": "پاوربانک آزمایشی",
+                        "url": "/product/dkp-12345/powerbank/",
+                        "status": "marketable",
+                        "product_type": "product",
+                        "images": {},
+                        "default_variant": {},
+                    },
+                    {
+                        "id": 67890,
+                        "title_fa": "هدفون آزمایشی",
+                        "status": "marketable",
+                        "product_type": "product",
+                        "images": {},
+                    },
+                    {"id": 999, "title_fa": "یک رکورد معمولی"},
+                ],
+            }
+        }
+        self.assertEqual(
+            api_search_product_urls(payload),
+            [
+                "https://www.digikala.com/product/dkp-12345/",
+                "https://www.digikala.com/product/dkp-67890/",
+            ],
+        )
 
     def test_irr_prices_are_converted_to_toman(self):
         self.assertEqual(_money_to_toman("12900000", "IRR"), 1_290_000)
