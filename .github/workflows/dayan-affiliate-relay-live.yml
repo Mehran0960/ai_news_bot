@@ -1,4 +1,5 @@
 name: Dayan Affiliate Relay (live)
+# v2 OCR price verification is conservative; candidate fallback continues until a safe pick is found.
 
 on:
   schedule:
