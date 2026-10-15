@@ -13,7 +13,7 @@ permissions:
 jobs:
   inspect-public-preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -33,6 +33,20 @@ jobs:
 
       - name: Run offline unit tests
         run: python -m unittest discover -s dayan-affiliate-relay -p 'test_*.py' -v
+
+      - name: Install OCR tools for the one-off product-page video test
+        if: github.event_name == 'push' && github.event.head_commit.message == 'Test product-page video 45636'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-fas ffmpeg
+
+      - name: Test and publish only a verified video from the product page
+        if: github.event_name == 'push' && github.event.head_commit.message == 'Test product-page video 45636'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          DAYAN_STORE_HOST: ${{ secrets.DAYAN_STORE_HOST }}
+          PYTHONUNBUFFERED: "1"
+        run: python dayan-affiliate-relay/relay_botapi.py --test-product-video fastcart:45636
 
       - name: Read public preview without posting anything
         run: python dayan-affiliate-relay/relay_botapi.py --check
