@@ -2064,6 +2064,10 @@ def main():
 
     last_seen = int(state.get("last_seen_id", 0))
     queue = state.setdefault("queue", [])
+    sent_ids = {int(x) for x in state.get("sent_source_ids", [])}
+    sent_product_codes = {str(x) for x in state.get("sent_product_codes", [])}
+    rejected_price_source_ids = {int(x) for x in state.get("price_rejected_source_ids", [])}
+    rejected_price_product_codes = {str(x) for x in state.get("price_rejected_product_codes", [])}
     archive_video_codes = set()
     for source_item in posts:
         if not source_item.get("video_url"):
@@ -2085,10 +2089,6 @@ def main():
         if len(queue) != before_queue_count:
             print(f"Removed {before_queue_count - len(queue)} queued photo(s) superseded by available videos.")
     queued_ids = {int(x["source_message_id"]) for x in queue}
-    sent_ids = {int(x) for x in state.get("sent_source_ids", [])}
-    sent_product_codes = {str(x) for x in state.get("sent_product_codes", [])}
-    rejected_price_source_ids = {int(x) for x in state.get("price_rejected_source_ids", [])}
-    rejected_price_product_codes = {str(x) for x in state.get("price_rejected_product_codes", [])}
     queued_product_codes = set()
     for queued_item in queue:
         queued_ref = resolve_product_ref(queued_item, overrides)
