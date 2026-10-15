@@ -32,7 +32,8 @@ PUBLISH_SLOTS = [f"{hour:02d}:{minute:02d}" for hour in range(24) for minute in 
 SLOT_GRACE_MINUTES = 25
 MIN_PUBLISH_INTERVAL_MINUTES = 25
 MAX_QUEUE_ITEMS = 500
-MAX_SENT_IDS = 2000
+MAX_SENT_IDS = 10000
+MAX_VIDEO_CATALOG_ITEMS = 10000
 MAX_VIDEO_BYTES = 49 * 1024 * 1024
 MAX_PHOTO_BYTES = 9 * 1024 * 1024
 MAX_POLL_PAGES = 56
@@ -631,7 +632,7 @@ def rank_video_cycle_candidates(posts, overrides, cycle_seen_source_ids=None,
     rejected_codes = {str(value) for value in (rejected_product_codes or [])}
     prepared = []
     for item in posts:
-        if not item.get("video_url"):
+        if not (item.get("video_url") or item.get("source_video_available")):
             continue
         source_id = int(item.get("source_message_id", 0) or 0)
         if not source_id or source_id in seen_ids or source_id in rejected_ids:
@@ -673,6 +674,27 @@ def rank_video_cycle_candidates(posts, overrides, cycle_seen_source_ids=None,
         -int(item.get("source_message_id", 0) or 0),
     ))
     return ranked
+
+
+def video_catalog_record(item, overrides):
+    """Persist durable video metadata but never an expiring Telegram CDN URL."""
+    if not (item.get("video_url") or item.get("source_video_available")):
+        return None
+    source_id = int(item.get("source_message_id", 0) or 0)
+    if not source_id:
+        return None
+    product_ref = resolve_product_ref(item, overrides)
+    if not product_ref:
+        return None
+    return {
+        "source_message_id": source_id,
+        "source_url": item.get("source_url") or f"https://t.me/{SOURCE_CHANNEL}/{source_id}",
+        "source_caption": item.get("source_caption", ""),
+        "product_refs": [product_ref],
+        "source_date": item.get("source_date"),
+        "views": item.get("views"),
+        "source_video_available": True,
+    }
 
 
 def select_next_price_verified_candidate(queue, overrides, sent_product_codes, store_base, state):
@@ -776,6 +798,11 @@ def fetch_preview(before_id=None):
     response = SESSION.get(url, timeout=HTTP_TIMEOUT)
     response.raise_for_status()
     if "tgme_widget_message" not in response.text:
+        # An older cursor may be beyond the beginning of the channel archive.
+        # A normal channel shell without post markup is treated as the end only
+        # for paginated historical scans; unexpected latest-page markup still fails closed.
+        if before_id is not None and "tgme_channel_info" in response.text:
+            return []
         raise RuntimeError("Telegram preview did not contain expected public-channel message markup.")
     return parse_preview(response.text)
 
@@ -2052,14 +2079,20 @@ def fetch_posts_since(last_seen_id, max_pages=MAX_POLL_PAGES):
     return sorted(collected.values(), key=lambda item: item["source_message_id"])
 
 
-def fetch_recent_archive(max_pages=MAX_POLL_PAGES, max_posts=MAX_ARCHIVE_POSTS):
-    """Fetch a wide, bounded window of recent public-channel archive posts."""
-    page = fetch_preview()
+def fetch_archive_batch(before_id=None, max_pages=MAX_POLL_PAGES, max_posts=MAX_ARCHIVE_POSTS):
+    """Fetch one chronological archive segment and report whether the channel history ended."""
+    page = fetch_preview(before_id=before_id) if before_id is not None else fetch_preview()
+    if not page:
+        return [], 0, True
     collected = {int(item["source_message_id"]): item for item in page}
     pages = 1
+    reached_end = False
     while page and pages < max_pages and len(collected) < max_posts:
         oldest_id = min(int(item["source_message_id"]) for item in page)
         next_page = fetch_preview(before_id=oldest_id)
+        if not next_page:
+            reached_end = True
+            break
         new_items = []
         for item in next_page:
             item_id = int(item["source_message_id"])
@@ -2067,6 +2100,7 @@ def fetch_recent_archive(max_pages=MAX_POLL_PAGES, max_posts=MAX_ARCHIVE_POSTS):
                 collected[item_id] = item
                 new_items.append(item)
         if not new_items:
+            reached_end = True
             break
         collected.update({int(item["source_message_id"]): item for item in new_items})
         page = next_page
@@ -2074,6 +2108,19 @@ def fetch_recent_archive(max_pages=MAX_POLL_PAGES, max_posts=MAX_ARCHIVE_POSTS):
     ordered = sorted(collected.values(), key=lambda item: item["source_message_id"])
     if len(ordered) > max_posts:
         ordered = ordered[-max_posts:]
+    print(
+        f"Archive segment scan: collected {len(ordered)} posts across {pages} page(s), "
+        f"before_id={before_id if before_id is not None else 'latest'}, "
+        f"reached_end={reached_end}."
+    )
+    return ordered, pages, reached_end
+
+
+def fetch_recent_archive(max_pages=MAX_POLL_PAGES, max_posts=MAX_ARCHIVE_POSTS):
+    """Fetch a wide, bounded window of recent public-channel archive posts."""
+    ordered, pages, _ = fetch_archive_batch(
+        before_id=None, max_pages=max_pages, max_posts=max_posts
+    )
     print(f"Archive scan: collected {len(ordered)} posts across {pages} page(s), max_posts={max_posts}.")
     return ordered
 
@@ -2531,15 +2578,83 @@ def main():
     rejected_ids = {int(value) for value in state.get("price_rejected_source_ids", [])}
     rejected_codes = {str(value) for value in state.get("price_rejected_product_codes", [])}
 
+    # Build a durable catalog of source-channel videos. Scan the current window
+    # every run, and continue walking farther back through older history until the
+    # full accessible Dayan archive has been exhausted.
+    stored_catalog = state.get("video_catalog", [])
+    catalog_by_id = {
+        int(entry["source_message_id"]): dict(entry)
+        for entry in stored_catalog
+        if isinstance(entry, dict)
+        and str(entry.get("source_message_id", "")).isdigit()
+        and entry.get("source_video_available")
+    }
+    if not state.get("video_archive_scan_complete"):
+        cursor = state.get("video_archive_scan_before_id")
+        if cursor is None:
+            cursor = min(int(item["source_message_id"]) for item in posts)
+        try:
+            historical_posts, historical_pages, history_end = fetch_archive_batch(
+                before_id=int(cursor),
+                max_pages=MAX_POLL_PAGES,
+                max_posts=MAX_ARCHIVE_POSTS,
+            )
+            if historical_posts:
+                next_cursor = min(int(item["source_message_id"]) for item in historical_posts)
+                if next_cursor < int(cursor):
+                    state["video_archive_scan_before_id"] = next_cursor
+            if history_end:
+                state["video_archive_scan_complete"] = True
+            print(
+                f"Historical video sweep: posts={len(historical_posts)}, pages={historical_pages}, "
+                f"cursor={state.get('video_archive_scan_before_id', cursor)}, "
+                f"complete={bool(state.get('video_archive_scan_complete'))}."
+            )
+        except Exception as exc:
+            historical_posts = []
+            print(
+                f"Historical video sweep paused ({type(exc).__name__}); "
+                "the cursor is preserved for the next scheduled run."
+            )
+    else:
+        historical_posts = []
+
+    # Save newly discovered product-linked videos without the temporary media URL.
+    for source_item in [*posts, *historical_posts]:
+        record = video_catalog_record(source_item, overrides)
+        if record:
+            catalog_by_id.setdefault(int(record["source_message_id"]), record)
+
+    if len(catalog_by_id) > MAX_VIDEO_CATALOG_ITEMS:
+        retained_ids = sorted(catalog_by_id)[-MAX_VIDEO_CATALOG_ITEMS:]
+        catalog_by_id = {source_id: catalog_by_id[source_id] for source_id in retained_ids}
+    state["video_catalog"] = [
+        catalog_by_id[source_id] for source_id in sorted(catalog_by_id)
+    ]
+
+    # Stored historical items have no expiring Telegram URL, but publication and
+    # OCR always refresh that URL by source message ID immediately before use.
+    video_universe_by_id = {
+        source_id: dict(item) for source_id, item in catalog_by_id.items()
+    }
+    for source_item in [*posts, *historical_posts]:
+        record = video_catalog_record(source_item, overrides)
+        if record:
+            candidate = dict(source_item)
+            candidate["source_video_available"] = True
+            candidate["media_type"] = "video"
+            video_universe_by_id[int(record["source_message_id"])] = candidate
+    video_universe = list(video_universe_by_id.values())
+
     eligible_archive_videos = [
-        item for item in posts
-        if item.get("video_url")
+        item for item in video_universe
+        if (item.get("video_url") or item.get("source_video_available"))
         and resolve_product_ref(item, overrides)
         and int(item.get("source_message_id", 0) or 0) not in rejected_ids
         and str((resolve_product_ref(item, overrides) or {}).get("code", "")) not in rejected_codes
     ]
     video_candidates = rank_video_cycle_candidates(
-        posts, overrides,
+        video_universe, overrides,
         cycle_seen_source_ids=cycle_seen_ids,
         cycle_seen_product_codes=cycle_seen_codes,
         rejected_source_ids=rejected_ids,
@@ -2557,28 +2672,34 @@ def main():
             )
             slot_key = None
 
-    # When every eligible source video has been used in this sweep, restart only
-    # at a real publishing opportunity. New videos are always included before this test.
+    # A repeat cycle may start only after historical crawling has reached the
+    # beginning of the channel, so older videos cannot be bypassed by the recent-window cap.
     if slot_key and not video_candidates and eligible_archive_videos:
-        restarted = rank_video_cycle_candidates(
-            posts, overrides,
-            cycle_seen_source_ids=set(),
-            cycle_seen_product_codes=set(),
-            rejected_source_ids=rejected_ids,
-            rejected_product_codes=rejected_codes,
-            now=now,
-        )
-        if restarted:
-            state["video_cycle_number"] = int(state.get("video_cycle_number", 1) or 1) + 1
-            state["video_cycle_seen_source_ids"] = []
-            state["video_cycle_seen_product_codes"] = []
-            cycle_seen_ids = set()
-            cycle_seen_codes = set()
-            video_candidates = restarted
+        if not state.get("video_archive_scan_complete"):
             print(
-                f"Video rotation cycle {state['video_cycle_number']}: all eligible videos in the "
-                "accessible archive have been used once; restarting the sweep now."
+                "No unseen video is left in the known catalog, but the older archive sweep is "
+                "still running; repeats are held until that sweep is complete."
             )
+        else:
+            restarted = rank_video_cycle_candidates(
+                video_universe, overrides,
+                cycle_seen_source_ids=set(),
+                cycle_seen_product_codes=set(),
+                rejected_source_ids=rejected_ids,
+                rejected_product_codes=rejected_codes,
+                now=now,
+            )
+            if restarted:
+                state["video_cycle_number"] = int(state.get("video_cycle_number", 1) or 1) + 1
+                state["video_cycle_seen_source_ids"] = []
+                state["video_cycle_seen_product_codes"] = []
+                cycle_seen_ids = set()
+                cycle_seen_codes = set()
+                video_candidates = restarted
+                print(
+                    f"Video rotation cycle {state['video_cycle_number']}: every eligible video in "
+                    "the full accessible archive has been used once; restarting the sweep."
+                )
 
     if slot_key:
         chosen, chosen_ref, product_details, sanitized_photo_path = select_next_price_verified_candidate(
@@ -2644,8 +2765,11 @@ def main():
 
     write_state(state)
     print(
-        f"Completed. Parsed {len(posts)} source messages; "
-        f"video_candidates_remaining={len(video_candidates)}; newest source ID={state['last_seen_id']}"
+        f"Completed. Parsed {len(posts)} recent source messages; "
+        f"cataloged_videos={len(state.get('video_catalog', []))}; "
+        f"video_candidates_remaining={len(video_candidates)}; "
+        f"history_sweep_complete={bool(state.get('video_archive_scan_complete'))}; "
+        f"newest source ID={state['last_seen_id']}"
     )
 
 if __name__ == "__main__":
