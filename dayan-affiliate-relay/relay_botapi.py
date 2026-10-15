@@ -1514,7 +1514,7 @@ PRICE_REGION_CUE_RE = re.compile(
 )
 
 
-def _tesseract_text_and_price_boxes(image_path):
+def _tesseract_text_and_price_boxes_single(image_path):
     """Read OCR text and locate lines likely to contain a displayed price."""
     lines_by_key = {}
     all_text = []
@@ -1609,6 +1609,40 @@ def _tesseract_text_and_price_boxes(image_path):
     boxes = [lines[index]["box"] for index in selected]
     full_text = "\n".join(all_text)
     return full_text, boxes
+
+
+def _tesseract_text_and_price_boxes(image_path):
+    """Locate price text; if original-resolution TSV misses it, retry on a 2x enhanced image."""
+    text, boxes = _tesseract_text_and_price_boxes_single(image_path)
+    if boxes:
+        return text, boxes
+
+    source_path = Path(image_path)
+    enhanced_path = source_path.with_name(source_path.stem + "-boxes-enhanced.png")
+    try:
+        try:
+            result = subprocess.run(
+                [
+                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                    "-i", str(source_path),
+                    "-vf", "scale=iw*2:ih*2:flags=lanczos,format=gray,eq=contrast=1.5:brightness=0.02,unsharp=5:5:1.0:5:5:0.0",
+                    "-frames:v", "1", str(enhanced_path),
+                ],
+                capture_output=True, text=True, timeout=30, check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return text, boxes
+        if result.returncode != 0 or not enhanced_path.exists() or enhanced_path.stat().st_size <= 512:
+            return text, boxes
+        enhanced_text, enhanced_boxes = _tesseract_text_and_price_boxes_single(enhanced_path)
+        scaled_boxes = [
+            (int(x0 / 2), int(y0 / 2), int(x1 / 2), int(y1 / 2))
+            for x0, y0, x1, y1 in enhanced_boxes
+        ]
+        return "\n".join(part for part in (text, enhanced_text) if part), scaled_boxes
+    finally:
+        if enhanced_path.exists():
+            enhanced_path.unlink()
 
 
 def _merge_price_boxes(boxes, width, height):
