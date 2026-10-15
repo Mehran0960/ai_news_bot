@@ -618,9 +618,10 @@ def discover_product_urls() -> tuple[list[str], list[dict]]:
             payload = response.json()
             local = api_search_product_urls(payload)
             print(
-                f"SEARCH_API term={term!r} status={response.status_code} final={response.url!r} "
-                f"structure={json.dumps(_api_structure(payload), ensure_ascii=False)[:6500]} "
-                f"sample={json.dumps(_search_api_sample(payload), ensure_ascii=False)[:2800]}"
+                f"SEARCH_API term={term!r} status={response.status_code} "
+                f"data_keys={list(payload.get('data', {}).keys())[:24] if isinstance(payload, dict) and isinstance(payload.get('data'), dict) else 'n/a'} "
+                f"structure={json.dumps(_api_structure(payload), ensure_ascii=False)[:2400]} "
+                f"sample={json.dumps(_search_api_sample(payload), ensure_ascii=False)[:1200]}"
             )
             if local:
                 diagnostics.append({"term": term, "ok": True, "products_found": len(local), "source": "public_api", "status": "ok"})
@@ -628,6 +629,7 @@ def discover_product_urls() -> tuple[list[str], list[dict]]:
                 api_error = "api_no_product_urls"
         except Exception as exc:
             api_error = type(exc).__name__
+            print(f"SEARCH_API_FAILED term={term!r} error={type(exc).__name__} detail={str(exc)[:220]!r}")
 
         # HTML fallback helps when the public JSON search is temporarily unavailable.
         if not local:
