@@ -487,7 +487,7 @@ class DayanRelayTests(unittest.TestCase):
 
 
     def test_each_slot_can_check_enough_candidates_to_find_a_valid_post(self):
-        self.assertEqual(MAX_PRICE_CHECK_CANDIDATES_PER_RUN, 20)
+        self.assertEqual(MAX_PRICE_CHECK_CANDIDATES_PER_RUN, 12)
 
 
     def test_video_wins_same_product_even_when_photo_is_newer(self):
