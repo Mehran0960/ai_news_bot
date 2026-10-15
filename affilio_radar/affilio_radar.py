@@ -434,6 +434,16 @@ def link_map(catalog: list[dict]) -> dict:
     return {product_id(item["product_url"]): item for item in catalog if product_id(item["product_url"])}
 
 
+def is_publish_eligible(product: dict) -> bool:
+    """A post requires a confirmed stock signal, live price, image, and pre-generated affiliate link."""
+    return bool(
+        product.get("availability") == "in_stock"
+        and product.get("current_price")
+        and product.get("image_url")
+        and str(product.get("affiliate_url", "")).startswith("https://")
+    )
+
+
 def _shape(text: str) -> str:
     return get_display(arabic_reshaper.reshape(str(text or "")))
 
@@ -688,13 +698,7 @@ def run(publish=False):
             print(f"PRODUCT_FETCH_FAILED url={url} error={type(exc).__name__}")
 
     products.sort(key=lambda p: (p["demand_score"], p.get("review_count", 0)), reverse=True)
-    eligible = [
-        p for p in products
-        if p.get("availability") == "in_stock"
-        and p.get("current_price")
-        and p.get("image_url")
-        and p.get("has_affiliate_link")
-    ]
+    eligible = [p for p in products if p.get("has_affiliate_link") and is_publish_eligible(p)]
     print(f"ranked_products={len(products)} publish_eligible={len(eligible)}")
     for rank, item in enumerate(products[:12], start=1):
         print(
