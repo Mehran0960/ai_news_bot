@@ -2393,7 +2393,7 @@ def debug_stock_page(route_and_code):
             if index < 0 or term.lower() in seen_terms:
                 continue
             seen_terms.add(term.lower())
-            fragment = re.sub(r"\\s+", " ", visible[max(0, index - 70):min(len(visible), index + 170)])
+            fragment = re.sub(r"\s+", " ", visible[max(0, index - 70):min(len(visible), index + 170)])
             print(f"  term={term!r} context={fragment!r}")
         if not controls and not seen_terms:
             print("No textual stock or purchase indicators were found in visible page text.")
