@@ -411,7 +411,7 @@ class DayanRelayTests(unittest.TestCase):
             },
         ]
         ranked = rank_video_cycle_candidates(
-            posts, {}, cycle_seen_source_ids={200}, cycle_seen_product_codes=set()
+            posts, {}, cycle_seen_source_ids={200}, cycle_seen_product_codes={"11111"}
         )
         chosen, ref = select_next_candidate(ranked, {})
         self.assertEqual(chosen["source_message_id"], 202)
