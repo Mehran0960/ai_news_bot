@@ -33,6 +33,7 @@ MAX_PHOTO_BYTES = 9 * 1024 * 1024
 MAX_POLL_PAGES = 28
 MAX_ARCHIVE_POSTS = 500
 MAX_PRICE_CHECK_CANDIDATES_PER_RUN = 8
+PRICE_CHECK_VERSION = 2
 HTTP_TIMEOUT = 25
 
 DIGIT_TRANSLATION = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
@@ -52,6 +53,18 @@ SESSION = requests.Session()
 SESSION.headers.update({
     "User-Agent": "Mozilla/5.0 (compatible; DayanAffiliateRelay/1.0; +https://github.com/Mehran0960/ai_news_bot)"
 })
+
+
+
+def ensure_price_check_version(state):
+    """Recheck prior OCR rejections when price-reading rules materially improve."""
+    if state.get("price_check_version") != PRICE_CHECK_VERSION:
+        state["price_rejected_source_ids"] = []
+        state["price_rejected_product_codes"] = []
+        state["price_check_version"] = PRICE_CHECK_VERSION
+        print(f"Price verifier upgraded to v{PRICE_CHECK_VERSION}; prior OCR exclusions cleared for recheck.")
+    return state
+
 
 def read_json(path, default):
     try:
@@ -268,7 +281,7 @@ def extract_source_price_values(text):
 
 
 
-IMAGE_PRICE_CUE_RE = re.compile(r"تومان|ریال|قیمت|میلیون|هزار|فروش\s*ویژه|تخفیف\s*(?:ویژه|تا|\d)", re.IGNORECASE)
+IMAGE_PRICE_CUE_RE = re.compile(r"تومان|ریال|قیمت|ق[^\s‌]{0,3}مت|میلیون|هزار|فروش\s*ویژه|تخفیف\s*(?:ویژه|تا|\d)", re.IGNORECASE)
 INSTALLMENT_CUE_RE = re.compile(r"قسط|اقساط|پیش[\s‌-]*پرداخت|ماهانه|در\s*\d+\s*ماه", re.IGNORECASE)
 
 
@@ -289,6 +302,26 @@ def extract_image_price_values(text):
         digits = re.sub(r"\D", "", match.group(1))
         if digits and int(digits) >= 100_000:
             amounts.add(int(digits))
+    # OCR sometimes reads "۱,۴۱۹" instead of "۱,۴۱۹,۰۰۰".
+    # Expand the short form only near a price-related cue to avoid treating model specs as prices.
+    for match in re.finditer(r"(?<!\d)(\d{1,3}[,.]\d{3})(?!\d)", value):
+        start, end = match.span()
+        context = value[max(0, start - 36):min(len(value), end + 36)]
+        digits = re.sub(r"\D", "", match.group(1))
+        if digits and int(digits) < 100_000 and IMAGE_PRICE_CUE_RE.search(context):
+            amount = int(digits) * 1_000
+            if amount >= 10_000 and not INSTALLMENT_CUE_RE.search(context):
+                amounts.add(amount)
+
+    # Compact prices such as "۲۹ هزار تومان" or "۱,۴۱۹ هزار تومان".
+    for match in re.finditer(r"(?<!\d)(\d{1,3}(?:[,. ]\d{3})?)\s*هزار\s*(?:تومان)?", value):
+        digits = re.sub(r"\D", "", match.group(1))
+        context = value[max(0, match.start() - 24):min(len(value), match.end() + 18)]
+        if digits and not INSTALLMENT_CUE_RE.search(context):
+            amount = int(digits) * 1_000
+            if amount >= 10_000:
+                amounts.add(amount)
+
     for match in re.finditer(r"(?<!\d)(\d{6,9})(?!\d)", value):
         start, end = match.span()
         context = value[max(0, start - 32):min(len(value), end + 32)]
@@ -1506,6 +1539,7 @@ def publish_best_archive_post():
         "initialized": False, "last_seen_id": 0, "queue": [],
         "published_slots": [], "sent_source_ids": [], "sent_product_codes": []
     })
+    state = ensure_price_check_version(state)
     overrides = read_json(OVERRIDES_FILE, {})
     now = datetime.now(TIMEZONE)
     archive_posts = fetch_recent_archive(max_pages=MAX_POLL_PAGES)
@@ -1635,6 +1669,7 @@ def main():
         "initialized": False, "last_seen_id": 0, "queue": [],
         "published_slots": [], "sent_source_ids": []
     })
+    state = ensure_price_check_version(state)
     overrides = read_json(OVERRIDES_FILE, {})
     now = datetime.now(TIMEZONE)
     # On every scheduled run, re-rank the accessible archive, not just new source IDs.
