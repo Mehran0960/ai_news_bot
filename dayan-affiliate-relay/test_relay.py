@@ -400,13 +400,13 @@ class DayanRelayTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertEqual(result["status"], "unverifiable")
 
-    def test_image_without_detectable_price_is_rejected_as_unverifiable(self):
+    def test_media_without_visible_price_can_use_live_caption_price(self):
         result = compare_image_prices_to_product(
             "هدفون بلوتوثی JBL",
             {"discounted_price": "1,499,000 تومان"},
         )
-        self.assertFalse(result["ok"])
-        self.assertEqual(result["status"], "unverifiable")
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["status"], "no_price_detected")
 
     @patch("relay_botapi.check_source_media_prices")
     @patch("relay_botapi.fetch_product_details")
@@ -463,12 +463,12 @@ class DayanRelayTests(unittest.TestCase):
 
     def test_price_verifier_upgrade_clears_old_ocr_rejections_once(self):
         state = {
-            "price_check_version": 3,
+            "price_check_version": 4,
             "price_rejected_source_ids": [21268, 21574],
             "price_rejected_product_codes": ["50436", "43765"],
         }
         ensure_price_check_version(state)
-        self.assertEqual(state["price_check_version"], 4)
+        self.assertEqual(state["price_check_version"], 5)
         self.assertEqual(state["price_rejected_source_ids"], [])
         self.assertEqual(state["price_rejected_product_codes"], [])
         state["price_rejected_source_ids"] = [777]
