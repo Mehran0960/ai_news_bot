@@ -640,7 +640,34 @@ def select_next_price_verified_candidate(queue, overrides, sent_product_codes, s
             product_details = fetch_product_details(affiliate_url)
             media_type = chosen.get("media_type") or ("video" if chosen.get("video_url") else "photo")
             if media_type == "video":
-                check = check_source_media_prices(chosen, product_details)
+                # When the affiliate product page exposes its own demo, try that
+                # video first; it is usually the cleanest product-specific asset.
+                # Keep the source-channel video as a video fallback if the site
+                # asset has a price conflict or cannot be verified.
+                check = None
+                if product_details.get("video_url"):
+                    site_video_item = dict(chosen)
+                    site_video_item["media_type"] = "video"
+                    site_video_item["product_video_url"] = product_details["video_url"]
+                    try:
+                        site_video_check = check_source_media_prices(site_video_item, product_details)
+                    except Exception as exc:
+                        site_video_check = {
+                            "ok": False, "status": "unverifiable",
+                            "reason": f"product-page video check raised {type(exc).__name__}",
+                            "image_prices": [], "page_prices": [],
+                        }
+                    if site_video_check.get("ok"):
+                        chosen = site_video_item
+                        check = site_video_check
+                        print(f"Using verified product-page demo video for source={chosen.get('source_message_id')}.")
+                    else:
+                        print(
+                            f"Product-page video failed price verification for source={chosen.get('source_message_id')}; "
+                            "checking the source-channel video before rejecting this product."
+                        )
+                if check is None:
+                    check = check_source_media_prices(chosen, product_details)
             elif product_details.get("video_url"):
                 # Source-channel videos have already been exhausted before we get here.
                 # Prefer a direct video exposed by this affiliate product page over its image.
