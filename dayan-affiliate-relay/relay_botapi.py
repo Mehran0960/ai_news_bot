@@ -2305,6 +2305,100 @@ def inspect_source_message(source_message_id):
     raise RuntimeError(f"Source message {source_message_id} was not found in the current or historical public preview.")
 
 
+
+def debug_stock_page(route_and_code):
+    """Inspect real product-page stock controls without sending a Telegram post."""
+    match = re.fullmatch(r"(lead|fastcart):(\\d{4,8})", route_and_code.strip().lower())
+    if not match:
+        raise RuntimeError("Usage: relay_botapi.py --debug-stock-page <lead|fastcart>:<product_code>")
+    requested_route, code = match.groups()
+    store_base = normalize_store_host(os.getenv("DAYAN_STORE_HOST", ""))
+    alternate_route = "lead" if requested_route == "fastcart" else "fastcart"
+    terms = (
+        "موجود", "ناموجود", "اتمام", "سبد", "خرید", "سفارش", "افزودن",
+        "عدم موجودی", "قابل سفارش", "out of stock", "in stock", "stock",
+        "availability", "inventory", "cart", "checkout", "purchase", "buy",
+        "disabled", "sold out", "unavailable",
+    )
+    print("Live stock-markup diagnostic only — no Telegram post will be sent.")
+    for route in (requested_route, alternate_route):
+        url = make_affiliate_url(store_base, {"route": route, "code": code})
+        try:
+            response = SESSION.get(url, timeout=(15, 25), allow_redirects=True)
+            response.raise_for_status()
+        except Exception as exc:
+            print(f"route={route} request_failed={type(exc).__name__}")
+            continue
+        soup = BeautifulSoup(response.text, "html.parser")
+        details = extract_product_details(response.text, page_url=response.url)
+        final_path = urlparse(response.url).path
+        print(
+            f"STOCK-DIAG route={route} http={response.status_code} "
+            f"final_path={final_path!r} title={details.get('title')!r} "
+            f"price={details.get('discounted_price') or details.get('original_price')!r} "
+            f"status={details.get('availability_status')} "
+            f"source={details.get('availability_source')}"
+        )
+        controls = []
+        for node in soup.select("button, input, a, [role='button'], [aria-disabled], [data-stock], [data-availability]"):
+            tag = node.name or "unknown"
+            text_value = node.get_text(" ", strip=True)
+            if tag == "input":
+                text_value = str(node.get("value", "") or node.get("aria-label", "") or node.get("title", ""))
+            classes = node.get("class", [])
+            if not isinstance(classes, list):
+                classes = [str(classes)]
+            identity = " ".join([
+                str(node.get("id", "")), " ".join(str(v) for v in classes),
+                str(node.get("name", "")), str(node.get("type", "")),
+                str(node.get("data-stock", "")), str(node.get("data-availability", "")),
+                str(node.get("aria-label", "")), str(node.get("title", "")),
+            ])
+            combined = (identity + " " + text_value).lower().replace("-", " ").replace("_", " ")
+            score = sum(1 for term in terms if term.lower() in combined)
+            is_control = tag in {"button", "input"} or node.get("role") == "button"
+            if not is_control and score == 0:
+                continue
+            href_path = urlparse(str(node.get("href", ""))).path if node.get("href") else ""
+            line = (
+                f"tag={tag} text={text_value[:100]!r} classes={classes!r} "
+                f"id={str(node.get('id', ''))[:60]!r} type={str(node.get('type', ''))!r} "
+                f"disabled={'disabled' in node.attrs or str(node.get('aria-disabled', '')).lower() == 'true'} "
+                f"data_stock={str(node.get('data-stock', ''))[:40]!r} "
+                f"data_availability={str(node.get('data-availability', ''))[:40]!r} "
+                f"href_path={href_path[:100]!r} score={score}"
+            )
+            controls.append((score, line))
+        controls.sort(key=lambda item: item[0], reverse=True)
+        if controls:
+            print("Stock-related controls (highest relevance first):")
+            for _, line in controls[:30]:
+                print("  " + line)
+        else:
+            print("No buttons, links, inputs, or stock-related elements found.")
+        for form_index, form in enumerate(soup.find_all("form")[:8], start=1):
+            action_path = urlparse(str(form.get("action", ""))).path
+            form_classes = form.get("class", [])
+            form_text = form.get_text(" ", strip=True)[:180]
+            print(
+                f"FORM {form_index} method={str(form.get('method', 'get'))!r} "
+                f"action_path={action_path[:120]!r} classes={form_classes!r} text={form_text!r}"
+            )
+        visible = soup.get_text(" ", strip=True)
+        folded = visible.lower()
+        seen_terms = set()
+        print("Visible keyword fragments:")
+        for term in terms:
+            index = folded.find(term.lower())
+            if index < 0 or term.lower() in seen_terms:
+                continue
+            seen_terms.add(term.lower())
+            fragment = re.sub(r"\\s+", " ", visible[max(0, index - 70):min(len(visible), index + 170)])
+            print(f"  term={term!r} context={fragment!r}")
+        if not controls and not seen_terms:
+            print("No textual stock or purchase indicators were found in visible page text.")
+
+
 def inspect_product_page(route_and_code):
     match = re.fullmatch(r"(lead|fastcart):(\d{4,8})", route_and_code.strip().lower())
     if not match:
@@ -2593,6 +2687,13 @@ def main():
         if index + 1 >= len(sys.argv) or not re.fullmatch(r"\d{1,8}", sys.argv[index + 1]):
             raise RuntimeError("Usage: relay_botapi.py --inspect-message <source_message_id>")
         inspect_source_message(int(sys.argv[index + 1]))
+        return
+
+    if "--debug-stock-page" in sys.argv:
+        index = sys.argv.index("--debug-stock-page")
+        if index + 1 >= len(sys.argv):
+            raise RuntimeError("Usage: relay_botapi.py --debug-stock-page <lead|fastcart>:<product_code>")
+        debug_stock_page(sys.argv[index + 1])
         return
 
     if "--inspect-product" in sys.argv:
