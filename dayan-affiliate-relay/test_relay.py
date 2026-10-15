@@ -23,6 +23,8 @@ from relay_botapi import (
     extract_source_price_values,
     rank_archive_candidates,
     rank_video_cycle_candidates,
+    video_catalog_record,
+    fetch_archive_batch,
     extract_image_price_values,
     compare_image_prices_to_product,
     select_next_price_verified_candidate,
@@ -351,6 +353,52 @@ class DayanRelayTests(unittest.TestCase):
         self.assertEqual(len(ranked), 1)
         self.assertEqual(ranked[0]["source_message_id"], 120)
         self.assertEqual(ranked[0]["media_type"], "video")
+
+    def test_video_catalog_record_does_not_persist_temporary_cdn_url(self):
+        item = {
+            "source_message_id": 12345,
+            "source_url": "https://t.me/Dayan_video/12345",
+            "source_caption": "پاوربانک اقتصادی",
+            "product_refs": [{"route": "lead", "code": "12345"}],
+            "video_url": "https://cdn4.telesco.pe/file/temporary.mp4",
+            "source_date": "2026-10-15T12:00:00+00:00",
+            "views": 500,
+        }
+        record = video_catalog_record(item, {})
+        self.assertTrue(record["source_video_available"])
+        self.assertEqual(record["product_refs"], [{"route": "lead", "code": "12345"}])
+        self.assertNotIn("video_url", record)
+        self.assertEqual(record["source_message_id"], 12345)
+
+    def test_video_cycle_ranker_accepts_historical_catalog_entry_without_media_url(self):
+        item = {
+            "source_message_id": 12346,
+            "source_url": "https://t.me/Dayan_video/12346",
+            "source_caption": "پاوربانک اقتصادی",
+            "product_refs": [{"route": "lead", "code": "12346"}],
+            "source_video_available": True,
+            "views": 500,
+        }
+        ranked = rank_video_cycle_candidates([item], {})
+        self.assertEqual(len(ranked), 1)
+        self.assertEqual(ranked[0]["source_message_id"], 12346)
+        self.assertEqual(ranked[0]["media_type"], "video")
+        self.assertNotIn("video_url", ranked[0])
+
+    @patch("relay_botapi.fetch_preview")
+    def test_fetch_archive_batch_advances_cursor_until_archive_end(self, fetch_page):
+        fetch_page.side_effect = [
+            [{"source_message_id": 20}, {"source_message_id": 19}],
+            [{"source_message_id": 18}, {"source_message_id": 17}],
+            [],
+        ]
+        posts, pages, reached_end = fetch_archive_batch(
+            before_id=21, max_pages=5, max_posts=20
+        )
+        self.assertEqual([item["source_message_id"] for item in posts], [17, 18, 19, 20])
+        self.assertEqual(pages, 2)
+        self.assertTrue(reached_end)
+        self.assertEqual(fetch_page.call_count, 3)
 
     def test_video_cycle_ranker_uses_videos_only_and_does_not_block_lifetime_sent_codes(self):
         posts = [
