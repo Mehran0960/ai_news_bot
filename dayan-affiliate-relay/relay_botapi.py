@@ -1615,8 +1615,21 @@ def prepare_price_cropped_photo(item, product_details):
 
 
 def send_photo(bot_token, item, affiliate_url, product_details=None, sanitized_photo_path=None):
-    photo_url = refresh_photo_url(int(item["source_message_id"]))
     product_details = product_details if product_details is not None else fetch_product_details(affiliate_url)
+    owns_temp_path = False
+    temp_path = sanitized_photo_path
+    if not temp_path:
+        temp_path, price_check = prepare_price_cropped_photo(item, product_details)
+        owns_temp_path = True
+        if not price_check.get("ok") or not temp_path:
+            if temp_path and os.path.exists(temp_path):
+                os.remove(temp_path)
+            raise RuntimeError(
+                f"Refusing photo publication: safe price cropping failed ({price_check.get('status', 'unverifiable')})."
+            )
+    if not os.path.exists(temp_path):
+        raise RuntimeError("Verified/cropped photo file no longer exists; refusing publication.")
+
     caption = build_caption(
         item.get("source_caption", ""), affiliate_url,
         product_details=product_details
@@ -1630,28 +1643,7 @@ def send_photo(bot_token, item, affiliate_url, product_details=None, sanitized_p
         }, ensure_ascii=False),
     }
 
-    temp_path = None
     try:
-        with SESSION.get(photo_url, stream=True, timeout=(15, 45)) as media_response:
-            media_response.raise_for_status()
-            content_type = (media_response.headers.get("Content-Type") or "").lower()
-            if "image/" not in content_type and "octet-stream" not in content_type:
-                raise RuntimeError(f"Source media is not a recognized image (Content-Type={content_type or 'missing'}).")
-            length_header = media_response.headers.get("Content-Length")
-            if length_header and int(length_header) > MAX_PHOTO_BYTES:
-                raise RuntimeError("Source photo exceeds the configured Telegram upload limit.")
-            total = 0
-            with tempfile.NamedTemporaryFile(prefix="dayan-", suffix=".jpg", delete=False) as temp_file:
-                temp_path = temp_file.name
-                for chunk in media_response.iter_content(chunk_size=512 * 1024):
-                    if not chunk:
-                        continue
-                    total += len(chunk)
-                    if total > MAX_PHOTO_BYTES:
-                        raise RuntimeError("Source photo exceeds the configured Telegram upload limit.")
-                    temp_file.write(chunk)
-        if not temp_path or os.path.getsize(temp_path) < 512:
-            raise RuntimeError("Downloaded photo is empty or unexpectedly small; refusing to publish.")
         with open(temp_path, "rb") as media_file:
             files = {"photo": (f"dayan-{item['source_message_id']}.jpg", media_file, "image/jpeg")}
             response = SESSION.post(
@@ -1666,10 +1658,15 @@ def send_photo(bot_token, item, affiliate_url, product_details=None, sanitized_p
             result = {"description": response.text[:300]}
         if response.status_code != 200 or not result.get("ok"):
             raise RuntimeError(f"Telegram sendPhoto failed ({response.status_code}): {result.get('description', 'unknown error')}")
+        print(
+            f"Photo price handling source={item['source_message_id']}: "
+            f"sent price-cropped image (media file verified before upload)."
+        )
         return result["result"]["message_id"]
     finally:
-        if temp_path and os.path.exists(temp_path):
+        if owns_temp_path and temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
+
 
 
 def fetch_posts_since(last_seen_id, max_pages=MAX_POLL_PAGES):
