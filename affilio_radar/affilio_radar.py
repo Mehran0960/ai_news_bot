@@ -340,22 +340,44 @@ def _search_api_sample(payload):
             "title": _clean_title(title)[:55],
             "keys": list(obj.keys())[:18],
         }
+        # Put actual product-looking objects before category filters/suggestion items.
+        productish = any(k in obj for k in ("default_variant", "variants", "seller", "price", "images", "image"))
+        has_url = any(isinstance(obj.get(k), str) and "/product/dkp-" in obj.get(k, "") for k in ("url", "product_url", "web_url", "canonical_url"))
+        if productish or has_url:
+            item["_priority"] = 2 if has_url else 1
+        else:
+            item["_priority"] = 0
         sample.append(item)
-        if len(sample) >= 4:
-            break
-    return sample
+    sample.sort(key=lambda item: item["_priority"], reverse=True)
+    return [{k: v for k, v in item.items() if k != "_priority"} for item in sample[:6]]
 
 
-def api_search_product_urls(payload):
-    found = []
-    # Digikala JSON payload shapes have changed over time. Walk nested objects
-    # instead of relying on one brittle data.products nesting path.
-    for obj in _walk_dicts(payload):
-        candidate = _api_product_url(obj)
-        if candidate and candidate not in found:
-            found.append(candidate)
-        if len(found) >= MAX_PER_QUERY:
-            break
+def _api_structure(value, path="$", depth=0, max_depth=5, found=None):
+    if found is None:
+        found = []
+    if depth >= max_depth or len(found) >= 30:
+        return found
+    if isinstance(value, dict):
+        if depth <= 2:
+            found.append({"path": path, "type": "dict", "keys": list(value.keys())[:28]})
+        for key, child in value.items():
+            if isinstance(child, list):
+                first = child[0] if child else None
+                found.append({
+                    "path": f"{path}.{key}",
+                    "type": "list",
+                    "length": len(child),
+                    "first_type": type(first).__name__ if first is not None else "empty",
+                    "first_keys": list(first.keys())[:24] if isinstance(first, dict) else [],
+                })
+                if child and isinstance(first, (dict, list)):
+                    _api_structure(first, f"{path}.{key}[0]", depth + 1, max_depth, found)
+            elif isinstance(child, dict):
+                _api_structure(child, f"{path}.{key}", depth + 1, max_depth, found)
+            if len(found) >= 30:
+                break
+    elif isinstance(value, list) and value:
+        _api_structure(value[0], f"{path}[0]", depth + 1, max_depth, found)
     return found
 
 
@@ -597,8 +619,8 @@ def discover_product_urls() -> tuple[list[str], list[dict]]:
             local = api_search_product_urls(payload)
             print(
                 f"SEARCH_API term={term!r} status={response.status_code} final={response.url!r} "
-                f"top_keys={list(payload.keys())[:14] if isinstance(payload, dict) else type(payload).__name__} "
-                f"sample={json.dumps(_search_api_sample(payload), ensure_ascii=False)[:1800]}"
+                f"structure={json.dumps(_api_structure(payload), ensure_ascii=False)[:6500]} "
+                f"sample={json.dumps(_search_api_sample(payload), ensure_ascii=False)[:2800]}"
             )
             if local:
                 diagnostics.append({"term": term, "ok": True, "products_found": len(local), "source": "public_api", "status": "ok"})
