@@ -307,27 +307,301 @@ def fetch_page(url: str):
     return response.url, response.text
 
 
+def _textual_availability(value):
+    text = str(value or "").lower().replace("_", "").replace("-", "").rsplit("/", 1)[-1]
+    if any(token in text for token in ("outofstock", "soldout", "notavailable", "discontinued", "ناموجود")):
+        return "out_of_stock"
+    if any(token in text for token in ("instock", "marketable", "limitedavailability", "onlineonly")):
+        return "in_stock"
+    return "unknown"
+
+
+def _api_product_url(obj):
+    for key in ("url", "product_url", "web_url", "url_key", "canonical_url"):
+        raw = obj.get(key)
+        if isinstance(raw, str):
+            candidate = safe_product_url(urljoin("https://www.digikala.com/", raw))
+            if candidate:
+                return candidate
+    raw_id = obj.get("product_id") or obj.get("id")
+    if isinstance(raw_id, int) or (isinstance(raw_id, str) and raw_id.isdigit()):
+        title = obj.get("title_fa") or obj.get("title") or obj.get("name") or obj.get("product_title")
+        product_shape = any(k in obj for k in ("default_variant", "variants", "images", "image", "price"))
+        if title and product_shape:
+            return safe_product_url(f"https://www.digikala.com/product/dkp-{int(raw_id)}/")
+    return ""
+
+
+def api_search_product_urls(payload):
+    found = []
+    # Digikala JSON payload shapes have changed over time. Walk nested objects
+    # instead of relying on one brittle data.products nesting path.
+    for obj in _walk_dicts(payload):
+        candidate = _api_product_url(obj)
+        if candidate and candidate not in found:
+            found.append(candidate)
+        if len(found) >= MAX_PER_QUERY:
+            break
+    return found
+
+
+def _image_from_api(value):
+    if isinstance(value, str):
+        v = value.strip()
+        if v.startswith("//"):
+            v = "https:" + v
+        if v.startswith("https://") and any(token in v.lower() for token in ("image", "static", "digikala", ".jpg", ".jpeg", ".png", ".webp")):
+            return v
+        return ""
+    if isinstance(value, list):
+        for item in value:
+            found = _image_from_api(item)
+            if found:
+                return found
+    if isinstance(value, dict):
+        for key in ("main", "image", "image_url", "webp_url", "url", "src", "large", "original"):
+            if key in value:
+                found = _image_from_api(value[key])
+                if found:
+                    return found
+        for child in value.values():
+            found = _image_from_api(child)
+            if found:
+                return found
+    return ""
+
+
+def _int_value(value):
+    try:
+        return int(float(normalize_digits(str(value))))
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def parse_product_api(payload: dict, url: str) -> dict:
+    """Parse the public Digikala product JSON endpoint using flexible nested-key matching."""
+    target_number = product_id(url).replace("dkp-", "")
+    candidates = []
+    for obj in _walk_dicts(payload):
+        title = _clean_title(obj.get("title_fa") or obj.get("product_title") or obj.get("name_fa") or obj.get("title") or obj.get("name"))
+        if not title or len(title) < 2:
+            continue
+        obj_id = str(obj.get("product_id") or obj.get("id") or "")
+        has_data = any(k in obj for k in ("default_variant", "variants", "images", "image", "price", "rating", "url"))
+        if not has_data:
+            continue
+        score = 5 + (12 if obj_id == target_number else 0)
+        score += 5 if "default_variant" in obj else 0
+        score += 3 if "variants" in obj else 0
+        score += 3 if "images" in obj or "image" in obj else 0
+        score += 2 if "rating" in obj or "rating_rate" in obj else 0
+        candidates.append((score, obj, title))
+    if not candidates:
+        return {}
+
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    _, product_obj, title = candidates[0]
+    variants = product_obj.get("variants")
+    if isinstance(variants, dict):
+        variants = list(variants.values())
+    variants = variants if isinstance(variants, list) else []
+    variant = product_obj.get("default_variant")
+    if not isinstance(variant, dict):
+        variant = next((v for v in variants if isinstance(v, dict) and (
+            v.get("marketable") is True or _textual_availability(v.get("status")) == "in_stock"
+        )), None)
+    if not isinstance(variant, dict) and variants and isinstance(variants[0], dict):
+        variant = variants[0]
+    variant = variant if isinstance(variant, dict) else {}
+    price_obj = variant.get("price") if isinstance(variant.get("price"), dict) else {}
+    if not price_obj:
+        price_obj = product_obj.get("price") if isinstance(product_obj.get("price"), dict) else {}
+
+    def price_toman(keys, currency):
+        for source in (price_obj, variant, product_obj):
+            for key in keys:
+                if source.get(key) is not None:
+                    value = _money_to_toman(source.get(key), currency)
+                    if value:
+                        return value
+        return None
+
+    current = price_toman(("selling_price_toman", "selling_price_tooman", "price_toman", "current_price_toman"), "IRT")
+    if current is None:
+        current = price_toman(("selling_price_rial", "price_rial", "current_price_rial"), "IRR")
+    if current is None:
+        current = price_toman(("selling_price", "discounted_price", "final_price", "price"), "IRR")
+    original = price_toman(("rrp_price_toman", "original_price_toman", "list_price_toman"), "IRT")
+    if original is None:
+        original = price_toman(("rrp_price_rial", "original_price_rial", "list_price_rial"), "IRR")
+    if original is None:
+        original = price_toman(("rrp_price", "original_price", "regular_price", "list_price"), "IRR")
+
+    image = ""
+    for key in ("images", "image", "main_image", "image_url", "thumbnail"):
+        if product_obj.get(key):
+            image = _image_from_api(product_obj[key])
+            if image:
+                break
+    if not image:
+        image = _image_from_api(variant.get("images") or variant.get("image") or "")
+    if image.startswith("//"):
+        image = "https:" + image
+
+    rating = None
+    review_count = 0
+    rating_obj = product_obj.get("rating") if isinstance(product_obj.get("rating"), dict) else {}
+    for raw in (rating_obj.get("rate"), rating_obj.get("rating"), rating_obj.get("rating_value"),
+                product_obj.get("rating_rate"), product_obj.get("rating_value")):
+        if raw is not None:
+            try:
+                rating = float(normalize_digits(str(raw)))
+                break
+            except ValueError:
+                pass
+    for raw in (rating_obj.get("count"), rating_obj.get("rating_count"), rating_obj.get("review_count"),
+                product_obj.get("rating_count"), product_obj.get("review_count"), product_obj.get("reviews_count")):
+        value = _int_value(raw)
+        if value is not None:
+            review_count = max(0, value)
+            break
+
+    statuses = []
+    for node in (variant, product_obj):
+        for key in ("availability", "stock_status", "status", "availability_status"):
+            if node.get(key) is not None:
+                status = _textual_availability(node.get(key))
+                if status != "unknown":
+                    statuses.append(status)
+        for key in ("marketable", "has_stock", "hasStock", "is_in_stock", "isAvailable", "available"):
+            if isinstance(node.get(key), bool):
+                statuses.append("in_stock" if node[key] else "out_of_stock")
+        for key in ("stock_quantity", "stockQuantity", "inventory_quantity", "quantity", "available_quantity"):
+            value = _int_value(node.get(key))
+            if value is not None:
+                statuses.append("in_stock" if value > 0 else "out_of_stock")
+    if "out_of_stock" in statuses:
+        availability, availability_source = "out_of_stock", "digikala_api"
+    elif "in_stock" in statuses:
+        availability, availability_source = "in_stock", "digikala_api"
+    else:
+        availability, availability_source = "unknown", "digikala_api_no_stock_signal"
+
+    # Product detail APIs commonly expose prices in rials; all outward copy is in toman.
+    if current and original and original <= current:
+        original = None
+    return {
+        "product_id": product_id(url),
+        "product_url": safe_product_url(url),
+        "title": title,
+        "image_url": image,
+        "current_price": current,
+        "original_price": original,
+        "rating": rating,
+        "review_count": review_count,
+        "availability": availability,
+        "availability_source": availability_source,
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def fetch_product_record(url: str) -> dict:
+    """Use the public product JSON endpoint first, then cross-check/fill from its HTML page."""
+    pid = product_id(url).replace("dkp-", "")
+    api_product = {}
+    if pid.isdigit():
+        for api_version in ("v2", "v1"):
+            api_url = f"https://api.digikala.com/{api_version}/product/{pid}/"
+            try:
+                response = SESSION.get(api_url, timeout=HTTP_TIMEOUT, allow_redirects=True)
+                if not response.ok:
+                    continue
+                payload = response.json()
+                api_product = parse_product_api(payload, url)
+                if api_product.get("title") or api_product.get("current_price") or api_product.get("availability") == "in_stock":
+                    print(f"PRODUCT_API id={product_id(url)} version={api_version} title={bool(api_product.get('title'))} price={bool(api_product.get('current_price'))} stock={api_product.get('availability')}")
+                    break
+            except Exception as exc:
+                print(f"PRODUCT_API_FAILED id={product_id(url)} version={api_version} error={type(exc).__name__}")
+
+    needs_html = (
+        not api_product.get("title") or not api_product.get("current_price")
+        or not api_product.get("image_url") or api_product.get("availability") == "unknown"
+    )
+    html_product = {}
+    if needs_html:
+        try:
+            final_url, page = fetch_page(url)
+            canonical = safe_product_url(final_url) or safe_product_url(url)
+            html_product = parse_product_page(canonical, page)
+        except Exception as exc:
+            print(f"PRODUCT_HTML_FAILED id={product_id(url)} error={type(exc).__name__}")
+
+    merged = dict(html_product)
+    for key in ("product_id", "product_url", "title", "image_url", "current_price", "original_price", "rating", "review_count"):
+        if api_product.get(key) not in (None, "", 0):
+            merged[key] = api_product[key]
+    statuses = [x for x in (api_product.get("availability"), html_product.get("availability")) if x in {"in_stock", "out_of_stock"}]
+    # If public sources conflict, fail closed to avoid advertising unavailable goods.
+    if "out_of_stock" in statuses:
+        merged["availability"] = "out_of_stock"
+        merged["availability_source"] = "conflicting_or_explicit_out_signal"
+    elif statuses:
+        merged["availability"] = "in_stock"
+        merged["availability_source"] = api_product.get("availability_source") if api_product.get("availability") == "in_stock" else html_product.get("availability_source")
+    else:
+        merged["availability"] = "unknown"
+        merged["availability_source"] = api_product.get("availability_source") or html_product.get("availability_source") or "no_reliable_stock_signal"
+    merged.setdefault("product_id", product_id(url))
+    merged.setdefault("product_url", safe_product_url(url))
+    merged.setdefault("checked_at", datetime.now(timezone.utc).isoformat())
+    return merged
+
+
 def discover_product_urls() -> tuple[list[str], list[dict]]:
     found = []
     diagnostics = []
     for term in SEARCH_TERMS:
-        search_url = f"https://www.digikala.com/search/?q={quote(term)}&sort=7"
+        local = []
+        api_error = ""
         try:
-            final_url, page = fetch_page(search_url)
-            soup = BeautifulSoup(page, "html.parser")
-            local = []
-            for a in soup.select("a[href]"):
-                candidate = safe_product_url(urljoin(final_url, a.get("href", "")))
-                if candidate and candidate not in local:
-                    local.append(candidate)
-                if len(local) >= MAX_PER_QUERY:
-                    break
-            diagnostics.append({"term": term, "ok": True, "products_found": len(local), "status": "ok"})
-            found.extend(local)
-            print(f"DISCOVERY term={term!r} products={len(local)}")
+            response = SESSION.get(
+                "https://api.digikala.com/v1/search/",
+                params={"q": term, "page": 1},
+                timeout=HTTP_TIMEOUT,
+            )
+            response.raise_for_status()
+            if len(response.content) > 8_000_000:
+                raise RuntimeError("search API response exceeded 8 MB")
+            payload = response.json()
+            local = api_search_product_urls(payload)
+            if local:
+                diagnostics.append({"term": term, "ok": True, "products_found": len(local), "source": "public_api", "status": "ok"})
+            else:
+                api_error = "api_no_product_urls"
         except Exception as exc:
-            diagnostics.append({"term": term, "ok": False, "products_found": 0, "status": type(exc).__name__})
-            print(f"DISCOVERY_FAILED term={term!r} error={type(exc).__name__}")
+            api_error = type(exc).__name__
+
+        # HTML fallback helps when the public JSON search is temporarily unavailable.
+        if not local:
+            try:
+                search_url = f"https://www.digikala.com/search/?q={quote(term)}"
+                final_url, page = fetch_page(search_url)
+                soup = BeautifulSoup(page, "html.parser")
+                for a in soup.select("a[href]"):
+                    candidate = safe_product_url(urljoin(final_url, a.get("href", "")))
+                    if candidate and candidate not in local:
+                        local.append(candidate)
+                    if len(local) >= MAX_PER_QUERY:
+                        break
+            except Exception as exc:
+                print(f"HTML_DISCOVERY_FAILED term={term!r} error={type(exc).__name__}")
+            if local:
+                diagnostics.append({"term": term, "ok": True, "products_found": len(local), "source": "html_fallback", "status": "ok"})
+            else:
+                diagnostics.append({"term": term, "ok": False, "products_found": 0, "source": "api_and_html", "status": api_error or "no_product_urls"})
+        found.extend(local)
+        print(f"DISCOVERY term={term!r} products={len(local)} source={diagnostics[-1].get('source')}")
     return list(dict.fromkeys(found))[:MAX_PRODUCT_CHECKS], diagnostics
 
 
@@ -676,14 +950,13 @@ def run(publish=False):
     products = []
     for url in urls:
         try:
-            final_url, page = fetch_page(url)
-            canonical = safe_product_url(final_url) or safe_product_url(url)
+            canonical = safe_product_url(url)
             if not canonical:
-                print("PRODUCT_SKIP invalid_redirect_or_url")
+                print("PRODUCT_SKIP invalid_product_url")
                 continue
-            item = parse_product_page(canonical, page)
+            item = fetch_product_record(canonical)
             if not item.get("title"):
-                print(f"PRODUCT_SKIP id={item['product_id']} reason=no_title")
+                print(f"PRODUCT_SKIP id={item.get('product_id')} reason=no_title")
                 continue
             item = score_product(item)
             item["has_affiliate_link"] = bool(approved.get(item["product_id"]))
