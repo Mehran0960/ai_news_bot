@@ -28,6 +28,8 @@ from relay_botapi import (
     select_next_price_verified_candidate,
     PUBLISH_SLOTS,
     SLOT_GRACE_MINUTES,
+    MIN_PUBLISH_INTERVAL_MINUTES,
+    publish_cooldown_remaining_seconds,
     ensure_price_check_version,
     MAX_PRICE_CHECK_CANDIDATES_PER_RUN,
     best_price_safe_crop_box,
@@ -535,6 +537,14 @@ class DayanRelayTests(unittest.TestCase):
             [f"{hour:02d}:{minute:02d}" for hour in range(24) for minute in (0, 30)],
         )
         self.assertEqual(SLOT_GRACE_MINUTES, 25)
+
+
+    def test_scheduler_cooldown_blocks_close_together_posts(self):
+        datetime = __import__("datetime").datetime
+        now = datetime.fromisoformat("2026-10-15T12:30:00+03:30")
+        self.assertEqual(MIN_PUBLISH_INTERVAL_MINUTES, 25)
+        self.assertEqual(publish_cooldown_remaining_seconds({"last_published_at": "2026-10-15T12:10:00+03:30"}, now=now), 300)
+        self.assertEqual(publish_cooldown_remaining_seconds({"last_published_at": "2026-10-15T12:05:00+03:30"}, now=now), 0)
 
 
     def test_image_price_extraction_recognizes_compact_thousand_prices(self):
