@@ -317,19 +317,33 @@ def _textual_availability(value):
 
 
 def _api_product_url(obj):
-    for key in ("url", "product_url", "web_url", "url_key", "canonical_url"):
+    # Never synthesize a product URL from a generic numeric "id": API payloads
+    # also contain category, seller, campaign, and recommendation IDs.
+    for key in ("url", "product_url", "web_url", "canonical_url", "productUrl"):
         raw = obj.get(key)
         if isinstance(raw, str):
             candidate = safe_product_url(urljoin("https://www.digikala.com/", raw))
             if candidate:
                 return candidate
-    raw_id = obj.get("product_id") or obj.get("id")
-    if isinstance(raw_id, int) or (isinstance(raw_id, str) and raw_id.isdigit()):
-        title = obj.get("title_fa") or obj.get("title") or obj.get("name") or obj.get("product_title")
-        product_shape = any(k in obj for k in ("default_variant", "variants", "images", "image", "price"))
-        if title and product_shape:
-            return safe_product_url(f"https://www.digikala.com/product/dkp-{int(raw_id)}/")
     return ""
+
+
+def _search_api_sample(payload):
+    sample = []
+    for obj in _walk_dicts(payload):
+        title = obj.get("title_fa") or obj.get("product_title") or obj.get("title") or obj.get("name")
+        if not title:
+            continue
+        item = {
+            "id": obj.get("product_id") or obj.get("id"),
+            "url": obj.get("url") or obj.get("product_url") or obj.get("web_url") or obj.get("canonical_url"),
+            "title": _clean_title(title)[:55],
+            "keys": list(obj.keys())[:18],
+        }
+        sample.append(item)
+        if len(sample) >= 4:
+            break
+    return sample
 
 
 def api_search_product_urls(payload):
@@ -416,6 +430,12 @@ def parse_product_api(payload: dict, url: str) -> dict:
     price_obj = variant.get("price") if isinstance(variant.get("price"), dict) else {}
     if not price_obj:
         price_obj = product_obj.get("price") if isinstance(product_obj.get("price"), dict) else {}
+    print(
+        f"PRODUCT_API_SHAPE id={product_id(url)} "
+        f"root_keys={list(payload.keys())[:12] if isinstance(payload, dict) else type(payload).__name__} "
+        f"product_keys={list(product_obj.keys())[:28]} "
+        f"variant_keys={list(variant.keys())[:24]} price_keys={list(price_obj.keys())[:24]}"
+    )
 
     def price_toman(keys, currency):
         for source in (price_obj, variant, product_obj):
@@ -575,6 +595,11 @@ def discover_product_urls() -> tuple[list[str], list[dict]]:
                 raise RuntimeError("search API response exceeded 8 MB")
             payload = response.json()
             local = api_search_product_urls(payload)
+            print(
+                f"SEARCH_API term={term!r} status={response.status_code} final={response.url!r} "
+                f"top_keys={list(payload.keys())[:14] if isinstance(payload, dict) else type(payload).__name__} "
+                f"sample={json.dumps(_search_api_sample(payload), ensure_ascii=False)[:1800]}"
+            )
             if local:
                 diagnostics.append({"term": term, "ok": True, "products_found": len(local), "source": "public_api", "status": "ok"})
             else:
