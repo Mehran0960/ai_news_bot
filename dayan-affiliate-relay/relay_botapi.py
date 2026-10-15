@@ -36,8 +36,8 @@ MAX_VIDEO_BYTES = 49 * 1024 * 1024
 MAX_PHOTO_BYTES = 9 * 1024 * 1024
 MAX_POLL_PAGES = 28
 MAX_ARCHIVE_POSTS = 500
-MAX_PRICE_CHECK_CANDIDATES_PER_RUN = 20
-PRICE_CHECK_VERSION = 4
+MAX_PRICE_CHECK_CANDIDATES_PER_RUN = 12
+PRICE_CHECK_VERSION = 5
 HTTP_TIMEOUT = 25
 
 DIGIT_TRANSLATION = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
@@ -364,9 +364,19 @@ def compare_image_prices_to_product(image_text, product_details):
         ) if amount is not None
     })
     if not image_prices:
+        # A video/photo that contains no displayed price cannot conflict with
+        # the live caption price. But if OCR sees a price cue and cannot recover
+        # its amount, fail closed rather than guessing.
+        has_price_cue = bool(IMAGE_PRICE_CUE_RE.search(text))
+        if has_price_cue:
+            return {
+                "ok": False, "status": "unverifiable",
+                "reason": "price cue detected but numeric amount could not be recovered",
+                "image_prices": [], "page_prices": page_prices,
+            }
         return {
-            "ok": False, "status": "unverifiable",
-            "reason": "OCR did not reliably recover a numeric price; refusing to assume the creative is price-free",
+            "ok": True, "status": "no_price_detected",
+            "reason": "no displayed price was detected; caption can use live product-page pricing",
             "image_prices": [], "page_prices": page_prices,
         }
     if not page_prices:
