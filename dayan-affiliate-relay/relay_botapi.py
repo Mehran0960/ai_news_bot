@@ -1,4 +1,6 @@
+import csv
 import html as html_lib
+import io
 import json
 import math
 import os
@@ -6,11 +8,13 @@ import re
 import subprocess
 import sys
 import tempfile
+import shutil
 from datetime import datetime, time, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
+from PIL import Image, ImageFilter
 import requests
 from bs4 import BeautifulSoup
 
@@ -33,7 +37,7 @@ MAX_PHOTO_BYTES = 9 * 1024 * 1024
 MAX_POLL_PAGES = 28
 MAX_ARCHIVE_POSTS = 500
 MAX_PRICE_CHECK_CANDIDATES_PER_RUN = 20
-PRICE_CHECK_VERSION = 3
+PRICE_CHECK_VERSION = 4
 HTTP_TIMEOUT = 25
 
 DIGIT_TRANSLATION = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
@@ -513,7 +517,7 @@ def score_product_potential(item, now=None):
 
 
 def select_next_candidate(queue, overrides, sent_product_codes=None):
-    """Rank market demand first; use video format only as a secondary preference."""
+    """Always prefer eligible videos; market-demand ranking orders candidates within each media type."""
     sent_codes = {str(code) for code in (sent_product_codes or [])}
     candidates = []
     for item in queue:
@@ -526,9 +530,9 @@ def select_next_candidate(queue, overrides, sent_product_codes=None):
         demand_score = int(item.get("market_demand_score", item.get("popularity_score", 0)) or 0)
         total_score = int(item.get("popularity_score", 0) or 0)
         message_id = int(item.get("source_message_id", 0) or 0)
-        # Market demand remains the primary criterion. Among equal-demand items,
-        # prefer video for product demonstration, then overall commercial fit.
-        candidates.append((-demand_score, 0 if media_type == "video" else 1, -total_score, -message_id, item, product_ref))
+        # Video is an absolute format priority. Only after video/photo class is
+        # chosen do demand, commercial fit, and recency order the candidates.
+        candidates.append((0 if media_type == "video" else 1, -demand_score, -total_score, -message_id, item, product_ref))
     if not candidates:
         return None, None
     candidates.sort(key=lambda candidate: candidate[:4])
@@ -544,8 +548,15 @@ def rank_archive_candidates(posts, overrides, sent_product_codes=None, sent_sour
     rejected_ids = {int(value) for value in (rejected_source_ids or [])}
     used_codes = set(sent_codes) | rejected_codes
     prepared_posts = []
-    # Start with newest posts so a repeated product is represented by its freshest post.
-    for item in sorted(posts, key=lambda post: int(post.get("source_message_id", 0) or 0), reverse=True):
+    # A video for a product outranks every photo of the same product, even if
+    # the photo post is newer. Recency ranks candidates within each media class.
+    for item in sorted(
+        posts,
+        key=lambda post: (
+            0 if post.get("video_url") else 1,
+            -int(post.get("source_message_id", 0) or 0),
+        ),
+    ):
         message_id = int(item.get("source_message_id", 0) or 0)
         if message_id in sent_ids or message_id in rejected_ids:
             continue
@@ -570,7 +581,7 @@ def rank_archive_candidates(posts, overrides, sent_product_codes=None, sent_sour
 
 
 def select_next_price_verified_candidate(queue, overrides, sent_product_codes, store_base, state):
-    """Choose by market demand, reject inconsistent/unverifiable prices, and try the next item."""
+    """Try every eligible video before any photo; crop price text off photo fallbacks."""
     rejected_ids = {int(value) for value in state.get("price_rejected_source_ids", [])}
     rejected_codes = {str(value) for value in state.get("price_rejected_product_codes", [])}
     checks_this_run = 0
@@ -585,10 +596,11 @@ def select_next_price_verified_candidate(queue, overrides, sent_product_codes, s
             state["price_rejected_source_ids"] = sorted(rejected_ids)[-MAX_SENT_IDS:]
             state["price_rejected_product_codes"] = sorted(rejected_codes)[-MAX_SENT_IDS:]
             print(
-                f"::warning::Checked {checks_this_run} candidates without finding a price-verified item; "
-                "the remaining candidates will be assessed on a later scheduled run."
+                f"::warning::Checked {checks_this_run} candidates without finding a publishable item; "
+                "remaining candidates will be assessed on a later scheduled run."
             )
-            return None, None, None
+            return None, None, None, None
+
         eligible = []
         for item in queue:
             source_id = int(item.get("source_message_id", 0) or 0)
@@ -609,38 +621,47 @@ def select_next_price_verified_candidate(queue, overrides, sent_product_codes, s
             ]
             state["price_rejected_source_ids"] = sorted(rejected_ids)[-MAX_SENT_IDS:]
             state["price_rejected_product_codes"] = sorted(rejected_codes)[-MAX_SENT_IDS:]
-            return None, None, None
+            return None, None, None, None
 
         checks_this_run += 1
         affiliate_url = make_affiliate_url(store_base, product_ref)
+        sanitized_photo_path = None
         try:
             product_details = fetch_product_details(affiliate_url)
-            check = check_source_media_prices(chosen, product_details)
+            media_type = chosen.get("media_type") or ("video" if chosen.get("video_url") else "photo")
+            if media_type == "video":
+                check = check_source_media_prices(chosen, product_details)
+            else:
+                sanitized_photo_path, check = prepare_price_cropped_photo(chosen, product_details)
         except Exception as exc:
             product_details = None
             check = {
                 "ok": False, "status": "unverifiable",
-                "reason": f"price verification raised {type(exc).__name__}",
+                "reason": f"publication verification raised {type(exc).__name__}",
                 "image_prices": [], "page_prices": [],
             }
 
         source_id = int(chosen.get("source_message_id", 0) or 0)
         if check.get("ok"):
             print(
-                f"Price verification passed source={source_id} "
-                f"status={check.get('status')} image_prices={check.get('image_prices', [])} "
-                f"page_prices={check.get('page_prices', [])}."
+                f"Pre-publication check passed source={source_id} "
+                f"media={chosen.get('media_type')} status={check.get('status')} "
+                f"image_prices={check.get('image_prices', [])} "
+                f"page_prices={check.get('page_prices', [])} "
+                f"photo_price_crop={bool(sanitized_photo_path)}."
             )
             state["price_rejected_source_ids"] = sorted(rejected_ids)[-MAX_SENT_IDS:]
             state["price_rejected_product_codes"] = sorted(rejected_codes)[-MAX_SENT_IDS:]
-            return chosen, product_ref, product_details
+            return chosen, product_ref, product_details, sanitized_photo_path
 
+        if sanitized_photo_path and os.path.exists(sanitized_photo_path):
+            os.remove(sanitized_photo_path)
         rejected_ids.add(source_id)
-        rejected_codes.add(str(product_ref["code"]))
+        # Reject only this creative, not its product code: a video with a stale
+        # price may fail, while a later photo of that same product can be cropped.
         queue[:] = [
             item for item in queue
             if int(item.get("source_message_id", 0) or 0) != source_id
-            and str((resolve_product_ref(item, overrides) or {}).get("code", "")) != str(product_ref["code"])
         ]
         state["price_rejected_source_ids"] = sorted(rejected_ids)[-MAX_SENT_IDS:]
         state["price_rejected_product_codes"] = sorted(rejected_codes)[-MAX_SENT_IDS:]
@@ -648,9 +669,8 @@ def select_next_price_verified_candidate(queue, overrides, sent_product_codes, s
             f"::warning::Skipping source={source_id}, product_code={product_ref['code']}: "
             f"price_check={check.get('status', 'unverifiable')}; "
             f"image_prices={check.get('image_prices', [])}; page_prices={check.get('page_prices', [])}. "
-            f"Trying the next ranked candidate."
+            "Trying the next candidate; other media for this product remain eligible."
         )
-
 
 
 def fetch_preview(before_id=None):
