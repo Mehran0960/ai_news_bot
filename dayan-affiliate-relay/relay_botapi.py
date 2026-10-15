@@ -631,6 +631,22 @@ def select_next_price_verified_candidate(queue, overrides, sent_product_codes, s
             media_type = chosen.get("media_type") or ("video" if chosen.get("video_url") else "photo")
             if media_type == "video":
                 check = check_source_media_prices(chosen, product_details)
+            elif product_details.get("video_url"):
+                # Source-channel videos have already been exhausted before we get here.
+                # Prefer a direct video exposed by this affiliate product page over its image.
+                site_video_item = dict(chosen)
+                site_video_item["media_type"] = "video"
+                site_video_item["product_video_url"] = product_details["video_url"]
+                site_video_check = check_source_media_prices(site_video_item, product_details)
+                if site_video_check.get("ok"):
+                    chosen = site_video_item
+                    check = site_video_check
+                else:
+                    print(
+                        f"Product-page video failed price verification for source={chosen.get('source_message_id')}; "
+                        "trying the price-cropped photo fallback for this product."
+                    )
+                    sanitized_photo_path, check = prepare_price_cropped_photo(chosen, product_details)
             else:
                 sanitized_photo_path, check = prepare_price_cropped_photo(chosen, product_details)
         except Exception as exc:
@@ -1182,8 +1198,17 @@ def refresh_video_url(source_message_id):
     return media_url
 
 def send_video(bot_token, item, affiliate_url, product_details=None):
-    media_url = refresh_video_url(int(item["source_message_id"]))
     product_details = product_details if product_details is not None else fetch_product_details(affiliate_url)
+    if item.get("product_video_url"):
+        media_url = safe_product_video_url(
+            item.get("product_video_url"),
+            product_details.get("video_page_url") or affiliate_url,
+            explicit_video_source=True,
+        )
+        if not media_url:
+            raise RuntimeError("Refusing to publish an unsafe product-page video URL.")
+    else:
+        media_url = refresh_video_url(int(item["source_message_id"]))
     caption = build_caption(
         item.get("source_caption", ""), affiliate_url,
         product_details=product_details, allow_source_price_fallback=False
@@ -1414,9 +1439,47 @@ def read_source_media_ocr_text(item):
             os.remove(temp_path)
 
 
+def read_product_page_video_ocr_text(item, product_details):
+    """Download a direct video asset from the product page and OCR representative frames."""
+    raw_url = item.get("product_video_url")
+    page_url = (product_details or {}).get("video_page_url")
+    media_url = safe_product_video_url(raw_url, page_url, explicit_video_source=True)
+    if not media_url:
+        raise RuntimeError("Product-page video URL is not a safe direct HTTPS video asset.")
+    temp_path = None
+    try:
+        with SESSION.get(media_url, stream=True, timeout=(15, 120)) as response:
+            response.raise_for_status()
+            content_type = (response.headers.get("Content-Type") or "").lower()
+            if "video/" not in content_type and "octet-stream" not in content_type:
+                raise RuntimeError("Product-page media is not served as a recognized video.")
+            length_header = response.headers.get("Content-Length")
+            if length_header and int(length_header) > MAX_VIDEO_BYTES:
+                raise RuntimeError("Product-page video exceeds the configured upload limit.")
+            total = 0
+            with tempfile.NamedTemporaryFile(prefix="dayan-site-video-check-", suffix=".mp4", delete=False) as file:
+                temp_path = file.name
+                for chunk in response.iter_content(chunk_size=1024 * 512):
+                    if not chunk:
+                        continue
+                    total += len(chunk)
+                    if total > MAX_VIDEO_BYTES:
+                        raise RuntimeError("Product-page video exceeds the configured upload limit.")
+                    file.write(chunk)
+        if not temp_path or os.path.getsize(temp_path) < 1024:
+            raise RuntimeError("Product-page video is empty or unexpectedly small.")
+        return _ocr_video_frames(temp_path)
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
+
+
 def check_source_media_prices(item, product_details):
     """Verify OCR-visible photo/video prices against current prices on the affiliate product page."""
-    ocr_text = read_source_media_ocr_text(item)
+    if item.get("product_video_url"):
+        ocr_text = read_product_page_video_ocr_text(item, product_details)
+    else:
+        ocr_text = read_source_media_ocr_text(item)
     ocr_preview = re.sub(r"\s+", " ", ocr_text or "").strip()[:420]
     print(f"Creative OCR source={item.get('source_message_id')}: {ocr_preview or '[no text recovered]'}")
     if not ocr_text.strip():
