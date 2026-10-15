@@ -11,7 +11,7 @@ import tempfile
 import shutil
 from datetime import datetime, time, timezone
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 from zoneinfo import ZoneInfo
 
 from PIL import Image, ImageFilter
@@ -795,11 +795,106 @@ def _price_after_label(text, labels):
                     return formatted
     return None
 
-def extract_product_details(page_html):
-    """Extract product title/prices from visible HTML and Product JSON-LD."""
+VIDEO_FILE_RE = re.compile(r"\.(?:mp4|m4v|webm|mov)(?:$|[?#])", re.IGNORECASE)
+_MULTI_LABEL_PUBLIC_SUFFIXES = {"co.uk", "com.au", "co.nz", "co.ir", "org.ir", "net.ir", "ac.ir", "gov.ir"}
+
+
+def _site_suffix(host):
+    labels = (host or "").lower().strip(".").split(".")
+    if len(labels) < 2:
+        return host
+    tail2 = ".".join(labels[-2:])
+    width = 3 if tail2 in _MULTI_LABEL_PUBLIC_SUFFIXES and len(labels) >= 3 else 2
+    return ".".join(labels[-width:])
+
+
+def safe_product_video_url(raw_url, page_url, explicit_video_source=False):
+    """Accept only direct HTTPS video assets on the product site's own domain family."""
+    if not raw_url or not page_url:
+        return None
+    url = urljoin(page_url, str(raw_url).strip())
+    try:
+        page = urlparse(page_url)
+        media = urlparse(url)
+    except ValueError:
+        return None
+    if media.scheme.lower() != "https" or not media.hostname or media.username or media.password:
+        return None
+    if not explicit_video_source and not VIDEO_FILE_RE.search(media.path or ""):
+        return None
+    host = media.hostname.lower().rstrip(".")
+    page_host = (page.hostname or "").lower().rstrip(".")
+    if not host or not page_host:
+        return None
+    # Product media may use a sibling CDN under the same registered domain;
+    # unrelated third-party player pages and arbitrary remote URLs are excluded.
+    if _site_suffix(host) != _site_suffix(page_host):
+        return None
+    if host in {"localhost", "localhost.localdomain"} or host.endswith(".local"):
+        return None
+    return url
+
+
+def extract_product_video_url(page_html, page_url):
+    """Find a direct video source exposed by the affiliate product page."""
+    if not page_html or not page_url:
+        return None
+    soup = BeautifulSoup(page_html, "html.parser")
+    candidates = []
+    for node in soup.select("video[src], video source[src], source[src][type^='video/']"):
+        candidates.append((node.get("src"), True))
+    for selector in (
+        'meta[property="og:video:secure_url"]',
+        'meta[property="og:video:url"]',
+        'meta[property="og:video"]',
+        'meta[name="twitter:player:stream"]',
+    ):
+        for node in soup.select(selector):
+            value = node.get("content")
+            if value:
+                candidates.append((value, True))
+    for script in soup.select('script[type="application/ld+json"]'):
+        try:
+            data = json.loads(script.string or script.get_text())
+        except (json.JSONDecodeError, TypeError):
+            continue
+        for entry in _iter_jsonld(data):
+            types = entry.get("@type", [])
+            if isinstance(types, str):
+                types = [types]
+            if "VideoObject" not in types:
+                continue
+            for key in ("contentUrl", "url"):
+                if entry.get(key):
+                    candidates.append((entry[key], True))
+    # Also consider obvious direct .mp4/.webm URLs in the HTML, including
+    # lazy-loaded data attributes used by simple product themes.
+    for raw_url in re.findall(
+        r"""(?i)(?:https?:)?//[^\s"'<>]+?\.(?:mp4|m4v|webm|mov)(?:\?[^\s"'<>]*)?|(?:/[A-Za-z0-9_./%\-]+)\.(?:mp4|m4v|webm|mov)(?:\?[^\s"'<>]*)?""",
+        page_html,
+    ):
+        candidates.append((raw_url, False))
+    seen = set()
+    for raw_url, explicit in candidates:
+        if isinstance(raw_url, list):
+            raw_url = raw_url[0] if raw_url else None
+        url = safe_product_video_url(raw_url, page_url, explicit_video_source=explicit)
+        if url and url not in seen:
+            return url
+        if url:
+            seen.add(url)
+    return None
+
+
+def extract_product_details(page_html, page_url=None):
+    """Extract product title/prices and an optional direct video from the affiliate page."""
     soup = BeautifulSoup(page_html or "", "html.parser")
     visible_text = soup.get_text(" ", strip=True)
-    details = {"title": None, "original_price": None, "discounted_price": None, "page_found": bool(page_html)}
+    details = {
+        "title": None, "original_price": None, "discounted_price": None,
+        "page_found": bool(page_html), "video_url": extract_product_video_url(page_html, page_url),
+        "video_page_url": page_url,
+    }
 
     # Product H1 should outrank Open Graph metadata, which is often only the store name.
     node = soup.select_one("h1")
@@ -889,7 +984,7 @@ def fetch_product_details(affiliate_url):
     try:
         response = SESSION.get(affiliate_url, timeout=(15, 25), allow_redirects=True)
         response.raise_for_status()
-        details = extract_product_details(response.text)
+        details = extract_product_details(response.text, page_url=response.url)
 
         # Some FastCart pages expose only the store heading. For metadata only,
         # try the matching Lead route for the same product code; keep the user's
@@ -904,12 +999,15 @@ def fetch_product_details(affiliate_url):
                 try:
                     alternate_response = SESSION.get(metadata_url, timeout=(12, 20), allow_redirects=True)
                     alternate_response.raise_for_status()
-                    alternate = extract_product_details(alternate_response.text)
+                    alternate = extract_product_details(alternate_response.text, page_url=alternate_response.url)
                     if alternate.get("title") and not is_generic_store_title(alternate["title"]):
                         details["title"] = alternate["title"]
                     for price_key in ("original_price", "discounted_price"):
                         if not details.get(price_key) and alternate.get(price_key):
                             details[price_key] = alternate[price_key]
+                    if not details.get("video_url") and alternate.get("video_url"):
+                        details["video_url"] = alternate["video_url"]
+                        details["video_page_url"] = alternate.get("video_page_url")
                 except Exception as exc:
                     print(f"Alternate product metadata unavailable ({type(exc).__name__}); continuing with available details.")
 
@@ -920,7 +1018,8 @@ def fetch_product_details(affiliate_url):
             "Product-page enrichment: "
             f"title={'yes' if details.get('title') else 'no'}, "
             f"original_price={'yes' if details.get('original_price') else 'no'}, "
-            f"discounted_price={'yes' if details.get('discounted_price') else 'no'}"
+            f"discounted_price={'yes' if details.get('discounted_price') else 'no'}, "
+            f"video={'yes' if details.get('video_url') else 'no'}"
         )
         if not found:
             print("Product page loaded but no product-specific title/price fields were recognized; safe fallback caption will be used.")
