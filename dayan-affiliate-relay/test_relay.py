@@ -458,17 +458,27 @@ class DayanRelayTests(unittest.TestCase):
 
     def test_price_verifier_upgrade_clears_old_ocr_rejections_once(self):
         state = {
-            "price_check_version": 1,
+            "price_check_version": 2,
             "price_rejected_source_ids": [21268, 21574],
             "price_rejected_product_codes": ["50436", "43765"],
         }
         ensure_price_check_version(state)
-        self.assertEqual(state["price_check_version"], 2)
+        self.assertEqual(state["price_check_version"], 3)
         self.assertEqual(state["price_rejected_source_ids"], [])
         self.assertEqual(state["price_rejected_product_codes"], [])
         state["price_rejected_source_ids"] = [777]
         ensure_price_check_version(state)
         self.assertEqual(state["price_rejected_source_ids"], [777])
+
+
+    def test_compact_image_price_mismatch_is_rejected(self):
+        result = compare_image_prices_to_product(
+            "قیمت تخفیفی ۱,۴۱۹",
+            {"discounted_price": "1,059,000 تومان"},
+        )
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["status"], "mismatch")
+        self.assertEqual(result["mismatched_prices"], [1419000])
 
 
 if __name__ == "__main__":
