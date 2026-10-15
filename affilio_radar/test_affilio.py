@@ -9,6 +9,7 @@ from affilio_radar import (
     build_caption,
     _money_to_toman,
     api_search_product_urls,
+    parse_product_api,
 )
 
 
@@ -113,6 +114,43 @@ class AffilioRadarTests(unittest.TestCase):
     def test_parser_recognizes_out_of_stock(self):
         p = parse_product_page("https://www.digikala.com/product/dkp-2/", OUT_OF_STOCK_HTML)
         self.assertEqual(p["availability"], "out_of_stock")
+
+    def test_product_api_normalizes_rating_to_five_star_scale(self):
+        payload = {
+            "status": 200,
+            "data": {
+                "product": {
+                    "id": 12345,
+                    "title_fa": "کابل شارژ آزمایشی",
+                    "url": {
+                        "base": None,
+                        "uri": "/product/dkp-12345/کابل-شارژ",
+                        "params": [{"variant_id": 678}],
+                    },
+                    "status": "marketable",
+                    "product_type": "product",
+                    "images": {"main": "https://dkstatics-public.digikala.com/digikala-products/test.jpg"},
+                    "rating": {"rate": 68.12, "count": 120},
+                    "default_variant": {
+                        "id": 678,
+                        "status": "marketable",
+                        "price": {
+                            "selling_price": 4_850_000,
+                            "rrp_price": 9_000_000,
+                            "discount_percent": 46,
+                            "marketable_stock": 10,
+                        },
+                    },
+                }
+            },
+        }
+        p = parse_product_api(payload, "https://www.digikala.com/product/dkp-12345/")
+        self.assertEqual(p["availability"], "in_stock")
+        self.assertEqual(p["current_price"], 485_000)
+        self.assertEqual(p["original_price"], 900_000)
+        self.assertEqual(p["rating"], 3.41)
+        self.assertEqual(p["review_count"], 120)
+        self.assertTrue(p["image_url"].startswith("https://"))
 
     def test_parser_fails_closed_when_stock_is_unknown(self):
         p = parse_product_page("https://www.digikala.com/product/dkp-3/", UNKNOWN_STOCK_HTML)
