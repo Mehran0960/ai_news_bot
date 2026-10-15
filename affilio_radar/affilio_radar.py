@@ -343,27 +343,41 @@ def api_search_product_urls(payload):
 
 
 def _search_api_sample(payload):
+    data = payload.get("data", {}) if isinstance(payload, dict) else {}
+    products = data.get("products", []) if isinstance(data, dict) else []
+    if isinstance(products, list) and products:
+        out = []
+        for obj in products[:6]:
+            if not isinstance(obj, dict):
+                continue
+            image_value = obj.get("images")
+            image_keys = list(image_value.keys())[:8] if isinstance(image_value, dict) else type(image_value).__name__
+            variant = obj.get("default_variant") if isinstance(obj.get("default_variant"), dict) else {}
+            out.append({
+                "id": obj.get("id"),
+                "url": obj.get("url"),
+                "title": _clean_title(obj.get("title_fa") or obj.get("title_en") or obj.get("name") or "")[:70],
+                "keys": list(obj.keys())[:26],
+                "status": obj.get("status"),
+                "variant_keys": list(variant.keys())[:22],
+                "images_shape": image_keys,
+                "url_parse": safe_product_url(urljoin("https://www.digikala.com/", obj.get("url") or "")),
+            })
+        return out
     sample = []
     for obj in _walk_dicts(payload):
         title = obj.get("title_fa") or obj.get("product_title") or obj.get("title") or obj.get("name")
         if not title:
             continue
-        item = {
+        sample.append({
             "id": obj.get("product_id") or obj.get("id"),
             "url": obj.get("url") or obj.get("product_url") or obj.get("web_url") or obj.get("canonical_url"),
             "title": _clean_title(title)[:55],
             "keys": list(obj.keys())[:18],
-        }
-        # Put actual product-looking objects before category filters/suggestion items.
-        productish = any(k in obj for k in ("default_variant", "variants", "seller", "price", "images", "image"))
-        has_url = any(isinstance(obj.get(k), str) and "/product/dkp-" in obj.get(k, "") for k in ("url", "product_url", "web_url", "canonical_url"))
-        if productish or has_url:
-            item["_priority"] = 2 if has_url else 1
-        else:
-            item["_priority"] = 0
-        sample.append(item)
-    sample.sort(key=lambda item: item["_priority"], reverse=True)
-    return [{k: v for k, v in item.items() if k != "_priority"} for item in sample[:6]]
+        })
+        if len(sample) >= 6:
+            break
+    return sample
 
 
 def _api_structure(value, path="$", depth=0, max_depth=5, found=None):
