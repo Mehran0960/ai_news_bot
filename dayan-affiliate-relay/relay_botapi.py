@@ -1528,6 +1528,7 @@ def prepare_price_cropped_photo(item, product_details):
 
     photo_url = refresh_photo_url(int(item["source_message_id"]))
     input_path = output_path = None
+    keep_output_path = False
     try:
         with SESSION.get(photo_url, stream=True, timeout=(15, 60)) as response:
             response.raise_for_status()
@@ -1574,6 +1575,7 @@ def prepare_price_cropped_photo(item, product_details):
             output_path = output_file.name
             output_file.close()
             shutil.copyfile(input_path, output_path)
+            keep_output_path = True
             return output_path, {
                 "ok": True, "status": "no_price_detected",
                 "reason": "OCR found no displayed price; original photo retained",
@@ -1604,6 +1606,7 @@ def prepare_price_cropped_photo(item, product_details):
                 "reason": "price digits remain readable after cropping/redaction",
                 "image_prices": remaining_prices, "page_prices": page_prices,
             }
+        keep_output_path = True
         return output_path, {
             "ok": True, "status": "price_removed",
             "reason": "price region was cropped or obscured and post-checked",
@@ -1612,6 +1615,8 @@ def prepare_price_cropped_photo(item, product_details):
     finally:
         if input_path and os.path.exists(input_path):
             os.remove(input_path)
+        if not keep_output_path and output_path and os.path.exists(output_path):
+            os.remove(output_path)
 
 
 def send_photo(bot_token, item, affiliate_url, product_details=None, sanitized_photo_path=None):
