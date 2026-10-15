@@ -25,6 +25,8 @@ from relay_botapi import (
     extract_image_price_values,
     compare_image_prices_to_product,
     select_next_price_verified_candidate,
+    PUBLISH_SLOTS,
+    SLOT_GRACE_MINUTES,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -252,11 +254,11 @@ class DayanRelayTests(unittest.TestCase):
         self.assertEqual(chosen["source_message_id"], 100)
         self.assertEqual(product_ref["code"], "11111")
 
-    def test_video_wins_only_when_market_demand_and_total_score_tie(self):
-        photo = {"source_message_id": 110, "media_type": "photo", "popularity_score": 75,
+    def test_video_wins_when_market_demand_ties_even_if_total_score_is_lower(self):
+        photo = {"source_message_id": 110, "media_type": "photo", "popularity_score": 88,
                  "market_demand_score": 65,
                  "product_refs": [{"route": "lead", "code": "11112"}]}
-        video = {"source_message_id": 111, "media_type": "video", "popularity_score": 75,
+        video = {"source_message_id": 111, "media_type": "video", "popularity_score": 62,
                  "market_demand_score": 65,
                  "product_refs": [{"route": "lead", "code": "22223"}]}
         chosen, _ = select_next_candidate([photo, video], {})
@@ -393,13 +395,13 @@ class DayanRelayTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertEqual(result["status"], "unverifiable")
 
-    def test_image_without_price_can_pass_without_comparison(self):
+    def test_image_without_detectable_price_is_rejected_as_unverifiable(self):
         result = compare_image_prices_to_product(
             "هدفون بلوتوثی JBL",
             {"discounted_price": "1,499,000 تومان"},
         )
-        self.assertTrue(result["ok"])
-        self.assertEqual(result["status"], "no_image_price")
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["status"], "unverifiable")
 
     @patch("relay_botapi.check_source_media_prices")
     @patch("relay_botapi.fetch_product_details")
@@ -433,6 +435,14 @@ class DayanRelayTests(unittest.TestCase):
         self.assertEqual(state["price_rejected_product_codes"], ["11111"])
         self.assertNotIn(top, queue)
 
+
+
+    def test_scheduler_has_half_hour_publication_slots(self):
+        self.assertEqual(
+            PUBLISH_SLOTS,
+            [f"{hour:02d}:{minute:02d}" for hour in range(24) for minute in (0, 30)],
+        )
+        self.assertEqual(SLOT_GRACE_MINUTES, 25)
 
 
 if __name__ == "__main__":
