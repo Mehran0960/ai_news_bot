@@ -699,7 +699,7 @@ class DayanRelayTests(unittest.TestCase):
 
     @patch("relay_botapi.check_source_media_prices")
     @patch("relay_botapi.fetch_product_details")
-    def test_product_page_video_is_preferred_for_source_video_candidate(self, fetch_details, check_prices):
+    def test_product_page_video_is_ignored_for_source_channel_candidate(self, fetch_details, check_prices):
         source_video = {
             "source_message_id": 401, "media_type": "video",
             "video_url": "https://cdn4.telesco.pe/file/source.mp4",
@@ -722,17 +722,16 @@ class DayanRelayTests(unittest.TestCase):
             [source_video], {}, set(), "https://shop.example.affdn.ir", {}
         )
         self.assertEqual(chosen["source_message_id"], 401)
-        self.assertEqual(chosen["product_video_url"], page_details["video_url"])
+        self.assertNotIn("product_video_url", chosen)
+        self.assertEqual(chosen["video_url"], source_video["video_url"])
         self.assertEqual(ref["code"], "44441")
         self.assertEqual(details, page_details)
         self.assertIsNone(safe_photo_path)
-        check_prices.assert_called_once()
-        checked_item = check_prices.call_args.args[0]
-        self.assertEqual(checked_item["product_video_url"], page_details["video_url"])
+        check_prices.assert_called_once_with(source_video, page_details)
 
     @patch("relay_botapi.check_source_media_prices")
     @patch("relay_botapi.fetch_product_details")
-    def test_source_video_is_fallback_when_product_page_video_fails_price_check(self, fetch_details, check_prices):
+    def test_source_video_price_verification_does_not_try_site_video_fallback(self, fetch_details, check_prices):
         source_video = {
             "source_message_id": 402, "media_type": "video",
             "video_url": "https://cdn4.telesco.pe/file/source-fallback.mp4",
@@ -747,10 +746,10 @@ class DayanRelayTests(unittest.TestCase):
             "video_page_url": "https://shop.example.affdn.ir/lead/44442",
         }
         fetch_details.return_value = page_details
-        check_prices.side_effect = [
-            {"ok": False, "status": "mismatch", "image_prices": [699000], "page_prices": [799000, 999000]},
-            {"ok": True, "status": "no_price_detected", "image_prices": [], "page_prices": [799000, 999000]},
-        ]
+        check_prices.return_value = {
+            "ok": True, "status": "no_price_detected",
+            "image_prices": [], "page_prices": [799000, 999000],
+        }
         chosen, ref, details, safe_photo_path = select_next_price_verified_candidate(
             [source_video], {}, set(), "https://shop.example.affdn.ir", {}
         )
@@ -759,8 +758,7 @@ class DayanRelayTests(unittest.TestCase):
         self.assertEqual(ref["code"], "44442")
         self.assertEqual(details, page_details)
         self.assertIsNone(safe_photo_path)
-        self.assertEqual(check_prices.call_count, 2)
-        self.assertNotIn("product_video_url", check_prices.call_args_list[1].args[0])
+        check_prices.assert_called_once_with(source_video, page_details)
 
 
 
