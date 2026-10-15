@@ -24,8 +24,8 @@ TARGET_CHANNEL = "@Iran_gajet"
 CHANNEL_FOLLOW_HTML = '<a href="https://t.me/Iran_gajet">📣 ایران گجت | @Iran_gajet</a>'
 SOURCE_URL = f"https://t.me/s/{SOURCE_CHANNEL}"
 TIMEZONE = ZoneInfo("Asia/Tehran")
-PUBLISH_SLOTS = [f"{hour:02d}:00" for hour in range(24)]
-SLOT_GRACE_MINUTES = 55
+PUBLISH_SLOTS = [f"{hour:02d}:{minute:02d}" for hour in range(24) for minute in (0, 30)]
+SLOT_GRACE_MINUTES = 25
 MAX_QUEUE_ITEMS = 500
 MAX_SENT_IDS = 2000
 MAX_VIDEO_BYTES = 49 * 1024 * 1024
@@ -328,9 +328,11 @@ def compare_image_prices_to_product(image_text, product_details):
         ) if amount is not None
     })
     if not image_prices:
-        if has_price_cues:
-            return {"ok": False, "status": "unverifiable", "reason": "price cue detected but OCR could not reliably read its amount", "image_prices": [], "page_prices": page_prices}
-        return {"ok": True, "status": "no_image_price", "reason": "no price was detected on the creative", "image_prices": [], "page_prices": page_prices}
+        return {
+            "ok": False, "status": "unverifiable",
+            "reason": "OCR did not reliably recover a numeric price; refusing to assume the creative is price-free",
+            "image_prices": [], "page_prices": page_prices,
+        }
     if not page_prices:
         return {"ok": False, "status": "unverifiable", "reason": "live product page did not expose a comparable price", "image_prices": image_prices, "page_prices": []}
     mismatched = [amount for amount in image_prices if amount not in page_prices]
@@ -492,8 +494,9 @@ def select_next_candidate(queue, overrides, sent_product_codes=None):
         demand_score = int(item.get("market_demand_score", item.get("popularity_score", 0)) or 0)
         total_score = int(item.get("popularity_score", 0) or 0)
         message_id = int(item.get("source_message_id", 0) or 0)
-        # Sort by market demand first, then overall commercial fit, then video.
-        candidates.append((-demand_score, -total_score, 0 if media_type == "video" else 1, -message_id, item, product_ref))
+        # Market demand remains the primary criterion. Among equal-demand items,
+        # prefer video for product demonstration, then overall commercial fit.
+        candidates.append((-demand_score, 0 if media_type == "video" else 1, -total_score, -message_id, item, product_ref))
     if not candidates:
         return None, None
     candidates.sort(key=lambda candidate: candidate[:4])
@@ -1108,16 +1111,26 @@ def refresh_photo_url(source_message_id):
 
 
 def _run_tesseract(image_path):
-    try:
-        result = subprocess.run(
-            ["tesseract", str(image_path), "stdout", "-l", "fas+eng", "--psm", "11"],
-            capture_output=True, text=True, timeout=25, check=False,
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        raise RuntimeError(f"Price OCR unavailable ({type(exc).__name__}).") from None
-    if result.returncode != 0:
-        raise RuntimeError("Tesseract could not process the source creative with Persian/English language data.")
-    return result.stdout or ""
+    """Run two OCR layouts so stylized price overlays are less likely to be missed."""
+    texts = []
+    errors = []
+    for psm in ("11", "6"):
+        try:
+            result = subprocess.run(
+                ["tesseract", str(image_path), "stdout", "-l", "fas+eng", "--psm", psm],
+                capture_output=True, text=True, timeout=25, check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            errors.append(type(exc).__name__)
+            continue
+        if result.returncode == 0:
+            if result.stdout and result.stdout.strip():
+                texts.append(result.stdout)
+        else:
+            errors.append(f"psm-{psm}")
+    if not texts:
+        raise RuntimeError("Tesseract could not recover text from the source creative.")
+    return "\n".join(texts)
 
 
 def _ocr_video_frames(video_path):
@@ -1138,7 +1151,7 @@ def _ocr_video_frames(video_path):
 
     texts = []
     with tempfile.TemporaryDirectory(prefix="dayan-price-frames-") as frame_dir:
-        for index, fraction in enumerate((0.1, 0.5, 0.9)):
+        for index, fraction in enumerate((0.05, 0.25, 0.5, 0.75, 0.95)):
             timestamp = min(duration * fraction, max(0.0, duration - 0.12))
             frame_path = Path(frame_dir) / f"frame-{index}.jpg"
             try:
@@ -1205,6 +1218,8 @@ def read_source_media_ocr_text(item):
 def check_source_media_prices(item, product_details):
     """Verify OCR-visible photo/video prices against current prices on the affiliate product page."""
     ocr_text = read_source_media_ocr_text(item)
+    ocr_preview = re.sub(r"\s+", " ", ocr_text or "").strip()[:420]
+    print(f"Creative OCR source={item.get('source_message_id')}: {ocr_preview or '[no text recovered]'}")
     if not ocr_text.strip():
         return {
             "ok": False, "status": "unverifiable",
@@ -1524,10 +1539,10 @@ def publish_best_archive_post():
     state["sent_source_ids"] = state["sent_source_ids"][-MAX_SENT_IDS:]
     state.setdefault("sent_product_codes", []).append(str(product_ref["code"]))
     state["sent_product_codes"] = state["sent_product_codes"][-MAX_SENT_IDS:]
-    # Count this immediate post against the current hourly slot when still within
-    # the normal publication grace window, so the scheduled job won't double-post.
-    if now.minute <= SLOT_GRACE_MINUTES:
-        slot_key = f"{now.date().isoformat()}|{now.hour:02d}:00"
+    # Count this immediate post against the current half-hour slot when due.
+    # The routine scheduler will then avoid posting twice in the same slot.
+    slot_key = due_slot(now, state.get("published_slots", []))
+    if slot_key:
         state.setdefault("published_slots", []).append(slot_key)
         state["published_slots"] = list(dict.fromkeys(state["published_slots"]))[-60:]
     state["last_published_at"] = now.isoformat()
