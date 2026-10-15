@@ -1,0 +1,137 @@
+import unittest
+
+from affilio_radar import (
+    safe_product_url,
+    product_id,
+    parse_product_page,
+    score_product,
+    is_publish_eligible,
+    build_caption,
+    _money_to_toman,
+)
+
+
+IN_STOCK_HTML = """
+<html><head>
+<meta property="og:title" content="پاوربانک کاربردی مدل تست">
+<meta property="og:image" content="https://dkstatics-public.digikala.com/digikala-products/test.jpg">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"Product",
+  "name":"پاوربانک کاربردی مدل تست",
+  "image":"https://dkstatics-public.digikala.com/digikala-products/test.jpg",
+  "aggregateRating":{"@type":"AggregateRating","ratingValue":"4.4","reviewCount":"120"},
+  "offers":{"@type":"Offer","price":"1290000","priceCurrency":"IRT","availability":"https://schema.org/InStock"}
+}
+</script></head><body><h1>پاوربانک کاربردی مدل تست</h1><p>موجود در انبار</p></body></html>
+"""
+
+OUT_OF_STOCK_HTML = """
+<html><head><script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"Product",
+  "name":"کالای ناموجود",
+  "image":"https://dkstatics-public.digikala.com/digikala-products/test.jpg",
+  "offers":{"@type":"Offer","price":"850000","priceCurrency":"IRT","availability":"https://schema.org/OutOfStock"}
+}
+</script></head><body><p>ناموجود</p></body></html>
+"""
+
+UNKNOWN_STOCK_HTML = """
+<html><head><meta property="og:title" content="گجت نمونه">
+<meta property="og:image" content="https://dkstatics-public.digikala.com/digikala-products/test.jpg">
+<meta property="product:price:amount" content="450000">
+</head><body><h1>گجت نمونه</h1><p>توضیحات محصول</p></body></html>
+"""
+
+
+class AffilioRadarTests(unittest.TestCase):
+    def test_product_url_accepts_only_digikala_product_pages(self):
+        self.assertEqual(
+            safe_product_url("https://www.digikala.com/product/dkp-1234567/some-slug/?ref=x"),
+            "https://www.digikala.com/product/dkp-1234567/",
+        )
+        self.assertEqual(safe_product_url("https://evil-digikala.com/product/dkp-1234567/"), "")
+        self.assertEqual(safe_product_url("https://www.digikala.com/category/mobile/"), "")
+
+    def test_product_id_extraction(self):
+        self.assertEqual(product_id("https://www.digikala.com/product/dkp-9876/"), "dkp-9876")
+        self.assertEqual(product_id("https://www.digikala.com/search/?q=phone"), "")
+
+    def test_irr_prices_are_converted_to_toman(self):
+        self.assertEqual(_money_to_toman("12900000", "IRR"), 1_290_000)
+        self.assertEqual(_money_to_toman("1290000", "IRT"), 1_290_000)
+
+    def test_parser_reads_schema_stock_price_image_and_reviews(self):
+        p = parse_product_page("https://www.digikala.com/product/dkp-1/", IN_STOCK_HTML)
+        self.assertEqual(p["availability"], "in_stock")
+        self.assertEqual(p["availability_source"], "schema.org")
+        self.assertEqual(p["current_price"], 1_290_000)
+        self.assertEqual(p["rating"], 4.4)
+        self.assertEqual(p["review_count"], 120)
+        self.assertIn("digikala-products/test.jpg", p["image_url"])
+
+    def test_parser_recognizes_out_of_stock(self):
+        p = parse_product_page("https://www.digikala.com/product/dkp-2/", OUT_OF_STOCK_HTML)
+        self.assertEqual(p["availability"], "out_of_stock")
+
+    def test_parser_fails_closed_when_stock_is_unknown(self):
+        p = parse_product_page("https://www.digikala.com/product/dkp-3/", UNKNOWN_STOCK_HTML)
+        self.assertEqual(p["availability"], "unknown")
+
+    def test_score_rewards_relevant_category_and_reviews(self):
+        high = score_product({
+            "title": "پاوربانک سریع",
+            "current_price": 1_200_000,
+            "original_price": 1_500_000,
+            "rating": 4.5,
+            "review_count": 1000,
+            "image_url": "https://example.com/image.jpg",
+        })
+        low = score_product({
+            "title": "کالای معمولی",
+            "current_price": 25_000_000,
+            "rating": 3.0,
+            "review_count": 0,
+            "image_url": "",
+        })
+        self.assertGreater(high["demand_score"], low["demand_score"])
+        self.assertEqual(high["discount_percent"], 20)
+
+    def test_publish_requires_stock_price_image_and_https_affiliate_link(self):
+        base = {
+            "availability": "in_stock",
+            "current_price": 500_000,
+            "image_url": "https://example.com/image.jpg",
+            "affiliate_url": "https://example.com/tracked-link",
+        }
+        self.assertTrue(is_publish_eligible(base))
+        for key, value in [
+            ("availability", "unknown"),
+            ("availability", "out_of_stock"),
+            ("current_price", None),
+            ("image_url", ""),
+            ("affiliate_url", ""),
+            ("affiliate_url", "http://example.com/tracked-link"),
+        ]:
+            candidate = dict(base)
+            candidate[key] = value
+            self.assertFalse(is_publish_eligible(candidate), key)
+
+    def test_caption_contains_tracked_link_and_price_caveat(self):
+        caption = build_caption({
+            "title": "گجت نمونه",
+            "current_price": 500_000,
+            "original_price": 700_000,
+            "discount_percent": 29,
+            "rating": 4.1,
+        }, "https://affilio.example/tracked")
+        self.assertIn("https://affilio.example/tracked", caption)
+        self.assertIn("قیمت و موجودی ممکن است تغییر کند", caption)
+        self.assertIn("کمیسیون", caption)
+
+
+if __name__ == "__main__":
+    unittest.main()
