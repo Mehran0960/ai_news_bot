@@ -1161,9 +1161,13 @@ def extract_product_details(page_html, page_url=None):
     """Extract product title/prices and an optional direct video from the affiliate page."""
     soup = BeautifulSoup(page_html or "", "html.parser")
     visible_text = soup.get_text(" ", strip=True)
+    availability = extract_product_availability(page_html)
     details = {
         "title": None, "original_price": None, "discounted_price": None,
-        "page_found": bool(page_html), "video_url": extract_product_video_url(page_html, page_url),
+        "page_found": bool(page_html),
+        "availability_status": availability["status"],
+        "availability_source": availability["source"],
+        "video_url": extract_product_video_url(page_html, page_url),
         "video_page_url": page_url,
     }
 
@@ -1290,6 +1294,8 @@ def fetch_product_details(affiliate_url):
             f"title={'yes' if details.get('title') else 'no'}, "
             f"original_price={'yes' if details.get('original_price') else 'no'}, "
             f"discounted_price={'yes' if details.get('discounted_price') else 'no'}, "
+            f"availability={details.get('availability_status', 'unknown')} "
+            f"availability_source={details.get('availability_source', 'unknown')}, "
             f"video={'yes' if details.get('video_url') else 'no'}"
         )
         if not found:
@@ -1298,8 +1304,12 @@ def fetch_product_details(affiliate_url):
     except Exception as exc:
         # Avoid logging the full exception because request exceptions can expose
         # the personal store URL.
-        print(f"Product-page enrichment unavailable ({type(exc).__name__}); safe fallback caption will be used.")
-        return {"title": None, "original_price": None, "discounted_price": None, "page_found": False}
+        print(f"Product-page enrichment unavailable ({type(exc).__name__}); stock status cannot be confirmed.")
+        return {
+            "title": None, "original_price": None, "discounted_price": None,
+            "page_found": False, "availability_status": "unknown",
+            "availability_source": "page_request_failed",
+        }
 
 
 def fill_price_fallback(source_caption, product_details):
