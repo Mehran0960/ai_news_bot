@@ -328,6 +328,20 @@ def _api_product_url(obj):
     return ""
 
 
+def api_search_product_urls(payload):
+    """Collect only explicit, validated Digikala product URLs from search results."""
+    found = []
+    for obj in _walk_dicts(payload):
+        if not isinstance(obj, dict):
+            continue
+        candidate = _api_product_url(obj)
+        if candidate and candidate not in found:
+            found.append(candidate)
+        if len(found) >= MAX_PER_QUERY:
+            break
+    return found
+
+
 def _search_api_sample(payload):
     sample = []
     for obj in _walk_dicts(payload):
