@@ -557,7 +557,9 @@ class DayanRelayTests(unittest.TestCase):
     def test_product_page_direct_video_source_is_extracted(self):
         html = """
         <html><head><title>Product</title></head><body>
-          <video controls><source src="/media/item-demo.mp4" type="video/mp4"></video>
+          <div class="product-gallery">
+            <video controls><source src="/media/item-demo.mp4" type="video/mp4"></video>
+          </div>
         </body></html>
         """
         self.assertEqual(
@@ -568,12 +570,12 @@ class DayanRelayTests(unittest.TestCase):
     def test_product_page_video_from_same_site_cdn_is_allowed(self):
         html = """
         <html><head>
-          <meta property="og:video" content="https://cdn.example.com/assets/item.mp4">
+          <meta property="og:video" content="https://cdn.example.com/assets/12345-demo.mp4">
         </head></html>
         """
         self.assertEqual(
             extract_product_video_url(html, "https://shop.example.com/fastcart/12345"),
-            "https://cdn.example.com/assets/item.mp4",
+            "https://cdn.example.com/assets/12345-demo.mp4",
         )
 
     def test_unrelated_product_video_host_is_rejected(self):
@@ -592,6 +594,20 @@ class DayanRelayTests(unittest.TestCase):
                 "https://shop.example.com/fastcart/12345",
                 explicit_video_source=False,
             )
+        )
+
+
+    def test_generic_hero_video_is_not_mistaken_for_a_product_demo(self):
+        html = """
+        <html><body>
+          <header class="hero-banner">
+            <video autoplay><source src="/assets/brand-promo.mp4" type="video/mp4"></video>
+          </header>
+          <h1>هدفون بی‌سیم</h1>
+        </body></html>
+        """
+        self.assertIsNone(
+            extract_product_video_url(html, "https://shop.example.com/fastcart/12345")
         )
 
 
