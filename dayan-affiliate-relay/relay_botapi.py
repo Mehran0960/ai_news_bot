@@ -35,8 +35,8 @@ MAX_QUEUE_ITEMS = 500
 MAX_SENT_IDS = 2000
 MAX_VIDEO_BYTES = 49 * 1024 * 1024
 MAX_PHOTO_BYTES = 9 * 1024 * 1024
-MAX_POLL_PAGES = 28
-MAX_ARCHIVE_POSTS = 500
+MAX_POLL_PAGES = 56
+MAX_ARCHIVE_POSTS = 1000
 MAX_PRICE_CHECK_CANDIDATES_PER_RUN = 12
 PRICE_CHECK_VERSION = 5
 HTTP_TIMEOUT = 25
@@ -68,6 +68,30 @@ def ensure_price_check_version(state):
         state["price_rejected_product_codes"] = []
         state["price_check_version"] = PRICE_CHECK_VERSION
         print(f"Price verifier upgraded to v{PRICE_CHECK_VERSION}; prior OCR exclusions cleared for recheck.")
+    return state
+
+
+def ensure_video_cycle_history(state):
+    """Seed the first rotation cycle with media already published by the old relay."""
+    if state.get("video_cycle_initialized"):
+        return state
+    seen_ids = list(state.get("video_cycle_seen_source_ids", []))
+    seen_ids.extend(state.get("sent_source_ids", []))
+    seen_codes = list(state.get("video_cycle_seen_product_codes", []))
+    seen_codes.extend(state.get("sent_product_codes", []))
+    state["video_cycle_seen_source_ids"] = list(dict.fromkeys(
+        int(value) for value in seen_ids
+    ))[-MAX_SENT_IDS:]
+    state["video_cycle_seen_product_codes"] = list(dict.fromkeys(
+        str(value) for value in seen_codes
+    ))[-MAX_SENT_IDS:]
+    state.setdefault("video_cycle_number", 1)
+    state["video_cycle_initialized"] = True
+    print(
+        f"Video-cycle history initialized from prior relay records: "
+        f"{len(state['video_cycle_seen_source_ids'])} source IDs and "
+        f"{len(state['video_cycle_seen_product_codes'])} product codes already visited."
+    )
     return state
 
 
@@ -2029,7 +2053,7 @@ def fetch_posts_since(last_seen_id, max_pages=MAX_POLL_PAGES):
 
 
 def fetch_recent_archive(max_pages=MAX_POLL_PAGES, max_posts=MAX_ARCHIVE_POSTS):
-    """Fetch at most the newest 500 posts from the public archive."""
+    """Fetch a wide, bounded window of recent public-channel archive posts."""
     page = fetch_preview()
     collected = {int(item["source_message_id"]): item for item in page}
     pages = 1
@@ -2321,6 +2345,7 @@ def publish_best_archive_post():
         "published_slots": [], "sent_source_ids": [], "sent_product_codes": []
     })
     state = ensure_price_check_version(state)
+    state = ensure_video_cycle_history(state)
     overrides = read_json(OVERRIDES_FILE, {})
     now = datetime.now(TIMEZONE)
     archive_posts = fetch_recent_archive(max_pages=MAX_POLL_PAGES)
