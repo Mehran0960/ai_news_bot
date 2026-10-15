@@ -1,5 +1,5 @@
 name: Dayan Affiliate Relay (live)
-# v3 OCR price verification adds image enhancement and compact-price parsing; unsafe candidates are skipped.
+# v3 OCR price verification checks up to 20 ranked candidates per half-hour slot; unsafe candidates are skipped.
 
 on:
   schedule:
