@@ -181,6 +181,25 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertGreater(high["demand_score"], low["demand_score"])
         self.assertEqual(high["discount_percent"], 20)
 
+    def test_high_review_volume_can_outweigh_price_band_for_demand_ranking(self):
+        broad_demand = score_product({
+            "title": "پاوربانک 20000",
+            "current_price": 3_300_000,
+            "original_price": 4_700_000,
+            "rating": 4.2,
+            "review_count": 21_821,
+            "image_url": "https://example.com/image.jpg",
+        })
+        lower_volume = score_product({
+            "title": "پاوربانک 20000 مدل اقتصادی",
+            "current_price": 3_300_000,
+            "original_price": 4_700_000,
+            "rating": 4.2,
+            "review_count": 280,
+            "image_url": "https://example.com/image.jpg",
+        })
+        self.assertGreater(broad_demand["demand_score"], lower_volume["demand_score"])
+
     def test_publish_requires_stock_price_image_and_https_affiliate_link(self):
         base = {
             "availability": "in_stock",
