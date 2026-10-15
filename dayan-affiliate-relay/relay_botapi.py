@@ -320,7 +320,6 @@ def compare_image_prices_to_product(image_text, product_details):
     """Compare detected creative prices to current/original prices from the live product page."""
     text = normalize_digits(image_text or "")
     image_prices = extract_image_price_values(text)
-    has_price_cues = bool(IMAGE_PRICE_CUE_RE.search(text))
     page_prices = sorted({
         amount for amount in (
             _price_to_integer((product_details or {}).get("discounted_price")),
@@ -1638,7 +1637,7 @@ def main():
     })
     overrides = read_json(OVERRIDES_FILE, {})
     now = datetime.now(TIMEZONE)
-    # On every hourly run, re-rank the accessible archive, not just new source IDs.
+    # On every scheduled run, re-rank the accessible archive, not just new source IDs.
     # The first run still establishes a baseline and never backfills old content by surprise.
     if state.get("initialized"):
         posts = fetch_recent_archive(max_pages=MAX_POLL_PAGES)
