@@ -701,6 +701,7 @@ def select_next_price_verified_candidate(queue, overrides, sent_product_codes, s
     """Try every eligible video before any photo; crop price text off photo fallbacks."""
     rejected_ids = {int(value) for value in state.get("price_rejected_source_ids", [])}
     rejected_codes = {str(value) for value in state.get("price_rejected_product_codes", [])}
+    stock_skipped_codes = set()
     checks_this_run = 0
 
     while True:
@@ -723,7 +724,10 @@ def select_next_price_verified_candidate(queue, overrides, sent_product_codes, s
             source_id = int(item.get("source_message_id", 0) or 0)
             product_ref = resolve_product_ref(item, overrides)
             code = str(product_ref.get("code")) if product_ref else ""
-            if source_id in rejected_ids or code in rejected_codes:
+            if source_id in rejected_ids or code in rejected_codes or code in stock_skipped_codes:
+                continue
+            if code and availability_cache_is_blocked(state, code):
+                stock_skipped_codes.add(code)
                 continue
             eligible.append(item)
 
@@ -745,6 +749,29 @@ def select_next_price_verified_candidate(queue, overrides, sent_product_codes, s
         sanitized_photo_path = None
         try:
             product_details = fetch_product_details(affiliate_url)
+            availability_status = product_details.get("availability_status", "unknown")
+            stock_cache = state.setdefault("product_availability_cache", {})
+            stock_cache[str(product_ref["code"])] = {
+                "status": availability_status,
+                "source": product_details.get("availability_source", "unknown"),
+                "checked_at": datetime.now(TIMEZONE).isoformat(),
+            }
+            if len(stock_cache) > MAX_VIDEO_CATALOG_ITEMS:
+                state["product_availability_cache"] = dict(
+                    list(stock_cache.items())[-MAX_VIDEO_CATALOG_ITEMS:]
+                )
+            if availability_status != "in_stock":
+                stock_skipped_codes.add(str(product_ref["code"]))
+                print(
+                    f"Skipping source={chosen.get('source_message_id')} product_code={product_ref['code']}: "
+                    f"availability={availability_status}, source={product_details.get('availability_source', 'unknown')}; "
+                    "moving to the next highest-demand video."
+                )
+                continue
+            print(
+                f"Stock check passed source={chosen.get('source_message_id')} "
+                f"product_code={product_ref['code']} source={product_details.get('availability_source', 'unknown')}."
+            )
             media_type = chosen.get("media_type") or ("video" if chosen.get("video_url") else "photo")
             if media_type == "video":
                 # Automated relay media must come from the established Dayan source channel.
