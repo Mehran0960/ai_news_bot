@@ -28,6 +28,7 @@ from relay_botapi import (
     PUBLISH_SLOTS,
     SLOT_GRACE_MINUTES,
     ensure_price_check_version,
+    MAX_PRICE_CHECK_CANDIDATES_PER_RUN,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -479,6 +480,10 @@ class DayanRelayTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertEqual(result["status"], "mismatch")
         self.assertEqual(result["mismatched_prices"], [1419000])
+
+
+    def test_each_slot_can_check_enough_candidates_to_find_a_valid_post(self):
+        self.assertEqual(MAX_PRICE_CHECK_CANDIDATES_PER_RUN, 20)
 
 
 if __name__ == "__main__":
