@@ -10,6 +10,8 @@ from relay_botapi import (
     resolve_product_ref,
     clean_caption,
     extract_product_details,
+    extract_product_availability,
+    availability_cache_is_blocked,
     build_caption,
     CHANNEL_FOLLOW_HTML,
     photo_url_from_node,
@@ -354,6 +356,107 @@ class DayanRelayTests(unittest.TestCase):
         self.assertEqual(ranked[0]["source_message_id"], 120)
         self.assertEqual(ranked[0]["media_type"], "video")
 
+    def test_stock_parser_reads_schema_org_out_of_stock(self):
+        html = """
+        <h1>محصول آزمایشی</h1>
+        <script type="application/ld+json">
+        {"@type":"Product","name":"محصول آزمایشی","offers":{"@type":"Offer","availability":"https://schema.org/OutOfStock","price":"1000000"}}
+        </script>
+        """
+        self.assertEqual(
+            extract_product_availability(html),
+            {"status": "out_of_stock", "source": "schema.org"},
+        )
+
+    def test_stock_parser_reads_schema_org_in_stock(self):
+        html = """
+        <h1>محصول آزمایشی</h1>
+        <script type="application/ld+json">
+        {"@type":"Product","name":"محصول آزمایشی","offers":{"@type":"Offer","availability":"https://schema.org/InStock","price":"1000000"}}
+        </script>
+        """
+        self.assertEqual(
+            extract_product_availability(html),
+            {"status": "in_stock", "source": "schema.org"},
+        )
+
+    def test_stock_parser_reads_persian_product_status(self):
+        html = '<div class="product-detail"><h1>چراغ اضطراری</h1><span class="stock-status">اتمام موجودی</span></div>'
+        self.assertEqual(extract_product_availability(html)["status"], "out_of_stock")
+        html_in = '<div class="product-detail"><h1>چراغ اضطراری</h1><span class="stock-status">موجود در انبار</span></div>'
+        self.assertEqual(extract_product_availability(html_in)["status"], "in_stock")
+
+    def test_stock_parser_fails_closed_when_page_has_no_stock_signal(self):
+        self.assertEqual(
+            extract_product_availability("<h1>هدفون بی‌سیم</h1><p>قیمت ۱,۰۰۰,۰۰۰ تومان</p>")["status"],
+            "unknown",
+        )
+        self.assertEqual(extract_product_availability("")["status"], "unknown")
+
+    def test_stock_cache_expires_for_out_of_stock_and_unknown(self):
+        from datetime import datetime, timedelta
+        from zoneinfo import ZoneInfo
+        now = datetime.fromisoformat("2026-10-15T12:00:00+03:30")
+        state = {"product_availability_cache": {
+            "1": {"status": "out_of_stock", "checked_at": now.isoformat()},
+            "2": {"status": "unknown", "checked_at": now.isoformat()},
+        }}
+        self.assertTrue(availability_cache_is_blocked(state, "1", now=now + timedelta(hours=5)))
+        self.assertFalse(availability_cache_is_blocked(state, "1", now=now + timedelta(hours=7)))
+        self.assertTrue(availability_cache_is_blocked(state, "2", now=now + timedelta(minutes=20)))
+        self.assertFalse(availability_cache_is_blocked(state, "2", now=now + timedelta(minutes=40)))
+
+    @patch("relay_botapi.check_source_media_prices")
+    @patch("relay_botapi.fetch_product_details")
+    def test_selector_skips_sold_out_high_demand_product_and_chooses_next_video(self, fetch_details, check_prices):
+        top = {
+            "source_message_id": 601, "media_type": "video", "video_url": "https://cdn4.telesco.pe/file/top.mp4",
+            "market_demand_score": 75, "popularity_score": 90,
+            "product_refs": [{"route": "lead", "code": "60101"}],
+        }
+        next_item = {
+            "source_message_id": 602, "media_type": "video", "video_url": "https://cdn4.telesco.pe/file/next.mp4",
+            "market_demand_score": 65, "popularity_score": 80,
+            "product_refs": [{"route": "lead", "code": "60202"}],
+        }
+        out_details = {"availability_status": "out_of_stock", "availability_source": "schema.org"}
+        in_details = {"availability_status": "in_stock", "availability_source": "schema.org", "discounted_price": "799,000 تومان"}
+        fetch_details.side_effect = [out_details, in_details]
+        check_prices.return_value = {"ok": True, "status": "no_price_detected", "image_prices": [], "page_prices": [799000]}
+        state = {}
+        chosen, ref, details, photo_path = select_next_price_verified_candidate(
+            [top, next_item], {}, set(), "https://shop.example.affdn.ir", state
+        )
+        self.assertEqual(chosen["source_message_id"], 602)
+        self.assertEqual(ref["code"], "60202")
+        self.assertEqual(details, in_details)
+        self.assertIsNone(photo_path)
+        self.assertEqual(state["product_availability_cache"]["60101"]["status"], "out_of_stock")
+        check_prices.assert_called_once_with(next_item, in_details)
+
+    @patch("relay_botapi.check_source_media_prices")
+    @patch("relay_botapi.fetch_product_details")
+    def test_selector_skips_unknown_stock_status_and_checks_next_video(self, fetch_details, check_prices):
+        top = {
+            "source_message_id": 611, "media_type": "video", "video_url": "https://cdn4.telesco.pe/file/top.mp4",
+            "market_demand_score": 75, "popularity_score": 90,
+            "product_refs": [{"route": "lead", "code": "61101"}],
+        }
+        next_item = {
+            "source_message_id": 612, "media_type": "video", "video_url": "https://cdn4.telesco.pe/file/next.mp4",
+            "market_demand_score": 65, "popularity_score": 80,
+            "product_refs": [{"route": "lead", "code": "61202"}],
+        }
+        fetch_details.side_effect = [
+            {"availability_status": "unknown", "availability_source": "no_reliable_stock_signal"},
+            {"availability_status": "in_stock", "availability_source": "schema.org"},
+        ]
+        check_prices.return_value = {"ok": True, "status": "no_price_detected", "image_prices": [], "page_prices": []}
+        chosen, ref, _, _ = select_next_price_verified_candidate([top, next_item], {}, set(), "https://shop.example.affdn.ir", {})
+        self.assertEqual(chosen["source_message_id"], 612)
+        self.assertEqual(ref["code"], "61202")
+        check_prices.assert_called_once_with(next_item, fetch_details.side_effect[1] if isinstance(fetch_details.side_effect, list) else {})
+
     def test_video_catalog_record_does_not_persist_temporary_cdn_url(self):
         item = {
             "source_message_id": 12345,
@@ -558,8 +661,8 @@ class DayanRelayTests(unittest.TestCase):
             "market_demand_score": 60, "popularity_score": 75,
             "product_refs": [{"route": "lead", "code": "22222"}],
         }
-        first_details = {"discounted_price": "1,499,000 تومان"}
-        second_details = {"discounted_price": "799,000 تومان"}
+        first_details = {"discounted_price": "1,499,000 تومان", "availability_status": "in_stock"}
+        second_details = {"discounted_price": "799,000 تومان", "availability_status": "in_stock"}
         fetch_details.side_effect = [first_details, second_details]
         check_prices.side_effect = [
             {"ok": False, "status": "mismatch", "image_prices": [1299000], "page_prices": [1499000]},
@@ -692,7 +795,7 @@ class DayanRelayTests(unittest.TestCase):
             "market_demand_score": 70, "popularity_score": 80,
             "product_refs": [{"route": "lead", "code": "76543"}],
         }
-        page_details = {"original_price": "900,000 تومان", "discounted_price": "700,000 تومان"}
+        page_details = {"original_price": "900,000 تومان", "discounted_price": "700,000 تومان", "availability_status": "in_stock"}
         fetch_details.return_value = page_details
         crop_photo.return_value = (
             "/tmp/verified-price-free-photo.jpg",
@@ -779,6 +882,7 @@ class DayanRelayTests(unittest.TestCase):
             "title": "محصول آزمایشی",
             "discounted_price": "799,000 تومان",
             "original_price": "999,000 تومان",
+            "availability_status": "in_stock",
             "video_url": "https://shop.example.affdn.ir/media/demo.mp4",
             "video_page_url": "https://shop.example.affdn.ir/lead/44441",
         }
@@ -811,6 +915,7 @@ class DayanRelayTests(unittest.TestCase):
             "title": "محصول آزمایشی",
             "discounted_price": "799,000 تومان",
             "original_price": "999,000 تومان",
+            "availability_status": "in_stock",
             "video_url": "https://shop.example.affdn.ir/media/stale-demo.mp4",
             "video_page_url": "https://shop.example.affdn.ir/lead/44442",
         }
