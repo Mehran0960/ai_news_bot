@@ -2,7 +2,7 @@ name: Dayan Affiliate Relay (live)
 
 on:
   schedule:
-    - cron: "30 * * * *"
+    - cron: "0,30 * * * *"
   workflow_dispatch:
   push:
     paths:
@@ -43,7 +43,7 @@ jobs:
         run: python -m pip install -r dayan-affiliate-relay/requirements.txt
 
       # Each cycle rescans up to 500 recent Dayan posts and fills the ranked queue.
-      - name: Poll archive, rank candidates, and publish if the hourly slot is due
+      - name: Poll archive, rank candidates, and publish if the half-hour slot is due
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           DAYAN_STORE_HOST: ${{ secrets.DAYAN_STORE_HOST }}
