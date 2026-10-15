@@ -329,12 +329,21 @@ def _api_product_url(obj):
 
 
 def api_search_product_urls(payload):
-    """Collect only explicit, validated Digikala product URLs from search results."""
+    """Read the product array only; never confuse filter/category IDs with product IDs."""
+    data = payload.get("data", {}) if isinstance(payload, dict) else {}
+    product_items = data.get("products", []) if isinstance(data, dict) else []
     found = []
-    for obj in _walk_dicts(payload):
+    for obj in product_items if isinstance(product_items, list) else []:
         if not isinstance(obj, dict):
             continue
+        title = obj.get("title_fa") or obj.get("product_title") or obj.get("title")
+        raw_id = obj.get("id") or obj.get("product_id")
+        product_shape = any(k in obj for k in ("default_variant", "variants", "images", "product_type", "status"))
+        if not title or not product_shape:
+            continue
         candidate = _api_product_url(obj)
+        if not candidate and (isinstance(raw_id, int) or (isinstance(raw_id, str) and raw_id.isdigit())):
+            candidate = safe_product_url(f"https://www.digikala.com/product/dkp-{int(raw_id)}/")
         if candidate and candidate not in found:
             found.append(candidate)
         if len(found) >= MAX_PER_QUERY:
@@ -361,7 +370,8 @@ def _search_api_sample(payload):
                 "status": obj.get("status"),
                 "variant_keys": list(variant.keys())[:22],
                 "images_shape": image_keys,
-                "url_parse": safe_product_url(urljoin("https://www.digikala.com/", obj.get("url") or "")),
+                "url_type": type(obj.get("url")).__name__,
+                "url_parse": safe_product_url(urljoin("https://www.digikala.com/", obj.get("url") if isinstance(obj.get("url"), str) else "")),
             })
         return out
     sample = []
