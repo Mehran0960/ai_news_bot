@@ -31,6 +31,7 @@ from relay_botapi import (
     MIN_PUBLISH_INTERVAL_MINUTES,
     publish_cooldown_remaining_seconds,
     ensure_price_check_version,
+    ensure_video_cycle_history,
     MAX_PRICE_CHECK_CANDIDATES_PER_RUN,
     best_price_safe_crop_box,
     extract_product_video_url,
@@ -571,6 +572,16 @@ class DayanRelayTests(unittest.TestCase):
         ensure_price_check_version(state)
         self.assertEqual(state["price_rejected_source_ids"], [777])
 
+
+    def test_video_cycle_initialization_seeds_prior_publications_once(self):
+        state = {"sent_source_ids": [21292, 21566], "sent_product_codes": ["51366", "48486"]}
+        ensure_video_cycle_history(state)
+        self.assertEqual(state["video_cycle_seen_source_ids"], [21292, 21566])
+        self.assertEqual(state["video_cycle_seen_product_codes"], ["51366", "48486"])
+        self.assertTrue(state["video_cycle_initialized"])
+        state["sent_source_ids"].append(88888)
+        ensure_video_cycle_history(state)
+        self.assertNotIn(88888, state["video_cycle_seen_source_ids"])
 
     def test_compact_image_price_mismatch_is_rejected(self):
         result = compare_image_prices_to_product(
