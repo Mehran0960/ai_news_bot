@@ -743,7 +743,9 @@ def score_product(p: dict) -> dict:
         elif rating < 3.0:
             score -= 5
     reviews = max(0, int(p.get("review_count") or 0))
-    score += min(20, round(3.5 * math.log1p(reviews)))
+    # Reviews are an observable demand proxy; preserve more separation between
+    # products with hundreds versus tens of thousands of reviews.
+    score += min(30, round(3.5 * math.log1p(reviews)))
     if p.get("image_url"):
         score += 4
     # Intentional penalty for missing price/data rather than rewarding unknowns.
