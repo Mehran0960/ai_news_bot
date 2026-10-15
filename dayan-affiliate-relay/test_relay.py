@@ -27,6 +27,7 @@ from relay_botapi import (
     select_next_price_verified_candidate,
     PUBLISH_SLOTS,
     SLOT_GRACE_MINUTES,
+    ensure_price_check_version,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -443,6 +444,31 @@ class DayanRelayTests(unittest.TestCase):
             [f"{hour:02d}:{minute:02d}" for hour in range(24) for minute in (0, 30)],
         )
         self.assertEqual(SLOT_GRACE_MINUTES, 25)
+
+
+    def test_image_price_extraction_recognizes_compact_thousand_prices(self):
+        self.assertEqual(
+            extract_image_price_values("قیمت تخفیفی ۱,۴۱۹"),
+            [1419000],
+        )
+        self.assertEqual(
+            extract_image_price_values("قیمت ویژه ۲۹ هزار تومان"),
+            [29000],
+        )
+
+    def test_price_verifier_upgrade_clears_old_ocr_rejections_once(self):
+        state = {
+            "price_check_version": 1,
+            "price_rejected_source_ids": [21268, 21574],
+            "price_rejected_product_codes": ["50436", "43765"],
+        }
+        ensure_price_check_version(state)
+        self.assertEqual(state["price_check_version"], 2)
+        self.assertEqual(state["price_rejected_source_ids"], [])
+        self.assertEqual(state["price_rejected_product_codes"], [])
+        state["price_rejected_source_ids"] = [777]
+        ensure_price_check_version(state)
+        self.assertEqual(state["price_rejected_source_ids"], [777])
 
 
 if __name__ == "__main__":
