@@ -29,6 +29,7 @@ from relay_botapi import (
     SLOT_GRACE_MINUTES,
     ensure_price_check_version,
     MAX_PRICE_CHECK_CANDIDATES_PER_RUN,
+    best_price_safe_crop_box,
 )
 
 class DayanRelayTests(unittest.TestCase):
@@ -245,16 +246,16 @@ class DayanRelayTests(unittest.TestCase):
         self.assertGreater(high_views["score"], low_views["score"])
         self.assertGreater(high_views["market_demand_score"], low_views["market_demand_score"])
 
-    def test_market_demand_beats_video_format(self):
+    def test_video_is_absolute_priority_even_if_demand_score_is_lower(self):
         photo = {"source_message_id": 100, "media_type": "photo", "popularity_score": 74,
                  "market_demand_score": 70,
                  "product_refs": [{"route": "lead", "code": "11111"}]}
-        video = {"source_message_id": 101, "media_type": "video", "popularity_score": 95,
-                 "market_demand_score": 42,
+        video = {"source_message_id": 101, "media_type": "video", "popularity_score": 45,
+                 "market_demand_score": 12,
                  "product_refs": [{"route": "lead", "code": "22222"}]}
-        chosen, product_ref = select_next_candidate([video, photo], {})
-        self.assertEqual(chosen["source_message_id"], 100)
-        self.assertEqual(product_ref["code"], "11111")
+        chosen, product_ref = select_next_candidate([photo, video], {})
+        self.assertEqual(chosen["source_message_id"], 101)
+        self.assertEqual(product_ref["code"], "22222")
 
     def test_video_wins_when_market_demand_ties_even_if_total_score_is_lower(self):
         photo = {"source_message_id": 110, "media_type": "photo", "popularity_score": 88,
@@ -295,7 +296,7 @@ class DayanRelayTests(unittest.TestCase):
         self.assertEqual(chosen["source_message_id"], 100)
 
 
-    def test_archive_candidate_ranking_prioritizes_market_demand_over_video(self):
+    def test_archive_candidate_ranking_prioritizes_video_over_demand_score(self):
         now = __import__("datetime").datetime.fromisoformat("2026-10-15T12:00:00+00:00")
         posts = [
             {
@@ -317,9 +318,9 @@ class DayanRelayTests(unittest.TestCase):
         ]
         ranked = rank_archive_candidates(posts, {}, now=now)
         chosen, product_ref = select_next_candidate(ranked, {})
-        self.assertEqual(chosen["source_message_id"], 100)
-        self.assertEqual(chosen["media_type"], "photo")
-        self.assertEqual(product_ref["code"], "11111")
+        self.assertEqual(chosen["source_message_id"], 101)
+        self.assertEqual(chosen["media_type"], "video")
+        self.assertEqual(product_ref["code"], "22222")
 
     def test_archive_candidate_ranking_deduplicates_product_and_uses_freshest_post(self):
         posts = [
@@ -407,14 +408,14 @@ class DayanRelayTests(unittest.TestCase):
 
     @patch("relay_botapi.check_source_media_prices")
     @patch("relay_botapi.fetch_product_details")
-    def test_price_rejection_skips_first_candidate_and_selects_next(self, fetch_details, check_prices):
+    def test_price_rejection_skips_first_video_and_selects_next_video(self, fetch_details, check_prices):
         top = {
-            "source_message_id": 201, "media_type": "photo",
+            "source_message_id": 201, "media_type": "video",
             "market_demand_score": 70, "popularity_score": 85,
             "product_refs": [{"route": "lead", "code": "11111"}],
         }
         next_item = {
-            "source_message_id": 202, "media_type": "photo",
+            "source_message_id": 202, "media_type": "video",
             "market_demand_score": 60, "popularity_score": 75,
             "product_refs": [{"route": "lead", "code": "22222"}],
         }
@@ -427,14 +428,15 @@ class DayanRelayTests(unittest.TestCase):
         ]
         queue = [top, next_item]
         state = {}
-        chosen, ref, details = select_next_price_verified_candidate(
+        chosen, ref, details, safe_photo_path = select_next_price_verified_candidate(
             queue, {}, set(), "https://shop.example.affdn.ir", state
         )
         self.assertEqual(chosen["source_message_id"], 202)
         self.assertEqual(ref["code"], "22222")
         self.assertEqual(details, second_details)
+        self.assertIsNone(safe_photo_path)
         self.assertEqual(state["price_rejected_source_ids"], [201])
-        self.assertEqual(state["price_rejected_product_codes"], ["11111"])
+        self.assertEqual(state["price_rejected_product_codes"], [])
         self.assertNotIn(top, queue)
 
 
@@ -459,12 +461,12 @@ class DayanRelayTests(unittest.TestCase):
 
     def test_price_verifier_upgrade_clears_old_ocr_rejections_once(self):
         state = {
-            "price_check_version": 2,
+            "price_check_version": 3,
             "price_rejected_source_ids": [21268, 21574],
             "price_rejected_product_codes": ["50436", "43765"],
         }
         ensure_price_check_version(state)
-        self.assertEqual(state["price_check_version"], 3)
+        self.assertEqual(state["price_check_version"], 4)
         self.assertEqual(state["price_rejected_source_ids"], [])
         self.assertEqual(state["price_rejected_product_codes"], [])
         state["price_rejected_source_ids"] = [777]
@@ -484,6 +486,70 @@ class DayanRelayTests(unittest.TestCase):
 
     def test_each_slot_can_check_enough_candidates_to_find_a_valid_post(self):
         self.assertEqual(MAX_PRICE_CHECK_CANDIDATES_PER_RUN, 20)
+
+
+    def test_video_wins_same_product_even_when_photo_is_newer(self):
+        posts = [
+            {
+                "source_message_id": 250,
+                "source_caption": "کالای کاربردی",
+                "product_refs": [{"route": "lead", "code": "67890"}],
+                "video_url": "https://cdn4.telesco.pe/file/product-video.mp4",
+                "source_date": "2026-10-14T10:00:00+00:00",
+            },
+            {
+                "source_message_id": 300,
+                "source_caption": "کالای کاربردی",
+                "product_refs": [{"route": "lead", "code": "67890"}],
+                "photo_url": "https://cdn4.telesco.pe/file/product-photo.jpg",
+                "source_date": "2026-10-15T10:00:00+00:00",
+            },
+        ]
+        ranked = rank_archive_candidates(posts, {})
+        self.assertEqual(len(ranked), 1)
+        self.assertEqual(ranked[0]["source_message_id"], 250)
+        self.assertEqual(ranked[0]["media_type"], "video")
+
+    def test_best_price_safe_crop_box_removes_bottom_price_strip(self):
+        crop = best_price_safe_crop_box(
+            1000, 1000, [(40, 800, 960, 960)], min_area_ratio=0.58
+        )
+        self.assertIsNotNone(crop)
+        left, top, right, bottom = crop
+        self.assertGreaterEqual(left, 0)
+        self.assertLessEqual(right, 1000)
+        self.assertLessEqual(bottom, 800)
+        self.assertGreaterEqual((right-left)*(bottom-top), 580000)
+
+    def test_best_price_safe_crop_returns_none_when_no_crop_preserves_enough_image(self):
+        crop = best_price_safe_crop_box(
+            1000, 1000, [(300, 300, 700, 700)], min_area_ratio=0.58
+        )
+        self.assertIsNone(crop)
+
+    @patch("relay_botapi.prepare_price_cropped_photo")
+    @patch("relay_botapi.fetch_product_details")
+    def test_photo_candidate_is_only_selected_after_price_area_is_removed(self, fetch_details, crop_photo):
+        photo = {
+            "source_message_id": 350, "media_type": "photo",
+            "market_demand_score": 70, "popularity_score": 80,
+            "product_refs": [{"route": "lead", "code": "76543"}],
+        }
+        page_details = {"original_price": "900,000 تومان", "discounted_price": "700,000 تومان"}
+        fetch_details.return_value = page_details
+        crop_photo.return_value = (
+            "/tmp/verified-price-free-photo.jpg",
+            {"ok": True, "status": "price_removed", "image_prices": [650000], "page_prices": [700000, 900000], "crop_method": "cropped"},
+        )
+        chosen, ref, details, path = select_next_price_verified_candidate(
+            [photo], {}, set(), "https://shop.example.affdn.ir", {}
+        )
+        self.assertEqual(chosen["source_message_id"], 350)
+        self.assertEqual(ref["code"], "76543")
+        self.assertEqual(details, page_details)
+        self.assertEqual(path, "/tmp/verified-price-free-photo.jpg")
+        crop_photo.assert_called_once_with(photo, page_details)
+
 
 
 if __name__ == "__main__":
