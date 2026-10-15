@@ -1,5 +1,5 @@
 name: Dayan Affiliate Relay (live)
-# v4.9: manual live acceptance run to verify stock-first candidate selection and price-safe publication.
+# v5.0: push-triggered live stock-markup diagnostic (no post); scheduled runs keep stock/price checks.
 
 on:
   schedule:
@@ -43,8 +43,18 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r dayan-affiliate-relay/requirements.txt
 
-      # Poll every 15 minutes for schedule resilience; publication remains one video per 30-minute slot.
+      # A push to this workflow is a safe live product-page diagnostic; it never posts.
+      - name: Inspect real product stock markup (diagnostic only; no publishing)
+        if: github.event_name == 'push'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          DAYAN_STORE_HOST: ${{ secrets.DAYAN_STORE_HOST }}
+          PYTHONUNBUFFERED: "1"
+        run: python dayan-affiliate-relay/relay_botapi.py --debug-stock-page fastcart:45638
+
+      # Scheduled and manually dispatched runs perform the real stock/price-verified relay.
       - name: Rescan the accessible Dayan video archive and publish the highest-demand verified video
+        if: github.event_name != 'push'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           DAYAN_STORE_HOST: ${{ secrets.DAYAN_STORE_HOST }}
