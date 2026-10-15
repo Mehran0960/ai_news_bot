@@ -447,15 +447,16 @@ class DayanRelayTests(unittest.TestCase):
             "market_demand_score": 65, "popularity_score": 80,
             "product_refs": [{"route": "lead", "code": "61202"}],
         }
+        in_details = {"availability_status": "in_stock", "availability_source": "schema.org"}
         fetch_details.side_effect = [
             {"availability_status": "unknown", "availability_source": "no_reliable_stock_signal"},
-            {"availability_status": "in_stock", "availability_source": "schema.org"},
+            in_details,
         ]
         check_prices.return_value = {"ok": True, "status": "no_price_detected", "image_prices": [], "page_prices": []}
         chosen, ref, _, _ = select_next_price_verified_candidate([top, next_item], {}, set(), "https://shop.example.affdn.ir", {})
         self.assertEqual(chosen["source_message_id"], 612)
         self.assertEqual(ref["code"], "61202")
-        check_prices.assert_called_once_with(next_item, fetch_details.side_effect[1] if isinstance(fetch_details.side_effect, list) else {})
+        check_prices.assert_called_once_with(next_item, in_details)
 
     def test_video_catalog_record_does_not_persist_temporary_cdn_url(self):
         item = {
