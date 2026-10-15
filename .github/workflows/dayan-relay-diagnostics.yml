@@ -172,9 +172,54 @@ jobs:
                   print("RELEVANT_SCRIPT " + script)
               print(f"RELEVANT_SCRIPT_COUNT={len(relevant_scripts)}")
 
-              for token in ("videoUrl", "video_url", "productVideo", "video_src", "mediaUrl", "media_url", "m3u8", "mp4", "data-video", "contentUrl", "product-gallery", "product-media"):
+              for token in ("videoUrl", "video_url", "productVideo", "video_src", "mediaUrl", "media_url", "m3u8", "mp4", "data-video", "contentUrl", "product-gallery", "product-media", "/api/"):
                   count = normalized.lower().count(token.lower())
                   if count:
                       print(f"HTML_TOKEN {token}={count}")
+
+              # Next.js can load the actual product component and media API from JS bundles.
+              js_urls = []
+              for script in soup.select("script[src]"):
+                  value = urljoin(response.url, script.get("src", ""))
+                  sp = urlparse(value)
+                  if sp.scheme == "https" and sp.hostname == final.hostname and sp.path.endswith(".js") and value not in js_urls:
+                      js_urls.append(value)
+              print(f"JS_BUNDLE_TOTAL={len(js_urls)}")
+              for js_url in js_urls[:50]:
+                  try:
+                      js_response = session.get(js_url, timeout=(6, 15))
+                      if js_response.status_code != 200:
+                          continue
+                      js_text = js_response.text or ""
+                  except Exception:
+                      continue
+                  lower_js = js_text.lower()
+                  counts = {key: lower_js.count(key) for key in ("video", "mp4", "m3u8", "media", "gallery", "/api/", "graphql")}
+                  if not any(counts.values()):
+                      continue
+                  jp = urlparse(js_url)
+                  print("JS_BUNDLE " + json.dumps({
+                      "path": jp.path,
+                      "bytes": len(js_text),
+                      "tokens": {key: value for key, value in counts.items() if value},
+                  }, ensure_ascii=False))
+                  # Report only path-like constants related to product/media endpoints; strip query strings.
+                  route_strings = []
+                  for raw in re.findall(r"""['"`]((?:https?:\\/\\/|/)[^'"`\\s]{1,240})['"`]""", js_text):
+                      candidate = raw.replace(r"\\/", "/")
+                      if not re.search(r"api|graphql|video|media|gallery|product|asset|stream|player", candidate, re.I):
+                          continue
+                      cleaned = safe_ref(candidate, response.url)
+                      if cleaned and cleaned not in route_strings:
+                          route_strings.append(cleaned)
+                  for route_string in route_strings[:12]:
+                      print("JS_ROUTE " + route_string)
+                  # Also reveal field-name clues without dumping bundle contents.
+                  field_names = []
+                  for raw in re.findall(r"""['"`]([A-Za-z_$][A-Za-z0-9_$-]{1,60})['"`]""", js_text):
+                      if re.search(r"video|media|gallery|stream|contentUrl|playback|sourceUrl", raw, re.I) and raw not in field_names:
+                          field_names.append(raw)
+                  if field_names:
+                      print("JS_MEDIA_FIELDS " + ", ".join(field_names[:30]))
           print("\nEND OF READ-ONLY PROBE. No Telegram post was attempted.")
           PY
