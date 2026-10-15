@@ -2083,6 +2083,99 @@ def inspect_product_page(route_and_code):
         sys.exit(4)
 
 
+def run_test_product_page_video(route_and_code):
+    """One-off live test: publish only a verified video extracted from this product's own page."""
+    match = re.fullmatch(r"(lead|fastcart):(\d{4,8})", route_and_code.strip().lower())
+    if not match:
+        raise RuntimeError("Usage: relay_botapi.py --test-product-video <lead|fastcart>:<product_code>")
+
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    if not bot_token:
+        raise RuntimeError("Missing GitHub Actions secret TELEGRAM_BOT_TOKEN.")
+    store_base = normalize_store_host(os.getenv("DAYAN_STORE_HOST", "").strip())
+
+    requested_route, code = match.groups()
+    affiliate_url = make_affiliate_url(store_base, {"route": requested_route, "code": code})
+    alternate_route = "lead" if requested_route == "fastcart" else "fastcart"
+    inspected = []
+
+    # The two Dayan routes can expose different page markup. Probe both, but
+    # retain the requested route for the purchase button/affiliate tracking.
+    for candidate_route in (requested_route, alternate_route):
+        candidate_url = make_affiliate_url(store_base, {"route": candidate_route, "code": code})
+        try:
+            details = fetch_product_details(candidate_url)
+            inspected.append((candidate_route, details))
+            print(
+                f"Product-page probe route={candidate_route}: "
+                f"title={'yes' if details.get('title') and not is_generic_store_title(details.get('title')) else 'no'}, "
+                f"current_price={'yes' if details.get('discounted_price') or details.get('original_price') else 'no'}, "
+                f"video={'yes' if details.get('video_url') else 'no'}."
+            )
+        except Exception as exc:
+            print(f"Product-page probe route={candidate_route} unavailable ({type(exc).__name__}).")
+
+    video_candidates = [
+        (candidate_route, details)
+        for candidate_route, details in inspected
+        if details.get("video_url") and details.get("video_page_url")
+    ]
+    if not video_candidates:
+        raise RuntimeError(
+            f"No product-specific direct video was found on either route for product {code}; nothing was published."
+        )
+
+    # Prefer the requested route if its own page has the video.
+    video_route, video_details = next(
+        (pair for pair in video_candidates if pair[0] == requested_route),
+        video_candidates[0],
+    )
+    product_details = dict(video_details)
+    for _, other_details in inspected:
+        if (
+            (not product_details.get("title") or is_generic_store_title(product_details.get("title")))
+            and other_details.get("title")
+            and not is_generic_store_title(other_details.get("title"))
+        ):
+            product_details["title"] = other_details["title"]
+        for price_key in ("original_price", "discounted_price"):
+            if not product_details.get(price_key) and other_details.get(price_key):
+                product_details[price_key] = other_details[price_key]
+
+    if not product_details.get("title") or is_generic_store_title(product_details.get("title")):
+        raise RuntimeError(f"Product {code} has no reliable product title on its pages; nothing was published.")
+    if not (product_details.get("discounted_price") or product_details.get("original_price")):
+        raise RuntimeError(f"Product {code} has no live price on its pages; nothing was published.")
+
+    item = {
+        "source_message_id": int(code),
+        "source_url": affiliate_url,
+        "source_caption": "",
+        "product_video_url": product_details["video_url"],
+    }
+    price_check = check_source_media_prices(item, product_details)
+    print(
+        f"Product-page video verification: status={price_check.get('status')}, "
+        f"image_prices={price_check.get('image_prices', [])}, "
+        f"page_prices={price_check.get('page_prices', [])}."
+    )
+    if not price_check.get("ok"):
+        raise RuntimeError(
+            f"Refusing product-page video for product {code}: "
+            f"price verification failed ({price_check.get('status')}); nothing was published."
+        )
+
+    destination_message_id = send_video(
+        bot_token, item, affiliate_url, product_details=product_details
+    )
+    print(
+        f"TEST PRODUCT-PAGE VIDEO SENT target={TARGET_CHANNEL} "
+        f"destination_message_id={destination_message_id} media=video "
+        f"media_source=product_page requested_route={requested_route} "
+        f"video_route={video_route} product_code={code}"
+    )
+
+
 def edit_existing_caption(source_message_id, destination_message_id):
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     if not bot_token:
@@ -2269,6 +2362,13 @@ def main():
         if index + 1 >= len(sys.argv):
             raise RuntimeError("Usage: relay_botapi.py --inspect-product <lead|fastcart>:<product_code>")
         inspect_product_page(sys.argv[index + 1])
+        return
+
+    if "--test-product-video" in sys.argv:
+        index = sys.argv.index("--test-product-video")
+        if index + 1 >= len(sys.argv):
+            raise RuntimeError("Usage: relay_botapi.py --test-product-video <lead|fastcart>:<product_code>")
+        run_test_product_page_video(sys.argv[index + 1])
         return
 
     if "--test-post" in sys.argv:
