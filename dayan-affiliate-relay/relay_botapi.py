@@ -33,7 +33,7 @@ MAX_PHOTO_BYTES = 9 * 1024 * 1024
 MAX_POLL_PAGES = 28
 MAX_ARCHIVE_POSTS = 500
 MAX_PRICE_CHECK_CANDIDATES_PER_RUN = 8
-PRICE_CHECK_VERSION = 2
+PRICE_CHECK_VERSION = 3
 HTTP_TIMEOUT = 25
 
 DIGIT_TRANSLATION = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
@@ -1143,23 +1143,54 @@ def refresh_photo_url(source_message_id):
 
 
 def _run_tesseract(image_path):
-    """Run two OCR layouts so stylized price overlays are less likely to be missed."""
+    """OCR the original and a contrast-enhanced/upscaled variant in multiple layouts."""
     texts = []
     errors = []
-    for psm in ("11", "6"):
+
+    def run_layouts(path, layouts):
+        output = []
+        for psm in layouts:
+            try:
+                result = subprocess.run(
+                    ["tesseract", str(path), "stdout", "-l", "fas+eng", "--psm", psm],
+                    capture_output=True, text=True, timeout=25, check=False,
+                )
+            except (OSError, subprocess.TimeoutExpired) as exc:
+                errors.append(type(exc).__name__)
+                continue
+            if result.returncode == 0 and result.stdout and result.stdout.strip():
+                output.append(result.stdout)
+        return "\n".join(output)
+
+    original_text = run_layouts(image_path, ("11", "6"))
+    if original_text:
+        texts.append(original_text)
+
+    # Dayan creatives often use small, low-contrast price overlays. Enhance only
+    # after the original OCR, so ordinary images don't pay for unnecessary work.
+    source_path = Path(image_path)
+    enhanced_path = source_path.with_name(source_path.stem + "-ocr-enhanced.png")
+    try:
         try:
             result = subprocess.run(
-                ["tesseract", str(image_path), "stdout", "-l", "fas+eng", "--psm", psm],
-                capture_output=True, text=True, timeout=25, check=False,
+                [
+                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                    "-i", str(source_path),
+                    "-vf", "scale=iw*2:ih*2:flags=lanczos,format=gray,eq=contrast=1.4:brightness=0.02,unsharp=5:5:1.0:5:5:0.0",
+                    "-frames:v", "1", str(enhanced_path),
+                ],
+                capture_output=True, text=True, timeout=30, check=False,
             )
+            if result.returncode == 0 and enhanced_path.exists() and enhanced_path.stat().st_size > 512:
+                enhanced_text = run_layouts(enhanced_path, ("11", "6"))
+                if enhanced_text:
+                    texts.append(enhanced_text)
         except (OSError, subprocess.TimeoutExpired) as exc:
             errors.append(type(exc).__name__)
-            continue
-        if result.returncode == 0:
-            if result.stdout and result.stdout.strip():
-                texts.append(result.stdout)
-        else:
-            errors.append(f"psm-{psm}")
+    finally:
+        if enhanced_path.exists():
+            enhanced_path.unlink()
+
     if not texts:
         raise RuntimeError("Tesseract could not recover text from the source creative.")
     return "\n".join(texts)
