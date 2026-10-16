@@ -1994,7 +1994,7 @@ def format_price(value):
 
 
 def build_caption(p: dict, affiliate_url: str) -> str:
-    """Build a short discount-led caption focused on the saving and one clear action."""
+    """Build a compact caption with discount, today's price, original price, and savings."""
     raw_title = (p.get("title") or "پیشنهاد ویژه").strip()
     if len(raw_title) > 140:
         raw_title = raw_title[:137].rstrip() + "…"
@@ -2002,28 +2002,18 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     current = p.get("current_price")
     original = p.get("original_price")
     discount = p.get("discount_percent")
-    rating = p.get("rating")
-    review_count = max(0, int(p.get("review_count") or 0))
     savings = int(p.get("savings_toman") or 0)
     if original and current and int(original) > int(current):
         savings = int(original) - int(current)
     parts = ["🔥 <b>پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", "", f"🛍️ <b>{title}</b>", ""]
     if discount is not None and int(discount) > 0:
         parts.append(f"⚡️ تخفیف ویژه: <b>{int(discount)}٪</b>")
-    if savings > 0:
-        parts.append(f"💸 صرفه‌جویی: <b>{savings:,} تومان</b>")
     if current:
         parts.append(f"💰 قیمت امروز: <b>{int(current):,} تومان</b>")
     if original and current and int(original) > int(current):
         parts.append(f"🏷️ قیمت قبل از تخفیف: <s>{int(original):,}</s> تومان")
-    if rating is not None:
-        try:
-            parts.append(f"⭐ امتیاز کاربران: <b>{float(rating):.1f}/5</b>" + (f" | {review_count:,} نظر" if review_count else ""))
-        except (TypeError, ValueError):
-            if review_count:
-                parts.append(f"🗣️ {review_count:,} نظر ثبت‌شده")
-    elif review_count:
-        parts.append(f"🗣️ {review_count:,} نظر ثبت‌شده")
+    if savings > 0:
+        parts.append(f"💸 صرفه‌جویی: <b>{savings:,} تومان</b>")
     parts += [
         "",
         "👇 برای دیدن جزئیات و قیمت نهایی، دکمهٔ زیر را بزن.",
@@ -2038,6 +2028,15 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     return caption
 
 
+def format_discount_badge(discount_percent) -> str:
+    """Return the visual discount badge label in concise English, e.g. '81% OFF'."""
+    try:
+        discount = int(discount_percent)
+    except (TypeError, ValueError):
+        return ""
+    return f"{discount}% OFF" if 0 < discount <= 100 else ""
+
+
 def build_discount_image(image_bytes: bytes, discount_percent=None) -> bytes:
     """Keep the retailer image and add a compact discount badge in one corner."""
     from io import BytesIO
@@ -2045,36 +2044,32 @@ def build_discount_image(image_bytes: bytes, discount_percent=None) -> bytes:
         raw.load()
         image = raw.convert("RGB")
     image.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
-    if discount_percent is not None:
-        try:
-            discount = int(discount_percent)
-        except (TypeError, ValueError):
-            discount = 0
-        if 0 < discount <= 100:
-            draw = ImageDraw.Draw(image)
-            width, height = image.size
-            font_size = max(20, min(width, height) // 16)
-            font = _font(font_size, True)
-            label = _shape(f"{discount}٪ تخفیف ویژه")
-            bbox = draw.textbbox((0, 0), label, font=font)
-            text_width = max(1, bbox[2] - bbox[0])
-            text_height = max(font_size, bbox[3] - bbox[1])
-            pad = max(10, min(width, height) // 45)
-            badge_width = text_width + pad * 2
-            badge_height = text_height + pad * 2
-            margin = max(10, min(width, height) // 35)
-            right = width - margin
-            top = margin
-            left = max(0, right - badge_width)
-            bottom = min(height, top + badge_height)
-            draw.rounded_rectangle(
-                (left, top, right, bottom),
-                radius=max(10, pad),
-                fill="#16a34a",
-                outline="#ffffff",
-                width=max(2, min(width, height) // 300),
-            )
-            draw.text((right - pad, top + pad), label, font=font, fill="#ffffff", anchor="ra")
+    label = format_discount_badge(discount_percent)
+    if label:
+        draw = ImageDraw.Draw(image)
+        width, height = image.size
+        font_size = max(20, min(width, height) // 16)
+        font = _font(font_size, True)
+        bbox = draw.textbbox((0, 0), label, font=font)
+        text_width = max(1, bbox[2] - bbox[0])
+        text_height = max(font_size, bbox[3] - bbox[1])
+        pad = max(10, min(width, height) // 45)
+        badge_width = text_width + pad * 2
+        badge_height = text_height + pad * 2
+        margin = max(10, min(width, height) // 35)
+        right = width - margin
+        top = margin
+        left = max(0, right - badge_width)
+        bottom = min(height, top + badge_height)
+        draw.rounded_rectangle(
+            (left, top, right, bottom),
+            radius=max(10, pad),
+            fill="#16a34a",
+            outline="#ffffff",
+            width=max(2, min(width, height) // 300),
+        )
+        # Keep the English label left-to-right; do not apply Persian bidi shaping.
+        draw.text((right - pad, top + pad), label, font=font, fill="#ffffff", anchor="ra")
     output = BytesIO()
     image.save(output, format="JPEG", quality=92, optimize=True)
     return output.getvalue()
@@ -2378,19 +2373,20 @@ def run(publish=False):
             try:
                 image_bytes = _fetch_image(item["image_url"])
                 prepared_image = build_discount_image(image_bytes, item.get("discount_percent"))
-                click_url = build_click_tracking_link(item.get("product_url", ""), item["affiliate_url"])
-                button_url = click_url or item["affiliate_url"]
+                # Keep the purchase button on the affiliate destination itself, without the extra
+                # first-party click-tracker redirect, as requested for a direct/shorter path.
+                button_url = item["affiliate_url"]
                 result = _send_photo(prepared_image, build_caption(item, item["affiliate_url"]), button_url)
                 state["published"][pid] = {
                     "ts": now,
                     "title": item["title"],
                     "product_url": item["product_url"],
-                    "click_tracking_url": button_url if button_url != item["affiliate_url"] else "",
+                    "click_tracking_url": "",
                     "telegram_message_id": result.get("message_id"),
                 }
                 state["last_published_at"] = datetime.now(timezone.utc).isoformat()
                 save_json(STATE, state)
-                print(f"PUBLISHED id={pid} message_id={result.get('message_id')} score={item['demand_score']} click_tracking={button_url != item['affiliate_url']}")
+                print(f"PUBLISHED id={pid} message_id={result.get('message_id')} score={item['demand_score']} direct_affiliate_link=True")
                 sent += 1
             except Exception as exc:
                 print(f"PUBLISH_FAILED id={pid} error={type(exc).__name__}")
