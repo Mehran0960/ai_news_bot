@@ -18,6 +18,7 @@ from affilio_radar import (
     api_search_product_urls,
     api_incredible_offer_product_urls,
     api_incredible_offer_product_candidates,
+    is_gadget_relevant_title,
     parse_product_api,
     is_discount_publish_eligible,
     deal_sort_key,
@@ -173,7 +174,7 @@ class AffilioRadarTests(unittest.TestCase):
                     },
                     {
                         "id": 12348,
-                        "title_fa": "کالای با تخفیف بیشتر",
+                        "title_fa": "پاوربانک با تخفیف بیشتر",
                         "url": "/product/dkp-12348/high-discount/",
                         "status": "marketable",
                         "price": {
@@ -191,6 +192,17 @@ class AffilioRadarTests(unittest.TestCase):
                             "selling_price": 1_000_000,
                             "rrp_price": 1_000_000,
                             "discount_percent": 0,
+                        },
+                    },
+                    {
+                        "id": 12349,
+                        "title_fa": "جوراب ساق بلند مردانه پرتخفیف",
+                        "url": "/product/dkp-12349/socks/",
+                        "status": "marketable",
+                        "price": {
+                            "selling_price": 10_000,
+                            "rrp_price": 1_000_000,
+                            "discount_percent": 99,
                         },
                     },
                     {
@@ -217,6 +229,12 @@ class AffilioRadarTests(unittest.TestCase):
         candidates = api_incredible_offer_product_candidates(payload)
         self.assertEqual(candidates[0]["discount_percent"], 90)
         self.assertGreaterEqual(candidates[0]["savings_toman"], candidates[1]["savings_toman"])
+
+    def test_gadget_filter_excludes_food_and_clothing_but_keeps_electronics(self):
+        self.assertTrue(is_gadget_relevant_title("پاوربانک ۲۰۰۰۰ میلی‌آمپر"))
+        self.assertTrue(is_gadget_relevant_title("برس حرارتی حرفه‌ای والر"))
+        self.assertFalse(is_gadget_relevant_title("قرص زینک پلاس"))
+        self.assertFalse(is_gadget_relevant_title("جوراب ساق بلند مردانه"))
 
     def test_discount_first_sort_prefers_larger_discount_over_higher_demand(self):
         popular_small_discount = score_product({
