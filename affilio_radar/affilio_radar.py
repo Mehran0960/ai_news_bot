@@ -427,7 +427,7 @@ def api_search_product_urls(payload):
         title = obj.get("title_fa") or obj.get("product_title") or obj.get("title")
         raw_id = obj.get("id") or obj.get("product_id")
         product_shape = any(k in obj for k in ("default_variant", "variants", "images", "product_type", "status"))
-        if not title or not product_shape or not is_gadget_relevant_title(str(title)):
+        if not title or not product_shape:
             continue
         candidate = _api_product_url(obj)
         if not candidate and (isinstance(raw_id, int) or (isinstance(raw_id, str) and raw_id.isdigit())):
@@ -534,7 +534,7 @@ def api_incredible_offer_product_candidates(payload) -> list[dict]:
         has_product_shape = bool(title) and any(
             key in obj for key in ("url", "default_variant", "variants", "price", "status", "product_type", "is_incredible")
         )
-        if not has_product_shape or not is_gadget_relevant_title(str(title)):
+        if not has_product_shape:
             continue
         status = str(obj.get("status", "")).lower()
         if status and status not in {"marketable", "active", "available"}:
@@ -996,32 +996,6 @@ def classify_category(title: str) -> str:
     return "other"
 
 
-def is_gadget_relevant_title(title: str) -> bool:
-    """Keep @Iran_gajet focused on gadgets, digital accessories, and useful appliances."""
-    value = (title or "").lower().replace("ي", "ی").replace("ك", "ک")
-    irrelevant = (
-        r"قرص|کپسول|مکمل|ویتامین|زینک|امگا\s*3|"
-        r"مغز تخمه|تخمه|آجیل|شکلات|بیسکویت|خوراکی|مواد غذایی|"
-        r"جوراب|شلوار|پیراهن|تی[\s-]?شرت|کفش|لباس زیر|پوشاک"
-    )
-    if re.search(irrelevant, value, re.I):
-        return False
-    category = classify_category(value)
-    if category in {
-        "power_backup", "audio_wearables", "digital_accessories",
-        "home", "automotive", "computer_network", "gaming",
-    }:
-        return True
-    if category == "personal_care":
-        return bool(re.search(
-            r"سشوار|برس حرارتی|اتو مو|ماشین اصلاح|ریش.?تراش|موزن|اپیلاتور|"
-            r"مسواک برقی|ماساژور|دستگاه بخور|hair dryer|trimmer|shaver|electric toothbrush",
-            value,
-            re.I,
-        ))
-    return False
-
-
 def score_product(p: dict) -> dict:
     category = classify_category(p.get("title", ""))
     score = CATEGORY_PRIORS.get(category, CATEGORY_PRIORS["other"])
@@ -1146,7 +1120,6 @@ def is_discount_publish_eligible(product: dict) -> bool:
     """Require a meaningful listed price reduction; RRP is not historical proof."""
     return bool(
         is_publish_eligible(product)
-        and is_gadget_relevant_title(str(product.get("title", "")))
         and int(product.get("discount_percent") or 0) >= MIN_DISCOUNT_PERCENT
         and int(product.get("savings_toman") or 0) >= MIN_SAVINGS_TOMAN
     )
