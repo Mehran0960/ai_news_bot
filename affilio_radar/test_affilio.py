@@ -411,7 +411,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("🛍️ <b>گجت نمونه</b>", caption)
         self.assertIn("💵 29٪ تخفیف ⭐", caption)
         self.assertIn("💰 قیمت با تخفیف: <b>500,000 تومان</b>", caption)
-        self.assertIn("🏷️ قیمت اصلی: <s>700,000</s>", caption)
+        self.assertIn("🏷️ قیمت اصلی: <s>700,000 تومان</s>", caption)
         self.assertIn("https://affilio.example/tracked", caption)
         self.assertNotIn("کمیسیون", caption)
         self.assertNotIn("تاریخچه", caption)
