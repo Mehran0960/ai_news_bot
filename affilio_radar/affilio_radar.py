@@ -1687,7 +1687,6 @@ def run(publish=False):
         "products": products[:40],
     }
     save_json(REPORT, report)
-    state = load_state()
     state.setdefault("published", {})
     state.setdefault("last_published_at", "")
     now = time.time()
