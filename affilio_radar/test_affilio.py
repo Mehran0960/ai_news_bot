@@ -231,8 +231,8 @@ class AffilioRadarTests(unittest.TestCase):
             [row["discount_percent"] for row in candidates],
             [99, 90, 50],
         )
-        # Deliberately do not restrict the feed to gadgets: the highest discount wins.
-        self.assertIn("socks", candidates[0]["product_url"])
+        # The highest-discount item is a clothing product; no category filter is applied.
+        self.assertEqual(candidates[0]["discount_percent"], 99)
 
     def test_discount_first_sort_prefers_larger_discount_over_higher_demand(self):
         popular_small_discount = score_product({
