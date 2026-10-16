@@ -20,7 +20,7 @@
 - AFFILIO_LINK_TEMPLATE: اختیاری؛ فقط در صورت داشتن قالب رسمی قابل استفادهٔ Affilio.
 - TOROB_MCP_URL: آدرس HTTPS سرویس خواندن قیمت ترب.
 - AFFILIO_MARKET_CHECK_LIMIT: تعداد نامزدهای بررسی قیمت بازار در هر اجرا؛ پیش‌فرض ۶.
-- AFFILIO_MIN_MARKET_MATCH_SCORE: حداقل امتیاز تطبیق محصول؛ پیش‌فرض ۶۰.
+- AFFILIO_MIN_MARKET_MATCH_SCORE: حداقل امتیاز تطبیق محصول؛ پیش‌فرض ۸۵، تا تطبیق چند واژهٔ عمومی مثل زینک/پلاس کافی نباشد.
 - AFFILIO_MIN_DISCOUNT_PERCENT: حداقل تخفیف درج‌شده برای غربال اولیه؛ پیش‌فرض ۲۰٪.
 - AFFILIO_MIN_SAVINGS_TOMAN: حداقل اختلاف با قیمت اصلی درج‌شده برای غربال اولیه؛ پیش‌فرض ۱۰۰٬۰۰۰ تومان.
 - AFFILIO_MIN_POST_INTERVAL_HOURS: حداقل فاصلهٔ معمول بین پست‌ها؛ پیش‌فرض ۱ ساعت.
