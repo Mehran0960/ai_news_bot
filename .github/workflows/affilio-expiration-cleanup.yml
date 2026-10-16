@@ -29,8 +29,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate expiry monitor syntax
-        run: python -m py_compile affilio_radar/expiration_monitor.py
+      - name: Validate expiry monitor and run its unit tests
+        run: |
+          python -m py_compile affilio_radar/expiration_monitor.py
+          cd affilio_radar
+          python -m unittest -v test_expiration_monitor.py
 
       - name: Check and remove expired OfferChin posts
         env:
