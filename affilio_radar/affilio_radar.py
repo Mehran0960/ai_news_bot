@@ -1773,31 +1773,13 @@ def score_product(p: dict) -> dict:
     return p
 
 
-def channel_fit_score(product: dict) -> int:
-    """Prefer items that make sense for an Iran Gadget audience without blocking fallback posts."""
-    title = str(product.get("title") or "")
-    category = classify_category(title)
-    if category in {"digital_accessories", "power_backup", "audio_wearables", "computer_network", "gaming", "automotive"}:
-        return 3
-    if category in {"home", "kids_sports"}:
-        return 2
-    if category == "personal_care" and re.search(
-        r"سشوار|برس حرارتی|اتو مو|ریش.?تراش|موزن|دستگاه بخور|مسواک برقی|ماساژور|اپیلاتور",
-        title,
-        re.I,
-    ):
-        return 2
-    return 0
-
-
 def deal_sort_key(p: dict) -> tuple:
-    """Rank by channel relevance and buyer-demand signals before the retailer's listed discount."""
+    """Prioritize special discounts, then real savings and demand evidence; do not rank by channel category."""
     return (
-        channel_fit_score(p),
-        int(p.get("demand_score") or 0),
-        int(p.get("review_count") or 0),
         int(p.get("discount_percent") or 0),
         int(p.get("savings_toman") or 0),
+        int(p.get("demand_score") or 0),
+        int(p.get("review_count") or 0),
     )
 
 
@@ -1886,8 +1868,8 @@ def format_price(value):
 
 
 def build_caption(p: dict, affiliate_url: str) -> str:
-    """Build a compact, transparent sales caption; purchase action is a separate inline button."""
-    raw_title = (p.get("title") or "محصول منتخب").strip()
+    """Build a conversion-focused, concise offer caption with a brief support disclosure."""
+    raw_title = (p.get("title") or "پیشنهاد ویژه").strip()
     if len(raw_title) > 140:
         raw_title = raw_title[:137].rstrip() + "…"
     title = html.escape(raw_title)
@@ -1896,30 +1878,29 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     discount = p.get("discount_percent")
     rating = p.get("rating")
     review_count = max(0, int(p.get("review_count") or 0))
-    parts = ["🔥 <b>پیشنهاد منتخب ایران گجت</b>", "", f"🛍️ <b>{title}</b>", ""]
+    parts = ["🔥 <b>پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", "", f"🛍️ <b>{title}</b>", ""]
     if discount is not None and int(discount) > 0:
-        parts.append(f"📉 تخفیف اعلامی دیجی‌کالا: <b>{int(discount)}٪</b>")
+        parts.append(f"⚡️ تخفیف ویژه: <b>{int(discount)}٪</b>")
     if current:
-        parts.append(f"💰 قیمت فعلی: <b>{int(current):,} تومان</b>")
+        parts.append(f"💰 قیمت امروز: <b>{int(current):,} تومان</b>")
     if original and current and int(original) > int(current):
-        parts.append(f"🏷️ قیمت مرجع درج‌شده: <s>{int(original):,}</s> تومان")
+        parts.append(f"🏷️ قیمت قبل از تخفیف: <s>{int(original):,}</s> تومان")
     if rating is not None:
         try:
             parts.append(f"⭐ امتیاز کاربران: <b>{float(rating):.1f}/5</b>" + (f" | {review_count:,} نظر" if review_count else ""))
         except (TypeError, ValueError):
             if review_count:
-                parts.append(f"🗣️ نظرهای ثبت‌شده: {review_count:,}")
+                parts.append(f"🗣️ {review_count:,} نظر ثبت‌شده")
     elif review_count:
-        parts.append(f"🗣️ نظرهای ثبت‌شده: {review_count:,}")
+        parts.append(f"🗣️ {review_count:,} نظر ثبت‌شده")
     parts += [
         "",
-        "👇 برای بررسی مشخصات، موجودی و قیمت نهایی، دکمه خرید پایین پست را بزن.",
-        "🔗 لینک خرید همکاری در فروش است؛ قیمت خرید شما بیشتر نمی‌شود.",
+        "👇 قیمت و موجودی نهایی را از دکمهٔ زیر بررسی کن.",
+        "🔗 خرید از این لینک به پشتیبانی کانال کمک می‌کند؛ قیمت اضافه‌ای ندارد.",
         "",
         "📣 @Iran_gajet",
     ]
     caption = "\n".join(parts)
-    # Keep the required channel handle at the end even if future fields are added.
     footer = "\n\n📣 @Iran_gajet"
     if len(caption) > 1024:
         body = "\n".join(parts[:-2])
@@ -1944,7 +1925,7 @@ def build_discount_image(image_bytes: bytes, discount_percent=None) -> bytes:
             width, height = image.size
             font_size = max(20, min(width, height) // 16)
             font = _font(font_size, True)
-            label = _shape(f"{discount}٪ تخفیف اعلامی")
+            label = _shape(f"{discount}٪ تخفیف ویژه")
             bbox = draw.textbbox((0, 0), label, font=font)
             text_width = max(1, bbox[2] - bbox[0])
             text_height = max(font_size, bbox[3] - bbox[1])
@@ -2207,7 +2188,7 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "Channel relevance and buyer-demand signals rank ahead of the retailer-listed discount. Price history is not used. Missing, unavailable, or weak market-price comparisons do not block publication. A product is blocked only when a confident same-product comparison with at least three current Torob seller offers verifies that DigiKala is at least 5% more expensive than the seller median.",
+        "ranking_note": "Highest listed discount ranks first, then absolute savings and demand evidence. Product category/channel fit is not used. Price history is not used. Missing, unavailable, or weak market-price comparisons do not block publication. A product is blocked only when a confident same-product comparison with at least three current Torob seller offers verifies that DigiKala is at least 5% more expensive than the seller median.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
