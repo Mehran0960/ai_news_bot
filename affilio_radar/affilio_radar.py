@@ -2179,12 +2179,13 @@ def run(publish=False):
     if cooldown_remaining > 0:
         print(f"POST_COOLDOWN remaining_minutes={int(cooldown_remaining / 60)}")
 
-    if not publish:
-        print("DRY_RUN: discovery and stock checks only; no Telegram post attempted.")
-    elif CLEAR_PREVIOUS_CHANNEL_POSTS:
+    if publish and CLEAR_PREVIOUS_CHANNEL_POSTS:
         delete_previous_channel_posts(state)
         # Re-evaluate candidates after clearing messages tracked by this bot.
         eligible = [p for p in eligible if p["product_id"] not in state.get("published", {})]
+
+    if not publish:
+        print("DRY_RUN: discovery and stock checks only; no Telegram post attempted.")
     elif not BOT_TOKEN:
         print("PUBLISH_BLOCKED: TELEGRAM_BOT_TOKEN is missing; no post attempted.")
     elif link_mode == "no_valid_affilio_tracking_config":
