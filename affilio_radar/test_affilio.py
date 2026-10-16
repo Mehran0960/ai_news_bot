@@ -515,7 +515,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("نظر", caption)
         self.assertNotIn("پشتیبانی کانال", caption)
         self.assertNotIn("لینک خرید همکاری در فروش است", caption)
-        self.assertTrue(caption.endswith("📣 @Iran_gajet"))
+        self.assertTrue(caption.endswith("📣 @OfferChin"))
         self.assertLessEqual(len(caption), 1024)
         self.assertNotIn("کمیسیون", caption)
         self.assertNotIn("تاریخچه", caption)
