@@ -29,11 +29,9 @@ on:
         type: boolean
         default: false
   schedule:
-    # Main cadence: one publication is permitted after the 30-minute cooldown.
-    - cron: "*/30 * * * *"
-    # Staggered retries reduce the chance that a delayed/missed scheduled event leaves the channel idle.
-    # The app's state-based cooldown prevents these backup checks from causing duplicate posts.
-    - cron: "7,37 * * * *"
+    # Check every 15 minutes for evenly spaced retry opportunities.
+    # The app's state-based 30-minute cooldown still limits publishing to at most one post per 30 minutes.
+    - cron: "*/15 * * * *"
 
 permissions:
   contents: write
