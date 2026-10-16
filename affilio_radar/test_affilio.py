@@ -16,7 +16,10 @@ from affilio_radar import (
     build_caption,
     _money_to_toman,
     api_search_product_urls,
+    api_incredible_offer_product_urls,
     parse_product_api,
+    is_discount_publish_eligible,
+    deal_sort_key,
     build_promo_video,
 )
 
@@ -151,6 +154,91 @@ class AffilioRadarTests(unittest.TestCase):
                 "https://www.digikala.com/product/dkp-67890/",
             ],
         )
+
+    def test_incredible_offers_parser_keeps_discounted_product_urls_only(self):
+        payload = {
+            "data": {
+                "products": [
+                    {
+                        "id": 12345,
+                        "title_fa": "پاوربانک تخفیف‌دار",
+                        "url": "/product/dkp-12345/powerbank/",
+                        "status": "marketable",
+                        "price": {
+                            "selling_price": 1_000_000,
+                            "rrp_price": 2_000_000,
+                            "discount_percent": 50,
+                        },
+                    },
+                    {
+                        "id": 12346,
+                        "title_fa": "کالای بدون تخفیف",
+                        "url": "/product/dkp-12346/ordinary/",
+                        "status": "marketable",
+                        "price": {
+                            "selling_price": 1_000_000,
+                            "rrp_price": 1_000_000,
+                            "discount_percent": 0,
+                        },
+                    },
+                    {
+                        "id": 12347,
+                        "title_fa": "کالای ناموجود",
+                        "url": "/product/dkp-12347/out/",
+                        "status": "out_of_stock",
+                        "price": {
+                            "selling_price": 1_000_000,
+                            "rrp_price": 2_000_000,
+                            "discount_percent": 50,
+                        },
+                    },
+                ]
+            }
+        }
+        self.assertEqual(
+            api_incredible_offer_product_urls(payload),
+            ["https://www.digikala.com/product/dkp-12345/"],
+        )
+
+    def test_discount_first_sort_prefers_larger_discount_over_higher_demand(self):
+        popular_small_discount = score_product({
+            "title": "پاوربانک محبوب",
+            "current_price": 8_000_000,
+            "original_price": 10_000_000,
+            "rating": 4.6,
+            "review_count": 50000,
+            "image_url": "https://example.com/popular.jpg",
+        })
+        bigger_discount = score_product({
+            "title": "کالای پرتخفیف",
+            "current_price": 1_000_000,
+            "original_price": 3_000_000,
+            "rating": 4.0,
+            "review_count": 100,
+            "image_url": "https://example.com/deal.jpg",
+        })
+        self.assertLess(popular_small_discount["discount_percent"], bigger_discount["discount_percent"])
+        self.assertGreater(deal_sort_key(bigger_discount), deal_sort_key(popular_small_discount))
+
+    def test_discount_publishing_requires_minimum_percentage_and_saving(self):
+        base = {
+            "availability": "in_stock",
+            "current_price": 900_000,
+            "original_price": 1_000_000,
+            "image_url": "https://example.com/image.jpg",
+            "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
+        }
+        ten_percent = score_product(dict(base))
+        self.assertFalse(is_discount_publish_eligible(ten_percent))
+        strong_discount = score_product({
+            **base,
+            "current_price": 700_000,
+            "original_price": 1_000_000,
+        })
+        self.assertTrue(is_discount_publish_eligible(strong_discount))
+        missing_stock = dict(strong_discount, availability="unknown")
+        self.assertFalse(is_discount_publish_eligible(missing_stock))
+
 
     def test_irr_prices_are_converted_to_toman(self):
         self.assertEqual(_money_to_toman("12900000", "IRR"), 1_290_000)
