@@ -1317,6 +1317,21 @@ def _market_identity_numbers(value: str) -> set[str]:
     return all_numbers - _market_pack_numbers(value)
 
 
+def market_query_variants(title: str) -> list[str]:
+    """Try the full title first, then an identity-focused query without packaging words."""
+    full = market_query_from_title(title)
+    simplified = full
+    for token in sorted(MARKET_GENERIC_TOKENS, key=len, reverse=True):
+        simplified = re.sub(rf"(?<!\w){re.escape(token)}(?!\w)", " ", simplified, flags=re.I)
+    # Remove pack-count numbers only; preserve model, capacity, and dosage numbers.
+    simplified = re.sub(
+        r"(?<!\w)\d+(?:[.,]\d+)?(?=\s*(?:عدد(?:ی)?|تایی|تایى|تا|pcs?|pieces?|tablets?|capsules?|count)(?:\s|$|[^\w]))",
+        " ", simplified, flags=re.I,
+    )
+    simplified = re.sub(r"\s+", " ", simplified).strip()
+    return list(dict.fromkeys(q for q in (full, simplified) if q and len(_market_tokens(q)) >= 2))
+
+
 def market_name_match_score(query: str, candidate_name: str) -> int:
     """Require distinctive identity tokens and reject conflicting model/strength numbers."""
     query_tokens = _market_identity_tokens(query)
@@ -1467,36 +1482,46 @@ def enrich_market_prices(products: list[dict]) -> None:
         title = str(product.get("title") or "")
         query = market_query_from_title(title)
         product["market_query"] = query
-        if len(_market_tokens(query)) < 2:
+        variants = market_query_variants(title)
+        if not variants:
             product["market_status"] = "no_confident_match"
             continue
         try:
-            search = _torob_tool(
-                "search_products",
-                {"query": query, "sort": "price", "limit": 10},
-                request_id,
-            )
-            request_id += 1
-            rows = search.get("products", [])
-            rows = [
-                row for row in rows
-                if isinstance(row, dict)
-                and row.get("available") is not False
-                and row.get("price_unreliable") is not True
-            ]
-            scored = [
-                (market_name_match_score(query, str(row.get("name_fa") or "")), row)
-                for row in rows
-            ]
-            scored.sort(
-                key=lambda pair: (
-                    pair[0],
-                    bool(pair[1].get("price_toman")),
-                    bool(pair[1].get("details_url")),
-                ),
-                reverse=True,
-            )
-            best_score, card = scored[0] if scored else (0, {})
+            best_score, card, used_query = 0, {}, query
+            best_scored = []
+            for query_variant in variants:
+                search = _torob_tool(
+                    "search_products",
+                    {"query": query_variant, "sort": "price", "limit": 10},
+                    request_id,
+                )
+                request_id += 1
+                rows = search.get("products", [])
+                rows = [
+                    row for row in rows
+                    if isinstance(row, dict)
+                    and row.get("available") is not False
+                    and row.get("price_unreliable") is not True
+                ]
+                variant_scored = [
+                    (market_name_match_score(query_variant, str(row.get("name_fa") or "")), row)
+                    for row in rows
+                ]
+                variant_scored.sort(
+                    key=lambda pair: (
+                        pair[0],
+                        bool(pair[1].get("price_toman")),
+                        bool(pair[1].get("details_url")),
+                    ),
+                    reverse=True,
+                )
+                candidate_score, candidate = variant_scored[0] if variant_scored else (0, {})
+                if candidate_score > best_score or (candidate_score == best_score and not card and candidate):
+                    best_score, card, used_query, best_scored = candidate_score, candidate, query_variant, variant_scored
+                if best_score >= MIN_MARKET_MATCH_SCORE and card.get("price_toman"):
+                    break
+            query = used_query
+            product["market_query"] = query
             product["market_search_candidates"] = [
                 {
                     "name": str(row.get("name_fa") or "")[:120],
@@ -1504,7 +1529,7 @@ def enrich_market_prices(products: list[dict]) -> None:
                     "url": row.get("url"),
                     "match_score": score,
                 }
-                for score, row in scored[:3]
+                for score, row in best_scored[:3]
             ]
             if best_score < MIN_MARKET_MATCH_SCORE or not card.get("price_toman"):
                 product["market_status"] = "no_confident_match"
@@ -1515,7 +1540,6 @@ def enrich_market_prices(products: list[dict]) -> None:
                     f"match={best_score}% query={query!r}"
                 )
                 continue
-
             details = {}
             if card.get("prk"):
                 detail_args = {"prk": card["prk"], "max_offers": 30}
