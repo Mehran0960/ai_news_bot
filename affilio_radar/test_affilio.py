@@ -561,6 +561,12 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(preview.format, "JPEG")
             self.assertEqual(preview.size, (480, 640))
         self.assertNotEqual(rendered, image_bytes.getvalue())
+        # Channel watermark must still render when a discount badge is unavailable.
+        rendered_without_badge = build_discount_image(image_bytes.getvalue(), None)
+        with Image.open(BytesIO(rendered_without_badge)) as preview:
+            self.assertEqual(preview.format, "JPEG")
+            self.assertEqual(preview.size, (480, 640))
+        self.assertNotEqual(rendered_without_badge, image_bytes.getvalue())
 
     def test_incredible_offer_expiry_supports_absolute_deadline(self):
         value = extract_deal_expiry({
