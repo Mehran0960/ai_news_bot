@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: "Publish one eligible video to @Iran_gajet (only with approved Affilio link)"
+        description: "Publish one market-verified image deal to @Iran_gajet"
         required: true
         type: boolean
         default: false
@@ -42,10 +42,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install FFmpeg and Persian font
+      - name: Install Persian font for the discount badge
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ffmpeg fonts-noto-core
+          sudo apt-get install -y --no-install-recommends fonts-noto-core
 
       - name: Install Python dependencies
         run: python -m pip install -r affilio_radar/requirements.txt
@@ -63,6 +63,7 @@ jobs:
           AFFILIO_TELEGRAM_CHAT_ID: "@Iran_gajet"
           AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || contains(github.event.head_commit.message, '[publish-now]') }}
           AFFILIO_MIN_POST_INTERVAL_HOURS: ${{ contains(github.event.head_commit.message, '[publish-now]') && '1' || '8' }}
+          AFFILIO_FORCE_POST_COOLDOWN_BYPASS: ${{ contains(github.event.head_commit.message, '[publish-now]') }}
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py
 
