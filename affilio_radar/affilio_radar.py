@@ -2166,9 +2166,21 @@ def format_deal_expiry(value) -> str:
     return rendered.translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
 
 
+def to_persian_digits(value) -> str:
+    """Render ASCII digits with Persian digits and thousands separators."""
+    return str(value).translate(str.maketrans("0123456789,", "۰۱۲۳۴۵۶۷۸۹٬"))
+
+
+def format_persian_number(value) -> str:
+    """Format an integer using Persian digits and the Persian thousands separator."""
+    return to_persian_digits(f"{int(value):,}")
+
+
 def build_caption(p: dict, affiliate_url: str) -> str:
-    """Build the agreed compact caption, including only a confirmed deal deadline."""
+    """Build a compact caption with uniform bold styling and Persian numerals."""
     raw_title = (p.get("title") or "پیشنهاد ویژه").strip()
+    # Persianize digits in the product title too (e.g. 60 -> ۶۰).
+    raw_title = to_persian_digits(raw_title)
     if len(raw_title) > 140:
         raw_title = raw_title[:137].rstrip() + "…"
     title = html.escape(raw_title)
@@ -2176,27 +2188,28 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     original = p.get("original_price")
     discount = p.get("discount_percent")
     expiry = format_deal_expiry(p.get("deal_expires_at"))
-    parts = ["🔥 <b>پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", "", f"🛍️ <b>{title}</b>", ""]
+    parts = ["<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", "", f"<b>🛍️ {title}</b>", ""]
     if discount is not None and int(discount) > 0:
-        parts.append(f"⚡️ <b>{int(discount)}٪ تخفیف ویژه</b>")
+        parts.append(f"<b>⚡️ {format_persian_number(discount)}٪ تخفیف ویژه</b>")
     if current:
-        parts.append(f"💰 قیمت امروز: <b>{int(current):,} تومان</b>")
+        parts.append(f"<b>💰 قیمت امروز: {format_persian_number(current)} تومان</b>")
     if original and current and int(original) > int(current):
-        parts.append(f"🏷️ قیمت اصلی: <s>{int(original):,} تومان</s>")
+        parts.append(f"<b>🏷️ قیمت اصلی: <s>{format_persian_number(original)} تومان</s></b>")
     if expiry:
-        parts += ["", f"⏳ پایان تخفیف: <b>{expiry}</b>"]
+        parts += ["", f"<b>⏳ پایان تخفیف: {expiry}</b>"]
     parts += [
         "",
-        "👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.",
+        "<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>",
         "",
-        "📣 @OfferChin",
+        "<b>📣 @OfferChin</b>",
     ]
     caption = "\n".join(parts)
-    footer = "\n\n📣 @OfferChin"
+    footer = "\n\n<b>📣 @OfferChin</b>"
     if len(caption) > 1024:
         body = "\n".join(parts[:-2])
         caption = body[:1024 - len(footer)].rstrip() + footer
     return caption
+
 
 def format_discount_badge(discount_percent) -> str:
     """Return the visual discount badge label in concise English, e.g. '81% OFF'."""
