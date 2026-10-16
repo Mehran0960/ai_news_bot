@@ -28,6 +28,7 @@ from affilio_radar import (
     is_discount_publish_eligible,
     deal_sort_key,
     build_discount_image,
+    _latin_font,
     format_discount_badge,
     is_market_value_publish_eligible,
     parse_price_history,
@@ -536,6 +537,12 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(format_discount_badge("24"), "24% OFF")
         self.assertEqual(format_discount_badge(0), "")
         self.assertEqual(format_discount_badge("not-a-number"), "")
+
+    def test_badge_font_supports_latin_percent_and_letters(self):
+        font = _latin_font(32)
+        # The badge is ASCII-only; do not reuse the Arabic-only font used for Persian text.
+        self.assertGreater(font.getlength("89% OFF"), font.getlength("89"))
+        self.assertGreater(font.getlength("% OFF"), 0)
 
     def test_discount_image_returns_photo_with_badge(self):
         image_bytes = BytesIO()
