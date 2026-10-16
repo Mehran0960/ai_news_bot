@@ -156,10 +156,43 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add affilio_radar/candidates.json
           if [[ -f affilio_radar/state.json ]]; then git add affilio_radar/state.json; fi
+          # Commit the report only when actual offer data changed, not on per-scan timestamps.
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          report_path = Path("affilio_radar/candidates.json")
+
+          def normalized(raw):
+              def clean(value):
+                  if isinstance(value, dict):
+                      return {
+                          key: clean(item)
+                          for key, item in value.items()
+                          if key not in {"generated_at", "checked_at", "updated_at"}
+                          and not key.endswith("_checked_at")
+                          and not key.endswith("_updated_at")
+                      }
+                  if isinstance(value, list):
+                      return [clean(item) for item in value]
+                  return value
+              return json.dumps(clean(json.loads(raw)), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+          current_report = report_path.read_text(encoding="utf-8")
+          previous = subprocess.run(
+              ["git", "show", "HEAD:affilio_radar/candidates.json"],
+              capture_output=True, text=True, check=False,
+          )
+          if previous.returncode != 0 or normalized(previous.stdout) != normalized(current_report):
+              subprocess.run(["git", "add", str(report_path)], check=True)
+              print("Candidate report has material changes; staging it.")
+          else:
+              print("Candidate report only has scan-time changes; leaving it unstaged.")
+          PY
           if git diff --cached --quiet; then
-            echo "No Affilio report/state changes."
+            echo "No material Affilio report/state changes."
             exit 0
           fi
           git commit -m "chore: update Affilio product radar report [skip ci]"
