@@ -22,6 +22,9 @@ from affilio_radar import (
     is_discount_publish_eligible,
     deal_sort_key,
     build_promo_video,
+    parse_price_history,
+    apply_snapshot_price_history,
+    is_historically_discount_eligible,
 )
 
 
@@ -416,6 +419,72 @@ class AffilioRadarTests(unittest.TestCase):
             }, image_bytes.getvalue(), output)
             self.assertTrue(output.exists())
             self.assertGreater(output.stat().st_size, 20_000)
+
+
+    def test_price_history_uses_matching_variant_and_converts_rials_to_toman(self):
+        toman_prices = [100_000, 95_000, 92_000, 88_000, 90_000, 110_000, 100_000]
+        payload = {
+            "status": 200,
+            "data": {
+                "price_chart": [{
+                    "title": "مدل اصلی",
+                    "history": [
+                        {
+                            "day": f"1405/07/{day:02d}",
+                            "selling_price": price * 10,
+                            "is_marketable": True,
+                        }
+                        for day, price in enumerate(toman_prices, start=1)
+                    ],
+                }]
+            },
+        }
+        history = parse_price_history(payload, current_price=90_000)
+        self.assertEqual(history["history_status"], "verified")
+        self.assertEqual(history["history_days"], 7)
+        self.assertEqual(history["history_low_toman"], 88_000)
+        self.assertEqual(history["history_stable_low_toman"], 90_000)
+        self.assertEqual(history["history_median_toman"], 95_000)
+        self.assertEqual(history["discount_vs_30d_median_pct"], 5)
+        self.assertTrue(history["historical_deal_eligible"])
+
+    def test_history_gate_rejects_an_inflated_list_price_without_real_price_edge(self):
+        product = {
+            "current_price": 200_000,
+            "original_price": 1_000_000,
+            "discount_percent": 80,
+            "history_status": "verified",
+            "history_days": 30,
+            "history_median_toman": 205_000,
+            "history_stable_low_toman": 190_000,
+        }
+        self.assertFalse(is_historically_discount_eligible(product))
+        product["history_status"] = "pending_history"
+        self.assertFalse(is_historically_discount_eligible(product))
+
+    def test_saved_daily_snapshots_can_verify_a_deal_when_public_chart_fails(self):
+        product = {
+            "product_id": "dkp-42",
+            "product_url": "https://www.digikala.com/product/dkp-42/",
+            "current_price": 900_000,
+        }
+        state = {
+            "price_history": {
+                "dkp-42": {
+                    "snapshots": [
+                        {"day": f"2026-10-{day:02d}", "price": 1_000_000}
+                        for day in range(1, 8)
+                    ],
+                    "last_seen_day": "2026-10-07",
+                }
+            }
+        }
+        result = apply_snapshot_price_history(product, state)
+        self.assertEqual(result["history_status"], "verified")
+        self.assertEqual(result["history_source"], "radar_daily_snapshots")
+        self.assertEqual(result["history_days"], 7)
+        self.assertEqual(result["discount_vs_30d_median_pct"], 10)
+        self.assertTrue(result["historical_deal_eligible"])
 
 
 if __name__ == "__main__":
