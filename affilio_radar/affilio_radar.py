@@ -1855,9 +1855,58 @@ def deal_sort_key(p: dict) -> tuple:
         int(p.get("savings_toman") or 0),
         market_known,
         market_advantage,
+        int(p.get("click_count_30d") or 0),
         int(p.get("demand_score") or 0),
         int(p.get("review_count") or 0),
     )
+
+
+def fetch_click_statistics() -> dict[str, int]:
+    """Fetch aggregate last-30-day clicks; analytics outages never block publication."""
+    base = AFFILIO_CLICK_TRACKER_BASE_URL.strip().rstrip("/")
+    if not base.startswith("https://"):
+        print("CLICK_STATS_UNAVAILABLE reason=tracker_url_not_https")
+        return {}
+    try:
+        response = SESSION.get(
+            f"{base}/stats",
+            headers={"Accept": "application/json", "User-Agent": "AffilioRadarAnalytics/1.0"},
+            timeout=(4, 8),
+        )
+        response.raise_for_status()
+        payload = response.json()
+        products = payload.get("products") if isinstance(payload, dict) else None
+        # Ignore partial snapshots so a truncated day's results cannot distort rankings.
+        if payload.get("ok") is not True or payload.get("complete") is not True or not isinstance(products, dict):
+            print("CLICK_STATS_UNAVAILABLE reason=incomplete_or_invalid_snapshot")
+            return {}
+        counts = {}
+        for pid, raw_count in products.items():
+            if not re.fullmatch(r"dkp-\d{1,12}", str(pid)):
+                continue
+            try:
+                count = int(raw_count)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if count >= 0:
+                counts[str(pid)] = count
+        print(
+            f"CLICK_STATS_LOADED days={payload.get('days', 30)} "
+            f"products={len(counts)} total_clicks={int(payload.get('totalClicks') or 0)} "
+            f"updated_at={payload.get('updatedAt', 'unknown')}"
+        )
+        return counts
+    except Exception as exc:
+        print(f"CLICK_STATS_UNAVAILABLE error={type(exc).__name__}")
+        return {}
+
+
+def enrich_click_statistics(products: list[dict]) -> None:
+    """Attach valid aggregate click counts for tie-breaking, never as a hard publish filter."""
+    counts = fetch_click_statistics()
+    for product in products:
+        pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
+        product["click_count_30d"] = counts.get(pid, 0)
 
 
 def load_catalog() -> list[dict]:
@@ -2230,6 +2279,7 @@ def run(publish=False):
         except Exception as exc:
             print(f"PRODUCT_FETCH_FAILED url={url} error={type(exc).__name__}")
 
+    enrich_click_statistics(products)
     products.sort(key=deal_sort_key, reverse=True)
     state = load_state()
     state.setdefault("published", {})
@@ -2260,6 +2310,7 @@ def run(publish=False):
         print(
             f"RANK {rank}: discount={item['discount_percent']}% saving={item['savings_toman']} "
             f"promo_score={item['promo_score']} demand_score={item['demand_score']} "
+            f"clicks_30d={item.get('click_count_30d', 0)} "
             f"stock={item['availability']} linked={item['has_affiliate_link']} "
             f"market={item.get('market_status')} market_price={item.get('market_reference_price_toman')} "
             f"market_advantage={item.get('market_price_advantage_pct')}% "
@@ -2269,7 +2320,7 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "Highest listed discount ranks first, followed by absolute saving; verified current-market advantage and popularity signals break ties. Product category has no ranking effect. Price history is not used. Missing, unavailable, or weak market-price comparisons do not block publication. A product is blocked only when a confident same-product comparison with at least three current Torob seller offers verifies that DigiKala is at least 5% more expensive than the seller median.",
+        "ranking_note": "Highest listed discount ranks first, followed by absolute saving; verified current-market advantage and complete 30-day click statistics and popularity signals break ties. Product category has no ranking effect. Unavailable or incomplete click analytics do not block publication. Price history is not used. Missing, unavailable, or weak market-price comparisons do not block publication. A product is blocked only when a confident same-product comparison with at least three current Torob seller offers verifies that DigiKala is at least 5% more expensive than the seller median.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,

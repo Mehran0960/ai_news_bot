@@ -13,6 +13,8 @@ from affilio_radar import (
     product_id,
     build_affilio_tracking_link,
     build_click_tracking_link,
+    enrich_click_statistics,
+    deal_sort_key,
     parse_product_page,
     score_product,
     is_publish_eligible,
@@ -369,6 +371,48 @@ class AffilioRadarTests(unittest.TestCase):
     def test_parser_fails_closed_when_stock_is_unknown(self):
         p = parse_product_page("https://www.digikala.com/product/dkp-3/", UNKNOWN_STOCK_HTML)
         self.assertEqual(p["availability"], "unknown")
+
+    def test_click_counts_are_attached_and_missing_data_fails_open(self):
+        products = [
+            {"product_id": "dkp-123", "title": "Offer A"},
+            {"product_id": "dkp-456", "title": "Offer B"},
+        ]
+        response = unittest.mock.Mock()
+        response.json.return_value = {
+            "ok": True,
+            "complete": True,
+            "days": 30,
+            "totalClicks": 12,
+            "updatedAt": "2026-10-16T00:00:00Z",
+            "products": {"dkp-123": 12, "unsafe-key": 999},
+        }
+        with patch("affilio_radar.SESSION.get", return_value=response):
+            enrich_click_statistics(products)
+        self.assertEqual(products[0]["click_count_30d"], 12)
+        self.assertEqual(products[1]["click_count_30d"], 0)
+
+        incomplete = unittest.mock.Mock()
+        incomplete.json.return_value = {
+            "ok": True, "complete": False, "products": {"dkp-456": 900}
+        }
+        products = [{"product_id": "dkp-456"}]
+        with patch("affilio_radar.SESSION.get", return_value=incomplete):
+            enrich_click_statistics(products)
+        self.assertEqual(products[0]["click_count_30d"], 0)
+
+    def test_clicks_break_ties_only_after_discount_saving_and_verified_market(self):
+        low_clicks = {
+            "discount_percent": 60,
+            "savings_toman": 900_000,
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": 7,
+            "click_count_30d": 2,
+        }
+        high_clicks = {**low_clicks, "click_count_30d": 11}
+        self.assertGreater(deal_sort_key(high_clicks), deal_sort_key(low_clicks))
+        weaker_discount = {**high_clicks, "discount_percent": 59}
+        self.assertGreater(deal_sort_key(high_clicks), deal_sort_key(weaker_discount))
 
     def test_score_rewards_reviews_without_category_priority(self):
         high = score_product({

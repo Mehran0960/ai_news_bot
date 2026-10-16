@@ -112,6 +112,14 @@ jobs:
               f"https://www.digikala.com/product/{product_id}/"
           ), good.headers.get("Location")
           print("CLICK_TRACKER_VALID_REDIRECT_OK")
+
+          stats = requests.get(f"{base}/stats", timeout=20, headers=headers)
+          stats.raise_for_status()
+          analytics = stats.json()
+          assert analytics.get("ok") is True, analytics
+          assert isinstance(analytics.get("products"), dict), analytics
+          assert isinstance(analytics.get("totalClicks"), int), analytics
+          print("CLICK_TRACKER_AGGREGATED_STATS_OK")
           PY
 
       - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
