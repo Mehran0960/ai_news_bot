@@ -1266,7 +1266,7 @@ def _last_post_timestamp(state):
 
 def run(publish=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
-    print("Ranking is a transparent heuristic (category + affordability + visible discount + reviews), not a guarantee of sales.")
+    print(f"Ranking mode=discount-first; minimum discount={MIN_DISCOUNT_PERCENT}%; minimum saving={MIN_SAVINGS_TOMAN:,} toman. Listed RRP is not historical proof.")
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
@@ -1309,19 +1309,20 @@ def run(publish=False):
         except Exception as exc:
             print(f"PRODUCT_FETCH_FAILED url={url} error={type(exc).__name__}")
 
-    products.sort(key=lambda p: (p["demand_score"], p.get("review_count", 0)), reverse=True)
-    eligible = [p for p in products if p.get("has_affiliate_link") and is_publish_eligible(p)]
-    print(f"ranked_products={len(products)} publish_eligible={len(eligible)}")
+    products.sort(key=deal_sort_key, reverse=True)
+    eligible = [p for p in products if p.get("has_affiliate_link") and is_discount_publish_eligible(p)]
+    print(f"ranked_products={len(products)} discount_eligible={len(eligible)}")
     for rank, item in enumerate(products[:12], start=1):
         print(
-            f"RANK {rank}: score={item['demand_score']} stock={item['availability']} "
-            f"linked={item['has_affiliate_link']} price={item.get('current_price')} "
-            f"title={item['title']!r} url={item['product_url']}"
+            f"RANK {rank}: discount={item['discount_percent']}% saving={item['savings_toman']} "
+            f"promo_score={item['promo_score']} demand_score={item['demand_score']} "
+            f"stock={item['availability']} linked={item['has_affiliate_link']} "
+            f"price={item.get('current_price')} title={item['title']!r} url={item['product_url']}"
         )
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "Heuristic only; categories, price band, public rating/review count and listed discount are signals, not proof of sales volume.",
+        "ranking_note": f"Discount-first. Publication requires listed discount >= {MIN_DISCOUNT_PERCENT}% and listed saving >= {MIN_SAVINGS_TOMAN} toman; list price is not independently validated against historical prices.",
         "search_diagnostics": search_diagnostics,
         "products": products[:40],
     }
