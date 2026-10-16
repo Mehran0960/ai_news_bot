@@ -1193,6 +1193,8 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     if original and current and original > current:
         parts.append(f"🏷️ قیمت قبلیِ درج‌شده: {format_price(original)}")
         parts.append(f"📉 اختلاف درج‌شده: {int(p.get('discount_percent') or 0)}٪")
+        if p.get("savings_toman"):
+            parts.append(f"💵 صرفه‌جوییِ درج‌شده: <b>{format_price(p['savings_toman'])}</b>")
     if p.get("rating") is not None:
         parts.append(f"⭐ امتیاز کاربران: {p['rating']:.1f} از ۵")
     parts += [
