@@ -16,6 +16,10 @@ from affilio_radar import (
     build_click_tracking_link,
     enrich_click_statistics,
     deal_sort_key,
+    is_offer_expired,
+    is_urgent_priority_deal,
+    pending_queue_sort_key,
+    refresh_pending_queue,
     parse_product_page,
     score_product,
     is_publish_eligible,
@@ -298,6 +302,90 @@ class AffilioRadarTests(unittest.TestCase):
         })
         self.assertLess(popular_gadget["discount_percent"], unrelated_extreme_discount["discount_percent"])
         self.assertGreater(deal_sort_key(unrelated_extreme_discount), deal_sort_key(popular_gadget))
+
+    def test_urgent_priority_is_limited_to_strong_soon_expiring_offers(self):
+        now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
+        item = {
+            "product_id": "dkp-123",
+            "discount_percent": 82,
+            "savings_toman": 600_000,
+            "demand_score": 58,
+            "deal_expires_at": (now + timedelta(minutes=45)).isoformat(),
+        }
+        self.assertTrue(is_urgent_priority_deal(item, now))
+        self.assertFalse(is_offer_expired(item, now))
+
+        too_far = {**item, "deal_expires_at": (now + timedelta(minutes=95)).isoformat()}
+        self.assertFalse(is_urgent_priority_deal(too_far, now))
+        too_weak = {**item, "savings_toman": 499_999}
+        self.assertFalse(is_urgent_priority_deal(too_weak, now))
+        expired = {**item, "deal_expires_at": (now - timedelta(seconds=1)).isoformat()}
+        self.assertTrue(is_offer_expired(expired, now))
+        self.assertFalse(is_urgent_priority_deal(expired, now))
+
+    def test_urgent_deadline_ranks_a_qualified_offer_ahead_of_larger_listed_discount(self):
+        now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
+        urgent = {
+            "product_id": "dkp-123",
+            "discount_percent": 82,
+            "savings_toman": 600_000,
+            "demand_score": 58,
+            "deal_expires_at": (now + timedelta(minutes=45)).isoformat(),
+        }
+        larger_but_not_urgent = {
+            "product_id": "dkp-456",
+            "discount_percent": 95,
+            "savings_toman": 5_000_000,
+            "demand_score": 80,
+            "deal_expires_at": "",
+        }
+        self.assertGreater(
+            pending_queue_sort_key(urgent, {"first_seen_at": now.isoformat()}, now),
+            pending_queue_sort_key(larger_but_not_urgent, {"first_seen_at": now.isoformat()}, now),
+        )
+
+    def test_pending_queue_preserves_first_seen_and_drops_missing_expired_or_recently_posted_items(self):
+        now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
+        first_seen = (now - timedelta(minutes=20)).isoformat()
+
+        def offer(pid, discount=50, saving=200_000, deadline=""):
+            return {
+                "product_id": pid,
+                "product_url": f"https://www.digikala.com/product/{pid}/",
+                "title": f"پیشنهاد آزمایشی {pid}",
+                "discount_percent": discount,
+                "savings_toman": saving,
+                "demand_score": 60,
+                "promo_score": 70,
+                "current_price": 300_000,
+                "original_price": 500_000,
+                "deal_expires_at": deadline,
+                "market_status": "unavailable",
+                "click_count_30d": 0,
+                "review_count": 100,
+            }
+
+        state = {
+            "published": {"dkp-777": {"ts": now.timestamp() - 60}},
+            "pending_queue": {
+                "dkp-123": {"first_seen_at": first_seen},
+                "dkp-999": {"first_seen_at": first_seen},
+            },
+        }
+        current = [
+            offer("dkp-123"),
+            offer("dkp-456"),
+            offer("dkp-777"),
+            offer("dkp-888", deadline=(now - timedelta(seconds=5)).isoformat()),
+        ]
+        queue = refresh_pending_queue(state, current, now)
+
+        self.assertEqual(set(queue), {"dkp-123", "dkp-456"})
+        self.assertEqual(queue["dkp-123"]["first_seen_at"], first_seen)
+        self.assertNotIn("dkp-999", queue)
+        self.assertNotIn("dkp-777", queue)
+        self.assertNotIn("dkp-888", queue)
+        self.assertEqual(state["pending_queue"], queue)
 
     def test_discount_publishing_requires_minimum_percentage_and_saving(self):
         base = {
