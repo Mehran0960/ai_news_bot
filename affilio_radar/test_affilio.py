@@ -28,6 +28,7 @@ from affilio_radar import (
     is_discount_publish_eligible,
     deal_sort_key,
     build_discount_image,
+    format_discount_badge,
     is_market_value_publish_eligible,
     parse_price_history,
     apply_snapshot_price_history,
@@ -485,23 +486,28 @@ class AffilioRadarTests(unittest.TestCase):
             candidate[key] = value
             self.assertFalse(is_publish_eligible(candidate), key)
 
-    def test_caption_uses_discount_led_copy_and_avoids_clunky_labels(self):
+    def test_caption_uses_the_requested_compact_order_without_ratings(self):
         caption = build_caption({
             "title": "گجت نمونه",
             "current_price": 500_000,
             "original_price": 700_000,
             "discount_percent": 29,
+            # Source rating data is deliberately supplied but omitted from the caption.
             "rating": 4.4,
             "review_count": 1243,
-        }, "https://affilio.example/tracked")
+        }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
         self.assertIn("🔥 <b>پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", caption)
         self.assertIn("🛍️ <b>گجت نمونه</b>", caption)
         self.assertIn("⚡️ تخفیف ویژه: <b>29٪</b>", caption)
         self.assertNotIn("تخفیف اعلامی دیجی‌کالا", caption)
         self.assertIn("💰 قیمت امروز: <b>500,000 تومان</b>", caption)
-        self.assertIn("💸 صرفه‌جویی: <b>200,000 تومان</b>", caption)
         self.assertIn("🏷️ قیمت قبل از تخفیف: <s>700,000</s> تومان", caption)
-        self.assertIn("⭐ امتیاز کاربران: <b>4.4/5</b> | 1,243 نظر", caption)
+        self.assertIn("💸 صرفه‌جویی: <b>200,000 تومان</b>", caption)
+        self.assertLess(caption.index("⚡️ تخفیف ویژه"), caption.index("💰 قیمت امروز"))
+        self.assertLess(caption.index("💰 قیمت امروز"), caption.index("🏷️ قیمت قبل از تخفیف"))
+        self.assertLess(caption.index("🏷️ قیمت قبل از تخفیف"), caption.index("💸 صرفه‌جویی"))
+        self.assertNotIn("امتیاز کاربران", caption)
+        self.assertNotIn("نظر", caption)
         self.assertNotIn("پشتیبانی کانال", caption)
         self.assertNotIn("لینک خرید همکاری در فروش است", caption)
         self.assertTrue(caption.endswith("📣 @Iran_gajet"))
@@ -509,15 +515,23 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("کمیسیون", caption)
         self.assertNotIn("تاریخچه", caption)
 
-    def test_send_photo_adds_one_direct_purchase_button(self):
+    def test_send_photo_adds_one_direct_affiliate_purchase_button(self):
         response = unittest.mock.Mock()
         response.json.return_value = {"ok": True, "result": {"message_id": 9}}
+        direct_affiliate_url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
         with patch("affilio_radar.BOT_TOKEN", "test-token"), patch("affilio_radar.requests.post", return_value=response) as post:
-            _send_photo(b"photo-bytes", "caption", "https://affilio.example/tracked")
+            _send_photo(b"photo-bytes", "caption", direct_affiliate_url)
         data = post.call_args.kwargs["data"]
         markup = json.loads(data["reply_markup"])
         self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده تخفیف و خرید")
-        self.assertEqual(markup["inline_keyboard"][0][0]["url"], "https://affilio.example/tracked")
+        self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
+        self.assertEqual(urlsplit(markup["inline_keyboard"][0][0]["url"]).netloc, "www.digikala.com")
+
+    def test_discount_badge_uses_short_english_label(self):
+        self.assertEqual(format_discount_badge(81), "81% OFF")
+        self.assertEqual(format_discount_badge("24"), "24% OFF")
+        self.assertEqual(format_discount_badge(0), "")
+        self.assertEqual(format_discount_badge("not-a-number"), "")
 
     def test_discount_image_returns_photo_with_badge(self):
         image_bytes = BytesIO()
