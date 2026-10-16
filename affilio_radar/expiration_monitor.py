@@ -24,7 +24,7 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "3"))))
 FEED_URL = "https://api.digikala.com/v1/incredible-offers/products/"
 HTTP_TIMEOUT = 18
-PROBE_INTERVAL_SECONDS = 300
+PROBE_INTERVAL_SECONDS = 900
 UNKNOWN_PROBE_INTERVAL_SECONDS = 900
 
 
