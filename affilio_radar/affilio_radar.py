@@ -1740,8 +1740,8 @@ def run(publish=False):
     # Limit retained product history while preserving most recent entries.
     if isinstance(state.get("published"), dict) and len(state["published"]) > 2000:
         state["published"] = dict(sorted(state["published"].items(), key=lambda kv: float(kv[1].get("ts", 0)))[-2000:])
-    if publish:
-        save_json(STATE, state)
+    # Save observed prices even during dry runs so the fallback history matures over time.
+    save_json(STATE, state)
     return 0 if products or any(d.get("ok") for d in search_diagnostics) else 2
 
 
