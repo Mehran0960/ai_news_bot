@@ -5,6 +5,7 @@ on:
     paths:
       - "affilio_radar/affilio_radar.py"
       - "affilio_radar/test_affilio.py"
+      - "affilio_radar/test_expiration_monitor.py"
       - "affilio_radar/expiration_monitor.py"
       - "affilio_radar/requirements.txt"
       - "affilio_radar/config/products.json"
@@ -76,7 +77,7 @@ jobs:
         run: |
           python -m py_compile affilio_radar/affilio_radar.py
           cd affilio_radar
-          python -m unittest -v test_affilio.py
+          python -m unittest -v test_affilio.py test_expiration_monitor.py
           python -m py_compile expiration_monitor.py
 
       - name: Smoke-test the deployed click tracker
