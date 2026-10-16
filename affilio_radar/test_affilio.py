@@ -491,36 +491,37 @@ class AffilioRadarTests(unittest.TestCase):
             candidate[key] = value
             self.assertFalse(is_publish_eligible(candidate), key)
 
-    def test_caption_uses_compact_format_and_confirmed_iran_local_expiry(self):
+    def test_caption_uses_uniform_bold_styling_and_persian_numerals(self):
         caption = build_caption({
-            "title": "گجت نمونه",
+            "title": "گجت نمونه 60",
             "current_price": 500_000,
             "original_price": 700_000,
             "discount_percent": 29,
             "deal_expires_at": "2026-10-16T20:30:00+00:00",
-            # Source rating data is deliberately supplied but omitted from the caption.
             "rating": 4.4,
             "review_count": 1243,
         }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
-        self.assertIn("🔥 <b>پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", caption)
-        self.assertIn("🛍️ <b>گجت نمونه</b>", caption)
-        self.assertIn("⚡️ <b>29٪ تخفیف ویژه</b>", caption)
-        self.assertNotIn("تخفیف اعلامی دیجی‌کالا", caption)
-        self.assertIn("💰 قیمت امروز: <b>500,000 تومان</b>", caption)
-        self.assertIn("🏷️ قیمت اصلی: <s>700,000 تومان</s>", caption)
-        self.assertIn("⏳ پایان تخفیف: <b>جمعه ۲۴ مهر ۱۴۰۵، ساعت ۲۳:۵۹</b>", caption)
-        self.assertLess(caption.index("⚡️"), caption.index("💰 قیمت امروز"))
-        self.assertLess(caption.index("💰 قیمت امروز"), caption.index("🏷️ قیمت اصلی"))
-        self.assertLess(caption.index("🏷️ قیمت اصلی"), caption.index("⏳ پایان تخفیف"))
+        self.assertIn("<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", caption)
+        self.assertIn("<b>🛍️ گجت نمونه ۶۰</b>", caption)
+        self.assertIn("<b>⚡️ ۲۹٪ تخفیف ویژه</b>", caption)
+        self.assertIn("<b>💰 قیمت امروز: ۵۰۰٬۰۰۰ تومان</b>", caption)
+        self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
+        self.assertIn("<b>⏳ پایان تخفیف: جمعه ۲۴ مهر ۱۴۰۵، ساعت ۲۳:۵۹</b>", caption)
+        self.assertIn("<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>", caption)
+        self.assertTrue(caption.endswith("<b>📣 @OfferChin</b>"))
+        self.assertNotRegex(caption, r"[0-9]")
         self.assertNotIn("صرفه‌جویی", caption)
         self.assertNotIn("امتیاز کاربران", caption)
         self.assertNotIn("نظر", caption)
         self.assertNotIn("پشتیبانی کانال", caption)
         self.assertNotIn("لینک خرید همکاری در فروش است", caption)
-        self.assertTrue(caption.endswith("📣 @OfferChin"))
+        self.assertLess(caption.index("⚡️"), caption.index("💰 قیمت امروز"))
+        self.assertLess(caption.index("💰 قیمت امروز"), caption.index("🏷️ قیمت اصلی"))
+        self.assertLess(caption.index("🏷️ قیمت اصلی"), caption.index("⏳ پایان تخفیف"))
         self.assertLessEqual(len(caption), 1024)
         self.assertNotIn("کمیسیون", caption)
         self.assertNotIn("تاریخچه", caption)
+
 
     def test_midnight_expiry_displays_previous_day_at_2359(self):
         self.assertEqual(
