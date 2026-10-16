@@ -1320,13 +1320,13 @@ def market_query_variants(title: str) -> list[str]:
     """Try the full title first, then an identity-focused query without packaging words."""
     full = market_query_from_title(title)
     simplified = full
-    for token in sorted(MARKET_GENERIC_TOKENS, key=len, reverse=True):
-        simplified = re.sub(rf"(?<!\w){re.escape(token)}(?!\w)", " ", simplified, flags=re.I)
-    # Remove pack-count numbers only; preserve model, capacity, and dosage numbers.
+    # Strip pack counts before removing words such as "عدد" and "عددی".
     simplified = re.sub(
         r"(?<!\w)\d+(?:[.,]\d+)?(?=\s*(?:عدد(?:ی)?|تایی|تایى|تا|pcs?|pieces?|tablets?|capsules?|count)(?:\s|$|[^\w]))",
         " ", simplified, flags=re.I,
     )
+    for token in sorted(MARKET_GENERIC_TOKENS, key=len, reverse=True):
+        simplified = re.sub(rf"(?<!\w){re.escape(token)}(?!\w)", " ", simplified, flags=re.I)
     simplified = re.sub(r"\s+", " ", simplified).strip()
     return list(dict.fromkeys(q for q in (full, simplified) if q and len(_market_tokens(q)) >= 2))
 
