@@ -19,7 +19,7 @@ import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import quote, urljoin, urlsplit, urlunsplit
+from urllib.parse import quote, urlencode, urljoin, urlsplit, urlunsplit
 
 import requests
 from bs4 import BeautifulSoup
@@ -34,6 +34,12 @@ REPORT = ROOT / "candidates.json"
 TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@Iran_gajet").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 AFFILIO_LINK_TEMPLATE = os.getenv("AFFILIO_LINK_TEMPLATE", "").strip()
+# Verified from the user-provided final DigiKala affiliate URL. These are public
+# tracking parameters, not login credentials. The source URL path changes per product.
+AFFILIO_UTM_SOURCE = os.getenv("AFFILIO_UTM_SOURCE", "19166").strip()
+AFFILIO_UTM_MEDIUM = os.getenv("AFFILIO_UTM_MEDIUM", "Affilio").strip()
+AFFILIO_UTM_ID = os.getenv("AFFILIO_UTM_ID", "14657").strip()
+AFFILIO_DIGIKALA_AFFID = os.getenv("AFFILIO_DIGIKALA_AFFID", "OTgxYTY0OTAtODJhNS00MDNkLTg0NDItMWE0MGVkOGI1Yjhj").strip()
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
 MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
 MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "24"))))
@@ -99,16 +105,49 @@ def product_id(url: str) -> str:
 AFFILIO_URL_PLACEHOLDER = "{YOUR_BASE64_ENCODED_URL}"
 
 
-def build_affilio_tracking_link(product_url: str, template: str | None = None) -> str:
-    """Build a product tracking URL from the one reusable Affilio publisher template.
+def _build_direct_affilio_link(canonical: str) -> str:
+    """Build the direct DigiKala URL form shown in the user's confirmed final link.
 
-    The template is obtained once from the user's registered publisher/media entry
-    in the Affilio panel. Product URLs are base64-encoded in the same way as the
-    publicly available Digikala Affiliate WordPress integration.
+    The product path is canonicalized separately; publisher/media tracking
+    parameters come from the user's own URL. Do not synthesize or randomize affid.
+    """
+    if (
+        not canonical
+        or not re.fullmatch(r"\d+", AFFILIO_UTM_SOURCE)
+        or not re.fullmatch(r"\d+", AFFILIO_UTM_ID)
+        or AFFILIO_UTM_MEDIUM != "Affilio"
+    ):
+        return ""
+    try:
+        decoded_affid = base64.b64decode(AFFILIO_DIGIKALA_AFFID, validate=True).decode("ascii")
+    except (ValueError, UnicodeDecodeError):
+        return ""
+    if not re.fullmatch(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", decoded_affid):
+        return ""
+    parts = urlsplit(canonical)
+    query = urlencode([
+        ("utm_source", AFFILIO_UTM_SOURCE),
+        ("utm_medium", AFFILIO_UTM_MEDIUM),
+        ("utm_id", AFFILIO_UTM_ID),
+        ("affid", AFFILIO_DIGIKALA_AFFID),
+    ])
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, query, ""))
+
+
+def build_affilio_tracking_link(product_url: str, template: str | None = None) -> str:
+    """Build an affiliate URL using the user's verified DigiKala tracking pattern.
+
+    If an official reusable Affilio tracking template is configured, it remains
+    supported. Otherwise use the direct URL parameters from the user's own final
+    DigiKala URL; no per-product link or extra GitHub secret is required.
     """
     canonical = safe_product_url(product_url)
+    if not canonical:
+        return ""
     template = (template if template is not None else AFFILIO_LINK_TEMPLATE).strip()
-    if not canonical or template.count(AFFILIO_URL_PLACEHOLDER) != 1:
+    if not template:
+        return _build_direct_affilio_link(canonical)
+    if template.count(AFFILIO_URL_PLACEHOLDER) != 1:
         return ""
     try:
         parsed = urlsplit(template)
@@ -1077,12 +1116,15 @@ def run(publish=False):
     print("Ranking is a transparent heuristic (category + affordability + visible discount + reviews), not a guarantee of sales.")
     catalog = load_catalog()
     approved = link_map(catalog)
-    if AFFILIO_LINK_TEMPLATE and build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/"):
+    probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
+    if AFFILIO_LINK_TEMPLATE and probe_link:
         link_mode = "reusable_affilio_template"
+    elif probe_link:
+        link_mode = "direct_affilio_parameters"
     elif approved:
         link_mode = "per_product_overrides"
     else:
-        link_mode = "no_tracking_template_configured"
+        link_mode = "no_valid_affilio_tracking_config"
     print(f"affiliate_link_mode={link_mode} manual_product_overrides={len(approved)}")
     urls, search_diagnostics = discover_product_urls()
     print(f"discovered_product_urls={len(urls)}")
@@ -1144,8 +1186,8 @@ def run(publish=False):
         print("DRY_RUN: discovery and stock checks only; no Telegram post attempted.")
     elif not BOT_TOKEN:
         print("PUBLISH_BLOCKED: TELEGRAM_BOT_TOKEN is missing; no post attempted.")
-    elif link_mode == "no_tracking_template_configured":
-        print("PUBLISH_BLOCKED: AFFILIO_LINK_TEMPLATE is not configured; no product-specific links or posts were created.")
+    elif link_mode == "no_valid_affilio_tracking_config":
+        print("PUBLISH_BLOCKED: no valid Affilio tracking parameters/template configured; no post attempted.")
     elif cooldown_remaining > 0:
         print("PUBLISH_BLOCKED: global posting cooldown active.")
     else:
