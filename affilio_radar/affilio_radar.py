@@ -46,6 +46,9 @@ MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", 
 MAX_POSTS_PER_RUN = max(1, min(2, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "1"))))
 MIN_POST_INTERVAL_HOURS = max(1, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "8")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
+DEAL_LIST_PAGES = max(1, min(3, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "2"))))
+MIN_DISCOUNT_PERCENT = max(1, min(90, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "20"))))
+MIN_SAVINGS_TOMAN = max(0, int(os.getenv("AFFILIO_MIN_SAVINGS_TOMAN", "100000")))
 HTTP_TIMEOUT = int(os.getenv("AFFILIO_HTTP_TIMEOUT", "18"))
 
 SEARCH_TERMS = [
@@ -433,6 +436,66 @@ def api_search_product_urls(payload):
             found.append(candidate)
         if len(found) >= MAX_PER_QUERY:
             break
+    return found
+
+
+def _offer_discount_percent(obj: dict) -> int:
+    """Get the retailer-declared discount or derive one from current/list prices."""
+    sources = []
+    if isinstance(obj.get("price"), dict):
+        sources.append(obj["price"])
+    variant = obj.get("default_variant")
+    if isinstance(variant, dict) and isinstance(variant.get("price"), dict):
+        sources.append(variant["price"])
+    sources.append(obj)
+    for source in sources:
+        raw = source.get("discount_percent")
+        try:
+            discount = int(float(normalize_digits(str(raw))))
+            if 0 < discount <= 100:
+                return discount
+        except (TypeError, ValueError, OverflowError):
+            pass
+        current = None
+        original = None
+        for key in ("selling_price", "selling_price_rial", "price"):
+            if source.get(key) is not None:
+                current = _money_to_toman(source[key], "IRR")
+                if current:
+                    break
+        for key in ("rrp_price", "original_price", "regular_price"):
+            if source.get(key) is not None:
+                original = _money_to_toman(source[key], "IRR")
+                if original:
+                    break
+        if current and original and original > current:
+            return max(1, min(100, round(100 * (original - current) / original)))
+    return 0
+
+
+def api_incredible_offer_product_urls(payload) -> list[str]:
+    """Extract discounted product URLs from Digikala's public Incredible Offers feed."""
+    found = []
+    for obj in _walk_dicts(payload):
+        if not isinstance(obj, dict):
+            continue
+        title = obj.get("title_fa") or obj.get("product_title") or obj.get("title")
+        raw_id = obj.get("id") or obj.get("product_id")
+        has_product_shape = bool(title) and any(
+            key in obj for key in ("url", "default_variant", "variants", "price", "status", "product_type", "is_incredible")
+        )
+        if not has_product_shape:
+            continue
+        status = str(obj.get("status", "")).lower()
+        if status and status not in {"marketable", "active", "available"}:
+            continue
+        if _offer_discount_percent(obj) <= 0:
+            continue
+        candidate = _api_product_url(obj)
+        if not candidate and (isinstance(raw_id, int) or (isinstance(raw_id, str) and raw_id.isdigit())):
+            candidate = safe_product_url(f"https://www.digikala.com/product/dkp-{int(raw_id)}/")
+        if candidate and candidate not in found:
+            found.append(candidate)
     return found
 
 
