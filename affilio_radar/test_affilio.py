@@ -489,30 +489,28 @@ class AffilioRadarTests(unittest.TestCase):
             candidate[key] = value
             self.assertFalse(is_publish_eligible(candidate), key)
 
-    def test_caption_uses_the_requested_compact_order_without_ratings(self):
+    def test_caption_uses_compact_format_and_confirmed_iran_local_expiry(self):
         caption = build_caption({
             "title": "گجت نمونه",
             "current_price": 500_000,
             "original_price": 700_000,
             "discount_percent": 29,
+            "deal_expires_at": "2026-10-16T20:30:00+00:00",
             # Source rating data is deliberately supplied but omitted from the caption.
             "rating": 4.4,
             "review_count": 1243,
         }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
         self.assertIn("🔥 <b>پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", caption)
         self.assertIn("🛍️ <b>گجت نمونه</b>", caption)
-        self.assertIn("⚡️ تخفیف ویژه: <b>29٪</b>", caption)
+        self.assertIn("⚡️ <b>29٪ تخفیف ویژه</b>", caption)
         self.assertNotIn("تخفیف اعلامی دیجی‌کالا", caption)
         self.assertIn("💰 قیمت امروز: <b>500,000 تومان</b>", caption)
-        self.assertIn("🏷️ قیمت قبل از تخفیف: <s>700,000</s> تومان", caption)
-        self.assertIn("💸 صرفه‌جویی: <b>200,000 تومان</b>", caption)
-        self.assertLess(caption.index("⚡️ تخفیف ویژه"), caption.index("💰 قیمت امروز"))
-        self.assertLess(caption.index("💰 قیمت امروز"), caption.index("🏷️ قیمت قبل از تخفیف"))
-        self.assertLess(caption.index("🏷️ قیمت قبل از تخفیف"), caption.index("💸 صرفه‌جویی"))
-        # Blank lines isolate the two key sales points from neighboring caption rows.
-        self.assertIn("گجت نمونه</b>\n\n⚡️ تخفیف ویژه", caption)
-        self.assertIn("⚡️ تخفیف ویژه: <b>29٪</b>\n\n💰 قیمت امروز", caption)
-        self.assertIn("💰 قیمت امروز: <b>500,000 تومان</b>\n\n🏷️ قیمت قبل از تخفیف", caption)
+        self.assertIn("🏷️ قیمت اصلی: <s>700,000 تومان</s>", caption)
+        self.assertIn("⏳ پایان تخفیف: <b>شنبه ۱۷ اکتبر ۲۰۲۶، ساعت ۰۰:۰۰ به وقت ایران</b>", caption)
+        self.assertLess(caption.index("⚡️"), caption.index("💰 قیمت امروز"))
+        self.assertLess(caption.index("💰 قیمت امروز"), caption.index("🏷️ قیمت اصلی"))
+        self.assertLess(caption.index("🏷️ قیمت اصلی"), caption.index("⏳ پایان تخفیف"))
+        self.assertNotIn("صرفه‌جویی", caption)
         self.assertNotIn("امتیاز کاربران", caption)
         self.assertNotIn("نظر", caption)
         self.assertNotIn("پشتیبانی کانال", caption)
@@ -521,6 +519,15 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertLessEqual(len(caption), 1024)
         self.assertNotIn("کمیسیون", caption)
         self.assertNotIn("تاریخچه", caption)
+
+    def test_caption_omits_deadline_when_source_has_no_confirmed_expiry(self):
+        caption = build_caption({
+            "title": "محصول بی‌زمان پایان",
+            "current_price": 100_000,
+            "original_price": 200_000,
+            "discount_percent": 50,
+        }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
+        self.assertNotIn("پایان تخفیف", caption)
 
     def test_send_photo_adds_one_direct_affiliate_purchase_button(self):
         response = unittest.mock.Mock()
