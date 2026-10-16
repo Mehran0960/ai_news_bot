@@ -1267,31 +1267,74 @@ def market_query_from_title(title: str) -> str:
     return head[:95].strip()
 
 
+MARKET_GENERIC_TOKENS = {
+    # Product forms/categories and packaging words are not proof that two listings
+    # describe the same product (e.g. two different tablets from one brand).
+    "قرص", "کپسول", "ژلاتینی", "نرم", "بسته", "عددی", "عدد", "تایی",
+    "هندزفری", "هدفون", "اسپیکر", "بلوتوثی", "بلوتوث", "قابل", "حمل",
+    "بی", "سیم", "ماوس", "موس", "جوراب", "مردانه", "زنانه",
+    "شارژر", "کابل", "سشوار", "برس", "حرارتی", "وزن", "حجم",
+    "میلی", "گرم", "کیلوگرم", "لیتر", "وات", "آمپر", "ظرفیت",
+    "tablet", "tablets", "capsule", "capsules", "speaker", "bluetooth",
+    "headphone", "headphones", "earbuds", "pack", "pcs", "piece", "pieces",
+    "count", "model", "size", "weight", "volume", "watt", "mah", "ml", "mg",
+}
+
+
 def _market_tokens(value: str) -> set[str]:
     text = normalize_digits(str(value or "")).lower()
     text = text.replace("ي", "ی").replace("ك", "ک").replace("ـ", "")
     text = text.replace("\u200c", " ").replace("\u200f", " ")
+    text = re.sub(r"کیو\s+سی\s+وای", "qcy", text)
     text = re.sub(r"[^\w]+", " ", text, flags=re.UNICODE)
     stopwords = {
         "و", "از", "با", "برای", "مناسب", "حاوی", "دارای", "شامل",
         "خرید", "قیمت", "مدل", "نسخه", "جدید", "اورجینال", "اصل",
-        "ویژه", "است", "میباشد",
+        "ویژه", "است", "میباشد", "بسته",
     }
     tokens = text.split()
     return {token for token in tokens if (len(token) > 1 or token.isdigit()) and token not in stopwords}
 
 
+def _market_pack_numbers(value: str) -> set[str]:
+    """Numbers explicitly describing pack count are not model/strength identifiers."""
+    text = normalize_digits(str(value or "")).lower()
+    text = text.replace("ي", "ی").replace("ك", "ک").replace("\u200c", " ")
+    pattern = r"(?<!\w)(\d+(?:[.,]\d+)?)(?=\s*(?:عدد(?:ی)?|تایی|تایى|تا|pcs?|pieces?|tablets?|capsules?|count)(?:\s|$|[^\w]))"
+    return set(re.findall(pattern, text))
+
+
+def _market_identity_tokens(value: str) -> set[str]:
+    tokens = _market_tokens(value)
+    tokens -= MARKET_GENERIC_TOKENS
+    tokens -= _market_pack_numbers(value)
+    return tokens
+
+
+def _market_identity_numbers(value: str) -> set[str]:
+    text = normalize_digits(str(value or "")).lower().replace("\u200c", " ")
+    all_numbers = set(re.findall(r"\d+(?:[.,]\d+)?", text))
+    return all_numbers - _market_pack_numbers(value)
+
+
 def market_name_match_score(query: str, candidate_name: str) -> int:
-    """Score how many identifying query tokens appear in a Torob result (0-100)."""
-    query_tokens = _market_tokens(query)
-    candidate_tokens = _market_tokens(candidate_name)
+    """Require distinctive identity tokens and reject conflicting model/strength numbers."""
+    query_tokens = _market_identity_tokens(query)
+    candidate_tokens = _market_identity_tokens(candidate_name)
     if not query_tokens or not candidate_tokens:
         return 0
+
+    # If a listing specifies a model, capacity, or strength, those numbers must
+    # be represented by the candidate as well; a shared brand and pack count
+    # cannot turn a different item into a match.
+    query_numbers = _market_identity_numbers(query)
+    candidate_numbers = _market_identity_numbers(candidate_name)
+    if query_numbers and not query_numbers.issubset(candidate_numbers):
+        return 0
+
     overlap = query_tokens & candidate_tokens
-    if len(query_tokens) <= 3:
-        if len(overlap) < 2:
-            return 0
-    elif len(overlap) < 3:
+    minimum_overlap = 1 if len(query_tokens) == 1 else max(2, math.ceil(len(query_tokens) * 0.60))
+    if len(overlap) < minimum_overlap:
         return 0
     return round(100 * len(overlap) / len(query_tokens))
 

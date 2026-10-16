@@ -544,6 +544,18 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertGreaterEqual(score, 60)
 
+    def test_market_matching_rejects_same_brand_but_different_ingredient_and_strength(self):
+        query = "قرص زینک پلاس یوروویتال 15 میلی گرم بسته 60 عددی"
+        wrong_product = "قرص ویتامین B3 یوروویتال 250 میلی گرم 60 عددی"
+        exact_product = "قرص زینک پلاس یوروویتال 15 میلی گرم 60 عددی"
+        self.assertEqual(market_name_match_score(query, wrong_product), 0)
+        self.assertGreaterEqual(market_name_match_score(query, exact_product), 80)
+
+    def test_market_matching_rejects_a_generic_speaker_with_a_different_model(self):
+        query = "اسپیکر بلوتوثی قابل حمل مدل Luxe"
+        wrong_model = "اسپیکر بلوتوثی جی بی ال مدل Mini M8 قابل حمل"
+        self.assertEqual(market_name_match_score(query, wrong_model), 0)
+
     def test_market_median_is_calculated_from_multiple_reliable_seller_offers(self):
         product = {"current_price": 1_800_000}
         card = {
