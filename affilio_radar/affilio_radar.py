@@ -1768,6 +1768,15 @@ def discover_product_urls() -> tuple[list[str], list[dict], dict[str, str]]:
         expiry = str(row.get("deal_expires_at") or "").strip()
         if expiry:
             deal_expiries[product_id(row["product_url"])] = expiry
+    # The public MCP deal-card feed exposes countdown metadata that the direct API omits in some responses.
+    try:
+        from expiration_monitor import fetch_mcp_offer_expiries
+        mcp_expiries = fetch_mcp_offer_expiries()
+        for pid, expiry in mcp_expiries.items():
+            deal_expiries.setdefault(pid, expiry)
+    except Exception as exc:
+        print(f"EXPIRY_MCP_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
+
     print(
         f"DEAL_DISCOVERY unique_discounted_urls={len(found)} "
         f"offers_with_expiry={len(deal_expiries)} "
