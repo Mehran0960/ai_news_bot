@@ -1773,13 +1773,31 @@ def score_product(p: dict) -> dict:
     return p
 
 
+def channel_fit_score(product: dict) -> int:
+    """Prefer items that make sense for an Iran Gadget audience without blocking fallback posts."""
+    title = str(product.get("title") or "")
+    category = classify_category(title)
+    if category in {"digital_accessories", "power_backup", "audio_wearables", "computer_network", "gaming", "automotive"}:
+        return 3
+    if category in {"home", "kids_sports"}:
+        return 2
+    if category == "personal_care" and re.search(
+        r"سشوار|برس حرارتی|اتو مو|ریش.?تراش|موزن|دستگاه بخور|مسواک برقی|ماساژور|اپیلاتور",
+        title,
+        re.I,
+    ):
+        return 2
+    return 0
+
+
 def deal_sort_key(p: dict) -> tuple:
-    """Highest listed discount first, then absolute saving, demand, and review volume."""
+    """Rank by channel relevance and buyer-demand signals before the retailer's listed discount."""
     return (
-        int(p.get("discount_percent") or 0),
-        int(p.get("savings_toman") or 0),
+        channel_fit_score(p),
         int(p.get("demand_score") or 0),
         int(p.get("review_count") or 0),
+        int(p.get("discount_percent") or 0),
+        int(p.get("savings_toman") or 0),
     )
 
 
@@ -1868,25 +1886,45 @@ def format_price(value):
 
 
 def build_caption(p: dict, affiliate_url: str) -> str:
-    """Build the user's compact Telegram HTML caption."""
-    title = html.escape((p.get("title") or "محصول منتخب").strip())
+    """Build a compact, transparent sales caption; purchase action is a separate inline button."""
+    raw_title = (p.get("title") or "محصول منتخب").strip()
+    if len(raw_title) > 140:
+        raw_title = raw_title[:137].rstrip() + "…"
+    title = html.escape(raw_title)
     current = p.get("current_price")
     original = p.get("original_price")
     discount = p.get("discount_percent")
-    parts = ["🎬 <b>پیشنهاد شگفت انگیز</b>", "", f"🛍️ <b>{title}</b>", ""]
-    if discount is not None:
-        parts.append(f"💵 {int(discount)}٪ تخفیف ⭐")
+    rating = p.get("rating")
+    review_count = max(0, int(p.get("review_count") or 0))
+    parts = ["🔥 <b>پیشنهاد منتخب ایران گجت</b>", "", f"🛍️ <b>{title}</b>", ""]
+    if discount is not None and int(discount) > 0:
+        parts.append(f"📉 تخفیف اعلامی دیجی‌کالا: <b>{int(discount)}٪</b>")
     if current:
-        parts.append(f"💰 قیمت با تخفیف: <b>{int(current):,} تومان</b>")
+        parts.append(f"💰 قیمت فعلی: <b>{int(current):,} تومان</b>")
     if original and current and int(original) > int(current):
-        parts.append(f"🏷️ قیمت اصلی: <s>{int(original):,}</s>")
+        parts.append(f"🏷️ قیمت مرجع درج‌شده: <s>{int(original):,}</s> تومان")
+    if rating is not None:
+        try:
+            parts.append(f"⭐ امتیاز کاربران: <b>{float(rating):.1f}/5</b>" + (f" | {review_count:,} نظر" if review_count else ""))
+        except (TypeError, ValueError):
+            if review_count:
+                parts.append(f"🗣️ نظرهای ثبت‌شده: {review_count:,}")
+    elif review_count:
+        parts.append(f"🗣️ نظرهای ثبت‌شده: {review_count:,}")
     parts += [
         "",
-        f'🛒 <a href="{html.escape(affiliate_url, quote=True)}">مشاهده جزئیات و خرید</a>',
+        "👇 برای بررسی مشخصات، موجودی و قیمت نهایی، دکمه خرید پایین پست را بزن.",
+        "🔗 لینک خرید همکاری در فروش است؛ قیمت خرید شما بیشتر نمی‌شود.",
         "",
         "📣 @Iran_gajet",
     ]
-    return "\n".join(parts)[:1024]
+    caption = "\n".join(parts)
+    # Keep the required channel handle at the end even if future fields are added.
+    footer = "\n\n📣 @Iran_gajet"
+    if len(caption) > 1024:
+        body = "\n".join(parts[:-2])
+        caption = body[:1024 - len(footer) - 1].rstrip() + footer
+    return caption
 
 
 def build_discount_image(image_bytes: bytes, discount_percent=None) -> bytes:
@@ -1906,7 +1944,7 @@ def build_discount_image(image_bytes: bytes, discount_percent=None) -> bytes:
             width, height = image.size
             font_size = max(20, min(width, height) // 16)
             font = _font(font_size, True)
-            label = _shape(f"{discount}٪ تخفیف")
+            label = _shape(f"{discount}٪ تخفیف اعلامی")
             bbox = draw.textbbox((0, 0), label, font=font)
             text_width = max(1, bbox[2] - bbox[0])
             text_height = max(font_size, bbox[3] - bbox[1])
@@ -1957,13 +1995,22 @@ def _fetch_image(url: str) -> bytes:
     return data
 
 
-def _send_photo(photo_bytes: bytes, caption: str):
+def _send_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     if not BOT_TOKEN:
         raise RuntimeError("Missing TELEGRAM_BOT_TOKEN secret; no post sent")
     endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
+    data = {"chat_id": TARGET_CHAT, "caption": caption, "parse_mode": "HTML"}
+    parsed_link = urlsplit(str(affiliate_url or "").strip())
+    if parsed_link.scheme == "https" and parsed_link.netloc:
+        data["reply_markup"] = json.dumps({
+            "inline_keyboard": [[{
+                "text": "🛒 بررسی قیمت و خرید",
+                "url": affiliate_url,
+            }]]
+        }, ensure_ascii=False)
     response = requests.post(
         endpoint,
-        data={"chat_id": TARGET_CHAT, "caption": caption, "parse_mode": "HTML"},
+        data=data,
         files={"photo": ("product.jpg", photo_bytes, "image/jpeg")},
         timeout=(20, 120),
     )
@@ -2078,7 +2125,7 @@ def _last_post_timestamp(state):
 
 def run(publish=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
-    print(f"Ranking mode=discount-first; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman; missing/unknown market data never blocks publication; only verified same-product pricing showing DigiKala at least {MARKET_UNDERCUT_BLOCK_PERCENT}% above market is blocked. Price history is disabled.")
+    print(f"Ranking mode=channel-fit/demand-first; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman; missing/unknown market data never blocks publication; only verified same-product pricing showing DigiKala at least {MARKET_UNDERCUT_BLOCK_PERCENT}% above market is blocked. Price history is disabled.")
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
@@ -2160,7 +2207,7 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "Discount-first across all categories. Price history is not used. Missing, unavailable, or weak market-price comparisons do not block publication. A product is blocked only when a confident same-product comparison with at least three current Torob seller offers verifies that DigiKala is at least 5% more expensive than the seller median.",
+        "ranking_note": "Channel relevance and buyer-demand signals rank ahead of the retailer-listed discount. Price history is not used. Missing, unavailable, or weak market-price comparisons do not block publication. A product is blocked only when a confident same-product comparison with at least three current Torob seller offers verifies that DigiKala is at least 5% more expensive than the seller median.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
@@ -2218,7 +2265,7 @@ def run(publish=False):
             try:
                 image_bytes = _fetch_image(item["image_url"])
                 prepared_image = build_discount_image(image_bytes, item.get("discount_percent"))
-                result = _send_photo(prepared_image, build_caption(item, item["affiliate_url"]))
+                result = _send_photo(prepared_image, build_caption(item, item["affiliate_url"]), item["affiliate_url"])
                 state["published"][pid] = {
                     "ts": now,
                     "title": item["title"],
