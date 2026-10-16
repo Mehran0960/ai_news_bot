@@ -946,7 +946,7 @@ def _add_history_comparison(product: dict) -> dict:
 
 def _normalized_variant_label(value) -> str:
     text = str(value or "").lower().replace("ي", "ی").replace("ك", "ک")
-    return re.sub(r"[\\W_]+", "", text)
+    return "".join(char for char in text if char.isalnum())
 
 
 def parse_price_history(payload: dict, current_price: int | None, variant_label: str = "") -> dict:
