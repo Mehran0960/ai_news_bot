@@ -14,9 +14,7 @@ import math
 import os
 import re
 import statistics
-import subprocess
 import sys
-import tempfile
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -42,6 +40,7 @@ AFFILIO_UTM_MEDIUM = os.getenv("AFFILIO_UTM_MEDIUM", "Affilio").strip()
 AFFILIO_UTM_ID = os.getenv("AFFILIO_UTM_ID", "14657").strip()
 AFFILIO_DIGIKALA_AFFID = os.getenv("AFFILIO_DIGIKALA_AFFID", "OTgxYTY0OTAtODJhNS00MDNkLTg0NDItMWE0MGVkOGI1Yjhj").strip()
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
+FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "false").strip().lower() in {"1", "true", "yes", "on"}
 MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
 MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "40"))))
 MAX_POSTS_PER_RUN = max(1, min(2, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "1"))))
@@ -1872,122 +1871,6 @@ def _font(size: int, bold=False):
     return ImageFont.load_default()
 
 
-def _wrap_lines(draw, text, font, max_width):
-    words = str(text or "").split()
-    lines, current = [], ""
-    for word in words:
-        trial = f"{current} {word}".strip()
-        try:
-            width = draw.textbbox((0, 0), _shape(trial), font=font)[2]
-        except Exception:
-            width = len(trial) * max(8, font.size // 2)
-        if current and width > max_width:
-            lines.append(current)
-            current = word
-        else:
-            current = trial
-    if current:
-        lines.append(current)
-    return lines or [""]
-
-
-def _draw_centered_text(draw, text, center_x, top_y, font, fill, max_width=620, line_gap=10):
-    lines = _wrap_lines(draw, text, font, max_width)
-    y = top_y
-    for line in lines:
-        rendered = _shape(line)
-        box = draw.textbbox((0, 0), rendered, font=font, stroke_width=0)
-        height = max(font.size, box[3] - box[1])
-        draw.text((center_x, y), rendered, font=font, fill=fill, anchor="ma")
-        y += height + line_gap
-    return y
-
-
-def _rounded_product_image(image_bytes: bytes, size=440):
-    from io import BytesIO
-    with Image.open(BytesIO(image_bytes)) as raw:
-        raw.load()
-        image = raw.convert("RGB")
-    image.thumbnail((size, size), Image.Resampling.LANCZOS)
-    panel = Image.new("RGB", (size, size), "#ffffff")
-    x = (size - image.width) // 2
-    y = (size - image.height) // 2
-    panel.paste(image, (x, y))
-    mask = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(mask).rounded_rectangle((0, 0, size - 1, size - 1), radius=38, fill=255)
-    panel.putalpha(mask)
-    return panel
-
-
-def build_promo_video(product: dict, image_bytes: bytes, out_path: Path):
-    """Create a four-scene Persian product promo from authorized retailer imagery."""
-    workdir = Path(tempfile.mkdtemp(prefix="affilio-video-"))
-    slides = []
-    title = product.get("title") or "محصول منتخب"
-    current = product.get("current_price")
-    original = product.get("original_price")
-    discount = product.get("discount_percent", 0)
-    img_panel = _rounded_product_image(image_bytes, 450)
-    scenes = [
-        ("پیشنهاد محصول", title, "قبل از خرید، مشخصات و قیمت روز را بررسی کن"),
-        ("نگاهی به محصول", title, "تصویر و اطلاعات از صفحه محصول"),
-        ("قیمت روز", f"{current:,} تومان" if current else "قیمت روز را در صفحه بررسی کن",
-         f"قیمت قبلی: {original:,} تومان" if original and current else (f"تخفیف اعلام‌شده: {discount}٪" if discount else "قیمت ممکن است تغییر کند")),
-        ("انتخاب آگاهانه", "موجودی و جزئیات به‌روز را ببین", "لینک خرید همکاری در فروش در کپشن"),
-    ]
-    try:
-        for idx, (eyebrow, heading, subheading) in enumerate(scenes):
-            canvas = Image.new("RGB", (720, 1280), "#101827")
-            pixels = canvas.load()
-            for y in range(canvas.height):
-                ratio = y / max(1, canvas.height - 1)
-                color = (
-                    int(16 + 3 * ratio),
-                    int(24 + 34 * ratio),
-                    int(39 + 45 * ratio),
-                )
-                for x in range(canvas.width):
-                    pixels[x, y] = color
-            draw = ImageDraw.Draw(canvas)
-            # Decorative accent shapes make a calm product-card composition.
-            draw.ellipse((500, -170, 860, 190), fill="#164e63")
-            draw.ellipse((-170, 930, 170, 1270), fill="#1e3a5f")
-            draw.rounded_rectangle((42, 48, 678, 1232), radius=38, outline="#36506c", width=2)
-            _draw_centered_text(draw, "ایران گجت • پیشنهاد افیلیت", 360, 82, _font(26, True), "#a5f3fc", 620)
-            _draw_centered_text(draw, eyebrow, 360, 155, _font(34, True), "#f8fafc", 620)
-            # Center the genuine retailer product image without distorting it.
-            img = img_panel.copy()
-            canvas.paste(img, ((720 - img.width) // 2, 255), img)
-            _draw_centered_text(draw, heading, 360, 760, _font(32, True), "#ffffff", 620, 8)
-            _draw_centered_text(draw, subheading, 360, 1015, _font(25, False), "#cbd5e1", 610, 8)
-            draw.rounded_rectangle((124, 1142, 596, 1195), radius=24, fill="#0e7490")
-            cta = "لینک و قیمت روز در کپشن"
-            _draw_centered_text(draw, cta, 360, 1153, _font(23, True), "#ffffff", 450, 4)
-            file = workdir / f"slide-{idx:02d}.png"
-            canvas.save(file, format="PNG", optimize=True)
-            slides.append(file)
-
-        concat = workdir / "slides.txt"
-        with concat.open("w", encoding="utf-8") as f:
-            for slide in slides:
-                f.write(f"file '{slide.as_posix()}'\n")
-                f.write("duration 3\n")
-            f.write(f"file '{slides[-1].as_posix()}'\n")
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(
-            ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-             "-f", "concat", "-safe", "0", "-i", str(concat),
-             "-vf", "fps=24,format=yuv420p", "-c:v", "libx264", "-preset", "veryfast",
-             "-crf", "26", "-movflags", "+faststart", str(out_path)],
-            check=True, timeout=120, capture_output=True, text=True,
-        )
-        if not out_path.exists() or out_path.stat().st_size < 20_000:
-            raise RuntimeError("generated video is missing or unexpectedly small")
-    finally:
-        import shutil
-        shutil.rmtree(workdir, ignore_errors=True)
-
-
 def format_price(value):
     return f"{int(value):,} تومان" if value else "در صفحه محصول بررسی شود"
 
@@ -2212,7 +2095,7 @@ def run(publish=False):
     state.setdefault("last_published_at", "")
     now = time.time()
     last_post = _last_post_timestamp(state)
-    cooldown_remaining = MIN_POST_INTERVAL_HOURS * 3600 - (now - last_post)
+    cooldown_remaining = -1 if FORCE_POST_COOLDOWN_BYPASS else MIN_POST_INTERVAL_HOURS * 3600 - (now - last_post)
     if cooldown_remaining > 0:
         print(f"POST_COOLDOWN remaining_minutes={int(cooldown_remaining / 60)}")
 
