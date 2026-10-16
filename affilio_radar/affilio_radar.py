@@ -1322,7 +1322,7 @@ def market_query_variants(title: str) -> list[str]:
     simplified = full
     # Strip pack counts before removing words such as "عدد" and "عددی".
     simplified = re.sub(
-        r"(?<!\w)\d+(?:[.,]\d+)?(?=\s*(?:عدد(?:ی)?|تایی|تایى|تا|pcs?|pieces?|tablets?|capsules?|count)(?:\s|$|[^\w]))",
+        r"(?<!\w)\d+(?:[.,]\d+)?(?=\s*(?:عدد|تایی|تایى|تا|pcs?|pieces?|tablets?|capsules?|count))",
         " ", simplified, flags=re.I,
     )
     for token in sorted(MARKET_GENERIC_TOKENS, key=len, reverse=True):
