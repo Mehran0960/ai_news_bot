@@ -901,7 +901,12 @@ def is_historically_discount_eligible(product: dict) -> bool:
         current and median and median > 0
         and current <= median * (100 - MIN_HISTORICAL_DISCOUNT_PERCENT) / 100
     )
-    near_stable_low = bool(current and stable_low and stable_low > 0 and current <= stable_low * 1.05)
+    # A flat price at its own low is not a real deal. The stable-low route is valid only
+    # when the typical (median) price was itself meaningfully higher than that low.
+    near_stable_low = bool(
+        current and stable_low and stable_low > 0 and median and median >= stable_low * 1.05
+        and current <= stable_low * 1.05
+    )
     return below_median or near_stable_low
 
 
