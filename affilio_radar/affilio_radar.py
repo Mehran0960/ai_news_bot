@@ -58,7 +58,7 @@ MAX_STABLE_LOW_DISTANCE_PERCENT = max(0, min(10, int(os.getenv("AFFILIO_MAX_STAB
 HTTP_TIMEOUT = int(os.getenv("AFFILIO_HTTP_TIMEOUT", "18"))
 HISTORY_TIMEOUT = max(4, min(HTTP_TIMEOUT, int(os.getenv("AFFILIO_HISTORY_TIMEOUT", "8"))))
 TOROB_MCP_URL = os.getenv("TOROB_MCP_URL", "https://torob-mcp.mmdju3.workers.dev/mcp").strip()
-MARKET_PRICE_CHECK_LIMIT = max(0, min(6, int(os.getenv("AFFILIO_MARKET_CHECK_LIMIT", "3"))))
+MARKET_PRICE_CHECK_LIMIT = max(0, min(6, int(os.getenv("AFFILIO_MARKET_CHECK_LIMIT", "6"))))
 TOROB_MCP_GAP_SECONDS = max(1.5, min(5.0, float(os.getenv("TOROB_MCP_GAP_SECONDS", "2"))))
 MIN_MARKET_MATCH_SCORE = max(40, min(95, int(os.getenv("AFFILIO_MIN_MARKET_MATCH_SCORE", "60"))))
 MARKET_UNDERCUT_BLOCK_PERCENT = max(1, min(30, int(os.getenv("AFFILIO_MARKET_UNDERCUT_BLOCK_PERCENT", "5"))))
@@ -1340,12 +1340,27 @@ def market_name_match_score(query: str, candidate_name: str) -> int:
 
 
 def is_market_price_uncompetitive(product: dict) -> bool:
-    """Block only a reliable, same-product comparison showing DigiKala >=5% above market."""
+    """Block a reliable same-product comparison showing DigiKala >=5% above market."""
     return bool(
         product.get("market_status") == "verified"
         and product.get("market_reference_kind") == "seller_median"
         and product.get("market_price_advantage_pct") is not None
         and int(product["market_price_advantage_pct"]) <= -MARKET_UNDERCUT_BLOCK_PERCENT
+    )
+
+
+def is_market_value_publish_eligible(product: dict) -> bool:
+    """Require a reliable current-market median and a material saving versus it."""
+    try:
+        advantage = int(product.get("market_price_advantage_pct"))
+        sellers = int(product.get("market_available_offer_count") or 0)
+    except (TypeError, ValueError):
+        return False
+    return bool(
+        product.get("market_status") == "verified"
+        and product.get("market_reference_kind") == "seller_median"
+        and sellers >= 3
+        and advantage >= 5
     )
 
 
@@ -1954,43 +1969,65 @@ def format_price(value):
 
 
 def build_caption(p: dict, affiliate_url: str) -> str:
+    """Build the user's compact Telegram HTML caption."""
     title = html.escape((p.get("title") or "محصول منتخب").strip())
-    parts = ["🎬 <b>پیشنهاد محصول</b>", "", f"🛍️ <b>{title}</b>", ""]
     current = p.get("current_price")
     original = p.get("original_price")
+    discount = p.get("discount_percent")
+    parts = ["🎬 <b>پیشنهاد شگفت انگیز</b>", "", f"🛍️ <b>{title}</b>", ""]
+    if discount is not None:
+        parts.append(f"💵 {int(discount)}٪ تخفیف ⭐")
     if current:
-        parts.append(f"💰 قیمت فعلیِ صفحه: <b>{format_price(current)}</b>")
-    if original and current and original > current:
-        parts.append(f"🏷️ قیمت قبلیِ درج‌شده: {format_price(original)}")
-        parts.append(f"📉 اختلاف درج‌شده: {int(p.get('discount_percent') or 0)}٪")
-        if p.get("savings_toman"):
-            parts.append(f"💵 صرفه‌جوییِ درج‌شده: <b>{format_price(p['savings_toman'])}</b>")
-    if p.get("rating") is not None:
-        parts.append(f"⭐ امتیاز کاربران: {p['rating']:.1f} از ۵")
-    if p.get("history_status") == "verified" and p.get("discount_vs_30d_median_pct") is not None:
-        delta = int(p["discount_vs_30d_median_pct"])
-        days = int(p.get("history_days") or 0)
-        if delta > 0:
-            parts.append(f"📊 قیمت فعلی {delta}٪ پایین‌تر از میانه تاریخچه ({days} روز)")
-        elif delta < 0:
-            parts.append(f"📊 قیمت فعلی {abs(delta)}٪ بالاتر از میانه تاریخچه ({days} روز)")
-        else:
-            parts.append(f"📊 قیمت فعلی نزدیک میانه تاریخچه ({days} روز) است")
-    if p.get("market_status") == "verified" and p.get("market_price_advantage_pct") is not None:
-        advantage = int(p["market_price_advantage_pct"])
-        seller_count = int(p.get("market_available_offer_count") or 0)
-        if advantage >= 0:
-            parts.append(f"🛍️ قیمت دیجی‌کالا حدود {advantage}٪ پایین‌تر از میانه قیمت {seller_count} پیشنهاد فروشگاهی در ترب است")
-        else:
-            parts.append(f"🛍️ قیمت بازار برای مقایسه: حدود {abs(advantage)}٪ پایین‌تر از قیمت دیجی‌کالا")
+        parts.append(f"💰 قیمت با تخفیف: <b>{int(current):,} تومان</b>")
+    if original and current and int(original) > int(current):
+        parts.append(f"🏷️ قیمت اصلی: <s>{int(original):,}</s>")
     parts += [
         "",
-        "⚠️ قیمت و موجودی ممکن است تغییر کند؛ قبل از خرید در صفحه فروشنده بررسی کن.",
         f'🛒 <a href="{html.escape(affiliate_url, quote=True)}">مشاهده جزئیات و خرید</a>',
-        "",
-        "این لینک همکاری در فروش است و ممکن است از خرید شما کمیسیون دریافت شود.",
     ]
     return "\n".join(parts)[:1024]
+
+
+def build_discount_image(image_bytes: bytes, discount_percent=None) -> bytes:
+    """Keep the retailer image and add a compact discount badge in one corner."""
+    from io import BytesIO
+    with Image.open(BytesIO(image_bytes)) as raw:
+        raw.load()
+        image = raw.convert("RGB")
+    image.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
+    if discount_percent is not None:
+        try:
+            discount = int(discount_percent)
+        except (TypeError, ValueError):
+            discount = 0
+        if 0 < discount <= 100:
+            draw = ImageDraw.Draw(image)
+            width, height = image.size
+            font_size = max(20, min(width, height) // 16)
+            font = _font(font_size, True)
+            label = _shape(f"{discount}٪ تخفیف")
+            bbox = draw.textbbox((0, 0), label, font=font)
+            text_width = max(1, bbox[2] - bbox[0])
+            text_height = max(font_size, bbox[3] - bbox[1])
+            pad = max(10, min(width, height) // 45)
+            badge_width = text_width + pad * 2
+            badge_height = text_height + pad * 2
+            margin = max(10, min(width, height) // 35)
+            right = width - margin
+            top = margin
+            left = max(0, right - badge_width)
+            bottom = min(height, top + badge_height)
+            draw.rounded_rectangle(
+                (left, top, right, bottom),
+                radius=max(10, pad),
+                fill="#16a34a",
+                outline="#ffffff",
+                width=max(2, min(width, height) // 300),
+            )
+            draw.text((right - pad, top + pad), label, font=font, fill="#ffffff", anchor="ra")
+    output = BytesIO()
+    image.save(output, format="JPEG", quality=92, optimize=True)
+    return output.getvalue()
 
 
 def _fetch_image(url: str) -> bytes:
@@ -2019,26 +2056,20 @@ def _fetch_image(url: str) -> bytes:
     return data
 
 
-def _send_video(path: Path, caption: str):
+def _send_photo(photo_bytes: bytes, caption: str):
     if not BOT_TOKEN:
         raise RuntimeError("Missing TELEGRAM_BOT_TOKEN secret; no post sent")
-    endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/sendVideo"
-    with path.open("rb") as media:
-        response = requests.post(
-            endpoint,
-            data={
-                "chat_id": TARGET_CHAT,
-                "caption": caption,
-                "parse_mode": "HTML",
-                "supports_streaming": "true",
-            },
-            files={"video": (path.name, media, "video/mp4")},
-            timeout=(20, 180),
-        )
+    endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
+    response = requests.post(
+        endpoint,
+        data={"chat_id": TARGET_CHAT, "caption": caption, "parse_mode": "HTML"},
+        files={"photo": ("product.jpg", photo_bytes, "image/jpeg")},
+        timeout=(20, 120),
+    )
     response.raise_for_status()
     payload = response.json()
     if not payload.get("ok"):
-        raise RuntimeError("Telegram sendVideo returned ok=false")
+        raise RuntimeError("Telegram sendPhoto returned ok=false")
     return payload["result"]
 
 
@@ -2054,7 +2085,7 @@ def _last_post_timestamp(state):
 
 def run(publish=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
-    print(f"Ranking mode=discount-first; minimum discount={MIN_DISCOUNT_PERCENT}%; minimum saving={MIN_SAVINGS_TOMAN:,} toman. Listed RRP is not historical proof.")
+    print(f"Ranking mode=discount-first; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman; publish requires verified current-market advantage >=5%. Price history is disabled.")
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
@@ -2100,7 +2131,7 @@ def run(publish=False):
     products.sort(key=deal_sort_key, reverse=True)
     state = load_state()
     state.setdefault("published", {})
-    enrich_price_history(products, state)
+    # Historical-price lookup is intentionally not used.
     enrich_market_prices(products)
     products.sort(key=deal_sort_key, reverse=True)
     listed_eligible_count = sum(
@@ -2111,7 +2142,7 @@ def run(publish=False):
         p for p in products
         if p.get("has_affiliate_link")
         and is_discount_publish_eligible(p)
-        and not is_market_price_uncompetitive(p)
+        and is_market_value_publish_eligible(p)
     ]
     history_verified = sum(p.get("history_status") == "verified" for p in products)
     market_verified = sum(p.get("market_status") == "verified" for p in products)
@@ -2135,22 +2166,19 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "Discount-first across all categories. Historical price is supplemental context. A reliable same-product Torob comparison blocks publication only when DigiKala's current price is at least 5% above the median of three or more current seller offers; missing comparison data never excludes a product by itself.",
+        "ranking_note": "Discount-first across all categories. Price history is not used. Publication requires a confident same-product match and at least three current Torob seller offers; DigiKala must be at least 5% cheaper than the seller median. Unknown or weak market comparisons never qualify for publication.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "checked_candidates_per_run": MARKET_PRICE_CHECK_LIMIT,
             "minimum_name_match_score": MIN_MARKET_MATCH_SCORE,
             "minimum_sellers_for_verified_median": 3,
-            "block_if_digikala_more_expensive_by_percent": MARKET_UNDERCUT_BLOCK_PERCENT,
-            "unknown_or_limited_comparison_blocks": False,
+            "minimum_discount_vs_current_market_median_percent": 5,
+            "unknown_or_limited_comparison_blocks": True,
             "endpoint": TOROB_MCP_URL,
         },
         "price_history_policy": {
-            "direct_api_checks_per_run": PRICE_HISTORY_CHECK_LIMIT,
-            "minimum_history_days": MIN_HISTORICAL_PRICE_DAYS,
-            "minimum_discount_vs_median_percent": MIN_HISTORICAL_DISCOUNT_PERCENT,
-            "fallback": "one saved price snapshot per product per UTC day",
-            "role": "supplemental signal, not a mandatory publication gate",
+            "enabled": False,
+            "role": "not used for candidate selection or publication",
         },
         "search_diagnostics": search_diagnostics,
         "products": products[:40],
@@ -2188,10 +2216,8 @@ def run(publish=False):
                 continue
             try:
                 image_bytes = _fetch_image(item["image_url"])
-                with tempfile.TemporaryDirectory(prefix="affilio-publish-") as td:
-                    video_path = Path(td) / f"{pid}.mp4"
-                    build_promo_video(item, image_bytes, video_path)
-                    result = _send_video(video_path, build_caption(item, item["affiliate_url"]))
+                prepared_image = build_discount_image(image_bytes, item.get("discount_percent"))
+                result = _send_photo(prepared_image, build_caption(item, item["affiliate_url"]))
                 state["published"][pid] = {
                     "ts": now,
                     "title": item["title"],
@@ -2209,7 +2235,6 @@ def run(publish=False):
     # Limit retained product history while preserving most recent entries.
     if isinstance(state.get("published"), dict) and len(state["published"]) > 2000:
         state["published"] = dict(sorted(state["published"].items(), key=lambda kv: float(kv[1].get("ts", 0)))[-2000:])
-    # Save observed prices even during dry runs so the fallback history matures over time.
     save_json(STATE, state)
     return 0 if products or any(d.get("ok") for d in search_diagnostics) else 2
 
