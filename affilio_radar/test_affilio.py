@@ -12,6 +12,7 @@ from affilio_radar import (
     safe_product_url,
     product_id,
     build_affilio_tracking_link,
+    build_click_tracking_link,
     parse_product_page,
     score_product,
     is_publish_eligible,
@@ -102,6 +103,30 @@ class AffilioRadarTests(unittest.TestCase):
         linked = build_affilio_tracking_link(product, template)
         self.assertTrue(linked.startswith("https://migmig.affilio.ir/api/v1/Click/b/media-code?b64="))
         self.assertNotIn("{YOUR_BASE64_ENCODED_URL}", linked)
+
+    def test_click_tracker_wraps_only_same_product_affiliate_destinations(self):
+        product = "https://www.digikala.com/product/dkp-15970075/"
+        affiliate = build_affilio_tracking_link(product)
+        tracked = build_click_tracking_link(product, affiliate, "https://tracker.example")
+        parsed = urlsplit(tracked)
+        self.assertEqual(parsed.scheme, "https")
+        self.assertEqual(parsed.netloc, "tracker.example")
+        self.assertEqual(parsed.path, "/p/dkp-15970075")
+        self.assertEqual(parse_qs(parsed.query).get("u"), [affiliate])
+
+        wrong_product = build_click_tracking_link(
+            "https://www.digikala.com/product/dkp-999/",
+            affiliate,
+            "https://tracker.example",
+        )
+        self.assertEqual(wrong_product, affiliate)
+
+    def test_click_tracker_preserves_supported_affilio_template(self):
+        product = "https://www.digikala.com/product/dkp-1234567/"
+        template = "https://migmig.affilio.ir/api/v1/Click/b/media-code?b64={YOUR_BASE64_ENCODED_URL}"
+        affiliate = build_affilio_tracking_link(product, template)
+        tracked = build_click_tracking_link(product, affiliate, "https://tracker.example")
+        self.assertTrue(tracked.startswith("https://tracker.example/p/dkp-1234567?u="))
 
     def test_direct_affilio_link_uses_user_provided_digikala_parameters(self):
         product = "https://www.digikala.com/product/dkp-15970075/?old_tracking=remove"
@@ -345,7 +370,7 @@ class AffilioRadarTests(unittest.TestCase):
         p = parse_product_page("https://www.digikala.com/product/dkp-3/", UNKNOWN_STOCK_HTML)
         self.assertEqual(p["availability"], "unknown")
 
-    def test_score_rewards_relevant_category_and_reviews(self):
+    def test_score_rewards_reviews_without_category_priority(self):
         high = score_product({
             "title": "پاوربانک سریع",
             "current_price": 1_200_000,
@@ -363,6 +388,19 @@ class AffilioRadarTests(unittest.TestCase):
         })
         self.assertGreater(high["demand_score"], low["demand_score"])
         self.assertEqual(high["discount_percent"], 20)
+
+    def test_same_offer_signals_get_same_score_across_categories(self):
+        shared = {
+            "current_price": 790_000,
+            "original_price": 1_490_000,
+            "rating": 4.5,
+            "review_count": 800,
+            "image_url": "https://example.com/image.jpg",
+        }
+        digital = score_product({**shared, "title": "پاوربانک سریع"})
+        unrelated = score_product({**shared, "title": "مکمل غذایی"})
+        self.assertEqual(digital["demand_score"], unrelated["demand_score"])
+        self.assertEqual(digital["promo_score"], unrelated["promo_score"])
 
     def test_high_review_volume_can_outweigh_price_band_for_demand_ranking(self):
         broad_demand = score_product({
@@ -417,9 +455,10 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("⚡️ تخفیف ویژه: <b>29٪</b>", caption)
         self.assertNotIn("تخفیف اعلامی دیجی‌کالا", caption)
         self.assertIn("💰 قیمت امروز: <b>500,000 تومان</b>", caption)
+        self.assertIn("💸 صرفه‌جویی: <b>200,000 تومان</b>", caption)
         self.assertIn("🏷️ قیمت قبل از تخفیف: <s>700,000</s> تومان", caption)
         self.assertIn("⭐ امتیاز کاربران: <b>4.4/5</b> | 1,243 نظر", caption)
-        self.assertIn("خرید از این لینک به پشتیبانی کانال کمک می‌کند", caption)
+        self.assertNotIn("پشتیبانی کانال", caption)
         self.assertNotIn("لینک خرید همکاری در فروش است", caption)
         self.assertTrue(caption.endswith("📣 @Iran_gajet"))
         self.assertLessEqual(len(caption), 1024)
