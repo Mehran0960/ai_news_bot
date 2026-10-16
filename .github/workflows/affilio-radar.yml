@@ -29,9 +29,9 @@ on:
         type: boolean
         default: false
   schedule:
-    # Check every 15 minutes for evenly spaced retry opportunities.
-    # The app's state-based 30-minute cooldown still limits publishing to at most one post per 30 minutes.
-    - cron: "*/15 * * * *"
+    # Re-scan live Incredible Offers every five minutes so high-value deals enter the queue quickly.
+    # Ordinary posts remain 30 minutes apart; an exceptional deal expiring within 90 minutes may use a 10-minute minimum.
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: write
