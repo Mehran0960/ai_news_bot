@@ -2078,7 +2078,7 @@ def _last_post_timestamp(state):
 
 def run(publish=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
-    print(f"Ranking mode=discount-first; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman; publish requires verified current-market advantage >=5%. Price history is disabled.")
+    print(f"Ranking mode=discount-first; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman; missing/unknown market data never blocks publication; only verified same-product pricing showing DigiKala at least {MARKET_UNDERCUT_BLOCK_PERCENT}% above market is blocked. Price history is disabled.")
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
