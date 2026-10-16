@@ -32,6 +32,7 @@ from affilio_radar import (
     _latin_font,
     extract_deal_expiry,
     gregorian_to_jalali,
+    format_deal_expiry,
     format_discount_badge,
     is_market_value_publish_eligible,
     parse_price_history,
@@ -507,7 +508,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("تخفیف اعلامی دیجی‌کالا", caption)
         self.assertIn("💰 قیمت امروز: <b>500,000 تومان</b>", caption)
         self.assertIn("🏷️ قیمت اصلی: <s>700,000 تومان</s>", caption)
-        self.assertIn("⏳ پایان تخفیف: <b>شنبه ۲۵ مهر ۱۴۰۵، ساعت ۰۰:۰۰</b>", caption)
+        self.assertIn("⏳ پایان تخفیف: <b>جمعه ۲۴ مهر ۱۴۰۵، ساعت ۲۳:۵۹</b>", caption)
         self.assertLess(caption.index("⚡️"), caption.index("💰 قیمت امروز"))
         self.assertLess(caption.index("💰 قیمت امروز"), caption.index("🏷️ قیمت اصلی"))
         self.assertLess(caption.index("🏷️ قیمت اصلی"), caption.index("⏳ پایان تخفیف"))
@@ -520,6 +521,18 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertLessEqual(len(caption), 1024)
         self.assertNotIn("کمیسیون", caption)
         self.assertNotIn("تاریخچه", caption)
+
+    def test_midnight_expiry_displays_previous_day_at_2359(self):
+        self.assertEqual(
+            format_deal_expiry("2026-10-17T00:00:00+00:00"),
+            "جمعه ۲۴ مهر ۱۴۰۵، ساعت ۲۳:۵۹",
+        )
+
+    def test_non_midnight_expiry_keeps_the_actual_calendar_day_and_time(self):
+        self.assertEqual(
+            format_deal_expiry("2026-10-17T09:00:00+00:00"),
+            "شنبه ۲۵ مهر ۱۴۰۵، ساعت ۱۲:۳۰",
+        )
 
     def test_gregorian_to_jalali_conversion_across_calendar_boundaries(self):
         self.assertEqual(gregorian_to_jalali(2026, 10, 17), (1405, 7, 25))
