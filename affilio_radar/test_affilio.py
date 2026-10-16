@@ -8,6 +8,7 @@ from PIL import Image
 from affilio_radar import (
     safe_product_url,
     product_id,
+    build_affilio_tracking_link,
     parse_product_page,
     score_product,
     is_publish_eligible,
@@ -67,6 +68,31 @@ class AffilioRadarTests(unittest.TestCase):
     def test_product_id_extraction(self):
         self.assertEqual(product_id("https://www.digikala.com/product/dkp-9876/"), "dkp-9876")
         self.assertEqual(product_id("https://www.digikala.com/search/?q=phone"), "")
+
+    def test_affilio_product_link_uses_one_reusable_template(self):
+        product = "https://www.digikala.com/product/dkp-1234567/"
+        template = "https://migmig.affilio.ir/api/v1/Click/b/channel-token/{YOUR_BASE64_ENCODED_URL}"
+        linked = build_affilio_tracking_link(product, template)
+        import base64
+        encoded = base64.b64encode(product.encode("utf-8")).decode("ascii")
+        self.assertEqual(linked, template.replace("{YOUR_BASE64_ENCODED_URL}", encoded))
+        self.assertNotIn("{YOUR_BASE64_ENCODED_URL}", linked)
+        self.assertEqual(linked.split("/api/v1/Click/")[0], "https://migmig.affilio.ir")
+
+    def test_affilio_link_builder_rejects_invalid_template_or_product(self):
+        product = "https://www.digikala.com/product/dkp-1234567/"
+        self.assertEqual(
+            build_affilio_tracking_link(product, "https://evil.example/api/v1/Click/b/x/{YOUR_BASE64_ENCODED_URL}"),
+            "",
+        )
+        self.assertEqual(
+            build_affilio_tracking_link(product, "https://migmig.affilio.ir/api/v1/Click/b/x/no-placeholder"),
+            "",
+        )
+        self.assertEqual(
+            build_affilio_tracking_link("https://evil.example/product/dkp-1234567/", "https://migmig.affilio.ir/api/v1/Click/b/x/{YOUR_BASE64_ENCODED_URL}"),
+            "",
+        )
 
     def test_search_api_uses_only_product_array_not_category_filter_ids(self):
         payload = {
