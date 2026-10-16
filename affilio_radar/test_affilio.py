@@ -433,7 +433,7 @@ class AffilioRadarTests(unittest.TestCase):
             _send_photo(b"photo-bytes", "caption", "https://affilio.example/tracked")
         data = post.call_args.kwargs["data"]
         markup = json.loads(data["reply_markup"])
-        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛒 بررسی قیمت و خرید")
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده تخفیف و خرید")
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], "https://affilio.example/tracked")
 
     def test_discount_image_returns_photo_with_badge(self):
