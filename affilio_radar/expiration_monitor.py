@@ -182,7 +182,7 @@ def _should_probe(record, now):
     except (TypeError, ValueError):
         elapsed = float("inf")
     interval = PROBE_INTERVAL_SECONDS if record.get("expiry_estimated") else UNKNOWN_PROBE_INTERVAL_SECONDS
-    return not record.get("expires_at") or elapsed >= interval
+    return elapsed >= interval
 
 
 def _telegram_delete(message_id):
