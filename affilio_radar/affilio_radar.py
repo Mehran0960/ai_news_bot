@@ -41,10 +41,11 @@ AFFILIO_UTM_ID = os.getenv("AFFILIO_UTM_ID", "14657").strip()
 AFFILIO_DIGIKALA_AFFID = os.getenv("AFFILIO_DIGIKALA_AFFID", "OTgxYTY0OTAtODJhNS00MDNkLTg0NDItMWE0MGVkOGI1Yjhj").strip()
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
 FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "false").strip().lower() in {"1", "true", "yes", "on"}
+CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
 MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
 MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "40"))))
-MAX_POSTS_PER_RUN = max(1, min(2, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "1"))))
-MIN_POST_INTERVAL_HOURS = max(1, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "1")))
+MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "10"))))
+MIN_POST_INTERVAL_HOURS = max(0.5, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.5")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "3"))))
 MIN_DISCOUNT_PERCENT = max(1, min(90, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "20"))))
@@ -1364,19 +1365,8 @@ def is_market_price_uncompetitive(product: dict) -> bool:
 
 
 def is_market_value_publish_eligible(product: dict) -> bool:
-    """Require a reliable current-market median and a material saving versus it."""
-    try:
-        advantage = int(product.get("market_price_advantage_pct"))
-        sellers = int(product.get("market_available_offer_count") or 0)
-    except (TypeError, ValueError):
-        return False
-    return bool(
-        product.get("market_status") == "verified"
-        and product.get("market_reference_kind") == "seller_median"
-        and int(product.get("market_match_score") or 0) >= MIN_MARKET_MATCH_SCORE
-        and sellers >= 3
-        and advantage >= 5
-    )
+    """Missing market data must not block a post; block only a verified, clearly uncompetitive price."""
+    return not is_market_price_uncompetitive(product)
 
 
 def apply_market_price_comparison(product: dict, card: dict, details: dict, match_score: int, query: str) -> dict:
@@ -1892,6 +1882,8 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     parts += [
         "",
         f'🛒 <a href="{html.escape(affiliate_url, quote=True)}">مشاهده جزئیات و خرید</a>',
+        "",
+        "📣 @Iran_gajet",
     ]
     return "\n".join(parts)[:1024]
 
@@ -1979,6 +1971,98 @@ def _send_photo(photo_bytes: bytes, caption: str):
     if not payload.get("ok"):
         raise RuntimeError("Telegram sendPhoto returned ok=false")
     return payload["result"]
+
+
+def _discover_public_channel_message_ids(max_pages: int = 50) -> set[int]:
+    """Read public channel preview pages to find prior post IDs; does not expose bot credentials."""
+    channel = TARGET_CHAT.lstrip("@")
+    if not channel:
+        return set()
+    found: set[int] = set()
+    before = None
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; IranGajetPostCleanup/1.0)"}
+    for _ in range(max_pages):
+        url = f"https://t.me/s/{channel}"
+        if before:
+            url += f"?before={before}"
+        try:
+            response = SESSION.get(url, headers=headers, timeout=(10, 20))
+            if response.status_code >= 400:
+                print(f"DELETE_SCAN_STOP status={response.status_code}")
+                break
+            soup = BeautifulSoup(response.text, "html.parser")
+            page_ids = set()
+            for node in soup.select("[data-post]"):
+                match = re.fullmatch(rf"{re.escape(channel)}/(\d+)", str(node.get("data-post") or ""))
+                if match:
+                    page_ids.add(int(match.group(1)))
+            new_ids = page_ids - found
+            if not new_ids:
+                break
+            found.update(new_ids)
+            oldest = min(page_ids)
+            if before is not None and oldest >= before:
+                break
+            before = oldest
+        except Exception as exc:
+            print(f"DELETE_SCAN_FAILED error={type(exc).__name__}")
+            break
+    print(f"DELETE_SCAN_FOUND messages={len(found)}")
+    return found
+
+
+def delete_previous_channel_posts(state: dict) -> None:
+    """Best-effort deletion of prior channel posts; tracks failures so products aren't silently duplicated."""
+    if not BOT_TOKEN:
+        print("DELETE_SKIPPED reason=missing_bot_token")
+        return
+    published = state.setdefault("published", {})
+    known_ids = {}
+    for product_id_value, record in list(published.items()):
+        if not isinstance(record, dict):
+            continue
+        try:
+            message_id = int(record.get("telegram_message_id"))
+        except (TypeError, ValueError):
+            continue
+        known_ids[message_id] = product_id_value
+    ids = _discover_public_channel_message_ids()
+    ids.update(known_ids)
+    deleted = set()
+    failed = 0
+    endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/deleteMessage"
+    for message_id in sorted(ids, reverse=True):
+        try:
+            response = requests.post(
+                endpoint,
+                data={"chat_id": TARGET_CHAT, "message_id": message_id},
+                timeout=(10, 20),
+            )
+            payload = response.json()
+            if response.ok and payload.get("ok"):
+                deleted.add(message_id)
+                print(f"DELETE_OK message_id={message_id}")
+            else:
+                failed += 1
+                detail = str(payload.get("description") or response.status_code)[:120]
+                print(f"DELETE_FAILED message_id={message_id} detail={detail!r}")
+        except Exception as exc:
+            failed += 1
+            print(f"DELETE_FAILED message_id={message_id} error={type(exc).__name__}")
+        time.sleep(0.08)
+    removed_products = [
+        pid for pid, record in list(published.items())
+        if isinstance(record, dict) and str(record.get("telegram_message_id") or "").isdigit()
+        and int(record["telegram_message_id"]) in deleted
+    ]
+    for pid in removed_products:
+        published.pop(pid, None)
+    state["last_published_at"] = ""
+    save_json(STATE, state)
+    print(
+        f"DELETE_SUMMARY discovered={len(ids)} deleted={len(deleted)} "
+        f"failed={failed} cleared_product_cooldowns={len(removed_products)}"
+    )
 
 
 def _last_post_timestamp(state):
@@ -2075,6 +2159,7 @@ def run(publish=False):
         "ranking_note": "Discount-first across all categories. Price history is not used. Publication requires a confident same-product match and at least three current Torob seller offers; DigiKala must be at least 5% cheaper than the seller median. Unknown or weak market comparisons never qualify for publication.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
+            "unavailable_market_data_blocks_publication": False,
             "checked_candidates_per_run": MARKET_PRICE_CHECK_LIMIT,
             "minimum_name_match_score": MIN_MARKET_MATCH_SCORE,
             "minimum_sellers_for_verified_median": 3,
@@ -2096,6 +2181,10 @@ def run(publish=False):
 
     if not publish:
         print("DRY_RUN: discovery and stock checks only; no Telegram post attempted.")
+    elif CLEAR_PREVIOUS_CHANNEL_POSTS:
+        delete_previous_channel_posts(state)
+        # Re-evaluate candidates after clearing messages tracked by this bot.
+        eligible = [p for p in eligible if p["product_id"] not in state.get("published", {})]
     elif not BOT_TOKEN:
         print("PUBLISH_BLOCKED: TELEGRAM_BOT_TOKEN is missing; no post attempted.")
     elif link_mode == "no_valid_affilio_tracking_config":
