@@ -2487,7 +2487,7 @@ def run(publish=False):
                     "click_tracking_url": "",
                     "telegram_message_id": result.get("message_id"),
                     "expires_at": expiry_at,
-                    "expiry_source": "digikala_incredible_offers_api" if expiry_at else "unavailable",
+                    "expiry_source": "digikala_live_deals_feed" if expiry_at else "unavailable",
                     "expiry_estimated": False,
                     "posted_discount_percent": int(item.get("discount_percent") or 0),
                     "posted_current_price": int(item.get("current_price") or 0),
