@@ -1522,6 +1522,15 @@ def build_caption(p: dict, affiliate_url: str) -> str:
             parts.append(f"💵 صرفه‌جوییِ درج‌شده: <b>{format_price(p['savings_toman'])}</b>")
     if p.get("rating") is not None:
         parts.append(f"⭐ امتیاز کاربران: {p['rating']:.1f} از ۵")
+    if p.get("history_status") == "verified" and p.get("discount_vs_30d_median_pct") is not None:
+        delta = int(p["discount_vs_30d_median_pct"])
+        days = int(p.get("history_days") or 0)
+        if delta > 0:
+            parts.append(f"📊 قیمت فعلی {delta}٪ پایین‌تر از میانه تاریخچه ({days} روز)")
+        elif delta < 0:
+            parts.append(f"📊 قیمت فعلی {abs(delta)}٪ بالاتر از میانه تاریخچه ({days} روز)")
+        else:
+            parts.append(f"📊 قیمت فعلی نزدیک میانه تاریخچه ({days} روز) است")
     parts += [
         "",
         "⚠️ قیمت و موجودی ممکن است تغییر کند؛ قبل از خرید در صفحه فروشنده بررسی کن.",
