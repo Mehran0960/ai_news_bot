@@ -2090,8 +2090,45 @@ def format_price(value):
     return f"{int(value):,} تومان" if value else "در صفحه محصول بررسی شود"
 
 
+def gregorian_to_jalali(gy: int, gm: int, gd: int) -> tuple[int, int, int]:
+    """Convert a Gregorian calendar date to the Solar Hijri (Jalali) calendar."""
+    g_days_before_month = (0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334)
+    if not 1 <= gm <= 12 or not 1 <= gd <= 31:
+        raise ValueError("Invalid Gregorian month or day")
+    if gy > 1600:
+        jy = 979
+        gy -= 1600
+    else:
+        jy = 0
+        gy -= 621
+    gy2 = gy + 1 if gm > 2 else gy
+    days = (
+        365 * gy
+        + (gy2 + 3) // 4
+        - (gy2 + 99) // 100
+        + (gy2 + 399) // 400
+        - 80
+        + gd
+        + g_days_before_month[gm - 1]
+    )
+    jy += 33 * (days // 12053)
+    days %= 12053
+    jy += 4 * (days // 1461)
+    days %= 1461
+    if days > 365:
+        jy += (days - 1) // 365
+        days = (days - 1) % 365
+    if days < 186:
+        jm = 1 + days // 31
+        jd = 1 + days % 31
+    else:
+        jm = 7 + (days - 186) // 30
+        jd = 1 + (days - 186) % 30
+    return jy, jm, jd
+
+
 def format_deal_expiry(value) -> str:
-    """Format a confirmed absolute deal deadline in Iran local time; never invent one."""
+    """Format a confirmed deal deadline as a Persian date and Iran-local time."""
     raw = str(value or "").strip()
     if not raw:
         return ""
@@ -2104,6 +2141,9 @@ def format_deal_expiry(value) -> str:
             local = parsed.astimezone(ZoneInfo("Asia/Tehran"))
         except Exception:
             local = parsed.astimezone(timezone(timedelta(hours=3, minutes=30)))
+        jalali_year, jalali_month, jalali_day = gregorian_to_jalali(
+            local.year, local.month, local.day
+        )
     except (TypeError, ValueError, OverflowError):
         return ""
     weekdays = {
@@ -2111,12 +2151,13 @@ def format_deal_expiry(value) -> str:
         "Thursday": "پنجشنبه", "Friday": "جمعه", "Saturday": "شنبه", "Sunday": "یکشنبه",
     }
     months = {
-        1: "ژانویه", 2: "فوریه", 3: "مارس", 4: "آوریل", 5: "مه", 6: "ژوئن",
-        7: "ژوئیه", 8: "اوت", 9: "سپتامبر", 10: "اکتبر", 11: "نوامبر", 12: "دسامبر",
+        1: "فروردین", 2: "اردیبهشت", 3: "خرداد", 4: "تیر",
+        5: "مرداد", 6: "شهریور", 7: "مهر", 8: "آبان",
+        9: "آذر", 10: "دی", 11: "بهمن", 12: "اسفند",
     }
     rendered = (
-        f"{weekdays.get(local.strftime('%A'), '')} {local.day} "
-        f"{months[local.month]} {local.year}، ساعت {local:%H:%M} به وقت ایران"
+        f"{weekdays.get(local.strftime('%A'), '')} {jalali_day} "
+        f"{months[jalali_month]} {jalali_year}، ساعت {local:%H:%M} به وقت ایران"
     )
     return rendered.translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
 
