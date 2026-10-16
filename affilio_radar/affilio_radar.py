@@ -2177,9 +2177,8 @@ def format_persian_number(value) -> str:
 
 
 def build_caption(p: dict, affiliate_url: str) -> str:
-    """Build a compact caption with uniform bold styling and a visually isolated deal price."""
+    """Build the agreed compact bold caption with Persian digits and a struck original price."""
     raw_title = (p.get("title") or "پیشنهاد ویژه").strip()
-    # Persianize digits in the product title too (e.g. 60 -> ۶۰).
     raw_title = to_persian_digits(raw_title)
     if len(raw_title) > 140:
         raw_title = raw_title[:137].rstrip() + "…"
@@ -2188,28 +2187,28 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     original = p.get("original_price")
     discount = p.get("discount_percent")
     expiry = format_deal_expiry(p.get("deal_expires_at"))
-    parts = ["<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", "", f"<b>🛍️ {title}</b>", ""]
-    # Make the discounted price the first key offer detail, separated by whitespace.
+    parts = [
+        "<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>",
+        "",
+        f"<b>🛍️ {title}</b>",
+        "",
+    ]
     if current:
-        parts += [
-            "<b>💚 قیمت ویژه</b>",
-            f"<b>💰 {format_persian_number(current)} تومان</b>",
-            "",
-        ]
+        parts.append(f"<b>💚 قیمت ویژه: 💰 {format_persian_number(current)} تومان</b>")
     if discount is not None and int(discount) > 0:
         parts.append(f"<b>⚡️ {format_persian_number(discount)}٪ تخفیف ویژه</b>")
     if original and current and int(original) > int(current):
-        parts.append(f"<b>🏷️ قیمت اصلی: <s>{format_persian_number(original)} تومان</s></b>")
+        parts += ["", f"<b>🏷️ قیمت اصلی: <s>{format_persian_number(original)} تومان</s></b>"]
     if expiry:
         parts += ["", f"<b>⏳ پایان تخفیف: {expiry}</b>"]
     parts += [
         "",
         "<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>",
         "",
-        "<b>📣 @OfferChin</b>",
+        "<b>📣</b> @OfferChin",
     ]
     caption = "\n".join(parts)
-    footer = "\n\n<b>📣 @OfferChin</b>"
+    footer = "\n\n<b>📣</b> @OfferChin"
     if len(caption) > 1024:
         body = "\n".join(parts[:-2])
         caption = body[:1024 - len(footer)].rstrip() + footer
