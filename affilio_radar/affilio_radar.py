@@ -53,7 +53,10 @@ MIN_SAVINGS_TOMAN = max(0, int(os.getenv("AFFILIO_MIN_SAVINGS_TOMAN", "100000"))
 PRICE_HISTORY_CHECK_LIMIT = max(0, min(25, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "15"))))
 MIN_HISTORICAL_PRICE_DAYS = max(3, min(30, int(os.getenv("AFFILIO_MIN_HISTORICAL_PRICE_DAYS", "7"))))
 MIN_HISTORICAL_DISCOUNT_PERCENT = max(1, min(50, int(os.getenv("AFFILIO_MIN_HISTORICAL_DISCOUNT_PERCENT", "10"))))
+MIN_STABLE_LOW_GAP_PERCENT = max(5, min(30, int(os.getenv("AFFILIO_MIN_STABLE_LOW_GAP_PERCENT", "10"))))
+MAX_STABLE_LOW_DISTANCE_PERCENT = max(0, min(10, int(os.getenv("AFFILIO_MAX_STABLE_LOW_DISTANCE_PERCENT", "3"))))
 HTTP_TIMEOUT = int(os.getenv("AFFILIO_HTTP_TIMEOUT", "18"))
+HISTORY_TIMEOUT = max(4, min(HTTP_TIMEOUT, int(os.getenv("AFFILIO_HISTORY_TIMEOUT", "8"))))
 
 SEARCH_TERMS = [
     "پاوربانک",
@@ -791,6 +794,16 @@ def parse_product_api(payload: dict, url: str) -> dict:
     # Product detail APIs commonly expose prices in rials; all outward copy is in toman.
     if current and original and original <= current:
         original = None
+    variant_label_parts = []
+    themes = variant.get("themes") if isinstance(variant.get("themes"), list) else []
+    for theme in themes:
+        if not isinstance(theme, dict):
+            continue
+        value_obj = theme.get("value") if isinstance(theme.get("value"), dict) else {}
+        label = value_obj.get("title") or theme.get("title") or ""
+        if label:
+            variant_label_parts.append(str(label).strip())
+    variant_label = " ".join(variant_label_parts) or _clean_title(variant.get("title_fa") or variant.get("title") or "")
     return {
         "product_id": product_id(url),
         "product_url": safe_product_url(url),
@@ -798,6 +811,7 @@ def parse_product_api(payload: dict, url: str) -> dict:
         "image_url": image,
         "current_price": current,
         "original_price": original,
+        "variant_label": variant_label,
         "rating": rating,
         "review_count": review_count,
         "availability": availability,
@@ -839,7 +853,7 @@ def fetch_product_record(url: str) -> dict:
             print(f"PRODUCT_HTML_FAILED id={product_id(url)} error={type(exc).__name__}")
 
     merged = dict(html_product)
-    for key in ("product_id", "product_url", "title", "image_url", "current_price", "original_price", "rating", "review_count"):
+    for key in ("product_id", "product_url", "title", "image_url", "current_price", "original_price", "variant_label", "rating", "review_count"):
         if api_product.get(key) not in (None, "", 0):
             merged[key] = api_product[key]
     statuses = [x for x in (api_product.get("availability"), html_product.get("availability")) if x in {"in_stock", "out_of_stock"}]
@@ -901,11 +915,13 @@ def is_historically_discount_eligible(product: dict) -> bool:
         current and median and median > 0
         and current <= median * (100 - MIN_HISTORICAL_DISCOUNT_PERCENT) / 100
     )
-    # A flat price at its own low is not a real deal. The stable-low route is valid only
-    # when the typical (median) price was itself meaningfully higher than that low.
+    # A flat or barely moving price at its own low is not a real deal. Accept the
+    # stable-low route only when the typical price was at least 10% higher and today's
+    # price remains within 3% of that stable low (both configurable).
     near_stable_low = bool(
-        current and stable_low and stable_low > 0 and median and median >= stable_low * 1.05
-        and current <= stable_low * 1.05
+        current and stable_low and stable_low > 0 and median
+        and median >= stable_low * (100 + MIN_STABLE_LOW_GAP_PERCENT) / 100
+        and current <= stable_low * (100 + MAX_STABLE_LOW_DISTANCE_PERCENT) / 100
     )
     return below_median or near_stable_low
 
@@ -928,10 +944,16 @@ def _add_history_comparison(product: dict) -> dict:
     return product
 
 
-def parse_price_history(payload: dict, current_price: int | None) -> dict:
-    """Parse the public Digikala daily price chart and choose the variant closest to today's price."""
+def _normalized_variant_label(value) -> str:
+    text = str(value or "").lower().replace("ي", "ی").replace("ك", "ک")
+    return re.sub(r"[\\W_]+", "", text)
+
+
+def parse_price_history(payload: dict, current_price: int | None, variant_label: str = "") -> dict:
+    """Parse the public chart, preferring an identifiable matching color/variant."""
     data = payload.get("data", {}) if isinstance(payload, dict) else {}
     charts = data.get("price_chart", []) if isinstance(data, dict) else []
+    requested_label = _normalized_variant_label(variant_label)
     choices = []
     for chart in charts if isinstance(charts, list) else []:
         if not isinstance(chart, dict):
@@ -950,7 +972,13 @@ def parse_price_history(payload: dict, current_price: int | None) -> dict:
         days = [day for day, _ in rows]
         last_price = prices[-1]
         distance = abs(last_price - current_price) / current_price if current_price else 0.0
-        choices.append((distance, len(prices), chart.get("title"), prices, days, last_price))
+        title = str(chart.get("title") or "")
+        normalized_title = _normalized_variant_label(title)
+        label_match = bool(
+            requested_label and normalized_title
+            and (normalized_title in requested_label or requested_label in normalized_title)
+        )
+        choices.append((0 if label_match else 1, distance, -len(prices), title, prices, days, last_price, label_match))
     if not choices:
         return {
             "history_status": "unavailable",
@@ -958,11 +986,12 @@ def parse_price_history(payload: dict, current_price: int | None) -> dict:
             "history_days": 0,
         }
 
-    # A product can have multiple colors/variants; avoid comparing today's price to an unrelated,
-    # much cheaper variant's history.
-    choices.sort(key=lambda item: (item[0], -item[1]))
-    distance, _, variant_title, prices, days, last_price = choices[0]
-    if current_price and distance > 0.20:
+    # If we can identify the selected variant, a large price drop may be a real sale.
+    # With multiple series and no matching label, fail closed when the closest history
+    # still differs sharply from today's price.
+    choices.sort(key=lambda item: (item[0], item[1], item[2]))
+    _, distance, _, variant_title, prices, days, last_price, label_match = choices[0]
+    if current_price and len(choices) > 1 and not label_match and distance > 0.20:
         return {
             "history_status": "variant_mismatch",
             "history_source": "digikala_price_chart",
@@ -973,13 +1002,14 @@ def parse_price_history(payload: dict, current_price: int | None) -> dict:
         }
     result = _history_metrics(prices, days, "digikala_price_chart")
     result["history_variant"] = str(variant_title or "")[:100]
+    result["history_variant_match"] = "label" if label_match else "closest_price"
     result["history_last_price_toman"] = last_price
     result["history_match_delta_pct"] = round(distance * 100) if current_price else None
     result["history_checked_at"] = datetime.now(timezone.utc).isoformat()
     return _add_history_comparison(result | {"current_price": current_price})
 
 
-def fetch_price_history_record(url: str, current_price: int | None) -> dict:
+def fetch_price_history_record(url: str, current_price: int | None, variant_label: str = "") -> dict:
     """Read Digikala's public daily chart; failures are handled by the snapshot fallback."""
     pid = product_id(url).replace("dkp-", "")
     if not pid.isdigit():
@@ -987,7 +1017,7 @@ def fetch_price_history_record(url: str, current_price: int | None) -> dict:
     response = SESSION.get(
         f"https://api.digikala.com/v1/product/{pid}/price-chart/",
         headers={"Accept": "application/json", "Referer": "https://www.digikala.com/"},
-        timeout=HTTP_TIMEOUT,
+        timeout=HISTORY_TIMEOUT,
         allow_redirects=True,
     )
     response.raise_for_status()
@@ -996,7 +1026,7 @@ def fetch_price_history_record(url: str, current_price: int | None) -> dict:
     payload = response.json()
     if isinstance(payload, dict) and isinstance(payload.get("status"), int) and payload["status"] >= 300:
         raise RuntimeError(f"price history API body status {payload['status']}")
-    return parse_price_history(payload, current_price)
+    return parse_price_history(payload, current_price, variant_label)
 
 
 def update_price_snapshots(state: dict, products: list[dict]) -> None:
@@ -1086,16 +1116,25 @@ def enrich_price_history(products: list[dict], state: dict) -> None:
         if index:
             time.sleep(0.20)  # keep calls to the public endpoint modest
         try:
-            history = fetch_price_history_record(product.get("product_url", ""), product.get("current_price"))
+            history = fetch_price_history_record(
+                product.get("product_url", ""),
+                product.get("current_price"),
+                product.get("variant_label", ""),
+            )
             product.update(history)
             print(
                 f"PRICE_HISTORY id={pid} status={product.get('history_status')} "
                 f"days={product.get('history_days')} median={product.get('history_median_toman')} "
-                f"vs_median_pct={product.get('discount_vs_30d_median_pct')}"
+                f"vs_median_pct={product.get('discount_vs_30d_median_pct')} "
+                f"variant_match={product.get('history_variant_match')}"
             )
         except Exception as exc:
             product["history_api_error"] = type(exc).__name__
-            print(f"PRICE_HISTORY_FAILED id={pid} error={type(exc).__name__}")
+            status_code = getattr(getattr(exc, "response", None), "status_code", None)
+            if status_code in {403, 429}:
+                print("PRICE_HISTORY_PAUSE: endpoint rate-limited; remaining items use local snapshots.")
+                break
+            print(f"PRICE_HISTORY_FAILED id={pid} error={type(exc).__name__} status={status_code or 'n/a'}")
     for product in products:
         if product.get("history_status") != "verified":
             apply_snapshot_price_history(product, state)
@@ -1681,7 +1720,7 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Discount-first across all categories. Publication requires >= {MIN_HISTORICAL_DISCOUNT_PERCENT}% below the {MIN_HISTORICAL_PRICE_DAYS}-day observed median, or within 5% of a stable two-observation low only when that low is at least 5% below the median. List-price discount alone never proves a real deal.",
+        "ranking_note": f"Discount-first across all categories. Publication requires >= {MIN_HISTORICAL_DISCOUNT_PERCENT}% below the {MIN_HISTORICAL_PRICE_DAYS}-day observed median, or within {MAX_STABLE_LOW_DISTANCE_PERCENT}% of a stable low whose median was at least {MIN_STABLE_LOW_GAP_PERCENT}% higher. List-price discount alone never proves a real deal.",
         "price_history_policy": {
             "direct_api_checks_per_run": PRICE_HISTORY_CHECK_LIMIT,
             "minimum_history_days": MIN_HISTORICAL_PRICE_DAYS,
