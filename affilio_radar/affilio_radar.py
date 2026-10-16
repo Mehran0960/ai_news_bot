@@ -44,7 +44,7 @@ FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "fa
 MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
 MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "40"))))
 MAX_POSTS_PER_RUN = max(1, min(2, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "1"))))
-MIN_POST_INTERVAL_HOURS = max(1, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "8")))
+MIN_POST_INTERVAL_HOURS = max(1, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "1")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "3"))))
 MIN_DISCOUNT_PERCENT = max(1, min(90, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "20"))))
@@ -1888,7 +1888,7 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     if current:
         parts.append(f"💰 قیمت با تخفیف: <b>{int(current):,} تومان</b>")
     if original and current and int(original) > int(current):
-        parts.append(f"🏷️ قیمت اصلی: <s>{int(original):,}</s>")
+        parts.append(f"🏷️ قیمت اصلی: <s>{int(original):,} تومان</s>")
     parts += [
         "",
         f'🛒 <a href="{html.escape(affiliate_url, quote=True)}">مشاهده جزئیات و خرید</a>',
@@ -2040,6 +2040,7 @@ def run(publish=False):
     state = load_state()
     state.setdefault("published", {})
     # Historical-price lookup is intentionally not used.
+    state.pop("price_history", None)
     enrich_market_prices(products)
     products.sort(key=deal_sort_key, reverse=True)
     listed_eligible_count = sum(
@@ -2052,20 +2053,17 @@ def run(publish=False):
         and is_discount_publish_eligible(p)
         and is_market_value_publish_eligible(p)
     ]
-    history_verified = sum(p.get("history_status") == "verified" for p in products)
     market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
         f"ranked_products={len(products)} listed_discount_eligible={listed_eligible_count} "
-        f"history_verified={history_verified} market_verified={market_verified} "
-        f"market_price_rejected={market_blocked_count} publish_eligible={len(eligible)}"
+        f"market_verified={market_verified} market_price_rejected={market_blocked_count} "
+        f"publish_eligible={len(eligible)}"
     )
     for rank, item in enumerate(products[:12], start=1):
         print(
             f"RANK {rank}: discount={item['discount_percent']}% saving={item['savings_toman']} "
             f"promo_score={item['promo_score']} demand_score={item['demand_score']} "
             f"stock={item['availability']} linked={item['has_affiliate_link']} "
-            f"history={item.get('history_status')} days={item.get('history_days')} "
-            f"vs_median={item.get('discount_vs_30d_median_pct')} "
             f"market={item.get('market_status')} market_price={item.get('market_reference_price_toman')} "
             f"market_advantage={item.get('market_price_advantage_pct')}% "
             f"market_blocked={is_market_price_uncompetitive(item)} "
@@ -2083,10 +2081,6 @@ def run(publish=False):
             "minimum_discount_vs_current_market_median_percent": 5,
             "unknown_or_limited_comparison_blocks": True,
             "endpoint": TOROB_MCP_URL,
-        },
-        "price_history_policy": {
-            "enabled": False,
-            "role": "not used for candidate selection or publication",
         },
         "search_diagnostics": search_diagnostics,
         "products": products[:40],
