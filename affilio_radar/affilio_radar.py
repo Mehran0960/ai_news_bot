@@ -2160,7 +2160,7 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "Discount-first across all categories. Price history is not used. Publication requires a confident same-product match and at least three current Torob seller offers; DigiKala must be at least 5% cheaper than the seller median. Unknown or weak market comparisons never qualify for publication.",
+        "ranking_note": "Discount-first across all categories. Price history is not used. Missing, unavailable, or weak market-price comparisons do not block publication. A product is blocked only when a confident same-product comparison with at least three current Torob seller offers verifies that DigiKala is at least 5% more expensive than the seller median.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
@@ -2168,7 +2168,7 @@ def run(publish=False):
             "minimum_name_match_score": MIN_MARKET_MATCH_SCORE,
             "minimum_sellers_for_verified_median": 3,
             "minimum_discount_vs_current_market_median_percent": 5,
-            "unknown_or_limited_comparison_blocks": True,
+            "unknown_or_limited_comparison_blocks": False,
             "endpoint": TOROB_MCP_URL,
         },
         "search_diagnostics": search_diagnostics,
