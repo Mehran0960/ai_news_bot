@@ -246,7 +246,7 @@ class AffilioRadarTests(unittest.TestCase):
         # The highest-discount item is a clothing product; no category filter is applied.
         self.assertEqual(candidates[0]["discount_percent"], 99)
 
-    def test_channel_fit_and_demand_outweigh_unrelated_extreme_discount(self):
+    def test_extreme_discount_ranks_first_regardless_of_product_category(self):
         popular_gadget = score_product({
             "title": "پاوربانک محبوب",
             "current_price": 8_000_000,
@@ -264,7 +264,7 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://example.com/deal.jpg",
         })
         self.assertLess(popular_gadget["discount_percent"], unrelated_extreme_discount["discount_percent"])
-        self.assertGreater(deal_sort_key(popular_gadget), deal_sort_key(unrelated_extreme_discount))
+        self.assertGreater(deal_sort_key(unrelated_extreme_discount), deal_sort_key(popular_gadget))
 
     def test_discount_publishing_requires_minimum_percentage_and_saving(self):
         base = {
@@ -403,7 +403,7 @@ class AffilioRadarTests(unittest.TestCase):
             candidate[key] = value
             self.assertFalse(is_publish_eligible(candidate), key)
 
-    def test_caption_is_transparent_compact_and_includes_social_proof(self):
+    def test_caption_uses_discount_led_copy_and_avoids_clunky_labels(self):
         caption = build_caption({
             "title": "گجت نمونه",
             "current_price": 500_000,
@@ -412,13 +412,15 @@ class AffilioRadarTests(unittest.TestCase):
             "rating": 4.4,
             "review_count": 1243,
         }, "https://affilio.example/tracked")
-        self.assertIn("🔥 <b>پیشنهاد منتخب ایران گجت</b>", caption)
+        self.assertIn("🔥 <b>پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", caption)
         self.assertIn("🛍️ <b>گجت نمونه</b>", caption)
-        self.assertIn("📉 تخفیف اعلامی دیجی‌کالا: <b>29٪</b>", caption)
-        self.assertIn("💰 قیمت فعلی: <b>500,000 تومان</b>", caption)
-        self.assertIn("🏷️ قیمت مرجع درج‌شده: <s>700,000</s> تومان", caption)
+        self.assertIn("⚡️ تخفیف ویژه: <b>29٪</b>", caption)
+        self.assertNotIn("تخفیف اعلامی دیجی‌کالا", caption)
+        self.assertIn("💰 قیمت امروز: <b>500,000 تومان</b>", caption)
+        self.assertIn("🏷️ قیمت قبل از تخفیف: <s>700,000</s> تومان", caption)
         self.assertIn("⭐ امتیاز کاربران: <b>4.4/5</b> | 1,243 نظر", caption)
-        self.assertNotIn("https://affilio.example/tracked", caption)
+        self.assertIn("خرید از این لینک به پشتیبانی کانال کمک می‌کند", caption)
+        self.assertNotIn("لینک خرید همکاری در فروش است", caption)
         self.assertTrue(caption.endswith("📣 @Iran_gajet"))
         self.assertLessEqual(len(caption), 1024)
         self.assertNotIn("کمیسیون", caption)
