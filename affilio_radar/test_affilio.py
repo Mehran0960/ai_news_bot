@@ -2,6 +2,7 @@ import unittest
 from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from urllib.parse import parse_qs, urlsplit
 
 from PIL import Image
 
@@ -85,6 +86,20 @@ class AffilioRadarTests(unittest.TestCase):
         linked = build_affilio_tracking_link(product, template)
         self.assertTrue(linked.startswith("https://migmig.affilio.ir/api/v1/Click/b/media-code?b64="))
         self.assertNotIn("{YOUR_BASE64_ENCODED_URL}", linked)
+
+    def test_direct_affilio_link_uses_user_provided_digikala_parameters(self):
+        product = "https://www.digikala.com/product/dkp-15970075/?old_tracking=remove"
+        linked = build_affilio_tracking_link(product)
+        parsed = urlsplit(linked)
+        params = parse_qs(parsed.query)
+        self.assertEqual(parsed.scheme, "https")
+        self.assertEqual(parsed.netloc, "www.digikala.com")
+        self.assertEqual(parsed.path, "/product/dkp-15970075/")
+        self.assertEqual(params.get("utm_source"), ["19166"])
+        self.assertEqual(params.get("utm_medium"), ["Affilio"])
+        self.assertEqual(params.get("utm_id"), ["14657"])
+        self.assertEqual(params.get("affid"), ["OTgxYTY0OTAtODJhNS00MDNkLTg0NDItMWE0MGVkOGI1Yjhj"])
+        self.assertNotIn("old_tracking", params)
 
     def test_affilio_link_builder_rejects_invalid_template_or_product(self):
         product = "https://www.digikala.com/product/dkp-1234567/"
