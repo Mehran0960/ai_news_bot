@@ -429,6 +429,7 @@ class AffilioRadarTests(unittest.TestCase):
         base = {
             "market_status": "verified",
             "market_reference_kind": "seller_median",
+            "market_match_score": 90,
             "market_available_offer_count": 3,
             "market_price_advantage_pct": 8,
         }
@@ -437,6 +438,7 @@ class AffilioRadarTests(unittest.TestCase):
             ("market_status", "limited"),
             ("market_reference_kind", "lowest_torob_offer"),
             ("market_available_offer_count", 2),
+            ("market_match_score", 60),
             ("market_price_advantage_pct", 4),
             ("market_price_advantage_pct", None),
         ]:
@@ -568,6 +570,13 @@ class AffilioRadarTests(unittest.TestCase):
             "هندزفری بلوتوثی QCY T13 ANC2 مدل بی سیم",
         )
         self.assertGreaterEqual(score, 60)
+
+    def test_market_matching_rejects_shared_generic_words_without_brand_match(self):
+        score = market_name_match_score(
+            "زینک پلاس فلکسان",
+            "قرص جوشان اوریکس پلاس ۱۰ عددی زینک های هلث",
+        )
+        self.assertLess(score, 85)
 
     def test_market_matching_rejects_same_brand_but_different_ingredient_and_strength(self):
         query = "قرص زینک پلاس یوروویتال 15 میلی گرم بسته 60 عددی"
