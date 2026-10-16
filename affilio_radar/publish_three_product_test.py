@@ -126,9 +126,12 @@ def main() -> int:
             if index < 3:
                 time.sleep(2)
     except Exception as exc:
+        # One-shot latch even after a partial send: never auto-repost items already sent.
+        batch["enabled"] = False
         batch["last_attempt_at"] = datetime.now(timezone.utc).isoformat()
         batch["posted"] = posted
         batch["last_error_type"] = type(exc).__name__
+        batch["result"] = "partial_or_failed"
         write_json(BATCH_FILE, batch)
         print(f"PUBLISH_PARTIAL_OR_FAILED posts_sent={len(posted)} error={type(exc).__name__}")
         return 3
