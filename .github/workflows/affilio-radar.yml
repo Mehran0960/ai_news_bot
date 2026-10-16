@@ -72,6 +72,7 @@ jobs:
         run: python -m pip install -r affilio_radar/requirements.txt
 
       - name: Validate syntax and run unit tests
+        if: ${{ github.event_name != 'schedule' }}
         run: |
           python -m py_compile affilio_radar/affilio_radar.py
           cd affilio_radar
@@ -79,6 +80,7 @@ jobs:
           python -m py_compile expiration_monitor.py
 
       - name: Smoke-test the deployed click tracker
+        if: ${{ github.event_name == 'push' }}
         run: |
           python - <<'PY'
           import os
