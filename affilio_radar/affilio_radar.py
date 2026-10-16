@@ -59,7 +59,7 @@ HISTORY_TIMEOUT = max(4, min(HTTP_TIMEOUT, int(os.getenv("AFFILIO_HISTORY_TIMEOU
 TOROB_MCP_URL = os.getenv("TOROB_MCP_URL", "https://torob-mcp.mmdju3.workers.dev/mcp").strip()
 MARKET_PRICE_CHECK_LIMIT = max(0, min(6, int(os.getenv("AFFILIO_MARKET_CHECK_LIMIT", "6"))))
 TOROB_MCP_GAP_SECONDS = max(1.5, min(5.0, float(os.getenv("TOROB_MCP_GAP_SECONDS", "2"))))
-MIN_MARKET_MATCH_SCORE = max(40, min(95, int(os.getenv("AFFILIO_MIN_MARKET_MATCH_SCORE", "60"))))
+MIN_MARKET_MATCH_SCORE = max(40, min(95, int(os.getenv("AFFILIO_MIN_MARKET_MATCH_SCORE", "85"))))
 MARKET_UNDERCUT_BLOCK_PERCENT = max(1, min(30, int(os.getenv("AFFILIO_MARKET_UNDERCUT_BLOCK_PERCENT", "5"))))
 
 SEARCH_TERMS = [
@@ -1373,6 +1373,7 @@ def is_market_value_publish_eligible(product: dict) -> bool:
     return bool(
         product.get("market_status") == "verified"
         and product.get("market_reference_kind") == "seller_median"
+        and int(product.get("market_match_score") or 0) >= MIN_MARKET_MATCH_SCORE
         and sellers >= 3
         and advantage >= 5
     )
