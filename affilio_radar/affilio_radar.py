@@ -1144,6 +1144,8 @@ def run(publish=False):
         print("DRY_RUN: discovery and stock checks only; no Telegram post attempted.")
     elif not BOT_TOKEN:
         print("PUBLISH_BLOCKED: TELEGRAM_BOT_TOKEN is missing; no post attempted.")
+    elif link_mode == "no_tracking_template_configured":
+        print("PUBLISH_BLOCKED: AFFILIO_LINK_TEMPLATE is not configured; no product-specific links or posts were created.")
     elif cooldown_remaining > 0:
         print("PUBLISH_BLOCKED: global posting cooldown active.")
     else:
