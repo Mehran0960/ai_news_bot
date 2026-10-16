@@ -1676,7 +1676,13 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Discount-first. Publication requires listed discount >= {MIN_DISCOUNT_PERCENT}% and listed saving >= {MIN_SAVINGS_TOMAN} toman; list price is not independently validated against historical prices.",
+        "ranking_note": f"Discount-first across all categories. Publication additionally requires >= {MIN_HISTORICAL_DISCOUNT_PERCENT}% below the {MIN_HISTORICAL_PRICE_DAYS}-day observed median or within 5% of a stable two-observation low. List-price discount alone never proves a real deal.",
+        "price_history_policy": {
+            "direct_api_checks_per_run": PRICE_HISTORY_CHECK_LIMIT,
+            "minimum_history_days": MIN_HISTORICAL_PRICE_DAYS,
+            "minimum_discount_vs_median_percent": MIN_HISTORICAL_DISCOUNT_PERCENT,
+            "fallback": "one saved price snapshot per product per UTC day",
+        },
         "search_diagnostics": search_diagnostics,
         "products": products[:40],
     }
