@@ -59,6 +59,7 @@ jobs:
       - name: Discover products and verify live stock (publish is disabled on push)
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
           AFFILIO_TELEGRAM_CHAT_ID: "@Iran_gajet"
           AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish }}
           PYTHONUNBUFFERED: "1"
