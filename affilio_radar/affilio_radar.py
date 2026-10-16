@@ -1393,8 +1393,24 @@ def run(publish=False):
             print(f"PRODUCT_FETCH_FAILED url={url} error={type(exc).__name__}")
 
     products.sort(key=deal_sort_key, reverse=True)
-    eligible = [p for p in products if p.get("has_affiliate_link") and is_discount_publish_eligible(p)]
-    print(f"ranked_products={len(products)} discount_eligible={len(eligible)}")
+    state = load_state()
+    state.setdefault("published", {})
+    enrich_price_history(products, state)
+    products.sort(key=deal_sort_key, reverse=True)
+    listed_eligible_count = sum(
+        bool(p.get("has_affiliate_link") and is_discount_publish_eligible(p)) for p in products
+    )
+    eligible = [
+        p for p in products
+        if p.get("has_affiliate_link")
+        and is_discount_publish_eligible(p)
+        and is_historically_discount_eligible(p)
+    ]
+    history_verified = sum(p.get("history_status") == "verified" for p in products)
+    print(
+        f"ranked_products={len(products)} listed_discount_eligible={listed_eligible_count} "
+        f"history_verified={history_verified} historically_validated_deals={len(eligible)}"
+    )
     for rank, item in enumerate(products[:12], start=1):
         print(
             f"RANK {rank}: discount={item['discount_percent']}% saving={item['savings_toman']} "
