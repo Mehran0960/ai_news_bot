@@ -21,7 +21,8 @@ from affilio_radar import (
     parse_product_api,
     is_discount_publish_eligible,
     deal_sort_key,
-    build_promo_video,
+    build_discount_image,
+    is_market_value_publish_eligible,
     parse_price_history,
     apply_snapshot_price_history,
     is_historically_discount_eligible,
@@ -398,32 +399,49 @@ class AffilioRadarTests(unittest.TestCase):
             candidate[key] = value
             self.assertFalse(is_publish_eligible(candidate), key)
 
-    def test_caption_contains_tracked_link_and_price_caveat(self):
+    def test_caption_uses_compact_format_and_strikes_original_price(self):
         caption = build_caption({
             "title": "گجت نمونه",
             "current_price": 500_000,
             "original_price": 700_000,
             "discount_percent": 29,
-            "rating": 4.1,
         }, "https://affilio.example/tracked")
+        self.assertIn("🎬 <b>پیشنهاد شگفت انگیز</b>", caption)
+        self.assertIn("🛍️ <b>گجت نمونه</b>", caption)
+        self.assertIn("💵 29٪ تخفیف ⭐", caption)
+        self.assertIn("💰 قیمت با تخفیف: <b>500,000 تومان</b>", caption)
+        self.assertIn("🏷️ قیمت اصلی: <s>700,000</s>", caption)
         self.assertIn("https://affilio.example/tracked", caption)
-        self.assertIn("قیمت و موجودی ممکن است تغییر کند", caption)
-        self.assertIn("کمیسیون", caption)
+        self.assertNotIn("کمیسیون", caption)
+        self.assertNotIn("تاریخچه", caption)
 
-    def test_promo_video_renders_as_playable_mp4(self):
+    def test_discount_image_returns_photo_with_badge(self):
         image_bytes = BytesIO()
         Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")
-        with TemporaryDirectory(prefix="affilio-test-video-") as td:
-            output = Path(td) / "preview.mp4"
-            build_promo_video({
-                "title": "پاوربانک کاربردی آزمایشی",
-                "current_price": 950_000,
-                "original_price": 1_250_000,
-                "discount_percent": 24,
-            }, image_bytes.getvalue(), output)
-            self.assertTrue(output.exists())
-            self.assertGreater(output.stat().st_size, 20_000)
+        rendered = build_discount_image(image_bytes.getvalue(), 24)
+        with Image.open(BytesIO(rendered)) as preview:
+            self.assertEqual(preview.format, "JPEG")
+            self.assertEqual(preview.size, (480, 640))
+        self.assertNotEqual(rendered, image_bytes.getvalue())
 
+    def test_market_comparison_is_required_for_publication(self):
+        base = {
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_available_offer_count": 3,
+            "market_price_advantage_pct": 8,
+        }
+        self.assertTrue(is_market_value_publish_eligible(base))
+        for key, value in [
+            ("market_status", "limited"),
+            ("market_reference_kind", "lowest_torob_offer"),
+            ("market_available_offer_count", 2),
+            ("market_price_advantage_pct", 4),
+            ("market_price_advantage_pct", None),
+        ]:
+            candidate = dict(base)
+            candidate[key] = value
+            self.assertFalse(is_market_value_publish_eligible(candidate), key)
 
     def test_price_history_uses_matching_variant_and_converts_rials_to_toman(self):
         toman_prices = [120_000, 110_000, 100_000, 88_000, 90_000, 130_000, 110_000]
