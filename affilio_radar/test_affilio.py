@@ -507,9 +507,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertLess(caption.index("💰 قیمت امروز"), caption.index("🏷️ قیمت قبل از تخفیف"))
         self.assertLess(caption.index("🏷️ قیمت قبل از تخفیف"), caption.index("💸 صرفه‌جویی"))
         # Blank lines isolate the two key sales points from neighboring caption rows.
-        self.assertIn("گجت نمونه</b>\\n\\n⚡️ تخفیف ویژه", caption)
-        self.assertIn("⚡️ تخفیف ویژه: <b>29٪</b>\\n\\n💰 قیمت امروز", caption)
-        self.assertIn("💰 قیمت امروز: <b>500,000 تومان</b>\\n\\n🏷️ قیمت قبل از تخفیف", caption)
+        self.assertIn("گجت نمونه</b>\n\n⚡️ تخفیف ویژه", caption)
+        self.assertIn("⚡️ تخفیف ویژه: <b>29٪</b>\n\n💰 قیمت امروز", caption)
+        self.assertIn("💰 قیمت امروز: <b>500,000 تومان</b>\n\n🏷️ قیمت قبل از تخفیف", caption)
         self.assertNotIn("امتیاز کاربران", caption)
         self.assertNotIn("نظر", caption)
         self.assertNotIn("پشتیبانی کانال", caption)
