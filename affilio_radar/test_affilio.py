@@ -524,7 +524,7 @@ class AffilioRadarTests(unittest.TestCase):
 
     def test_midnight_expiry_displays_previous_day_at_2359(self):
         self.assertEqual(
-            format_deal_expiry("2026-10-17T00:00:00+00:00"),
+            format_deal_expiry("2026-10-16T20:30:00+00:00"),
             "جمعه ۲۴ مهر ۱۴۰۵، ساعت ۲۳:۵۹",
         )
 
