@@ -1989,6 +1989,22 @@ def _font(size: int, bold=False):
     return ImageFont.load_default()
 
 
+def _latin_font(size: int):
+    """Return a Latin-capable bold font for ASCII badge labels such as '89% OFF'."""
+    candidates = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    ]
+    for path in candidates:
+        if Path(path).exists():
+            try:
+                return ImageFont.truetype(path, size=size)
+            except OSError:
+                pass
+    return ImageFont.load_default()
+
+
 def format_price(value):
     return f"{int(value):,} تومان" if value else "در صفحه محصول بررسی شود"
 
@@ -2053,7 +2069,7 @@ def build_discount_image(image_bytes: bytes, discount_percent=None) -> bytes:
         draw = ImageDraw.Draw(image)
         width, height = image.size
         font_size = max(20, min(width, height) // 16)
-        font = _font(font_size, True)
+        font = _latin_font(font_size)
         bbox = draw.textbbox((0, 0), label, font=font)
         text_width = max(1, bbox[2] - bbox[0])
         text_height = max(font_size, bbox[3] - bbox[1])
