@@ -118,7 +118,7 @@ def build_affilio_tracking_link(product_url: str, template: str | None = None) -
     if (
         parsed.scheme != "https"
         or host != "migmig.affilio.ir"
-        or "/api/v1/click/" not in parsed.path.lower()
+        or "/api/v1/click/b/" not in parsed.path.lower()
         or any(ch in template for ch in ("\n", "\r", "\t", " "))
     ):
         return ""
@@ -131,7 +131,7 @@ def build_affilio_tracking_link(product_url: str, template: str | None = None) -
     if (
         built.scheme != "https"
         or (built.hostname or "").lower() != "migmig.affilio.ir"
-        or "/api/v1/click/" not in built.path.lower()
+        or "/api/v1/click/b/" not in built.path.lower()
         or AFFILIO_URL_PLACEHOLDER in result
     ):
         return ""
