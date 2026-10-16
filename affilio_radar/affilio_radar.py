@@ -52,6 +52,13 @@ MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", 
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "1"))))
 MIN_POST_INTERVAL_HOURS = max(0.5, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.5")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
+PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "100"))))
+PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
+URGENT_EXPIRY_WINDOW_MINUTES = 90
+URGENT_MIN_POST_INTERVAL_MINUTES = 10
+URGENT_MIN_DISCOUNT_PERCENT = 80
+URGENT_MIN_SAVINGS_TOMAN = 500_000
+URGENT_MIN_DEMAND_SCORE = 55
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "3"))))
 MIN_DISCOUNT_PERCENT = max(1, min(90, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "20"))))
 MIN_SAVINGS_TOMAN = max(0, int(os.getenv("AFFILIO_MIN_SAVINGS_TOMAN", "100000")))
@@ -2433,6 +2440,114 @@ def delete_previous_channel_posts(state: dict) -> None:
     )
 
 
+def _parse_utc_datetime(value):
+    try:
+        parsed = datetime.fromisoformat(str(value or "").replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def is_offer_expired(product: dict, now: datetime | None = None) -> bool:
+    """An explicit expired deal deadline always blocks publication."""
+    expiry_value = _parse_deal_expiry_value(product.get("deal_expires_at"))
+    expiry = _parse_utc_datetime(expiry_value)
+    if expiry is None:
+        return False
+    now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    return expiry <= now
+
+
+def is_urgent_priority_deal(product: dict, now: datetime | None = None) -> bool:
+    """Only very strong, soon-expiring offers may use the shorter posting cooldown."""
+    if is_offer_expired(product, now):
+        return False
+    expiry_value = _parse_deal_expiry_value(product.get("deal_expires_at"))
+    expiry = _parse_utc_datetime(expiry_value)
+    if expiry is None:
+        return False
+    now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    remaining_seconds = (expiry - now).total_seconds()
+    return bool(
+        0 < remaining_seconds <= URGENT_EXPIRY_WINDOW_MINUTES * 60
+        and int(product.get("discount_percent") or 0) >= URGENT_MIN_DISCOUNT_PERCENT
+        and int(product.get("savings_toman") or 0) >= URGENT_MIN_SAVINGS_TOMAN
+        and int(product.get("demand_score") or 0) >= URGENT_MIN_DEMAND_SCORE
+    )
+
+
+def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
+                           now: datetime | None = None) -> tuple:
+    """Sort by explicit urgent status, then deal merit, then earlier first-seen time."""
+    now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    queue_record = queue_record if isinstance(queue_record, dict) else {}
+    first_seen = _parse_utc_datetime(queue_record.get("first_seen_at")) or now
+    return (
+        int(is_urgent_priority_deal(product, now)),
+        *deal_sort_key(product),
+        -first_seen.timestamp(),
+    )
+
+
+def refresh_pending_queue(state: dict, eligible: list[dict],
+                          now: datetime | None = None) -> dict:
+    """Persist currently-valid offers between scans; stale, expired, and recently-posted items leave the queue."""
+    now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    old_queue = state.get("pending_queue")
+    if not isinstance(old_queue, dict):
+        old_queue = {}
+    published = state.setdefault("published", {})
+    candidate_by_id = {}
+    pending = {}
+    for product in eligible:
+        pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
+        if not re.fullmatch(r"dkp-\d{1,12}", pid) or is_offer_expired(product, now):
+            continue
+        previous_publication = published.get(pid, {})
+        try:
+            posted_at = float(previous_publication.get("ts", 0)) if isinstance(previous_publication, dict) else 0
+        except (TypeError, ValueError, OverflowError):
+            posted_at = 0
+        if posted_at and now.timestamp() - posted_at < PRODUCT_COOLDOWN_DAYS * 86400:
+            continue
+
+        old = old_queue.get(pid, {})
+        old_first_seen = _parse_utc_datetime(old.get("first_seen_at")) if isinstance(old, dict) else None
+        if old_first_seen is None or (now - old_first_seen).total_seconds() > PENDING_QUEUE_TTL_HOURS * 3600:
+            old_first_seen = now
+        expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
+        pending[pid] = {
+            "product_id": pid,
+            "title": str(product.get("title") or "")[:180],
+            "product_url": safe_product_url(product.get("product_url", "")),
+            "first_seen_at": old_first_seen.isoformat(),
+            "last_seen_at": now.isoformat(),
+            "deal_expires_at": expiry.isoformat() if expiry else "",
+            "current_price": int(product.get("current_price") or 0),
+            "original_price": int(product.get("original_price") or 0),
+            "discount_percent": int(product.get("discount_percent") or 0),
+            "savings_toman": int(product.get("savings_toman") or 0),
+            "demand_score": int(product.get("demand_score") or 0),
+            "promo_score": int(product.get("promo_score") or 0),
+            "urgent": is_urgent_priority_deal(product, now),
+        }
+        candidate_by_id[pid] = product
+
+    ordered_ids = sorted(
+        pending,
+        key=lambda pid: pending_queue_sort_key(candidate_by_id[pid], pending[pid], now),
+        reverse=True,
+    )[:PENDING_QUEUE_LIMIT]
+    queue = {pid: pending[pid] for pid in ordered_ids}
+    state["pending_queue"] = queue
+    urgent_count = sum(1 for item in queue.values() if item.get("urgent"))
+    top = ordered_ids[0] if ordered_ids else "none"
+    print(f"PENDING_QUEUE size={len(queue)} urgent={urgent_count} top={top}")
+    return queue
+
+
 def _last_post_timestamp(state):
     try:
         previous = datetime.fromisoformat(str(state.get("last_published_at", "")))
@@ -2501,7 +2616,7 @@ def run(publish=False):
     enrich_market_prices(products)
     products.sort(key=deal_sort_key, reverse=True)
     listed_eligible_count = sum(
-        bool(p.get("has_affiliate_link") and is_discount_publish_eligible(p)) for p in products
+        bool(p.get("has_affiliate_link") and is_discount_publish_eligible(p) and not is_offer_expired(p)) for p in products
     )
     market_blocked_count = sum(is_market_price_uncompetitive(p) for p in products)
     eligible = [
@@ -2509,7 +2624,12 @@ def run(publish=False):
         if p.get("has_affiliate_link")
         and is_discount_publish_eligible(p)
         and is_market_value_publish_eligible(p)
+        and not is_offer_expired(p)
     ]
+    queue_now = datetime.now(timezone.utc)
+    pending_queue = refresh_pending_queue(state, eligible, queue_now)
+    eligible_by_id = {str(p.get("product_id") or product_id(p.get("product_url", ""))): p for p in eligible}
+    eligible = [eligible_by_id[pid] for pid in pending_queue if pid in eligible_by_id]
     market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
         f"ranked_products={len(products)} listed_discount_eligible={listed_eligible_count} "
@@ -2550,8 +2670,24 @@ def run(publish=False):
     now = time.time()
     last_post = _last_post_timestamp(state)
     cooldown_remaining = -1 if FORCE_POST_COOLDOWN_BYPASS else MIN_POST_INTERVAL_HOURS * 3600 - (now - last_post)
+    now_utc = datetime.fromtimestamp(now, tz=timezone.utc)
+    urgent_candidate = next((p for p in eligible if is_urgent_priority_deal(p, now_utc)), None)
+    urgent_cooldown_bypass = bool(
+        urgent_candidate
+        and now - last_post >= URGENT_MIN_POST_INTERVAL_MINUTES * 60
+        and not FORCE_POST_COOLDOWN_BYPASS
+    )
     if cooldown_remaining > 0:
         print(f"POST_COOLDOWN remaining_minutes={int(cooldown_remaining / 60)}")
+    if cooldown_remaining > 0 and urgent_cooldown_bypass:
+        expiry_utc = _parse_utc_datetime(_parse_deal_expiry_value(urgent_candidate.get("deal_expires_at")))
+        deadline_minutes = int((expiry_utc - now_utc).total_seconds() / 60) if expiry_utc else -1
+        print(
+            f"URGENT_PRIORITY_COOLDOWN_BYPASS id={urgent_candidate.get('product_id')} "
+            f"deadline_minutes={deadline_minutes} minimum_spacing_minutes={URGENT_MIN_POST_INTERVAL_MINUTES}"
+        )
+    elif cooldown_remaining > 0 and urgent_candidate:
+        print(f"URGENT_PRIORITY_WAIT minimum_spacing_minutes={URGENT_MIN_POST_INTERVAL_MINUTES}")
 
     if publish and CLEAR_PREVIOUS_CHANNEL_POSTS:
         if not BATCH_OPERATION_KEY or state.get("cleanup_batch_operation") != BATCH_OPERATION_KEY:
@@ -2569,8 +2705,8 @@ def run(publish=False):
         print("PUBLISH_BLOCKED: TELEGRAM_BOT_TOKEN is missing; no post attempted.")
     elif link_mode == "no_valid_affilio_tracking_config":
         print("PUBLISH_BLOCKED: no valid Affilio tracking parameters/template configured; no post attempted.")
-    elif cooldown_remaining > 0:
-        print("PUBLISH_BLOCKED: global posting cooldown active.")
+    elif cooldown_remaining > 0 and not urgent_cooldown_bypass:
+        print("PUBLISH_BLOCKED: global posting cooldown active; queue retained.")
     else:
         sent = 0
         for item in eligible:
@@ -2607,6 +2743,7 @@ def run(publish=False):
                     "posted_original_price": int(item.get("original_price") or 0),
                 }
                 state["last_published_at"] = datetime.now(timezone.utc).isoformat()
+                state.setdefault("pending_queue", {}).pop(pid, None)
                 save_json(STATE, state)
                 print(f"PUBLISHED id={pid} message_id={result.get('message_id')} score={item['demand_score']} direct_affiliate_link=True")
                 sent += 1
