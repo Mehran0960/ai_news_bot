@@ -462,6 +462,17 @@ class AffilioRadarTests(unittest.TestCase):
         product["history_status"] = "pending_history"
         self.assertFalse(is_historically_discount_eligible(product))
 
+        # A product sitting at the same price all month is not a deal just because
+        # that unchanged price is also its observed historical low.
+        flat_price = {
+            "current_price": 1_490_000,
+            "history_status": "verified",
+            "history_days": 15,
+            "history_median_toman": 1_490_000,
+            "history_stable_low_toman": 1_490_000,
+        }
+        self.assertFalse(is_historically_discount_eligible(flat_price))
+
     def test_saved_daily_snapshots_can_verify_a_deal_when_public_chart_fails(self):
         product = {
             "product_id": "dkp-42",
