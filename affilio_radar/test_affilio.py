@@ -29,6 +29,7 @@ from affilio_radar import (
     deal_sort_key,
     build_discount_image,
     _latin_font,
+    extract_deal_expiry,
     format_discount_badge,
     is_market_value_publish_eligible,
     parse_price_history,
@@ -552,6 +553,29 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(preview.format, "JPEG")
             self.assertEqual(preview.size, (480, 640))
         self.assertNotEqual(rendered, image_bytes.getvalue())
+
+    def test_incredible_offer_expiry_supports_absolute_deadline(self):
+        value = extract_deal_expiry({
+            "id": 123,
+            "title_fa": "محصول تست",
+            "ends_at": "2026-10-16T20:30:00+03:30",
+        })
+        self.assertEqual(value, "2026-10-16T17:00:00+00:00")
+
+    def test_incredible_offer_expiry_supports_nested_countdown_seconds(self):
+        before = datetime.now(timezone.utc)
+        value = extract_deal_expiry({
+            "id": 123,
+            "title_fa": "محصول تست",
+            "campaign": {"ends_in_seconds": 3600},
+        })
+        parsed = datetime.fromisoformat(value)
+        after = datetime.now(timezone.utc)
+        self.assertGreaterEqual(parsed, before + timedelta(seconds=3599))
+        self.assertLessEqual(parsed, after + timedelta(seconds=3601))
+
+    def test_incredible_offer_without_expiry_is_not_guessed(self):
+        self.assertEqual(extract_deal_expiry({"id": 123, "title_fa": "بدون زمان پایان"}), "")
 
     def test_missing_market_data_does_not_block_publication(self):
         base = {
