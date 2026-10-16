@@ -27,6 +27,7 @@ from affilio_radar import (
     apply_snapshot_price_history,
     is_historically_discount_eligible,
     market_query_from_title,
+    market_query_variants,
     market_name_match_score,
     apply_market_price_comparison,
     is_market_price_uncompetitive,
@@ -552,6 +553,12 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(result["discount_vs_30d_median_pct"], 10)
         self.assertTrue(result["historical_deal_eligible"])
 
+
+    def test_market_query_variants_adds_short_identity_fallback(self):
+        variants = market_query_variants("کپسول ژلاتینی نرم زینک پلاس فلکسان بسته 60 عددی")
+        self.assertEqual(variants[0], "کپسول ژلاتینی نرم زینک پلاس فلکسان بسته 60 عددی")
+        self.assertIn("زینک پلاس فلکسان", variants)
+        self.assertNotIn("60", variants[-1])
 
     def test_market_query_keeps_model_identity_and_folds_persian_variants(self):
         query = market_query_from_title("هندزفری بی‌سیم کیو سی وای مدل T13 ANC2، نویز کنسلینگ و شارژ USB-C")
