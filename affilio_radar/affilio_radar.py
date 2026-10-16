@@ -1209,7 +1209,15 @@ def _prepare_torob_mcp() -> None:
     if not initialized.get("result", {}).get("serverInfo"):
         raise RuntimeError("Torob MCP initialization did not confirm serverInfo")
     time.sleep(TOROB_MCP_GAP_SECONDS)
-    _torob_rpc("notifications/initialized", {}, request_id=2)
+    # Some hosted MCP demos do not dispatch notification methods even though
+    # they accept initialize/tools/list. Ignore only this specific unsupported
+    # notification; all real tool/list errors still fail closed.
+    try:
+        _torob_rpc("notifications/initialized", {}, request_id=2)
+    except Exception as exc:
+        if "method not found" not in str(exc).lower():
+            raise
+        print("TOROB_MCP_NOTE: endpoint does not implement notifications/initialized; continuing with tools/list.")
     time.sleep(TOROB_MCP_GAP_SECONDS)
     listed = _torob_rpc("tools/list", {}, request_id=3)
     names = {
@@ -2091,7 +2099,7 @@ def run(publish=False):
             "minimum_name_match_score": MIN_MARKET_MATCH_SCORE,
             "minimum_sellers_for_verified_median": 3,
             "block_if_digikala_more_expensive_by_percent": MARKET_UNDERCUT_BLOCK_PERCENT,
-            "unknown_or_limited_comparison_blocks": false,
+            "unknown_or_limited_comparison_blocks": False,
             "endpoint": TOROB_MCP_URL,
         },
         "price_history_policy": {
