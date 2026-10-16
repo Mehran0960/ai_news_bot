@@ -18,7 +18,7 @@ import sys
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from urllib.parse import quote, urlencode, urljoin, urlsplit, urlunsplit
+from urllib.parse import parse_qs, quote, urlencode, urljoin, urlsplit, urlunsplit
 
 import requests
 from bs4 import BeautifulSoup
@@ -33,6 +33,10 @@ REPORT = ROOT / "candidates.json"
 TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@Iran_gajet").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 AFFILIO_LINK_TEMPLATE = os.getenv("AFFILIO_LINK_TEMPLATE", "").strip()
+AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
+    "AFFILIO_CLICK_TRACKER_BASE_URL",
+    "https://affiliate-deal-radar.m-hoseyni-6966.workers.dev",
+).strip().rstrip("/")
 # Verified from the user-provided final DigiKala affiliate URL. These are public
 # tracking parameters, not login credentials. The source URL path changes per product.
 AFFILIO_UTM_SOURCE = os.getenv("AFFILIO_UTM_SOURCE", "19166").strip()
@@ -74,19 +78,6 @@ SEARCH_TERMS = [
     "گجت کاربردی",
     "لوازم مراقبت شخصی",
 ]
-CATEGORY_PRIORS = {
-    "digital_accessories": 24,
-    "home": 23,
-    "power_backup": 24,
-    "audio_wearables": 23,
-    "personal_care": 21,
-    "kids_sports": 20,
-    "automotive": 19,
-    "fashion": 17,
-    "computer_network": 17,
-    "gaming": 16,
-    "other": 12,
-}
 SESSION = requests.Session()
 SESSION.headers.update({
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36",
@@ -192,6 +183,79 @@ def build_affilio_tracking_link(product_url: str, template: str | None = None) -
     ):
         return ""
     return result
+
+def _affiliate_destination_matches_product(affiliate_url: str, canonical_product_url: str) -> bool:
+    """Allow click tracking only for the same DigiKala product through known affiliate paths."""
+    canonical = safe_product_url(canonical_product_url)
+    if not canonical:
+        return False
+    try:
+        parsed = urlsplit(str(affiliate_url or "").strip())
+    except Exception:
+        return False
+    if parsed.scheme != "https":
+        return False
+
+    if (parsed.hostname or "").lower() == "www.digikala.com":
+        if safe_product_url(affiliate_url) != canonical:
+            return False
+        params = parse_qs(parsed.query)
+        expected = {
+            "utm_source": AFFILIO_UTM_SOURCE,
+            "utm_medium": AFFILIO_UTM_MEDIUM,
+            "utm_id": AFFILIO_UTM_ID,
+            "affid": AFFILIO_DIGIKALA_AFFID,
+        }
+        return all(params.get(key, [None])[0] == value for key, value in expected.items())
+
+    if (
+        (parsed.hostname or "").lower() == "migmig.affilio.ir"
+        and re.search(r"/api/v1/click/b/", parsed.path, re.I)
+    ):
+        encoded_candidates = list(parse_qs(parsed.query).get("b64", []))
+        match = re.search(r"/api/v1/click/b/(.+)$", parsed.path, re.I)
+        if match:
+            path_parts = match.group(1).split("/")
+            if len(path_parts) >= 2:
+                encoded_candidates.append("/".join(path_parts[1:]))
+        for encoded in encoded_candidates:
+            try:
+                decoded = base64.b64decode(encoded, validate=False).decode("utf-8")
+            except Exception:
+                continue
+            if safe_product_url(decoded) == canonical:
+                return True
+    return False
+
+
+def build_click_tracking_link(
+    product_url: str,
+    affiliate_url: str,
+    base_url: str | None = None,
+) -> str:
+    """Wrap a verified affiliate destination in the first-party click counter."""
+    canonical = safe_product_url(product_url)
+    original = str(affiliate_url or "").strip()
+    if not canonical or not original:
+        return original
+    if not _affiliate_destination_matches_product(original, canonical):
+        return original
+
+    base = (base_url if base_url is not None else AFFILIO_CLICK_TRACKER_BASE_URL).strip().rstrip("/")
+    try:
+        parsed_base = urlsplit(base)
+    except Exception:
+        return original
+    if (
+        parsed_base.scheme != "https"
+        or not parsed_base.netloc
+        or parsed_base.query
+        or parsed_base.fragment
+        or parsed_base.username
+        or parsed_base.password
+    ):
+        return original
+    return f"{base}/p/{product_id(canonical)}?u={quote(original, safe='')}"
 
 
 def _walk_dicts(value):
@@ -1716,25 +1780,29 @@ def classify_category(title: str) -> str:
 
 
 def score_product(p: dict) -> dict:
+    # Category is retained for diagnostics only; it never adds or subtracts ranking points.
     category = classify_category(p.get("title", ""))
-    score = CATEGORY_PRIORS.get(category, CATEGORY_PRIORS["other"])
+    score = 0
     price = p.get("current_price")
     if price:
-        if 100_000 <= price <= 2_000_000:
+        if price <= 500_000:
+            score += 24
+        elif price <= 1_000_000:
             score += 22
-        elif 2_000_000 < price <= 5_000_000:
-            score += 17
-        elif 5_000_000 < price <= 10_000_000:
-            score += 11
+        elif price <= 2_000_000:
+            score += 18
+        elif price <= 5_000_000:
+            score += 13
+        elif price <= 10_000_000:
+            score += 8
         else:
-            score += 4
+            score += 3
 
     original = p.get("original_price")
     if original and price and original > price:
         discount = round(100 * (original - price) / original)
         p["discount_percent"] = max(0, min(100, discount))
         p["savings_toman"] = int(original - price)
-        score += min(15, round(discount * 0.5))
     else:
         p["discount_percent"] = 0
         p["savings_toman"] = 0
@@ -1751,7 +1819,7 @@ def score_product(p: dict) -> dict:
             score -= 5
 
     reviews = max(0, int(p.get("review_count") or 0))
-    # Reviews are an observable demand proxy; useful for tie-breaking, not the main ranking.
+    # Review volume and rating are popularity proxies, used only after discount and saving.
     score += min(30, round(3.5 * math.log1p(reviews)))
     if p.get("image_url"):
         score += 4
@@ -1774,10 +1842,19 @@ def score_product(p: dict) -> dict:
 
 
 def deal_sort_key(p: dict) -> tuple:
-    """Prioritize special discounts, then real savings and demand evidence; do not rank by channel category."""
+    """Listed discount and cash saving lead; verified market value and popularity break ties."""
+    verified_median = (
+        p.get("market_status") == "verified"
+        and p.get("market_reference_kind") == "seller_median"
+        and p.get("market_price_advantage_pct") is not None
+    )
+    market_known = 1 if verified_median else 0
+    market_advantage = int(p.get("market_price_advantage_pct") or 0) if verified_median else -101
     return (
         int(p.get("discount_percent") or 0),
         int(p.get("savings_toman") or 0),
+        market_known,
+        market_advantage,
         int(p.get("demand_score") or 0),
         int(p.get("review_count") or 0),
     )
@@ -1868,7 +1945,7 @@ def format_price(value):
 
 
 def build_caption(p: dict, affiliate_url: str) -> str:
-    """Build a conversion-focused, concise offer caption with a brief support disclosure."""
+    """Build a short discount-led caption focused on the saving and one clear action."""
     raw_title = (p.get("title") or "پیشنهاد ویژه").strip()
     if len(raw_title) > 140:
         raw_title = raw_title[:137].rstrip() + "…"
@@ -1878,9 +1955,14 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     discount = p.get("discount_percent")
     rating = p.get("rating")
     review_count = max(0, int(p.get("review_count") or 0))
+    savings = int(p.get("savings_toman") or 0)
+    if original and current and int(original) > int(current):
+        savings = int(original) - int(current)
     parts = ["🔥 <b>پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", "", f"🛍️ <b>{title}</b>", ""]
     if discount is not None and int(discount) > 0:
         parts.append(f"⚡️ تخفیف ویژه: <b>{int(discount)}٪</b>")
+    if savings > 0:
+        parts.append(f"💸 صرفه‌جویی: <b>{savings:,} تومان</b>")
     if current:
         parts.append(f"💰 قیمت امروز: <b>{int(current):,} تومان</b>")
     if original and current and int(original) > int(current):
@@ -1895,8 +1977,7 @@ def build_caption(p: dict, affiliate_url: str) -> str:
         parts.append(f"🗣️ {review_count:,} نظر ثبت‌شده")
     parts += [
         "",
-        "👇 قیمت و موجودی نهایی را از دکمهٔ زیر بررسی کن.",
-        "🔗 خرید از این لینک به پشتیبانی کانال کمک می‌کند؛ قیمت اضافه‌ای ندارد.",
+        "👇 برای دیدن جزئیات و قیمت نهایی، دکمهٔ زیر را بزن.",
         "",
         "📣 @Iran_gajet",
     ]
@@ -1904,7 +1985,7 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     footer = "\n\n📣 @Iran_gajet"
     if len(caption) > 1024:
         body = "\n".join(parts[:-2])
-        caption = body[:1024 - len(footer) - 1].rstrip() + footer
+        caption = body[:1024 - len(footer)].rstrip() + footer
     return caption
 
 
@@ -2106,7 +2187,7 @@ def _last_post_timestamp(state):
 
 def run(publish=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
-    print(f"Ranking mode=channel-fit/demand-first; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman; missing/unknown market data never blocks publication; only verified same-product pricing showing DigiKala at least {MARKET_UNDERCUT_BLOCK_PERCENT}% above market is blocked. Price history is disabled.")
+    print(f"Ranking mode=discount-first/category-neutral; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman; missing/unknown market data never blocks publication; only verified same-product pricing showing DigiKala at least {MARKET_UNDERCUT_BLOCK_PERCENT}% above market is blocked. Price history is disabled.")
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
@@ -2188,7 +2269,7 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "Highest listed discount ranks first, then absolute savings and demand evidence. Product category/channel fit is not used. Price history is not used. Missing, unavailable, or weak market-price comparisons do not block publication. A product is blocked only when a confident same-product comparison with at least three current Torob seller offers verifies that DigiKala is at least 5% more expensive than the seller median.",
+        "ranking_note": "Highest listed discount ranks first, followed by absolute saving; verified current-market advantage and popularity signals break ties. Product category has no ranking effect. Price history is not used. Missing, unavailable, or weak market-price comparisons do not block publication. A product is blocked only when a confident same-product comparison with at least three current Torob seller offers verifies that DigiKala is at least 5% more expensive than the seller median.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
@@ -2246,16 +2327,19 @@ def run(publish=False):
             try:
                 image_bytes = _fetch_image(item["image_url"])
                 prepared_image = build_discount_image(image_bytes, item.get("discount_percent"))
-                result = _send_photo(prepared_image, build_caption(item, item["affiliate_url"]), item["affiliate_url"])
+                click_url = build_click_tracking_link(item.get("product_url", ""), item["affiliate_url"])
+                button_url = click_url or item["affiliate_url"]
+                result = _send_photo(prepared_image, build_caption(item, item["affiliate_url"]), button_url)
                 state["published"][pid] = {
                     "ts": now,
                     "title": item["title"],
                     "product_url": item["product_url"],
+                    "click_tracking_url": button_url if button_url != item["affiliate_url"] else "",
                     "telegram_message_id": result.get("message_id"),
                 }
                 state["last_published_at"] = datetime.now(timezone.utc).isoformat()
                 save_json(STATE, state)
-                print(f"PUBLISHED id={pid} message_id={result.get('message_id')} score={item['demand_score']}")
+                print(f"PUBLISHED id={pid} message_id={result.get('message_id')} score={item['demand_score']} click_tracking={button_url != item['affiliate_url']}")
                 sent += 1
             except Exception as exc:
                 print(f"PUBLISH_FAILED id={pid} error={type(exc).__name__}")
