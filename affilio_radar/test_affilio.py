@@ -17,6 +17,7 @@ from affilio_radar import (
     _money_to_toman,
     api_search_product_urls,
     api_incredible_offer_product_urls,
+    api_incredible_offer_product_candidates,
     parse_product_api,
     is_discount_publish_eligible,
     deal_sort_key,
@@ -171,6 +172,17 @@ class AffilioRadarTests(unittest.TestCase):
                         },
                     },
                     {
+                        "id": 12348,
+                        "title_fa": "کالای با تخفیف بیشتر",
+                        "url": "/product/dkp-12348/high-discount/",
+                        "status": "marketable",
+                        "price": {
+                            "selling_price": 200_000,
+                            "rrp_price": 2_000_000,
+                            "discount_percent": 90,
+                        },
+                    },
+                    {
                         "id": 12346,
                         "title_fa": "کالای بدون تخفیف",
                         "url": "/product/dkp-12346/ordinary/",
@@ -197,8 +209,14 @@ class AffilioRadarTests(unittest.TestCase):
         }
         self.assertEqual(
             api_incredible_offer_product_urls(payload),
-            ["https://www.digikala.com/product/dkp-12345/"],
+            [
+                "https://www.digikala.com/product/dkp-12348/",
+                "https://www.digikala.com/product/dkp-12345/",
+            ],
         )
+        candidates = api_incredible_offer_product_candidates(payload)
+        self.assertEqual(candidates[0]["discount_percent"], 90)
+        self.assertGreaterEqual(candidates[0]["savings_toman"], candidates[1]["savings_toman"])
 
     def test_discount_first_sort_prefers_larger_discount_over_higher_demand(self):
         popular_small_discount = score_product({
