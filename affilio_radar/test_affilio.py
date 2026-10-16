@@ -414,6 +414,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("🏷️ قیمت اصلی: <s>700,000</s>", caption)
         self.assertNotIn("<s>700,000 تومان</s>", caption)
         self.assertIn("https://affilio.example/tracked", caption)
+        self.assertTrue(caption.endswith("📣 @Iran_gajet"))
         self.assertNotIn("کمیسیون", caption)
         self.assertNotIn("تاریخچه", caption)
 
@@ -426,8 +427,9 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(preview.size, (480, 640))
         self.assertNotEqual(rendered, image_bytes.getvalue())
 
-    def test_market_comparison_is_required_for_publication(self):
+    def test_missing_market_data_does_not_block_publication(self):
         base = {
+            "availability": "in_stock",
             "market_status": "verified",
             "market_reference_kind": "seller_median",
             "market_match_score": 90,
@@ -437,6 +439,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(is_market_value_publish_eligible(base))
         for key, value in [
             ("market_status", "limited"),
+            ("market_status", "unavailable"),
+            ("market_status", "not_checked"),
             ("market_reference_kind", "lowest_torob_offer"),
             ("market_available_offer_count", 2),
             ("market_match_score", 60),
@@ -445,7 +449,19 @@ class AffilioRadarTests(unittest.TestCase):
         ]:
             candidate = dict(base)
             candidate[key] = value
-            self.assertFalse(is_market_value_publish_eligible(candidate), key)
+            self.assertTrue(is_market_value_publish_eligible(candidate), key)
+
+    def test_only_confirmed_uncompetitive_market_price_blocks_publication(self):
+        candidate = {
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_match_score": 90,
+            "market_available_offer_count": 3,
+            "market_price_advantage_pct": -8,
+        }
+        self.assertFalse(is_market_value_publish_eligible(candidate))
+        candidate["market_price_advantage_pct"] = 8
+        self.assertTrue(is_market_value_publish_eligible(candidate))
 
     def test_price_history_uses_matching_variant_and_converts_rials_to_toman(self):
         toman_prices = [120_000, 110_000, 100_000, 88_000, 90_000, 130_000, 110_000]
