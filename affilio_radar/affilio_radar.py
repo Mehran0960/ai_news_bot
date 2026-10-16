@@ -2090,8 +2090,39 @@ def format_price(value):
     return f"{int(value):,} تومان" if value else "در صفحه محصول بررسی شود"
 
 
+def format_deal_expiry(value) -> str:
+    """Format a confirmed absolute deal deadline in Iran local time; never invent one."""
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        try:
+            from zoneinfo import ZoneInfo
+            local = parsed.astimezone(ZoneInfo("Asia/Tehran"))
+        except Exception:
+            local = parsed.astimezone(timezone(timedelta(hours=3, minutes=30)))
+    except (TypeError, ValueError, OverflowError):
+        return ""
+    weekdays = {
+        "Monday": "دوشنبه", "Tuesday": "سه‌شنبه", "Wednesday": "چهارشنبه",
+        "Thursday": "پنجشنبه", "Friday": "جمعه", "Saturday": "شنبه", "Sunday": "یکشنبه",
+    }
+    months = {
+        1: "ژانویه", 2: "فوریه", 3: "مارس", 4: "آوریل", 5: "مه", 6: "ژوئن",
+        7: "ژوئیه", 8: "اوت", 9: "سپتامبر", 10: "اکتبر", 11: "نوامبر", 12: "دسامبر",
+    }
+    rendered = (
+        f"{weekdays.get(local.strftime('%A'), '')} {local.day} "
+        f"{months[local.month]} {local.year}، ساعت {local:%H:%M} به وقت ایران"
+    )
+    return rendered.translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
+
+
 def build_caption(p: dict, affiliate_url: str) -> str:
-    """Build a compact caption with discount, today's price, original price, and savings."""
+    """Build the agreed compact caption, including only a confirmed deal deadline."""
     raw_title = (p.get("title") or "پیشنهاد ویژه").strip()
     if len(raw_title) > 140:
         raw_title = raw_title[:137].rstrip() + "…"
@@ -2099,25 +2130,19 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     current = p.get("current_price")
     original = p.get("original_price")
     discount = p.get("discount_percent")
-    savings = int(p.get("savings_toman") or 0)
-    if original and current and int(original) > int(current):
-        savings = int(original) - int(current)
+    expiry = format_deal_expiry(p.get("deal_expires_at"))
     parts = ["🔥 <b>پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", "", f"🛍️ <b>{title}</b>", ""]
     if discount is not None and int(discount) > 0:
-        parts.append(f"⚡️ تخفیف ویژه: <b>{int(discount)}٪</b>")
-        # Give the headline discount its own visual breathing room.
-        parts.append("")
+        parts.append(f"⚡️ <b>{int(discount)}٪ تخفیف ویژه</b>")
     if current:
         parts.append(f"💰 قیمت امروز: <b>{int(current):,} تومان</b>")
-        # Today's price is the second key selling point; separate it from the rest.
-        parts.append("")
     if original and current and int(original) > int(current):
-        parts.append(f"🏷️ قیمت قبل از تخفیف: <s>{int(original):,}</s> تومان")
-    if savings > 0:
-        parts.append(f"💸 صرفه‌جویی: <b>{savings:,} تومان</b>")
+        parts.append(f"🏷️ قیمت اصلی: <s>{int(original):,} تومان</s>")
+    if expiry:
+        parts += ["", f"⏳ پایان تخفیف: <b>{expiry}</b>"]
     parts += [
         "",
-        "👇 برای دیدن جزئیات و قیمت نهایی، دکمهٔ زیر را بزن.",
+        "👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.",
         "",
         "📣 @OfferChin",
     ]
@@ -2127,7 +2152,6 @@ def build_caption(p: dict, affiliate_url: str) -> str:
         body = "\n".join(parts[:-2])
         caption = body[:1024 - len(footer)].rstrip() + footer
     return caption
-
 
 def format_discount_badge(discount_percent) -> str:
     """Return the visual discount badge label in concise English, e.g. '81% OFF'."""
@@ -2171,6 +2195,33 @@ def build_discount_image(image_bytes: bytes, discount_percent=None) -> bytes:
         )
         # Keep the English label left-to-right; do not apply Persian bidi shaping.
         draw.text((right - pad, top + pad), label, font=font, fill="#ffffff", anchor="ra")
+
+    # Permanent channel watermark at lower-left for brand recognition when images are reshared.
+    width, height = image.size
+    watermark = "Telegram.me/OfferChin"
+    watermark_font = _latin_font(max(12, min(width, height) // 34))
+    watermark_box = draw.textbbox((0, 0), watermark, font=watermark_font)
+    watermark_width = watermark_box[2] - watermark_box[0]
+    watermark_height = max(watermark_font.size, watermark_box[3] - watermark_box[1])
+    watermark_pad = max(7, min(width, height) // 80)
+    watermark_margin = max(10, min(width, height) // 35)
+    watermark_left = watermark_margin
+    watermark_top = max(0, height - watermark_margin - watermark_height - 2 * watermark_pad)
+    watermark_right = min(width, watermark_left + watermark_width + 2 * watermark_pad)
+    watermark_bottom = min(height, watermark_top + watermark_height + 2 * watermark_pad)
+    draw.rounded_rectangle(
+        (watermark_left, watermark_top, watermark_right, watermark_bottom),
+        radius=max(6, watermark_pad),
+        fill="#17251D",
+        outline="#ffffff",
+        width=max(1, min(width, height) // 500),
+    )
+    draw.text(
+        (watermark_left + watermark_pad, watermark_top + watermark_pad),
+        watermark,
+        font=watermark_font,
+        fill="#ffffff",
+    )
     output = BytesIO()
     image.save(output, format="JPEG", quality=92, optimize=True)
     return output.getvalue()
