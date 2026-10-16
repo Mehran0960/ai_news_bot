@@ -787,9 +787,61 @@ def fetch_product_record(url: str) -> dict:
 
 
 def discover_product_urls() -> tuple[list[str], list[dict]]:
+    """Prioritize live Incredible Offers, then broaden coverage with normal searches."""
     found = []
     diagnostics = []
+
+    # The live Incredible Offers feed is the primary discovery source.
+    deals_found = []
+    for page_number in range(1, DEAL_LIST_PAGES + 1):
+        try:
+            response = SESSION.get(
+                "https://api.digikala.com/v1/incredible-offers/products/",
+                params={"page": page_number, "q": ""},
+                timeout=HTTP_TIMEOUT,
+            )
+            response.raise_for_status()
+            if len(response.content) > 8_000_000:
+                raise RuntimeError("incredible offers API response exceeded 8 MB")
+            payload = response.json()
+            local = api_incredible_offer_product_urls(payload)
+            deals_found.extend(local)
+            diagnostics.append({
+                "term": f"incredible_offers_page_{page_number}",
+                "ok": bool(local),
+                "products_found": len(local),
+                "source": "incredible_offers_api",
+                "status": "ok" if local else "no_discounted_product_urls",
+            })
+            print(
+                f"INCREDIBLE_OFFERS_API page={page_number} status={response.status_code} "
+                f"discounted_urls={len(local)} "
+                f"data_keys={list(payload.get('data', {}).keys())[:24] if isinstance(payload, dict) and isinstance(payload.get('data'), dict) else 'n/a'}"
+            )
+            if not local:
+                break
+        except Exception as exc:
+            diagnostics.append({
+                "term": f"incredible_offers_page_{page_number}",
+                "ok": False,
+                "products_found": 0,
+                "source": "incredible_offers_api",
+                "status": type(exc).__name__,
+            })
+            print(f"INCREDIBLE_OFFERS_API_FAILED page={page_number} error={type(exc).__name__} detail={str(exc)[:180]!r}")
+            break
+
+    for url in deals_found:
+        if url not in found:
+            found.append(url)
+        if len(found) >= MAX_PRODUCT_CHECKS:
+            break
+    print(f"DEAL_DISCOVERY unique_discounted_urls={len(found)}")
+
+    # Fill remaining slots with ordinary searches; offers always enter the list first.
     for term in SEARCH_TERMS:
+        if len(found) >= MAX_PRODUCT_CHECKS:
+            break
         local = []
         api_error = ""
         try:
@@ -806,7 +858,7 @@ def discover_product_urls() -> tuple[list[str], list[dict]]:
             print(
                 f"SEARCH_API term={term!r} status={response.status_code} "
                 f"data_keys={list(payload.get('data', {}).keys())[:24] if isinstance(payload, dict) and isinstance(payload.get('data'), dict) else 'n/a'} "
-                f"sample={json.dumps(_search_api_sample(payload), ensure_ascii=False)[:1000]}"
+                f"sample={json.dumps(_search_api_sample(payload), ensure_ascii=False)[:700]}"
             )
             if local:
                 diagnostics.append({"term": term, "ok": True, "products_found": len(local), "source": "public_api", "status": "ok"})
@@ -816,7 +868,6 @@ def discover_product_urls() -> tuple[list[str], list[dict]]:
             api_error = type(exc).__name__
             print(f"SEARCH_API_FAILED term={term!r} error={type(exc).__name__} detail={str(exc)[:220]!r}")
 
-        # HTML fallback helps when the public JSON search is temporarily unavailable.
         if not local:
             try:
                 search_url = f"https://www.digikala.com/search/?q={quote(term)}"
@@ -834,9 +885,14 @@ def discover_product_urls() -> tuple[list[str], list[dict]]:
                 diagnostics.append({"term": term, "ok": True, "products_found": len(local), "source": "html_fallback", "status": "ok"})
             else:
                 diagnostics.append({"term": term, "ok": False, "products_found": 0, "source": "api_and_html", "status": api_error or "no_product_urls"})
-        found.extend(local)
-        print(f"DISCOVERY term={term!r} products={len(local)} source={diagnostics[-1].get('source')}")
-    return list(dict.fromkeys(found))[:MAX_PRODUCT_CHECKS], diagnostics
+
+        added = 0
+        for url in local:
+            if url not in found and len(found) < MAX_PRODUCT_CHECKS:
+                found.append(url)
+                added += 1
+        print(f"DISCOVERY term={term!r} products={len(local)} added={added} source={diagnostics[-1].get('source')}")
+    return found, diagnostics
 
 
 def classify_category(title: str) -> str:
