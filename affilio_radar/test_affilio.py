@@ -1,5 +1,7 @@
+import json
 import unittest
 from io import BytesIO
+from unittest.mock import patch
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.parse import parse_qs, urlsplit
@@ -14,6 +16,7 @@ from affilio_radar import (
     score_product,
     is_publish_eligible,
     build_caption,
+    _send_photo,
     _money_to_toman,
     api_search_product_urls,
     api_incredible_offer_product_urls,
@@ -243,8 +246,8 @@ class AffilioRadarTests(unittest.TestCase):
         # The highest-discount item is a clothing product; no category filter is applied.
         self.assertEqual(candidates[0]["discount_percent"], 99)
 
-    def test_discount_first_sort_prefers_larger_discount_over_higher_demand(self):
-        popular_small_discount = score_product({
+    def test_channel_fit_and_demand_outweigh_unrelated_extreme_discount(self):
+        popular_gadget = score_product({
             "title": "پاوربانک محبوب",
             "current_price": 8_000_000,
             "original_price": 10_000_000,
@@ -252,16 +255,16 @@ class AffilioRadarTests(unittest.TestCase):
             "review_count": 50000,
             "image_url": "https://example.com/popular.jpg",
         })
-        bigger_discount = score_product({
-            "title": "کالای پرتخفیف",
+        unrelated_extreme_discount = score_product({
+            "title": "کپسول مکمل غذایی پرتخفیف",
             "current_price": 1_000_000,
             "original_price": 3_000_000,
             "rating": 4.0,
             "review_count": 100,
             "image_url": "https://example.com/deal.jpg",
         })
-        self.assertLess(popular_small_discount["discount_percent"], bigger_discount["discount_percent"])
-        self.assertGreater(deal_sort_key(bigger_discount), deal_sort_key(popular_small_discount))
+        self.assertLess(popular_gadget["discount_percent"], unrelated_extreme_discount["discount_percent"])
+        self.assertGreater(deal_sort_key(popular_gadget), deal_sort_key(unrelated_extreme_discount))
 
     def test_discount_publishing_requires_minimum_percentage_and_saving(self):
         base = {
@@ -400,23 +403,36 @@ class AffilioRadarTests(unittest.TestCase):
             candidate[key] = value
             self.assertFalse(is_publish_eligible(candidate), key)
 
-    def test_caption_uses_compact_format_and_strikes_original_price(self):
+    def test_caption_is_transparent_compact_and_includes_social_proof(self):
         caption = build_caption({
             "title": "گجت نمونه",
             "current_price": 500_000,
             "original_price": 700_000,
             "discount_percent": 29,
+            "rating": 4.4,
+            "review_count": 1243,
         }, "https://affilio.example/tracked")
-        self.assertIn("🎬 <b>پیشنهاد شگفت انگیز</b>", caption)
+        self.assertIn("🔥 <b>پیشنهاد منتخب ایران گجت</b>", caption)
         self.assertIn("🛍️ <b>گجت نمونه</b>", caption)
-        self.assertIn("💵 29٪ تخفیف ⭐", caption)
-        self.assertIn("💰 قیمت با تخفیف: <b>500,000 تومان</b>", caption)
-        self.assertIn("🏷️ قیمت اصلی: <s>700,000</s>", caption)
-        self.assertNotIn("<s>700,000 تومان</s>", caption)
-        self.assertIn("https://affilio.example/tracked", caption)
+        self.assertIn("📉 تخفیف اعلامی دیجی‌کالا: <b>29٪</b>", caption)
+        self.assertIn("💰 قیمت فعلی: <b>500,000 تومان</b>", caption)
+        self.assertIn("🏷️ قیمت مرجع درج‌شده: <s>700,000</s> تومان", caption)
+        self.assertIn("⭐ امتیاز کاربران: <b>4.4/5</b> | 1,243 نظر", caption)
+        self.assertNotIn("https://affilio.example/tracked", caption)
         self.assertTrue(caption.endswith("📣 @Iran_gajet"))
+        self.assertLessEqual(len(caption), 1024)
         self.assertNotIn("کمیسیون", caption)
         self.assertNotIn("تاریخچه", caption)
+
+    def test_send_photo_adds_one_direct_purchase_button(self):
+        response = unittest.mock.Mock()
+        response.json.return_value = {"ok": True, "result": {"message_id": 9}}
+        with patch("affilio_radar.BOT_TOKEN", "test-token"), patch("affilio_radar.requests.post", return_value=response) as post:
+            _send_photo(b"photo-bytes", "caption", "https://affilio.example/tracked")
+        data = post.call_args.kwargs["data"]
+        markup = json.loads(data["reply_markup"])
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛒 بررسی قیمت و خرید")
+        self.assertEqual(markup["inline_keyboard"][0][0]["url"], "https://affilio.example/tracked")
 
     def test_discount_image_returns_photo_with_badge(self):
         image_bytes = BytesIO()
