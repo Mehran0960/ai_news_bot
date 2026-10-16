@@ -507,7 +507,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("تخفیف اعلامی دیجی‌کالا", caption)
         self.assertIn("💰 قیمت امروز: <b>500,000 تومان</b>", caption)
         self.assertIn("🏷️ قیمت اصلی: <s>700,000 تومان</s>", caption)
-        self.assertIn("⏳ پایان تخفیف: <b>شنبه ۲۵ مهر ۱۴۰۵، ساعت ۰۰:۰۰ به وقت ایران</b>", caption)
+        self.assertIn("⏳ پایان تخفیف: <b>شنبه ۲۵ مهر ۱۴۰۵، ساعت ۰۰:۰۰</b>", caption)
         self.assertLess(caption.index("⚡️"), caption.index("💰 قیمت امروز"))
         self.assertLess(caption.index("💰 قیمت امروز"), caption.index("🏷️ قیمت اصلی"))
         self.assertLess(caption.index("🏷️ قیمت اصلی"), caption.index("⏳ پایان تخفیف"))
