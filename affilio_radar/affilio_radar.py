@@ -928,12 +928,17 @@ def score_product(p: dict) -> dict:
             score += 11
         else:
             score += 4
-    if p.get("original_price") and price and p["original_price"] > price:
-        discount = round(100 * (p["original_price"] - price) / p["original_price"])
+
+    original = p.get("original_price")
+    if original and price and original > price:
+        discount = round(100 * (original - price) / original)
+        p["discount_percent"] = max(0, min(100, discount))
+        p["savings_toman"] = int(original - price)
         score += min(15, round(discount * 0.5))
-        p["discount_percent"] = discount
     else:
         p["discount_percent"] = 0
+        p["savings_toman"] = 0
+
     rating = p.get("rating")
     if rating is not None:
         if rating >= 4.5:
@@ -944,18 +949,38 @@ def score_product(p: dict) -> dict:
             score += 5
         elif rating < 3.0:
             score -= 5
+
     reviews = max(0, int(p.get("review_count") or 0))
-    # Reviews are an observable demand proxy; preserve more separation between
-    # products with hundreds versus tens of thousands of reviews.
+    # Reviews are an observable demand proxy; useful for tie-breaking, not the main ranking.
     score += min(30, round(3.5 * math.log1p(reviews)))
     if p.get("image_url"):
         score += 4
-    # Intentional penalty for missing price/data rather than rewarding unknowns.
     if not price:
         score -= 12
+
+    discount_pct = int(p.get("discount_percent") or 0)
+    savings = int(p.get("savings_toman") or 0)
+    savings_score = min(20, round(3.0 * math.log1p(savings / 100_000))) if savings else 0
+    review_score = min(10, round(1.5 * math.log1p(reviews))) if reviews else 0
+    rating_score = max(0, min(5, round((float(rating) - 3.0) * 2))) if rating is not None else 0
+
     p["category"] = category
     p["demand_score"] = max(0, min(100, int(score)))
+    p["promo_score"] = max(0, min(100, int(discount_pct * 0.65 + savings_score + review_score + rating_score)))
+    p["qualifies_as_deal"] = bool(
+        discount_pct >= MIN_DISCOUNT_PERCENT and savings >= MIN_SAVINGS_TOMAN
+    )
     return p
+
+
+def deal_sort_key(p: dict) -> tuple:
+    """Highest listed discount first, then absolute saving, demand, and review volume."""
+    return (
+        int(p.get("discount_percent") or 0),
+        int(p.get("savings_toman") or 0),
+        int(p.get("demand_score") or 0),
+        int(p.get("review_count") or 0),
+    )
 
 
 def load_catalog() -> list[dict]:
@@ -1001,12 +1026,21 @@ def link_map(catalog: list[dict]) -> dict:
 
 
 def is_publish_eligible(product: dict) -> bool:
-    """A post requires a confirmed stock signal, live price, image, and pre-generated affiliate link."""
+    """A post requires confirmed stock, current price, image, and affiliate link."""
     return bool(
         product.get("availability") == "in_stock"
         and product.get("current_price")
         and product.get("image_url")
         and str(product.get("affiliate_url", "")).startswith("https://")
+    )
+
+
+def is_discount_publish_eligible(product: dict) -> bool:
+    """Require a meaningful listed price reduction; RRP is not historical proof."""
+    return bool(
+        is_publish_eligible(product)
+        and int(product.get("discount_percent") or 0) >= MIN_DISCOUNT_PERCENT
+        and int(product.get("savings_toman") or 0) >= MIN_SAVINGS_TOMAN
     )
 
 
