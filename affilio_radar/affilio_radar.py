@@ -56,7 +56,12 @@ MIN_HISTORICAL_DISCOUNT_PERCENT = max(1, min(50, int(os.getenv("AFFILIO_MIN_HIST
 MIN_STABLE_LOW_GAP_PERCENT = max(5, min(30, int(os.getenv("AFFILIO_MIN_STABLE_LOW_GAP_PERCENT", "10"))))
 MAX_STABLE_LOW_DISTANCE_PERCENT = max(0, min(10, int(os.getenv("AFFILIO_MAX_STABLE_LOW_DISTANCE_PERCENT", "3"))))
 HTTP_TIMEOUT = int(os.getenv("AFFILIO_HTTP_TIMEOUT", "18"))
-HISTORY_TIMEOUT = max(4, min(HTTP_TIMEOUT, int(os.getenv("AFFILIO_HISTORY_TIMEOUT", "8"))))
+HISTORY_TIMEOUT = max(4, min(HTTP_TIMEOUT, int(os.getenv("AFFILIO_HISTORY_TIMEOUT", "8")))
+TOROB_MCP_URL = os.getenv("TOROB_MCP_URL", "https://torob-mcp.mmdju3.workers.dev/mcp").strip()
+MARKET_PRICE_CHECK_LIMIT = max(0, min(6, int(os.getenv("AFFILIO_MARKET_CHECK_LIMIT", "3"))))
+TOROB_MCP_GAP_SECONDS = max(1.5, min(5.0, float(os.getenv("TOROB_MCP_GAP_SECONDS", "2"))))
+MIN_MARKET_MATCH_SCORE = max(40, min(95, int(os.getenv("AFFILIO_MIN_MARKET_MATCH_SCORE", "60"))))
+MARKET_UNDERCUT_BLOCK_PERCENT = max(1, min(30, int(os.getenv("AFFILIO_MARKET_UNDERCUT_BLOCK_PERCENT", "5"))))
 
 SEARCH_TERMS = [
     "پاوربانک",
@@ -1142,6 +1147,351 @@ def enrich_price_history(products: list[dict], state: dict) -> None:
             _add_history_comparison(product)
 
 
+
+def _torob_rpc(method: str, params: dict | None = None, request_id: int = 1) -> dict:
+    """Call the public, read-only Torob MCP endpoint using Streamable HTTP."""
+    if not TOROB_MCP_URL.startswith("https://"):
+        raise RuntimeError("Torob MCP endpoint must use HTTPS")
+    response = requests.post(
+        TOROB_MCP_URL,
+        data=json.dumps({
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "method": method,
+            "params": params or {},
+        }).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+            "User-Agent": "affilio-product-radar/1.0",
+        },
+        timeout=(10, 30),
+    )
+    if response.status_code == 429:
+        wait = response.headers.get("Retry-After", "60")
+        raise RuntimeError(f"Torob MCP rate limited the request; retry-after={wait}s")
+    response.raise_for_status()
+    if len(response.content) > 2_000_000:
+        raise RuntimeError("Torob MCP response exceeded 2 MB safety limit")
+    body_text = response.text.strip()
+    if not body_text:
+        return {}
+    # Streamable HTTP may return either JSON or an SSE frame with one JSON data line.
+    data_lines = [
+        line[5:].strip()
+        for line in body_text.splitlines()
+        if line.startswith("data:") and line[5:].strip() and line[5:].strip() != "[DONE]"
+    ]
+    if data_lines:
+        body_text = data_lines[-1]
+    payload = json.loads(body_text)
+    if not isinstance(payload, dict):
+        raise RuntimeError("Torob MCP returned an unexpected response shape")
+    if payload.get("error"):
+        error = payload["error"]
+        raise RuntimeError(
+            str(error.get("message") or error)[:240] if isinstance(error, dict)
+            else str(error)[:240]
+        )
+    return payload
+
+
+def _prepare_torob_mcp() -> None:
+    initialized = _torob_rpc(
+        "initialize",
+        {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {},
+            "clientInfo": {"name": "affilio-product-radar", "version": "1.0.0"},
+        },
+        request_id=1,
+    )
+    if not initialized.get("result", {}).get("serverInfo"):
+        raise RuntimeError("Torob MCP initialization did not confirm serverInfo")
+    time.sleep(TOROB_MCP_GAP_SECONDS)
+    _torob_rpc("notifications/initialized", {}, request_id=2)
+    time.sleep(TOROB_MCP_GAP_SECONDS)
+    listed = _torob_rpc("tools/list", {}, request_id=3)
+    names = {
+        str(item.get("name"))
+        for item in listed.get("result", {}).get("tools", [])
+        if isinstance(item, dict)
+    }
+    missing = {"search_products", "product_details"} - names
+    if missing:
+        raise RuntimeError("Torob MCP is missing required tools: " + ", ".join(sorted(missing)))
+    time.sleep(TOROB_MCP_GAP_SECONDS)
+
+
+def _torob_tool(name: str, arguments: dict, request_id: int) -> dict:
+    """Invoke one Torob MCP tool; never retry automatically after a challenge."""
+    try:
+        reply = _torob_rpc(
+            "tools/call",
+            {"name": name, "arguments": arguments},
+            request_id=request_id,
+        )
+        result = reply.get("result", {})
+        content = result.get("content", []) if isinstance(result, dict) else []
+        text_result = next(
+            (str(item.get("text") or "") for item in content if isinstance(item, dict) and item.get("type") == "text"),
+            "",
+        )
+        if result.get("isError"):
+            raise RuntimeError(text_result[:300] or f"Torob MCP tool {name} returned an error")
+        if not text_result:
+            raise RuntimeError(f"Torob MCP tool {name} returned no text payload")
+        parsed = json.loads(text_result)
+        if not isinstance(parsed, dict):
+            raise RuntimeError(f"Torob MCP tool {name} returned an unexpected data shape")
+        return parsed
+    finally:
+        # The hosted demo is rate-limited; respect its documented per-client request pacing.
+        time.sleep(TOROB_MCP_GAP_SECONDS)
+
+
+def market_query_from_title(title: str) -> str:
+    """Use the model-identifying part of a title, not the full marketing description."""
+    text = re.sub(r"\s+", " ", str(title or "")).strip()
+    head = re.split(r"[,،;؛]", text, maxsplit=1)[0].strip()
+    if len(_market_tokens(head)) < 3 and len(_market_tokens(text)) >= 3:
+        head = text
+    return head[:95].strip()
+
+
+def _market_tokens(value: str) -> set[str]:
+    text = normalize_digits(str(value or "")).lower()
+    text = text.replace("ي", "ی").replace("ك", "ک").replace("ـ", "")
+    text = text.replace("\u200c", " ").replace("\u200f", " ")
+    text = re.sub(r"[^\w]+", " ", text, flags=re.UNICODE)
+    stopwords = {
+        "و", "از", "با", "برای", "مناسب", "حاوی", "دارای", "شامل",
+        "خرید", "قیمت", "مدل", "نسخه", "جدید", "اورجینال", "اصل",
+        "ویژه", "است", "میباشد",
+    }
+    tokens = text.split()
+    return {token for token in tokens if (len(token) > 1 or token.isdigit()) and token not in stopwords}
+
+
+def market_name_match_score(query: str, candidate_name: str) -> int:
+    """Score how many identifying query tokens appear in a Torob result (0-100)."""
+    query_tokens = _market_tokens(query)
+    candidate_tokens = _market_tokens(candidate_name)
+    if not query_tokens or not candidate_tokens:
+        return 0
+    overlap = query_tokens & candidate_tokens
+    if len(query_tokens) <= 3:
+        if len(overlap) < 2:
+            return 0
+    elif len(overlap) < 3:
+        return 0
+    return round(100 * len(overlap) / len(query_tokens))
+
+
+def is_market_price_uncompetitive(product: dict) -> bool:
+    """Block only a reliable, same-product comparison showing DigiKala >=5% above market."""
+    return bool(
+        product.get("market_status") == "verified"
+        and product.get("market_reference_kind") == "seller_median"
+        and product.get("market_price_advantage_pct") is not None
+        and int(product["market_price_advantage_pct"]) <= -MARKET_UNDERCUT_BLOCK_PERCENT
+    )
+
+
+def apply_market_price_comparison(product: dict, card: dict, details: dict, match_score: int, query: str) -> dict:
+    """Attach current comparable Torob prices; low-confidence matches stay informational."""
+    product["market_query"] = query
+    product["market_match_score"] = int(match_score)
+    product["market_product_name"] = str(card.get("name_fa") or "")[:180]
+    product["market_product_url"] = str(card.get("url") or "")[:500]
+    offers = details.get("offers", []) if isinstance(details, dict) else []
+    if not isinstance(offers, list):
+        offers = []
+    prices = []
+    for offer in offers:
+        if not isinstance(offer, dict) or offer.get("available") is False or offer.get("price_unreliable") is True:
+            continue
+        raw_price = offer.get("price_toman")
+        try:
+            price = int(float(raw_price))
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if price > 0:
+            prices.append(price)
+
+    try:
+        card_price = int(float(card.get("price_toman")))
+    except (TypeError, ValueError, OverflowError):
+        card_price = None
+    if card_price is not None and card_price <= 0:
+        card_price = None
+
+    if len(prices) >= 3 and details.get("available") is not False:
+        reference_price = int(round(statistics.median(prices)))
+        product["market_status"] = "verified"
+        product["market_reference_kind"] = "seller_median"
+    elif prices:
+        reference_price = int(round(statistics.median(prices)))
+        product["market_status"] = "limited"
+        product["market_reference_kind"] = "limited_seller_sample"
+    elif card_price:
+        reference_price = card_price
+        product["market_status"] = "limited"
+        product["market_reference_kind"] = "lowest_torob_offer"
+    else:
+        reference_price = None
+        product["market_status"] = "unavailable"
+        product["market_reference_kind"] = "none"
+
+    product["market_reference_price_toman"] = reference_price
+    product["market_lowest_price_toman"] = min(prices) if prices else card_price
+    product["market_highest_price_toman"] = max(prices) if prices else card_price
+    product["market_available_offer_count"] = len(prices)
+    try:
+        product["market_reported_seller_count"] = int(details.get("offer_count") or 0)
+    except (TypeError, ValueError):
+        product["market_reported_seller_count"] = 0
+    product["market_price_spread_toman"] = (max(prices) - min(prices)) if len(prices) > 1 else None
+    product["market_price_checked_at"] = datetime.now(timezone.utc).isoformat()
+    current = product.get("current_price")
+    if current and reference_price:
+        product["market_price_difference_toman"] = int(reference_price - int(current))
+        product["market_price_advantage_pct"] = round(100 * (reference_price - int(current)) / reference_price)
+        advantage = product["market_price_advantage_pct"]
+        if advantage >= 5:
+            product["market_value_status"] = "cheaper_than_market"
+        elif advantage <= -5:
+            product["market_value_status"] = "more_expensive_than_market"
+        else:
+            product["market_value_status"] = "near_market"
+    else:
+        product["market_price_difference_toman"] = None
+        product["market_price_advantage_pct"] = None
+        product["market_value_status"] = "unknown"
+    product["market_publish_blocked"] = is_market_price_uncompetitive(product)
+    return product
+
+
+def enrich_market_prices(products: list[dict]) -> None:
+    """Compare the top listed-discount candidates to current prices on Torob."""
+    for product in products:
+        product.setdefault("market_status", "not_checked")
+        product.setdefault("market_publish_blocked", False)
+        product.setdefault("market_price_advantage_pct", None)
+        product.setdefault("market_value_status", "unknown")
+    ranked = sorted(products, key=deal_sort_key, reverse=True)
+    targets = ranked[:MARKET_PRICE_CHECK_LIMIT]
+    if not targets:
+        return
+    request_id = 10
+    try:
+        _prepare_torob_mcp()
+        print(
+            f"MARKET_SOURCE=torob_mcp candidates={len(targets)} "
+            f"match_threshold={MIN_MARKET_MATCH_SCORE}%"
+        )
+    except Exception as exc:
+        print(f"MARKET_SOURCE_UNAVAILABLE error={type(exc).__name__} detail={str(exc)[:180]!r}")
+        for item in targets:
+            item["market_status"] = "unavailable"
+            item["market_error"] = type(exc).__name__
+        return
+
+    for product in targets:
+        title = str(product.get("title") or "")
+        query = market_query_from_title(title)
+        product["market_query"] = query
+        if len(_market_tokens(query)) < 2:
+            product["market_status"] = "no_confident_match"
+            continue
+        try:
+            search = _torob_tool(
+                "search_products",
+                {"query": query, "sort": "price", "limit": 10},
+                request_id,
+            )
+            request_id += 1
+            rows = search.get("products", [])
+            rows = [
+                row for row in rows
+                if isinstance(row, dict)
+                and row.get("available") is not False
+                and row.get("price_unreliable") is not True
+            ]
+            scored = [
+                (market_name_match_score(query, str(row.get("name_fa") or "")), row)
+                for row in rows
+            ]
+            scored.sort(
+                key=lambda pair: (
+                    pair[0],
+                    bool(pair[1].get("price_toman")),
+                    bool(pair[1].get("details_url")),
+                ),
+                reverse=True,
+            )
+            best_score, card = scored[0] if scored else (0, {})
+            product["market_search_candidates"] = [
+                {
+                    "name": str(row.get("name_fa") or "")[:120],
+                    "price_toman": row.get("price_toman"),
+                    "url": row.get("url"),
+                    "match_score": score,
+                }
+                for score, row in scored[:3]
+            ]
+            if best_score < MIN_MARKET_MATCH_SCORE or not card.get("price_toman"):
+                product["market_status"] = "no_confident_match"
+                product["market_match_score"] = best_score
+                product["market_error"] = "no_sufficiently_similar_in_stock_product"
+                print(
+                    f"MARKET_PRICE id={product.get('product_id')} status=no_confident_match "
+                    f"match={best_score}% query={query!r}"
+                )
+                continue
+
+            details = {}
+            if card.get("prk"):
+                detail_args = {"prk": card["prk"], "max_offers": 30}
+                if card.get("details_url"):
+                    detail_args["details_url"] = card["details_url"]
+                try:
+                    details = _torob_tool("product_details", detail_args, request_id)
+                    request_id += 1
+                except Exception as exc:
+                    # Search's price remains a low-offer signal; it is never upgraded to a median.
+                    product["market_detail_error"] = type(exc).__name__
+                    msg = str(exc).lower()
+                    if any(token in msg for token in ("490", "429", "challenge", "rate limit", "temporarily paused", "blocked")):
+                        product["market_status"] = "unavailable"
+                        product["market_error"] = type(exc).__name__
+                        print(f"MARKET_PRICE_PAUSE id={product.get('product_id')} detail_error={type(exc).__name__}")
+                        break
+            apply_market_price_comparison(product, card, details, best_score, query)
+            print(
+                f"MARKET_PRICE id={product.get('product_id')} status={product.get('market_status')} "
+                f"match={best_score}% market_price={product.get('market_reference_price_toman')} "
+                f"kind={product.get('market_reference_kind')} sellers={product.get('market_available_offer_count')} "
+                f"advantage={product.get('market_price_advantage_pct')}% value={product.get('market_value_status')}"
+            )
+        except Exception as exc:
+            product["market_status"] = "unavailable"
+            product["market_error"] = type(exc).__name__
+            message = str(exc).lower()
+            print(
+                f"MARKET_PRICE_FAILED id={product.get('product_id')} error={type(exc).__name__} "
+                f"detail={str(exc)[:160]!r}"
+            )
+            # Stop after an upstream challenge/failure rather than causing a burst of retries.
+            if any(token in message for token in ("490", "429", "challenge", "rate limit", "temporarily paused", "blocked")):
+                print("MARKET_PRICE_PAUSE: remaining candidates stay unverified for this run.")
+                break
+
+    for item in targets:
+        if item.get("market_status") == "not_checked":
+            item["market_status"] = "unavailable"
+
+
 def discover_product_urls() -> tuple[list[str], list[dict]]:
     """Prioritize live Incredible Offers, then broaden coverage with normal searches."""
     found = []
@@ -1575,6 +1925,13 @@ def build_caption(p: dict, affiliate_url: str) -> str:
             parts.append(f"📊 قیمت فعلی {abs(delta)}٪ بالاتر از میانه تاریخچه ({days} روز)")
         else:
             parts.append(f"📊 قیمت فعلی نزدیک میانه تاریخچه ({days} روز) است")
+    if p.get("market_status") == "verified" and p.get("market_price_advantage_pct") is not None:
+        advantage = int(p["market_price_advantage_pct"])
+        seller_count = int(p.get("market_available_offer_count") or 0)
+        if advantage >= 0:
+            parts.append(f"🛍️ قیمت دیجی‌کالا حدود {advantage}٪ پایین‌تر از میانه قیمت {seller_count} پیشنهاد فروشگاهی در ترب است")
+        else:
+            parts.append(f"🛍️ قیمت بازار برای مقایسه: حدود {abs(advantage)}٪ پایین‌تر از قیمت دیجی‌کالا")
     parts += [
         "",
         "⚠️ قیمت و موجودی ممکن است تغییر کند؛ قبل از خرید در صفحه فروشنده بررسی کن.",
@@ -1693,20 +2050,24 @@ def run(publish=False):
     state = load_state()
     state.setdefault("published", {})
     enrich_price_history(products, state)
+    enrich_market_prices(products)
     products.sort(key=deal_sort_key, reverse=True)
     listed_eligible_count = sum(
         bool(p.get("has_affiliate_link") and is_discount_publish_eligible(p)) for p in products
     )
+    market_blocked_count = sum(is_market_price_uncompetitive(p) for p in products)
     eligible = [
         p for p in products
         if p.get("has_affiliate_link")
         and is_discount_publish_eligible(p)
-        and is_historically_discount_eligible(p)
+        and not is_market_price_uncompetitive(p)
     ]
     history_verified = sum(p.get("history_status") == "verified" for p in products)
+    market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
         f"ranked_products={len(products)} listed_discount_eligible={listed_eligible_count} "
-        f"history_verified={history_verified} historically_validated_deals={len(eligible)}"
+        f"history_verified={history_verified} market_verified={market_verified} "
+        f"market_price_rejected={market_blocked_count} publish_eligible={len(eligible)}"
     )
     for rank, item in enumerate(products[:12], start=1):
         print(
@@ -1714,18 +2075,31 @@ def run(publish=False):
             f"promo_score={item['promo_score']} demand_score={item['demand_score']} "
             f"stock={item['availability']} linked={item['has_affiliate_link']} "
             f"history={item.get('history_status')} days={item.get('history_days')} "
-            f"vs_median={item.get('discount_vs_30d_median_pct')} history_ok={item.get('historical_deal_eligible')} "
+            f"vs_median={item.get('discount_vs_30d_median_pct')} "
+            f"market={item.get('market_status')} market_price={item.get('market_reference_price_toman')} "
+            f"market_advantage={item.get('market_price_advantage_pct')}% "
+            f"market_blocked={is_market_price_uncompetitive(item)} "
             f"price={item.get('current_price')} title={item['title']!r} url={item['product_url']}"
         )
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Discount-first across all categories. Publication requires >= {MIN_HISTORICAL_DISCOUNT_PERCENT}% below the {MIN_HISTORICAL_PRICE_DAYS}-day observed median, or within {MAX_STABLE_LOW_DISTANCE_PERCENT}% of a stable low whose median was at least {MIN_STABLE_LOW_GAP_PERCENT}% higher. List-price discount alone never proves a real deal.",
+        "ranking_note": "Discount-first across all categories. Historical price is supplemental context. A reliable same-product Torob comparison blocks publication only when DigiKala's current price is at least 5% above the median of three or more current seller offers; missing comparison data never excludes a product by itself.",
+        "price_market_policy": {
+            "source": "Torob public price comparison via Torob MCP",
+            "checked_candidates_per_run": MARKET_PRICE_CHECK_LIMIT,
+            "minimum_name_match_score": MIN_MARKET_MATCH_SCORE,
+            "minimum_sellers_for_verified_median": 3,
+            "block_if_digikala_more_expensive_by_percent": MARKET_UNDERCUT_BLOCK_PERCENT,
+            "unknown_or_limited_comparison_blocks": false,
+            "endpoint": TOROB_MCP_URL,
+        },
         "price_history_policy": {
             "direct_api_checks_per_run": PRICE_HISTORY_CHECK_LIMIT,
             "minimum_history_days": MIN_HISTORICAL_PRICE_DAYS,
             "minimum_discount_vs_median_percent": MIN_HISTORICAL_DISCOUNT_PERCENT,
             "fallback": "one saved price snapshot per product per UTC day",
+            "role": "supplemental signal, not a mandatory publication gate",
         },
         "search_diagnostics": search_diagnostics,
         "products": products[:40],

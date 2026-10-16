@@ -25,6 +25,10 @@ from affilio_radar import (
     parse_price_history,
     apply_snapshot_price_history,
     is_historically_discount_eligible,
+    market_query_from_title,
+    market_name_match_score,
+    apply_market_price_comparison,
+    is_market_price_uncompetitive,
 )
 
 
@@ -529,6 +533,72 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(result["history_days"], 7)
         self.assertEqual(result["discount_vs_30d_median_pct"], 10)
         self.assertTrue(result["historical_deal_eligible"])
+
+
+    def test_market_query_keeps_model_identity_and_folds_persian_variants(self):
+        query = market_query_from_title("هندزفری بی‌سیم کیو سی وای مدل T13 ANC2، نویز کنسلینگ و شارژ USB-C")
+        self.assertEqual(query, "هندزفری بی‌سیم کیو سی وای مدل T13 ANC2")
+        score = market_name_match_score(
+            query,
+            "هندزفری بلوتوثی QCY T13 ANC2 مدل بی سیم",
+        )
+        self.assertGreaterEqual(score, 60)
+
+    def test_market_median_is_calculated_from_multiple_reliable_seller_offers(self):
+        product = {"current_price": 1_800_000}
+        card = {
+            "prk": "prk-example",
+            "name_fa": "اسپیکر بلوتوثی مدل نمونه X1",
+            "price_toman": 1_900_000,
+            "available": True,
+            "url": "https://torob.com/p/prk-example/",
+        }
+        details = {
+            "available": True,
+            "offer_count": 3,
+            "offers": [
+                {"price_toman": 2_000_000, "available": True, "price_unreliable": False},
+                {"price_toman": 2_100_000, "available": True, "price_unreliable": False},
+                {"price_toman": 2_200_000, "available": True, "price_unreliable": False},
+                {"price_toman": 9_999_000, "available": True, "price_unreliable": True},
+                {"price_toman": 1_700_000, "available": False, "price_unreliable": False},
+            ],
+        }
+        result = apply_market_price_comparison(product, card, details, 85, "اسپیکر بلوتوثی مدل نمونه X1")
+        self.assertEqual(result["market_status"], "verified")
+        self.assertEqual(result["market_reference_price_toman"], 2_100_000)
+        self.assertEqual(result["market_available_offer_count"], 3)
+        self.assertGreater(result["market_price_advantage_pct"], 0)
+        self.assertFalse(is_market_price_uncompetitive(result))
+
+    def test_reliable_market_comparison_blocks_only_if_digikala_is_materially_dearer(self):
+        product = {"current_price": 2_350_000}
+        card = {
+            "prk": "prk-example",
+            "name_fa": "کالای یکسان مدل X1",
+            "price_toman": 2_000_000,
+            "available": True,
+            "url": "https://torob.com/p/prk-example/",
+        }
+        details = {
+            "available": True,
+            "offer_count": 3,
+            "offers": [
+                {"price_toman": 2_000_000, "available": True, "price_unreliable": False},
+                {"price_toman": 2_100_000, "available": True, "price_unreliable": False},
+                {"price_toman": 2_200_000, "available": True, "price_unreliable": False},
+            ],
+        }
+        result = apply_market_price_comparison(product, card, details, 90, "کالای یکسان مدل X1")
+        self.assertLessEqual(result["market_price_advantage_pct"], -5)
+        self.assertTrue(is_market_price_uncompetitive(result))
+
+    def test_missing_market_data_never_blocks_an_otherwise_valid_product(self):
+        product = {"current_price": 1_000_000, "market_status": "unavailable"}
+        self.assertFalse(is_market_price_uncompetitive(product))
+        product["market_status"] = "limited"
+        product["market_price_advantage_pct"] = -45
+        self.assertFalse(is_market_price_uncompetitive(product))
 
 
 if __name__ == "__main__":
