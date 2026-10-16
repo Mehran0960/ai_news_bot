@@ -29,9 +29,9 @@ on:
         type: boolean
         default: false
   schedule:
-    # Re-scan live Incredible Offers every five minutes so high-value deals enter the queue quickly.
+    # Scan every five minutes, offset from :00 to reduce top-of-hour runner contention.
     # Ordinary posts remain 30 minutes apart; an exceptional deal expiring within 90 minutes may use a 10-minute minimum.
-    - cron: "*/5 * * * *"
+    - cron: "2-57/5 * * * *"
 
 permissions:
   contents: write
