@@ -23,7 +23,7 @@
 - AFFILIO_MIN_MARKET_MATCH_SCORE: حداقل امتیاز تطبیق محصول؛ پیش‌فرض ۶۰.
 - AFFILIO_MIN_DISCOUNT_PERCENT: حداقل تخفیف درج‌شده برای غربال اولیه؛ پیش‌فرض ۲۰٪.
 - AFFILIO_MIN_SAVINGS_TOMAN: حداقل اختلاف با قیمت اصلی درج‌شده برای غربال اولیه؛ پیش‌فرض ۱۰۰٬۰۰۰ تومان.
-- AFFILIO_MIN_POST_INTERVAL_HOURS: حداقل فاصلهٔ معمول بین پست‌ها؛ پیش‌فرض ۸ ساعت.
+- AFFILIO_MIN_POST_INTERVAL_HOURS: حداقل فاصلهٔ معمول بین پست‌ها؛ پیش‌فرض ۱ ساعت.
 
 ## تست و اجرا
 
