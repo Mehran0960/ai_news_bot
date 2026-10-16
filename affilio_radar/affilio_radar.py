@@ -2008,8 +2008,12 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     parts = ["🔥 <b>پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", "", f"🛍️ <b>{title}</b>", ""]
     if discount is not None and int(discount) > 0:
         parts.append(f"⚡️ تخفیف ویژه: <b>{int(discount)}٪</b>")
+        # Give the headline discount its own visual breathing room.
+        parts.append("")
     if current:
         parts.append(f"💰 قیمت امروز: <b>{int(current):,} تومان</b>")
+        # Today's price is the second key selling point; separate it from the rest.
+        parts.append("")
     if original and current and int(original) > int(current):
         parts.append(f"🏷️ قیمت قبل از تخفیف: <s>{int(original):,}</s> تومان")
     if savings > 0:
