@@ -258,6 +258,7 @@ class AffilioRadarTests(unittest.TestCase):
 
     def test_discount_publishing_requires_minimum_percentage_and_saving(self):
         base = {
+            "title": "پاوربانک آزمایشی",
             "availability": "in_stock",
             "current_price": 900_000,
             "original_price": 1_000_000,
