@@ -42,9 +42,10 @@ AFFILIO_DIGIKALA_AFFID = os.getenv("AFFILIO_DIGIKALA_AFFID", "OTgxYTY0OTAtODJhNS
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
 FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "false").strip().lower() in {"1", "true", "yes", "on"}
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
+BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
 MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "40"))))
-MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "10"))))
+MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "1"))))
 MIN_POST_INTERVAL_HOURS = max(0.5, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.5")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "3"))))
@@ -2123,6 +2124,9 @@ def run(publish=False):
     products.sort(key=deal_sort_key, reverse=True)
     state = load_state()
     state.setdefault("published", {})
+    if publish and CLEAR_PREVIOUS_CHANNEL_POSTS and BATCH_OPERATION_KEY and state.get("completed_batch_operation") == BATCH_OPERATION_KEY:
+        print(f"BATCH_ALREADY_COMPLETED key={BATCH_OPERATION_KEY}; duplicate workflow run will not send again.")
+        publish = False
     # Historical-price lookup is intentionally not used.
     state.pop("price_history", None)
     enrich_market_prices(products)
@@ -2180,7 +2184,12 @@ def run(publish=False):
         print(f"POST_COOLDOWN remaining_minutes={int(cooldown_remaining / 60)}")
 
     if publish and CLEAR_PREVIOUS_CHANNEL_POSTS:
-        delete_previous_channel_posts(state)
+        if not BATCH_OPERATION_KEY or state.get("cleanup_batch_operation") != BATCH_OPERATION_KEY:
+            delete_previous_channel_posts(state)
+            state["cleanup_batch_operation"] = BATCH_OPERATION_KEY or datetime.now(timezone.utc).isoformat()
+            save_json(STATE, state)
+        else:
+            print(f"BATCH_CLEANUP_ALREADY_DONE key={BATCH_OPERATION_KEY}")
         # Re-evaluate candidates after clearing messages tracked by this bot.
         eligible = [p for p in eligible if p["product_id"] not in state.get("published", {})]
 
@@ -2223,6 +2232,10 @@ def run(publish=False):
             except Exception as exc:
                 print(f"PUBLISH_FAILED id={pid} error={type(exc).__name__}")
         print(f"posts_sent={sent}")
+        if CLEAR_PREVIOUS_CHANNEL_POSTS and BATCH_OPERATION_KEY and sent > 0:
+            state["completed_batch_operation"] = BATCH_OPERATION_KEY
+            save_json(STATE, state)
+            print(f"BATCH_MARKED_COMPLETED key={BATCH_OPERATION_KEY} posts_sent={sent}")
 
     # Limit retained product history while preserving most recent entries.
     if isinstance(state.get("published"), dict) and len(state["published"]) > 2000:
