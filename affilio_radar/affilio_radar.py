@@ -7,6 +7,7 @@ This program deliberately does not invent affiliate tracking parameters or log i
 from __future__ import annotations
 
 import argparse
+import base64
 import html
 import json
 import math
@@ -32,6 +33,7 @@ STATE = ROOT / "state.json"
 REPORT = ROOT / "candidates.json"
 TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@Iran_gajet").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+AFFILIO_LINK_TEMPLATE = os.getenv("AFFILIO_LINK_TEMPLATE", "").strip()
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
 MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
 MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "24"))))
@@ -92,6 +94,48 @@ def safe_product_url(raw: str) -> str:
 def product_id(url: str) -> str:
     match = re.search(r"/product/(dkp-\d+)", url or "", re.I)
     return match.group(1).lower() if match else ""
+
+
+AFFILIO_URL_PLACEHOLDER = "{YOUR_BASE64_ENCODED_URL}"
+
+
+def build_affilio_tracking_link(product_url: str, template: str | None = None) -> str:
+    """Build a product tracking URL from the one reusable Affilio publisher template.
+
+    The template is obtained once from the user's registered publisher/media entry
+    in the Affilio panel. Product URLs are base64-encoded in the same way as the
+    publicly available Digikala Affiliate WordPress integration.
+    """
+    canonical = safe_product_url(product_url)
+    template = (template if template is not None else AFFILIO_LINK_TEMPLATE).strip()
+    if not canonical or template.count(AFFILIO_URL_PLACEHOLDER) != 1:
+        return ""
+    try:
+        parsed = urlsplit(template)
+    except Exception:
+        return ""
+    host = (parsed.hostname or "").lower()
+    if (
+        parsed.scheme != "https"
+        or host != "migmig.affilio.ir"
+        or "/api/v1/click/" not in parsed.path.lower()
+        or any(ch in template for ch in ("\n", "\r", "\t", " "))
+    ):
+        return ""
+    encoded = base64.b64encode(canonical.encode("utf-8")).decode("ascii")
+    result = template.replace(AFFILIO_URL_PLACEHOLDER, encoded)
+    try:
+        built = urlsplit(result)
+    except Exception:
+        return ""
+    if (
+        built.scheme != "https"
+        or (built.hostname or "").lower() != "migmig.affilio.ir"
+        or "/api/v1/click/" not in built.path.lower()
+        or AFFILIO_URL_PLACEHOLDER in result
+    ):
+        return ""
+    return result
 
 
 def _walk_dicts(value):
@@ -1033,7 +1077,13 @@ def run(publish=False):
     print("Ranking is a transparent heuristic (category + affordability + visible discount + reviews), not a guarantee of sales.")
     catalog = load_catalog()
     approved = link_map(catalog)
-    print(f"approved_affiliate_links={len(approved)}")
+    if AFFILIO_LINK_TEMPLATE and build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/"):
+        link_mode = "reusable_affilio_template"
+    elif approved:
+        link_mode = "per_product_overrides"
+    else:
+        link_mode = "no_tracking_template_configured"
+    print(f"affiliate_link_mode={link_mode} manual_product_overrides={len(approved)}")
     urls, search_diagnostics = discover_product_urls()
     print(f"discovered_product_urls={len(urls)}")
 
@@ -1049,8 +1099,12 @@ def run(publish=False):
                 print(f"PRODUCT_SKIP id={item.get('product_id')} reason=no_title")
                 continue
             item = score_product(item)
-            item["has_affiliate_link"] = bool(approved.get(item["product_id"]))
-            item["affiliate_url"] = approved.get(item["product_id"], {}).get("affiliate_url", "")
+            override = approved.get(item["product_id"], {})
+            tracking_link = str(override.get("affiliate_url", "")).strip()
+            if not tracking_link:
+                tracking_link = build_affilio_tracking_link(item.get("product_url", ""))
+            item["affiliate_url"] = tracking_link
+            item["has_affiliate_link"] = bool(tracking_link)
             products.append(item)
             print(
                 f"PRODUCT id={item['product_id']} stock={item['availability']} "
