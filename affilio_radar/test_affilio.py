@@ -79,6 +79,13 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("{YOUR_BASE64_ENCODED_URL}", linked)
         self.assertEqual(linked.split("/api/v1/Click/")[0], "https://migmig.affilio.ir")
 
+    def test_affilio_query_parameter_template_is_supported(self):
+        product = "https://www.digikala.com/product/dkp-1234567/"
+        template = "https://migmig.affilio.ir/api/v1/Click/b/media-code?b64={YOUR_BASE64_ENCODED_URL}"
+        linked = build_affilio_tracking_link(product, template)
+        self.assertTrue(linked.startswith("https://migmig.affilio.ir/api/v1/Click/b/media-code?b64="))
+        self.assertNotIn("{YOUR_BASE64_ENCODED_URL}", linked)
+
     def test_affilio_link_builder_rejects_invalid_template_or_product(self):
         product = "https://www.digikala.com/product/dkp-1234567/"
         self.assertEqual(
