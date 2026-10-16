@@ -17,7 +17,7 @@ on:
         type: boolean
         default: false
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "17 * * * *"
 
 permissions:
   contents: write
@@ -56,13 +56,13 @@ jobs:
           cd affilio_radar
           python -m unittest -v test_affilio.py
 
-      - name: Discover products and verify live stock (publish is disabled on push)
+      - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
           AFFILIO_TELEGRAM_CHAT_ID: "@Iran_gajet"
           AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || contains(github.event.head_commit.message, '[publish-now]') }}
-          AFFILIO_MIN_POST_INTERVAL_HOURS: ${{ contains(github.event.head_commit.message, '[publish-now]') && '1' || '8' }}
+          AFFILIO_MIN_POST_INTERVAL_HOURS: "1"
           AFFILIO_FORCE_POST_COOLDOWN_BYPASS: ${{ contains(github.event.head_commit.message, '[publish-now]') }}
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py
