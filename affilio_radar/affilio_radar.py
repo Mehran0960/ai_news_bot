@@ -2170,8 +2170,8 @@ def build_discount_image(image_bytes: bytes, discount_percent=None) -> bytes:
         image = raw.convert("RGB")
     image.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
     label = format_discount_badge(discount_percent)
+    draw = ImageDraw.Draw(image)
     if label:
-        draw = ImageDraw.Draw(image)
         width, height = image.size
         font_size = max(20, min(width, height) // 16)
         font = _latin_font(font_size)
