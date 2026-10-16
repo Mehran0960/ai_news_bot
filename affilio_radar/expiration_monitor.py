@@ -108,8 +108,99 @@ def _product_id(node):
     return ""
 
 
-def fetch_offer_expiries():
-    """Fetch the current first deal pages; on network/API failure return no inferred deadlines."""
+def _mcp_call_incredible_offers_page(page):
+    """Ask the public Digikala MCP feed for cards with the site's countdown metadata."""
+    body = json.dumps({
+        "jsonrpc": "2.0",
+        "id": page,
+        "method": "tools/call",
+        "params": {
+            "name": "incredible_offers",
+            "arguments": {
+                "limit": 30,
+                "page": page,
+                "sort": "biggest_discount",
+                "section": "incredible",
+                "only_marketable": True,
+            },
+        },
+    }).encode("utf-8")
+    request = Request(
+        "https://digikala-mcp.mmdju.workers.dev/mcp",
+        data=body,
+        method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+            "User-Agent": "OfferChin-Expiry-Monitor/1.0",
+        },
+    )
+    with urlopen(request, timeout=25) as response:
+        raw = response.read(2_000_001)
+    if len(raw) > 2_000_000:
+        raise RuntimeError("Digikala MCP response exceeded 2 MB")
+    text = raw.decode("utf-8").strip()
+    data_lines = [
+        line[5:].strip()
+        for line in text.splitlines()
+        if line.startswith("data:") and line[5:].strip() and line[5:].strip() != "[DONE]"
+    ]
+    if data_lines:
+        text = data_lines[-1]
+    envelope = json.loads(text)
+    if envelope.get("error"):
+        raise RuntimeError(str(envelope["error"])[:180])
+    result = envelope.get("result", envelope)
+    if isinstance(result, dict):
+        content = result.get("content")
+        if isinstance(content, list):
+            for item in content:
+                if not isinstance(item, dict) or item.get("type") != "text":
+                    continue
+                raw_text = str(item.get("text") or "").strip()
+                if not raw_text:
+                    continue
+                try:
+                    parsed = json.loads(raw_text)
+                    if isinstance(parsed, dict):
+                        return parsed
+                except ValueError:
+                    continue
+        structured = result.get("structuredContent")
+        if isinstance(structured, dict):
+            return structured
+    if isinstance(result, dict):
+        return result
+    raise RuntimeError("Digikala MCP returned an unexpected response shape")
+
+
+def fetch_mcp_offer_expiries():
+    """Return exact offer deadlines exposed by Digikala's live deal-card feed."""
+    results = {}
+    for page in range(1, DEAL_LIST_PAGES + 1):
+        try:
+            payload = _mcp_call_incredible_offers_page(page)
+        except Exception as exc:
+            print(f"EXPIRY_MCP_FAILED page={page} error={type(exc).__name__} detail={str(exc)[:140]!r}")
+            break
+        page_count = 0
+        for node in walk_dicts(payload):
+            pid = _product_id(node)
+            if not pid:
+                continue
+            expiry = extract_expiry(node)
+            if expiry:
+                results[pid] = expiry
+                page_count += 1
+        print(f"EXPIRY_MCP_PAGE page={page} products_with_deadlines={page_count}")
+        if not payload:
+            break
+    print(f"EXPIRY_MCP_SUMMARY products_with_deadlines={len(results)}")
+    return results
+
+
+def fetch_direct_api_offer_expiries():
+    """Fallback for direct API responses that carry the same optional deadline fields."""
     results = {}
     for page in range(1, DEAL_LIST_PAGES + 1):
         params = urlencode({"page": page, "q": ""})
@@ -130,9 +221,8 @@ def fetch_offer_expiries():
                 raise RuntimeError("Digikala feed response exceeded 8 MB")
             payload = json.loads(raw.decode("utf-8"))
         except Exception as exc:
-            print(f"EXPIRY_FEED_FAILED page={page} error={type(exc).__name__} detail={str(exc)[:160]!r}")
-            # A partial feed is not evidence that an offer expired. Keep deadlines already stored.
-            return {}
+            print(f"EXPIRY_FEED_FAILED page={page} error={type(exc).__name__} detail={str(exc)[:140]!r}")
+            break
         page_found = 0
         for node in walk_dicts(payload):
             pid = _product_id(node)
@@ -143,13 +233,16 @@ def fetch_offer_expiries():
                 results[pid] = expiry
                 page_found += 1
         print(f"EXPIRY_FEED_PAGE page={page} products_with_deadlines={page_found}")
-        data = payload.get("data", {}) if isinstance(payload, dict) else {}
-        if isinstance(data, dict):
-            product_rows = data.get("products") or data.get("items")
-            if isinstance(product_rows, list) and not product_rows:
-                break
     return results
 
+
+def fetch_offer_expiries():
+    """Prefer live MCP countdown fields, and fall back to the direct public feed."""
+    results = fetch_mcp_offer_expiries()
+    # Do not overwrite a countdown-based deadline with a weaker duplicate from another feed.
+    for pid, expiry in fetch_direct_api_offer_expiries().items():
+        results.setdefault(pid, expiry)
+    return results
 
 def _money_to_toman(raw, is_toman):
     if raw in (None, "", 0, "0"):
