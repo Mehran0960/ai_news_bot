@@ -491,7 +491,7 @@ class AffilioRadarTests(unittest.TestCase):
             candidate[key] = value
             self.assertFalse(is_publish_eligible(candidate), key)
 
-    def test_caption_uses_uniform_bold_styling_and_persian_numerals(self):
+    def test_caption_uses_uniform_bold_styling_persian_numerals_and_highlights_price(self):
         caption = build_caption({
             "title": "گجت نمونه 60",
             "current_price": 500_000,
@@ -503,20 +503,22 @@ class AffilioRadarTests(unittest.TestCase):
         }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
         self.assertIn("<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", caption)
         self.assertIn("<b>🛍️ گجت نمونه ۶۰</b>", caption)
+        self.assertIn("<b>💚 قیمت ویژه</b>\n<b>💰 ۵۰۰٬۰۰۰ تومان</b>", caption)
         self.assertIn("<b>⚡️ ۲۹٪ تخفیف ویژه</b>", caption)
-        self.assertIn("<b>💰 قیمت امروز: ۵۰۰٬۰۰۰ تومان</b>", caption)
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
         self.assertIn("<b>⏳ پایان تخفیف: جمعه ۲۴ مهر ۱۴۰۵، ساعت ۲۳:۵۹</b>", caption)
         self.assertIn("<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>", caption)
         self.assertTrue(caption.endswith("<b>📣 @OfferChin</b>"))
         self.assertNotRegex(caption, r"[0-9]")
+        self.assertNotIn("قیمت امروز", caption)
         self.assertNotIn("صرفه‌جویی", caption)
         self.assertNotIn("امتیاز کاربران", caption)
         self.assertNotIn("نظر", caption)
         self.assertNotIn("پشتیبانی کانال", caption)
         self.assertNotIn("لینک خرید همکاری در فروش است", caption)
-        self.assertLess(caption.index("⚡️"), caption.index("💰 قیمت امروز"))
-        self.assertLess(caption.index("💰 قیمت امروز"), caption.index("🏷️ قیمت اصلی"))
+        self.assertLess(caption.index("💚 قیمت ویژه"), caption.index("⚡️"))
+        self.assertLess(caption.index("💰 ۵۰۰٬۰۰۰ تومان"), caption.index("⚡️"))
+        self.assertLess(caption.index("⚡️"), caption.index("🏷️ قیمت اصلی"))
         self.assertLess(caption.index("🏷️ قیمت اصلی"), caption.index("⏳ پایان تخفیف"))
         self.assertLessEqual(len(caption), 1024)
         self.assertNotIn("کمیسیون", caption)
