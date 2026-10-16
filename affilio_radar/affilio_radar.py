@@ -601,6 +601,70 @@ def _offer_savings_toman(obj: dict) -> int:
     return 0
 
 
+def _parse_deal_expiry_value(value):
+    """Parse a feed-provided absolute offer deadline into a UTC ISO timestamp."""
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        number = float(value)
+        if number > 10_000_000_000_000:
+            number /= 1000.0
+        if number >= 1_000_000_000:
+            try:
+                return datetime.fromtimestamp(number, tz=timezone.utc).isoformat()
+            except (OverflowError, OSError, ValueError):
+                return None
+        return None
+    text = normalize_digits(str(value)).strip()
+    if not text:
+        return None
+    if re.fullmatch(r"\d{10,16}(?:\.\d+)?", text):
+        return _parse_deal_expiry_value(float(text))
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        # Digikala displays deal countdowns in Iran local time when no offset is included.
+        try:
+            from zoneinfo import ZoneInfo
+            parsed = parsed.replace(tzinfo=ZoneInfo("Asia/Tehran"))
+        except Exception:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc).isoformat()
+
+
+def extract_deal_expiry(obj: dict) -> str:
+    """Extract explicit Incredible Offer expiry metadata, never infer expiry from discount size."""
+    if not isinstance(obj, dict):
+        return ""
+    absolute_keys = ("ends_at", "endsAt", "deal_ends_at", "dealEndsAt", "expires_at", "expiresAt")
+    seconds_keys = ("ends_in_seconds", "endsInSeconds", "remaining_seconds", "remainingSeconds")
+    nodes = list(_walk_dicts(obj))
+    for node in nodes:
+        for key in absolute_keys:
+            if key in node:
+                expiry = _parse_deal_expiry_value(node.get(key))
+                if expiry:
+                    return expiry
+    now = datetime.now(timezone.utc)
+    for node in nodes:
+        for key in seconds_keys:
+            raw = node.get(key)
+            try:
+                seconds = float(normalize_digits(str(raw)).strip())
+            except (TypeError, ValueError, OverflowError):
+                seconds = -1
+            if seconds >= 0 and seconds <= 7 * 24 * 3600:
+                return (now + timedelta(seconds=seconds)).isoformat()
+            if isinstance(raw, str) and re.fullmatch(r"\d{1,3}:\d{2}:\d{2}", raw.strip()):
+                hours, minutes, secs = (int(part) for part in raw.strip().split(":"))
+                duration = hours * 3600 + minutes * 60 + secs
+                if duration <= 7 * 24 * 3600:
+                    return (now + timedelta(seconds=duration)).isoformat()
+    return ""
+
+
 def api_incredible_offer_product_candidates(payload) -> list[dict]:
     """Extract and rank product URLs from Digikala's public Incredible Offers feed."""
     by_url = {}
@@ -629,10 +693,13 @@ def api_incredible_offer_product_candidates(payload) -> list[dict]:
             "product_url": candidate,
             "discount_percent": discount,
             "savings_toman": _offer_savings_toman(obj),
+            "deal_expires_at": extract_deal_expiry(obj),
         }
         old = by_url.get(candidate)
         if not old or (row["discount_percent"], row["savings_toman"]) > (old["discount_percent"], old["savings_toman"]):
             by_url[candidate] = row
+        elif old and not old.get("deal_expires_at") and row.get("deal_expires_at"):
+            by_url[candidate]["deal_expires_at"] = row["deal_expires_at"]
     return sorted(
         by_url.values(),
         key=lambda row: (row["discount_percent"], row["savings_toman"]),
@@ -1637,13 +1704,14 @@ def enrich_market_prices(products: list[dict]) -> None:
             item["market_status"] = "unavailable"
 
 
-def discover_product_urls() -> tuple[list[str], list[dict]]:
+def discover_product_urls() -> tuple[list[str], list[dict], dict[str, str]]:
     """Prioritize live Incredible Offers, then broaden coverage with normal searches."""
     found = []
     diagnostics = []
 
     # The live Incredible Offers feed is the primary discovery source.
     deals_found = []
+    deal_expiries: dict[str, str] = {}
     for page_number in range(1, DEAL_LIST_PAGES + 1):
         try:
             response = SESSION.get(
@@ -1697,8 +1765,12 @@ def discover_product_urls() -> tuple[list[str], list[dict]]:
     )
     for row in sorted_deals[:MAX_PRODUCT_CHECKS]:
         found.append(row["product_url"])
+        expiry = str(row.get("deal_expires_at") or "").strip()
+        if expiry:
+            deal_expiries[product_id(row["product_url"])] = expiry
     print(
         f"DEAL_DISCOVERY unique_discounted_urls={len(found)} "
+        f"offers_with_expiry={len(deal_expiries)} "
         f"top_offer={sorted_deals[0] if sorted_deals else 'none'}"
     )
 
@@ -1756,7 +1828,7 @@ def discover_product_urls() -> tuple[list[str], list[dict]]:
                 found.append(url)
                 added += 1
         print(f"DISCOVERY term={term!r} products={len(local)} added={added} source={diagnostics[-1].get('source')}")
-    return found, diagnostics
+    return found, diagnostics, deal_expiries
 
 
 def classify_category(title: str) -> str:
@@ -2264,8 +2336,8 @@ def run(publish=False):
     else:
         link_mode = "no_valid_affilio_tracking_config"
     print(f"affiliate_link_mode={link_mode} manual_product_overrides={len(approved)}")
-    urls, search_diagnostics = discover_product_urls()
-    print(f"discovered_product_urls={len(urls)}")
+    urls, search_diagnostics, deal_expiries = discover_product_urls()
+    print(f"discovered_product_urls={len(urls)} offer_expiries={len(deal_expiries)}")
 
     products = []
     for url in urls:
@@ -2275,6 +2347,7 @@ def run(publish=False):
                 print("PRODUCT_SKIP invalid_product_url")
                 continue
             item = fetch_product_record(canonical)
+            item["deal_expires_at"] = deal_expiries.get(item.get("product_id", ""), "") or item.get("deal_expires_at", "")
             if not item.get("title"):
                 print(f"PRODUCT_SKIP id={item.get('product_id')} reason=no_title")
                 continue
@@ -2397,12 +2470,18 @@ def run(publish=False):
                 # first-party click-tracker redirect, as requested for a direct/shorter path.
                 button_url = item["affiliate_url"]
                 result = _send_photo(prepared_image, build_caption(item, item["affiliate_url"]), button_url)
+                expiry_at = str(item.get("deal_expires_at") or "").strip()
                 state["published"][pid] = {
                     "ts": now,
                     "title": item["title"],
                     "product_url": item["product_url"],
                     "click_tracking_url": "",
                     "telegram_message_id": result.get("message_id"),
+                    "expires_at": expiry_at,
+                    "expiry_source": "digikala_incredible_offers_api" if expiry_at else "unavailable",
+                    "expiry_estimated": False,
+                    "posted_discount_percent": int(item.get("discount_percent") or 0),
+                    "posted_current_price": int(item.get("current_price") or 0),
                 }
                 state["last_published_at"] = datetime.now(timezone.utc).isoformat()
                 save_json(STATE, state)
