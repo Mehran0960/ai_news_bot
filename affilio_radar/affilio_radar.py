@@ -1888,7 +1888,7 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     if current:
         parts.append(f"💰 قیمت با تخفیف: <b>{int(current):,} تومان</b>")
     if original and current and int(original) > int(current):
-        parts.append(f"🏷️ قیمت اصلی: <s>{int(original):,} تومان</s>")
+        parts.append(f"🏷️ قیمت اصلی: <s>{int(original):,}</s>")
     parts += [
         "",
         f'🛒 <a href="{html.escape(affiliate_url, quote=True)}">مشاهده جزئیات و خرید</a>',
