@@ -12,7 +12,10 @@
       "product_url": "https://www.digikala.com/product/dkp-22879463/",
       "telegram_message_id": 23,
       "title": "اسپیکر بلوتوثی قابل حمل مدل Luxe",
-      "ts": 1792179879.3299675
+      "ts": 1792179879.3299675,
+      "expiry_last_probed_at": "2026-10-16T22:08:57.259870+00:00",
+      "expiry_last_product_check_at": "2026-10-16T22:08:57.259870+00:00",
+      "expiry_status": "unknown"
     },
     "dkp-5487416": {
       "click_tracking_url": "",
@@ -22,21 +25,27 @@
       "product_url": "https://www.digikala.com/product/dkp-5487416/",
       "telegram_message_id": 18,
       "title": "کپسول ژلاتینی نرم زینک پلاس فلکسان بسته 60 عددی",
-      "ts": 1792172578.7475657
+      "ts": 1792172578.7475657,
+      "expiry_last_probed_at": "2026-10-16T22:08:57.259870+00:00",
+      "expiry_last_product_check_at": "2026-10-16T22:08:57.259870+00:00",
+      "expiry_status": "unknown"
     },
     "dkp-8936377": {
       "click_tracking_url": "",
       "expires_at": "2026-10-16T20:27:22.584000+00:00",
       "expiry_estimated": true,
       "expiry_source": "user_reported_approximate_countdown",
-      "expiry_status": "tracked_estimated",
+      "expiry_status": "delete_failed",
       "posted_current_price": 199000,
       "posted_discount_percent": 81,
       "posted_original_price": 1069200,
       "product_url": "https://www.digikala.com/product/dkp-8936377/",
       "telegram_message_id": 21,
       "title": "قرص زینک پلاس یوروویتال 15 میلی گرم بسته 60 عددی",
-      "ts": 1792177942.584
+      "ts": 1792177942.584,
+      "expiry_last_probed_at": "2026-10-16T22:08:57.259870+00:00",
+      "expiry_last_product_check_at": "2026-10-16T22:08:57.259870+00:00",
+      "expiry_last_delete_error": "HTTPError: HTTP Error 400: Bad Request"
     }
   }
 }
