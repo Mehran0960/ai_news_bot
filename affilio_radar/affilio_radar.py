@@ -2157,7 +2157,7 @@ def format_deal_expiry(value) -> str:
     }
     rendered = (
         f"{weekdays.get(local.strftime('%A'), '')} {jalali_day} "
-        f"{months[jalali_month]} {jalali_year}، ساعت {local:%H:%M} به وقت ایران"
+        f"{months[jalali_month]} {jalali_year}، ساعت {local:%H:%M}"
     )
     return rendered.translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
 
