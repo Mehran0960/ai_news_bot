@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: "Publish image deals to @Iran_gajet"
+        description: "Publish image deals to @OfferChin"
         required: true
         type: boolean
         default: false
@@ -137,7 +137,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
-          AFFILIO_TELEGRAM_CHAT_ID: "@Iran_gajet"
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || contains(github.event.head_commit.message, '[publish-now]') }}
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.5"
           AFFILIO_MAX_POSTS_PER_RUN: ${{ contains(github.event.head_commit.message, '[publish-now]') && '10' || inputs.batch_count || '1' }}
