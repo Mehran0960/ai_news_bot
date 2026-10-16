@@ -1681,7 +1681,7 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Discount-first across all categories. Publication additionally requires >= {MIN_HISTORICAL_DISCOUNT_PERCENT}% below the {MIN_HISTORICAL_PRICE_DAYS}-day observed median or within 5% of a stable two-observation low. List-price discount alone never proves a real deal.",
+        "ranking_note": f"Discount-first across all categories. Publication requires >= {MIN_HISTORICAL_DISCOUNT_PERCENT}% below the {MIN_HISTORICAL_PRICE_DAYS}-day observed median, or within 5% of a stable two-observation low only when that low is at least 5% below the median. List-price discount alone never proves a real deal.",
         "price_history_policy": {
             "direct_api_checks_per_run": PRICE_HISTORY_CHECK_LIMIT,
             "minimum_history_days": MIN_HISTORICAL_PRICE_DAYS,
