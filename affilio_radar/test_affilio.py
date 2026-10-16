@@ -31,6 +31,7 @@ from affilio_radar import (
     build_discount_image,
     _latin_font,
     extract_deal_expiry,
+    gregorian_to_jalali,
     format_discount_badge,
     is_market_value_publish_eligible,
     parse_price_history,
@@ -506,7 +507,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("تخفیف اعلامی دیجی‌کالا", caption)
         self.assertIn("💰 قیمت امروز: <b>500,000 تومان</b>", caption)
         self.assertIn("🏷️ قیمت اصلی: <s>700,000 تومان</s>", caption)
-        self.assertIn("⏳ پایان تخفیف: <b>شنبه ۱۷ اکتبر ۲۰۲۶، ساعت ۰۰:۰۰ به وقت ایران</b>", caption)
+        self.assertIn("⏳ پایان تخفیف: <b>شنبه ۲۵ مهر ۱۴۰۵، ساعت ۰۰:۰۰ به وقت ایران</b>", caption)
         self.assertLess(caption.index("⚡️"), caption.index("💰 قیمت امروز"))
         self.assertLess(caption.index("💰 قیمت امروز"), caption.index("🏷️ قیمت اصلی"))
         self.assertLess(caption.index("🏷️ قیمت اصلی"), caption.index("⏳ پایان تخفیف"))
@@ -519,6 +520,11 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertLessEqual(len(caption), 1024)
         self.assertNotIn("کمیسیون", caption)
         self.assertNotIn("تاریخچه", caption)
+
+    def test_gregorian_to_jalali_conversion_across_calendar_boundaries(self):
+        self.assertEqual(gregorian_to_jalali(2026, 10, 17), (1405, 7, 25))
+        self.assertEqual(gregorian_to_jalali(2026, 3, 21), (1405, 1, 1))
+        self.assertEqual(gregorian_to_jalali(2025, 3, 20), (1403, 12, 30))
 
     def test_caption_omits_deadline_when_source_has_no_confirmed_expiry(self):
         caption = build_caption({
