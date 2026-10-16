@@ -61,7 +61,8 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
           AFFILIO_TELEGRAM_CHAT_ID: "@Iran_gajet"
-          AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish }}
+          AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || contains(github.event.head_commit.message, '[publish-now]') }}
+          AFFILIO_MIN_POST_INTERVAL_HOURS: ${{ contains(github.event.head_commit.message, '[publish-now]') && '1' || '8' }}
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py
 
