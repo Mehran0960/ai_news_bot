@@ -1985,7 +1985,7 @@ def _send_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     if parsed_link.scheme == "https" and parsed_link.netloc:
         data["reply_markup"] = json.dumps({
             "inline_keyboard": [[{
-                "text": "🛒 بررسی قیمت و خرید",
+                "text": "🛍️ مشاهده تخفیف و خرید",
                 "url": affiliate_url,
             }]]
         }, ensure_ascii=False)
