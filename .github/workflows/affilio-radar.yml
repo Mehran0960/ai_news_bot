@@ -135,6 +135,8 @@ jobs:
           PY
 
       - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
+        # Normal code pushes run tests above, but must not consume a full product-discovery cycle.
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
