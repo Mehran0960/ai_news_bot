@@ -422,7 +422,7 @@ def run():
                 live = live_expiries.get(pid)
                 if live and (not rec.get("expires_at") or rec.get("expiry_estimated")):
                     rec["expires_at"] = live
-                    rec["expiry_source"] = "digikala_incredible_offers_api"
+                    rec["expiry_source"] = "digikala_live_deals_feed"
                     rec["expiry_estimated"] = False
                     rec["expiry_status"] = "tracked"
                     changed = True
