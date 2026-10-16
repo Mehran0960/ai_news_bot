@@ -422,7 +422,7 @@ class AffilioRadarTests(unittest.TestCase):
 
 
     def test_price_history_uses_matching_variant_and_converts_rials_to_toman(self):
-        toman_prices = [100_000, 95_000, 92_000, 88_000, 90_000, 110_000, 100_000]
+        toman_prices = [120_000, 110_000, 100_000, 88_000, 90_000, 130_000, 110_000]
         payload = {
             "status": 200,
             "data": {
@@ -444,9 +444,42 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(history["history_days"], 7)
         self.assertEqual(history["history_low_toman"], 88_000)
         self.assertEqual(history["history_stable_low_toman"], 90_000)
-        self.assertEqual(history["history_median_toman"], 95_000)
-        self.assertEqual(history["discount_vs_30d_median_pct"], 5)
+        self.assertEqual(history["history_median_toman"], 110_000)
+        self.assertEqual(history["discount_vs_30d_median_pct"], 18)
         self.assertTrue(history["historical_deal_eligible"])
+
+    def test_price_history_prefers_matching_variant_for_a_large_price_drop(self):
+        def chart(title, prices):
+            return {
+                "title": title,
+                "history": [
+                    {
+                        "day": f"1405/07/{day:02d}",
+                        "selling_price": price * 10,
+                        "is_marketable": True,
+                    }
+                    for day, price in enumerate(prices, start=1)
+                ],
+            }
+
+        payload = {
+            "status": 200,
+            "data": {
+                "price_chart": [
+                    chart("سفید", [300_000] * 7),
+                    chart("مشکی", [100_000, 105_000, 100_000, 98_000, 100_000, 100_000, 100_000]),
+                ]
+            },
+        }
+        matched = parse_price_history(payload, current_price=70_000, variant_label="مشکی")
+        self.assertEqual(matched["history_status"], "verified")
+        self.assertEqual(matched["history_variant"], "مشکی")
+        self.assertEqual(matched["history_variant_match"], "label")
+        self.assertEqual(matched["discount_vs_30d_median_pct"], 30)
+        self.assertTrue(matched["historical_deal_eligible"])
+
+        ambiguous = parse_price_history(payload, current_price=70_000)
+        self.assertEqual(ambiguous["history_status"], "variant_mismatch")
 
     def test_history_gate_rejects_an_inflated_list_price_without_real_price_edge(self):
         product = {
