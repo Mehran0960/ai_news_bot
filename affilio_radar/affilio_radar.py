@@ -2482,6 +2482,7 @@ def run(publish=False):
                     "expiry_estimated": False,
                     "posted_discount_percent": int(item.get("discount_percent") or 0),
                     "posted_current_price": int(item.get("current_price") or 0),
+                    "posted_original_price": int(item.get("original_price") or 0),
                 }
                 state["last_published_at"] = datetime.now(timezone.utc).isoformat()
                 save_json(STATE, state)
