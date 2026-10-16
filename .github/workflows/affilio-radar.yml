@@ -66,6 +66,54 @@ jobs:
           cd affilio_radar
           python -m unittest -v test_affilio.py
 
+      - name: Smoke-test the deployed click tracker
+        run: |
+          python - <<'PY'
+          import os
+          import requests
+
+          base = os.getenv(
+              "AFFILIO_CLICK_TRACKER_BASE_URL",
+              "https://affiliate-deal-radar.m-hoseyni-6966.workers.dev",
+          ).rstrip("/")
+          headers = {"User-Agent": "Bot"}
+          health = requests.get(f"{base}/health", timeout=20, headers=headers)
+          health.raise_for_status()
+          status = health.json()
+          assert status.get("ok") is True, status
+          assert status.get("clickStoreReady") is True, status
+          print("CLICK_TRACKER_HEALTH_OK")
+
+          product_id = "dkp-15970075"
+          bad = requests.get(
+              f"{base}/p/{product_id}",
+              params={"u": "https://example.com/"},
+              headers=headers,
+              allow_redirects=False,
+              timeout=20,
+          )
+          assert bad.status_code == 400, (bad.status_code, bad.text[:200])
+          print("CLICK_TRACKER_REJECTS_UNTRUSTED_DESTINATION")
+
+          destination = (
+              f"https://www.digikala.com/product/{product_id}/"
+              "?utm_source=19166&utm_medium=Affilio&utm_id=14657"
+              "&affid=OTgxYTY0OTAtODJhNS00MDNkLTg0NDItMWE0MGVkOGI1Yjhj"
+          )
+          good = requests.get(
+              f"{base}/p/{product_id}",
+              params={"u": destination},
+              headers=headers,
+              allow_redirects=False,
+              timeout=20,
+          )
+          assert good.status_code == 302, (good.status_code, good.text[:200])
+          assert good.headers.get("Location", "").startswith(
+              f"https://www.digikala.com/product/{product_id}/"
+          ), good.headers.get("Location")
+          print("CLICK_TRACKER_VALID_REDIRECT_OK")
+          PY
+
       - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
