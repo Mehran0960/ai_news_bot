@@ -458,24 +458,74 @@ def _offer_discount_percent(obj: dict) -> int:
             pass
         current = None
         original = None
-        for key in ("selling_price", "selling_price_rial", "price"):
+        for key in ("selling_price_toman", "selling_price_tooman", "price_toman"):
             if source.get(key) is not None:
-                current = _money_to_toman(source[key], "IRR")
+                current = _money_to_toman(source[key], "IRT")
                 if current:
                     break
-        for key in ("rrp_price", "original_price", "regular_price"):
+        if current is None:
+            for key in ("selling_price", "selling_price_rial", "price"):
+                if source.get(key) is not None:
+                    current = _money_to_toman(source[key], "IRR")
+                    if current:
+                        break
+        for key in ("rrp_price_toman", "original_price_toman", "list_price_toman"):
             if source.get(key) is not None:
-                original = _money_to_toman(source[key], "IRR")
+                original = _money_to_toman(source[key], "IRT")
                 if original:
                     break
+        if original is None:
+            for key in ("rrp_price", "rrp_price_rial", "original_price", "regular_price"):
+                if source.get(key) is not None:
+                    original = _money_to_toman(source[key], "IRR")
+                    if original:
+                        break
         if current and original and original > current:
             return max(1, min(100, round(100 * (original - current) / original)))
     return 0
 
 
-def api_incredible_offer_product_urls(payload) -> list[str]:
-    """Extract discounted product URLs from Digikala's public Incredible Offers feed."""
-    found = []
+def _offer_savings_toman(obj: dict) -> int:
+    sources = []
+    if isinstance(obj.get("price"), dict):
+        sources.append(obj["price"])
+    variant = obj.get("default_variant")
+    if isinstance(variant, dict) and isinstance(variant.get("price"), dict):
+        sources.append(variant["price"])
+    sources.append(obj)
+    for source in sources:
+        current = None
+        original = None
+        for key in ("selling_price_toman", "selling_price_tooman", "price_toman"):
+            if source.get(key) is not None:
+                current = _money_to_toman(source[key], "IRT")
+                if current:
+                    break
+        if current is None:
+            for key in ("selling_price", "selling_price_rial", "price"):
+                if source.get(key) is not None:
+                    current = _money_to_toman(source[key], "IRR")
+                    if current:
+                        break
+        for key in ("rrp_price_toman", "original_price_toman", "list_price_toman"):
+            if source.get(key) is not None:
+                original = _money_to_toman(source[key], "IRT")
+                if original:
+                    break
+        if original is None:
+            for key in ("rrp_price", "rrp_price_rial", "original_price", "regular_price"):
+                if source.get(key) is not None:
+                    original = _money_to_toman(source[key], "IRR")
+                    if original:
+                        break
+        if current and original and original > current:
+            return int(original - current)
+    return 0
+
+
+def api_incredible_offer_product_candidates(payload) -> list[dict]:
+    """Extract and rank product URLs from Digikala's public Incredible Offers feed."""
+    by_url = {}
     for obj in _walk_dicts(payload):
         if not isinstance(obj, dict):
             continue
@@ -489,14 +539,32 @@ def api_incredible_offer_product_urls(payload) -> list[str]:
         status = str(obj.get("status", "")).lower()
         if status and status not in {"marketable", "active", "available"}:
             continue
-        if _offer_discount_percent(obj) <= 0:
+        discount = _offer_discount_percent(obj)
+        if discount <= 0:
             continue
         candidate = _api_product_url(obj)
         if not candidate and (isinstance(raw_id, int) or (isinstance(raw_id, str) and raw_id.isdigit())):
             candidate = safe_product_url(f"https://www.digikala.com/product/dkp-{int(raw_id)}/")
-        if candidate and candidate not in found:
-            found.append(candidate)
-    return found
+        if not candidate:
+            continue
+        row = {
+            "product_url": candidate,
+            "discount_percent": discount,
+            "savings_toman": _offer_savings_toman(obj),
+        }
+        old = by_url.get(candidate)
+        if not old or (row["discount_percent"], row["savings_toman"]) > (old["discount_percent"], old["savings_toman"]):
+            by_url[candidate] = row
+    return sorted(
+        by_url.values(),
+        key=lambda row: (row["discount_percent"], row["savings_toman"]),
+        reverse=True,
+    )
+
+
+def api_incredible_offer_product_urls(payload) -> list[str]:
+    """Return the URLs of discounted products, highest listed discount first."""
+    return [row["product_url"] for row in api_incredible_offer_product_candidates(payload)]
 
 
 def _search_api_sample(payload):
@@ -804,7 +872,7 @@ def discover_product_urls() -> tuple[list[str], list[dict]]:
             if len(response.content) > 8_000_000:
                 raise RuntimeError("incredible offers API response exceeded 8 MB")
             payload = response.json()
-            local = api_incredible_offer_product_urls(payload)
+            local = api_incredible_offer_product_candidates(payload)
             deals_found.extend(local)
             diagnostics.append({
                 "term": f"incredible_offers_page_{page_number}",
@@ -831,12 +899,25 @@ def discover_product_urls() -> tuple[list[str], list[dict]]:
             print(f"INCREDIBLE_OFFERS_API_FAILED page={page_number} error={type(exc).__name__} detail={str(exc)[:180]!r}")
             break
 
-    for url in deals_found:
-        if url not in found:
-            found.append(url)
-        if len(found) >= MAX_PRODUCT_CHECKS:
-            break
-    print(f"DEAL_DISCOVERY unique_discounted_urls={len(found)}")
+    best_by_url = {}
+    for row in deals_found:
+        url = row["product_url"]
+        old = best_by_url.get(url)
+        key = (int(row.get("discount_percent") or 0), int(row.get("savings_toman") or 0))
+        old_key = (int(old.get("discount_percent") or 0), int(old.get("savings_toman") or 0)) if old else (-1, -1)
+        if old is None or key > old_key:
+            best_by_url[url] = row
+    sorted_deals = sorted(
+        best_by_url.values(),
+        key=lambda row: (row["discount_percent"], row["savings_toman"]),
+        reverse=True,
+    )
+    for row in sorted_deals[:MAX_PRODUCT_CHECKS]:
+        found.append(row["product_url"])
+    print(
+        f"DEAL_DISCOVERY unique_discounted_urls={len(found)} "
+        f"top_offer={sorted_deals[0] if sorted_deals else 'none'}"
+    )
 
     # Fill remaining slots with ordinary searches; offers always enter the list first.
     for term in SEARCH_TERMS:
