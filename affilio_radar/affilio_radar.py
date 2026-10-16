@@ -1669,6 +1669,8 @@ def run(publish=False):
             f"RANK {rank}: discount={item['discount_percent']}% saving={item['savings_toman']} "
             f"promo_score={item['promo_score']} demand_score={item['demand_score']} "
             f"stock={item['availability']} linked={item['has_affiliate_link']} "
+            f"history={item.get('history_status')} days={item.get('history_days')} "
+            f"vs_median={item.get('discount_vs_30d_median_pct')} history_ok={item.get('historical_deal_eligible')} "
             f"price={item.get('current_price')} title={item['title']!r} url={item['product_url']}"
         )
 
