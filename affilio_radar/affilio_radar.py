@@ -2177,7 +2177,7 @@ def format_persian_number(value) -> str:
 
 
 def build_caption(p: dict, affiliate_url: str) -> str:
-    """Build a compact caption with uniform bold styling and Persian numerals."""
+    """Build a compact caption with uniform bold styling and a visually isolated deal price."""
     raw_title = (p.get("title") or "پیشنهاد ویژه").strip()
     # Persianize digits in the product title too (e.g. 60 -> ۶۰).
     raw_title = to_persian_digits(raw_title)
@@ -2189,10 +2189,15 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     discount = p.get("discount_percent")
     expiry = format_deal_expiry(p.get("deal_expires_at"))
     parts = ["<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", "", f"<b>🛍️ {title}</b>", ""]
+    # Make the discounted price the first key offer detail, separated by whitespace.
+    if current:
+        parts += [
+            "<b>💚 قیمت ویژه</b>",
+            f"<b>💰 {format_persian_number(current)} تومان</b>",
+            "",
+        ]
     if discount is not None and int(discount) > 0:
         parts.append(f"<b>⚡️ {format_persian_number(discount)}٪ تخفیف ویژه</b>")
-    if current:
-        parts.append(f"<b>💰 قیمت امروز: {format_persian_number(current)} تومان</b>")
     if original and current and int(original) > int(current):
         parts.append(f"<b>🏷️ قیمت اصلی: <s>{format_persian_number(original)} تومان</s></b>")
     if expiry:
