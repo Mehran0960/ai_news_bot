@@ -12,12 +12,22 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: "Publish one market-verified image deal to @Iran_gajet"
+        description: "Publish image deals to @Iran_gajet"
+        required: true
+        type: boolean
+        default: false
+      batch_count:
+        description: "Number of posts for a manual run (1–10)"
+        required: true
+        type: number
+        default: 1
+      clear_previous_posts:
+        description: "Try deleting older public-channel posts before publishing"
         required: true
         type: boolean
         default: false
   schedule:
-    - cron: "17 * * * *"
+    - cron: "*/30 * * * *"
 
 permissions:
   contents: write
@@ -62,8 +72,11 @@ jobs:
           AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
           AFFILIO_TELEGRAM_CHAT_ID: "@Iran_gajet"
           AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || contains(github.event.head_commit.message, '[publish-now]') }}
-          AFFILIO_MIN_POST_INTERVAL_HOURS: "1"
-          AFFILIO_FORCE_POST_COOLDOWN_BYPASS: ${{ contains(github.event.head_commit.message, '[publish-now]') }}
+          AFFILIO_MIN_POST_INTERVAL_HOURS: "0.5"
+          AFFILIO_MAX_POSTS_PER_RUN: ${{ contains(github.event.head_commit.message, '[publish-now]') && '10' || inputs.batch_count || '1' }}
+          AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS: ${{ contains(github.event.head_commit.message, '[publish-now]') || inputs.clear_previous_posts }}
+          AFFILIO_BATCH_KEY: ${{ contains(github.event.head_commit.message, '[publish-now]') && github.sha || github.run_id }}
+          AFFILIO_FORCE_POST_COOLDOWN_BYPASS: ${{ contains(github.event.head_commit.message, '[publish-now]') || (inputs.publish && inputs.clear_previous_posts) }}
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py
 
