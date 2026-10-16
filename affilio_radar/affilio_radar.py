@@ -30,7 +30,7 @@ ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config" / "products.json"
 STATE = ROOT / "state.json"
 REPORT = ROOT / "candidates.json"
-TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@Iran_gajet").strip()
+TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@OfferChin").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 AFFILIO_LINK_TEMPLATE = os.getenv("AFFILIO_LINK_TEMPLATE", "").strip()
 AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
@@ -2038,10 +2038,10 @@ def build_caption(p: dict, affiliate_url: str) -> str:
         "",
         "👇 برای دیدن جزئیات و قیمت نهایی، دکمهٔ زیر را بزن.",
         "",
-        "📣 @Iran_gajet",
+        "📣 @OfferChin",
     ]
     caption = "\n".join(parts)
-    footer = "\n\n📣 @Iran_gajet"
+    footer = "\n\n📣 @OfferChin"
     if len(caption) > 1024:
         body = "\n".join(parts[:-2])
         caption = body[:1024 - len(footer)].rstrip() + footer
