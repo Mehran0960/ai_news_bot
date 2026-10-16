@@ -27,7 +27,11 @@ on:
         type: boolean
         default: false
   schedule:
+    # Main cadence: one publication is permitted after the 30-minute cooldown.
     - cron: "*/30 * * * *"
+    # Staggered retries reduce the chance that a delayed/missed scheduled event leaves the channel idle.
+    # The app's state-based cooldown prevents these backup checks from causing duplicate posts.
+    - cron: "7,37 * * * *"
 
 permissions:
   contents: write
@@ -46,6 +50,13 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+
+      - name: Log automation trigger
+        run: |
+          echo "event_name=${{ github.event_name }}"
+          echo "ref=${{ github.ref }}"
+          echo "sha=${{ github.sha }}"
+          echo "scheduled_publish=${{ github.event_name == 'schedule' }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5
