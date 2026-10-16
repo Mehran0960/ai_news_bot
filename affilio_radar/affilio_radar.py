@@ -2141,6 +2141,10 @@ def format_deal_expiry(value) -> str:
             local = parsed.astimezone(ZoneInfo("Asia/Tehran"))
         except Exception:
             local = parsed.astimezone(timezone(timedelta(hours=3, minutes=30)))
+        # For display only, represent an exact midnight cutoff as the preceding
+        # calendar day at 23:59, which is clearer for Persian-language audiences.
+        if local.hour == 0 and local.minute == 0:
+            local -= timedelta(minutes=1)
         jalali_year, jalali_month, jalali_day = gregorian_to_jalali(
             local.year, local.month, local.day
         )
