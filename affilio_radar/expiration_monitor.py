@@ -151,6 +151,114 @@ def fetch_offer_expiries():
     return results
 
 
+def _money_to_toman(raw, is_toman):
+    if raw in (None, "", 0, "0"):
+        return None
+    try:
+        value = float(raw)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    value = value if is_toman else value / 10.0
+    return max(0, int(round(value)))
+
+
+def fetch_live_product_status(product_id):
+    """Fail-safe fallback: detect a reverted price or out-of-stock state for an expiry-unknown post."""
+    match = re.search(r"(?:dkp-)?(\d+)$", str(product_id or ""))
+    if not match:
+        return {}
+    numeric_id = match.group(1)
+    for version in ("v2", "v1"):
+        request = Request(
+            f"https://api.digikala.com/{version}/product/{numeric_id}/",
+            headers={
+                "User-Agent": "OfferChin-Expiry-Monitor/1.0",
+                "Accept": "application/json",
+                "Referer": "https://www.digikala.com/",
+            },
+        )
+        try:
+            with urlopen(request, timeout=HTTP_TIMEOUT) as response:
+                if response.status != 200:
+                    continue
+                raw = response.read(5_000_001)
+            if len(raw) > 5_000_000:
+                continue
+            payload = json.loads(raw.decode("utf-8"))
+        except Exception as exc:
+            print(f"EXPIRY_PRODUCT_CHECK_FAILED product_id={product_id} api={version} error={type(exc).__name__}")
+            continue
+        candidates = []
+        for node in walk_dicts(payload):
+            raw_id = node.get("product_id") or node.get("id")
+            if str(raw_id or "") != numeric_id:
+                continue
+            if not any(key in node for key in ("default_variant", "variants", "price", "title_fa", "product_title")):
+                continue
+            score = 0
+            score += 4 if isinstance(node.get("default_variant"), dict) else 0
+            score += 2 if isinstance(node.get("variants"), (list, dict)) else 0
+            score += 1 if isinstance(node.get("price"), dict) else 0
+            score += 1 if node.get("title_fa") or node.get("product_title") else 0
+            candidates.append((score, node))
+        if not candidates:
+            continue
+        product = max(candidates, key=lambda pair: pair[0])[1]
+        variant = product.get("default_variant") if isinstance(product.get("default_variant"), dict) else {}
+        if not variant:
+            variants = product.get("variants")
+            if isinstance(variants, dict):
+                variants = list(variants.values())
+            if isinstance(variants, list):
+                variant = next((v for v in variants if isinstance(v, dict) and v.get("marketable") is True), {})
+        variant = variant if isinstance(variant, dict) else {}
+        price_obj = variant.get("price") if isinstance(variant.get("price"), dict) else {}
+        if not price_obj:
+            price_obj = product.get("price") if isinstance(product.get("price"), dict) else {}
+        sources = (price_obj, variant, product)
+
+        def first_price(keys, is_toman):
+            for source in sources:
+                for key in keys:
+                    if source.get(key) is not None:
+                        value = _money_to_toman(source.get(key), is_toman)
+                        if value:
+                            return value
+            return None
+
+        current = first_price(("selling_price_toman", "selling_price_tooman", "price_toman", "current_price_toman"), True)
+        if current is None:
+            current = first_price(("selling_price_rial", "price_rial", "current_price_rial"), False)
+        if current is None:
+            current = first_price(("selling_price", "discounted_price", "final_price", "price"), False)
+        original = first_price(("rrp_price_toman", "original_price_toman", "list_price_toman"), True)
+        if original is None:
+            original = first_price(("rrp_price_rial", "original_price_rial", "list_price_rial"), False)
+        if original is None:
+            original = first_price(("rrp_price", "original_price", "regular_price", "list_price"), False)
+
+        in_stock = None
+        for node in (variant, product):
+            for key in ("marketable", "has_stock", "is_in_stock", "isAvailable", "available"):
+                if isinstance(node.get(key), bool):
+                    in_stock = node[key]
+                    break
+            if in_stock is not None:
+                break
+            for key in ("availability", "stock_status", "status", "availability_status"):
+                raw_status = str(node.get(key) or "").lower().replace("_", "").replace("-", "")
+                if any(token in raw_status for token in ("outofstock", "soldout", "notavailable", "ناموجود")):
+                    in_stock = False
+                    break
+                if any(token in raw_status for token in ("instock", "marketable", "available")):
+                    in_stock = True
+                    break
+            if in_stock is not None:
+                break
+        return {"current_price": current, "original_price": original, "in_stock": in_stock, "api_version": version}
+    return {}
+
+
 def _read_state():
     if not STATE_PATH.exists():
         return {"published": {}, "last_published_at": ""}
@@ -226,9 +334,38 @@ def run():
                     rec["expiry_status"] = "tracked"
                     changed = True
                     print(f"EXPIRY_TRACKED product_id={pid} expires_at={live}")
-        for _, rec in needs_probe:
+        for pid, rec in needs_probe:
             rec["expiry_last_probed_at"] = now.isoformat()
             changed = True
+            # If no exact deadline is available, verify live stock/price as a conservative fallback.
+            if not rec.get("expires_at") or rec.get("expiry_estimated"):
+                snapshot = fetch_live_product_status(pid)
+                rec["expiry_last_product_check_at"] = now.isoformat()
+                if snapshot:
+                    current = snapshot.get("current_price")
+                    posted = rec.get("posted_current_price")
+                    stock = snapshot.get("in_stock")
+                    reason = ""
+                    if stock is False:
+                        reason = "out_of_stock"
+                    else:
+                        try:
+                            posted_value = int(posted)
+                            current_value = int(current)
+                            if posted_value > 0 and current_value > posted_value * 1.05:
+                                reason = "price_reverted"
+                        except (TypeError, ValueError, OverflowError):
+                            pass
+                    rec["last_seen_current_price"] = current
+                    rec["last_seen_in_stock"] = stock
+                    if reason:
+                        rec["expires_at"] = now.isoformat()
+                        rec["expiry_source"] = "live_product_stock_or_price"
+                        rec["expiry_estimated"] = False
+                        rec["expiry_reason"] = reason
+                        rec["expiry_status"] = "expired_confirmed"
+                        changed = True
+                        print(f"EXPIRY_CONFIRMED_BY_LIVE_PRODUCT product_id={pid} reason={reason} current_price={current}")
 
     deleted = 0
     for pid, rec in published.items():
