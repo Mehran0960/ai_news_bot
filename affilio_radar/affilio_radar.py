@@ -32,6 +32,9 @@ STATE = ROOT / "state.json"
 REPORT = ROOT / "candidates.json"
 TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@OfferChin").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
+BALE_CHANNEL_ID = os.getenv("BALE_CHANNEL_ID", "").strip()
+BALE_CHANNEL_URL = "https://ble.ir/OfferChin"
 AFFILIO_LINK_TEMPLATE = os.getenv("AFFILIO_LINK_TEMPLATE", "").strip()
 AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
     "AFFILIO_CLICK_TRACKER_BASE_URL",
@@ -2183,7 +2186,7 @@ def format_persian_number(value) -> str:
     return to_persian_digits(f"{int(value):,}")
 
 
-def build_caption(p: dict, affiliate_url: str) -> str:
+def build_caption(p: dict, affiliate_url: str, channel_label: str = "@OfferChin") -> str:
     """Build the agreed compact bold caption with Persian digits and a struck original price."""
     raw_title = (p.get("title") or "پیشنهاد ویژه").strip()
     raw_title = to_persian_digits(raw_title)
@@ -2194,6 +2197,7 @@ def build_caption(p: dict, affiliate_url: str) -> str:
     original = p.get("original_price")
     discount = p.get("discount_percent")
     expiry = format_deal_expiry(p.get("deal_expires_at"))
+    channel_label = html.escape(str(channel_label or "@OfferChin").strip())
     parts = [
         "<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>",
         "",
@@ -2212,10 +2216,10 @@ def build_caption(p: dict, affiliate_url: str) -> str:
         "",
         "<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>",
         "",
-        "<b>📣</b> @OfferChin",
+        f"<b>📣</b> {channel_label}",
     ]
     caption = "\n".join(parts)
-    footer = "\n\n<b>📣</b> @OfferChin"
+    footer = f"\n\n<b>📣</b> {channel_label}"
     if len(caption) > 1024:
         body = "\n".join(parts[:-2])
         caption = body[:1024 - len(footer)].rstrip() + footer
@@ -2231,8 +2235,8 @@ def format_discount_badge(discount_percent) -> str:
     return f"{discount}% OFF" if 0 < discount <= 100 else ""
 
 
-def build_discount_image(image_bytes: bytes, discount_percent=None) -> bytes:
-    """Keep the retailer image and add a compact discount badge in one corner."""
+def build_discount_image(image_bytes: bytes, discount_percent=None, watermark: str = "Telegram.me/OfferChin") -> bytes:
+    """Prepare a channel-specific product image with a discount badge and brand watermark."""
     from io import BytesIO
     with Image.open(BytesIO(image_bytes)) as raw:
         raw.load()
@@ -2267,7 +2271,7 @@ def build_discount_image(image_bytes: bytes, discount_percent=None) -> bytes:
 
     # Permanent channel watermark at lower-left for brand recognition when images are reshared.
     width, height = image.size
-    watermark = "Telegram.me/OfferChin"
+    watermark = str(watermark or "Telegram.me/OfferChin").strip()
     watermark_font = _latin_font(max(12, min(width, height) // 34))
     watermark_box = draw.textbbox((0, 0), watermark, font=watermark_font)
     watermark_width = watermark_box[2] - watermark_box[0]
@@ -2346,6 +2350,71 @@ def _send_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     if not payload.get("ok"):
         raise RuntimeError("Telegram sendPhoto returned ok=false")
     return payload["result"]
+
+
+def _send_bale_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
+    """Send a photo post through Bale's Bot API, independently of Telegram delivery."""
+    if not BALE_BOT_TOKEN:
+        raise RuntimeError("Missing BALE_BOT_TOKEN secret")
+    if not BALE_CHANNEL_ID:
+        raise RuntimeError("Missing BALE_CHANNEL_ID secret")
+    endpoint = f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/sendPhoto"
+    data = {"chat_id": BALE_CHANNEL_ID, "caption": caption, "parse_mode": "HTML"}
+    parsed_link = urlsplit(str(affiliate_url or "").strip())
+    if parsed_link.scheme == "https" and parsed_link.netloc:
+        data["reply_markup"] = json.dumps({
+            "inline_keyboard": [[{
+                "text": "🛍️ مشاهده تخفیف و خرید",
+                "url": affiliate_url,
+            }]]
+        }, ensure_ascii=False)
+    response = requests.post(
+        endpoint,
+        data=data,
+        files={"photo": ("product.jpg", photo_bytes, "image/jpeg")},
+        timeout=(20, 120),
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if not payload.get("ok") or not isinstance(payload.get("result"), dict):
+        # Never include the request URL: it contains the private bot token.
+        description = str(payload.get("description") or "Bale sendPhoto returned ok=false")
+        raise RuntimeError(description[:180])
+    return payload["result"]
+
+
+def _delivery_retry_platforms(record: dict) -> list[str]:
+    """Return failed destinations whose credentials are currently configured."""
+    statuses = record.get("delivery_status")
+    if record.get("delivery_version") != 1 or not isinstance(statuses, dict):
+        return []
+    platforms = []
+    if statuses.get("telegram") == "failed" and BOT_TOKEN:
+        platforms.append("telegram")
+    if statuses.get("bale") == "failed" and BALE_BOT_TOKEN and BALE_CHANNEL_ID:
+        platforms.append("bale")
+    return platforms
+
+
+def _has_pending_delivery(record: dict) -> bool:
+    return bool(_delivery_retry_platforms(record))
+
+
+def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliate_url: str):
+    """Render the correct channel watermark and send to one destination."""
+    if platform == "telegram":
+        photo = build_discount_image(image_bytes, item.get("discount_percent"), watermark="Telegram.me/OfferChin")
+        return _send_photo(photo, build_caption(item, affiliate_url, "@OfferChin"), affiliate_url)
+    if platform == "bale":
+        photo = build_discount_image(image_bytes, item.get("discount_percent"), watermark="ble.ir/OfferChin")
+        return _send_bale_photo(photo, build_caption(item, affiliate_url, "ble.ir/OfferChin"), affiliate_url)
+    raise ValueError("Unsupported publication platform")
+
+
+def _delivery_retry_delay(attempt: int) -> int:
+    """Exponential backoff for one-channel failures, capped at one hour."""
+    exponent = max(0, min(4, int(attempt or 1) - 1))
+    return min(3600, 300 * (2 ** exponent))
 
 
 def _discover_public_channel_message_ids(max_pages: int = 50) -> set[int]:
@@ -2510,7 +2579,7 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
             posted_at = float(previous_publication.get("ts", 0)) if isinstance(previous_publication, dict) else 0
         except (TypeError, ValueError, OverflowError):
             posted_at = 0
-        if posted_at and now.timestamp() - posted_at < PRODUCT_COOLDOWN_DAYS * 86400:
+        if posted_at and now.timestamp() - posted_at < PRODUCT_COOLDOWN_DAYS * 86400 and not _has_pending_delivery(previous_publication):
             continue
 
         old = old_queue.get(pid, {})
@@ -2559,6 +2628,7 @@ def _last_post_timestamp(state):
 
 def run(publish=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
+    print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(f"Ranking mode=discount-first/category-neutral; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman; missing/unknown market data never blocks publication; only verified same-product pricing showing DigiKala at least {MARKET_UNDERCUT_BLOCK_PERCENT}% above market is blocked. Price history is disabled.")
     catalog = load_catalog()
     approved = link_map(catalog)
@@ -2628,6 +2698,76 @@ def run(publish=False):
     queue_now = datetime.now(timezone.utc)
     pending_queue = refresh_pending_queue(state, eligible, queue_now)
     eligible_by_id = {str(p.get("product_id") or product_id(p.get("product_url", ""))): p for p in eligible}
+
+    # Retry a failed destination for a previously published product before posting another product.
+    # This keeps each channel's delivery independent and avoids reposting to the channel that succeeded.
+    delivery_retry_handled = False
+    if publish:
+        now_epoch = time.time()
+        for pid, previous in list(state.get("published", {}).items()):
+            if not isinstance(previous, dict):
+                continue
+            failed_platforms = _delivery_retry_platforms(previous)
+            if not failed_platforms:
+                continue
+            try:
+                retry_after = float(previous.get("delivery_retry_after", 0) or 0)
+            except (TypeError, ValueError, OverflowError):
+                retry_after = 0
+            if now_epoch < retry_after:
+                continue
+            fresh_item = eligible_by_id.get(pid)
+            if not fresh_item or is_offer_expired(fresh_item, queue_now):
+                continue
+            delivery_retry_handled = True
+            try:
+                fresh_image = _fetch_image(fresh_item["image_url"])
+            except Exception as exc:
+                attempts = previous.setdefault("delivery_attempts", {})
+                for platform in failed_platforms:
+                    attempts[platform] = int(attempts.get(platform, 1) or 1) + 1
+                max_attempt = max(int(attempts.get(platform, 1) or 1) for platform in failed_platforms)
+                previous["delivery_retry_after"] = now_epoch + _delivery_retry_delay(max_attempt)
+                previous["delivery_last_error"] = type(exc).__name__
+                save_json(STATE, state)
+                print(f"DELIVERY_RETRY_FAILED id={pid} reason=image_fetch error={type(exc).__name__}")
+                break
+
+            statuses = previous.setdefault("delivery_status", {})
+            attempts = previous.setdefault("delivery_attempts", {})
+            last_error = ""
+            for platform in failed_platforms:
+                attempts[platform] = int(attempts.get(platform, 1) or 1) + 1
+                try:
+                    result = _send_platform_photo(platform, fresh_item, fresh_image, fresh_item["affiliate_url"])
+                    statuses[platform] = "sent"
+                    if platform == "telegram":
+                        previous["telegram_message_id"] = result.get("message_id")
+                    else:
+                        previous["bale_message_id"] = result.get("message_id")
+                    print(f"DELIVERY_RETRY_OK id={pid} platform={platform}")
+                except Exception as exc:
+                    statuses[platform] = "failed"
+                    last_error = type(exc).__name__
+                    print(f"DELIVERY_RETRY_FAILED id={pid} platform={platform} error={type(exc).__name__}")
+            remaining = _delivery_retry_platforms(previous)
+            if remaining:
+                max_attempt = max(int(attempts.get(platform, 1) or 1) for platform in remaining)
+                previous["delivery_retry_after"] = time.time() + _delivery_retry_delay(max_attempt)
+                if last_error:
+                    previous["delivery_last_error"] = last_error
+            else:
+                previous.pop("delivery_retry_after", None)
+                previous.pop("delivery_last_error", None)
+            previous["delivery_last_attempt_at"] = datetime.now(timezone.utc).isoformat()
+            save_json(STATE, state)
+            print(
+                f"DELIVERY_RETRY_SUMMARY id={pid} "
+                f"telegram={statuses.get('telegram', 'not_attempted')} "
+                f"bale={statuses.get('bale', 'not_attempted')} remaining={','.join(remaining) or 'none'}"
+            )
+            break
+
     eligible = [eligible_by_id[pid] for pid in pending_queue if pid in eligible_by_id]
     market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
@@ -2700,8 +2840,10 @@ def run(publish=False):
 
     if not publish:
         print("DRY_RUN: discovery and stock checks only; no Telegram post attempted.")
-    elif not BOT_TOKEN:
-        print("PUBLISH_BLOCKED: TELEGRAM_BOT_TOKEN is missing; no post attempted.")
+    elif not BOT_TOKEN and not (BALE_BOT_TOKEN and BALE_CHANNEL_ID):
+        print("PUBLISH_BLOCKED: neither complete Telegram nor Bale credentials are configured; no post attempted.")
+    elif delivery_retry_handled:
+        print("PUBLISH_SKIPPED: processed a pending channel delivery retry; no new product posted in this run.")
     elif link_mode == "no_valid_affilio_tracking_config":
         print("PUBLISH_BLOCKED: no valid Affilio tracking parameters/template configured; no post attempted.")
     elif cooldown_remaining > 0 and not urgent_cooldown_bypass:
@@ -2722,33 +2864,78 @@ def run(publish=False):
                 continue
             try:
                 image_bytes = _fetch_image(item["image_url"])
-                prepared_image = build_discount_image(image_bytes, item.get("discount_percent"))
-                # Keep the purchase button on the affiliate destination itself, without the extra
-                # first-party click-tracker redirect, as requested for a direct/shorter path.
-                button_url = item["affiliate_url"]
-                result = _send_photo(prepared_image, build_caption(item, item["affiliate_url"]), button_url)
-                expiry_at = str(item.get("deal_expires_at") or "").strip()
-                state["published"][pid] = {
-                    "ts": now,
-                    "title": item["title"],
-                    "product_url": item["product_url"],
-                    "click_tracking_url": "",
-                    "telegram_message_id": result.get("message_id"),
-                    "expires_at": expiry_at,
-                    "expiry_source": "digikala_live_deals_feed" if expiry_at else "unavailable",
-                    "expiry_estimated": False,
-                    "posted_discount_percent": int(item.get("discount_percent") or 0),
-                    "posted_current_price": int(item.get("current_price") or 0),
-                    "posted_original_price": int(item.get("original_price") or 0),
-                }
-                state["last_published_at"] = datetime.now(timezone.utc).isoformat()
-                state.setdefault("pending_queue", {}).pop(pid, None)
-                save_json(STATE, state)
-                print(f"PUBLISHED id={pid} message_id={result.get('message_id')} score={item['demand_score']} direct_affiliate_link=True")
-                sent += 1
             except Exception as exc:
-                print(f"PUBLISH_FAILED id={pid} error={type(exc).__name__}")
-        print(f"posts_sent={sent}")
+                print(f"PUBLISH_FAILED id={pid} reason=image_fetch error={type(exc).__name__}")
+                continue
+
+            # Attempt both destinations independently. A failure on one platform must not undo
+            # or duplicate a successful publication on the other.
+            button_url = item["affiliate_url"]
+            statuses = {"telegram": "failed", "bale": "failed"}
+            attempts = {"telegram": 0, "bale": 0}
+            results = {}
+            if BOT_TOKEN:
+                attempts["telegram"] = 1
+                try:
+                    results["telegram"] = _send_platform_photo("telegram", item, image_bytes, button_url)
+                    statuses["telegram"] = "sent"
+                except Exception as exc:
+                    print(f"PUBLISH_PLATFORM_FAILED id={pid} platform=telegram error={type(exc).__name__}")
+            else:
+                print(f"PUBLISH_PLATFORM_FAILED id={pid} platform=telegram reason=missing_secret")
+
+            if BALE_BOT_TOKEN and BALE_CHANNEL_ID:
+                attempts["bale"] = 1
+                try:
+                    results["bale"] = _send_platform_photo("bale", item, image_bytes, button_url)
+                    statuses["bale"] = "sent"
+                except Exception as exc:
+                    print(f"PUBLISH_PLATFORM_FAILED id={pid} platform=bale error={type(exc).__name__}")
+            else:
+                print(
+                    f"PUBLISH_PLATFORM_FAILED id={pid} platform=bale "
+                    f"reason=missing_{'BALE_BOT_TOKEN' if not BALE_BOT_TOKEN else 'BALE_CHANNEL_ID'}"
+                )
+
+            succeeded = any(value == "sent" for value in statuses.values())
+            if not succeeded:
+                print(f"PUBLISH_FAILED id={pid} reason=all_platforms_failed")
+                continue
+
+            expiry_at = str(item.get("deal_expires_at") or "").strip()
+            record = {
+                "ts": now,
+                "title": item["title"],
+                "product_url": item["product_url"],
+                "click_tracking_url": "",
+                "telegram_message_id": results.get("telegram", {}).get("message_id"),
+                "bale_message_id": results.get("bale", {}).get("message_id"),
+                "delivery_version": 1,
+                "delivery_status": statuses,
+                "delivery_attempts": attempts,
+                "expires_at": expiry_at,
+                "expiry_source": "digikala_live_deals_feed" if expiry_at else "unavailable",
+                "expiry_estimated": False,
+                "posted_discount_percent": int(item.get("discount_percent") or 0),
+                "posted_current_price": int(item.get("current_price") or 0),
+                "posted_original_price": int(item.get("original_price") or 0),
+            }
+            failed_ready_platforms = _delivery_retry_platforms(record)
+            if failed_ready_platforms:
+                max_attempt = max(int(attempts.get(platform, 1) or 1) for platform in failed_ready_platforms)
+                record["delivery_retry_after"] = time.time() + _delivery_retry_delay(max_attempt)
+            state["published"][pid] = record
+            state["last_published_at"] = datetime.now(timezone.utc).isoformat()
+            state.setdefault("pending_queue", {}).pop(pid, None)
+            save_json(STATE, state)
+            print(
+                f"PUBLISHED id={pid} "
+                f"telegram={statuses['telegram']} "
+                f"bale={statuses['bale']} "
+                f"score={item['demand_score']} direct_affiliate_link=True"
+            )
+            sent += 1
+        print(f"products_distributed={sent}")
         if CLEAR_PREVIOUS_CHANNEL_POSTS and BATCH_OPERATION_KEY and sent > 0:
             state["completed_batch_operation"] = BATCH_OPERATION_KEY
             save_json(STATE, state)
