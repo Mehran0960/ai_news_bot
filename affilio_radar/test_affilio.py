@@ -26,7 +26,9 @@ from affilio_radar import (
     build_caption,
     _send_photo,
     _send_bale_photo,
+    _edit_bale_caption,
     _delivery_retry_platforms,
+    unicode_strikethrough,
     _money_to_toman,
     api_search_product_urls,
     api_incredible_offer_product_urls,
@@ -673,14 +675,42 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(result["message_id"], 88)
 
-    def test_bale_channel_label_can_be_used_in_caption_without_changing_telegram_default(self):
-        product = {"title": "محصول نمونه", "current_price": 100_000, "original_price": 200_000, "discount_percent": 50}
+    def test_bale_caption_uses_unicode_strikethrough_for_original_price(self):
+        product = {"title": "محصول نمونه", "current_price": 123_200, "original_price": 1_108_800, "discount_percent": 89}
         link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
-        bale_caption = build_caption(product, link, "ble.ir/OfferChin")
+        bale_caption = build_caption(product, link, "ble.ir/OfferChin", use_unicode_strikethrough=True)
         telegram_caption = build_caption(product, link)
+        expected_amount = unicode_strikethrough("۱٬۱۰۸٬۸۰۰")
+        self.assertIn(expected_amount, bale_caption)
+        self.assertIn("قیمت اصلی:", bale_caption)
+        self.assertNotIn("<s>", bale_caption)
+        self.assertIn("<s>۱٬۱۰۸٬۸۰۰ تومان</s>", telegram_caption)
         self.assertIn("ble.ir/OfferChin", bale_caption)
         self.assertNotIn("@OfferChin", bale_caption)
         self.assertIn("@OfferChin", telegram_caption)
+
+    def test_unicode_strikethrough_marks_each_visible_character(self):
+        self.assertEqual(unicode_strikethrough("۱۲۳"), "۱\u0336۲\u0336۳\u0336")
+        self.assertEqual(unicode_strikethrough("۱۲۳  تومان"), "۱\u0336۲\u0336۳\u0336  ت\u0336و\u0336م\u0336ا\u0336ن\u0336")
+
+    def test_edit_bale_caption_preserves_purchase_button(self):
+        response = unittest.mock.Mock()
+        response.json.return_value = {"ok": True, "result": {"message_id": 2}}
+        direct_affiliate_url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
+        with (
+            patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
+            patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
+            patch("affilio_radar.requests.post", return_value=response) as post,
+        ):
+            result = _edit_bale_caption(2, "fixed caption", direct_affiliate_url)
+        self.assertEqual(post.call_args.args[0], "https://tapi.bale.ai/botbale-test-token/editMessageCaption")
+        data = post.call_args.kwargs["data"]
+        self.assertEqual(data["chat_id"], "-10012345")
+        self.assertEqual(data["message_id"], 2)
+        self.assertEqual(data["caption"], "fixed caption")
+        markup = json.loads(data["reply_markup"])
+        self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
+        self.assertEqual(result["message_id"], 2)
 
     def test_failed_bale_delivery_is_retried_without_reposting_to_telegram(self):
         record = {"delivery_version": 1, "delivery_status": {"telegram": "sent", "bale": "failed"}}
