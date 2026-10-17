@@ -59,6 +59,41 @@ class ExpirationMonitorTests(unittest.TestCase):
             self.assertEqual(record["expiry_status"], "deleted")
             self.assertIn("expired_deleted_at", record)
 
+    def test_expired_post_is_deleted_from_both_platforms(self):
+        with tempfile.TemporaryDirectory() as temp:
+            state_path = Path(temp) / "state.json"
+            state = {
+                "published": {
+                    "dkp-98765": {
+                        "telegram_message_id": 101,
+                        "bale_message_id": 202,
+                        "expires_at": (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat(),
+                        "expiry_source": "test",
+                        "expiry_status": "tracked",
+                        "bale_expiry_status": "tracked",
+                    }
+                }
+            }
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+            with (
+                patch.object(monitor, "STATE_PATH", state_path),
+                patch.object(monitor, "BOT_TOKEN", "test-token"),
+                patch.object(monitor, "BALE_BOT_TOKEN", "bale-test-token"),
+                patch.object(monitor, "BALE_CHANNEL_ID", "-10012345"),
+                patch.object(monitor, "fetch_offer_expiries", return_value={}),
+                patch.object(monitor, "_telegram_delete", return_value="deleted") as telegram_delete,
+                patch.object(monitor, "_bale_delete", return_value="deleted") as bale_delete,
+            ):
+                self.assertEqual(monitor.run(), 0)
+            telegram_delete.assert_called_once_with(101)
+            bale_delete.assert_called_once_with(202)
+            saved = json.loads(state_path.read_text(encoding="utf-8"))
+            record = saved["published"]["dkp-98765"]
+            self.assertEqual(record["expiry_status"], "deleted")
+            self.assertEqual(record["bale_expiry_status"], "deleted")
+            self.assertIn("expired_deleted_at", record)
+            self.assertIn("bale_expired_deleted_at", record)
+
 
 if __name__ == "__main__":
     unittest.main()
