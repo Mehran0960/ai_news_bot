@@ -775,6 +775,33 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای دیدن جزئیات"))
 
 
+
+    def test_caption_edit_treats_unchanged_telegram_caption_as_success(self):
+        response = unittest.mock.Mock()
+        response.json.return_value = {"ok": False, "description": "Bad Request: message is not modified"}
+        url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
+        with (
+            patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
+            patch("affilio_radar.requests.post", return_value=response),
+        ):
+            result = _edit_telegram_caption(39, "same caption", url)
+        self.assertEqual(result["message_id"], 39)
+        self.assertTrue(result["not_modified"])
+
+    def test_caption_edit_treats_unchanged_bale_caption_as_success(self):
+        response = unittest.mock.Mock()
+        response.json.return_value = {"ok": False, "description": "Bad Request: message is not modified"}
+        url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
+        with (
+            patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
+            patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
+            patch("affilio_radar.requests.post", return_value=response),
+        ):
+            result = _edit_bale_caption(2, "same caption", url)
+        self.assertEqual(result["message_id"], 2)
+        self.assertTrue(result["not_modified"])
+
+
     def test_edit_bale_caption_preserves_purchase_button(self):
         response = unittest.mock.Mock()
         response.json.return_value = {"ok": True, "result": {"message_id": 2}}
