@@ -2209,7 +2209,14 @@ def build_caption(
     original = p.get("original_price")
     discount = p.get("discount_percent")
     expiry = format_deal_expiry(p.get("deal_expires_at"))
-    channel_label = html.escape(str(channel_label or TELEGRAM_CHANNEL_URL).strip())
+    channel_url = str(channel_label or TELEGRAM_CHANNEL_URL).strip()
+    channel_href = html.escape(channel_url, quote=True)
+    channel_display = re.sub(r"^https?://", "", channel_url, flags=re.I).rstrip("/")
+    channel_display = html.escape(channel_display)
+    channel_footer = (
+        f'<b>📣 عضویت در کانال:</b> '
+        f'<a href="{channel_href}">{channel_display}</a>'
+    )
     parts = [
         "<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>",
         "",
@@ -2235,10 +2242,10 @@ def build_caption(
         "",
         "<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>",
         "",
-        f"<b>📣</b> {channel_label}",
+        channel_footer,
     ]
     caption = "\n".join(parts)
-    footer = f"\n\n<b>📣</b> {channel_label}"
+    footer = f"\n\n{channel_footer}"
     if len(caption) > 1024:
         body = "\n".join(parts[:-2])
         caption = body[:1024 - len(footer)].rstrip() + footer
