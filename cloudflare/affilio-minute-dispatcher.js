@@ -52,9 +52,7 @@ async function runScheduledCheck(env) {
       body: JSON.stringify({
         ref: "main",
         inputs: {
-          external_scheduler: "true",
-          batch_count: "1",
-          clear_previous_posts: "false"
+          external_scheduler: true
         }
       })
     });
