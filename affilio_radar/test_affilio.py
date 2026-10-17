@@ -600,7 +600,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
         self.assertIn("<b>⏳ پایان تخفیف: جمعه ۲۴ مهر ۱۴۰۵، ساعت ۲۳:۵۹</b>", caption)
         self.assertIn("<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>", caption)
-        self.assertTrue(caption.endswith("<b>📣</b> @OfferChin"))
+        self.assertTrue(caption.endswith("<b>📣</b> https://t.me/OfferChin"))
         self.assertNotRegex(caption, r"[0-9]")
         self.assertNotIn("قیمت امروز", caption)
         self.assertNotIn("صرفه‌جویی", caption)
@@ -678,16 +678,17 @@ class AffilioRadarTests(unittest.TestCase):
     def test_bale_caption_uses_unicode_strikethrough_for_original_price(self):
         product = {"title": "محصول نمونه", "current_price": 123_200, "original_price": 1_108_800, "discount_percent": 89}
         link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
-        bale_caption = build_caption(product, link, "ble.ir/OfferChin", use_unicode_strikethrough=True)
+        bale_caption = build_caption(product, link, "https://ble.ir/OfferChin", use_unicode_strikethrough=True)
         telegram_caption = build_caption(product, link)
         expected_amount = unicode_strikethrough("۱٬۱۰۸٬۸۰۰")
         self.assertIn(expected_amount, bale_caption)
         self.assertIn("قیمت اصلی:", bale_caption)
         self.assertNotIn("<s>", bale_caption)
         self.assertIn("<s>۱٬۱۰۸٬۸۰۰ تومان</s>", telegram_caption)
-        self.assertIn("ble.ir/OfferChin", bale_caption)
+        self.assertIn("https://ble.ir/OfferChin", bale_caption)
         self.assertNotIn("@OfferChin", bale_caption)
-        self.assertIn("@OfferChin", telegram_caption)
+        self.assertIn("https://t.me/OfferChin", telegram_caption)
+        self.assertNotIn("@OfferChin", telegram_caption)
 
     def test_unicode_strikethrough_marks_each_visible_character(self):
         self.assertEqual(unicode_strikethrough("۱۲۳"), "۱\u0336۲\u0336۳\u0336")
