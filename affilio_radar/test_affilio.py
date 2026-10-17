@@ -600,7 +600,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
         self.assertIn("<b>⏳ پایان تخفیف: جمعه ۲۴ مهر ۱۴۰۵، ساعت ۲۳:۵۹</b>", caption)
         self.assertIn("<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>", caption)
-        self.assertTrue(caption.endswith("<b>📣</b> https://t.me/OfferChin"))
+        self.assertTrue(caption.endswith('<b>📣 عضویت در کانال:</b> <a href="https://t.me/OfferChin">t.me/OfferChin</a>'))
         self.assertNotRegex(caption, r"[0-9]")
         self.assertNotIn("قیمت امروز", caption)
         self.assertNotIn("صرفه‌جویی", caption)
@@ -685,9 +685,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("قیمت اصلی:", bale_caption)
         self.assertNotIn("<s>", bale_caption)
         self.assertIn("<s>۱٬۱۰۸٬۸۰۰ تومان</s>", telegram_caption)
-        self.assertIn("https://ble.ir/OfferChin", bale_caption)
+        self.assertIn('<b>📣 عضویت در کانال:</b> <a href="https://ble.ir/OfferChin">ble.ir/OfferChin</a>', bale_caption)
+        self.assertIn('<b>📣 عضویت در کانال:</b> <a href="https://t.me/OfferChin">t.me/OfferChin</a>', telegram_caption)
         self.assertNotIn("@OfferChin", bale_caption)
-        self.assertIn("https://t.me/OfferChin", telegram_caption)
         self.assertNotIn("@OfferChin", telegram_caption)
 
     def test_unicode_strikethrough_marks_each_visible_character(self):
