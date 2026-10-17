@@ -25,6 +25,8 @@ from affilio_radar import (
     is_publish_eligible,
     build_caption,
     _send_photo,
+    _send_bale_photo,
+    _delivery_retry_platforms,
     _money_to_toman,
     api_search_product_urls,
     api_incredible_offer_product_urls,
@@ -650,6 +652,42 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده تخفیف و خرید")
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(urlsplit(markup["inline_keyboard"][0][0]["url"]).netloc, "www.digikala.com")
+
+    def test_send_bale_photo_adds_channel_and_purchase_button(self):
+        response = unittest.mock.Mock()
+        response.json.return_value = {"ok": True, "result": {"message_id": 88}}
+        direct_affiliate_url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
+        with (
+            patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
+            patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
+            patch("affilio_radar.requests.post", return_value=response) as post,
+        ):
+            result = _send_bale_photo(b"photo-bytes", "bale caption", direct_affiliate_url)
+        endpoint = post.call_args.args[0]
+        data = post.call_args.kwargs["data"]
+        markup = json.loads(data["reply_markup"])
+        self.assertEqual(endpoint, "https://tapi.bale.ai/botbale-test-token/sendPhoto")
+        self.assertEqual(data["chat_id"], "-10012345")
+        self.assertEqual(data["caption"], "bale caption")
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده تخفیف و خرید")
+        self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
+        self.assertEqual(result["message_id"], 88)
+
+    def test_bale_channel_label_can_be_used_in_caption_without_changing_telegram_default(self):
+        product = {"title": "محصول نمونه", "current_price": 100_000, "original_price": 200_000, "discount_percent": 50}
+        link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
+        bale_caption = build_caption(product, link, "ble.ir/OfferChin")
+        telegram_caption = build_caption(product, link)
+        self.assertIn("ble.ir/OfferChin", bale_caption)
+        self.assertNotIn("@OfferChin", bale_caption)
+        self.assertIn("@OfferChin", telegram_caption)
+
+    def test_failed_bale_delivery_is_retried_without_reposting_to_telegram(self):
+        record = {"delivery_version": 1, "delivery_status": {"telegram": "sent", "bale": "failed"}}
+        with patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"), patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"):
+            self.assertEqual(_delivery_retry_platforms(record), ["bale"])
+        with patch("affilio_radar.BALE_BOT_TOKEN", ""), patch("affilio_radar.BALE_CHANNEL_ID", ""):
+            self.assertEqual(_delivery_retry_platforms(record), [])
 
     def test_discount_badge_uses_short_english_label(self):
         self.assertEqual(format_discount_badge(81), "81% OFF")
