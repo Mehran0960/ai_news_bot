@@ -142,6 +142,7 @@ jobs:
           print("CLICK_TRACKER_AGGREGATED_STATS_OK")
           PY
 
+      # The repair-bale-caption commit marker updates an existing Bale post in place.
       - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
         # Normal code pushes run tests above, but must not consume a full product-discovery cycle.
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-bale-caption]') }}
