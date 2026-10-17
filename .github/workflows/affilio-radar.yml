@@ -144,7 +144,7 @@ jobs:
 
       - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
         # Normal code pushes run tests above, but must not consume a full product-discovery cycle.
-        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-bale-caption]') }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
@@ -158,7 +158,12 @@ jobs:
           AFFILIO_BATCH_KEY: ${{ contains(github.event.head_commit.message, '[publish-now]') && github.sha || github.run_id }}
           AFFILIO_FORCE_POST_COOLDOWN_BYPASS: ${{ contains(github.event.head_commit.message, '[publish-now]') || inputs.publish }}
           PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/affilio_radar.py
+        run: |
+          if [[ "${{ contains(github.event.head_commit.message, '[repair-bale-caption]') }}" == "true" ]]; then
+            python affilio_radar/affilio_radar.py --repair-bale-message-id 2
+          else
+            python affilio_radar/affilio_radar.py
+          fi
 
       - name: Commit candidate report and state only when changed
         run: |
