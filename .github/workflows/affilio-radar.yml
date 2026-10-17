@@ -29,8 +29,8 @@ on:
         type: boolean
         default: false
   schedule:
-    # Poll live deals every five minutes; posting cooldown prevents channel flooding.
-    - cron: "*/5 * * * *"
+    # Poll every five minutes, offset from the hour boundary to reduce scheduler congestion.
+    - cron: "2-59/5 * * * *"
 
 permissions:
   contents: write
