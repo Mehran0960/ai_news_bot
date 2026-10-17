@@ -1,5 +1,5 @@
 {
-  "last_published_at": "2026-10-17T22:18:51.228216+00:00",
+  "last_published_at": "2026-10-17T22:50:27.295009+00:00",
   "pending_queue": {
     "dkp-11294389": {
       "current_price": 93500,
@@ -87,7 +87,7 @@
     },
     "dkp-19931972": {
       "current_price": 188000,
-      "deal_expires_at": "2026-10-18T20:30:00+00:00",
+      "deal_expires_at": "",
       "demand_score": 65,
       "discount_percent": 76,
       "first_seen_at": "2026-10-17T20:32:10.512532+00:00",
@@ -143,7 +143,7 @@
     },
     "dkp-21714680": {
       "current_price": 5963990,
-      "deal_expires_at": "2026-10-18T04:30:00+00:00",
+      "deal_expires_at": "",
       "demand_score": 41,
       "discount_percent": 72,
       "first_seen_at": "2026-10-17T20:32:10.512532+00:00",
@@ -269,7 +269,7 @@
     },
     "dkp-5060876": {
       "current_price": 1130000,
-      "deal_expires_at": "2026-10-18T20:30:00+00:00",
+      "deal_expires_at": "",
       "demand_score": 61,
       "discount_percent": 70,
       "first_seen_at": "2026-10-17T20:32:10.512532+00:00",
@@ -405,20 +405,6 @@
       "promo_score": 43,
       "savings_toman": 385000,
       "title": "سافت ژل امگا 3 کارن بسته 60 عددی",
-      "urgent": false
-    },
-    "dkp-8997686": {
-      "current_price": 144000,
-      "deal_expires_at": "2026-10-18T20:30:00+00:00",
-      "demand_score": 66,
-      "discount_percent": 81,
-      "first_seen_at": "2026-10-17T20:32:10.512532+00:00",
-      "original_price": 770000,
-      "product_id": "dkp-8997686",
-      "product_url": "https://www.digikala.com/product/dkp-8997686/",
-      "promo_score": 71,
-      "savings_toman": 626000,
-      "title": "ساشه منیزیم مگا مگ - 400 فرش مورنینگ بسته 30 عددی",
       "urgent": false
     }
   },
@@ -634,6 +620,29 @@
       "telegram_message_id": 21,
       "title": "قرص زینک پلاس یوروویتال 15 میلی گرم بسته 60 عددی",
       "ts": 1792177942.584
+    },
+    "dkp-8997686": {
+      "bale_message_id": 4,
+      "click_tracking_url": "",
+      "delivery_attempts": {
+        "bale": 1,
+        "telegram": 1
+      },
+      "delivery_status": {
+        "bale": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "expires_at": "2026-10-18T20:30:00+00:00",
+      "expiry_estimated": false,
+      "expiry_source": "digikala_live_deals_feed",
+      "posted_current_price": 144000,
+      "posted_discount_percent": 81,
+      "posted_original_price": 770000,
+      "product_url": "https://www.digikala.com/product/dkp-8997686/",
+      "telegram_message_id": 42,
+      "title": "ساشه منیزیم مگا مگ - 400 فرش مورنینگ بسته 30 عددی",
+      "ts": 1792277423.1432903
     },
     "dkp-9360474": {
       "click_tracking_url": "",
