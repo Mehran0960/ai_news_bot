@@ -525,8 +525,8 @@
       "click_tracking_url": "",
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-16T22:08:57.259870+00:00",
-      "expiry_last_product_check_at": "2026-10-16T22:08:57.259870+00:00",
+      "expiry_last_probed_at": "2026-10-17T00:25:25.111101+00:00",
+      "expiry_last_product_check_at": "2026-10-17T00:25:25.111101+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
       "posted_current_price": 1490000,
@@ -539,24 +539,27 @@
     },
     "dkp-5487416": {
       "click_tracking_url": "",
-      "expiry_last_probed_at": "2026-10-16T22:08:57.259870+00:00",
+      "expiry_last_probed_at": "2026-10-17T00:25:25.111101+00:00",
       "expiry_last_product_check_at": "2026-10-16T22:08:57.259870+00:00",
-      "expiry_status": "unknown",
+      "expiry_status": "tracked",
       "posted_current_price": 114000,
       "posted_discount_percent": 89,
       "posted_original_price": 1056000,
       "product_url": "https://www.digikala.com/product/dkp-5487416/",
       "telegram_message_id": 18,
       "title": "کپسول ژلاتینی نرم زینک پلاس فلکسان بسته 60 عددی",
-      "ts": 1792172578.7475657
+      "ts": 1792172578.7475657,
+      "expires_at": "2026-10-17T20:30:00+00:00",
+      "expiry_source": "digikala_live_deals_feed",
+      "expiry_estimated": false
     },
     "dkp-8936377": {
       "click_tracking_url": "",
       "expires_at": "2026-10-16T20:27:22.584000+00:00",
       "expiry_estimated": true,
       "expiry_last_delete_error": "HTTPError: HTTP Error 400: Bad Request",
-      "expiry_last_probed_at": "2026-10-16T22:08:57.259870+00:00",
-      "expiry_last_product_check_at": "2026-10-16T22:08:57.259870+00:00",
+      "expiry_last_probed_at": "2026-10-17T00:25:25.111101+00:00",
+      "expiry_last_product_check_at": "2026-10-17T00:25:25.111101+00:00",
       "expiry_source": "user_reported_approximate_countdown",
       "expiry_status": "delete_failed",
       "posted_current_price": 199000,
@@ -578,7 +581,9 @@
       "product_url": "https://www.digikala.com/product/dkp-9360474/",
       "telegram_message_id": 26,
       "title": "کپسول سی ال ای 1000 یوروویتال بسته 30 عددی",
-      "ts": 1792193775.4111774
+      "ts": 1792193775.4111774,
+      "expiry_last_probed_at": "2026-10-17T00:25:25.111101+00:00",
+      "expiry_status": "tracked"
     }
   }
 }
