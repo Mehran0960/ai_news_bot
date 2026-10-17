@@ -29,15 +29,16 @@ on:
         type: boolean
         default: false
   schedule:
-    # Scan every five minutes, offset from :00 to reduce top-of-hour runner contention.
-    # Ordinary posts remain 30 minutes apart; an exceptional deal expiring within 90 minutes may use a 10-minute minimum.
-    - cron: "2-57/5 * * * *"
+    # Poll live deals every five minutes; posting cooldown prevents channel flooding.
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: write
 
 concurrency:
-  group: affilio-product-radar
+  # Keep scheduled runs isolated from push-triggered CI runs. Pushes use unique groups,
+  # so code changes cannot replace a pending scheduled discovery run.
+  group: ${{ github.workflow }}-${{ github.event_name == 'schedule' && 'scheduled' || github.run_id }}
   cancel-in-progress: false
 
 jobs:
