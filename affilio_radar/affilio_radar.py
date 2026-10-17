@@ -34,6 +34,7 @@ TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@OfferChin").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
 BALE_CHANNEL_ID = os.getenv("BALE_CHANNEL_ID", "").strip()
+TELEGRAM_CHANNEL_URL = "https://t.me/OfferChin"
 BALE_CHANNEL_URL = "https://ble.ir/OfferChin"
 AFFILIO_LINK_TEMPLATE = os.getenv("AFFILIO_LINK_TEMPLATE", "").strip()
 AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
@@ -2195,7 +2196,7 @@ def unicode_strikethrough(value: str) -> str:
 def build_caption(
     p: dict,
     affiliate_url: str,
-    channel_label: str = "@OfferChin",
+    channel_label: str = TELEGRAM_CHANNEL_URL,
     use_unicode_strikethrough: bool = False,
 ) -> str:
     """Build the agreed compact bold caption with Persian digits and a struck original price."""
@@ -2208,7 +2209,7 @@ def build_caption(
     original = p.get("original_price")
     discount = p.get("discount_percent")
     expiry = format_deal_expiry(p.get("deal_expires_at"))
-    channel_label = html.escape(str(channel_label or "@OfferChin").strip())
+    channel_label = html.escape(str(channel_label or TELEGRAM_CHANNEL_URL).strip())
     parts = [
         "<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>",
         "",
@@ -2422,12 +2423,12 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
     """Render the correct channel watermark and send to one destination."""
     if platform == "telegram":
         photo = build_discount_image(image_bytes, item.get("discount_percent"), watermark="Telegram.me/OfferChin")
-        return _send_photo(photo, build_caption(item, affiliate_url, "@OfferChin"), affiliate_url)
+        return _send_photo(photo, build_caption(item, affiliate_url, TELEGRAM_CHANNEL_URL), affiliate_url)
     if platform == "bale":
         photo = build_discount_image(image_bytes, item.get("discount_percent"), watermark="ble.ir/OfferChin")
         return _send_bale_photo(
             photo,
-            build_caption(item, affiliate_url, "ble.ir/OfferChin", use_unicode_strikethrough=True),
+            build_caption(item, affiliate_url, BALE_CHANNEL_URL, use_unicode_strikethrough=True),
             affiliate_url,
         )
     raise ValueError("Unsupported publication platform")
@@ -2498,7 +2499,7 @@ def repair_bale_caption(message_id: int) -> int:
     caption = build_caption(
         product,
         affiliate_url,
-        "ble.ir/OfferChin",
+        BALE_CHANNEL_URL,
         use_unicode_strikethrough=True,
     )
     _edit_bale_caption(int(message_id), caption, affiliate_url)
