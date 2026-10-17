@@ -28,6 +28,11 @@ on:
         required: true
         type: boolean
         default: false
+      external_scheduler:
+        description: "One-minute Cloudflare scheduler trigger; respects the normal post cooldown"
+        required: false
+        type: boolean
+        default: false
   schedule:
     # Poll every five minutes, offset from the hour boundary to reduce scheduler congestion.
     - cron: "2-59/5 * * * *"
@@ -38,7 +43,7 @@ permissions:
 concurrency:
   # Keep scheduled runs isolated from push-triggered CI runs. Pushes use unique groups,
   # so code changes cannot replace a pending scheduled discovery run.
-  group: ${{ github.workflow }}-${{ github.event_name == 'schedule' && 'scheduled' || github.run_id }}
+  group: ${{ github.workflow }}-${{ (github.event_name == 'schedule' || inputs.external_scheduler) && 'automated' || github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -144,7 +149,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
-          AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}
+          AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || inputs.external_scheduler || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.5"
           AFFILIO_MAX_POSTS_PER_RUN: ${{ contains(github.event.head_commit.message, '[publish-now]') && '10' || inputs.batch_count || '1' }}
           AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS: ${{ contains(github.event.head_commit.message, '[publish-now]') || inputs.clear_previous_posts }}
