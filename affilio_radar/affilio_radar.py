@@ -2193,64 +2193,84 @@ def unicode_strikethrough(value: str) -> str:
     return "".join(char if char.isspace() else char + overlay for char in str(value))
 
 
+def _escape_bale_markdown(value: str) -> str:
+    """Escape characters that could change Bale's documented Markdown formatting."""
+    return re.sub(r"([\\_*()\[\]])", lambda match: "\\" + match.group(1), str(value or ""))
+
+
 def build_caption(
     p: dict,
     affiliate_url: str,
     channel_label: str = TELEGRAM_CHANNEL_URL,
     use_unicode_strikethrough: bool = False,
 ) -> str:
-    """Build the agreed compact bold caption with Persian digits and a struck original price."""
+    """Build a compact caption; Telegram uses HTML and Bale uses documented Markdown."""
+    is_bale = use_unicode_strikethrough
+
+    def bold(value: str) -> str:
+        return f"*{value}*" if is_bale else f"<b>{value}</b>"
+
     raw_title = (p.get("title") or "پیشنهاد ویژه").strip()
     raw_title = to_persian_digits(raw_title)
     if len(raw_title) > 140:
         raw_title = raw_title[:137].rstrip() + "…"
-    title = html.escape(raw_title)
+    title = _escape_bale_markdown(raw_title) if is_bale else html.escape(raw_title)
+
     current = p.get("current_price")
     original = p.get("original_price")
     discount = p.get("discount_percent")
     expiry = format_deal_expiry(p.get("deal_expires_at"))
+
     channel_url = str(channel_label or TELEGRAM_CHANNEL_URL).strip()
-    channel_href = html.escape(channel_url, quote=True)
-    channel_display = re.sub(r"^https?://", "", channel_url, flags=re.I).rstrip("/")
+    if not urlsplit(channel_url).scheme:
+        channel_url = "https://" + channel_url
+    channel_url = html.escape(channel_url, quote=True)
+    channel_display = re.sub(r"^https?://", "", html.unescape(channel_url), flags=re.I).rstrip("/")
     channel_display = html.escape(channel_display)
-    channel_footer = (
-        f'<b>📣 عضویت در کانال:</b> '
-        f'<a href="{channel_href}">{channel_display}</a>'
-    )
+    if is_bale:
+        # Bale's official docs specify [visible text](URL) Markdown links.
+        channel_footer = (
+            f"[📣 عضویت در کانال: {_escape_bale_markdown(channel_display)}]"
+            f"({html.unescape(channel_url)})"
+        )
+    else:
+        # Make the entire channel invitation one blue, clickable link, not only the ID.
+        channel_footer = (
+            f'<a href="{channel_url}">'
+            f'{html.escape("📣 عضویت در کانال: " + html.unescape(channel_display))}'
+            "</a>"
+        )
+
     parts = [
-        "<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>",
+        bold("🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا"),
         "",
-        f"<b>🛍️ {title}</b>",
+        bold(f"🛍️ {title}"),
         "",
     ]
     if current:
-        parts.append(f"<b>💚 قیمت ویژه: 💰 {format_persian_number(current)} تومان</b>")
+        parts.append(bold(f"💚 قیمت ویژه: 💰 {format_persian_number(current)} تومان"))
     if discount is not None and int(discount) > 0:
-        parts.append(f"<b>⚡️ {format_persian_number(discount)}٪ تخفیف ویژه</b>")
+        parts.append(bold(f"⚡️ {format_persian_number(discount)}٪ تخفیف ویژه"))
     if original and current and int(original) > int(current):
         original_amount = format_persian_number(original)
-        if use_unicode_strikethrough:
-            # Bale's documented text styling is Markdown and does not document HTML <s>;
-            # combining overlays make the old amount visibly crossed out without markup support.
+        if is_bale:
+            # Bale doesn't document a strikethrough formatter; overlay marks cross out the old amount.
             original_amount = unicode_strikethrough(original_amount)
-            parts += ["", f"<b>🏷️ قیمت اصلی: {original_amount} تومان</b>"]
+            parts += ["", bold(f"🏷️ قیمت اصلی: {original_amount} تومان")]
         else:
             parts += ["", f"<b>🏷️ قیمت اصلی: <s>{original_amount} تومان</s></b>"]
     if expiry:
-        parts += ["", f"<b>⏳ پایان تخفیف: {expiry}</b>"]
-    parts += [
-        "",
-        "<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>",
-        "",
-        channel_footer,
-    ]
+        parts += ["", bold(f"⏳ پایان تخفیف: {expiry}")]
+
+    detail_line = bold("👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.")
+    # Put the channel link first; the separate purchase button is described immediately after it.
+    parts += ["", channel_footer, "", detail_line]
     caption = "\n".join(parts)
-    footer = f"\n\n{channel_footer}"
+    footer = f"\n\n{channel_footer}\n\n{detail_line}"
     if len(caption) > 1024:
-        body = "\n".join(parts[:-2])
+        body = "\n".join(parts[:-4])
         caption = body[:1024 - len(footer)].rstrip() + footer
     return caption
-
 
 def format_discount_badge(discount_percent) -> str:
     """Return the visual discount badge label in concise English, e.g. '81% OFF'."""
@@ -2385,7 +2405,7 @@ def _send_bale_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     if not BALE_CHANNEL_ID:
         raise RuntimeError("Missing BALE_CHANNEL_ID secret")
     endpoint = f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/sendPhoto"
-    data = {"chat_id": BALE_CHANNEL_ID, "caption": caption, "parse_mode": "HTML"}
+    data = {"chat_id": BALE_CHANNEL_ID, "caption": caption}
     parsed_link = urlsplit(str(affiliate_url or "").strip())
     if parsed_link.scheme == "https" and parsed_link.netloc:
         data["reply_markup"] = json.dumps({
@@ -2452,7 +2472,6 @@ def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
         "chat_id": BALE_CHANNEL_ID,
         "message_id": int(message_id),
         "caption": caption,
-        "parse_mode": "HTML",
     }
     parsed_link = urlsplit(str(affiliate_url or "").strip())
     if parsed_link.scheme == "https" and parsed_link.netloc:
