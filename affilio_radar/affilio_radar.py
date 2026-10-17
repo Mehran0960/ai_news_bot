@@ -2186,7 +2186,18 @@ def format_persian_number(value) -> str:
     return to_persian_digits(f"{int(value):,}")
 
 
-def build_caption(p: dict, affiliate_url: str, channel_label: str = "@OfferChin") -> str:
+def unicode_strikethrough(value: str) -> str:
+    """Render a visible strike-through without relying on a platform's text-markup parser."""
+    overlay = "\\u0336"
+    return "".join(char if char.isspace() else char + overlay for char in str(value))
+
+
+def build_caption(
+    p: dict,
+    affiliate_url: str,
+    channel_label: str = "@OfferChin",
+    use_unicode_strikethrough: bool = False,
+) -> str:
     """Build the agreed compact bold caption with Persian digits and a struck original price."""
     raw_title = (p.get("title") or "پیشنهاد ویژه").strip()
     raw_title = to_persian_digits(raw_title)
@@ -2209,7 +2220,14 @@ def build_caption(p: dict, affiliate_url: str, channel_label: str = "@OfferChin"
     if discount is not None and int(discount) > 0:
         parts.append(f"<b>⚡️ {format_persian_number(discount)}٪ تخفیف ویژه</b>")
     if original and current and int(original) > int(current):
-        parts += ["", f"<b>🏷️ قیمت اصلی: <s>{format_persian_number(original)} تومان</s></b>"]
+        original_amount = format_persian_number(original)
+        if use_unicode_strikethrough:
+            # Bale's documented text styling is Markdown and does not document HTML <s>;
+            # combining overlays make the old amount visibly crossed out without markup support.
+            original_amount = unicode_strikethrough(original_amount)
+            parts += ["", f"<b>🏷️ قیمت اصلی: {original_amount} تومان</b>"]
+        else:
+            parts += ["", f"<b>🏷️ قیمت اصلی: <s>{original_amount} تومان</s></b>"]
     if expiry:
         parts += ["", f"<b>⏳ پایان تخفیف: {expiry}</b>"]
     parts += [
@@ -2407,8 +2425,85 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
         return _send_photo(photo, build_caption(item, affiliate_url, "@OfferChin"), affiliate_url)
     if platform == "bale":
         photo = build_discount_image(image_bytes, item.get("discount_percent"), watermark="ble.ir/OfferChin")
-        return _send_bale_photo(photo, build_caption(item, affiliate_url, "ble.ir/OfferChin"), affiliate_url)
+        return _send_bale_photo(
+            photo,
+            build_caption(item, affiliate_url, "ble.ir/OfferChin", use_unicode_strikethrough=True),
+            affiliate_url,
+        )
     raise ValueError("Unsupported publication platform")
+
+
+def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
+    """Edit an existing Bale photo caption and preserve its inline purchase button."""
+    if not BALE_BOT_TOKEN:
+        raise RuntimeError("Missing BALE_BOT_TOKEN secret")
+    if not BALE_CHANNEL_ID:
+        raise RuntimeError("Missing BALE_CHANNEL_ID secret")
+    endpoint = f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/editMessageCaption"
+    data = {
+        "chat_id": BALE_CHANNEL_ID,
+        "message_id": int(message_id),
+        "caption": caption,
+        "parse_mode": "HTML",
+    }
+    parsed_link = urlsplit(str(affiliate_url or "").strip())
+    if parsed_link.scheme == "https" and parsed_link.netloc:
+        data["reply_markup"] = json.dumps({
+            "inline_keyboard": [[{
+                "text": "🛍️ مشاهده تخفیف و خرید",
+                "url": affiliate_url,
+            }]]
+        }, ensure_ascii=False)
+    response = requests.post(endpoint, data=data, timeout=(20, 40))
+    response.raise_for_status()
+    payload = response.json()
+    if not payload.get("ok"):
+        description = str(payload.get("description") or "Bale editMessageCaption returned ok=false")
+        raise RuntimeError(description[:180])
+    return payload.get("result")
+
+
+def repair_bale_caption(message_id: int) -> int:
+    """Repair one existing Bale post from the persisted product record; never publishes a new post."""
+    if not BALE_BOT_TOKEN or not BALE_CHANNEL_ID:
+        raise RuntimeError("BALE_BOT_TOKEN and BALE_CHANNEL_ID are required")
+    state = load_state()
+    published = state.get("published", {})
+    match = None
+    product_key = ""
+    for pid, record in published.items():
+        if not isinstance(record, dict):
+            continue
+        try:
+            saved_id = int(record.get("bale_message_id") or 0)
+        except (TypeError, ValueError, OverflowError):
+            saved_id = 0
+        if saved_id == int(message_id):
+            match = record
+            product_key = str(pid)
+            break
+    if match is None:
+        raise RuntimeError("No persisted product record matches the requested Bale message ID")
+    product_url_value = safe_product_url(match.get("product_url", ""))
+    affiliate_url = build_affilio_tracking_link(product_url_value)
+    if not affiliate_url:
+        raise RuntimeError("Could not rebuild the verified affiliate URL for this Bale post")
+    product = {
+        "title": match.get("title", "پیشنهاد ویژه"),
+        "current_price": match.get("posted_current_price"),
+        "original_price": match.get("posted_original_price"),
+        "discount_percent": match.get("posted_discount_percent"),
+        "deal_expires_at": match.get("expires_at", ""),
+    }
+    caption = build_caption(
+        product,
+        affiliate_url,
+        "ble.ir/OfferChin",
+        use_unicode_strikethrough=True,
+    )
+    _edit_bale_caption(int(message_id), caption, affiliate_url)
+    print(f"BALE_CAPTION_REPAIRED product_id={product_key} message_id={int(message_id)}")
+    return 0
 
 
 def _delivery_retry_delay(attempt: int) -> int:
@@ -2952,7 +3047,20 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--publish", action="store_true", help="publish at most one eligible item if all checks pass")
     parser.add_argument("--dry-run", action="store_true", help="force discovery-only mode")
+    parser.add_argument(
+        "--repair-bale-message-id",
+        type=int,
+        default=None,
+        help="edit one already-published Bale photo caption without publishing a new product",
+    )
     args = parser.parse_args()
+    if args.repair_bale_message_id is not None:
+        try:
+            sys.exit(repair_bale_caption(args.repair_bale_message_id))
+        except Exception as exc:
+            # Do not print request URLs because they can contain the private Bale bot token.
+            print(f"BALE_CAPTION_REPAIR_FAILED message_id={args.repair_bale_message_id} error={type(exc).__name__}")
+            sys.exit(1)
     publish = (AUTOPUBLISH or args.publish) and not args.dry_run
     sys.exit(run(publish=publish))
 
