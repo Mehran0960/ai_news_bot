@@ -2482,11 +2482,13 @@ def _edit_telegram_caption(message_id: int, caption: str, affiliate_url: str = "
             }]]
         }, ensure_ascii=False)
     response = requests.post(endpoint, data=data, timeout=(20, 40))
-    response.raise_for_status()
     payload = response.json()
     if not payload.get("ok"):
         description = str(payload.get("description") or "Telegram editMessageCaption returned ok=false")
+        if "message is not modified" in description.lower():
+            return {"message_id": int(message_id), "not_modified": True}
         raise RuntimeError(description[:180])
+    response.raise_for_status()
     return payload.get("result")
 
 
@@ -2511,11 +2513,13 @@ def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
             }]]
         }, ensure_ascii=False)
     response = requests.post(endpoint, data=data, timeout=(20, 40))
-    response.raise_for_status()
     payload = response.json()
     if not payload.get("ok"):
         description = str(payload.get("description") or "Bale editMessageCaption returned ok=false")
+        if "message is not modified" in description.lower():
+            return {"message_id": int(message_id), "not_modified": True}
         raise RuntimeError(description[:180])
+    response.raise_for_status()
     return payload.get("result")
 
 
@@ -2648,7 +2652,13 @@ def repair_all_published_captions() -> int:
                 print(f"CAPTION_REPAIRED product_id={product_key} platform={platform} message_id={message_id}")
             except Exception as exc:
                 results[f"{platform}_failed"] += 1
-                print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}")
+                detail = str(exc) if isinstance(exc, RuntimeError) else ""
+                for secret in (BOT_TOKEN, BALE_BOT_TOKEN):
+                    if secret:
+                        detail = detail.replace(secret, "[redacted]")
+                detail = re.sub(r"https?://\S+", "[url]", detail)[:120]
+                detail_suffix = f" detail={detail!r}" if detail else ""
+                print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}{detail_suffix}")
             if platform == "telegram":
                 time.sleep(1.1)
 
