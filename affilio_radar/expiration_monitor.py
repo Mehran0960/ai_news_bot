@@ -21,6 +21,8 @@ ROOT = Path(__file__).resolve().parent
 STATE_PATH = ROOT / "state.json"
 CHAT_ID = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@OfferChin").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
+BALE_CHANNEL_ID = os.getenv("BALE_CHANNEL_ID", "").strip()
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "3"))))
 FEED_URL = "https://api.digikala.com/v1/incredible-offers/products/"
 HTTP_TIMEOUT = 18
@@ -372,7 +374,10 @@ def _write_state(state):
 
 
 def _should_probe(record, now):
-    if record.get("expiry_status") == "deleted" or record.get("expiry_status") == "already_absent":
+    telegram_done = record.get("expiry_status") in {"deleted", "already_absent"}
+    bale_message_id = record.get("bale_message_id")
+    bale_done = record.get("bale_expiry_status") in {"deleted", "already_absent"}
+    if telegram_done and (not str(bale_message_id or "").isdigit() or bale_done):
         return False
     last_raw = record.get("expiry_last_probed_at")
     try:
@@ -402,6 +407,24 @@ def _telegram_delete(message_id):
     raise RuntimeError(description[:180] or "Telegram deleteMessage failed")
 
 
+def _bale_delete(message_id):
+    if not BALE_BOT_TOKEN:
+        raise RuntimeError("BALE_BOT_TOKEN missing")
+    if not BALE_CHANNEL_ID:
+        raise RuntimeError("BALE_CHANNEL_ID missing")
+    url = f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/deleteMessage"
+    body = urlencode({"chat_id": BALE_CHANNEL_ID, "message_id": int(message_id)}).encode("utf-8")
+    request = Request(url, data=body, method="POST", headers={"Content-Type": "application/x-www-form-urlencoded"})
+    with urlopen(request, timeout=20) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    if payload.get("ok") is True:
+        return "deleted"
+    description = str(payload.get("description") or "")
+    if "message to delete not found" in description.lower() or "message_id_invalid" in description.lower():
+        return "already_absent"
+    raise RuntimeError(description[:180] or "Bale deleteMessage failed")
+
+
 def run():
     state = _read_state()
     published = state.get("published", {})
@@ -411,7 +434,10 @@ def run():
     needs_probe = [
         (pid, rec) for pid, rec in published.items()
         if isinstance(rec, dict)
-        and str(rec.get("telegram_message_id") or "").isdigit()
+        and (
+            (str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent"})
+            or (str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"})
+        )
         and _should_probe(rec, now)
     ]
     changed = False
@@ -424,7 +450,8 @@ def run():
                     rec["expires_at"] = live
                     rec["expiry_source"] = "digikala_live_deals_feed"
                     rec["expiry_estimated"] = False
-                    rec["expiry_status"] = "tracked"
+                    if rec.get("expiry_status") not in {"deleted", "already_absent"}:
+                        rec["expiry_status"] = "tracked"
                     changed = True
                     print(f"EXPIRY_TRACKED product_id={pid} expires_at={live}")
         for pid, rec in needs_probe:
@@ -462,15 +489,12 @@ def run():
 
     deleted = 0
     for pid, rec in published.items():
-        if not isinstance(rec, dict) or rec.get("expiry_status") in {"deleted", "already_absent"}:
-            continue
-        raw_message_id = rec.get("telegram_message_id")
-        if not str(raw_message_id or "").isdigit():
+        if not isinstance(rec, dict):
             continue
         raw_expiry = rec.get("expires_at")
         expiry = parse_expiry(raw_expiry)
         if not expiry:
-            if rec.get("expiry_status") != "unknown":
+            if str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent", "unknown"}:
                 rec["expiry_status"] = "unknown"
                 changed = True
             continue
@@ -478,22 +502,43 @@ def run():
         if expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
         if now < expires_at:
-            if not rec.get("expiry_status"):
+            if str(rec.get("telegram_message_id") or "").isdigit() and not rec.get("expiry_status"):
                 rec["expiry_status"] = "tracked_estimated" if rec.get("expiry_estimated") else "tracked"
                 changed = True
+            if str(rec.get("bale_message_id") or "").isdigit() and not rec.get("bale_expiry_status"):
+                rec["bale_expiry_status"] = "tracked"
+                changed = True
             continue
-        try:
-            outcome = _telegram_delete(int(raw_message_id))
-            rec["expiry_status"] = outcome
-            rec["expired_deleted_at"] = now.isoformat()
-            changed = True
-            deleted += 1
-            print(f"EXPIRY_DELETE_OK product_id={pid} message_id={raw_message_id} outcome={outcome} expiry={expiry}")
-        except Exception as exc:
-            rec["expiry_status"] = "delete_failed"
-            rec["expiry_last_delete_error"] = f"{type(exc).__name__}: {str(exc)[:180]}"
-            changed = True
-            print(f"EXPIRY_DELETE_FAILED product_id={pid} message_id={raw_message_id} error={type(exc).__name__} detail={str(exc)[:160]!r}")
+
+        raw_telegram_id = rec.get("telegram_message_id")
+        if str(raw_telegram_id or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent"}:
+            try:
+                outcome = _telegram_delete(int(raw_telegram_id))
+                rec["expiry_status"] = outcome
+                rec["expired_deleted_at"] = now.isoformat()
+                changed = True
+                deleted += 1
+                print(f"EXPIRY_DELETE_OK platform=telegram product_id={pid} message_id={raw_telegram_id} outcome={outcome} expiry={expiry}")
+            except Exception as exc:
+                rec["expiry_status"] = "delete_failed"
+                rec["expiry_last_delete_error"] = f"{type(exc).__name__}: {str(exc)[:180]}"
+                changed = True
+                print(f"EXPIRY_DELETE_FAILED platform=telegram product_id={pid} message_id={raw_telegram_id} error={type(exc).__name__} detail={str(exc)[:160]!r}")
+
+        raw_bale_id = rec.get("bale_message_id")
+        if str(raw_bale_id or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"}:
+            try:
+                outcome = _bale_delete(int(raw_bale_id))
+                rec["bale_expiry_status"] = outcome
+                rec["bale_expired_deleted_at"] = now.isoformat()
+                changed = True
+                deleted += 1
+                print(f"EXPIRY_DELETE_OK platform=bale product_id={pid} message_id={raw_bale_id} outcome={outcome} expiry={expiry}")
+            except Exception as exc:
+                rec["bale_expiry_status"] = "delete_failed"
+                rec["bale_expiry_last_delete_error"] = f"{type(exc).__name__}: {str(exc)[:180]}"
+                changed = True
+                print(f"EXPIRY_DELETE_FAILED platform=bale product_id={pid} message_id={raw_bale_id} error={type(exc).__name__} detail={str(exc)[:160]!r}")
 
     if changed:
         _write_state(state)
