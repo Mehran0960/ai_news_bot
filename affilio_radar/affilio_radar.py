@@ -2461,6 +2461,35 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
     raise ValueError("Unsupported publication platform")
 
 
+
+def _edit_telegram_caption(message_id: int, caption: str, affiliate_url: str = ""):
+    """Edit a published Telegram photo caption and retain its affiliate purchase button."""
+    if not BOT_TOKEN:
+        raise RuntimeError("Missing TELEGRAM_BOT_TOKEN secret")
+    endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/editMessageCaption"
+    data = {
+        "chat_id": TARGET_CHAT,
+        "message_id": int(message_id),
+        "caption": caption,
+        "parse_mode": "HTML",
+    }
+    parsed_link = urlsplit(str(affiliate_url or "").strip())
+    if parsed_link.scheme == "https" and parsed_link.netloc:
+        data["reply_markup"] = json.dumps({
+            "inline_keyboard": [[{
+                "text": "🛍️ مشاهده تخفیف و خرید",
+                "url": affiliate_url,
+            }]]
+        }, ensure_ascii=False)
+    response = requests.post(endpoint, data=data, timeout=(20, 40))
+    response.raise_for_status()
+    payload = response.json()
+    if not payload.get("ok"):
+        description = str(payload.get("description") or "Telegram editMessageCaption returned ok=false")
+        raise RuntimeError(description[:180])
+    return payload.get("result")
+
+
 def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
     """Edit an existing Bale photo caption and preserve its inline purchase button."""
     if not BALE_BOT_TOKEN:
