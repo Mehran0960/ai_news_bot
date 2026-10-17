@@ -3209,7 +3209,18 @@ def main():
         default=None,
         help="edit one already-published Bale photo caption without publishing a new product",
     )
+    parser.add_argument(
+        "--repair-all-captions",
+        action="store_true",
+        help="edit all tracked Telegram and Bale captions in place; never publish new products",
+    )
     args = parser.parse_args()
+    if args.repair_all_captions:
+        try:
+            sys.exit(repair_all_published_captions())
+        except Exception as exc:
+            print(f"CAPTION_REPAIR_FAILED error={type(exc).__name__}")
+            sys.exit(1)
     if args.repair_bale_message_id is not None:
         try:
             sys.exit(repair_bale_caption(args.repair_bale_message_id))
