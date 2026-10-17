@@ -142,10 +142,10 @@ jobs:
           print("CLICK_TRACKER_AGGREGATED_STATS_OK")
           PY
 
-      # [repair-bale-caption] Refresh existing Bale post 2 after the channel-link display change.
+      # [repair-all-captions] Edits every tracked post caption in place without republishing.
       - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
         # Normal code pushes run tests above, but must not consume a full product-discovery cycle.
-        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-bale-caption]') }}
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[repair-all-captions]') }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
@@ -160,7 +160,9 @@ jobs:
           AFFILIO_FORCE_POST_COOLDOWN_BYPASS: ${{ contains(github.event.head_commit.message, '[publish-now]') || inputs.publish }}
           PYTHONUNBUFFERED: "1"
         run: |
-          if [[ "${{ contains(github.event.head_commit.message, '[repair-bale-caption]') }}" == "true" ]]; then
+          if [[ "${{ contains(github.event.head_commit.message, '[repair-all-captions]') }}" == "true" ]]; then
+            python affilio_radar/affilio_radar.py --repair-all-captions
+          elif [[ "${{ contains(github.event.head_commit.message, '[repair-bale-caption]') }}" == "true" ]]; then
             python affilio_radar/affilio_radar.py --repair-bale-message-id 2
           else
             python affilio_radar/affilio_radar.py
