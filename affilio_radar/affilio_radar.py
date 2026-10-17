@@ -2562,6 +2562,106 @@ def repair_bale_caption(message_id: int) -> int:
     return 0
 
 
+
+def repair_all_published_captions() -> int:
+    """Edit tracked Telegram/Bale captions in place; never creates or deletes posts."""
+    state = load_state()
+    published = state.get("published", {})
+    if not isinstance(published, dict):
+        raise RuntimeError("Published state is not an object")
+
+    results = {
+        "telegram_updated": 0,
+        "telegram_failed": 0,
+        "bale_updated": 0,
+        "bale_failed": 0,
+        "skipped": 0,
+    }
+    target_count = 0
+
+    # Stable order plus spacing reduces the chance of Telegram per-chat rate limits.
+    for product_key, record in sorted(
+        published.items(),
+        key=lambda item: float(item[1].get("ts", 0)) if isinstance(item[1], dict) else 0,
+    ):
+        if not isinstance(record, dict):
+            results["skipped"] += 1
+            continue
+
+        message_targets = []
+        platform_fields = (
+            ("telegram", "telegram_message_id", bool(BOT_TOKEN)),
+            ("bale", "bale_message_id", bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)),
+        )
+        for platform, id_field, token_ready in platform_fields:
+            raw_id = record.get(id_field)
+            if raw_id in (None, "", 0, "0"):
+                continue
+            try:
+                message_id = int(raw_id)
+                if message_id <= 0:
+                    raise ValueError("invalid message ID")
+            except (TypeError, ValueError, OverflowError):
+                print(f"CAPTION_REPAIR_SKIPPED product_id={product_key} platform={platform} reason=invalid_message_id")
+                results["skipped"] += 1
+                continue
+            target_count += 1
+            if not token_ready:
+                print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error=missing_credentials")
+                results[f"{platform}_failed"] += 1
+            else:
+                message_targets.append((platform, message_id))
+
+        if not message_targets:
+            continue
+
+        product_url_value = safe_product_url(record.get("product_url", ""))
+        affiliate_url = build_affilio_tracking_link(product_url_value)
+        if not affiliate_url:
+            for platform, message_id in message_targets:
+                print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error=affiliate_url_unavailable")
+                results[f"{platform}_failed"] += 1
+            continue
+
+        product = {
+            "title": record.get("title", "پیشنهاد ویژه"),
+            "current_price": record.get("posted_current_price"),
+            "original_price": record.get("posted_original_price"),
+            "discount_percent": record.get("posted_discount_percent"),
+            "deal_expires_at": record.get("expires_at", ""),
+        }
+        for platform, message_id in message_targets:
+            try:
+                if platform == "telegram":
+                    caption = build_caption(product, affiliate_url, TELEGRAM_CHANNEL_URL)
+                    _edit_telegram_caption(message_id, caption, affiliate_url)
+                    results["telegram_updated"] += 1
+                else:
+                    caption = build_caption(
+                        product,
+                        affiliate_url,
+                        BALE_CHANNEL_URL,
+                        use_unicode_strikethrough=True,
+                    )
+                    _edit_bale_caption(message_id, caption, affiliate_url)
+                    results["bale_updated"] += 1
+                print(f"CAPTION_REPAIRED product_id={product_key} platform={platform} message_id={message_id}")
+            except Exception as exc:
+                results[f"{platform}_failed"] += 1
+                print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}")
+            if platform == "telegram":
+                time.sleep(1.1)
+
+    print(
+        "CAPTION_REPAIR_SUMMARY "
+        f"tracked_products={len(published)} targets={target_count} "
+        f"telegram_updated={results['telegram_updated']} telegram_failed={results['telegram_failed']} "
+        f"bale_updated={results['bale_updated']} bale_failed={results['bale_failed']} "
+        f"skipped={results['skipped']}"
+    )
+    return 0 if results["telegram_failed"] == 0 and results["bale_failed"] == 0 and target_count > 0 else 1
+
+
 def _delivery_retry_delay(attempt: int) -> int:
     """Exponential backoff for one-channel failures, capped at one hour."""
     exponent = max(0, min(4, int(attempt or 1) - 1))
