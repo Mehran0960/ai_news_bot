@@ -142,7 +142,7 @@ jobs:
           print("CLICK_TRACKER_AGGREGATED_STATS_OK")
           PY
 
-      # [repair-all-captions] Retry the full in-place caption sweep with idempotent API handling.
+      # [repair-all-captions] Final sweep includes newly published posts and reports unavailable IDs.
       - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
         # Normal code pushes run tests above, but must not consume a full product-discovery cycle.
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[repair-all-captions]') }}
