@@ -27,6 +27,8 @@ from affilio_radar import (
     _send_photo,
     _send_bale_photo,
     _edit_bale_caption,
+    _edit_telegram_caption,
+    repair_all_published_captions,
     _delivery_retry_platforms,
     unicode_strikethrough,
     _money_to_toman,
@@ -697,6 +699,81 @@ class AffilioRadarTests(unittest.TestCase):
     def test_unicode_strikethrough_marks_each_visible_character(self):
         self.assertEqual(unicode_strikethrough("۱۲۳"), "۱\u0336۲\u0336۳\u0336")
         self.assertEqual(unicode_strikethrough("۱۲۳  تومان"), "۱\u0336۲\u0336۳\u0336  ت\u0336و\u0336م\u0336ا\u0336ن\u0336")
+
+
+    def test_edit_telegram_caption_preserves_affiliate_purchase_button(self):
+        response = unittest.mock.Mock()
+        response.json.return_value = {"ok": True, "result": {"message_id": 39}}
+        direct_affiliate_url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
+        with (
+            patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
+            patch("affilio_radar.TARGET_CHAT", "@OfferChin"),
+            patch("affilio_radar.requests.post", return_value=response) as post,
+        ):
+            result = _edit_telegram_caption(39, "updated caption", direct_affiliate_url)
+        self.assertEqual(post.call_args.args[0], "https://api.telegram.org/bottelegram-test-token/editMessageCaption")
+        data = post.call_args.kwargs["data"]
+        self.assertEqual(data["chat_id"], "@OfferChin")
+        self.assertEqual(data["message_id"], 39)
+        self.assertEqual(data["caption"], "updated caption")
+        self.assertEqual(data["parse_mode"], "HTML")
+        markup = json.loads(data["reply_markup"])
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده تخفیف و خرید")
+        self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
+        self.assertEqual(result["message_id"], 39)
+
+    def test_repair_all_published_captions_edits_in_place_on_both_platforms(self):
+        state = {
+            "published": {
+                "dkp-15970075": {
+                    "ts": 1,
+                    "title": "محصول نمونه",
+                    "product_url": "https://www.digikala.com/product/dkp-15970075/",
+                    "telegram_message_id": 39,
+                    "bale_message_id": 2,
+                    "posted_current_price": 123_200,
+                    "posted_original_price": 1_108_800,
+                    "posted_discount_percent": 89,
+                    "expires_at": "",
+                },
+                "dkp-no-bale": {
+                    "ts": 2,
+                    "title": "محصول تلگرام",
+                    "product_url": "https://www.digikala.com/product/dkp-15970075/",
+                    "telegram_message_id": 40,
+                    "posted_current_price": 100_000,
+                    "posted_original_price": 200_000,
+                    "posted_discount_percent": 50,
+                    "expires_at": "",
+                },
+            }
+        }
+        url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
+        with (
+            patch("affilio_radar.load_state", return_value=state),
+            patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
+            patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
+            patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
+            patch("affilio_radar.build_affilio_tracking_link", return_value=url),
+            patch("affilio_radar._edit_telegram_caption") as edit_telegram,
+            patch("affilio_radar._edit_bale_caption") as edit_bale,
+            patch("affilio_radar._send_photo") as send_telegram,
+            patch("affilio_radar._send_bale_photo") as send_bale,
+            patch("affilio_radar.time.sleep"),
+        ):
+            result = repair_all_published_captions()
+        self.assertEqual(result, 0)
+        self.assertEqual(edit_telegram.call_count, 2)
+        self.assertEqual(edit_bale.call_count, 1)
+        self.assertFalse(send_telegram.called)
+        self.assertFalse(send_bale.called)
+        telegram_caption = edit_telegram.call_args_list[0].args[1]
+        bale_caption = edit_bale.call_args_list[0].args[1]
+        self.assertIn('<a href="https://t.me/OfferChin">📣 عضویت در کانال: t.me/OfferChin</a>', telegram_caption)
+        self.assertIn("[📣 عضویت در کانال: ble.ir/OfferChin](https://ble.ir/OfferChin)", bale_caption)
+        self.assertLess(telegram_caption.index("عضویت در کانال"), telegram_caption.index("برای دیدن جزئیات"))
+        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای دیدن جزئیات"))
+
 
     def test_edit_bale_caption_preserves_purchase_button(self):
         response = unittest.mock.Mock()
