@@ -2188,7 +2188,7 @@ def format_persian_number(value) -> str:
 
 def unicode_strikethrough(value: str) -> str:
     """Render a visible strike-through without relying on a platform's text-markup parser."""
-    overlay = "\\u0336"
+    overlay = "\u0336"
     return "".join(char if char.isspace() else char + overlay for char in str(value))
 
 
