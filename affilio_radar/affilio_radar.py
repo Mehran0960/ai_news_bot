@@ -2487,6 +2487,8 @@ def _edit_telegram_caption(message_id: int, caption: str, affiliate_url: str = "
         description = str(payload.get("description") or "Telegram editMessageCaption returned ok=false")
         if "message is not modified" in description.lower():
             return {"message_id": int(message_id), "not_modified": True}
+        if "message to edit not found" in description.lower() or "message not found" in description.lower():
+            return {"message_id": int(message_id), "not_found": True}
         raise RuntimeError(description[:180])
     response.raise_for_status()
     return payload.get("result")
@@ -2518,6 +2520,8 @@ def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
         description = str(payload.get("description") or "Bale editMessageCaption returned ok=false")
         if "message is not modified" in description.lower():
             return {"message_id": int(message_id), "not_modified": True}
+        if "message to edit not found" in description.lower() or "message not found" in description.lower():
+            return {"message_id": int(message_id), "not_found": True}
         raise RuntimeError(description[:180])
     response.raise_for_status()
     return payload.get("result")
@@ -2577,8 +2581,10 @@ def repair_all_published_captions() -> int:
     results = {
         "telegram_updated": 0,
         "telegram_failed": 0,
+        "telegram_missing": 0,
         "bale_updated": 0,
         "bale_failed": 0,
+        "bale_missing": 0,
         "skipped": 0,
     }
     target_count = 0
@@ -2638,8 +2644,7 @@ def repair_all_published_captions() -> int:
             try:
                 if platform == "telegram":
                     caption = build_caption(product, affiliate_url, TELEGRAM_CHANNEL_URL)
-                    _edit_telegram_caption(message_id, caption, affiliate_url)
-                    results["telegram_updated"] += 1
+                    edit_result = _edit_telegram_caption(message_id, caption, affiliate_url)
                 else:
                     caption = build_caption(
                         product,
@@ -2647,9 +2652,14 @@ def repair_all_published_captions() -> int:
                         BALE_CHANNEL_URL,
                         use_unicode_strikethrough=True,
                     )
-                    _edit_bale_caption(message_id, caption, affiliate_url)
-                    results["bale_updated"] += 1
-                print(f"CAPTION_REPAIRED product_id={product_key} platform={platform} message_id={message_id}")
+                    edit_result = _edit_bale_caption(message_id, caption, affiliate_url)
+
+                if isinstance(edit_result, dict) and edit_result.get("not_found"):
+                    results[f"{platform}_missing"] += 1
+                    print(f"CAPTION_REPAIR_UNAVAILABLE product_id={product_key} platform={platform} message_id={message_id} reason=message_not_found")
+                else:
+                    results[f"{platform}_updated"] += 1
+                    print(f"CAPTION_REPAIRED product_id={product_key} platform={platform} message_id={message_id}")
             except Exception as exc:
                 results[f"{platform}_failed"] += 1
                 detail = str(exc) if isinstance(exc, RuntimeError) else ""
@@ -2665,8 +2675,8 @@ def repair_all_published_captions() -> int:
     print(
         "CAPTION_REPAIR_SUMMARY "
         f"tracked_products={len(published)} targets={target_count} "
-        f"telegram_updated={results['telegram_updated']} telegram_failed={results['telegram_failed']} "
-        f"bale_updated={results['bale_updated']} bale_failed={results['bale_failed']} "
+        f"telegram_updated={results['telegram_updated']} telegram_missing={results['telegram_missing']} telegram_failed={results['telegram_failed']} "
+        f"bale_updated={results['bale_updated']} bale_missing={results['bale_missing']} bale_failed={results['bale_failed']} "
         f"skipped={results['skipped']}"
     )
     return 0 if results["telegram_failed"] == 0 and results["bale_failed"] == 0 and target_count > 0 else 1
