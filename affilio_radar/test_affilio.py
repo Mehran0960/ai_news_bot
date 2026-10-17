@@ -802,6 +802,33 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(result["not_modified"])
 
 
+
+    def test_caption_edit_reports_missing_telegram_message_without_leaking_token(self):
+        response = unittest.mock.Mock()
+        response.json.return_value = {"ok": False, "description": "Bad Request: message to edit not found"}
+        url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
+        with (
+            patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
+            patch("affilio_radar.requests.post", return_value=response),
+        ):
+            result = _edit_telegram_caption(18, "updated caption", url)
+        self.assertEqual(result["message_id"], 18)
+        self.assertTrue(result["not_found"])
+
+    def test_caption_edit_reports_missing_bale_message(self):
+        response = unittest.mock.Mock()
+        response.json.return_value = {"ok": False, "description": "Bad Request: message to edit not found"}
+        url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
+        with (
+            patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
+            patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
+            patch("affilio_radar.requests.post", return_value=response),
+        ):
+            result = _edit_bale_caption(2, "updated caption", url)
+        self.assertEqual(result["message_id"], 2)
+        self.assertTrue(result["not_found"])
+
+
     def test_edit_bale_caption_preserves_purchase_button(self):
         response = unittest.mock.Mock()
         response.json.return_value = {"ok": True, "result": {"message_id": 2}}
