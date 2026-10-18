@@ -41,6 +41,7 @@ from affilio_radar import (
     api_incredible_offer_product_candidates,
     parse_product_api,
     is_discount_publish_eligible,
+    is_prohibited_product_title,
     deal_sort_key,
     build_discount_image,
     _latin_font,
@@ -179,6 +180,32 @@ class AffilioRadarTests(unittest.TestCase):
             "",
         )
 
+    def test_incredible_offer_candidates_exclude_medicines_before_fetching_details(self):
+        payload = {
+            "data": {
+                "products": [
+                    {
+                        "id": 123,
+                        "title_fa": "قرص ویتامین ب2 بسته 60 عددی",
+                        "url": "/product/dkp-123/",
+                        "status": "marketable",
+                        "default_variant": {"price": {"selling_price": 1000, "rrp_price": 10000}},
+                    },
+                    {
+                        "id": 456,
+                        "title_fa": "پاوربانک محبوب",
+                        "url": "/product/dkp-456/",
+                        "status": "marketable",
+                        "default_variant": {"price": {"selling_price": 1000, "rrp_price": 10000}},
+                    },
+                ]
+            }
+        }
+        candidates = api_incredible_offer_product_candidates(payload)
+        titles = [candidate.get("title") for candidate in candidates]
+        self.assertNotIn("قرص ویتامین ب2 بسته 60 عددی", titles)
+        self.assertIn("پاوربانک محبوب", titles)
+
     def test_search_api_uses_only_product_array_not_category_filter_ids(self):
         payload = {
             "data": {
@@ -293,7 +320,7 @@ class AffilioRadarTests(unittest.TestCase):
         # The highest-discount item is a clothing product; no category filter is applied.
         self.assertEqual(candidates[0]["discount_percent"], 99)
 
-    def test_extreme_discount_ranks_first_regardless_of_product_category(self):
+    def test_audience_demand_outranks_an_extreme_listed_discount(self):
         popular_gadget = score_product({
             "title": "پاوربانک محبوب",
             "current_price": 8_000_000,
@@ -302,16 +329,47 @@ class AffilioRadarTests(unittest.TestCase):
             "review_count": 50000,
             "image_url": "https://example.com/popular.jpg",
         })
-        unrelated_extreme_discount = score_product({
-            "title": "کپسول مکمل غذایی پرتخفیف",
+        weaker_demand_deal = score_product({
+            "title": "گجت کم‌نظر با تخفیف درج‌شده بیشتر",
             "current_price": 1_000_000,
             "original_price": 3_000_000,
             "rating": 4.0,
             "review_count": 100,
             "image_url": "https://example.com/deal.jpg",
         })
-        self.assertLess(popular_gadget["discount_percent"], unrelated_extreme_discount["discount_percent"])
-        self.assertGreater(deal_sort_key(unrelated_extreme_discount), deal_sort_key(popular_gadget))
+        self.assertLess(popular_gadget["discount_percent"], weaker_demand_deal["discount_percent"])
+        self.assertGreater(deal_sort_key(popular_gadget), deal_sort_key(weaker_demand_deal))
+
+    def test_medicines_and_supplements_are_rejected(self):
+        for title in [
+            "قرص زینک پلاس یوروویتال",
+            "کپسول ب کمپلکس",
+            "مکمل غذایی منیزیم",
+            "ویال خوراکی ال-کارنیتین",
+            "پودر پروتئین وی",
+            "Chlorophyll supplement",
+        ]:
+            self.assertTrue(is_prohibited_product_title(title), title)
+        for title in [
+            "پاوربانک 20000",
+            "هندزفری بلوتوث",
+            "ژل آبرسان صورت",
+            "ماوس بی سیم",
+        ]:
+            self.assertFalse(is_prohibited_product_title(title), title)
+
+    def test_discount_publish_eligibility_rejects_medicines_even_if_discount_is_huge(self):
+        product = {
+            "title": "قرص زینک پلاس یوروویتال",
+            "availability": "in_stock",
+            "current_price": 100_000,
+            "original_price": 1_000_000,
+            "discount_percent": 90,
+            "savings_toman": 900_000,
+            "image_url": "https://example.com/image.jpg",
+            "affiliate_url": "https://example.com/tracked-link",
+        }
+        self.assertFalse(is_discount_publish_eligible(product))
 
     def test_urgent_priority_is_limited_to_strong_soon_expiring_offers(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
