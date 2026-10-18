@@ -2200,7 +2200,7 @@ def unicode_underline(value: str) -> str:
 
 
 def format_remaining_time(value, now: datetime | None = None) -> str:
-    """Display an explicit offer deadline as a Persian countdown in hours and minutes."""
+    """Display remaining offer time as a compact Persian HH:MM countdown, rounded up to a minute."""
     deadline = _parse_utc_datetime(value)
     if deadline is None:
         return ""
@@ -2213,11 +2213,7 @@ def format_remaining_time(value, now: datetime | None = None) -> str:
         return "مهلت آفر به پایان رسیده"
     remaining_minutes = max(1, math.ceil(remaining_seconds / 60))
     hours, minutes = divmod(remaining_minutes, 60)
-    if hours and minutes:
-        return f"{format_persian_number(hours)} ساعت و {format_persian_number(minutes)} دقیقه"
-    if hours:
-        return f"{format_persian_number(hours)} ساعت"
-    return f"{format_persian_number(minutes)} دقیقه"
+    return f"{format_persian_number(hours).rjust(2, '۰')}:{format_persian_number(minutes).rjust(2, '۰')}"
 
 
 def _escape_bale_markdown(value: str) -> str:
@@ -2758,7 +2754,8 @@ def repair_all_published_captions() -> int:
 
 
 def refresh_active_countdowns() -> int:
-    """Edit active, deadline-verified captions in place so their countdown stays current."""
+    """Edit active, deadline-verified captions in place so their HH:MM countdown stays current."""
+    force_refresh = str(os.getenv("AFFILIO_COUNTDOWN_REFRESH_FORCE", "false")).strip().lower() in {"1", "true", "yes", "on"}
     state = load_state()
     published = state.get("published", {})
     if not isinstance(published, dict):
@@ -2783,7 +2780,7 @@ def refresh_active_countdowns() -> int:
             continue
         last_raw = record.get("countdown_last_updated_at")
         last = _parse_utc_datetime(last_raw) if last_raw else None
-        if last and (now - last).total_seconds() < 240:
+        if not force_refresh and last and (now - last).total_seconds() < 60:
             continue
         targets = []
         if str(record.get("telegram_message_id") or "").isdigit() and BOT_TOKEN:
@@ -2957,6 +2954,17 @@ def is_offer_expired(product: dict, now: datetime | None = None) -> bool:
     return expiry <= now
 
 
+def has_verified_deal_deadline(product: dict, now: datetime | None = None) -> bool:
+    """True only when the product has an explicit, parseable, not-yet-expired offer deadline."""
+    expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
+    if expiry is None:
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    return expiry > current.astimezone(timezone.utc)
+
+
 def is_urgent_priority_deal(product: dict, now: datetime | None = None) -> bool:
     """Only very strong, soon-expiring offers may use the shorter posting cooldown."""
     if is_offer_expired(product, now):
@@ -3113,7 +3121,13 @@ def run(publish=False):
     enrich_market_prices(products)
     products.sort(key=deal_sort_key, reverse=True)
     listed_eligible_count = sum(
-        bool(p.get("has_affiliate_link") and is_discount_publish_eligible(p) and not is_offer_expired(p)) for p in products
+        bool(
+            p.get("has_affiliate_link")
+            and is_discount_publish_eligible(p)
+            and has_verified_deal_deadline(p)
+            and not is_offer_expired(p)
+        )
+        for p in products
     )
     market_blocked_count = sum(is_market_price_uncompetitive(p) for p in products)
     eligible = [
@@ -3121,6 +3135,7 @@ def run(publish=False):
         if p.get("has_affiliate_link")
         and is_discount_publish_eligible(p)
         and is_market_value_publish_eligible(p)
+        and has_verified_deal_deadline(p)
         and not is_offer_expired(p)
     ]
     queue_now = datetime.now(timezone.utc)
