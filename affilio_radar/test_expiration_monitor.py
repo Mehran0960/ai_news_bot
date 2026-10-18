@@ -11,6 +11,16 @@ import expiration_monitor as monitor
 
 
 class ExpirationMonitorTests(unittest.TestCase):
+    def setUp(self):
+        # Unit tests mock sleeping so rate-limit protection doesn't slow the suite.
+        self.sleep_patcher = patch.object(monitor.time, "sleep")
+        self.sleep_mock = self.sleep_patcher.start()
+        self.addCleanup(self.sleep_patcher.stop)
+
+    def test_bot_api_pacer_waits_before_mutation(self):
+        monitor._pace_bot_api()
+        self.sleep_mock.assert_called_once_with(monitor.BOT_API_MIN_GAP_SECONDS)
+
     def test_parse_iso_deadline_normalizes_to_utc(self):
         value = monitor.parse_expiry("2026-10-16T20:30:00+03:30")
         self.assertEqual(value, "2026-10-16T17:00:00+00:00")
