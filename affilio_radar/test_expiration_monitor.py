@@ -339,6 +339,36 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(deletion.call_count, 2)
         mark.assert_called_once_with(74, "پیشنهاد بدون زمان")
 
+    def test_public_history_deletes_incomplete_offer_without_verifiable_deadline(self):
+        post = {
+            "message_id": 80,
+            "caption_text": (
+                "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا "
+                "🛍️ محصول با اطلاعات ناقص "
+                "⏳ ۲ ساعت و ۱۵ دقیقه مانده به پایان تخفیف"
+            ),
+            "caption_html": "",
+        }
+        with patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion:
+            result = monitor.audit_public_channel_history(
+                {}, now=datetime.now(timezone.utc), posts={80: post}
+            )
+        deletion.assert_called_once_with(80)
+        self.assertEqual(result[1], 1)
+
+    def test_public_history_does_not_delete_non_offer_announcement_without_deadline(self):
+        post = {
+            "message_id": 81,
+            "caption_text": "اطلاعیهٔ کانال دربارهٔ برنامهٔ فردا",
+            "caption_html": "",
+        }
+        with patch.object(monitor, "_telegram_delete") as deletion:
+            result = monitor.audit_public_channel_history(
+                {}, now=datetime.now(timezone.utc), posts={81: post}
+            )
+        deletion.assert_not_called()
+        self.assertEqual(result[1], 0)
+
     def test_public_history_deletes_untracked_offer_without_absolute_deadline(self):
         post = {
             "message_id": 79,
