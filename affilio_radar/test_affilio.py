@@ -19,6 +19,8 @@ from affilio_radar import (
     is_offer_expired,
     has_verified_deal_deadline,
     is_urgent_priority_deal,
+    is_deadline_critical_deal,
+    is_materially_improved_offer,
     is_preferred_publication_time,
     preferred_publication_window,
     pending_queue_sort_key,
@@ -413,6 +415,83 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(is_offer_expired(expired, now))
         self.assertFalse(is_urgent_priority_deal(expired, now))
 
+    def test_deadline_critical_priority_catches_good_deals_before_they_expire(self):
+        now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
+        close = {
+            "discount_percent": 35,
+            "savings_toman": 150_000,
+            "deal_expires_at": (now + timedelta(minutes=20)).isoformat(),
+        }
+        self.assertTrue(is_deadline_critical_deal(close, now))
+        self.assertFalse(is_deadline_critical_deal({
+            **close, "deal_expires_at": (now + timedelta(minutes=46)).isoformat()
+        }, now))
+        self.assertFalse(is_deadline_critical_deal({**close, "deal_expires_at": ""}, now))
+
+    def test_new_offer_cycle_or_real_price_drop_can_bypass_product_cooldown(self):
+        now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
+        previous = {
+            "posted_current_price": 1_000_000,
+            "expires_at": (now - timedelta(minutes=5)).isoformat(),
+        }
+        same_price_new_campaign = {
+            "current_price": 1_000_000,
+            "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+        }
+        materially_cheaper = {
+            "current_price": 890_000,
+            "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+        }
+        unchanged = {
+            "current_price": 1_000_000,
+            "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+        }
+        self.assertTrue(is_materially_improved_offer(previous, same_price_new_campaign, now))
+        self.assertTrue(is_materially_improved_offer({**previous, "expires_at": (now + timedelta(hours=2)).isoformat()}, materially_cheaper, now))
+        self.assertFalse(is_materially_improved_offer({**previous, "expires_at": (now + timedelta(hours=2)).isoformat()}, unchanged, now))
+
+    def test_unobserved_queued_deal_is_retained_until_rechecked_or_expiry(self):
+        now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
+        queued = {
+            "product_id": "dkp-999",
+            "product_url": "https://www.digikala.com/product/dkp-999/",
+            "title": "پیشنهاد آزمایشی dkp-999",
+            "first_seen_at": (now - timedelta(minutes=30)).isoformat(),
+            "deal_expires_at": (now + timedelta(hours=2)).isoformat(),
+            "discount_percent": 40,
+            "savings_toman": 200_000,
+            "demand_score": 50,
+            "promo_score": 40,
+            "current_price": 300_000,
+            "original_price": 500_000,
+            "urgent": False,
+        }
+        state = {"published": {}, "pending_queue": {"dkp-999": queued}}
+        kept = refresh_pending_queue(state, [], now, observed_product_ids=set())
+        self.assertIn("dkp-999", kept)
+        self.assertEqual(kept["dkp-999"]["first_seen_at"], queued["first_seen_at"])
+        dropped_after_failed_recheck = refresh_pending_queue(
+            state, [], now, observed_product_ids={"dkp-999"}
+        )
+        self.assertNotIn("dkp-999", dropped_after_failed_recheck)
+
+    def test_near_expiry_offer_outranks_larger_discount_with_later_deadline(self):
+        now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
+        near = {
+            "discount_percent": 35, "savings_toman": 150_000,
+            "demand_score": 40, "promo_score": 25,
+            "deal_expires_at": (now + timedelta(minutes=20)).isoformat(),
+        }
+        later = {
+            "discount_percent": 90, "savings_toman": 2_000_000,
+            "demand_score": 95, "promo_score": 90,
+            "deal_expires_at": (now + timedelta(hours=3)).isoformat(),
+        }
+        self.assertGreater(
+            pending_queue_sort_key(near, {"first_seen_at": now.isoformat()}, now),
+            pending_queue_sort_key(later, {"first_seen_at": now.isoformat()}, now),
+        )
+
     def test_urgent_deadline_ranks_a_qualified_offer_ahead_of_larger_listed_discount(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
         urgent = {
@@ -681,8 +760,11 @@ class AffilioRadarTests(unittest.TestCase):
         }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
         self.assertIn("<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", caption)
         self.assertIn("<b>🛍️ گجت نمونه ۶۰</b>", caption)
-        self.assertIn("<b><u>💚 قیمت ویژه: 💰 ۵۰۰٬۰۰۰ تومان</u></b>", caption)
-        self.assertIn("<b><u>⚡️ ۲۹٪ تخفیف</u></b>", caption)
+        self.assertIn("<b>💚 قیمت ویژه: ۵۰۰٬۰۰۰ تومان</b>", caption)
+        self.assertIn("<b>⚡️ ۲۹٪ تخفیف</b>", caption)
+        self.assertEqual(caption.count("────────────"), 2)
+        self.assertNotIn("💰", caption)
+        self.assertNotIn("<u>", caption)
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
         self.assertIn("<b>⏳ ", caption)
         self.assertIn("مانده به پایان تخفیف</b>", caption)
@@ -772,8 +854,11 @@ class AffilioRadarTests(unittest.TestCase):
         expected_amount = unicode_strikethrough("۱٬۱۰۸٬۸۰۰")
         self.assertIn(expected_amount, bale_caption)
         self.assertIn("*🏷️ قیمت اصلی:", bale_caption)
-        self.assertIn("*" + unicode_underline("💚 قیمت ویژه: 💰 ۱۲۳٬۲۰۰ تومان") + "*", bale_caption)
-        self.assertIn("*" + unicode_underline("⚡️ ۸۹٪ تخفیف") + "*", bale_caption)
+        self.assertIn("*💚 قیمت ویژه: ۱۲۳٬۲۰۰ تومان*", bale_caption)
+        self.assertIn("*⚡️ ۸۹٪ تخفیف*", bale_caption)
+        self.assertEqual(bale_caption.count("────────────"), 2)
+        self.assertNotIn("💰", bale_caption)
+        self.assertNotIn("\u0332", bale_caption)
         self.assertNotIn("<s>", bale_caption)
         self.assertIn("<s>۱٬۱۰۸٬۸۰۰ تومان</s>", telegram_caption)
         self.assertIn("[عضویت در کانال OfferChin](https://ble.ir/OfferChin)", bale_caption)
