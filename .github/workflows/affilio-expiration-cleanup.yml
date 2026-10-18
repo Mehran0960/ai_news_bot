@@ -9,7 +9,7 @@ on:
       - "affilio_radar/test_expiration_monitor.py"
       - ".github/workflows/affilio-expiration-cleanup.yml"
   schedule:
-    # Expired offers are checked every five minutes; deletion follows the source deadline.
+    # Every five minutes, remove both expired posts and offers without a verified deadline.
     - cron: "*/5 * * * *"
   workflow_dispatch:
 
@@ -55,7 +55,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --refresh-countdowns
 
-      - name: Check and remove expired OfferChin posts
+      - name: Remove expired and unverifiable OfferChin posts
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
