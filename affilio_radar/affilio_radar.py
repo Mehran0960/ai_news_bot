@@ -2652,6 +2652,7 @@ def repair_all_published_captions() -> int:
         "skipped": 0,
     }
     target_count = 0
+    now = datetime.now(timezone.utc)
 
     # Stable order plus spacing reduces the chance of Telegram per-chat rate limits.
     for product_key, record in sorted(
@@ -2679,6 +2680,15 @@ def repair_all_published_captions() -> int:
                 print(f"CAPTION_REPAIR_SKIPPED product_id={product_key} platform={platform} reason=invalid_message_id")
                 results["skipped"] += 1
                 continue
+            # Expired messages successfully removed by the preceding cleanup pass must not be edited again.
+            raw_expiry = record.get("expires_at")
+            deadline = _parse_utc_datetime(raw_expiry) if raw_expiry else None
+            status_field = "expiry_status" if platform == "telegram" else "bale_expiry_status"
+            if deadline is not None and deadline <= now and record.get(status_field) in {"deleted", "already_absent"}:
+                print(f"CAPTION_REPAIR_SKIPPED product_id={product_key} platform={platform} message_id={message_id} reason=expired_message_removed")
+                results["skipped"] += 1
+                continue
+
             target_count += 1
             if not token_ready:
                 print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error=missing_credentials")
