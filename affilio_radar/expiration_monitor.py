@@ -379,7 +379,7 @@ def _write_state(state):
 
 
 def _should_probe(record, now):
-    terminal = {"deleted", "already_absent", "expired_marked"}
+    terminal = {"deleted", "already_absent", "expired_marked", "deadline_unavailable_marked", "deadline_unavailable_delete_failed"}
     telegram_done = record.get("expiry_status") in terminal
     bale_message_id = record.get("bale_message_id")
     bale_done = record.get("bale_expiry_status") in terminal
@@ -779,6 +779,55 @@ def _telegram_mark_expired(message_id, title):
     return _telegram_edit_caption(message_id, caption, remove_purchase_button=True)
 
 
+def _telegram_mark_deadline_unavailable(message_id, title):
+    title = html.escape(str(title or "پیشنهاد ویژه").strip()[:140])
+    caption = (
+        "<b>⚠️ زمان پایان این تخفیف قابل تأیید نیست؛ دکمهٔ خرید غیرفعال شده است.</b>\n\n"
+        f"<b>🛍️ {title}</b>\n\n"
+        '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>'
+    )
+    return _telegram_edit_caption(message_id, caption, remove_purchase_button=True)
+
+
+def _bale_mark_deadline_unavailable(message_id, title):
+    if not BALE_BOT_TOKEN:
+        raise RuntimeError("BALE_BOT_TOKEN missing")
+    if not BALE_CHANNEL_ID:
+        raise RuntimeError("BALE_CHANNEL_ID missing")
+    safe_title = str(title or "پیشنهاد ویژه").strip()[:140]
+    caption = (
+        "⚠️ زمان پایان این تخفیف قابل تأیید نیست؛ دکمهٔ خرید غیرفعال شده است.\n\n"
+        f"🛍️ {safe_title}\n\n"
+        "[عضویت در کانال OfferChin](https://ble.ir/OfferChin)"
+    )
+    payload = {
+        "chat_id": BALE_CHANNEL_ID,
+        "message_id": int(message_id),
+        "caption": caption,
+        "reply_markup": json.dumps({"inline_keyboard": []}),
+    }
+    request = Request(
+        f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/editMessageCaption",
+        data=urlencode(payload).encode("utf-8"),
+        method="POST",
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    try:
+        with urlopen(request, timeout=HTTP_TIMEOUT) as response:
+            result = _decode_delete_response(response)
+    except HTTPError as exc:
+        description = _delete_error_description(exc)
+        if _is_message_absent(description):
+            return "already_absent"
+        raise RuntimeError(description) from None
+    if result.get("ok") is True:
+        return "edited"
+    description = str(result.get("description") or "Bale editMessageCaption failed")
+    if _is_message_absent(description):
+        return "already_absent"
+    raise RuntimeError(description[:180] or "Bale editMessageCaption failed")
+
+
 def audit_public_channel_history(published, now=None, posts=None):
     """Delete expired untracked public posts and repair active legacy captions in place."""
     now = now or datetime.now(timezone.utc)
@@ -850,11 +899,37 @@ def audit_public_channel_history(published, now=None, posts=None):
                     changed = True
             continue
 
-        # Tracked messages get the full repair in the dedicated bulk-caption pass.
+        # Tracked messages are evaluated from state, where their verified deadline lives.
         if record is not None:
             continue
         fields = _extract_legacy_caption_fields(caption_text)
         if not fields.get("title") or not fields.get("current_price") or not fields.get("discount_percent"):
+            continue
+        if deadline is None:
+            # An untracked promo post with no recoverable absolute deadline cannot be refreshed safely.
+            try:
+                outcome = _telegram_delete(int(message_id))
+                if outcome == "deleted":
+                    deleted += 1
+                    print(f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_DELETED message_id={message_id}")
+                elif outcome == "already_absent":
+                    print(f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_ABSENT message_id={message_id}")
+            except Exception as exc:
+                print(
+                    f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_DELETE_FAILED message_id={message_id} "
+                    f"error={type(exc).__name__} detail={str(exc)[:120]!r}"
+                )
+                try:
+                    result = _telegram_mark_deadline_unavailable(
+                        int(message_id), fields.get("title") or "پیشنهاد ویژه"
+                    )
+                    if result == "edited":
+                        print(f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_MARKED message_id={message_id}")
+                except Exception as mark_exc:
+                    print(
+                        f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_FALLBACK_FAILED message_id={message_id} "
+                        f"error={type(mark_exc).__name__} detail={str(mark_exc)[:120]!r}"
+                    )
             continue
         if not _caption_needs_repair(caption_html, caption_text, fields, deadline):
             continue
@@ -878,6 +953,98 @@ def audit_public_channel_history(published, now=None, posts=None):
 
 
 
+def _delete_posts_without_verified_deadline(published, now):
+    """Remove posts whose countdown deadline is missing, estimated, or otherwise unverifiable.
+
+    A post is kept only when it has a future deadline from DigiKala's live offer feed.
+    If deletion temporarily fails, disable the purchase button and retry deletion on
+    later cleanup runs instead of leaving an unverified offer purchasable.
+    """
+    changed = False
+    deleted = 0
+    marked = 0
+    terminal = {"deleted", "already_absent", "expired_marked"}
+    platforms = (
+        ("telegram", "telegram_message_id", "expiry_status", "deadline_unavailable_deleted_at",
+         _telegram_delete, _telegram_mark_deadline_unavailable),
+        ("bale", "bale_message_id", "bale_expiry_status", "bale_deadline_unavailable_deleted_at",
+         _bale_delete, _bale_mark_deadline_unavailable),
+    )
+    for pid, rec in published.items():
+        if not isinstance(rec, dict):
+            continue
+        raw_expiry = parse_expiry(rec.get("expires_at"))
+        if raw_expiry:
+            deadline = datetime.fromisoformat(raw_expiry)
+            if deadline.tzinfo is None:
+                deadline = deadline.replace(tzinfo=timezone.utc)
+            if deadline <= now:
+                # The normal expired-post path handles these and retries its own deletion.
+                continue
+            if (
+                rec.get("expiry_source") == "digikala_live_deals_feed"
+                and rec.get("expiry_estimated") is not True
+            ):
+                continue
+
+        for platform, id_field, status_field, stamp_field, delete_fn, mark_fn in platforms:
+            raw_id = rec.get(id_field)
+            if not str(raw_id or "").isdigit() or rec.get(status_field) in terminal:
+                continue
+            message_id = int(raw_id)
+            try:
+                outcome = delete_fn(message_id)
+                rec[status_field] = outcome
+                rec[stamp_field] = now.isoformat()
+                rec.pop(f"{platform}_deadline_unavailable_error", None)
+                changed = True
+                if outcome == "deleted":
+                    deleted += 1
+                print(
+                    f"DEADLINE_UNAVAILABLE_DELETE platform={platform} product_id={pid} "
+                    f"message_id={message_id} outcome={outcome}"
+                )
+                continue
+            except Exception as exc:
+                delete_error = f"{type(exc).__name__}: {str(exc)[:160]}"
+                rec[f"{platform}_deadline_unavailable_error"] = delete_error
+                changed = True
+                print(
+                    f"DEADLINE_UNAVAILABLE_DELETE_FAILED platform={platform} product_id={pid} "
+                    f"message_id={message_id} error={delete_error!r}"
+                )
+
+            # If already marked, keep retrying deletion without repeatedly editing the caption.
+            if rec.get(status_field) == "deadline_unavailable_marked":
+                continue
+            try:
+                outcome = mark_fn(message_id, rec.get("title"))
+                if outcome == "edited":
+                    rec[status_field] = "deadline_unavailable_marked"
+                    rec[f"{platform}_deadline_unavailable_marked_at"] = now.isoformat()
+                    marked += 1
+                    changed = True
+                    print(
+                        f"DEADLINE_UNAVAILABLE_MARKED platform={platform} product_id={pid} "
+                        f"message_id={message_id} reason=delete_failed"
+                    )
+                elif outcome == "already_absent":
+                    rec[status_field] = "already_absent"
+                    rec[stamp_field] = now.isoformat()
+                    changed = True
+            except Exception as mark_exc:
+                rec[status_field] = "deadline_unavailable_delete_failed"
+                rec[f"{platform}_deadline_unavailable_error"] = (
+                    f"{delete_error}; fallback={type(mark_exc).__name__}: {str(mark_exc)[:120]}"
+                )
+                changed = True
+                print(
+                    f"DEADLINE_UNAVAILABLE_FALLBACK_FAILED platform={platform} product_id={pid} "
+                    f"message_id={message_id} error={type(mark_exc).__name__}"
+                )
+    return changed, deleted, marked
+
+
 def _delete_expired_posts(published, now, mark_unknown=False):
     """Delete posts whose explicit deadline has passed; return state change and actual deletions."""
     changed = False
@@ -894,7 +1061,7 @@ def _delete_expired_posts(published, now, mark_unknown=False):
                 ):
                     if not str(rec.get(id_field) or "").isdigit():
                         continue
-                    if rec.get(status_field) not in {"deleted", "already_absent", "expired_marked", "unknown"}:
+                    if rec.get(status_field) not in {"deleted", "already_absent", "expired_marked", "unknown", "deadline_unavailable_marked", "deadline_unavailable_delete_failed"}:
                         rec[status_field] = "unknown"
                         changed = True
             continue
@@ -948,6 +1115,15 @@ def run():
     if pre_changed:
         _write_state(state)
         print("EXPIRY_STATE_SAVED phase=known_deadline_cleanup")
+
+    unavailable_changed, unavailable_deleted, unavailable_marked = (
+        _delete_posts_without_verified_deadline(published, now)
+    )
+    changed = changed or unavailable_changed
+    deleted += unavailable_deleted
+    if unavailable_changed:
+        _write_state(state)
+        print("EXPIRY_STATE_SAVED phase=deadline_unavailable_cleanup")
 
     history_changed, history_deleted, history_marked, history_repaired, history_expired_found = (
         audit_public_channel_history(published, now)
@@ -1041,7 +1217,7 @@ def run():
     backlog = max(0, len(probe_candidates) - min(len(probe_candidates), max_probe_candidates))
     print(
         f"EXPIRY_MONITOR_SUMMARY tracked={len(published)} probed={product_probe_count} "
-        f"probe_backlog={backlog} deleted_now={deleted} state_changed={changed}"
+        f"probe_backlog={backlog} deleted_now={deleted} deadline_unavailable_marked={unavailable_marked} state_changed={changed}"
     )
     return 0
 
