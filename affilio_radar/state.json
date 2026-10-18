@@ -1,7 +1,64 @@
 {
   "expiry_feed_last_checked_at": "2026-10-18T04:58:44.213194+00:00",
-  "last_published_at": "2026-10-18T09:50:28.401729+00:00",
-  "pending_queue": {},
+  "last_published_at": "2026-10-18T17:27:25.912774+00:00",
+  "pending_queue": {
+    "dkp-13730430": {
+      "current_price": 825000,
+      "deal_expires_at": "2026-10-18T20:30:00+00:00",
+      "demand_score": 50,
+      "discount_percent": 67,
+      "first_seen_at": "2026-10-18T17:27:22.209975+00:00",
+      "original_price": 2500000,
+      "product_id": "dkp-13730430",
+      "product_url": "https://www.digikala.com/product/dkp-13730430/",
+      "promo_score": 62,
+      "savings_toman": 1675000,
+      "title": "سفره یکبار مصرف هپی هوم مدل اقتصادی کد ۱ رول ۴۰ متری مجموعه ۸ عددی",
+      "urgent": false
+    },
+    "dkp-14380312": {
+      "current_price": 98000,
+      "deal_expires_at": "2026-10-18T20:30:00+00:00",
+      "demand_score": 62,
+      "discount_percent": 79,
+      "first_seen_at": "2026-10-18T17:27:22.209975+00:00",
+      "original_price": 462000,
+      "product_id": "dkp-14380312",
+      "product_url": "https://www.digikala.com/product/dkp-14380312/",
+      "promo_score": 68,
+      "savings_toman": 364000,
+      "title": "شربت کلسی کید جویس یوروویتال - 200 میلی لیتر",
+      "urgent": false
+    },
+    "dkp-21590676": {
+      "current_price": 2799990,
+      "deal_expires_at": "2026-10-18T20:30:00+00:00",
+      "demand_score": 43,
+      "discount_percent": 86,
+      "first_seen_at": "2026-10-18T17:27:22.209975+00:00",
+      "original_price": 20000000,
+      "product_id": "dkp-21590676",
+      "product_url": "https://www.digikala.com/product/dkp-21590676/",
+      "promo_score": 79,
+      "savings_toman": 17200010,
+      "title": "شارژر دیواری 45 وات دو پورت وونک مدل PD 45 به همراه کابل usb-c",
+      "urgent": false
+    },
+    "dkp-22783516": {
+      "current_price": 990000,
+      "deal_expires_at": "2026-10-18T20:30:00+00:00",
+      "demand_score": 48,
+      "discount_percent": 91,
+      "first_seen_at": "2026-10-18T17:27:22.209975+00:00",
+      "original_price": 11000000,
+      "product_id": "dkp-22783516",
+      "product_url": "https://www.digikala.com/product/dkp-22783516/",
+      "promo_score": 82,
+      "savings_toman": 10010000,
+      "title": "محافظ ولتاژ آی تی لینک مدل PS",
+      "urgent": false
+    }
+  },
   "published": {
     "dkp-11294389": {
       "bale_expiry_status": "tracked",
@@ -180,6 +237,29 @@
       "telegram_message_id": 44,
       "title": "ساشه منیزیم بیس گلایسینات یوروویتال - 150 میلی گرم بسته 14 عددی",
       "ts": 1792281165.0179925
+    },
+    "dkp-20073107": {
+      "bale_message_id": 23,
+      "click_tracking_url": "",
+      "delivery_attempts": {
+        "bale": 1,
+        "telegram": 1
+      },
+      "delivery_status": {
+        "bale": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "expires_at": "2026-10-18T20:30:00+00:00",
+      "expiry_estimated": false,
+      "expiry_source": "digikala_live_deals_feed",
+      "posted_current_price": 299000,
+      "posted_discount_percent": 76,
+      "posted_original_price": 1250000,
+      "product_url": "https://www.digikala.com/product/dkp-20073107/",
+      "telegram_message_id": 58,
+      "title": "کرم آبرسان تیلسیم مدل هیالورونیک اسید مناسب برای پوست‌های خشک و خیلی خشک حجم 50 میلی‌لیتر",
+      "ts": 1792344442.2142017
     },
     "dkp-20317573": {
       "bale_deadline_unavailable_deleted_at": "2026-10-18T05:13:48.670502+00:00",
