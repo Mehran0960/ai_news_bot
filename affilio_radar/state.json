@@ -1,4 +1,5 @@
 {
+  "expiry_feed_last_checked_at": "2026-10-18T03:51:51.607236+00:00",
   "last_published_at": "2026-10-18T03:35:50.644908+00:00",
   "pending_queue": {
     "dkp-11776655": {
@@ -284,6 +285,7 @@
   },
   "published": {
     "dkp-11294389": {
+      "bale_expiry_status": "tracked",
       "bale_message_id": 5,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-18T03:51:39.246118+00:00",
@@ -299,17 +301,17 @@
       "expires_at": "2026-10-18T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "posted_current_price": 93500,
       "posted_discount_percent": 80,
       "posted_original_price": 462000,
       "product_url": "https://www.digikala.com/product/dkp-11294389/",
       "telegram_message_id": 43,
       "title": "ویال خوراکی ال-کارنیتین عصاره قهوه سبز با طعم پرتقال یوروویتال بسته 6 عددی",
-      "ts": 1792279258.0249882,
-      "expiry_status": "tracked",
-      "bale_expiry_status": "tracked"
+      "ts": 1792279258.0249882
     },
     "dkp-13144140": {
+      "bale_expiry_status": "unknown",
       "bale_message_id": 17,
       "click_tracking_url": "",
       "delivery_attempts": {
@@ -323,20 +325,20 @@
       "delivery_version": 1,
       "expires_at": "",
       "expiry_estimated": false,
+      "expiry_last_probed_at": "2026-10-18T03:51:51.607236+00:00",
+      "expiry_last_product_check_at": "2026-10-18T03:51:51.607236+00:00",
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "posted_current_price": 1036300,
       "posted_discount_percent": 57,
       "posted_original_price": 2410000,
       "product_url": "https://www.digikala.com/product/dkp-13144140/",
       "telegram_message_id": 54,
       "title": "کرم ضد چروک گاتیو مدل 07 حجم 40 میلی لیتر",
-      "ts": 1792294547.5813704,
-      "expiry_status": "unknown",
-      "bale_expiry_status": "unknown",
-      "expiry_last_probed_at": "2026-10-18T03:51:51.607236+00:00",
-      "expiry_last_product_check_at": "2026-10-18T03:51:51.607236+00:00"
+      "ts": 1792294547.5813704
     },
     "dkp-15338501": {
+      "bale_expiry_status": "tracked",
       "bale_message_id": 2,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-18T03:51:39.246118+00:00",
@@ -352,18 +354,18 @@
       "expires_at": "2026-10-18T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "posted_current_price": 123200,
       "posted_discount_percent": 89,
       "posted_original_price": 1108800,
       "product_url": "https://www.digikala.com/product/dkp-15338501/",
       "telegram_message_id": 39,
       "title": "قرص زینک پلاس پابا یوروویتال بسته 60 عددی",
-      "ts": 1792273655.656562,
-      "expiry_status": "tracked",
-      "bale_expiry_status": "tracked"
+      "ts": 1792273655.656562
     },
     "dkp-19336870": {
       "click_tracking_url": "",
+      "expired_deleted_at": "2026-10-18T03:51:51.607236+00:00",
       "expires_at": "2026-10-17T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_last_probed_at": "2026-10-17T17:58:11.176149+00:00",
@@ -375,10 +377,10 @@
       "product_url": "https://www.digikala.com/product/dkp-19336870/",
       "telegram_message_id": 27,
       "title": "ژل آبرسان صورت تیلسیم مدل Hydrating مناسب برای انواع پوست حجم 50 میلی لیتر",
-      "ts": 1792200752.988051,
-      "expired_deleted_at": "2026-10-18T03:51:51.607236+00:00"
+      "ts": 1792200752.988051
     },
     "dkp-19931972": {
+      "bale_expiry_status": "tracked",
       "bale_message_id": 7,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-18T03:51:39.246118+00:00",
@@ -394,17 +396,17 @@
       "expires_at": "2026-10-18T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "posted_current_price": 188000,
       "posted_discount_percent": 76,
       "posted_original_price": 770000,
       "product_url": "https://www.digikala.com/product/dkp-19931972/",
       "telegram_message_id": 44,
       "title": "ساشه منیزیم بیس گلایسینات یوروویتال - 150 میلی گرم بسته 14 عددی",
-      "ts": 1792281165.0179925,
-      "expiry_status": "tracked",
-      "bale_expiry_status": "tracked"
+      "ts": 1792281165.0179925
     },
     "dkp-20317573": {
+      "bale_expiry_status": "unknown",
       "bale_message_id": 10,
       "click_tracking_url": "",
       "delivery_attempts": {
@@ -418,22 +420,23 @@
       "delivery_version": 1,
       "expires_at": "",
       "expiry_estimated": false,
+      "expiry_last_probed_at": "2026-10-18T03:51:51.607236+00:00",
+      "expiry_last_product_check_at": "2026-10-18T03:51:51.607236+00:00",
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "posted_current_price": 1148520,
       "posted_discount_percent": 66,
       "posted_original_price": 3378000,
       "product_url": "https://www.digikala.com/product/dkp-20317573/",
       "telegram_message_id": 47,
       "title": "جوراب ساق بلند مردانه سیرداش مدل 158 بسته 6 عددی",
-      "ts": 1792286748.271616,
-      "expiry_status": "unknown",
-      "bale_expiry_status": "unknown",
-      "expiry_last_probed_at": "2026-10-18T03:51:51.607236+00:00",
-      "expiry_last_product_check_at": "2026-10-18T03:51:51.607236+00:00"
+      "ts": 1792286748.271616
     },
     "dkp-21714680": {
+      "bale_expiry_status": "tracked",
       "bale_message_id": 8,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-18T03:52:43.903802+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -446,22 +449,21 @@
       "expires_at": "2026-10-18T04:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "posted_current_price": 5963990,
       "posted_discount_percent": 72,
       "posted_original_price": 21300000,
       "product_url": "https://www.digikala.com/product/dkp-21714680/",
       "telegram_message_id": 45,
       "title": "دوربین امنیتی تحت شبکه فضای داخلی وونک مدل M2 3mp با اتصال بی‌سیم، چرخش 360 درجه، تشخیص حرکت و مکالمه دوطرفه",
-      "ts": 1792282976.4001598,
-      "expiry_status": "tracked",
-      "bale_expiry_status": "tracked"
+      "ts": 1792282976.4001598
     },
     "dkp-21729772": {
       "click_tracking_url": "",
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-17T17:58:11.176149+00:00",
-      "expiry_last_product_check_at": "2026-10-17T17:58:11.176149+00:00",
+      "expiry_last_probed_at": "2026-10-18T03:52:53.477156+00:00",
+      "expiry_last_product_check_at": "2026-10-18T03:52:53.477156+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
       "posted_current_price": 1489000,
@@ -476,19 +478,20 @@
       "click_tracking_url": "",
       "expires_at": "",
       "expiry_estimated": false,
+      "expiry_last_probed_at": "2026-10-18T03:51:51.607236+00:00",
+      "expiry_last_product_check_at": "2026-10-18T03:51:51.607236+00:00",
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "posted_current_price": 668910,
       "posted_discount_percent": 67,
       "posted_original_price": 2027000,
       "product_url": "https://www.digikala.com/product/dkp-21766857/",
       "telegram_message_id": 34,
       "title": "جوراب ساق بلند مردانه سیرداش مدل N311 بسته 3 عددی",
-      "ts": 1792262844.4227676,
-      "expiry_status": "unknown",
-      "expiry_last_probed_at": "2026-10-18T03:51:51.607236+00:00",
-      "expiry_last_product_check_at": "2026-10-18T03:51:51.607236+00:00"
+      "ts": 1792262844.4227676
     },
     "dkp-21961802": {
+      "bale_expiry_status": "unknown",
       "bale_message_id": 16,
       "click_tracking_url": "",
       "delivery_attempts": {
@@ -502,34 +505,35 @@
       "delivery_version": 1,
       "expires_at": "",
       "expiry_estimated": false,
+      "expiry_last_probed_at": "2026-10-18T03:51:51.607236+00:00",
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "posted_current_price": 3999890,
       "posted_discount_percent": 60,
       "posted_original_price": 10000000,
       "product_url": "https://www.digikala.com/product/dkp-21961802/",
       "telegram_message_id": 53,
       "title": "هدفون ریولینک مدل RV-25 ANC",
-      "ts": 1792292660.3950355,
-      "expiry_status": "unknown",
-      "bale_expiry_status": "unknown",
-      "expiry_last_probed_at": "2026-10-18T03:51:51.607236+00:00"
+      "ts": 1792292660.3950355
     },
     "dkp-22104577": {
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-18T03:52:43.903802+00:00",
       "expires_at": "2026-10-18T04:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "posted_current_price": 1924990,
       "posted_discount_percent": 89,
       "posted_original_price": 17500000,
       "product_url": "https://www.digikala.com/product/dkp-22104577/",
       "telegram_message_id": 38,
       "title": "شارژر فندکی 50 وات دو پورت وونک مدل VC-50 به همراه کابل 1 متری USB-C",
-      "ts": 1792271766.9022224,
-      "expiry_status": "tracked"
+      "ts": 1792271766.9022224
     },
     "dkp-22134461": {
       "click_tracking_url": "",
+      "expired_deleted_at": "2026-10-18T03:51:51.607236+00:00",
       "expires_at": "2026-10-17T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_last_probed_at": "2026-10-17T17:58:11.176149+00:00",
@@ -541,10 +545,10 @@
       "product_url": "https://www.digikala.com/product/dkp-22134461/",
       "telegram_message_id": 30,
       "title": "کلروفیل مایع مکستون مدل Organic حجم 30 میلی لیتر",
-      "ts": 1792212843.5106437,
-      "expired_deleted_at": "2026-10-18T03:51:51.607236+00:00"
+      "ts": 1792212843.5106437
     },
     "dkp-22538262": {
+      "bale_expiry_status": "unknown",
       "bale_message_id": 15,
       "click_tracking_url": "",
       "delivery_attempts": {
@@ -559,6 +563,7 @@
       "expires_at": "",
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "posted_current_price": 770260,
       "posted_discount_percent": 62,
       "posted_original_price": 2027000,
@@ -566,14 +571,14 @@
       "telegram_message_id": 52,
       "title": "جوراب مردانه سیرداش مدل SRS-3397 بسته 3 عددی",
       "ts": 1792290816.5411036,
-      "expiry_status": "unknown",
-      "bale_expiry_status": "unknown"
+      "expiry_last_probed_at": "2026-10-18T03:52:53.477156+00:00",
+      "expiry_last_product_check_at": "2026-10-18T03:52:53.477156+00:00"
     },
     "dkp-22847300": {
       "click_tracking_url": "",
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-17T17:58:11.176149+00:00",
+      "expiry_last_probed_at": "2026-10-18T03:52:53.477156+00:00",
       "expiry_last_product_check_at": "2026-10-17T17:58:11.176149+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
@@ -598,14 +603,16 @@
       "posted_discount_percent": 78,
       "posted_original_price": 6900000,
       "product_url": "https://www.digikala.com/product/dkp-22879463/",
+      "telegram_expiry_last_delete_error": "HTTPError: HTTP Error 400: Bad Request",
       "telegram_message_id": 23,
       "title": "اسپیکر بلوتوثی قابل حمل مدل Luxe",
-      "ts": 1792179879.3299675,
-      "telegram_expiry_last_delete_error": "HTTPError: HTTP Error 400: Bad Request"
+      "ts": 1792179879.3299675
     },
     "dkp-5060876": {
+      "bale_expiry_status": "tracked",
       "bale_message_id": 9,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-18T03:52:43.903802+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -618,17 +625,17 @@
       "expires_at": "2026-10-18T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "posted_current_price": 1130000,
       "posted_discount_percent": 70,
       "posted_original_price": 3774200,
       "product_url": "https://www.digikala.com/product/dkp-5060876/",
       "telegram_message_id": 46,
       "title": "قرص اپتی وومن گلدن لایف بسته 60 عددی",
-      "ts": 1792284851.8147256,
-      "expiry_status": "tracked",
-      "bale_expiry_status": "tracked"
+      "ts": 1792284851.8147256
     },
     "dkp-5141204": {
+      "bale_expiry_status": "unknown",
       "bale_message_id": 12,
       "click_tracking_url": "",
       "delivery_attempts": {
@@ -643,6 +650,7 @@
       "expires_at": "",
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "posted_current_price": 1012000,
       "posted_discount_percent": 63,
       "posted_original_price": 2700000,
@@ -650,11 +658,12 @@
       "telegram_message_id": 49,
       "title": "قرص کلاژن گلد 833 میلی‌گرم حاوی کلاژن هیدرولیز نوع 1 و 3، ضد چروک و جوان‌کننده پوست، رفع تیرگی و کمک به درمان لک ناشی از آفتاب، بسته 60 عددی",
       "ts": 1792288712.0735848,
-      "expiry_status": "unknown",
-      "bale_expiry_status": "unknown"
+      "expiry_last_probed_at": "2026-10-18T03:52:53.477156+00:00",
+      "expiry_last_product_check_at": "2026-10-18T03:52:53.477156+00:00"
     },
     "dkp-5188998": {
       "click_tracking_url": "",
+      "expired_deleted_at": "2026-10-18T03:51:51.607236+00:00",
       "expires_at": "2026-10-17T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_last_probed_at": "2026-10-17T17:58:11.176149+00:00",
@@ -666,12 +675,13 @@
       "product_url": "https://www.digikala.com/product/dkp-5188998/",
       "telegram_message_id": 31,
       "title": "قرص منیزیم پلاس آیزن و ب6 بسته 60 عددی",
-      "ts": 1792227266.2216737,
-      "expired_deleted_at": "2026-10-18T03:51:51.607236+00:00"
+      "ts": 1792227266.2216737
     },
     "dkp-5420866": {
+      "bale_expiry_status": "tracked",
       "bale_message_id": 3,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-18T03:52:43.903802+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -684,15 +694,14 @@
       "expires_at": "2026-10-18T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "posted_current_price": 100000,
       "posted_discount_percent": 84,
       "posted_original_price": 627000,
       "product_url": "https://www.digikala.com/product/dkp-5420866/",
       "telegram_message_id": 41,
       "title": "کپسول ب کمپلکس یوروویتال بسته 60 عددی",
-      "ts": 1792275527.6979153,
-      "expiry_status": "tracked",
-      "bale_expiry_status": "tracked"
+      "ts": 1792275527.6979153
     },
     "dkp-5487416": {
       "click_tracking_url": "",
@@ -706,28 +715,29 @@
       "posted_discount_percent": 89,
       "posted_original_price": 1056000,
       "product_url": "https://www.digikala.com/product/dkp-5487416/",
+      "telegram_expiry_last_delete_error": "HTTPError: HTTP Error 400: Bad Request",
       "telegram_message_id": 18,
       "title": "کپسول ژلاتینی نرم زینک پلاس فلکسان بسته 60 عددی",
-      "ts": 1792172578.7475657,
-      "telegram_expiry_last_delete_error": "HTTPError: HTTP Error 400: Bad Request"
+      "ts": 1792172578.7475657
     },
     "dkp-8652977": {
       "click_tracking_url": "",
+      "expired_deleted_at": "2026-10-18T03:51:51.607236+00:00",
       "expires_at": "2026-10-17T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "deleted",
       "posted_current_price": 89000,
       "posted_discount_percent": 89,
       "posted_original_price": 792000,
       "product_url": "https://www.digikala.com/product/dkp-8652977/",
       "telegram_message_id": 35,
       "title": "قرص ویتامین ب2 بسته 60 عددی",
-      "ts": 1792267802.664866,
-      "expiry_status": "deleted",
-      "expired_deleted_at": "2026-10-18T03:51:51.607236+00:00"
+      "ts": 1792267802.664866
     },
     "dkp-8936377": {
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-18T03:52:43.903802+00:00",
       "expires_at": "2026-10-18T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_last_delete_error": "HTTPError: HTTP Error 400: Bad Request",
@@ -739,12 +749,13 @@
       "posted_discount_percent": 81,
       "posted_original_price": 1069200,
       "product_url": "https://www.digikala.com/product/dkp-8936377/",
+      "telegram_expiry_last_delete_error": "HTTPError: HTTP Error 400: Bad Request",
       "telegram_message_id": 21,
       "title": "قرص زینک پلاس یوروویتال 15 میلی گرم بسته 60 عددی",
-      "ts": 1792177942.584,
-      "telegram_expiry_last_delete_error": "HTTPError: HTTP Error 400: Bad Request"
+      "ts": 1792177942.584
     },
     "dkp-8997686": {
+      "bale_expiry_status": "tracked",
       "bale_message_id": 4,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-18T03:51:39.246118+00:00",
@@ -760,18 +771,18 @@
       "expires_at": "2026-10-18T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "posted_current_price": 144000,
       "posted_discount_percent": 81,
       "posted_original_price": 770000,
       "product_url": "https://www.digikala.com/product/dkp-8997686/",
       "telegram_message_id": 42,
       "title": "ساشه منیزیم مگا مگ - 400 فرش مورنینگ بسته 30 عددی",
-      "ts": 1792277423.1432903,
-      "expiry_status": "tracked",
-      "bale_expiry_status": "tracked"
+      "ts": 1792277423.1432903
     },
     "dkp-9360474": {
       "click_tracking_url": "",
+      "expired_deleted_at": "2026-10-18T03:51:51.607236+00:00",
       "expires_at": "2026-10-17T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_last_probed_at": "2026-10-17T17:58:11.176149+00:00",
@@ -783,8 +794,7 @@
       "product_url": "https://www.digikala.com/product/dkp-9360474/",
       "telegram_message_id": 26,
       "title": "کپسول سی ال ای 1000 یوروویتال بسته 30 عددی",
-      "ts": 1792193775.4111774,
-      "expired_deleted_at": "2026-10-18T03:51:51.607236+00:00"
+      "ts": 1792193775.4111774
     },
     "dkp-9952752": {
       "click_tracking_url": "",
@@ -792,15 +802,14 @@
       "expires_at": "2026-10-18T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "posted_current_price": 161000,
       "posted_discount_percent": 90,
       "posted_original_price": 1663200,
       "product_url": "https://www.digikala.com/product/dkp-9952752/",
       "telegram_message_id": 36,
       "title": "قرص اکوفاین یوروویتال بسته 60 عددی",
-      "ts": 1792269711.5469697,
-      "expiry_status": "tracked"
+      "ts": 1792269711.5469697
     }
-  },
-  "expiry_feed_last_checked_at": "2026-10-18T03:51:51.607236+00:00"
+  }
 }
