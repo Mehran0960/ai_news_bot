@@ -303,7 +303,7 @@
         return TRACKER + "/p/" + encodeURIComponent(id) + "?u=" + encodeURIComponent(affiliateUrl);
       }
       function imageOrEmoji(product){
-        if(product.image_url) return '<img src="' + escapeHtml(product.image_url) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><span class="fallback-art" style="display:none">🛍️</span>';
+        if(product.image_url) return '<img src="' + escapeHtml(product.image_url) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="fallback-art" style="display:none">🛍️</span>';
         return '<span class="fallback-art">🛍️</span>';
       }
       function escapeHtml(value){
