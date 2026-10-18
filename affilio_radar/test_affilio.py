@@ -604,7 +604,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b><u>💚 قیمت ویژه: 💰 ۵۰۰٬۰۰۰ تومان</u></b>", caption)
         self.assertIn("<b><u>⚡️ ۲۹٪ تخفیف</u></b>", caption)
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
-        self.assertIn("<b>⏳ زمان باقی‌مانده: ", caption)
+        self.assertIn("<b>⏳ ", caption)
+        self.assertIn("مانده به پایان تخفیف</b>", caption)
         self.assertIn("<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>", caption)
         self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', caption)
         self.assertLess(caption.index("عضویت در کانال"), caption.index("برای دیدن جزئیات"))
@@ -705,8 +706,22 @@ class AffilioRadarTests(unittest.TestCase):
 
     def test_countdown_formats_hours_minutes_and_expired_deadlines(self):
         now = datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc)
-        self.assertEqual(format_remaining_time("2026-10-18T12:17:20+00:00", now), "۰۲:۱۸")
-        self.assertEqual(format_remaining_time("2026-10-18T10:00:15+00:00", now), "۰۰:۰۱")
+        self.assertEqual(
+            format_remaining_time("2026-10-18T12:17:20+00:00", now),
+            "۲ ساعت و ۱۸ دقیقه مانده به پایان تخفیف",
+        )
+        self.assertEqual(
+            format_remaining_time("2026-10-18T10:00:15+00:00", now),
+            "۱ دقیقه مانده به پایان تخفیف",
+        )
+        self.assertEqual(
+            format_remaining_time("2026-10-18T11:00:00+00:00", now),
+            "۱ ساعت مانده به پایان تخفیف",
+        )
+        self.assertEqual(
+            format_remaining_time("2026-10-18T10:43:20+00:00", now),
+            "۴۴ دقیقه مانده به پایان تخفیف",
+        )
         self.assertEqual(format_remaining_time("2026-10-18T09:59:59+00:00", now), "مهلت آفر به پایان رسیده")
         self.assertEqual(format_remaining_time("", now), "")
 
