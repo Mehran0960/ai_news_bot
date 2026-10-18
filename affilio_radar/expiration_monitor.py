@@ -8,6 +8,7 @@ Unavailable price/feed data alone never triggers deletion.
 """
 from __future__ import annotations
 
+import html
 import json
 import os
 import re
@@ -15,6 +16,9 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlencode
+from zoneinfo import ZoneInfo
+
+from bs4 import BeautifulSoup
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
@@ -375,9 +379,10 @@ def _write_state(state):
 
 
 def _should_probe(record, now):
-    telegram_done = record.get("expiry_status") in {"deleted", "already_absent"}
+    terminal = {"deleted", "already_absent", "expired_marked"}
+    telegram_done = record.get("expiry_status") in terminal
     bale_message_id = record.get("bale_message_id")
-    bale_done = record.get("bale_expiry_status") in {"deleted", "already_absent"}
+    bale_done = record.get("bale_expiry_status") in terminal
     if telegram_done and (not str(bale_message_id or "").isdigit() or bale_done):
         return False
     if record.get("expires_at") and not record.get("expiry_estimated"):
@@ -476,6 +481,403 @@ def _bale_delete(message_id):
 
 
 
+PERSIAN_MONTHS = {
+    "فروردین": 1, "اردیبهشت": 2, "خرداد": 3, "تیر": 4,
+    "مرداد": 5, "شهریور": 6, "مهر": 7, "آبان": 8,
+    "آذر": 9, "دی": 10, "بهمن": 11, "اسفند": 12,
+}
+PERSIAN_TO_ASCII = str.maketrans(
+    "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩",
+    "01234567890123456789",
+)
+PUBLIC_HISTORY_MAX_PAGES = max(1, min(10, int(os.getenv("AFFILIO_PUBLIC_HISTORY_PAGES", "6"))))
+TELEGRAM_CHANNEL_USERNAME = CHAT_ID.lstrip("@") if CHAT_ID.startswith("@") else "OfferChin"
+
+
+def _normalize_digits(value):
+    return str(value or "").translate(PERSIAN_TO_ASCII)
+
+
+def jalali_to_gregorian(jy, jm, jd):
+    """Convert a Solar Hijri date to Gregorian."""
+    jy += 1595
+    days = -355668 + (365 * jy) + (jy // 33) * 8 + ((jy % 33 + 3) // 4) + jd
+    if jm < 7:
+        days += (jm - 1) * 31
+    else:
+        days += (jm - 7) * 30 + 186
+    gy = 400 * (days // 146097)
+    days %= 146097
+    if days > 36524:
+        gy += 100 * ((days - 1) // 36524)
+        days = (days - 1) % 36524
+        if days >= 365:
+            days += 1
+    gy += 4 * (days // 1461)
+    days %= 1461
+    if days > 365:
+        gy += (days - 1) // 365
+        days = (days - 1) % 365
+    gd = days + 1
+    leap = gy % 4 == 0 and (gy % 100 != 0 or gy % 400 == 0)
+    month_lengths = [31, 29 if leap else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    gm = 1
+    while gm <= 12 and gd > month_lengths[gm - 1]:
+        gd -= month_lengths[gm - 1]
+        gm += 1
+    if gm > 12:
+        raise ValueError("Invalid Jalali date")
+    return gy, gm, gd
+
+
+def extract_jalali_deadline(caption_text):
+    """Extract an explicit absolute deadline from older Persian-language captions."""
+    text = _normalize_digits(caption_text).replace("\u00a0", " ")
+    month_pattern = "|".join(PERSIAN_MONTHS.keys())
+    pattern = re.compile(
+        rf"(?:پایان\s*(?:تخفیف|آفر)|اتمام\s*(?:تخفیف|آفر)|مهلت\s*(?:تخفیف|آفر))"
+        rf"\s*[:：]?\s*"
+        rf"(?:(?:شنبه|یکشنبه|دوشنبه|سه‌شنبه|چهارشنبه|پنجشنبه|جمعه)\s+)?"
+        rf"(\d{{1,2}})\s+({month_pattern})\s+(\d{{4}})"
+        rf"\s*[,،]?\s*ساعت\s*(\d{{1,2}})[:٫](\d{{2}})"
+    )
+    match = pattern.search(text)
+    if not match:
+        return None
+    day, month_name, year, hour, minute = match.groups()
+    day, month, year, hour, minute = int(day), PERSIAN_MONTHS[month_name], int(year), int(hour), int(minute)
+    if not 1 <= day <= (31 if month <= 6 else 30) or not 0 <= hour <= 23 or not 0 <= minute <= 59:
+        return None
+    try:
+        gy, gm, gd = jalali_to_gregorian(year, month, day)
+        tehran = datetime(gy, gm, gd, hour, minute, tzinfo=ZoneInfo("Asia/Tehran"))
+        return tehran.astimezone(timezone.utc)
+    except (ValueError, OverflowError, OSError):
+        return None
+
+
+def _persian_number(value):
+    return f"{int(value):,}".translate(str.maketrans("0123456789,", "۰۱۲۳۴۵۶۷۸۹٬"))
+
+
+def _remaining_label(deadline, now):
+    seconds = (deadline - now).total_seconds()
+    if seconds <= 0:
+        return "مهلت آفر به پایان رسیده"
+    minutes = max(1, int((seconds + 59) // 60))
+    hours, mins = divmod(minutes, 60)
+    if hours and mins:
+        return f"{_persian_number(hours)} ساعت و {_persian_number(mins)} دقیقه"
+    if hours:
+        return f"{_persian_number(hours)} ساعت"
+    return f"{_persian_number(mins)} دقیقه"
+
+
+def _extract_legacy_caption_fields(caption_text):
+    """Read the core fields needed to safely rebuild a legacy caption."""
+    text = " ".join(str(caption_text or "").split())
+    title_match = re.search(r"🛍️\s*(.+?)\s*(?=💚\s*قیمت\s*ویژه)", text)
+    title = title_match.group(1).strip(" :：") if title_match else ""
+    text = _normalize_digits(text)
+    current_match = re.search(r"قیمت\s*ویژه\s*[:：]\s*(?:💰\s*)?([\d٬,٫\s]+?)\s*تومان", text)
+    original_match = re.search(r"قیمت\s*اصلی\s*[:：]\s*([\d٬,٫\s]+?)\s*تومان", text)
+    discount_match = re.search(r"(\d{1,3})\s*٪\s*تخفیف", text)
+
+    def as_int(match):
+        if not match:
+            return None
+        raw = re.sub(r"\D", "", match.group(1))
+        try:
+            return int(raw) if raw else None
+        except (TypeError, ValueError):
+            return None
+
+    return {
+        "title": title,
+        "current_price": as_int(current_match),
+        "original_price": as_int(original_match),
+        "discount_percent": as_int(discount_match),
+    }
+
+
+def _build_legacy_repaired_caption(fields, deadline, now):
+    """Rebuild a pre-tracker caption with the current link, underline, and countdown format."""
+    title = html.escape(str(fields.get("title") or "پیشنهاد ویژه").strip())
+    parts = [
+        "<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>",
+        "",
+        f"<b>🛍️ {title}</b>",
+        "",
+    ]
+    current = fields.get("current_price")
+    original = fields.get("original_price")
+    discount = fields.get("discount_percent")
+    if current:
+        parts.append(f"<b><u>💚 قیمت ویژه: 💰 {_persian_number(current)} تومان</u></b>")
+    if discount:
+        parts.append(f"<b><u>⚡️ {_persian_number(discount)}٪ تخفیف</u></b>")
+    if original and current and original > current:
+        parts += ["", f"<b>🏷️ قیمت اصلی: <s>{_persian_number(original)} تومان</s></b>"]
+    if deadline:
+        parts += ["", f"<b>⏳ زمان باقی‌مانده: {_remaining_label(deadline, now)}</b>"]
+    parts += [
+        "",
+        '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>',
+        "",
+        "<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>",
+    ]
+    caption = "\n".join(parts)
+    if len(caption) > 1024:
+        parts[2] = f"<b>🛍️ {html.escape(str(fields.get('title') or 'پیشنهاد ویژه')[:90])}…</b>"
+        caption = "\n".join(parts)
+    return caption
+
+
+def _caption_needs_repair(caption_html, caption_text, fields, deadline):
+    """Avoid re-editing a legacy message once the desired formatting is already present."""
+    if "عضویت در کانال OfferChin" not in caption_text or "t.me/OfferChin" in caption_text:
+        return True
+    soup = BeautifulSoup(caption_html or "", "html.parser")
+    underline_texts = [" ".join(node.get_text(" ", strip=True).split()) for node in soup.find_all("u")]
+    current = fields.get("current_price")
+    discount = fields.get("discount_percent")
+    if current:
+        expected_amount = _persian_number(current)
+        if not any("قیمت ویژه" in value and "تومان" in value and expected_amount in value for value in underline_texts):
+            return True
+    if discount:
+        expected_discount = _persian_number(discount) + "٪"
+        if not any("⚡️" in value and "تخفیف" in value and expected_discount in value for value in underline_texts):
+            return True
+    if deadline and "زمان باقی‌مانده" not in caption_text:
+        return True
+    if "پایان تخفیف" in caption_text:
+        return True
+    return False
+
+
+def _fetch_public_channel_page(before=None):
+    username = re.sub(r"[^A-Za-z0-9_]", "", TELEGRAM_CHANNEL_USERNAME) or "OfferChin"
+    url = f"https://t.me/s/{username}"
+    if before:
+        url += f"?before={int(before)}"
+    request = Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 (compatible; OfferChinExpiryBot/1.0)",
+            "Accept": "text/html,application/xhtml+xml",
+        },
+    )
+    with urlopen(request, timeout=HTTP_TIMEOUT) as response:
+        raw = response.read(4_000_001)
+    if len(raw) > 4_000_000:
+        raise RuntimeError("Telegram public history page exceeded 4 MB")
+    soup = BeautifulSoup(raw.decode("utf-8", errors="replace"), "html.parser")
+    results = {}
+    for wrap in soup.select(".tgme_widget_message_wrap"):
+        node = wrap.select_one(".tgme_widget_message") or wrap
+        post_ref = str(node.get("data-post") or wrap.get("data-post") or "")
+        id_match = re.search(r"/(\d+)$", post_ref)
+        if not id_match:
+            continue
+        message_id = int(id_match.group(1))
+        caption_node = wrap.select_one(".tgme_widget_message_text")
+        caption_text = caption_node.get_text(" ", strip=True) if caption_node else ""
+        caption_html = caption_node.decode_contents() if caption_node else ""
+        results[message_id] = {
+            "message_id": message_id,
+            "caption_text": caption_text,
+            "caption_html": caption_html,
+        }
+    return results
+
+
+def fetch_public_channel_posts(max_pages=None):
+    """Fetch public-channel history by paging backward from Telegram's public preview."""
+    max_pages = max_pages or PUBLIC_HISTORY_MAX_PAGES
+    all_posts = {}
+    before = None
+    last_oldest = None
+    for page in range(1, max_pages + 1):
+        try:
+            page_posts = _fetch_public_channel_page(before)
+        except Exception as exc:
+            print(f"PUBLIC_HISTORY_PAGE_FAILED page={page} error={type(exc).__name__} detail={str(exc)[:120]!r}")
+            if page == 1:
+                raise
+            break
+        if not page_posts:
+            print(f"PUBLIC_HISTORY_PAGE_EMPTY page={page} before={before or 'latest'}")
+            break
+        all_posts.update(page_posts)
+        oldest = min(page_posts)
+        print(f"PUBLIC_HISTORY_PAGE_OK page={page} messages={len(page_posts)} oldest_id={oldest} newest_id={max(page_posts)}")
+        if oldest <= 1 or oldest == last_oldest:
+            break
+        last_oldest = oldest
+        before = oldest
+        time.sleep(0.15)
+    print(f"PUBLIC_HISTORY_SUMMARY messages_scanned={len(all_posts)} pages_limit={max_pages}")
+    return all_posts
+
+
+def _telegram_edit_caption(message_id, caption, remove_purchase_button=False):
+    """Edit a public channel caption while retaining or removing its purchase button."""
+    if not BOT_TOKEN:
+        raise RuntimeError("TELEGRAM_BOT_TOKEN missing")
+    payload = {
+        "chat_id": CHAT_ID,
+        "message_id": int(message_id),
+        "caption": caption,
+        "parse_mode": "HTML",
+    }
+    if remove_purchase_button:
+        payload["reply_markup"] = json.dumps({"inline_keyboard": []})
+    endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/editMessageCaption"
+    for attempt in range(4):
+        request = Request(
+            endpoint,
+            data=urlencode(payload).encode("utf-8"),
+            method="POST",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        try:
+            with urlopen(request, timeout=HTTP_TIMEOUT) as response:
+                result = _decode_delete_response(response)
+        except HTTPError as exc:
+            description = _delete_error_description(exc)
+            if _is_message_absent(description):
+                return "already_absent"
+            if "retry after" in description.lower() and attempt < 3:
+                wait_match = re.search(r"retry after\s+(\d+)", description.lower())
+                pause = min(60, int(wait_match.group(1)) if wait_match else 5)
+                print(f"TELEGRAM_HISTORY_EDIT_RATE_LIMIT message_id={message_id} retry_after={pause}s")
+                time.sleep(pause + 1)
+                continue
+            raise RuntimeError(description) from None
+        if result.get("ok"):
+            return "edited"
+        description = str(result.get("description") or "Telegram editMessageCaption failed")
+        if _is_message_absent(description):
+            return "already_absent"
+        if "retry after" in description.lower() and attempt < 3:
+            wait_match = re.search(r"retry after\s+(\d+)", description.lower())
+            pause = min(60, int(wait_match.group(1)) if wait_match else 5)
+            time.sleep(pause + 1)
+            continue
+        raise RuntimeError(description[:180])
+    raise RuntimeError("Telegram editMessageCaption retry limit reached")
+
+
+def _telegram_mark_expired(message_id, title):
+    title = html.escape(str(title or "پیشنهاد ویژه").strip()[:140])
+    caption = (
+        "<b>⛔ مهلت این آفر به پایان رسیده و دکمهٔ خرید غیرفعال شده است.</b>\n\n"
+        f"<b>🛍️ {title}</b>\n\n"
+        '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>'
+    )
+    return _telegram_edit_caption(message_id, caption, remove_purchase_button=True)
+
+
+def audit_public_channel_history(published, now=None, posts=None):
+    """Delete expired untracked public posts and repair active legacy captions in place."""
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    now = now.astimezone(timezone.utc)
+    try:
+        posts = posts if posts is not None else fetch_public_channel_posts()
+    except Exception as exc:
+        print(f"PUBLIC_HISTORY_SCAN_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
+        return False, 0, 0, 0, 0
+
+    tracked_by_message_id = {}
+    for product_id, record in (published or {}).items():
+        if isinstance(record, dict) and str(record.get("telegram_message_id") or "").isdigit():
+            tracked_by_message_id[int(record["telegram_message_id"])] = record
+
+    changed = False
+    deleted = marked_expired = reformatted = found_expired = 0
+    for message_id, post in sorted(posts.items()):
+        caption_text = str(post.get("caption_text") or "")
+        caption_html = str(post.get("caption_html") or "")
+        if not caption_text.strip():
+            continue
+        deadline = extract_jalali_deadline(caption_text)
+        record = tracked_by_message_id.get(int(message_id))
+        if deadline and deadline <= now:
+            found_expired += 1
+            outcome = ""
+            delete_error = ""
+            try:
+                outcome = _telegram_delete(int(message_id))
+            except Exception as exc:
+                delete_error = f"{type(exc).__name__}: {str(exc)[:180]}"
+                print(f"PUBLIC_HISTORY_DELETE_FAILED message_id={message_id} error={delete_error!r}")
+            if outcome == "deleted":
+                deleted += 1
+                print(f"PUBLIC_HISTORY_EXPIRED_DELETED message_id={message_id} expiry={deadline.isoformat()}")
+                if record is not None:
+                    record["expiry_status"] = "deleted"
+                    record["expired_deleted_at"] = now.isoformat()
+                    changed = True
+                continue
+
+            # The public page confirms the post is present; if deletion is rejected, disable its buy button.
+            try:
+                marked = _telegram_mark_expired(
+                    int(message_id),
+                    record.get("title") if record else _extract_legacy_caption_fields(caption_text).get("title"),
+                )
+                if marked == "edited":
+                    marked_expired += 1
+                    print(f"PUBLIC_HISTORY_EXPIRED_MARKED message_id={message_id} reason=delete_rejected_or_api_disagreement")
+                    if record is not None:
+                        record["expiry_status"] = "expired_marked"
+                        record["expired_marked_at"] = now.isoformat()
+                        record["expiry_last_delete_error"] = delete_error or "Delete API reported absent while public history still showed the post"
+                        changed = True
+                elif marked == "already_absent":
+                    print(f"PUBLIC_HISTORY_API_ABSENT message_id={message_id} public_preview_may_be_stale")
+                    if record is not None:
+                        record["expiry_status"] = "already_absent"
+                        changed = True
+            except Exception as exc:
+                print(f"PUBLIC_HISTORY_MARK_EXPIRED_FAILED message_id={message_id} error={type(exc).__name__} detail={str(exc)[:140]!r}")
+                if record is not None:
+                    record["expiry_status"] = "delete_failed"
+                    record["expiry_last_delete_error"] = delete_error or f"{type(exc).__name__}: {str(exc)[:140]}"
+                    changed = True
+            continue
+
+        # Tracked messages get the full repair in the dedicated bulk-caption pass.
+        if record is not None:
+            continue
+        fields = _extract_legacy_caption_fields(caption_text)
+        if not fields.get("title") or not fields.get("current_price") or not fields.get("discount_percent"):
+            continue
+        if not _caption_needs_repair(caption_html, caption_text, fields, deadline):
+            continue
+        caption = _build_legacy_repaired_caption(fields, deadline, now)
+        try:
+            result = _telegram_edit_caption(int(message_id), caption)
+            if result == "edited":
+                reformatted += 1
+                print(f"PUBLIC_HISTORY_CAPTION_REPAIRED message_id={message_id}")
+            elif result == "already_absent":
+                print(f"PUBLIC_HISTORY_CAPTION_UNAVAILABLE message_id={message_id} reason=message_not_found")
+        except Exception as exc:
+            print(f"PUBLIC_HISTORY_CAPTION_REPAIR_FAILED message_id={message_id} error={type(exc).__name__} detail={str(exc)[:140]!r}")
+
+    print(
+        "PUBLIC_HISTORY_AUDIT_SUMMARY "
+        f"messages_scanned={len(posts)} expired_found={found_expired} deleted={deleted} "
+        f"marked_expired={marked_expired} active_captions_repaired={reformatted}"
+    )
+    return changed, deleted, marked_expired, reformatted, found_expired
+
+
+
 def _delete_expired_posts(published, now, mark_unknown=False):
     """Delete posts whose explicit deadline has passed; return state change and actual deletions."""
     changed = False
@@ -492,7 +894,7 @@ def _delete_expired_posts(published, now, mark_unknown=False):
                 ):
                     if not str(rec.get(id_field) or "").isdigit():
                         continue
-                    if rec.get(status_field) not in {"deleted", "already_absent", "unknown"}:
+                    if rec.get(status_field) not in {"deleted", "already_absent", "expired_marked", "unknown"}:
                         rec[status_field] = "unknown"
                         changed = True
             continue
@@ -512,7 +914,7 @@ def _delete_expired_posts(published, now, mark_unknown=False):
             ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete),
         ):
             raw_id = rec.get(id_field)
-            if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent"}:
+            if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent", "expired_marked"}:
                 continue
             try:
                 outcome = delete_fn(int(raw_id))
@@ -547,12 +949,21 @@ def run():
         _write_state(state)
         print("EXPIRY_STATE_SAVED phase=known_deadline_cleanup")
 
+    history_changed, history_deleted, history_marked, history_repaired, history_expired_found = (
+        audit_public_channel_history(published, now)
+    )
+    changed = changed or history_changed
+    deleted += history_deleted
+    if history_changed:
+        _write_state(state)
+        print("EXPIRY_STATE_SAVED phase=public_history_audit")
+
     probe_candidates = [
         (pid, rec) for pid, rec in published.items()
         if isinstance(rec, dict)
         and (
-            (str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent"})
-            or (str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"})
+            (str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent", "expired_marked"})
+            or (str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent", "expired_marked"})
         )
         and _should_probe(rec, now)
     ]
