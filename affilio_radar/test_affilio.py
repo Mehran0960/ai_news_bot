@@ -19,6 +19,8 @@ from affilio_radar import (
     is_offer_expired,
     has_verified_deal_deadline,
     is_urgent_priority_deal,
+    is_preferred_publication_time,
+    preferred_publication_window,
     pending_queue_sort_key,
     refresh_pending_queue,
     parse_product_page,
@@ -370,6 +372,26 @@ class AffilioRadarTests(unittest.TestCase):
             "affiliate_url": "https://example.com/tracked-link",
         }
         self.assertFalse(is_discount_publish_eligible(product))
+
+    def test_preferred_posting_windows_use_iran_local_time(self):
+        self.assertEqual(
+            preferred_publication_window(datetime(2026, 10, 18, 5, 30, tzinfo=timezone.utc)),
+            "morning",
+        )
+        self.assertEqual(
+            preferred_publication_window(datetime(2026, 10, 18, 10, 30, tzinfo=timezone.utc)),
+            "afternoon",
+        )
+        self.assertEqual(
+            preferred_publication_window(datetime(2026, 10, 18, 16, 30, tzinfo=timezone.utc)),
+            "evening",
+        )
+        self.assertTrue(is_preferred_publication_time(datetime(2026, 10, 18, 5, 30, tzinfo=timezone.utc)))
+        self.assertFalse(is_preferred_publication_time(datetime(2026, 10, 18, 7, 30, tzinfo=timezone.utc)))
+        self.assertEqual(
+            preferred_publication_window(datetime(2026, 10, 18, 19, 30, tzinfo=timezone.utc)),
+            "quiet_hours",
+        )
 
     def test_urgent_priority_is_limited_to_strong_soon_expiring_offers(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
