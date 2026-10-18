@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Delete OfferChin deal posts after a verified DigiKala offer deadline.
+"""Keep OfferChin deal posts live only when their absolute deadline is verified.
 
-This monitor is intentionally conservative: it deletes only messages that have an
-explicit expiry timestamp (from DigiKala's live Incredible Offers feed or an
-explicitly marked approximate deadline already recorded for a manually sent post).
-Unavailable price/feed data alone never triggers deletion.
+Expired offers and posts whose deadlines are missing, estimated, or otherwise
+unverifiable are deleted from Telegram and Bale. If deletion temporarily fails,
+the purchase button is disabled where possible and deletion is retried on later
+cleanup runs. Public-history auditing also removes legacy offer captions without
+a recoverable absolute deadline while preserving ordinary channel announcements.
 """
 from __future__ import annotations
 
