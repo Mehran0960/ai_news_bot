@@ -17,6 +17,7 @@ import statistics
 import sys
 import time
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from urllib.parse import parse_qs, quote, urlencode, urljoin, urlsplit, urlunsplit
 
@@ -63,6 +64,8 @@ URGENT_MIN_POST_INTERVAL_MINUTES = 10
 URGENT_MIN_DISCOUNT_PERCENT = 80
 URGENT_MIN_SAVINGS_TOMAN = 500_000
 URGENT_MIN_DEMAND_SCORE = 55
+IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
+PREFERRED_POSTING_WINDOWS = (("morning", 9, 11), ("afternoon", 14, 17), ("evening", 20, 23))
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "3"))))
 MIN_DISCOUNT_PERCENT = max(1, min(90, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "20"))))
 MIN_SAVINGS_TOMAN = max(0, int(os.getenv("AFFILIO_MIN_SAVINGS_TOMAN", "100000")))
@@ -2385,7 +2388,7 @@ def build_caption(
     if expiry:
         parts += ["", bold(f"⏳ {expiry}")]
 
-    detail_line = bold("👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.")
+    detail_line = bold("👇 برای مشاهدهٔ قیمت و خرید، دکمهٔ زیر رو بزن.")
     parts += ["", channel_footer, "", detail_line]
     caption = "\n".join(parts)
     footer = f"\n\n{channel_footer}\n\n{detail_line}"
@@ -3155,6 +3158,23 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
     return queue
 
 
+def preferred_publication_window(now: datetime | None = None) -> str:
+    """Return the preferred audience window using Iran local time; otherwise quiet_hours."""
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    local_now = now.astimezone(IRAN_TIMEZONE)
+    for name, start_hour, end_hour in PREFERRED_POSTING_WINDOWS:
+        if start_hour <= local_now.hour < end_hour:
+            return name
+    return "quiet_hours"
+
+
+def is_preferred_publication_time(now: datetime | None = None) -> bool:
+    """Regular posts are limited to the three broad Iran-time audience windows."""
+    return preferred_publication_window(now) != "quiet_hours"
+
+
 def _last_post_timestamp(state):
     try:
         previous = datetime.fromisoformat(str(state.get("last_published_at", "")))
@@ -3369,10 +3389,21 @@ def run(publish=False):
     last_post = _last_post_timestamp(state)
     cooldown_remaining = -1 if FORCE_POST_COOLDOWN_BYPASS else MIN_POST_INTERVAL_HOURS * 3600 - (now - last_post)
     now_utc = datetime.fromtimestamp(now, tz=timezone.utc)
+    local_now = now_utc.astimezone(IRAN_TIMEZONE)
+    posting_window = preferred_publication_window(now_utc)
+    regular_window_open = posting_window != "quiet_hours"
+    print(
+        f"POSTING_WINDOW iran_time={local_now.strftime('%H:%M')} "
+        f"window={posting_window} regular_allowed={regular_window_open}"
+    )
     urgent_candidate = next((p for p in eligible if is_urgent_priority_deal(p, now_utc)), None)
-    urgent_cooldown_bypass = bool(
+    urgent_override_allowed = bool(
         urgent_candidate
         and now - last_post >= URGENT_MIN_POST_INTERVAL_MINUTES * 60
+    )
+    urgent_cooldown_bypass = bool(
+        cooldown_remaining > 0
+        and urgent_override_allowed
         and not FORCE_POST_COOLDOWN_BYPASS
     )
     if cooldown_remaining > 0:
@@ -3384,8 +3415,15 @@ def run(publish=False):
             f"URGENT_PRIORITY_COOLDOWN_BYPASS id={urgent_candidate.get('product_id')} "
             f"deadline_minutes={deadline_minutes} minimum_spacing_minutes={URGENT_MIN_POST_INTERVAL_MINUTES}"
         )
-    elif cooldown_remaining > 0 and urgent_candidate:
+    elif cooldown_remaining > 0 and urgent_candidate and not urgent_override_allowed:
         print(f"URGENT_PRIORITY_WAIT minimum_spacing_minutes={URGENT_MIN_POST_INTERVAL_MINUTES}")
+    if not regular_window_open and urgent_override_allowed:
+        expiry_utc = _parse_utc_datetime(_parse_deal_expiry_value(urgent_candidate.get("deal_expires_at")))
+        deadline_minutes = int((expiry_utc - now_utc).total_seconds() / 60) if expiry_utc else -1
+        print(
+            f"QUIET_HOURS_URGENT_OVERRIDE id={urgent_candidate.get('product_id')} "
+            f"deadline_minutes={deadline_minutes}"
+        )
 
     if publish and CLEAR_PREVIOUS_CHANNEL_POSTS:
         if not BATCH_OPERATION_KEY or state.get("cleanup_batch_operation") != BATCH_OPERATION_KEY:
@@ -3411,6 +3449,8 @@ def run(publish=False):
             "minimum-discount, and future verified-deadline checks; unverified deals are held "
             "and previously published products remain on product cooldown."
         )
+    elif not regular_window_open and not urgent_override_allowed and not FORCE_POST_COOLDOWN_BYPASS:
+        print("PUBLISH_BLOCKED: quiet hours in Iran; regular offer retained for the next audience window.")
     elif cooldown_remaining > 0 and not urgent_cooldown_bypass:
         print("PUBLISH_BLOCKED: global posting cooldown active; queue retained.")
     else:
