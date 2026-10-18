@@ -2200,7 +2200,7 @@ def unicode_underline(value: str) -> str:
 
 
 def format_remaining_time(value, now: datetime | None = None) -> str:
-    """Display remaining offer time as a compact Persian HH:MM countdown, rounded up to a minute."""
+    """Render the remaining offer time in Persian hours/minutes, rounded up to a minute."""
     deadline = _parse_utc_datetime(value)
     if deadline is None:
         return ""
@@ -2213,7 +2213,12 @@ def format_remaining_time(value, now: datetime | None = None) -> str:
         return "مهلت آفر به پایان رسیده"
     remaining_minutes = max(1, math.ceil(remaining_seconds / 60))
     hours, minutes = divmod(remaining_minutes, 60)
-    return f"{format_persian_number(hours).rjust(2, '۰')}:{format_persian_number(minutes).rjust(2, '۰')}"
+    duration = []
+    if hours:
+        duration.append(f"{format_persian_number(hours)} ساعت")
+    if minutes:
+        duration.append(f"{format_persian_number(minutes)} دقیقه")
+    return f"{' و '.join(duration)} مانده به پایان تخفیف"
 
 
 def _escape_bale_markdown(value: str) -> str:
@@ -2280,7 +2285,7 @@ def build_caption(
         else:
             parts += ["", f"<b>🏷️ قیمت اصلی: <s>{original_amount} تومان</s></b>"]
     if expiry:
-        parts += ["", bold(f"⏳ زمان باقی‌مانده: {expiry}")]
+        parts += ["", bold(f"⏳ {expiry}")]
 
     detail_line = bold("👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.")
     parts += ["", channel_footer, "", detail_line]
@@ -2739,8 +2744,8 @@ def repair_all_published_captions() -> int:
                 detail = re.sub(r"https?://\S+", "[url]", detail)[:120]
                 detail_suffix = f" detail={detail!r}" if detail else ""
                 print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}{detail_suffix}")
-            if platform == "telegram":
-                time.sleep(3.1)
+            # Conservative pacing on both APIs; Telegram is kept well below one edit/second.
+            time.sleep(3.1 if platform == "telegram" else 1.1)
 
     print(
         "CAPTION_REPAIR_SUMMARY "
@@ -2754,7 +2759,7 @@ def repair_all_published_captions() -> int:
 
 
 def refresh_active_countdowns() -> int:
-    """Edit active, deadline-verified captions in place so their HH:MM countdown stays current."""
+    """Edit active, deadline-verified captions in place so their readable hours/minutes countdown stays current."""
     force_refresh = str(os.getenv("AFFILIO_COUNTDOWN_REFRESH_FORCE", "false")).strip().lower() in {"1", "true", "yes", "on"}
     state = load_state()
     published = state.get("published", {})
