@@ -615,7 +615,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("پشتیبانی کانال", caption)
         self.assertNotIn("لینک خرید همکاری در فروش است", caption)
         self.assertLess(caption.index("💚 قیمت ویژه"), caption.index("⚡️"))
-        self.assertLess(caption.index("💰 ۵۰۰٬۰۰۰ تومان"), caption.index("⚡️"))
+        self.assertLess(caption.index("💰 <u>۵۰۰٬۰۰۰</u> تومان"), caption.index("⚡️"))
         self.assertLess(caption.index("⚡️"), caption.index("🏷️ قیمت اصلی"))
         self.assertLess(caption.index("🏷️ قیمت اصلی"), caption.index("⏳ زمان باقی‌مانده"))
         self.assertLessEqual(len(caption), 1024)
@@ -710,7 +710,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(format_remaining_time("", now), "")
 
     def test_unicode_underline_marks_visible_characters(self):
-        self.assertEqual(unicode_underline("۱۲۳"), "۱\\u0332۲\\u0332۳\\u0332")
+        self.assertEqual(unicode_underline("۱۲۳"), "۱\u0332۲\u0332۳\u0332")
 
     def test_refresh_active_countdowns_updates_verified_posts_in_place(self):
         expiry = (datetime.now(timezone.utc) + timedelta(hours=2, minutes=17)).isoformat()
