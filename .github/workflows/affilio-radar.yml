@@ -35,7 +35,7 @@ on:
         type: boolean
         default: false
   schedule:
-    # Scan all selected feed pages every five minutes; countdown and cleanup stay independent.
+    # Scan all selected feed pages every five minutes. Expiry cleanup is schedule/manual-only to avoid code-push contention.
     - cron: "2-59/5 * * * *"
 
 permissions:
