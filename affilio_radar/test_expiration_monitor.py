@@ -2,6 +2,8 @@ import json
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
+from io import BytesIO
+from urllib.error import HTTPError
 from pathlib import Path
 from unittest.mock import patch
 
@@ -31,6 +33,20 @@ class ExpirationMonitorTests(unittest.TestCase):
         with patch.object(monitor, "UNKNOWN_PROBE_INTERVAL_SECONDS", 900):
             self.assertFalse(monitor._should_probe(record, now))
             self.assertTrue(monitor._should_probe(record, now + timedelta(minutes=16)))
+
+
+
+    def test_delete_http_error_includes_provider_reason(self):
+        error = HTTPError(
+            "https://api.telegram.org/botredacted/deleteMessage",
+            400,
+            "Bad Request",
+            {},
+            BytesIO(b'{"ok":false,"description":"Bad Request: message cant be deleted"}'),
+        )
+        with patch.object(monitor, "BOT_TOKEN", "test-token"), patch.object(monitor, "urlopen", side_effect=error):
+            with self.assertRaisesRegex(RuntimeError, "message cant be deleted"):
+                monitor._telegram_delete(77)
 
 
     def test_confirmed_deadline_does_not_need_another_network_probe(self):
