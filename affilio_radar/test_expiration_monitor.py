@@ -154,7 +154,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertIn("<b><u>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</u></b>", edited_caption)
         self.assertIn("<b><u>⚡️ ۸۹٪ تخفیف</u></b>", edited_caption)
         self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', edited_caption)
-        self.assertIn("زمان باقی‌مانده", edited_caption)
+        self.assertIn("مانده به پایان تخفیف", edited_caption)
         self.assertEqual(result[3], 1)
 
 
