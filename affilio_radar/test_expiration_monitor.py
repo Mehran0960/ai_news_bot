@@ -49,6 +49,115 @@ class ExpirationMonitorTests(unittest.TestCase):
                 monitor._telegram_delete(77)
 
 
+
+    def test_jalali_to_gregorian_and_legacy_deadline_conversion(self):
+        self.assertEqual(monitor.jalali_to_gregorian(1405, 7, 25), (2026, 10, 17))
+        value = monitor.extract_jalali_deadline(
+            "⏳ پایان تخفیف: شنبه ۲۵ مهر ۱۴۰۵، ساعت ۲۳:۵۹"
+        )
+        self.assertEqual(value, datetime(2026, 10, 17, 20, 29, tzinfo=timezone.utc))
+
+    def test_public_history_page_parser_extracts_ids_and_legacy_caption(self):
+        sample = b"""
+        <div class="tgme_widget_message_wrap">
+          <div class="tgme_widget_message" data-post="OfferChin/44">
+            <div class="tgme_widget_message_text js-message_text">
+              <b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b><br>
+              <b>🛍️ محصول نمونه</b><br>
+              <b>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</b><br>
+              <b>⚡️ ۸۹٪ تخفیف</b><br>
+              <b>⏳ پایان تخفیف: شنبه ۲۵ مهر ۱۴۰۵، ساعت ۲۳:۵۹</b><br>
+              <a href="https://t.me/OfferChin">عضویت در کانال: t.me/OfferChin</a>
+            </div>
+          </div>
+        </div>
+        """
+        with patch.object(monitor, "urlopen", return_value=BytesIO(sample)):
+            result = monitor._fetch_public_channel_page()
+        self.assertIn(44, result)
+        self.assertIn("پایان تخفیف", result[44]["caption_text"])
+        self.assertIn("💚 قیمت ویژه", result[44]["caption_text"])
+
+    def test_public_history_paginates_backwards_without_duplicate_ids(self):
+        page_one = {
+            40: {"message_id": 40, "caption_text": "post 40", "caption_html": ""},
+            39: {"message_id": 39, "caption_text": "post 39", "caption_html": ""},
+        }
+        page_two = {
+            39: {"message_id": 39, "caption_text": "post 39", "caption_html": ""},
+            20: {"message_id": 20, "caption_text": "post 20", "caption_html": ""},
+        }
+        with (
+            patch.object(monitor, "_fetch_public_channel_page", side_effect=[page_one, page_two, page_two]) as fetch,
+            patch.object(monitor.time, "sleep"),
+        ):
+            posts = monitor.fetch_public_channel_posts(max_pages=5)
+        self.assertEqual(set(posts), {20, 39, 40})
+        self.assertEqual(fetch.call_count, 3)
+        self.assertEqual(fetch.call_args_list[1].args[0], 39)
+
+    def test_public_history_audit_deletes_untracked_expired_post(self):
+        old_post = {
+            "message_id": 77,
+            "caption_text": (
+                "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا "
+                "🛍️ محصول نمونه "
+                "💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان "
+                "⚡️ ۸۹٪ تخفیف "
+                "⏳ پایان تخفیف: شنبه ۲۵ مهر ۱۴۰۵، ساعت ۲۳:۵۹"
+            ),
+            "caption_html": "",
+        }
+        now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)
+        with patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion:
+            result = monitor.audit_public_channel_history({}, now=now, posts={77: old_post})
+        deletion.assert_called_once_with(77)
+        self.assertEqual(result[1], 1)
+        self.assertEqual(result[2], 0)
+
+    def test_public_history_falls_back_to_expired_label_and_removes_purchase_button(self):
+        old_post = {
+            "message_id": 77,
+            "caption_text": "🛍️ محصول نمونه ⏳ پایان تخفیف: شنبه ۲۵ مهر ۱۴۰۵، ساعت ۲۳:۵۹",
+            "caption_html": "",
+        }
+        record = {"telegram_message_id": 77, "title": "محصول نمونه", "expiry_status": "tracked"}
+        now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)
+        with (
+            patch.object(monitor, "_telegram_delete", return_value="already_absent"),
+            patch.object(monitor, "_telegram_mark_expired", return_value="edited") as mark,
+        ):
+            result = monitor.audit_public_channel_history({"dkp-123": record}, now=now, posts={77: old_post})
+        mark.assert_called_once_with(77, "محصول نمونه")
+        self.assertEqual(record["expiry_status"], "expired_marked")
+        self.assertEqual(result[2], 1)
+
+    def test_public_history_repairs_untracked_active_legacy_caption(self):
+        legacy = {
+            "message_id": 88,
+            "caption_text": (
+                "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا "
+                "🛍️ کپسول نمونه "
+                "💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان "
+                "⚡️ ۸۹٪ تخفیف ویژه "
+                "🏷️ قیمت اصلی: ۱٬۰۵۶٬۰۰۰ تومان "
+                "⏳ پایان تخفیف: یکشنبه ۲۶ مهر ۱۴۰۵، ساعت ۲۳:۵۹ "
+                "📣 عضویت در کانال: t.me/OfferChin"
+            ),
+            "caption_html": "<b>💚 قیمت ویژه: 💰 <u>۱۱۴٬۰۰۰</u> تومان</b>",
+        }
+        now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)
+        with patch.object(monitor, "_telegram_edit_caption", return_value="edited") as edit:
+            result = monitor.audit_public_channel_history({}, now=now, posts={88: legacy})
+        edit.assert_called_once()
+        edited_caption = edit.call_args.args[1]
+        self.assertIn("<b><u>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</u></b>", edited_caption)
+        self.assertIn("<b><u>⚡️ ۸۹٪ تخفیف</u></b>", edited_caption)
+        self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', edited_caption)
+        self.assertIn("زمان باقی‌مانده", edited_caption)
+        self.assertEqual(result[3], 1)
+
+
     def test_confirmed_deadline_does_not_need_another_network_probe(self):
         now = datetime.now(timezone.utc)
         record = {
