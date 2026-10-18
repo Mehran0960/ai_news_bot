@@ -686,7 +686,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
         self.assertIn("<b>⏳ ", caption)
         self.assertIn("مانده به پایان تخفیف</b>", caption)
-        self.assertIn("<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>", caption)
+        self.assertIn("<b>👇 برای مشاهدهٔ قیمت و خرید، دکمهٔ زیر رو بزن.</b>", caption)
         self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', caption)
         self.assertLess(caption.index("عضویت در کانال"), caption.index("برای دیدن جزئیات"))
         self.assertNotRegex(caption, r"[0-9]")
