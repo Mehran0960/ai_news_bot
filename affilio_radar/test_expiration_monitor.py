@@ -58,7 +58,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(value, datetime(2026, 10, 17, 20, 29, tzinfo=timezone.utc))
 
     def test_public_history_page_parser_extracts_ids_and_legacy_caption(self):
-        sample = b"""
+        sample = """
         <div class="tgme_widget_message_wrap">
           <div class="tgme_widget_message" data-post="OfferChin/44">
             <div class="tgme_widget_message_text js-message_text">
@@ -71,7 +71,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             </div>
           </div>
         </div>
-        """
+        """.encode("utf-8")
         with patch.object(monitor, "urlopen", return_value=BytesIO(sample)):
             result = monitor._fetch_public_channel_page()
         self.assertIn(44, result)
