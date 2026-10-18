@@ -1,0 +1,43 @@
+name: Affilio Countdown Refresh
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: affilio-countdown-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install -r affilio_radar/requirements.txt
+
+      - name: Validate syntax
+        run: python -m py_compile affilio_radar/affilio_radar.py
+
+      - name: Refresh live offer countdowns
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          AFFILIO_COUNTDOWN_REFRESH_FORCE: "true"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/affilio_radar.py --refresh-countdowns
