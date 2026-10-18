@@ -334,10 +334,12 @@
         if(bannedTitle.test(title)) return null;
         var expires = parseTime(saved.expires_at);
         if(!expires) return null;
+        if(num(saved.posted_current_price) <= 0 || num(saved.posted_original_price) <= num(saved.posted_current_price) || num(saved.posted_discount_percent) < 10) return null;
         var directVerified = false;
         if(candidate && candidate.has_affiliate_link && candidate.affiliate_url && candidate.image_url
           && candidate.availability === "in_stock" && samePrice(candidate,saved)
           && candidate.qualifies_as_deal === true && num(candidate.discount_percent) >= 10
+          && /^https:\/\/www\.digikala\.com\/product\/dkp-\d+\/?/i.test(candidate.affiliate_url)
           && candidate.affiliate_url.indexOf("/product/" + id + "/") >= 0){
           var checked = parseTime(candidate.checked_at);
           directVerified = !!checked && now - checked.getTime() <= 12*60*60*1000 && checked.getTime() <= now + 5*60*1000;
