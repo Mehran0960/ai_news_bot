@@ -32,6 +32,7 @@ BALE_CHANNEL_ID = os.getenv("BALE_CHANNEL_ID", "").strip()
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "3"))))
 FEED_URL = "https://api.digikala.com/v1/incredible-offers/products/"
 HTTP_TIMEOUT = 18
+BOT_API_MIN_GAP_SECONDS = 1.1
 PROBE_INTERVAL_SECONDS = 900
 UNKNOWN_PROBE_INTERVAL_SECONDS = 900
 
@@ -435,12 +436,18 @@ def _is_message_absent(description):
     ))
 
 
+def _pace_bot_api():
+    """Conservatively space channel mutations to reduce the risk of provider rate limits."""
+    time.sleep(BOT_API_MIN_GAP_SECONDS)
+
+
 def _telegram_delete(message_id):
     if not BOT_TOKEN:
         raise RuntimeError("TELEGRAM_BOT_TOKEN missing")
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/deleteMessage"
     body = urlencode({"chat_id": CHAT_ID, "message_id": int(message_id)}).encode("utf-8")
     request = Request(url, data=body, method="POST", headers={"Content-Type": "application/x-www-form-urlencoded"})
+    _pace_bot_api()
     try:
         with urlopen(request, timeout=20) as response:
             payload = _decode_delete_response(response)
@@ -465,6 +472,7 @@ def _bale_delete(message_id):
     url = f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/deleteMessage"
     body = urlencode({"chat_id": BALE_CHANNEL_ID, "message_id": int(message_id)}).encode("utf-8")
     request = Request(url, data=body, method="POST", headers={"Content-Type": "application/x-www-form-urlencoded"})
+    _pace_bot_api()
     try:
         with urlopen(request, timeout=20) as response:
             payload = _decode_delete_response(response)
@@ -742,6 +750,7 @@ def _telegram_edit_caption(message_id, caption, remove_purchase_button=False):
             method="POST",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
+        _pace_bot_api()
         try:
             with urlopen(request, timeout=HTTP_TIMEOUT) as response:
                 result = _decode_delete_response(response)
@@ -813,6 +822,7 @@ def _bale_mark_deadline_unavailable(message_id, title):
         method="POST",
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
+    _pace_bot_api()
     try:
         with urlopen(request, timeout=HTTP_TIMEOUT) as response:
             result = _decode_delete_response(response)
