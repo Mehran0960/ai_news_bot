@@ -2267,15 +2267,15 @@ def build_caption(
     if current:
         price = format_persian_number(current)
         if is_bale:
-            parts.append(bold(f"💚 قیمت ویژه: 💰 {unicode_underline(price)} تومان"))
+            parts.append(bold(unicode_underline(f"💚 قیمت ویژه: 💰 {price} تومان")))
         else:
-            parts.append(f"<b>💚 قیمت ویژه: 💰 <u>{price}</u> تومان</b>")
+            parts.append(f"<b><u>💚 قیمت ویژه: 💰 {price} تومان</u></b>")
     if discount is not None and int(discount) > 0:
         discount_value = format_persian_number(discount) + "٪"
         if is_bale:
-            parts.append(bold(f"⚡️ {unicode_underline(discount_value)} تخفیف"))
+            parts.append(bold(unicode_underline(f"⚡️ {discount_value} تخفیف")))
         else:
-            parts.append(f"<b>⚡️ <u>{discount_value}</u> تخفیف</b>")
+            parts.append(f"<b><u>⚡️ {discount_value} تخفیف</u></b>")
     if original and current and int(original) > int(current):
         original_amount = format_persian_number(original)
         if is_bale:
