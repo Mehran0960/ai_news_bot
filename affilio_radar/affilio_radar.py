@@ -2231,7 +2231,7 @@ def build_caption(
     channel_label: str = TELEGRAM_CHANNEL_URL,
     use_unicode_strikethrough: bool = False,
 ) -> str:
-    """Build a concise caption with a channel-only link and an hours/minutes countdown."""
+    """Build a caption with the full featured-price and discount phrases bold-underlined, a channel-only link, and a live hours/minutes countdown."""
     is_bale = use_unicode_strikethrough
 
     def bold(value: str) -> str:
