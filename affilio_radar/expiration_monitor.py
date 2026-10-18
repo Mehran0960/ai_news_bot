@@ -828,7 +828,52 @@ def _bale_mark_deadline_unavailable(message_id, title):
     raise RuntimeError(description[:180] or "Bale editMessageCaption failed")
 
 
-def audit_public_channel_history(published, now=None, posts=None):
+def _looks_like_offer_post(caption_text):
+    """Recognize OfferChin promo captions even when some fields cannot be parsed."""
+    text = str(caption_text or "").lower().replace("ي", "ی").replace("ك", "ک")
+    compact = re.sub(r"[\s\u200c\u200f]+", "", text)
+    return (
+        "پیشنهادشگفتانگیزدیجیکالا" in compact
+        or ("قیمتویژه" in compact and "تخفیف" in compact)
+    )
+
+
+        # Tracked messages are evaluated from state, where their verified deadline lives.
+        if record is not None:
+            continue
+        fields = _extract_legacy_caption_fields(caption_text)
+        if deadline is None:
+            # Even partially malformed legacy promo captions must not remain live
+            # when their absolute deadline cannot be verified.
+            if not _looks_like_offer_post(caption_text):
+                continue
+            try:
+                outcome = _telegram_delete(int(message_id))
+                if outcome == "deleted":
+                    deleted += 1
+                    print(f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_DELETED message_id={message_id}")
+                elif outcome == "already_absent":
+                    print(f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_ABSENT message_id={message_id}")
+            except Exception as exc:
+                print(
+                    f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_DELETE_FAILED message_id={message_id} "
+                    f"error={type(exc).__name__} detail={str(exc)[:120]!r}"
+                )
+                try:
+                    result = _telegram_mark_deadline_unavailable(
+                        int(message_id), fields.get("title") or "پیشنهاد ویژه"
+                    )
+                    if result == "edited":
+                        print(f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_MARKED message_id={message_id}")
+                except Exception as mark_exc:
+                    print(
+                        f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_FALLBACK_FAILED message_id={message_id} "
+                        f"error={type(mark_exc).__name__} detail={str(mark_exc)[:120]!r}"
+                    )
+            continue
+        if not fields.get("title") or not fields.get("current_price") or not fields.get("discount_percent"):
+            continue
+        if not _caption_needs_repair(caption_html, caption_text, fields, deadline):
     """Delete expired untracked public posts and repair active legacy captions in place."""
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
