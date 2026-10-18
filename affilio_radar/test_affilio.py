@@ -189,14 +189,14 @@ class AffilioRadarTests(unittest.TestCase):
                         "title_fa": "قرص ویتامین ب2 بسته 60 عددی",
                         "url": "/product/dkp-123/",
                         "status": "marketable",
-                        "default_variant": {"price": {"selling_price": 1000, "rrp_price": 10000}},
+                        "default_variant": {"price": {"selling_price": 1000000, "rrp_price": 10000000}},
                     },
                     {
                         "id": 456,
                         "title_fa": "پاوربانک محبوب",
                         "url": "/product/dkp-456/",
                         "status": "marketable",
-                        "default_variant": {"price": {"selling_price": 1000, "rrp_price": 10000}},
+                        "default_variant": {"price": {"selling_price": 1000000, "rrp_price": 10000000}},
                     },
                 ]
             }
