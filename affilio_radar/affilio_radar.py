@@ -57,16 +57,20 @@ MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", 
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "1"))))
 MIN_POST_INTERVAL_HOURS = max(0.5, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.5")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
-PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "100"))))
+PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
+MAX_QUEUED_RECHECKS = max(0, min(12, int(os.getenv("AFFILIO_MAX_QUEUED_RECHECKS", "8"))))
 URGENT_EXPIRY_WINDOW_MINUTES = 90
 URGENT_MIN_POST_INTERVAL_MINUTES = 10
+DEADLINE_CRITICAL_WINDOW_MINUTES = 45
+ULTRA_URGENT_WINDOW_MINUTES = 15
+ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 5
 URGENT_MIN_DISCOUNT_PERCENT = 80
 URGENT_MIN_SAVINGS_TOMAN = 500_000
 URGENT_MIN_DEMAND_SCORE = 55
 IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
 PREFERRED_POSTING_WINDOWS = (("morning", 9, 11), ("afternoon", 14, 17), ("evening", 20, 23))
-DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "3"))))
+DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
 MIN_DISCOUNT_PERCENT = max(1, min(90, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "20"))))
 MIN_SAVINGS_TOMAN = max(0, int(os.getenv("AFFILIO_MIN_SAVINGS_TOMAN", "100000")))
 PRICE_HISTORY_CHECK_LIMIT = max(0, min(25, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "15"))))
@@ -1745,14 +1749,32 @@ def enrich_market_prices(products: list[dict]) -> None:
             item["market_status"] = "unavailable"
 
 
-def discover_product_urls() -> tuple[list[str], list[dict], dict[str, str]]:
-    """Prioritize live Incredible Offers, then broaden coverage with normal searches."""
+def discover_product_urls(queued_records: dict[str, dict] | None = None) -> tuple[list[str], list[dict], dict[str, str]]:
+    """Recheck persisted offers first, scan every live-deal page, then rotate broader searches."""
     found = []
     diagnostics = []
+    queued_records = queued_records if isinstance(queued_records, dict) else {}
+    queue_now = datetime.now(timezone.utc)
+    queued_expiries: dict[str, str] = {}
+
+    # Offers that passed validation earlier remain on a persistent queue even if they
+    # fall out of one feed page. Recheck a small priority slice every run before relying
+    # on the live feed again. Current stock and price are still revalidated before posting.
+    for pid, record in queued_records.items():
+        if not isinstance(record, dict) or len(found) >= MAX_QUEUED_RECHECKS:
+            continue
+        canonical = safe_product_url(record.get("product_url", ""))
+        deadline = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
+        if not canonical or product_id(canonical) != str(pid):
+            continue
+        if deadline is None or deadline <= queue_now:
+            continue
+        found.append(canonical)
+        queued_expiries[str(pid)] = deadline.isoformat()
 
     # The live Incredible Offers feed is the primary discovery source.
     deals_found = []
-    deal_expiries: dict[str, str] = {}
+    deal_expiries: dict[str, str] = dict(queued_expiries)
     for page_number in range(1, DEAL_LIST_PAGES + 1):
         try:
             response = SESSION.get(
@@ -1779,7 +1801,8 @@ def discover_product_urls() -> tuple[list[str], list[dict], dict[str, str]]:
                 f"data_keys={list(payload.get('data', {}).keys())[:24] if isinstance(payload, dict) and isinstance(payload.get('data'), dict) else 'n/a'}"
             )
             if not local:
-                break
+                # An empty/partial page is not proof that later pages are empty.
+                continue
         except Exception as exc:
             diagnostics.append({
                 "term": f"incredible_offers_page_{page_number}",
@@ -1789,7 +1812,8 @@ def discover_product_urls() -> tuple[list[str], list[dict], dict[str, str]]:
                 "status": type(exc).__name__,
             })
             print(f"INCREDIBLE_OFFERS_API_FAILED page={page_number} error={type(exc).__name__} detail={str(exc)[:180]!r}")
-            break
+            # Keep trying the remaining pages; a transient failure on page 1 must not
+            # suppress offers visible on another page.
 
     # The public MCP deal-card feed exposes countdown metadata that the direct API omits in some responses.
     # Fetch it before selecting candidates so confirmed-deadline deals can be preferred.
@@ -1876,8 +1900,10 @@ def discover_product_urls() -> tuple[list[str], list[dict], dict[str, str]]:
                 break
 
     for row in selected_deals:
-        found.append(row["product_url"])
-        pid = product_id(row["product_url"])
+        url = row["product_url"]
+        if url not in found and len(found) < MAX_PRODUCT_CHECKS:
+            found.append(url)
+        pid = product_id(url)
         expiry = str(row.get("deal_expires_at") or deal_expiries.get(pid) or "").strip()
         if expiry:
             deal_expiries[pid] = expiry
@@ -1888,8 +1914,14 @@ def discover_product_urls() -> tuple[list[str], list[dict], dict[str, str]]:
         f"verified_deadline_candidates={sum(bool(str(row.get('deal_expires_at') or '').strip()) for row in selected_deals)}"
     )
 
+    # Rotate the starting category every five-minute scan. Otherwise the first few
+    # search terms monopolize the remaining slots and later categories are rarely checked.
+    search_offset = int(time.time() // 300) % len(SEARCH_TERMS)
+    rotated_search_terms = SEARCH_TERMS[search_offset:] + SEARCH_TERMS[:search_offset]
+    print(f"SEARCH_ROTATION offset={search_offset} first_term={rotated_search_terms[0]!r}")
+
     # Fill remaining slots with targeted searches for tech, home, and practical gadgets.
-    for term in SEARCH_TERMS:
+    for term in rotated_search_terms:
         if len(found) >= MAX_PRODUCT_CHECKS:
             break
         local = []
@@ -2333,7 +2365,7 @@ def build_caption(
     channel_label: str = TELEGRAM_CHANNEL_URL,
     use_unicode_strikethrough: bool = False,
 ) -> str:
-    """Build a caption with the full featured-price and discount phrases bold-underlined, a channel-only link, and a live hours/minutes countdown."""
+    """Build a clean cross-platform caption with bold price/discount lines and continuous dividers."""
     is_bale = use_unicode_strikethrough
 
     def bold(value: str) -> str:
@@ -2368,16 +2400,15 @@ def build_caption(
     ]
     if current:
         price = format_persian_number(current)
-        if is_bale:
-            parts.append(bold(unicode_underline(f"💚 قیمت ویژه: 💰 {price} تومان")))
-        else:
-            parts.append(f"<b><u>💚 قیمت ویژه: 💰 {price} تومان</u></b>")
+        price_line = f"💚 قیمت ویژه: {price} تومان"
+        parts.append(bold(price_line))
+        # Underline markup and per-character combining marks render inconsistently
+        # across Persian shaping engines. A separate divider stays continuous on both apps.
+        parts.append("────────────")
     if discount is not None and int(discount) > 0:
         discount_value = format_persian_number(discount) + "٪"
-        if is_bale:
-            parts.append(bold(unicode_underline(f"⚡️ {discount_value} تخفیف")))
-        else:
-            parts.append(f"<b><u>⚡️ {discount_value} تخفیف</u></b>")
+        parts.append(bold(f"⚡️ {discount_value} تخفیف"))
+        parts.append("────────────")
     if original and current and int(original) > int(current):
         original_amount = format_persian_number(original)
         if is_bale:
@@ -3089,22 +3120,71 @@ def is_urgent_priority_deal(product: dict, now: datetime | None = None) -> bool:
     )
 
 
+def is_deadline_critical_deal(product: dict, now: datetime | None = None) -> bool:
+    """Allow a fully qualified deal close to expiry to bypass the regular posting gap."""
+    expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
+    if expiry is None:
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    remaining_seconds = (expiry - current.astimezone(timezone.utc)).total_seconds()
+    return bool(
+        0 < remaining_seconds <= DEADLINE_CRITICAL_WINDOW_MINUTES * 60
+        and int(product.get("discount_percent") or 0) >= MIN_DISCOUNT_PERCENT
+        and int(product.get("savings_toman") or 0) >= MIN_SAVINGS_TOMAN
+    )
+
+
+def is_materially_improved_offer(previous: dict, product: dict, now: datetime | None = None) -> bool:
+    """Permit a repeat product only for a new offer cycle or a real price drop of at least 10%."""
+    if not isinstance(previous, dict) or not isinstance(product, dict):
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    try:
+        old_price = int(previous.get("posted_current_price") or previous.get("current_price") or 0)
+        new_price = int(product.get("current_price") or 0)
+    except (TypeError, ValueError, OverflowError):
+        old_price, new_price = 0, 0
+    price_improved = bool(old_price > 0 and new_price > 0 and new_price <= old_price * 0.90)
+
+    old_deadline = _parse_utc_datetime(previous.get("expires_at") or previous.get("deal_expires_at"))
+    new_deadline = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
+    new_offer_cycle = bool(old_deadline and old_deadline <= current and new_deadline and new_deadline > current)
+    return price_improved or new_offer_cycle
+
+
 def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
                            now: datetime | None = None) -> tuple:
-    """Sort by explicit urgent status, then deal merit, then earlier first-seen time."""
+    """Prioritize critical deadlines, then audience demand, deal value, and first-seen time."""
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     queue_record = queue_record if isinstance(queue_record, dict) else {}
     first_seen = _parse_utc_datetime(queue_record.get("first_seen_at")) or now
+    expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
+    remaining = (expiry - now).total_seconds() if expiry else float("inf")
+    if remaining <= ULTRA_URGENT_WINDOW_MINUTES * 60:
+        deadline_priority = 3
+    elif remaining <= DEADLINE_CRITICAL_WINDOW_MINUTES * 60:
+        deadline_priority = 2
+    elif remaining <= URGENT_EXPIRY_WINDOW_MINUTES * 60:
+        deadline_priority = 1
+    else:
+        deadline_priority = 0
     return (
         int(is_urgent_priority_deal(product, now)),
+        deadline_priority,
         *deal_sort_key(product),
         -first_seen.timestamp(),
     )
 
 
 def refresh_pending_queue(state: dict, eligible: list[dict],
-                          now: datetime | None = None) -> dict:
-    """Persist currently-valid offers between scans; stale, expired, and recently-posted items leave the queue."""
+                          now: datetime | None = None,
+                          observed_product_ids: set[str] | None = None) -> dict:
+    """Persist valid offers; keep unobserved queued offers until rechecked or their deadline passes."""
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     old_queue = state.get("pending_queue")
     if not isinstance(old_queue, dict):
@@ -3121,7 +3201,12 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
             posted_at = float(previous_publication.get("ts", 0)) if isinstance(previous_publication, dict) else 0
         except (TypeError, ValueError, OverflowError):
             posted_at = 0
-        if posted_at and now.timestamp() - posted_at < PRODUCT_COOLDOWN_DAYS * 86400 and not _has_pending_delivery(previous_publication):
+        if (
+            posted_at
+            and now.timestamp() - posted_at < PRODUCT_COOLDOWN_DAYS * 86400
+            and not _has_pending_delivery(previous_publication)
+            and not is_materially_improved_offer(previous_publication, product, now)
+        ):
             continue
 
         old = old_queue.get(pid, {})
@@ -3145,6 +3230,39 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
         }
         candidate_by_id[pid] = product
 
+    # Do not discard a valid queued deal merely because pagination did not return it in
+    # this scan. Keep it until the deadline passes, and bring it back through discovery
+    # for a fresh stock/price check. If it was checked this run and failed eligibility,
+    # it is deliberately not retained.
+    observed_ids = {str(value) for value in observed_product_ids} if observed_product_ids is not None else None
+    if observed_ids is not None:
+        for pid, old in old_queue.items():
+            if not isinstance(old, dict) or pid in pending or pid in observed_ids:
+                continue
+            url = safe_product_url(old.get("product_url", ""))
+            expiry = _parse_utc_datetime(_parse_deal_expiry_value(old.get("deal_expires_at")))
+            if not url or product_id(url) != str(pid) or expiry is None or expiry <= now:
+                continue
+            previous_publication = published.get(pid, {})
+            try:
+                posted_at = float(previous_publication.get("ts", 0)) if isinstance(previous_publication, dict) else 0
+            except (TypeError, ValueError, OverflowError):
+                posted_at = 0
+            if (
+                posted_at
+                and now.timestamp() - posted_at < PRODUCT_COOLDOWN_DAYS * 86400
+                and not _has_pending_delivery(previous_publication)
+                and not is_materially_improved_offer(previous_publication, old, now)
+            ):
+                continue
+            retained = dict(old)
+            retained["product_id"] = str(pid)
+            retained["product_url"] = url
+            retained["deal_expires_at"] = expiry.isoformat()
+            retained["urgent"] = is_urgent_priority_deal(retained, now)
+            pending[str(pid)] = retained
+            candidate_by_id[str(pid)] = retained
+
     ordered_ids = sorted(
         pending,
         key=lambda pid: pending_queue_sort_key(candidate_by_id[pid], pending[pid], now),
@@ -3154,7 +3272,8 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
     state["pending_queue"] = queue
     urgent_count = sum(1 for item in queue.values() if item.get("urgent"))
     top = ordered_ids[0] if ordered_ids else "none"
-    print(f"PENDING_QUEUE size={len(queue)} urgent={urgent_count} top={top}")
+    retained_count = sum(1 for pid in queue if pid not in {str(p.get("product_id") or product_id(p.get("product_url", ""))) for p in eligible})
+    print(f"PENDING_QUEUE size={len(queue)} urgent={urgent_count} retained_unobserved={retained_count} top={top}")
     return queue
 
 
@@ -3201,7 +3320,14 @@ def run(publish=False):
     else:
         link_mode = "no_valid_affilio_tracking_config"
     print(f"affiliate_link_mode={link_mode} manual_product_overrides={len(approved)}")
-    urls, search_diagnostics, deal_expiries = discover_product_urls()
+    # Read the persistent queue before discovery so offers temporarily missing from one
+    # page remain eligible for a live recheck on the next scan.
+    state = load_state()
+    state.setdefault("published", {})
+    queued_records = state.get("pending_queue")
+    urls, search_diagnostics, deal_expiries = discover_product_urls(
+        queued_records if isinstance(queued_records, dict) else {}
+    )
     print(f"discovered_product_urls={len(urls)} offer_expiries={len(deal_expiries)}")
 
     products = []
@@ -3234,7 +3360,6 @@ def run(publish=False):
 
     enrich_click_statistics(products)
     products.sort(key=deal_sort_key, reverse=True)
-    state = load_state()
     state.setdefault("published", {})
     if publish and CLEAR_PREVIOUS_CHANNEL_POSTS and BATCH_OPERATION_KEY and state.get("completed_batch_operation") == BATCH_OPERATION_KEY:
         print(f"BATCH_ALREADY_COMPLETED key={BATCH_OPERATION_KEY}; duplicate workflow run will not send again.")
@@ -3262,7 +3387,12 @@ def run(publish=False):
         and not is_offer_expired(p)
     ]
     queue_now = datetime.now(timezone.utc)
-    pending_queue = refresh_pending_queue(state, eligible, queue_now)
+    observed_product_ids = {
+        str(p.get("product_id") or product_id(p.get("product_url", "")))
+        for p in products
+        if p.get("product_id") or product_id(p.get("product_url", ""))
+    }
+    pending_queue = refresh_pending_queue(state, eligible, queue_now, observed_product_ids)
     missing_deadline_count = sum(
         not _parse_utc_datetime(_parse_deal_expiry_value(p.get("deal_expires_at")))
         for p in products
@@ -3391,15 +3521,28 @@ def run(publish=False):
     now_utc = datetime.fromtimestamp(now, tz=timezone.utc)
     local_now = now_utc.astimezone(IRAN_TIMEZONE)
     posting_window = preferred_publication_window(now_utc)
-    regular_window_open = posting_window != "quiet_hours"
+    # A fixed "quiet hours" block can make a short-lived offer expire before the next
+    # audience window. The queue/cooldown—not the wall clock—now controls publishing.
+    regular_window_open = True
     print(
         f"POSTING_WINDOW iran_time={local_now.strftime('%H:%M')} "
-        f"window={posting_window} regular_allowed={regular_window_open}"
+        f"preferred_window={posting_window} posting_allowed={regular_window_open}"
     )
-    urgent_candidate = next((p for p in eligible if is_urgent_priority_deal(p, now_utc)), None)
+    urgent_candidate = next(
+        (
+            p for p in eligible
+            if is_urgent_priority_deal(p, now_utc) or is_deadline_critical_deal(p, now_utc)
+        ),
+        None,
+    )
+    urgent_minimum_spacing = URGENT_MIN_POST_INTERVAL_MINUTES
+    if urgent_candidate:
+        urgent_expiry = _parse_utc_datetime(_parse_deal_expiry_value(urgent_candidate.get("deal_expires_at")))
+        if urgent_expiry and 0 < (urgent_expiry - now_utc).total_seconds() <= ULTRA_URGENT_WINDOW_MINUTES * 60:
+            urgent_minimum_spacing = ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES
     urgent_override_allowed = bool(
         urgent_candidate
-        and now - last_post >= URGENT_MIN_POST_INTERVAL_MINUTES * 60
+        and now - last_post >= urgent_minimum_spacing * 60
     )
     urgent_cooldown_bypass = bool(
         cooldown_remaining > 0
@@ -3413,10 +3556,10 @@ def run(publish=False):
         deadline_minutes = int((expiry_utc - now_utc).total_seconds() / 60) if expiry_utc else -1
         print(
             f"URGENT_PRIORITY_COOLDOWN_BYPASS id={urgent_candidate.get('product_id')} "
-            f"deadline_minutes={deadline_minutes} minimum_spacing_minutes={URGENT_MIN_POST_INTERVAL_MINUTES}"
+            f"deadline_minutes={deadline_minutes} minimum_spacing_minutes={urgent_minimum_spacing}"
         )
     elif cooldown_remaining > 0 and urgent_candidate and not urgent_override_allowed:
-        print(f"URGENT_PRIORITY_WAIT minimum_spacing_minutes={URGENT_MIN_POST_INTERVAL_MINUTES}")
+        print(f"URGENT_PRIORITY_WAIT minimum_spacing_minutes={urgent_minimum_spacing}")
     if not regular_window_open and urgent_override_allowed:
         expiry_utc = _parse_utc_datetime(_parse_deal_expiry_value(urgent_candidate.get("deal_expires_at")))
         deadline_minutes = int((expiry_utc - now_utc).total_seconds() / 60) if expiry_utc else -1
@@ -3464,8 +3607,11 @@ def run(publish=False):
                 last_ts = float(old.get("ts", 0))
             except (TypeError, ValueError):
                 last_ts = 0
-            if now - last_ts < PRODUCT_COOLDOWN_DAYS * 86400:
-                print(f"PUBLISH_SKIP id={pid} reason=product_cooldown")
+            if (
+                now - last_ts < PRODUCT_COOLDOWN_DAYS * 86400
+                and not is_materially_improved_offer(old, item, now_utc)
+            ):
+                print(f"PUBLISH_SKIP id={pid} reason=product_cooldown_without_material_improvement")
                 continue
             try:
                 image_bytes = _fetch_image(item["image_url"])
