@@ -190,6 +190,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             with (
                 patch.object(monitor, "STATE_PATH", state_path),
                 patch.object(monitor, "BOT_TOKEN", "test-token"),
+                patch.object(monitor, "audit_public_channel_history", return_value=(False, 0, 0, 0, 0)),
                 patch.object(monitor, "fetch_offer_expiries", side_effect=RuntimeError("feed unavailable")),
                 patch.object(monitor, "fetch_live_product_status", return_value={}),
                 patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion,
@@ -218,6 +219,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             with (
                 patch.object(monitor, "STATE_PATH", state_path),
                 patch.object(monitor, "BOT_TOKEN", "test-token"),
+                patch.object(monitor, "audit_public_channel_history", return_value=(False, 0, 0, 0, 0)),
                 patch.object(monitor, "fetch_offer_expiries", return_value={}),
                 patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion,
             ):
