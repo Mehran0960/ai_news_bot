@@ -44,7 +44,7 @@ permissions:
 concurrency:
   # Keep scheduled runs isolated from push-triggered CI runs. Pushes use unique groups,
   # so code changes cannot replace a pending scheduled discovery run.
-  group: ${{ github.workflow }}-${{ (github.event_name == 'schedule' || inputs.external_scheduler) && 'automated' || github.run_id }}
+  group: affilio-channel-updates
   cancel-in-progress: false
 
 jobs:
@@ -176,7 +176,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [[ -f affilio_radar/state.json ]]; then git add affilio_radar/state.json; fi
+          if [[ "${{ contains(github.event.head_commit.message, '[repair-all-captions]') }}" != "true" && -f affilio_radar/state.json ]]; then
+            git add affilio_radar/state.json
+          fi
           # Commit the report only when actual offer data changed, not on per-scan timestamps.
           python - <<'PY'
           import json
