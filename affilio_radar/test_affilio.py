@@ -25,6 +25,7 @@ from affilio_radar import (
     preferred_publication_window,
     pending_queue_sort_key,
     refresh_pending_queue,
+    select_queued_records_for_recheck,
     parse_product_page,
     score_product,
     is_publish_eligible,
@@ -512,6 +513,38 @@ class AffilioRadarTests(unittest.TestCase):
             pending_queue_sort_key(urgent, {"first_seen_at": now.isoformat()}, now),
             pending_queue_sort_key(larger_but_not_urgent, {"first_seen_at": now.isoformat()}, now),
         )
+
+    def test_queued_offer_rechecks_rotate_after_a_fixed_priority_head(self):
+        start = datetime(2026, 10, 17, 12, 3, tzinfo=timezone.utc)
+        records = {}
+        for i in range(12):
+            pid = f"dkp-{1000+i}"
+            records[pid] = {
+                "product_id": pid,
+                "product_url": f"https://www.digikala.com/product/{pid}/",
+                "title": f"پیشنهاد آزمایشی {i}",
+                "first_seen_at": (start - timedelta(minutes=i)).isoformat(),
+                "deal_expires_at": (start + timedelta(hours=3)).isoformat(),
+                "discount_percent": 40,
+                "savings_toman": 200_000,
+                "demand_score": 60,
+                "promo_score": 50,
+                "current_price": 300_000,
+                "original_price": 500_000,
+            }
+
+        first = select_queued_records_for_recheck(records, start, max_count=4)
+        second = select_queued_records_for_recheck(
+            records, start + timedelta(minutes=5), max_count=4
+        )
+        first_ids = [pid for pid, _ in first]
+        second_ids = [pid for pid, _ in second]
+
+        self.assertEqual(len(first_ids), 4)
+        self.assertEqual(len(second_ids), 4)
+        self.assertEqual(first_ids[:2], second_ids[:2])
+        self.assertNotEqual(first_ids[2:], second_ids[2:])
+        self.assertEqual(len(set(first_ids) | set(second_ids)), 6)
 
     def test_pending_queue_preserves_first_seen_and_drops_missing_expired_or_recently_posted_items(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
