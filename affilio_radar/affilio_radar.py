@@ -34,7 +34,7 @@ TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@OfferChin").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
 BALE_CHANNEL_ID = os.getenv("BALE_CHANNEL_ID", "").strip()
-TELEGRAM_CHANNEL_URL = "https://t.me/OfferChin"
+TELEGRAM_CHANNEL_URL = "https://telegram.me/OfferChin"
 BALE_CHANNEL_URL = "https://ble.ir/OfferChin"
 AFFILIO_LINK_TEMPLATE = os.getenv("AFFILIO_LINK_TEMPLATE", "").strip()
 AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
@@ -2193,6 +2193,33 @@ def unicode_strikethrough(value: str) -> str:
     return "".join(char if char.isspace() else char + overlay for char in str(value))
 
 
+def unicode_underline(value: str) -> str:
+    """Render an underline for Bale clients without relying on undocumented markup."""
+    overlay = "\u0332"
+    return "".join(char if char.isspace() else char + overlay for char in str(value))
+
+
+def format_remaining_time(value, now: datetime | None = None) -> str:
+    """Display an explicit offer deadline as a Persian countdown in hours and minutes."""
+    deadline = _parse_utc_datetime(value)
+    if deadline is None:
+        return ""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    remaining_seconds = (deadline - current).total_seconds()
+    if remaining_seconds <= 0:
+        return "مهلت آفر به پایان رسیده"
+    remaining_minutes = max(1, math.ceil(remaining_seconds / 60))
+    hours, minutes = divmod(remaining_minutes, 60)
+    if hours and minutes:
+        return f"{format_persian_number(hours)} ساعت و {format_persian_number(minutes)} دقیقه"
+    if hours:
+        return f"{format_persian_number(hours)} ساعت"
+    return f"{format_persian_number(minutes)} دقیقه"
+
+
 def _escape_bale_markdown(value: str) -> str:
     """Escape characters that could change Bale's documented Markdown formatting."""
     return re.sub(r"([\\_*()\[\]])", lambda match: "\\" + match.group(1), str(value or ""))
@@ -2204,7 +2231,7 @@ def build_caption(
     channel_label: str = TELEGRAM_CHANNEL_URL,
     use_unicode_strikethrough: bool = False,
 ) -> str:
-    """Build a compact caption; Telegram uses HTML and Bale uses documented Markdown."""
+    """Build a concise caption with a channel-only link and an hours/minutes countdown."""
     is_bale = use_unicode_strikethrough
 
     def bold(value: str) -> str:
@@ -2219,27 +2246,17 @@ def build_caption(
     current = p.get("current_price")
     original = p.get("original_price")
     discount = p.get("discount_percent")
-    expiry = format_deal_expiry(p.get("deal_expires_at"))
+    expiry = format_remaining_time(p.get("deal_expires_at"), now=p.get("_countdown_now"))
 
-    channel_url = str(channel_label or TELEGRAM_CHANNEL_URL).strip()
+    channel_url = str(channel_label or (BALE_CHANNEL_URL if is_bale else TELEGRAM_CHANNEL_URL)).strip()
     if not urlsplit(channel_url).scheme:
         channel_url = "https://" + channel_url
-    channel_url = html.escape(channel_url, quote=True)
-    channel_display = re.sub(r"^https?://", "", html.unescape(channel_url), flags=re.I).rstrip("/")
-    channel_display = html.escape(channel_display)
+    channel_href = html.escape(channel_url, quote=True)
+    channel_text = "عضویت در کانال OfferChin"
     if is_bale:
-        # Bale's official docs specify [visible text](URL) Markdown links.
-        channel_footer = (
-            f"[📣 عضویت در کانال: {_escape_bale_markdown(channel_display)}]"
-            f"({html.unescape(channel_url)})"
-        )
+        channel_footer = f"[{channel_text}]({html.unescape(channel_href)})"
     else:
-        # Make the entire channel invitation one blue, clickable link, not only the ID.
-        channel_footer = (
-            f'<a href="{channel_url}">'
-            f'{html.escape("📣 عضویت در کانال: " + html.unescape(channel_display))}'
-            "</a>"
-        )
+        channel_footer = f'<a href="{channel_href}">{channel_text}</a>'
 
     parts = [
         bold("🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا"),
@@ -2248,22 +2265,28 @@ def build_caption(
         "",
     ]
     if current:
-        parts.append(bold(f"💚 قیمت ویژه: 💰 {format_persian_number(current)} تومان"))
+        price = format_persian_number(current)
+        if is_bale:
+            parts.append(bold(f"💚 قیمت ویژه: 💰 {unicode_underline(price)} تومان"))
+        else:
+            parts.append(f"<b>💚 قیمت ویژه: 💰 <u>{price}</u> تومان</b>")
     if discount is not None and int(discount) > 0:
-        parts.append(bold(f"⚡️ {format_persian_number(discount)}٪ تخفیف ویژه"))
+        discount_value = format_persian_number(discount) + "٪"
+        if is_bale:
+            parts.append(bold(f"⚡️ {unicode_underline(discount_value)} تخفیف"))
+        else:
+            parts.append(f"<b>⚡️ <u>{discount_value}</u> تخفیف</b>")
     if original and current and int(original) > int(current):
         original_amount = format_persian_number(original)
         if is_bale:
-            # Bale doesn't document a strikethrough formatter; overlay marks cross out the old amount.
             original_amount = unicode_strikethrough(original_amount)
             parts += ["", bold(f"🏷️ قیمت اصلی: {original_amount} تومان")]
         else:
             parts += ["", f"<b>🏷️ قیمت اصلی: <s>{original_amount} تومان</s></b>"]
     if expiry:
-        parts += ["", bold(f"⏳ پایان تخفیف: {expiry}")]
+        parts += ["", bold(f"⏳ زمان باقی‌مانده: {expiry}")]
 
     detail_line = bold("👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.")
-    # Put the channel link first; the separate purchase button is described immediately after it.
     parts += ["", channel_footer, "", detail_line]
     caption = "\n".join(parts)
     footer = f"\n\n{channel_footer}\n\n{detail_line}"
@@ -2680,6 +2703,89 @@ def repair_all_published_captions() -> int:
         f"skipped={results['skipped']}"
     )
     return 0 if results["telegram_failed"] == 0 and results["bale_failed"] == 0 and target_count > 0 else 1
+
+
+
+def refresh_active_countdowns() -> int:
+    """Edit active, deadline-verified captions in place so their countdown stays current."""
+    state = load_state()
+    published = state.get("published", {})
+    if not isinstance(published, dict):
+        raise RuntimeError("Published state is not an object")
+    now = datetime.now(timezone.utc)
+    counters = {
+        "telegram_updated": 0, "telegram_missing": 0, "telegram_failed": 0,
+        "bale_updated": 0, "bale_missing": 0, "bale_failed": 0, "skipped": 0,
+    }
+    changed = False
+    for product_key, record in sorted(
+        published.items(),
+        key=lambda item: float(item[1].get("ts", 0)) if isinstance(item[1], dict) else 0,
+    ):
+        if not isinstance(record, dict):
+            counters["skipped"] += 1
+            continue
+        if record.get("expiry_source") != "digikala_live_deals_feed" or record.get("expiry_estimated"):
+            continue
+        deadline = _parse_utc_datetime(record.get("expires_at"))
+        if deadline is None or deadline <= now:
+            continue
+        last_raw = record.get("countdown_last_updated_at")
+        last = _parse_utc_datetime(last_raw) if last_raw else None
+        if last and (now - last).total_seconds() < 240:
+            continue
+        targets = []
+        if str(record.get("telegram_message_id") or "").isdigit() and BOT_TOKEN:
+            targets.append(("telegram", int(record["telegram_message_id"])))
+        if str(record.get("bale_message_id") or "").isdigit() and BALE_BOT_TOKEN and BALE_CHANNEL_ID:
+            targets.append(("bale", int(record["bale_message_id"])))
+        if not targets:
+            continue
+        affiliate_url = build_affilio_tracking_link(safe_product_url(record.get("product_url", "")))
+        if not affiliate_url:
+            counters["skipped"] += 1
+            continue
+        product = {
+            "title": record.get("title", "پیشنهاد ویژه"),
+            "current_price": record.get("posted_current_price"),
+            "original_price": record.get("posted_original_price"),
+            "discount_percent": record.get("posted_discount_percent"),
+            "deal_expires_at": record.get("expires_at", ""),
+            "_countdown_now": now,
+        }
+        product_had_failure = False
+        for platform, message_id in targets:
+            try:
+                if platform == "telegram":
+                    caption = build_caption(product, affiliate_url, TELEGRAM_CHANNEL_URL)
+                    result = _edit_telegram_caption(message_id, caption, affiliate_url)
+                else:
+                    caption = build_caption(product, affiliate_url, BALE_CHANNEL_URL, use_unicode_strikethrough=True)
+                    result = _edit_bale_caption(message_id, caption, affiliate_url)
+                if isinstance(result, dict) and result.get("not_found"):
+                    counters[f"{platform}_missing"] += 1
+                    print(f"COUNTDOWN_REFRESH_UNAVAILABLE product_id={product_key} platform={platform} message_id={message_id} reason=message_not_found")
+                else:
+                    counters[f"{platform}_updated"] += 1
+                    print(f"COUNTDOWN_REFRESHED product_id={product_key} platform={platform} message_id={message_id}")
+            except Exception as exc:
+                counters[f"{platform}_failed"] += 1
+                product_had_failure = True
+                print(f"COUNTDOWN_REFRESH_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}")
+            if platform == "telegram":
+                time.sleep(1.1)
+        if not product_had_failure:
+            record["countdown_last_updated_at"] = now.isoformat()
+            changed = True
+    if changed:
+        save_json(STATE, state)
+    print(
+        "COUNTDOWN_REFRESH_SUMMARY "
+        f"telegram_updated={counters['telegram_updated']} telegram_missing={counters['telegram_missing']} telegram_failed={counters['telegram_failed']} "
+        f"bale_updated={counters['bale_updated']} bale_missing={counters['bale_missing']} bale_failed={counters['bale_failed']} "
+        f"skipped={counters['skipped']}"
+    )
+    return 0
 
 
 def _delivery_retry_delay(attempt: int) -> int:
@@ -3234,7 +3340,18 @@ def main():
         action="store_true",
         help="edit all tracked Telegram and Bale captions in place; never publish new products",
     )
+    parser.add_argument(
+        "--refresh-countdowns",
+        action="store_true",
+        help="refresh remaining-hours/minutes timers on active deadline-verified posts",
+    )
     args = parser.parse_args()
+    if args.refresh_countdowns:
+        try:
+            sys.exit(refresh_active_countdowns())
+        except Exception as exc:
+            print(f"COUNTDOWN_REFRESH_FAILED error={type(exc).__name__}")
+            sys.exit(1)
     if args.repair_all_captions:
         try:
             sys.exit(repair_all_published_captions())

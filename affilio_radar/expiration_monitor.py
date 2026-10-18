@@ -379,6 +379,8 @@ def _should_probe(record, now):
     bale_done = record.get("bale_expiry_status") in {"deleted", "already_absent"}
     if telegram_done and (not str(bale_message_id or "").isdigit() or bale_done):
         return False
+    if record.get("expires_at") and not record.get("expiry_estimated"):
+        return False
     last_raw = record.get("expiry_last_probed_at")
     try:
         last = datetime.fromisoformat(str(last_raw).replace("Z", "+00:00"))
@@ -389,6 +391,7 @@ def _should_probe(record, now):
         elapsed = float("inf")
     interval = PROBE_INTERVAL_SECONDS if record.get("expiry_estimated") else UNKNOWN_PROBE_INTERVAL_SECONDS
     return elapsed >= interval
+
 
 
 def _telegram_delete(message_id):
@@ -425,78 +428,25 @@ def _bale_delete(message_id):
     raise RuntimeError(description[:180] or "Bale deleteMessage failed")
 
 
-def run():
-    state = _read_state()
-    published = state.get("published", {})
-    if not isinstance(published, dict):
-        raise ValueError("state.json published must be an object")
-    now = datetime.now(timezone.utc)
-    needs_probe = [
-        (pid, rec) for pid, rec in published.items()
-        if isinstance(rec, dict)
-        and (
-            (str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent"})
-            or (str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"})
-        )
-        and _should_probe(rec, now)
-    ]
+def _delete_expired_posts(published, now, mark_unknown=False):
+    """Delete posts whose explicit deadline has passed; return state change and actual deletions."""
     changed = False
-    if needs_probe:
-        live_expiries = fetch_offer_expiries()
-        if live_expiries:
-            for pid, rec in needs_probe:
-                live = live_expiries.get(pid)
-                if live and (not rec.get("expires_at") or rec.get("expiry_estimated")):
-                    rec["expires_at"] = live
-                    rec["expiry_source"] = "digikala_live_deals_feed"
-                    rec["expiry_estimated"] = False
-                    if rec.get("expiry_status") not in {"deleted", "already_absent"}:
-                        rec["expiry_status"] = "tracked"
-                    changed = True
-                    print(f"EXPIRY_TRACKED product_id={pid} expires_at={live}")
-        for pid, rec in needs_probe:
-            rec["expiry_last_probed_at"] = now.isoformat()
-            changed = True
-            # If no exact deadline is available, verify live stock/price as a conservative fallback.
-            if not rec.get("expires_at") or rec.get("expiry_estimated"):
-                snapshot = fetch_live_product_status(pid)
-                rec["expiry_last_product_check_at"] = now.isoformat()
-                if snapshot:
-                    current = snapshot.get("current_price")
-                    posted = rec.get("posted_current_price")
-                    stock = snapshot.get("in_stock")
-                    reason = ""
-                    if stock is False:
-                        reason = "out_of_stock"
-                    else:
-                        try:
-                            posted_value = int(posted)
-                            current_value = int(current)
-                            if posted_value > 0 and current_value > posted_value * 1.05:
-                                reason = "price_reverted"
-                        except (TypeError, ValueError, OverflowError):
-                            pass
-                    rec["last_seen_current_price"] = current
-                    rec["last_seen_in_stock"] = stock
-                    if reason:
-                        rec["expires_at"] = now.isoformat()
-                        rec["expiry_source"] = "live_product_stock_or_price"
-                        rec["expiry_estimated"] = False
-                        rec["expiry_reason"] = reason
-                        rec["expiry_status"] = "expired_confirmed"
-                        changed = True
-                        print(f"EXPIRY_CONFIRMED_BY_LIVE_PRODUCT product_id={pid} reason={reason} current_price={current}")
-
     deleted = 0
     for pid, rec in published.items():
         if not isinstance(rec, dict):
             continue
-        raw_expiry = rec.get("expires_at")
-        expiry = parse_expiry(raw_expiry)
+        expiry = parse_expiry(rec.get("expires_at"))
         if not expiry:
-            if str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent", "unknown"}:
-                rec["expiry_status"] = "unknown"
-                changed = True
+            if mark_unknown:
+                for id_field, status_field in (
+                    ("telegram_message_id", "expiry_status"),
+                    ("bale_message_id", "bale_expiry_status"),
+                ):
+                    if not str(rec.get(id_field) or "").isdigit():
+                        continue
+                    if rec.get(status_field) not in {"deleted", "already_absent", "unknown"}:
+                        rec[status_field] = "unknown"
+                        changed = True
             continue
         expires_at = datetime.fromisoformat(expiry)
         if expires_at.tzinfo is None:
@@ -506,43 +456,134 @@ def run():
                 rec["expiry_status"] = "tracked_estimated" if rec.get("expiry_estimated") else "tracked"
                 changed = True
             if str(rec.get("bale_message_id") or "").isdigit() and not rec.get("bale_expiry_status"):
-                rec["bale_expiry_status"] = "tracked"
+                rec["bale_expiry_status"] = "tracked_estimated" if rec.get("expiry_estimated") else "tracked"
                 changed = True
             continue
-
-        raw_telegram_id = rec.get("telegram_message_id")
-        if str(raw_telegram_id or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent"}:
+        for platform, id_field, status_field, timestamp_field, delete_fn in (
+            ("telegram", "telegram_message_id", "expiry_status", "expired_deleted_at", _telegram_delete),
+            ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete),
+        ):
+            raw_id = rec.get(id_field)
+            if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent"}:
+                continue
             try:
-                outcome = _telegram_delete(int(raw_telegram_id))
-                rec["expiry_status"] = outcome
-                rec["expired_deleted_at"] = now.isoformat()
+                outcome = delete_fn(int(raw_id))
+                rec[status_field] = outcome
+                rec[timestamp_field] = now.isoformat()
                 changed = True
-                deleted += 1
-                print(f"EXPIRY_DELETE_OK platform=telegram product_id={pid} message_id={raw_telegram_id} outcome={outcome} expiry={expiry}")
+                if outcome == "deleted":
+                    deleted += 1
+                print(f"EXPIRY_DELETE_OK platform={platform} product_id={pid} message_id={raw_id} outcome={outcome} expiry={expiry}")
             except Exception as exc:
-                rec["expiry_status"] = "delete_failed"
-                rec["expiry_last_delete_error"] = f"{type(exc).__name__}: {str(exc)[:180]}"
+                rec[status_field] = "delete_failed"
+                error_text = str(exc)[:180]
+                rec[f"{platform}_expiry_last_delete_error"] = f"{type(exc).__name__}: {error_text}"
                 changed = True
-                print(f"EXPIRY_DELETE_FAILED platform=telegram product_id={pid} message_id={raw_telegram_id} error={type(exc).__name__} detail={str(exc)[:160]!r}")
+                print(f"EXPIRY_DELETE_FAILED platform={platform} product_id={pid} message_id={raw_id} error={type(exc).__name__} detail={error_text[:160]!r}")
+    return changed, deleted
 
-        raw_bale_id = rec.get("bale_message_id")
-        if str(raw_bale_id or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"}:
+
+def run():
+    state = _read_state()
+    published = state.get("published", {})
+    if not isinstance(published, dict):
+        raise ValueError("state.json published must be an object")
+    now = datetime.now(timezone.utc)
+    changed = False
+    deleted = 0
+
+    pre_changed, pre_deleted = _delete_expired_posts(published, now, mark_unknown=True)
+    changed = changed or pre_changed
+    deleted += pre_deleted
+    if pre_changed:
+        _write_state(state)
+        print("EXPIRY_STATE_SAVED phase=known_deadline_cleanup")
+
+    probe_candidates = [
+        (pid, rec) for pid, rec in published.items()
+        if isinstance(rec, dict)
+        and (
+            (str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent"})
+            or (str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"})
+        )
+        and _should_probe(rec, now)
+    ]
+    probe_candidates.sort(key=lambda pair: str(pair[1].get("expiry_last_probed_at") or ""))
+    feed_last = parse_expiry(state.get("expiry_feed_last_checked_at"))
+    feed_due = not feed_last or (now - datetime.fromisoformat(feed_last)).total_seconds() >= UNKNOWN_PROBE_INTERVAL_SECONDS
+    live_expiries = {}
+    if probe_candidates and feed_due:
+        try:
+            live_expiries = fetch_offer_expiries()
+        except Exception as exc:
+            print(f"EXPIRY_FEED_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
+        state["expiry_feed_last_checked_at"] = now.isoformat()
+        changed = True
+        for pid, rec in published.items():
+            if not isinstance(rec, dict) or (rec.get("expires_at") and not rec.get("expiry_estimated")):
+                continue
+            live = live_expiries.get(pid)
+            if live:
+                rec["expires_at"] = live
+                rec["expiry_source"] = "digikala_live_deals_feed"
+                rec["expiry_estimated"] = False
+                if rec.get("expiry_status") not in {"deleted", "already_absent"}:
+                    rec["expiry_status"] = "tracked"
+                if str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"}:
+                    rec["bale_expiry_status"] = "tracked"
+                changed = True
+                print(f"EXPIRY_TRACKED product_id={pid} expires_at={live}")
+
+    product_probe_count = 0
+    max_product_probes = 3
+    max_probe_candidates = max_product_probes * 2
+    for pid, rec in probe_candidates[:max_probe_candidates]:
+        if not isinstance(rec, dict) or (rec.get("expires_at") and not rec.get("expiry_estimated")):
+            continue
+        rec["expiry_last_probed_at"] = now.isoformat()
+        changed = True
+        if product_probe_count >= max_product_probes:
+            continue
+        product_probe_count += 1
+        snapshot = fetch_live_product_status(pid)
+        rec["expiry_last_product_check_at"] = now.isoformat()
+        if not snapshot:
+            continue
+        current = snapshot.get("current_price")
+        posted = rec.get("posted_current_price")
+        stock = snapshot.get("in_stock")
+        reason = ""
+        if stock is False:
+            reason = "out_of_stock"
+        else:
             try:
-                outcome = _bale_delete(int(raw_bale_id))
-                rec["bale_expiry_status"] = outcome
-                rec["bale_expired_deleted_at"] = now.isoformat()
-                changed = True
-                deleted += 1
-                print(f"EXPIRY_DELETE_OK platform=bale product_id={pid} message_id={raw_bale_id} outcome={outcome} expiry={expiry}")
-            except Exception as exc:
-                rec["bale_expiry_status"] = "delete_failed"
-                rec["bale_expiry_last_delete_error"] = f"{type(exc).__name__}: {str(exc)[:180]}"
-                changed = True
-                print(f"EXPIRY_DELETE_FAILED platform=bale product_id={pid} message_id={raw_bale_id} error={type(exc).__name__} detail={str(exc)[:160]!r}")
+                posted_value = int(posted)
+                current_value = int(current)
+                if posted_value > 0 and current_value > posted_value * 1.05:
+                    reason = "price_reverted"
+            except (TypeError, ValueError, OverflowError):
+                pass
+        rec["last_seen_current_price"] = current
+        rec["last_seen_in_stock"] = stock
+        if reason:
+            rec["expires_at"] = now.isoformat()
+            rec["expiry_source"] = "live_product_stock_or_price"
+            rec["expiry_estimated"] = False
+            rec["expiry_reason"] = reason
+            rec["expiry_status"] = "expired_confirmed"
+            changed = True
+            print(f"EXPIRY_CONFIRMED_BY_LIVE_PRODUCT product_id={pid} reason={reason} current_price={current}")
 
+    post_changed, post_deleted = _delete_expired_posts(published, now, mark_unknown=True)
+    changed = changed or post_changed
+    deleted += post_deleted
     if changed:
         _write_state(state)
-    print(f"EXPIRY_MONITOR_SUMMARY tracked={len(published)} probed={len(needs_probe)} deleted_now={deleted} state_changed={changed}")
+    backlog = max(0, len(probe_candidates) - min(len(probe_candidates), max_probe_candidates))
+    print(
+        f"EXPIRY_MONITOR_SUMMARY tracked={len(published)} probed={product_probe_count} "
+        f"probe_backlog={backlog} deleted_now={deleted} state_changed={changed}"
+    )
     return 0
 
 

@@ -1,6 +1,13 @@
 name: Affilio Expired Offer Cleanup
 
 on:
+  push:
+    paths:
+      - "affilio_radar/affilio_radar.py"
+      - "affilio_radar/test_affilio.py"
+      - "affilio_radar/expiration_monitor.py"
+      - "affilio_radar/test_expiration_monitor.py"
+      - ".github/workflows/affilio-expiration-cleanup.yml"
   schedule:
     # Expired offers are checked every five minutes; deletion follows the source deadline.
     - cron: "*/5 * * * *"
@@ -10,13 +17,13 @@ permissions:
   contents: write
 
 concurrency:
-  group: affilio-product-radar
+  group: affilio-expiration-cleanup
   cancel-in-progress: false
 
 jobs:
   expire:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 15
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -29,11 +36,24 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install dependencies for caption countdown refresh
+        run: python -m pip install -r affilio_radar/requirements.txt
+
       - name: Validate expiry monitor and run its unit tests
         run: |
           python -m py_compile affilio_radar/expiration_monitor.py
           cd affilio_radar
           python -m unittest -v test_expiration_monitor.py
+
+      - name: Refresh countdowns for active OfferChin posts
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/affilio_radar.py --refresh-countdowns
 
       - name: Check and remove expired OfferChin posts
         env:

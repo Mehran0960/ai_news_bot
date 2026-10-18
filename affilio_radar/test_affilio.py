@@ -24,6 +24,9 @@ from affilio_radar import (
     score_product,
     is_publish_eligible,
     build_caption,
+    format_remaining_time,
+    unicode_underline,
+    refresh_active_countdowns,
     _send_photo,
     _send_bale_photo,
     _edit_bale_caption,
@@ -591,18 +594,18 @@ class AffilioRadarTests(unittest.TestCase):
             "current_price": 500_000,
             "original_price": 700_000,
             "discount_percent": 29,
-            "deal_expires_at": "2026-10-16T20:30:00+00:00",
+            "deal_expires_at": "2026-12-16T20:30:00+00:00",
             "rating": 4.4,
             "review_count": 1243,
         }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
         self.assertIn("<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>", caption)
         self.assertIn("<b>🛍️ گجت نمونه ۶۰</b>", caption)
-        self.assertIn("<b>💚 قیمت ویژه: 💰 ۵۰۰٬۰۰۰ تومان</b>", caption)
-        self.assertIn("<b>⚡️ ۲۹٪ تخفیف ویژه</b>", caption)
+        self.assertIn("<b>💚 قیمت ویژه: 💰 <u>۵۰۰٬۰۰۰</u> تومان</b>", caption)
+        self.assertIn("<b>⚡️ <u>۲۹٪</u> تخفیف</b>", caption)
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
-        self.assertIn("<b>⏳ پایان تخفیف: جمعه ۲۴ مهر ۱۴۰۵، ساعت ۲۳:۵۹</b>", caption)
+        self.assertIn("<b>⏳ زمان باقی‌مانده: ", caption)
         self.assertIn("<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>", caption)
-        self.assertIn('<a href="https://t.me/OfferChin">📣 عضویت در کانال: t.me/OfferChin</a>', caption)
+        self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', caption)
         self.assertLess(caption.index("عضویت در کانال"), caption.index("برای دیدن جزئیات"))
         self.assertNotRegex(caption, r"[0-9]")
         self.assertNotIn("قیمت امروز", caption)
@@ -687,14 +690,72 @@ class AffilioRadarTests(unittest.TestCase):
         expected_amount = unicode_strikethrough("۱٬۱۰۸٬۸۰۰")
         self.assertIn(expected_amount, bale_caption)
         self.assertIn("*🏷️ قیمت اصلی:", bale_caption)
+        self.assertIn("*💚 قیمت ویژه: 💰 " + unicode_underline("۱۲۳٬۲۰۰") + " تومان*", bale_caption)
+        self.assertIn("*⚡️ " + unicode_underline("۸۹٪") + " تخفیف*", bale_caption)
         self.assertNotIn("<s>", bale_caption)
         self.assertIn("<s>۱٬۱۰۸٬۸۰۰ تومان</s>", telegram_caption)
-        self.assertIn("[📣 عضویت در کانال: ble.ir/OfferChin](https://ble.ir/OfferChin)", bale_caption)
-        self.assertIn('<a href="https://t.me/OfferChin">📣 عضویت در کانال: t.me/OfferChin</a>', telegram_caption)
+        self.assertIn("[عضویت در کانال OfferChin](https://ble.ir/OfferChin)", bale_caption)
+        self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
         self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای دیدن جزئیات"))
         self.assertNotIn("<b>", bale_caption)
         self.assertNotIn("@OfferChin", bale_caption)
         self.assertNotIn("@OfferChin", telegram_caption)
+
+
+    def test_countdown_formats_hours_minutes_and_expired_deadlines(self):
+        now = datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc)
+        self.assertEqual(format_remaining_time("2026-10-18T12:17:20+00:00", now), "۲ ساعت و ۱۸ دقیقه")
+        self.assertEqual(format_remaining_time("2026-10-18T10:00:15+00:00", now), "۱ دقیقه")
+        self.assertEqual(format_remaining_time("2026-10-18T09:59:59+00:00", now), "مهلت آفر به پایان رسیده")
+        self.assertEqual(format_remaining_time("", now), "")
+
+    def test_unicode_underline_marks_visible_characters(self):
+        self.assertEqual(unicode_underline("۱۲۳"), "۱\\u0332۲\\u0332۳\\u0332")
+
+    def test_refresh_active_countdowns_updates_verified_posts_in_place(self):
+        expiry = (datetime.now(timezone.utc) + timedelta(hours=2, minutes=17)).isoformat()
+        state = {
+            "published": {
+                "dkp-15970075": {
+                    "ts": 1, "title": "محصول نمونه",
+                    "product_url": "https://www.digikala.com/product/dkp-15970075/",
+                    "telegram_message_id": 39, "bale_message_id": 2,
+                    "posted_current_price": 123_200, "posted_original_price": 1_108_800,
+                    "posted_discount_percent": 89, "expires_at": expiry,
+                    "expiry_source": "digikala_live_deals_feed", "expiry_estimated": False,
+                },
+                "dkp-expired": {
+                    "ts": 2, "title": "پیشنهاد تمام‌شده",
+                    "product_url": "https://www.digikala.com/product/dkp-15970075/",
+                    "telegram_message_id": 40, "posted_current_price": 100_000,
+                    "posted_original_price": 200_000, "posted_discount_percent": 50,
+                    "expires_at": "2026-10-17T20:30:00+00:00",
+                    "expiry_source": "digikala_live_deals_feed", "expiry_estimated": False,
+                },
+            }
+        }
+        url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
+        with (
+            patch("affilio_radar.load_state", return_value=state),
+            patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
+            patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
+            patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
+            patch("affilio_radar.build_affilio_tracking_link", return_value=url),
+            patch("affilio_radar._edit_telegram_caption", return_value={"message_id": 39}) as edit_telegram,
+            patch("affilio_radar._edit_bale_caption", return_value={"message_id": 2}) as edit_bale,
+            patch("affilio_radar.save_json") as save_state,
+            patch("affilio_radar.time.sleep"),
+        ):
+            result = refresh_active_countdowns()
+        self.assertEqual(result, 0)
+        self.assertEqual(edit_telegram.call_count, 1)
+        self.assertEqual(edit_bale.call_count, 1)
+        self.assertIn("زمان باقی‌مانده:", edit_telegram.call_args.args[1])
+        self.assertIn("زمان باقی‌مانده:", edit_bale.call_args.args[1])
+        self.assertIn("عضویت در کانال OfferChin", edit_telegram.call_args.args[1])
+        self.assertIn("عضویت در کانال OfferChin", edit_bale.call_args.args[1])
+        self.assertTrue(save_state.called)
+
 
     def test_unicode_strikethrough_marks_each_visible_character(self):
         self.assertEqual(unicode_strikethrough("۱۲۳"), "۱\u0336۲\u0336۳\u0336")
@@ -769,8 +830,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(send_bale.called)
         telegram_caption = edit_telegram.call_args_list[0].args[1]
         bale_caption = edit_bale.call_args_list[0].args[1]
-        self.assertIn('<a href="https://t.me/OfferChin">📣 عضویت در کانال: t.me/OfferChin</a>', telegram_caption)
-        self.assertIn("[📣 عضویت در کانال: ble.ir/OfferChin](https://ble.ir/OfferChin)", bale_caption)
+        self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
+        self.assertIn("[عضویت در کانال OfferChin](https://ble.ir/OfferChin)", bale_caption)
         self.assertLess(telegram_caption.index("عضویت در کانال"), telegram_caption.index("برای دیدن جزئیات"))
         self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای دیدن جزئیات"))
 

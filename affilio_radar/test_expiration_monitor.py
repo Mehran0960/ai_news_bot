@@ -32,6 +32,50 @@ class ExpirationMonitorTests(unittest.TestCase):
             self.assertFalse(monitor._should_probe(record, now))
             self.assertTrue(monitor._should_probe(record, now + timedelta(minutes=16)))
 
+
+    def test_confirmed_deadline_does_not_need_another_network_probe(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "telegram_message_id": 77,
+            "expires_at": (now + timedelta(minutes=10)).isoformat(),
+            "expiry_estimated": False,
+        }
+        self.assertFalse(monitor._should_probe(record, now))
+
+    def test_expired_posts_are_deleted_before_a_failing_live_feed_lookup(self):
+        with tempfile.TemporaryDirectory() as temp:
+            state_path = Path(temp) / "state.json"
+            state = {
+                "published": {
+                    "dkp-12345": {
+                        "telegram_message_id": 77,
+                        "expires_at": (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat(),
+                        "expiry_source": "digikala_live_deals_feed",
+                        "expiry_estimated": False,
+                        "expiry_status": "tracked",
+                    },
+                    "dkp-67890": {
+                        "telegram_message_id": 88,
+                        "product_url": "https://www.digikala.com/product/dkp-67890/",
+                        "expires_at": "",
+                    },
+                }
+            }
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+            with (
+                patch.object(monitor, "STATE_PATH", state_path),
+                patch.object(monitor, "BOT_TOKEN", "test-token"),
+                patch.object(monitor, "fetch_offer_expiries", side_effect=RuntimeError("feed unavailable")),
+                patch.object(monitor, "fetch_live_product_status", return_value={}),
+                patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion,
+            ):
+                self.assertEqual(monitor.run(), 0)
+            deletion.assert_called_once_with(77)
+            saved = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["published"]["dkp-12345"]["expiry_status"], "deleted")
+            self.assertIn("expired_deleted_at", saved["published"]["dkp-12345"])
+
+
     def test_expired_post_is_deleted_and_persisted(self):
         with tempfile.TemporaryDirectory() as temp:
             state_path = Path(temp) / "state.json"
