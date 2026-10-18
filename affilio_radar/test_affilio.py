@@ -762,6 +762,30 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(unicode_strikethrough("۱۲۳  تومان"), "۱\u0336۲\u0336۳\u0336  ت\u0336و\u0336م\u0336ا\u0336ن\u0336")
 
 
+
+    def test_edit_telegram_caption_retries_after_api_rate_limit(self):
+        rate_limited = unittest.mock.Mock()
+        rate_limited.status_code = 429
+        rate_limited.json.return_value = {
+            "ok": False, "error_code": 429,
+            "description": "Too Many Requests: retry after 13",
+            "parameters": {"retry_after": 13},
+        }
+        ok = unittest.mock.Mock()
+        ok.status_code = 200
+        ok.json.return_value = {"ok": True, "result": {"message_id": 39}}
+        url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
+        with (
+            patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
+            patch("affilio_radar.requests.post", side_effect=[rate_limited, ok]) as post,
+            patch("affilio_radar.time.sleep") as sleep,
+        ):
+            result = _edit_telegram_caption(39, "updated caption", url)
+        self.assertEqual(post.call_count, 2)
+        sleep.assert_called_once_with(14)
+        self.assertEqual(result["message_id"], 39)
+
+
     def test_edit_telegram_caption_preserves_affiliate_purchase_button(self):
         response = unittest.mock.Mock()
         response.json.return_value = {"ok": True, "result": {"message_id": 39}}
