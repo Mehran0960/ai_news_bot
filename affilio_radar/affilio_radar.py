@@ -92,7 +92,7 @@ SEARCH_TERMS = [
     "جارو شارژی",
 ]
 MAX_INCREDIBLE_OFFER_CANDIDATES = max(
-    8, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "24")))
+    1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "24")))
 )
 EXCLUDED_HEALTH_PRODUCT_RE = re.compile(
     r"(?:قرص|کپسول|دارو(?:یی)?|مکمل|ویتامین|زینک|منیزیم|"
@@ -1882,8 +1882,7 @@ def discover_product_urls() -> tuple[list[str], list[dict], dict[str, str]]:
     print(
         f"DEAL_DISCOVERY unique_filtered_urls={len(best_by_url)} "
         f"selected_incredible_offers={len(selected_deals)} "
-        f"verified_deadline_candidates={sum(bool(str(row.get('deal_expires_at') or '').strip()) for row in selected_deals)} "
-        f"excluded_health_products={sum(is_prohibited_product_title(row.get('title', '')) for row in deals_found)}"
+        f"verified_deadline_candidates={sum(bool(str(row.get('deal_expires_at') or '').strip()) for row in selected_deals)}"
     )
 
     # Fill remaining slots with targeted searches for tech, home, and practical gadgets.
@@ -3244,6 +3243,19 @@ def run(publish=False):
     ]
     queue_now = datetime.now(timezone.utc)
     pending_queue = refresh_pending_queue(state, eligible, queue_now)
+    missing_deadline_count = sum(
+        not _parse_utc_datetime(_parse_deal_expiry_value(p.get("deal_expires_at")))
+        for p in products
+    )
+    expired_deadline_count = sum(is_offer_expired(p, queue_now) for p in products)
+    prohibited_product_count = sum(is_prohibited_product_title(p.get("title", "")) for p in products)
+    print(
+        f"ELIGIBILITY_DIAGNOSTICS ranked={len(products)} "
+        f"missing_deadline={missing_deadline_count} expired_deadline={expired_deadline_count} "
+        f"medicine_or_supplement={prohibited_product_count} "
+        f"future_deadline_and_discount_ok={len(eligible)} "
+        f"fresh_after_duplicate_cooldown={len(pending_queue)}"
+    )
     eligible_by_id = {str(p.get("product_id") or product_id(p.get("product_url", ""))): p for p in eligible}
 
     # Retry a failed destination for a previously published product before posting another product.
@@ -3393,6 +3405,12 @@ def run(publish=False):
         print("PUBLISH_SKIPPED: processed a pending channel delivery retry; no new product posted in this run.")
     elif link_mode == "no_valid_affilio_tracking_config":
         print("PUBLISH_BLOCKED: no valid Affilio tracking parameters/template configured; no post attempted.")
+    elif not eligible:
+        print(
+            "PUBLISH_BLOCKED: no fresh product passed stock, price, image, affiliate-link, "
+            "minimum-discount, and future verified-deadline checks; unverified deals are held "
+            "and previously published products remain on product cooldown."
+        )
     elif cooldown_remaining > 0 and not urgent_cooldown_bypass:
         print("PUBLISH_BLOCKED: global posting cooldown active; queue retained.")
     else:
