@@ -167,7 +167,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         }
         self.assertFalse(monitor._should_probe(record, now))
 
-    def test_expired_posts_are_deleted_before_a_failing_live_feed_lookup(self):
+    def test_expired_and_unknown_posts_are_removed_before_feed_probes(self):
         with tempfile.TemporaryDirectory() as temp:
             state_path = Path(temp) / "state.json"
             state = {
@@ -183,6 +183,8 @@ class ExpirationMonitorTests(unittest.TestCase):
                         "telegram_message_id": 88,
                         "product_url": "https://www.digikala.com/product/dkp-67890/",
                         "expires_at": "",
+                        "expiry_source": "unavailable",
+                        "expiry_status": "unknown",
                     },
                 }
             }
@@ -191,15 +193,19 @@ class ExpirationMonitorTests(unittest.TestCase):
                 patch.object(monitor, "STATE_PATH", state_path),
                 patch.object(monitor, "BOT_TOKEN", "test-token"),
                 patch.object(monitor, "audit_public_channel_history", return_value=(False, 0, 0, 0, 0)),
-                patch.object(monitor, "fetch_offer_expiries", side_effect=RuntimeError("feed unavailable")),
-                patch.object(monitor, "fetch_live_product_status", return_value={}),
+                patch.object(monitor, "fetch_offer_expiries", side_effect=RuntimeError("feed unavailable")) as fetch,
+                patch.object(monitor, "fetch_live_product_status", return_value={}) as product_check,
                 patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion,
             ):
                 self.assertEqual(monitor.run(), 0)
-            deletion.assert_called_once_with(77)
+            self.assertCountEqual([call.args[0] for call in deletion.call_args_list], [77, 88])
+            fetch.assert_not_called()
+            product_check.assert_not_called()
             saved = json.loads(state_path.read_text(encoding="utf-8"))
             self.assertEqual(saved["published"]["dkp-12345"]["expiry_status"], "deleted")
             self.assertIn("expired_deleted_at", saved["published"]["dkp-12345"])
+            self.assertEqual(saved["published"]["dkp-67890"]["expiry_status"], "deleted")
+            self.assertIn("deadline_unavailable_deleted_at", saved["published"]["dkp-67890"])
 
 
     def test_expired_post_is_deleted_and_persisted(self):
@@ -265,6 +271,92 @@ class ExpirationMonitorTests(unittest.TestCase):
             self.assertEqual(record["bale_expiry_status"], "deleted")
             self.assertIn("expired_deleted_at", record)
             self.assertIn("bale_expired_deleted_at", record)
+
+
+    def test_missing_or_unverified_deadline_posts_are_deleted_from_both_channels(self):
+        now = datetime.now(timezone.utc)
+        state = {
+            "unknown": {
+                "title": "زمان نامعلوم",
+                "telegram_message_id": 71,
+                "bale_message_id": 81,
+                "expires_at": "",
+                "expiry_source": "unavailable",
+                "expiry_status": "unknown",
+                "bale_expiry_status": "unknown",
+            },
+            "estimated": {
+                "title": "زمان تخمینی",
+                "telegram_message_id": 72,
+                "expires_at": (now + timedelta(hours=2)).isoformat(),
+                "expiry_source": "estimated",
+                "expiry_estimated": True,
+            },
+            "verified": {
+                "title": "زمان تأییدشده",
+                "telegram_message_id": 73,
+                "bale_message_id": 83,
+                "expires_at": (now + timedelta(hours=2)).isoformat(),
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_estimated": False,
+                "expiry_status": "tracked",
+            },
+        }
+        with (
+            patch.object(monitor, "_telegram_delete", return_value="deleted") as telegram_delete,
+            patch.object(monitor, "_bale_delete", return_value="deleted") as bale_delete,
+        ):
+            changed, deleted, marked = monitor._delete_posts_without_verified_deadline(state, now)
+        self.assertTrue(changed)
+        self.assertEqual(deleted, 3)
+        self.assertEqual(marked, 0)
+        self.assertCountEqual([call.args[0] for call in telegram_delete.call_args_list], [71, 72])
+        bale_delete.assert_called_once_with(81)
+        self.assertEqual(state["unknown"]["expiry_status"], "deleted")
+        self.assertEqual(state["unknown"]["bale_expiry_status"], "deleted")
+        self.assertEqual(state["estimated"]["expiry_status"], "deleted")
+        self.assertEqual(state["verified"]["expiry_status"], "tracked")
+        self.assertNotIn("bale_expiry_status", state["verified"])
+
+    def test_unverifiable_deadline_disables_purchase_button_and_retries_deletion(self):
+        now = datetime.now(timezone.utc)
+        state = {
+            "dkp-123": {
+                "title": "پیشنهاد بدون زمان",
+                "telegram_message_id": 74,
+                "expires_at": "",
+                "expiry_source": "unavailable",
+            }
+        }
+        with (
+            patch.object(monitor, "_telegram_delete", side_effect=RuntimeError("temporary delete failure")) as deletion,
+            patch.object(monitor, "_telegram_mark_deadline_unavailable", return_value="edited") as mark,
+        ):
+            changed, deleted, marked = monitor._delete_posts_without_verified_deadline(state, now)
+            self.assertEqual(state["dkp-123"]["expiry_status"], "deadline_unavailable_marked")
+            self.assertEqual((changed, deleted, marked), (True, 0, 1))
+            monitor._delete_posts_without_verified_deadline(state, now + timedelta(minutes=5))
+        self.assertEqual(deletion.call_count, 2)
+        mark.assert_called_once_with(74, "پیشنهاد بدون زمان")
+
+    def test_public_history_deletes_untracked_offer_without_absolute_deadline(self):
+        post = {
+            "message_id": 79,
+            "caption_text": (
+                "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا "
+                "🛍️ محصول بدون مهلت "
+                "💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان "
+                "⚡️ ۸۹٪ تخفیف "
+                "⏳ ۲ ساعت و ۱۵ دقیقه مانده به پایان تخفیف"
+            ),
+            "caption_html": "",
+        }
+        with patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion:
+            result = monitor.audit_public_channel_history(
+                {}, now=datetime.now(timezone.utc), posts={79: post}
+            )
+        deletion.assert_called_once_with(79)
+        self.assertEqual(result[1], 1)
 
 
 if __name__ == "__main__":
