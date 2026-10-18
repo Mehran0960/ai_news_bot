@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "affilio_radar/affilio_radar.py"
+      - "affilio_radar/state.json"
       - "affilio_radar/test_affilio.py"
       - "affilio_radar/test_expiration_monitor.py"
       - "affilio_radar/expiration_monitor.py"
@@ -152,6 +153,7 @@ jobs:
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          AFFILIO_DEAL_LIST_PAGES: "3"
           AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || inputs.external_scheduler || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.5"
           AFFILIO_MAX_POSTS_PER_RUN: ${{ contains(github.event.head_commit.message, '[publish-now]') && '10' || inputs.batch_count || '1' }}
@@ -161,6 +163,8 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: |
           if [[ "${{ contains(github.event.head_commit.message, '[repair-all-captions]') }}" == "true" ]]; then
+            # Delete previously expired offers first, then revise every remaining tracked caption.
+            python affilio_radar/expiration_monitor.py
             python affilio_radar/affilio_radar.py --repair-all-captions
           elif [[ "${{ contains(github.event.head_commit.message, '[repair-bale-caption]') }}" == "true" ]]; then
             python affilio_radar/affilio_radar.py --repair-bale-message-id 2
