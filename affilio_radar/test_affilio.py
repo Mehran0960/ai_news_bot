@@ -17,6 +17,7 @@ from affilio_radar import (
     enrich_click_statistics,
     deal_sort_key,
     is_offer_expired,
+    has_verified_deal_deadline,
     is_urgent_priority_deal,
     pending_queue_sort_key,
     refresh_pending_queue,
@@ -704,10 +705,20 @@ class AffilioRadarTests(unittest.TestCase):
 
     def test_countdown_formats_hours_minutes_and_expired_deadlines(self):
         now = datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc)
-        self.assertEqual(format_remaining_time("2026-10-18T12:17:20+00:00", now), "۲ ساعت و ۱۸ دقیقه")
-        self.assertEqual(format_remaining_time("2026-10-18T10:00:15+00:00", now), "۱ دقیقه")
+        self.assertEqual(format_remaining_time("2026-10-18T12:17:20+00:00", now), "۰۲:۱۸")
+        self.assertEqual(format_remaining_time("2026-10-18T10:00:15+00:00", now), "۰۰:۰۱")
         self.assertEqual(format_remaining_time("2026-10-18T09:59:59+00:00", now), "مهلت آفر به پایان رسیده")
         self.assertEqual(format_remaining_time("", now), "")
+
+    def test_publication_requires_an_explicit_future_deadline_for_countdown(self):
+        now = datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc)
+        self.assertTrue(has_verified_deal_deadline({
+            "deal_expires_at": "2026-10-18T12:17:20+00:00"
+        }, now))
+        self.assertFalse(has_verified_deal_deadline({}, now))
+        self.assertFalse(has_verified_deal_deadline({
+            "deal_expires_at": "2026-10-18T09:59:59+00:00"
+        }, now))
 
     def test_unicode_underline_marks_visible_characters(self):
         self.assertEqual(unicode_underline("۱۲۳"), "۱\u0332۲\u0332۳\u0332")
