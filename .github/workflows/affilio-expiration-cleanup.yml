@@ -17,7 +17,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: affilio-expiration-cleanup
+  group: affilio-channel-updates
   cancel-in-progress: false
 
 jobs:
