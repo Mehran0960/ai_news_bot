@@ -15,6 +15,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlencode
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parent
@@ -394,18 +395,58 @@ def _should_probe(record, now):
 
 
 
+def _decode_delete_response(response):
+    raw = response.read(65536)
+    try:
+        return json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError):
+        return {}
+
+
+def _delete_error_description(exc):
+    """Read a safe provider error description from an HTTP error body if present."""
+    try:
+        raw = exc.read(65536)
+    except Exception:
+        raw = b""
+    try:
+        payload = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError):
+        payload = {}
+    description = str(payload.get("description") or payload.get("message") or "").strip()
+    if description:
+        return description[:180]
+    return f"HTTP {getattr(exc, 'code', '')}: {getattr(exc, 'reason', '')}"[:180]
+
+
+def _is_message_absent(description):
+    text = str(description or "").lower()
+    return any(marker in text for marker in (
+        "message to delete not found",
+        "message to edit not found",
+        "message not found",
+        "message_id_invalid",
+    ))
+
+
 def _telegram_delete(message_id):
     if not BOT_TOKEN:
         raise RuntimeError("TELEGRAM_BOT_TOKEN missing")
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/deleteMessage"
     body = urlencode({"chat_id": CHAT_ID, "message_id": int(message_id)}).encode("utf-8")
     request = Request(url, data=body, method="POST", headers={"Content-Type": "application/x-www-form-urlencoded"})
-    with urlopen(request, timeout=20) as response:
-        payload = json.loads(response.read().decode("utf-8"))
+    try:
+        with urlopen(request, timeout=20) as response:
+            payload = _decode_delete_response(response)
+    except HTTPError as exc:
+        description = _delete_error_description(exc)
+        if _is_message_absent(description):
+            return "already_absent"
+        raise RuntimeError(description) from None
     if payload.get("ok") is True:
         return "deleted"
-    description = str(payload.get("description") or "")
-    if "message to delete not found" in description.lower() or "message_id_invalid" in description.lower():
+    description = str(payload.get("description") or "Telegram deleteMessage failed")
+    if _is_message_absent(description):
         return "already_absent"
     raise RuntimeError(description[:180] or "Telegram deleteMessage failed")
 
@@ -418,14 +459,21 @@ def _bale_delete(message_id):
     url = f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/deleteMessage"
     body = urlencode({"chat_id": BALE_CHANNEL_ID, "message_id": int(message_id)}).encode("utf-8")
     request = Request(url, data=body, method="POST", headers={"Content-Type": "application/x-www-form-urlencoded"})
-    with urlopen(request, timeout=20) as response:
-        payload = json.loads(response.read().decode("utf-8"))
+    try:
+        with urlopen(request, timeout=20) as response:
+            payload = _decode_delete_response(response)
+    except HTTPError as exc:
+        description = _delete_error_description(exc)
+        if _is_message_absent(description):
+            return "already_absent"
+        raise RuntimeError(description) from None
     if payload.get("ok") is True:
         return "deleted"
-    description = str(payload.get("description") or "")
-    if "message to delete not found" in description.lower() or "message_id_invalid" in description.lower():
+    description = str(payload.get("description") or "Bale deleteMessage failed")
+    if _is_message_absent(description):
         return "already_absent"
     raise RuntimeError(description[:180] or "Bale deleteMessage failed")
+
 
 
 def _delete_expired_posts(published, now, mark_unknown=False):
