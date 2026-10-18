@@ -35,8 +35,8 @@ on:
         type: boolean
         default: false
   schedule:
-    # Poll every five minutes, offset from the hour boundary to reduce scheduler congestion.
-    - cron: "2-59/5 * * * *"
+    # Product discovery every 15 minutes; countdown and expiry maintenance run independently.
+    - cron: "2,17,32,47 * * * *"
 
 permissions:
   contents: write
@@ -157,7 +157,7 @@ jobs:
           AFFILIO_DEAL_LIST_PAGES: "5"
           AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES: "24"
           AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || inputs.external_scheduler || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}
-          AFFILIO_MIN_POST_INTERVAL_HOURS: "0.5"
+          AFFILIO_MIN_POST_INTERVAL_HOURS: "1"
           AFFILIO_MAX_POSTS_PER_RUN: ${{ contains(github.event.head_commit.message, '[publish-now]') && '10' || inputs.batch_count || '1' }}
           AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS: ${{ contains(github.event.head_commit.message, '[publish-now]') || inputs.clear_previous_posts }}
           AFFILIO_BATCH_KEY: ${{ contains(github.event.head_commit.message, '[publish-now]') && github.sha || github.run_id }}
