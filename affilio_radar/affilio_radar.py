@@ -1749,6 +1749,60 @@ def enrich_market_prices(products: list[dict]) -> None:
             item["market_status"] = "unavailable"
 
 
+def select_queued_records_for_recheck(
+    queued_records: dict[str, dict],
+    now: datetime | None = None,
+    max_count: int | None = None,
+) -> list[tuple[str, dict]]:
+    """Select a fair batch: keep the highest-priority offers in every scan and rotate the rest."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    limit = MAX_QUEUED_RECHECKS if max_count is None else max(0, int(max_count))
+    if limit <= 0 or not isinstance(queued_records, dict):
+        return []
+
+    eligible = []
+    for raw_pid, record in queued_records.items():
+        pid = str(raw_pid)
+        if not isinstance(record, dict):
+            continue
+        canonical = safe_product_url(record.get("product_url", ""))
+        deadline = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
+        if not canonical or product_id(canonical) != pid or deadline is None or deadline <= current:
+            continue
+        eligible.append((pid, record))
+
+    # Re-establish urgency/demand order before slicing, independent of JSON key order.
+    eligible.sort(
+        key=lambda pair: pending_queue_sort_key(pair[1], pair[1], current),
+        reverse=True,
+    )
+    if len(eligible) <= limit:
+        return eligible
+
+    # Half the capacity is permanently reserved for the strongest offers. The second
+    # half rotates every five-minute slot so older queued deals are eventually rechecked
+    # even when they no longer appear near the front of the live feed.
+    fixed_count = max(1, limit // 2)
+    fixed = eligible[:fixed_count]
+    tail = eligible[fixed_count:]
+    rotating_count = limit - len(fixed)
+    if rotating_count <= 0 or not tail:
+        return fixed
+
+    slot = int(current.timestamp() // 300)
+    offset = (slot * rotating_count) % len(tail)
+    rotated_tail = (tail + tail)[offset:offset + rotating_count]
+    selected = fixed + rotated_tail
+    print(
+        f"QUEUE_RECHECK_BATCH pool={len(eligible)} selected={len(selected)} "
+        f"fixed_priority={len(fixed)} rotating={len(rotated_tail)} offset={offset}"
+    )
+    return selected
+
+
 def discover_product_urls(queued_records: dict[str, dict] | None = None) -> tuple[list[str], list[dict], dict[str, str]]:
     """Recheck persisted offers first, scan every live-deal page, then rotate broader searches."""
     found = []
@@ -1758,16 +1812,12 @@ def discover_product_urls(queued_records: dict[str, dict] | None = None) -> tupl
     queued_expiries: dict[str, str] = {}
 
     # Offers that passed validation earlier remain on a persistent queue even if they
-    # fall out of one feed page. Recheck a small priority slice every run before relying
-    # on the live feed again. Current stock and price are still revalidated before posting.
-    for pid, record in queued_records.items():
-        if not isinstance(record, dict) or len(found) >= MAX_QUEUED_RECHECKS:
-            continue
+    # fall out of one feed page. Recheck a fair priority batch before relying on the
+    # live feed again. Current stock and price are still revalidated before posting.
+    for pid, record in select_queued_records_for_recheck(queued_records, queue_now):
         canonical = safe_product_url(record.get("product_url", ""))
         deadline = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
-        if not canonical or product_id(canonical) != str(pid):
-            continue
-        if deadline is None or deadline <= queue_now:
+        if not canonical or deadline is None or deadline <= queue_now:
             continue
         found.append(canonical)
         queued_expiries[str(pid)] = deadline.isoformat()
