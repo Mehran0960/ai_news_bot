@@ -316,36 +316,45 @@
           return matchesCategory && matchesQuery;
         });
         if(!offers.length){
-          grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🧭</div><h3>' + (allOffers.length ? 'در این دسته آفر قابل‌تأییدی نداریم' : 'فعلاً آفر قابل‌تأییدی برای نمایش نداریم') + '</h3><p>برای اینکه قیمت یا تخفیف اشتباه نمایش داده نشود، فقط پیشنهادهای دارای مهلت معتبر و قیمت منطبق را نشان می‌دهیم. آفرهای تازه را در کانال‌ها دنبال کن.</p><div class="hero-buttons" style="justify-content:center;margin-top:8px"><a class="btn btn-primary" href="https://t.me/OfferChin" target="_blank" rel="noopener noreferrer">دیدن کانال تلگرام ↗</a><a class="btn btn-bale" href="https://ble.ir/OfferChin" target="_blank" rel="noopener noreferrer">کانال بله ↗</a></div></div>';
+          grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🧭</div><h3>' + (allOffers.length ? 'در این دسته آفر قابل‌تأییدی نداریم' : 'فعلاً آفر قابل‌نمایشی نداریم') + '</h3><p>آفرهای منقضی یا بدون مهلت تأییدشده نمایش داده نمی‌شوند. اگر قیمت به‌تازگی تغییر کرده باشد، آن را به‌عنوان قیمت قطعی معرفی نمی‌کنیم؛ پیشنهادهای تازه را در کانال‌ها هم ببین.</p><div class="hero-buttons" style="justify-content:center;margin-top:8px"><a class="btn btn-primary" href="https://t.me/OfferChin" target="_blank" rel="noopener noreferrer">دیدن کانال تلگرام ↗</a><a class="btn btn-bale" href="https://ble.ir/OfferChin" target="_blank" rel="noopener noreferrer">کانال بله ↗</a></div></div>';
           return;
         }
         grid.innerHTML = offers.map(function(o){
           var time = parseTime(o.expires_at);
           var dateLabel = time ? "تا " + new Intl.DateTimeFormat("fa-IR",{hour:"2-digit",minute:"2-digit"}).format(time) : "مهلت تأییدشده";
           var save = Math.max(0,num(o.original_price)-num(o.current_price));
-          return '<article class="product"><div class="product-media">' + imageOrEmoji(o) + '<span class="discount">' + money(o.discount_percent) + '٪ تخفیف</span><span class="time-badge">⏱ ' + dateLabel + '</span></div><div class="product-body"><div class="category-label">' + escapeHtml(categories[o.category] || "پیشنهاد منتخب") + '</div><div class="product-title">' + escapeHtml(o.title) + '</div><div class="prices"><span class="current">' + money(o.current_price) + ' <span class="currency">تومان</span></span><span class="original">' + money(o.original_price) + ' تومان</span></div><div class="save-line">💚 صرفه‌جویی اسمی: ' + money(save) + ' تومان</div><div class="product-footer"><a class="btn btn-primary" href="' + escapeHtml(o.click_url) + '" target="_blank" rel="sponsored nofollow noopener noreferrer">بررسی قیمت و خرید ↗</a></div></div></article>';
+          var priceNote = o.direct_verified ? "قیمت و موجودی در آخرین بررسی منطبق بود." : "قیمت ثبت‌شده هنگام انتشار؛ قیمت نهایی را در دیجی‌کالا بررسی کن.";
+          var cta = o.direct_verified ? "بررسی قیمت و خرید ↗" : "مشاهدهٔ آفر در کانال ↗";
+          return '<article class="product"><div class="product-media">' + imageOrEmoji(o) + '<span class="discount">' + money(o.discount_percent) + '٪ تخفیف</span><span class="time-badge">⏱ ' + dateLabel + '</span></div><div class="product-body"><div class="category-label">' + escapeHtml(categories[o.category] || "پیشنهاد منتخب") + '</div><div class="product-title">' + escapeHtml(o.title) + '</div><div class="prices"><span class="current">' + money(o.current_price) + ' <span class="currency">تومان</span></span><span class="original">' + money(o.original_price) + ' تومان</span></div><div class="save-line">💚 اختلاف با قیمت ثبت‌شده: ' + money(save) + ' تومان</div><div style="font-size:10px;color:#6b7975;line-height:1.7">' + priceNote + '</div><div class="product-footer"><a class="btn btn-primary" href="' + escapeHtml(o.click_url) + '" target="_blank" rel="sponsored nofollow noopener noreferrer">' + cta + '</a></div></div></article>';
         }).join("");
       }
       function safeProduct(saved, candidate, id, now){
-        if(!candidate || !isCurrent(saved, now)) return null;
-        if(!candidate.has_affiliate_link || !candidate.affiliate_url || !candidate.image_url) return null;
-        if(candidate.availability !== "in_stock" || !samePrice(candidate,saved)) return null;
-        if(candidate.qualifies_as_deal !== true || num(candidate.discount_percent) < 10) return null;
-        if(bannedTitle.test(saved.title || candidate.title || "")) return null;
-        var checked = parseTime(candidate.checked_at);
-        if(!checked || now - checked.getTime() > 12*60*60*1000 || checked.getTime() > now + 5*60*1000) return null;
-        if(!/^https:\/\/www\.digikala\.com\/product\/dkp-\d+\/?/i.test(candidate.affiliate_url)) return null;
+        if(!isCurrent(saved, now)) return null;
+        var title = saved.title || (candidate && candidate.title) || "";
+        if(bannedTitle.test(title)) return null;
         var expires = parseTime(saved.expires_at);
+        if(!expires) return null;
+        var directVerified = false;
+        if(candidate && candidate.has_affiliate_link && candidate.affiliate_url && candidate.image_url
+          && candidate.availability === "in_stock" && samePrice(candidate,saved)
+          && candidate.qualifies_as_deal === true && num(candidate.discount_percent) >= 10
+          && candidate.affiliate_url.indexOf("/product/" + id + "/") >= 0){
+          var checked = parseTime(candidate.checked_at);
+          directVerified = !!checked && now - checked.getTime() <= 12*60*60*1000 && checked.getTime() <= now + 5*60*1000;
+        }
+        var messageId = Number(saved.telegram_message_id || 0);
+        var clickUrl = directVerified ? trackedUrl(id,candidate.affiliate_url) : (messageId > 0 ? "https://t.me/OfferChin/" + messageId : "https://t.me/OfferChin");
         return {
           id:id,
-          title:saved.title || candidate.title,
+          title:title,
           current_price:num(saved.posted_current_price),
           original_price:num(saved.posted_original_price),
           discount_percent:num(saved.posted_discount_percent),
           expires_at:expires.toISOString(),
-          category:candidate.category || "other",
-          image_url:candidate.image_url,
-          click_url:trackedUrl(id,candidate.affiliate_url),
+          category:directVerified ? (candidate.category || "other") : ((candidate && candidate.category) || "other"),
+          image_url:directVerified ? candidate.image_url : "",
+          click_url:clickUrl,
+          direct_verified:directVerified,
           ts:num(saved.ts)
         };
       }
