@@ -614,7 +614,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertLess(caption.index("💚 قیمت ویژه"), caption.index("⚡️"))
         self.assertLess(caption.index("💰 ۵۰۰٬۰۰۰ تومان"), caption.index("⚡️"))
         self.assertLess(caption.index("⚡️"), caption.index("🏷️ قیمت اصلی"))
-        self.assertLess(caption.index("🏷️ قیمت اصلی"), caption.index("⏳ پایان تخفیف"))
+        self.assertLess(caption.index("🏷️ قیمت اصلی"), caption.index("⏳ زمان باقی‌مانده"))
         self.assertLessEqual(len(caption), 1024)
         self.assertNotIn("کمیسیون", caption)
         self.assertNotIn("تاریخچه", caption)
