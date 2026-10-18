@@ -4,6 +4,13 @@ const WORKFLOW = "affilio-radar.yml";
 const API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}`;
 const COUNTDOWN_WORKFLOW = "affilio-countdown-refresh.yml";
 const COUNTDOWN_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${COUNTDOWN_WORKFLOW}`;
+const CLEANUP_WORKFLOW = "affilio-expiration-cleanup.yml";
+const CLEANUP_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${CLEANUP_WORKFLOW}`;
+const CHANNEL_WORKFLOWS = [
+  { name: COUNTDOWN_WORKFLOW, api: COUNTDOWN_API },
+  { name: WORKFLOW, api: API },
+  { name: CLEANUP_WORKFLOW, api: CLEANUP_API }
+];
 
 function response(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -31,14 +38,42 @@ async function githubRequest(url, token, options = {}) {
   return data;
 }
 
-async function dispatchCountdownRefresh(env) {
+async function findActiveWorkflow(api, token) {
+  // "pending" is important too: GitHub reports concurrency-blocked runs that way.
+  for (const status of ["queued", "pending", "in_progress"]) {
+    const query = new URLSearchParams({ branch: "main", status, per_page: "1" });
+    const data = await githubRequest(`${api}/runs?${query}`, token);
+    if (Array.isArray(data.workflow_runs) && data.workflow_runs.length > 0) {
+      return status;
+    }
+  }
+  return "";
+}
+
+async function runScheduledCheck(env, scheduledTime) {
+  if (!env.GITHUB_TOKEN) {
+    console.error("COUNTDOWN_DISPATCH_BLOCKED: GITHUB_TOKEN Worker secret is not configured.");
+    return;
+  }
+
+  const now = Number.isFinite(Number(scheduledTime)) ? new Date(Number(scheduledTime)) : new Date();
+  const minute = now.getUTCMinutes();
+  const offset = minute % 5;
+
+  // GitHub's native cron runs product discovery at :02/:07/:12/... and
+  // expired-offer cleanup at :00/:05/:10/.... Leave those slots to their workflows.
+  if (offset === 0 || offset === 2) {
+    console.log(`COUNTDOWN_DISPATCH_SKIPPED: reserving UTC minute ${minute} for scheduled channel maintenance.`);
+    return;
+  }
+
   try {
-    // Countdown refresh has its own short workflow, so it may run while product discovery is busy.
-    for (const status of ["queued", "in_progress"]) {
-      const query = new URLSearchParams({ branch: "main", status, per_page: "1" });
-      const data = await githubRequest(`${COUNTDOWN_API}/runs?${query}`, env.GITHUB_TOKEN);
-      if (Array.isArray(data.workflow_runs) && data.workflow_runs.length > 0) {
-        console.log(`COUNTDOWN_DISPATCH_SKIPPED: refresh workflow is already ${status}.`);
+    // All channel-mutating workflows share one concurrency group. Never queue a countdown
+    // while product discovery, cleanup, or another countdown is waiting/running.
+    for (const workflow of CHANNEL_WORKFLOWS) {
+      const status = await findActiveWorkflow(workflow.api, env.GITHUB_TOKEN);
+      if (status) {
+        console.log(`COUNTDOWN_DISPATCH_SKIPPED: ${workflow.name} is already ${status}.`);
         return;
       }
     }
@@ -50,51 +85,14 @@ async function dispatchCountdownRefresh(env) {
     });
     console.log("COUNTDOWN_DISPATCH_ACCEPTED");
   } catch (error) {
-    // Caption refresh should not block the independent product-scanning dispatcher.
+    // A countdown refresh is best-effort and must not create repeated queued runs.
     console.error("COUNTDOWN_DISPATCH_FAILED", String(error).slice(0, 900));
-  }
-}
-
-async function runScheduledCheck(env) {
-  if (!env.GITHUB_TOKEN) {
-    console.error("DISPATCH_BLOCKED: GITHUB_TOKEN Worker secret is not configured.");
-    return;
-  }
-
-  // Keep countdown updates independent of the full product scan.
-  await dispatchCountdownRefresh(env);
-
-  try {
-    // Fail closed: never launch another scan while the previous one is queued or running.
-    for (const status of ["queued", "in_progress"]) {
-      const query = new URLSearchParams({ branch: "main", status, per_page: "1" });
-      const data = await githubRequest(`${API}/runs?${query}`, env.GITHUB_TOKEN);
-      if (Array.isArray(data.workflow_runs) && data.workflow_runs.length > 0) {
-        console.log(`DISPATCH_SKIPPED: an Affilio workflow is already ${status}.`);
-        return;
-      }
-    }
-
-    const dispatched = await githubRequest(`${API}/dispatches`, env.GITHUB_TOKEN, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ref: "main",
-        inputs: {
-          external_scheduler: true
-        }
-      })
-    });
-    console.log("DISPATCH_ACCEPTED", JSON.stringify(dispatched));
-  } catch (error) {
-    // No same-tick retry: avoid duplicates if GitHub's response is ambiguous.
-    console.error("DISPATCH_FAILED", String(error).slice(0, 1200));
   }
 }
 
 export default {
   async scheduled(controller, env, ctx) {
-    await runScheduledCheck(env);
+    await runScheduledCheck(env, controller.scheduledTime);
   },
   async fetch(request, env) {
     const url = new URL(request.url);
