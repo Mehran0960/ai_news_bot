@@ -619,7 +619,7 @@ def _build_legacy_repaired_caption(fields, deadline, now):
     if original and current and original > current:
         parts += ["", f"<b>🏷️ قیمت اصلی: <s>{_persian_number(original)} تومان</s></b>"]
     if deadline:
-        parts += ["", f"<b>⏳ زمان باقی‌مانده: {_remaining_label(deadline, now)}</b>"]
+        parts += ["", f"<b>⏳ {_remaining_label(deadline, now)} مانده به پایان تخفیف</b>"]
     parts += [
         "",
         '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>',
