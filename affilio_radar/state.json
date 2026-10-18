@@ -1,5 +1,5 @@
 {
-  "expiry_feed_last_checked_at": "2026-10-18T04:09:32.663053+00:00",
+  "expiry_feed_last_checked_at": "2026-10-18T04:58:44.213194+00:00",
   "last_published_at": "2026-10-18T04:41:15.331844+00:00",
   "pending_queue": {},
   "published": {
@@ -7,7 +7,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 5,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-18T04:21:09.510116+00:00",
+      "countdown_last_updated_at": "2026-10-18T04:58:07.975598+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -44,8 +44,8 @@
       "delivery_version": 1,
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-18T04:09:32.663053+00:00",
-      "expiry_last_product_check_at": "2026-10-18T04:09:32.663053+00:00",
+      "expiry_last_probed_at": "2026-10-18T04:58:44.213194+00:00",
+      "expiry_last_product_check_at": "2026-10-18T04:58:44.213194+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
       "posted_current_price": 1036300,
@@ -60,7 +60,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 2,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-18T04:21:09.510116+00:00",
+      "countdown_last_updated_at": "2026-10-18T04:58:07.975598+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -97,8 +97,8 @@
       "delivery_version": 1,
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-18T04:09:32.663053+00:00",
-      "expiry_last_product_check_at": "2026-10-18T04:09:32.663053+00:00",
+      "expiry_last_probed_at": "2026-10-18T04:58:44.213194+00:00",
+      "expiry_last_product_check_at": "2026-10-18T04:58:44.213194+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
       "posted_current_price": 3784000,
@@ -129,7 +129,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 7,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-18T04:21:09.510116+00:00",
+      "countdown_last_updated_at": "2026-10-18T04:58:07.975598+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -166,8 +166,8 @@
       "delivery_version": 1,
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-18T04:09:32.663053+00:00",
-      "expiry_last_product_check_at": "2026-10-18T04:09:32.663053+00:00",
+      "expiry_last_probed_at": "2026-10-18T04:58:44.213194+00:00",
+      "expiry_last_product_check_at": "2026-10-18T04:58:44.213194+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
       "posted_current_price": 1148520,
@@ -179,7 +179,7 @@
       "ts": 1792286748.271616
     },
     "dkp-21714680": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "already_absent",
       "bale_message_id": 8,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-18T04:21:09.510116+00:00",
@@ -195,20 +195,22 @@
       "expires_at": "2026-10-18T04:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "already_absent",
       "posted_current_price": 5963990,
       "posted_discount_percent": 72,
       "posted_original_price": 21300000,
       "product_url": "https://www.digikala.com/product/dkp-21714680/",
       "telegram_message_id": 45,
       "title": "دوربین امنیتی تحت شبکه فضای داخلی وونک مدل M2 3mp با اتصال بی‌سیم، چرخش 360 درجه، تشخیص حرکت و مکالمه دوطرفه",
-      "ts": 1792282976.4001598
+      "ts": 1792282976.4001598,
+      "expired_deleted_at": "2026-10-18T04:58:44.213194+00:00",
+      "bale_expired_deleted_at": "2026-10-18T04:58:44.213194+00:00"
     },
     "dkp-21729772": {
       "click_tracking_url": "",
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-18T04:09:32.663053+00:00",
+      "expiry_last_probed_at": "2026-10-18T04:58:44.213194+00:00",
       "expiry_last_product_check_at": "2026-10-18T03:52:53.477156+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
@@ -224,7 +226,7 @@
       "click_tracking_url": "",
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-18T04:09:32.663053+00:00",
+      "expiry_last_probed_at": "2026-10-18T04:58:44.213194+00:00",
       "expiry_last_product_check_at": "2026-10-18T03:51:51.607236+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
@@ -251,7 +253,7 @@
       "delivery_version": 1,
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-18T04:09:32.663053+00:00",
+      "expiry_last_probed_at": "2026-10-18T04:58:44.213194+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
       "posted_current_price": 3999890,
@@ -268,14 +270,15 @@
       "expires_at": "2026-10-18T04:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "already_absent",
       "posted_current_price": 1924990,
       "posted_discount_percent": 89,
       "posted_original_price": 17500000,
       "product_url": "https://www.digikala.com/product/dkp-22104577/",
       "telegram_message_id": 38,
       "title": "شارژر فندکی 50 وات دو پورت وونک مدل VC-50 به همراه کابل 1 متری USB-C",
-      "ts": 1792271766.9022224
+      "ts": 1792271766.9022224,
+      "expired_deleted_at": "2026-10-18T04:58:44.213194+00:00"
     },
     "dkp-22134461": {
       "click_tracking_url": "",
@@ -339,6 +342,7 @@
     "dkp-22878178": {
       "bale_message_id": 19,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-18T04:58:07.975598+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -357,7 +361,9 @@
       "product_url": "https://www.digikala.com/product/dkp-22878178/",
       "telegram_message_id": 56,
       "title": "برس حرارتی حرفه ای والر مدل 5͏2͏6͏-3O9O",
-      "ts": 1792298471.9467244
+      "ts": 1792298471.9467244,
+      "expiry_status": "tracked",
+      "bale_expiry_status": "tracked"
     },
     "dkp-22879463": {
       "click_tracking_url": "",
@@ -380,7 +386,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 9,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-18T04:21:09.510116+00:00",
+      "countdown_last_updated_at": "2026-10-18T04:58:07.975598+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -449,7 +455,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 3,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-18T04:21:09.510116+00:00",
+      "countdown_last_updated_at": "2026-10-18T04:58:07.975598+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -505,7 +511,7 @@
     },
     "dkp-8936377": {
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-18T04:21:09.510116+00:00",
+      "countdown_last_updated_at": "2026-10-18T04:58:07.975598+00:00",
       "expires_at": "2026-10-18T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_last_delete_error": "HTTPError: HTTP Error 400: Bad Request",
@@ -526,7 +532,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 4,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-18T04:21:09.510116+00:00",
+      "countdown_last_updated_at": "2026-10-18T04:58:07.975598+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -566,7 +572,7 @@
     },
     "dkp-9952752": {
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-18T04:21:09.510116+00:00",
+      "countdown_last_updated_at": "2026-10-18T04:58:07.975598+00:00",
       "expires_at": "2026-10-18T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
