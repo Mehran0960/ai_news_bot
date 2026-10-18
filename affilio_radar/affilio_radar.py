@@ -1865,9 +1865,19 @@ def discover_product_urls(queued_records: dict[str, dict] | None = None) -> tupl
     def discovery_key(row):
         expiry_value = _parse_utc_datetime(_parse_deal_expiry_value(row.get("deal_expires_at")))
         deadline_active = bool(expiry_value and expiry_value > discovery_now)
+        remaining_seconds = (expiry_value - discovery_now).total_seconds() if deadline_active else float("inf")
+        if remaining_seconds <= ULTRA_URGENT_WINDOW_MINUTES * 60:
+            deadline_priority = 3
+        elif remaining_seconds <= DEADLINE_CRITICAL_WINDOW_MINUTES * 60:
+            deadline_priority = 2
+        elif remaining_seconds <= URGENT_EXPIRY_WINDOW_MINUTES * 60:
+            deadline_priority = 1
+        else:
+            deadline_priority = 0
         category = classify_category(row.get("title", ""))
         return (
             int(deadline_active),
+            deadline_priority,
             category_priority.get(category, 0),
             int(row.get("review_count") or 0),
             int(row.get("discount_percent") or 0),
@@ -1876,12 +1886,31 @@ def discover_product_urls(queued_records: dict[str, dict] | None = None) -> tupl
 
     sorted_deals = sorted(best_by_url.values(), key=discovery_key, reverse=True)
 
-    # First pass limits category dominance; second pass uses the same ranked order to fill any gaps.
+    # Keep the strongest first half in every scan, then rotate through the rest of the
+    # live deal feed. This prevents the same top-ranked products from permanently
+    # occupying the whole candidate budget while short-deadline deals lead every batch.
+    scan_slot = int(time.time() // 300)
+    fixed_head_count = min(len(sorted_deals), max(8, MAX_INCREDIBLE_OFFER_CANDIDATES // 2))
+    fixed_head = sorted_deals[:fixed_head_count]
+    tail = sorted_deals[fixed_head_count:]
+    rotation_width = min(max(0, MAX_INCREDIBLE_OFFER_CANDIDATES - fixed_head_count), len(tail))
+    if tail and rotation_width:
+        rotation_offset = (scan_slot * rotation_width) % len(tail)
+        rotating_tail = (tail + tail)[rotation_offset:rotation_offset + rotation_width]
+    else:
+        rotating_tail = []
+    candidate_order = fixed_head + rotating_tail
+    print(
+        f"DEAL_ROTATION scan_slot={scan_slot} fixed_priority={len(fixed_head)} "
+        f"rotating_batch={len(rotating_tail)} feed_pool={len(sorted_deals)}"
+    )
+
+    # First pass limits category dominance; second pass uses the same rotating order to fill any gaps.
     selected_deals = []
     selected_urls = set()
     category_counts = {}
     category_cap = max(3, MAX_INCREDIBLE_OFFER_CANDIDATES // 8)
-    for row in sorted_deals:
+    for row in candidate_order:
         category = classify_category(row.get("title", ""))
         if category_counts.get(category, 0) >= category_cap:
             continue
@@ -1891,7 +1920,7 @@ def discover_product_urls(queued_records: dict[str, dict] | None = None) -> tupl
         if len(selected_deals) >= MAX_INCREDIBLE_OFFER_CANDIDATES:
             break
     if len(selected_deals) < MAX_INCREDIBLE_OFFER_CANDIDATES:
-        for row in sorted_deals:
+        for row in candidate_order:
             if row["product_url"] in selected_urls:
                 continue
             selected_deals.append(row)
