@@ -2825,8 +2825,8 @@ def refresh_active_countdowns() -> int:
                 counters[f"{platform}_failed"] += 1
                 product_had_failure = True
                 print(f"COUNTDOWN_REFRESH_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}")
-            if platform == "telegram":
-                time.sleep(3.1)
+            # Keep calls spaced on both platforms; Telegram gets a conservative 3.1s interval.
+            time.sleep(3.1 if platform == "telegram" else 1.1)
         if not product_had_failure:
             record["countdown_last_updated_at"] = now.isoformat()
             changed = True
