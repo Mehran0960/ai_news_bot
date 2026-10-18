@@ -1,21 +1,7 @@
 {
   "expiry_feed_last_checked_at": "2026-10-18T04:58:44.213194+00:00",
-  "last_published_at": "2026-10-18T22:00:10.137432+00:00",
+  "last_published_at": "2026-10-18T23:59:06.647850+00:00",
   "pending_queue": {
-    "dkp-21714680": {
-      "current_price": 5963990,
-      "deal_expires_at": "2026-10-19T04:30:00+00:00",
-      "demand_score": 41,
-      "discount_percent": 72,
-      "first_seen_at": "2026-10-18T17:56:53.212599+00:00",
-      "original_price": 21300000,
-      "product_id": "dkp-21714680",
-      "product_url": "https://www.digikala.com/product/dkp-21714680/",
-      "promo_score": 72,
-      "savings_toman": 15336010,
-      "title": "دوربین امنیتی تحت شبکه فضای داخلی وونک مدل M2 3mp با اتصال بی‌سیم، چرخش 360 درجه، تشخیص حرکت و مکالمه دوطرفه",
-      "urgent": false
-    },
     "dkp-22878178": {
       "current_price": 1490000,
       "deal_expires_at": "2026-10-19T04:30:00+00:00",
@@ -216,6 +202,7 @@
       "ts": 1792296356.3155153
     },
     "dkp-18562880": {
+      "bale_expiry_status": "tracked",
       "bale_message_id": 27,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-18T22:57:44.274998+00:00",
@@ -231,15 +218,14 @@
       "expires_at": "2026-10-20T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "posted_current_price": 989900,
       "posted_discount_percent": 75,
       "posted_original_price": 3987700,
       "product_url": "https://www.digikala.com/product/dkp-18562880/",
       "telegram_message_id": 61,
       "title": "ماسک مو آنالوکس مدل Under Shower حجم 500 میلی لیتر",
-      "ts": 1792360806.798872,
-      "expiry_status": "tracked",
-      "bale_expiry_status": "tracked"
+      "ts": 1792360806.798872
     },
     "dkp-19336870": {
       "bale_expired_deleted_at": "2026-10-18T21:01:04.205403+00:00",
@@ -355,11 +341,8 @@
       "ts": 1792286748.271616
     },
     "dkp-21714680": {
-      "bale_expired_deleted_at": "2026-10-18T04:58:44.213194+00:00",
-      "bale_expiry_status": "already_absent",
-      "bale_message_id": 8,
+      "bale_message_id": 28,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-18T04:21:09.510116+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -369,18 +352,16 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expired_deleted_at": "2026-10-18T04:58:44.213194+00:00",
-      "expires_at": "2026-10-18T04:30:00+00:00",
+      "expires_at": "2026-10-19T04:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "already_absent",
       "posted_current_price": 5963990,
       "posted_discount_percent": 72,
       "posted_original_price": 21300000,
       "product_url": "https://www.digikala.com/product/dkp-21714680/",
-      "telegram_message_id": 45,
+      "telegram_message_id": 62,
       "title": "دوربین امنیتی تحت شبکه فضای داخلی وونک مدل M2 3mp با اتصال بی‌سیم، چرخش 360 درجه، تشخیص حرکت و مکالمه دوطرفه",
-      "ts": 1792282976.4001598
+      "ts": 1792367943.8615923
     },
     "dkp-21729772": {
       "click_tracking_url": "",
