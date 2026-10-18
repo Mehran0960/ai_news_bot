@@ -2486,7 +2486,7 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
 
 
 def _edit_telegram_caption(message_id: int, caption: str, affiliate_url: str = ""):
-    """Edit a published Telegram photo caption and retain its affiliate purchase button."""
+    """Edit a published Telegram photo caption, retaining the purchase button and handling flood limits."""
     if not BOT_TOKEN:
         raise RuntimeError("Missing TELEGRAM_BOT_TOKEN secret")
     endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/editMessageCaption"
@@ -2504,21 +2504,41 @@ def _edit_telegram_caption(message_id: int, caption: str, affiliate_url: str = "
                 "url": affiliate_url,
             }]]
         }, ensure_ascii=False)
-    response = requests.post(endpoint, data=data, timeout=(20, 40))
-    payload = response.json()
-    if not payload.get("ok"):
+
+    for attempt in range(4):
+        response = requests.post(endpoint, data=data, timeout=(20, 40))
+        try:
+            payload = response.json()
+        except ValueError:
+            response.raise_for_status()
+            raise RuntimeError("Telegram editMessageCaption returned invalid JSON")
+        if payload.get("ok"):
+            response.raise_for_status()
+            return payload.get("result")
+
         description = str(payload.get("description") or "Telegram editMessageCaption returned ok=false")
-        if "message is not modified" in description.lower():
+        lowered = description.lower()
+        if "message is not modified" in lowered:
             return {"message_id": int(message_id), "not_modified": True}
-        if "message to edit not found" in description.lower() or "message not found" in description.lower():
+        if "message to edit not found" in lowered or "message not found" in lowered:
             return {"message_id": int(message_id), "not_found": True}
+
+        error_code = int(payload.get("error_code") or response.status_code or 0)
+        if error_code == 429 and attempt < 3:
+            parameters = payload.get("parameters") if isinstance(payload.get("parameters"), dict) else {}
+            try:
+                retry_after = max(1, min(60, int(parameters.get("retry_after") or (3 * (2 ** attempt)))))
+            except (TypeError, ValueError, OverflowError):
+                retry_after = min(60, 3 * (2 ** attempt))
+            print(f"TELEGRAM_CAPTION_RATE_LIMIT message_id={int(message_id)} retry_after={retry_after}s")
+            time.sleep(retry_after + 1)
+            continue
         raise RuntimeError(description[:180])
-    response.raise_for_status()
-    return payload.get("result")
+    raise RuntimeError("Telegram editMessageCaption retry limit reached")
 
 
 def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
-    """Edit an existing Bale photo caption and preserve its inline purchase button."""
+    """Edit an existing Bale photo caption, retaining the purchase button and retrying rate limits."""
     if not BALE_BOT_TOKEN:
         raise RuntimeError("Missing BALE_BOT_TOKEN secret")
     if not BALE_CHANNEL_ID:
@@ -2537,17 +2557,38 @@ def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
                 "url": affiliate_url,
             }]]
         }, ensure_ascii=False)
-    response = requests.post(endpoint, data=data, timeout=(20, 40))
-    payload = response.json()
-    if not payload.get("ok"):
+
+    for attempt in range(4):
+        response = requests.post(endpoint, data=data, timeout=(20, 40))
+        try:
+            payload = response.json()
+        except ValueError:
+            response.raise_for_status()
+            raise RuntimeError("Bale editMessageCaption returned invalid JSON")
+        if payload.get("ok"):
+            response.raise_for_status()
+            return payload.get("result")
+
         description = str(payload.get("description") or "Bale editMessageCaption returned ok=false")
-        if "message is not modified" in description.lower():
+        lowered = description.lower()
+        if "message is not modified" in lowered:
             return {"message_id": int(message_id), "not_modified": True}
-        if "message to edit not found" in description.lower() or "message not found" in description.lower():
+        if "message to edit not found" in lowered or "message not found" in lowered:
             return {"message_id": int(message_id), "not_found": True}
+
+        error_code = int(payload.get("error_code") or response.status_code or 0)
+        if error_code == 429 and attempt < 3:
+            parameters = payload.get("parameters") if isinstance(payload.get("parameters"), dict) else {}
+            try:
+                retry_after = max(1, min(60, int(parameters.get("retry_after") or (3 * (2 ** attempt)))))
+            except (TypeError, ValueError, OverflowError):
+                retry_after = min(60, 3 * (2 ** attempt))
+            print(f"BALE_CAPTION_RATE_LIMIT message_id={int(message_id)} retry_after={retry_after}s")
+            time.sleep(retry_after + 1)
+            continue
         raise RuntimeError(description[:180])
-    response.raise_for_status()
-    return payload.get("result")
+    raise RuntimeError("Bale editMessageCaption retry limit reached")
+
 
 
 def repair_bale_caption(message_id: int) -> int:
@@ -2693,7 +2734,7 @@ def repair_all_published_captions() -> int:
                 detail_suffix = f" detail={detail!r}" if detail else ""
                 print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}{detail_suffix}")
             if platform == "telegram":
-                time.sleep(1.1)
+                time.sleep(3.1)
 
     print(
         "CAPTION_REPAIR_SUMMARY "
@@ -2773,7 +2814,7 @@ def refresh_active_countdowns() -> int:
                 product_had_failure = True
                 print(f"COUNTDOWN_REFRESH_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}")
             if platform == "telegram":
-                time.sleep(1.1)
+                time.sleep(3.1)
         if not product_had_failure:
             record["countdown_last_updated_at"] = now.isoformat()
             changed = True
