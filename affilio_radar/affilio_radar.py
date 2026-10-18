@@ -83,12 +83,29 @@ SEARCH_TERMS = [
     "پاوربانک",
     "هندزفری بلوتوث",
     "شارژر سریع",
-    "چراغ اضطراری",
-    "لوازم کاربردی آشپزخانه",
+    "چراغ اضطراری شارژی",
+    "ابزار کاربردی آشپزخانه",
     "نظم دهنده خانه",
-    "گجت کاربردی",
-    "لوازم مراقبت شخصی",
+    "ماوس بی سیم",
+    "اسپیکر بلوتوثی",
+    "دوربین امنیتی بی سیم",
+    "جارو شارژی",
 ]
+MAX_INCREDIBLE_OFFER_CANDIDATES = max(
+    8, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "24")))
+)
+EXCLUDED_HEALTH_PRODUCT_RE = re.compile(
+    r"(?:قرص|کپسول|دارو(?:یی)?|مکمل|ویتامین|زینک|منیزیم|"
+    r"ب[\s\u200c-]*کمپلکس|بی[\s\u200c-]*کمپلکس|امگا[\s\u200c-]*3|"
+    r"کلاژن|ال[\s\u200c-]*کارنیتین|کارنیتین|پروبیوتیک|کلروفیل|اسپیرولینا|"
+    r"کراتین|گینر|پودر[\s\u200c]+پروتئین|پروتئین[\s\u200c]+وی|"
+    r"چربی[\s\u200c-]*سوز|شربت[\s\u200c]+(?:خوراکی|ویتامین|مولتی)|"
+    r"قطره[\s\u200c]+(?:خوراکی|ویتامین|آهن)|آمپول|ویال[\s\u200c]*(?:خوراکی)?|"
+    r"ساشه|مسکن|آنتی[\s\u200c-]*بیوتیک|سرماخوردگی|داروخانه|"
+    r"(?i:\b(?:supplement|vitamin|zinc|magnesium|collagen|creatine|probiotic|"
+    r"l[- ]?carnitine|omega[- ]?3|protein powder)\b))",
+    re.IGNORECASE,
+)
 SESSION = requests.Session()
 SESSION.headers.update({
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36",
@@ -96,6 +113,15 @@ SESSION.headers.update({
     "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
     "Referer": "https://www.digikala.com/",
 })
+
+
+def is_prohibited_product_title(title: str) -> bool:
+    """Reject medicines, pharmacy items, vitamins, and dietary supplements from affiliate posts."""
+    normalized = str(title or "").lower()
+    normalized = re.sub(r"[\u200b-\u200f\ufeff]", "", normalized)
+    normalized = normalized.replace("ي", "ی").replace("ك", "ک").replace("\u200c", " ")
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    return bool(EXCLUDED_HEALTH_PRODUCT_RE.search(normalized))
 
 
 def normalize_digits(value: str) -> str:
@@ -687,7 +713,7 @@ def api_incredible_offer_product_candidates(payload) -> list[dict]:
         has_product_shape = bool(title) and any(
             key in obj for key in ("url", "default_variant", "variants", "price", "status", "product_type", "is_incredible")
         )
-        if not has_product_shape:
+        if not has_product_shape or is_prohibited_product_title(title):
             continue
         status = str(obj.get("status", "")).lower()
         if status and status not in {"marketable", "active", "available"}:
@@ -702,6 +728,7 @@ def api_incredible_offer_product_candidates(payload) -> list[dict]:
             continue
         row = {
             "product_url": candidate,
+            "title": _clean_title(title),
             "discount_percent": discount,
             "savings_toman": _offer_savings_toman(obj),
             "deal_expires_at": extract_deal_expiry(obj),
@@ -1761,40 +1788,105 @@ def discover_product_urls() -> tuple[list[str], list[dict], dict[str, str]]:
             print(f"INCREDIBLE_OFFERS_API_FAILED page={page_number} error={type(exc).__name__} detail={str(exc)[:180]!r}")
             break
 
-    best_by_url = {}
-    for row in deals_found:
-        url = row["product_url"]
-        old = best_by_url.get(url)
-        key = (int(row.get("discount_percent") or 0), int(row.get("savings_toman") or 0))
-        old_key = (int(old.get("discount_percent") or 0), int(old.get("savings_toman") or 0)) if old else (-1, -1)
-        if old is None or key > old_key:
-            best_by_url[url] = row
-    sorted_deals = sorted(
-        best_by_url.values(),
-        key=lambda row: (row["discount_percent"], row["savings_toman"]),
-        reverse=True,
-    )
-    for row in sorted_deals[:MAX_PRODUCT_CHECKS]:
-        found.append(row["product_url"])
-        expiry = str(row.get("deal_expires_at") or "").strip()
-        if expiry:
-            deal_expiries[product_id(row["product_url"])] = expiry
     # The public MCP deal-card feed exposes countdown metadata that the direct API omits in some responses.
+    # Fetch it before selecting candidates so confirmed-deadline deals can be preferred.
+    mcp_expiries = {}
     try:
         from expiration_monitor import fetch_mcp_offer_expiries
         mcp_expiries = fetch_mcp_offer_expiries()
-        for pid, expiry in mcp_expiries.items():
-            deal_expiries.setdefault(pid, expiry)
+        deal_expiries.update(mcp_expiries)
     except Exception as exc:
         print(f"EXPIRY_MCP_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
 
+    best_by_url = {}
+    for row in deals_found:
+        url = row["product_url"]
+        if is_prohibited_product_title(row.get("title", "")):
+            continue
+        pid = product_id(url)
+        expiry = str(row.get("deal_expires_at") or deal_expiries.get(pid) or "").strip()
+        if expiry:
+            row["deal_expires_at"] = expiry
+            deal_expiries[pid] = expiry
+        old = best_by_url.get(url)
+        key = (int(bool(expiry)), int(row.get("discount_percent") or 0), int(row.get("savings_toman") or 0))
+        old_key = (
+            int(bool(old and old.get("deal_expires_at"))),
+            int(old.get("discount_percent") or 0),
+            int(old.get("savings_toman") or 0),
+        ) if old else (-1, -1, -1)
+        if old is None or key > old_key:
+            best_by_url[url] = row
+        elif old and not old.get("deal_expires_at") and expiry:
+            best_by_url[url]["deal_expires_at"] = expiry
+
+    category_priority = {
+        "digital_accessories": 12,
+        "power_backup": 11,
+        "audio_wearables": 10,
+        "computer_network": 9,
+        "gaming": 9,
+        "home": 8,
+        "automotive": 7,
+        "kids_sports": 6,
+        "personal_care": 5,
+        "fashion": 4,
+        "other": 3,
+    }
+    discovery_now = datetime.now(timezone.utc)
+
+    def discovery_key(row):
+        expiry_value = _parse_utc_datetime(_parse_deal_expiry_value(row.get("deal_expires_at")))
+        deadline_active = bool(expiry_value and expiry_value > discovery_now)
+        category = classify_category(row.get("title", ""))
+        return (
+            int(deadline_active),
+            category_priority.get(category, 0),
+            int(row.get("review_count") or 0),
+            int(row.get("discount_percent") or 0),
+            int(row.get("savings_toman") or 0),
+        )
+
+    sorted_deals = sorted(best_by_url.values(), key=discovery_key, reverse=True)
+
+    # First pass limits category dominance; second pass uses the same ranked order to fill any gaps.
+    selected_deals = []
+    selected_urls = set()
+    category_counts = {}
+    category_cap = max(3, MAX_INCREDIBLE_OFFER_CANDIDATES // 8)
+    for row in sorted_deals:
+        category = classify_category(row.get("title", ""))
+        if category_counts.get(category, 0) >= category_cap:
+            continue
+        selected_deals.append(row)
+        selected_urls.add(row["product_url"])
+        category_counts[category] = category_counts.get(category, 0) + 1
+        if len(selected_deals) >= MAX_INCREDIBLE_OFFER_CANDIDATES:
+            break
+    if len(selected_deals) < MAX_INCREDIBLE_OFFER_CANDIDATES:
+        for row in sorted_deals:
+            if row["product_url"] in selected_urls:
+                continue
+            selected_deals.append(row)
+            selected_urls.add(row["product_url"])
+            if len(selected_deals) >= MAX_INCREDIBLE_OFFER_CANDIDATES:
+                break
+
+    for row in selected_deals:
+        found.append(row["product_url"])
+        pid = product_id(row["product_url"])
+        expiry = str(row.get("deal_expires_at") or deal_expiries.get(pid) or "").strip()
+        if expiry:
+            deal_expiries[pid] = expiry
+
     print(
-        f"DEAL_DISCOVERY unique_discounted_urls={len(found)} "
-        f"offers_with_expiry={len(deal_expiries)} "
-        f"top_offer={sorted_deals[0] if sorted_deals else 'none'}"
+        f"DEAL_DISCOVERY unique_filtered_urls={len(best_by_url)} "
+        f"selected_incredible_offers={len(selected_deals)} "
+        f"verified_deadline_candidates={sum(bool(str(row.get('deal_expires_at') or '').strip()) for row in selected_deals)} "
+        f"excluded_health_products={sum(is_prohibited_product_title(row.get('title', '')) for row in deals_found)}"
     )
 
-    # Fill remaining slots with ordinary searches; offers always enter the list first.
+    # Fill remaining slots with targeted searches for tech, home, and practical gadgets.
     for term in SEARCH_TERMS:
         if len(found) >= MAX_PRODUCT_CHECKS:
             break
@@ -1934,7 +2026,7 @@ def score_product(p: dict) -> dict:
 
 
 def deal_sort_key(p: dict) -> tuple:
-    """Listed discount and cash saving lead; verified market value and popularity break ties."""
+    """Real audience demand and popularity lead; discount size is a secondary signal."""
     verified_median = (
         p.get("market_status") == "verified"
         and p.get("market_reference_kind") == "seller_median"
@@ -1942,14 +2034,20 @@ def deal_sort_key(p: dict) -> tuple:
     )
     market_known = 1 if verified_median else 0
     market_advantage = int(p.get("market_price_advantage_pct") or 0) if verified_median else -101
+    try:
+        rating_score = round(float(p.get("rating") or 0) * 10)
+    except (TypeError, ValueError, OverflowError):
+        rating_score = 0
     return (
-        int(p.get("discount_percent") or 0),
-        int(p.get("savings_toman") or 0),
-        market_known,
-        market_advantage,
         int(p.get("click_count_30d") or 0),
         int(p.get("demand_score") or 0),
         int(p.get("review_count") or 0),
+        rating_score,
+        int(p.get("promo_score") or 0),
+        market_known,
+        market_advantage,
+        int(p.get("discount_percent") or 0),
+        int(p.get("savings_toman") or 0),
     )
 
 
@@ -2057,6 +2155,7 @@ def is_discount_publish_eligible(product: dict) -> bool:
     """Require a meaningful listed price reduction; RRP is not historical proof."""
     return bool(
         is_publish_eligible(product)
+        and not is_prohibited_product_title(product.get("title", ""))
         and int(product.get("discount_percent") or 0) >= MIN_DISCOUNT_PERCENT
         and int(product.get("savings_toman") or 0) >= MIN_SAVINGS_TOMAN
     )
@@ -3070,7 +3169,7 @@ def _last_post_timestamp(state):
 def run(publish=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
-    print(f"Ranking mode=discount-first/category-neutral; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman; missing/unknown market data never blocks publication; only verified same-product pricing showing DigiKala at least {MARKET_UNDERCUT_BLOCK_PERCENT}% above market is blocked. Price history is disabled.")
+    print(f"Ranking mode=audience-demand-first/category-balanced; medicines and dietary supplements excluded; only future verified-deadline deals can publish; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman.")
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
@@ -3237,7 +3336,7 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "Highest listed discount ranks first, followed by absolute saving; verified current-market advantage and complete 30-day click statistics and popularity signals break ties. Product category has no ranking effect. Unavailable or incomplete click analytics do not block publication. Price history is not used. Missing, unavailable, or weak market-price comparisons do not block publication. A product is blocked only when a confident same-product comparison with at least three current Torob seller offers verifies that DigiKala is at least 5% more expensive than the seller median.",
+        "ranking_note": "Real 30-day channel clicks and audience demand lead, then review volume, rating, and deal value. Discovery prioritizes future deadline-verified offers and uses category balancing across practical tech, home, auto, gaming, and personal-care products. Medicines, pharmacy products, vitamins, and dietary supplements are excluded. Products without an explicit future deal deadline never publish.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
