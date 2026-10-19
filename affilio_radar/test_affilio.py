@@ -5,6 +5,7 @@ from io import BytesIO
 from unittest.mock import patch
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from urllib.parse import parse_qs, urlsplit
 
 from PIL import Image
@@ -517,9 +518,9 @@ class AffilioRadarTests(unittest.TestCase):
             "current_price": 2_500_000,
             "original_price": 17_500_000,
         }
-        with patch("affilio_radar.fetch_page", return_value=(product["product_url"], "<html></html>")), patch(
-            "affilio_radar.parse_product_page", return_value=live_page
-        ):
+        with patch("affilio_radar.SESSION.get", side_effect=RuntimeError("API unavailable")), patch(
+            "affilio_radar.fetch_page", return_value=(product["product_url"], "<html></html>")
+        ), patch("affilio_radar.parse_product_page", return_value=live_page):
             result = verify_live_page_price(product)
         self.assertFalse(result["ok"])
         self.assertEqual(result["reason"], "live_page_price_mismatch")
@@ -537,12 +538,77 @@ class AffilioRadarTests(unittest.TestCase):
             "current_price": 1_924_990,
             "original_price": 17_500_000,
         }
-        with patch("affilio_radar.fetch_page", return_value=(product["product_url"], "<html></html>")), patch(
-            "affilio_radar.parse_product_page", return_value=live_page
-        ):
+        with patch("affilio_radar.SESSION.get", side_effect=RuntimeError("API unavailable")), patch(
+            "affilio_radar.fetch_page", return_value=(product["product_url"], "<html></html>")
+        ), patch("affilio_radar.parse_product_page", return_value=live_page):
             result = verify_live_page_price(product)
         self.assertTrue(result["ok"])
         self.assertEqual(result["reason"], "verified")
+
+    def test_live_api_price_is_verified_without_requiring_html_price(self):
+        product = {
+            "product_id": "dkp-22104577",
+            "product_url": "https://www.digikala.com/product/dkp-22104577/",
+            "current_price": 1_924_990,
+            "original_price": 17_500_000,
+        }
+        live_api = {
+            "product_id": "dkp-22104577",
+            "product_url": product["product_url"],
+            "current_price": 1_924_990,
+            "original_price": 17_500_000,
+            "availability": "in_stock",
+        }
+        response = SimpleNamespace(ok=True, status_code=200, json=lambda: {"product": "fresh"})
+        with patch("affilio_radar.SESSION.get", return_value=response), patch(
+            "affilio_radar.parse_product_api", return_value=live_api
+        ), patch("affilio_radar.fetch_page") as html_fetch:
+            result = verify_live_page_price(product)
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["price_source"], "digikala_live_api")
+        html_fetch.assert_not_called()
+
+    def test_live_api_price_mismatch_blocks_even_when_html_is_unavailable(self):
+        product = {
+            "product_id": "dkp-22104577",
+            "product_url": "https://www.digikala.com/product/dkp-22104577/",
+            "current_price": 1_924_990,
+        }
+        live_api = {
+            "product_id": "dkp-22104577",
+            "product_url": product["product_url"],
+            "current_price": 2_500_000,
+            "availability": "in_stock",
+        }
+        response = SimpleNamespace(ok=True, status_code=200, json=lambda: {"product": "fresh"})
+        with patch("affilio_radar.SESSION.get", return_value=response), patch(
+            "affilio_radar.parse_product_api", return_value=live_api
+        ), patch("affilio_radar.fetch_page") as html_fetch:
+            result = verify_live_page_price(product)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["reason"], "live_page_price_mismatch")
+        self.assertEqual(result["page_price"], 2_500_000)
+        html_fetch.assert_not_called()
+
+    def test_live_api_explicit_out_of_stock_blocks_publication(self):
+        product = {
+            "product_id": "dkp-22104577",
+            "product_url": "https://www.digikala.com/product/dkp-22104577/",
+            "current_price": 1_924_990,
+        }
+        live_api = {
+            "product_id": "dkp-22104577",
+            "product_url": product["product_url"],
+            "current_price": 1_924_990,
+            "availability": "out_of_stock",
+        }
+        response = SimpleNamespace(ok=True, status_code=200, json=lambda: {"product": "fresh"})
+        with patch("affilio_radar.SESSION.get", return_value=response), patch(
+            "affilio_radar.parse_product_api", return_value=live_api
+        ):
+            result = verify_live_page_price(product)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["reason"], "live_product_out_of_stock")
 
     def test_page_price_unavailable_fails_closed(self):
         product = {
@@ -550,12 +616,12 @@ class AffilioRadarTests(unittest.TestCase):
             "product_url": "https://www.digikala.com/product/dkp-22104577/",
             "current_price": 1_924_990,
         }
-        with patch("affilio_radar.fetch_page", return_value=(product["product_url"], "<html></html>")), patch(
-            "affilio_radar.parse_product_page", return_value={"product_id": "dkp-22104577"}
-        ):
+        with patch("affilio_radar.SESSION.get", side_effect=RuntimeError("API unavailable")), patch(
+            "affilio_radar.fetch_page", return_value=(product["product_url"], "<html></html>")
+        ), patch("affilio_radar.parse_product_page", return_value={"product_id": "dkp-22104577"}):
             result = verify_live_page_price(product)
         self.assertFalse(result["ok"])
-        self.assertEqual(result["reason"], "live_page_price_unavailable")
+        self.assertEqual(result["reason"], "live_price_unverified")
 
     def test_manual_safety_quarantine_blocks_republication_until_its_deadline(self):
         now = datetime(2026, 10, 19, 17, 0, tzinfo=timezone.utc)

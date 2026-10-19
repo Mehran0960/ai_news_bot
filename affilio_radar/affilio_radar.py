@@ -1012,7 +1012,7 @@ def parse_product_api(payload: dict, url: str) -> dict:
 
 
 def verify_live_page_price(product: dict) -> dict:
-    """Re-read the public DigiKala product page before posting and fail closed on a price mismatch."""
+    """Re-read the live DigiKala API first, using HTML as fallback; fail closed if neither verifies price."""
     url = safe_product_url(product.get("product_url", ""))
     expected_id = product_id(url) if url else ""
     try:
@@ -1022,52 +1022,112 @@ def verify_live_page_price(product: dict) -> dict:
     if not url or not expected_id or expected_price <= 0:
         return {"ok": False, "reason": "invalid_product_or_price", "page_price": None}
 
-    try:
-        final_url, page_html = fetch_page(url)
-        final_url = safe_product_url(final_url) or url
-        if product_id(final_url) != expected_id:
-            return {"ok": False, "reason": "product_identity_mismatch", "page_price": None}
-        live = parse_product_page(final_url, page_html)
-    except Exception as exc:
-        return {"ok": False, "reason": f"page_fetch_failed_{type(exc).__name__}", "page_price": None}
+    live = {}
+    api_errors = []
+    numeric_id = expected_id.replace("dkp-", "")
+    if numeric_id.isdigit():
+        for api_version in ("v2", "v1"):
+            try:
+                response = SESSION.get(
+                    f"https://api.digikala.com/{api_version}/product/{numeric_id}/",
+                    timeout=HTTP_TIMEOUT,
+                    allow_redirects=True,
+                )
+                if not response.ok:
+                    api_errors.append(f"{api_version}_http_{response.status_code}")
+                    continue
+                candidate = parse_product_api(response.json(), url)
+                if candidate and product_id(candidate.get("product_url") or url) != expected_id:
+                    api_errors.append(f"{api_version}_product_identity_mismatch")
+                    continue
+                if candidate.get("current_price"):
+                    live = candidate
+                    break
+                api_errors.append(f"{api_version}_price_unavailable")
+            except Exception as exc:
+                api_errors.append(f"{api_version}_{type(exc).__name__}")
 
+    price_source = "digikala_live_api" if live.get("current_price") else ""
+    if live.get("availability") == "out_of_stock":
+        return {
+            "ok": False,
+            "reason": "live_product_out_of_stock",
+            "page_price": live.get("current_price"),
+            "price_source": price_source,
+        }
+
+    if not live.get("current_price"):
+        # Some API responses omit price temporarily; use page data as fallback.
+        # Missing HTML price alone is not evidence of a mismatch.
+        try:
+            final_url, page_html = fetch_page(url)
+            final_url = safe_product_url(final_url) or url
+            if product_id(final_url) != expected_id:
+                return {"ok": False, "reason": "product_identity_mismatch", "page_price": None}
+            page_product = parse_product_page(final_url, page_html)
+            if page_product.get("current_price"):
+                live = page_product
+                price_source = "digikala_product_page"
+        except Exception as exc:
+            api_errors.append(f"html_{type(exc).__name__}")
+
+    if live.get("availability") == "out_of_stock":
+        return {
+            "ok": False,
+            "reason": "live_product_out_of_stock",
+            "page_price": live.get("current_price"),
+            "price_source": price_source,
+        }
     try:
-        page_price = int(live.get("current_price") or 0)
+        live_price = int(live.get("current_price") or 0)
     except (TypeError, ValueError, OverflowError):
-        page_price = 0
-    if page_price <= 0:
-        return {"ok": False, "reason": "live_page_price_unavailable", "page_price": None}
+        live_price = 0
+    if live_price <= 0:
+        return {
+            "ok": False,
+            "reason": "live_price_unverified",
+            "page_price": None,
+            "api_errors": api_errors[:6],
+        }
 
-    delta_percent = abs(page_price - expected_price) * 100.0 / expected_price
+    delta_percent = abs(live_price - expected_price) * 100.0 / expected_price
     if delta_percent > 1.0:
         return {
             "ok": False,
             "reason": "live_page_price_mismatch",
-            "page_price": page_price,
+            "page_price": live_price,
             "api_price": expected_price,
+            "price_source": price_source,
             "delta_percent": round(delta_percent, 2),
         }
 
     try:
         listed_original = int(product.get("original_price") or 0)
-        page_original = int(live.get("original_price") or 0)
+        live_original = int(live.get("original_price") or 0)
     except (TypeError, ValueError, OverflowError):
-        listed_original, page_original = 0, 0
-    if listed_original > 0 and page_original > 0:
-        original_delta = abs(page_original - listed_original) * 100.0 / listed_original
+        listed_original, live_original = 0, 0
+    if listed_original > 0 and live_original > 0:
+        original_delta = abs(live_original - listed_original) * 100.0 / listed_original
         if original_delta > 2.0:
             return {
                 "ok": False,
                 "reason": "live_page_original_price_mismatch",
-                "page_price": page_price,
+                "page_price": live_price,
                 "api_price": expected_price,
-                "page_original_price": page_original,
+                "page_original_price": live_original,
                 "api_original_price": listed_original,
+                "price_source": price_source,
                 "delta_percent": round(original_delta, 2),
             }
 
-    return {"ok": True, "reason": "verified", "page_price": page_price,
-            "api_price": expected_price, "delta_percent": round(delta_percent, 2)}
+    return {
+        "ok": True,
+        "reason": "verified",
+        "page_price": live_price,
+        "api_price": expected_price,
+        "price_source": price_source,
+        "delta_percent": round(delta_percent, 2),
+    }
 
 
 def fetch_product_record(url: str) -> dict:
