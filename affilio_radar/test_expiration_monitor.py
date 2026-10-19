@@ -467,5 +467,44 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(result[1], 1)
 
 
+    def test_expired_youtube_short_is_made_private(self):
+        import short_video
+
+        now = datetime.now(timezone.utc)
+        record = {
+            "youtube_video_id": "yt_test_456",
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "youtube_upload_status": "uploaded",
+        }
+        published = {"dkp-92041": record}
+        with (
+            patch("short_video.youtube_credentials_available", return_value=True),
+            patch("short_video.set_youtube_video_private", return_value=True) as make_private,
+        ):
+            changed = monitor._hide_expired_youtube_videos(published, now)
+
+        self.assertTrue(changed)
+        make_private.assert_called_once_with("yt_test_456")
+        self.assertEqual(record["youtube_expiry_status"], "private")
+
+    def test_expired_youtube_short_waits_for_oauth_credentials(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "youtube_video_id": "yt_test_789",
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "youtube_upload_status": "uploaded",
+        }
+        published = {"dkp-92042": record}
+        with patch("short_video.youtube_credentials_available", return_value=False), patch(
+            "short_video.set_youtube_video_private"
+        ) as make_private:
+            changed = monitor._hide_expired_youtube_videos(published, now)
+
+        self.assertTrue(changed)
+        make_private.assert_not_called()
+        self.assertEqual(record["youtube_expiry_status"], "pending_credentials")
+        self.assertIn("youtube_expiry_next_attempt_at", record)
+
+
 if __name__ == "__main__":
     unittest.main()
