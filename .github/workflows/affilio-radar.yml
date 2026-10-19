@@ -159,7 +159,8 @@ jobs:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-          YOUTUBE_PRIVACY_STATUS: "public"
+          # Keep first OAuth test uploads unlisted until the owner reviews them.
+          YOUTUBE_PRIVACY_STATUS: "unlisted"
           AFFILIO_DEAL_LIST_PAGES: "5"
           AFFILIO_MAX_PRODUCT_CHECKS: "40"
           AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES: "32"
