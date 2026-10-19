@@ -248,7 +248,9 @@ def upload_aparat_video(
             byte_offset += len(chunk)
             part_index += 1
 
-    upload_session.get(urljoin(server + "/", f"file/{qquuid}"), timeout=(10, 30)).raise_for_status()
+    final_state = upload_session.get(urljoin(server + "/", f"file/{qquuid}"), timeout=(10, 30))
+    if final_state.status_code >= 500:
+        final_state.raise_for_status()
     completed = upload_session.post(
         urljoin(server + "/", "chunksdone"),
         data={
