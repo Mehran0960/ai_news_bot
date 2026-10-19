@@ -183,9 +183,10 @@ def _mcp_call_incredible_offers_page(page):
     raise RuntimeError("Digikala MCP returned an unexpected response shape")
 
 
-def fetch_mcp_offer_expiries():
-    """Return exact offer deadlines exposed by Digikala's live deal-card feed."""
-    results = {}
+def fetch_mcp_offer_candidates():
+    """Return verified countdowns and the matching live offer-card records in one pass."""
+    expiries = {}
+    candidate_nodes = {}
     for page in range(1, DEAL_LIST_PAGES + 1):
         try:
             payload = _mcp_call_incredible_offers_page(page)
@@ -193,19 +194,55 @@ def fetch_mcp_offer_expiries():
             print(f"EXPIRY_MCP_FAILED page={page} error={type(exc).__name__} detail={str(exc)[:140]!r}")
             break
         page_count = 0
+        page_candidates = 0
         for node in walk_dicts(payload):
             pid = _product_id(node)
             if not pid:
                 continue
             expiry = extract_expiry(node)
             if expiry:
-                results[pid] = expiry
+                expiries[pid] = expiry
                 page_count += 1
-        print(f"EXPIRY_MCP_PAGE page={page} products_with_deadlines={page_count}")
+
+            # Preserve actual offer-card objects as well as their deadlines. The MCP
+            # feed may expose discounted products missing from the direct REST page
+            # ordering; returning only an ID->deadline map silently dropped those offers.
+            title = node.get("title_fa") or node.get("product_title") or node.get("title")
+            if not title:
+                continue
+            raw_url = node.get("url") or node.get("product_url") or node.get("web_url")
+            if isinstance(raw_url, dict):
+                raw_url = raw_url.get("uri") or raw_url.get("url") or ""
+            product_shaped = any(
+                key in node
+                for key in ("default_variant", "variants", "price", "status", "product_type", "is_incredible")
+            )
+            if not raw_url and not product_shaped:
+                continue
+            old = candidate_nodes.get(pid)
+            if old is None or len(node) > len(old):
+                copied = dict(node)
+                if expiry:
+                    copied["deal_expires_at"] = expiry
+                candidate_nodes[pid] = copied
+                page_candidates += 1
+        print(
+            f"EXPIRY_MCP_PAGE page={page} products_with_deadlines={page_count} "
+            f"offer_cards={page_candidates}"
+        )
         if not payload:
             break
-    print(f"EXPIRY_MCP_SUMMARY products_with_deadlines={len(results)}")
-    return results
+    print(
+        f"EXPIRY_MCP_SUMMARY products_with_deadlines={len(expiries)} "
+        f"offer_cards={len(candidate_nodes)}"
+    )
+    return expiries, list(candidate_nodes.values())
+
+
+def fetch_mcp_offer_expiries():
+    """Return exact offer deadlines exposed by Digikala's live deal-card feed."""
+    expiries, _ = fetch_mcp_offer_candidates()
+    return expiries
 
 
 def fetch_direct_api_offer_expiries():
