@@ -37,6 +37,27 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertGreaterEqual(parsed, before + timedelta(seconds=89))
         self.assertLessEqual(parsed, after + timedelta(seconds=91))
 
+    def test_mcp_feed_returns_offer_cards_and_deadlines_together(self):
+        payload = {
+            "products": [{
+                "id": 123,
+                "title_fa": "هدفون تخفیف‌دار آزمایشی",
+                "url": {"uri": "/product/dkp-123/"},
+                "is_incredible": True,
+                "price": {"discount_percent": 35},
+                "campaign": {"ends_at": "2026-10-20T12:00:00+03:30"},
+            }]
+        }
+        with patch.object(monitor, "DEAL_LIST_PAGES", 1), patch.object(
+            monitor, "_mcp_call_incredible_offers_page", return_value=payload
+        ):
+            deadlines, candidates = monitor.fetch_mcp_offer_candidates()
+
+        self.assertEqual(deadlines["dkp-123"], "2026-10-20T08:30:00+00:00")
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]["title_fa"], "هدفون تخفیف‌دار آزمایشی")
+        self.assertEqual(candidates[0]["deal_expires_at"], deadlines["dkp-123"])
+
     def test_probe_interval_prevents_repeated_unknown_feed_checks(self):
         now = datetime.now(timezone.utc)
         record = {"expiry_last_probed_at": now.isoformat()}
