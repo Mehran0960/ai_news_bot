@@ -60,11 +60,11 @@ async function runScheduledCheck(env, scheduledTime) {
   const minute = now.getUTCMinutes();
   const offset = minute % 5;
 
-  // Keep the native cleanup slot (:00/:05/...) and discovery slot (:02/:07/...) reserved.
-  // The next minute (:03/:08/...) is a failover: if GitHub's scheduled discovery run did not
-  // appear, dispatch it here rather than silently losing an entire scan cycle.
-  if (offset === 0 || offset === 2) {
-    console.log(`CHANNEL_DISPATCH_SKIPPED: reserving UTC minute ${minute} for native scheduled workflows.`);
+  // Reserve :02/:07/... for GitHub's native product-radar schedule.
+  // Native expiry cleanup is not reliably appearing in Actions history, so dispatch it
+  // explicitly at :00/:05/... instead of silently reserving the slot.
+  if (offset === 2) {
+    console.log(`CHANNEL_DISPATCH_SKIPPED: reserving UTC minute ${minute} for native product-radar schedule.`);
     return;
   }
 
@@ -78,8 +78,9 @@ async function runScheduledCheck(env, scheduledTime) {
       }
     }
 
+    const cleanupDispatch = offset === 0;
     const radarFallback = offset === 3;
-    const targetApi = radarFallback ? API : COUNTDOWN_API;
+    const targetApi = cleanupDispatch ? CLEANUP_API : (radarFallback ? API : COUNTDOWN_API);
     const payload = radarFallback
       ? { ref: "main", inputs: { external_scheduler: true } }
       : { ref: "main" };
@@ -89,7 +90,10 @@ async function runScheduledCheck(env, scheduledTime) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    console.log(radarFallback ? "PRODUCT_RADAR_FALLBACK_DISPATCH_ACCEPTED" : "COUNTDOWN_DISPATCH_ACCEPTED");
+    const dispatchMessage = cleanupDispatch
+      ? "EXPIRATION_CLEANUP_DISPATCH_ACCEPTED"
+      : (radarFallback ? "PRODUCT_RADAR_FALLBACK_DISPATCH_ACCEPTED" : "COUNTDOWN_DISPATCH_ACCEPTED");
+    console.log(dispatchMessage);
   } catch (error) {
     // Never keep queuing failed dispatch attempts; the next one-minute tick can retry.
     console.error("CHANNEL_DISPATCH_FAILED", String(error).slice(0, 900));
