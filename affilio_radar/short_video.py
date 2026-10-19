@@ -42,6 +42,101 @@ def _font(size: int, bold: bool = True) -> ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
+
+
+def _draw_telegram_logo(draw: ImageDraw.ImageDraw, x: int, y: int, size: int = 36) -> None:
+    """Draw a compact Telegram mark in the standard blue circle."""
+    draw.ellipse((x, y, x + size, y + size), fill=(36, 161, 222, 255))
+    draw.polygon(
+        [
+            (x + 7, y + 17),
+            (x + size - 6, y + 7),
+            (x + size - 12, y + size - 6),
+            (x + 16, y + 23),
+            (x + 13, y + 29),
+            (x + 12, y + 21),
+        ],
+        fill=(255, 255, 255, 255),
+    )
+    draw.polygon(
+        [(x + 16, y + 23), (x + size - 12, y + 12), (x + 20, y + 27)],
+        fill=(190, 230, 247, 255),
+    )
+
+
+def _draw_bale_logo(draw: ImageDraw.ImageDraw, x: int, y: int, size: int = 36) -> None:
+    """Draw Bale's green round mark with a white check-shaped glyph."""
+    draw.ellipse((x, y, x + size, y + size), fill=(0, 184, 148, 255))
+    draw.polygon(
+        [
+            (x + 6, y + 18),
+            (x + 11, y + 13),
+            (x + 17, y + 19),
+            (x + 27, y + 8),
+            (x + 32, y + 13),
+            (x + 17, y + 29),
+        ],
+        fill=(255, 255, 255, 255),
+    )
+
+
+def telegram_video_review_available(env: Mapping[str, str] | None = None) -> bool:
+    """Whether a private Telegram review destination has explicitly been configured."""
+    source = env if env is not None else os.environ
+    return bool(
+        str(source.get("TELEGRAM_BOT_TOKEN", "")).strip()
+        and str(source.get("AFFILIO_VIDEO_REVIEW_CHAT_ID", "")).strip()
+    )
+
+
+def send_telegram_video_review(
+    video_path: str | Path,
+    title: str,
+    discount_percent: object = None,
+    *,
+    session=None,
+    env: Mapping[str, str] | None = None,
+) -> dict:
+    """Send the generated MP4 to a configured private Telegram chat for preview."""
+    source = env if env is not None else os.environ
+    token = str(source.get("TELEGRAM_BOT_TOKEN", "")).strip()
+    chat_id = str(source.get("AFFILIO_VIDEO_REVIEW_CHAT_ID", "")).strip()
+    if not token or not chat_id:
+        raise RuntimeError("private Telegram video-review credentials are not configured")
+    path = Path(video_path)
+    if not path.is_file() or path.stat().st_size <= 0:
+        raise RuntimeError("video review file does not exist or is empty")
+
+    discount_text = ""
+    try:
+        discount = int(discount_percent)
+        if 0 < discount <= 100:
+            discount_text = f"\\n🏷️ تخفیف ثبت‌شده: {discount}٪"
+    except (TypeError, ValueError, OverflowError):
+        pass
+    caption = (
+        "🎬 پیش‌نمایش ویدئوی آفِرچین\\n"
+        f"🛍️ {str(title or 'محصول پیشنهادی دیجی‌کالا').strip()}"
+        f"{discount_text}\\n\\n"
+        "این پیام برای بازبینی اولیه است؛ پیش از انتشار عمومی، تطابق قیمت، موجودی و مهلت پیشنهاد بررسی شود."
+    )[:1024]
+
+    http = session or requests.Session()
+    with path.open("rb") as handle:
+        response = http.post(
+            f"https://api.telegram.org/bot{token}/sendVideo",
+            data={"chat_id": chat_id, "caption": caption, "supports_streaming": "true"},
+            files={"video": (path.name, handle, "video/mp4")},
+            timeout=(15, 240),
+        )
+    response.raise_for_status()
+    payload = response.json()
+    if not payload.get("ok"):
+        raise RuntimeError("Telegram rejected the private video-review upload")
+    result = payload.get("result") if isinstance(payload.get("result"), dict) else {}
+    return {"message_id": result.get("message_id"), "chat_id": chat_id}
+
+
 def build_vertical_poster(image_bytes: bytes, discount_percent: object = None) -> bytes:
     """Create a 9:16 poster from the product image without adding product copy or price."""
     with Image.open(BytesIO(image_bytes)) as raw:
@@ -87,8 +182,10 @@ def build_vertical_poster(image_bytes: bytes, discount_percent: object = None) -
     footer = (34, 1040, 430, 1190)
     draw.rounded_rectangle(footer, radius=22, fill=(14, 28, 22, 232), outline=(255, 255, 255, 230), width=2)
     watermark_font = _font(23)
-    draw.text((58, 1074), "T.me/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
-    draw.text((58, 1142), "ble.ir/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
+    _draw_telegram_logo(draw, 56, 1056, 36)
+    draw.text((103, 1074), "T.me/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
+    _draw_bale_logo(draw, 56, 1124, 36)
+    draw.text((103, 1142), "ble.ir/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
 
     output = BytesIO()
     background.convert("RGB").save(output, format="PNG", optimize=True)
@@ -208,12 +305,11 @@ def upload_youtube_video(
         pass
     video_title = (title_clean + suffix)[:100]
     description = (
-        "معرفی کوتاه محصول از آفِرچین.\n"
-        "قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، وضعیت روز محصول را بررسی کنید.\n\n"
-        "تخفیف‌های به‌روز در کانال‌های آفِرچین:\n"
-        "https://t.me/OfferChin\n"
-        "https://ble.ir/OfferChin\n\n"
-        "این محتوا در چارچوب همکاری در فروش منتشر شده است؛ ممکن است از خرید واجدشرایط کمیسیون دریافت شود."
+        "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\\n"
+        "قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در دیجی‌کالا بررسی کنید.\\n\\n"
+        "کانال‌های آفِرچین:\\n"
+        "تلگرام: https://t.me/OfferChin\\n"
+        "بله: https://ble.ir/OfferChin"
     )
     video = {
         "snippet": {
