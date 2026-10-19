@@ -54,7 +54,9 @@ CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS",
 BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
 MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "40"))))
-MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "1"))))
+MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
+PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
+PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(10, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "4"))))
 MIN_POST_INTERVAL_HOURS = max(5 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.08333333333333333")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
@@ -3987,6 +3989,23 @@ def _last_post_timestamp(state):
     except (TypeError, ValueError):
         return 0.0
 
+def effective_posts_per_run(backlog_count, configured_limit=None, force_full_batch=False):
+    """Use one post per scan normally, and permit a two-post burst only during backlog."""
+    try:
+        configured = MAX_POSTS_PER_RUN if configured_limit is None else int(configured_limit)
+        configured = max(1, min(10, configured))
+    except (TypeError, ValueError, OverflowError):
+        configured = 1
+    if force_full_batch:
+        return configured
+    try:
+        backlog = max(0, int(backlog_count))
+    except (TypeError, ValueError, OverflowError):
+        backlog = 0
+    if backlog >= PUBLISH_BACKLOG_BURST_THRESHOLD:
+        return min(configured, PUBLISH_BACKLOG_BURST_MAX_POSTS)
+    return min(configured, 1)
+
 
 
 
@@ -4521,8 +4540,18 @@ def run(publish=False):
     else:
         sent = 0
         attempted_candidates = 0
+        backlog_count = len(pending_queue) if isinstance(pending_queue, dict) else 0
+        run_post_limit = effective_posts_per_run(
+            backlog_count,
+            configured_limit=MAX_POSTS_PER_RUN,
+            force_full_batch=FORCE_POST_COOLDOWN_BYPASS,
+        )
+        print(
+            f"PUBLICATION_CAPACITY backlog={backlog_count} configured_limit={MAX_POSTS_PER_RUN} "
+            f"effective_limit={run_post_limit} burst_threshold={PUBLISH_BACKLOG_BURST_THRESHOLD}"
+        )
         for item in eligible:
-            if sent >= MAX_POSTS_PER_RUN:
+            if sent >= run_post_limit:
                 break
             if attempted_candidates >= MAX_PUBLISH_CANDIDATE_ATTEMPTS:
                 print(
