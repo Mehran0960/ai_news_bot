@@ -1205,6 +1205,81 @@ def _delete_expired_posts(published, now, mark_unknown=False):
 
 
 
+def _hide_expired_aparat_videos(published, now):
+    """Stop sharing tracked Aparat videos before the offer deadline where possible."""
+    changed = False
+    try:
+        from aparat_uploader import set_aparat_video_private, aparat_credentials_available
+        credentials_ready = aparat_credentials_available()
+    except Exception as exc:
+        set_aparat_video_private = None
+        credentials_ready = False
+        print(f"APARAT_EXPIRY_SETUP_UNAVAILABLE error={type(exc).__name__}")
+
+    for pid, rec in _iter_post_records(published):
+        if not isinstance(rec, dict):
+            continue
+        video_hash = str(rec.get("aparat_video_hash") or "").strip()
+        expiry_status = str(rec.get("aparat_expiry_status") or "")
+        if not video_hash or expiry_status in {"private", "already_private"}:
+            continue
+        expires = parse_expiry(rec.get("expires_at"))
+        if not expires:
+            continue
+        try:
+            deadline = datetime.fromisoformat(expires)
+        except ValueError:
+            continue
+        if deadline.tzinfo is None:
+            deadline = deadline.replace(tzinfo=timezone.utc)
+        removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
+        if removal_deadline > now:
+            continue
+        retry_raw = parse_expiry(rec.get("aparat_expiry_next_attempt_at"))
+        if retry_raw:
+            try:
+                retry_at = datetime.fromisoformat(retry_raw)
+                if retry_at.tzinfo is None:
+                    retry_at = retry_at.replace(tzinfo=timezone.utc)
+                if now < retry_at:
+                    continue
+            except ValueError:
+                pass
+
+        # A deliberately non-public first test upload is already not shared.
+        if str(rec.get("aparat_visibility") or "") == "non_public_test":
+            rec["aparat_expiry_status"] = "already_private"
+            rec["aparat_private_at"] = now.isoformat()
+            rec.pop("aparat_expiry_next_attempt_at", None)
+            changed = True
+            print(f"APARAT_EXPIRY_ALREADY_PRIVATE product_id={pid} video_hash={video_hash}")
+            continue
+
+        if not credentials_ready or set_aparat_video_private is None:
+            rec["aparat_expiry_status"] = "pending_credentials"
+            rec["aparat_expiry_next_attempt_at"] = (now + timedelta(minutes=60)).isoformat()
+            rec["aparat_expiry_last_error"] = "aparat_cookie_secret_missing"
+            changed = True
+            continue
+
+        try:
+            set_aparat_video_private(video_hash)
+            rec["aparat_expiry_status"] = "private"
+            rec["aparat_private_at"] = now.isoformat()
+            rec.pop("aparat_expiry_next_attempt_at", None)
+            rec.pop("aparat_expiry_last_error", None)
+            changed = True
+            print(f"APARAT_EXPIRY_PRIVATE_OK product_id={pid} video_hash={video_hash}")
+        except Exception as exc:
+            rec["aparat_expiry_status"] = "retry"
+            rec["aparat_expiry_next_attempt_at"] = (now + timedelta(minutes=30)).isoformat()
+            rec["aparat_expiry_last_error"] = type(exc).__name__
+            changed = True
+            print(f"APARAT_EXPIRY_PRIVATE_FAILED product_id={pid} error={type(exc).__name__}")
+
+    return changed
+
+
 def _hide_expired_youtube_videos(published, now):
     """Set tracked YouTube Shorts to private once their underlying time-limited offer expires."""
     changed = False
@@ -1385,6 +1460,8 @@ def run():
 
     youtube_privacy_changed = _hide_expired_youtube_videos(published, now)
     changed = changed or youtube_privacy_changed
+    aparat_privacy_changed = _hide_expired_aparat_videos(published, now)
+    changed = changed or aparat_privacy_changed
     if changed:
         _write_state(state)
     backlog = max(0, len(probe_candidates) - min(len(probe_candidates), max_probe_candidates))
