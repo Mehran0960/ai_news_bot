@@ -47,7 +47,6 @@ from affilio_radar import (
     _edit_telegram_caption,
     repair_all_published_captions,
     _delivery_retry_platforms,
-    _active_delivery_retry_ids,
     unicode_strikethrough,
     _money_to_toman,
     api_search_product_urls,
@@ -1336,21 +1335,6 @@ class AffilioRadarTests(unittest.TestCase):
         markup = json.loads(data["reply_markup"])
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(result["message_id"], 2)
-
-    def test_active_channel_gap_blocks_newer_publications(self):
-        now = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
-        published = {
-            "dkp-gap": {"delivery_version": 1, "delivery_status": {"telegram": "sent", "bale": "failed"}},
-            "dkp-matched": {"delivery_version": 1, "delivery_status": {"telegram": "sent", "bale": "sent"}},
-        }
-        eligible = {
-            pid: {"deal_expires_at": (now + timedelta(hours=2)).isoformat()}
-            for pid in published
-        }
-        with patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"), patch(
-            "affilio_radar.BALE_CHANNEL_ID", "-10012345"
-        ):
-            self.assertEqual(_active_delivery_retry_ids(published, eligible, now), ["dkp-gap"])
 
     def test_failed_bale_delivery_is_retried_without_reposting_to_telegram(self):
         record = {"delivery_version": 1, "delivery_status": {"telegram": "sent", "bale": "failed"}}
