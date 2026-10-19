@@ -57,6 +57,22 @@ class ShortVideoTests(unittest.TestCase):
         self.assertEqual(poster.getpixel((58, 1074)), (36, 161, 222))
         self.assertEqual(poster.getpixel((58, 1142)), (0, 184, 148))
 
+    def test_discount_is_drawn_inside_red_comic_burst(self):
+        image = Image.new("RGB", (400, 500), (255, 255, 255))
+        stream = io.BytesIO()
+        image.save(stream, format="PNG")
+        poster = Image.open(io.BytesIO(build_vertical_poster(stream.getvalue(), 76))).convert("RGB")
+
+        # The upper-right region should contain a clearly visible red burst, not the old green pill.
+        crop = poster.crop((455, 125, 710, 325))
+        red_pixels = sum(
+            1
+            for red, green, blue in crop.getdata()
+            if red > 120 and red > green * 1.6 and red > blue * 1.5
+        )
+        self.assertGreater(red_pixels, 1500)
+        self.assertEqual(poster.size, (720, 1280))
+
     def test_private_review_is_disabled_until_both_settings_exist(self):
         self.assertFalse(telegram_video_review_available({}))
         self.assertFalse(telegram_video_review_available({"TELEGRAM_BOT_TOKEN": "token"}))
