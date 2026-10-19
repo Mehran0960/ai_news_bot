@@ -2828,7 +2828,7 @@ def unicode_underline(value: str) -> str:
 
 
 def format_remaining_time(value, now: datetime | None = None) -> str:
-    """Render the remaining offer time in Persian hours/minutes, rounded up to a minute."""
+    """Display a conservative countdown with a five-minute safety buffer."""
     deadline = _parse_utc_datetime(value)
     if deadline is None:
         return ""
@@ -2839,7 +2839,12 @@ def format_remaining_time(value, now: datetime | None = None) -> str:
     remaining_seconds = (deadline - current).total_seconds()
     if remaining_seconds <= 0:
         return "مهلت آفر به پایان رسیده"
-    remaining_minutes = max(1, math.ceil(remaining_seconds / 60))
+    # Subtract five minutes from displayed time only; never change the real expiry
+    # used by eligibility checks or automatic post deletion.
+    safe_remaining_seconds = remaining_seconds - 5 * 60
+    if safe_remaining_seconds <= 0:
+        return "حداکثر ۵ دقیقه مانده به پایان تخفیف"
+    remaining_minutes = max(1, math.ceil(safe_remaining_seconds / 60))
     hours, minutes = divmod(remaining_minutes, 60)
     duration = []
     if hours:
@@ -2914,7 +2919,7 @@ def build_caption(
     if expiry:
         parts += ["", bold(f"⏳ {expiry}")]
 
-    detail_line = bold("👇 برای مشاهدهٔ قیمت و خرید، دکمهٔ زیر رو بزن.")
+    detail_line = bold("👇 برای دیدن جزئیات و خرید، دکمهٔ زیر رو بزن.")
     parts += ["", channel_footer, "", detail_line]
     caption = "\n".join(parts)
     footer = f"\n\n{channel_footer}\n\n{detail_line}"
@@ -3096,7 +3101,7 @@ def _send_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     if parsed_link.scheme == "https" and parsed_link.netloc:
         data["reply_markup"] = json.dumps({
             "inline_keyboard": [[{
-                "text": "🛍️ مشاهده تخفیف و خرید",
+                "text": "🛍️ مشاهدهٔ قیمت و خرید",
                 "url": affiliate_url,
             }]]
         }, ensure_ascii=False)
@@ -3125,7 +3130,7 @@ def _send_bale_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     if parsed_link.scheme == "https" and parsed_link.netloc:
         data["reply_markup"] = json.dumps({
             "inline_keyboard": [[{
-                "text": "🛍️ مشاهده تخفیف و خرید",
+                "text": "🛍️ مشاهدهٔ قیمت و خرید",
                 "url": affiliate_url,
             }]]
         }, ensure_ascii=False)
@@ -3192,7 +3197,7 @@ def _edit_telegram_caption(message_id: int, caption: str, affiliate_url: str = "
     if parsed_link.scheme == "https" and parsed_link.netloc:
         data["reply_markup"] = json.dumps({
             "inline_keyboard": [[{
-                "text": "🛍️ مشاهده تخفیف و خرید",
+                "text": "🛍️ مشاهدهٔ قیمت و خرید",
                 "url": affiliate_url,
             }]]
         }, ensure_ascii=False)
@@ -3245,7 +3250,7 @@ def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
     if parsed_link.scheme == "https" and parsed_link.netloc:
         data["reply_markup"] = json.dumps({
             "inline_keyboard": [[{
-                "text": "🛍️ مشاهده تخفیف و خرید",
+                "text": "🛍️ مشاهدهٔ قیمت و خرید",
                 "url": affiliate_url,
             }]]
         }, ensure_ascii=False)
