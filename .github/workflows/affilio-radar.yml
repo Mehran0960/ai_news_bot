@@ -166,6 +166,7 @@ jobs:
           AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || inputs.external_scheduler || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.25"
           AFFILIO_MAX_POSTS_PER_RUN: ${{ contains(github.event.head_commit.message, '[publish-now]') && '10' || inputs.batch_count || '1' }}
+          AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "4"
           AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS: ${{ contains(github.event.head_commit.message, '[publish-now]') || inputs.clear_previous_posts }}
           AFFILIO_BATCH_KEY: ${{ contains(github.event.head_commit.message, '[publish-now]') && github.sha || github.run_id }}
           AFFILIO_FORCE_POST_COOLDOWN_BYPASS: ${{ contains(github.event.head_commit.message, '[publish-now]') || inputs.publish }}
