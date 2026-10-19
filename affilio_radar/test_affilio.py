@@ -71,6 +71,7 @@ from affilio_radar import (
     is_market_price_uncompetitive,
     verify_live_page_price,
     previous_publication_posts_removed,
+    is_manual_publication_quarantine_active,
     MIN_POST_INTERVAL_HOURS,
 )
 
@@ -555,6 +556,13 @@ class AffilioRadarTests(unittest.TestCase):
             result = verify_live_page_price(product)
         self.assertFalse(result["ok"])
         self.assertEqual(result["reason"], "live_page_price_unavailable")
+
+    def test_manual_safety_quarantine_blocks_republication_until_its_deadline(self):
+        now = datetime(2026, 10, 19, 17, 0, tzinfo=timezone.utc)
+        record = {"manual_quarantine_until": (now + timedelta(hours=24)).isoformat()}
+        self.assertTrue(is_manual_publication_quarantine_active(record, now))
+        self.assertFalse(is_manual_publication_quarantine_active(record, now + timedelta(hours=24)))
+        self.assertFalse(is_manual_publication_quarantine_active({}, now))
 
     def test_same_product_is_blocked_until_all_prior_messages_are_removed(self):
         previous = {

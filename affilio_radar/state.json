@@ -5162,9 +5162,9 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-19T20:30:00+00:00",
+      "expires_at": "2026-10-19T16:59:41.891Z",
       "expiry_estimated": false,
-      "expiry_source": "digikala_live_deals_feed",
+      "expiry_source": "manual_safety_quarantine",
       "expiry_status": "tracked",
       "post_history": [
         {
@@ -5201,7 +5201,10 @@
       "product_url": "https://www.digikala.com/product/dkp-22104577/",
       "telegram_message_id": 106,
       "title": "شارژر فندکی 50 وات دو پورت وونک مدل VC-50 به همراه کابل 1 متری USB-C",
-      "ts": 1792427233.0831838
+      "ts": 1792427233.0831838,
+      "expiry_reason": "user_reported_invalid_countdown",
+      "manual_quarantine_until": "2026-10-20T17:00:41.891Z",
+      "manual_quarantine_reason": "user_reported_invalid_countdown"
     },
     "dkp-22134461": {
       "click_tracking_url": "",

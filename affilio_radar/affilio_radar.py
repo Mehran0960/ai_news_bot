@@ -3649,6 +3649,19 @@ def is_deadline_critical_deal(product: dict, now: datetime | None = None) -> boo
     )
 
 
+def is_manual_publication_quarantine_active(previous: dict | None, now: datetime | None = None) -> bool:
+    """Keep a product off the channel briefly after an operator reports invalid offer details."""
+    if not isinstance(previous, dict):
+        return False
+    quarantine_until = _parse_utc_datetime(previous.get("manual_quarantine_until"))
+    if quarantine_until is None:
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    return quarantine_until > current.astimezone(timezone.utc)
+
+
 def previous_publication_posts_removed(previous: dict | None) -> bool:
     """Prevent a new post while any prior Telegram/Bale message may still be visible."""
     if not isinstance(previous, dict):
@@ -4273,6 +4286,9 @@ def run(publish=False):
                 break
             pid = item["product_id"]
             old = state["published"].get(pid, {})
+            if is_manual_publication_quarantine_active(old, now_utc):
+                print(f"PUBLISH_SKIP id={pid} reason=manual_safety_quarantine")
+                continue
             if old and not previous_publication_posts_removed(old):
                 print(
                     f"PUBLISH_SKIP id={pid} "
