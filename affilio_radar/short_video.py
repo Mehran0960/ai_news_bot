@@ -16,6 +16,7 @@ from typing import Mapping
 
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
+from offerchin_visuals import draw_discount_burst
 
 WIDTH = 720
 HEIGHT = 1280
@@ -139,69 +140,6 @@ def send_telegram_video_review(
 
 
 
-def _draw_discount_burst(
-    draw: ImageDraw.ImageDraw,
-    left: int,
-    top: int,
-    width: int,
-    height: int,
-    discount: int,
-) -> None:
-    """Draw a red comic-style sale burst with bold yellow discount text."""
-    import math
-
-    center_x = left + width / 2
-    center_y = top + height / 2
-    points = []
-    spikes = 14
-    for index in range(spikes * 2):
-        angle = -math.pi / 2 + index * math.pi / spikes
-        outer = index % 2 == 0
-        radius_x = width * (0.50 if outer else 0.405)
-        radius_y = height * (0.50 if outer else 0.405)
-        points.append((
-            round(center_x + math.cos(angle) * radius_x),
-            round(center_y + math.sin(angle) * radius_y),
-        ))
-
-    # Offset shadow and a bright border help separate the sticker from any product image.
-    shadow = [(x + 7, y + 9) for x, y in points]
-    draw.polygon(shadow, fill=(0, 0, 0, 145))
-    draw.polygon(points, fill=(196, 8, 12, 255), outline=(255, 255, 242, 255), width=5)
-    draw.line(points + [points[0]], fill=(255, 255, 255, 250), width=4, joint="curve")
-
-    percentage = f"{discount}%"
-    percentage_font_size = 53 if len(percentage) <= 3 else 45
-    percentage_font = _font(percentage_font_size)
-    while percentage_font_size > 30:
-        bbox = draw.textbbox((0, 0), percentage, font=percentage_font, stroke_width=2)
-        if bbox[2] - bbox[0] <= width * 0.82:
-            break
-        percentage_font_size -= 2
-        percentage_font = _font(percentage_font_size)
-
-    # Dark stroke creates contrast while the golden fill echoes the reference sticker.
-    draw.text(
-        (round(center_x + 1), round(top + height * 0.42 + 3)),
-        percentage,
-        font=percentage_font,
-        fill=(255, 216, 35, 255),
-        anchor="mm",
-        stroke_width=3,
-        stroke_fill=(104, 0, 0, 255),
-    )
-    off_font = _font(23)
-    draw.text(
-        (round(center_x), round(top + height * 0.70 + 2)),
-        "OFF",
-        font=off_font,
-        fill=(255, 231, 73, 255),
-        anchor="mm",
-        stroke_width=2,
-        stroke_fill=(104, 0, 0, 255),
-    )
-
-
 def build_vertical_poster(image_bytes: bytes, discount_percent: object = None) -> bytes:
     """Create a 9:16 poster from the product image without adding product copy or price."""
     with Image.open(BytesIO(image_bytes)) as raw:
@@ -240,7 +178,7 @@ def build_vertical_poster(image_bytes: bytes, discount_percent: object = None) -
         # Keep the badge at the upper-right, with a little breathing room from the edges.
         badge_width, badge_height = 218, 160
         left, top = WIDTH - 34 - badge_width, 142
-        _draw_discount_burst(draw, left, top, badge_width, badge_height, discount)
+        draw_discount_burst(draw, left, top, badge_width, badge_height, discount)
 
     # Match the lower-left watermark area used on channel images, with both IDs on separate lines.
     footer = (34, 1040, 430, 1190)
