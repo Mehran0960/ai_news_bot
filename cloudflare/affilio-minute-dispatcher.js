@@ -87,6 +87,13 @@ async function runScheduledCheck(env, scheduledTime) {
     const cleanupDispatch = offset === 0;
     const radarFallback = offset === 3;
     const targetApi = cleanupDispatch ? CLEANUP_API : (radarFallback ? API : COUNTDOWN_API);
+    if (cleanupDispatch) {
+      // Re-enable cleanup if GitHub has automatically disabled its scheduled workflow.
+      // The workflow is manually dispatched by this Worker, so it must remain enabled.
+      await githubRequest(`${CLEANUP_API}/enable`, env.GITHUB_TOKEN, { method: "PUT" });
+      console.log("EXPIRATION_CLEANUP_WORKFLOW_ENABLED");
+    }
+
     const payload = radarFallback
       ? { ref: "main", inputs: { external_scheduler: true } }
       : { ref: "main" };
