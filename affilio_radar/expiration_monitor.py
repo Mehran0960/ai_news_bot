@@ -183,11 +183,25 @@ def _mcp_call_incredible_offers_page(page):
     raise RuntimeError("Digikala MCP returned an unexpected response shape")
 
 
-def fetch_mcp_offer_candidates():
-    """Return verified countdowns and the matching live offer-card records in one pass."""
+def fetch_mcp_offer_candidates(page_numbers=None):
+    """Return verified countdowns and offer cards, optionally scanning a rotating subset of pages."""
     expiries = {}
     candidate_nodes = {}
-    for page in range(1, DEAL_LIST_PAGES + 1):
+    if page_numbers is None:
+        pages = list(range(1, DEAL_LIST_PAGES + 1))
+    else:
+        pages = []
+        for raw_page in page_numbers:
+            try:
+                page_number = int(raw_page)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if 1 <= page_number <= DEAL_LIST_PAGES and page_number not in pages:
+                pages.append(page_number)
+        if not pages:
+            pages = list(range(1, DEAL_LIST_PAGES + 1))
+    print(f"EXPIRY_MCP_SCAN_PAGES pages={pages}")
+    for page in pages:
         try:
             payload = _mcp_call_incredible_offers_page(page)
         except Exception as exc:
