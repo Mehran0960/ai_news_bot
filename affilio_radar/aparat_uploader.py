@@ -57,6 +57,11 @@ def _site_session(cookie_header: str) -> requests.Session:
             "Referer": f"{APARAT_ORIGIN}/uploadvideo",
             "Origin": APARAT_ORIGIN,
             "Content-Type": "application/json; charset=utf-8",
+            "X-Requested-With": "XMLHttpRequest",
+            "isNext": "true",
+            "jsonType": "simple",
+            "domain": "aparat",
+            "currentUrl": f"{APARAT_ORIGIN}/uploadvideo",
             "Cookie": cookie_header,
         }
     )
