@@ -3892,6 +3892,7 @@ def run(publish=False):
     # Retry a failed destination for a previously published product before posting another product.
     # This keeps each channel's delivery independent and avoids reposting to the channel that succeeded.
     delivery_retry_handled = False
+    delivery_retry_unresolved = False
     if publish:
         now_epoch = time.time()
         for pid, previous in list(state.get("published", {}).items()):
@@ -3920,6 +3921,7 @@ def run(publish=False):
                 previous["delivery_retry_after"] = now_epoch + _delivery_retry_delay(max_attempt)
                 previous["delivery_last_error"] = type(exc).__name__
                 save_json(STATE, state)
+                delivery_retry_unresolved = True
                 print(f"DELIVERY_RETRY_FAILED id={pid} reason=image_fetch error={type(exc).__name__}")
                 break
 
@@ -3942,6 +3944,7 @@ def run(publish=False):
                     print(f"DELIVERY_RETRY_FAILED id={pid} platform={platform} error={type(exc).__name__}")
             remaining = _delivery_retry_platforms(previous)
             if remaining:
+                delivery_retry_unresolved = True
                 max_attempt = max(int(attempts.get(platform, 1) or 1) for platform in remaining)
                 previous["delivery_retry_after"] = time.time() + _delivery_retry_delay(max_attempt)
                 if last_error:
@@ -4063,8 +4066,8 @@ def run(publish=False):
         print("DRY_RUN: discovery and stock checks only; no Telegram post attempted.")
     elif not BOT_TOKEN and not (BALE_BOT_TOKEN and BALE_CHANNEL_ID):
         print("PUBLISH_BLOCKED: neither complete Telegram nor Bale credentials are configured; no post attempted.")
-    elif delivery_retry_handled:
-        print("PUBLISH_SKIPPED: processed a pending channel delivery retry; no new product posted in this run.")
+    elif delivery_retry_handled and not delivery_retry_unresolved:
+        print("PUBLISH_SKIPPED: pending delivery retry succeeded; no additional product posted in this run.")
     elif link_mode == "no_valid_affilio_tracking_config":
         print("PUBLISH_BLOCKED: no valid Affilio tracking parameters/template configured; no post attempted.")
     elif not eligible:
