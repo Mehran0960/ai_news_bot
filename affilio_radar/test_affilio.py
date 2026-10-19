@@ -1,4 +1,5 @@
 import json
+import subprocess
 import unittest
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
@@ -1361,6 +1362,16 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(preview.format, "JPEG")
             self.assertEqual(preview.size, (480, 640))
         self.assertNotEqual(rendered, image_bytes.getvalue())
+
+        # The comic-burst badge is red/yellow and remains in the upper-right of channel photos.
+        with Image.open(BytesIO(rendered)).convert("RGB") as preview:
+            crop = preview.crop((300, 0, 480, 150))
+            red_pixels = sum(
+                1 for red, green, blue in crop.getdata()
+                if red > 120 and red > green * 1.6 and red > blue * 1.5
+            )
+            self.assertGreater(red_pixels, 500)
+
         # Channel watermark must still render when a discount badge is unavailable.
         rendered_without_badge = build_discount_image(image_bytes.getvalue(), None)
         with Image.open(BytesIO(rendered_without_badge)) as preview:
@@ -1910,6 +1921,18 @@ class AffilioRadarTests(unittest.TestCase):
             )
             self.assertTrue(rendered.is_file())
             self.assertGreater(rendered.stat().st_size, 1024)
+
+            probe = subprocess.run(
+                [
+                    "ffprobe", "-v", "error", "-select_streams", "a:0",
+                    "-show_entries", "stream=codec_name,channels",
+                    "-of", "json", str(rendered),
+                ],
+                check=True, capture_output=True, text=True, timeout=30,
+            )
+            audio_streams = json.loads(probe.stdout).get("streams", [])
+            self.assertTrue(audio_streams, "rendered short should contain a music track")
+            self.assertEqual(audio_streams[0].get("codec_name"), "aac")
 
 if __name__ == "__main__":
     unittest.main()
