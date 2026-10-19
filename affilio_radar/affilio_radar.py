@@ -2844,7 +2844,10 @@ def format_remaining_time(value, now: datetime | None = None) -> str:
     safe_remaining_seconds = remaining_seconds - 5 * 60
     if safe_remaining_seconds <= 0:
         return "حداکثر ۵ دقیقه مانده به پایان تخفیف"
-    remaining_minutes = max(1, math.ceil(safe_remaining_seconds / 60))
+    if safe_remaining_seconds < 60:
+        return "کمتر از ۱ دقیقه مانده به پایان تخفیف"
+    # Round down so the displayed value never exceeds the deadline minus five minutes.
+    remaining_minutes = math.floor(safe_remaining_seconds / 60)
     hours, minutes = divmod(remaining_minutes, 60)
     duration = []
     if hours:
