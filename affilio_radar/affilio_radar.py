@@ -3596,7 +3596,7 @@ def select_publish_candidates(
     current = current.astimezone(timezone.utc)
     selected = []
     deferred = 0
-    for pid, record in pending_queue.items() if isinstance(pending_queue, dict) else []:
+    for pid, record in (pending_queue.items() if isinstance(pending_queue, dict) else []):
         product = eligible_by_id.get(str(pid)) if isinstance(eligible_by_id, dict) else None
         if not isinstance(record, dict) or not isinstance(product, dict):
             continue
@@ -3640,6 +3640,10 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
 
         old = old_queue.get(pid, {})
         old_first_seen = _parse_utc_datetime(old.get("first_seen_at")) if isinstance(old, dict) else None
+        try:
+            old_publish_failures = max(0, int(old.get("publish_failure_count") or 0)) if isinstance(old, dict) else 0
+        except (TypeError, ValueError, OverflowError):
+            old_publish_failures = 0
         if old_first_seen is None or (now - old_first_seen).total_seconds() > PENDING_QUEUE_TTL_HOURS * 3600:
             old_first_seen = now
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
@@ -3656,7 +3660,7 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
             "demand_score": int(product.get("demand_score") or 0),
             "promo_score": int(product.get("promo_score") or 0),
             "urgent": is_urgent_priority_deal(product, now),
-            "publish_failure_count": max(0, int(old.get("publish_failure_count") or 0)) if isinstance(old, dict) else 0,
+            "publish_failure_count": old_publish_failures,
             "next_publish_attempt_at": str(old.get("next_publish_attempt_at") or "") if isinstance(old, dict) else "",
             "last_publish_failure": str(old.get("last_publish_failure") or "") if isinstance(old, dict) else "",
             "last_publish_failure_at": str(old.get("last_publish_failure_at") or "") if isinstance(old, dict) else "",
