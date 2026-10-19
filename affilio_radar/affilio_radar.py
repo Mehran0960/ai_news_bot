@@ -4010,14 +4010,21 @@ def effective_posts_per_run(backlog_count, configured_limit=None, force_full_bat
 
 
 def process_pending_short_video(state: dict, now: datetime | None = None, output_dir: str | Path = "video_artifacts") -> bool:
-    """Generate one queued vertical video per run; upload to YouTube when OAuth secrets exist.
+    """Generate one eligible product short and service any configured video destinations.
 
-    Without YouTube credentials, the same MP4 is retained as a workflow artifact for manual
-    Aparat upload. A deadline must be explicit, trusted, and at least 20 minutes away.
-    This helper never changes or retries the Telegram/Bale post itself.
+    YouTube uses its official Data API. Aparat currently requires an authenticated web
+    session and therefore uses a best-effort, undocumented uploader. Optional private
+    Telegram review delivery is independent of public-channel posting.
     """
     try:
-        from short_video import render_short_video, upload_youtube_video, youtube_credentials_available
+        from short_video import (
+            render_short_video,
+            upload_youtube_video,
+            youtube_credentials_available,
+            send_telegram_video_review,
+            telegram_video_review_available,
+        )
+        from aparat_uploader import aparat_credentials_available, upload_aparat_video, PENDING_APARAT_STATUSES
     except Exception as exc:
         print(f"SHORT_VIDEO_SKIP reason=renderer_import_failed error={type(exc).__name__}")
         return False
@@ -4031,26 +4038,44 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         return False
 
     youtube_ready = youtube_credentials_available()
+    aparat_ready = aparat_credentials_available()
+    review_ready = telegram_video_review_available()
+    pending_youtube = {"pending", "pending_credentials", "retry"}
     candidates = []
     state_changed = False
+
     for pid, record in published.items():
         if not isinstance(record, dict):
             continue
         generation_status = str(record.get("video_generation_status") or "")
         upload_status = str(record.get("youtube_upload_status") or "")
+        aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
+        youtube_in_flight = False
+        aparat_in_flight = False
+
         if upload_status == "uploading":
-            # "uploading" is deliberately not retried automatically: the remote upload
-            # could have succeeded even if this runner disappeared before saving its ID.
             started = _parse_utc_datetime(record.get("youtube_upload_started_at"))
             if started and (current - started).total_seconds() > 1800:
                 record["youtube_upload_status"] = "upload_result_unknown"
                 record["youtube_review_required"] = True
                 record["youtube_last_error"] = "runner_interrupted_during_upload"
+                upload_status = "upload_result_unknown"
                 state_changed = True
-            continue
+            else:
+                youtube_in_flight = True
+
+        if aparat_status == "uploading":
+            started = _parse_utc_datetime(record.get("aparat_upload_started_at"))
+            if started and (current - started).total_seconds() > 1800:
+                record["aparat_upload_status"] = "upload_result_unknown"
+                record["aparat_review_required"] = True
+                record["aparat_last_error"] = "runner_interrupted_during_upload"
+                aparat_status = "upload_result_unknown"
+                state_changed = True
+            else:
+                aparat_in_flight = True
+
         if generation_status not in {"pending", "generated"}:
-            continue
-        if upload_status not in {"pending", "pending_credentials", "retry"}:
             continue
 
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("expires_at")))
@@ -4060,13 +4085,19 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             or record.get("expiry_estimated") is True
         ):
             record["video_generation_status"] = "skipped_unverified_deadline"
-            record["youtube_upload_status"] = "skipped_unverified_deadline"
+            if upload_status in pending_youtube:
+                record["youtube_upload_status"] = "skipped_unverified_deadline"
+            if aparat_status in PENDING_APARAT_STATUSES:
+                record["aparat_upload_status"] = "skipped_unverified_deadline"
             state_changed = True
             print(f"SHORT_VIDEO_SKIP id={pid} reason=unverified_deadline")
             continue
         if expiry <= current + timedelta(minutes=20):
             record["video_generation_status"] = "skipped_expiring_soon"
-            record["youtube_upload_status"] = "skipped_expiring_soon"
+            if upload_status in pending_youtube:
+                record["youtube_upload_status"] = "skipped_expiring_soon"
+            if aparat_status in PENDING_APARAT_STATUSES:
+                record["aparat_upload_status"] = "skipped_expiring_soon"
             state_changed = True
             print(f"SHORT_VIDEO_SKIP id={pid} reason=less_than_20_minutes_left")
             continue
@@ -4075,14 +4106,29 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         if not any(value == "sent" for value in delivery.values()):
             continue
 
-        retry_value = record.get("youtube_next_attempt_at") or record.get("video_generation_next_attempt_at")
-        retry_at = _parse_utc_datetime(retry_value) if retry_value else None
-        if retry_at and current < retry_at:
+        yt_need = youtube_ready and upload_status in pending_youtube and not youtube_in_flight
+        aparat_need = aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not aparat_in_flight
+        review_next = _parse_utc_datetime(record.get("video_review_next_attempt_at"))
+        review_need = review_ready and not record.get("video_review_sent") and not (
+            review_next and current < review_next
+        )
+        if generation_status == "generated" and not (yt_need or aparat_need or review_need):
+            # A previously generated MP4 has no configured destination needing work.
             continue
-        if generation_status == "generated" and not youtube_ready:
-            # The MP4 was already exported as an artifact on an earlier run; wait for
-            # OAuth secrets rather than rebuilding and archiving identical copies.
+
+        retry_values = []
+        for key, needed in (
+            ("youtube_next_attempt_at", yt_need),
+            ("aparat_next_attempt_at", aparat_need),
+            ("video_generation_next_attempt_at", generation_status == "pending"),
+        ):
+            value = record.get(key)
+            retry_at = _parse_utc_datetime(value) if value else None
+            if needed and retry_at:
+                retry_values.append(retry_at)
+        if retry_values and current < max(retry_values):
             continue
+
         if not str(record.get("image_url") or "").strip():
             record["video_generation_status"] = "pending"
             record["video_generation_last_error"] = "missing_image_url"
@@ -4104,11 +4150,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
 
     try:
         image_bytes = _fetch_image(str(record["image_url"]))
-        render_short_video(
-            image_bytes,
-            record.get("posted_discount_percent"),
-            output_path,
-        )
+        render_short_video(image_bytes, record.get("posted_discount_percent"), output_path)
         record["video_generation_status"] = "generated"
         record["video_generated_at"] = current.isoformat()
         record["video_file_name"] = output_path.name
@@ -4116,8 +4158,10 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         record.pop("video_generation_last_error", None)
         print(
             f"SHORT_VIDEO_GENERATED id={pid} file={output_path.name} "
-            f"youtube_credentials={youtube_ready} expiry={expiry.isoformat()}"
+            f"youtube_credentials={youtube_ready} aparat_credentials={aparat_ready} "
+            f"telegram_review={review_ready} expiry={expiry.isoformat()}"
         )
+        save_json(STATE, state)
     except Exception as exc:
         try:
             attempts = int(record.get("video_generation_attempts", 0) or 0) + 1
@@ -4133,57 +4177,117 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         print(f"SHORT_VIDEO_GENERATION_FAILED id={pid} error={type(exc).__name__}")
         return True
 
-    if not youtube_ready:
+    # Optional private preview goes to a user-configured chat, never to the public channel.
+    if review_ready and not record.get("video_review_sent"):
+        try:
+            preview = send_telegram_video_review(
+                output_path,
+                str(record.get("title") or "پیشنهاد آفِرچین"),
+                record.get("posted_discount_percent"),
+            )
+            record["video_review_sent"] = True
+            record["video_review_message_id"] = preview.get("message_id")
+            record["video_review_sent_at"] = datetime.now(timezone.utc).isoformat()
+            record.pop("video_review_last_error", None)
+            record.pop("video_review_next_attempt_at", None)
+            print(f"TELEGRAM_VIDEO_REVIEW_SENT id={pid} message_id={preview.get('message_id')}")
+        except Exception as exc:
+            record["video_review_last_error"] = type(exc).__name__
+            record["video_review_next_attempt_at"] = (
+                datetime.now(timezone.utc) + timedelta(minutes=30)
+            ).isoformat()
+            print(f"TELEGRAM_VIDEO_REVIEW_FAILED id={pid} error={type(exc).__name__}")
+        save_json(STATE, state)
+
+    # Aparat uses the authenticated web uploader. The workflow defaults to non-public
+    # uploads until the owner has validated the first end-to-end run.
+    aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
+    if aparat_ready and aparat_status in PENDING_APARAT_STATUSES:
+        record["aparat_upload_status"] = "uploading"
+        record["aparat_upload_started_at"] = datetime.now(timezone.utc).isoformat()
+        save_json(STATE, state)
+        try:
+            aparat_result = upload_aparat_video(
+                output_path,
+                str(record.get("title") or "پیشنهاد آفِرچین"),
+            )
+            record["aparat_upload_status"] = "uploaded"
+            record["aparat_video_hash"] = aparat_result.get("video_hash", "")
+            record["aparat_video_url"] = aparat_result.get("url", "")
+            record["aparat_visibility"] = aparat_result.get("visibility", "unknown")
+            record["aparat_uploaded_at"] = datetime.now(timezone.utc).isoformat()
+            record.pop("aparat_next_attempt_at", None)
+            record.pop("aparat_last_error", None)
+            print(
+                f"APARAT_UPLOAD_OK id={pid} visibility={record['aparat_visibility']} "
+                f"url={record['aparat_video_url'] or 'pending_hash'}"
+            )
+        except Exception as exc:
+            if isinstance(exc, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)):
+                record["aparat_upload_status"] = "upload_result_unknown"
+                record["aparat_review_required"] = True
+                record["aparat_last_error"] = type(exc).__name__
+                print(f"APARAT_UPLOAD_RESULT_UNKNOWN id={pid} error={type(exc).__name__}; no automatic duplicate retry")
+            else:
+                try:
+                    attempts = int(record.get("aparat_upload_attempts", 0) or 0) + 1
+                except (TypeError, ValueError, OverflowError):
+                    attempts = 1
+                record["aparat_upload_attempts"] = attempts
+                record["aparat_upload_status"] = "retry"
+                record["aparat_last_error"] = type(exc).__name__
+                record["aparat_next_attempt_at"] = (
+                    datetime.now(timezone.utc)
+                    + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
+                ).isoformat()
+                print(f"APARAT_UPLOAD_FAILED id={pid} error={type(exc).__name__} retry_attempt={attempts}")
+        save_json(STATE, state)
+
+    # Existing official YouTube upload stays independent from Aparat.
+    upload_status = str(record.get("youtube_upload_status") or "")
+    if youtube_ready and upload_status in pending_youtube:
+        record["youtube_upload_status"] = "uploading"
+        record["youtube_upload_started_at"] = datetime.now(timezone.utc).isoformat()
+        save_json(STATE, state)
+        try:
+            result = upload_youtube_video(
+                output_path,
+                str(record.get("title") or "پیشنهاد آفِرچین"),
+                record.get("posted_discount_percent"),
+            )
+            record["youtube_upload_status"] = "uploaded"
+            record["youtube_video_id"] = result["video_id"]
+            record["youtube_video_url"] = result["url"]
+            record["youtube_uploaded_at"] = datetime.now(timezone.utc).isoformat()
+            record["youtube_review_required"] = False
+            record.pop("youtube_next_attempt_at", None)
+            record.pop("youtube_last_error", None)
+            print(f"YOUTUBE_UPLOAD_OK id={pid} video_id={result['video_id']} url={result['url']}")
+        except Exception as exc:
+            if isinstance(exc, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)):
+                record["youtube_upload_status"] = "upload_result_unknown"
+                record["youtube_review_required"] = True
+                record["youtube_last_error"] = type(exc).__name__
+                print(f"YOUTUBE_UPLOAD_RESULT_UNKNOWN id={pid} error={type(exc).__name__}; no automatic duplicate retry")
+            else:
+                try:
+                    attempts = int(record.get("youtube_upload_attempts", 0) or 0) + 1
+                except (TypeError, ValueError, OverflowError):
+                    attempts = 1
+                record["youtube_upload_attempts"] = attempts
+                record["youtube_upload_status"] = "retry"
+                record["youtube_last_error"] = type(exc).__name__
+                record["youtube_next_attempt_at"] = (
+                    datetime.now(timezone.utc)
+                    + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
+                ).isoformat()
+                print(f"YOUTUBE_UPLOAD_FAILED id={pid} error={type(exc).__name__} retry_attempt={attempts}")
+    elif not youtube_ready and upload_status in pending_youtube:
         record["youtube_upload_status"] = "pending_credentials"
         record["youtube_last_error"] = ""
-        save_json(STATE, state)
-        print(
-            f"SHORT_VIDEO_READY_FOR_APARAT id={pid} file={output_path.name} "
-            "youtube_upload=waiting_for_oauth_secrets"
-        )
-        return True
 
-    # Persist an in-progress marker before the remote upload. If the runner disappears
-    # after Google accepts the video but before we save its ID, do not blindly duplicate it.
-    record["youtube_upload_status"] = "uploading"
-    record["youtube_upload_started_at"] = datetime.now(timezone.utc).isoformat()
-    save_json(STATE, state)
-    try:
-        result = upload_youtube_video(
-            output_path,
-            str(record.get("title") or "پیشنهاد آفِرچین"),
-            record.get("posted_discount_percent"),
-        )
-        record["youtube_upload_status"] = "uploaded"
-        record["youtube_video_id"] = result["video_id"]
-        record["youtube_video_url"] = result["url"]
-        record["youtube_uploaded_at"] = datetime.now(timezone.utc).isoformat()
-        record["youtube_review_required"] = False
-        record.pop("youtube_next_attempt_at", None)
-        record.pop("youtube_last_error", None)
-        print(f"YOUTUBE_UPLOAD_OK id={pid} video_id={result['video_id']} url={result['url']}")
-    except Exception as exc:
-        if isinstance(exc, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)):
-            record["youtube_upload_status"] = "upload_result_unknown"
-            record["youtube_review_required"] = True
-            record["youtube_last_error"] = type(exc).__name__
-            print(f"YOUTUBE_UPLOAD_RESULT_UNKNOWN id={pid} error={type(exc).__name__}; no automatic duplicate retry")
-        else:
-            try:
-                attempts = int(record.get("youtube_upload_attempts", 0) or 0) + 1
-            except (TypeError, ValueError, OverflowError):
-                attempts = 1
-            record["youtube_upload_attempts"] = attempts
-            record["youtube_upload_status"] = "retry"
-            record["youtube_last_error"] = type(exc).__name__
-            record["youtube_next_attempt_at"] = (
-                datetime.now(timezone.utc)
-                + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
-            ).isoformat()
-            print(f"YOUTUBE_UPLOAD_FAILED id={pid} error={type(exc).__name__} retry_attempt={attempts}")
     save_json(STATE, state)
     return True
-
 
 def run(publish=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
