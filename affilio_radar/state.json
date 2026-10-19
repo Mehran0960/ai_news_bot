@@ -4469,7 +4469,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 63,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -4605,7 +4605,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 27,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -4631,7 +4631,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 39,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -4685,7 +4685,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 40,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -4767,7 +4767,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 36,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -4850,7 +4850,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 45,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -4876,7 +4876,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 41,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -4902,7 +4902,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 59,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -4928,7 +4928,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 56,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -4954,7 +4954,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 80,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -5098,7 +5098,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 83,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -5152,7 +5152,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 90,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -5168,6 +5168,7 @@
       "expiry_status": "tracked",
       "post_history": [
         {
+          "bale_expired_deleted_at": "2026-10-19T16:58:35.042062+00:00",
           "bale_expiry_status": "deleted",
           "bale_message_id": 76,
           "click_tracking_url": "",
@@ -5180,6 +5181,7 @@
             "telegram": "sent"
           },
           "delivery_version": 1,
+          "expired_deleted_at": "2026-10-19T16:58:35.042062+00:00",
           "expires_at": "2026-10-19T16:00:00+00:00",
           "expiry_estimated": false,
           "expiry_source": "digikala_live_deals_feed",
@@ -5190,9 +5192,7 @@
           "product_url": "https://www.digikala.com/product/dkp-22104577/",
           "telegram_message_id": 97,
           "title": "شارژر فندکی 50 وات دو پورت وونک مدل VC-50 به همراه کابل 1 متری USB-C",
-          "ts": 1792414196.9955764,
-          "expired_deleted_at": "2026-10-19T16:58:35.042062+00:00",
-          "bale_expired_deleted_at": "2026-10-19T16:58:35.042062+00:00"
+          "ts": 1792414196.9955764
         }
       ],
       "posted_current_price": 1924990,
@@ -5252,7 +5252,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 74,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -5542,7 +5542,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 43,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -5568,7 +5568,7 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 34,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-19T16:56:40.849655+00:00",
+      "countdown_last_updated_at": "2026-10-19T17:00:28.087382+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
