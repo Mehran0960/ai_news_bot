@@ -2033,6 +2033,7 @@ def mark_discovery_candidate_checked(
 def discover_product_urls(
     queued_records: dict[str, dict] | None = None,
     discovery_queue: dict[str, dict] | None = None,
+    state_to_persist: dict | None = None,
 ) -> tuple[list[str], list[dict], dict[str, str]]:
     """Recheck persisted offers first, scan every live-deal page, then rotate broader searches."""
     found = []
@@ -2094,6 +2095,15 @@ def discover_product_urls(
             print(f"INCREDIBLE_OFFERS_API_FAILED page={page_number} error={type(exc).__name__} detail={str(exc)[:180]!r}")
             # Keep trying the remaining pages; a transient failure on page 1 must not
             # suppress offers visible on another page.
+
+    # Persist direct-feed sightings before the slower MCP countdown request. If MCP is slow
+    # or the later detail-check stage fails, this first set of candidates is already on disk.
+    if isinstance(discovery_queue, dict) and deals_found:
+        merge_discovery_queue(discovery_queue, deals_found, queue_now)
+        if isinstance(state_to_persist, dict):
+            state_to_persist["discovery_queue"] = discovery_queue
+            save_json(STATE, state_to_persist)
+        print(f"DISCOVERY_QUEUE_PERSISTED stage=direct_feed retained={len(discovery_queue)}")
 
     # The MCP feed contains both countdown metadata and offer cards whose sort order
     # can differ from the direct REST feed. Merge both sources before selecting products.
@@ -3670,6 +3680,7 @@ def run(publish=False):
     urls, search_diagnostics, deal_expiries = discover_product_urls(
         queued_records if isinstance(queued_records, dict) else {},
         discovery_queue,
+        state,
     )
     # Write the discovery queue before per-product page checks; the workflow's final
     # state-commit step also runs on failed validation/check steps so these sightings survive.
