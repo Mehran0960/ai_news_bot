@@ -2919,7 +2919,7 @@ def build_caption(
     if expiry:
         parts += ["", bold(f"⏳ {expiry}")]
 
-    detail_line = bold("👇 برای دیدن جزئیات و خرید، دکمهٔ زیر رو بزن.")
+    detail_line = bold("👇 برای مشاهدهٔ قیمت و خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.")
     parts += ["", channel_footer, "", detail_line]
     caption = "\n".join(parts)
     footer = f"\n\n{channel_footer}\n\n{detail_line}"
@@ -3101,7 +3101,7 @@ def _send_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     if parsed_link.scheme == "https" and parsed_link.netloc:
         data["reply_markup"] = json.dumps({
             "inline_keyboard": [[{
-                "text": "🛍️ مشاهدهٔ قیمت و خرید",
+                "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
                 "url": affiliate_url,
             }]]
         }, ensure_ascii=False)
@@ -3130,7 +3130,7 @@ def _send_bale_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     if parsed_link.scheme == "https" and parsed_link.netloc:
         data["reply_markup"] = json.dumps({
             "inline_keyboard": [[{
-                "text": "🛍️ مشاهدهٔ قیمت و خرید",
+                "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
                 "url": affiliate_url,
             }]]
         }, ensure_ascii=False)
@@ -3197,7 +3197,7 @@ def _edit_telegram_caption(message_id: int, caption: str, affiliate_url: str = "
     if parsed_link.scheme == "https" and parsed_link.netloc:
         data["reply_markup"] = json.dumps({
             "inline_keyboard": [[{
-                "text": "🛍️ مشاهدهٔ قیمت و خرید",
+                "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
                 "url": affiliate_url,
             }]]
         }, ensure_ascii=False)
@@ -3250,7 +3250,7 @@ def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
     if parsed_link.scheme == "https" and parsed_link.netloc:
         data["reply_markup"] = json.dumps({
             "inline_keyboard": [[{
-                "text": "🛍️ مشاهدهٔ قیمت و خرید",
+                "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
                 "url": affiliate_url,
             }]]
         }, ensure_ascii=False)
