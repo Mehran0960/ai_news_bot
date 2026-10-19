@@ -2919,7 +2919,7 @@ def build_caption(
     if expiry:
         parts += ["", bold(f"⏳ {expiry}")]
 
-    detail_line = bold("👇 برای مشاهدهٔ قیمت و خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.")
+    detail_line = bold("👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.")
     parts += ["", channel_footer, "", detail_line]
     caption = "\n".join(parts)
     footer = f"\n\n{channel_footer}\n\n{detail_line}"
