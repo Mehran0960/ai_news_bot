@@ -55,7 +55,7 @@ BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
 MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "40"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "1"))))
-MIN_POST_INTERVAL_HOURS = max(0.5, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.5")))
+MIN_POST_INTERVAL_HOURS = max(0.25, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.25")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
@@ -99,7 +99,7 @@ SEARCH_TERMS = [
     "جارو شارژی",
 ]
 MAX_INCREDIBLE_OFFER_CANDIDATES = max(
-    1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "24")))
+    1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "32")))
 )
 EXCLUDED_HEALTH_PRODUCT_RE = re.compile(
     r"(?:قرص|کپسول|دارو(?:یی)?|مکمل|ویتامین|زینک|منیزیم|"
@@ -1865,13 +1865,25 @@ def discover_product_urls(queued_records: dict[str, dict] | None = None) -> tupl
             # Keep trying the remaining pages; a transient failure on page 1 must not
             # suppress offers visible on another page.
 
-    # The public MCP deal-card feed exposes countdown metadata that the direct API omits in some responses.
-    # Fetch it before selecting candidates so confirmed-deadline deals can be preferred.
+    # The MCP feed contains both countdown metadata and offer cards whose sort order
+    # can differ from the direct REST feed. Merge both sources before selecting products.
     mcp_expiries = {}
     try:
-        from expiration_monitor import fetch_mcp_offer_expiries
-        mcp_expiries = fetch_mcp_offer_expiries()
+        from expiration_monitor import fetch_mcp_offer_candidates
+        mcp_expiries, mcp_candidate_nodes = fetch_mcp_offer_candidates()
         deal_expiries.update(mcp_expiries)
+        mcp_candidates = api_incredible_offer_product_candidates(mcp_candidate_nodes)
+        for row in mcp_candidates:
+            pid = product_id(row.get("product_url", ""))
+            expiry = str(row.get("deal_expires_at") or mcp_expiries.get(pid) or "").strip()
+            if expiry:
+                row["deal_expires_at"] = expiry
+                deal_expiries[pid] = expiry
+        deals_found.extend(mcp_candidates)
+        print(
+            f"MCP_OFFER_CANDIDATES extracted={len(mcp_candidates)} "
+            f"deadline_verified={sum(bool(row.get('deal_expires_at')) for row in mcp_candidates)}"
+        )
     except Exception as exc:
         print(f"EXPIRY_MCP_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
 
