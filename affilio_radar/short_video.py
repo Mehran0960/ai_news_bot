@@ -17,6 +17,7 @@ from typing import Mapping
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 from offerchin_visuals import draw_discount_burst
+from offerchin_audio import write_original_soundtrack
 
 WIDTH = 720
 HEIGHT = 1280
@@ -203,7 +204,7 @@ def render_short_video(
     duration_seconds: int = DURATION_SECONDS,
     fps: int = FPS,
 ) -> Path:
-    """Render a silent 9:16 MP4 with a gentle zoom, using ffmpeg from the runner."""
+    """Render a moving 9:16 MP4 with an original, upbeat synthesized instrumental."""
     target = Path(output_path)
     if target.suffix.lower() != ".mp4":
         raise ValueError("video output path must end in .mp4")
@@ -216,26 +217,45 @@ def render_short_video(
 
     with tempfile.TemporaryDirectory(prefix="offerchin-poster-") as directory:
         poster_path = Path(directory) / "poster.png"
+        music_path = Path(directory) / "offerchin-original-jingle.wav"
         poster_path.write_bytes(poster)
+        write_original_soundtrack(music_path, duration)
+
+        # Gentle push-in/pull-back and a small drifting pan add a camera feel without
+        # moving the product badge or watermark out of frame.
         zoom_filter = (
             "zoompan="
-            "z='min(zoom+0.00022,1.04)':"
-            "x='iw/2-(iw/zoom/2)':"
-            "y='ih/2-(ih/zoom/2)':"
+            "z='1.015+0.025*(0.5+0.5*sin(on/31))':"
+            "x='iw/2-(iw/zoom/2)+5*sin(on/19)':"
+            "y='ih/2-(ih/zoom/2)+7*cos(on/23)':"
             f"d=1:s={WIDTH}x{HEIGHT}:fps={frame_rate},"
+            "eq=saturation=1.08:contrast=1.03,"
+            "fade=t=in:st=0:d=0.18,"
+            f"fade=t=out:st={max(0.1, duration - 0.36):.3f}:d=0.35,"
             "format=yuv420p"
+        )
+        audio_filter = (
+            "volume=0.84,"
+            "afade=t=in:st=0:d=0.18,"
+            f"afade=t=out:st={max(0.1, duration - 0.42):.3f}:d=0.40"
         )
         command = [
             binary, "-hide_banner", "-loglevel", "error", "-y",
             "-loop", "1", "-framerate", str(frame_rate), "-i", str(poster_path),
+            "-i", str(music_path),
             "-vf", zoom_filter,
+            "-af", audio_filter,
+            "-map", "0:v:0",
+            "-map", "1:a:0",
             "-frames:v", str(frame_count),
             "-r", str(frame_rate),
-            "-an",
             "-c:v", "libx264",
             "-preset", "veryfast",
-            "-crf", "25",
+            "-crf", "24",
             "-pix_fmt", "yuv420p",
+            "-c:a", "aac",
+            "-b:a", "128k",
+            "-shortest",
             "-movflags", "+faststart",
             str(target),
         ]
@@ -246,12 +266,11 @@ def render_short_video(
         except subprocess.TimeoutExpired as exc:
             raise RuntimeError("ffmpeg timed out while rendering the product short") from exc
         if result.returncode != 0:
-            detail = (result.stderr or "").strip()[:300]
+            detail = (result.stderr or "").strip()[:500]
             raise RuntimeError(f"ffmpeg failed with code {result.returncode}: {detail}")
     if not target.exists() or target.stat().st_size < 1024:
         raise RuntimeError("ffmpeg did not produce a valid MP4 file")
     return target
-
 
 def youtube_credentials_available(env: Mapping[str, str] | None = None) -> bool:
     source = env if env is not None else os.environ
