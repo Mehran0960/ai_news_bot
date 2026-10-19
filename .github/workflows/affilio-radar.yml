@@ -165,7 +165,9 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
-          APARAT_VIDEO_PASS: ${{ vars.APARAT_VIDEO_PASS || '1' }}
+          # The private end-to-end upload test succeeded and returned a canonical video UID.
+          # Future eligible product videos are now published publicly on Aparat.
+          APARAT_VIDEO_PASS: "0"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
           AFFILIO_VIDEO_REVIEW_CHAT_ID: ${{ secrets.AFFILIO_VIDEO_REVIEW_CHAT_ID }}
           # Keep first OAuth test uploads unlisted until the owner reviews them.
