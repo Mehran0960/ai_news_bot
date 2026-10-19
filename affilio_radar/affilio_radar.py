@@ -4008,6 +4008,9 @@ def effective_posts_per_run(backlog_count, configured_limit=None, force_full_bat
 
 
 
+VIDEO_STYLE_VERSION = 2  # comic discount burst + original soundtrack + camera motion
+
+
 def process_pending_short_video(state: dict, now: datetime | None = None, output_dir: str | Path = "video_artifacts") -> bool:
     """Generate one eligible product short and service any configured video destinations.
 
@@ -4047,6 +4050,17 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         if not isinstance(record, dict):
             continue
         generation_status = str(record.get("video_generation_status") or "")
+        if generation_status == "generated":
+            try:
+                style_version = int(record.get("video_style_version", 0) or 0)
+            except (TypeError, ValueError, OverflowError):
+                style_version = 0
+            if style_version < VIDEO_STYLE_VERSION:
+                # Rebuild older saved artifacts once so they get the new badge, motion, and music.
+                record["video_generation_status"] = "pending"
+                generation_status = "pending"
+                state_changed = True
+                print(f"SHORT_VIDEO_REGENERATE id={pid} old_style={style_version} new_style={VIDEO_STYLE_VERSION}")
         upload_status = str(record.get("youtube_upload_status") or "pending_credentials")
         aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
         youtube_in_flight = False
@@ -4151,6 +4165,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         image_bytes = _fetch_image(str(record["image_url"]))
         render_short_video(image_bytes, record.get("posted_discount_percent"), output_path)
         record["video_generation_status"] = "generated"
+        record["video_style_version"] = VIDEO_STYLE_VERSION
         record["video_generated_at"] = current.isoformat()
         record["video_file_name"] = output_path.name
         record.pop("video_generation_next_attempt_at", None)
