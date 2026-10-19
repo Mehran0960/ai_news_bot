@@ -55,6 +55,7 @@ BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
 MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "40"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "1"))))
+MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(10, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "4"))))
 MIN_POST_INTERVAL_HOURS = max(0.25, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.25")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
@@ -4082,8 +4083,15 @@ def run(publish=False):
         print("PUBLISH_BLOCKED: global posting cooldown active; queue retained.")
     else:
         sent = 0
+        attempted_candidates = 0
         for item in eligible:
             if sent >= MAX_POSTS_PER_RUN:
+                break
+            if attempted_candidates >= MAX_PUBLISH_CANDIDATE_ATTEMPTS:
+                print(
+                    f"PUBLISH_FALLBACK_LIMIT attempts={attempted_candidates} "
+                    f"limit={MAX_PUBLISH_CANDIDATE_ATTEMPTS}; remaining candidates stay queued."
+                )
                 break
             pid = item["product_id"]
             old = state["published"].get(pid, {})
@@ -4097,6 +4105,7 @@ def run(publish=False):
             ):
                 print(f"PUBLISH_SKIP id={pid} reason=product_cooldown_without_material_improvement")
                 continue
+            attempted_candidates += 1
             try:
                 image_bytes = _fetch_image(item["image_url"])
             except Exception as exc:
@@ -4174,7 +4183,7 @@ def run(publish=False):
                 f"score={item['demand_score']} direct_affiliate_link=True"
             )
             sent += 1
-        print(f"products_distributed={sent}")
+        print(f"products_distributed={sent} candidates_attempted={attempted_candidates}")
         if CLEAR_PREVIOUS_CHANNEL_POSTS and BATCH_OPERATION_KEY and sent > 0:
             state["completed_batch_operation"] = BATCH_OPERATION_KEY
             save_json(STATE, state)
