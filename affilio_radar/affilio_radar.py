@@ -4631,8 +4631,6 @@ def run(publish=False):
         print("DRY_RUN: discovery and stock checks only; no Telegram post attempted.")
     elif not BOT_TOKEN and not (BALE_BOT_TOKEN and BALE_CHANNEL_ID):
         print("PUBLISH_BLOCKED: neither complete Telegram nor Bale credentials are configured; no post attempted.")
-    elif delivery_retry_handled and not delivery_retry_unresolved:
-        print("PUBLISH_SKIPPED: pending delivery retry succeeded; no additional product posted in this run.")
     elif link_mode == "no_valid_affilio_tracking_config":
         print("PUBLISH_BLOCKED: no valid Affilio tracking parameters/template configured; no post attempted.")
     elif not eligible:
