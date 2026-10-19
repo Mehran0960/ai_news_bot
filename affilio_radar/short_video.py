@@ -111,13 +111,13 @@ def send_telegram_video_review(
     try:
         discount = int(discount_percent)
         if 0 < discount <= 100:
-            discount_text = f"\\n🏷️ تخفیف ثبت‌شده: {discount}٪"
+            discount_text = f"\n🏷️ تخفیف ثبت‌شده: {discount}٪"
     except (TypeError, ValueError, OverflowError):
         pass
     caption = (
-        "🎬 پیش‌نمایش ویدئوی آفِرچین\\n"
+        "🎬 پیش‌نمایش ویدئوی آفِرچین\n"
         f"🛍️ {str(title or 'محصول پیشنهادی دیجی‌کالا').strip()}"
-        f"{discount_text}\\n\\n"
+        f"{discount_text}\n\n"
         "این پیام برای بازبینی اولیه است؛ پیش از انتشار عمومی، تطابق قیمت، موجودی و مهلت پیشنهاد بررسی شود."
     )[:1024]
 
@@ -305,10 +305,10 @@ def upload_youtube_video(
         pass
     video_title = (title_clean + suffix)[:100]
     description = (
-        "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\\n"
-        "قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در دیجی‌کالا بررسی کنید.\\n\\n"
-        "کانال‌های آفِرچین:\\n"
-        "تلگرام: https://t.me/OfferChin\\n"
+        "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\n"
+        "قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در دیجی‌کالا بررسی کنید.\n\n"
+        "کانال‌های آفِرچین:\n"
+        "تلگرام: https://t.me/OfferChin\n"
         "بله: https://ble.ir/OfferChin"
     )
     video = {
