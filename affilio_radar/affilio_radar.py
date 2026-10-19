@@ -24,6 +24,7 @@ from urllib.parse import parse_qs, quote, urlencode, urljoin, urlsplit, urlunspl
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from offerchin_visuals import draw_discount_burst
 import arabic_reshaper
 from bidi.algorithm import get_display
 
@@ -2997,28 +2998,26 @@ def build_discount_image(image_bytes: bytes, discount_percent=None, watermark: s
     draw = ImageDraw.Draw(image)
     if label:
         width, height = image.size
-        font_size = max(20, min(width, height) // 16)
-        font = _latin_font(font_size)
-        bbox = draw.textbbox((0, 0), label, font=font)
-        text_width = max(1, bbox[2] - bbox[0])
-        text_height = max(font_size, bbox[3] - bbox[1])
-        pad = max(10, min(width, height) // 45)
-        badge_width = text_width + pad * 2
-        badge_height = text_height + pad * 2
-        margin = max(10, min(width, height) // 35)
-        right = width - margin
-        top = margin
-        left = max(0, right - badge_width)
-        bottom = min(height, top + badge_height)
-        draw.rounded_rectangle(
-            (left, top, right, bottom),
-            radius=max(10, pad),
-            fill="#16a34a",
-            outline="#ffffff",
-            width=max(2, min(width, height) // 300),
-        )
-        # Keep the English label left-to-right; do not apply Persian bidi shaping.
-        draw.text((right - pad, top + pad), label, font=font, fill="#ffffff", anchor="ra")
+        min_dim = min(width, height)
+        # Sized proportionally but capped so the burst does not dominate larger product photos.
+        badge_width = max(150, min(300, int(min_dim * 0.28)))
+        badge_height = int(badge_width * 0.73)
+        margin = max(10, int(min_dim * 0.025))
+        badge_left = max(0, width - margin - badge_width)
+        badge_top = margin
+        try:
+            discount_value = int(discount_percent)
+        except (TypeError, ValueError, OverflowError):
+            discount_value = 0
+        if 0 < discount_value <= 100:
+            draw_discount_burst(
+                draw,
+                badge_left,
+                badge_top,
+                min(badge_width, width - badge_left),
+                min(badge_height, height - badge_top),
+                discount_value,
+            )
 
     # Compact lower-left channel watermark: platform mark followed by the canonical public URL.
     width, height = image.size
