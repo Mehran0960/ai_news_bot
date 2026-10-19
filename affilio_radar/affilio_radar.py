@@ -1950,7 +1950,7 @@ def select_discovery_records_for_check(
     current = current.astimezone(timezone.utc)
     limit = MAX_DISCOVERY_QUEUE_CHECKS if max_count is None else max(0, int(max_count))
     due = []
-    for raw_pid, record in queue.items() if isinstance(queue, dict) else []:
+    for raw_pid, record in (queue.items() if isinstance(queue, dict) else []):
         pid = str(raw_pid)
         if not isinstance(record, dict):
             continue
@@ -1987,7 +1987,7 @@ def mark_discovery_candidate_checked(
     else:
         product = {}
         raw = str(product_or_id or "")
-        pid = raw if re.fullmatch(r"dkp-\\d{1,12}", raw) else product_id(raw)
+        pid = raw if re.fullmatch(r"dkp-\d{1,12}", raw) else product_id(raw)
     record = queue.get(pid) if isinstance(queue, dict) else None
     if not isinstance(record, dict):
         return
@@ -3749,8 +3749,9 @@ def run(publish=False):
             for p in products
             if p.get("product_id") or product_id(p.get("product_url", ""))
         }
-        eligible_ids = set(eligible_by_id.keys()) if "eligible_by_id" in locals() else {
-            str(p.get("product_id") or product_id(p.get("product_url", ""))) for p in eligible
+        eligible_ids = {
+            str(p.get("product_id") or product_id(p.get("product_url", "")))
+            for p in eligible
         }
         for checked_url in urls:
             checked_pid = product_id(checked_url)
