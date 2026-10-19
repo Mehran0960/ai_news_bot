@@ -4048,7 +4048,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         if not isinstance(record, dict):
             continue
         generation_status = str(record.get("video_generation_status") or "")
-        upload_status = str(record.get("youtube_upload_status") or "")
+        upload_status = str(record.get("youtube_upload_status") or "pending_credentials")
         aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
         youtube_in_flight = False
         aparat_in_flight = False
@@ -4244,7 +4244,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         save_json(STATE, state)
 
     # Existing official YouTube upload stays independent from Aparat.
-    upload_status = str(record.get("youtube_upload_status") or "")
+    upload_status = str(record.get("youtube_upload_status") or "pending_credentials")
     if youtube_ready and upload_status in pending_youtube:
         record["youtube_upload_status"] = "uploading"
         record["youtube_upload_started_at"] = datetime.now(timezone.utc).isoformat()
