@@ -1,6 +1,6 @@
 {
   "expiry_feed_last_checked_at": "2026-10-18T04:58:44.213194+00:00",
-  "last_published_at": "2026-10-18T23:59:06.647850+00:00",
+  "last_published_at": "2026-10-19T03:21:57.162611+00:00",
   "pending_queue": {
     "dkp-22878178": {
       "current_price": 1490000,
@@ -14,20 +14,6 @@
       "promo_score": 69,
       "savings_toman": 5410000,
       "title": "برس حرارتی حرفه ای والر مدل 5͏2͏6͏-3O9O",
-      "urgent": false
-    },
-    "dkp-22879463": {
-      "current_price": 1490000,
-      "deal_expires_at": "2026-10-19T04:30:00+00:00",
-      "demand_score": 39,
-      "discount_percent": 78,
-      "first_seen_at": "2026-10-18T17:56:53.212599+00:00",
-      "original_price": 6900000,
-      "product_id": "dkp-22879463",
-      "product_url": "https://www.digikala.com/product/dkp-22879463/",
-      "promo_score": 69,
-      "savings_toman": 5410000,
-      "title": "اسپیکر بلوتوثی قابل حمل مدل Luxe",
       "urgent": false
     }
   },
@@ -341,6 +327,7 @@
       "ts": 1792286748.271616
     },
     "dkp-21714680": {
+      "bale_expiry_status": "tracked",
       "bale_message_id": 28,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-19T00:48:45.214665+00:00",
@@ -356,15 +343,14 @@
       "expires_at": "2026-10-19T04:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "posted_current_price": 5963990,
       "posted_discount_percent": 72,
       "posted_original_price": 21300000,
       "product_url": "https://www.digikala.com/product/dkp-21714680/",
       "telegram_message_id": 62,
       "title": "دوربین امنیتی تحت شبکه فضای داخلی وونک مدل M2 3mp با اتصال بی‌سیم، چرخش 360 درجه، تشخیص حرکت و مکالمه دوطرفه",
-      "ts": 1792367943.8615923,
-      "expiry_status": "tracked",
-      "bale_expiry_status": "tracked"
+      "ts": 1792367943.8615923
     },
     "dkp-21729772": {
       "click_tracking_url": "",
@@ -535,21 +521,27 @@
       "ts": 1792298471.9467244
     },
     "dkp-22879463": {
+      "bale_message_id": 29,
       "click_tracking_url": "",
-      "expired_deleted_at": "2026-10-18T04:10:29.136746+00:00",
-      "expires_at": "2026-10-17T12:00:00+00:00",
+      "delivery_attempts": {
+        "bale": 1,
+        "telegram": 1
+      },
+      "delivery_status": {
+        "bale": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "expires_at": "2026-10-19T04:30:00+00:00",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-17T17:58:11.176149+00:00",
-      "expiry_last_product_check_at": "2026-10-17T04:45:51.251981+00:00",
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "already_absent",
       "posted_current_price": 1490000,
       "posted_discount_percent": 78,
       "posted_original_price": 6900000,
       "product_url": "https://www.digikala.com/product/dkp-22879463/",
-      "telegram_message_id": 23,
+      "telegram_message_id": 63,
       "title": "اسپیکر بلوتوثی قابل حمل مدل Luxe",
-      "ts": 1792179879.3299675
+      "ts": 1792380112.9221559
     },
     "dkp-5060876": {
       "bale_expired_deleted_at": "2026-10-18T21:01:04.205403+00:00",
