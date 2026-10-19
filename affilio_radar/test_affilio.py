@@ -1826,7 +1826,8 @@ class AffilioRadarTests(unittest.TestCase):
             output.write_bytes(b"fake-mp4-video")
             return output
 
-        with TemporaryDirectory() as output_dir, (
+        with (
+            TemporaryDirectory() as output_dir,
             patch("affilio_radar._fetch_image", return_value=b"fake-image"),
             patch("affilio_radar.save_json"),
             patch("short_video.youtube_credentials_available", return_value=False),
@@ -1864,7 +1865,8 @@ class AffilioRadarTests(unittest.TestCase):
             output.write_bytes(b"fake-mp4-video")
             return output
 
-        with TemporaryDirectory() as output_dir, (
+        with (
+            TemporaryDirectory() as output_dir,
             patch("affilio_radar._fetch_image", return_value=b"fake-image"),
             patch("affilio_radar.save_json"),
             patch("short_video.youtube_credentials_available", return_value=True),
