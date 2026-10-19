@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from PIL import Image
+from offerchin_audio import write_original_soundtrack
 
 from short_video import (
     YOUTUBE_TOKEN_URL,
@@ -47,6 +48,20 @@ class FakeYouTubeHTTP:
 
 
 class ShortVideoTests(unittest.TestCase):
+    def test_original_soundtrack_is_stereo_and_non_silent(self):
+        import wave
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "original-jingle.wav"
+            written = write_original_soundtrack(path, duration_seconds=5)
+            self.assertTrue(written.is_file())
+            with wave.open(str(written), "rb") as wav:
+                self.assertEqual(wav.getnchannels(), 2)
+                self.assertEqual(wav.getsampwidth(), 2)
+                self.assertAlmostEqual(wav.getnframes() / wav.getframerate(), 5.0, delta=0.05)
+                self.assertGreater(wav.getnframes(), 100_000)
+            self.assertGreater(path.stat().st_size, 100_000)
+
     def test_watermark_places_platform_marks_before_each_channel_id(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
