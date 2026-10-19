@@ -973,9 +973,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
         self.assertIn("<b>⏳ ", caption)
         self.assertIn("مانده به پایان تخفیف</b>", caption)
-        self.assertIn("<b>👇 برای مشاهدهٔ قیمت و خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.</b>", caption)
+        self.assertIn("<b>👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.</b>", caption)
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', caption)
-        self.assertLess(caption.index("عضویت در کانال"), caption.index("برای مشاهدهٔ قیمت و خرید از دیجی‌کالا"))
+        self.assertLess(caption.index("عضویت در کانال"), caption.index("برای خرید از دیجی‌کالا"))
         self.assertNotRegex(caption, r"[0-9]")
         self.assertNotIn("قیمت امروز", caption)
         self.assertNotIn("صرفه‌جویی", caption)
@@ -1068,7 +1068,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<s>۱٬۱۰۸٬۸۰۰ تومان</s>", telegram_caption)
         self.assertIn("[عضویت در کانال OfferChin](https://ble.ir/OfferChin)", bale_caption)
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
-        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای مشاهدهٔ قیمت و خرید از دیجی‌کالا"))
+        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای خرید از دیجی‌کالا"))
         self.assertNotIn("<b>", bale_caption)
         self.assertNotIn("@OfferChin", bale_caption)
         self.assertNotIn("@OfferChin", telegram_caption)
@@ -1253,8 +1253,8 @@ class AffilioRadarTests(unittest.TestCase):
         bale_caption = edit_bale.call_args_list[0].args[1]
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
         self.assertIn("[عضویت در کانال OfferChin](https://ble.ir/OfferChin)", bale_caption)
-        self.assertLess(telegram_caption.index("عضویت در کانال"), telegram_caption.index("برای مشاهدهٔ قیمت و خرید از دیجی‌کالا"))
-        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای مشاهدهٔ قیمت و خرید از دیجی‌کالا"))
+        self.assertLess(telegram_caption.index("عضویت در کانال"), telegram_caption.index("برای خرید از دیجی‌کالا"))
+        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای خرید از دیجی‌کالا"))
 
 
 
