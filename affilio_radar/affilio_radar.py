@@ -3552,6 +3552,64 @@ def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
     )
 
 
+def defer_pending_publication(
+    state: dict,
+    pid: str,
+    reason: str,
+    now: datetime | None = None,
+) -> dict | None:
+    """Back off a candidate that failed during publish, allowing the next queue item to run."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    queue = state.get("pending_queue")
+    record = queue.get(str(pid)) if isinstance(queue, dict) else None
+    if not isinstance(record, dict):
+        return None
+    try:
+        failures = max(0, int(record.get("publish_failure_count") or 0)) + 1
+    except (TypeError, ValueError, OverflowError):
+        failures = 1
+    # Exponential retry: 5, 10, 20, 40, then at most 60 minutes.
+    delay_minutes = min(60, 5 * (2 ** min(failures - 1, 4)))
+    record["publish_failure_count"] = failures
+    record["last_publish_failure"] = str(reason or "publish_failed")[:80]
+    record["last_publish_failure_at"] = current.isoformat()
+    record["next_publish_attempt_at"] = (current + timedelta(minutes=delay_minutes)).isoformat()
+    print(
+        f"PUBLISH_CANDIDATE_DEFERRED id={pid} reason={record['last_publish_failure']} "
+        f"failures={failures} retry_in_minutes={delay_minutes}"
+    )
+    return record
+
+
+def select_publish_candidates(
+    pending_queue: dict[str, dict],
+    eligible_by_id: dict[str, dict],
+    now: datetime | None = None,
+) -> list[dict]:
+    """Keep queue priority order but skip candidates whose publish retry is backed off."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    selected = []
+    deferred = 0
+    for pid, record in pending_queue.items() if isinstance(pending_queue, dict) else []:
+        product = eligible_by_id.get(str(pid)) if isinstance(eligible_by_id, dict) else None
+        if not isinstance(record, dict) or not isinstance(product, dict):
+            continue
+        retry_at = _parse_utc_datetime(record.get("next_publish_attempt_at"))
+        if retry_at and retry_at > current:
+            deferred += 1
+            continue
+        selected.append(product)
+    if deferred:
+        print(f"PUBLISH_QUEUE_BACKOFF skipped_deferred={deferred} ready={len(selected)}")
+    return selected
+
+
 def refresh_pending_queue(state: dict, eligible: list[dict],
                           now: datetime | None = None,
                           observed_product_ids: set[str] | None = None) -> dict:
@@ -3598,6 +3656,10 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
             "demand_score": int(product.get("demand_score") or 0),
             "promo_score": int(product.get("promo_score") or 0),
             "urgent": is_urgent_priority_deal(product, now),
+            "publish_failure_count": max(0, int(old.get("publish_failure_count") or 0)) if isinstance(old, dict) else 0,
+            "next_publish_attempt_at": str(old.get("next_publish_attempt_at") or "") if isinstance(old, dict) else "",
+            "last_publish_failure": str(old.get("last_publish_failure") or "") if isinstance(old, dict) else "",
+            "last_publish_failure_at": str(old.get("last_publish_failure_at") or "") if isinstance(old, dict) else "",
         }
         candidate_by_id[pid] = product
 
@@ -3892,7 +3954,7 @@ def run(publish=False):
             )
             break
 
-    eligible = [eligible_by_id[pid] for pid in pending_queue if pid in eligible_by_id]
+    eligible = select_publish_candidates(pending_queue, eligible_by_id, queue_now)
     market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
         f"ranked_products={len(products)} listed_discount_eligible={listed_eligible_count} "
@@ -4032,6 +4094,8 @@ def run(publish=False):
                 image_bytes = _fetch_image(item["image_url"])
             except Exception as exc:
                 print(f"PUBLISH_FAILED id={pid} reason=image_fetch error={type(exc).__name__}")
+                defer_pending_publication(state, pid, f"image_fetch_{type(exc).__name__}", datetime.now(timezone.utc))
+                save_json(STATE, state)
                 continue
 
             # Attempt both destinations independently. A failure on one platform must not undo
@@ -4066,6 +4130,8 @@ def run(publish=False):
             succeeded = any(value == "sent" for value in statuses.values())
             if not succeeded:
                 print(f"PUBLISH_FAILED id={pid} reason=all_platforms_failed")
+                defer_pending_publication(state, pid, "all_platforms_failed", datetime.now(timezone.utc))
+                save_json(STATE, state)
                 continue
 
             expiry_at = str(item.get("deal_expires_at") or "").strip()
