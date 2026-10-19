@@ -828,7 +828,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b>⏳ ", caption)
         self.assertIn("مانده به پایان تخفیف</b>", caption)
         self.assertIn("<b>👇 برای مشاهدهٔ قیمت و خرید، دکمهٔ زیر رو بزن.</b>", caption)
-        self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', caption)
+        self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', caption)
         self.assertLess(caption.index("عضویت در کانال"), caption.index("برای مشاهدهٔ قیمت و خرید"))
         self.assertNotRegex(caption, r"[0-9]")
         self.assertNotIn("قیمت امروز", caption)
@@ -921,7 +921,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("<s>", bale_caption)
         self.assertIn("<s>۱٬۱۰۸٬۸۰۰ تومان</s>", telegram_caption)
         self.assertIn("[عضویت در کانال OfferChin](https://ble.ir/OfferChin)", bale_caption)
-        self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
+        self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
         self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای مشاهدهٔ قیمت و خرید"))
         self.assertNotIn("<b>", bale_caption)
         self.assertNotIn("@OfferChin", bale_caption)
@@ -1104,7 +1104,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(send_bale.called)
         telegram_caption = edit_telegram.call_args_list[0].args[1]
         bale_caption = edit_bale.call_args_list[0].args[1]
-        self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
+        self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
         self.assertIn("[عضویت در کانال OfferChin](https://ble.ir/OfferChin)", bale_caption)
         self.assertLess(telegram_caption.index("عضویت در کانال"), telegram_caption.index("برای مشاهدهٔ قیمت و خرید"))
         self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای مشاهدهٔ قیمت و خرید"))
@@ -1217,6 +1217,20 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(preview.format, "JPEG")
             self.assertEqual(preview.size, (480, 640))
         self.assertNotEqual(rendered_without_badge, image_bytes.getvalue())
+
+    def test_channel_watermarks_use_platform_specific_compact_links(self):
+        image_bytes = BytesIO()
+        Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")
+        source = image_bytes.getvalue()
+
+        default_telegram = build_discount_image(source, None)
+        canonical_telegram = build_discount_image(source, None, watermark="T.me/OfferChin")
+        legacy_telegram = build_discount_image(source, None, watermark="Telegram.me/OfferChin")
+        bale = build_discount_image(source, None, watermark="ble.ir/OfferChin")
+
+        self.assertEqual(default_telegram, canonical_telegram)
+        self.assertEqual(legacy_telegram, canonical_telegram)
+        self.assertNotEqual(bale, canonical_telegram)
 
     def test_normal_publication_gap_is_fifteen_minutes(self):
         self.assertEqual(MIN_POST_INTERVAL_HOURS, 0.25)

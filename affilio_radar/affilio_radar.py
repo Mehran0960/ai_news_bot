@@ -35,7 +35,7 @@ TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@OfferChin").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
 BALE_CHANNEL_ID = os.getenv("BALE_CHANNEL_ID", "").strip()
-TELEGRAM_CHANNEL_URL = "https://telegram.me/OfferChin"
+TELEGRAM_CHANNEL_URL = "https://t.me/OfferChin"
 BALE_CHANNEL_URL = "https://ble.ir/OfferChin"
 AFFILIO_LINK_TEMPLATE = os.getenv("AFFILIO_LINK_TEMPLATE", "").strip()
 AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
@@ -2813,7 +2813,51 @@ def format_discount_badge(discount_percent) -> str:
     return f"{discount}% OFF" if 0 < discount <= 100 else ""
 
 
-def build_discount_image(image_bytes: bytes, discount_percent=None, watermark: str = "Telegram.me/OfferChin") -> bytes:
+def _draw_platform_watermark_icon(draw, platform: str, x: int, y: int, size: int) -> None:
+    """Draw a tiny self-contained platform mark so each card remains dependency-free."""
+    right, bottom = x + size, y + size
+    if platform == "telegram":
+        # Telegram's recognizable paper-plane mark in its blue circular field.
+        draw.ellipse((x, y, right, bottom), fill="#2AABEE", outline="#ffffff", width=max(1, size // 16))
+        plane = [
+            (x + size * 0.18, y + size * 0.43),
+            (x + size * 0.82, y + size * 0.20),
+            (x + size * 0.65, y + size * 0.81),
+            (x + size * 0.48, y + size * 0.62),
+            (x + size * 0.36, y + size * 0.72),
+            (x + size * 0.39, y + size * 0.53),
+        ]
+        draw.polygon(plane, fill="#ffffff")
+        draw.polygon([
+            (x + size * 0.39, y + size * 0.53),
+            (x + size * 0.65, y + size * 0.35),
+            (x + size * 0.48, y + size * 0.62),
+        ], fill="#BCEBFF")
+        return
+
+    # Bale's compact green/teal app mark with a white badge and check.
+    draw.rounded_rectangle(
+        (x, y, right, bottom),
+        radius=max(3, size // 5),
+        fill="#00B894",
+        outline="#ffffff",
+        width=max(1, size // 16),
+    )
+    inset = size * 0.18
+    draw.ellipse((x + inset, y + inset, right - inset, bottom - inset), fill="#ffffff")
+    draw.line(
+        [
+            (x + size * 0.31, y + size * 0.51),
+            (x + size * 0.45, y + size * 0.65),
+            (x + size * 0.70, y + size * 0.37),
+        ],
+        fill="#00B894",
+        width=max(2, size // 8),
+        joint="curve",
+    )
+
+
+def build_discount_image(image_bytes: bytes, discount_percent=None, watermark: str = "T.me/OfferChin") -> bytes:
     """Prepare a channel-specific product image with a discount badge and brand watermark."""
     from io import BytesIO
     with Image.open(BytesIO(image_bytes)) as raw:
@@ -2847,32 +2891,52 @@ def build_discount_image(image_bytes: bytes, discount_percent=None, watermark: s
         # Keep the English label left-to-right; do not apply Persian bidi shaping.
         draw.text((right - pad, top + pad), label, font=font, fill="#ffffff", anchor="ra")
 
-    # Permanent channel watermark at lower-left for brand recognition when images are reshared.
+    # Compact lower-left channel watermark: platform mark followed by the canonical public URL.
     width, height = image.size
-    watermark = str(watermark or "Telegram.me/OfferChin").strip()
-    watermark_font = _latin_font(max(12, min(width, height) // 34))
+    min_dim = min(width, height)
+    watermark = str(watermark or "T.me/OfferChin").strip()
+    if "ble.ir" in watermark.lower():
+        platform = "bale"
+        watermark = re.sub(r"^https?://", "", watermark, flags=re.IGNORECASE)
+        watermark = re.sub(r"^www\.", "", watermark, flags=re.IGNORECASE)
+        if watermark.lower().endswith("offerchin"):
+            watermark = "ble.ir/OfferChin"
+    else:
+        platform = "telegram"
+        watermark = re.sub(r"^https?://", "", watermark, flags=re.IGNORECASE)
+        watermark = re.sub(r"^(?:www\.)?telegram\.me/", "T.me/", watermark, flags=re.IGNORECASE)
+        if watermark.lower().endswith("offerchin"):
+            watermark = "T.me/OfferChin"
+
+    watermark_font = _latin_font(max(12, min_dim // 34))
     watermark_box = draw.textbbox((0, 0), watermark, font=watermark_font)
-    watermark_width = watermark_box[2] - watermark_box[0]
-    watermark_height = max(watermark_font.size, watermark_box[3] - watermark_box[1])
-    watermark_pad = max(7, min(width, height) // 80)
-    watermark_margin = max(10, min(width, height) // 35)
+    watermark_width = max(1, watermark_box[2] - watermark_box[0])
+    text_height = max(watermark_font.size, watermark_box[3] - watermark_box[1])
+    icon_size = max(12, min(48, min_dim // 32))
+    icon_gap = max(5, icon_size // 4)
+    watermark_height = max(text_height, icon_size)
+    watermark_pad = max(7, min_dim // 80)
+    watermark_margin = max(10, min_dim // 35)
     watermark_left = watermark_margin
     watermark_top = max(0, height - watermark_margin - watermark_height - 2 * watermark_pad)
-    watermark_right = min(width, watermark_left + watermark_width + 2 * watermark_pad)
+    watermark_right = min(
+        width,
+        watermark_left + 2 * watermark_pad + icon_size + icon_gap + watermark_width,
+    )
     watermark_bottom = min(height, watermark_top + watermark_height + 2 * watermark_pad)
     draw.rounded_rectangle(
         (watermark_left, watermark_top, watermark_right, watermark_bottom),
         radius=max(6, watermark_pad),
         fill="#17251D",
         outline="#ffffff",
-        width=max(1, min(width, height) // 500),
+        width=max(1, min_dim // 500),
     )
-    draw.text(
-        (watermark_left + watermark_pad, watermark_top + watermark_pad),
-        watermark,
-        font=watermark_font,
-        fill="#ffffff",
-    )
+    icon_x = watermark_left + watermark_pad
+    icon_y = watermark_top + watermark_pad + (watermark_height - icon_size) // 2
+    _draw_platform_watermark_icon(draw, platform, icon_x, icon_y, icon_size)
+    text_x = icon_x + icon_size + icon_gap
+    text_y = watermark_top + watermark_pad + (watermark_height - text_height) // 2
+    draw.text((text_x, text_y), watermark, font=watermark_font, fill="#ffffff")
     output = BytesIO()
     image.save(output, format="JPEG", quality=92, optimize=True)
     return output.getvalue()
@@ -2981,7 +3045,7 @@ def _has_pending_delivery(record: dict) -> bool:
 def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliate_url: str):
     """Render the correct channel watermark and send to one destination."""
     if platform == "telegram":
-        photo = build_discount_image(image_bytes, item.get("discount_percent"), watermark="Telegram.me/OfferChin")
+        photo = build_discount_image(image_bytes, item.get("discount_percent"), watermark="T.me/OfferChin")
         return _send_photo(photo, build_caption(item, affiliate_url, TELEGRAM_CHANNEL_URL), affiliate_url)
     if platform == "bale":
         photo = build_discount_image(image_bytes, item.get("discount_percent"), watermark="ble.ir/OfferChin")
