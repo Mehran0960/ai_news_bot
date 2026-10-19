@@ -1188,6 +1188,72 @@ def _delete_expired_posts(published, now, mark_unknown=False):
     return changed, deleted
 
 
+
+
+def _hide_expired_youtube_videos(published, now):
+    """Set tracked YouTube Shorts to private once their underlying time-limited offer expires."""
+    changed = False
+    try:
+        from short_video import set_youtube_video_private, youtube_credentials_available
+        credentials_ready = youtube_credentials_available()
+    except Exception as exc:
+        set_youtube_video_private = None
+        credentials_ready = False
+        print(f"YOUTUBE_EXPIRY_SETUP_UNAVAILABLE error={type(exc).__name__}")
+
+    for pid, rec in _iter_post_records(published):
+        if not isinstance(rec, dict):
+            continue
+        video_id = str(rec.get("youtube_video_id") or "").strip()
+        if not video_id or rec.get("youtube_expiry_status") in {"private", "already_private"}:
+            continue
+        expires = parse_expiry(rec.get("expires_at"))
+        if not expires:
+            continue
+        try:
+            deadline = datetime.fromisoformat(expires)
+        except ValueError:
+            continue
+        if deadline.tzinfo is None:
+            deadline = deadline.replace(tzinfo=timezone.utc)
+        if deadline > now:
+            continue
+        retry_raw = parse_expiry(rec.get("youtube_expiry_next_attempt_at"))
+        if retry_raw:
+            try:
+                retry_at = datetime.fromisoformat(retry_raw)
+                if retry_at.tzinfo is None:
+                    retry_at = retry_at.replace(tzinfo=timezone.utc)
+                if now < retry_at:
+                    continue
+            except ValueError:
+                pass
+
+        if not credentials_ready or set_youtube_video_private is None:
+            rec["youtube_expiry_status"] = "pending_credentials"
+            rec["youtube_expiry_next_attempt_at"] = (now + timedelta(minutes=60)).isoformat()
+            rec["youtube_expiry_last_error"] = "youtube_oauth_secrets_missing"
+            changed = True
+            continue
+
+        try:
+            set_youtube_video_private(video_id)
+            rec["youtube_expiry_status"] = "private"
+            rec["youtube_private_at"] = now.isoformat()
+            rec.pop("youtube_expiry_next_attempt_at", None)
+            rec.pop("youtube_expiry_last_error", None)
+            changed = True
+            print(f"YOUTUBE_EXPIRY_PRIVATE_OK product_id={pid} video_id={video_id}")
+        except Exception as exc:
+            rec["youtube_expiry_status"] = "retry"
+            rec["youtube_expiry_next_attempt_at"] = (now + timedelta(minutes=30)).isoformat()
+            rec["youtube_expiry_last_error"] = type(exc).__name__
+            changed = True
+            print(f"YOUTUBE_EXPIRY_PRIVATE_FAILED product_id={pid} error={type(exc).__name__}")
+
+    return changed
+
+
 def run():
     state = _read_state()
     published = state.get("published", {})
@@ -1300,6 +1366,9 @@ def run():
     post_changed, post_deleted = _delete_expired_posts(published, now, mark_unknown=True)
     changed = changed or post_changed
     deleted += post_deleted
+
+    youtube_privacy_changed = _hide_expired_youtube_videos(published, now)
+    changed = changed or youtube_privacy_changed
     if changed:
         _write_state(state)
     backlog = max(0, len(probe_candidates) - min(len(probe_candidates), max_probe_candidates))
