@@ -1392,7 +1392,8 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual(default_telegram, canonical_telegram)
         self.assertEqual(legacy_telegram, canonical_telegram)
-        self.assertNotEqual(bale, canonical_telegram)
+        # Both channel photos intentionally include both platform IDs, so artwork is identical.
+        self.assertEqual(bale, canonical_telegram)
 
     def test_normal_publication_gap_matches_five_minute_scan_cadence(self):
         self.assertEqual(MIN_POST_INTERVAL_HOURS, 5 / 60)
