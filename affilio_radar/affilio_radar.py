@@ -74,6 +74,7 @@ URGENT_MIN_DEMAND_SCORE = 55
 IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
 PREFERRED_POSTING_WINDOWS = (("morning", 9, 11), ("afternoon", 14, 17), ("evening", 20, 23))
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
+MCP_OFFER_PAGES_PER_SCAN = max(1, min(DEAL_LIST_PAGES, int(os.getenv("AFFILIO_MCP_PAGES_PER_SCAN", "2"))))
 MIN_DISCOUNT_PERCENT = max(1, min(90, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "20"))))
 MIN_SAVINGS_TOMAN = max(0, int(os.getenv("AFFILIO_MIN_SAVINGS_TOMAN", "100000")))
 PRICE_HISTORY_CHECK_LIMIT = max(0, min(25, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "15"))))
@@ -2105,12 +2106,23 @@ def discover_product_urls(
             save_json(STATE, state_to_persist)
         print(f"DISCOVERY_QUEUE_PERSISTED stage=direct_feed retained={len(discovery_queue)}")
 
-    # The MCP feed contains both countdown metadata and offer cards whose sort order
-    # can differ from the direct REST feed. Merge both sources before selecting products.
+    # The direct REST feed above is scanned in full. MCP is a slower complementary
+    # source, so rotate a two-page window each scan instead of re-fetching all five pages.
+    mcp_scan_pages = list(range(1, DEAL_LIST_PAGES + 1))
+    mcp_cursor = 1
+    if isinstance(state_to_persist, dict) and DEAL_LIST_PAGES > 0:
+        try:
+            mcp_cursor = ((int(state_to_persist.get("mcp_offer_page_cursor", 1) or 1) - 1) % DEAL_LIST_PAGES) + 1
+        except (TypeError, ValueError, OverflowError):
+            mcp_cursor = 1
+        mcp_scan_pages = [
+            ((mcp_cursor - 1 + offset) % DEAL_LIST_PAGES) + 1
+            for offset in range(min(MCP_OFFER_PAGES_PER_SCAN, DEAL_LIST_PAGES))
+        ]
     mcp_expiries = {}
     try:
         from expiration_monitor import fetch_mcp_offer_candidates
-        mcp_expiries, mcp_candidate_nodes = fetch_mcp_offer_candidates()
+        mcp_expiries, mcp_candidate_nodes = fetch_mcp_offer_candidates(page_numbers=mcp_scan_pages)
         deal_expiries.update(mcp_expiries)
         mcp_candidates = api_incredible_offer_product_candidates(mcp_candidate_nodes)
         for row in mcp_candidates:
@@ -2120,9 +2132,20 @@ def discover_product_urls(
                 row["deal_expires_at"] = expiry
                 deal_expiries[pid] = expiry
         deals_found.extend(mcp_candidates)
+
+        # Save these additional sightings before ranking or deep product-page checks.
+        if isinstance(discovery_queue, dict):
+            merge_discovery_queue(discovery_queue, mcp_candidates, datetime.now(timezone.utc))
+        if isinstance(state_to_persist, dict):
+            state_to_persist["mcp_offer_page_cursor"] = (mcp_cursor % DEAL_LIST_PAGES) + 1
+            if isinstance(discovery_queue, dict):
+                state_to_persist["discovery_queue"] = discovery_queue
+            save_json(STATE, state_to_persist)
+
         print(
-            f"MCP_OFFER_CANDIDATES extracted={len(mcp_candidates)} "
-            f"deadline_verified={sum(bool(row.get('deal_expires_at')) for row in mcp_candidates)}"
+            f"MCP_OFFER_CANDIDATES pages={mcp_scan_pages} extracted={len(mcp_candidates)} "
+            f"deadline_verified={sum(bool(row.get('deal_expires_at')) for row in mcp_candidates)} "
+            f"next_cursor={(mcp_cursor % DEAL_LIST_PAGES) + 1}"
         )
     except Exception as exc:
         print(f"EXPIRY_MCP_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
