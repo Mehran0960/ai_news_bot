@@ -251,6 +251,41 @@ class ExpirationMonitorTests(unittest.TestCase):
             self.assertIn("deadline_unavailable_deleted_at", saved["published"]["dkp-67890"])
 
 
+    def test_expired_history_posts_are_deleted_after_product_record_is_replaced(self):
+        now = datetime(2026, 10, 19, 16, 45, tzinfo=timezone.utc)
+        published = {
+            "dkp-22104577": {
+                "title": "شارژر فندکی وونک VC-50",
+                "telegram_message_id": 106,
+                "bale_message_id": 90,
+                "expires_at": (now + timedelta(hours=4)).isoformat(),
+                "expiry_status": "tracked",
+                "bale_expiry_status": "tracked",
+                "expiry_estimated": False,
+                "expiry_source": "digikala_live_deals_feed",
+                "post_history": [{
+                    "title": "شارژر فندکی وونک VC-50",
+                    "telegram_message_id": 97,
+                    "bale_message_id": 76,
+                    "expires_at": (now - timedelta(minutes=45)).isoformat(),
+                    "expiry_status": "tracked",
+                    "bale_expiry_status": "tracked",
+                    "expiry_estimated": False,
+                    "expiry_source": "digikala_live_deals_feed",
+                }],
+            }
+        }
+        with patch.object(monitor, "_telegram_delete", return_value="deleted") as tg_delete, patch.object(
+            monitor, "_bale_delete", return_value="deleted"
+        ) as bale_delete:
+            changed, deleted = monitor._delete_expired_posts(published, now)
+        self.assertTrue(changed)
+        self.assertEqual(deleted, 2)
+        tg_delete.assert_called_once_with(97)
+        bale_delete.assert_called_once_with(76)
+        self.assertEqual(published["dkp-22104577"]["post_history"][0]["expiry_status"], "deleted")
+        self.assertEqual(published["dkp-22104577"]["post_history"][0]["bale_expiry_status"], "deleted")
+
     def test_expired_post_is_deleted_and_persisted(self):
         with tempfile.TemporaryDirectory() as temp:
             state_path = Path(temp) / "state.json"

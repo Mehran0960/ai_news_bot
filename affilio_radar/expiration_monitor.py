@@ -900,6 +900,19 @@ def _looks_like_offer_post(caption_text):
     )
 
 
+def _iter_post_records(published):
+    """Yield current and historical message records so previous campaigns remain cleanable."""
+    for product_id, record in (published or {}).items():
+        if not isinstance(record, dict):
+            continue
+        yield product_id, record
+        history = record.get("post_history")
+        if isinstance(history, list):
+            for previous in history:
+                if isinstance(previous, dict):
+                    yield product_id, previous
+
+
 def audit_public_channel_history(published, now=None, posts=None):
     """Delete expired untracked public posts and repair active legacy captions in place."""
     now = now or datetime.now(timezone.utc)
@@ -913,8 +926,8 @@ def audit_public_channel_history(published, now=None, posts=None):
         return False, 0, 0, 0, 0
 
     tracked_by_message_id = {}
-    for product_id, record in (published or {}).items():
-        if isinstance(record, dict) and str(record.get("telegram_message_id") or "").isdigit():
+    for _product_id, record in _iter_post_records(published):
+        if str(record.get("telegram_message_id") or "").isdigit():
             tracked_by_message_id[int(record["telegram_message_id"])] = record
 
     changed = False
@@ -1038,14 +1051,14 @@ def _delete_posts_without_verified_deadline(published, now):
     changed = False
     deleted = 0
     marked = 0
-    terminal = {"deleted", "already_absent", "expired_marked"}
+    terminal = {"deleted", "already_absent"}
     platforms = (
         ("telegram", "telegram_message_id", "expiry_status", "deadline_unavailable_deleted_at",
          _telegram_delete, _telegram_mark_deadline_unavailable),
         ("bale", "bale_message_id", "bale_expiry_status", "bale_deadline_unavailable_deleted_at",
          _bale_delete, _bale_mark_deadline_unavailable),
     )
-    for pid, rec in published.items():
+    for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
         raw_expiry = parse_expiry(rec.get("expires_at"))
@@ -1124,7 +1137,7 @@ def _delete_expired_posts(published, now, mark_unknown=False):
     """Delete posts whose explicit deadline has passed; return state change and actual deletions."""
     changed = False
     deleted = 0
-    for pid, rec in published.items():
+    for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
         expiry = parse_expiry(rec.get("expires_at"))
@@ -1156,7 +1169,7 @@ def _delete_expired_posts(published, now, mark_unknown=False):
             ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete),
         ):
             raw_id = rec.get(id_field)
-            if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent", "expired_marked"}:
+            if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent"}:
                 continue
             try:
                 outcome = delete_fn(int(raw_id))

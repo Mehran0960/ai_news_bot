@@ -65,7 +65,7 @@ DISCOVERY_QUEUE_LIMIT = max(100, min(1000, int(os.getenv("AFFILIO_DISCOVERY_QUEU
 DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_TTL_HOURS", "24"))))
 MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(32, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "24"))))
 # Never publish an offer that gives the audience less than this much time to act.
-MIN_PUBLICATION_RUNWAY_MINUTES = max(30, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "90"))))
+MIN_PUBLICATION_RUNWAY_MINUTES = max(30, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "60"))))
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
 URGENT_MIN_POST_INTERVAL_MINUTES = 10
@@ -1009,6 +1009,65 @@ def parse_product_api(payload: dict, url: str) -> dict:
         "availability_source": availability_source,
         "checked_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+def verify_live_page_price(product: dict) -> dict:
+    """Re-read the public DigiKala product page before posting and fail closed on a price mismatch."""
+    url = safe_product_url(product.get("product_url", ""))
+    expected_id = product_id(url) if url else ""
+    try:
+        expected_price = int(product.get("current_price") or 0)
+    except (TypeError, ValueError, OverflowError):
+        expected_price = 0
+    if not url or not expected_id or expected_price <= 0:
+        return {"ok": False, "reason": "invalid_product_or_price", "page_price": None}
+
+    try:
+        final_url, page_html = fetch_page(url)
+        final_url = safe_product_url(final_url) or url
+        if product_id(final_url) != expected_id:
+            return {"ok": False, "reason": "product_identity_mismatch", "page_price": None}
+        live = parse_product_page(final_url, page_html)
+    except Exception as exc:
+        return {"ok": False, "reason": f"page_fetch_failed_{type(exc).__name__}", "page_price": None}
+
+    try:
+        page_price = int(live.get("current_price") or 0)
+    except (TypeError, ValueError, OverflowError):
+        page_price = 0
+    if page_price <= 0:
+        return {"ok": False, "reason": "live_page_price_unavailable", "page_price": None}
+
+    delta_percent = abs(page_price - expected_price) * 100.0 / expected_price
+    if delta_percent > 1.0:
+        return {
+            "ok": False,
+            "reason": "live_page_price_mismatch",
+            "page_price": page_price,
+            "api_price": expected_price,
+            "delta_percent": round(delta_percent, 2),
+        }
+
+    try:
+        listed_original = int(product.get("original_price") or 0)
+        page_original = int(live.get("original_price") or 0)
+    except (TypeError, ValueError, OverflowError):
+        listed_original, page_original = 0, 0
+    if listed_original > 0 and page_original > 0:
+        original_delta = abs(page_original - listed_original) * 100.0 / listed_original
+        if original_delta > 2.0:
+            return {
+                "ok": False,
+                "reason": "live_page_original_price_mismatch",
+                "page_price": page_price,
+                "api_price": expected_price,
+                "page_original_price": page_original,
+                "api_original_price": listed_original,
+                "delta_percent": round(original_delta, 2),
+            }
+
+    return {"ok": True, "reason": "verified", "page_price": page_price,
+            "api_price": expected_price, "delta_percent": round(delta_percent, 2)}
 
 
 def fetch_product_record(url: str) -> dict:
@@ -3590,6 +3649,26 @@ def is_deadline_critical_deal(product: dict, now: datetime | None = None) -> boo
     )
 
 
+def previous_publication_posts_removed(previous: dict | None) -> bool:
+    """Prevent a new post while any prior Telegram/Bale message may still be visible."""
+    if not isinstance(previous, dict):
+        return True
+    records = [previous]
+    history = previous.get("post_history")
+    if isinstance(history, list):
+        records.extend(record for record in history if isinstance(record, dict))
+    terminal = {"deleted", "already_absent"}
+    for record in records:
+        for id_field, status_field in (
+            ("telegram_message_id", "expiry_status"),
+            ("bale_message_id", "bale_expiry_status"),
+        ):
+            message_id = record.get(id_field)
+            if str(message_id or "").isdigit() and record.get(status_field) not in terminal:
+                return False
+    return True
+
+
 def is_materially_improved_offer(previous: dict, product: dict, now: datetime | None = None) -> bool:
     """Permit a repeat product only for a new offer cycle or a real price drop of at least 10%."""
     if not isinstance(previous, dict) or not isinstance(product, dict):
@@ -3627,7 +3706,11 @@ def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
         deadline_priority = 1
     else:
         deadline_priority = 0
+    # Exact remaining runway comes first: the soonest still-valid deadline wins.
+    # Missing deadlines are placed last; publication eligibility separately fails closed.
+    deadline_order = -remaining if math.isfinite(remaining) else float("-inf")
     return (
+        deadline_order,
         int(is_urgent_priority_deal(product, now)),
         deadline_priority,
         *deal_sort_key(product),
@@ -4190,6 +4273,12 @@ def run(publish=False):
                 break
             pid = item["product_id"]
             old = state["published"].get(pid, {})
+            if old and not previous_publication_posts_removed(old):
+                print(
+                    f"PUBLISH_SKIP id={pid} "
+                    "reason=previous_channel_post_not_confirmed_removed"
+                )
+                continue
             try:
                 last_ts = float(old.get("ts", 0))
             except (TypeError, ValueError):
@@ -4206,6 +4295,22 @@ def run(publish=False):
             except Exception as exc:
                 print(f"PUBLISH_FAILED id={pid} reason=image_fetch error={type(exc).__name__}")
                 defer_pending_publication(state, pid, f"image_fetch_{type(exc).__name__}", datetime.now(timezone.utc))
+                save_json(STATE, state)
+                continue
+
+            # Independently re-read the public product page before sending this offer.
+            # Never publish if the page price no longer matches the listing/API record.
+            price_check = verify_live_page_price(item)
+            if not price_check.get("ok"):
+                print(
+                    f"PUBLISH_SKIP id={pid} reason={price_check.get('reason')} "
+                    f"api_price={price_check.get('api_price', item.get('current_price'))} "
+                    f"page_price={price_check.get('page_price')}"
+                )
+                defer_pending_publication(
+                    state, pid, str(price_check.get("reason") or "live_page_price_unverified"),
+                    datetime.now(timezone.utc),
+                )
                 save_json(STATE, state)
                 continue
 
@@ -4283,6 +4388,17 @@ def run(publish=False):
             if failed_ready_platforms:
                 max_attempt = max(int(attempts.get(platform, 1) or 1) for platform in failed_ready_platforms)
                 record["delivery_retry_after"] = time.time() + _delivery_retry_delay(max_attempt)
+            # Preserve prior IDs so new campaigns cannot orphan old channel posts.
+            old_history = [
+                entry for entry in old.get("post_history", [])
+                if isinstance(entry, dict)
+            ] if isinstance(old, dict) and isinstance(old.get("post_history"), list) else []
+            if isinstance(old, dict) and old:
+                previous_snapshot = dict(old)
+                previous_snapshot.pop("post_history", None)
+                old_history.append(previous_snapshot)
+            if old_history:
+                record["post_history"] = old_history[-12:]
             state["published"][pid] = record
             state["last_published_at"] = datetime.now(timezone.utc).isoformat()
             state.setdefault("pending_queue", {}).pop(pid, None)

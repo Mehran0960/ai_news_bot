@@ -1,6 +1,9 @@
 name: Affilio Expired Offer Cleanup
 
 on:
+  push:
+    paths:
+      - "affilio_radar/expiration_monitor.py"
   # Cloudflare's minute dispatcher launches cleanup at UTC :00/:05/... so this
   # does not depend on GitHub's sometimes-missing native schedule event.
   workflow_dispatch:

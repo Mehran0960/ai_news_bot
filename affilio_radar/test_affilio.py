@@ -69,6 +69,8 @@ from affilio_radar import (
     market_name_match_score,
     apply_market_price_comparison,
     is_market_price_uncompetitive,
+    verify_live_page_price,
+    previous_publication_posts_removed,
     MIN_POST_INTERVAL_HOURS,
 )
 
@@ -502,12 +504,82 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertNotIn("dkp-999", dropped_after_failed_recheck)
 
+    def test_live_page_price_verification_rejects_mismatched_site_price(self):
+        product = {
+            "product_id": "dkp-22104577",
+            "product_url": "https://www.digikala.com/product/dkp-22104577/",
+            "current_price": 1_924_990,
+            "original_price": 17_500_000,
+        }
+        live_page = {
+            "product_id": "dkp-22104577",
+            "current_price": 2_500_000,
+            "original_price": 17_500_000,
+        }
+        with patch("affilio_radar.fetch_page", return_value=(product["product_url"], "<html></html>")), patch(
+            "affilio_radar.parse_product_page", return_value=live_page
+        ):
+            result = verify_live_page_price(product)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["reason"], "live_page_price_mismatch")
+        self.assertEqual(result["page_price"], 2_500_000)
+
+    def test_live_page_price_verification_accepts_matching_live_price(self):
+        product = {
+            "product_id": "dkp-22104577",
+            "product_url": "https://www.digikala.com/product/dkp-22104577/",
+            "current_price": 1_924_990,
+            "original_price": 17_500_000,
+        }
+        live_page = {
+            "product_id": "dkp-22104577",
+            "current_price": 1_924_990,
+            "original_price": 17_500_000,
+        }
+        with patch("affilio_radar.fetch_page", return_value=(product["product_url"], "<html></html>")), patch(
+            "affilio_radar.parse_product_page", return_value=live_page
+        ):
+            result = verify_live_page_price(product)
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["reason"], "verified")
+
+    def test_page_price_unavailable_fails_closed(self):
+        product = {
+            "product_id": "dkp-22104577",
+            "product_url": "https://www.digikala.com/product/dkp-22104577/",
+            "current_price": 1_924_990,
+        }
+        with patch("affilio_radar.fetch_page", return_value=(product["product_url"], "<html></html>")), patch(
+            "affilio_radar.parse_product_page", return_value={"product_id": "dkp-22104577"}
+        ):
+            result = verify_live_page_price(product)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["reason"], "live_page_price_unavailable")
+
+    def test_same_product_is_blocked_until_all_prior_messages_are_removed(self):
+        previous = {
+            "telegram_message_id": 106,
+            "expiry_status": "tracked",
+            "bale_message_id": 90,
+            "bale_expiry_status": "tracked",
+            "post_history": [{
+                "telegram_message_id": 97,
+                "expiry_status": "deleted",
+                "bale_message_id": 76,
+                "bale_expiry_status": "already_absent",
+            }],
+        }
+        self.assertFalse(previous_publication_posts_removed(previous))
+        previous["expiry_status"] = "deleted"
+        previous["bale_expiry_status"] = "deleted"
+        self.assertTrue(previous_publication_posts_removed(previous))
+
     def test_near_expiry_offer_outranks_larger_discount_with_later_deadline(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
         near = {
             "discount_percent": 35, "savings_toman": 150_000,
             "demand_score": 40, "promo_score": 25,
-            "deal_expires_at": (now + timedelta(minutes=20)).isoformat(),
+            "deal_expires_at": (now + timedelta(minutes=70)).isoformat(),
         }
         later = {
             "discount_percent": 90, "savings_toman": 2_000_000,
