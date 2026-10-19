@@ -31,6 +31,63 @@ class AparatUploaderTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             _approved_upload_server("https://upload.example.com")
 
+    def test_find_uploaded_video_matches_exact_title_and_returns_uid(self):
+        from aparat_uploader import find_uploaded_aparat_video, APARAT_MY_VIDEOS_URL
+
+        class FakeResponse:
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return {"included": [
+                    {"id": "123", "attributes": {"title": "Other video", "uid": "otheruid"}},
+                    {"id": "456", "attributes": {"title": "  تست محصول  ", "uid": "realuid"}},
+                ]}
+
+        class FakeSession:
+            def __init__(self):
+                self.headers = {}
+                self.urls = []
+            def get(self, url, **kwargs):
+                self.urls.append(url)
+                return FakeResponse()
+
+        session = FakeSession()
+        found = find_uploaded_aparat_video(
+            "تست محصول",
+            session=session,
+            env={"APARAT_COOKIE_HEADER": "AuthV1=test-session"},
+        )
+        self.assertEqual(session.urls, [APARAT_MY_VIDEOS_URL])
+        self.assertEqual(found["video_hash"], "realuid")
+        self.assertEqual(found["url"], "https://www.aparat.com/v/realuid")
+        self.assertEqual(found["video_id"], "456")
+
+    def test_find_uploaded_video_can_match_by_record_id(self):
+        from aparat_uploader import find_uploaded_aparat_video
+
+        class FakeResponse:
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return {"included": [
+                    {"id": "457", "attributes": {"title": "Different shown title", "uid": "uid457"}}
+                ]}
+
+        class FakeSession:
+            def __init__(self):
+                self.headers = {}
+            def get(self, url, **kwargs):
+                return FakeResponse()
+
+        found = find_uploaded_aparat_video(
+            "Original title",
+            video_id="457",
+            session=FakeSession(),
+            env={"APARAT_COOKIE_HEADER": "AuthV1=test-session"},
+        )
+        self.assertEqual(found["video_hash"], "uid457")
+        self.assertEqual(found["url"], "https://www.aparat.com/v/uid457")
+
 
     def test_set_aparat_video_private_preserves_metadata_and_disables_sharing(self):
         from aparat_uploader import set_aparat_video_private

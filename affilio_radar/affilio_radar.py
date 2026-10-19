@@ -4016,7 +4016,12 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             send_telegram_video_review,
             telegram_video_review_available,
         )
-        from aparat_uploader import aparat_credentials_available, upload_aparat_video, PENDING_APARAT_STATUSES
+        from aparat_uploader import (
+            aparat_credentials_available,
+            upload_aparat_video,
+            find_uploaded_aparat_video,
+            PENDING_APARAT_STATUSES,
+        )
     except Exception as exc:
         print(f"SHORT_VIDEO_SKIP reason=renderer_import_failed error={type(exc).__name__}")
         return False
@@ -4035,6 +4040,51 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
     pending_youtube = {"pending", "pending_credentials", "retry"}
     candidates = []
     state_changed = False
+
+    # Reconcile a successful upload whose API response omitted the video UID.
+    # This only queries the account's video list; it never retries the upload.
+    if aparat_ready:
+        for pid, record in published.items():
+            if not isinstance(record, dict):
+                continue
+            if str(record.get("aparat_upload_status") or "") != "uploaded":
+                continue
+            if str(record.get("aparat_video_hash") or "").strip():
+                continue
+            retry_at = _parse_utc_datetime(record.get("aparat_video_lookup_next_attempt_at"))
+            if retry_at and current < retry_at:
+                continue
+            try:
+                found = find_uploaded_aparat_video(
+                    str(record.get("title") or ""),
+                    video_id=record.get("aparat_video_record_id") or None,
+                )
+                if found.get("video_hash"):
+                    record["aparat_video_record_id"] = found.get("video_id") or record.get("aparat_video_record_id", "")
+                    record["aparat_video_hash"] = found["video_hash"]
+                    record["aparat_video_url"] = found.get("url", "")
+                    record.pop("aparat_video_lookup_next_attempt_at", None)
+                    record.pop("aparat_video_lookup_last_error", None)
+                    print(
+                        f"APARAT_VIDEO_RECONCILED id={pid} "
+                        f"video_record_id={record.get('aparat_video_record_id') or 'unknown'} "
+                        f"url={record['aparat_video_url']}"
+                    )
+                else:
+                    record["aparat_video_lookup_next_attempt_at"] = (
+                        current + timedelta(minutes=15)
+                    ).isoformat()
+                    record["aparat_video_lookup_last_error"] = "not_found_or_uid_pending"
+                    print(f"APARAT_VIDEO_RECONCILE_PENDING id={pid} reason=not_found_or_uid_pending")
+                state_changed = True
+            except Exception as exc:
+                record["aparat_video_lookup_next_attempt_at"] = (
+                    current + timedelta(minutes=15)
+                ).isoformat()
+                record["aparat_video_lookup_last_error"] = type(exc).__name__
+                state_changed = True
+                print(f"APARAT_VIDEO_RECONCILE_FAILED id={pid} error={type(exc).__name__}")
+            break  # One lookup per scan; other posting and video tasks remain independent.
 
     for pid, record in published.items():
         if not isinstance(record, dict):
@@ -4216,9 +4266,12 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
                 str(record.get("title") or "پیشنهاد آفِرچین"),
             )
             record["aparat_upload_status"] = "uploaded"
+            record["aparat_video_record_id"] = aparat_result.get("video_id", "")
             record["aparat_video_hash"] = aparat_result.get("video_hash", "")
             record["aparat_video_url"] = aparat_result.get("url", "")
             record["aparat_visibility"] = aparat_result.get("visibility", "unknown")
+            if aparat_result.get("lookup_error"):
+                record["aparat_video_lookup_last_error"] = aparat_result["lookup_error"]
             record["aparat_uploaded_at"] = datetime.now(timezone.utc).isoformat()
             record.pop("aparat_next_attempt_at", None)
             record.pop("aparat_last_error", None)

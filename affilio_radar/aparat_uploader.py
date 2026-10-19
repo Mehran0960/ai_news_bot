@@ -20,6 +20,7 @@ import requests
 APARAT_ORIGIN = "https://www.aparat.com"
 APARAT_UPLOAD_CONFIG_URL = f"{APARAT_ORIGIN}/api/fa/v1/video/upload/upload_config"
 APARAT_UPLOAD_URL = f"{APARAT_ORIGIN}/api/fa/v1/video/upload/upload_url"
+APARAT_MY_VIDEOS_URL = f"{APARAT_ORIGIN}/api/fa/v1/user/video/videos"
 USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
@@ -126,7 +127,7 @@ def _upload_attributes(payload: dict) -> dict:
 
 def _find_video_hash(value: object) -> str:
     """Extract an Aparat video hash from the API response without guessing a user ID."""
-    preferred = {"videohash", "video_hash", "hash", "videoid", "video_id"}
+    preferred = {"videohash", "video_hash", "hash", "videoid", "video_id", "uid"}
     if isinstance(value, dict):
         for key, child in value.items():
             if str(key).replace("-", "").lower() in preferred and isinstance(child, (str, int)):
@@ -143,6 +144,89 @@ def _find_video_hash(value: object) -> str:
             if found:
                 return found
     return ""
+
+
+def _find_video_record_id(value: object) -> str:
+    """Extract the Aparat database record ID, which is distinct from its public UID."""
+    if isinstance(value, dict):
+        data = value.get("data")
+        if isinstance(data, dict):
+            candidate = data.get("id")
+            if isinstance(candidate, (str, int)) and str(candidate).strip():
+                return str(candidate).strip()
+            nested = data.get("data")
+            if isinstance(nested, dict):
+                candidate = nested.get("id")
+                if isinstance(candidate, (str, int)) and str(candidate).strip():
+                    return str(candidate).strip()
+    return ""
+
+
+def find_uploaded_aparat_video(
+    title: str,
+    *,
+    video_id: str | int | None = None,
+    session=None,
+    env: Mapping[str, str] | None = None,
+) -> dict:
+    """Look up an already-uploaded video by record ID or exact title; never uploads anything."""
+    source = _env(env)
+    cookies = _cookie_header(source)
+    if "AuthV1=" not in cookies:
+        raise RuntimeError("Aparat session is not configured; AuthV1 cookie is missing")
+
+    site = session or _site_session(cookies)
+    if session is not None:
+        site.headers.setdefault("Cookie", cookies)
+        site.headers.setdefault("User-Agent", USER_AGENT)
+        site.headers.setdefault("Origin", APARAT_ORIGIN)
+        site.headers.setdefault("Referer", f"{APARAT_ORIGIN}/uploadvideo")
+        site.headers.setdefault("Content-Type", "application/json; charset=utf-8")
+
+    payload = _read_json(
+        site.get(APARAT_MY_VIDEOS_URL, timeout=(10, 30)),
+        operation="my videos lookup",
+    )
+    included = payload.get("included")
+    if not isinstance(included, list):
+        data = payload.get("data")
+        included = data.get("included") if isinstance(data, dict) else None
+    if not isinstance(included, list):
+        included = []
+
+    wanted_id = str(video_id or "").strip()
+    wanted_title = " ".join(str(title or "").split()).casefold()
+    title_matches = []
+    id_match = None
+    for item in included:
+        if not isinstance(item, dict):
+            continue
+        attrs = item.get("attributes")
+        attrs = attrs if isinstance(attrs, dict) else {}
+        current_id = str(item.get("id") or attrs.get("id") or "").strip()
+        current_title = " ".join(str(attrs.get("title") or item.get("title") or "").split()).casefold()
+        if wanted_id and current_id == wanted_id:
+            id_match = item
+            break
+        if wanted_title and current_title == wanted_title:
+            title_matches.append(item)
+
+    matched = id_match or (title_matches[0] if title_matches else None)
+    if not isinstance(matched, dict):
+        return {"video_id": wanted_id, "video_hash": "", "url": "", "found": False}
+
+    attrs = matched.get("attributes")
+    attrs = attrs if isinstance(attrs, dict) else {}
+    found_id = str(matched.get("id") or attrs.get("id") or wanted_id).strip()
+    video_hash = _find_video_hash(attrs) or _find_video_hash(matched)
+    url = f"{APARAT_ORIGIN}/v/{video_hash}" if video_hash else ""
+    return {
+        "video_id": found_id,
+        "video_hash": video_hash,
+        "url": url,
+        "title": str(attrs.get("title") or matched.get("title") or ""),
+        "found": True,
+    }
 
 
 def upload_aparat_video(
@@ -307,10 +391,24 @@ def upload_aparat_video(
         operation="video metadata and publication",
     )
     video_hash = _find_video_hash(result)
-    url = f"https://www.aparat.com/v/{video_hash}" if video_hash else ""
+    video_id = _find_video_record_id(result)
+    url = f"{APARAT_ORIGIN}/v/{video_hash}" if video_hash else ""
+    lookup_error = ""
+    if not video_hash:
+        try:
+            found = find_uploaded_aparat_video(name, video_id=video_id or None, session=site, env=source)
+            video_id = video_id or found.get("video_id", "")
+            video_hash = found.get("video_hash", "")
+            url = found.get("url", "")
+        except Exception as exc:
+            # The metadata submission already succeeded. Never turn a lookup failure
+            # into an upload retry that could create a duplicate video.
+            lookup_error = type(exc).__name__
     return {
+        "video_id": video_id,
         "video_hash": video_hash,
         "url": url,
+        "lookup_error": lookup_error,
         "visibility": "public" if video_pass == "0" else "non_public_test",
         "title": name,
         "response": result,
