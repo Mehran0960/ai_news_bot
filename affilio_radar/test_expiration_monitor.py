@@ -58,6 +58,18 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(candidates[0]["title_fa"], "هدفون تخفیف‌دار آزمایشی")
         self.assertEqual(candidates[0]["deal_expires_at"], deadlines["dkp-123"])
 
+
+    def test_mcp_feed_can_scan_only_the_requested_rotating_page_subset(self):
+        payload = {"products": []}
+        with patch.object(monitor, "DEAL_LIST_PAGES", 5), patch.object(
+            monitor, "_mcp_call_incredible_offers_page", return_value=payload
+        ) as fetch:
+            deadlines, candidates = monitor.fetch_mcp_offer_candidates(page_numbers=[4, 5, 4])
+
+        self.assertEqual(deadlines, {})
+        self.assertEqual(candidates, [])
+        self.assertEqual([call.args[0] for call in fetch.call_args_list], [4, 5])
+
     def test_probe_interval_prevents_repeated_unknown_feed_checks(self):
         now = datetime.now(timezone.utc)
         record = {"expiry_last_probed_at": now.isoformat()}
