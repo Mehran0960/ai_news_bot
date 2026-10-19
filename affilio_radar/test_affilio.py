@@ -75,6 +75,7 @@ from affilio_radar import (
     is_manual_publication_quarantine_active,
     process_pending_short_video,
     MIN_POST_INTERVAL_HOURS,
+    effective_posts_per_run,
 )
 
 
@@ -1383,6 +1384,14 @@ class AffilioRadarTests(unittest.TestCase):
 
     def test_normal_publication_gap_matches_five_minute_scan_cadence(self):
         self.assertEqual(MIN_POST_INTERVAL_HOURS, 5 / 60)
+
+    def test_publication_capacity_bursts_only_when_publish_queue_is_large(self):
+        self.assertEqual(effective_posts_per_run(0, configured_limit=2), 1)
+        self.assertEqual(effective_posts_per_run(7, configured_limit=2), 1)
+        self.assertEqual(effective_posts_per_run(8, configured_limit=2), 2)
+        self.assertEqual(effective_posts_per_run(17, configured_limit=2), 2)
+        self.assertEqual(effective_posts_per_run(17, configured_limit=2, force_full_batch=True), 2)
+        self.assertEqual(effective_posts_per_run(17, configured_limit=10, force_full_batch=True), 10)
 
     def test_mcp_offer_card_fields_are_normalized_as_live_deal_candidates(self):
         rows = api_incredible_offer_product_candidates([{
