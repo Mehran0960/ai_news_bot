@@ -4016,19 +4016,19 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             continue
         generation_status = str(record.get("video_generation_status") or "")
         upload_status = str(record.get("youtube_upload_status") or "")
-        if generation_status not in {"pending", "generated"}:
-            continue
-        if upload_status not in {"pending", "pending_credentials", "retry"}:
+        if upload_status == "uploading":
             # "uploading" is deliberately not retried automatically: the remote upload
             # could have succeeded even if this runner disappeared before saving its ID.
-            continue
-        if upload_status == "uploading":
             started = _parse_utc_datetime(record.get("youtube_upload_started_at"))
             if started and (current - started).total_seconds() > 1800:
                 record["youtube_upload_status"] = "upload_result_unknown"
                 record["youtube_review_required"] = True
                 record["youtube_last_error"] = "runner_interrupted_during_upload"
                 state_changed = True
+            continue
+        if generation_status not in {"pending", "generated"}:
+            continue
+        if upload_status not in {"pending", "pending_credentials", "retry"}:
             continue
 
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("expires_at")))
@@ -4062,7 +4062,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             # OAuth secrets rather than rebuilding and archiving identical copies.
             continue
         if not str(record.get("image_url") or "").strip():
-            record["video_generation_status"] = "failed"
+            record["video_generation_status"] = "pending"
             record["video_generation_last_error"] = "missing_image_url"
             record["video_generation_next_attempt_at"] = (current + timedelta(minutes=30)).isoformat()
             state_changed = True
