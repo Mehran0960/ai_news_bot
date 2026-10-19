@@ -3156,6 +3156,23 @@ def _delivery_retry_platforms(record: dict) -> list[str]:
     return platforms
 
 
+def _active_delivery_retry_ids(published: dict, eligible_by_id: dict, now: datetime | None = None) -> list[str]:
+    """Return products with a failed channel delivery that is still safe to retry.
+
+    While these records exist, new products must not overtake them: doing so causes
+    Telegram and Bale to display different recent-post sequences.
+    """
+    current = now or datetime.now(timezone.utc)
+    blocking = []
+    for pid, record in published.items():
+        if not isinstance(record, dict) or not _delivery_retry_platforms(record):
+            continue
+        fresh_item = eligible_by_id.get(str(pid))
+        if fresh_item and has_minimum_publication_runway(fresh_item, current):
+            blocking.append(str(pid))
+    return blocking
+
+
 def _has_pending_delivery(record: dict) -> bool:
     return bool(_delivery_retry_platforms(record))
 
@@ -4526,6 +4543,17 @@ def run(publish=False):
             )
             break
 
+    delivery_retry_blocking_ids = _active_delivery_retry_ids(
+        state.get("published", {}),
+        eligible_by_id,
+        datetime.now(timezone.utc),
+    )
+    if delivery_retry_blocking_ids:
+        print(
+            "DELIVERY_RETRY_BLOCKING_NEW_POSTS "
+            f"count={len(delivery_retry_blocking_ids)} ids={','.join(delivery_retry_blocking_ids[:8])}"
+        )
+
     eligible = select_publish_candidates(pending_queue, eligible_by_id, queue_now)
     market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
@@ -4631,6 +4659,11 @@ def run(publish=False):
         print("DRY_RUN: discovery and stock checks only; no Telegram post attempted.")
     elif not BOT_TOKEN and not (BALE_BOT_TOKEN and BALE_CHANNEL_ID):
         print("PUBLISH_BLOCKED: neither complete Telegram nor Bale credentials are configured; no post attempted.")
+    elif delivery_retry_blocking_ids:
+        print(
+            "PUBLISH_SKIPPED: at least one active offer is still missing from a configured channel; "
+            "retry it before publishing newer products."
+        )
     elif delivery_retry_handled and not delivery_retry_unresolved:
         print("PUBLISH_SKIPPED: pending delivery retry succeeded; no additional product posted in this run.")
     elif link_mode == "no_valid_affilio_tracking_config":
@@ -4812,6 +4845,16 @@ def run(publish=False):
                 f"score={item['demand_score']} direct_affiliate_link=True"
             )
             sent += 1
+            if not all(statuses.get(platform) == "sent" for platform in ("telegram", "bale")):
+                missing_platforms = [
+                    platform for platform in ("telegram", "bale")
+                    if statuses.get(platform) != "sent"
+                ]
+                print(
+                    f"PUBLISH_PAUSED_AFTER_PARTIAL_DELIVERY id={pid} "
+                    f"missing={','.join(missing_platforms)}; later products stay queued until retry."
+                )
+                break
         print(f"products_distributed={sent} candidates_attempted={attempted_candidates}")
         if CLEAR_PREVIOUS_CHANNEL_POSTS and BATCH_OPERATION_KEY and sent > 0:
             state["completed_batch_operation"] = BATCH_OPERATION_KEY
