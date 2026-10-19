@@ -35,6 +35,12 @@ HTTP_TIMEOUT = 18
 BOT_API_MIN_GAP_SECONDS = 1.1
 PROBE_INTERVAL_SECONDS = 900
 UNKNOWN_PROBE_INTERVAL_SECONDS = 900
+# The public countdown is deliberately conservative by five minutes.
+COUNTDOWN_DISPLAY_BUFFER_MINUTES = 5
+# Cleanup is dispatched in five-minute slots; allow one whole slot beyond the
+# displayed buffer so an on-time cleanup run removes a post at least five minutes early.
+CLEANUP_CHECK_INTERVAL_MINUTES = 5
+POST_REMOVAL_BUFFER_MINUTES = COUNTDOWN_DISPLAY_BUFFER_MINUTES + CLEANUP_CHECK_INTERVAL_MINUTES
 
 
 def walk_dicts(value):
@@ -621,9 +627,10 @@ def _persian_number(value):
 
 
 def _remaining_label(deadline, now):
-    seconds = (deadline - now).total_seconds()
+    # Keep repaired legacy captions consistent with the five-minute countdown buffer.
+    seconds = (deadline - timedelta(minutes=COUNTDOWN_DISPLAY_BUFFER_MINUTES) - now).total_seconds()
     if seconds <= 0:
-        return "مهلت آفر به پایان رسیده"
+        return f"حداکثر {_persian_number(COUNTDOWN_DISPLAY_BUFFER_MINUTES)} دقیقه"
     minutes = max(1, int((seconds + 59) // 60))
     hours, mins = divmod(minutes, 60)
     if hours and mins:
@@ -939,7 +946,8 @@ def audit_public_channel_history(published, now=None, posts=None):
             continue
         deadline = extract_jalali_deadline(caption_text)
         record = tracked_by_message_id.get(int(message_id))
-        if deadline and deadline <= now:
+        removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES) if deadline else None
+        if deadline and removal_deadline <= now:
             found_expired += 1
             outcome = ""
             delete_error = ""
@@ -950,7 +958,10 @@ def audit_public_channel_history(published, now=None, posts=None):
                 print(f"PUBLIC_HISTORY_DELETE_FAILED message_id={message_id} error={delete_error!r}")
             if outcome == "deleted":
                 deleted += 1
-                print(f"PUBLIC_HISTORY_EXPIRED_DELETED message_id={message_id} expiry={deadline.isoformat()}")
+                print(
+                    f"PUBLIC_HISTORY_EXPIRY_BUFFER_DELETED message_id={message_id} "
+                    f"expiry={deadline.isoformat()} remove_at={removal_deadline.isoformat()}"
+                )
                 if record is not None:
                     record["expiry_status"] = "deleted"
                     record["expired_deleted_at"] = now.isoformat()
@@ -1156,7 +1167,8 @@ def _delete_expired_posts(published, now, mark_unknown=False):
         expires_at = datetime.fromisoformat(expiry)
         if expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
-        if now < expires_at:
+        removal_deadline = expires_at - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
+        if now < removal_deadline:
             if str(rec.get("telegram_message_id") or "").isdigit() and not rec.get("expiry_status"):
                 rec["expiry_status"] = "tracked_estimated" if rec.get("expiry_estimated") else "tracked"
                 changed = True
@@ -1178,7 +1190,10 @@ def _delete_expired_posts(published, now, mark_unknown=False):
                 changed = True
                 if outcome == "deleted":
                     deleted += 1
-                print(f"EXPIRY_DELETE_OK platform={platform} product_id={pid} message_id={raw_id} outcome={outcome} expiry={expiry}")
+                print(
+                    f"EXPIRY_DELETE_OK platform={platform} product_id={pid} message_id={raw_id} "
+                    f"outcome={outcome} expiry={expiry} remove_at={removal_deadline.isoformat()}"
+                )
             except Exception as exc:
                 rec[status_field] = "delete_failed"
                 error_text = str(exc)[:180]
@@ -1216,7 +1231,8 @@ def _hide_expired_youtube_videos(published, now):
             continue
         if deadline.tzinfo is None:
             deadline = deadline.replace(tzinfo=timezone.utc)
-        if deadline > now:
+        removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
+        if removal_deadline > now:
             continue
         retry_raw = parse_expiry(rec.get("youtube_expiry_next_attempt_at"))
         if retry_raw:
