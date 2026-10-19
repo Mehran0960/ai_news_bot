@@ -3019,52 +3019,42 @@ def build_discount_image(image_bytes: bytes, discount_percent=None, watermark: s
                 discount_value,
             )
 
-    # Compact lower-left channel watermark: platform mark followed by the canonical public URL.
+    # Every photo carries both channel IDs so audiences can discover either platform.
     width, height = image.size
     min_dim = min(width, height)
-    watermark = str(watermark or "T.me/OfferChin").strip()
-    if "ble.ir" in watermark.lower():
-        platform = "bale"
-        watermark = re.sub(r"^https?://", "", watermark, flags=re.IGNORECASE)
-        watermark = re.sub(r"^www\.", "", watermark, flags=re.IGNORECASE)
-        if watermark.lower().endswith("offerchin"):
-            watermark = "ble.ir/OfferChin"
-    else:
-        platform = "telegram"
-        watermark = re.sub(r"^https?://", "", watermark, flags=re.IGNORECASE)
-        watermark = re.sub(r"^(?:www\.)?telegram\.me/", "T.me/", watermark, flags=re.IGNORECASE)
-        if watermark.lower().endswith("offerchin"):
-            watermark = "T.me/OfferChin"
-
-    watermark_font = _latin_font(max(12, min_dim // 34))
-    watermark_box = draw.textbbox((0, 0), watermark, font=watermark_font)
-    watermark_width = max(1, watermark_box[2] - watermark_box[0])
-    text_height = max(watermark_font.size, watermark_box[3] - watermark_box[1])
+    watermarks = [("telegram", "T.me/OfferChin"), ("bale", "ble.ir/OfferChin")]
+    margin = max(10, min_dim // 35)
+    pad = max(7, min_dim // 80)
     icon_size = max(12, min(48, min_dim // 32))
     icon_gap = max(5, icon_size // 4)
-    watermark_height = max(text_height, icon_size)
-    watermark_pad = max(7, min_dim // 80)
-    watermark_margin = max(10, min_dim // 35)
-    watermark_left = watermark_margin
-    watermark_top = max(0, height - watermark_margin - watermark_height - 2 * watermark_pad)
-    watermark_right = min(
-        width,
-        watermark_left + 2 * watermark_pad + icon_size + icon_gap + watermark_width,
-    )
-    watermark_bottom = min(height, watermark_top + watermark_height + 2 * watermark_pad)
-    draw.rounded_rectangle(
-        (watermark_left, watermark_top, watermark_right, watermark_bottom),
-        radius=max(6, watermark_pad),
-        fill="#17251D",
-        outline="#ffffff",
-        width=max(1, min_dim // 500),
-    )
-    icon_x = watermark_left + watermark_pad
-    icon_y = watermark_top + watermark_pad + (watermark_height - icon_size) // 2
-    _draw_platform_watermark_icon(draw, platform, icon_x, icon_y, icon_size)
-    text_x = icon_x + icon_size + icon_gap
-    text_y = watermark_top + watermark_pad + (watermark_height - text_height) // 2
-    draw.text((text_x, text_y), watermark, font=watermark_font, fill="#ffffff")
+    row_gap = max(3, min_dim // 180)
+    font = _latin_font(max(12, min_dim // 34))
+    rows = []
+    for platform, label_text in watermarks:
+        box = draw.textbbox((0, 0), label_text, font=font)
+        rows.append((platform, label_text, max(1, box[2]-box[0]), max(font.size, box[3]-box[1])))
+    max_width = max(1, width - 2 * margin)
+    while pad*2 + icon_size + icon_gap + max(r[2] for r in rows) > max_width and font.size > 9:
+        font = _latin_font(font.size - 1)
+        rows = []
+        for platform, label_text in watermarks:
+            box = draw.textbbox((0, 0), label_text, font=font)
+            rows.append((platform, label_text, max(1, box[2]-box[0]), max(font.size, box[3]-box[1])))
+    box_width = min(max_width, pad*2 + icon_size + icon_gap + max(r[2] for r in rows))
+    row_height = max(icon_size, max(r[3] for r in rows))
+    box_height = 2*row_height + row_gap + 2*pad
+    box_left = margin
+    box_top = max(0, height - margin - box_height)
+    draw.rounded_rectangle((box_left, box_top, box_left+box_width, box_top+box_height),
+        radius=max(6, pad), fill="#17251D", outline="#ffffff", width=max(1, min_dim//500))
+    for index, (platform, label_text, _text_width, text_height) in enumerate(rows):
+        row_top = box_top + pad + index*(row_height+row_gap)
+        icon_x = box_left + pad
+        icon_y = row_top + (row_height-icon_size)//2
+        _draw_platform_watermark_icon(draw, platform, icon_x, icon_y, icon_size)
+        text_x = icon_x + icon_size + icon_gap
+        text_y = row_top + (row_height-text_height)//2 + text_height//2
+        draw.text((text_x, text_y), label_text, font=font, fill="#ffffff", anchor="lm")
     output = BytesIO()
     image.save(output, format="JPEG", quality=92, optimize=True)
     return output.getvalue()
