@@ -303,3 +303,73 @@ def upload_aparat_video(
         "title": name,
         "response": result,
     }
+
+
+def set_aparat_video_private(
+    video_hash: str,
+    *,
+    session=None,
+    env: Mapping[str, str] | None = None,
+) -> bool:
+    """Stop sharing a tracked Aparat video using the authenticated web edit endpoint.
+
+    This web endpoint is undocumented. Treat it as best-effort; the caller records
+    failures and retries later rather than claiming a privacy change succeeded.
+    """
+    safe_hash = str(video_hash or "").strip()
+    if not safe_hash or not safe_hash.replace("-", "").replace("_", "").isalnum():
+        raise ValueError("invalid Aparat video hash")
+    cookies = _cookie_header(env)
+    if "AuthV1=" not in cookies:
+        raise RuntimeError("Aparat session is not configured; AuthV1 cookie is missing")
+
+    site = session or _site_session(cookies)
+    if session is not None:
+        site.headers.setdefault("Cookie", cookies)
+        site.headers.setdefault("User-Agent", USER_AGENT)
+        site.headers.setdefault("Origin", APARAT_ORIGIN)
+        site.headers.setdefault("Referer", f"{APARAT_ORIGIN}/uploadvideo")
+        site.headers.setdefault("Content-Type", "application/json; charset=utf-8")
+        site.headers.setdefault("isNext", "true")
+        site.headers.setdefault("jsonType", "simple")
+        site.headers.setdefault("domain", "aparat")
+        site.headers.setdefault("currentUrl", f"{APARAT_ORIGIN}/uploadvideo")
+
+    details_response = site.get(
+        f"{APARAT_ORIGIN}/api/fa/v1/video/video/show/videohash/{safe_hash}",
+        params={"pr": "1", "mf": "1"},
+        timeout=(10, 30),
+    )
+    details = _read_json(details_response, operation="video details")
+    data = details.get("data") if isinstance(details.get("data"), dict) else {}
+
+    category = data.get("category") if isinstance(data.get("category"), dict) else {}
+    category_id = category.get("id") or data.get("category_id") or 5
+    playlist = data.get("playList") if isinstance(data.get("playList"), dict) else {}
+    playlist_data = playlist.get("data") if isinstance(playlist.get("data"), dict) else {}
+    tags = data.get("tags") if isinstance(data.get("tags"), list) else []
+    video_id = data.get("id") or data.get("video_id")
+    if not video_id:
+        raise RuntimeError("Aparat video details did not include the internal video ID")
+
+    edit_payload = {
+        "title": str(data.get("title") or "پیشنهاد آفِرچین"),
+        "descr": str(data.get("description") or data.get("descr") or ""),
+        "kids_friendly": bool(data.get("kids_friendly", True)),
+        "new_playlist": None,
+        "playlistid": playlist_data.get("id"),
+        "publish_date": None,
+        "video_id": video_id,
+        # The web uploader's edit endpoint uses a truthy value to stop sharing the video.
+        "video_pass": True,
+        "comment": data.get("comment_enable", "yes"),
+        "category": category_id,
+        "tags": "-".join(str(tag).strip().replace("-", " ") for tag in tags if str(tag).strip()),
+    }
+    response = site.post(
+        f"{APARAT_ORIGIN}/api/fa/v1/video/video/edit/videohash/{safe_hash}",
+        json=edit_payload,
+        timeout=(10, 45),
+    )
+    _read_json(response, operation="video privacy update")
+    return True
