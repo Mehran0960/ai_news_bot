@@ -1884,5 +1884,23 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(record["youtube_video_url"], "https://www.youtube.com/shorts/yt_test_123")
 
 
+
+    def test_real_short_video_renderer_creates_vertical_mp4(self):
+        import short_video
+
+        image_buffer = BytesIO()
+        Image.new("RGB", (480, 480), (30, 140, 90)).save(image_buffer, format="JPEG")
+        with TemporaryDirectory() as output_dir:
+            output_path = Path(output_dir) / "renderer-smoke-test.mp4"
+            rendered = short_video.render_short_video(
+                image_buffer.getvalue(),
+                discount_percent=35,
+                output_path=output_path,
+                duration_seconds=5,
+                fps=12,
+            )
+            self.assertTrue(rendered.is_file())
+            self.assertGreater(rendered.stat().st_size, 1024)
+
 if __name__ == "__main__":
     unittest.main()
