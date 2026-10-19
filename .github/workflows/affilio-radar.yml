@@ -5,9 +5,12 @@ on:
     paths:
       - "affilio_radar/affilio_radar.py"
       - "affilio_radar/short_video.py"
+      - "affilio_radar/aparat_uploader.py"
       - "affilio_radar/state.json"
       - "affilio_radar/test_affilio.py"
       - "affilio_radar/test_expiration_monitor.py"
+      - "affilio_radar/test_short_video.py"
+      - "affilio_radar/test_aparat_uploader.py"
       - "affilio_radar/expiration_monitor.py"
       - "affilio_radar/requirements.txt"
       - "affilio_radar/config/products.json"
@@ -83,9 +86,9 @@ jobs:
       - name: Validate syntax and run unit tests
         if: ${{ github.event_name != 'schedule' }}
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
           cd affilio_radar
-          python -m unittest -v test_affilio.py test_expiration_monitor.py
+          python -m unittest -v test_affilio.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py
           python -m py_compile expiration_monitor.py
 
       - name: Smoke-test the deployed click tracker
@@ -159,6 +162,10 @@ jobs:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
+          APARAT_VIDEO_PASS: ${{ vars.APARAT_VIDEO_PASS || '1' }}
+          APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
+          AFFILIO_VIDEO_REVIEW_CHAT_ID: ${{ secrets.AFFILIO_VIDEO_REVIEW_CHAT_ID }}
           # Keep first OAuth test uploads unlisted until the owner reviews them.
           YOUTUBE_PRIVACY_STATUS: "unlisted"
           AFFILIO_DEAL_LIST_PAGES: "5"
