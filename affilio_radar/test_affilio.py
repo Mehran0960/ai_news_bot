@@ -73,6 +73,7 @@ from affilio_radar import (
     verify_live_page_price,
     previous_publication_posts_removed,
     is_manual_publication_quarantine_active,
+    process_pending_short_video,
     MIN_POST_INTERVAL_HOURS,
 )
 
@@ -1797,6 +1798,88 @@ class AffilioRadarTests(unittest.TestCase):
             delays.append(int((retry - current).total_seconds() / 60))
             current = retry
         self.assertEqual(delays, [5, 10, 20, 40, 60, 60])
+
+
+    def test_short_video_without_youtube_oauth_exports_manual_aparat_artifact(self):
+        import short_video
+
+        now = datetime.now(timezone.utc)
+        pid = "dkp-92031"
+        record = {
+            "ts": now.timestamp(),
+            "title": "گجت نمونه",
+            "product_url": f"https://www.digikala.com/product/{pid}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "expires_at": (now + timedelta(hours=2)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_estimated": False,
+            "posted_discount_percent": 45,
+            "delivery_status": {"telegram": "sent", "bale": "sent"},
+            "video_generation_status": "pending",
+            "youtube_upload_status": "pending",
+        }
+        state = {"published": {pid: record}}
+
+        def fake_render(image_bytes, discount, path, **kwargs):
+            output = Path(path)
+            output.write_bytes(b"fake-mp4-video")
+            return output
+
+        with TemporaryDirectory() as output_dir, (
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
+            patch("affilio_radar.save_json"),
+            patch("short_video.youtube_credentials_available", return_value=False),
+            patch("short_video.render_short_video", side_effect=fake_render),
+            patch("short_video.upload_youtube_video") as upload,
+        ):
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
+            self.assertEqual(record["video_generation_status"], "generated")
+            self.assertEqual(record["youtube_upload_status"], "pending_credentials")
+            self.assertTrue((Path(output_dir) / f"offerchin-{pid}.mp4").is_file())
+            upload.assert_not_called()
+
+    def test_short_video_upload_uses_youtube_when_oauth_is_configured(self):
+        import short_video
+
+        now = datetime.now(timezone.utc)
+        pid = "dkp-92032"
+        record = {
+            "ts": now.timestamp(),
+            "title": "گجت نمونه دوم",
+            "product_url": f"https://www.digikala.com/product/{pid}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "expires_at": (now + timedelta(hours=2)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_estimated": False,
+            "posted_discount_percent": 60,
+            "delivery_status": {"telegram": "sent", "bale": "sent"},
+            "video_generation_status": "pending",
+            "youtube_upload_status": "pending",
+        }
+        state = {"published": {pid: record}}
+
+        def fake_render(image_bytes, discount, path, **kwargs):
+            output = Path(path)
+            output.write_bytes(b"fake-mp4-video")
+            return output
+
+        with TemporaryDirectory() as output_dir, (
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
+            patch("affilio_radar.save_json"),
+            patch("short_video.youtube_credentials_available", return_value=True),
+            patch("short_video.render_short_video", side_effect=fake_render),
+            patch("short_video.upload_youtube_video", return_value={
+                "video_id": "yt_test_123",
+                "url": "https://www.youtube.com/shorts/yt_test_123",
+            }) as upload,
+        ):
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
+            upload.assert_called_once()
+            self.assertEqual(record["video_generation_status"], "generated")
+            self.assertEqual(record["youtube_upload_status"], "uploaded")
+            self.assertEqual(record["youtube_video_id"], "yt_test_123")
+            self.assertEqual(record["youtube_video_url"], "https://www.youtube.com/shorts/yt_test_123")
+
 
 if __name__ == "__main__":
     unittest.main()
