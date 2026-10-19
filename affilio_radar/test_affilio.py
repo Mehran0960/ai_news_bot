@@ -973,9 +973,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
         self.assertIn("<b>⏳ ", caption)
         self.assertIn("مانده به پایان تخفیف</b>", caption)
-        self.assertIn("<b>👇 برای مشاهدهٔ قیمت و خرید، دکمهٔ زیر رو بزن.</b>", caption)
+        self.assertIn("<b>👇 برای دیدن جزئیات و خرید، دکمهٔ زیر رو بزن.</b>", caption)
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', caption)
-        self.assertLess(caption.index("عضویت در کانال"), caption.index("برای مشاهدهٔ قیمت و خرید"))
+        self.assertLess(caption.index("عضویت در کانال"), caption.index("برای دیدن جزئیات و خرید"))
         self.assertNotRegex(caption, r"[0-9]")
         self.assertNotIn("قیمت امروز", caption)
         self.assertNotIn("صرفه‌جویی", caption)
@@ -1026,7 +1026,7 @@ class AffilioRadarTests(unittest.TestCase):
             _send_photo(b"photo-bytes", "caption", direct_affiliate_url)
         data = post.call_args.kwargs["data"]
         markup = json.loads(data["reply_markup"])
-        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده تخفیف و خرید")
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهدهٔ قیمت و خرید")
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(urlsplit(markup["inline_keyboard"][0][0]["url"]).netloc, "www.digikala.com")
 
@@ -1047,7 +1047,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(data["chat_id"], "-10012345")
         self.assertEqual(data["caption"], "bale caption")
         self.assertNotIn("parse_mode", data)
-        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده تخفیف و خرید")
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهدهٔ قیمت و خرید")
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(result["message_id"], 88)
 
@@ -1068,7 +1068,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<s>۱٬۱۰۸٬۸۰۰ تومان</s>", telegram_caption)
         self.assertIn("[عضویت در کانال OfferChin](https://ble.ir/OfferChin)", bale_caption)
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
-        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای مشاهدهٔ قیمت و خرید"))
+        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای دیدن جزئیات و خرید"))
         self.assertNotIn("<b>", bale_caption)
         self.assertNotIn("@OfferChin", bale_caption)
         self.assertNotIn("@OfferChin", telegram_caption)
@@ -1078,21 +1078,22 @@ class AffilioRadarTests(unittest.TestCase):
         now = datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc)
         self.assertEqual(
             format_remaining_time("2026-10-18T12:17:20+00:00", now),
-            "۲ ساعت و ۱۸ دقیقه مانده به پایان تخفیف",
+            "۲ ساعت و ۱۳ دقیقه مانده به پایان تخفیف",
         )
         self.assertEqual(
             format_remaining_time("2026-10-18T10:00:15+00:00", now),
-            "۱ دقیقه مانده به پایان تخفیف",
+            "حداکثر ۵ دقیقه مانده به پایان تخفیف",
         )
         self.assertEqual(
             format_remaining_time("2026-10-18T11:00:00+00:00", now),
-            "۱ ساعت مانده به پایان تخفیف",
+            "۵۵ دقیقه مانده به پایان تخفیف",
         )
         self.assertEqual(
             format_remaining_time("2026-10-18T10:43:20+00:00", now),
-            "۴۴ دقیقه مانده به پایان تخفیف",
+            "۳۹ دقیقه مانده به پایان تخفیف",
         )
         self.assertEqual(format_remaining_time("2026-10-18T09:59:59+00:00", now), "مهلت آفر به پایان رسیده")
+        self.assertEqual(format_remaining_time("2026-10-18T10:05:00+00:00", now), "حداکثر ۵ دقیقه مانده به پایان تخفیف")
         self.assertEqual(format_remaining_time("", now), "")
 
     def test_publication_requires_an_explicit_future_deadline_for_countdown(self):
@@ -1199,7 +1200,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(data["caption"], "updated caption")
         self.assertEqual(data["parse_mode"], "HTML")
         markup = json.loads(data["reply_markup"])
-        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده تخفیف و خرید")
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهدهٔ قیمت و خرید")
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(result["message_id"], 39)
 
@@ -1252,8 +1253,8 @@ class AffilioRadarTests(unittest.TestCase):
         bale_caption = edit_bale.call_args_list[0].args[1]
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
         self.assertIn("[عضویت در کانال OfferChin](https://ble.ir/OfferChin)", bale_caption)
-        self.assertLess(telegram_caption.index("عضویت در کانال"), telegram_caption.index("برای مشاهدهٔ قیمت و خرید"))
-        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای مشاهدهٔ قیمت و خرید"))
+        self.assertLess(telegram_caption.index("عضویت در کانال"), telegram_caption.index("برای دیدن جزئیات و خرید"))
+        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای دیدن جزئیات و خرید"))
 
 
 
