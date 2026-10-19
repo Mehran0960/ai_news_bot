@@ -1,11 +1,8 @@
 name: Affilio Expired Offer Cleanup
 
 on:
-  # Cleanup is intentionally schedule/manual only. Running it on every code push
-  # competed with the offer scanner for the shared channel-mutation concurrency slot.
-  schedule:
-    # Every five minutes, remove both expired posts and offers without a verified deadline.
-    - cron: "*/5 * * * *"
+  # Cloudflare's minute dispatcher launches cleanup at UTC :00/:05/... so this
+  # does not depend on GitHub's sometimes-missing native schedule event.
   workflow_dispatch:
 
 permissions:
