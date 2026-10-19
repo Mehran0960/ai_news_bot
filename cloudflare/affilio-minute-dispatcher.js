@@ -61,13 +61,16 @@ async function runScheduledCheck(env, scheduledTime) {
   const offset = minute % 5;
 
   // Reserve :02/:07/... for GitHub's native product-radar schedule.
-  // Keep :04/:09/... idle so a long countdown refresh cannot block the next cleanup slot.
+  // Countdown edits run inside the cleanup workflow; avoid a separate countdown job
+  // competing for the same channel-mutation lock.
   if (offset === 2) {
     console.log(`CHANNEL_DISPATCH_SKIPPED: reserving UTC minute ${minute} for native product-radar schedule.`);
     return;
   }
-  if (offset === 4) {
-    console.log(`CHANNEL_DISPATCH_SKIPPED: leaving UTC minute ${minute} clear for next expiry-cleanup slot.`);
+  // Cleanup is the priority job at :00; :01 and :04 remain quiet to avoid creating
+  // a new run that overlaps cleanup or the five-minute radar slot.
+  if (offset !== 0 && offset !== 3) {
+    console.log(`CHANNEL_DISPATCH_SKIPPED: no standalone countdown dispatch at UTC minute ${minute}; cleanup refreshes active captions.`);
     return;
   }
 
