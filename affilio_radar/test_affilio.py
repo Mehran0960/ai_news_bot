@@ -75,6 +75,7 @@ from affilio_radar import (
     previous_publication_posts_removed,
     is_manual_publication_quarantine_active,
     process_pending_short_video,
+    VIDEO_STYLE_VERSION,
     MIN_POST_INTERVAL_HOURS,
     effective_posts_per_run,
 )
@@ -1821,6 +1822,45 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(delays, [5, 10, 20, 40, 60, 60])
 
 
+    def test_previous_generated_short_is_rebuilt_for_current_style_version(self):
+        now = datetime.now(timezone.utc)
+        pid = "dkp-old-style"
+        record = {
+            "ts": now.timestamp(),
+            "title": "محصول قدیمی نمونه",
+            "product_url": f"https://www.digikala.com/product/{pid}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "expires_at": (now + timedelta(hours=3)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_estimated": False,
+            "posted_discount_percent": 55,
+            "delivery_status": {"telegram": "sent", "bale": "sent"},
+            "video_generation_status": "generated",
+            "video_style_version": 1,
+            "youtube_upload_status": "pending_credentials",
+            "video_file_name": f"offerchin-{pid}.mp4",
+        }
+        state = {"published": {pid: record}}
+
+        def fake_render(image_bytes, discount, path, **kwargs):
+            output = Path(path)
+            output.write_bytes(b"new-style-mp4")
+            return output
+
+        with (
+            TemporaryDirectory() as output_dir,
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
+            patch("affilio_radar.save_json"),
+            patch("short_video.youtube_credentials_available", return_value=False),
+            patch("short_video.render_short_video", side_effect=fake_render) as render,
+        ):
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
+
+        render.assert_called_once()
+        self.assertEqual(record["video_generation_status"], "generated")
+        self.assertEqual(record["video_style_version"], VIDEO_STYLE_VERSION)
+        self.assertGreater(VIDEO_STYLE_VERSION, 1)
+
     def test_short_video_without_youtube_oauth_exports_manual_aparat_artifact(self):
         import short_video
 
@@ -1857,6 +1897,7 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
             self.assertEqual(record["video_generation_status"], "generated")
             self.assertEqual(record["youtube_upload_status"], "pending_credentials")
+            self.assertEqual(record["video_style_version"], VIDEO_STYLE_VERSION)
             self.assertTrue((Path(output_dir) / f"offerchin-{pid}.mp4").is_file())
             upload.assert_not_called()
 
