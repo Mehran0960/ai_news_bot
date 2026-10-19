@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Generate short vertical OfferChin product videos and publish them via YouTube's official API.
+"""Generate short vertical OfferChin product videos for configured video destinations.
 
-Video overlays intentionally contain only the existing discount badge and the two channel IDs.
-A valid deadline is required by the calling workflow; expired videos can be switched to private.
+The overlay contains the discount badge and two platform-marked channel IDs only.
+A valid deadline is required; expired YouTube videos can be switched to private.
 """
 from __future__ import annotations
 
