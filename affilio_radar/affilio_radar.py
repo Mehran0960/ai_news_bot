@@ -60,6 +60,9 @@ PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "3
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
 MAX_QUEUED_RECHECKS = max(0, min(12, int(os.getenv("AFFILIO_MAX_QUEUED_RECHECKS", "8"))))
+DISCOVERY_QUEUE_LIMIT = max(100, min(1000, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_LIMIT", "500"))))
+DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_TTL_HOURS", "24"))))
+MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(32, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "24"))))
 URGENT_EXPIRY_WINDOW_MINUTES = 90
 URGENT_MIN_POST_INTERVAL_MINUTES = 10
 DEADLINE_CRITICAL_WINDOW_MINUTES = 45
@@ -1803,7 +1806,234 @@ def select_queued_records_for_recheck(
     return selected
 
 
-def discover_product_urls(queued_records: dict[str, dict] | None = None) -> tuple[list[str], list[dict], dict[str, str]]:
+def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
+    """Prioritize worthwhile offers with a verified, closest expiry; unknown deadlines remain lower-priority."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
+    active_deadline = bool(expiry and expiry > current)
+    remaining = max(0.0, (expiry - current).total_seconds()) if active_deadline else 0.0
+    discount = max(0, int(record.get("discount_percent") or 0))
+    savings = max(0, int(record.get("savings_toman") or 0))
+    value_gate = int(discount >= MIN_DISCOUNT_PERCENT and savings >= MIN_SAVINGS_TOMAN)
+    first_seen = _parse_utc_datetime(record.get("first_seen_at"))
+    first_seen_ts = first_seen.timestamp() if first_seen else current.timestamp()
+    return (
+        value_gate,
+        int(active_deadline),
+        -remaining if active_deadline else float("-inf"),
+        discount,
+        savings,
+        max(0, int(record.get("demand_score") or 0)),
+        max(0, int(record.get("review_count") or 0)),
+        -first_seen_ts,
+    )
+
+
+def merge_discovery_queue(
+    queue: dict[str, dict],
+    candidates: list[dict],
+    now: datetime | None = None,
+) -> dict[str, dict]:
+    """Persist every safely identified deal-card candidate before expensive product checks."""
+    current = (now or datetime.now(timezone.utc))
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    current_iso = current.isoformat()
+    added = 0
+    updated = 0
+
+    for row in candidates if isinstance(candidates, list) else []:
+        if not isinstance(row, dict):
+            continue
+        url = safe_product_url(str(row.get("product_url") or row.get("url") or ""))
+        pid = product_id(url)
+        title = str(row.get("title") or row.get("title_fa") or "").strip()[:180]
+        if not url or not pid or not title or is_prohibited_product_title(title):
+            continue
+
+        old = queue.get(pid, {})
+        if not isinstance(old, dict):
+            old = {}
+        first_seen = _parse_utc_datetime(old.get("first_seen_at")) or current
+        new_expiry_raw = _parse_deal_expiry_value(row.get("deal_expires_at"))
+        new_expiry = _parse_utc_datetime(new_expiry_raw)
+        old_expiry = _parse_utc_datetime(_parse_deal_expiry_value(old.get("deal_expires_at")))
+        if new_expiry is not None:
+            # An explicitly expired deadline from the current feed supersedes any old deadline.
+            expiry = new_expiry if new_expiry > current else None
+        else:
+            expiry = old_expiry if old_expiry and old_expiry > current else None
+
+        raw_source = str(row.get("source") or row.get("discovery_source") or "digikala_live_deals_feed")[:80]
+        record = {
+            **old,
+            "product_id": pid,
+            "product_url": url,
+            "title": title,
+            "source": raw_source,
+            "first_seen_at": first_seen.isoformat(),
+            "last_seen_at": current_iso,
+            "deal_expires_at": expiry.isoformat() if expiry else "",
+            "listed_current_price": int(row.get("current_price") or old.get("listed_current_price") or 0),
+            "listed_original_price": int(row.get("original_price") or old.get("listed_original_price") or 0),
+            "discount_percent": int(row.get("discount_percent") or old.get("discount_percent") or 0),
+            "savings_toman": int(row.get("savings_toman") or old.get("savings_toman") or 0),
+            "review_count": max(0, int(row.get("review_count") or old.get("review_count") or 0)),
+            "demand_score": max(0, int(row.get("demand_score") or old.get("demand_score") or 0)),
+        }
+        # New candidates are immediately due for their first detailed validation.
+        record.setdefault("last_check_status", "discovered")
+        record.setdefault("check_count", 0)
+        record.setdefault("last_checked_at", "")
+        record.setdefault("next_check_at", "")
+        queue[pid] = record
+        if old:
+            updated += 1
+        else:
+            added += 1
+
+    # Expired offers are never re-queued for publication. Candidates without a verified
+    # deadline are retained only for a bounded window so a later feed refresh can enrich them.
+    for pid, record in list(queue.items()):
+        if not isinstance(record, dict):
+            queue.pop(pid, None)
+            continue
+        url = safe_product_url(record.get("product_url", ""))
+        if not url or product_id(url) != str(pid):
+            queue.pop(pid, None)
+            continue
+        expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
+        if expiry and expiry <= current:
+            queue.pop(pid, None)
+            continue
+        if not expiry:
+            last_seen = _parse_utc_datetime(record.get("last_seen_at")) or _parse_utc_datetime(record.get("first_seen_at"))
+            if last_seen and (current - last_seen).total_seconds() > DISCOVERY_QUEUE_TTL_HOURS * 3600:
+                queue.pop(pid, None)
+
+    if len(queue) > DISCOVERY_QUEUE_LIMIT:
+        ordered = sorted(
+            queue.items(),
+            key=lambda pair: discovery_queue_sort_key(pair[1], current),
+            reverse=True,
+        )
+        keep_ids = {pid for pid, _ in ordered[:DISCOVERY_QUEUE_LIMIT]}
+        for pid in list(queue):
+            if pid not in keep_ids:
+                queue.pop(pid, None)
+
+    due_now = sum(
+        1 for row in queue.values()
+        if not _parse_utc_datetime(row.get("next_check_at"))
+        or _parse_utc_datetime(row.get("next_check_at")) <= current
+    )
+    print(
+        f"DISCOVERY_QUEUE seen={len(candidates) if isinstance(candidates, list) else 0} "
+        f"added={added} refreshed={updated} retained={len(queue)} due_for_check={due_now}"
+    )
+    return queue
+
+
+def select_discovery_records_for_check(
+    queue: dict[str, dict],
+    now: datetime | None = None,
+    max_count: int | None = None,
+) -> list[tuple[str, dict]]:
+    """Select due candidates for incremental detail checks, favoring the nearest verified deadline."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    limit = MAX_DISCOVERY_QUEUE_CHECKS if max_count is None else max(0, int(max_count))
+    due = []
+    for raw_pid, record in queue.items() if isinstance(queue, dict) else []:
+        pid = str(raw_pid)
+        if not isinstance(record, dict):
+            continue
+        url = safe_product_url(record.get("product_url", ""))
+        if not url or product_id(url) != pid:
+            continue
+        expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
+        if expiry and expiry <= current:
+            continue
+        next_check = _parse_utc_datetime(record.get("next_check_at"))
+        if next_check and next_check > current:
+            continue
+        due.append((pid, record))
+    due.sort(key=lambda pair: discovery_queue_sort_key(pair[1], current), reverse=True)
+    selected = due[:limit]
+    print(f"DISCOVERY_QUEUE_CHECK_BATCH due={len(due)} selected={len(selected)} limit={limit}")
+    return selected
+
+
+def mark_discovery_candidate_checked(
+    queue: dict[str, dict],
+    product_or_id: dict | str,
+    status: str,
+    now: datetime | None = None,
+) -> None:
+    """Record a detail-check result and schedule a bounded retry without discarding the discovery record."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    if isinstance(product_or_id, dict):
+        product = product_or_id
+        pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
+    else:
+        product = {}
+        raw = str(product_or_id or "")
+        pid = raw if re.fullmatch(r"dkp-\\d{1,12}", raw) else product_id(raw)
+    record = queue.get(pid) if isinstance(queue, dict) else None
+    if not isinstance(record, dict):
+        return
+
+    record["last_checked_at"] = current.isoformat()
+    record["last_check_status"] = str(status or "checked")[:80]
+    record["check_count"] = max(0, int(record.get("check_count") or 0)) + 1
+    if product:
+        for source_key, target_key in (
+            ("title", "title"),
+            ("current_price", "last_checked_price"),
+            ("original_price", "last_checked_original_price"),
+            ("discount_percent", "discount_percent"),
+            ("savings_toman", "savings_toman"),
+            ("demand_score", "demand_score"),
+            ("review_count", "review_count"),
+        ):
+            value = product.get(source_key)
+            if value not in (None, ""):
+                record[target_key] = str(value)[:180] if target_key == "title" else value
+        refreshed_expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
+        if refreshed_expiry:
+            record["deal_expires_at"] = refreshed_expiry.isoformat()
+
+    expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
+    if expiry and expiry <= current:
+        queue.pop(pid, None)
+        return
+    minutes_left = (expiry - current).total_seconds() / 60 if expiry else None
+    if minutes_left is not None and minutes_left <= 30:
+        retry_minutes = 5
+    elif minutes_left is not None and minutes_left <= 90:
+        retry_minutes = 10
+    elif status == "eligible":
+        retry_minutes = 10
+    elif status == "fetch_failed":
+        retry_minutes = 10 if minutes_left is not None else 30
+    else:
+        retry_minutes = 15 if minutes_left is not None else 30
+    record["next_check_at"] = (current + timedelta(minutes=retry_minutes)).isoformat()
+
+
+def discover_product_urls(
+    queued_records: dict[str, dict] | None = None,
+    discovery_queue: dict[str, dict] | None = None,
+) -> tuple[list[str], list[dict], dict[str, str]]:
     """Recheck persisted offers first, scan every live-deal page, then rotate broader searches."""
     found = []
     diagnostics = []
@@ -1945,6 +2175,23 @@ def discover_product_urls(queued_records: dict[str, dict] | None = None) -> tupl
             int(row.get("discount_percent") or 0),
             int(row.get("savings_toman") or 0),
         )
+
+    # Persist the full discovered candidate set before applying the per-run detail-check budget.
+    # The selected batch below is only a work queue; it does not cap what we remember.
+    if isinstance(discovery_queue, dict):
+        merge_discovery_queue(discovery_queue, list(best_by_url.values()), discovery_now)
+        queued_due = select_discovery_records_for_check(discovery_queue, discovery_now)
+        queued_added = 0
+        for pid, record in queued_due:
+            queued_url = safe_product_url(record.get("product_url", ""))
+            if not queued_url or queued_url in found or len(found) >= MAX_PRODUCT_CHECKS:
+                continue
+            found.append(queued_url)
+            queued_added += 1
+            queued_expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
+            if queued_expiry:
+                deal_expiries[pid] = queued_expiry.isoformat()
+        print(f"DISCOVERY_QUEUE_URLS_ADDED count={queued_added} already_selected_or_capacity={len(queued_due) - queued_added}")
 
     sorted_deals = sorted(best_by_url.values(), key=discovery_key, reverse=True)
 
@@ -3416,10 +3663,21 @@ def run(publish=False):
     state = load_state()
     state.setdefault("published", {})
     queued_records = state.get("pending_queue")
+    discovery_queue = state.get("discovery_queue")
+    if not isinstance(discovery_queue, dict):
+        discovery_queue = {}
+        state["discovery_queue"] = discovery_queue
     urls, search_diagnostics, deal_expiries = discover_product_urls(
-        queued_records if isinstance(queued_records, dict) else {}
+        queued_records if isinstance(queued_records, dict) else {},
+        discovery_queue,
     )
-    print(f"discovered_product_urls={len(urls)} offer_expiries={len(deal_expiries)}")
+    # Write the discovery queue before per-product page checks; the workflow's final
+    # state-commit step also runs on failed validation/check steps so these sightings survive.
+    save_json(STATE, state)
+    print(
+        f"discovered_product_urls={len(urls)} offer_expiries={len(deal_expiries)} "
+        f"discovery_queue_size={len(discovery_queue)}"
+    )
 
     products = []
     for url in urls:
@@ -3484,6 +3742,37 @@ def run(publish=False):
         if p.get("product_id") or product_id(p.get("product_url", ""))
     }
     pending_queue = refresh_pending_queue(state, eligible, queue_now, observed_product_ids)
+    discovery_queue = state.get("discovery_queue")
+    if isinstance(discovery_queue, dict):
+        checked_products = {
+            str(p.get("product_id") or product_id(p.get("product_url", ""))): p
+            for p in products
+            if p.get("product_id") or product_id(p.get("product_url", ""))
+        }
+        eligible_ids = set(eligible_by_id.keys()) if "eligible_by_id" in locals() else {
+            str(p.get("product_id") or product_id(p.get("product_url", ""))) for p in eligible
+        }
+        for checked_url in urls:
+            checked_pid = product_id(checked_url)
+            if checked_pid not in discovery_queue:
+                continue
+            checked = checked_products.get(checked_pid)
+            if checked is None:
+                mark_discovery_candidate_checked(discovery_queue, checked_pid, "fetch_failed", queue_now)
+            elif checked_pid in eligible_ids:
+                mark_discovery_candidate_checked(discovery_queue, checked, "eligible", queue_now)
+            elif checked.get("availability") != "in_stock":
+                mark_discovery_candidate_checked(discovery_queue, checked, "stock_not_confirmed", queue_now)
+            elif not has_verified_deal_deadline(checked) or is_offer_expired(checked, queue_now):
+                mark_discovery_candidate_checked(discovery_queue, checked, "deadline_not_publishable", queue_now)
+            elif not checked.get("has_affiliate_link"):
+                mark_discovery_candidate_checked(discovery_queue, checked, "affiliate_link_missing", queue_now)
+            elif not is_discount_publish_eligible(checked):
+                mark_discovery_candidate_checked(discovery_queue, checked, "discount_or_content_gate", queue_now)
+            else:
+                mark_discovery_candidate_checked(discovery_queue, checked, "market_price_rejected", queue_now)
+        save_json(STATE, state)
+        print(f"DISCOVERY_QUEUE_CHECK_RESULTS updated={len(urls)} retained={len(discovery_queue)}")
     missing_deadline_count = sum(
         not _parse_utc_datetime(_parse_deal_expiry_value(p.get("deal_expires_at")))
         for p in products
