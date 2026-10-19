@@ -564,5 +564,63 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertIn("youtube_expiry_next_attempt_at", record)
 
 
+    def test_expired_aparat_video_is_made_private(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "aparat_video_hash": "aparat_test_hash",
+            "aparat_visibility": "public",
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "aparat_upload_status": "uploaded",
+        }
+        published = {"dkp-aparat-expired": record}
+        with (
+            patch("aparat_uploader.aparat_credentials_available", return_value=True),
+            patch("aparat_uploader.set_aparat_video_private", return_value=True) as make_private,
+        ):
+            changed = monitor._hide_expired_aparat_videos(published, now)
+
+        self.assertTrue(changed)
+        make_private.assert_called_once_with("aparat_test_hash")
+        self.assertEqual(record["aparat_expiry_status"], "private")
+        self.assertIn("aparat_private_at", record)
+
+    def test_expired_private_test_aparat_video_needs_no_api_call(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "aparat_video_hash": "aparat_test_hash",
+            "aparat_visibility": "non_public_test",
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+        }
+        published = {"dkp-aparat-private": record}
+        with (
+            patch("aparat_uploader.aparat_credentials_available", return_value=False),
+            patch("aparat_uploader.set_aparat_video_private") as make_private,
+        ):
+            changed = monitor._hide_expired_aparat_videos(published, now)
+
+        self.assertTrue(changed)
+        make_private.assert_not_called()
+        self.assertEqual(record["aparat_expiry_status"], "already_private")
+
+    def test_expired_aparat_video_waits_for_cookie_secret(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "aparat_video_hash": "aparat_test_hash",
+            "aparat_visibility": "public",
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+        }
+        published = {"dkp-aparat-no-cookie": record}
+        with (
+            patch("aparat_uploader.aparat_credentials_available", return_value=False),
+            patch("aparat_uploader.set_aparat_video_private") as make_private,
+        ):
+            changed = monitor._hide_expired_aparat_videos(published, now)
+
+        self.assertTrue(changed)
+        make_private.assert_not_called()
+        self.assertEqual(record["aparat_expiry_status"], "pending_credentials")
+        self.assertIn("aparat_expiry_next_attempt_at", record)
+
+
 if __name__ == "__main__":
     unittest.main()
