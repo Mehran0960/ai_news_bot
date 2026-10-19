@@ -26,6 +26,9 @@ from affilio_radar import (
     pending_queue_sort_key,
     refresh_pending_queue,
     select_queued_records_for_recheck,
+    merge_discovery_queue,
+    select_discovery_records_for_check,
+    mark_discovery_candidate_checked,
     parse_product_page,
     score_product,
     is_publish_eligible,
@@ -1475,6 +1478,95 @@ class AffilioRadarTests(unittest.TestCase):
         product["market_price_advantage_pct"] = -45
         self.assertFalse(is_market_price_uncompetitive(product))
 
+
+
+    def test_discovery_queue_records_all_candidates_before_detail_check_budget(self):
+        now = datetime(2026, 10, 19, 12, 0, tzinfo=timezone.utc)
+        queue = {}
+        candidates = [
+            {
+                "product_url": "https://www.digikala.com/product/dkp-91001/",
+                "title": "هدفون پیشنهادی با مهلت نزدیک",
+                "deal_expires_at": (now + timedelta(minutes=5)).isoformat(),
+                "discount_percent": 35,
+                "savings_toman": 350_000,
+                "current_price": 650_000,
+                "original_price": 1_000_000,
+            },
+            {
+                "product_url": "https://www.digikala.com/product/dkp-91002/",
+                "title": "چراغ کاربردی با مهلت دیرتر",
+                "deal_expires_at": (now + timedelta(minutes=30)).isoformat(),
+                "discount_percent": 30,
+                "savings_toman": 300_000,
+                "current_price": 700_000,
+                "original_price": 1_000_000,
+            },
+            {
+                "product_url": "https://www.digikala.com/product/dkp-91003/",
+                "title": "گجت با مهلت نامشخص",
+                "discount_percent": 80,
+                "savings_toman": 1_000_000,
+                "current_price": 250_000,
+                "original_price": 1_250_000,
+            },
+        ]
+
+        merge_discovery_queue(queue, candidates, now)
+        self.assertEqual(set(queue), {"dkp-91001", "dkp-91002", "dkp-91003"})
+        self.assertEqual(queue["dkp-91001"]["first_seen_at"], now.isoformat())
+        self.assertEqual(queue["dkp-91003"]["deal_expires_at"], "")
+        self.assertEqual(queue["dkp-91001"]["last_check_status"], "discovered")
+
+        selected = select_discovery_records_for_check(queue, now, max_count=2)
+        self.assertEqual([pid for pid, _ in selected], ["dkp-91001", "dkp-91002"])
+
+    def test_discovery_queue_check_results_schedule_fast_retry_for_near_expiry(self):
+        now = datetime(2026, 10, 19, 12, 0, tzinfo=timezone.utc)
+        queue = {}
+        merge_discovery_queue(queue, [{
+            "product_url": "https://www.digikala.com/product/dkp-91011/",
+            "title": "محصول نزدیک به پایان",
+            "deal_expires_at": (now + timedelta(minutes=20)).isoformat(),
+            "discount_percent": 40,
+            "savings_toman": 400_000,
+        }], now)
+
+        mark_discovery_candidate_checked(queue, "dkp-91011", "eligible", now)
+        self.assertEqual(queue["dkp-91011"]["check_count"], 1)
+        self.assertEqual(queue["dkp-91011"]["last_check_status"], "eligible")
+        self.assertEqual(
+            datetime.fromisoformat(queue["dkp-91011"]["next_check_at"]),
+            now + timedelta(minutes=5),
+        )
+        self.assertEqual(select_discovery_records_for_check(queue, now, max_count=5), [])
+        self.assertEqual(
+            [pid for pid, _ in select_discovery_records_for_check(queue, now + timedelta(minutes=5), max_count=5)],
+            ["dkp-91011"],
+        )
+
+    def test_discovery_queue_prunes_expired_deadlines_and_stale_unknown_deadlines(self):
+        now = datetime(2026, 10, 19, 12, 0, tzinfo=timezone.utc)
+        queue = {
+            "dkp-91021": {
+                "product_id": "dkp-91021",
+                "product_url": "https://www.digikala.com/product/dkp-91021/",
+                "title": "پیشنهاد منقضی",
+                "first_seen_at": (now - timedelta(hours=1)).isoformat(),
+                "last_seen_at": (now - timedelta(hours=1)).isoformat(),
+                "deal_expires_at": (now - timedelta(minutes=1)).isoformat(),
+            },
+            "dkp-91022": {
+                "product_id": "dkp-91022",
+                "product_url": "https://www.digikala.com/product/dkp-91022/",
+                "title": "نامزد قدیمی با مهلت نامعلوم",
+                "first_seen_at": (now - timedelta(hours=30)).isoformat(),
+                "last_seen_at": (now - timedelta(hours=25)).isoformat(),
+                "deal_expires_at": "",
+            },
+        }
+        merge_discovery_queue(queue, [], now)
+        self.assertEqual(queue, {})
 
 if __name__ == "__main__":
     unittest.main()
