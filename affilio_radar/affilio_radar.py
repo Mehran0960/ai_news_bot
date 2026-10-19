@@ -4244,7 +4244,8 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
                     datetime.now(timezone.utc)
                     + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
                 ).isoformat()
-                print(f"APARAT_UPLOAD_FAILED id={pid} error={type(exc).__name__} retry_attempt={attempts}")
+                status_code = getattr(getattr(exc, "response", None), "status_code", None)
+                print(f"APARAT_UPLOAD_FAILED id={pid} error={type(exc).__name__} http_status={status_code or 'unknown'} retry_attempt={attempts}")
         save_json(STATE, state)
 
     # Existing official YouTube upload stays independent from Aparat.
