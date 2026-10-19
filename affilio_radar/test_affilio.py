@@ -1381,8 +1381,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(legacy_telegram, canonical_telegram)
         self.assertNotEqual(bale, canonical_telegram)
 
-    def test_normal_publication_gap_is_fifteen_minutes(self):
-        self.assertEqual(MIN_POST_INTERVAL_HOURS, 0.25)
+    def test_normal_publication_gap_matches_five_minute_scan_cadence(self):
+        self.assertEqual(MIN_POST_INTERVAL_HOURS, 5 / 60)
 
     def test_mcp_offer_card_fields_are_normalized_as_live_deal_candidates(self):
         rows = api_incredible_offer_product_candidates([{
