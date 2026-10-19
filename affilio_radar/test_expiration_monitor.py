@@ -201,6 +201,44 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(result[3], 1)
 
 
+    def test_posts_are_deleted_ten_minutes_before_deadline_on_both_channels(self):
+        now = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "at_cutoff": {
+                "telegram_message_id": 101,
+                "bale_message_id": 201,
+                "expires_at": (now + timedelta(minutes=10)).isoformat(),
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_estimated": False,
+                "expiry_status": "tracked",
+                "bale_expiry_status": "tracked",
+            },
+            "just_before_cutoff": {
+                "telegram_message_id": 102,
+                "expires_at": (now + timedelta(minutes=10, seconds=1)).isoformat(),
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_estimated": False,
+                "expiry_status": "tracked",
+            },
+        }
+        with (
+            patch.object(monitor, "_telegram_delete", return_value="deleted") as tg_delete,
+            patch.object(monitor, "_bale_delete", return_value="deleted") as bale_delete,
+        ):
+            changed, deleted = monitor._delete_expired_posts(published, now)
+        self.assertTrue(changed)
+        self.assertEqual(deleted, 2)
+        tg_delete.assert_called_once_with(101)
+        bale_delete.assert_called_once_with(201)
+        self.assertEqual(published["at_cutoff"]["expiry_status"], "deleted")
+        self.assertEqual(published["at_cutoff"]["bale_expiry_status"], "deleted")
+        self.assertEqual(published["just_before_cutoff"]["expiry_status"], "tracked")
+
+    def test_repaired_legacy_countdown_keeps_five_minute_display_buffer(self):
+        deadline = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
+        now = deadline - timedelta(minutes=8)
+        self.assertEqual(monitor._remaining_label(deadline, now), "۳ دقیقه")
+
     def test_confirmed_deadline_does_not_need_another_network_probe(self):
         now = datetime.now(timezone.utc)
         record = {
@@ -466,6 +504,26 @@ class ExpirationMonitorTests(unittest.TestCase):
         deletion.assert_called_once_with(79)
         self.assertEqual(result[1], 1)
 
+
+    def test_youtube_short_is_made_private_before_the_last_five_minutes(self):
+        import short_video
+
+        now = datetime.now(timezone.utc)
+        record = {
+            "youtube_video_id": "yt_test_buffered",
+            "expires_at": (now + timedelta(minutes=9)).isoformat(),
+            "youtube_upload_status": "uploaded",
+        }
+        published = {"dkp-buffered": record}
+        with (
+            patch("short_video.youtube_credentials_available", return_value=True),
+            patch("short_video.set_youtube_video_private", return_value=True) as make_private,
+        ):
+            changed = monitor._hide_expired_youtube_videos(published, now)
+
+        self.assertTrue(changed)
+        make_private.assert_called_once_with("yt_test_buffered")
+        self.assertEqual(record["youtube_expiry_status"], "private")
 
     def test_expired_youtube_short_is_made_private(self):
         import short_video
