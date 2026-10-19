@@ -60,33 +60,39 @@ async function runScheduledCheck(env, scheduledTime) {
   const minute = now.getUTCMinutes();
   const offset = minute % 5;
 
-  // GitHub's native cron runs product discovery at :02/:07/:12/... and
-  // expired-offer cleanup at :00/:05/:10/.... Leave those slots to their workflows.
+  // Keep the native cleanup slot (:00/:05/...) and discovery slot (:02/:07/...) reserved.
+  // The next minute (:03/:08/...) is a failover: if GitHub's scheduled discovery run did not
+  // appear, dispatch it here rather than silently losing an entire scan cycle.
   if (offset === 0 || offset === 2) {
-    console.log(`COUNTDOWN_DISPATCH_SKIPPED: reserving UTC minute ${minute} for scheduled channel maintenance.`);
+    console.log(`CHANNEL_DISPATCH_SKIPPED: reserving UTC minute ${minute} for native scheduled workflows.`);
     return;
   }
 
   try {
-    // All channel-mutating workflows share one concurrency group. Never queue a countdown
-    // while product discovery, cleanup, or another countdown is waiting/running.
+    // Every channel-mutating workflow shares one concurrency group. Avoid overlap and queue buildup.
     for (const workflow of CHANNEL_WORKFLOWS) {
       const status = await findActiveWorkflow(workflow.api, env.GITHUB_TOKEN);
       if (status) {
-        console.log(`COUNTDOWN_DISPATCH_SKIPPED: ${workflow.name} is already ${status}.`);
+        console.log(`CHANNEL_DISPATCH_SKIPPED: ${workflow.name} is already ${status}.`);
         return;
       }
     }
 
-    await githubRequest(`${COUNTDOWN_API}/dispatches`, env.GITHUB_TOKEN, {
+    const radarFallback = offset === 3;
+    const targetApi = radarFallback ? API : COUNTDOWN_API;
+    const payload = radarFallback
+      ? { ref: "main", inputs: { external_scheduler: true } }
+      : { ref: "main" };
+
+    await githubRequest(`${targetApi}/dispatches`, env.GITHUB_TOKEN, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ref: "main" })
+      body: JSON.stringify(payload)
     });
-    console.log("COUNTDOWN_DISPATCH_ACCEPTED");
+    console.log(radarFallback ? "PRODUCT_RADAR_FALLBACK_DISPATCH_ACCEPTED" : "COUNTDOWN_DISPATCH_ACCEPTED");
   } catch (error) {
-    // A countdown refresh is best-effort and must not create repeated queued runs.
-    console.error("COUNTDOWN_DISPATCH_FAILED", String(error).slice(0, 900));
+    // Never keep queuing failed dispatch attempts; the next one-minute tick can retry.
+    console.error("CHANNEL_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 }
 
