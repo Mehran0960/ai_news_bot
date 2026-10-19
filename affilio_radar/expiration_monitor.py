@@ -1241,7 +1241,7 @@ def _hide_expired_aparat_videos(published, now):
                 retry_at = datetime.fromisoformat(retry_raw)
                 if retry_at.tzinfo is None:
                     retry_at = retry_at.replace(tzinfo=timezone.utc)
-                if now < retry_at:
+                if now < retry_at and not (expiry_status == "pending_credentials" and credentials_ready):
                     continue
             except ValueError:
                 pass
