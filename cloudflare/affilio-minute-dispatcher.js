@@ -61,10 +61,13 @@ async function runScheduledCheck(env, scheduledTime) {
   const offset = minute % 5;
 
   // Reserve :02/:07/... for GitHub's native product-radar schedule.
-  // Native expiry cleanup is not reliably appearing in Actions history, so dispatch it
-  // explicitly at :00/:05/... instead of silently reserving the slot.
+  // Keep :04/:09/... idle so a long countdown refresh cannot block the next cleanup slot.
   if (offset === 2) {
     console.log(`CHANNEL_DISPATCH_SKIPPED: reserving UTC minute ${minute} for native product-radar schedule.`);
+    return;
+  }
+  if (offset === 4) {
+    console.log(`CHANNEL_DISPATCH_SKIPPED: leaving UTC minute ${minute} clear for next expiry-cleanup slot.`);
     return;
   }
 
