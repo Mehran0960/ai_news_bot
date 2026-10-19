@@ -29,6 +29,8 @@ from affilio_radar import (
     merge_discovery_queue,
     select_discovery_records_for_check,
     mark_discovery_candidate_checked,
+    defer_pending_publication,
+    select_publish_candidates,
     parse_product_page,
     score_product,
     is_publish_eligible,
@@ -1567,6 +1569,53 @@ class AffilioRadarTests(unittest.TestCase):
         }
         merge_discovery_queue(queue, [], now)
         self.assertEqual(queue, {})
+
+
+    def test_failed_publish_candidate_is_backed_off_and_next_candidate_is_selected(self):
+        now = datetime(2026, 10, 19, 12, 0, tzinfo=timezone.utc)
+        state = {
+            "pending_queue": {
+                "dkp-92001": {
+                    "product_id": "dkp-92001",
+                    "product_url": "https://www.digikala.com/product/dkp-92001/",
+                },
+                "dkp-92002": {
+                    "product_id": "dkp-92002",
+                    "product_url": "https://www.digikala.com/product/dkp-92002/",
+                },
+            }
+        }
+        eligible = {
+            "dkp-92001": {"product_id": "dkp-92001", "title": "اولین نامزد خراب"},
+            "dkp-92002": {"product_id": "dkp-92002", "title": "نامزد بعدی"},
+        }
+
+        failed = defer_pending_publication(state, "dkp-92001", "image_fetch_failed", now)
+        self.assertEqual(failed["publish_failure_count"], 1)
+        self.assertEqual(failed["last_publish_failure"], "image_fetch_failed")
+        self.assertEqual(
+            datetime.fromisoformat(failed["next_publish_attempt_at"]),
+            now + timedelta(minutes=5),
+        )
+        selected = select_publish_candidates(state["pending_queue"], eligible, now)
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-92002"])
+        # Deferral does not delete the candidate; it returns after its retry window.
+        selected_later = select_publish_candidates(
+            state["pending_queue"], eligible, now + timedelta(minutes=5)
+        )
+        self.assertEqual([item["product_id"] for item in selected_later], ["dkp-92001", "dkp-92002"])
+
+    def test_repeated_publish_failures_use_bounded_exponential_backoff(self):
+        now = datetime(2026, 10, 19, 12, 0, tzinfo=timezone.utc)
+        state = {"pending_queue": {"dkp-92011": {"product_id": "dkp-92011"}}}
+        delays = []
+        current = now
+        for _ in range(6):
+            record = defer_pending_publication(state, "dkp-92011", "all_platforms_failed", current)
+            retry = datetime.fromisoformat(record["next_publish_attempt_at"])
+            delays.append(int((retry - current).total_seconds() / 60))
+            current = retry
+        self.assertEqual(delays, [5, 10, 20, 40, 60, 60])
 
 if __name__ == "__main__":
     unittest.main()
