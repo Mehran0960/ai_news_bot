@@ -63,6 +63,7 @@ from affilio_radar import (
     market_name_match_score,
     apply_market_price_comparison,
     is_market_price_uncompetitive,
+    MIN_POST_INTERVAL_HOURS,
 )
 
 
@@ -1191,6 +1192,29 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(preview.format, "JPEG")
             self.assertEqual(preview.size, (480, 640))
         self.assertNotEqual(rendered_without_badge, image_bytes.getvalue())
+
+    def test_normal_publication_gap_is_fifteen_minutes(self):
+        self.assertEqual(MIN_POST_INTERVAL_HOURS, 0.25)
+
+    def test_mcp_offer_card_fields_are_normalized_as_live_deal_candidates(self):
+        rows = api_incredible_offer_product_candidates([{
+            "id": 123,
+            "title_fa": "هدفون تخفیف‌دار آزمایشی",
+            "url": {"uri": "/product/dkp-123/"},
+            "is_incredible": True,
+            "default_variant": {
+                "marketable": True,
+                "price": {
+                    "discount_percent": 35,
+                    "selling_price_toman": 650_000,
+                    "rrp_price_toman": 1_000_000,
+                },
+            },
+        }])
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["product_url"], "https://www.digikala.com/product/dkp-123/")
+        self.assertEqual(rows[0]["discount_percent"], 35)
+        self.assertEqual(rows[0]["savings_toman"], 350_000)
 
     def test_incredible_offer_expiry_supports_absolute_deadline(self):
         value = extract_deal_expiry({
