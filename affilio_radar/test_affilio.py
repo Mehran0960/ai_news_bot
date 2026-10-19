@@ -407,8 +407,8 @@ class AffilioRadarTests(unittest.TestCase):
 
     def test_publication_requires_minimum_verified_runway(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
-        too_short = {"deal_expires_at": (now + timedelta(minutes=89, seconds=59)).isoformat()}
-        exactly_minimum = {"deal_expires_at": (now + timedelta(minutes=90)).isoformat()}
+        too_short = {"deal_expires_at": (now + timedelta(minutes=59, seconds=59)).isoformat()}
+        exactly_minimum = {"deal_expires_at": (now + timedelta(minutes=60)).isoformat()}
         comfortably_long = {"deal_expires_at": (now + timedelta(hours=4)).isoformat()}
         unknown = {"deal_expires_at": ""}
         expired = {"deal_expires_at": (now - timedelta(seconds=1)).isoformat()}
