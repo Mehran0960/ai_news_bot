@@ -159,6 +159,9 @@ jobs:
           AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES: "32"
           AFFILIO_MAX_QUEUED_RECHECKS: "8"
           AFFILIO_PENDING_QUEUE_LIMIT: "200"
+          AFFILIO_DISCOVERY_QUEUE_LIMIT: "500"
+          AFFILIO_DISCOVERY_QUEUE_TTL_HOURS: "24"
+          AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "24"
           AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || inputs.external_scheduler || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.25"
           AFFILIO_MAX_POSTS_PER_RUN: ${{ contains(github.event.head_commit.message, '[publish-now]') && '10' || inputs.batch_count || '1' }}
@@ -178,6 +181,7 @@ jobs:
           fi
 
       - name: Commit candidate report and state only when changed
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
