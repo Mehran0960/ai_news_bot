@@ -64,10 +64,14 @@ MAX_QUEUED_RECHECKS = max(0, min(12, int(os.getenv("AFFILIO_MAX_QUEUED_RECHECKS"
 DISCOVERY_QUEUE_LIMIT = max(100, min(1000, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_LIMIT", "500"))))
 DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_TTL_HOURS", "24"))))
 MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(32, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "24"))))
-URGENT_EXPIRY_WINDOW_MINUTES = 90
+# Never publish an offer that gives the audience less than this much time to act.
+MIN_PUBLICATION_RUNWAY_MINUTES = max(30, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "90"))))
+# Urgency can speed cadence only while the offer still clears the minimum runway.
+URGENT_EXPIRY_WINDOW_MINUTES = 180
 URGENT_MIN_POST_INTERVAL_MINUTES = 10
-DEADLINE_CRITICAL_WINDOW_MINUTES = 45
-ULTRA_URGENT_WINDOW_MINUTES = 15
+DEADLINE_CRITICAL_WINDOW_MINUTES = 120
+# Offers inside the hard 90-minute cutoff are rejected instead of being rushed out.
+ULTRA_URGENT_WINDOW_MINUTES = 0
 ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 5
 URGENT_MIN_DISCOUNT_PERCENT = 80
 URGENT_MIN_SAVINGS_TOMAN = 500_000
@@ -3474,9 +3478,21 @@ def has_verified_deal_deadline(product: dict, now: datetime | None = None) -> bo
     return expiry > current.astimezone(timezone.utc)
 
 
+def has_minimum_publication_runway(product: dict, now: datetime | None = None) -> bool:
+    """Require at least the configured amount of time for the audience to act after a post."""
+    expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
+    if expiry is None:
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    remaining_seconds = (expiry - current.astimezone(timezone.utc)).total_seconds()
+    return remaining_seconds >= MIN_PUBLICATION_RUNWAY_MINUTES * 60
+
+
 def is_urgent_priority_deal(product: dict, now: datetime | None = None) -> bool:
-    """Only very strong, soon-expiring offers may use the shorter posting cooldown."""
-    if is_offer_expired(product, now):
+    """Only very strong deals with safe purchase runway may use the shorter posting cooldown."""
+    if not has_minimum_publication_runway(product, now):
         return False
     expiry_value = _parse_deal_expiry_value(product.get("deal_expires_at"))
     expiry = _parse_utc_datetime(expiry_value)
@@ -3493,7 +3509,9 @@ def is_urgent_priority_deal(product: dict, now: datetime | None = None) -> bool:
 
 
 def is_deadline_critical_deal(product: dict, now: datetime | None = None) -> bool:
-    """Allow a fully qualified deal close to expiry to bypass the regular posting gap."""
+    """Allow a qualified deal near its deadline to bypass the usual gap, but never the runway floor."""
+    if not has_minimum_publication_runway(product, now):
+        return False
     expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
     if expiry is None:
         return False
@@ -3745,7 +3763,7 @@ def _last_post_timestamp(state):
 def run(publish=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
-    print(f"Ranking mode=audience-demand-first/category-balanced; medicines and dietary supplements excluded; only future verified-deadline deals can publish; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman.")
+    print(f"Ranking mode=audience-demand-first/category-balanced; medicines and dietary supplements excluded; offers need a verified deadline with at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining at publish time; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman.")
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
@@ -3818,13 +3836,20 @@ def run(publish=False):
     state.pop("price_history", None)
     enrich_market_prices(products)
     products.sort(key=deal_sort_key, reverse=True)
+    queue_now = datetime.now(timezone.utc)
     listed_eligible_count = sum(
         bool(
             p.get("has_affiliate_link")
             and is_discount_publish_eligible(p)
-            and has_verified_deal_deadline(p)
-            and not is_offer_expired(p)
+            and has_verified_deal_deadline(p, queue_now)
+            and not is_offer_expired(p, queue_now)
+            and has_minimum_publication_runway(p, queue_now)
         )
+        for p in products
+    )
+    deadline_too_close_count = sum(
+        has_verified_deal_deadline(p, queue_now)
+        and not has_minimum_publication_runway(p, queue_now)
         for p in products
     )
     market_blocked_count = sum(is_market_price_uncompetitive(p) for p in products)
@@ -3833,10 +3858,10 @@ def run(publish=False):
         if p.get("has_affiliate_link")
         and is_discount_publish_eligible(p)
         and is_market_value_publish_eligible(p)
-        and has_verified_deal_deadline(p)
-        and not is_offer_expired(p)
+        and has_verified_deal_deadline(p, queue_now)
+        and not is_offer_expired(p, queue_now)
+        and has_minimum_publication_runway(p, queue_now)
     ]
-    queue_now = datetime.now(timezone.utc)
     observed_product_ids = {
         str(p.get("product_id") or product_id(p.get("product_url", "")))
         for p in products
@@ -3865,8 +3890,10 @@ def run(publish=False):
                 mark_discovery_candidate_checked(discovery_queue, checked, "eligible", queue_now)
             elif checked.get("availability") != "in_stock":
                 mark_discovery_candidate_checked(discovery_queue, checked, "stock_not_confirmed", queue_now)
-            elif not has_verified_deal_deadline(checked) or is_offer_expired(checked, queue_now):
+            elif not has_verified_deal_deadline(checked, queue_now) or is_offer_expired(checked, queue_now):
                 mark_discovery_candidate_checked(discovery_queue, checked, "deadline_not_publishable", queue_now)
+            elif not has_minimum_publication_runway(checked, queue_now):
+                mark_discovery_candidate_checked(discovery_queue, checked, "deadline_too_close_for_publication", queue_now)
             elif not checked.get("has_affiliate_link"):
                 mark_discovery_candidate_checked(discovery_queue, checked, "affiliate_link_missing", queue_now)
             elif not is_discount_publish_eligible(checked):
@@ -3884,6 +3911,7 @@ def run(publish=False):
     print(
         f"ELIGIBILITY_DIAGNOSTICS ranked={len(products)} "
         f"missing_deadline={missing_deadline_count} expired_deadline={expired_deadline_count} "
+        f"deadline_too_close_for_publication={deadline_too_close_count} "
         f"medicine_or_supplement={prohibited_product_count} "
         f"future_deadline_and_discount_ok={len(eligible)} "
         f"fresh_after_duplicate_cooldown={len(pending_queue)}"
@@ -3909,7 +3937,10 @@ def run(publish=False):
             if now_epoch < retry_after:
                 continue
             fresh_item = eligible_by_id.get(pid)
-            if not fresh_item or is_offer_expired(fresh_item, queue_now):
+            if not fresh_item:
+                continue
+            if not has_minimum_publication_runway(fresh_item, datetime.now(timezone.utc)):
+                print(f"DELIVERY_RETRY_SKIP id={pid} reason=minimum_publication_runway")
                 continue
             delivery_retry_handled = True
             try:
@@ -3983,7 +4014,7 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "Real 30-day channel clicks and audience demand lead, then review volume, rating, and deal value. Discovery prioritizes future deadline-verified offers and uses category balancing across practical tech, home, auto, gaming, and personal-care products. Medicines, pharmacy products, vitamins, and dietary supplements are excluded. Products without an explicit future deal deadline never publish.",
+        "ranking_note": f"Real 30-day channel clicks and audience demand lead, then review volume, rating, and deal value. Discovery prioritizes future deadline-verified offers and uses category balancing across practical tech, home, auto, gaming, and personal-care products. Medicines, pharmacy products, vitamins, and dietary supplements are excluded. Products without a verified deadline or with less than {MIN_PUBLICATION_RUNWAY_MINUTES} minutes left never publish.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
@@ -4111,6 +4142,22 @@ def run(publish=False):
             except Exception as exc:
                 print(f"PUBLISH_FAILED id={pid} reason=image_fetch error={type(exc).__name__}")
                 defer_pending_publication(state, pid, f"image_fetch_{type(exc).__name__}", datetime.now(timezone.utc))
+                save_json(STATE, state)
+                continue
+
+            # Check again after image download, immediately before sending to either channel:
+            # a candidate may cross the minimum runway while the rest of the pipeline is running.
+            publish_check_time = datetime.now(timezone.utc)
+            if not has_minimum_publication_runway(item, publish_check_time):
+                expiry = _parse_utc_datetime(_parse_deal_expiry_value(item.get("deal_expires_at")))
+                remaining_minutes = int((expiry - publish_check_time).total_seconds() / 60) if expiry else -1
+                print(
+                    f"PUBLISH_SKIP id={pid} reason=minimum_publication_runway "
+                    f"remaining_minutes={remaining_minutes} required_minutes={MIN_PUBLICATION_RUNWAY_MINUTES}"
+                )
+                pending_state = state.get("pending_queue")
+                if isinstance(pending_state, dict):
+                    pending_state.pop(pid, None)
                 save_json(STATE, state)
                 continue
 

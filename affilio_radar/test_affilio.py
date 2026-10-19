@@ -18,6 +18,7 @@ from affilio_radar import (
     deal_sort_key,
     is_offer_expired,
     has_verified_deal_deadline,
+    has_minimum_publication_runway,
     is_urgent_priority_deal,
     is_deadline_critical_deal,
     is_materially_improved_offer,
@@ -402,38 +403,57 @@ class AffilioRadarTests(unittest.TestCase):
             "quiet_hours",
         )
 
-    def test_urgent_priority_is_limited_to_strong_soon_expiring_offers(self):
+    def test_publication_requires_minimum_verified_runway(self):
+        now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
+        too_short = {"deal_expires_at": (now + timedelta(minutes=89, seconds=59)).isoformat()}
+        exactly_minimum = {"deal_expires_at": (now + timedelta(minutes=90)).isoformat()}
+        comfortably_long = {"deal_expires_at": (now + timedelta(hours=4)).isoformat()}
+        unknown = {"deal_expires_at": ""}
+        expired = {"deal_expires_at": (now - timedelta(seconds=1)).isoformat()}
+
+        self.assertFalse(has_minimum_publication_runway(too_short, now))
+        self.assertTrue(has_minimum_publication_runway(exactly_minimum, now))
+        self.assertTrue(has_minimum_publication_runway(comfortably_long, now))
+        self.assertFalse(has_minimum_publication_runway(unknown, now))
+        self.assertFalse(has_minimum_publication_runway(expired, now))
+
+    def test_urgent_priority_is_limited_to_strong_offers_with_safe_runway(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
         item = {
             "product_id": "dkp-123",
             "discount_percent": 82,
             "savings_toman": 600_000,
             "demand_score": 58,
-            "deal_expires_at": (now + timedelta(minutes=45)).isoformat(),
+            "deal_expires_at": (now + timedelta(minutes=150)).isoformat(),
         }
         self.assertTrue(is_urgent_priority_deal(item, now))
+        self.assertTrue(has_minimum_publication_runway(item, now))
         self.assertFalse(is_offer_expired(item, now))
 
-        too_far = {**item, "deal_expires_at": (now + timedelta(minutes=95)).isoformat()}
+        too_far = {**item, "deal_expires_at": (now + timedelta(minutes=181)).isoformat()}
         self.assertFalse(is_urgent_priority_deal(too_far, now))
         too_weak = {**item, "savings_toman": 499_999}
         self.assertFalse(is_urgent_priority_deal(too_weak, now))
+        too_soon = {**item, "deal_expires_at": (now + timedelta(minutes=45)).isoformat()}
+        self.assertFalse(has_minimum_publication_runway(too_soon, now))
+        self.assertFalse(is_urgent_priority_deal(too_soon, now))
         expired = {**item, "deal_expires_at": (now - timedelta(seconds=1)).isoformat()}
         self.assertTrue(is_offer_expired(expired, now))
         self.assertFalse(is_urgent_priority_deal(expired, now))
 
-    def test_deadline_critical_priority_catches_good_deals_before_they_expire(self):
+    def test_deadline_critical_priority_never_overrides_runway_floor(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
-        close = {
+        close_but_safe = {
             "discount_percent": 35,
             "savings_toman": 150_000,
-            "deal_expires_at": (now + timedelta(minutes=20)).isoformat(),
+            "deal_expires_at": (now + timedelta(minutes=110)).isoformat(),
         }
-        self.assertTrue(is_deadline_critical_deal(close, now))
-        self.assertFalse(is_deadline_critical_deal({
-            **close, "deal_expires_at": (now + timedelta(minutes=46)).isoformat()
-        }, now))
-        self.assertFalse(is_deadline_critical_deal({**close, "deal_expires_at": ""}, now))
+        self.assertTrue(is_deadline_critical_deal(close_but_safe, now))
+        too_far = {**close_but_safe, "deal_expires_at": (now + timedelta(minutes=121)).isoformat()}
+        self.assertFalse(is_deadline_critical_deal(too_far, now))
+        too_soon = {**close_but_safe, "deal_expires_at": (now + timedelta(minutes=45)).isoformat()}
+        self.assertFalse(is_deadline_critical_deal(too_soon, now))
+        self.assertFalse(is_deadline_critical_deal({**close_but_safe, "deal_expires_at": ""}, now))
 
     def test_new_offer_cycle_or_real_price_drop_can_bypass_product_cooldown(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
