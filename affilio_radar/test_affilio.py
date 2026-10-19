@@ -973,9 +973,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
         self.assertIn("<b>⏳ ", caption)
         self.assertIn("مانده به پایان تخفیف</b>", caption)
-        self.assertIn("<b>👇 برای دیدن جزئیات و خرید، دکمهٔ زیر رو بزن.</b>", caption)
+        self.assertIn("<b>👇 برای مشاهدهٔ قیمت و خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.</b>", caption)
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', caption)
-        self.assertLess(caption.index("عضویت در کانال"), caption.index("برای دیدن جزئیات و خرید"))
+        self.assertLess(caption.index("عضویت در کانال"), caption.index("برای مشاهدهٔ قیمت و خرید از دیجی‌کالا"))
         self.assertNotRegex(caption, r"[0-9]")
         self.assertNotIn("قیمت امروز", caption)
         self.assertNotIn("صرفه‌جویی", caption)
@@ -1026,7 +1026,7 @@ class AffilioRadarTests(unittest.TestCase):
             _send_photo(b"photo-bytes", "caption", direct_affiliate_url)
         data = post.call_args.kwargs["data"]
         markup = json.loads(data["reply_markup"])
-        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهدهٔ قیمت و خرید")
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(urlsplit(markup["inline_keyboard"][0][0]["url"]).netloc, "www.digikala.com")
 
@@ -1047,7 +1047,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(data["chat_id"], "-10012345")
         self.assertEqual(data["caption"], "bale caption")
         self.assertNotIn("parse_mode", data)
-        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهدهٔ قیمت و خرید")
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(result["message_id"], 88)
 
@@ -1068,7 +1068,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<s>۱٬۱۰۸٬۸۰۰ تومان</s>", telegram_caption)
         self.assertIn("[عضویت در کانال OfferChin](https://ble.ir/OfferChin)", bale_caption)
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
-        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای دیدن جزئیات و خرید"))
+        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای مشاهدهٔ قیمت و خرید از دیجی‌کالا"))
         self.assertNotIn("<b>", bale_caption)
         self.assertNotIn("@OfferChin", bale_caption)
         self.assertNotIn("@OfferChin", telegram_caption)
@@ -1200,7 +1200,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(data["caption"], "updated caption")
         self.assertEqual(data["parse_mode"], "HTML")
         markup = json.loads(data["reply_markup"])
-        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهدهٔ قیمت و خرید")
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(result["message_id"], 39)
 
@@ -1253,8 +1253,8 @@ class AffilioRadarTests(unittest.TestCase):
         bale_caption = edit_bale.call_args_list[0].args[1]
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
         self.assertIn("[عضویت در کانال OfferChin](https://ble.ir/OfferChin)", bale_caption)
-        self.assertLess(telegram_caption.index("عضویت در کانال"), telegram_caption.index("برای دیدن جزئیات و خرید"))
-        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای دیدن جزئیات و خرید"))
+        self.assertLess(telegram_caption.index("عضویت در کانال"), telegram_caption.index("برای مشاهدهٔ قیمت و خرید از دیجی‌کالا"))
+        self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای مشاهدهٔ قیمت و خرید از دیجی‌کالا"))
 
 
 
