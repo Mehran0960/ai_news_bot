@@ -35,6 +35,18 @@ def _cookie_header(env: Mapping[str, str] | None = None) -> str:
     value = str(_env(env).get("APARAT_COOKIE_HEADER", "")).strip()
     if "\r" in value or "\n" in value:
         raise ValueError("APARAT_COOKIE_HEADER must be a single-line cookie header")
+
+    # Accept either a complete Cookie header or a bare JWT copied from the
+    # AuthV1 cookie value. Normalize only a single, JWT-shaped token; never log it.
+    if (
+        value
+        and "AuthV1=" not in value
+        and value.count(".") == 2
+        and ";" not in value
+        and "=" not in value
+        and not any(char.isspace() for char in value)
+    ):
+        value = f"AuthV1={value}"
     return value
 
 

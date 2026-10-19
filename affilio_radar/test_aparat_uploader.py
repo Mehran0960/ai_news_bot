@@ -1,6 +1,6 @@
 import unittest
 
-from aparat_uploader import _approved_upload_server, aparat_credentials_available
+from aparat_uploader import _approved_upload_server, _cookie_header, aparat_credentials_available
 
 
 class AparatUploaderTests(unittest.TestCase):
@@ -12,6 +12,12 @@ class AparatUploaderTests(unittest.TestCase):
     def test_empty_or_incomplete_cookie_does_not_enable_upload(self):
         self.assertFalse(aparat_credentials_available({}))
         self.assertFalse(aparat_credentials_available({"APARAT_COOKIE_HEADER": "AFCN=offerchin"}))
+
+    def test_bare_jwt_is_normalized_to_authv1_cookie(self):
+        token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.signature"
+        env = {"APARAT_COOKIE_HEADER": token}
+        self.assertTrue(aparat_credentials_available(env))
+        self.assertEqual(_cookie_header(env), f"AuthV1={token}")
 
     def test_cookie_header_rejects_newlines(self):
         self.assertFalse(aparat_credentials_available({
