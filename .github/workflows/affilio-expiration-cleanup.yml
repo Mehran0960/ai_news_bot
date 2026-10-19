@@ -47,6 +47,9 @@ jobs:
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           AFFILIO_DEAL_LIST_PAGES: "5"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/expiration_monitor.py
