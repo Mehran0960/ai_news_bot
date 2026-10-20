@@ -356,12 +356,40 @@ def fetch_direct_api_offer_expiries():
     return results
 
 
-def fetch_offer_expiries():
-    """Prefer live MCP countdown fields, and fall back to the direct public feed."""
-    results = fetch_mcp_offer_expiries()
-    # Do not overwrite a countdown-based deadline with a weaker duplicate from another feed.
-    for pid, expiry in fetch_direct_api_offer_expiries().items():
-        results.setdefault(pid, expiry)
+def fetch_offer_expiries(required_product_ids=None):
+    """Use DigiKala's own live API first; use MCP only to fill deadline gaps.
+
+    required_product_ids lets the caption refresher avoid a slower MCP scan when
+    every currently visible product already has a deadline in the first-party feed.
+    A direct-site deadline always wins over a duplicate reported by the MCP wrapper.
+    """
+    results = {}
+    direct = {}
+    try:
+        direct = fetch_direct_api_offer_expiries()
+        if isinstance(direct, dict):
+            results.update(direct)
+    except Exception as exc:
+        print(f"EXPIRY_DIRECT_FEED_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
+
+    required = {str(pid) for pid in (required_product_ids or []) if str(pid)}
+    missing_required = required.difference(results)
+    should_use_mcp = not required or bool(missing_required)
+    supplemental = {}
+    if should_use_mcp:
+        try:
+            supplemental = fetch_mcp_offer_expiries()
+        except Exception as exc:
+            print(f"EXPIRY_MCP_FALLBACK_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
+        if isinstance(supplemental, dict):
+            for pid, expiry in supplemental.items():
+                results.setdefault(str(pid), expiry)
+
+    print(
+        f"EXPIRY_SOURCE_PRIORITY direct_site={len(direct)} "
+        f"mcp_added={max(0, len(results) - len(direct))} "
+        f"required={len(required)} unresolved_required={len(required.difference(results))}"
+    )
     return results
 
 def _money_to_toman(raw, is_toman):
