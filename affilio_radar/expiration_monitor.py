@@ -1428,6 +1428,33 @@ def run():
     changed = False
     deleted = 0
 
+    # Refresh known deadlines before expiry/deletion decisions; a fresh live deadline
+    # must supersede a stale cached deadline.
+    feed_last = parse_expiry(state.get("expiry_feed_last_checked_at"))
+    force_feed_sync = os.getenv("AFFILIO_FORCE_DEADLINE_SYNC", "false").strip().lower() in {"1", "true", "yes", "on"}
+    feed_due = force_feed_sync or not feed_last or (now - datetime.fromisoformat(feed_last)).total_seconds() >= LIVE_DEADLINE_SYNC_INTERVAL_SECONDS
+    if feed_due and published:
+        live_expiries = {}
+        try:
+            live_expiries = fetch_offer_expiries()
+        except Exception as exc:
+            print(f"EXPIRY_FEED_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
+        if live_expiries:
+            sync_summary = sync_live_offer_deadlines(published, live_expiries, now)
+            state["expiry_feed_last_checked_at"] = now.isoformat()
+            state["expiry_feed_last_sync_summary"] = sync_summary
+            changed = True
+            print(
+                "EXPIRY_LIVE_SYNC_SUMMARY "
+                f"matched={sync_summary['matched']} updated={sync_summary['updated']} "
+                f"unchanged={sync_summary['unchanged']} missing_from_feed={sync_summary['missing_from_feed']} "
+                f"skipped={sync_summary['skipped']} forced={force_feed_sync}"
+            )
+        else:
+            print("EXPIRY_LIVE_SYNC_SKIPPED reason=no_live_deadlines_received; cached deadlines retained")
+    else:
+        print(f"EXPIRY_LIVE_SYNC_SKIPPED reason=not_due forced={force_feed_sync}")
+
     pre_changed, pre_deleted = _delete_expired_posts(published, now, mark_unknown=True)
     changed = changed or pre_changed
     deleted += pre_deleted
@@ -1463,31 +1490,6 @@ def run():
         and _should_probe(rec, now)
     ]
     probe_candidates.sort(key=lambda pair: str(pair[1].get("expiry_last_probed_at") or ""))
-    feed_last = parse_expiry(state.get("expiry_feed_last_checked_at"))
-    feed_due = not feed_last or (now - datetime.fromisoformat(feed_last)).total_seconds() >= UNKNOWN_PROBE_INTERVAL_SECONDS
-    live_expiries = {}
-    if probe_candidates and feed_due:
-        try:
-            live_expiries = fetch_offer_expiries()
-        except Exception as exc:
-            print(f"EXPIRY_FEED_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
-        state["expiry_feed_last_checked_at"] = now.isoformat()
-        changed = True
-        for pid, rec in published.items():
-            if not isinstance(rec, dict) or (rec.get("expires_at") and not rec.get("expiry_estimated")):
-                continue
-            live = live_expiries.get(pid)
-            if live:
-                rec["expires_at"] = live
-                rec["expiry_source"] = "digikala_live_deals_feed"
-                rec["expiry_estimated"] = False
-                if rec.get("expiry_status") not in {"deleted", "already_absent"}:
-                    rec["expiry_status"] = "tracked"
-                if str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"}:
-                    rec["bale_expiry_status"] = "tracked"
-                changed = True
-                print(f"EXPIRY_TRACKED product_id={pid} expires_at={live}")
-
     product_probe_count = 0
     max_product_probes = 3
     max_probe_candidates = max_product_probes * 2
