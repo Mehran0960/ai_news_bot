@@ -8,6 +8,8 @@ on:
       - "affilio_radar/offerchin_visuals.py"
       - "affilio_radar/offerchin_audio.py"
       - "affilio_radar/aparat_uploader.py"
+      - "affilio_radar/aparat_shorts_migration.py"
+      - "affilio_radar/test_aparat_shorts_migration.py"
       - "affilio_radar/state.json"
       - "affilio_radar/test_affilio.py"
       - "affilio_radar/test_expiration_monitor.py"
@@ -88,10 +90,21 @@ jobs:
       - name: Validate syntax and run unit tests
         if: ${{ github.event_name != 'schedule' }}
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py
           cd affilio_radar
-          python -m unittest -v test_affilio.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py
+          python -m unittest -v test_affilio.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py
           python -m py_compile expiration_monitor.py
+
+      - name: Withdraw recent regular-feed Aparat uploads pending Shorts publication
+        # Aparat's official guidance says Shorts are published through its app. Never pretend
+        # that the generic website uploader places a vertical MP4 into the Shorts feed.
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') }}
+        env:
+          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
+          APARAT_SHORTS_MIGRATION_CUTOFF_UTC: "2026-10-19T22:00:00+00:00"
+          APARAT_SHORTS_MIGRATION_MAX_PER_RUN: "30"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/aparat_shorts_migration.py
 
       - name: Smoke-test the deployed click tracker
         if: ${{ github.event_name == 'push' }}
@@ -165,9 +178,9 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
-          # The private end-to-end upload test succeeded and returned a canonical video UID.
-          # Future eligible product videos are now published publicly on Aparat.
-          APARAT_VIDEO_PASS: "0"
+          # Only queue vertical files while a verified route into Aparat Shorts is unavailable.
+          # Do not send them through the generic website uploader into the regular-video feed.
+          APARAT_SHORTS_ONLY: "true"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
           AFFILIO_VIDEO_REVIEW_CHAT_ID: ${{ secrets.AFFILIO_VIDEO_REVIEW_CHAT_ID }}
           # Keep first OAuth test uploads unlisted until the owner reviews them.
@@ -203,7 +216,7 @@ jobs:
             python affilio_radar/affilio_radar.py
           fi
 
-      - name: Preserve generated short videos for Aparat upload
+      - name: Preserve generated vertical MP4 artifacts while Aparat Shorts publication is gated
         if: always()
         uses: actions/upload-artifact@v4
         with:
