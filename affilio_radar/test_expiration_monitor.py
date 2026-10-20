@@ -304,7 +304,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         }
         self.assertFalse(monitor._should_probe(record, now))
 
-    def test_expired_and_unknown_posts_are_removed_before_feed_probes(self):
+    def test_expired_and_unknown_posts_are_removed_even_if_live_feed_is_unavailable(self):
         with tempfile.TemporaryDirectory() as temp:
             state_path = Path(temp) / "state.json"
             state = {
@@ -336,7 +336,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             ):
                 self.assertEqual(monitor.run(), 0)
             self.assertCountEqual([call.args[0] for call in deletion.call_args_list], [77, 88])
-            fetch.assert_not_called()
+            fetch.assert_called_once()
             product_check.assert_not_called()
             saved = json.loads(state_path.read_text(encoding="utf-8"))
             self.assertEqual(saved["published"]["dkp-12345"]["expiry_status"], "deleted")
