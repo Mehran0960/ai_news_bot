@@ -1219,6 +1219,11 @@ def _hide_expired_aparat_videos(published, now):
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
+        # Legacy generic-feed videos that failed the one-time privacy migration are
+        # intentionally left alone per the current publishing configuration. Do not
+        # keep retrying an endpoint that has already rejected those old records.
+        if str(rec.get("aparat_shorts_migration_status") or "") == "retry":
+            continue
         video_hash = str(rec.get("aparat_video_hash") or "").strip()
         expiry_status = str(rec.get("aparat_expiry_status") or "")
         if not video_hash or expiry_status in {"private", "already_private"}:
