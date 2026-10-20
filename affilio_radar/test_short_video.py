@@ -7,10 +7,12 @@ from PIL import Image
 from offerchin_audio import write_original_soundtrack
 
 from short_video import (
+    YOUTUBE_API_URL,
     YOUTUBE_TOKEN_URL,
     YOUTUBE_UPLOAD_URL,
     build_vertical_poster,
     telegram_video_review_available,
+    update_youtube_video_description,
     upload_youtube_video,
 )
 
@@ -33,6 +35,23 @@ class FakeYouTubeHTTP:
     def __init__(self):
         self.posts = []
         self.puts = []
+        self.gets = []
+
+    def get(self, url, **kwargs):
+        self.gets.append((url, kwargs))
+        if url == YOUTUBE_API_URL:
+            video_id = kwargs.get("params", {}).get("id", "testVideo123")
+            return FakeResponse({"items": [{
+                "id": video_id,
+                "snippet": {
+                    "title": "Existing title",
+                    "description": "Old description",
+                    "categoryId": "22",
+                    "tags": ["آفرچین", "تخفیف"],
+                    "defaultLanguage": "fa",
+                },
+            }]})
+        raise AssertionError(f"Unexpected GET: {url}")
 
     def post(self, url, **kwargs):
         self.posts.append((url, kwargs))
@@ -44,6 +63,8 @@ class FakeYouTubeHTTP:
 
     def put(self, url, **kwargs):
         self.puts.append((url, kwargs))
+        if url == YOUTUBE_API_URL:
+            return FakeResponse({"id": kwargs.get("json", {}).get("id", "testVideo123")})
         return FakeResponse({"id": "testVideo123"})
 
 
@@ -68,9 +89,9 @@ class ShortVideoTests(unittest.TestCase):
         image.save(stream, format="PNG")
         poster = Image.open(io.BytesIO(build_vertical_poster(stream.getvalue(), 50))).convert("RGB")
 
-        # Sample clean pixels inside the left edges of each circle, away from the white glyphs.
-        self.assertEqual(poster.getpixel((58, 1074)), (36, 161, 222))
-        self.assertEqual(poster.getpixel((58, 1142)), (0, 184, 148))
+        # Both platform marks now sit in the upper-left panel, below the top edge.
+        self.assertEqual(poster.getpixel((58, 176)), (36, 161, 222))
+        self.assertEqual(poster.getpixel((58, 244)), (0, 184, 148))
 
     def test_discount_is_drawn_inside_red_comic_burst(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
@@ -119,6 +140,57 @@ class ShortVideoTests(unittest.TestCase):
             upload_request["json"]["snippet"]["description"],
             "عضویت از یوتیوب: https://t.me/+source_youtube",
         )
+
+
+    def test_description_update_preserves_existing_video_metadata(self):
+        http = FakeYouTubeHTTP()
+        description = (
+            "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\\n\\n"
+            "کانال تلگرام:\\nhttps://t.me/OfferChin\\n"
+            "کانال بله:\\nhttps://ble.ir/OfferChin\\n"
+            "آپارات:\\nhttps://www.aparat.com/OfferChin"
+        )
+        self.assertTrue(update_youtube_video_description(
+            "testVideo123",
+            description,
+            session=http,
+            env={
+                "YOUTUBE_CLIENT_ID": "test-client",
+                "YOUTUBE_CLIENT_SECRET": "test-secret",
+                "YOUTUBE_REFRESH_TOKEN": "test-refresh",
+            },
+        ))
+        api_update = next(kwargs for url, kwargs in http.puts if url == YOUTUBE_API_URL)
+        self.assertEqual(api_update["params"], {"part": "snippet"})
+        self.assertEqual(api_update["json"]["snippet"]["title"], "Existing title")
+        self.assertEqual(api_update["json"]["snippet"]["categoryId"], "22")
+        self.assertEqual(api_update["json"]["snippet"]["tags"], ["آفرچین", "تخفیف"])
+        self.assertEqual(api_update["json"]["snippet"]["defaultLanguage"], "fa")
+        self.assertEqual(api_update["json"]["snippet"]["description"], description)
+
+    def test_default_youtube_description_uses_all_three_public_channel_links(self):
+        http = FakeYouTubeHTTP()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "short.mp4"
+            path.write_bytes(b"test-video")
+            upload_youtube_video(
+                path,
+                "نمونه محصول دیجی‌کالا",
+                25,
+                session=http,
+                env={
+                    "YOUTUBE_CLIENT_ID": "test-client",
+                    "YOUTUBE_CLIENT_SECRET": "test-secret",
+                    "YOUTUBE_REFRESH_TOKEN": "test-refresh",
+                    "YOUTUBE_PRIVACY_STATUS": "unlisted",
+                },
+            )
+        upload_request = next(kwargs for url, kwargs in http.posts if url == YOUTUBE_UPLOAD_URL)
+        description = upload_request["json"]["snippet"]["description"]
+        self.assertIn("کانال تلگرام:\\nhttps://t.me/OfferChin", description)
+        self.assertIn("کانال بله:\\nhttps://ble.ir/OfferChin", description)
+        self.assertIn("آپارات:\\nhttps://www.aparat.com/OfferChin", description)
+        self.assertNotIn("قیمت، موجودی و شرایط تخفیف", description)
 
     def test_youtube_public_description_has_no_affiliate_disclosure(self):
         http = FakeYouTubeHTTP()
