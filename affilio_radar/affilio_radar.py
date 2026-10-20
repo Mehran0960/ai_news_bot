@@ -3538,11 +3538,55 @@ def refresh_active_countdowns() -> int:
     if not isinstance(published, dict):
         raise RuntimeError("Published state is not an object")
     now = datetime.now(timezone.utc)
+    terminal_statuses = {"deleted", "already_absent", "expired_marked"}
+    active_product_ids = [
+        str(product_key)
+        for product_key, record in published.items()
+        if isinstance(record, dict)
+        and record.get("expiry_source") == "digikala_live_deals_feed"
+        and not record.get("expiry_estimated")
+        and (
+            (
+                str(record.get("telegram_message_id") or "").isdigit()
+                and record.get("expiry_status") not in terminal_statuses
+            )
+            or (
+                str(record.get("bale_message_id") or "").isdigit()
+                and record.get("bale_expiry_status") not in terminal_statuses
+            )
+        )
+    ]
+    live_expiries = {}
+    live_sync_updated = 0
+    if active_product_ids:
+        try:
+            # Query DigiKala's current live offer source in this very refresh run.
+            # The first-party DigiKala API is primary; MCP only supplements missing IDs.
+            from expiration_monitor import fetch_offer_expiries, sync_live_offer_deadlines
+            live_expiries = fetch_offer_expiries(required_product_ids=active_product_ids)
+            if not live_expiries:
+                print("COUNTDOWN_REFRESH_ABORT reason=no_live_deadlines_from_digikala_sources; cached_countdowns_not_rewritten")
+                return 0
+            live_summary = sync_live_offer_deadlines(published, live_expiries, now)
+            live_sync_updated = int(live_summary.get("updated", 0))
+            print(
+                "COUNTDOWN_LIVE_VERIFY "
+                f"active_products={len(active_product_ids)} deadlines_found={len(live_expiries)} "
+                f"matched={live_summary.get('matched', 0)} corrected={live_sync_updated} "
+                f"missing_from_live_feed={live_summary.get('missing_from_feed', 0)}"
+            )
+        except Exception as exc:
+            print(
+                f"COUNTDOWN_REFRESH_ABORT reason=live_deadline_lookup_failed "
+                f"error={type(exc).__name__}; cached_countdowns_not_rewritten"
+            )
+            return 0
+
     counters = {
         "telegram_updated": 0, "telegram_missing": 0, "telegram_failed": 0,
         "bale_updated": 0, "bale_missing": 0, "bale_failed": 0, "skipped": 0,
     }
-    changed = False
+    changed = live_sync_updated > 0
     due = []
     never_updated = datetime.min.replace(tzinfo=timezone.utc)
 
@@ -3581,6 +3625,20 @@ def refresh_active_countdowns() -> int:
     )
 
     for _, _, product_key, record, targets in selected:
+        # Never rewrite a visible countdown from cached state alone. The product must
+        # be present in the fresh live-deadline result from DigiKala or its fallback.
+        if str(product_key) not in live_expiries:
+            record["countdown_refresh_attempted_at"] = now.isoformat()
+            record["countdown_refresh_verification_status"] = "missing_live_deadline"
+            counters["skipped"] += 1
+            changed = True
+            print(
+                f"COUNTDOWN_REFRESH_SKIPPED product_id={product_key} "
+                "reason=not_found_in_current_live_deadline_sources"
+            )
+            continue
+        if record.pop("countdown_refresh_verification_status", None) is not None:
+            changed = True
         affiliate_url = build_affilio_tracking_link(safe_product_url(record.get("product_url", "")))
         product_had_failure = False
         if not affiliate_url:
