@@ -14,6 +14,7 @@ from short_video import (
     telegram_video_review_available,
     update_youtube_video_description,
     upload_youtube_video,
+    delete_youtube_video,
 )
 
 
@@ -36,6 +37,7 @@ class FakeYouTubeHTTP:
         self.posts = []
         self.puts = []
         self.gets = []
+        self.deletes = []
 
     def get(self, url, **kwargs):
         self.gets.append((url, kwargs))
@@ -66,6 +68,10 @@ class FakeYouTubeHTTP:
         if url == YOUTUBE_API_URL:
             return FakeResponse({"id": kwargs.get("json", {}).get("id", "testVideo123")})
         return FakeResponse({"id": "testVideo123"})
+
+    def delete(self, url, **kwargs):
+        self.deletes.append((url, kwargs))
+        return FakeResponse({}, status_code=204)
 
 
 class ShortVideoTests(unittest.TestCase):
@@ -116,6 +122,24 @@ class ShortVideoTests(unittest.TestCase):
             "TELEGRAM_BOT_TOKEN": "token",
             "AFFILIO_VIDEO_REVIEW_CHAT_ID": "12345",
         }))
+
+    def test_delete_youtube_video_uses_authorized_permanent_delete_endpoint(self):
+        http = FakeYouTubeHTTP()
+        result = delete_youtube_video(
+            "testVideo123",
+            session=http,
+            env={
+                "YOUTUBE_CLIENT_ID": "test-client",
+                "YOUTUBE_CLIENT_SECRET": "test-secret",
+                "YOUTUBE_REFRESH_TOKEN": "test-refresh",
+            },
+        )
+        self.assertEqual(result, "deleted")
+        url, request = http.deletes[0]
+        self.assertEqual(url, YOUTUBE_API_URL)
+        self.assertEqual(request["params"], {"id": "testVideo123"})
+        self.assertEqual(request["headers"]["Authorization"], "Bearer test-token")
+        self.assertNotIn("json", request)
 
     def test_youtube_uploader_accepts_source_specific_description(self):
         http = FakeYouTubeHTTP()
