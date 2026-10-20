@@ -450,6 +450,40 @@ def update_youtube_video_description(
     return True
 
 
+def delete_youtube_video(video_id: str, *, session=None, env: Mapping[str, str] | None = None) -> str:
+    """Permanently delete a tracked YouTube video; return deleted/already_absent."""
+    source = env if env is not None else os.environ
+    safe_id = str(video_id or "").strip()
+    if not safe_id or not safe_id.replace("-", "").replace("_", "").isalnum():
+        raise ValueError("invalid YouTube video ID")
+
+    http = session or requests.Session()
+    token = _youtube_access_token(http, source)
+    response = http.delete(
+        YOUTUBE_API_URL,
+        params={"id": safe_id},
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=(10, 45),
+    )
+    if response.status_code == 204:
+        return "deleted"
+    if response.status_code == 404:
+        try:
+            payload = response.json()
+        except (ValueError, TypeError, AttributeError):
+            payload = {}
+        error = payload.get("error") if isinstance(payload, dict) else {}
+        errors = error.get("errors", []) if isinstance(error, dict) else []
+        reasons = {
+            str(item.get("reason") or "")
+            for item in errors if isinstance(item, dict)
+        }
+        if "videoNotFound" in reasons or str(error.get("status") or "") == "NOT_FOUND":
+            return "already_absent"
+    response.raise_for_status()
+    raise RuntimeError(f"YouTube delete returned unexpected HTTP {response.status_code}")
+
+
 def set_youtube_video_private(video_id: str, *, session=None, env: Mapping[str, str] | None = None) -> bool:
     """Make a tracked YouTube video private once its associated time-limited deal expires."""
     source = env if env is not None else os.environ
