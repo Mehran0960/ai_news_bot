@@ -5145,6 +5145,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--publish", action="store_true", help="publish at most one eligible item if all checks pass")
     parser.add_argument("--dry-run", action="store_true", help="force discovery-only mode")
+    parser.add_argument("--setup-growth-invites", action="store_true", help="create source-specific Telegram invite links without running product discovery or publishing offers")
     parser.add_argument(
         "--repair-bale-message-id",
         type=int,
@@ -5162,6 +5163,22 @@ def main():
         help="refresh remaining-hours/minutes timers on active deadline-verified posts",
     )
     args = parser.parse_args()
+    if args.setup_growth_invites:
+        state = load_state()
+        try:
+            changed = ensure_telegram_source_invites(state)
+            if changed:
+                save_json(STATE, state)
+            links = state.get("growth_tracking", {}).get("telegram_invite_links", {})
+            ready = sum(
+                1 for value in links.values()
+                if isinstance(value, dict) and str(value.get("url") or "").startswith("https://t.me/")
+            ) if isinstance(links, dict) else 0
+            print(f"GROWTH_INVITE_SETUP_SUMMARY ready={ready} required={len(GROWTH_TRACKING_INVITE_SOURCES)} changed={changed}")
+            sys.exit(0 if ready == len(GROWTH_TRACKING_INVITE_SOURCES) else 1)
+        except Exception as exc:
+            print(f"GROWTH_INVITE_SETUP_ABORTED error={type(exc).__name__}")
+            sys.exit(1)
     if args.refresh_countdowns:
         try:
             sys.exit(refresh_active_countdowns())
