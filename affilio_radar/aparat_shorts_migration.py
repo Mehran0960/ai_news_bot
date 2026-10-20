@@ -109,10 +109,14 @@ def migrate_recent_regular_uploads(
             ).isoformat()
             counts["retry"] += 1
             counts["changed"] = True
-            status_code = getattr(getattr(exc, "response", None), "status_code", None)
+            status_code = getattr(exc, "status_code", None) or getattr(
+                getattr(exc, "response", None), "status_code", None
+            )
+            stage = str(getattr(exc, "stage", "unknown"))
             print(
                 f"APARAT_SHORTS_MIGRATION_RETRY product_id={product_id} "
-                f"error={type(exc).__name__} http_status={status_code or 'unknown'}"
+                f"error={type(exc).__name__} stage={stage} "
+                f"http_status={status_code or 'unknown'}"
             )
         if index < min(len(candidates), limit) - 1:
             sleep_fn(0.8)
