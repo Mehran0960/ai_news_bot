@@ -79,6 +79,9 @@ from affilio_radar import (
     VIDEO_STYLE_VERSION,
     MIN_POST_INTERVAL_HOURS,
     effective_posts_per_run,
+    ensure_telegram_source_invites,
+    build_video_channel_description,
+    tracked_telegram_invite_url,
 )
 
 
@@ -1439,6 +1442,54 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(legacy_telegram, canonical_telegram)
         # Both channel photos intentionally include both platform IDs, so artwork is identical.
         self.assertEqual(bale, canonical_telegram)
+
+    def test_telegram_growth_invites_are_created_once_per_source_and_reused(self):
+        class FakeResponse:
+            def __init__(self, url):
+                self.url = url
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return {"ok": True, "result": {"invite_link": self.url}}
+
+        class FakeSession:
+            def __init__(self):
+                self.calls = []
+            def post(self, url, data=None, timeout=None):
+                self.calls.append({"url": url, "data": dict(data or {}), "timeout": timeout})
+                source = str(data.get("name", "")).split("-")[-1].lower()
+                return FakeResponse(f"https://t.me/+test_{source}")
+
+        state = {}
+        session = FakeSession()
+        now = datetime(2026, 10, 20, tzinfo=timezone.utc)
+        self.assertTrue(ensure_telegram_source_invites(
+            state, session=session, token="test-token", chat_id="@OfferChin", now=now
+        ))
+        self.assertEqual(len(session.calls), 3)
+        links = state["growth_tracking"]["telegram_invite_links"]
+        self.assertEqual(links["aparat"]["url"], "https://t.me/+test_aparat")
+        self.assertEqual(links["bale"]["url"], "https://t.me/+test_bale")
+        self.assertEqual(links["youtube"]["url"], "https://t.me/+test_youtube")
+        self.assertFalse(ensure_telegram_source_invites(
+            state, session=FakeSession(), token="test-token", chat_id="@OfferChin", now=now
+        ))
+
+    def test_growth_video_description_uses_source_specific_invite_link(self):
+        state = {
+            "growth_tracking": {
+                "telegram_invite_links": {
+                    "aparat": {"url": "https://t.me/+from_aparat"},
+                    "youtube": {"url": "https://t.me/+from_youtube"},
+                }
+            }
+        }
+        aparat_description = build_video_channel_description(state, "aparat")
+        youtube_description = build_video_channel_description(state, "youtube")
+        self.assertIn("https://t.me/+from_aparat", aparat_description)
+        self.assertIn("https://t.me/+from_youtube", youtube_description)
+        self.assertIn("https://ble.ir/OfferChin", aparat_description)
+        self.assertEqual(tracked_telegram_invite_url(state, "bale"), "https://t.me/OfferChin")
 
     def test_normal_publication_gap_matches_five_minute_scan_cadence(self):
         self.assertEqual(MIN_POST_INTERVAL_HOURS, 5 / 60)
