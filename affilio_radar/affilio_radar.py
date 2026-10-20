@@ -69,6 +69,8 @@ DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEU
 MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(32, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "24"))))
 # Never publish an offer that gives the audience less than this much time to act.
 MIN_PUBLICATION_RUNWAY_MINUTES = max(30, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "60"))))
+# Keep the public caption countdown ahead of DigiKala by a fixed safety buffer.
+COUNTDOWN_SAFETY_BUFFER_MINUTES = max(0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10"))))
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
 URGENT_MIN_POST_INTERVAL_MINUTES = 10
@@ -2906,8 +2908,12 @@ def unicode_underline(value: str) -> str:
     return "".join(char if char.isspace() else char + overlay for char in str(value))
 
 
-def format_remaining_time(value, now: datetime | None = None) -> str:
-    """Display the verified deadline as closely as possible; round down to whole minutes."""
+def format_remaining_time(
+    value,
+    now: datetime | None = None,
+    safety_buffer_minutes: int = 0,
+) -> str:
+    """Display a deadline countdown, optionally stopping before the source-site cutoff."""
     deadline = _parse_utc_datetime(value)
     if deadline is None:
         return ""
@@ -2915,7 +2921,12 @@ def format_remaining_time(value, now: datetime | None = None) -> str:
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    remaining_seconds = (deadline - current).total_seconds()
+    try:
+        buffer_minutes = max(0, min(30, int(safety_buffer_minutes)))
+    except (TypeError, ValueError, OverflowError):
+        buffer_minutes = 0
+    effective_deadline = deadline - timedelta(minutes=buffer_minutes)
+    remaining_seconds = (effective_deadline - current).total_seconds()
     if remaining_seconds <= 0:
         return "مهلت آفر به پایان رسیده"
     if remaining_seconds < 60:
@@ -2956,7 +2967,11 @@ def build_caption(
     current = p.get("current_price")
     original = p.get("original_price")
     discount = p.get("discount_percent")
-    expiry = format_remaining_time(p.get("deal_expires_at"), now=p.get("_countdown_now"))
+    expiry = format_remaining_time(
+        p.get("deal_expires_at"),
+        now=p.get("_countdown_now"),
+        safety_buffer_minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES,
+    )
 
     channel_url = str(channel_label or (BALE_CHANNEL_URL if is_bale else TELEGRAM_CHANNEL_URL)).strip()
     if not urlsplit(channel_url).scheme:
