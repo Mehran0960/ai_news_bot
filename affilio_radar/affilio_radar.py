@@ -4556,6 +4556,93 @@ def ensure_telegram_source_invites(state: dict, *, session=None, token=None, cha
     return changed
 
 
+
+def record_daily_member_count_snapshot(
+    state: dict,
+    *,
+    session=None,
+    now=None,
+    telegram_token=None,
+    telegram_chat_id=None,
+    bale_token=None,
+    bale_chat_id=None,
+) -> bool:
+    """Store the first successful member-count snapshot per Iran calendar day.
+
+    This is best-effort telemetry only. API failures never affect posting or invite setup.
+    """
+    tg_token = str(BOT_TOKEN if telegram_token is None else telegram_token).strip()
+    tg_chat = str(TARGET_CHAT if telegram_chat_id is None else telegram_chat_id).strip()
+    bl_token = str(BALE_BOT_TOKEN if bale_token is None else bale_token).strip()
+    bl_chat = str(BALE_CHANNEL_ID if bale_chat_id is None else bale_chat_id).strip()
+    if not (tg_token and tg_chat) and not (bl_token and bl_chat):
+        print("GROWTH_MEMBER_COUNT_SKIPPED reason=channel_credentials_missing")
+        return False
+
+    tracking = state.setdefault("growth_tracking", {})
+    if not isinstance(tracking, dict):
+        tracking = {}
+        state["growth_tracking"] = tracking
+    daily = tracking.setdefault("daily_member_counts", {})
+    if not isinstance(daily, dict):
+        daily = {}
+        tracking["daily_member_counts"] = daily
+
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    day = current.astimezone(IRAN_TIMEZONE).date().isoformat()
+    sample = daily.setdefault(day, {})
+    if not isinstance(sample, dict):
+        sample = {}
+        daily[day] = sample
+
+    http = session or requests.Session()
+    changed = False
+    sources = (
+        ("telegram", tg_token, tg_chat, "https://api.telegram.org", ("getChatMemberCount",)),
+        # Bale-compatible Bot API deployments may expose the method with or without the
+        # legacy plural suffix, so try the standard spelling and a compatible fallback.
+        ("bale", bl_token, bl_chat, "https://tapi.bale.ai", ("getChatMemberCount", "getChatMembersCount")),
+    )
+    for platform, token, chat_id, base_url, methods in sources:
+        if platform in sample or not token or not chat_id:
+            continue
+        last_reason = "no_supported_count_response"
+        for method in methods:
+            try:
+                response = http.post(
+                    f"{base_url}/bot{token}/{method}",
+                    data={"chat_id": chat_id},
+                    timeout=(8, 15),
+                )
+                response.raise_for_status()
+                payload = response.json()
+                result = payload.get("result") if isinstance(payload, dict) and payload.get("ok") is True else None
+                if isinstance(result, bool):
+                    result = None
+                count = int(result) if result is not None else None
+                if count is None or count < 0:
+                    last_reason = str(payload.get("description") or "count_not_available") if isinstance(payload, dict) else "invalid_response"
+                    continue
+                sample[platform] = {"count": count, "captured_at": current.isoformat()}
+                changed = True
+                print(f"GROWTH_MEMBER_COUNT_SNAPSHOT platform={platform} count={count} day={day}")
+                break
+            except Exception as exc:
+                last_reason = type(exc).__name__
+        if platform not in sample:
+            print(f"GROWTH_MEMBER_COUNT_UNAVAILABLE platform={platform} reason={str(last_reason)[:100]!r}")
+
+    # Keep a bounded 90-day record so telemetry cannot make state.json grow indefinitely.
+    for old_day in sorted(daily)[:-90]:
+        daily.pop(old_day, None)
+        changed = True
+    return changed
+
+
+
 def build_video_channel_description(state: dict, source: str) -> str:
     """Use the source-specific Telegram invite link in new Aparat/YouTube descriptions."""
     tracking = state.get("growth_tracking", {}) if isinstance(state, dict) else {}
@@ -4606,8 +4693,10 @@ def run(publish=False):
     # Read the persistent queue before discovery so offers temporarily missing from one
     # page remain eligible for a live recheck on the next scan.
     state = load_state()
-    # Growth attribution is best-effort and must never block regular offer publishing.
-    if ensure_telegram_source_invites(state):
+    # Growth attribution/count telemetry is best-effort and must never block regular offer publishing.
+    growth_invites_changed = ensure_telegram_source_invites(state)
+    growth_counts_changed = record_daily_member_count_snapshot(state)
+    if growth_invites_changed or growth_counts_changed:
         save_json(STATE, state)
     state.setdefault("published", {})
     queued_records = state.get("pending_queue")
@@ -5167,14 +5256,18 @@ def main():
         state = load_state()
         try:
             changed = ensure_telegram_source_invites(state)
-            if changed:
+            counts_changed = record_daily_member_count_snapshot(state)
+            if changed or counts_changed:
                 save_json(STATE, state)
             links = state.get("growth_tracking", {}).get("telegram_invite_links", {})
             ready = sum(
                 1 for value in links.values()
                 if isinstance(value, dict) and str(value.get("url") or "").startswith("https://t.me/")
             ) if isinstance(links, dict) else 0
-            print(f"GROWTH_INVITE_SETUP_SUMMARY ready={ready} required={len(GROWTH_TRACKING_INVITE_SOURCES)} changed={changed}")
+            daily = state.get("growth_tracking", {}).get("daily_member_counts", {})
+            todays = daily.get(datetime.now(IRAN_TIMEZONE).date().isoformat(), {}) if isinstance(daily, dict) else {}
+            counts_ready = sum(1 for key in ("telegram", "bale") if isinstance(todays, dict) and key in todays)
+            print(f"GROWTH_INVITE_SETUP_SUMMARY ready={ready} required={len(GROWTH_TRACKING_INVITE_SOURCES)} changed={changed} member_counts_today={counts_ready}/2")
             sys.exit(0 if ready == len(GROWTH_TRACKING_INVITE_SOURCES) else 1)
         except Exception as exc:
             print(f"GROWTH_INVITE_SETUP_ABORTED error={type(exc).__name__}")
