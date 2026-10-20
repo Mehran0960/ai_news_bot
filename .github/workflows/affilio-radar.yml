@@ -52,7 +52,7 @@ permissions:
 concurrency:
   # Code-only pushes run CI independently; publication/repair pushes and scheduled jobs
   # still serialize all channel mutations with cleanup and countdown refreshes.
-  group: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') && !contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && format('affilio-ci-{0}', github.run_id) || 'affilio-channel-updates' }}
+  group: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') && !contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && !contains(github.event.head_commit.message, '[growth-tracking-only]') && format('affilio-ci-{0}', github.run_id) || 'affilio-channel-updates' }}
   cancel-in-progress: false
 
 jobs:
@@ -156,7 +156,7 @@ jobs:
       # A commit tagged [scan-now] runs one fresh eligibility-checked scan; at most one product posts.
       - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
         # Normal code pushes run tests above, but must not consume a full product-discovery cycle.
-        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[repair-all-captions]') }}
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[growth-tracking-only]') }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
@@ -202,6 +202,8 @@ jobs:
             python affilio_radar/affilio_radar.py --repair-all-captions
           elif [[ "${{ contains(github.event.head_commit.message, '[repair-bale-caption]') }}" == "true" ]]; then
             python affilio_radar/affilio_radar.py --repair-bale-message-id 2
+          elif [[ "${{ contains(github.event.head_commit.message, '[growth-tracking-only]') }}" == "true" ]]; then
+            python affilio_radar/affilio_radar.py --setup-growth-invites
           else
             python affilio_radar/affilio_radar.py
           fi
