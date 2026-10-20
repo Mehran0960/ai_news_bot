@@ -96,6 +96,30 @@ class ShortVideoTests(unittest.TestCase):
             "AFFILIO_VIDEO_REVIEW_CHAT_ID": "12345",
         }))
 
+    def test_youtube_uploader_accepts_source_specific_description(self):
+        http = FakeYouTubeHTTP()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "short.mp4"
+            path.write_bytes(b"test-video")
+            upload_youtube_video(
+                path,
+                "نمونه محصول دیجی‌کالا",
+                25,
+                description="عضویت از یوتیوب: https://t.me/+source_youtube",
+                session=http,
+                env={
+                    "YOUTUBE_CLIENT_ID": "test-client",
+                    "YOUTUBE_CLIENT_SECRET": "test-secret",
+                    "YOUTUBE_REFRESH_TOKEN": "test-refresh",
+                    "YOUTUBE_PRIVACY_STATUS": "unlisted",
+                },
+            )
+        upload_request = next(kwargs for url, kwargs in http.posts if url == YOUTUBE_UPLOAD_URL)
+        self.assertEqual(
+            upload_request["json"]["snippet"]["description"],
+            "عضویت از یوتیوب: https://t.me/+source_youtube",
+        )
+
     def test_youtube_public_description_has_no_affiliate_disclosure(self):
         http = FakeYouTubeHTTP()
         with tempfile.TemporaryDirectory() as directory:
