@@ -5799,12 +5799,12 @@
       "title": "ماساژور گردن و کمر اسنیلکس مدل last"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-20T20:55:28.297978+00:00",
+  "expiry_feed_last_checked_at": "2026-10-20T21:15:27.455171+00:00",
   "expiry_feed_last_sync_summary": {
-    "matched": 3,
-    "missing_from_feed": 0,
+    "matched": 1,
+    "missing_from_feed": 4,
     "skipped": 195,
-    "unchanged": 3,
+    "unchanged": 1,
     "updated": 0
   },
   "growth_tracking": {
@@ -7555,8 +7555,8 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 277,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-20T20:56:19.988074+00:00",
-      "countdown_refresh_attempted_at": "2026-10-20T21:06:27.351737+00:00",
+      "countdown_last_updated_at": "2026-10-20T21:16:52.179439+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T21:16:52.179439+00:00",
       "delivery_attempts": {
         "bale": 2,
         "telegram": 1
@@ -7814,7 +7814,7 @@
       "bale_message_id": 275,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T20:35:25.576256+00:00",
-      "countdown_refresh_attempted_at": "2026-10-20T21:06:27.351737+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T21:16:52.179439+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -8193,6 +8193,8 @@
       "aparat_upload_status": "waiting_shorts_uploader",
       "bale_message_id": null,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-20T21:16:52.179439+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T21:16:52.179439+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -8206,6 +8208,7 @@
       "expires_at": "2026-10-21T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/e446ff7f08cf7478055b38e4e59ef405a76f1fee_1759218063.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 977700,
       "posted_discount_percent": 67,
@@ -10060,8 +10063,8 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 278,
       "click_tracking_url": "",
-      "countdown_refresh_attempted_at": "2026-10-20T21:06:27.351737+00:00",
-      "countdown_refresh_verification_status": "missing_live_deadline",
+      "countdown_last_updated_at": "2026-10-20T21:16:52.179439+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T21:16:52.179439+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -10104,7 +10107,8 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 276,
       "click_tracking_url": "",
-      "countdown_refresh_attempted_at": "2026-10-20T21:06:27.351737+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T21:16:52.179439+00:00",
+      "countdown_refresh_verification_status": "missing_live_deadline",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
