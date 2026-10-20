@@ -1739,7 +1739,7 @@ class AffilioRadarTests(unittest.TestCase):
             {
                 "product_url": "https://www.digikala.com/product/dkp-91001/",
                 "title": "هدفون پیشنهادی با مهلت نزدیک",
-                "deal_expires_at": (now + timedelta(minutes=5)).isoformat(),
+                "deal_expires_at": (now + timedelta(hours=2)).isoformat(),
                 "discount_percent": 35,
                 "savings_toman": 350_000,
                 "current_price": 650_000,
@@ -1748,7 +1748,7 @@ class AffilioRadarTests(unittest.TestCase):
             {
                 "product_url": "https://www.digikala.com/product/dkp-91002/",
                 "title": "چراغ کاربردی با مهلت دیرتر",
-                "deal_expires_at": (now + timedelta(minutes=30)).isoformat(),
+                "deal_expires_at": (now + timedelta(hours=3)).isoformat(),
                 "discount_percent": 30,
                 "savings_toman": 300_000,
                 "current_price": 700_000,
