@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import mimetypes
 import os
+import re
 import json
 import uuid
 from pathlib import Path
@@ -27,10 +28,42 @@ APARAT_MY_VIDEOS_URL = f"{APARAT_ORIGIN}/api/fa/v1/user/video/videos"
 class AparatPrivacyUpdateError(RuntimeError):
     """A privacy-update HTTP failure with safe stage/status metadata."""
 
-    def __init__(self, stage: str, status_code: int | None):
+    def __init__(self, stage: str, status_code: int | None, provider_reason: str = ""):
         self.stage = stage
         self.status_code = status_code
+        self.provider_reason = _safe_aparat_error_reason(provider_reason)
         super().__init__(f"Aparat {stage} request failed with HTTP {status_code or 'unknown'}")
+
+
+def _safe_aparat_error_reason(value: object) -> str:
+    """Extract a short provider reason while suppressing tokens, cookies and control chars."""
+    if isinstance(value, dict):
+        for key in ("description", "message", "error_description", "error", "detail", "code"):
+            nested = value.get(key)
+            if isinstance(nested, (str, int, float)) and str(nested).strip():
+                value = nested
+                break
+        else:
+            return ""
+    raw = str(value or "").replace("\\n", " ").replace("\\r", " ").strip()
+    raw = re.sub(r"(?i)AuthV1\\s*[=:]\\s*[^;\\s]+", "AuthV1=[redacted]", raw)
+    raw = re.sub(r"(?i)(?:bearer\\s+)[A-Za-z0-9._~-]+", "Bearer [redacted]", raw)
+    raw = re.sub(r"(?i)(token|cookie|authorization)\\s*[=:]\\s*[^,;\\s]+", r"\\1=[redacted]", raw)
+    raw = re.sub(r"[\\x00-\\x1f\\x7f]+", " ", raw)
+    return " ".join(raw.split())[:120]
+
+
+def _aparat_http_error_reason(exc: requests.exceptions.HTTPError) -> str:
+    response = getattr(exc, "response", None)
+    if response is None:
+        return ""
+    try:
+        payload = response.json()
+        if isinstance(payload, dict):
+            return _safe_aparat_error_reason(payload)
+    except (ValueError, TypeError, AttributeError):
+        pass
+    return ""
 
 
 USER_AGENT = (
@@ -466,7 +499,7 @@ def set_aparat_video_private(
         details = _read_json(details_response, operation="video details")
     except requests.exceptions.HTTPError as exc:
         status_code = getattr(getattr(exc, "response", None), "status_code", None)
-        raise AparatPrivacyUpdateError("video_details", status_code) from exc
+        raise AparatPrivacyUpdateError("video_details", status_code, _aparat_http_error_reason(exc)) from exc
     data = details.get("data") if isinstance(details.get("data"), dict) else {}
 
     category = data.get("category") if isinstance(data.get("category"), dict) else {}
@@ -503,5 +536,5 @@ def set_aparat_video_private(
         _read_json(response, operation="video privacy update")
     except requests.exceptions.HTTPError as exc:
         status_code = getattr(getattr(exc, "response", None), "status_code", None)
-        raise AparatPrivacyUpdateError("video_edit", status_code) from exc
+        raise AparatPrivacyUpdateError("video_edit", status_code, _aparat_http_error_reason(exc)) from exc
     return True
