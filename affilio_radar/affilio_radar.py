@@ -3449,8 +3449,20 @@ def repair_all_published_captions() -> int:
 
 
 def refresh_active_countdowns() -> int:
-    """Edit active, deadline-verified captions in place so their readable hours/minutes countdown stays current."""
+    """Refresh verified live-offer countdowns in a fair, bounded batch.
+
+    Caption edits share platform rate limits and the publication lock. Updating every
+    tracked post in one run used to hold that lock for several minutes and starve the
+    product radar. The oldest refresh attempts are selected first, so failures cannot
+    monopolize the batch and every active post rotates through the queue.
+    """
     force_refresh = str(os.getenv("AFFILIO_COUNTDOWN_REFRESH_FORCE", "false")).strip().lower() in {"1", "true", "yes", "on"}
+    try:
+        max_records = int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS", "10"))
+    except (TypeError, ValueError, OverflowError):
+        max_records = 10
+    max_records = max(1, min(50, max_records))
+
     state = load_state()
     published = state.get("published", {})
     if not isinstance(published, dict):
@@ -3461,10 +3473,10 @@ def refresh_active_countdowns() -> int:
         "bale_updated": 0, "bale_missing": 0, "bale_failed": 0, "skipped": 0,
     }
     changed = False
-    for product_key, record in sorted(
-        published.items(),
-        key=lambda item: float(item[1].get("ts", 0)) if isinstance(item[1], dict) else 0,
-    ):
+    due = []
+    never_updated = datetime.min.replace(tzinfo=timezone.utc)
+
+    for product_key, record in published.items():
         if not isinstance(record, dict):
             counters["skipped"] += 1
             continue
@@ -3473,10 +3485,6 @@ def refresh_active_countdowns() -> int:
         deadline = _parse_utc_datetime(record.get("expires_at"))
         if deadline is None or deadline <= now:
             continue
-        last_raw = record.get("countdown_last_updated_at")
-        last = _parse_utc_datetime(last_raw) if last_raw else None
-        if not force_refresh and last and (now - last).total_seconds() < 60:
-            continue
         targets = []
         if str(record.get("telegram_message_id") or "").isdigit() and BOT_TOKEN:
             targets.append(("telegram", int(record["telegram_message_id"])))
@@ -3484,10 +3492,33 @@ def refresh_active_countdowns() -> int:
             targets.append(("bale", int(record["bale_message_id"])))
         if not targets:
             continue
+
+        last_raw = record.get("countdown_refresh_attempted_at") or record.get("countdown_last_updated_at")
+        last = _parse_utc_datetime(last_raw) if last_raw else None
+        if not force_refresh and last and (now - last).total_seconds() < 60:
+            continue
+        try:
+            posted_ts = float(record.get("ts") or 0)
+        except (TypeError, ValueError, OverflowError):
+            posted_ts = 0.0
+        due.append((last or never_updated, posted_ts, str(product_key), record, targets))
+
+    due.sort(key=lambda item: (item[0], item[1], item[2]))
+    selected = due[:max_records]
+    print(
+        f"COUNTDOWN_REFRESH_BATCH eligible={len(due)} selected={len(selected)} "
+        f"limit={max_records} force={force_refresh}"
+    )
+
+    for _, _, product_key, record, targets in selected:
         affiliate_url = build_affilio_tracking_link(safe_product_url(record.get("product_url", "")))
+        product_had_failure = False
         if not affiliate_url:
             counters["skipped"] += 1
+            record["countdown_refresh_attempted_at"] = now.isoformat()
+            changed = True
             continue
+
         product = {
             "title": record.get("title", "پیشنهاد ویژه"),
             "current_price": record.get("posted_current_price"),
@@ -3496,7 +3527,6 @@ def refresh_active_countdowns() -> int:
             "deal_expires_at": record.get("expires_at", ""),
             "_countdown_now": now,
         }
-        product_had_failure = False
         for platform, message_id in targets:
             try:
                 if platform == "telegram":
@@ -3515,18 +3545,23 @@ def refresh_active_countdowns() -> int:
                 counters[f"{platform}_failed"] += 1
                 product_had_failure = True
                 print(f"COUNTDOWN_REFRESH_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}")
-            # Keep calls spaced on both platforms; Telegram gets a conservative 3.1s interval.
+            # Respect Telegram edit rate limits; the smaller batch keeps the shared
+            # channel lock short enough for the next product-publication run.
             time.sleep(3.1 if platform == "telegram" else 1.1)
+
+        record["countdown_refresh_attempted_at"] = now.isoformat()
         if not product_had_failure:
             record["countdown_last_updated_at"] = now.isoformat()
-            changed = True
+        changed = True
+
     if changed:
         save_json(STATE, state)
     print(
         "COUNTDOWN_REFRESH_SUMMARY "
-        f"telegram_updated={counters['telegram_updated']} telegram_missing={counters['telegram_missing']} telegram_failed={counters['telegram_failed']} "
-        f"bale_updated={counters['bale_updated']} bale_missing={counters['bale_missing']} bale_failed={counters['bale_failed']} "
-        f"skipped={counters['skipped']}"
+        f"records_selected={len(selected)} telegram_updated={counters['telegram_updated']} "
+        f"telegram_missing={counters['telegram_missing']} telegram_failed={counters['telegram_failed']} "
+        f"bale_updated={counters['bale_updated']} bale_missing={counters['bale_missing']} "
+        f"bale_failed={counters['bale_failed']} skipped={counters['skipped']}"
     )
     return 0
 
@@ -3999,14 +4034,17 @@ def effective_posts_per_run(backlog_count, configured_limit=None, force_full_bat
 
 
 VIDEO_STYLE_VERSION = 2  # comic discount burst + original soundtrack + camera motion
+# Do not use the generic web uploader for public Aparat posts: it cannot guarantee Shorts placement.
+APARAT_SHORTS_ONLY = str(os.getenv("APARAT_SHORTS_ONLY", "true")).strip().lower() in {"1", "true", "yes", "on"}
 
 
 def process_pending_short_video(state: dict, now: datetime | None = None, output_dir: str | Path = "video_artifacts") -> bool:
-    """Generate one eligible product short and service any configured video destinations.
+    """Generate a vertical product video and service only verified destinations.
 
-    YouTube uses its official Data API. Aparat currently requires an authenticated web
-    session and therefore uses a best-effort, undocumented uploader. Optional private
-    Telegram review delivery is independent of public-channel posting.
+    YouTube uses its official Data API. Aparat Shorts placement is app-only according to
+    Aparat's public instructions; the current generic web uploader does not guarantee it.
+    When APARAT_SHORTS_ONLY is enabled, videos are retained in the Shorts queue instead
+    of being publicly published to Aparat's regular video feed.
     """
     try:
         from short_video import (
@@ -4256,7 +4294,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
     # Aparat uses the authenticated web uploader. The workflow defaults to non-public
     # uploads until the owner has validated the first end-to-end run.
     aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
-    if aparat_ready and aparat_status in PENDING_APARAT_STATUSES:
+    if aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not APARAT_SHORTS_ONLY:
         record["aparat_upload_status"] = "uploading"
         record["aparat_upload_started_at"] = datetime.now(timezone.utc).isoformat()
         save_json(STATE, state)
@@ -4299,6 +4337,17 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
                 ).isoformat()
                 status_code = getattr(getattr(exc, "response", None), "status_code", None)
                 print(f"APARAT_UPLOAD_FAILED id={pid} error={type(exc).__name__} http_status={status_code or 'unknown'} retry_attempt={attempts}")
+        save_json(STATE, state)
+    elif aparat_status in PENDING_APARAT_STATUSES and APARAT_SHORTS_ONLY:
+        # Never send a vertical MP4 to the generic website uploader and assume it becomes
+        # a Short. Preserve a clear queue state until a verified Shorts-capable path exists.
+        record["aparat_upload_status"] = "waiting_shorts_uploader"
+        record["aparat_shorts_upload_status"] = "queued"
+        record["aparat_shorts_queue_reason"] = "generic_web_upload_does_not_guarantee_shorts_placement"
+        record.setdefault("aparat_shorts_queued_at", datetime.now(timezone.utc).isoformat())
+        record.pop("aparat_next_attempt_at", None)
+        record.pop("aparat_last_error", None)
+        print(f"APARAT_SHORTS_QUEUED id={pid} format=9:16 generic_public_upload=disabled")
         save_json(STATE, state)
 
     # Existing official YouTube upload stays independent from Aparat.
