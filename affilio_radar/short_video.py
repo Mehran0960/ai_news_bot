@@ -2,7 +2,7 @@
 """Generate short vertical OfferChin product videos for configured video destinations.
 
 The overlay contains the discount badge and two platform-marked channel IDs only.
-A valid deadline is required; expired YouTube videos can be switched to private.
+A verified deadline is required; expired platform videos are permanently deleted, with privacy as a failure fallback.
 """
 from __future__ import annotations
 
@@ -472,8 +472,9 @@ def delete_youtube_video(video_id: str, *, session=None, env: Mapping[str, str] 
             payload = response.json()
         except (ValueError, TypeError, AttributeError):
             payload = {}
-        error = payload.get("error") if isinstance(payload, dict) else {}
-        errors = error.get("errors", []) if isinstance(error, dict) else []
+        error_value = payload.get("error") if isinstance(payload, dict) else {}
+        error = error_value if isinstance(error_value, dict) else {}
+        errors = error.get("errors", [])
         reasons = {
             str(item.get("reason") or "")
             for item in errors if isinstance(item, dict)
