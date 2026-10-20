@@ -10,6 +10,8 @@ from unittest.mock import patch
 import expiration_monitor as monitor
 
 
+# [deadline-audit-only] Marker to run one live deadline audit and refresh active channel captions.
+
 class ExpirationMonitorTests(unittest.TestCase):
     def setUp(self):
         # Unit tests mock sleeping so rate-limit protection doesn't slow the suite.
