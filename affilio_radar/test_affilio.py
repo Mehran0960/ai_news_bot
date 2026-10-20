@@ -1536,7 +1536,7 @@ class AffilioRadarTests(unittest.TestCase):
         ))
         self.assertEqual(len(session.calls), calls_before)
 
-    def test_growth_video_description_uses_source_specific_invite_link(self):
+    def test_youtube_description_uses_clean_public_channel_links(self):
         state = {
             "growth_tracking": {
                 "telegram_invite_links": {
@@ -1547,8 +1547,13 @@ class AffilioRadarTests(unittest.TestCase):
         }
         aparat_description = build_video_channel_description(state, "aparat")
         youtube_description = build_video_channel_description(state, "youtube")
+        # Aparat retains its own attribution link, while YouTube uses the requested public handle.
         self.assertIn("https://t.me/+from_aparat", aparat_description)
-        self.assertIn("https://t.me/+from_youtube", youtube_description)
+        self.assertNotIn("https://t.me/+from_youtube", youtube_description)
+        self.assertIn("کانال تلگرام:\\nhttps://t.me/OfferChin", youtube_description)
+        self.assertIn("کانال بله:\\nhttps://ble.ir/OfferChin", youtube_description)
+        self.assertIn("آپارات:\\nhttps://www.aparat.com/OfferChin", youtube_description)
+        self.assertNotIn("قیمت، موجودی و شرایط تخفیف", youtube_description)
         self.assertIn("https://ble.ir/OfferChin", aparat_description)
         self.assertEqual(tracked_telegram_invite_url(state, "bale"), "https://t.me/OfferChin")
 
