@@ -40,6 +40,7 @@ jobs:
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
           AFFILIO_COUNTDOWN_REFRESH_FORCE: "true"
+          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_DEAL_LIST_PAGES: "5"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --refresh-countdowns
