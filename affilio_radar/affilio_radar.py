@@ -4179,7 +4179,8 @@ def effective_posts_per_run(backlog_count, configured_limit=None, force_full_bat
 
 
 
-VIDEO_STYLE_VERSION = 2  # comic discount burst + original soundtrack + camera motion
+VIDEO_STYLE_VERSION = 3  # upper-left platform links + comic discount burst + original soundtrack
+YOUTUBE_DESCRIPTION_VERSION = 2  # public channel links, minimal YouTube description
 # Do not use the generic web uploader for public Aparat posts: it cannot guarantee Shorts placement.
 APARAT_SHORTS_ONLY = str(os.getenv("APARAT_SHORTS_ONLY", "true")).strip().lower() in {"1", "true", "yes", "on"}
 
@@ -4196,6 +4197,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         from short_video import (
             render_short_video,
             upload_youtube_video,
+            update_youtube_video_description,
             youtube_credentials_available,
             send_telegram_video_review,
             telegram_video_review_available,
@@ -4224,6 +4226,76 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
     pending_youtube = {"pending", "pending_credentials", "retry"}
     candidates = []
     state_changed = False
+
+    # Bring descriptions on already-published, still-live Shorts into line with the current
+    # clean channel-link template. Updates are versioned, capped per scan, and failure-isolated.
+    if youtube_ready:
+        description_updates = 0
+        description_state_changed = False
+        ordered_records = sorted(
+            published.items(),
+            key=lambda pair: float(pair[1].get("ts") or 0) if isinstance(pair[1], dict) else 0,
+            reverse=True,
+        )
+        for pid, existing_record in ordered_records:
+            if description_updates >= 3:
+                break
+            if not isinstance(existing_record, dict):
+                continue
+            video_id = str(existing_record.get("youtube_video_id") or "").strip()
+            if not video_id or str(existing_record.get("youtube_upload_status") or "") != "uploaded":
+                continue
+            try:
+                description_version = int(existing_record.get("youtube_description_version", 0) or 0)
+            except (TypeError, ValueError, OverflowError):
+                description_version = 0
+            if description_version >= YOUTUBE_DESCRIPTION_VERSION:
+                continue
+            live_expiry = _parse_utc_datetime(
+                _parse_deal_expiry_value(existing_record.get("expires_at"))
+            )
+            if (
+                live_expiry is None
+                or live_expiry <= current + timedelta(minutes=10)
+                or existing_record.get("expiry_source") != "digikala_live_deals_feed"
+                or existing_record.get("expiry_estimated") is True
+                or existing_record.get("youtube_expiry_status") in {"private", "already_private"}
+            ):
+                continue
+            retry_at = _parse_utc_datetime(
+                existing_record.get("youtube_description_next_attempt_at")
+            )
+            if retry_at and current < retry_at:
+                continue
+
+            description_updates += 1
+            try:
+                update_youtube_video_description(
+                    video_id,
+                    build_video_channel_description(state, "youtube"),
+                )
+                existing_record["youtube_description_version"] = YOUTUBE_DESCRIPTION_VERSION
+                existing_record["youtube_description_updated_at"] = current.isoformat()
+                existing_record.pop("youtube_description_next_attempt_at", None)
+                existing_record.pop("youtube_description_last_error", None)
+                print(f"YOUTUBE_DESCRIPTION_UPDATE_OK product_id={pid} video_id={video_id}")
+            except Exception as exc:
+                try:
+                    attempts = int(existing_record.get("youtube_description_update_attempts", 0) or 0) + 1
+                except (TypeError, ValueError, OverflowError):
+                    attempts = 1
+                existing_record["youtube_description_update_attempts"] = attempts
+                existing_record["youtube_description_next_attempt_at"] = (
+                    current + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
+                ).isoformat()
+                existing_record["youtube_description_last_error"] = type(exc).__name__
+                print(
+                    f"YOUTUBE_DESCRIPTION_UPDATE_FAILED product_id={pid} "
+                    f"error={type(exc).__name__} retry_attempt={attempts}"
+                )
+            description_state_changed = True
+        if description_state_changed:
+            save_json(STATE, state)
 
     # Reconcile a successful upload whose API response omitted the video UID.
     # This only queries the account's video list; it never retries the upload.
@@ -4514,6 +4586,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             record["youtube_video_id"] = result["video_id"]
             record["youtube_video_url"] = result["url"]
             record["youtube_uploaded_at"] = datetime.now(timezone.utc).isoformat()
+            record["youtube_description_version"] = YOUTUBE_DESCRIPTION_VERSION
             record["youtube_review_required"] = False
             record.pop("youtube_next_attempt_at", None)
             record.pop("youtube_last_error", None)
@@ -4711,7 +4784,18 @@ def record_daily_member_count_snapshot(
 
 
 def build_video_channel_description(state: dict, source: str) -> str:
-    """Use the source-specific Telegram invite link in new Aparat/YouTube descriptions."""
+    """Build clean platform descriptions; keep YouTube links public and directly clickable."""
+    if source == "youtube":
+        return (
+            "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\n\n"
+            "کانال تلگرام:\n"
+            "https://t.me/OfferChin\n"
+            "کانال بله:\n"
+            "https://ble.ir/OfferChin\n"
+            "آپارات:\n"
+            "https://www.aparat.com/OfferChin"
+        )
+
     tracking = state.get("growth_tracking", {}) if isinstance(state, dict) else {}
     links = tracking.get("telegram_invite_links", {}) if isinstance(tracking, dict) else {}
     record = links.get(source, {}) if isinstance(links, dict) else {}
