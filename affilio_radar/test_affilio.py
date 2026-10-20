@@ -1979,11 +1979,11 @@ class AffilioRadarTests(unittest.TestCase):
             patch("aparat_uploader.upload_aparat_video") as upload_aparat,
         ):
             self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
+            self.assertTrue((Path(output_dir) / f"offerchin-{pid}.mp4").is_file())
 
         self.assertEqual(record["video_generation_status"], "generated")
         self.assertEqual(record["aparat_upload_status"], "waiting_shorts_uploader")
         self.assertEqual(record["aparat_shorts_upload_status"], "queued")
-        self.assertTrue((Path(output_dir) / f"offerchin-{pid}.mp4").is_file())
         upload_aparat.assert_not_called()
 
     def test_short_video_upload_uses_youtube_when_oauth_is_configured(self):
