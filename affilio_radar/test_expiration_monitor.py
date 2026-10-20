@@ -584,6 +584,26 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(record["aparat_expiry_status"], "private")
         self.assertIn("aparat_private_at", record)
 
+    def test_legacy_aparat_privacy_migration_retry_is_not_retried(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "aparat_video_hash": "legacy_public_hash",
+            "aparat_visibility": "public",
+            "aparat_shorts_migration_status": "retry",
+            "aparat_expiry_status": "retry",
+            "expires_at": (now - timedelta(hours=2)).isoformat(),
+        }
+        published = {"dkp-legacy-aparat": record}
+        with (
+            patch("aparat_uploader.aparat_credentials_available", return_value=True),
+            patch("aparat_uploader.set_aparat_video_private") as make_private,
+        ):
+            changed = monitor._hide_expired_aparat_videos(published, now)
+
+        self.assertFalse(changed)
+        make_private.assert_not_called()
+        self.assertEqual(record["aparat_visibility"], "public")
+
     def test_expired_private_test_aparat_video_needs_no_api_call(self):
         now = datetime.now(timezone.utc)
         record = {
