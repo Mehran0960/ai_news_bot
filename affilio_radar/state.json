@@ -4321,8 +4321,8 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 130,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-20T07:30:29.377390+00:00",
-      "countdown_refresh_attempted_at": "2026-10-20T07:30:29.377390+00:00",
+      "countdown_last_updated_at": "2026-10-20T08:22:10.199305+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T08:22:10.199305+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -4540,8 +4540,8 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 126,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-20T07:30:29.377390+00:00",
-      "countdown_refresh_attempted_at": "2026-10-20T07:30:29.377390+00:00",
+      "countdown_last_updated_at": "2026-10-20T08:22:10.199305+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T08:22:10.199305+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -5411,8 +5411,8 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 97,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-20T07:30:29.377390+00:00",
-      "countdown_refresh_attempted_at": "2026-10-20T07:30:29.377390+00:00",
+      "countdown_last_updated_at": "2026-10-20T08:22:10.199305+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T08:22:10.199305+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -5512,6 +5512,9 @@
       "ts": 1792433059.5522342
     },
     "dkp-21590676": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_attempts": 3,
       "aparat_upload_started_at": "2026-10-20T06:14:49.095216+00:00",
       "aparat_upload_status": "uploaded",
@@ -5520,7 +5523,8 @@
       "aparat_video_record_id": "73821039",
       "aparat_video_url": "https://www.aparat.com/v/zss96x6",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 139,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T07:45:25.866040+00:00",
@@ -5534,10 +5538,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/82dbb4b742b5b85fdc69dfa14721f8520097b17e_1774188151.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -5633,6 +5638,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21694455": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T05:04:30.974745+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T05:04:34.136274+00:00",
@@ -5640,7 +5648,8 @@
       "aparat_video_record_id": "73820268",
       "aparat_video_url": "https://www.aparat.com/v/xss12fa",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 133,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T08:00:27.109123+00:00",
@@ -5655,10 +5664,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/f7d5da0672cbc5fe083cac18aeb38e796852f3ab_1776932120.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -5782,6 +5792,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21714680": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T05:09:54.348831+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T05:09:57.217123+00:00",
@@ -5789,7 +5802,8 @@
       "aparat_video_record_id": "73820308",
       "aparat_video_url": "https://www.aparat.com/v/zbiyp1u",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 131,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T08:00:27.109123+00:00",
@@ -5803,10 +5817,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/405715b9c00d635accdb67086b51c2aa6d775c82_1787417422.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -6104,7 +6119,8 @@
       "bale_expiry_status": "tracked",
       "bale_message_id": 159,
       "click_tracking_url": "",
-      "countdown_refresh_attempted_at": "2026-10-20T07:30:29.377390+00:00",
+      "countdown_last_updated_at": "2026-10-20T08:22:10.199305+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T08:22:10.199305+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -6150,8 +6166,11 @@
       "ts": 1792212843.5106437
     },
     "dkp-22430717": {
+      "bale_expiry_status": "tracked",
       "bale_message_id": 167,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-20T08:22:10.199305+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T08:22:10.199305+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -6164,6 +6183,7 @@
       "expires_at": "2026-10-20T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/8a95a6f4e914472767b5ac5c630f28865840b06b_1785863760.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 587000,
       "posted_discount_percent": 71,
@@ -6260,8 +6280,11 @@
       "ts": 1792290816.5411036
     },
     "dkp-22588195": {
+      "bale_expiry_status": "tracked",
       "bale_message_id": 168,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-20T08:22:10.199305+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T08:22:10.199305+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -6274,6 +6297,7 @@
       "expires_at": "2026-10-20T20:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
+      "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/1ace7686582756e9880aa16bed9bad28832a020c_1787589023.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 977440,
       "posted_discount_percent": 77,
@@ -6340,6 +6364,9 @@
       "ts": 1792401847.6820097
     },
     "dkp-22783516": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T05:19:55.381533+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T05:19:57.909709+00:00",
@@ -6347,7 +6374,8 @@
       "aparat_video_record_id": "73820392",
       "aparat_video_url": "https://www.aparat.com/v/vfwj595",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 135,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T07:35:27.571623+00:00",
@@ -6361,10 +6389,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/f0469a2edc32fea433a9440465c5d1bfb0ca18ee_1789913752.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -6493,6 +6522,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22790974": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_attempts": 1,
       "aparat_upload_started_at": "2026-10-20T07:19:52.032460+00:00",
       "aparat_upload_status": "uploaded",
@@ -6501,7 +6533,8 @@
       "aparat_video_record_id": "73821810",
       "aparat_video_url": "https://www.aparat.com/v/cycf55d",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 151,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T07:35:27.571623+00:00",
@@ -6515,10 +6548,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/47010577999020ee8fc75f31adad175cfcf5049a_1789995930.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -6586,6 +6620,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22841932": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T05:44:41.514617+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T05:44:44.338128+00:00",
@@ -6593,7 +6630,8 @@
       "aparat_video_record_id": "73820685",
       "aparat_video_url": "https://www.aparat.com/v/wcw43ud",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 140,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T08:05:26.603690+00:00",
@@ -6607,10 +6645,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/1230a8bb8f5d482dc12228feb0b07dcc689414d0_1790491622.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 1899990,
       "posted_discount_percent": 90,
@@ -6644,6 +6683,9 @@
       "ts": 1792243246.7482584
     },
     "dkp-22854669": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T05:54:55.748468+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T05:54:58.838429+00:00",
@@ -6651,7 +6693,8 @@
       "aparat_video_record_id": "73820787",
       "aparat_video_url": "https://www.aparat.com/v/emmc1w2",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 141,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T08:05:26.603690+00:00",
@@ -6665,10 +6708,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/0eedfb6d505bef9dfc8e0169b3bc1914a80aeba7_1790593771.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -6736,6 +6780,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22878178": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T07:29:39.747861+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T07:29:42.527708+00:00",
@@ -6743,7 +6790,8 @@
       "aparat_video_record_id": "73821932",
       "aparat_video_url": "https://www.aparat.com/v/batssxr",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 155,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T08:00:27.109123+00:00",
@@ -6757,10 +6805,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/53503ee8eb186ff168786d82165d06d520faef01_1790838103.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -6838,6 +6887,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22879463": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T06:50:04.830187+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T06:50:08.097755+00:00",
@@ -6845,7 +6897,8 @@
       "aparat_video_record_id": "73821421",
       "aparat_video_url": "https://www.aparat.com/v/zrjdgm0",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 149,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T07:35:27.571623+00:00",
@@ -6859,10 +6912,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/df949c4354cfe95ae7579fdd08e56ad943ff3972_1790845699.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -6958,6 +7012,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22892994": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_attempts": 1,
       "aparat_upload_started_at": "2026-10-20T06:10:18.674646+00:00",
       "aparat_upload_status": "uploaded",
@@ -6966,11 +7023,12 @@
       "aparat_video_record_id": "73820983",
       "aparat_video_url": "https://www.aparat.com/v/czl915e",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 142,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-20T06:15:24.975238+00:00",
-      "countdown_refresh_attempted_at": "2026-10-20T07:30:29.377390+00:00",
+      "countdown_last_updated_at": "2026-10-20T08:22:10.199305+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T08:22:10.199305+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -6980,10 +7038,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/6504cc54995f30f0dc1eb5f44ec187cd57c1e322_1791013015.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 1849990,
       "posted_discount_percent": 90,
@@ -7000,6 +7059,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22895734": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T05:14:37.993290+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T05:14:40.891454+00:00",
@@ -7007,11 +7069,12 @@
       "aparat_video_record_id": "73820338",
       "aparat_video_url": "https://www.aparat.com/v/qyr584s",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 134,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-20T07:30:29.377390+00:00",
-      "countdown_refresh_attempted_at": "2026-10-20T07:30:29.377390+00:00",
+      "countdown_last_updated_at": "2026-10-20T08:22:10.199305+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T08:22:10.199305+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -7021,10 +7084,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/7025561777a1d7a9090690143d9b803724fca459_1791032184.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -7093,6 +7157,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22896990": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_attempts": 2,
       "aparat_upload_started_at": "2026-10-20T07:44:59.801554+00:00",
       "aparat_upload_status": "uploaded",
@@ -7101,7 +7168,8 @@
       "aparat_video_record_id": "73822145",
       "aparat_video_url": "https://www.aparat.com/v/nujmsd9",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 154,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T07:45:25.866040+00:00",
@@ -7115,10 +7183,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/a3900cd2a007130ff6e92b93988b6c07c5112688_1791041233.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -7221,7 +7290,8 @@
       "aparat_upload_attempts": 5,
       "aparat_upload_started_at": "2026-10-20T07:40:32.029213+00:00",
       "aparat_upload_status": "skipped_expiring_soon",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 143,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T07:35:27.571623+00:00",
@@ -7235,10 +7305,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/9742c2fe2a83028a51737ecd8ebb298287335710_1791127254.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -7307,6 +7378,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22916557": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_attempts": 2,
       "aparat_upload_started_at": "2026-10-20T07:14:40.412215+00:00",
       "aparat_upload_status": "uploaded",
@@ -7315,7 +7389,8 @@
       "aparat_video_record_id": "73821739",
       "aparat_video_url": "https://www.aparat.com/v/vww117f",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 148,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T07:35:27.571623+00:00",
@@ -7329,10 +7404,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/6fb5643148ce458116f0680b8bbf43cf43843969_1791274710.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -7427,6 +7503,9 @@
       "ts": 1792398586.1817074
     },
     "dkp-22917182": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_attempts": 1,
       "aparat_upload_started_at": "2026-10-20T06:34:59.459312+00:00",
       "aparat_upload_status": "uploaded",
@@ -7435,7 +7514,8 @@
       "aparat_video_record_id": "73821259",
       "aparat_video_url": "https://www.aparat.com/v/tbp6n9s",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 145,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T07:45:25.866040+00:00",
@@ -7449,10 +7529,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/cf7653f53677180e9b1b5bf398e7b2584929b8fb_1791278880.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -7520,6 +7601,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22923722": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T06:40:16.063692+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T06:40:19.966579+00:00",
@@ -7527,11 +7611,12 @@
       "aparat_video_record_id": "73821300",
       "aparat_video_url": "https://www.aparat.com/v/poeo17h",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 147,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-20T07:30:29.377390+00:00",
-      "countdown_refresh_attempted_at": "2026-10-20T07:30:29.377390+00:00",
+      "countdown_last_updated_at": "2026-10-20T08:22:10.199305+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T08:22:10.199305+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -7541,10 +7626,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/d4663be50fdcfc54b9fea49c7c8c8b2d2013af07_1791359133.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -7613,6 +7699,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22925901": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T05:30:15.707378+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T05:30:18.633378+00:00",
@@ -7620,11 +7709,12 @@
       "aparat_video_record_id": "73820508",
       "aparat_video_url": "https://www.aparat.com/v/uec9lp3",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 138,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-20T07:30:29.377390+00:00",
-      "countdown_refresh_attempted_at": "2026-10-20T07:30:29.377390+00:00",
+      "countdown_last_updated_at": "2026-10-20T08:22:10.199305+00:00",
+      "countdown_refresh_attempted_at": "2026-10-20T08:22:10.199305+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -7634,10 +7724,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/7fa1c0c0a8908790b9b5d137538b725b253d8463_1791454045.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -7734,6 +7825,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22938145": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T07:10:03.506998+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T07:10:07.218115+00:00",
@@ -7741,7 +7835,8 @@
       "aparat_video_record_id": "73821674",
       "aparat_video_url": "https://www.aparat.com/v/xjk51e8",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 153,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T07:45:25.866040+00:00",
@@ -7755,10 +7850,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/ca777016c5fa4700cf8df6c154447099661f3c17_1791543824.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 3099990,
       "posted_discount_percent": 90,
@@ -7775,6 +7871,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22942845": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T05:25:04.280292+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T05:25:10.489099+00:00",
@@ -7782,7 +7881,8 @@
       "aparat_video_record_id": "73820445",
       "aparat_video_url": "https://www.aparat.com/v/qpk1a35",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 137,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T07:45:25.866040+00:00",
@@ -7796,10 +7896,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/7f37253617d0a56feb8ba35815df45a7f95355d2_1791620188.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -7924,6 +8025,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22943337": {
+      "aparat_expiry_last_error": "AparatPrivacyUpdateError",
+      "aparat_expiry_next_attempt_at": "2026-10-20T08:50:26.463488+00:00",
+      "aparat_expiry_status": "retry",
       "aparat_upload_started_at": "2026-10-20T07:50:18.103838+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-10-20T07:50:21.153949+00:00",
@@ -7931,7 +8035,8 @@
       "aparat_video_record_id": "73822236",
       "aparat_video_url": "https://www.aparat.com/v/dlugd53",
       "aparat_visibility": "public",
-      "bale_expiry_status": "tracked",
+      "bale_expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 156,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-20T08:00:27.109123+00:00",
@@ -7945,10 +8050,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
+      "expired_deleted_at": "2026-10-20T08:20:26.463488+00:00",
       "expires_at": "2026-10-20T08:30:00+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/4341168b14ce95e927fe92e99593e668db9f5739_1791622635.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
