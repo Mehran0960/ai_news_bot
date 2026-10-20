@@ -4183,6 +4183,8 @@ VIDEO_STYLE_VERSION = 3  # upper-left platform links + comic discount burst + or
 YOUTUBE_DESCRIPTION_VERSION = 2  # public channel links, minimal YouTube description
 # Do not use the generic web uploader for public Aparat posts: it cannot guarantee Shorts placement.
 APARAT_SHORTS_ONLY = str(os.getenv("APARAT_SHORTS_ONLY", "true")).strip().lower() in {"1", "true", "yes", "on"}
+# Match video throughput to channel publication bursts so the video queue does not lag behind.
+MAX_SHORT_VIDEOS_PER_RUN = max(1, min(4, int(os.getenv("AFFILIO_MAX_SHORT_VIDEOS_PER_RUN", "2"))))
 
 
 def process_pending_short_video(state: dict, now: datetime | None = None, output_dir: str | Path = "video_artifacts") -> bool:
@@ -4401,14 +4403,16 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             state_changed = True
             print(f"SHORT_VIDEO_SKIP id={pid} reason=unverified_deadline")
             continue
-        if expiry <= current + timedelta(minutes=20):
+        # Use the same ten-minute removal buffer as the channel posts. Do not
+        # impose a separate 20-minute video eligibility rule on an already-published deal.
+        if expiry <= current + timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES):
             record["video_generation_status"] = "skipped_expiring_soon"
             if upload_status in pending_youtube:
                 record["youtube_upload_status"] = "skipped_expiring_soon"
             if aparat_status in PENDING_APARAT_STATUSES:
                 record["aparat_upload_status"] = "skipped_expiring_soon"
             state_changed = True
-            print(f"SHORT_VIDEO_SKIP id={pid} reason=less_than_20_minutes_left")
+            print(f"SHORT_VIDEO_SKIP id={pid} reason=inside_expiry_removal_buffer")
             continue
 
         delivery = record.get("delivery_status") if isinstance(record.get("delivery_status"), dict) else {}
@@ -5370,9 +5374,19 @@ def run(publish=False):
             save_json(STATE, state)
             print(f"BATCH_MARKED_COMPLETED key={BATCH_OPERATION_KEY} posts_sent={sent}")
 
-    # Process at most one queued vertical video per successful scan. Video failures never
-    # undo or block the already-published Telegram/Bale offer.
-    process_pending_short_video(state)
+    # Use the same posted-product records for video destinations, and allow enough
+    # throughput to keep pace with the channel's two-post backlog bursts. Each destination
+    # remains failure-isolated; a failed item is deferred while later candidates can proceed.
+    video_items_processed = 0
+    while video_items_processed < MAX_SHORT_VIDEOS_PER_RUN:
+        if not process_pending_short_video(state):
+            break
+        video_items_processed += 1
+    if video_items_processed:
+        print(
+            f"SHORT_VIDEO_QUEUE_PROCESSED items={video_items_processed} "
+            f"limit={MAX_SHORT_VIDEOS_PER_RUN}"
+        )
 
     # Limit retained product history while preserving most recent entries.
     if isinstance(state.get("published"), dict) and len(state["published"]) > 2000:
