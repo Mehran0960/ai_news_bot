@@ -1360,28 +1360,29 @@ def _delete_expired_posts(published, now, mark_unknown=False):
 
 
 
-def _hide_expired_aparat_videos(published, now):
-    """Stop sharing tracked Aparat videos before the offer deadline where possible."""
+def _delete_expired_aparat_videos(published, now):
+    """Permanently delete expired Aparat videos, hiding them only as a failure fallback."""
     changed = False
     try:
-        from aparat_uploader import set_aparat_video_private, aparat_credentials_available
+        from aparat_uploader import (
+            delete_aparat_video,
+            set_aparat_video_private,
+            aparat_credentials_available,
+        )
         credentials_ready = aparat_credentials_available()
     except Exception as exc:
+        delete_aparat_video = None
         set_aparat_video_private = None
         credentials_ready = False
         print(f"APARAT_EXPIRY_SETUP_UNAVAILABLE error={type(exc).__name__}")
 
+    terminal = {"deleted", "already_absent"}
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
-        # Legacy generic-feed videos that failed the one-time privacy migration are
-        # intentionally left alone per the current publishing configuration. Do not
-        # keep retrying an endpoint that has already rejected those old records.
-        if str(rec.get("aparat_shorts_migration_status") or "") == "retry":
-            continue
         video_hash = str(rec.get("aparat_video_hash") or "").strip()
         expiry_status = str(rec.get("aparat_expiry_status") or "")
-        if not video_hash or expiry_status in {"private", "already_private"}:
+        if not video_hash or expiry_status in terminal:
             continue
         expires = parse_expiry(rec.get("expires_at"))
         if not expires:
@@ -1395,27 +1396,21 @@ def _hide_expired_aparat_videos(published, now):
         removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
         if removal_deadline > now:
             continue
+
         retry_raw = parse_expiry(rec.get("aparat_expiry_next_attempt_at"))
         if retry_raw:
             try:
                 retry_at = datetime.fromisoformat(retry_raw)
                 if retry_at.tzinfo is None:
                     retry_at = retry_at.replace(tzinfo=timezone.utc)
-                if now < retry_at and not (expiry_status == "pending_credentials" and credentials_ready):
+                if now < retry_at and not (
+                    expiry_status == "pending_credentials" and credentials_ready
+                ):
                     continue
             except ValueError:
                 pass
 
-        # A deliberately non-public first test upload is already not shared.
-        if str(rec.get("aparat_visibility") or "") == "non_public_test":
-            rec["aparat_expiry_status"] = "already_private"
-            rec["aparat_private_at"] = now.isoformat()
-            rec.pop("aparat_expiry_next_attempt_at", None)
-            changed = True
-            print(f"APARAT_EXPIRY_ALREADY_PRIVATE product_id={pid} video_hash={video_hash}")
-            continue
-
-        if not credentials_ready or set_aparat_video_private is None:
+        if not credentials_ready or delete_aparat_video is None:
             rec["aparat_expiry_status"] = "pending_credentials"
             rec["aparat_expiry_next_attempt_at"] = (now + timedelta(minutes=60)).isoformat()
             rec["aparat_expiry_last_error"] = "aparat_cookie_secret_missing"
@@ -1423,39 +1418,64 @@ def _hide_expired_aparat_videos(published, now):
             continue
 
         try:
-            set_aparat_video_private(video_hash)
-            rec["aparat_expiry_status"] = "private"
-            rec["aparat_private_at"] = now.isoformat()
+            outcome = delete_aparat_video(video_hash)
+            if outcome not in terminal:
+                raise RuntimeError("Aparat deletion was not confirmed")
+            rec["aparat_expiry_status"] = outcome
+            rec["aparat_visibility"] = outcome
+            rec["aparat_deleted_at" if outcome == "deleted" else "aparat_already_absent_at"] = now.isoformat()
             rec.pop("aparat_expiry_next_attempt_at", None)
             rec.pop("aparat_expiry_last_error", None)
             changed = True
-            print(f"APARAT_EXPIRY_PRIVATE_OK product_id={pid} video_hash={video_hash}")
+            print(f"APARAT_EXPIRY_DELETE_OK product_id={pid} video_hash={video_hash} outcome={outcome}")
         except Exception as exc:
-            rec["aparat_expiry_status"] = "retry"
+            # Primary action is permanent deletion. If Aparat's unsupported web
+            # delete endpoint fails, make a best-effort privacy change while retrying deletion.
+            fallback = "not_attempted"
+            if set_aparat_video_private is not None:
+                try:
+                    set_aparat_video_private(video_hash)
+                    rec["aparat_visibility"] = "private_waiting_for_delete"
+                    fallback = "private"
+                except Exception as private_exc:
+                    fallback = f"failed:{type(private_exc).__name__}"
+            attempts = int(rec.get("aparat_expiry_attempts", 0) or 0) + 1
+            rec["aparat_expiry_attempts"] = attempts
+            rec["aparat_expiry_status"] = "delete_retry"
             rec["aparat_expiry_next_attempt_at"] = (now + timedelta(minutes=30)).isoformat()
             rec["aparat_expiry_last_error"] = type(exc).__name__
             changed = True
-            print(f"APARAT_EXPIRY_PRIVATE_FAILED product_id={pid} error={type(exc).__name__}")
+            print(
+                f"APARAT_EXPIRY_DELETE_FAILED product_id={pid} error={type(exc).__name__} "
+                f"fallback={fallback} retry_attempt={attempts}"
+            )
 
     return changed
 
 
-def _hide_expired_youtube_videos(published, now):
-    """Set tracked YouTube Shorts to private once their underlying time-limited offer expires."""
+def _delete_expired_youtube_videos(published, now):
+    """Permanently delete expired YouTube Shorts, using privacy only as a failure fallback."""
     changed = False
     try:
-        from short_video import set_youtube_video_private, youtube_credentials_available
+        from short_video import (
+            delete_youtube_video,
+            set_youtube_video_private,
+            youtube_credentials_available,
+        )
         credentials_ready = youtube_credentials_available()
     except Exception as exc:
+        delete_youtube_video = None
         set_youtube_video_private = None
         credentials_ready = False
         print(f"YOUTUBE_EXPIRY_SETUP_UNAVAILABLE error={type(exc).__name__}")
 
+    terminal = {"deleted", "already_absent"}
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
         video_id = str(rec.get("youtube_video_id") or "").strip()
-        if not video_id or rec.get("youtube_expiry_status") in {"private", "already_private"}:
+        expiry_status = str(rec.get("youtube_expiry_status") or "")
+        if not video_id or expiry_status in terminal:
             continue
         expires = parse_expiry(rec.get("expires_at"))
         if not expires:
@@ -1469,18 +1489,21 @@ def _hide_expired_youtube_videos(published, now):
         removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
         if removal_deadline > now:
             continue
+
         retry_raw = parse_expiry(rec.get("youtube_expiry_next_attempt_at"))
         if retry_raw:
             try:
                 retry_at = datetime.fromisoformat(retry_raw)
                 if retry_at.tzinfo is None:
                     retry_at = retry_at.replace(tzinfo=timezone.utc)
-                if now < retry_at:
+                if now < retry_at and not (
+                    expiry_status == "pending_credentials" and credentials_ready
+                ):
                     continue
             except ValueError:
                 pass
 
-        if not credentials_ready or set_youtube_video_private is None:
+        if not credentials_ready or delete_youtube_video is None:
             rec["youtube_expiry_status"] = "pending_credentials"
             rec["youtube_expiry_next_attempt_at"] = (now + timedelta(minutes=60)).isoformat()
             rec["youtube_expiry_last_error"] = "youtube_oauth_secrets_missing"
@@ -1488,19 +1511,36 @@ def _hide_expired_youtube_videos(published, now):
             continue
 
         try:
-            set_youtube_video_private(video_id)
-            rec["youtube_expiry_status"] = "private"
-            rec["youtube_private_at"] = now.isoformat()
+            outcome = delete_youtube_video(video_id)
+            if outcome not in terminal:
+                raise RuntimeError("YouTube deletion was not confirmed")
+            rec["youtube_expiry_status"] = outcome
+            rec["youtube_deleted_at" if outcome == "deleted" else "youtube_already_absent_at"] = now.isoformat()
             rec.pop("youtube_expiry_next_attempt_at", None)
             rec.pop("youtube_expiry_last_error", None)
             changed = True
-            print(f"YOUTUBE_EXPIRY_PRIVATE_OK product_id={pid} video_id={video_id}")
+            print(f"YOUTUBE_EXPIRY_DELETE_OK product_id={pid} video_id={video_id} outcome={outcome}")
         except Exception as exc:
-            rec["youtube_expiry_status"] = "retry"
+            # Deletion remains the goal; best-effort privacy is only a guardrail if
+            # a delete request fails, and the permanent delete will be retried.
+            fallback = "not_attempted"
+            if set_youtube_video_private is not None:
+                try:
+                    set_youtube_video_private(video_id)
+                    rec["youtube_visibility"] = "private_waiting_for_delete"
+                    fallback = "private"
+                except Exception as private_exc:
+                    fallback = f"failed:{type(private_exc).__name__}"
+            attempts = int(rec.get("youtube_expiry_attempts", 0) or 0) + 1
+            rec["youtube_expiry_attempts"] = attempts
+            rec["youtube_expiry_status"] = "delete_retry"
             rec["youtube_expiry_next_attempt_at"] = (now + timedelta(minutes=30)).isoformat()
             rec["youtube_expiry_last_error"] = type(exc).__name__
             changed = True
-            print(f"YOUTUBE_EXPIRY_PRIVATE_FAILED product_id={pid} error={type(exc).__name__}")
+            print(
+                f"YOUTUBE_EXPIRY_DELETE_FAILED product_id={pid} error={type(exc).__name__} "
+                f"fallback={fallback} retry_attempt={attempts}"
+            )
 
     return changed
 
@@ -1626,10 +1666,10 @@ def run():
     changed = changed or post_changed
     deleted += post_deleted
 
-    youtube_privacy_changed = _hide_expired_youtube_videos(published, now)
-    changed = changed or youtube_privacy_changed
-    aparat_privacy_changed = _hide_expired_aparat_videos(published, now)
-    changed = changed or aparat_privacy_changed
+    youtube_delete_changed = _delete_expired_youtube_videos(published, now)
+    changed = changed or youtube_delete_changed
+    aparat_delete_changed = _delete_expired_aparat_videos(published, now)
+    changed = changed or aparat_delete_changed
     if changed:
         _write_state(state)
     backlog = max(0, len(probe_candidates) - min(len(probe_candidates), max_probe_candidates))
