@@ -52,6 +52,7 @@ def migrate_recent_regular_uploads(
     now: datetime,
     cutoff: datetime,
     max_items: int = 30,
+    force_retry: bool = False,
     sleep_fn: Callable[[float], None] = time.sleep,
 ) -> dict:
     """Privately unshare recent public regular-feed uploads, with retry metadata."""
@@ -75,7 +76,7 @@ def migrate_recent_regular_uploads(
         if visibility not in {"public", "unknown"}:
             continue
         retry_at = parse_utc(record.get("aparat_shorts_migration_next_attempt_at"))
-        if retry_at and now < retry_at:
+        if retry_at and now < retry_at and not force_retry:
             continue
         candidates.append((uploaded_at, str(product_id), record, video_hash))
 
@@ -132,6 +133,7 @@ def main() -> int:
         max_items = max(1, min(100, int(os.getenv("APARAT_SHORTS_MIGRATION_MAX_PER_RUN", "30"))))
     except (TypeError, ValueError, OverflowError):
         max_items = 30
+    force_retry = str(os.getenv("APARAT_SHORTS_MIGRATION_FORCE_RETRY", "false")).strip().lower() in {"1", "true", "yes", "on"}
 
     try:
         state = json.loads(STATE_PATH.read_text(encoding="utf-8"))
@@ -149,6 +151,7 @@ def main() -> int:
         now=datetime.now(timezone.utc),
         cutoff=cutoff,
         max_items=max_items,
+        force_retry=force_retry,
     )
     if counts["changed"]:
         temp = STATE_PATH.with_suffix(".json.tmp")
