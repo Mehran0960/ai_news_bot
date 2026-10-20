@@ -132,6 +132,7 @@ class AparatUploaderTests(unittest.TestCase):
         self.assertTrue(session.detail_url.endswith("/api/fa/v1/video/video/show/videohash/a1b2c3"))
         url, kwargs = session.posts[0]
         self.assertTrue(url.endswith("/api/fa/v1/video/video/edit/videohash/a1b2c3"))
+        # Regression guard: send the payload in the serialized JSON format Aparat expects.
         payload = json.loads(kwargs["data"])
         self.assertTrue(payload["video_pass"])
         self.assertEqual(payload["title"], "پیشنهاد دیجی‌کالا")
