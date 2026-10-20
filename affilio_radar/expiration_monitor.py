@@ -35,12 +35,10 @@ HTTP_TIMEOUT = 18
 BOT_API_MIN_GAP_SECONDS = 1.1
 PROBE_INTERVAL_SECONDS = 900
 UNKNOWN_PROBE_INTERVAL_SECONDS = 900
-# The public countdown is deliberately conservative by five minutes.
-COUNTDOWN_DISPLAY_BUFFER_MINUTES = 5
-# Cleanup is dispatched in five-minute slots; allow one whole slot beyond the
-# displayed buffer so an on-time cleanup run removes a post at least five minutes early.
-CLEANUP_CHECK_INTERVAL_MINUTES = 5
-POST_REMOVAL_BUFFER_MINUTES = COUNTDOWN_DISPLAY_BUFFER_MINUTES + CLEANUP_CHECK_INTERVAL_MINUTES
+# Keep deletion safety independent from the caption's displayed countdown.
+# A post is removed up to ten minutes before the verified deadline.
+POST_REMOVAL_BUFFER_MINUTES = 10
+LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 15 * 60
 
 
 def walk_dicts(value):
@@ -213,20 +211,14 @@ def fetch_mcp_offer_candidates(page_numbers=None):
         except Exception as exc:
             print(f"EXPIRY_MCP_FAILED page={page} error={type(exc).__name__} detail={str(exc)[:140]!r}")
             break
-        page_count = 0
         page_candidates = 0
         for node in walk_dicts(payload):
             pid = _product_id(node)
             if not pid:
                 continue
-            expiry = extract_expiry(node)
-            if expiry:
-                expiries[pid] = expiry
-                page_count += 1
-
-            # Preserve actual offer-card objects as well as their deadlines. The MCP
-            # feed may expose discounted products missing from the direct REST page
-            # ordering; returning only an ID->deadline map silently dropped those offers.
+            # Only use a real product/offer card as the deadline source. Nested
+            # variant/price dictionaries may repeat the product ID and carry unrelated
+            # expiry-like fields; letting them overwrite a card's deadline was unsafe.
             title = node.get("title_fa") or node.get("product_title") or node.get("title")
             if not title:
                 continue
@@ -241,11 +233,15 @@ def fetch_mcp_offer_candidates(page_numbers=None):
                 continue
             old = candidate_nodes.get(pid)
             if old is None or len(node) > len(old):
-                copied = dict(node)
-                if expiry:
-                    copied["deal_expires_at"] = expiry
-                candidate_nodes[pid] = copied
+                candidate_nodes[pid] = dict(node)
                 page_candidates += 1
+        page_count = 0
+        for pid, card in candidate_nodes.items():
+            expiry = extract_expiry(card)
+            if expiry:
+                expiries[pid] = expiry
+                card["deal_expires_at"] = expiry
+                page_count += 1
         print(
             f"EXPIRY_MCP_PAGE page={page} products_with_deadlines={page_count} "
             f"offer_cards={page_candidates}"
@@ -290,11 +286,22 @@ def fetch_direct_api_offer_expiries():
             print(f"EXPIRY_FEED_FAILED page={page} error={type(exc).__name__} detail={str(exc)[:140]!r}")
             break
         page_found = 0
+        candidate_nodes = {}
         for node in walk_dicts(payload):
             pid = _product_id(node)
-            if not pid:
+            title = node.get("title_fa") or node.get("product_title") or node.get("title")
+            if not pid or not title:
                 continue
-            expiry = extract_expiry(node)
+            raw_url = node.get("url") or node.get("product_url") or node.get("web_url")
+            if isinstance(raw_url, dict):
+                raw_url = raw_url.get("uri") or raw_url.get("url") or ""
+            if not raw_url and not any(key in node for key in ("default_variant", "variants", "price", "status", "product_type", "is_incredible")):
+                continue
+            old = candidate_nodes.get(pid)
+            if old is None or len(node) > len(old):
+                candidate_nodes[pid] = dict(node)
+        for pid, card in candidate_nodes.items():
+            expiry = extract_expiry(card)
             if expiry:
                 results[pid] = expiry
                 page_found += 1
@@ -319,6 +326,68 @@ def _money_to_toman(raw, is_toman):
         return None
     value = value if is_toman else value / 10.0
     return max(0, int(round(value)))
+
+
+
+def sync_live_offer_deadlines(published, live_expiries, now):
+    """Reconcile every still-visible tracked post with the latest verified deal-card deadline."""
+    summary = {"matched": 0, "updated": 0, "unchanged": 0, "missing_from_feed": 0, "skipped": 0}
+    terminal = {"deleted", "already_absent"}
+    for pid, rec in _iter_post_records(published):
+        if not isinstance(rec, dict):
+            summary["skipped"] += 1
+            continue
+        platforms = []
+        telegram_id = str(rec.get("telegram_message_id") or "")
+        bale_id = str(rec.get("bale_message_id") or "")
+        if telegram_id.isdigit() and rec.get("expiry_status") not in terminal:
+            platforms.append("telegram")
+        if bale_id.isdigit() and rec.get("bale_expiry_status") not in terminal:
+            platforms.append("bale")
+        if not platforms:
+            continue
+
+        raw_live = live_expiries.get(str(pid))
+        live = parse_expiry(raw_live)
+        if not live:
+            summary["missing_from_feed"] += 1
+            continue
+        summary["matched"] += 1
+        previous = parse_expiry(rec.get("expires_at"))
+        try:
+            previous_dt = datetime.fromisoformat(previous) if previous else None
+            live_dt = datetime.fromisoformat(live)
+        except ValueError:
+            previous_dt = None
+            live_dt = None
+        delta_seconds = (live_dt - previous_dt).total_seconds() if previous_dt and live_dt else None
+        must_update = (
+            not previous_dt
+            or bool(rec.get("expiry_estimated"))
+            or rec.get("expiry_source") != "digikala_live_deals_feed"
+            or (delta_seconds is not None and abs(delta_seconds) >= 60)
+        )
+        if not must_update:
+            summary["unchanged"] += 1
+            continue
+
+        rec["expires_at"] = live
+        rec["expiry_source"] = "digikala_live_deals_feed"
+        rec["expiry_estimated"] = False
+        rec["expiry_last_live_sync_at"] = now.isoformat()
+        for platform in platforms:
+            status_field = "expiry_status" if platform == "telegram" else "bale_expiry_status"
+            if rec.get(status_field) not in terminal:
+                rec[status_field] = "tracked"
+        rec.pop("expiry_reason", None)
+        summary["updated"] += 1
+        delta_label = "unknown" if delta_seconds is None else f"{int(delta_seconds):+d}"
+        print(
+            f"EXPIRY_DEADLINE_SYNC product_id={pid} previous={previous or 'missing'} "
+            f"live={live} delta_seconds={delta_label}"
+        )
+    return summary
+
 
 
 def fetch_live_product_status(product_id):
