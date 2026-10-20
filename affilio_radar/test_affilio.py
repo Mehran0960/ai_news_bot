@@ -31,6 +31,8 @@ from affilio_radar import (
     select_queued_records_for_recheck,
     merge_discovery_queue,
     select_discovery_records_for_check,
+    visible_publication_deadline_floor,
+    respects_visible_deadline_order,
     mark_discovery_candidate_checked,
     defer_pending_publication,
     select_publish_candidates,
@@ -1789,11 +1791,109 @@ class AffilioRadarTests(unittest.TestCase):
             datetime.fromisoformat(queue["dkp-91011"]["next_check_at"]),
             now + timedelta(minutes=5),
         )
+        # A known deal inside the minimum publication runway must not consume one
+        # of the limited detail-check slots; the queue will prune it at expiry.
         self.assertEqual(select_discovery_records_for_check(queue, now, max_count=5), [])
         self.assertEqual(
-            [pid for pid, _ in select_discovery_records_for_check(queue, now + timedelta(minutes=5), max_count=5)],
-            ["dkp-91011"],
+            select_discovery_records_for_check(queue, now + timedelta(minutes=5), max_count=5),
+            [],
         )
+        merge_discovery_queue(queue, [], now + timedelta(minutes=20))
+        self.assertNotIn("dkp-91011", queue)
+
+    def test_visible_publication_deadline_floor_is_per_platform_and_ignores_deleted_posts(self):
+        now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
+        state = {
+            "published": {
+                "dkp-93001": {
+                    "telegram_message_id": 11,
+                    "expiry_status": "tracked",
+                    "bale_message_id": 21,
+                    "bale_expiry_status": "tracked",
+                    "expires_at": (now + timedelta(hours=4)).isoformat(),
+                    "post_history": [{
+                        "telegram_message_id": 7,
+                        "expiry_status": "deleted",
+                        "bale_message_id": 15,
+                        "bale_expiry_status": "deleted",
+                        "expires_at": (now + timedelta(days=2)).isoformat(),
+                    }],
+                },
+                "dkp-93002": {
+                    "bale_message_id": 22,
+                    "bale_expiry_status": "tracked",
+                    "expires_at": (now + timedelta(hours=6)).isoformat(),
+                },
+                "dkp-93003": {
+                    "telegram_message_id": 12,
+                    "expiry_status": "deleted",
+                    "expires_at": (now + timedelta(days=3)).isoformat(),
+                },
+            }
+        }
+        self.assertEqual(
+            visible_publication_deadline_floor(state, now),
+            now + timedelta(hours=6),
+        )
+        self.assertEqual(
+            visible_publication_deadline_floor(state, now, platform="telegram"),
+            now + timedelta(hours=4),
+        )
+        self.assertEqual(
+            visible_publication_deadline_floor(state, now, platform="bale"),
+            now + timedelta(hours=6),
+        )
+
+    def test_new_publication_cannot_regress_the_visible_countdown_order(self):
+        now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
+        floor = now + timedelta(hours=3)
+        state = {
+            "published": {
+                "dkp-93010": {
+                    "telegram_message_id": 11,
+                    "expiry_status": "tracked",
+                    "expires_at": floor.isoformat(),
+                }
+            }
+        }
+        self.assertFalse(respects_visible_deadline_order(
+            {"deal_expires_at": (floor - timedelta(minutes=1)).isoformat()}, state, now
+        ))
+        self.assertTrue(respects_visible_deadline_order(
+            {"deal_expires_at": floor.isoformat()}, state, now
+        ))
+        self.assertTrue(respects_visible_deadline_order(
+            {"deal_expires_at": (floor + timedelta(minutes=1)).isoformat()}, state, now
+        ))
+        self.assertFalse(respects_visible_deadline_order({}, state, now))
+
+    def test_discovery_checks_skip_short_or_out_of_order_deadlines_and_sort_exactly(self):
+        now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
+        floor = now + timedelta(hours=2)
+        queue = {}
+        specs = [
+            ("dkp-93021", now + timedelta(hours=4)),
+            ("dkp-93022", now + timedelta(hours=2)),
+            ("dkp-93023", now + timedelta(minutes=45)),
+            ("dkp-93024", now + timedelta(hours=1, minutes=30)),
+        ]
+        for pid, deadline in specs:
+            queue[pid] = {
+                "product_id": pid,
+                "product_url": f"https://www.digikala.com/product/{pid}/",
+                "title": pid,
+                "deal_expires_at": deadline.isoformat(),
+            }
+        queue["dkp-93025"] = {
+            "product_id": "dkp-93025",
+            "product_url": "https://www.digikala.com/product/dkp-93025/",
+            "title": "unknown deadline",
+            "deal_expires_at": "",
+        }
+        selected = select_discovery_records_for_check(
+            queue, now, max_count=10, deadline_floor=floor
+        )
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93022", "dkp-93021"])
 
     def test_discovery_queue_prunes_expired_deadlines_and_stale_unknown_deadlines(self):
         now = datetime(2026, 10, 19, 12, 0, tzinfo=timezone.utc)
