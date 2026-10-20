@@ -4381,6 +4381,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             aparat_result = upload_aparat_video(
                 output_path,
                 str(record.get("title") or "پیشنهاد آفِرچین"),
+                description=build_video_channel_description(state, "aparat"),
             )
             record["aparat_upload_status"] = "uploaded"
             record["aparat_video_record_id"] = aparat_result.get("video_id", "")
@@ -4440,6 +4441,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
                 output_path,
                 str(record.get("title") or "پیشنهاد آفِرچین"),
                 record.get("posted_discount_percent"),
+                description=build_video_channel_description(state, "youtube"),
             )
             record["youtube_upload_status"] = "uploaded"
             record["youtube_video_id"] = result["video_id"]
@@ -4475,6 +4477,116 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
     save_json(STATE, state)
     return True
 
+
+GROWTH_TRACKING_INVITE_SOURCES = (
+    ("aparat", "OfferChin-Aparat"),
+    ("bale", "OfferChin-Bale"),
+    ("youtube", "OfferChin-YouTube"),
+)
+
+
+def ensure_telegram_source_invites(state: dict, *, session=None, token=None, chat_id=None, now=None) -> bool:
+    """Create one stable, source-named Telegram invite link per growth channel.
+
+    Failures are deliberately non-fatal: publishing offers must continue even when the
+    bot lacks invite-management rights or Telegram is temporarily unavailable.
+    """
+    bot_token = str(BOT_TOKEN if token is None else token).strip()
+    target_chat = str(TARGET_CHAT if chat_id is None else chat_id).strip()
+    if not bot_token or not target_chat:
+        print("GROWTH_INVITE_SETUP_SKIPPED reason=telegram_credentials_missing")
+        return False
+
+    tracking = state.setdefault("growth_tracking", {})
+    if not isinstance(tracking, dict):
+        tracking = {}
+        state["growth_tracking"] = tracking
+    links = tracking.setdefault("telegram_invite_links", {})
+    if not isinstance(links, dict):
+        links = {}
+        tracking["telegram_invite_links"] = links
+
+    http = session or requests.Session()
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    changed = False
+
+    for source, link_name in GROWTH_TRACKING_INVITE_SOURCES:
+        existing = links.get(source)
+        existing_url = str(existing.get("url") or "").strip() if isinstance(existing, dict) else ""
+        parsed = urlsplit(existing_url)
+        if parsed.scheme == "https" and parsed.netloc.lower() in {"t.me", "telegram.me"} and parsed.path:
+            print(f"GROWTH_INVITE_READY source={source} origin=saved url={existing_url}")
+            continue
+
+        try:
+            response = http.post(
+                f"https://api.telegram.org/bot{bot_token}/createChatInviteLink",
+                data={"chat_id": target_chat, "name": link_name},
+                timeout=(10, 20),
+            )
+            response.raise_for_status()
+            payload = response.json()
+            if not isinstance(payload, dict) or payload.get("ok") is not True:
+                description = str(payload.get("description") or "telegram_api_rejected_request") if isinstance(payload, dict) else "invalid_telegram_response"
+                description = re.sub(r"[\r\n\t]+", " ", description)[:140]
+                print(f"GROWTH_INVITE_SETUP_FAILED source={source} reason={description!r}")
+                continue
+            result = payload.get("result") if isinstance(payload.get("result"), dict) else {}
+            invite_url = str(result.get("invite_link") or "").strip()
+            parsed_invite = urlsplit(invite_url)
+            if parsed_invite.scheme != "https" or parsed_invite.netloc.lower() not in {"t.me", "telegram.me"} or not parsed_invite.path:
+                print(f"GROWTH_INVITE_SETUP_FAILED source={source} reason=invalid_invite_url")
+                continue
+
+            links[source] = {
+                "name": link_name,
+                "url": invite_url,
+                "created_at": current.isoformat(),
+                "status": "active",
+            }
+            changed = True
+            print(f"GROWTH_INVITE_READY source={source} origin=created url={invite_url}")
+        except Exception as exc:
+            # Never print the request URL, since it embeds the private bot token.
+            print(f"GROWTH_INVITE_SETUP_FAILED source={source} error={type(exc).__name__}")
+
+    return changed
+
+
+def build_video_channel_description(state: dict, source: str) -> str:
+    """Use the source-specific Telegram invite link in new Aparat/YouTube descriptions."""
+    tracking = state.get("growth_tracking", {}) if isinstance(state, dict) else {}
+    links = tracking.get("telegram_invite_links", {}) if isinstance(tracking, dict) else {}
+    record = links.get(source, {}) if isinstance(links, dict) else {}
+    invite_url = str(record.get("url") or "").strip() if isinstance(record, dict) else ""
+    parsed = urlsplit(invite_url)
+    if not (parsed.scheme == "https" and parsed.netloc.lower() in {"t.me", "telegram.me"} and parsed.path):
+        invite_url = TELEGRAM_CHANNEL_URL
+    source_names = {"aparat": "آپارات", "youtube": "یوتیوب"}
+    source_label = source_names.get(source, "این ویدئو")
+    return (
+        "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\\n"
+        "قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در دیجی‌کالا بررسی کنید.\\n\\n"
+        f"برای عضویت در تلگرام از {source_label}:\\n{invite_url}\\n"
+        "کانال بله: https://ble.ir/OfferChin"
+    )
+
+
+def tracked_telegram_invite_url(state: dict, source: str) -> str:
+    """Get a validated saved invite URL for replacing a source link in a pinned message."""
+    tracking = state.get("growth_tracking", {}) if isinstance(state, dict) else {}
+    links = tracking.get("telegram_invite_links", {}) if isinstance(tracking, dict) else {}
+    record = links.get(source, {}) if isinstance(links, dict) else {}
+    url = str(record.get("url") or "").strip() if isinstance(record, dict) else ""
+    parsed = urlsplit(url)
+    if parsed.scheme == "https" and parsed.netloc.lower() in {"t.me", "telegram.me"} and parsed.path:
+        return url
+    return TELEGRAM_CHANNEL_URL
+
+
 def run(publish=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
@@ -4494,6 +4606,9 @@ def run(publish=False):
     # Read the persistent queue before discovery so offers temporarily missing from one
     # page remain eligible for a live recheck on the next scan.
     state = load_state()
+    # Growth attribution is best-effort and must never block regular offer publishing.
+    if ensure_telegram_source_invites(state):
+        save_json(STATE, state)
     state.setdefault("published", {})
     queued_records = state.get("pending_queue")
     discovery_queue = state.get("discovery_queue")
