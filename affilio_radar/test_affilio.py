@@ -2075,6 +2075,42 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(record["video_style_version"], VIDEO_STYLE_VERSION)
         self.assertGreater(VIDEO_STYLE_VERSION, 1)
 
+    def test_posted_short_is_not_rejected_by_extra_twenty_minute_video_cutoff(self):
+        now = datetime.now(timezone.utc)
+        pid = "dkp-video-with-fifteen-minutes-left"
+        record = {
+            "ts": now.timestamp(),
+            "title": "محصول منتشرشده با مهلت نزدیک",
+            "product_url": f"https://www.digikala.com/product/{pid}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "expires_at": (now + timedelta(minutes=15)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_estimated": False,
+            "posted_discount_percent": 45,
+            "delivery_status": {"telegram": "sent", "bale": "sent"},
+            "video_generation_status": "pending",
+            "youtube_upload_status": "pending",
+        }
+        state = {"published": {pid: record}}
+
+        def fake_render(image_bytes, discount, path, **kwargs):
+            output = Path(path)
+            output.write_bytes(b"new-short-mp4")
+            return output
+
+        with (
+            TemporaryDirectory() as output_dir,
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
+            patch("affilio_radar.save_json"),
+            patch("short_video.youtube_credentials_available", return_value=False),
+            patch("aparat_uploader.aparat_credentials_available", return_value=False),
+            patch("short_video.render_short_video", side_effect=fake_render),
+        ):
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
+
+        self.assertEqual(record["video_generation_status"], "generated")
+        self.assertNotEqual(record["video_generation_status"], "skipped_expiring_soon")
+
     def test_short_video_without_youtube_oauth_exports_manual_aparat_artifact(self):
         import short_video
 
