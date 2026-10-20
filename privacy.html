@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="سیاست حریم خصوصی ابزار خصوصی OfferChin YouTube Uploader.">
+  <title>سیاست حریم خصوصی | OfferChin YouTube Uploader</title>
+  <style>
+    :root { color-scheme: light; --ink:#162033; --muted:#4f5b6e; --line:#e3e8ef; --panel:#f6f8fb; --accent:#175cd3; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#fff; color:var(--ink); font:16px/1.95 system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif; }
+    main { width:min(900px,92%); margin:42px auto; }
+    h1 { line-height:1.4; font-size:clamp(1.8rem,4vw,2.6rem); }
+    h2 { margin-top:2rem; font-size:1.25rem; }
+    p, li { color:var(--muted); }
+    a { color:var(--accent); }
+    .meta { color:var(--muted); font-size:.92rem; }
+    .en { direction:ltr; text-align:left; border-top:1px solid var(--line); margin-top:3rem; padding-top:1.5rem; }
+    footer { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--line); color:var(--muted); font-size:.9rem; }
+  </style>
+</head>
+<body>
+<main>
+  <p><a href="./">بازگشت به صفحهٔ اصلی</a></p>
+  <h1>سیاست حریم خصوصی</h1>
+  <p class="meta">مربوط به OfferChin YouTube Uploader · آخرین به‌روزرسانی: ۲۰ اکتبر ۲۰۲۶</p>
+  <p>این سیاست توضیح می‌دهد ابزار خصوصی OfferChin YouTube Uploader چگونه داده‌ها را هنگام انتشار خودکار ویدئوهای آفِرچین در کانال یوتیوبی که مدیر پروژه کنترل می‌کند، پردازش می‌کند. این ابزار برای اتصال حساب کاربران دیگر ارائه نشده است.</p>
+
+  <h2>داده‌هایی که پردازش می‌شوند</h2>
+  <ul>
+    <li><strong>مجوز حساب یوتیوب:</strong> برنامه از OAuth 2.0 برای دریافت مجوز صاحب کانال استفاده می‌کند. مجوز درخواستی YouTube به برنامه امکان انجام برخی عملیات مرتبط با منابع یوتیوب را می‌دهد؛ کاربرد عملی این ابزار انتشار ویدئوها و ثبت نتیجهٔ آپلود در کانال تحت مدیریت صاحب پروژه است.</li>
+    <li><strong>اطلاعات ویدئو:</strong> فایل ویدئو و اطلاعات لازم برای انتشار آن، مانند عنوان و توضیحات، به YouTube ارسال می‌شوند. پاسخ‌های فنی لازم برای تشخیص موفقیت یا خطای آپلود نیز پردازش می‌شوند.</li>
+    <li><strong>اعتبارنامه‌ها:</strong> شناسه و رمز OAuth و Refresh Token در GitHub Actions Secrets نگهداری می‌شوند و برای اجرای گردش‌کار به‌صورت متغیرهای محرمانه در اختیار آن قرار می‌گیرند؛ این مقادیر نباید در کد عمومی مخزن ثبت شوند.</li>
+  </ul>
+
+  <h2>هدف و نحوهٔ استفاده</h2>
+  <p>داده‌ها فقط برای مجازسازی اتصال به YouTube Data API، آماده‌سازی و انتشار ویدئوهای آفِرچین و بررسی نتیجهٔ عملیات پردازش می‌شوند. این وب‌سایت از فرم ثبت‌نام عمومی استفاده نمی‌کند و از طریق صفحه‌های ثابت آن، اطلاعات شخصی بازدیدکننده جمع‌آوری نمی‌شود.</p>
+
+  <h2>ذخیره‌سازی و ارائه‌دهندگان خدمات</h2>
+  <p>Google و YouTube داده‌های لازم برای تأیید مجوز و دریافت ویدئوهای آپلودشده را طبق سیاست‌های خود پردازش می‌کنند. GitHub برای میزبانی کد، نگهداری GitHub Actions Secrets و اجرای گردش‌کارها استفاده می‌شود. فایل‌های ویدئوی تولیدشده ممکن است به‌عنوان خروجی اجرای GitHub Actions تا سه روز نگهداری شوند؛ گزارش‌ها و فراداده‌های فنی نیز ممکن است برای عیب‌یابی و ثبت وضعیت انتشار باقی بمانند.</p>
+
+  <h2>اشتراک‌گذاری و فروش</h2>
+  <p>داده‌های حساب یوتیوب برای فروش، تبلیغات هدفمند یا فهرست‌سازی کاربران استفاده نمی‌شوند و به اشخاص ثالث مستقل فروخته نمی‌شوند. انتقال داده فقط به ارائه‌دهندگان فنی یادشده و تا حد لازم برای اجرای عملکرد برنامه انجام می‌شود.</p>
+
+  <h2>مدت نگهداری و حذف</h2>
+  <p>اعتبارنامه‌های OAuth تا زمان نیاز به اجرای خودکار در GitHub Actions Secrets باقی می‌مانند. صاحب حساب می‌تواند دسترسی برنامه را از تنظیمات امنیتی حساب Google لغو کند و Secretهای مربوطه را از تنظیمات مخزن GitHub حذف کند. خروجی‌ها و گزارش‌های ذخیره‌شده نیز می‌توانند از بخش Actions مخزن حذف شوند.</p>
+
+  <h2>امنیت</h2>
+  <p>اعتبارنامه‌ها به‌جای قرارگرفتن در فایل‌های کد، در Secretهای GitHub Actions نگهداری می‌شوند و ارتباطات API از طریق HTTPS انجام می‌گیرد. بااین‌حال، هیچ روش انتقال یا ذخیره‌سازی اینترنتی را نمی‌توان کاملاً بدون خطر تضمین کرد.</p>
+
+  <h2>تغییرات و تماس</h2>
+  <p>این سیاست در صورت تغییر نحوهٔ کار ابزار به‌روزرسانی می‌شود. برای پرسش‌های مربوط به حریم خصوصی، از نشانی تماس توسعه‌دهنده که در صفحهٔ رضایت OAuth این برنامه نمایش داده می‌شود استفاده کنید.</p>
+
+  <section class="en" lang="en" dir="ltr">
+    <h1>Privacy Policy</h1>
+    <p class="meta">OfferChin YouTube Uploader · Last updated: October 20, 2026</p>
+    <p>This policy explains how the private OfferChin YouTube Uploader processes data while publishing OfferChin videos to a YouTube channel controlled by the project owner. The tool is not offered for connecting other users' accounts.</p>
+    <h2>Data processed</h2>
+    <ul>
+      <li><strong>YouTube authorization:</strong> OAuth 2.0 is used to obtain authorization from the channel owner. The requested YouTube scope permits certain operations on YouTube resources; the tool's intended operation is uploading videos and recording upload outcomes for the owner-managed channel.</li>
+      <li><strong>Video information:</strong> Video files and publishing metadata such as titles and descriptions are sent to YouTube. Technical responses needed to determine upload success or failure are processed.</li>
+      <li><strong>Credentials:</strong> The OAuth client ID, client secret, and refresh token are stored as GitHub Actions Secrets and supplied to workflows as secrets. They should not be committed to public source files.</li>
+    </ul>
+    <h2>Purpose and use</h2>
+    <p>Data is used only to authorize the YouTube Data API connection, prepare and publish OfferChin videos, and check operation results. This static website has no public sign-up form and does not collect visitor personal information through its pages.</p>
+    <h2>Storage and service providers</h2>
+    <p>Google and YouTube process authorization and uploaded-video data under their own policies. GitHub hosts the code, stores GitHub Actions Secrets, and runs the workflows. Generated video files may be retained as GitHub Actions artifacts for up to three days. Technical logs and publishing metadata may remain for troubleshooting and publication status records.</p>
+    <h2>Sharing and sale</h2>
+    <p>YouTube account data is not sold, used for targeted advertising, or sold to independent third parties. Transfers are limited to the service providers described above as necessary to operate the tool.</p>
+    <h2>Retention and deletion</h2>
+    <p>OAuth credentials remain in GitHub Actions Secrets while needed for automated publishing. The account owner may revoke the app's access through their Google Account security settings, remove related repository secrets, and delete stored outputs or logs from the repository's Actions area.</p>
+    <h2>Security</h2>
+    <p>OAuth credentials are stored in GitHub Actions Secrets rather than source files, and API communications use HTTPS. No internet storage or transmission method can be guaranteed completely risk-free.</p>
+    <h2>Changes and contact</h2>
+    <p>This policy may be updated when the tool's operation changes. For privacy questions, use the developer contact address displayed on the app's OAuth consent screen.</p>
+  </section>
+  <footer><a href="./">OfferChin YouTube Uploader</a></footer>
+</main>
+</body>
+</html>
