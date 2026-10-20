@@ -37,6 +37,45 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertGreaterEqual(parsed, before + timedelta(seconds=89))
         self.assertLessEqual(parsed, after + timedelta(seconds=91))
 
+    def test_live_deadline_sync_corrects_stale_deadline_before_cleanup(self):
+        now = datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
+        published = {
+            "dkp-123": {
+                "expires_at": "2026-10-20T20:30:00+00:00",
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_estimated": False,
+                "telegram_message_id": 61,
+                "bale_message_id": 27,
+                "expiry_status": "tracked",
+                "bale_expiry_status": "tracked",
+            }
+        }
+        summary = monitor.sync_live_offer_deadlines(
+            published, {"dkp-123": "2026-10-20T22:00:00+00:00"}, now
+        )
+        self.assertEqual(summary["updated"], 1)
+        self.assertEqual(published["dkp-123"]["expires_at"], "2026-10-20T22:00:00+00:00")
+        self.assertEqual(published["dkp-123"]["expiry_last_live_sync_at"], now.isoformat())
+
+    def test_live_deadline_sync_does_not_resurrect_deleted_messages(self):
+        published = {
+            "dkp-deleted": {
+                "expires_at": "2026-10-20T20:30:00+00:00",
+                "expiry_source": "digikala_live_deals_feed",
+                "telegram_message_id": 61,
+                "expiry_status": "deleted",
+                "bale_message_id": 27,
+                "bale_expiry_status": "already_absent",
+            }
+        }
+        summary = monitor.sync_live_offer_deadlines(
+            published, {"dkp-deleted": "2026-10-20T22:00:00+00:00"},
+            datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
+        )
+        self.assertEqual(summary["updated"], 0)
+        self.assertEqual(summary["skipped"], 1)
+        self.assertEqual(published["dkp-deleted"]["expires_at"], "2026-10-20T20:30:00+00:00")
+
     def test_mcp_feed_returns_offer_cards_and_deadlines_together(self):
         payload = {
             "products": [{
