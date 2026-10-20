@@ -1884,6 +1884,7 @@ def select_queued_records_for_recheck(
     queued_records: dict[str, dict],
     now: datetime | None = None,
     max_count: int | None = None,
+    deadline_floor: datetime | None = None,
 ) -> list[tuple[str, dict]]:
     """Select a fair batch: keep the highest-priority offers in every scan and rotate the rest."""
     current = now or datetime.now(timezone.utc)
@@ -1902,6 +1903,12 @@ def select_queued_records_for_recheck(
         canonical = safe_product_url(record.get("product_url", ""))
         deadline = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
         if not canonical or product_id(canonical) != pid or deadline is None or deadline <= current:
+            continue
+        # Do not spend product-page/API budget on an offer with too little buying
+        # runway, or on a deadline that would violate the channel's countdown order.
+        if not has_minimum_publication_runway(record, current):
+            continue
+        if deadline_floor is not None and deadline < deadline_floor.astimezone(timezone.utc):
             continue
         eligible.append((pid, record))
 
@@ -2070,6 +2077,7 @@ def select_discovery_records_for_check(
     queue: dict[str, dict],
     now: datetime | None = None,
     max_count: int | None = None,
+    deadline_floor: datetime | None = None,
 ) -> list[tuple[str, dict]]:
     """Select due candidates for incremental detail checks, favoring the nearest verified deadline."""
     current = now or datetime.now(timezone.utc)
@@ -2086,7 +2094,13 @@ def select_discovery_records_for_check(
         if not url or product_id(url) != pid:
             continue
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
-        if expiry and expiry <= current:
+        # Unknown deadlines cannot be published, and offers below the runway/order
+        # floor should not occupy the finite detailed-check budget.
+        if expiry is None or expiry <= current:
+            continue
+        if not has_minimum_publication_runway(record, current):
+            continue
+        if deadline_floor is not None and expiry < deadline_floor.astimezone(timezone.utc):
             continue
         next_check = _parse_utc_datetime(record.get("next_check_at"))
         if next_check and next_check > current:
@@ -2169,11 +2183,16 @@ def discover_product_urls(
     queued_records = queued_records if isinstance(queued_records, dict) else {}
     queue_now = datetime.now(timezone.utc)
     queued_expiries: dict[str, str] = {}
+    order_floor = visible_publication_deadline_floor(state_to_persist, queue_now)
+    if order_floor is not None:
+        print(f"VISIBLE_DEADLINE_ORDER_FLOOR deadline={order_floor.isoformat()}")
 
     # Offers that passed validation earlier remain on a persistent queue even if they
-    # fall out of one feed page. Recheck a fair priority batch before relying on the
-    # live feed again. Current stock and price are still revalidated before posting.
-    for pid, record in select_queued_records_for_recheck(queued_records, queue_now):
+    # fall out of one feed page. Recheck only in-order offers with enough buying runway;
+    # stale deadlines must not consume the bounded product-check budget.
+    for pid, record in select_queued_records_for_recheck(
+        queued_records, queue_now, deadline_floor=order_floor
+    ):
         canonical = safe_product_url(record.get("product_url", ""))
         deadline = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
         if not canonical or deadline is None or deadline <= queue_now:
@@ -2316,20 +2335,24 @@ def discover_product_urls(
 
     def discovery_key(row):
         expiry_value = _parse_utc_datetime(_parse_deal_expiry_value(row.get("deal_expires_at")))
-        deadline_active = bool(expiry_value and expiry_value > discovery_now)
-        remaining_seconds = (expiry_value - discovery_now).total_seconds() if deadline_active else float("inf")
-        if remaining_seconds <= ULTRA_URGENT_WINDOW_MINUTES * 60:
-            deadline_priority = 3
-        elif remaining_seconds <= DEADLINE_CRITICAL_WINDOW_MINUTES * 60:
-            deadline_priority = 2
-        elif remaining_seconds <= URGENT_EXPIRY_WINDOW_MINUTES * 60:
-            deadline_priority = 1
-        else:
-            deadline_priority = 0
+        deadline_active = bool(
+            expiry_value
+            and expiry_value > discovery_now
+            and (order_floor is None or expiry_value >= order_floor)
+            and (expiry_value - discovery_now).total_seconds()
+                >= MIN_PUBLICATION_RUNWAY_MINUTES * 60
+        )
+        remaining_seconds = (
+            (expiry_value - discovery_now).total_seconds()
+            if deadline_active else float("inf")
+        )
         category = classify_category(row.get("title", ""))
+        # Exact remaining time is the primary sort field; demand and discount only
+        # break ties. Bucketed urgency/category scoring previously let later-ending
+        # offers outrank earlier deadlines within the same urgency band.
         return (
             int(deadline_active),
-            deadline_priority,
+            -remaining_seconds if deadline_active else float("-inf"),
             category_priority.get(category, 0),
             int(row.get("review_count") or 0),
             int(row.get("discount_percent") or 0),
@@ -2340,7 +2363,9 @@ def discover_product_urls(
     # The selected batch below is only a work queue; it does not cap what we remember.
     if isinstance(discovery_queue, dict):
         merge_discovery_queue(discovery_queue, list(best_by_url.values()), discovery_now)
-        queued_due = select_discovery_records_for_check(discovery_queue, discovery_now)
+        queued_due = select_discovery_records_for_check(
+            discovery_queue, discovery_now, deadline_floor=order_floor
+        )
         queued_added = 0
         for pid, record in queued_due:
             queued_url = safe_product_url(record.get("product_url", ""))
@@ -2353,49 +2378,33 @@ def discover_product_urls(
                 deal_expiries[pid] = queued_expiry.isoformat()
         print(f"DISCOVERY_QUEUE_URLS_ADDED count={queued_added} already_selected_or_capacity={len(queued_due) - queued_added}")
 
-    sorted_deals = sorted(best_by_url.values(), key=discovery_key, reverse=True)
-
-    # Keep the strongest first half in every scan, then rotate through the rest of the
-    # live deal feed. This prevents the same top-ranked products from permanently
-    # occupying the whole candidate budget while short-deadline deals lead every batch.
-    scan_slot = int(time.time() // 300)
-    fixed_head_count = min(len(sorted_deals), max(8, MAX_INCREDIBLE_OFFER_CANDIDATES // 2))
-    fixed_head = sorted_deals[:fixed_head_count]
-    tail = sorted_deals[fixed_head_count:]
-    rotation_width = min(max(0, MAX_INCREDIBLE_OFFER_CANDIDATES - fixed_head_count), len(tail))
-    if tail and rotation_width:
-        rotation_offset = (scan_slot * rotation_width) % len(tail)
-        rotating_tail = (tail + tail)[rotation_offset:rotation_offset + rotation_width]
-    else:
-        rotating_tail = []
-    candidate_order = fixed_head + rotating_tail
-    print(
-        f"DEAL_ROTATION scan_slot={scan_slot} fixed_priority={len(fixed_head)} "
-        f"rotating_batch={len(rotating_tail)} feed_pool={len(sorted_deals)}"
-    )
-
-    # First pass limits category dominance; second pass uses the same rotating order to fill any gaps.
-    selected_deals = []
-    selected_urls = set()
-    category_counts = {}
-    category_cap = max(3, MAX_INCREDIBLE_OFFER_CANDIDATES // 8)
-    for row in candidate_order:
-        category = classify_category(row.get("title", ""))
-        if category_counts.get(category, 0) >= category_cap:
+    eligible_discovery_deals = []
+    skipped_order_or_runway = 0
+    for row in best_by_url.values():
+        expiry = _parse_utc_datetime(_parse_deal_expiry_value(row.get("deal_expires_at")))
+        if expiry is None:
+            # Retain unknown-deadline candidates at the back of the discovery pool;
+            # a later feed/MCP refresh may enrich them, but known valid deadlines lead.
+            eligible_discovery_deals.append(row)
             continue
-        selected_deals.append(row)
-        selected_urls.add(row["product_url"])
-        category_counts[category] = category_counts.get(category, 0) + 1
-        if len(selected_deals) >= MAX_INCREDIBLE_OFFER_CANDIDATES:
-            break
-    if len(selected_deals) < MAX_INCREDIBLE_OFFER_CANDIDATES:
-        for row in candidate_order:
-            if row["product_url"] in selected_urls:
-                continue
-            selected_deals.append(row)
-            selected_urls.add(row["product_url"])
-            if len(selected_deals) >= MAX_INCREDIBLE_OFFER_CANDIDATES:
-                break
+        remaining = (expiry - discovery_now).total_seconds()
+        if (
+            expiry <= discovery_now
+            or remaining < MIN_PUBLICATION_RUNWAY_MINUTES * 60
+            or (order_floor is not None and expiry < order_floor)
+        ):
+            skipped_order_or_runway += 1
+            continue
+        eligible_discovery_deals.append(row)
+
+    sorted_deals = sorted(eligible_discovery_deals, key=discovery_key, reverse=True)
+    # Never rotate later deadlines ahead of earlier valid deadlines. Time order is
+    # the primary channel invariant; the per-run batch is taken directly from that order.
+    selected_deals = sorted_deals[:MAX_INCREDIBLE_OFFER_CANDIDATES]
+    print(
+        f"DEAL_DEADLINE_ORDER pool={len(best_by_url)} eligible={len(eligible_discovery_deals)} "
+        f"selected={len(selected_deals)} skipped_short_or_out_of_order={skipped_order_or_runway}"
+    )
 
     for row in selected_deals:
         url = row["product_url"]
@@ -3674,6 +3683,74 @@ def _parse_utc_datetime(value):
     return parsed.astimezone(timezone.utc)
 
 
+def visible_publication_deadline_floor(
+    state: dict,
+    now: datetime | None = None,
+    platform: str | None = None,
+) -> datetime | None:
+    """Return the latest active absolute deadline visible in either channel (or one platform).
+
+    Newer channel posts must not carry an earlier deadline than any still-visible
+    offer; otherwise scrolling toward older posts can show a larger countdown.
+    """
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    if platform not in (None, "telegram", "bale"):
+        raise ValueError("platform must be telegram, bale, or None")
+
+    terminal = {"deleted", "already_absent"}
+    deadlines = []
+    published = state.get("published", {}) if isinstance(state, dict) else {}
+    if not isinstance(published, dict):
+        return None
+
+    for record in published.values():
+        if not isinstance(record, dict):
+            continue
+        snapshots = [record]
+        history = record.get("post_history")
+        if isinstance(history, list):
+            snapshots.extend(item for item in history if isinstance(item, dict))
+        for snapshot in snapshots:
+            expiry = _parse_utc_datetime(
+                _parse_deal_expiry_value(snapshot.get("expires_at") or snapshot.get("deal_expires_at"))
+            )
+            if expiry is None or expiry <= current:
+                continue
+            visible = False
+            platforms = (platform,) if platform else ("telegram", "bale")
+            for name in platforms:
+                message_id = snapshot.get("telegram_message_id" if name == "telegram" else "bale_message_id")
+                status = snapshot.get("expiry_status" if name == "telegram" else "bale_expiry_status")
+                deleted_at = snapshot.get("expired_deleted_at" if name == "telegram" else "bale_expired_deleted_at")
+                if (
+                    str(message_id or "").isdigit()
+                    and status not in terminal
+                    and not deleted_at
+                ):
+                    visible = True
+                    break
+            if visible:
+                deadlines.append(expiry)
+    return max(deadlines) if deadlines else None
+
+
+def respects_visible_deadline_order(
+    product: dict,
+    state: dict,
+    now: datetime | None = None,
+    platform: str | None = None,
+) -> bool:
+    """Allow publication only when its verified deadline preserves countdown order."""
+    expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
+    if expiry is None:
+        return False
+    floor = visible_publication_deadline_floor(state, now, platform=platform)
+    return floor is None or expiry >= floor
+
+
 def is_offer_expired(product: dict, now: datetime | None = None) -> bool:
     """An explicit expired deal deadline always blocks publication."""
     expiry_value = _parse_deal_expiry_value(product.get("deal_expires_at"))
@@ -4489,6 +4566,9 @@ def run(publish=False):
         for p in products
     )
     market_blocked_count = sum(is_market_price_uncompetitive(p) for p in products)
+    deadline_order_floor = visible_publication_deadline_floor(state, queue_now)
+    if deadline_order_floor is not None:
+        print(f"PUBLISH_DEADLINE_ORDER_FLOOR deadline={deadline_order_floor.isoformat()}")
     eligible = [
         p for p in products
         if p.get("has_affiliate_link")
@@ -4497,6 +4577,7 @@ def run(publish=False):
         and has_verified_deal_deadline(p, queue_now)
         and not is_offer_expired(p, queue_now)
         and has_minimum_publication_runway(p, queue_now)
+        and respects_visible_deadline_order(p, state, queue_now)
     ]
     observed_product_ids = {
         str(p.get("product_id") or product_id(p.get("product_url", "")))
@@ -4769,6 +4850,25 @@ def run(publish=False):
                 )
                 break
             pid = item["product_id"]
+            publish_guard_time = datetime.now(timezone.utc)
+            if not has_minimum_publication_runway(item, publish_guard_time):
+                expiry = _parse_utc_datetime(_parse_deal_expiry_value(item.get("deal_expires_at")))
+                remaining_minutes = int((expiry - publish_guard_time).total_seconds() / 60) if expiry else -1
+                print(f"PUBLISH_SKIP id={pid} reason=minimum_publication_runway remaining_minutes={remaining_minutes}")
+                state.get("pending_queue", {}).pop(pid, None)
+                save_json(STATE, state)
+                continue
+            if not respects_visible_deadline_order(item, state, publish_guard_time):
+                expiry = _parse_utc_datetime(_parse_deal_expiry_value(item.get("deal_expires_at")))
+                floor = visible_publication_deadline_floor(state, publish_guard_time)
+                print(
+                    f"PUBLISH_SKIP id={pid} reason=deadline_order_guard "
+                    f"deadline={expiry.isoformat() if expiry else 'unknown'} "
+                    f"floor={floor.isoformat() if floor else 'none'}"
+                )
+                state.get("pending_queue", {}).pop(pid, None)
+                save_json(STATE, state)
+                continue
             old = state["published"].get(pid, {})
             if is_manual_publication_quarantine_active(old, now_utc):
                 print(f"PUBLISH_SKIP id={pid} reason=manual_safety_quarantine")
