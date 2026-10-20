@@ -52,7 +52,7 @@ permissions:
 concurrency:
   # Code-only pushes run CI independently; publication/repair pushes and scheduled jobs
   # still serialize all channel mutations with cleanup and countdown refreshes.
-  group: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') && format('affilio-ci-{0}', github.run_id) || 'affilio-channel-updates' }}
+  group: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') && !contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && format('affilio-ci-{0}', github.run_id) || 'affilio-channel-updates' }}
   cancel-in-progress: false
 
 jobs:
@@ -99,11 +99,12 @@ jobs:
         # Aparat's official guidance says Shorts are published through its app. Never pretend
         # that the generic website uploader places a vertical MP4 into the Shorts feed.
         # Successful withdrawals are remembered; failed individual records retry on later runs.
-        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') }}
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') || contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') }}
         env:
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
           APARAT_SHORTS_MIGRATION_CUTOFF_UTC: "2026-10-19T22:00:00+00:00"
-          APARAT_SHORTS_MIGRATION_MAX_PER_RUN: "30"
+          APARAT_SHORTS_MIGRATION_MAX_PER_RUN: ${{ contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && '1' || '30' }}
+          APARAT_SHORTS_MIGRATION_FORCE_RETRY: ${{ contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && 'true' || 'false' }}
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/aparat_shorts_migration.py
 
