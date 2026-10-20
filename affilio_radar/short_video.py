@@ -96,6 +96,7 @@ def send_telegram_video_review(
     title: str,
     discount_percent: object = None,
     *,
+    description: str | None = None,
     session=None,
     env: Mapping[str, str] | None = None,
 ) -> dict:
@@ -325,7 +326,7 @@ def upload_youtube_video(
     except (TypeError, ValueError, OverflowError):
         pass
     video_title = (title_clean + suffix)[:100]
-    description = (
+    description_text = str(description or "").strip() or (
         "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\n"
         "قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در دیجی‌کالا بررسی کنید.\n\n"
         "کانال‌های آفِرچین:\n"
@@ -335,7 +336,7 @@ def upload_youtube_video(
     video = {
         "snippet": {
             "title": video_title,
-            "description": description,
+            "description": description_text,
             "tags": ["آفرچین", "تخفیف", "پیشنهاد ویژه", "خرید"],
             "categoryId": "22",
             "defaultLanguage": "fa",
