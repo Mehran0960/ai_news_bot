@@ -89,9 +89,9 @@ class ShortVideoTests(unittest.TestCase):
         image.save(stream, format="PNG")
         poster = Image.open(io.BytesIO(build_vertical_poster(stream.getvalue(), 50))).convert("RGB")
 
-        # Both platform marks now sit in the upper-left panel, below the top edge.
-        self.assertEqual(poster.getpixel((58, 176)), (36, 161, 222))
-        self.assertEqual(poster.getpixel((58, 244)), (0, 184, 148))
+        # Both platform marks now sit above the product card in the upper-left panel.
+        self.assertEqual(poster.getpixel((61, 38)), (36, 161, 222))
+        self.assertEqual(poster.getpixel((60, 86)), (0, 184, 148))
 
     def test_discount_is_drawn_inside_red_comic_burst(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
