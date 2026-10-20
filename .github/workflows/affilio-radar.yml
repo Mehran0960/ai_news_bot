@@ -98,6 +98,7 @@ jobs:
       - name: Withdraw recent regular-feed Aparat uploads pending Shorts publication
         # Aparat's official guidance says Shorts are published through its app. Never pretend
         # that the generic website uploader places a vertical MP4 into the Shorts feed.
+        # Successful withdrawals are remembered; failed individual records retry on later runs.
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') }}
         env:
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
