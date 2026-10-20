@@ -1122,6 +1122,7 @@ class AffilioRadarTests(unittest.TestCase):
 
     def test_refresh_active_countdowns_updates_verified_posts_in_place(self):
         expiry = (datetime.now(timezone.utc) + timedelta(hours=2, minutes=17)).isoformat()
+        stale_expiry = (datetime.now(timezone.utc) + timedelta(hours=3)).isoformat()
         state = {
             "published": {
                 "dkp-15970075": {
@@ -1129,7 +1130,7 @@ class AffilioRadarTests(unittest.TestCase):
                     "product_url": "https://www.digikala.com/product/dkp-15970075/",
                     "telegram_message_id": 39, "bale_message_id": 2,
                     "posted_current_price": 123_200, "posted_original_price": 1_108_800,
-                    "posted_discount_percent": 89, "expires_at": expiry,
+                    "posted_discount_percent": 89, "expires_at": stale_expiry,
                     "expiry_source": "digikala_live_deals_feed", "expiry_estimated": False,
                 },
                 "dkp-expired": {
@@ -1145,6 +1146,7 @@ class AffilioRadarTests(unittest.TestCase):
         url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
         with (
             patch("affilio_radar.load_state", return_value=state),
+            patch("expiration_monitor.fetch_offer_expiries", return_value={"dkp-15970075": expiry}),
             patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
             patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
             patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
@@ -1156,6 +1158,7 @@ class AffilioRadarTests(unittest.TestCase):
         ):
             result = refresh_active_countdowns()
         self.assertEqual(result, 0)
+        self.assertEqual(state["published"]["dkp-15970075"]["expires_at"], expiry)
         self.assertEqual(edit_telegram.call_count, 1)
         self.assertEqual(edit_bale.call_count, 1)
         self.assertIn("مانده به پایان تخفیف", edit_telegram.call_args.args[1])
@@ -1188,6 +1191,7 @@ class AffilioRadarTests(unittest.TestCase):
         with (
             patch.dict("os.environ", {"AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS": "2"}),
             patch("affilio_radar.load_state", return_value=state),
+            patch("expiration_monitor.fetch_offer_expiries", return_value={product_key: expiry for product_key in published}),
             patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
             patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
             patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
