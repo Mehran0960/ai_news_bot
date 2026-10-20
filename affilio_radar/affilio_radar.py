@@ -1940,7 +1940,7 @@ def select_queued_records_for_recheck(
             continue
         eligible.append((pid, record))
 
-    # Re-establish urgency/demand order before slicing, independent of JSON key order.
+    # Re-establish demand/deal-value priority before slicing, independent of JSON key order.
     eligible.sort(
         key=lambda pair: pending_queue_sort_key(pair[1], pair[1], current),
         reverse=True,
@@ -4478,7 +4478,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
 def run(publish=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
-    print(f"Ranking mode=audience-demand-first/category-balanced; medicines and dietary supplements excluded; offers need a verified deadline with at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining at publish time; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman.")
+    print(f"Ranking mode=audience-demand-first/deal-value-ranked; deadline urgency is a secondary tie-breaker; medicines and dietary supplements excluded; offers need a verified deadline with at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining at publish time; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman.")
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
