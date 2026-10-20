@@ -181,14 +181,15 @@ def build_vertical_poster(image_bytes: bytes, discount_percent: object = None) -
         left, top = WIDTH - 34 - badge_width, 142
         draw_discount_burst(draw, left, top, badge_width, badge_height, discount)
 
-    # Match the lower-left watermark area used on channel images, with both IDs on separate lines.
-    footer = (34, 1040, 430, 1190)
+    # Put both channel IDs in the upper-left so they are easier to notice.
+    # Keep the panel below the top edge and left of the discount badge.
+    footer = (34, 142, 430, 292)
     draw.rounded_rectangle(footer, radius=22, fill=(14, 28, 22, 232), outline=(255, 255, 255, 230), width=2)
     watermark_font = _font(23)
-    _draw_telegram_logo(draw, 56, 1056, 36)
-    draw.text((103, 1074), "T.me/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
-    _draw_bale_logo(draw, 56, 1124, 36)
-    draw.text((103, 1142), "ble.ir/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
+    _draw_telegram_logo(draw, 56, 158, 36)
+    draw.text((103, 176), "T.me/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
+    _draw_bale_logo(draw, 56, 226, 36)
+    draw.text((103, 244), "ble.ir/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
 
     output = BytesIO()
     background.convert("RGB").save(output, format="PNG", optimize=True)
@@ -327,11 +328,13 @@ def upload_youtube_video(
         pass
     video_title = (title_clean + suffix)[:100]
     description_text = str(description or "").strip() or (
-        "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\n"
-        "قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در دیجی‌کالا بررسی کنید.\n\n"
-        "کانال‌های آفِرچین:\n"
-        "تلگرام: https://t.me/OfferChin\n"
-        "بله: https://ble.ir/OfferChin"
+        "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\n\n"
+        "کانال تلگرام:\n"
+        "https://t.me/OfferChin\n"
+        "کانال بله:\n"
+        "https://ble.ir/OfferChin\n"
+        "آپارات:\n"
+        "https://www.aparat.com/OfferChin"
     )
     video = {
         "snippet": {
@@ -380,6 +383,71 @@ def upload_youtube_video(
     if not video_id:
         raise RuntimeError("YouTube upload response did not contain a video ID")
     return {"video_id": video_id, "title": video_title, "url": f"https://www.youtube.com/shorts/{video_id}"}
+
+
+def update_youtube_video_description(
+    video_id: str,
+    description: str,
+    *,
+    session=None,
+    env: Mapping[str, str] | None = None,
+) -> bool:
+    """Replace the description of a tracked YouTube video while preserving its other metadata."""
+    source = env if env is not None else os.environ
+    safe_id = str(video_id or "").strip()
+    if not safe_id or not safe_id.replace("-", "").replace("_", "").isalnum():
+        raise ValueError("invalid YouTube video ID")
+    description_text = str(description or "").strip()
+    if not description_text:
+        raise ValueError("YouTube video description cannot be empty")
+    if len(description_text) > 5000:
+        raise ValueError("YouTube video description exceeds the 5000-character limit")
+
+    http = session or requests.Session()
+    token = _youtube_access_token(http, source)
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    response = http.get(
+        YOUTUBE_API_URL,
+        params={"part": "snippet", "id": safe_id},
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=(10, 45),
+    )
+    response.raise_for_status()
+    payload = response.json()
+    items = payload.get("items", []) if isinstance(payload, dict) else []
+    current = next(
+        (item for item in items if isinstance(item, dict) and str(item.get("id") or "") == safe_id),
+        None,
+    )
+    if current is None or not isinstance(current.get("snippet"), dict):
+        raise RuntimeError("YouTube did not return metadata for the requested video")
+
+    existing = current["snippet"]
+    update_snippet = {}
+    # videos.update replaces writable fields in the snippet part, so preserve values we do not
+    # intend to change (title, tags, category, language, and any existing localizations).
+    for field in ("title", "categoryId", "tags", "defaultLanguage", "defaultAudioLanguage"):
+        if field in existing:
+            update_snippet[field] = existing[field]
+    if "title" not in update_snippet or "categoryId" not in update_snippet:
+        raise RuntimeError("Existing YouTube metadata omitted required title or category")
+    update_snippet["description"] = description_text
+    localized = existing.get("localized")
+    if isinstance(localized, dict):
+        update_snippet["localized"] = {
+            language: ({**details, "description": description_text} if isinstance(details, dict) else details)
+            for language, details in localized.items()
+        }
+
+    updated = http.put(
+        YOUTUBE_API_URL,
+        params={"part": "snippet"},
+        json={"id": safe_id, "snippet": update_snippet},
+        headers=headers,
+        timeout=(10, 45),
+    )
+    updated.raise_for_status()
+    return True
 
 
 def set_youtube_video_private(video_id: str, *, session=None, env: Mapping[str, str] | None = None) -> bool:
