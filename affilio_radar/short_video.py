@@ -96,7 +96,6 @@ def send_telegram_video_review(
     title: str,
     discount_percent: object = None,
     *,
-    description: str | None = None,
     session=None,
     env: Mapping[str, str] | None = None,
 ) -> dict:
@@ -306,6 +305,7 @@ def upload_youtube_video(
     title: str,
     discount_percent: object = None,
     *,
+    description: str | None = None,
     session=None,
     env: Mapping[str, str] | None = None,
 ) -> dict:
