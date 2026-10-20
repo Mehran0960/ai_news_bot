@@ -21,6 +21,17 @@ APARAT_ORIGIN = "https://www.aparat.com"
 APARAT_UPLOAD_CONFIG_URL = f"{APARAT_ORIGIN}/api/fa/v1/video/upload/upload_config"
 APARAT_UPLOAD_URL = f"{APARAT_ORIGIN}/api/fa/v1/video/upload/upload_url"
 APARAT_MY_VIDEOS_URL = f"{APARAT_ORIGIN}/api/fa/v1/user/video/videos"
+
+
+class AparatPrivacyUpdateError(RuntimeError):
+    """A privacy-update HTTP failure with safe stage/status metadata."""
+
+    def __init__(self, stage: str, status_code: int | None):
+        self.stage = stage
+        self.status_code = status_code
+        super().__init__(f"Aparat {stage} request failed with HTTP {status_code or 'unknown'}")
+
+
 USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
@@ -445,12 +456,16 @@ def set_aparat_video_private(
         site.headers.setdefault("domain", "aparat")
         site.headers.setdefault("currentUrl", f"{APARAT_ORIGIN}/uploadvideo")
 
-    details_response = site.get(
-        f"{APARAT_ORIGIN}/api/fa/v1/video/video/show/videohash/{safe_hash}",
-        params={"pr": "1", "mf": "1"},
-        timeout=(10, 30),
-    )
-    details = _read_json(details_response, operation="video details")
+    try:
+        details_response = site.get(
+            f"{APARAT_ORIGIN}/api/fa/v1/video/video/show/videohash/{safe_hash}",
+            params={"pr": "1", "mf": "1"},
+            timeout=(10, 30),
+        )
+        details = _read_json(details_response, operation="video details")
+    except requests.exceptions.HTTPError as exc:
+        status_code = getattr(getattr(exc, "response", None), "status_code", None)
+        raise AparatPrivacyUpdateError("video_details", status_code) from exc
     data = details.get("data") if isinstance(details.get("data"), dict) else {}
 
     category = data.get("category") if isinstance(data.get("category"), dict) else {}
@@ -476,10 +491,14 @@ def set_aparat_video_private(
         "category": category_id,
         "tags": "-".join(str(tag).strip().replace("-", " ") for tag in tags if str(tag).strip()),
     }
-    response = site.post(
-        f"{APARAT_ORIGIN}/api/fa/v1/video/video/edit/videohash/{safe_hash}",
-        json=edit_payload,
-        timeout=(10, 45),
-    )
-    _read_json(response, operation="video privacy update")
+    try:
+        response = site.post(
+            f"{APARAT_ORIGIN}/api/fa/v1/video/video/edit/videohash/{safe_hash}",
+            json=edit_payload,
+            timeout=(10, 45),
+        )
+        _read_json(response, operation="video privacy update")
+    except requests.exceptions.HTTPError as exc:
+        status_code = getattr(getattr(exc, "response", None), "status_code", None)
+        raise AparatPrivacyUpdateError("video_edit", status_code) from exc
     return True
