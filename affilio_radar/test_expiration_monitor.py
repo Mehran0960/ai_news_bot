@@ -595,141 +595,85 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(result[1], 1)
 
 
-    def test_youtube_short_is_made_private_before_the_last_five_minutes(self):
-        import short_video
-
+    def test_youtube_expired_short_is_deleted(self):
         now = datetime.now(timezone.utc)
-        record = {
-            "youtube_video_id": "yt_test_buffered",
-            "expires_at": (now + timedelta(minutes=9)).isoformat(),
-            "youtube_upload_status": "uploaded",
-        }
-        published = {"dkp-buffered": record}
-        with (
-            patch("short_video.youtube_credentials_available", return_value=True),
-            patch("short_video.set_youtube_video_private", return_value=True) as make_private,
-        ):
-            changed = monitor._hide_expired_youtube_videos(published, now)
-
+        record = {"youtube_video_id": "yt_expired", "expires_at": (now - timedelta(minutes=1)).isoformat()}
+        with patch("short_video.youtube_credentials_available", return_value=True), patch(
+            "short_video.delete_youtube_video", return_value="deleted"
+        ) as delete_video:
+            changed = monitor._delete_expired_youtube_videos({"dkp-expired": record}, now)
         self.assertTrue(changed)
-        make_private.assert_called_once_with("yt_test_buffered")
-        self.assertEqual(record["youtube_expiry_status"], "private")
+        delete_video.assert_called_once_with("yt_expired")
+        self.assertEqual(record["youtube_expiry_status"], "deleted")
 
-    def test_expired_youtube_short_is_made_private(self):
-        import short_video
-
+    def test_youtube_delete_failure_privatises_as_fallback_and_retries(self):
         now = datetime.now(timezone.utc)
-        record = {
-            "youtube_video_id": "yt_test_456",
-            "expires_at": (now - timedelta(minutes=1)).isoformat(),
-            "youtube_upload_status": "uploaded",
-        }
-        published = {"dkp-92041": record}
-        with (
-            patch("short_video.youtube_credentials_available", return_value=True),
-            patch("short_video.set_youtube_video_private", return_value=True) as make_private,
-        ):
-            changed = monitor._hide_expired_youtube_videos(published, now)
-
+        record = {"youtube_video_id": "yt_retry", "expires_at": (now - timedelta(minutes=1)).isoformat()}
+        with patch("short_video.youtube_credentials_available", return_value=True), patch(
+            "short_video.delete_youtube_video", side_effect=RuntimeError("delete failed")
+        ), patch("short_video.set_youtube_video_private", return_value=True) as fallback:
+            changed = monitor._delete_expired_youtube_videos({"dkp-retry": record}, now)
         self.assertTrue(changed)
-        make_private.assert_called_once_with("yt_test_456")
-        self.assertEqual(record["youtube_expiry_status"], "private")
-
-    def test_expired_youtube_short_waits_for_oauth_credentials(self):
-        now = datetime.now(timezone.utc)
-        record = {
-            "youtube_video_id": "yt_test_789",
-            "expires_at": (now - timedelta(minutes=1)).isoformat(),
-            "youtube_upload_status": "uploaded",
-        }
-        published = {"dkp-92042": record}
-        with patch("short_video.youtube_credentials_available", return_value=False), patch(
-            "short_video.set_youtube_video_private"
-        ) as make_private:
-            changed = monitor._hide_expired_youtube_videos(published, now)
-
-        self.assertTrue(changed)
-        make_private.assert_not_called()
-        self.assertEqual(record["youtube_expiry_status"], "pending_credentials")
+        fallback.assert_called_once_with("yt_retry")
+        self.assertEqual(record["youtube_expiry_status"], "delete_retry")
         self.assertIn("youtube_expiry_next_attempt_at", record)
 
-
-    def test_expired_aparat_video_is_made_private(self):
+    def test_expired_youtube_video_waits_for_credentials(self):
         now = datetime.now(timezone.utc)
-        record = {
-            "aparat_video_hash": "aparat_test_hash",
-            "aparat_visibility": "public",
-            "expires_at": (now - timedelta(minutes=1)).isoformat(),
-            "aparat_upload_status": "uploaded",
-        }
-        published = {"dkp-aparat-expired": record}
-        with (
-            patch("aparat_uploader.aparat_credentials_available", return_value=True),
-            patch("aparat_uploader.set_aparat_video_private", return_value=True) as make_private,
-        ):
-            changed = monitor._hide_expired_aparat_videos(published, now)
-
+        record = {"youtube_video_id": "yt_pending", "expires_at": (now - timedelta(minutes=1)).isoformat()}
+        with patch("short_video.youtube_credentials_available", return_value=False), patch(
+            "short_video.delete_youtube_video"
+        ) as delete_video:
+            changed = monitor._delete_expired_youtube_videos({"dkp-pending": record}, now)
         self.assertTrue(changed)
-        make_private.assert_called_once_with("aparat_test_hash")
-        self.assertEqual(record["aparat_expiry_status"], "private")
-        self.assertIn("aparat_private_at", record)
+        delete_video.assert_not_called()
+        self.assertEqual(record["youtube_expiry_status"], "pending_credentials")
 
-    def test_legacy_aparat_privacy_migration_retry_is_not_retried(self):
+    def test_aparat_expired_video_is_deleted(self):
         now = datetime.now(timezone.utc)
         record = {
-            "aparat_video_hash": "legacy_public_hash",
-            "aparat_visibility": "public",
-            "aparat_shorts_migration_status": "retry",
-            "aparat_expiry_status": "retry",
-            "expires_at": (now - timedelta(hours=2)).isoformat(),
-        }
-        published = {"dkp-legacy-aparat": record}
-        with (
-            patch("aparat_uploader.aparat_credentials_available", return_value=True),
-            patch("aparat_uploader.set_aparat_video_private") as make_private,
-        ):
-            changed = monitor._hide_expired_aparat_videos(published, now)
-
-        self.assertFalse(changed)
-        make_private.assert_not_called()
-        self.assertEqual(record["aparat_visibility"], "public")
-
-    def test_expired_private_test_aparat_video_needs_no_api_call(self):
-        now = datetime.now(timezone.utc)
-        record = {
-            "aparat_video_hash": "aparat_test_hash",
-            "aparat_visibility": "non_public_test",
-            "expires_at": (now - timedelta(minutes=1)).isoformat(),
-        }
-        published = {"dkp-aparat-private": record}
-        with (
-            patch("aparat_uploader.aparat_credentials_available", return_value=False),
-            patch("aparat_uploader.set_aparat_video_private") as make_private,
-        ):
-            changed = monitor._hide_expired_aparat_videos(published, now)
-
-        self.assertTrue(changed)
-        make_private.assert_not_called()
-        self.assertEqual(record["aparat_expiry_status"], "already_private")
-
-    def test_expired_aparat_video_waits_for_cookie_secret(self):
-        now = datetime.now(timezone.utc)
-        record = {
-            "aparat_video_hash": "aparat_test_hash",
+            "aparat_video_hash": "aparat_expired",
             "aparat_visibility": "public",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
         }
-        published = {"dkp-aparat-no-cookie": record}
-        with (
-            patch("aparat_uploader.aparat_credentials_available", return_value=False),
-            patch("aparat_uploader.set_aparat_video_private") as make_private,
-        ):
-            changed = monitor._hide_expired_aparat_videos(published, now)
-
+        with patch("aparat_uploader.aparat_credentials_available", return_value=True), patch(
+            "aparat_uploader.delete_aparat_video", return_value="deleted"
+        ) as delete_video:
+            changed = monitor._delete_expired_aparat_videos({"dkp-aparat": record}, now)
         self.assertTrue(changed)
-        make_private.assert_not_called()
-        self.assertEqual(record["aparat_expiry_status"], "pending_credentials")
+        delete_video.assert_called_once_with("aparat_expired")
+        self.assertEqual(record["aparat_expiry_status"], "deleted")
+
+    def test_aparat_delete_failure_privatises_as_fallback_and_retries(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "aparat_video_hash": "aparat_retry",
+            "aparat_visibility": "public",
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+        }
+        with patch("aparat_uploader.aparat_credentials_available", return_value=True), patch(
+            "aparat_uploader.delete_aparat_video", side_effect=RuntimeError("delete failed")
+        ), patch("aparat_uploader.set_aparat_video_private", return_value=True) as fallback:
+            changed = monitor._delete_expired_aparat_videos({"dkp-aparat-retry": record}, now)
+        self.assertTrue(changed)
+        fallback.assert_called_once_with("aparat_retry")
+        self.assertEqual(record["aparat_expiry_status"], "delete_retry")
         self.assertIn("aparat_expiry_next_attempt_at", record)
+
+    def test_expired_video_deletion_waits_for_aparat_credentials(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "aparat_video_hash": "aparat_pending",
+            "aparat_visibility": "public",
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+        }
+        with patch("aparat_uploader.aparat_credentials_available", return_value=False), patch(
+            "aparat_uploader.delete_aparat_video"
+        ) as delete_video:
+            changed = monitor._delete_expired_aparat_videos({"dkp-aparat-pending": record}, now)
+        self.assertTrue(changed)
+        delete_video.assert_not_called()
+        self.assertEqual(record["aparat_expiry_status"], "pending_credentials")
 
 
 if __name__ == "__main__":
