@@ -1986,6 +1986,54 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(record["aparat_shorts_upload_status"], "queued")
         upload_aparat.assert_not_called()
 
+    def test_aparat_auto_upload_is_enabled_for_public_vertical_video(self):
+        now = datetime.now(timezone.utc)
+        pid = "dkp-92034"
+        record = {
+            "ts": now.timestamp(),
+            "title": "گجت نمونه برای انتشار خودکار آپارات",
+            "product_url": f"https://www.digikala.com/product/{pid}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "expires_at": (now + timedelta(hours=2)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_estimated": False,
+            "posted_discount_percent": 45,
+            "delivery_status": {"telegram": "sent", "bale": "sent"},
+            "video_generation_status": "pending",
+            "youtube_upload_status": "pending",
+        }
+        state = {"published": {pid: record}}
+
+        def fake_render(image_bytes, discount, path, **kwargs):
+            output = Path(path)
+            output.write_bytes(b"fake-vertical-mp4")
+            return output
+
+        aparat_result = {
+            "video_id": "73819999",
+            "video_hash": "shorttestuid",
+            "url": "https://www.aparat.com/v/shorttestuid",
+            "visibility": "public",
+        }
+        with (
+            TemporaryDirectory() as output_dir,
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
+            patch("affilio_radar.save_json"),
+            patch("affilio_radar.APARAT_SHORTS_ONLY", False),
+            patch("short_video.youtube_credentials_available", return_value=False),
+            patch("short_video.render_short_video", side_effect=fake_render),
+            patch("aparat_uploader.aparat_credentials_available", return_value=True),
+            patch("aparat_uploader.upload_aparat_video", return_value=aparat_result) as upload_aparat,
+        ):
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
+            self.assertTrue((Path(output_dir) / f"offerchin-{pid}.mp4").is_file())
+            upload_aparat.assert_called_once()
+
+        self.assertEqual(record["video_generation_status"], "generated")
+        self.assertEqual(record["aparat_upload_status"], "uploaded")
+        self.assertEqual(record["aparat_visibility"], "public")
+        self.assertEqual(record["aparat_video_url"], "https://www.aparat.com/v/shorttestuid")
+
     def test_short_video_upload_uses_youtube_when_oauth_is_configured(self):
         import short_video
 
