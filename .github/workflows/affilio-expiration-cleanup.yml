@@ -54,6 +54,7 @@ jobs:
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
           AFFILIO_DEAL_LIST_PAGES: "5"
+          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/expiration_monitor.py
 
@@ -66,6 +67,7 @@ jobs:
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
           AFFILIO_COUNTDOWN_REFRESH_FORCE: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && 'true' || 'false' }}
           AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && '40' || '25' }}
+          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_DEAL_LIST_PAGES: "5"
           PYTHONUNBUFFERED: "1"
         run: |
