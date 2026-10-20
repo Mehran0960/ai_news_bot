@@ -145,10 +145,10 @@ class ShortVideoTests(unittest.TestCase):
     def test_description_update_preserves_existing_video_metadata(self):
         http = FakeYouTubeHTTP()
         description = (
-            "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\\n\\n"
-            "کانال تلگرام:\\nhttps://t.me/OfferChin\\n"
-            "کانال بله:\\nhttps://ble.ir/OfferChin\\n"
-            "آپارات:\\nhttps://www.aparat.com/OfferChin"
+            "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\n\n"
+            "کانال تلگرام:\nhttps://t.me/OfferChin\n"
+            "کانال بله:\nhttps://ble.ir/OfferChin\n"
+            "آپارات:\nhttps://www.aparat.com/OfferChin"
         )
         self.assertTrue(update_youtube_video_description(
             "testVideo123",
@@ -187,9 +187,9 @@ class ShortVideoTests(unittest.TestCase):
             )
         upload_request = next(kwargs for url, kwargs in http.posts if url == YOUTUBE_UPLOAD_URL)
         description = upload_request["json"]["snippet"]["description"]
-        self.assertIn("کانال تلگرام:\\nhttps://t.me/OfferChin", description)
-        self.assertIn("کانال بله:\\nhttps://ble.ir/OfferChin", description)
-        self.assertIn("آپارات:\\nhttps://www.aparat.com/OfferChin", description)
+        self.assertIn("کانال تلگرام:\nhttps://t.me/OfferChin", description)
+        self.assertIn("کانال بله:\nhttps://ble.ir/OfferChin", description)
+        self.assertIn("آپارات:\nhttps://www.aparat.com/OfferChin", description)
         self.assertNotIn("قیمت، موجودی و شرایط تخفیف", description)
 
     def test_youtube_public_description_has_no_affiliate_disclosure(self):
