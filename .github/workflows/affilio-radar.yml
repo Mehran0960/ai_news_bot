@@ -103,7 +103,8 @@ jobs:
         env:
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
           APARAT_SHORTS_MIGRATION_CUTOFF_UTC: "2026-10-19T22:00:00+00:00"
-          APARAT_SHORTS_MIGRATION_MAX_PER_RUN: ${{ contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && '1' || '30' }}
+          # Keep retraction retries bounded so failed Aparat requests cannot delay channel posting.
+          APARAT_SHORTS_MIGRATION_MAX_PER_RUN: ${{ contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && '1' || '3' }}
           APARAT_SHORTS_MIGRATION_FORCE_RETRY: ${{ contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && 'true' || 'false' }}
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/aparat_shorts_migration.py
