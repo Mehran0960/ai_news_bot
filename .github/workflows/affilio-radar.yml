@@ -167,14 +167,14 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
-          # Resume automatic public upload of verified vertical 9:16 videos.
-          # The current website uploader publishes to the standard Aparat feed, not a guaranteed Shorts feed.
-          APARAT_SHORTS_ONLY: "false"
+          # Do not confuse the generic Aparat web feed with Aparat Shorts.
+          # Shorts uploads must be completed through the official mobile app.
+          APARAT_SHORTS_ONLY: "true"
           APARAT_VIDEO_PASS: "0"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
           AFFILIO_VIDEO_REVIEW_CHAT_ID: ${{ secrets.AFFILIO_VIDEO_REVIEW_CHAT_ID }}
-          # Keep first OAuth test uploads unlisted until the owner reviews them.
-          YOUTUBE_PRIVACY_STATUS: "unlisted"
+          # Publish generated vertical videos publicly; YouTube classifies vertical videos up to 3 minutes as Shorts.
+          YOUTUBE_PRIVACY_STATUS: "public"
           AFFILIO_DEAL_LIST_PAGES: "5"
           AFFILIO_MAX_PRODUCT_CHECKS: "40"
           AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES: "32"
