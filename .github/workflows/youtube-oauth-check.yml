@@ -1,0 +1,126 @@
+name: YouTube OAuth Connection Check
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: youtube-oauth-connection-check
+  cancel-in-progress: false
+
+jobs:
+  check-youtube-oauth:
+    name: Verify OAuth and channel access (no upload)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Exchange refresh token and check channel access
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          client_id = os.environ.get("YOUTUBE_CLIENT_ID", "")
+          client_secret = os.environ.get("YOUTUBE_CLIENT_SECRET", "")
+          refresh_token = os.environ.get("YOUTUBE_REFRESH_TOKEN", "")
+
+          missing = [
+              name for name, value in (
+                  ("YOUTUBE_CLIENT_ID", client_id),
+                  ("YOUTUBE_CLIENT_SECRET", client_secret),
+                  ("YOUTUBE_REFRESH_TOKEN", refresh_token),
+              ) if not value
+          ]
+          if missing:
+              print("::error::Missing required GitHub Actions secret(s): " + ", ".join(missing))
+              sys.exit(1)
+
+          token_data = urllib.parse.urlencode({
+              "client_id": client_id,
+              "client_secret": client_secret,
+              "refresh_token": refresh_token,
+              "grant_type": "refresh_token",
+          }).encode("utf-8")
+          token_request = urllib.request.Request(
+              "https://oauth2.googleapis.com/token",
+              data=token_data,
+              headers={"Content-Type": "application/x-www-form-urlencoded"},
+              method="POST",
+          )
+
+          try:
+              with urllib.request.urlopen(token_request, timeout=20) as response:
+                  token_result = json.loads(response.read().decode("utf-8"))
+          except urllib.error.HTTPError as exc:
+              try:
+                  error_data = json.loads(exc.read().decode("utf-8"))
+                  error_code = error_data.get("error", "unknown_error")
+                  description = error_data.get("error_description", "No details supplied")
+              except Exception:
+                  error_code, description = "http_error", "Token endpoint returned an unreadable error"
+              print(f"::error::Google token exchange failed ({error_code}): {description}")
+              sys.exit(1)
+          except Exception as exc:
+              print(f"::error::Could not reach Google token endpoint ({type(exc).__name__}).")
+              sys.exit(1)
+
+          access_token = token_result.get("access_token")
+          if not access_token:
+              error_code = token_result.get("error", "missing_access_token")
+              description = token_result.get("error_description", "Google returned no access token")
+              print(f"::error::Google token exchange did not return an access token ({error_code}): {description}")
+              sys.exit(1)
+
+          # Mask the short-lived access token before making any further API requests.
+          print(f"::add-mask::{access_token}")
+          print("OAuth refresh-token exchange: OK")
+
+          api_request = urllib.request.Request(
+              "https://youtube.googleapis.com/youtube/v3/channels?part=id%2Csnippet&mine=true",
+              headers={"Authorization": f"Bearer {access_token}"},
+              method="GET",
+          )
+          try:
+              with urllib.request.urlopen(api_request, timeout=20) as response:
+                  channel_result = json.loads(response.read().decode("utf-8"))
+          except urllib.error.HTTPError as exc:
+              try:
+                  error_data = json.loads(exc.read().decode("utf-8"))
+                  details = error_data.get("error", {})
+                  message = details.get("message", "YouTube Data API returned an error")
+                  reasons = [
+                      entry.get("reason", "")
+                      for entry in details.get("errors", [])
+                      if entry.get("reason")
+                  ]
+                  suffix = f" (reason: {', '.join(reasons)})" if reasons else ""
+              except Exception:
+                  message, suffix = "YouTube Data API returned an unreadable error", ""
+              print(f"::error::YouTube channel check failed: {message}{suffix}")
+              sys.exit(1)
+          except Exception as exc:
+              print(f"::error::Could not reach YouTube Data API ({type(exc).__name__}).")
+              sys.exit(1)
+
+          items = channel_result.get("items", [])
+          if not items:
+              print("::error::OAuth exchange succeeded, but YouTube returned no channel for the authorized account. Check that the chosen Google account owns or manages a YouTube channel.")
+              sys.exit(1)
+
+          channel = items[0]
+          channel_id = channel.get("id", "unknown")
+          channel_title = channel.get("snippet", {}).get("title", "Untitled channel")
+          # Channel information is intentionally the only account-specific detail printed.
+          print("YouTube Data API access: OK")
+          print(f"Authenticated channel: {channel_title} (ID: {channel_id})")
+          print("No video was uploaded, changed, or made public by this check.")
+          PY
