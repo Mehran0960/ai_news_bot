@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import mimetypes
 import os
+import json
 import uuid
 from pathlib import Path
 from typing import Mapping
@@ -492,9 +493,11 @@ def set_aparat_video_private(
         "tags": "-".join(str(tag).strip().replace("-", " ") for tag in tags if str(tag).strip()),
     }
     try:
+        # Aparat's current web endpoint uses a raw JSON string body, not the
+        # requests helper's json= argument. Match the established request shape.
         response = site.post(
             f"{APARAT_ORIGIN}/api/fa/v1/video/video/edit/videohash/{safe_hash}",
-            json=edit_payload,
+            data=json.dumps(edit_payload, ensure_ascii=False),
             timeout=(10, 45),
         )
         _read_json(response, operation="video privacy update")
