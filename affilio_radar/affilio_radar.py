@@ -745,11 +745,43 @@ def api_incredible_offer_product_candidates(payload) -> list[dict]:
             candidate = safe_product_url(f"https://www.digikala.com/product/dkp-{int(raw_id)}/")
         if not candidate:
             continue
+        review_count = 0
+        rating = 0.0
+        metric_sources = [obj]
+        for metric_key in ("aggregateRating", "rating_info", "statistics", "stats", "default_variant"):
+            nested = obj.get(metric_key)
+            if isinstance(nested, dict):
+                metric_sources.append(nested)
+        for source in metric_sources:
+            if not review_count:
+                for key in ("review_count", "reviews_count", "reviewCount", "comments_count", "comment_count", "rate_count"):
+                    raw = source.get(key)
+                    if raw is None:
+                        continue
+                    try:
+                        review_count = max(0, int(float(normalize_digits(str(raw)))))
+                    except (TypeError, ValueError, OverflowError):
+                        continue
+                    if review_count:
+                        break
+            if not rating:
+                for key in ("rating", "rating_value", "ratingValue", "average_rating", "rate"):
+                    raw = source.get(key)
+                    if isinstance(raw, dict):
+                        raw = raw.get("value") or raw.get("average") or raw.get("rate")
+                    try:
+                        rating = float(normalize_digits(str(raw)))
+                    except (TypeError, ValueError, OverflowError):
+                        continue
+                    if rating:
+                        break
         row = {
             "product_url": candidate,
             "title": _clean_title(title),
             "discount_percent": discount,
             "savings_toman": _offer_savings_toman(obj),
+            "review_count": review_count,
+            "rating": rating,
             "deal_expires_at": extract_deal_expiry(obj),
         }
         old = by_url.get(candidate)
@@ -1884,9 +1916,8 @@ def select_queued_records_for_recheck(
     queued_records: dict[str, dict],
     now: datetime | None = None,
     max_count: int | None = None,
-    deadline_floor: datetime | None = None,
 ) -> list[tuple[str, dict]]:
-    """Select a fair batch: keep the highest-priority offers in every scan and rotate the rest."""
+    """Select a fair batch by demand and deal quality, rotating the remainder."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -1904,11 +1935,8 @@ def select_queued_records_for_recheck(
         deadline = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
         if not canonical or product_id(canonical) != pid or deadline is None or deadline <= current:
             continue
-        # Do not spend product-page/API budget on an offer with too little buying
-        # runway, or on a deadline that would violate the channel's countdown order.
+        # Never spend detail-check budget on a deal that leaves too little time to act.
         if not has_minimum_publication_runway(record, current):
-            continue
-        if deadline_floor is not None and deadline < deadline_floor.astimezone(timezone.utc):
             continue
         eligible.append((pid, record))
 
@@ -1941,8 +1969,59 @@ def select_queued_records_for_recheck(
     return selected
 
 
+def _candidate_demand_score(record: dict) -> int:
+    """Estimate demand before expensive product-page checks using available real signals."""
+    if not isinstance(record, dict):
+        return 0
+
+    def safe_int(value):
+        try:
+            return max(0, int(float(normalize_digits(str(value or "0")))))
+        except (TypeError, ValueError, OverflowError):
+            return 0
+
+    explicit = safe_int(record.get("demand_score"))
+    reviews = safe_int(record.get("review_count"))
+    clicks = safe_int(record.get("click_count_30d"))
+    try:
+        rating = float(normalize_digits(str(record.get("rating") or record.get("rating_value") or "0")))
+    except (TypeError, ValueError, OverflowError):
+        rating = 0.0
+
+    review_proxy = min(30, round(3.5 * math.log1p(reviews))) if reviews else 0
+    rating_proxy = max(0, min(10, round((rating - 3.0) * 5))) if rating else 0
+    # Explicit product demand score wins when available; otherwise use rating/review
+    # signals. Real channel clicks are additional evidence and therefore add on top.
+    base = explicit if explicit > 0 else review_proxy + rating_proxy
+    click_proxy = min(100, round(10 * math.log1p(clicks))) if clicks else 0
+    return max(0, min(200, base + click_proxy))
+
+
+def _candidate_promo_score(record: dict) -> int:
+    """Comparable fallback deal score for feed cards that have not been page-checked yet."""
+    if not isinstance(record, dict):
+        return 0
+    try:
+        explicit = max(0, int(record.get("promo_score") or 0))
+    except (TypeError, ValueError, OverflowError):
+        explicit = 0
+    if explicit:
+        return min(100, explicit)
+    try:
+        discount = max(0, int(record.get("discount_percent") or 0))
+        savings = max(0, int(record.get("savings_toman") or 0))
+        reviews = max(0, int(record.get("review_count") or 0))
+        rating = float(record.get("rating") or record.get("rating_value") or 0)
+    except (TypeError, ValueError, OverflowError):
+        discount, savings, reviews, rating = 0, 0, 0, 0.0
+    savings_score = min(20, round(3.0 * math.log1p(savings / 100_000))) if savings else 0
+    review_score = min(10, round(1.5 * math.log1p(reviews))) if reviews else 0
+    rating_score = max(0, min(5, round((rating - 3.0) * 2))) if rating else 0
+    return max(0, min(100, round(discount * 0.65 + savings_score + review_score + rating_score)))
+
+
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Prioritize worthwhile offers with a verified, closest expiry; unknown deadlines remain lower-priority."""
+    """Rank publishable candidates by demand and deal value; deadline urgency breaks ties."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -1950,19 +2029,52 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
     expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
     active_deadline = bool(expiry and expiry > current)
     remaining = max(0.0, (expiry - current).total_seconds()) if active_deadline else 0.0
+    has_runway = bool(
+        active_deadline
+        and remaining >= MIN_PUBLICATION_RUNWAY_MINUTES * 60
+    )
     discount = max(0, int(record.get("discount_percent") or 0))
     savings = max(0, int(record.get("savings_toman") or 0))
     value_gate = int(discount >= MIN_DISCOUNT_PERCENT and savings >= MIN_SAVINGS_TOMAN)
+    current_price = max(
+        0,
+        int(record.get("current_price") or record.get("listed_current_price") or 0),
+    )
+    if current_price and current_price <= 500_000:
+        affordability = 24
+    elif current_price and current_price <= 1_000_000:
+        affordability = 22
+    elif current_price and current_price <= 2_000_000:
+        affordability = 18
+    elif current_price and current_price <= 5_000_000:
+        affordability = 13
+    elif current_price and current_price <= 10_000_000:
+        affordability = 8
+    elif current_price:
+        affordability = 3
+    else:
+        affordability = 0
+    if not active_deadline:
+        urgency_tier = -1
+    elif remaining <= 120 * 60:
+        urgency_tier = 2
+    elif remaining <= 180 * 60:
+        urgency_tier = 1
+    else:
+        urgency_tier = 0
     first_seen = _parse_utc_datetime(record.get("first_seen_at"))
     first_seen_ts = first_seen.timestamp() if first_seen else current.timestamp()
     return (
+        int(has_runway),
         value_gate,
-        int(active_deadline),
-        -remaining if active_deadline else float("-inf"),
+        _candidate_demand_score(record),
+        _candidate_promo_score(record),
+        affordability,
+        max(0, int(record.get("review_count") or 0)),
         discount,
         savings,
-        max(0, int(record.get("demand_score") or 0)),
-        max(0, int(record.get("review_count") or 0)),
+        urgency_tier,
+        -remaining if active_deadline else float("-inf"),
         -first_seen_ts,
     )
 
@@ -2018,7 +2130,10 @@ def merge_discovery_queue(
             "discount_percent": int(row.get("discount_percent") or old.get("discount_percent") or 0),
             "savings_toman": int(row.get("savings_toman") or old.get("savings_toman") or 0),
             "review_count": max(0, int(row.get("review_count") or old.get("review_count") or 0)),
+            "rating": row.get("rating") or row.get("rating_value") or old.get("rating") or 0,
+            "click_count_30d": max(0, int(row.get("click_count_30d") or old.get("click_count_30d") or 0)),
             "demand_score": max(0, int(row.get("demand_score") or old.get("demand_score") or 0)),
+            "promo_score": max(0, int(row.get("promo_score") or old.get("promo_score") or 0)),
         }
         # New candidates are immediately due for their first detailed validation.
         record.setdefault("last_check_status", "discovered")
@@ -2077,9 +2192,8 @@ def select_discovery_records_for_check(
     queue: dict[str, dict],
     now: datetime | None = None,
     max_count: int | None = None,
-    deadline_floor: datetime | None = None,
 ) -> list[tuple[str, dict]]:
-    """Select due candidates for incremental detail checks, favoring the nearest verified deadline."""
+    """Select due, purchase-ready candidates by demand and deal value."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -2094,13 +2208,11 @@ def select_discovery_records_for_check(
         if not url or product_id(url) != pid:
             continue
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
-        # Unknown deadlines cannot be published, and offers below the runway/order
-        # floor should not occupy the finite detailed-check budget.
+        # Unknown, expired, or too-near deadlines cannot publish and should not use
+        # the finite detailed-check budget.
         if expiry is None or expiry <= current:
             continue
         if not has_minimum_publication_runway(record, current):
-            continue
-        if deadline_floor is not None and expiry < deadline_floor.astimezone(timezone.utc):
             continue
         next_check = _parse_utc_datetime(record.get("next_check_at"))
         if next_check and next_check > current:
@@ -2183,15 +2295,10 @@ def discover_product_urls(
     queued_records = queued_records if isinstance(queued_records, dict) else {}
     queue_now = datetime.now(timezone.utc)
     queued_expiries: dict[str, str] = {}
-    order_floor = visible_publication_deadline_floor(state_to_persist, queue_now)
-    if order_floor is not None:
-        print(f"VISIBLE_DEADLINE_ORDER_FLOOR deadline={order_floor.isoformat()}")
-
-    # Offers that passed validation earlier remain on a persistent queue even if they
-    # fall out of one feed page. Recheck only in-order offers with enough buying runway;
-    # stale deadlines must not consume the bounded product-check budget.
+    # Recheck persistent candidates even when their deadline is earlier than active
+    # channel posts; chronology is not a publication eligibility rule anymore.
     for pid, record in select_queued_records_for_recheck(
-        queued_records, queue_now, deadline_floor=order_floor
+        queued_records, queue_now
     ):
         canonical = safe_product_url(record.get("product_url", ""))
         deadline = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
@@ -2318,53 +2425,19 @@ def discover_product_urls(
         elif old and not old.get("deal_expires_at") and expiry:
             best_by_url[url]["deal_expires_at"] = expiry
 
-    category_priority = {
-        "digital_accessories": 12,
-        "power_backup": 11,
-        "audio_wearables": 10,
-        "computer_network": 9,
-        "gaming": 9,
-        "home": 8,
-        "automotive": 7,
-        "kids_sports": 6,
-        "personal_care": 5,
-        "fashion": 4,
-        "other": 3,
-    }
     discovery_now = datetime.now(timezone.utc)
 
     def discovery_key(row):
-        expiry_value = _parse_utc_datetime(_parse_deal_expiry_value(row.get("deal_expires_at")))
-        deadline_active = bool(
-            expiry_value
-            and expiry_value > discovery_now
-            and (order_floor is None or expiry_value >= order_floor)
-            and (expiry_value - discovery_now).total_seconds()
-                >= MIN_PUBLICATION_RUNWAY_MINUTES * 60
-        )
-        remaining_seconds = (
-            (expiry_value - discovery_now).total_seconds()
-            if deadline_active else float("inf")
-        )
-        category = classify_category(row.get("title", ""))
-        # Exact remaining time is the primary sort field; demand and discount only
-        # break ties. Bucketed urgency/category scoring previously let later-ending
-        # offers outrank earlier deadlines within the same urgency band.
-        return (
-            int(deadline_active),
-            -remaining_seconds if deadline_active else float("-inf"),
-            category_priority.get(category, 0),
-            int(row.get("review_count") or 0),
-            int(row.get("discount_percent") or 0),
-            int(row.get("savings_toman") or 0),
-        )
+        # Use the same candidate-ranking policy as the persistent queue. Exact
+        # deadline is only a later tie-breaker, never the lead ranking field.
+        return discovery_queue_sort_key(row, discovery_now)
 
     # Persist the full discovered candidate set before applying the per-run detail-check budget.
     # The selected batch below is only a work queue; it does not cap what we remember.
     if isinstance(discovery_queue, dict):
         merge_discovery_queue(discovery_queue, list(best_by_url.values()), discovery_now)
         queued_due = select_discovery_records_for_check(
-            discovery_queue, discovery_now, deadline_floor=order_floor
+            discovery_queue, discovery_now
         )
         queued_added = 0
         for pid, record in queued_due:
@@ -2379,31 +2452,25 @@ def discover_product_urls(
         print(f"DISCOVERY_QUEUE_URLS_ADDED count={queued_added} already_selected_or_capacity={len(queued_due) - queued_added}")
 
     eligible_discovery_deals = []
-    skipped_order_or_runway = 0
+    skipped_short_or_expired = 0
     for row in best_by_url.values():
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(row.get("deal_expires_at")))
         if expiry is None:
-            # Retain unknown-deadline candidates at the back of the discovery pool;
-            # a later feed/MCP refresh may enrich them, but known valid deadlines lead.
+            # Keep unknown deadlines behind verified, actionable offers; detail checks
+            # may later recover an authoritative deadline from the product page.
             eligible_discovery_deals.append(row)
             continue
         remaining = (expiry - discovery_now).total_seconds()
-        if (
-            expiry <= discovery_now
-            or remaining < MIN_PUBLICATION_RUNWAY_MINUTES * 60
-            or (order_floor is not None and expiry < order_floor)
-        ):
-            skipped_order_or_runway += 1
+        if expiry <= discovery_now or remaining < MIN_PUBLICATION_RUNWAY_MINUTES * 60:
+            skipped_short_or_expired += 1
             continue
         eligible_discovery_deals.append(row)
 
     sorted_deals = sorted(eligible_discovery_deals, key=discovery_key, reverse=True)
-    # Never rotate later deadlines ahead of earlier valid deadlines. Time order is
-    # the primary channel invariant; the per-run batch is taken directly from that order.
     selected_deals = sorted_deals[:MAX_INCREDIBLE_OFFER_CANDIDATES]
     print(
-        f"DEAL_DEADLINE_ORDER pool={len(best_by_url)} eligible={len(eligible_discovery_deals)} "
-        f"selected={len(selected_deals)} skipped_short_or_out_of_order={skipped_order_or_runway}"
+        f"DEAL_DEMAND_ORDER pool={len(best_by_url)} eligible={len(eligible_discovery_deals)} "
+        f"selected={len(selected_deals)} skipped_expired_or_short={skipped_short_or_expired}"
     )
 
     for row in selected_deals:
@@ -3683,73 +3750,6 @@ def _parse_utc_datetime(value):
     return parsed.astimezone(timezone.utc)
 
 
-def visible_publication_deadline_floor(
-    state: dict,
-    now: datetime | None = None,
-    platform: str | None = None,
-) -> datetime | None:
-    """Return the latest active absolute deadline visible in either channel (or one platform).
-
-    Newer channel posts must not carry an earlier deadline than any still-visible
-    offer; otherwise scrolling toward older posts can show a larger countdown.
-    """
-    current = now or datetime.now(timezone.utc)
-    if current.tzinfo is None:
-        current = current.replace(tzinfo=timezone.utc)
-    current = current.astimezone(timezone.utc)
-    if platform not in (None, "telegram", "bale"):
-        raise ValueError("platform must be telegram, bale, or None")
-
-    terminal = {"deleted", "already_absent"}
-    deadlines = []
-    published = state.get("published", {}) if isinstance(state, dict) else {}
-    if not isinstance(published, dict):
-        return None
-
-    for record in published.values():
-        if not isinstance(record, dict):
-            continue
-        snapshots = [record]
-        history = record.get("post_history")
-        if isinstance(history, list):
-            snapshots.extend(item for item in history if isinstance(item, dict))
-        for snapshot in snapshots:
-            expiry = _parse_utc_datetime(
-                _parse_deal_expiry_value(snapshot.get("expires_at") or snapshot.get("deal_expires_at"))
-            )
-            if expiry is None or expiry <= current:
-                continue
-            visible = False
-            platforms = (platform,) if platform else ("telegram", "bale")
-            for name in platforms:
-                message_id = snapshot.get("telegram_message_id" if name == "telegram" else "bale_message_id")
-                status = snapshot.get("expiry_status" if name == "telegram" else "bale_expiry_status")
-                deleted_at = snapshot.get("expired_deleted_at" if name == "telegram" else "bale_expired_deleted_at")
-                if (
-                    str(message_id or "").isdigit()
-                    and status not in terminal
-                    and not deleted_at
-                ):
-                    visible = True
-                    break
-            if visible:
-                deadlines.append(expiry)
-    return max(deadlines) if deadlines else None
-
-
-def respects_visible_deadline_order(
-    product: dict,
-    state: dict,
-    now: datetime | None = None,
-    platform: str | None = None,
-) -> bool:
-    """Allow publication only when its verified deadline preserves countdown order."""
-    expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
-    if expiry is None:
-        return False
-    floor = visible_publication_deadline_floor(state, now, platform=platform)
-    return floor is None or expiry >= floor
-
 
 def is_offer_expired(product: dict, now: datetime | None = None) -> bool:
     """An explicit expired deal deadline always blocks publication."""
@@ -3876,8 +3876,11 @@ def is_materially_improved_offer(previous: dict, product: dict, now: datetime | 
 
 def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
                            now: datetime | None = None) -> tuple:
-    """Prioritize critical deadlines, then audience demand, deal value, and first-seen time."""
-    now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    """Prioritize observed demand and deal value; use urgency only to break close ties."""
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    now = now.astimezone(timezone.utc)
     queue_record = queue_record if isinstance(queue_record, dict) else {}
     first_seen = _parse_utc_datetime(queue_record.get("first_seen_at")) or now
     expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
@@ -3890,14 +3893,13 @@ def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
         deadline_priority = 1
     else:
         deadline_priority = 0
-    # Exact remaining runway comes first: the soonest still-valid deadline wins.
-    # Missing deadlines are placed last; publication eligibility separately fails closed.
-    deadline_order = -remaining if math.isfinite(remaining) else float("-inf")
+    # The core deal_sort_key starts with real clicks, then demand/reviews/rating/value.
+    # A nearer deadline can only win after those product signals are tied.
     return (
-        deadline_order,
+        *deal_sort_key(product),
         int(is_urgent_priority_deal(product, now)),
         deadline_priority,
-        *deal_sort_key(product),
+        -remaining if math.isfinite(remaining) else float("-inf"),
         -first_seen.timestamp(),
     )
 
@@ -4566,9 +4568,6 @@ def run(publish=False):
         for p in products
     )
     market_blocked_count = sum(is_market_price_uncompetitive(p) for p in products)
-    deadline_order_floor = visible_publication_deadline_floor(state, queue_now)
-    if deadline_order_floor is not None:
-        print(f"PUBLISH_DEADLINE_ORDER_FLOOR deadline={deadline_order_floor.isoformat()}")
     eligible = [
         p for p in products
         if p.get("has_affiliate_link")
@@ -4577,7 +4576,6 @@ def run(publish=False):
         and has_verified_deal_deadline(p, queue_now)
         and not is_offer_expired(p, queue_now)
         and has_minimum_publication_runway(p, queue_now)
-        and respects_visible_deadline_order(p, state, queue_now)
     ]
     observed_product_ids = {
         str(p.get("product_id") or product_id(p.get("product_url", "")))
@@ -4731,7 +4729,7 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Real 30-day channel clicks and audience demand lead, then review volume, rating, and deal value. Discovery prioritizes future deadline-verified offers and uses category balancing across practical tech, home, auto, gaming, and personal-care products. Medicines, pharmacy products, vitamins, and dietary supplements are excluded. Products without a verified deadline or with less than {MIN_PUBLICATION_RUNWAY_MINUTES} minutes left never publish.",
+        "ranking_note": f"Real 30-day channel clicks and audience demand lead, followed by deal value, rating/review signals, affordability, and discount strength. Deadline urgency is a secondary tie-breaker only after actionable-deal validation; no global channel countdown-order rule applies. Medicines, pharmacy products, vitamins, and dietary supplements are excluded. Products without a verified deadline or with less than {MIN_PUBLICATION_RUNWAY_MINUTES} minutes left never publish.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
@@ -4855,17 +4853,6 @@ def run(publish=False):
                 expiry = _parse_utc_datetime(_parse_deal_expiry_value(item.get("deal_expires_at")))
                 remaining_minutes = int((expiry - publish_guard_time).total_seconds() / 60) if expiry else -1
                 print(f"PUBLISH_SKIP id={pid} reason=minimum_publication_runway remaining_minutes={remaining_minutes}")
-                state.get("pending_queue", {}).pop(pid, None)
-                save_json(STATE, state)
-                continue
-            if not respects_visible_deadline_order(item, state, publish_guard_time):
-                expiry = _parse_utc_datetime(_parse_deal_expiry_value(item.get("deal_expires_at")))
-                floor = visible_publication_deadline_floor(state, publish_guard_time)
-                print(
-                    f"PUBLISH_SKIP id={pid} reason=deadline_order_guard "
-                    f"deadline={expiry.isoformat() if expiry else 'unknown'} "
-                    f"floor={floor.isoformat() if floor else 'none'}"
-                )
                 state.get("pending_queue", {}).pop(pid, None)
                 save_json(STATE, state)
                 continue
