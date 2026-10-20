@@ -1550,9 +1550,9 @@ class AffilioRadarTests(unittest.TestCase):
         # Aparat retains its own attribution link, while YouTube uses the requested public handle.
         self.assertIn("https://t.me/+from_aparat", aparat_description)
         self.assertNotIn("https://t.me/+from_youtube", youtube_description)
-        self.assertIn("کانال تلگرام:\\nhttps://t.me/OfferChin", youtube_description)
-        self.assertIn("کانال بله:\\nhttps://ble.ir/OfferChin", youtube_description)
-        self.assertIn("آپارات:\\nhttps://www.aparat.com/OfferChin", youtube_description)
+        self.assertIn("کانال تلگرام:\nhttps://t.me/OfferChin", youtube_description)
+        self.assertIn("کانال بله:\nhttps://ble.ir/OfferChin", youtube_description)
+        self.assertIn("آپارات:\nhttps://www.aparat.com/OfferChin", youtube_description)
         self.assertNotIn("قیمت، موجودی و شرایط تخفیف", youtube_description)
         self.assertIn("https://ble.ir/OfferChin", aparat_description)
         self.assertEqual(tracked_telegram_invite_url(state, "bale"), "https://t.me/OfferChin")
