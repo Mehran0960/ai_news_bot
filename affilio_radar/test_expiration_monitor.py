@@ -76,6 +76,23 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(summary["skipped"], 1)
         self.assertEqual(published["dkp-deleted"]["expires_at"], "2026-10-20T20:30:00+00:00")
 
+    def test_expiry_extractor_prefers_card_campaign_over_nested_variant(self):
+        card = {
+            "id": 123,
+            "title_fa": "محصول تخفیف‌دار",
+            "url": {"uri": "/product/dkp-123/"},
+            "campaign": {"ends_at": "2026-10-20T12:00:00+03:30"},
+            "default_variant": {
+                "id": 123,
+                "title": "variant",
+                "campaign": {"ends_at": "2026-10-20T16:00:00+03:30"},
+            },
+        }
+        self.assertEqual(
+            monitor.extract_expiry(card),
+            "2026-10-20T08:30:00+00:00",
+        )
+
     def test_mcp_feed_returns_offer_cards_and_deadlines_together(self):
         payload = {
             "products": [{
