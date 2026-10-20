@@ -31,8 +31,7 @@ from affilio_radar import (
     select_queued_records_for_recheck,
     merge_discovery_queue,
     select_discovery_records_for_check,
-    visible_publication_deadline_floor,
-    respects_visible_deadline_order,
+    discovery_queue_sort_key,
     mark_discovery_candidate_checked,
     defer_pending_publication,
     select_publish_candidates,
@@ -654,42 +653,43 @@ class AffilioRadarTests(unittest.TestCase):
         previous["bale_expiry_status"] = "deleted"
         self.assertTrue(previous_publication_posts_removed(previous))
 
-    def test_near_expiry_offer_outranks_larger_discount_with_later_deadline(self):
+    def test_high_demand_offer_outranks_shorter_deadline_offer(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
-        near = {
+        near_but_lower_demand = {
             "discount_percent": 35, "savings_toman": 150_000,
             "demand_score": 40, "promo_score": 25,
             "deal_expires_at": (now + timedelta(minutes=70)).isoformat(),
         }
-        later = {
+        popular_with_more_time = {
             "discount_percent": 90, "savings_toman": 2_000_000,
             "demand_score": 95, "promo_score": 90,
             "deal_expires_at": (now + timedelta(hours=3)).isoformat(),
         }
         self.assertGreater(
-            pending_queue_sort_key(near, {"first_seen_at": now.isoformat()}, now),
-            pending_queue_sort_key(later, {"first_seen_at": now.isoformat()}, now),
+            pending_queue_sort_key(popular_with_more_time, {"first_seen_at": now.isoformat()}, now),
+            pending_queue_sort_key(near_but_lower_demand, {"first_seen_at": now.isoformat()}, now),
         )
 
-    def test_urgent_deadline_ranks_a_qualified_offer_ahead_of_larger_listed_discount(self):
+    def test_deadline_urgency_is_only_a_tiebreaker_after_demand_and_deal_value(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
-        urgent = {
+        urgent_but_less_popular = {
             "product_id": "dkp-123",
             "discount_percent": 82,
             "savings_toman": 600_000,
             "demand_score": 58,
-            "deal_expires_at": (now + timedelta(minutes=45)).isoformat(),
+            "deal_expires_at": (now + timedelta(minutes=90)).isoformat(),
         }
-        larger_but_not_urgent = {
+        popular_and_valid = {
             "product_id": "dkp-456",
-            "discount_percent": 95,
-            "savings_toman": 5_000_000,
+            "discount_percent": 50,
+            "savings_toman": 300_000,
             "demand_score": 80,
-            "deal_expires_at": "",
+            "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
         }
+        self.assertTrue(is_urgent_priority_deal(urgent_but_less_popular, now))
         self.assertGreater(
-            pending_queue_sort_key(urgent, {"first_seen_at": now.isoformat()}, now),
-            pending_queue_sort_key(larger_but_not_urgent, {"first_seen_at": now.isoformat()}, now),
+            pending_queue_sort_key(popular_and_valid, {"first_seen_at": now.isoformat()}, now),
+            pending_queue_sort_key(urgent_but_less_popular, {"first_seen_at": now.isoformat()}, now),
         )
 
     def test_queued_offer_rechecks_rotate_after_a_fixed_priority_head(self):
@@ -1801,99 +1801,52 @@ class AffilioRadarTests(unittest.TestCase):
         merge_discovery_queue(queue, [], now + timedelta(minutes=20))
         self.assertNotIn("dkp-91011", queue)
 
-    def test_visible_publication_deadline_floor_is_per_platform_and_ignores_deleted_posts(self):
+    def test_discovery_checks_prioritize_demand_over_deadline_urgency(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
-        state = {
-            "published": {
-                "dkp-93001": {
-                    "telegram_message_id": 11,
-                    "expiry_status": "tracked",
-                    "bale_message_id": 21,
-                    "bale_expiry_status": "tracked",
-                    "expires_at": (now + timedelta(hours=4)).isoformat(),
-                    "post_history": [{
-                        "telegram_message_id": 7,
-                        "expiry_status": "deleted",
-                        "bale_message_id": 15,
-                        "bale_expiry_status": "deleted",
-                        "expires_at": (now + timedelta(days=2)).isoformat(),
-                    }],
-                },
-                "dkp-93002": {
-                    "bale_message_id": 22,
-                    "bale_expiry_status": "tracked",
-                    "expires_at": (now + timedelta(hours=6)).isoformat(),
-                },
-                "dkp-93003": {
-                    "telegram_message_id": 12,
-                    "expiry_status": "deleted",
-                    "expires_at": (now + timedelta(days=3)).isoformat(),
-                },
-            }
+        queue = {
+            "dkp-93021": {
+                "product_id": "dkp-93021",
+                "product_url": "https://www.digikala.com/product/dkp-93021/",
+                "title": "popular item with longer deadline",
+                "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+                "demand_score": 88,
+                "review_count": 2400,
+                "discount_percent": 45,
+                "savings_toman": 300_000,
+            },
+            "dkp-93022": {
+                "product_id": "dkp-93022",
+                "product_url": "https://www.digikala.com/product/dkp-93022/",
+                "title": "less popular item with nearer deadline",
+                "deal_expires_at": (now + timedelta(hours=2)).isoformat(),
+                "demand_score": 28,
+                "review_count": 35,
+                "discount_percent": 65,
+                "savings_toman": 500_000,
+            },
+            "dkp-93023": {
+                "product_id": "dkp-93023",
+                "product_url": "https://www.digikala.com/product/dkp-93023/",
+                "title": "too close to expiry",
+                "deal_expires_at": (now + timedelta(minutes=45)).isoformat(),
+                "demand_score": 99,
+                "discount_percent": 90,
+                "savings_toman": 2_000_000,
+            },
+            "dkp-93024": {
+                "product_id": "dkp-93024",
+                "product_url": "https://www.digikala.com/product/dkp-93024/",
+                "title": "unknown deadline",
+                "deal_expires_at": "",
+                "demand_score": 100,
+            },
         }
-        self.assertEqual(
-            visible_publication_deadline_floor(state, now),
-            now + timedelta(hours=6),
+        selected = select_discovery_records_for_check(queue, now, max_count=10)
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93021", "dkp-93022"])
+        self.assertGreater(
+            discovery_queue_sort_key(queue["dkp-93021"], now),
+            discovery_queue_sort_key(queue["dkp-93022"], now),
         )
-        self.assertEqual(
-            visible_publication_deadline_floor(state, now, platform="telegram"),
-            now + timedelta(hours=4),
-        )
-        self.assertEqual(
-            visible_publication_deadline_floor(state, now, platform="bale"),
-            now + timedelta(hours=6),
-        )
-
-    def test_new_publication_cannot_regress_the_visible_countdown_order(self):
-        now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
-        floor = now + timedelta(hours=3)
-        state = {
-            "published": {
-                "dkp-93010": {
-                    "telegram_message_id": 11,
-                    "expiry_status": "tracked",
-                    "expires_at": floor.isoformat(),
-                }
-            }
-        }
-        self.assertFalse(respects_visible_deadline_order(
-            {"deal_expires_at": (floor - timedelta(minutes=1)).isoformat()}, state, now
-        ))
-        self.assertTrue(respects_visible_deadline_order(
-            {"deal_expires_at": floor.isoformat()}, state, now
-        ))
-        self.assertTrue(respects_visible_deadline_order(
-            {"deal_expires_at": (floor + timedelta(minutes=1)).isoformat()}, state, now
-        ))
-        self.assertFalse(respects_visible_deadline_order({}, state, now))
-
-    def test_discovery_checks_skip_short_or_out_of_order_deadlines_and_sort_exactly(self):
-        now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
-        floor = now + timedelta(hours=2)
-        queue = {}
-        specs = [
-            ("dkp-93021", now + timedelta(hours=4)),
-            ("dkp-93022", now + timedelta(hours=2)),
-            ("dkp-93023", now + timedelta(minutes=45)),
-            ("dkp-93024", now + timedelta(hours=1, minutes=30)),
-        ]
-        for pid, deadline in specs:
-            queue[pid] = {
-                "product_id": pid,
-                "product_url": f"https://www.digikala.com/product/{pid}/",
-                "title": pid,
-                "deal_expires_at": deadline.isoformat(),
-            }
-        queue["dkp-93025"] = {
-            "product_id": "dkp-93025",
-            "product_url": "https://www.digikala.com/product/dkp-93025/",
-            "title": "unknown deadline",
-            "deal_expires_at": "",
-        }
-        selected = select_discovery_records_for_check(
-            queue, now, max_count=10, deadline_floor=floor
-        )
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93022", "dkp-93021"])
 
     def test_discovery_queue_prunes_expired_deadlines_and_stale_unknown_deadlines(self):
         now = datetime(2026, 10, 19, 12, 0, tzinfo=timezone.utc)
