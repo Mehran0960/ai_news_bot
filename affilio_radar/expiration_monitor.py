@@ -84,17 +84,24 @@ def parse_expiry(value):
 
 
 def extract_expiry(obj):
-    """Read the explicit countdown fields used by DigiKala's Incredible Offers cards."""
+    """Read the offer-card deadline before inspecting nested variant metadata."""
     absolute_keys = ("ends_at", "endsAt", "deal_ends_at", "dealEndsAt", "expires_at", "expiresAt")
     seconds_keys = ("ends_in_seconds", "endsInSeconds", "remaining_seconds", "remainingSeconds")
-    nodes = list(walk_dicts(obj))
-    for node in nodes:
+    if not isinstance(obj, dict):
+        return ""
+
+    def direct_absolute(node):
+        if not isinstance(node, dict):
+            return ""
         for key in absolute_keys:
-            expiry = parse_expiry(node.get(key))
-            if expiry:
-                return expiry
-    now = datetime.now(timezone.utc)
-    for node in nodes:
+            value = parse_expiry(node.get(key))
+            if value:
+                return value
+        return ""
+
+    def direct_seconds(node, now):
+        if not isinstance(node, dict):
+            return ""
         for key in seconds_keys:
             try:
                 seconds = float(node.get(key))
@@ -102,6 +109,46 @@ def extract_expiry(obj):
                 seconds = -1
             if 0 <= seconds <= 7 * 24 * 3600:
                 return (now + timedelta(seconds=seconds)).isoformat()
+        return ""
+
+    # Prefer fields on the card itself and its campaign containers. Otherwise a
+    # nested default_variant carrying the same product ID can incorrectly override
+    # the card countdown with a different timestamp.
+    expiry = direct_absolute(obj)
+    if expiry:
+        return expiry
+    campaign_keys = (
+        "campaign", "incredible_offer", "incredibleOffer", "deal", "offer",
+        "promotion", "discount_campaign", "discountCampaign",
+    )
+    for key in campaign_keys:
+        child = obj.get(key)
+        if isinstance(child, dict):
+            expiry = direct_absolute(child)
+            if expiry:
+                return expiry
+    now = datetime.now(timezone.utc)
+    seconds = direct_seconds(obj, now)
+    if seconds:
+        return seconds
+    for key in campaign_keys:
+        child = obj.get(key)
+        if isinstance(child, dict):
+            seconds = direct_seconds(child, now)
+            if seconds:
+                return seconds
+
+    # Fall back to any explicit descendant fields only when the offer card itself
+    # and known campaign containers do not expose a deadline.
+    nodes = list(walk_dicts(obj))[1:]
+    for node in nodes:
+        expiry = direct_absolute(node)
+        if expiry:
+            return expiry
+    for node in nodes:
+        seconds = direct_seconds(node, now)
+        if seconds:
+            return seconds
     return ""
 
 
