@@ -113,10 +113,12 @@ def migrate_recent_regular_uploads(
                 getattr(exc, "response", None), "status_code", None
             )
             stage = str(getattr(exc, "stage", "unknown"))
+            provider_reason = str(getattr(exc, "provider_reason", "") or "")
             print(
                 f"APARAT_SHORTS_MIGRATION_RETRY product_id={product_id} "
                 f"error={type(exc).__name__} stage={stage} "
-                f"http_status={status_code or 'unknown'}"
+                f"http_status={status_code or 'unknown'} "
+                f"provider_reason={provider_reason or 'unavailable'}"
             )
         if index < min(len(candidates), limit) - 1:
             sleep_fn(0.8)
