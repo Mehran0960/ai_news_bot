@@ -82,6 +82,7 @@ from affilio_radar import (
     ensure_telegram_source_invites,
     build_video_channel_description,
     tracked_telegram_invite_url,
+    record_daily_member_count_snapshot,
 )
 
 
@@ -1474,6 +1475,53 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(ensure_telegram_source_invites(
             state, session=FakeSession(), token="test-token", chat_id="@OfferChin", now=now
         ))
+
+    def test_daily_member_count_snapshot_collects_each_channel_once_per_day(self):
+        class FakeResponse:
+            def __init__(self, payload):
+                self.payload = payload
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return self.payload
+
+        class FakeSession:
+            def __init__(self):
+                self.calls = []
+            def post(self, url, data=None, timeout=None):
+                self.calls.append((url, dict(data or {})))
+                if "api.telegram.org" in url:
+                    return FakeResponse({"ok": True, "result": 123})
+                if url.endswith("/getChatMemberCount"):
+                    return FakeResponse({"ok": False, "description": "method not found"})
+                return FakeResponse({"ok": True, "result": 45})
+
+        state = {}
+        session = FakeSession()
+        now = datetime(2026, 10, 20, 16, 30, tzinfo=timezone.utc)
+        self.assertTrue(record_daily_member_count_snapshot(
+            state,
+            session=session,
+            now=now,
+            telegram_token="tg-token",
+            telegram_chat_id="@OfferChin",
+            bale_token="bale-token",
+            bale_chat_id="@OfferChinBale",
+        ))
+        daily = state["growth_tracking"]["daily_member_counts"]["2026-10-20"]
+        self.assertEqual(daily["telegram"]["count"], 123)
+        self.assertEqual(daily["bale"]["count"], 45)
+        calls_before = len(session.calls)
+        self.assertFalse(record_daily_member_count_snapshot(
+            state,
+            session=session,
+            now=now + timedelta(hours=1),
+            telegram_token="tg-token",
+            telegram_chat_id="@OfferChin",
+            bale_token="bale-token",
+            bale_chat_id="@OfferChinBale",
+        ))
+        self.assertEqual(len(session.calls), calls_before)
 
     def test_growth_video_description_uses_source_specific_invite_link(self):
         state = {
