@@ -4361,6 +4361,30 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
                 print(f"SHORT_VIDEO_REGENERATE id={pid} old_style={style_version} new_style={VIDEO_STYLE_VERSION}")
         upload_status = str(record.get("youtube_upload_status") or "pending_credentials")
         aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
+
+        # Revisit records skipped by the previous, stricter 20-minute rule when
+        # the same live-deal record still has enough time before channel cleanup.
+        if generation_status == "skipped_expiring_soon":
+            prior_expiry = _parse_utc_datetime(
+                _parse_deal_expiry_value(record.get("expires_at"))
+            )
+            if (
+                prior_expiry is not None
+                and record.get("expiry_source") == "digikala_live_deals_feed"
+                and record.get("expiry_estimated") is not True
+                and prior_expiry > current + timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES)
+            ):
+                record["video_generation_status"] = "pending"
+                generation_status = "pending"
+                if upload_status == "skipped_expiring_soon":
+                    record["youtube_upload_status"] = "pending"
+                    upload_status = "pending"
+                if aparat_status == "skipped_expiring_soon":
+                    record["aparat_upload_status"] = "pending"
+                    aparat_status = "pending"
+                state_changed = True
+                print(f"SHORT_VIDEO_REQUEUED id={pid} reason=active_deadline_after_policy_change")
+
         youtube_in_flight = False
         aparat_in_flight = False
 
