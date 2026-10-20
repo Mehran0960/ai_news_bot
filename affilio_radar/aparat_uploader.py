@@ -274,6 +274,99 @@ def find_uploaded_aparat_video(
     }
 
 
+def delete_aparat_video(
+    video_hash: str,
+    *,
+    session=None,
+    env: Mapping[str, str] | None = None,
+) -> str:
+    """Permanently delete a tracked Aparat video using its account-provided delete URL.
+
+    Aparat's current web interface does not expose a documented public delete API.
+    This best-effort route only follows a delete_url returned for this exact video
+    in the authenticated account listing; it never guesses a destructive endpoint.
+    """
+    safe_hash = str(video_hash or "").strip()
+    if not safe_hash or not safe_hash.replace("-", "").replace("_", "").isalnum():
+        raise ValueError("invalid Aparat video hash")
+    cookies = _cookie_header(env)
+    if "AuthV1=" not in cookies:
+        raise RuntimeError("Aparat session is not configured; AuthV1 cookie is missing")
+
+    site = session or _site_session(cookies)
+    if session is not None:
+        site.headers.setdefault("Cookie", cookies)
+        site.headers.setdefault("User-Agent", USER_AGENT)
+        site.headers.setdefault("Origin", APARAT_ORIGIN)
+        site.headers.setdefault("Referer", f"{APARAT_ORIGIN}/uploadvideo")
+        site.headers.setdefault("Content-Type", "application/json; charset=utf-8")
+
+    payload = _read_json(
+        site.get(APARAT_MY_VIDEOS_URL, timeout=(10, 30)),
+        operation="my videos lookup for deletion",
+    )
+    included = payload.get("included")
+    if not isinstance(included, list):
+        data = payload.get("data")
+        included = data.get("included") if isinstance(data, dict) else None
+    if not isinstance(included, list):
+        included = []
+
+    delete_url = ""
+    found_exact_video = False
+    for item in included:
+        if not isinstance(item, dict):
+            continue
+        attrs = item.get("attributes")
+        attrs = attrs if isinstance(attrs, dict) else {}
+        current_hash = _find_video_hash(attrs) or _find_video_hash(item)
+        if current_hash != safe_hash:
+            continue
+        found_exact_video = True
+        # Intentionally do not use share_delete_url: that can remove a share or
+        # association rather than delete the actual video.
+        delete_url = str(attrs.get("delete_url") or item.get("delete_url") or "").strip()
+        break
+
+    if not found_exact_video:
+        raise RuntimeError("Aparat video was not found in the authenticated account listing")
+    if not delete_url:
+        raise RuntimeError("Aparat did not provide a permanent delete URL for this video")
+
+    absolute_url = urljoin(f"{APARAT_ORIGIN}/", delete_url)
+    parts = urlsplit(absolute_url)
+    hostname = (parts.hostname or "").lower()
+    if (
+        parts.scheme != "https"
+        or not hostname
+        or not (hostname == "aparat.com" or hostname.endswith(".aparat.com"))
+        or parts.username
+        or parts.password
+    ):
+        raise RuntimeError("Aparat returned an untrusted delete URL")
+
+    try:
+        response = site.get(absolute_url, timeout=(10, 30))
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as exc:
+        status_code = getattr(getattr(exc, "response", None), "status_code", None)
+        raise AparatPrivacyUpdateError("video_delete", status_code, _aparat_http_error_reason(exc)) from exc
+
+    try:
+        result = response.json()
+    except (ValueError, TypeError, AttributeError):
+        result = {}
+    if isinstance(result, dict):
+        if result.get("success") is False or str(result.get("status", "")).lower() in {"error", "failed", "fail"}:
+            raise RuntimeError("Aparat rejected the permanent delete request")
+        data = result.get("data")
+        attributes = data.get("attributes") if isinstance(data, dict) else None
+        operation_type = str(attributes.get("type") or "").lower() if isinstance(attributes, dict) else ""
+        if operation_type and operation_type not in {"success", "deleted", "ok"}:
+            raise RuntimeError("Aparat did not confirm permanent deletion")
+    return "deleted"
+
+
 def upload_aparat_video(
     video_path: str | Path,
     title: str,
