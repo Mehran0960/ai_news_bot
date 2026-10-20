@@ -2907,7 +2907,7 @@ def unicode_underline(value: str) -> str:
 
 
 def format_remaining_time(value, now: datetime | None = None) -> str:
-    """Display a conservative countdown with a five-minute safety buffer."""
+    """Display the verified deadline as closely as possible; round down to whole minutes."""
     deadline = _parse_utc_datetime(value)
     if deadline is None:
         return ""
@@ -2918,15 +2918,9 @@ def format_remaining_time(value, now: datetime | None = None) -> str:
     remaining_seconds = (deadline - current).total_seconds()
     if remaining_seconds <= 0:
         return "مهلت آفر به پایان رسیده"
-    # Subtract five minutes from displayed time only; never change the real expiry
-    # used by eligibility checks or automatic post deletion.
-    safe_remaining_seconds = remaining_seconds - 5 * 60
-    if safe_remaining_seconds <= 0:
-        return "حداکثر ۵ دقیقه مانده به پایان تخفیف"
-    if safe_remaining_seconds < 60:
+    if remaining_seconds < 60:
         return "کمتر از ۱ دقیقه مانده به پایان تخفیف"
-    # Round down so the displayed value never exceeds the deadline minus five minutes.
-    remaining_minutes = math.floor(safe_remaining_seconds / 60)
+    remaining_minutes = math.floor(remaining_seconds / 60)
     hours, minutes = divmod(remaining_minutes, 60)
     duration = []
     if hours:
