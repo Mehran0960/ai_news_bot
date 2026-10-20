@@ -392,6 +392,8 @@ def sync_live_offer_deadlines(published, live_expiries, now):
         if bale_id.isdigit() and rec.get("bale_expiry_status") not in terminal:
             platforms.append("bale")
         if not platforms:
+            if telegram_id.isdigit() or bale_id.isdigit():
+                summary["skipped"] += 1
             continue
 
         raw_live = live_expiries.get(str(pid))
@@ -743,11 +745,13 @@ def _persian_number(value):
 
 
 def _remaining_label(deadline, now):
-    # Keep repaired legacy captions consistent with the five-minute countdown buffer.
-    seconds = (deadline - timedelta(minutes=COUNTDOWN_DISPLAY_BUFFER_MINUTES) - now).total_seconds()
+    """Build a legacy caption countdown from the same exact deadline as new posts."""
+    seconds = (deadline - now).total_seconds()
     if seconds <= 0:
-        return f"حداکثر {_persian_number(COUNTDOWN_DISPLAY_BUFFER_MINUTES)} دقیقه"
-    minutes = max(1, int((seconds + 59) // 60))
+        return "مهلت آفر به پایان رسیده"
+    if seconds < 60:
+        return "کمتر از ۱ دقیقه"
+    minutes = int(seconds // 60)
     hours, mins = divmod(minutes, 60)
     if hours and mins:
         return f"{_persian_number(hours)} ساعت و {_persian_number(mins)} دقیقه"
@@ -1480,7 +1484,13 @@ def run():
     feed_last = parse_expiry(state.get("expiry_feed_last_checked_at"))
     force_feed_sync = os.getenv("AFFILIO_FORCE_DEADLINE_SYNC", "false").strip().lower() in {"1", "true", "yes", "on"}
     feed_due = force_feed_sync or not feed_last or (now - datetime.fromisoformat(feed_last)).total_seconds() >= LIVE_DEADLINE_SYNC_INTERVAL_SECONDS
-    if feed_due and published:
+    if feed_due and any(
+        isinstance(rec, dict) and (
+            (str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent"})
+            or (str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"})
+        )
+        for rec in published.values()
+    ):
         live_expiries = {}
         try:
             live_expiries = fetch_offer_expiries()
