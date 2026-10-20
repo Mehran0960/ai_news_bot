@@ -290,10 +290,10 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["at_cutoff"]["bale_expiry_status"], "deleted")
         self.assertEqual(published["just_before_cutoff"]["expiry_status"], "tracked")
 
-    def test_repaired_legacy_countdown_keeps_five_minute_display_buffer(self):
+    def test_repaired_legacy_countdown_matches_exact_deadline(self):
         deadline = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
         now = deadline - timedelta(minutes=8)
-        self.assertEqual(monitor._remaining_label(deadline, now), "۳ دقیقه")
+        self.assertEqual(monitor._remaining_label(deadline, now), "۸ دقیقه")
 
     def test_confirmed_deadline_does_not_need_another_network_probe(self):
         now = datetime.now(timezone.utc)
