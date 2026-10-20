@@ -37,7 +37,9 @@ PROBE_INTERVAL_SECONDS = 900
 UNKNOWN_PROBE_INTERVAL_SECONDS = 900
 # Keep deletion safety independent from the caption's displayed countdown.
 # A post is removed up to ten minutes before the verified deadline.
-POST_REMOVAL_BUFFER_MINUTES = 10
+POST_REMOVAL_BUFFER_MINUTES = max(
+    0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10")))
+)
 LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 15 * 60
 
 
@@ -773,8 +775,9 @@ def _persian_number(value):
 
 
 def _remaining_label(deadline, now):
-    """Build a legacy caption countdown from the same exact deadline as new posts."""
-    seconds = (deadline - now).total_seconds()
+    """Build a legacy caption countdown using the same safety cutoff as post removal."""
+    effective_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
+    seconds = (effective_deadline - now).total_seconds()
     if seconds <= 0:
         return "مهلت آفر به پایان رسیده"
     if seconds < 60:
@@ -834,7 +837,11 @@ def _build_legacy_repaired_caption(fields, deadline, now):
     if original and current and original > current:
         parts += ["", f"<b>🏷️ قیمت اصلی: <s>{_persian_number(original)} تومان</s></b>"]
     if deadline:
-        parts += ["", f"<b>⏳ {_remaining_label(deadline, now)} مانده به پایان تخفیف</b>"]
+        remaining_label = _remaining_label(deadline, now)
+        if remaining_label == "مهلت آفر به پایان رسیده":
+            parts += ["", f"<b>⏳ {remaining_label}</b>"]
+        else:
+            parts += ["", f"<b>⏳ {remaining_label} مانده به پایان تخفیف</b>"]
     parts += [
         "",
         '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>',
