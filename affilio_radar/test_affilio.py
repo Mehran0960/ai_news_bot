@@ -1088,23 +1088,23 @@ class AffilioRadarTests(unittest.TestCase):
         now = datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc)
         self.assertEqual(
             format_remaining_time("2026-10-18T12:17:20+00:00", now),
-            "۲ ساعت و ۱۲ دقیقه مانده به پایان تخفیف",
+            "۲ ساعت و ۱۷ دقیقه مانده به پایان تخفیف",
         )
         self.assertEqual(
             format_remaining_time("2026-10-18T10:00:15+00:00", now),
-            "حداکثر ۵ دقیقه مانده به پایان تخفیف",
+            "کمتر از ۱ دقیقه مانده به پایان تخفیف",
         )
         self.assertEqual(
             format_remaining_time("2026-10-18T11:00:00+00:00", now),
-            "۵۵ دقیقه مانده به پایان تخفیف",
+            "۱ ساعت مانده به پایان تخفیف",
         )
         self.assertEqual(
             format_remaining_time("2026-10-18T10:43:20+00:00", now),
-            "۳۸ دقیقه مانده به پایان تخفیف",
+            "۴۳ دقیقه مانده به پایان تخفیف",
         )
         self.assertEqual(format_remaining_time("2026-10-18T09:59:59+00:00", now), "مهلت آفر به پایان رسیده")
-        self.assertEqual(format_remaining_time("2026-10-18T10:05:00+00:00", now), "حداکثر ۵ دقیقه مانده به پایان تخفیف")
-        self.assertEqual(format_remaining_time("2026-10-18T10:05:01+00:00", now), "کمتر از ۱ دقیقه مانده به پایان تخفیف")
+        self.assertEqual(format_remaining_time("2026-10-18T10:05:00+00:00", now), "۵ دقیقه مانده به پایان تخفیف")
+        self.assertEqual(format_remaining_time("2026-10-18T10:05:01+00:00", now), "۵ دقیقه مانده به پایان تخفیف")
         self.assertEqual(format_remaining_time("", now), "")
 
     def test_publication_requires_an_explicit_future_deadline_for_countdown(self):
