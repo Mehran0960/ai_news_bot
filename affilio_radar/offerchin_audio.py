@@ -22,20 +22,22 @@ def write_original_soundtrack(
     duration = max(5.0, min(12.0, float(duration_seconds)))
     rate = max(16000, min(44100, int(sample_rate)))
     frames = int(round(duration * rate))
-    bpm = 124.0
+    # Faster, bright pop/electronic tempo for a punchier shopping-short feel.
+    bpm = 142.0
     beat_seconds = 60.0 / bpm
     eighth_seconds = beat_seconds / 2.0
 
+    # A brighter major-key hook with a quick, memorable rise-and-fall contour.
     lead_notes = (
-        659.25, 783.99, 880.00, 987.77,
-        880.00, 783.99, 659.25, 587.33,
-        659.25, 783.99, 1174.66, 987.77,
-        880.00, 783.99, 659.25, 587.33,
+        659.25, 739.99, 880.00, 987.77,
+        880.00, 739.99, 659.25, 554.37,
+        659.25, 739.99, 880.00, 987.77,
+        1108.73, 987.77, 880.00, 659.25,
     )
     chord_notes = (
-        (164.81, 196.00, 246.94),  # E minor
-        (130.81, 164.81, 196.00),  # C major
-        (146.83, 196.00, 246.94),  # G major
+        (220.00, 277.18, 329.63),  # A major
+        (164.81, 207.65, 246.94),  # E major
+        (185.00, 220.00, 277.18),  # F-sharp minor
         (146.83, 185.00, 220.00),  # D major
     )
 
@@ -57,40 +59,40 @@ def write_original_soundtrack(
             if beat_phase < 0.18:
                 kick_phase = beat_phase
                 swept_cycles = 47.0 * kick_phase + 9.0 * (1.0 - math.exp(-25.0 * kick_phase)) / 25.0
-                kick = 0.40 * math.exp(-27.0 * kick_phase) * math.sin(2.0 * math.pi * swept_cycles)
+                kick = 0.46 * math.exp(-29.0 * kick_phase) * math.sin(2.0 * math.pi * swept_cycles)
 
-            bass_root = (82.41, 65.41, 98.00, 73.42)[(beat_index // 4) % 4]
-            bass = 0.105 * math.sin(2.0 * math.pi * bass_root * t)
-            bass += 0.035 * math.sin(2.0 * math.pi * bass_root * 2.0 * t)
+            bass_root = (55.00, 82.41, 46.25, 73.42)[(beat_index // 4) % 4]
+            bass = 0.125 * math.sin(2.0 * math.pi * bass_root * t)
+            bass += 0.045 * math.sin(2.0 * math.pi * bass_root * 2.0 * t)
 
             snare = 0.0
             if beat_index % 4 in (1, 3) and beat_phase < 0.12:
                 snare_env = math.exp(-34.0 * beat_phase)
                 snare = snare_env * (
-                    0.095 * math.sin(2.0 * math.pi * 185.0 * beat_phase)
-                    + 0.055 * math.sin(2.0 * math.pi * 1400.0 * beat_phase)
-                    + 0.028 * math.sin(2.0 * math.pi * 3100.0 * beat_phase)
+                    0.112 * math.sin(2.0 * math.pi * 185.0 * beat_phase)
+                    + 0.065 * math.sin(2.0 * math.pi * 1400.0 * beat_phase)
+                    + 0.035 * math.sin(2.0 * math.pi * 3100.0 * beat_phase)
                 )
 
             hat = 0.0
             if half_phase < 0.027:
                 hat_env = math.exp(-115.0 * half_phase)
-                hat = 0.038 * hat_env * (
+                hat = 0.047 * hat_env * (
                     math.sin(2.0 * math.pi * 7200.0 * half_phase)
                     + 0.42 * math.sin(2.0 * math.pi * 9700.0 * half_phase)
                 )
 
             note_index = half_index % len(lead_notes)
             note = lead_notes[note_index]
-            lead_env = math.exp(-8.5 * half_phase)
-            lead = 0.105 * lead_env * (
+            lead_env = math.exp(-7.4 * half_phase)
+            lead = 0.128 * lead_env * (
                 math.sin(2.0 * math.pi * note * half_phase)
                 + 0.27 * math.sin(2.0 * math.pi * note * 2.0 * half_phase)
             )
 
             chord = chord_notes[(beat_index // 4) % len(chord_notes)]
             pad_env = 0.8 + 0.2 * math.sin(2.0 * math.pi * t / 2.0)
-            pad = 0.019 * pad_env * sum(
+            pad = 0.022 * pad_env * sum(
                 math.sin(2.0 * math.pi * frequency * t) for frequency in chord
             )
 
@@ -98,7 +100,7 @@ def write_original_soundtrack(
             fade_out = min(1.0, max(0.0, (duration - t) / 0.36))
             master = fade_in * fade_out
             center = (kick + bass + snare + hat + pad) * master
-            pan = 0.5 + 0.28 * math.sin(2.0 * math.pi * t / 3.2)
+            pan = 0.5 + 0.20 * math.sin(2.0 * math.pi * t / 2.8)
             left = max(-0.92, min(0.92, (center + lead * (1.0 - pan)) * 0.91))
             right = max(-0.92, min(0.92, (center + lead * pan) * 0.91))
             block.extend(struct.pack("<hh", int(left * 32767), int(right * 32767)))
