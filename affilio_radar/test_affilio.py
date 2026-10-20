@@ -1159,6 +1159,49 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(save_state.called)
 
 
+    def test_refresh_active_countdowns_caps_batch_and_rotates_fairly(self):
+        now = datetime.now(timezone.utc)
+        expiry = (now + timedelta(hours=3)).isoformat()
+        published = {}
+        for index in range(10):
+            published[f"dkp-{1000 + index}"] = {
+                "ts": index + 1,
+                "title": f"محصول نمونه {index}",
+                "product_url": f"https://www.digikala.com/product/dkp-{1000 + index}/",
+                "telegram_message_id": 200 + index,
+                "bale_message_id": 400 + index,
+                "posted_current_price": 100_000,
+                "posted_original_price": 200_000,
+                "posted_discount_percent": 50,
+                "expires_at": expiry,
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_estimated": False,
+            }
+        state = {"published": published}
+        url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-1000/")
+        with (
+            patch.dict("os.environ", {"AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS": "2"}),
+            patch("affilio_radar.load_state", return_value=state),
+            patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
+            patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
+            patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
+            patch("affilio_radar.build_affilio_tracking_link", return_value=url),
+            patch("affilio_radar._edit_telegram_caption", side_effect=lambda message_id, *args: {"message_id": message_id}) as edit_telegram,
+            patch("affilio_radar._edit_bale_caption", side_effect=lambda message_id, *args: {"message_id": message_id}) as edit_bale,
+            patch("affilio_radar.save_json") as save_state,
+            patch("affilio_radar.time.sleep"),
+        ):
+            result = refresh_active_countdowns()
+
+        self.assertEqual(result, 0)
+        self.assertEqual([call.args[0] for call in edit_telegram.call_args_list], [200, 201])
+        self.assertEqual([call.args[0] for call in edit_bale.call_args_list], [400, 401])
+        self.assertTrue(published["dkp-1000"].get("countdown_refresh_attempted_at"))
+        self.assertTrue(published["dkp-1001"].get("countdown_last_updated_at"))
+        self.assertNotIn("countdown_refresh_attempted_at", published["dkp-1002"])
+        self.assertTrue(save_state.called)
+
+
     def test_unicode_strikethrough_marks_each_visible_character(self):
         self.assertEqual(unicode_strikethrough("۱۲۳"), "۱\u0336۲\u0336۳\u0336")
         self.assertEqual(unicode_strikethrough("۱۲۳  تومان"), "۱\u0336۲\u0336۳\u0336  ت\u0336و\u0336م\u0336ا\u0336ن\u0336")
@@ -1901,6 +1944,47 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(record["video_style_version"], VIDEO_STYLE_VERSION)
             self.assertTrue((Path(output_dir) / f"offerchin-{pid}.mp4").is_file())
             upload.assert_not_called()
+
+    def test_aparat_short_only_mode_queues_vertical_video_without_regular_upload(self):
+        now = datetime.now(timezone.utc)
+        pid = "dkp-92033"
+        record = {
+            "ts": now.timestamp(),
+            "title": "گجت نمونه برای شورتس",
+            "product_url": f"https://www.digikala.com/product/{pid}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "expires_at": (now + timedelta(hours=2)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_estimated": False,
+            "posted_discount_percent": 45,
+            "delivery_status": {"telegram": "sent", "bale": "sent"},
+            "video_generation_status": "pending",
+            "youtube_upload_status": "pending",
+        }
+        state = {"published": {pid: record}}
+
+        def fake_render(image_bytes, discount, path, **kwargs):
+            output = Path(path)
+            output.write_bytes(b"fake-mp4-video")
+            return output
+
+        with (
+            TemporaryDirectory() as output_dir,
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
+            patch("affilio_radar.save_json"),
+            patch("affilio_radar.APARAT_SHORTS_ONLY", True),
+            patch("short_video.youtube_credentials_available", return_value=False),
+            patch("short_video.render_short_video", side_effect=fake_render),
+            patch("aparat_uploader.aparat_credentials_available", return_value=True),
+            patch("aparat_uploader.upload_aparat_video") as upload_aparat,
+        ):
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
+
+        self.assertEqual(record["video_generation_status"], "generated")
+        self.assertEqual(record["aparat_upload_status"], "waiting_shorts_uploader")
+        self.assertEqual(record["aparat_shorts_upload_status"], "queued")
+        self.assertTrue((Path(output_dir) / f"offerchin-{pid}.mp4").is_file())
+        upload_aparat.assert_not_called()
 
     def test_short_video_upload_uses_youtube_when_oauth_is_configured(self):
         import short_video
