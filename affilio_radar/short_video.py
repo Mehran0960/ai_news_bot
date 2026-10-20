@@ -181,15 +181,15 @@ def build_vertical_poster(image_bytes: bytes, discount_percent: object = None) -
         left, top = WIDTH - 34 - badge_width, 142
         draw_discount_burst(draw, left, top, badge_width, badge_height, discount)
 
-    # Put both channel IDs in the upper-left so they are easier to notice.
-    # Keep the panel below the top edge and left of the discount badge.
-    footer = (34, 142, 430, 292)
-    draw.rounded_rectangle(footer, radius=22, fill=(14, 28, 22, 232), outline=(255, 255, 255, 230), width=2)
+    # Place both channel IDs in the upper-left margin, above the product card.
+    # This makes them prominent without covering the product image or discount badge.
+    footer = (34, 14, 430, 122)
+    draw.rounded_rectangle(footer, radius=20, fill=(14, 28, 22, 232), outline=(255, 255, 255, 230), width=2)
     watermark_font = _font(23)
-    _draw_telegram_logo(draw, 56, 158, 36)
-    draw.text((103, 176), "T.me/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
-    _draw_bale_logo(draw, 56, 226, 36)
-    draw.text((103, 244), "ble.ir/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
+    _draw_telegram_logo(draw, 56, 20, 36)
+    draw.text((103, 38), "T.me/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
+    _draw_bale_logo(draw, 56, 68, 36)
+    draw.text((103, 86), "ble.ir/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
 
     output = BytesIO()
     background.convert("RGB").save(output, format="PNG", optimize=True)
