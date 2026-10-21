@@ -43,14 +43,15 @@ jobs:
           python -m unittest -v test_expiration_monitor.py
 
       - name: Refresh countdowns for active OfferChin posts
+        if: ${{ !contains(github.event.head_commit.message, '[repair-all-captions]') }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          AFFILIO_COUNTDOWN_REFRESH_FORCE: ${{ (contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[repair-all-captions]')) && 'true' || 'false' }}
-          AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: ${{ (contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[repair-all-captions]')) && '100' || '80' }}
-          AFFILIO_COUNTDOWN_INTERVAL_SECONDS: "240"
+          AFFILIO_COUNTDOWN_REFRESH_FORCE: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && 'true' || 'false' }}
+          AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && '100' || '80' }}
+          AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS: "240"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_DEAL_LIST_PAGES: "5"
           PYTHONUNBUFFERED: "1"
@@ -58,7 +59,7 @@ jobs:
 
       - name: Remove expired and unverifiable OfferChin posts
         env:
-          AFFILIO_FORCE_DEADLINE_SYNC: "false"
+          AFFILIO_FORCE_DEADLINE_SYNC: ${{ (contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[repair-all-captions]')) && 'true' || 'false' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
