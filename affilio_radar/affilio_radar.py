@@ -4941,10 +4941,8 @@ def run(publish=False):
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
-    if AFFILIO_LINK_TEMPLATE and probe_link:
-        link_mode = "reusable_affilio_template"
-    elif probe_link:
-        link_mode = "direct_affilio_parameters"
+    if probe_link:
+        link_mode = "publisher_public_affilio_link"
     elif approved:
         link_mode = "per_product_overrides"
     else:
