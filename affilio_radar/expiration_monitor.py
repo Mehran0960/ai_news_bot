@@ -1401,6 +1401,18 @@ def _delete_expired_posts(published, now, mark_unknown=False):
                 rec["bale_expiry_status"] = "tracked_estimated" if rec.get("expiry_estimated") else "tracked"
                 changed = True
             continue
+        if rec.get("expiry_estimated") is True:
+            # An estimated timestamp may guide caption wording, but must never
+            # authorize destructive cleanup. Wait for a verified deadline or a
+            # live product check that confirms the offer is no longer valid.
+            if not rec.get("expiry_estimate_cutoff_preserved_at"):
+                rec["expiry_estimate_cutoff_preserved_at"] = now.isoformat()
+                changed = True
+                print(
+                    f"EXPIRY_ESTIMATED_DEADLINE_PRESERVED product_id={pid} "
+                    f"reason=estimated_timestamp_not_authoritative"
+                )
+            continue
         for platform, id_field, status_field, timestamp_field, delete_fn, mark_fn in (
             ("telegram", "telegram_message_id", "expiry_status", "expired_deleted_at", _telegram_delete, _telegram_mark_expired),
             ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete, _bale_mark_expired),
@@ -1477,6 +1489,9 @@ def _delete_expired_aparat_videos(published, now):
         video_hash = str(rec.get("aparat_video_hash") or "").strip()
         expiry_status = str(rec.get("aparat_expiry_status") or "")
         if not video_hash or expiry_status in terminal:
+            continue
+        # Estimated deadlines are not sufficient evidence for deleting a video.
+        if rec.get("expiry_estimated") is True:
             continue
         expires = parse_expiry(rec.get("expires_at"))
         if not expires:
