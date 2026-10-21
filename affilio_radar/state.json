@@ -5379,12 +5379,12 @@
       "title": "ماساژور گردن و کمر اسنیلکس مدل last"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-21T21:35:26.012351+00:00",
+  "expiry_feed_last_checked_at": "2026-10-21T21:40:25.241701+00:00",
   "expiry_feed_last_sync_summary": {
-    "matched": 1,
+    "matched": 2,
     "missing_from_feed": 0,
-    "skipped": 169,
-    "unchanged": 1,
+    "skipped": 168,
+    "unchanged": 2,
     "updated": 0
   },
   "growth_tracking": {
@@ -8174,7 +8174,7 @@
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-21T21:31:02.347320+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T21:35:26.012351+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T21:40:25.241701+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -8896,6 +8896,8 @@
       "bale_message_id": null,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-21T21:41:37.273947+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T21:40:25.241701+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -8956,7 +8958,8 @@
       "youtube_next_attempt_at": "2026-10-21T21:44:42.555210+00:00",
       "youtube_upload_attempts": 1,
       "youtube_upload_started_at": "2026-10-21T21:39:42.313711+00:00",
-      "youtube_upload_status": "retry"
+      "youtube_upload_status": "retry",
+      "expiry_status": "tracked"
     },
     "dkp-20881002": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
