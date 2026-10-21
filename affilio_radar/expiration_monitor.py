@@ -409,7 +409,11 @@ def _money_to_toman(raw, is_toman):
 def sync_live_offer_deadlines(published, live_expiries, now):
     """Reconcile every still-visible tracked post with the latest verified deal-card deadline."""
     summary = {"matched": 0, "updated": 0, "unchanged": 0, "missing_from_feed": 0, "skipped": 0}
-    terminal = {"deleted", "already_absent"}
+    terminal = {
+        "deleted", "already_absent", "expired_marked",
+        "deadline_unavailable_marked", "deadline_unavailable_delete_failed",
+        "delete_failed", "unknown",
+    }
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             summary["skipped"] += 1
@@ -901,9 +905,16 @@ def _build_legacy_repaired_caption(fields, deadline, now):
     if original and current and original > current:
         parts += ["", f"<b>🏷️ قیمت اصلی: <s>{_persian_number(original)} تومان</s></b>"]
     if deadline:
+        remaining_label = _remaining_label(deadline, now)
+        if remaining_label == "مهلت آفر به پایان رسیده":
+            parts += ["", f"<b>⏳ {remaining_label}</b>"]
+        else:
+            parts += ["", f"<b>⏳ {remaining_label} مانده به پایان تخفیف</b>"]
+        # These public-history posts have no state record, so preserve a parseable
+        # absolute deadline too; the auditor uses it for future correction/deletion.
         deadline_label = _format_jalali_deadline(deadline)
         if deadline_label:
-            parts += ["", f"<b>⏳ پایان تخفیف: {deadline_label}</b>"]
+            parts.append(f"<b>📅 پایان تخفیف: {deadline_label}</b>")
     parts += [
         "",
         '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>',
@@ -917,8 +928,8 @@ def _build_legacy_repaired_caption(fields, deadline, now):
     return caption
 
 
-def _caption_needs_repair(caption_html, caption_text, fields, deadline):
-    """Avoid re-editing a legacy message once the desired formatting is already present."""
+def _caption_needs_repair(caption_html, caption_text, fields, deadline, now=None):
+    """Repair legacy formatting and refresh relative countdowns that have drifted."""
     if "عضویت در کانال OfferChin" not in caption_text or "t.me/OfferChin" in caption_text:
         return True
     soup = BeautifulSoup(caption_html or "", "html.parser")
@@ -933,17 +944,23 @@ def _caption_needs_repair(caption_html, caption_text, fields, deadline):
         expected_discount = _persian_number(discount) + "٪"
         if not any("⚡️" in value and "تخفیف" in value and expected_discount in value for value in underline_texts):
             return True
-    # Relative countdowns are stale by definition; migrate them to a fixed deadline.
-    if deadline and (
-        "مانده به پایان تخفیف" in caption_text
-        or "زمان باقی‌مانده" in caption_text
-    ):
-        return True
-    # Keep a correctly formatted absolute deadline as-is instead of editing it on every audit.
-    if deadline and not re.search(
-        r"پایان\s*تخفیف\s*[:：].*ساعت\s*[۰-۹0-9]{1,2}[:٫][۰-۹0-9]{2}",
-        caption_text,
-    ):
+    if deadline:
+        expected = _remaining_label(deadline, now or datetime.now(timezone.utc))
+        expected_line = (
+            expected
+            if expected == "مهلت آفر به پایان رسیده"
+            else f"{expected} مانده به پایان تخفیف"
+        )
+        # The displayed timer must equal the current verified deadline minus ten minutes.
+        if expected_line not in caption_text:
+            return True
+        # Keep a parseable absolute deadline for the public-history auditor.
+        if "📅 پایان تخفیف:" not in caption_text and not re.search(
+            r"پایان\s*تخفیف\s*[:：].*ساعت\s*[۰-۹0-9]{1,2}[:٫][۰-۹0-9]{2}",
+            caption_text,
+        ):
+            return True
+    elif "پایان تخفیف" in caption_text or "مانده به پایان تخفیف" in caption_text:
         return True
     return False
 
@@ -1255,7 +1272,7 @@ def audit_public_channel_history(published, now=None, posts=None):
             continue
         if not fields.get("title") or not fields.get("current_price") or not fields.get("discount_percent"):
             continue
-        if not _caption_needs_repair(caption_html, caption_text, fields, deadline):
+        if not _caption_needs_repair(caption_html, caption_text, fields, deadline, now):
             continue
         caption = _build_legacy_repaired_caption(fields, deadline, now)
         try:
