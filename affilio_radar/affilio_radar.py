@@ -3707,11 +3707,18 @@ def refresh_active_countdowns() -> int:
             if record.get("deadline_caption_refresh_required"):
                 record["deadline_caption_refresh_attempted_at"] = now.isoformat()
             record["countdown_refresh_verification_status"] = "missing_live_deadline"
+            # This product was checked against the live DigiKala sources in a run that
+            # returned valid deadlines for other products, but this offer was absent.
+            # Its cached deadline cannot prove the deal is still running. Mark it
+            # unverifiable so the cleanup step deletes it or disables its buy button.
+            record["expiry_source"] = "unavailable"
+            record["expiry_estimated"] = True
+            record["expiry_reason"] = "missing_from_current_live_deadline_sources"
             counters["skipped"] += 1
             changed = True
             print(
-                f"COUNTDOWN_REFRESH_SKIPPED product_id={product_key} "
-                "reason=not_found_in_current_live_deadline_sources"
+                f"COUNTDOWN_REFRESH_UNVERIFIABLE product_id={product_key} "
+                "reason=not_found_in_current_live_deadline_sources; cleanup_will_remove_or_disable"
             )
             continue
         if record.pop("countdown_refresh_verification_status", None) is not None:
