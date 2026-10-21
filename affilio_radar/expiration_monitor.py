@@ -1099,6 +1099,47 @@ def _telegram_mark_deadline_unavailable(message_id, title):
     return _telegram_edit_caption(message_id, caption, remove_purchase_button=True)
 
 
+def _bale_mark_expired(message_id, title):
+    """Disable a Bale purchase button when deletion of an expired post fails."""
+    if not BALE_BOT_TOKEN:
+        raise RuntimeError("BALE_BOT_TOKEN missing")
+    if not BALE_CHANNEL_ID:
+        raise RuntimeError("BALE_CHANNEL_ID missing")
+    safe_title = str(title or "پیشنهاد ویژه").strip()[:140]
+    caption = (
+        "⛔ مهلت این آفر به پایان رسیده و دکمهٔ خرید غیرفعال شده است.\n\n"
+        f"🛍️ {safe_title}\n\n"
+        "[عضویت در کانال OfferChin](https://ble.ir/OfferChin)"
+    )
+    payload = {
+        "chat_id": BALE_CHANNEL_ID,
+        "message_id": int(message_id),
+        "caption": caption,
+        "reply_markup": json.dumps({"inline_keyboard": []}),
+    }
+    request = Request(
+        f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/editMessageCaption",
+        data=urlencode(payload).encode("utf-8"),
+        method="POST",
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    _pace_bot_api()
+    try:
+        with urlopen(request, timeout=HTTP_TIMEOUT) as response:
+            result = _decode_delete_response(response)
+    except HTTPError as exc:
+        description = _delete_error_description(exc)
+        if _is_message_absent(description):
+            return "already_absent"
+        raise RuntimeError(description) from None
+    if result.get("ok") is True:
+        return "edited"
+    description = str(result.get("description") or "Bale editMessageCaption failed")
+    if _is_message_absent(description):
+        return "already_absent"
+    raise RuntimeError(description[:180] or "Bale editMessageCaption failed")
+
+
 def _bale_mark_deadline_unavailable(message_id, title):
     if not BALE_BOT_TOKEN:
         raise RuntimeError("BALE_BOT_TOKEN missing")
@@ -1418,9 +1459,9 @@ def _delete_expired_posts(published, now, mark_unknown=False):
                 rec["bale_expiry_status"] = "tracked_estimated" if rec.get("expiry_estimated") else "tracked"
                 changed = True
             continue
-        for platform, id_field, status_field, timestamp_field, delete_fn in (
-            ("telegram", "telegram_message_id", "expiry_status", "expired_deleted_at", _telegram_delete),
-            ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete),
+        for platform, id_field, status_field, timestamp_field, delete_fn, mark_fn in (
+            ("telegram", "telegram_message_id", "expiry_status", "expired_deleted_at", _telegram_delete, _telegram_mark_expired),
+            ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete, _bale_mark_expired),
         ):
             raw_id = rec.get(id_field)
             if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent"}:
@@ -1437,9 +1478,26 @@ def _delete_expired_posts(published, now, mark_unknown=False):
                     f"outcome={outcome} expiry={expiry} remove_at={removal_deadline.isoformat()}"
                 )
             except Exception as exc:
-                rec[status_field] = "delete_failed"
                 error_text = str(exc)[:180]
                 rec[f"{platform}_expiry_last_delete_error"] = f"{type(exc).__name__}: {error_text}"
+                rec[status_field] = "delete_failed"
+                try:
+                    fallback = mark_fn(int(raw_id), rec.get("title") or "پیشنهاد ویژه")
+                    if fallback == "edited":
+                        rec[status_field] = "expired_marked"
+                        rec[f"{platform}_expired_marked_at"] = now.isoformat()
+                        print(
+                            f"EXPIRY_POST_MARKED platform={platform} product_id={pid} "
+                            f"message_id={raw_id} reason=delete_failed_purchase_button_disabled"
+                        )
+                    elif fallback == "already_absent":
+                        rec[status_field] = "already_absent"
+                    else:
+                        rec[f"{platform}_expiry_mark_error"] = "unexpected_fallback_result"
+                except Exception as mark_exc:
+                    rec[f"{platform}_expiry_mark_error"] = (
+                        f"{type(mark_exc).__name__}: {str(mark_exc)[:120]}"
+                    )
                 changed = True
                 print(f"EXPIRY_DELETE_FAILED platform={platform} product_id={pid} message_id={raw_id} error={type(exc).__name__} detail={error_text[:160]!r}")
     return changed, deleted
