@@ -3371,6 +3371,7 @@ def repair_all_published_captions() -> int:
         "skipped": 0,
     }
     target_count = 0
+    caption_format_v2_products = []
     now = datetime.now(timezone.utc)
 
     # Stable order plus spacing reduces the chance of Telegram per-chat rate limits.
@@ -3433,6 +3434,7 @@ def repair_all_published_captions() -> int:
             "discount_percent": record.get("posted_discount_percent"),
             "deal_expires_at": record.get("expires_at", ""),
         }
+        product_repair_success = True
         for platform, message_id in message_targets:
             try:
                 if platform == "telegram":
@@ -3454,6 +3456,7 @@ def repair_all_published_captions() -> int:
                     results[f"{platform}_updated"] += 1
                     print(f"CAPTION_REPAIRED product_id={product_key} platform={platform} message_id={message_id}")
             except Exception as exc:
+                product_repair_success = False
                 results[f"{platform}_failed"] += 1
                 detail = str(exc) if isinstance(exc, RuntimeError) else ""
                 for secret in (BOT_TOKEN, BALE_BOT_TOKEN):
@@ -3464,6 +3467,10 @@ def repair_all_published_captions() -> int:
                 print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}{detail_suffix}")
             # Conservative pacing on both APIs; Telegram is kept well below one edit/second.
             time.sleep(3.1 if platform == "telegram" else 1.1)
+        if product_repair_success:
+            # The report persists across runs; the next regular radar run copies this
+            # marker into state without needlessly re-editing an already-correct caption.
+            caption_format_v2_products.append(str(product_key))
 
     successful = (
         results["telegram_failed"] == 0
@@ -3475,6 +3482,8 @@ def repair_all_published_captions() -> int:
     report = {
         "finished_at": datetime.now(timezone.utc).isoformat(),
         "method": DEFAULT_AFFILIO_PUBLIC_LINK_TEMPLATE,
+        "caption_deadline_format_version": 2,
+        "caption_format_v2_products": caption_format_v2_products,
         "tracked_products": len(published),
         "targets": target_count,
         **results,
@@ -3567,6 +3576,18 @@ def refresh_active_countdowns() -> int:
         "bale_updated": 0, "bale_missing": 0, "bale_failed": 0, "skipped": 0,
     }
     changed = live_sync_updated > 0
+    report_formatted_products = set()
+    try:
+        report_path = ROOT / "affiliate_link_repair_report.json"
+        if report_path.exists():
+            repair_report = json.loads(report_path.read_text(encoding="utf-8"))
+            if int(repair_report.get("caption_deadline_format_version") or 0) >= 2:
+                report_formatted_products = {
+                    str(pid) for pid in repair_report.get("caption_format_v2_products", [])
+                }
+    except (OSError, ValueError, TypeError):
+        report_formatted_products = set()
+
     due = []
     never_updated = datetime.min.replace(tzinfo=timezone.utc)
 
@@ -3574,6 +3595,12 @@ def refresh_active_countdowns() -> int:
         if not isinstance(record, dict):
             counters["skipped"] += 1
             continue
+        if (
+            str(product_key) in report_formatted_products
+            and int(record.get("caption_deadline_format_version") or 0) < 2
+        ):
+            record["caption_deadline_format_version"] = 2
+            changed = True
         if record.get("expiry_source") != "digikala_live_deals_feed" or record.get("expiry_estimated"):
             continue
         deadline = _parse_utc_datetime(record.get("expires_at"))
