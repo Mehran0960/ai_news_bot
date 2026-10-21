@@ -41,8 +41,6 @@ AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
     "AFFILIO_CLICK_TRACKER_BASE_URL",
     "https://affiliate-deal-radar.m-hoseyni-6966.workers.dev",
 ).strip().rstrip("/")
-# Verified from the user-provided final DigiKala affiliate URL. These are public
-# tracking parameters, not login credentials. The source URL path changes per product.
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
 FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "false").strip().lower() in {"1", "true", "yes", "on"}
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
