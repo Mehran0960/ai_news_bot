@@ -35,11 +35,12 @@ HTTP_TIMEOUT = 18
 BOT_API_MIN_GAP_SECONDS = 1.1
 PROBE_INTERVAL_SECONDS = 900
 UNKNOWN_PROBE_INTERVAL_SECONDS = 900
-# Captions show a fixed absolute deadline; deletion keeps a ten-minute safety margin.
+# The caption countdown uses the same ten-minute buffer as automatic post deletion.
 POST_REMOVAL_BUFFER_MINUTES = max(
     0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10")))
 )
-LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 15 * 60
+# The scheduled cleanup job runs every five minutes; refresh its source deadline at that cadence.
+LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 5 * 60
 
 
 def walk_dicts(value):
