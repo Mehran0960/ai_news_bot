@@ -210,40 +210,6 @@ jobs:
             python affilio_radar/affilio_radar.py
           fi
 
-      # Caption repair is bounded during normal runs; new posts always publish before maintenance.
-      # The ten-minute deletion margin and exact deadline captions are refreshed independently.
-      - name: Refresh active deadline captions (best effort)
-        if: ${{ always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]')) }}
-        continue-on-error: true
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
-          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
-          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          AFFILIO_DEAL_LIST_PAGES: "5"
-          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
-          AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: "5"
-          AFFILIO_COUNTDOWN_REFRESH_FORCE: "false"
-          PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/affilio_radar.py --refresh-countdowns
-
-      - name: Delete expired channel and video posts (best effort)
-        if: ${{ always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]')) }}
-        continue-on-error: true
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
-          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
-          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
-          AFFILIO_DEAL_LIST_PAGES: "5"
-          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
-          PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/expiration_monitor.py
-
       - name: Preserve generated vertical MP4 artifacts and upload outcomes
         if: always()
         uses: actions/upload-artifact@v4
