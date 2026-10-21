@@ -1200,6 +1200,62 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(save_state.called)
 
 
+
+    def test_refresh_marks_specific_products_unverifiable_when_live_feed_loses_deadline(self):
+        now = datetime.now(timezone.utc)
+        live_expiry = (now + timedelta(hours=3)).isoformat()
+        state = {
+            "published": {
+                "dkp-live": {
+                    "title": "پیشنهاد قابل تأیید",
+                    "product_url": "https://www.digikala.com/product/dkp-1001/",
+                    "telegram_message_id": 501,
+                    "bale_message_id": 601,
+                    "posted_current_price": 100_000,
+                    "posted_original_price": 200_000,
+                    "posted_discount_percent": 50,
+                    "expires_at": live_expiry,
+                    "expiry_source": "digikala_live_deals_feed",
+                    "expiry_estimated": False,
+                },
+                "dkp-missing": {
+                    "title": "پیشنهادی که دیگر در فید زنده نیست",
+                    "product_url": "https://www.digikala.com/product/dkp-1002/",
+                    "telegram_message_id": 502,
+                    "bale_message_id": 602,
+                    "posted_current_price": 100_000,
+                    "posted_original_price": 200_000,
+                    "posted_discount_percent": 50,
+                    "expires_at": (now + timedelta(hours=4)).isoformat(),
+                    "expiry_source": "digikala_live_deals_feed",
+                    "expiry_estimated": False,
+                },
+            }
+        }
+        url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-1001/")
+        with (
+            patch("affilio_radar.load_state", return_value=state),
+            patch("expiration_monitor.fetch_offer_expiries", return_value={"dkp-live": live_expiry}),
+            patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
+            patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
+            patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
+            patch("affilio_radar.build_affilio_tracking_link", return_value=url),
+            patch("affilio_radar._edit_telegram_caption", return_value={"message_id": 501}) as edit_telegram,
+            patch("affilio_radar._edit_bale_caption", return_value={"message_id": 601}) as edit_bale,
+            patch("affilio_radar.save_json") as save_state,
+            patch("affilio_radar.time.sleep"),
+        ):
+            result = refresh_active_countdowns()
+
+        self.assertEqual(result, 0)
+        missing = state["published"]["dkp-missing"]
+        self.assertEqual(missing["expiry_source"], "unavailable")
+        self.assertTrue(missing["expiry_estimated"])
+        self.assertEqual(missing["expiry_reason"], "missing_from_current_live_deadline_sources")
+        self.assertNotIn(502, [call.args[0] for call in edit_telegram.call_args_list])
+        self.assertNotIn(602, [call.args[0] for call in edit_bale.call_args_list])
+        self.assertTrue(save_state.called)
+
     def test_refresh_active_countdowns_caps_batch_and_rotates_fairly(self):
         now = datetime.now(timezone.utc)
         expiry = (now + timedelta(hours=3)).isoformat()
