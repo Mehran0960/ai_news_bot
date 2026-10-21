@@ -419,7 +419,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         }
         self.assertFalse(monitor._should_probe(record, now))
 
-    def test_expired_and_unknown_posts_are_removed_even_if_live_feed_is_unavailable(self):
+    def test_expired_posts_are_removed_but_unknown_posts_are_preserved_when_feed_is_unavailable(self):
         with tempfile.TemporaryDirectory() as temp:
             state_path = Path(temp) / "state.json"
             state = {
@@ -450,14 +450,15 @@ class ExpirationMonitorTests(unittest.TestCase):
                 patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion,
             ):
                 self.assertEqual(monitor.run(), 0)
-            self.assertCountEqual([call.args[0] for call in deletion.call_args_list], [77, 88])
+            self.assertEqual([call.args[0] for call in deletion.call_args_list], [77])
             fetch.assert_called_once()
-            product_check.assert_not_called()
+            product_check.assert_called_once_with("dkp-67890")
             saved = json.loads(state_path.read_text(encoding="utf-8"))
             self.assertEqual(saved["published"]["dkp-12345"]["expiry_status"], "deleted")
             self.assertIn("expired_deleted_at", saved["published"]["dkp-12345"])
-            self.assertEqual(saved["published"]["dkp-67890"]["expiry_status"], "deleted")
-            self.assertIn("deadline_unavailable_deleted_at", saved["published"]["dkp-67890"])
+            self.assertEqual(saved["published"]["dkp-67890"]["expiry_status"], "unknown")
+            self.assertIn("telegram_unverified_deadline_preserved_at", saved["published"]["dkp-67890"])
+            self.assertNotIn("deadline_unavailable_deleted_at", saved["published"]["dkp-67890"])
 
 
     def test_expired_history_posts_are_deleted_after_product_record_is_replaced(self):
@@ -620,7 +621,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             self.assertIn("bale_expired_deleted_at", record)
 
 
-    def test_missing_or_unverified_deadline_posts_are_deleted_from_both_channels(self):
+    def test_missing_or_unverified_deadline_posts_are_preserved_on_both_channels(self):
         now = datetime.now(timezone.utc)
         state = {
             "unknown": {
@@ -650,22 +651,23 @@ class ExpirationMonitorTests(unittest.TestCase):
             },
         }
         with (
-            patch.object(monitor, "_telegram_delete", return_value="deleted") as telegram_delete,
-            patch.object(monitor, "_bale_delete", return_value="deleted") as bale_delete,
+            patch.object(monitor, "_telegram_delete") as telegram_delete,
+            patch.object(monitor, "_bale_delete") as bale_delete,
         ):
             changed, deleted, marked = monitor._delete_posts_without_verified_deadline(state, now)
         self.assertTrue(changed)
-        self.assertEqual(deleted, 3)
-        self.assertEqual(marked, 0)
-        self.assertCountEqual([call.args[0] for call in telegram_delete.call_args_list], [71, 72])
-        bale_delete.assert_called_once_with(81)
-        self.assertEqual(state["unknown"]["expiry_status"], "deleted")
-        self.assertEqual(state["unknown"]["bale_expiry_status"], "deleted")
-        self.assertEqual(state["estimated"]["expiry_status"], "deleted")
+        self.assertEqual((deleted, marked), (0, 0))
+        telegram_delete.assert_not_called()
+        bale_delete.assert_not_called()
+        self.assertEqual(state["unknown"]["expiry_status"], "unknown")
+        self.assertEqual(state["unknown"]["bale_expiry_status"], "unknown")
+        self.assertIn("telegram_unverified_deadline_preserved_at", state["unknown"])
+        self.assertIn("bale_unverified_deadline_preserved_at", state["unknown"])
+        self.assertIn("telegram_unverified_deadline_preserved_at", state["estimated"])
         self.assertEqual(state["verified"]["expiry_status"], "tracked")
         self.assertNotIn("bale_expiry_status", state["verified"])
 
-    def test_unverifiable_deadline_disables_purchase_button_and_retries_deletion(self):
+    def test_unverifiable_deadline_preserves_post_without_deleting_or_disabling_button(self):
         now = datetime.now(timezone.utc)
         state = {
             "dkp-123": {
@@ -676,17 +678,17 @@ class ExpirationMonitorTests(unittest.TestCase):
             }
         }
         with (
-            patch.object(monitor, "_telegram_delete", side_effect=RuntimeError("temporary delete failure")) as deletion,
-            patch.object(monitor, "_telegram_mark_deadline_unavailable", return_value="edited") as mark,
+            patch.object(monitor, "_telegram_delete") as deletion,
+            patch.object(monitor, "_telegram_mark_deadline_unavailable") as mark,
         ):
             changed, deleted, marked = monitor._delete_posts_without_verified_deadline(state, now)
-            self.assertEqual(state["dkp-123"]["expiry_status"], "deadline_unavailable_marked")
-            self.assertEqual((changed, deleted, marked), (True, 0, 1))
-            monitor._delete_posts_without_verified_deadline(state, now + timedelta(minutes=5))
-        self.assertEqual(deletion.call_count, 2)
-        mark.assert_called_once_with(74, "پیشنهاد بدون زمان")
+        self.assertEqual((changed, deleted, marked), (True, 0, 0))
+        self.assertEqual(state["dkp-123"].get("expiry_status"), None)
+        self.assertIn("telegram_unverified_deadline_preserved_at", state["dkp-123"])
+        deletion.assert_not_called()
+        mark.assert_not_called()
 
-    def test_public_history_deletes_incomplete_offer_without_verifiable_deadline(self):
+    def test_public_history_preserves_incomplete_offer_without_verifiable_deadline(self):
         post = {
             "message_id": 80,
             "caption_text": (
@@ -696,12 +698,12 @@ class ExpirationMonitorTests(unittest.TestCase):
             ),
             "caption_html": "",
         }
-        with patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion:
+        with patch.object(monitor, "_telegram_delete") as deletion:
             result = monitor.audit_public_channel_history(
                 {}, now=datetime.now(timezone.utc), posts={80: post}
             )
-        deletion.assert_called_once_with(80)
-        self.assertEqual(result[1], 1)
+        deletion.assert_not_called()
+        self.assertEqual(result[1], 0)
 
     def test_public_history_does_not_delete_non_offer_announcement_without_deadline(self):
         post = {
@@ -716,7 +718,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         deletion.assert_not_called()
         self.assertEqual(result[1], 0)
 
-    def test_public_history_deletes_untracked_offer_without_absolute_deadline(self):
+    def test_public_history_preserves_untracked_offer_without_absolute_deadline(self):
         post = {
             "message_id": 79,
             "caption_text": (
@@ -728,12 +730,12 @@ class ExpirationMonitorTests(unittest.TestCase):
             ),
             "caption_html": "",
         }
-        with patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion:
+        with patch.object(monitor, "_telegram_delete") as deletion:
             result = monitor.audit_public_channel_history(
                 {}, now=datetime.now(timezone.utc), posts={79: post}
             )
-        deletion.assert_called_once_with(79)
-        self.assertEqual(result[1], 1)
+        deletion.assert_not_called()
+        self.assertEqual(result[1], 0)
 
 
     def test_youtube_expired_short_is_deleted(self):
