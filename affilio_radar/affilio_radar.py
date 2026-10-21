@@ -7,7 +7,6 @@ This program deliberately does not invent affiliate tracking parameters or log i
 from __future__ import annotations
 
 import argparse
-import base64
 import html
 import json
 import math
@@ -38,17 +37,12 @@ BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
 BALE_CHANNEL_ID = os.getenv("BALE_CHANNEL_ID", "").strip()
 TELEGRAM_CHANNEL_URL = "https://t.me/OfferChin"
 BALE_CHANNEL_URL = "https://ble.ir/OfferChin"
-AFFILIO_LINK_TEMPLATE = os.getenv("AFFILIO_LINK_TEMPLATE", "").strip()
 AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
     "AFFILIO_CLICK_TRACKER_BASE_URL",
     "https://affiliate-deal-radar.m-hoseyni-6966.workers.dev",
 ).strip().rstrip("/")
 # Verified from the user-provided final DigiKala affiliate URL. These are public
 # tracking parameters, not login credentials. The source URL path changes per product.
-AFFILIO_UTM_SOURCE = os.getenv("AFFILIO_UTM_SOURCE", "19166").strip()
-AFFILIO_UTM_MEDIUM = os.getenv("AFFILIO_UTM_MEDIUM", "Affilio").strip()
-AFFILIO_UTM_ID = os.getenv("AFFILIO_UTM_ID", "14657").strip()
-AFFILIO_DIGIKALA_AFFID = os.getenv("AFFILIO_DIGIKALA_AFFID", "OTgxYTY0OTAtODJhNS00MDNkLTg0NDItMWE0MGVkOGI1Yjhj").strip()
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
 FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "false").strip().lower() in {"1", "true", "yes", "on"}
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
@@ -168,142 +162,75 @@ def product_id(url: str) -> str:
     return match.group(1).lower() if match else ""
 
 
-AFFILIO_URL_PLACEHOLDER = "{YOUR_BASE64_ENCODED_URL}"
 AFFILIO_REDIRECT_PLACEHOLDER = "{redirect_to}"
 DEFAULT_AFFILIO_PUBLIC_LINK_TEMPLATE = "https://aflo.ir/QekEYTRg?p={redirect_to}"
 
 
 def build_affilio_tracking_link(product_url: str, template: str | None = None) -> str:
-    """Build a per-product tracking link from the publisher's reusable Affilio template.
+    """Build affiliate URLs only through the user's confirmed publisher-specific public link.
 
-    The publisher-specific aflo.ir public template uses {redirect_to} as a URL
-    query value. Encode the full canonical DigiKala URL once so query separators
-    inside the destination cannot corrupt the outer link. The legacy migmig
-    Base64 template remains supported for backward compatibility.
+    The known template is deliberately fixed. Legacy direct URLs and other reusable
+    templates are rejected so a stale secret/configuration cannot silently switch routes.
     """
     canonical = safe_product_url(product_url)
     if not canonical:
         return ""
-    template = (template if template is not None else AFFILIO_LINK_TEMPLATE).strip()
-    if not template:
-        template = DEFAULT_AFFILIO_PUBLIC_LINK_TEMPLATE
-    if any(ch in template for ch in ("\n", "\r", "\t", " ")):
-        return ""
 
-    # Official reusable public-link format supplied by the user:
-    # https://aflo.ir/QekEYTRg?p={redirect_to}
-    if template.count(AFFILIO_REDIRECT_PLACEHOLDER) == 1:
-        try:
-            parsed = urlsplit(template)
-            query = parse_qs(parsed.query, keep_blank_values=True)
-        except Exception:
-            return ""
-        if (
-            parsed.scheme != "https"
-            or (parsed.hostname or "").lower() != "aflo.ir"
-            or parsed.path != "/QekEYTRg"
-            or query.get("p") != [AFFILIO_REDIRECT_PLACEHOLDER]
-            or parsed.fragment
-            or parsed.username
-            or parsed.password
-        ):
-            return ""
-        result = template.replace(AFFILIO_REDIRECT_PLACEHOLDER, quote(canonical, safe=""))
-        try:
-            built = urlsplit(result)
-            destination = parse_qs(built.query, keep_blank_values=True).get("p", [])
-        except Exception:
-            return ""
-        if (
-            built.scheme != "https"
-            or (built.hostname or "").lower() != "aflo.ir"
-            or built.path != "/QekEYTRg"
-            or len(destination) != 1
-            or safe_product_url(destination[0]) != canonical
-            or AFFILIO_REDIRECT_PLACEHOLDER in result
-        ):
-            return ""
-        return result
+    # Compatibility for callers/tests that pass a template: accept only the exact
+    # publisher-owned template confirmed by the user, never another affiliate route.
+    if template is not None and template.strip() != DEFAULT_AFFILIO_PUBLIC_LINK_TEMPLATE:
+        return ""
+    template = DEFAULT_AFFILIO_PUBLIC_LINK_TEMPLATE
 
-    # Backward-compatible legacy reusable template.
-    if template.count(AFFILIO_URL_PLACEHOLDER) != 1:
-        return ""
-    try:
-        parsed = urlsplit(template)
-    except Exception:
-        return ""
-    host = (parsed.hostname or "").lower()
+    parsed = urlsplit(template)
+    query = parse_qs(parsed.query, keep_blank_values=True)
     if (
         parsed.scheme != "https"
-        or host != "migmig.affilio.ir"
-        or "/api/v1/click/b/" not in parsed.path.lower()
+        or (parsed.hostname or "").lower() != "aflo.ir"
+        or parsed.path != "/QekEYTRg"
+        or query.get("p") != [AFFILIO_REDIRECT_PLACEHOLDER]
+        or parsed.fragment
+        or parsed.username
+        or parsed.password
     ):
         return ""
-    encoded = base64.b64encode(canonical.encode("utf-8")).decode("ascii")
-    result = template.replace(AFFILIO_URL_PLACEHOLDER, encoded)
+
+    # Quote the whole destination once as the value of p; retain no arbitrary product query params.
+    result = template.replace(AFFILIO_REDIRECT_PLACEHOLDER, quote(canonical, safe=""))
     try:
         built = urlsplit(result)
+        destinations = parse_qs(built.query, keep_blank_values=True).get("p", [])
     except Exception:
         return ""
     if (
         built.scheme != "https"
-        or (built.hostname or "").lower() != "migmig.affilio.ir"
-        or "/api/v1/click/b/" not in built.path.lower()
-        or AFFILIO_URL_PLACEHOLDER in result
+        or (built.hostname or "").lower() != "aflo.ir"
+        or built.path != "/QekEYTRg"
+        or len(destinations) != 1
+        or safe_product_url(destinations[0]) != canonical
+        or AFFILIO_REDIRECT_PLACEHOLDER in result
     ):
         return ""
     return result
 
 
 def _affiliate_destination_matches_product(affiliate_url: str, canonical_product_url: str) -> bool:
-    """Allow click tracking only for the same DigiKala product through known affiliate paths."""
+    """Accept only the confirmed OfferChin public link for the same DigiKala product."""
     canonical = safe_product_url(canonical_product_url)
     if not canonical:
         return False
     try:
         parsed = urlsplit(str(affiliate_url or "").strip())
+        destinations = parse_qs(parsed.query, keep_blank_values=True).get("p", [])
     except Exception:
         return False
-    if parsed.scheme != "https":
-        return False
-
-    if (parsed.hostname or "").lower() == "www.digikala.com":
-        if safe_product_url(affiliate_url) != canonical:
-            return False
-        params = parse_qs(parsed.query)
-        expected = {
-            "utm_source": AFFILIO_UTM_SOURCE,
-            "utm_medium": AFFILIO_UTM_MEDIUM,
-            "utm_id": AFFILIO_UTM_ID,
-            "affid": AFFILIO_DIGIKALA_AFFID,
-        }
-        return all(params.get(key, [None])[0] == value for key, value in expected.items())
-
-    if (
-        (parsed.hostname or "").lower() == "aflo.ir"
+    return (
+        parsed.scheme == "https"
+        and (parsed.hostname or "").lower() == "aflo.ir"
         and parsed.path == "/QekEYTRg"
-    ):
-        destinations = parse_qs(parsed.query, keep_blank_values=True).get("p", [])
-        return len(destinations) == 1 and safe_product_url(destinations[0]) == canonical
-
-    if (
-        (parsed.hostname or "").lower() == "migmig.affilio.ir"
-        and re.search(r"/api/v1/click/b/", parsed.path, re.I)
-    ):
-        encoded_candidates = list(parse_qs(parsed.query).get("b64", []))
-        match = re.search(r"/api/v1/click/b/(.+)$", parsed.path, re.I)
-        if match:
-            path_parts = match.group(1).split("/")
-            if len(path_parts) >= 2:
-                encoded_candidates.append("/".join(path_parts[1:]))
-        for encoded in encoded_candidates:
-            try:
-                decoded = base64.b64decode(encoded, validate=False).decode("utf-8")
-            except Exception:
-                continue
-            if safe_product_url(decoded) == canonical:
-                return True
-    return False
+        and len(destinations) == 1
+        and safe_product_url(destinations[0]) == canonical
+    )
 
 
 def build_click_tracking_link(
