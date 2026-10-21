@@ -3766,7 +3766,7 @@ def refresh_active_countdowns() -> int:
                 print(f"COUNTDOWN_REFRESH_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}")
             # Two-destination posts can be refreshed in a shorter rotation; since the
             # next Telegram edit is still separated by both waits, keep >1s per channel.
-            delay = 1.5 if len(targets) > 1 else (3.1 if platform == "telegram" else 1.1)
+            delay = 1.1 if len(targets) > 1 else (3.1 if platform == "telegram" else 1.1)
             time.sleep(delay)
 
         record["countdown_refresh_attempted_at"] = now.isoformat()
