@@ -378,6 +378,31 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["at_cutoff"]["bale_expiry_status"], "deleted")
         self.assertEqual(published["just_before_cutoff"]["expiry_status"], "tracked")
 
+    def test_estimated_deadline_never_authorizes_channel_post_deletion(self):
+        now = datetime.now(timezone.utc)
+        published = {
+            "dkp-estimated": {
+                "telegram_message_id": 707,
+                "bale_message_id": 808,
+                "expires_at": (now - timedelta(minutes=1)).isoformat(),
+                "expiry_source": "unavailable",
+                "expiry_estimated": True,
+                "expiry_status": "tracked_estimated",
+                "bale_expiry_status": "tracked_estimated",
+            }
+        }
+        with (
+            patch.object(monitor, "_telegram_delete") as tg_delete,
+            patch.object(monitor, "_bale_delete") as bale_delete,
+        ):
+            changed, deleted = monitor._delete_expired_posts(published, now)
+        self.assertTrue(changed)
+        self.assertEqual(deleted, 0)
+        tg_delete.assert_not_called()
+        bale_delete.assert_not_called()
+        self.assertEqual(published["dkp-estimated"]["expiry_status"], "tracked_estimated")
+        self.assertIn("expiry_estimate_cutoff_preserved_at", published["dkp-estimated"])
+
     def test_caption_countdown_zero_matches_exact_post_deletion_cutoff(self):
         deadline = datetime(2026, 10, 21, 23, 0, tzinfo=timezone.utc)
         now = deadline - timedelta(minutes=monitor.POST_REMOVAL_BUFFER_MINUTES)
@@ -749,6 +774,21 @@ class ExpirationMonitorTests(unittest.TestCase):
         delete_video.assert_called_once_with("yt_expired")
         self.assertEqual(record["youtube_expiry_status"], "deleted")
 
+    def test_youtube_estimated_deadline_does_not_delete_video(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "youtube_video_id": "yt_estimated",
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "expiry_estimated": True,
+        }
+        with patch("short_video.youtube_credentials_available", return_value=True), patch(
+            "short_video.delete_youtube_video"
+        ) as delete_video:
+            changed = monitor._delete_expired_youtube_videos({"dkp-estimated": record}, now)
+        self.assertFalse(changed)
+        delete_video.assert_not_called()
+        self.assertNotIn("youtube_expiry_status", record)
+
     def test_youtube_delete_failure_privatises_as_fallback_and_retries(self):
         now = datetime.now(timezone.utc)
         record = {"youtube_video_id": "yt_retry", "expires_at": (now - timedelta(minutes=1)).isoformat()}
@@ -786,6 +826,22 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertTrue(changed)
         delete_video.assert_called_once_with("aparat_expired")
         self.assertEqual(record["aparat_expiry_status"], "deleted")
+
+    def test_aparat_estimated_deadline_does_not_delete_video(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "aparat_video_hash": "aparat_estimated",
+            "aparat_visibility": "public",
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "expiry_estimated": True,
+        }
+        with patch("aparat_uploader.aparat_credentials_available", return_value=True), patch(
+            "aparat_uploader.delete_aparat_video"
+        ) as delete_video:
+            changed = monitor._delete_expired_aparat_videos({"dkp-aparat-estimated": record}, now)
+        self.assertFalse(changed)
+        delete_video.assert_not_called()
+        self.assertNotIn("aparat_expiry_status", record)
 
     def test_aparat_delete_failure_privatises_as_fallback_and_retries(self):
         now = datetime.now(timezone.utc)
