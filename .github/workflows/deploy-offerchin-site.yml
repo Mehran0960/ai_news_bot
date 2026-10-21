@@ -30,6 +30,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - name: Build static Persian storefront from current radar state
         run: python offerchin-site/build.py
 
@@ -60,6 +65,7 @@ jobs:
           assert (dist / "index.html").is_file()
           print(f"CATALOG_VALID: {len(products)} active product pages")
           PY
+          node --check offerchin-site/assets/site.js
 
       - name: Verify Cloudflare deployment credentials are configured
         env:
@@ -74,11 +80,6 @@ jobs:
             echo "::error::Missing repository Actions secret CLOUDFLARE_ACCOUNT_ID."
             exit 1
           fi
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
 
       - name: Create Cloudflare Pages project if it does not exist
         env:
