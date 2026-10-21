@@ -986,6 +986,7 @@ class AffilioRadarTests(unittest.TestCase):
             "original_price": 700_000,
             "discount_percent": 29,
             "deal_expires_at": "2026-12-16T20:30:00+00:00",
+            "_countdown_now": datetime(2026, 10, 16, 20, 30, tzinfo=timezone.utc),
             "rating": 4.4,
             "review_count": 1243,
         }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
@@ -997,9 +998,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("💰", caption)
         self.assertNotIn("<u>", caption)
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
-        expected_deadline = format_deal_expiry("2026-12-16T20:30:00+00:00")
-        self.assertIn(f"<b>⏳ پایان تخفیف: {expected_deadline}</b>", caption)
-        self.assertNotIn("مانده به پایان تخفیف", caption)
+        self.assertIn("مانده به پایان تخفیف", caption)
+        self.assertNotIn("⏳ پایان تخفیف:", caption)
         self.assertIn("<b>👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.</b>", caption)
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', caption)
         self.assertLess(caption.index("عضویت در کانال"), caption.index("برای خرید از دیجی‌کالا"))
@@ -1187,12 +1187,13 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(state["published"]["dkp-15970075"]["expires_at"], expiry)
         self.assertEqual(edit_telegram.call_count, 1)
         self.assertEqual(edit_bale.call_count, 1)
-        expected_deadline = format_deal_expiry(expiry)
-        self.assertIn(f"⏳ پایان تخفیف: {expected_deadline}", edit_telegram.call_args.args[1])
-        self.assertIn(f"⏳ پایان تخفیف: {expected_deadline}", edit_bale.call_args.args[1])
-        self.assertNotIn("مانده به پایان تخفیف", edit_telegram.call_args.args[1])
-        self.assertNotIn("مانده به پایان تخفیف", edit_bale.call_args.args[1])
-        self.assertEqual(state["published"]["dkp-15970075"]["caption_deadline_format_version"], 2)
+        last_update = datetime.fromisoformat(state["published"]["dkp-15970075"]["countdown_last_updated_at"])
+        expected_countdown = format_remaining_time(expiry, last_update, safety_buffer_minutes=10)
+        self.assertIn(expected_countdown, edit_telegram.call_args.args[1])
+        self.assertIn(expected_countdown, edit_bale.call_args.args[1])
+        self.assertIn("مانده به پایان تخفیف", edit_telegram.call_args.args[1])
+        self.assertIn("مانده به پایان تخفیف", edit_bale.call_args.args[1])
+        self.assertEqual(state["published"]["dkp-15970075"]["caption_deadline_format_version"], 3)
         self.assertNotIn("deadline_caption_refresh_required", state["published"]["dkp-15970075"])
         self.assertIn("عضویت در کانال OfferChin", edit_telegram.call_args.args[1])
         self.assertIn("عضویت در کانال OfferChin", edit_bale.call_args.args[1])
@@ -1206,6 +1207,8 @@ class AffilioRadarTests(unittest.TestCase):
         for index in range(10):
             published[f"dkp-{1000 + index}"] = {
                 "ts": index + 1,
+                "caption_deadline_format_version": 3,
+                "countdown_last_updated_at": (now - timedelta(minutes=5)).isoformat(),
                 "title": f"محصول نمونه {index}",
                 "product_url": f"https://www.digikala.com/product/dkp-{1000 + index}/",
                 "telegram_message_id": 200 + index,

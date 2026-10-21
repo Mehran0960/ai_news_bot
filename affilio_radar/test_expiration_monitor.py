@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import expiration_monitor as monitor
+from affilio_radar import format_remaining_time
 
 
 # [deadline-audit-only] Marker to run one live deadline audit and refresh active channel captions.
@@ -323,6 +324,31 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["at_cutoff"]["expiry_status"], "deleted")
         self.assertEqual(published["at_cutoff"]["bale_expiry_status"], "deleted")
         self.assertEqual(published["just_before_cutoff"]["expiry_status"], "tracked")
+
+    def test_caption_countdown_zero_matches_exact_post_deletion_cutoff(self):
+        deadline = datetime(2026, 10, 21, 23, 0, tzinfo=timezone.utc)
+        now = deadline - timedelta(minutes=monitor.POST_REMOVAL_BUFFER_MINUTES)
+        caption_remaining = format_remaining_time(
+            deadline,
+            now=now,
+            safety_buffer_minutes=monitor.POST_REMOVAL_BUFFER_MINUTES,
+        )
+        self.assertEqual(caption_remaining, "مهلت آفر به پایان رسیده")
+
+        published = {
+            "cutoff": {
+                "telegram_message_id": 909,
+                "expires_at": deadline.isoformat(),
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_estimated": False,
+                "expiry_status": "tracked",
+            }
+        }
+        with patch.object(monitor, "_telegram_delete", return_value="deleted") as delete:
+            changed, deleted = monitor._delete_expired_posts(published, now)
+        self.assertTrue(changed)
+        self.assertEqual(deleted, 1)
+        delete.assert_called_once_with(909)
 
     def test_repaired_legacy_countdown_uses_same_ten_minute_cutoff_as_deletion(self):
         deadline = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)

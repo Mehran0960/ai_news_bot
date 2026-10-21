@@ -19,6 +19,9 @@ concurrency:
 
 jobs:
   expire:
+    # The radar workflow already performs expiry cleanup immediately before its
+    # one-time full caption repair. Do not run both channel-mutating jobs concurrently.
+    if: ${{ !(github.event_name == 'push' && contains(github.event.head_commit.message, '[repair-all-captions]')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -66,7 +69,9 @@ jobs:
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
           AFFILIO_COUNTDOWN_REFRESH_FORCE: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && 'true' || 'false' }}
-          AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && '40' || '25' }}
+          # Telegram captions are static text; cycle through eligible posts every few minutes.
+          AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && '40' || '50' }}
+          AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS: "240"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_DEAL_LIST_PAGES: "5"
           PYTHONUNBUFFERED: "1"
