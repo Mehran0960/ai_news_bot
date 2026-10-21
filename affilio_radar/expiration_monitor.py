@@ -781,7 +781,7 @@ def _persian_number(value):
 
 
 def _remaining_label(deadline, now):
-    """Legacy helper retained for compatibility; new captions use an absolute deadline."""
+    """Format the source-site deadline minus the configured safety buffer."""
     effective_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
     seconds = (effective_deadline - now).total_seconds()
     if seconds <= 0:
