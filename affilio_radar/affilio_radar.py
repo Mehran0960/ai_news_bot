@@ -61,12 +61,11 @@ DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEU
 MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(32, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "24"))))
 # Never publish an offer that gives the audience less than this much time to act.
 MIN_PUBLICATION_RUNWAY_MINUTES = max(30, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "60"))))
-# Keep countdown-format compatibility tests aligned with the same ten-minute safety buffer.
-# Public captions now show an absolute local deadline so static text cannot drift.
+# Displayed countdowns and deletion share a ten-minute safety margin.
 COUNTDOWN_SAFETY_BUFFER_MINUTES = max(0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10"))))
-# Captions are static text, so refresh them before their displayed countdown can drift.
+# Refresh static platform captions before the displayed countdown becomes stale.
 COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
-    180, min(900, int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS", "240")))
+    120, min(600, int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS", "240")))
 )
 CAPTION_DEADLINE_FORMAT_VERSION = 3
 # Urgency can speed cadence only while the offer still clears the minimum runway.
@@ -3543,10 +3542,10 @@ def refresh_active_countdowns() -> int:
     """
     force_refresh = str(os.getenv("AFFILIO_COUNTDOWN_REFRESH_FORCE", "false")).strip().lower() in {"1", "true", "yes", "on"}
     try:
-        max_records = int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS", "10"))
+        max_records = int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS", "80"))
     except (TypeError, ValueError, OverflowError):
-        max_records = 10
-    max_records = max(1, min(50, max_records))
+        max_records = 80
+    max_records = max(1, min(100, max_records))
 
     state = load_state()
     published = state.get("published", {})
@@ -3588,6 +3587,8 @@ def refresh_active_countdowns() -> int:
                 return 0
             live_summary = sync_live_offer_deadlines(published, live_expiries, now)
             live_sync_updated = int(live_summary.get("updated", 0))
+            state["expiry_feed_last_checked_at"] = now.isoformat()
+            state["expiry_feed_last_sync_summary"] = live_summary
             print(
                 "COUNTDOWN_LIVE_VERIFY "
                 f"active_products={len(active_product_ids)} deadlines_found={len(live_expiries)} "
@@ -3605,7 +3606,7 @@ def refresh_active_countdowns() -> int:
         "telegram_updated": 0, "telegram_missing": 0, "telegram_failed": 0,
         "bale_updated": 0, "bale_missing": 0, "bale_failed": 0, "skipped": 0,
     }
-    changed = live_sync_updated > 0
+    changed = bool(active_product_ids) or live_sync_updated > 0
     report_formatted_products = set()
     try:
         report_path = ROOT / "affiliate_link_repair_report.json"
@@ -3636,10 +3637,23 @@ def refresh_active_countdowns() -> int:
         deadline = _parse_utc_datetime(record.get("expires_at"))
         if deadline is None or deadline <= now:
             continue
+        # Never keep or restore a positive caption timer once its buffered deadline
+        # has arrived. The expiry-cleanup step immediately after this step removes it.
+        if deadline - timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES) <= now:
+            continue
         targets = []
-        if str(record.get("telegram_message_id") or "").isdigit() and BOT_TOKEN:
+        if (
+            str(record.get("telegram_message_id") or "").isdigit()
+            and record.get("expiry_status") not in terminal_statuses
+            and BOT_TOKEN
+        ):
             targets.append(("telegram", int(record["telegram_message_id"])))
-        if str(record.get("bale_message_id") or "").isdigit() and BALE_BOT_TOKEN and BALE_CHANNEL_ID:
+        if (
+            str(record.get("bale_message_id") or "").isdigit()
+            and record.get("bale_expiry_status") not in terminal_statuses
+            and BALE_BOT_TOKEN
+            and BALE_CHANNEL_ID
+        ):
             targets.append(("bale", int(record["bale_message_id"])))
         if not targets:
             continue
@@ -3712,13 +3726,24 @@ def refresh_active_countdowns() -> int:
             changed = True
             continue
 
+        caption_now = datetime.now(timezone.utc)
+        live_deadline = _parse_utc_datetime(record.get("expires_at"))
+        if (
+            live_deadline is None
+            or live_deadline - timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES) <= caption_now
+        ):
+            record["countdown_refresh_attempted_at"] = caption_now.isoformat()
+            counters["skipped"] += 1
+            changed = True
+            continue
+
         product = {
             "title": record.get("title", "پیشنهاد ویژه"),
             "current_price": record.get("posted_current_price"),
             "original_price": record.get("posted_original_price"),
             "discount_percent": record.get("posted_discount_percent"),
             "deal_expires_at": record.get("expires_at", ""),
-            "_countdown_now": now,
+            "_countdown_now": caption_now,
         }
         for platform, message_id in targets:
             try:
@@ -3739,15 +3764,16 @@ def refresh_active_countdowns() -> int:
                 counters[f"{platform}_failed"] += 1
                 product_had_failure = True
                 print(f"COUNTDOWN_REFRESH_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}")
-            # Respect Telegram edit rate limits; the smaller batch keeps the shared
-            # channel lock short enough for the next product-publication run.
-            time.sleep(3.1 if platform == "telegram" else 1.1)
+            # Two-destination posts can be refreshed in a shorter rotation; since the
+            # next Telegram edit is still separated by both waits, keep >1s per channel.
+            delay = 1.5 if len(targets) > 1 else (3.1 if platform == "telegram" else 1.1)
+            time.sleep(delay)
 
         record["countdown_refresh_attempted_at"] = now.isoformat()
         if record.get("deadline_caption_refresh_required"):
             record["deadline_caption_refresh_attempted_at"] = now.isoformat()
         if not product_had_failure:
-            record["countdown_last_updated_at"] = now.isoformat()
+            record["countdown_last_updated_at"] = caption_now.isoformat()
             record["caption_deadline_format_version"] = CAPTION_DEADLINE_FORMAT_VERSION
             record.pop("deadline_caption_refresh_required", None)
         changed = True
