@@ -414,7 +414,9 @@ def sync_live_offer_deadlines(published, live_expiries, now):
         "deadline_unavailable_marked", "deadline_unavailable_delete_failed",
         "delete_failed", "unknown",
     }
-    for pid, rec in _iter_post_records(published):
+    # DigiKala's current feed represents the current campaign only. Never copy its
+    # deadline onto post_history records from earlier campaigns of the same product.
+    for pid, rec in (published or {}).items():
         if not isinstance(rec, dict):
             summary["skipped"] += 1
             continue
