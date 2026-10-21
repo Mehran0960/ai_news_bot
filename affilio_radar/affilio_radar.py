@@ -3540,10 +3540,10 @@ def refresh_active_countdowns() -> int:
     """
     force_refresh = str(os.getenv("AFFILIO_COUNTDOWN_REFRESH_FORCE", "false")).strip().lower() in {"1", "true", "yes", "on"}
     try:
-        max_records = int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS", "10"))
+        max_records = int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS", "80"))
     except (TypeError, ValueError, OverflowError):
-        max_records = 10
-    max_records = max(1, min(50, max_records))
+        max_records = 80
+    max_records = max(1, min(100, max_records))
 
     state = load_state()
     published = state.get("published", {})
