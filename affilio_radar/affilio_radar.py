@@ -3467,6 +3467,28 @@ def repair_all_published_captions() -> int:
             # Conservative pacing on both APIs; Telegram is kept well below one edit/second.
             time.sleep(3.1 if platform == "telegram" else 1.1)
 
+    successful = (
+        results["telegram_failed"] == 0
+        and results["bale_failed"] == 0
+        and results["telegram_missing"] == 0
+        and results["bale_missing"] == 0
+        and target_count > 0
+    )
+    report = {
+        "finished_at": datetime.now(timezone.utc).isoformat(),
+        "method": DEFAULT_AFFILIO_PUBLIC_LINK_TEMPLATE,
+        "tracked_products": len(published),
+        "targets": target_count,
+        **results,
+        "status": "success" if successful else ("partial_failure" if target_count > 0 else "no_targets"),
+    }
+    report_path = ROOT / "affiliate_link_repair_report.json"
+    try:
+        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"CAPTION_REPAIR_REPORT_WRITTEN path={report_path.name} status={report['status']}")
+    except OSError as exc:
+        print(f"CAPTION_REPAIR_REPORT_WRITE_FAILED error={type(exc).__name__}")
+
     print(
         "CAPTION_REPAIR_SUMMARY "
         f"tracked_products={len(published)} targets={target_count} "
@@ -3474,7 +3496,7 @@ def repair_all_published_captions() -> int:
         f"bale_updated={results['bale_updated']} bale_missing={results['bale_missing']} bale_failed={results['bale_failed']} "
         f"skipped={results['skipped']}"
     )
-    return 0 if results["telegram_failed"] == 0 and results["bale_failed"] == 0 and target_count > 0 else 1
+    return 0 if successful else 1
 
 
 

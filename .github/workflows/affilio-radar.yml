@@ -197,7 +197,8 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: |
           if [[ "${{ contains(github.event.head_commit.message, '[repair-all-captions]') }}" == "true" ]]; then
-            # Delete previously expired offers first, then revise every remaining tracked caption.
+            # Ensure the report belongs to this repair run, then clean expired posts and repair active ones.
+            rm -f affilio_radar/affiliate_link_repair_report.json
             python affilio_radar/expiration_monitor.py
             python affilio_radar/affilio_radar.py --repair-all-captions
           elif [[ "${{ contains(github.event.head_commit.message, '[repair-bale-caption]') }}" == "true" ]]; then
@@ -259,6 +260,9 @@ jobs:
           else:
               print("Candidate report only has scan-time changes; leaving it unstaged.")
           PY
+          if [[ "${{ contains(github.event.head_commit.message, '[repair-all-captions]') }}" == "true" && -f affilio_radar/affiliate_link_repair_report.json ]]; then
+            git add affilio_radar/affiliate_link_repair_report.json
+          fi
           if git diff --cached --quiet; then
             echo "No material Affilio report/state changes."
             exit 0
