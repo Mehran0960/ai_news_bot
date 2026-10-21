@@ -1,0 +1,114 @@
+name: OfferChin Storefront (Cloudflare Pages)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "offerchin-site/**"
+      - "affilio_radar/candidates.json"
+      - "affilio_radar/state.json"
+      - ".github/workflows/deploy-offerchin-site.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offerchin-cloudflare-pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out OfferChin repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build static Persian storefront from current radar state
+        run: python offerchin-site/build.py
+
+      - name: Validate generated catalog, safety rules and SEO files
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          dist = Path("offerchin-site/dist")
+          feed = json.loads((dist / "products.json").read_text(encoding="utf-8"))
+          products = feed.get("products")
+          assert isinstance(products, list), "products.json must contain a products list"
+          now = datetime.now(timezone.utc)
+          ids = set()
+          for product in products:
+              assert product["product_id"] not in ids, "duplicate product ID"
+              ids.add(product["product_id"])
+              assert product["availability"] == "in_stock"
+              assert product["affiliate_url"].startswith("https://")
+              assert product["image_url"].startswith("https://")
+              deadline = datetime.fromisoformat(product["active_until"].replace("Z", "+00:00"))
+              assert deadline > now, "expired offer included in feed"
+          ET.parse(dist / "sitemap.xml")
+          assert (dist / "robots.txt").is_file()
+          assert (dist / "index.html").is_file()
+          print(f"CATALOG_VALID: {len(products)} active product pages")
+          PY
+
+      - name: Verify Cloudflare deployment credentials are configured
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Missing repository Actions secret CLOUDFLARE_API_TOKEN (Cloudflare Pages edit permission required)."
+            exit 1
+          fi
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Missing repository Actions secret CLOUDFLARE_ACCOUNT_ID."
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Create Cloudflare Pages project if it does not exist
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects"
+          code="$(curl -sS -o /tmp/pages-project.json -w "%{http_code}" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            "$base/offerchin-storefront")"
+          if [ "$code" = "200" ]; then
+            echo "CLOUDFLARE_PAGES_PROJECT_EXISTS"
+          elif [ "$code" = "404" ]; then
+            curl -sS --fail-with-body -X POST "$base" \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data '{"name":"offerchin-storefront","production_branch":"main"}' \
+              -o /tmp/pages-create.json
+            echo "CLOUDFLARE_PAGES_PROJECT_CREATED"
+          else
+            echo "Cloudflare project lookup returned HTTP $code:"
+            cat /tmp/pages-project.json
+            exit 1
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4 pages deploy offerchin-site/dist --project-name offerchin-storefront --branch main
