@@ -1346,6 +1346,40 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertLess(bale_caption.index("عضویت در کانال"), bale_caption.index("برای خرید از دیجی‌کالا"))
 
 
+    def test_repair_does_not_reactivate_unknown_deadline_post(self):
+        state = {
+            "published": {
+                "dkp-unknown-deadline": {
+                    "ts": 1,
+                    "title": "پیشنهاد بدون مهلت معتبر",
+                    "product_url": "https://www.digikala.com/product/dkp-15970075/",
+                    "telegram_message_id": 88,
+                    "expires_at": "",
+                    "expiry_status": "deadline_unavailable_marked",
+                    "posted_current_price": 100_000,
+                    "posted_original_price": 200_000,
+                    "posted_discount_percent": 50,
+                }
+            }
+        }
+        with TemporaryDirectory() as temp:
+            with (
+                patch("affilio_radar.load_state", return_value=state),
+                patch("affilio_radar.ROOT", Path(temp)),
+                patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
+                patch("affilio_radar.BALE_BOT_TOKEN", ""),
+                patch("affilio_radar.BALE_CHANNEL_ID", ""),
+                patch("affilio_radar._edit_telegram_caption") as edit_telegram,
+                patch("affilio_radar.time.sleep"),
+            ):
+                result = repair_all_published_captions()
+            self.assertEqual(result, 1)  # no eligible captions were edited
+            edit_telegram.assert_not_called()
+            report = json.loads((Path(temp) / "affiliate_link_repair_report.json").read_text(encoding="utf-8"))
+            self.assertEqual(report["targets"], 0)
+            self.assertEqual(report["status"], "no_targets")
+
+
 
     def test_caption_edit_treats_unchanged_telegram_caption_as_success(self):
         response = unittest.mock.Mock()
