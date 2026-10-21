@@ -3404,8 +3404,22 @@ def repair_all_published_captions() -> int:
             raw_expiry = record.get("expires_at")
             deadline = _parse_utc_datetime(raw_expiry) if raw_expiry else None
             status_field = "expiry_status" if platform == "telegram" else "bale_expiry_status"
-            if deadline is not None and deadline <= now and record.get(status_field) in {"deleted", "already_absent"}:
-                print(f"CAPTION_REPAIR_SKIPPED product_id={product_key} platform={platform} message_id={message_id} reason=expired_message_removed")
+            # Never re-enable a purchase button after cleanup has deleted, disabled,
+            # or failed to verify an offer. In particular, a caption repair must not
+            # undo the safety fallback used when deletion of an unknown-deadline post fails.
+            non_editable_statuses = {
+                "deleted", "already_absent", "expired_marked", "deadline_unavailable_marked",
+                "deadline_unavailable_delete_failed", "delete_failed", "unknown",
+            }
+            if record.get(status_field) in non_editable_statuses:
+                print(
+                    f"CAPTION_REPAIR_SKIPPED product_id={product_key} platform={platform} "
+                    f"message_id={message_id} reason=expiry_status_{record.get(status_field)}"
+                )
+                results["skipped"] += 1
+                continue
+            if deadline is not None and deadline <= now:
+                print(f"CAPTION_REPAIR_SKIPPED product_id={product_key} platform={platform} message_id={message_id} reason=deadline_passed")
                 results["skipped"] += 1
                 continue
 
