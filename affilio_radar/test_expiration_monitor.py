@@ -288,7 +288,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', edited_caption)
         self.assertIn("⏳ ", edited_caption)
         self.assertIn("مانده به پایان تخفیف", edited_caption)
-        self.assertNotIn("پایان تخفیف:", edited_caption)
+        self.assertIn("📅 پایان تخفیف:", edited_caption)
         expected_remaining = monitor._remaining_label(
             monitor.extract_jalali_deadline(legacy["caption_text"]),
             now,
@@ -308,7 +308,8 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا "
                 "🛍️ محصول نمونه 💚 قیمت ویژه: ۱۱۴٬۰۰۰ تومان "
                 "⚡️ ۸۹٪ تخفیف 🏷️ قیمت اصلی: ۱٬۰۵۶٬۰۰۰ تومان "
-                "⏳ ۲۴ ساعت و ۱۵ دقیقه مانده به پایان تخفیف"
+                "⏳ ۲۴ ساعت و ۱۵ دقیقه مانده به پایان تخفیف "
+                "📅 پایان تخفیف: یکشنبه ۲۶ مهر ۱۴۰۵، ساعت ۲۳:۵۹"
             ),
             "caption_html": (
                 "<b>💚 قیمت ویژه: 💰 <u>۱۱۴٬۰۰۰ تومان</u></b> "
@@ -320,7 +321,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         edit.assert_called_once()
         updated = edit.call_args.args[1]
         self.assertIn(f"{label} مانده به پایان تخفیف", updated)
-        self.assertNotIn("پایان تخفیف:", updated)
+        self.assertIn("📅 پایان تخفیف:", updated)
 
     def test_posts_are_deleted_ten_minutes_before_deadline_on_both_channels(self):
         now = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
