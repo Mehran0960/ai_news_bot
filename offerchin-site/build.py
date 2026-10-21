@@ -73,7 +73,7 @@ def build_products(candidates: dict, state: dict, now: datetime) -> list[dict]:
 
     for source in candidates.get("products", []):
         product_id = str(source.get("product_id") or "")
-        if not re.fullmatch(r"dkp-\\d+", product_id) or product_id in seen:
+        if not re.fullmatch(r"dkp-\d+", product_id) or product_id in seen:
             continue
         record = published.get(product_id)
         if not isinstance(record, dict):
@@ -307,7 +307,7 @@ def main() -> None:
         folder.mkdir(parents=True, exist_ok=True)
         (folder / "index.html").write_text(build_detail(product), encoding="utf-8")
 
-    (OUT / "robots.txt").write_text(f"User-agent: *\\nAllow: /\\nSitemap: {SITE_URL}/sitemap.xml\\n", encoding="utf-8")
+    (OUT / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n", encoding="utf-8")
     urlset = ET.Element("urlset", {"xmlns": "http://www.sitemaps.org/schemas/sitemap/0.9"})
     for url in [SITE_URL + "/"] + [f"{SITE_URL}/products/{p['product_id']}/" for p in products]:
         node = ET.SubElement(urlset, "url")
