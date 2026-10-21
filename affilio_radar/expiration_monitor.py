@@ -1586,6 +1586,10 @@ def _delete_expired_youtube_videos(published, now):
         expiry_status = str(rec.get("youtube_expiry_status") or "")
         if not video_id or expiry_status in terminal:
             continue
+        # Estimated deadlines do not prove expiry; only verified deadlines
+        # may trigger permanent removal of published videos.
+        if rec.get("expiry_estimated") is True:
+            continue
         expires = parse_expiry(rec.get("expires_at"))
         if not expires:
             continue
