@@ -4,7 +4,9 @@ on:
   push:
     paths:
       - "affilio_radar/expiration_monitor.py"
+      - "affilio_radar/affilio_radar.py"
       - "affilio_radar/test_expiration_monitor.py"
+      - "affilio_radar/test_affilio.py"
       - ".github/workflows/affilio-expiration-cleanup.yml"
   # Cloudflare's minute dispatcher launches cleanup at UTC :00/:05/... so this
   # does not depend on GitHub's sometimes-missing native schedule event.
