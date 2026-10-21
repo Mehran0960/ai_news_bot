@@ -3727,13 +3727,26 @@ def refresh_active_countdowns() -> int:
             changed = True
             continue
 
+        caption_now = datetime.now(timezone.utc)
+        live_deadline = _parse_utc_datetime(record.get("expires_at"))
+        if (
+            live_deadline is None
+            or live_deadline - timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES) <= caption_now
+        ):
+            # Do not put any positive countdown back on a post whose buffered deadline
+            # has reached zero while this batch was running; cleanup deletes it next.
+            record["countdown_refresh_attempted_at"] = caption_now.isoformat()
+            counters["skipped"] += 1
+            changed = True
+            continue
+
         product = {
             "title": record.get("title", "پیشنهاد ویژه"),
             "current_price": record.get("posted_current_price"),
             "original_price": record.get("posted_original_price"),
             "discount_percent": record.get("posted_discount_percent"),
             "deal_expires_at": record.get("expires_at", ""),
-            "_countdown_now": now,
+            "_countdown_now": caption_now,
         }
         for platform, message_id in targets:
             try:
@@ -5424,7 +5437,7 @@ def run(publish=False):
                 "expires_at": expiry_at,
                 "expiry_source": "digikala_live_deals_feed" if expiry_at else "unavailable",
                 "expiry_estimated": False,
-                "caption_deadline_format_version": 2,
+                "caption_deadline_format_version": 3,
                 "posted_discount_percent": int(item.get("discount_percent") or 0),
                 "posted_current_price": int(item.get("current_price") or 0),
                 "posted_original_price": int(item.get("original_price") or 0),
