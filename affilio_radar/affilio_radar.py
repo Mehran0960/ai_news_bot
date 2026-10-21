@@ -3647,9 +3647,18 @@ def refresh_active_countdowns() -> int:
         if deadline - timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES) <= now:
             continue
         targets = []
-        if str(record.get("telegram_message_id") or "").isdigit() and BOT_TOKEN:
+        if (
+            str(record.get("telegram_message_id") or "").isdigit()
+            and record.get("expiry_status") not in terminal_statuses
+            and BOT_TOKEN
+        ):
             targets.append(("telegram", int(record["telegram_message_id"])))
-        if str(record.get("bale_message_id") or "").isdigit() and BALE_BOT_TOKEN and BALE_CHANNEL_ID:
+        if (
+            str(record.get("bale_message_id") or "").isdigit()
+            and record.get("bale_expiry_status") not in terminal_statuses
+            and BALE_BOT_TOKEN
+            and BALE_CHANNEL_ID
+        ):
             targets.append(("bale", int(record["bale_message_id"])))
         if not targets:
             continue
