@@ -2962,7 +2962,7 @@ def build_caption(
         else:
             parts += ["", f"<b>🏷️ قیمت اصلی: <s>{original_amount} تومان</s></b>"]
     if expiry:
-        parts += ["", bold(f"⏳ پایان تخفیف: {expiry}")]
+        parts += ["", bold(f"⏳ {expiry}")]
 
     detail_line = bold("👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.")
     parts += ["", channel_footer, "", detail_line]
