@@ -3381,6 +3381,7 @@ def repair_all_published_captions() -> int:
     }
     target_count = 0
     caption_format_v3_products = []
+    caption_format_v3_updated_at = {}
     now = datetime.now(timezone.utc)
 
     # Stable order plus spacing reduces the chance of Telegram per-chat rate limits.
@@ -3494,6 +3495,7 @@ def repair_all_published_captions() -> int:
             # The report persists across runs; the next regular radar run copies this
             # marker into state without needlessly re-editing an already-correct caption.
             caption_format_v3_products.append(str(product_key))
+            caption_format_v3_updated_at[str(product_key)] = datetime.now(timezone.utc).isoformat()
 
     successful = (
         results["telegram_failed"] == 0
@@ -3507,6 +3509,7 @@ def repair_all_published_captions() -> int:
         "method": DEFAULT_AFFILIO_PUBLIC_LINK_TEMPLATE,
         "caption_deadline_format_version": 3,
         "caption_format_v3_products": caption_format_v3_products,
+        "caption_format_v3_updated_at": caption_format_v3_updated_at,
         "tracked_products": len(published),
         "targets": target_count,
         **results,
@@ -3632,9 +3635,12 @@ def refresh_active_countdowns() -> int:
             and int(record.get("caption_deadline_format_version") or 0) < 3
         ):
             record["caption_deadline_format_version"] = 3
+            per_product_times = repair_report.get("caption_format_v3_updated_at", {})
             record["countdown_last_updated_at"] = (
-                repair_report.get("finished_at") or now.isoformat()
-            )
+                per_product_times.get(str(product_key))
+                if isinstance(per_product_times, dict)
+                else None
+            ) or repair_report.get("finished_at") or now.isoformat()
             changed = True
         if record.get("expiry_source") != "digikala_live_deals_feed" or record.get("expiry_estimated"):
             continue
@@ -3776,7 +3782,7 @@ def refresh_active_countdowns() -> int:
         if record.get("deadline_caption_refresh_required"):
             record["deadline_caption_refresh_attempted_at"] = now.isoformat()
         if not product_had_failure:
-            record["countdown_last_updated_at"] = now.isoformat()
+            record["countdown_last_updated_at"] = caption_now.isoformat()
             record["caption_deadline_format_version"] = 3
             record.pop("deadline_caption_refresh_required", None)
         changed = True
