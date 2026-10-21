@@ -1325,6 +1325,8 @@ class AffilioRadarTests(unittest.TestCase):
         url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
         with (
             patch("affilio_radar.load_state", return_value=state),
+            # Keep the synthetic unit-test repair report out of the repository.
+            patch("affilio_radar.ROOT", Path("/tmp")),
             patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
             patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
             patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
