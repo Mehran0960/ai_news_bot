@@ -3482,7 +3482,7 @@ def repair_all_published_captions() -> int:
     }
     report_path = ROOT / "affiliate_link_repair_report.json"
     try:
-        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"CAPTION_REPAIR_REPORT_WRITTEN path={report_path.name} status={report['status']}")
     except OSError as exc:
         print(f"CAPTION_REPAIR_REPORT_WRITE_FAILED error={type(exc).__name__}")
