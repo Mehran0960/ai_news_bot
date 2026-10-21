@@ -5379,13 +5379,13 @@
       "title": "ماساژور گردن و کمر اسنیلکس مدل last"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-21T23:05:24.504552+00:00",
+  "expiry_feed_last_checked_at": "2026-10-21T23:22:10.686055+00:00",
   "expiry_feed_last_sync_summary": {
-    "matched": 2,
-    "missing_from_feed": 10,
-    "skipped": 166,
-    "unchanged": 2,
-    "updated": 0
+    "matched": 10,
+    "updated": 9,
+    "unchanged": 1,
+    "missing_from_feed": 3,
+    "skipped": 166
   },
   "growth_tracking": {
     "daily_member_counts": {
@@ -7419,12 +7419,11 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-23T20:30:00+00:00",
-      "expiry_estimated": true,
-      "expiry_last_live_sync_at": "2026-10-21T22:05:24.195279+00:00",
+      "expiry_estimated": false,
+      "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
       "expiry_last_probed_at": "2026-10-21T21:57:40.970301+00:00",
       "expiry_last_product_check_at": "2026-10-21T21:57:40.970301+00:00",
-      "expiry_reason": "missing_from_current_live_deadline_sources",
-      "expiry_source": "unavailable",
+      "expiry_source": "digikala_live_deals_feed",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/41350fa62b7031f4530ac747db9fff95ec7a673e_1785495894.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 90250,
@@ -7443,7 +7442,8 @@
       "youtube_next_attempt_at": "2026-10-21T22:05:29.413506+00:00",
       "youtube_upload_attempts": 2,
       "youtube_upload_started_at": "2026-10-21T21:55:29.203222+00:00",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "deadline_caption_refresh_required": true
     },
     "dkp-19304930": {
       "bale_expired_deleted_at": "2026-10-19T20:20:40.846028+00:00",
@@ -7949,11 +7949,10 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-22T20:30:00+00:00",
-      "expiry_estimated": true,
+      "expiry_estimated": false,
       "expiry_last_probed_at": "2026-10-21T23:06:52.502920+00:00",
       "expiry_last_product_check_at": "2026-10-21T23:06:52.502920+00:00",
-      "expiry_reason": "missing_from_current_live_deadline_sources",
-      "expiry_source": "unavailable",
+      "expiry_source": "digikala_live_deals_feed",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/ed417ec5ad49aa9413df8f4b49c4252289ff06e1_1786372477.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 299000,
@@ -7972,7 +7971,9 @@
       "youtube_next_attempt_at": "2026-10-21T23:19:24.311574+00:00",
       "youtube_upload_attempts": 4,
       "youtube_upload_started_at": "2026-10-21T22:39:24.059072+00:00",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
+      "deadline_caption_refresh_required": true
     },
     "dkp-20073107": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -8819,11 +8820,10 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-22T20:30:00+00:00",
-      "expiry_estimated": true,
+      "expiry_estimated": false,
       "expiry_last_probed_at": "2026-10-21T23:06:52.502920+00:00",
       "expiry_last_product_check_at": "2026-10-21T23:06:52.502920+00:00",
-      "expiry_reason": "missing_from_current_live_deadline_sources",
-      "expiry_source": "unavailable",
+      "expiry_source": "digikala_live_deals_feed",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/b22371c854fed8ca0517eccbfdec479c66ef4358_1763365983.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
@@ -8873,7 +8873,9 @@
       "youtube_next_attempt_at": "2026-10-21T23:40:06.776065+00:00",
       "youtube_upload_attempts": 4,
       "youtube_upload_started_at": "2026-10-21T23:00:06.524332+00:00",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
+      "deadline_caption_refresh_required": true
     },
     "dkp-20880972": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -8899,11 +8901,10 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-22T20:30:00+00:00",
-      "expiry_estimated": true,
+      "expiry_estimated": false,
       "expiry_last_probed_at": "2026-10-21T23:06:52.502920+00:00",
       "expiry_last_product_check_at": "2026-10-21T23:06:52.502920+00:00",
-      "expiry_reason": "missing_from_current_live_deadline_sources",
-      "expiry_source": "unavailable",
+      "expiry_source": "digikala_live_deals_feed",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/22afa1f4914f081dda85c91a282f54004645ecaf_1786372496.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
@@ -8953,7 +8954,9 @@
       "youtube_next_attempt_at": "2026-10-21T23:05:18.748151+00:00",
       "youtube_upload_attempts": 4,
       "youtube_upload_started_at": "2026-10-21T22:25:18.438844+00:00",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
+      "deadline_caption_refresh_required": true
     },
     "dkp-20881002": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -9406,7 +9409,7 @@
       "delivery_version": 1,
       "expires_at": "2026-10-22T20:30:00+00:00",
       "expiry_estimated": true,
-      "expiry_last_probed_at": "2026-10-21T23:06:52.502920+00:00",
+      "expiry_last_probed_at": "2026-10-21T23:22:10.686055+00:00",
       "expiry_reason": "missing_from_current_live_deadline_sources",
       "expiry_source": "unavailable",
       "expiry_status": "tracked",
@@ -9420,7 +9423,8 @@
       "title": "سرم آبرسان پوست تیلسیم مدل Nicotinamide & Hyaluronic Acid مناسب برای پوست‌های چرب حجم 30 میلی‌لیتر",
       "ts": 1792623276.4499335,
       "video_generation_status": "skipped_unverified_deadline",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "expiry_last_product_check_at": "2026-10-21T23:22:10.686055+00:00"
     },
     "dkp-21136021": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -9445,10 +9449,9 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-22T20:30:00+00:00",
-      "expiry_estimated": true,
+      "expiry_estimated": false,
       "expiry_last_probed_at": "2026-10-21T23:06:52.502920+00:00",
-      "expiry_reason": "missing_from_current_live_deadline_sources",
-      "expiry_source": "unavailable",
+      "expiry_source": "digikala_live_deals_feed",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/a9fffee4d21ea0f6a5e765b2ff435d4c6c318ef3_1786372499.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 299000,
@@ -9470,7 +9473,9 @@
       "youtube_upload_status": "uploaded",
       "youtube_uploaded_at": "2026-10-21T23:00:11.332102+00:00",
       "youtube_video_id": "ljyEyJCSbVo",
-      "youtube_video_url": "https://www.youtube.com/shorts/ljyEyJCSbVo"
+      "youtube_video_url": "https://www.youtube.com/shorts/ljyEyJCSbVo",
+      "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
+      "deadline_caption_refresh_required": true
     },
     "dkp-21151527": {
       "bale_expired_deleted_at": "2026-10-20T20:25:39.223739+00:00",
@@ -9524,10 +9529,9 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-22T20:30:00+00:00",
-      "expiry_estimated": true,
+      "expiry_estimated": false,
       "expiry_last_probed_at": "2026-10-21T23:06:52.502920+00:00",
-      "expiry_reason": "missing_from_current_live_deadline_sources",
-      "expiry_source": "unavailable",
+      "expiry_source": "digikala_live_deals_feed",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/22a48b2f69d026623aa2b48359863d32f081edd4_1767202702.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 770000,
@@ -9546,7 +9550,9 @@
       "youtube_next_attempt_at": "2026-10-21T22:59:48.947065+00:00",
       "youtube_upload_attempts": 1,
       "youtube_upload_started_at": "2026-10-21T22:54:48.580610+00:00",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
+      "deadline_caption_refresh_required": true
     },
     "dkp-21152169": {
       "aparat_expiry_attempts": 44,
@@ -9674,9 +9680,8 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-23T20:30:00+00:00",
-      "expiry_estimated": true,
-      "expiry_reason": "missing_from_current_live_deadline_sources",
-      "expiry_source": "unavailable",
+      "expiry_estimated": false,
+      "expiry_source": "digikala_live_deals_feed",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/2b155096ad782ae6d5a33ddaf2c3b08c930f068b_1767000598.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 380000,
@@ -9695,7 +9700,9 @@
       "youtube_next_attempt_at": "2026-10-21T23:25:01.929232+00:00",
       "youtube_upload_attempts": 3,
       "youtube_upload_started_at": "2026-10-21T23:05:01.749103+00:00",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
+      "deadline_caption_refresh_required": true
     },
     "dkp-21294694": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -12445,9 +12452,8 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-23T20:30:00+00:00",
-      "expiry_estimated": true,
-      "expiry_reason": "missing_from_current_live_deadline_sources",
-      "expiry_source": "unavailable",
+      "expiry_estimated": false,
+      "expiry_source": "digikala_live_deals_feed",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/0d26b3f0c7782430deb9a770d1551fbc5d5f4ff3_1784812871.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 299000,
@@ -12466,7 +12472,9 @@
       "youtube_next_attempt_at": "2026-10-21T23:06:31.329890+00:00",
       "youtube_upload_attempts": 3,
       "youtube_upload_started_at": "2026-10-21T22:46:31.038163+00:00",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
+      "deadline_caption_refresh_required": true
     },
     "dkp-22376509": {
       "aparat_expiry_attempts": 44,
@@ -12676,7 +12684,9 @@
       "youtube_next_attempt_at": "2026-10-21T23:23:22.442893+00:00",
       "youtube_upload_attempts": 1,
       "youtube_upload_started_at": "2026-10-21T23:18:22.256753+00:00",
-      "youtube_upload_status": "retry"
+      "youtube_upload_status": "retry",
+      "expiry_status": "tracked",
+      "bale_expiry_status": "tracked"
     },
     "dkp-22438772": {
       "aparat_expiry_attempts": 44,
@@ -18849,9 +18859,8 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-23T20:30:00+00:00",
-      "expiry_estimated": true,
-      "expiry_reason": "missing_from_current_live_deadline_sources",
-      "expiry_source": "unavailable",
+      "expiry_estimated": false,
+      "expiry_source": "digikala_live_deals_feed",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/c653389055fca4c4584443bf3ccbe70195c1c61b_1611316240.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
@@ -18902,7 +18911,9 @@
       "youtube_next_attempt_at": "2026-10-21T23:25:05.400000+00:00",
       "youtube_upload_attempts": 3,
       "youtube_upload_started_at": "2026-10-21T23:05:05.153559+00:00",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
+      "deadline_caption_refresh_required": true
     },
     "dkp-4639315": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
