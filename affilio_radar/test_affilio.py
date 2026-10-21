@@ -176,19 +176,30 @@ class AffilioRadarTests(unittest.TestCase):
         tracked = build_click_tracking_link(product, affiliate, "https://tracker.example")
         self.assertTrue(tracked.startswith("https://tracker.example/p/dkp-1234567?u="))
 
-    def test_direct_affilio_link_uses_user_provided_digikala_parameters(self):
+    def test_default_affilio_link_uses_publishers_public_link_template(self):
         product = "https://www.digikala.com/product/dkp-15970075/?old_tracking=remove"
-        linked = build_affilio_tracking_link(product)
+        with patch("affilio_radar.AFFILIO_LINK_TEMPLATE", ""):
+            linked = build_affilio_tracking_link(product)
         parsed = urlsplit(linked)
         params = parse_qs(parsed.query)
         self.assertEqual(parsed.scheme, "https")
-        self.assertEqual(parsed.netloc, "www.digikala.com")
-        self.assertEqual(parsed.path, "/product/dkp-15970075/")
-        self.assertEqual(params.get("utm_source"), ["19166"])
-        self.assertEqual(params.get("utm_medium"), ["Affilio"])
-        self.assertEqual(params.get("utm_id"), ["14657"])
-        self.assertEqual(params.get("affid"), ["OTgxYTY0OTAtODJhNS00MDNkLTg0NDItMWE0MGVkOGI1Yjhj"])
-        self.assertNotIn("old_tracking", params)
+        self.assertEqual(parsed.netloc, "aflo.ir")
+        self.assertEqual(parsed.path, "/QekEYTRg")
+        self.assertEqual(params.get("p"), ["https://www.digikala.com/product/dkp-15970075/"])
+        self.assertIn("p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-15970075%2F", linked)
+        self.assertNotIn("old_tracking", linked)
+
+    def test_aflo_redirect_to_template_is_encoded_and_keeps_exact_product(self):
+        product = "https://www.digikala.com/product/dkp-1234567/?utm_source=should-not-leak"
+        template = "https://aflo.ir/QekEYTRg?p={redirect_to}"
+        linked = build_affilio_tracking_link(product, template)
+        self.assertEqual(urlsplit(linked).netloc, "aflo.ir")
+        self.assertEqual(urlsplit(linked).path, "/QekEYTRg")
+        self.assertEqual(
+            parse_qs(urlsplit(linked).query).get("p"),
+            ["https://www.digikala.com/product/dkp-1234567/"],
+        )
+        self.assertNotIn("{redirect_to}", linked)
 
     def test_affilio_link_builder_rejects_invalid_template_or_product(self):
         product = "https://www.digikala.com/product/dkp-1234567/"
@@ -202,6 +213,14 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(
             build_affilio_tracking_link("https://evil.example/product/dkp-1234567/", "https://migmig.affilio.ir/api/v1/Click/b/x/{YOUR_BASE64_ENCODED_URL}"),
+            "",
+        )
+        self.assertEqual(
+            build_affilio_tracking_link(product, "https://evil.example/x?p={redirect_to}"),
+            "",
+        )
+        self.assertEqual(
+            build_affilio_tracking_link(product, "https://aflo.ir/another-link?p={redirect_to}"),
             "",
         )
 
@@ -1038,7 +1057,7 @@ class AffilioRadarTests(unittest.TestCase):
         markup = json.loads(data["reply_markup"])
         self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
-        self.assertEqual(urlsplit(markup["inline_keyboard"][0][0]["url"]).netloc, "www.digikala.com")
+        self.assertEqual(urlsplit(markup["inline_keyboard"][0][0]["url"]).netloc, "aflo.ir")
 
     def test_send_bale_photo_adds_channel_and_purchase_button(self):
         response = unittest.mock.Mock()
