@@ -52,13 +52,13 @@ permissions:
 concurrency:
   # Code-only pushes run CI independently; publication/repair pushes and scheduled jobs
   # still serialize all channel mutations with cleanup and countdown refreshes.
-  group: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') && !contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && !contains(github.event.head_commit.message, '[growth-tracking-only]') && format('affilio-ci-{0}', github.run_id) || 'affilio-channel-updates' }}
+  group: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[repair-all-captions]') && format('affilio-caption-repair-{0}', github.run_id) || github.event_name == 'push' && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') && !contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && !contains(github.event.head_commit.message, '[growth-tracking-only]') && format('affilio-ci-{0}', github.run_id) || 'affilio-channel-updates' }}
   cancel-in-progress: false
 
 jobs:
   radar:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -187,6 +187,7 @@ jobs:
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.08333333333333333"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "60"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
+          AFFILIO_FORCE_DEADLINE_SYNC: ${{ contains(github.event.head_commit.message, '[repair-all-captions]') && 'true' || 'false' }}
           AFFILIO_MAX_POSTS_PER_RUN: ${{ contains(github.event.head_commit.message, '[publish-now]') && '10' || inputs.batch_count || (github.event_name == 'schedule' && '2' || '1') }}
           AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD: "8"
           AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS: "2"
@@ -208,6 +209,40 @@ jobs:
           else
             python affilio_radar/affilio_radar.py
           fi
+
+      # Caption repair is bounded during normal runs; new posts always publish before maintenance.
+      # The ten-minute deletion margin and exact deadline captions are refreshed independently.
+      - name: Refresh active deadline captions (best effort)
+        if: ${{ always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]')) }}
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          AFFILIO_DEAL_LIST_PAGES: "5"
+          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
+          AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: "5"
+          AFFILIO_COUNTDOWN_REFRESH_FORCE: "false"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/affilio_radar.py --refresh-countdowns
+
+      - name: Delete expired channel and video posts (best effort)
+        if: ${{ always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]')) }}
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
+          AFFILIO_DEAL_LIST_PAGES: "5"
+          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/expiration_monitor.py
 
       - name: Preserve generated vertical MP4 artifacts and upload outcomes
         if: always()

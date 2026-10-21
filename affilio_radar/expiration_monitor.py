@@ -35,8 +35,7 @@ HTTP_TIMEOUT = 18
 BOT_API_MIN_GAP_SECONDS = 1.1
 PROBE_INTERVAL_SECONDS = 900
 UNKNOWN_PROBE_INTERVAL_SECONDS = 900
-# Keep deletion safety independent from the caption's displayed countdown.
-# A post is removed up to ten minutes before the verified deadline.
+# Captions show a fixed absolute deadline; deletion keeps a ten-minute safety margin.
 POST_REMOVAL_BUFFER_MINUTES = max(
     0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10")))
 )
@@ -454,6 +453,9 @@ def sync_live_offer_deadlines(published, live_expiries, now):
         rec["expiry_source"] = "digikala_live_deals_feed"
         rec["expiry_estimated"] = False
         rec["expiry_last_live_sync_at"] = now.isoformat()
+        # Force this exact post to the front of the caption-repair queue. A new
+        # absolute deadline must be reflected in the visible caption promptly.
+        rec["deadline_caption_refresh_required"] = True
         for platform in platforms:
             status_field = "expiry_status" if platform == "telegram" else "bale_expiry_status"
             if rec.get(status_field) not in terminal:
@@ -775,7 +777,7 @@ def _persian_number(value):
 
 
 def _remaining_label(deadline, now):
-    """Build a legacy caption countdown using the same safety cutoff as post removal."""
+    """Legacy helper retained for compatibility; new captions use an absolute deadline."""
     effective_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
     seconds = (effective_deadline - now).total_seconds()
     if seconds <= 0:
@@ -789,6 +791,30 @@ def _remaining_label(deadline, now):
     if hours:
         return f"{_persian_number(hours)} ساعت"
     return f"{_persian_number(mins)} دقیقه"
+
+
+def _format_jalali_deadline(deadline):
+    """Render a confirmed UTC deadline as a fixed Persian date and Tehran-local time."""
+    if not isinstance(deadline, datetime):
+        return ""
+    if deadline.tzinfo is None:
+        deadline = deadline.replace(tzinfo=timezone.utc)
+    local = deadline.astimezone(ZoneInfo("Asia/Tehran"))
+    if local.hour == 0 and local.minute == 0:
+        local -= timedelta(minutes=1)
+    jalali_year, jalali_month, jalali_day = gregorian_to_jalali(
+        local.year, local.month, local.day
+    )
+    weekdays = {
+        "Monday": "دوشنبه", "Tuesday": "سه‌شنبه", "Wednesday": "چهارشنبه",
+        "Thursday": "پنجشنبه", "Friday": "جمعه", "Saturday": "شنبه", "Sunday": "یکشنبه",
+    }
+    months = {number: name for name, number in PERSIAN_MONTHS.items()}
+    rendered = (
+        f"{weekdays.get(local.strftime('%A'), '')} {jalali_day} "
+        f"{months[jalali_month]} {jalali_year}، ساعت {local:%H:%M}"
+    )
+    return rendered.translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
 
 
 def _extract_legacy_caption_fields(caption_text):
@@ -837,11 +863,9 @@ def _build_legacy_repaired_caption(fields, deadline, now):
     if original and current and original > current:
         parts += ["", f"<b>🏷️ قیمت اصلی: <s>{_persian_number(original)} تومان</s></b>"]
     if deadline:
-        remaining_label = _remaining_label(deadline, now)
-        if remaining_label == "مهلت آفر به پایان رسیده":
-            parts += ["", f"<b>⏳ {remaining_label}</b>"]
-        else:
-            parts += ["", f"<b>⏳ {remaining_label} مانده به پایان تخفیف</b>"]
+        deadline_label = _format_jalali_deadline(deadline)
+        if deadline_label:
+            parts += ["", f"<b>⏳ پایان تخفیف: {deadline_label}</b>"]
     parts += [
         "",
         '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>',
@@ -871,9 +895,17 @@ def _caption_needs_repair(caption_html, caption_text, fields, deadline):
         expected_discount = _persian_number(discount) + "٪"
         if not any("⚡️" in value and "تخفیف" in value and expected_discount in value for value in underline_texts):
             return True
-    if deadline and "زمان باقی‌مانده" not in caption_text:
+    # Relative countdowns are stale by definition; migrate them to a fixed deadline.
+    if deadline and (
+        "مانده به پایان تخفیف" in caption_text
+        or "زمان باقی‌مانده" in caption_text
+    ):
         return True
-    if "پایان تخفیف" in caption_text:
+    # Keep a correctly formatted absolute deadline as-is instead of editing it on every audit.
+    if deadline and not re.search(
+        r"پایان\s*تخفیف\s*[:：].*ساعت\s*[۰-۹0-9]{1,2}[:٫][۰-۹0-9]{2}",
+        caption_text,
+    ):
         return True
     return False
 

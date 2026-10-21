@@ -61,7 +61,8 @@ DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEU
 MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(32, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "24"))))
 # Never publish an offer that gives the audience less than this much time to act.
 MIN_PUBLICATION_RUNWAY_MINUTES = max(30, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "60"))))
-# Keep the public caption countdown ahead of DigiKala by a fixed safety buffer.
+# Keep countdown-format compatibility tests aligned with the same ten-minute safety buffer.
+# Public captions now show an absolute local deadline so static text cannot drift.
 COUNTDOWN_SAFETY_BUFFER_MINUTES = max(0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10"))))
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
@@ -2912,11 +2913,8 @@ def build_caption(
     current = p.get("current_price")
     original = p.get("original_price")
     discount = p.get("discount_percent")
-    expiry = format_remaining_time(
-        p.get("deal_expires_at"),
-        now=p.get("_countdown_now"),
-        safety_buffer_minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES,
-    )
+    # Absolute deadline text does not become stale as the post ages.
+    expiry = format_deal_expiry(p.get("deal_expires_at"))
 
     channel_url = str(channel_label or (BALE_CHANNEL_URL if is_bale else TELEGRAM_CHANNEL_URL)).strip()
     if not urlsplit(channel_url).scheme:
@@ -2953,7 +2951,7 @@ def build_caption(
         else:
             parts += ["", f"<b>🏷️ قیمت اصلی: <s>{original_amount} تومان</s></b>"]
     if expiry:
-        parts += ["", bold(f"⏳ {expiry}")]
+        parts += ["", bold(f"⏳ پایان تخفیف: {expiry}")]
 
     detail_line = bold("👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.")
     parts += ["", channel_footer, "", detail_line]
@@ -3373,6 +3371,7 @@ def repair_all_published_captions() -> int:
         "skipped": 0,
     }
     target_count = 0
+    caption_format_v2_products = []
     now = datetime.now(timezone.utc)
 
     # Stable order plus spacing reduces the chance of Telegram per-chat rate limits.
@@ -3435,6 +3434,7 @@ def repair_all_published_captions() -> int:
             "discount_percent": record.get("posted_discount_percent"),
             "deal_expires_at": record.get("expires_at", ""),
         }
+        product_repair_success = True
         for platform, message_id in message_targets:
             try:
                 if platform == "telegram":
@@ -3456,6 +3456,7 @@ def repair_all_published_captions() -> int:
                     results[f"{platform}_updated"] += 1
                     print(f"CAPTION_REPAIRED product_id={product_key} platform={platform} message_id={message_id}")
             except Exception as exc:
+                product_repair_success = False
                 results[f"{platform}_failed"] += 1
                 detail = str(exc) if isinstance(exc, RuntimeError) else ""
                 for secret in (BOT_TOKEN, BALE_BOT_TOKEN):
@@ -3466,6 +3467,10 @@ def repair_all_published_captions() -> int:
                 print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}{detail_suffix}")
             # Conservative pacing on both APIs; Telegram is kept well below one edit/second.
             time.sleep(3.1 if platform == "telegram" else 1.1)
+        if product_repair_success:
+            # The report persists across runs; the next regular radar run copies this
+            # marker into state without needlessly re-editing an already-correct caption.
+            caption_format_v2_products.append(str(product_key))
 
     successful = (
         results["telegram_failed"] == 0
@@ -3477,6 +3482,8 @@ def repair_all_published_captions() -> int:
     report = {
         "finished_at": datetime.now(timezone.utc).isoformat(),
         "method": DEFAULT_AFFILIO_PUBLIC_LINK_TEMPLATE,
+        "caption_deadline_format_version": 2,
+        "caption_format_v2_products": caption_format_v2_products,
         "tracked_products": len(published),
         "targets": target_count,
         **results,
@@ -3569,6 +3576,18 @@ def refresh_active_countdowns() -> int:
         "bale_updated": 0, "bale_missing": 0, "bale_failed": 0, "skipped": 0,
     }
     changed = live_sync_updated > 0
+    report_formatted_products = set()
+    try:
+        report_path = ROOT / "affiliate_link_repair_report.json"
+        if report_path.exists():
+            repair_report = json.loads(report_path.read_text(encoding="utf-8"))
+            if int(repair_report.get("caption_deadline_format_version") or 0) >= 2:
+                report_formatted_products = {
+                    str(pid) for pid in repair_report.get("caption_format_v2_products", [])
+                }
+    except (OSError, ValueError, TypeError):
+        report_formatted_products = set()
+
     due = []
     never_updated = datetime.min.replace(tzinfo=timezone.utc)
 
@@ -3576,6 +3595,12 @@ def refresh_active_countdowns() -> int:
         if not isinstance(record, dict):
             counters["skipped"] += 1
             continue
+        if (
+            str(product_key) in report_formatted_products
+            and int(record.get("caption_deadline_format_version") or 0) < 2
+        ):
+            record["caption_deadline_format_version"] = 2
+            changed = True
         if record.get("expiry_source") != "digikala_live_deals_feed" or record.get("expiry_estimated"):
             continue
         deadline = _parse_utc_datetime(record.get("expires_at"))
@@ -3589,28 +3614,51 @@ def refresh_active_countdowns() -> int:
         if not targets:
             continue
 
-        last_raw = record.get("countdown_refresh_attempted_at") or record.get("countdown_last_updated_at")
+        deadline_refresh_required = bool(record.get("deadline_caption_refresh_required"))
+        try:
+            caption_format_version = int(record.get("caption_deadline_format_version") or 0)
+        except (TypeError, ValueError, OverflowError):
+            caption_format_version = 0
+        needs_absolute_caption = caption_format_version < 2
+        if not (force_refresh or deadline_refresh_required or needs_absolute_caption):
+            # Fixed absolute deadlines need no periodic edit unless the live source changes.
+            continue
+
+        last_raw = (
+            record.get("deadline_caption_refresh_attempted_at")
+            if deadline_refresh_required
+            else None
+        ) or record.get("countdown_refresh_attempted_at") or record.get("countdown_last_updated_at")
         last = _parse_utc_datetime(last_raw) if last_raw else None
-        if not force_refresh and last and (now - last).total_seconds() < 60:
+        if (
+            not force_refresh
+            and not deadline_refresh_required
+            and not needs_absolute_caption
+            and last
+            and (now - last).total_seconds() < 60
+        ):
             continue
         try:
             posted_ts = float(record.get("ts") or 0)
         except (TypeError, ValueError, OverflowError):
             posted_ts = 0.0
-        due.append((last or never_updated, posted_ts, str(product_key), record, targets))
+        priority = 0 if deadline_refresh_required else (1 if needs_absolute_caption else 2)
+        due.append((priority, last or never_updated, posted_ts, str(product_key), record, targets))
 
-    due.sort(key=lambda item: (item[0], item[1], item[2]))
+    due.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
     selected = due[:max_records]
     print(
         f"COUNTDOWN_REFRESH_BATCH eligible={len(due)} selected={len(selected)} "
         f"limit={max_records} force={force_refresh}"
     )
 
-    for _, _, product_key, record, targets in selected:
-        # Never rewrite a visible countdown from cached state alone. The product must
+    for _, _, _, product_key, record, targets in selected:
+        # Never rewrite a visible deadline from cached state alone. The product must
         # be present in the fresh live-deadline result from DigiKala or its fallback.
         if str(product_key) not in live_expiries:
             record["countdown_refresh_attempted_at"] = now.isoformat()
+            if record.get("deadline_caption_refresh_required"):
+                record["deadline_caption_refresh_attempted_at"] = now.isoformat()
             record["countdown_refresh_verification_status"] = "missing_live_deadline"
             counters["skipped"] += 1
             changed = True
@@ -3626,6 +3674,8 @@ def refresh_active_countdowns() -> int:
         if not affiliate_url:
             counters["skipped"] += 1
             record["countdown_refresh_attempted_at"] = now.isoformat()
+            if record.get("deadline_caption_refresh_required"):
+                record["deadline_caption_refresh_attempted_at"] = now.isoformat()
             changed = True
             continue
 
@@ -3660,8 +3710,12 @@ def refresh_active_countdowns() -> int:
             time.sleep(3.1 if platform == "telegram" else 1.1)
 
         record["countdown_refresh_attempted_at"] = now.isoformat()
+        if record.get("deadline_caption_refresh_required"):
+            record["deadline_caption_refresh_attempted_at"] = now.isoformat()
         if not product_had_failure:
             record["countdown_last_updated_at"] = now.isoformat()
+            record["caption_deadline_format_version"] = 2
+            record.pop("deadline_caption_refresh_required", None)
         changed = True
 
     if changed:
@@ -5320,6 +5374,7 @@ def run(publish=False):
                 "expires_at": expiry_at,
                 "expiry_source": "digikala_live_deals_feed" if expiry_at else "unavailable",
                 "expiry_estimated": False,
+                "caption_deadline_format_version": 2,
                 "posted_discount_percent": int(item.get("discount_percent") or 0),
                 "posted_current_price": int(item.get("current_price") or 0),
                 "posted_original_price": int(item.get("original_price") or 0),
