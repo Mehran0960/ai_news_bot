@@ -3605,7 +3605,7 @@ def refresh_active_countdowns() -> int:
         "telegram_updated": 0, "telegram_missing": 0, "telegram_failed": 0,
         "bale_updated": 0, "bale_missing": 0, "bale_failed": 0, "skipped": 0,
     }
-    changed = live_sync_updated > 0
+    changed = bool(active_product_ids) or live_sync_updated > 0
     report_formatted_products = set()
     repair_report = {}
     try:
@@ -3641,6 +3641,11 @@ def refresh_active_countdowns() -> int:
         deadline = _parse_utc_datetime(record.get("expires_at"))
         if deadline is None or deadline <= now:
             continue
+        # When the buffered countdown has reached zero, do not edit it back to a
+        # positive value. The cleanup step immediately following this refresher
+        # deletes the post at this same deadline-minus-buffer cutoff.
+        if deadline - timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES) <= now:
+            continue
         targets = []
         if str(record.get("telegram_message_id") or "").isdigit() and BOT_TOKEN:
             targets.append(("telegram", int(record["telegram_message_id"])))
@@ -3654,30 +3659,29 @@ def refresh_active_countdowns() -> int:
             caption_format_version = int(record.get("caption_deadline_format_version") or 0)
         except (TypeError, ValueError, OverflowError):
             caption_format_version = 0
-        needs_absolute_caption = caption_format_version < 2
-        if not (force_refresh or deadline_refresh_required or needs_absolute_caption):
-            # Fixed absolute deadlines need no periodic edit unless the live source changes.
-            continue
-
+        needs_current_countdown = caption_format_version < 3
         last_raw = (
             record.get("deadline_caption_refresh_attempted_at")
             if deadline_refresh_required
             else None
         ) or record.get("countdown_refresh_attempted_at") or record.get("countdown_last_updated_at")
         last = _parse_utc_datetime(last_raw) if last_raw else None
-        if (
-            not force_refresh
-            and not deadline_refresh_required
-            and not needs_absolute_caption
-            and last
-            and (now - last).total_seconds() < 60
+        refresh_interval_elapsed = (
+            last is None
+            or (now - last).total_seconds() >= COUNTDOWN_REFRESH_INTERVAL_SECONDS
+        )
+        if not (
+            force_refresh
+            or deadline_refresh_required
+            or needs_current_countdown
+            or refresh_interval_elapsed
         ):
             continue
         try:
             posted_ts = float(record.get("ts") or 0)
         except (TypeError, ValueError, OverflowError):
             posted_ts = 0.0
-        priority = 0 if deadline_refresh_required else (1 if needs_absolute_caption else 2)
+        priority = 0 if deadline_refresh_required else (1 if needs_current_countdown else 2)
         due.append((priority, last or never_updated, posted_ts, str(product_key), record, targets))
 
     due.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
@@ -3740,16 +3744,18 @@ def refresh_active_countdowns() -> int:
                 counters[f"{platform}_failed"] += 1
                 product_had_failure = True
                 print(f"COUNTDOWN_REFRESH_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}")
-            # Respect Telegram edit rate limits; the smaller batch keeps the shared
-            # channel lock short enough for the next product-publication run.
-            time.sleep(3.1 if platform == "telegram" else 1.1)
+            # With both channels enabled, alternate short waits to keep a full active
+            # caption rotation inside five minutes. Single-platform Telegram edits keep
+            # the more conservative pacing; API 429s are still retried by the edit helper.
+            delay = 1.5 if len(targets) > 1 else (3.1 if platform == "telegram" else 1.1)
+            time.sleep(delay)
 
         record["countdown_refresh_attempted_at"] = now.isoformat()
         if record.get("deadline_caption_refresh_required"):
             record["deadline_caption_refresh_attempted_at"] = now.isoformat()
         if not product_had_failure:
             record["countdown_last_updated_at"] = now.isoformat()
-            record["caption_deadline_format_version"] = 2
+            record["caption_deadline_format_version"] = 3
             record.pop("deadline_caption_refresh_required", None)
         changed = True
 
