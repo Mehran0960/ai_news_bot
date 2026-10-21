@@ -2913,8 +2913,14 @@ def build_caption(
     current = p.get("current_price")
     original = p.get("original_price")
     discount = p.get("discount_percent")
-    # Absolute deadline text does not become stale as the post ages.
-    expiry = format_deal_expiry(p.get("deal_expires_at"))
+    # Keep ten minutes of safety margin before DigiKala's stated end time.
+    # Platform captions are not live timers, so the scheduled refresher rewrites
+    # this value frequently using a fresh site deadline.
+    expiry = format_remaining_time(
+        p.get("deal_expires_at"),
+        now=p.get("_countdown_now"),
+        safety_buffer_minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES,
+    )
 
     channel_url = str(channel_label or (BALE_CHANNEL_URL if is_bale else TELEGRAM_CHANNEL_URL)).strip()
     if not urlsplit(channel_url).scheme:
@@ -3371,7 +3377,7 @@ def repair_all_published_captions() -> int:
         "skipped": 0,
     }
     target_count = 0
-    caption_format_v2_products = []
+    caption_format_v3_products = []
     now = datetime.now(timezone.utc)
 
     # Stable order plus spacing reduces the chance of Telegram per-chat rate limits.
@@ -3484,7 +3490,7 @@ def repair_all_published_captions() -> int:
         if product_repair_success:
             # The report persists across runs; the next regular radar run copies this
             # marker into state without needlessly re-editing an already-correct caption.
-            caption_format_v2_products.append(str(product_key))
+            caption_format_v3_products.append(str(product_key))
 
     successful = (
         results["telegram_failed"] == 0
@@ -3496,8 +3502,8 @@ def repair_all_published_captions() -> int:
     report = {
         "finished_at": datetime.now(timezone.utc).isoformat(),
         "method": DEFAULT_AFFILIO_PUBLIC_LINK_TEMPLATE,
-        "caption_deadline_format_version": 2,
-        "caption_format_v2_products": caption_format_v2_products,
+        "caption_deadline_format_version": 3,
+        "caption_format_v3_products": caption_format_v3_products,
         "tracked_products": len(published),
         "targets": target_count,
         **results,
