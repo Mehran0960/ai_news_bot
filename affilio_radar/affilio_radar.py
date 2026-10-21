@@ -7,7 +7,6 @@ This program deliberately does not invent affiliate tracking parameters or log i
 from __future__ import annotations
 
 import argparse
-import base64
 import html
 import json
 import math
@@ -44,10 +43,6 @@ AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
 ).strip().rstrip("/")
 # Verified from the user-provided final DigiKala affiliate URL. These are public
 # tracking parameters, not login credentials. The source URL path changes per product.
-AFFILIO_UTM_SOURCE = os.getenv("AFFILIO_UTM_SOURCE", "19166").strip()
-AFFILIO_UTM_MEDIUM = os.getenv("AFFILIO_UTM_MEDIUM", "Affilio").strip()
-AFFILIO_UTM_ID = os.getenv("AFFILIO_UTM_ID", "14657").strip()
-AFFILIO_DIGIKALA_AFFID = os.getenv("AFFILIO_DIGIKALA_AFFID", "OTgxYTY0OTAtODJhNS00MDNkLTg0NDItMWE0MGVkOGI1Yjhj").strip()
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
 FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "false").strip().lower() in {"1", "true", "yes", "on"}
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
@@ -220,54 +215,22 @@ def build_affilio_tracking_link(product_url: str, template: str | None = None) -
 
 
 def _affiliate_destination_matches_product(affiliate_url: str, canonical_product_url: str) -> bool:
-    """Allow click tracking only for the same DigiKala product through known affiliate paths."""
+    """Accept only the confirmed OfferChin public link for the same DigiKala product."""
     canonical = safe_product_url(canonical_product_url)
     if not canonical:
         return False
     try:
         parsed = urlsplit(str(affiliate_url or "").strip())
+        destinations = parse_qs(parsed.query, keep_blank_values=True).get("p", [])
     except Exception:
         return False
-    if parsed.scheme != "https":
-        return False
-
-    if (parsed.hostname or "").lower() == "www.digikala.com":
-        if safe_product_url(affiliate_url) != canonical:
-            return False
-        params = parse_qs(parsed.query)
-        expected = {
-            "utm_source": AFFILIO_UTM_SOURCE,
-            "utm_medium": AFFILIO_UTM_MEDIUM,
-            "utm_id": AFFILIO_UTM_ID,
-            "affid": AFFILIO_DIGIKALA_AFFID,
-        }
-        return all(params.get(key, [None])[0] == value for key, value in expected.items())
-
-    if (
-        (parsed.hostname or "").lower() == "aflo.ir"
+    return (
+        parsed.scheme == "https"
+        and (parsed.hostname or "").lower() == "aflo.ir"
         and parsed.path == "/QekEYTRg"
-    ):
-        destinations = parse_qs(parsed.query, keep_blank_values=True).get("p", [])
-        return len(destinations) == 1 and safe_product_url(destinations[0]) == canonical
-
-    if (
-        (parsed.hostname or "").lower() == "migmig.affilio.ir"
-        and re.search(r"/api/v1/click/b/", parsed.path, re.I)
-    ):
-        encoded_candidates = list(parse_qs(parsed.query).get("b64", []))
-        match = re.search(r"/api/v1/click/b/(.+)$", parsed.path, re.I)
-        if match:
-            path_parts = match.group(1).split("/")
-            if len(path_parts) >= 2:
-                encoded_candidates.append("/".join(path_parts[1:]))
-        for encoded in encoded_candidates:
-            try:
-                decoded = base64.b64decode(encoded, validate=False).decode("utf-8")
-            except Exception:
-                continue
-            if safe_product_url(decoded) == canonical:
-                return True
-    return False
+        and len(destinations) == 1
+        and safe_product_url(destinations[0]) == canonical
+    )
 
 
 def build_click_tracking_link(
