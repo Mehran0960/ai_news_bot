@@ -4955,7 +4955,7 @@ def run(publish=False):
     else:
         link_mode = "no_valid_affilio_tracking_config"
     print(f"affiliate_link_mode={link_mode} manual_product_overrides={len(approved)}")
-    # Read the persistent queue before discovery so offers temporarily missing from one
+    # [scan-now] Read the persistent queue before discovery so offers temporarily missing from one
     # page remain eligible for a live recheck on the next scan.
     state = load_state()
     # Growth attribution/count telemetry is best-effort and must never block regular offer publishing.
