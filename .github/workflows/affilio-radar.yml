@@ -224,7 +224,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [[ "${{ contains(github.event.head_commit.message, '[repair-all-captions]') }}" != "true" && -f affilio_radar/state.json ]]; then
+          # Persist expiry sync/deletion state even during a full caption repair.
+          if [[ -f affilio_radar/state.json ]]; then
             git add affilio_radar/state.json
           fi
           # Commit the report only when actual offer data changed, not on per-scan timestamps.
@@ -259,7 +260,8 @@ jobs:
               subprocess.run(["git", "add", str(report_path)], check=True)
               print("Candidate report has material changes; staging it.")
           else:
-              print("Candidate report only has scan-time changes; leaving it unstaged.")
+              subprocess.run(["git", "restore", "--worktree", "--", str(report_path)], check=True)
+              print("Candidate report only has scan-time changes; restored the worktree copy.")
           PY
           if [[ "${{ contains(github.event.head_commit.message, '[repair-all-captions]') }}" == "true" && -f affilio_radar/affiliate_link_repair_report.json ]]; then
             git add affilio_radar/affiliate_link_repair_report.json
