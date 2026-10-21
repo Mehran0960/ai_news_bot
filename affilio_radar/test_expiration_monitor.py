@@ -286,10 +286,41 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertIn("<b><u>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</u></b>", edited_caption)
         self.assertIn("<b><u>⚡️ ۸۹٪ تخفیف</u></b>", edited_caption)
         self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', edited_caption)
-        self.assertIn("⏳ پایان تخفیف:", edited_caption)
-        self.assertNotIn("مانده به پایان تخفیف", edited_caption)
+        self.assertIn("⏳ ", edited_caption)
+        self.assertIn("مانده به پایان تخفیف", edited_caption)
+        self.assertNotIn("پایان تخفیف:", edited_caption)
+        expected_remaining = monitor._remaining_label(
+            monitor.extract_jalali_deadline(legacy["caption_text"]),
+            now,
+        )
+        self.assertIn(expected_remaining, edited_caption)
         self.assertEqual(result[3], 1)
 
+
+
+    def test_public_history_refreshes_stale_relative_countdown_to_ten_minute_buffer(self):
+        now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)
+        deadline = datetime(2026, 10, 18, 20, 29, tzinfo=timezone.utc)
+        label = monitor._remaining_label(deadline, now)
+        stale = {
+            "message_id": 89,
+            "caption_text": (
+                "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا "
+                "🛍️ محصول نمونه 💚 قیمت ویژه: ۱۱۴٬۰۰۰ تومان "
+                "⚡️ ۸۹٪ تخفیف 🏷️ قیمت اصلی: ۱٬۰۵۶٬۰۰۰ تومان "
+                "⏳ ۲۴ ساعت و ۱۵ دقیقه مانده به پایان تخفیف"
+            ),
+            "caption_html": (
+                "<b>💚 قیمت ویژه: 💰 <u>۱۱۴٬۰۰۰ تومان</u></b> "
+                "<b>⚡️ <u>۸۹٪ تخفیف</u></b>"
+            ),
+        }
+        with patch.object(monitor, "_telegram_edit_caption", return_value="edited") as edit:
+            monitor.audit_public_channel_history({}, now=now, posts={89: stale})
+        edit.assert_called_once()
+        updated = edit.call_args.args[1]
+        self.assertIn(f"{label} مانده به پایان تخفیف", updated)
+        self.assertNotIn("پایان تخفیف:", updated)
 
     def test_posts_are_deleted_ten_minutes_before_deadline_on_both_channels(self):
         now = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
