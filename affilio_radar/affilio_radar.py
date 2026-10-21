@@ -3476,6 +3476,7 @@ def repair_all_published_captions() -> int:
 
                 if isinstance(edit_result, dict) and edit_result.get("not_found"):
                     results[f"{platform}_missing"] += 1
+                    product_repair_success = False
                     print(f"CAPTION_REPAIR_UNAVAILABLE product_id={product_key} platform={platform} message_id={message_id} reason=message_not_found")
                 else:
                     results[f"{platform}_updated"] += 1
@@ -3656,11 +3657,18 @@ def refresh_active_countdowns() -> int:
         ) or record.get("countdown_last_updated_at") or record.get("countdown_refresh_attempted_at")
         last = _parse_utc_datetime(last_raw) if last_raw else None
         elapsed = (now - last).total_seconds() if last else float("inf")
+        deadline_change_raw = record.get("expiry_last_live_sync_at")
+        deadline_change_at = _parse_utc_datetime(deadline_change_raw) if deadline_change_raw else None
+        deadline_changed_since_attempt = bool(
+            deadline_refresh_required
+            and deadline_change_at
+            and (last is None or deadline_change_at > last)
+        )
         if (
             not force_refresh
-            and not deadline_refresh_required
-            and not needs_countdown_caption
+            and last
             and elapsed < COUNTDOWN_REFRESH_INTERVAL_SECONDS
+            and not deadline_changed_since_attempt
         ):
             continue
         try:
