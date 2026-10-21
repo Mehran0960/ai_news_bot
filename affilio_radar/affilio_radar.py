@@ -61,9 +61,12 @@ DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEU
 MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(32, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "24"))))
 # Never publish an offer that gives the audience less than this much time to act.
 MIN_PUBLICATION_RUNWAY_MINUTES = max(30, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "60"))))
-# Keep countdown-format compatibility tests aligned with the same ten-minute safety buffer.
-# Public captions now show an absolute local deadline so static text cannot drift.
+# Captions expire ten minutes before DigiKala's stated end time.
 COUNTDOWN_SAFETY_BUFFER_MINUTES = max(0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10"))))
+# Refresh each visible countdown from the live deal feed before it can drift to the site's deadline.
+COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
+    120, min(600, int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS", "240")))
+)
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
 URGENT_MIN_POST_INTERVAL_MINUTES = 10
@@ -3547,7 +3550,11 @@ def refresh_active_countdowns() -> int:
     if not isinstance(published, dict):
         raise RuntimeError("Published state is not an object")
     now = datetime.now(timezone.utc)
-    terminal_statuses = {"deleted", "already_absent", "expired_marked"}
+    terminal_statuses = {
+        "deleted", "already_absent", "expired_marked",
+        "deadline_unavailable_marked", "deadline_unavailable_delete_failed",
+        "delete_failed", "unknown",
+    }
     active_product_ids = [
         str(product_key)
         for product_key, record in published.items()
@@ -3578,6 +3585,9 @@ def refresh_active_countdowns() -> int:
                 return 0
             live_summary = sync_live_offer_deadlines(published, live_expiries, now)
             live_sync_updated = int(live_summary.get("updated", 0))
+            state["expiry_feed_last_checked_at"] = now.isoformat()
+            state["expiry_feed_last_sync_summary"] = live_summary
+            changed = True
             print(
                 "COUNTDOWN_LIVE_VERIFY "
                 f"active_products={len(active_product_ids)} deadlines_found={len(live_expiries)} "
@@ -3597,16 +3607,18 @@ def refresh_active_countdowns() -> int:
     }
     changed = live_sync_updated > 0
     report_formatted_products = set()
+    repair_report = {}
     try:
         report_path = ROOT / "affiliate_link_repair_report.json"
         if report_path.exists():
             repair_report = json.loads(report_path.read_text(encoding="utf-8"))
-            if int(repair_report.get("caption_deadline_format_version") or 0) >= 2:
+            if int(repair_report.get("caption_deadline_format_version") or 0) >= 3:
                 report_formatted_products = {
-                    str(pid) for pid in repair_report.get("caption_format_v2_products", [])
+                    str(pid) for pid in repair_report.get("caption_format_v3_products", [])
                 }
     except (OSError, ValueError, TypeError):
         report_formatted_products = set()
+        repair_report = {}
 
     due = []
     never_updated = datetime.min.replace(tzinfo=timezone.utc)
@@ -3617,9 +3629,12 @@ def refresh_active_countdowns() -> int:
             continue
         if (
             str(product_key) in report_formatted_products
-            and int(record.get("caption_deadline_format_version") or 0) < 2
+            and int(record.get("caption_deadline_format_version") or 0) < 3
         ):
-            record["caption_deadline_format_version"] = 2
+            record["caption_deadline_format_version"] = 3
+            record["countdown_last_updated_at"] = (
+                repair_report.get("finished_at") or now.isoformat()
+            )
             changed = True
         if record.get("expiry_source") != "digikala_live_deals_feed" or record.get("expiry_estimated"):
             continue
