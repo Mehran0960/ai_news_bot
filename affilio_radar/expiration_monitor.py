@@ -1285,33 +1285,14 @@ def audit_public_channel_history(published, now=None, posts=None):
             continue
         fields = _extract_legacy_caption_fields(caption_text)
         if deadline is None:
-            # Even partially malformed legacy promo captions must not remain live
-            # when their absolute deadline cannot be verified.
-            if not _looks_like_offer_post(caption_text):
-                continue
-            try:
-                outcome = _telegram_delete(int(message_id))
-                if outcome == "deleted":
-                    deleted += 1
-                    print(f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_DELETED message_id={message_id}")
-                elif outcome == "already_absent":
-                    print(f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_ABSENT message_id={message_id}")
-            except Exception as exc:
+            # A missing absolute deadline is not proof that an offer has expired.
+            # Preserve untracked legacy offer posts instead of deleting them during
+            # a temporary feed/parser gap; only a parsed, explicit deadline can
+            # authorize automatic deletion.
+            if _looks_like_offer_post(caption_text):
                 print(
-                    f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_DELETE_FAILED message_id={message_id} "
-                    f"error={type(exc).__name__} detail={str(exc)[:120]!r}"
+                    f"PUBLIC_HISTORY_DEADLINE_UNVERIFIABLE_PRESERVED message_id={message_id}"
                 )
-                try:
-                    result = _telegram_mark_deadline_unavailable(
-                        int(message_id), fields.get("title") or "پیشنهاد ویژه"
-                    )
-                    if result == "edited":
-                        print(f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_MARKED message_id={message_id}")
-                except Exception as mark_exc:
-                    print(
-                        f"PUBLIC_HISTORY_DEADLINE_UNAVAILABLE_FALLBACK_FAILED message_id={message_id} "
-                        f"error={type(mark_exc).__name__} detail={str(mark_exc)[:120]!r}"
-                    )
             continue
         if not fields.get("title") or not fields.get("current_price") or not fields.get("discount_percent"):
             continue
@@ -1338,32 +1319,31 @@ def audit_public_channel_history(published, now=None, posts=None):
 
 
 def _delete_posts_without_verified_deadline(published, now):
-    """Remove posts whose countdown deadline is missing, estimated, or otherwise unverifiable.
+    """Preserve posts when their deadline cannot be verified.
 
-    A post is kept only when it has a future deadline from DigiKala's live offer feed.
-    If deletion temporarily fails, disable the purchase button and retry deletion on
-    later cleanup runs instead of leaving an unverified offer purchasable.
+    Missing or estimated deadlines must never be treated as proof that an offer
+    expired. Explicit, verified deadlines are handled by _delete_expired_posts.
+    The state flag limits logging noise while leaving the record eligible for a
+    later live-feed sync or product-status probe.
     """
     changed = False
     deleted = 0
     marked = 0
-    terminal = {"deleted", "already_absent"}
     platforms = (
-        ("telegram", "telegram_message_id", "expiry_status", "deadline_unavailable_deleted_at",
-         _telegram_delete, _telegram_mark_deadline_unavailable),
-        ("bale", "bale_message_id", "bale_expiry_status", "bale_deadline_unavailable_deleted_at",
-         _bale_delete, _bale_mark_deadline_unavailable),
+        ("telegram", "telegram_message_id", "expiry_status"),
+        ("bale", "bale_message_id", "bale_expiry_status"),
     )
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
         raw_expiry = parse_expiry(rec.get("expires_at"))
+        deadline = None
         if raw_expiry:
             deadline = datetime.fromisoformat(raw_expiry)
             if deadline.tzinfo is None:
                 deadline = deadline.replace(tzinfo=timezone.utc)
             if deadline <= now:
-                # The normal expired-post path handles these and retries its own deletion.
+                # The normal explicit-deadline path handles expiry and retries.
                 continue
             if (
                 rec.get("expiry_source") == "digikala_live_deals_feed"
@@ -1371,63 +1351,23 @@ def _delete_posts_without_verified_deadline(published, now):
             ):
                 continue
 
-        for platform, id_field, status_field, stamp_field, delete_fn, mark_fn in platforms:
+        reason = "missing_deadline" if deadline is None else "deadline_not_verified"
+        for platform, id_field, status_field in platforms:
             raw_id = rec.get(id_field)
-            if not str(raw_id or "").isdigit() or rec.get(status_field) in terminal:
+            if not str(raw_id or "").isdigit():
                 continue
-            message_id = int(raw_id)
-            try:
-                outcome = delete_fn(message_id)
-                rec[status_field] = outcome
-                rec[stamp_field] = now.isoformat()
-                rec.pop(f"{platform}_deadline_unavailable_error", None)
-                changed = True
-                if outcome == "deleted":
-                    deleted += 1
-                print(
-                    f"DEADLINE_UNAVAILABLE_DELETE platform={platform} product_id={pid} "
-                    f"message_id={message_id} outcome={outcome}"
-                )
+            if rec.get(status_field) in {"deleted", "already_absent"}:
                 continue
-            except Exception as exc:
-                delete_error = f"{type(exc).__name__}: {str(exc)[:160]}"
-                rec[f"{platform}_deadline_unavailable_error"] = delete_error
-                changed = True
-                print(
-                    f"DEADLINE_UNAVAILABLE_DELETE_FAILED platform={platform} product_id={pid} "
-                    f"message_id={message_id} error={delete_error!r}"
-                )
-
-            # If already marked, keep retrying deletion without repeatedly editing the caption.
-            if rec.get(status_field) == "deadline_unavailable_marked":
+            marker = f"{platform}_unverified_deadline_preserved_at"
+            if rec.get(marker):
                 continue
-            try:
-                outcome = mark_fn(message_id, rec.get("title"))
-                if outcome == "edited":
-                    rec[status_field] = "deadline_unavailable_marked"
-                    rec[f"{platform}_deadline_unavailable_marked_at"] = now.isoformat()
-                    marked += 1
-                    changed = True
-                    print(
-                        f"DEADLINE_UNAVAILABLE_MARKED platform={platform} product_id={pid} "
-                        f"message_id={message_id} reason=delete_failed"
-                    )
-                elif outcome == "already_absent":
-                    rec[status_field] = "already_absent"
-                    rec[stamp_field] = now.isoformat()
-                    changed = True
-            except Exception as mark_exc:
-                rec[status_field] = "deadline_unavailable_delete_failed"
-                rec[f"{platform}_deadline_unavailable_error"] = (
-                    f"{delete_error}; fallback={type(mark_exc).__name__}: {str(mark_exc)[:120]}"
-                )
-                changed = True
-                print(
-                    f"DEADLINE_UNAVAILABLE_FALLBACK_FAILED platform={platform} product_id={pid} "
-                    f"message_id={message_id} error={type(mark_exc).__name__}"
-                )
+            rec[marker] = now.isoformat()
+            changed = True
+            print(
+                f"DEADLINE_UNVERIFIED_PRESERVED platform={platform} product_id={pid} "
+                f"message_id={int(raw_id)} reason={reason}; awaiting_reverification"
+            )
     return changed, deleted, marked
-
 
 def _delete_expired_posts(published, now, mark_unknown=False):
     """Delete posts whose explicit deadline has passed; return state change and actual deletions."""
