@@ -52,7 +52,7 @@ permissions:
 concurrency:
   # Code-only pushes run CI independently; publication/repair pushes and scheduled jobs
   # still serialize all channel mutations with cleanup and countdown refreshes.
-  group: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[repair-all-captions]') && format('affilio-caption-repair-{0}', github.run_id) || github.event_name == 'push' && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') && !contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && !contains(github.event.head_commit.message, '[growth-tracking-only]') && format('affilio-ci-{0}', github.run_id) || 'affilio-channel-updates' }}
+  group: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') && !contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && !contains(github.event.head_commit.message, '[growth-tracking-only]') && format('affilio-ci-{0}', github.run_id) || 'affilio-channel-updates' }}
   cancel-in-progress: false
 
 jobs:
