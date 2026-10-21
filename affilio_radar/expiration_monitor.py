@@ -793,6 +793,43 @@ def _remaining_label(deadline, now):
     return f"{_persian_number(mins)} دقیقه"
 
 
+def gregorian_to_jalali(gy: int, gm: int, gd: int) -> tuple[int, int, int]:
+    """Convert Gregorian calendar date to Solar Hijri (Jalali) date."""
+    g_days_before_month = (0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334)
+    if not 1 <= gm <= 12 or not 1 <= gd <= 31:
+        raise ValueError("Invalid Gregorian month or day")
+    if gy > 1600:
+        jy = 979
+        gy -= 1600
+    else:
+        jy = 0
+        gy -= 621
+    gy2 = gy + 1 if gm > 2 else gy
+    days = (
+        365 * gy
+        + (gy2 + 3) // 4
+        - (gy2 + 99) // 100
+        + (gy2 + 399) // 400
+        - 80
+        + gd
+        + g_days_before_month[gm - 1]
+    )
+    jy += 33 * (days // 12053)
+    days %= 12053
+    jy += 4 * (days // 1461)
+    days %= 1461
+    if days > 365:
+        jy += (days - 1) // 365
+        days = (days - 1) % 365
+    if days < 186:
+        jm = 1 + days // 31
+        jd = 1 + days % 31
+    else:
+        jm = 7 + (days - 186) // 30
+        jd = 1 + (days - 186) % 30
+    return jy, jm, jd
+
+
 def _format_jalali_deadline(deadline):
     """Render a confirmed UTC deadline as a fixed Persian date and Tehran-local time."""
     if not isinstance(deadline, datetime):
