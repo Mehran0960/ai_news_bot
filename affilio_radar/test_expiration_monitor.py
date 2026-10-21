@@ -88,6 +88,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(summary["updated"], 1)
         self.assertEqual(published["dkp-123"]["expires_at"], "2026-10-20T22:00:00+00:00")
         self.assertEqual(published["dkp-123"]["expiry_last_live_sync_at"], now.isoformat())
+        self.assertTrue(published["dkp-123"]["deadline_caption_refresh_required"])
 
     def test_live_deadline_sync_does_not_resurrect_deleted_messages(self):
         published = {
@@ -285,7 +286,8 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertIn("<b><u>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</u></b>", edited_caption)
         self.assertIn("<b><u>⚡️ ۸۹٪ تخفیف</u></b>", edited_caption)
         self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', edited_caption)
-        self.assertIn("مانده به پایان تخفیف", edited_caption)
+        self.assertIn("⏳ پایان تخفیف:", edited_caption)
+        self.assertNotIn("مانده به پایان تخفیف", edited_caption)
         self.assertEqual(result[3], 1)
 
 
