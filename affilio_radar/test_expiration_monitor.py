@@ -91,6 +91,32 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["dkp-123"]["expiry_last_live_sync_at"], now.isoformat())
         self.assertTrue(published["dkp-123"]["deadline_caption_refresh_required"])
 
+
+    def test_live_deadline_sync_does_not_apply_current_campaign_to_post_history(self):
+        now = datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
+        old_deadline = "2026-10-20T20:30:00+00:00"
+        published = {
+            "dkp-123": {
+                "expires_at": old_deadline,
+                "expiry_source": "digikala_live_deals_feed",
+                "telegram_message_id": 61,
+                "expiry_status": "tracked",
+                "post_history": [{
+                    "expires_at": "2026-10-20T18:00:00+00:00",
+                    "expiry_source": "digikala_live_deals_feed",
+                    "telegram_message_id": 51,
+                    "expiry_status": "tracked",
+                }],
+            }
+        }
+        summary = monitor.sync_live_offer_deadlines(
+            published, {"dkp-123": "2026-10-20T22:00:00+00:00"}, now
+        )
+        self.assertEqual(summary["updated"], 1)
+        self.assertEqual(published["dkp-123"]["expires_at"], "2026-10-20T22:00:00+00:00")
+        self.assertEqual(published["dkp-123"]["post_history"][0]["expires_at"], "2026-10-20T18:00:00+00:00")
+        self.assertNotIn("deadline_caption_refresh_required", published["dkp-123"]["post_history"][0])
+
     def test_live_deadline_sync_does_not_resurrect_deleted_messages(self):
         published = {
             "dkp-deleted": {
