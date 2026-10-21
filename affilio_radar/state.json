@@ -5379,12 +5379,12 @@
       "title": "ماساژور گردن و کمر اسنیلکس مدل last"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-21T21:40:25.241701+00:00",
+  "expiry_feed_last_checked_at": "2026-10-21T21:45:26.200747+00:00",
   "expiry_feed_last_sync_summary": {
-    "matched": 2,
-    "missing_from_feed": 0,
+    "matched": 1,
+    "missing_from_feed": 1,
     "skipped": 168,
-    "unchanged": 2,
+    "unchanged": 1,
     "updated": 0
   },
   "growth_tracking": {
@@ -8205,12 +8205,13 @@
       "aparat_shorts_queued_at": "2026-10-21T21:30:02.594511+00:00",
       "aparat_shorts_upload_status": "queued",
       "aparat_upload_status": "waiting_shorts_uploader",
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deadline_unavailable_delete_failed",
       "bale_message_id": 438,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-21T21:31:02.347320+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T21:40:25.241701+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T21:45:26.200747+00:00",
+      "countdown_refresh_verification_status": "missing_live_deadline",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -8221,9 +8222,10 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-22T20:30:00+00:00",
-      "expiry_estimated": false,
-      "expiry_source": "digikala_live_deals_feed",
-      "expiry_status": "tracked",
+      "expiry_estimated": true,
+      "expiry_reason": "missing_from_current_live_deadline_sources",
+      "expiry_source": "unavailable",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/d27ddec9092c0505de94db549975f44a9199ea1f_1786372478.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
         {
@@ -8271,7 +8273,9 @@
       "youtube_next_attempt_at": "2026-10-21T21:49:40.071007+00:00",
       "youtube_upload_attempts": 2,
       "youtube_upload_started_at": "2026-10-21T21:39:39.535782+00:00",
-      "youtube_upload_status": "retry"
+      "youtube_upload_status": "retry",
+      "deadline_unavailable_deleted_at": "2026-10-21T21:46:34.018739+00:00",
+      "bale_deadline_unavailable_error": "URLError: <urlopen error [Errno -3] Temporary failure in name resolution>; fallback=URLError: <urlopen error [Errno -3] Temporary failure in name resolution>"
     },
     "dkp-20317573": {
       "bale_deadline_unavailable_deleted_at": "2026-10-18T05:13:48.670502+00:00",
@@ -8932,8 +8936,8 @@
       "bale_message_id": null,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-21T21:41:37.273947+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T21:40:25.241701+00:00",
+      "countdown_last_updated_at": "2026-10-21T21:46:30.067832+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T21:45:26.200747+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
