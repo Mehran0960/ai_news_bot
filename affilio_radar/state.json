@@ -5379,13 +5379,13 @@
       "title": "ماساژور گردن و کمر اسنیلکس مدل last"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-21T23:22:10.686055+00:00",
+  "expiry_feed_last_checked_at": "2026-10-21T23:30:24.004166+00:00",
   "expiry_feed_last_sync_summary": {
-    "matched": 10,
-    "missing_from_feed": 3,
+    "matched": 7,
+    "missing_from_feed": 7,
     "skipped": 166,
-    "unchanged": 1,
-    "updated": 9
+    "unchanged": 7,
+    "updated": 0
   },
   "growth_tracking": {
     "daily_member_counts": {
@@ -7386,11 +7386,9 @@
       "bale_unverified_deadline_preserved_at": "2026-10-21T23:06:52.502920+00:00",
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-21T22:56:44.714285+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T23:05:24.504552+00:00",
-      "countdown_refresh_verification_status": "missing_live_deadline",
-      "deadline_caption_refresh_attempted_at": "2026-10-21T22:05:24.195279+00:00",
-      "deadline_caption_refresh_required": true,
+      "countdown_last_updated_at": "2026-10-21T23:31:34.275638+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
+      "deadline_caption_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "delivery_attempts": {
         "bale": 3,
         "telegram": 1
@@ -7604,8 +7602,8 @@
       "bale_message_id": 443,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-21T23:06:48.358262+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T23:05:24.504552+00:00",
+      "countdown_last_updated_at": "2026-10-21T23:31:55.614869+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "deadline_caption_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
       "delivery_attempts": {
         "bale": 2,
@@ -7918,8 +7916,9 @@
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-21T22:56:47.950412+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T23:05:24.504552+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "countdown_refresh_verification_status": "missing_live_deadline",
+      "deadline_caption_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "deadline_caption_refresh_required": true,
       "delivery_attempts": {
         "bale": 2,
@@ -7932,11 +7931,12 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-22T20:30:00+00:00",
-      "expiry_estimated": false,
+      "expiry_estimated": true,
       "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
-      "expiry_last_probed_at": "2026-10-21T23:06:52.502920+00:00",
-      "expiry_last_product_check_at": "2026-10-21T23:06:52.502920+00:00",
-      "expiry_source": "digikala_live_deals_feed",
+      "expiry_last_probed_at": "2026-10-21T23:31:59.230956+00:00",
+      "expiry_last_product_check_at": "2026-10-21T23:31:59.230956+00:00",
+      "expiry_reason": "missing_from_current_live_deadline_sources",
+      "expiry_source": "unavailable",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/ed417ec5ad49aa9413df8f4b49c4252289ff06e1_1786372477.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 299000,
@@ -8790,8 +8790,9 @@
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-21T22:56:19.450204+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T23:05:24.504552+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "countdown_refresh_verification_status": "missing_live_deadline",
+      "deadline_caption_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "deadline_caption_refresh_required": true,
       "delivery_attempts": {
         "bale": 1,
@@ -8803,11 +8804,12 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-22T20:30:00+00:00",
-      "expiry_estimated": false,
+      "expiry_estimated": true,
       "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
-      "expiry_last_probed_at": "2026-10-21T23:06:52.502920+00:00",
+      "expiry_last_probed_at": "2026-10-21T23:31:59.230956+00:00",
       "expiry_last_product_check_at": "2026-10-21T23:06:52.502920+00:00",
-      "expiry_source": "digikala_live_deals_feed",
+      "expiry_reason": "missing_from_current_live_deadline_sources",
+      "expiry_source": "unavailable",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/b22371c854fed8ca0517eccbfdec479c66ef4358_1763365983.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
@@ -8870,8 +8872,9 @@
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-21T22:56:51.792637+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T23:05:24.504552+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "countdown_refresh_verification_status": "missing_live_deadline",
+      "deadline_caption_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "deadline_caption_refresh_required": true,
       "delivery_attempts": {
         "bale": 3,
@@ -8884,11 +8887,12 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-22T20:30:00+00:00",
-      "expiry_estimated": false,
+      "expiry_estimated": true,
       "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
-      "expiry_last_probed_at": "2026-10-21T23:06:52.502920+00:00",
+      "expiry_last_probed_at": "2026-10-21T23:31:59.230956+00:00",
       "expiry_last_product_check_at": "2026-10-21T23:06:52.502920+00:00",
-      "expiry_source": "digikala_live_deals_feed",
+      "expiry_reason": "missing_from_current_live_deadline_sources",
+      "expiry_source": "unavailable",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/22afa1f4914f081dda85c91a282f54004645ecaf_1786372496.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "post_history": [
@@ -9419,8 +9423,9 @@
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-21T22:56:33.491918+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T23:05:24.504552+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "countdown_refresh_verification_status": "missing_live_deadline",
+      "deadline_caption_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "deadline_caption_refresh_required": true,
       "delivery_attempts": {
         "bale": 1,
@@ -9432,10 +9437,11 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-22T20:30:00+00:00",
-      "expiry_estimated": false,
+      "expiry_estimated": true,
       "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
-      "expiry_last_probed_at": "2026-10-21T23:06:52.502920+00:00",
-      "expiry_source": "digikala_live_deals_feed",
+      "expiry_last_probed_at": "2026-10-21T23:31:59.230956+00:00",
+      "expiry_reason": "missing_from_current_live_deadline_sources",
+      "expiry_source": "unavailable",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/a9fffee4d21ea0f6a5e765b2ff435d4c6c318ef3_1786372499.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 299000,
@@ -9463,6 +9469,8 @@
       "bale_message_id": 456,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
+      "countdown_refresh_verification_status": "missing_live_deadline",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -9473,8 +9481,9 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-23T20:30:00+00:00",
-      "expiry_estimated": false,
-      "expiry_source": "digikala_live_deals_feed",
+      "expiry_estimated": true,
+      "expiry_reason": "missing_from_current_live_deadline_sources",
+      "expiry_source": "unavailable",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/16ed6fb6e42d118402d2b76104f6b1001bec6275_1767519045.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 690000,
       "posted_discount_percent": 78,
@@ -9484,7 +9493,13 @@
       "title": "ست بلوز آستین تا روی شانه و شلوارک راحتی نوزادی وان بای وان مدل 6602",
       "ts": 1792625326.6737676,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expiry_status": "tracked_estimated",
+      "bale_expiry_status": "tracked_estimated",
+      "telegram_unverified_deadline_preserved_at": "2026-10-21T23:31:59.230956+00:00",
+      "bale_unverified_deadline_preserved_at": "2026-10-21T23:31:59.230956+00:00",
+      "expiry_last_probed_at": "2026-10-21T23:31:59.230956+00:00",
+      "expiry_last_product_check_at": "2026-10-21T23:31:59.230956+00:00"
     },
     "dkp-21151527": {
       "bale_expired_deleted_at": "2026-10-20T20:25:39.223739+00:00",
@@ -9525,10 +9540,9 @@
       "bale_unverified_deadline_preserved_at": "2026-10-21T23:06:52.502920+00:00",
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-21T22:56:36.708839+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T23:05:24.504552+00:00",
-      "countdown_refresh_verification_status": "missing_live_deadline",
-      "deadline_caption_refresh_required": true,
+      "countdown_last_updated_at": "2026-10-21T23:31:44.976114+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
+      "deadline_caption_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -9676,10 +9690,9 @@
       "bale_unverified_deadline_preserved_at": "2026-10-21T23:06:52.502920+00:00",
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-21T22:56:26.372166+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T23:05:24.504552+00:00",
-      "countdown_refresh_verification_status": "missing_live_deadline",
-      "deadline_caption_refresh_required": true,
+      "countdown_last_updated_at": "2026-10-21T23:31:37.912352+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
+      "deadline_caption_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -11906,8 +11919,8 @@
       "bale_message_id": 453,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-21T23:06:44.494556+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T23:05:24.504552+00:00",
+      "countdown_last_updated_at": "2026-10-21T23:31:51.990440+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -12449,8 +12462,9 @@
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
       "countdown_last_updated_at": "2026-10-21T22:56:22.983691+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T23:05:24.504552+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "countdown_refresh_verification_status": "missing_live_deadline",
+      "deadline_caption_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "deadline_caption_refresh_required": true,
       "delivery_attempts": {
         "bale": 1,
@@ -12462,9 +12476,10 @@
       },
       "delivery_version": 1,
       "expires_at": "2026-10-23T20:30:00+00:00",
-      "expiry_estimated": false,
+      "expiry_estimated": true,
       "expiry_last_live_sync_at": "2026-10-21T23:22:10.686055+00:00",
-      "expiry_source": "digikala_live_deals_feed",
+      "expiry_reason": "missing_from_current_live_deadline_sources",
+      "expiry_source": "unavailable",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/0d26b3f0c7782430deb9a770d1551fbc5d5f4ff3_1784812871.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 299000,
@@ -12483,7 +12498,9 @@
       "youtube_next_attempt_at": "2026-10-21T23:06:31.329890+00:00",
       "youtube_upload_attempts": 3,
       "youtube_upload_started_at": "2026-10-21T22:46:31.038163+00:00",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "expiry_last_probed_at": "2026-10-21T23:31:59.230956+00:00",
+      "expiry_last_product_check_at": "2026-10-21T23:31:59.230956+00:00"
     },
     "dkp-22376509": {
       "aparat_expiry_attempts": 44,
@@ -12666,6 +12683,8 @@
       "bale_message_id": 455,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-21T23:31:48.473684+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -18855,10 +18874,9 @@
       "bale_unverified_deadline_preserved_at": "2026-10-21T23:06:52.502920+00:00",
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-21T22:56:30.287448+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T23:05:24.504552+00:00",
-      "countdown_refresh_verification_status": "missing_live_deadline",
-      "deadline_caption_refresh_required": true,
+      "countdown_last_updated_at": "2026-10-21T23:31:41.384114+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
+      "deadline_caption_refresh_attempted_at": "2026-10-21T23:30:24.004166+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
