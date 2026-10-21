@@ -986,6 +986,7 @@ class AffilioRadarTests(unittest.TestCase):
             "original_price": 700_000,
             "discount_percent": 29,
             "deal_expires_at": "2026-12-16T20:30:00+00:00",
+            "_countdown_now": datetime(2026, 12, 15, 20, 0, tzinfo=timezone.utc),
             "rating": 4.4,
             "review_count": 1243,
         }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
@@ -997,9 +998,14 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("💰", caption)
         self.assertNotIn("<u>", caption)
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
-        expected_deadline = format_deal_expiry("2026-12-16T20:30:00+00:00")
-        self.assertIn(f"<b>⏳ پایان تخفیف: {expected_deadline}</b>", caption)
-        self.assertNotIn("مانده به پایان تخفیف", caption)
+        expected_countdown = format_remaining_time(
+            "2026-12-16T20:30:00+00:00",
+            now=datetime(2026, 12, 15, 20, 0, tzinfo=timezone.utc),
+            safety_buffer_minutes=10,
+        )
+        self.assertIn(f"<b>⏳ {expected_countdown}</b>", caption)
+        self.assertIn("۲۴ ساعت و ۲۰ دقیقه مانده به پایان تخفیف", caption)
+        self.assertNotIn("پایان تخفیف:", caption)
         self.assertIn("<b>👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.</b>", caption)
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', caption)
         self.assertLess(caption.index("عضویت در کانال"), caption.index("برای خرید از دیجی‌کالا"))
@@ -1187,12 +1193,11 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(state["published"]["dkp-15970075"]["expires_at"], expiry)
         self.assertEqual(edit_telegram.call_count, 1)
         self.assertEqual(edit_bale.call_count, 1)
-        expected_deadline = format_deal_expiry(expiry)
-        self.assertIn(f"⏳ پایان تخفیف: {expected_deadline}", edit_telegram.call_args.args[1])
-        self.assertIn(f"⏳ پایان تخفیف: {expected_deadline}", edit_bale.call_args.args[1])
-        self.assertNotIn("مانده به پایان تخفیف", edit_telegram.call_args.args[1])
-        self.assertNotIn("مانده به پایان تخفیف", edit_bale.call_args.args[1])
-        self.assertEqual(state["published"]["dkp-15970075"]["caption_deadline_format_version"], 2)
+        self.assertIn("مانده به پایان تخفیف", edit_telegram.call_args.args[1])
+        self.assertIn("مانده به پایان تخفیف", edit_bale.call_args.args[1])
+        self.assertNotIn("پایان تخفیف:", edit_telegram.call_args.args[1])
+        self.assertNotIn("پایان تخفیف:", edit_bale.call_args.args[1])
+        self.assertEqual(state["published"]["dkp-15970075"]["caption_deadline_format_version"], 3)
         self.assertNotIn("deadline_caption_refresh_required", state["published"]["dkp-15970075"])
         self.assertIn("عضویت در کانال OfferChin", edit_telegram.call_args.args[1])
         self.assertIn("عضویت در کانال OfferChin", edit_bale.call_args.args[1])
