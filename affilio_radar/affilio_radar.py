@@ -3470,6 +3470,8 @@ def repair_all_published_captions() -> int:
     successful = (
         results["telegram_failed"] == 0
         and results["bale_failed"] == 0
+        and results["telegram_missing"] == 0
+        and results["bale_missing"] == 0
         and target_count > 0
     )
     report = {
