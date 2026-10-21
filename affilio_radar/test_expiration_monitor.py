@@ -469,6 +469,36 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["dkp-22104577"]["post_history"][0]["expiry_status"], "deleted")
         self.assertEqual(published["dkp-22104577"]["post_history"][0]["bale_expiry_status"], "deleted")
 
+
+    def test_expired_post_disables_buy_button_when_delete_fails_and_retries(self):
+        now = datetime.now(timezone.utc)
+        published = {
+            "dkp-expired": {
+                "title": "محصول منقضی",
+                "telegram_message_id": 991,
+                "expires_at": (now - timedelta(minutes=5)).isoformat(),
+                "expiry_status": "tracked",
+            }
+        }
+        with (
+            patch.object(
+                monitor, "_telegram_delete",
+                side_effect=[RuntimeError("temporary delete failure"), "deleted"],
+            ) as deletion,
+            patch.object(monitor, "_telegram_mark_expired", return_value="edited") as mark,
+        ):
+            changed, deleted = monitor._delete_expired_posts(published, now)
+            self.assertTrue(changed)
+            self.assertEqual(deleted, 0)
+            self.assertEqual(published["dkp-expired"]["expiry_status"], "expired_marked")
+            mark.assert_called_once_with(991, "محصول منقضی")
+            changed, deleted = monitor._delete_expired_posts(
+                published, now + timedelta(minutes=5)
+            )
+        self.assertEqual(deletion.call_count, 2)
+        self.assertEqual(deleted, 1)
+        self.assertEqual(published["dkp-expired"]["expiry_status"], "deleted")
+
     def test_expired_post_is_deleted_and_persisted(self):
         with tempfile.TemporaryDirectory() as temp:
             state_path = Path(temp) / "state.json"
