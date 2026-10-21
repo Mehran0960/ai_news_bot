@@ -909,6 +909,11 @@ def _build_legacy_repaired_caption(fields, deadline, now):
             parts += ["", f"<b>⏳ {remaining_label}</b>"]
         else:
             parts += ["", f"<b>⏳ {remaining_label} مانده به پایان تخفیف</b>"]
+        # Untracked legacy posts have no state.json record, so preserve an absolute
+        # deadline line for the history auditor to keep verifying/removing them later.
+        deadline_label = _format_jalali_deadline(deadline)
+        if deadline_label:
+            parts.append(f"<b>📅 پایان تخفیف: {deadline_label}</b>")
     parts += [
         "",
         '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>',
