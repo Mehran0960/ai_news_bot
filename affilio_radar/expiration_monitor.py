@@ -1483,7 +1483,14 @@ def _delete_expired_posts(published, now, mark_unknown=False):
                 rec[status_field] = "delete_failed"
                 try:
                     fallback = mark_fn(int(raw_id), rec.get("title") or "پیشنهاد ویژه")
-                    if fallback == "edited":
+                    fallback_succeeded = (
+                        fallback == "edited"
+                        or (
+                            isinstance(fallback, dict)
+                            and not fallback.get("not_found")
+                        )
+                    )
+                    if fallback_succeeded:
                         rec[status_field] = "expired_marked"
                         rec[f"{platform}_expired_marked_at"] = now.isoformat()
                         print(
