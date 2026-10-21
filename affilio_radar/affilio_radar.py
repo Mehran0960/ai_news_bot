@@ -173,35 +173,6 @@ AFFILIO_REDIRECT_PLACEHOLDER = "{redirect_to}"
 DEFAULT_AFFILIO_PUBLIC_LINK_TEMPLATE = "https://aflo.ir/QekEYTRg?p={redirect_to}"
 
 
-def _build_direct_affilio_link(canonical: str) -> str:
-    """Build the direct DigiKala URL form shown in the user's confirmed final link.
-
-    The product path is canonicalized separately; publisher/media tracking
-    parameters come from the user's own URL. Do not synthesize or randomize affid.
-    """
-    if (
-        not canonical
-        or not re.fullmatch(r"\d+", AFFILIO_UTM_SOURCE)
-        or not re.fullmatch(r"\d+", AFFILIO_UTM_ID)
-        or AFFILIO_UTM_MEDIUM != "Affilio"
-    ):
-        return ""
-    try:
-        decoded_affid = base64.b64decode(AFFILIO_DIGIKALA_AFFID, validate=True).decode("ascii")
-    except (ValueError, UnicodeDecodeError):
-        return ""
-    if not re.fullmatch(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", decoded_affid):
-        return ""
-    parts = urlsplit(canonical)
-    query = urlencode([
-        ("utm_source", AFFILIO_UTM_SOURCE),
-        ("utm_medium", AFFILIO_UTM_MEDIUM),
-        ("utm_id", AFFILIO_UTM_ID),
-        ("affid", AFFILIO_DIGIKALA_AFFID),
-    ])
-    return urlunsplit((parts.scheme, parts.netloc, parts.path, query, ""))
-
-
 def build_affilio_tracking_link(product_url: str, template: str | None = None) -> str:
     """Build a per-product tracking link from the publisher's reusable Affilio template.
 
@@ -216,7 +187,7 @@ def build_affilio_tracking_link(product_url: str, template: str | None = None) -
     template = (template if template is not None else AFFILIO_LINK_TEMPLATE).strip()
     if not template:
         template = DEFAULT_AFFILIO_PUBLIC_LINK_TEMPLATE
-    if any(ch in template for ch in ("\\n", "\\r", "\\t", " ")):
+    if any(ch in template for ch in ("\n", "\r", "\t", " ")):
         return ""
 
     # Official reusable public-link format supplied by the user:
