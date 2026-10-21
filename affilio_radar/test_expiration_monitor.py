@@ -91,6 +91,32 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["dkp-123"]["expiry_last_live_sync_at"], now.isoformat())
         self.assertTrue(published["dkp-123"]["deadline_caption_refresh_required"])
 
+
+    def test_live_deadline_sync_does_not_apply_current_campaign_to_post_history(self):
+        now = datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
+        old_deadline = "2026-10-20T20:30:00+00:00"
+        published = {
+            "dkp-123": {
+                "expires_at": old_deadline,
+                "expiry_source": "digikala_live_deals_feed",
+                "telegram_message_id": 61,
+                "expiry_status": "tracked",
+                "post_history": [{
+                    "expires_at": "2026-10-20T18:00:00+00:00",
+                    "expiry_source": "digikala_live_deals_feed",
+                    "telegram_message_id": 51,
+                    "expiry_status": "tracked",
+                }],
+            }
+        }
+        summary = monitor.sync_live_offer_deadlines(
+            published, {"dkp-123": "2026-10-20T22:00:00+00:00"}, now
+        )
+        self.assertEqual(summary["updated"], 1)
+        self.assertEqual(published["dkp-123"]["expires_at"], "2026-10-20T22:00:00+00:00")
+        self.assertEqual(published["dkp-123"]["post_history"][0]["expires_at"], "2026-10-20T18:00:00+00:00")
+        self.assertNotIn("deadline_caption_refresh_required", published["dkp-123"]["post_history"][0])
+
     def test_live_deadline_sync_does_not_resurrect_deleted_messages(self):
         published = {
             "dkp-deleted": {
@@ -287,10 +313,37 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertIn("<b><u>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</u></b>", edited_caption)
         self.assertIn("<b><u>⚡️ ۸۹٪ تخفیف</u></b>", edited_caption)
         self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', edited_caption)
-        self.assertIn("⏳ پایان تخفیف:", edited_caption)
-        self.assertNotIn("مانده به پایان تخفیف", edited_caption)
+        self.assertIn("⏳ ", edited_caption)
+        self.assertIn("مانده به پایان تخفیف", edited_caption)
+        self.assertIn("📅 پایان تخفیف:", edited_caption)
         self.assertEqual(result[3], 1)
 
+
+
+    def test_public_history_refreshes_stale_relative_countdown_and_keeps_source_deadline(self):
+        now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)
+        stale_caption = {
+            "message_id": 89,
+            "caption_text": (
+                "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا "
+                "🛍️ محصول نمونه 💚 قیمت ویژه: ۱۱۴٬۰۰۰ تومان "
+                "⚡️ ۸۹٪ تخفیف 🏷️ قیمت اصلی: ۱٬۰۵۶٬۰۰۰ تومان "
+                "⏳ ۲۴ ساعت و ۱۵ دقیقه مانده به پایان تخفیف "
+                "📅 پایان تخفیف: یکشنبه ۲۶ مهر ۱۴۰۵، ساعت ۲۳:۵۹"
+            ),
+            "caption_html": (
+                "<b>💚 قیمت ویژه: 💰 <u>۱۱۴٬۰۰۰ تومان</u></b> "
+                "<b>⚡️ <u>۸۹٪ تخفیف</u></b>"
+            ),
+        }
+        deadline = monitor.extract_jalali_deadline(stale_caption["caption_text"])
+        expected = monitor._remaining_label(deadline, now)
+        with patch.object(monitor, "_telegram_edit_caption", return_value="edited") as edit:
+            monitor.audit_public_channel_history({}, now=now, posts={89: stale_caption})
+        edit.assert_called_once()
+        updated = edit.call_args.args[1]
+        self.assertIn(f"{expected} مانده به پایان تخفیف", updated)
+        self.assertIn("📅 پایان تخفیف:", updated)
 
     def test_posts_are_deleted_ten_minutes_before_deadline_on_both_channels(self):
         now = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
@@ -441,6 +494,66 @@ class ExpirationMonitorTests(unittest.TestCase):
         bale_delete.assert_called_once_with(76)
         self.assertEqual(published["dkp-22104577"]["post_history"][0]["expiry_status"], "deleted")
         self.assertEqual(published["dkp-22104577"]["post_history"][0]["bale_expiry_status"], "deleted")
+
+
+    def test_expired_post_disables_buy_button_when_delete_fails_and_retries(self):
+        now = datetime.now(timezone.utc)
+        published = {
+            "dkp-expired": {
+                "title": "محصول منقضی",
+                "telegram_message_id": 991,
+                "expires_at": (now - timedelta(minutes=5)).isoformat(),
+                "expiry_status": "tracked",
+            }
+        }
+        with (
+            patch.object(
+                monitor, "_telegram_delete",
+                side_effect=[RuntimeError("temporary delete failure"), "deleted"],
+            ) as deletion,
+            patch.object(monitor, "_telegram_mark_expired", return_value="edited") as mark,
+        ):
+            changed, deleted = monitor._delete_expired_posts(published, now)
+            self.assertTrue(changed)
+            self.assertEqual(deleted, 0)
+            self.assertEqual(published["dkp-expired"]["expiry_status"], "expired_marked")
+            mark.assert_called_once_with(991, "محصول منقضی")
+            changed, deleted = monitor._delete_expired_posts(
+                published, now + timedelta(minutes=5)
+            )
+        self.assertEqual(deletion.call_count, 2)
+        self.assertEqual(deleted, 1)
+        self.assertEqual(published["dkp-expired"]["expiry_status"], "deleted")
+
+
+    def test_expired_post_disables_buy_button_when_delete_fails_and_retries(self):
+        now = datetime.now(timezone.utc)
+        published = {
+            "dkp-expired": {
+                "title": "محصول منقضی",
+                "telegram_message_id": 991,
+                "expires_at": (now - timedelta(minutes=5)).isoformat(),
+                "expiry_status": "tracked",
+            }
+        }
+        with (
+            patch.object(
+                monitor, "_telegram_delete",
+                side_effect=[RuntimeError("temporary delete failure"), "deleted"],
+            ) as deletion,
+            patch.object(monitor, "_telegram_mark_expired", return_value="edited") as mark,
+        ):
+            changed, deleted = monitor._delete_expired_posts(published, now)
+            self.assertTrue(changed)
+            self.assertEqual(deleted, 0)
+            self.assertEqual(published["dkp-expired"]["expiry_status"], "expired_marked")
+            mark.assert_called_once_with(991, "محصول منقضی")
+            changed, deleted = monitor._delete_expired_posts(
+                published, now + timedelta(minutes=5)
+            )
+        self.assertEqual(deletion.call_count, 2)
+        self.assertEqual(deleted, 1)
+        self.assertEqual(published["dkp-expired"]["expiry_status"], "deleted")
 
     def test_expired_post_is_deleted_and_persisted(self):
         with tempfile.TemporaryDirectory() as temp:

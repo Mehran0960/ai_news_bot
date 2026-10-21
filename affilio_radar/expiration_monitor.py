@@ -409,8 +409,14 @@ def _money_to_toman(raw, is_toman):
 def sync_live_offer_deadlines(published, live_expiries, now):
     """Reconcile every still-visible tracked post with the latest verified deal-card deadline."""
     summary = {"matched": 0, "updated": 0, "unchanged": 0, "missing_from_feed": 0, "skipped": 0}
-    terminal = {"deleted", "already_absent"}
-    for pid, rec in _iter_post_records(published):
+    terminal = {
+        "deleted", "already_absent", "expired_marked",
+        "deadline_unavailable_marked", "deadline_unavailable_delete_failed",
+        "delete_failed", "unknown",
+    }
+    # DigiKala's current feed represents the current campaign only. Never copy its
+    # deadline onto post_history records from earlier campaigns of the same product.
+    for pid, rec in (published or {}).items():
         if not isinstance(rec, dict):
             summary["skipped"] += 1
             continue
@@ -901,9 +907,16 @@ def _build_legacy_repaired_caption(fields, deadline, now):
     if original and current and original > current:
         parts += ["", f"<b>🏷️ قیمت اصلی: <s>{_persian_number(original)} تومان</s></b>"]
     if deadline:
+        remaining_label = _remaining_label(deadline, now)
+        if remaining_label == "مهلت آفر به پایان رسیده":
+            parts += ["", f"<b>⏳ {remaining_label}</b>"]
+        else:
+            parts += ["", f"<b>⏳ {remaining_label} مانده به پایان تخفیف</b>"]
+        # These public-history posts have no state record, so preserve a parseable
+        # absolute deadline too; the auditor uses it for future correction/deletion.
         deadline_label = _format_jalali_deadline(deadline)
         if deadline_label:
-            parts += ["", f"<b>⏳ پایان تخفیف: {deadline_label}</b>"]
+            parts.append(f"<b>📅 پایان تخفیف: {deadline_label}</b>")
     parts += [
         "",
         '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>',
@@ -917,8 +930,8 @@ def _build_legacy_repaired_caption(fields, deadline, now):
     return caption
 
 
-def _caption_needs_repair(caption_html, caption_text, fields, deadline):
-    """Avoid re-editing a legacy message once the desired formatting is already present."""
+def _caption_needs_repair(caption_html, caption_text, fields, deadline, now=None):
+    """Repair legacy formatting and refresh relative countdowns that have drifted."""
     if "عضویت در کانال OfferChin" not in caption_text or "t.me/OfferChin" in caption_text:
         return True
     soup = BeautifulSoup(caption_html or "", "html.parser")
@@ -933,17 +946,23 @@ def _caption_needs_repair(caption_html, caption_text, fields, deadline):
         expected_discount = _persian_number(discount) + "٪"
         if not any("⚡️" in value and "تخفیف" in value and expected_discount in value for value in underline_texts):
             return True
-    # Relative countdowns are stale by definition; migrate them to a fixed deadline.
-    if deadline and (
-        "مانده به پایان تخفیف" in caption_text
-        or "زمان باقی‌مانده" in caption_text
-    ):
-        return True
-    # Keep a correctly formatted absolute deadline as-is instead of editing it on every audit.
-    if deadline and not re.search(
-        r"پایان\s*تخفیف\s*[:：].*ساعت\s*[۰-۹0-9]{1,2}[:٫][۰-۹0-9]{2}",
-        caption_text,
-    ):
+    if deadline:
+        expected = _remaining_label(deadline, now or datetime.now(timezone.utc))
+        expected_line = (
+            expected
+            if expected == "مهلت آفر به پایان رسیده"
+            else f"{expected} مانده به پایان تخفیف"
+        )
+        # The displayed timer must equal the current verified deadline minus ten minutes.
+        if expected_line not in caption_text:
+            return True
+        # Keep a parseable absolute deadline for the public-history auditor.
+        if "📅 پایان تخفیف:" not in caption_text and not re.search(
+            r"پایان\s*تخفیف\s*[:：].*ساعت\s*[۰-۹0-9]{1,2}[:٫][۰-۹0-9]{2}",
+            caption_text,
+        ):
+            return True
+    elif "پایان تخفیف" in caption_text or "مانده به پایان تخفیف" in caption_text:
         return True
     return False
 
@@ -1080,6 +1099,47 @@ def _telegram_mark_deadline_unavailable(message_id, title):
         '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>'
     )
     return _telegram_edit_caption(message_id, caption, remove_purchase_button=True)
+
+
+def _bale_mark_expired(message_id, title):
+    """Disable a Bale purchase button when deletion of an expired post fails."""
+    if not BALE_BOT_TOKEN:
+        raise RuntimeError("BALE_BOT_TOKEN missing")
+    if not BALE_CHANNEL_ID:
+        raise RuntimeError("BALE_CHANNEL_ID missing")
+    safe_title = str(title or "پیشنهاد ویژه").strip()[:140]
+    caption = (
+        "⛔ مهلت این آفر به پایان رسیده و دکمهٔ خرید غیرفعال شده است.\n\n"
+        f"🛍️ {safe_title}\n\n"
+        "[عضویت در کانال OfferChin](https://ble.ir/OfferChin)"
+    )
+    payload = {
+        "chat_id": BALE_CHANNEL_ID,
+        "message_id": int(message_id),
+        "caption": caption,
+        "reply_markup": json.dumps({"inline_keyboard": []}),
+    }
+    request = Request(
+        f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/editMessageCaption",
+        data=urlencode(payload).encode("utf-8"),
+        method="POST",
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    _pace_bot_api()
+    try:
+        with urlopen(request, timeout=HTTP_TIMEOUT) as response:
+            result = _decode_delete_response(response)
+    except HTTPError as exc:
+        description = _delete_error_description(exc)
+        if _is_message_absent(description):
+            return "already_absent"
+        raise RuntimeError(description) from None
+    if result.get("ok") is True:
+        return "edited"
+    description = str(result.get("description") or "Bale editMessageCaption failed")
+    if _is_message_absent(description):
+        return "already_absent"
+    raise RuntimeError(description[:180] or "Bale editMessageCaption failed")
 
 
 def _bale_mark_deadline_unavailable(message_id, title):
@@ -1255,7 +1315,7 @@ def audit_public_channel_history(published, now=None, posts=None):
             continue
         if not fields.get("title") or not fields.get("current_price") or not fields.get("discount_percent"):
             continue
-        if not _caption_needs_repair(caption_html, caption_text, fields, deadline):
+        if not _caption_needs_repair(caption_html, caption_text, fields, deadline, now):
             continue
         caption = _build_legacy_repaired_caption(fields, deadline, now)
         try:
@@ -1401,9 +1461,9 @@ def _delete_expired_posts(published, now, mark_unknown=False):
                 rec["bale_expiry_status"] = "tracked_estimated" if rec.get("expiry_estimated") else "tracked"
                 changed = True
             continue
-        for platform, id_field, status_field, timestamp_field, delete_fn in (
-            ("telegram", "telegram_message_id", "expiry_status", "expired_deleted_at", _telegram_delete),
-            ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete),
+        for platform, id_field, status_field, timestamp_field, delete_fn, mark_fn in (
+            ("telegram", "telegram_message_id", "expiry_status", "expired_deleted_at", _telegram_delete, _telegram_mark_expired),
+            ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete, _bale_mark_expired),
         ):
             raw_id = rec.get(id_field)
             if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent"}:
@@ -1420,9 +1480,33 @@ def _delete_expired_posts(published, now, mark_unknown=False):
                     f"outcome={outcome} expiry={expiry} remove_at={removal_deadline.isoformat()}"
                 )
             except Exception as exc:
-                rec[status_field] = "delete_failed"
                 error_text = str(exc)[:180]
                 rec[f"{platform}_expiry_last_delete_error"] = f"{type(exc).__name__}: {error_text}"
+                rec[status_field] = "delete_failed"
+                try:
+                    fallback = mark_fn(int(raw_id), rec.get("title") or "پیشنهاد ویژه")
+                    fallback_succeeded = (
+                        fallback == "edited"
+                        or (
+                            isinstance(fallback, dict)
+                            and not fallback.get("not_found")
+                        )
+                    )
+                    if fallback_succeeded:
+                        rec[status_field] = "expired_marked"
+                        rec[f"{platform}_expired_marked_at"] = now.isoformat()
+                        print(
+                            f"EXPIRY_POST_MARKED platform={platform} product_id={pid} "
+                            f"message_id={raw_id} reason=delete_failed_purchase_button_disabled"
+                        )
+                    elif fallback == "already_absent":
+                        rec[status_field] = "already_absent"
+                    else:
+                        rec[f"{platform}_expiry_mark_error"] = "unexpected_fallback_result"
+                except Exception as mark_exc:
+                    rec[f"{platform}_expiry_mark_error"] = (
+                        f"{type(mark_exc).__name__}: {str(mark_exc)[:120]}"
+                    )
                 changed = True
                 print(f"EXPIRY_DELETE_FAILED platform={platform} product_id={pid} message_id={raw_id} error={type(exc).__name__} detail={error_text[:160]!r}")
     return changed, deleted
