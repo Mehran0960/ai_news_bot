@@ -5379,12 +5379,12 @@
       "title": "ماساژور گردن و کمر اسنیلکس مدل last"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-21T22:42:11.158030+00:00",
+  "expiry_feed_last_checked_at": "2026-10-21T22:55:24.106258+00:00",
   "expiry_feed_last_sync_summary": {
-    "matched": 5,
-    "missing_from_feed": 4,
+    "matched": 11,
+    "missing_from_feed": 0,
     "skipped": 167,
-    "unchanged": 5,
+    "unchanged": 11,
     "updated": 0
   },
   "growth_tracking": {
@@ -7439,8 +7439,8 @@
       "bale_message_id": 442,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-21T22:05:57.800686+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T22:05:24.195279+00:00",
+      "countdown_last_updated_at": "2026-10-21T22:56:44.714285+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
       "deadline_caption_refresh_attempted_at": "2026-10-21T22:05:24.195279+00:00",
       "delivery_attempts": {
         "bale": 3,
@@ -7655,9 +7655,9 @@
       "bale_message_id": 443,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
-      "countdown_refresh_attempted_at": "2026-10-21T22:05:24.195279+00:00",
-      "countdown_refresh_verification_status": "missing_live_deadline",
-      "deadline_caption_refresh_required": true,
+      "countdown_last_updated_at": "2026-10-21T22:56:15.802479+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
+      "deadline_caption_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
       "delivery_attempts": {
         "bale": 2,
         "telegram": 1
@@ -7967,8 +7967,8 @@
       "bale_message_id": 440,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-21T22:06:01.438816+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T22:05:24.195279+00:00",
+      "countdown_last_updated_at": "2026-10-21T22:56:47.950412+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
       "delivery_attempts": {
         "bale": 2,
         "telegram": 1
@@ -8832,6 +8832,8 @@
       "bale_message_id": 441,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-21T22:56:19.450204+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -8903,8 +8905,8 @@
       "bale_message_id": 446,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
-      "countdown_last_updated_at": "2026-10-21T22:06:05.012995+00:00",
-      "countdown_refresh_attempted_at": "2026-10-21T22:05:24.195279+00:00",
+      "countdown_last_updated_at": "2026-10-21T22:56:51.792637+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
       "delivery_attempts": {
         "bale": 3,
         "telegram": 1
@@ -9402,6 +9404,8 @@
       "bale_message_id": 452,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-21T22:56:41.212098+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -9423,7 +9427,9 @@
       "title": "سرم آبرسان پوست تیلسیم مدل Nicotinamide & Hyaluronic Acid مناسب برای پوست‌های چرب حجم 30 میلی‌لیتر",
       "ts": 1792623276.4499335,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expiry_status": "tracked",
+      "bale_expiry_status": "tracked"
     },
     "dkp-21136021": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -9434,6 +9440,8 @@
       "bale_message_id": 450,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-21T22:56:33.491918+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -9502,6 +9510,8 @@
       "bale_message_id": 451,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-21T22:56:36.708839+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -9530,7 +9540,9 @@
       "youtube_next_attempt_at": "2026-10-21T22:59:48.947065+00:00",
       "youtube_upload_attempts": 1,
       "youtube_upload_started_at": "2026-10-21T22:54:48.580610+00:00",
-      "youtube_upload_status": "retry"
+      "youtube_upload_status": "retry",
+      "expiry_status": "tracked",
+      "bale_expiry_status": "tracked"
     },
     "dkp-21152169": {
       "aparat_expiry_attempts": 43,
@@ -9644,6 +9656,8 @@
       "bale_message_id": 447,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-21T22:56:26.372166+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -12367,6 +12381,8 @@
       "bale_message_id": 444,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-21T22:56:22.983691+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
@@ -18727,6 +18743,8 @@
       "bale_message_id": 449,
       "caption_deadline_format_version": 3,
       "click_tracking_url": "",
+      "countdown_last_updated_at": "2026-10-21T22:56:30.287448+00:00",
+      "countdown_refresh_attempted_at": "2026-10-21T22:55:24.106258+00:00",
       "delivery_attempts": {
         "bale": 1,
         "telegram": 1
