@@ -19,6 +19,9 @@ concurrency:
 
 jobs:
   expire:
+    # The radar workflow already performs expiry cleanup immediately before its
+    # one-time full caption repair. Do not run both channel-mutating jobs concurrently.
+    if: ${{ !(github.event_name == 'push' && contains(github.event.head_commit.message, '[repair-all-captions]')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
