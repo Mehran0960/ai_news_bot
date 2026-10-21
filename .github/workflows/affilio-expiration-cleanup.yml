@@ -52,8 +52,8 @@ jobs:
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          AFFILIO_COUNTDOWN_REFRESH_FORCE: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && 'true' || 'false' }}
-          # Telegram captions are static text; cycle through eligible posts every few minutes.
+          # Captions are static text; recalculate every active countdown during each five-minute cleanup cycle.
+          AFFILIO_COUNTDOWN_REFRESH_FORCE: "true"
           AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && '100' || '80' }}
           AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS: "240"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
