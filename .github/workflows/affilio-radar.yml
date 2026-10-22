@@ -224,9 +224,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Persist expiry sync/deletion state even during a full caption repair.
-          if [[ -f affilio_radar/state.json ]]; then
+          # Only operational scans/repairs may commit live state. Test-only code pushes
+          # must never serialize a test fixture over the real channel history.
+          if [[ "${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[growth-tracking-only]') || contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') || contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') }}" == "true" && -f affilio_radar/state.json ]]; then
             git add affilio_radar/state.json
+          else
+            echo "Skipping live-state commit for a test/code-only push."
           fi
           # Commit the report only when actual offer data changed, not on per-scan timestamps.
           python - <<'PY'
