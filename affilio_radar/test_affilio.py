@@ -1244,6 +1244,7 @@ class AffilioRadarTests(unittest.TestCase):
                     "posted_original_price": 200_000, "posted_discount_percent": 50,
                     "expires_at": "2026-10-17T20:30:00+00:00",
                     "expiry_source": "digikala_live_deals_feed", "expiry_estimated": False,
+                    "expiry_deadline_verified_directly": True,
                     "caption_deadline_format_version": 3,
                 },
             }
@@ -1271,7 +1272,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("⏳", edit_bale.call_args.args[1])
         self.assertNotIn("📅 پایان تخفیف:", edit_telegram.call_args.args[1])
         self.assertNotIn("📅 پایان تخفیف:", edit_bale.call_args.args[1])
-        self.assertEqual(state["published"]["dkp-15970075"]["caption_deadline_format_version"], 6)
+        self.assertEqual(state["published"]["dkp-15970075"]["caption_deadline_format_version"], 8)
         self.assertIn("caption_countdown_refreshed_at", state["published"]["dkp-15970075"])
         self.assertEqual(edit_telegram.call_args.args[2], url)
         self.assertEqual(edit_bale.call_args.args[2], url)
@@ -1328,8 +1329,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(state["published"]["dkp-missing"]["expiry_source"], "unavailable")
         self.assertTrue(state["published"]["dkp-missing"]["expiry_estimated"])
         self.assertEqual([call.args[0] for call in edit_telegram.call_args_list], [501, 502])
-        self.assertEqual(state["published"]["dkp-live"]["caption_deadline_format_version"], 6)
-        self.assertEqual(state["published"]["dkp-missing"]["caption_deadline_format_version"], 6)
+        self.assertEqual(state["published"]["dkp-live"]["caption_deadline_format_version"], 8)
+        self.assertEqual(state["published"]["dkp-missing"]["caption_deadline_format_version"], 8)
         self.assertNotIn("مانده به پایان تخفیف", edit_telegram.call_args_list[0].args[1])
         self.assertNotIn("مانده به پایان تخفیف", edit_telegram.call_args_list[1].args[1])
         self.assertNotIn("⏳", edit_telegram.call_args_list[0].args[1])
@@ -1337,6 +1338,49 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(edit_telegram.call_args_list[0].args[2], url)
         self.assertEqual(edit_telegram.call_args_list[1].args[2], url)
         self.assertTrue(save_state.called)
+
+    def test_refresh_restores_button_after_verified_delete_failure(self):
+        now = datetime.now(timezone.utc)
+        expired = (now - timedelta(minutes=2)).isoformat()
+        url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-9001/")
+        record = {
+            "title": "محصولی که حذفش موقتاً خطا داده",
+            "product_url": "https://www.digikala.com/product/dkp-9001/",
+            "telegram_message_id": 901,
+            "bale_message_id": 902,
+            "posted_current_price": 100_000,
+            "posted_original_price": 200_000,
+            "posted_discount_percent": 50,
+            "expires_at": expired,
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+            "expiry_status": "delete_failed",
+            "bale_expiry_status": "delete_failed",
+            "caption_deadline_format_version": 7,
+        }
+        state = {"published": {"dkp-9001": record}}
+        with (
+            patch("affilio_radar.load_state", return_value=state),
+            patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
+            patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
+            patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
+            patch("affilio_radar.build_affilio_tracking_link", return_value=url),
+            patch("affilio_radar._edit_telegram_caption", return_value={"message_id": 901}) as edit_telegram,
+            patch("affilio_radar._edit_bale_caption", return_value={"message_id": 902}) as edit_bale,
+            patch("affilio_radar.save_json"),
+            patch("affilio_radar.time.sleep"),
+        ):
+            result = refresh_active_countdowns()
+        self.assertEqual(result, 0)
+        self.assertEqual(edit_telegram.call_args.args[0], 901)
+        self.assertEqual(edit_bale.call_args.args[0], 902)
+        for caption in (edit_telegram.call_args.args[1], edit_bale.call_args.args[1]):
+            self.assertNotIn("مانده به پایان تخفیف", caption)
+            self.assertNotIn("⏳", caption)
+        self.assertEqual(edit_telegram.call_args.args[2], url)
+        self.assertEqual(edit_bale.call_args.args[2], url)
+        self.assertEqual(record["caption_deadline_format_version"], 8)
 
     def test_refresh_active_countdowns_caps_batch_and_rotates_fairly(self):
         now = datetime.now(timezone.utc)
@@ -1377,8 +1421,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(result, 0)
         self.assertEqual([call.args[0] for call in edit_telegram.call_args_list], [200, 201])
         self.assertEqual([call.args[0] for call in edit_bale.call_args_list], [400, 401])
-        self.assertEqual(published["dkp-1000"]["caption_deadline_format_version"], 6)
-        self.assertEqual(published["dkp-1001"]["caption_deadline_format_version"], 6)
+        self.assertEqual(published["dkp-1000"]["caption_deadline_format_version"], 8)
+        self.assertEqual(published["dkp-1001"]["caption_deadline_format_version"], 8)
         self.assertEqual(published["dkp-1002"]["caption_deadline_format_version"], 3)
         self.assertNotIn("caption_countdown_refreshed_at", published["dkp-1002"])
         self.assertEqual(edit_telegram.call_args_list[0].args[2], url)
@@ -1451,6 +1495,8 @@ class AffilioRadarTests(unittest.TestCase):
                     "posted_original_price": 1_108_800,
                     "posted_discount_percent": 89,
                     "expires_at": "",
+                    "expiry_status": "delete_failed",
+                    "bale_expiry_status": "delete_failed",
                 },
                 "dkp-no-bale": {
                     "ts": 2,

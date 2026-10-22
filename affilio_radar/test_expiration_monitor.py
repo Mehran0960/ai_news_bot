@@ -262,6 +262,21 @@ class ExpirationMonitorTests(unittest.TestCase):
 
 
 
+    def test_telegram_caption_edit_treats_message_not_modified_as_success(self):
+        url = monitor._build_affilio_tracking_url("https://www.digikala.com/product/dkp-123/")
+        error = HTTPError(
+            "https://api.telegram.org/botredacted/editMessageCaption",
+            400,
+            "Bad Request",
+            {},
+            BytesIO(b'{"ok":false,"description":"Bad Request: message is not modified"}'),
+        )
+        with patch.object(monitor, "BOT_TOKEN", "test-token"), patch.object(
+            monitor, "urlopen", side_effect=error
+        ), patch.object(monitor.time, "sleep"):
+            result = monitor._telegram_edit_caption(77, "same caption", affiliate_url=url)
+        self.assertEqual(result, "edited")
+
     def test_telegram_caption_edit_explicitly_restores_affilio_purchase_button(self):
         url = monitor._build_affilio_tracking_url("https://www.digikala.com/product/dkp-123/")
         self.assertTrue(monitor._is_valid_affilio_tracking_url(url))
@@ -438,6 +453,42 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(result[3], 1)
 
 
+
+    def test_public_history_restores_button_after_delete_failure(self):
+        caption = {
+            "message_id": 88,
+            "caption_text": (
+                "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا 🛍️ محصول نمونه "
+                "💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان ⚡️ ۸۹٪ تخفیف "
+                "🏷️ قیمت اصلی: ۱٬۰۵۶٬۰۰۰ تومان 📣 عضویت در کانال OfferChin"
+            ),
+            "caption_html": "<b>💚 قیمت ویژه: ۱۱۴٬۰۰۰ تومان</b>",
+        }
+        record = {
+            "telegram_message_id": 88,
+            "product_url": "https://www.digikala.com/product/dkp-123/",
+            "title": "محصول نمونه",
+            "posted_current_price": 114000,
+            "posted_original_price": 1056000,
+            "posted_discount_percent": 89,
+            "expires_at": "2026-10-18T20:29:00+00:00",
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+            "expiry_status": "delete_failed",
+            "caption_deadline_format_version": monitor.CAPTION_FORMAT_VERSION,
+        }
+        with patch.object(monitor, "_telegram_edit_caption", return_value="edited") as edit:
+            result = monitor.audit_public_channel_history(
+                {"dkp-123": record},
+                now=datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc),
+                posts={88: caption},
+            )
+        edit.assert_called_once()
+        self.assertTrue(monitor._is_valid_affilio_tracking_url(edit.call_args.kwargs["affiliate_url"]))
+        self.assertNotIn("مانده به پایان تخفیف", edit.call_args.args[1])
+        self.assertNotIn("⏳", edit.call_args.args[1])
+        self.assertEqual(result[3], 1)
 
     def test_public_history_removes_stale_countdown_and_absolute_deadline_from_caption(self):
         now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)

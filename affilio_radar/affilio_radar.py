@@ -69,7 +69,7 @@ COUNTDOWN_SAFETY_BUFFER_MINUTES = max(0, min(30, int(os.getenv("AFFILIO_COUNTDOW
 COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
     120, min(600, int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS", "240")))
 )
-CAPTION_DEADLINE_FORMAT_VERSION = 7
+CAPTION_DEADLINE_FORMAT_VERSION = 8
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
 URGENT_MIN_POST_INTERVAL_MINUTES = 10
@@ -3366,182 +3366,6 @@ def repair_bale_caption(message_id: int) -> int:
 
 
 def repair_all_published_captions() -> int:
-    """[repair-all-captions] Rebuild active captions with verified timers and explicit affiliate buttons."""
-    state = load_state()
-    published = state.get("published", {})
-    if not isinstance(published, dict):
-        raise RuntimeError("Published state is not an object")
-
-    results = {
-        "telegram_updated": 0,
-        "telegram_failed": 0,
-        "telegram_missing": 0,
-        "bale_updated": 0,
-        "bale_failed": 0,
-        "bale_missing": 0,
-        "skipped": 0,
-    }
-    target_count = 0
-    caption_format_v4_products = []
-    state_changed = False
-    now = datetime.now(timezone.utc)
-
-    # Stable order plus spacing reduces the chance of Telegram per-chat rate limits.
-    for product_key, record in sorted(
-        published.items(),
-        key=lambda item: float(item[1].get("ts", 0)) if isinstance(item[1], dict) else 0,
-    ):
-        if not isinstance(record, dict):
-            results["skipped"] += 1
-            continue
-
-        message_targets = []
-        platform_fields = (
-            ("telegram", "telegram_message_id", bool(BOT_TOKEN)),
-            ("bale", "bale_message_id", bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)),
-        )
-        for platform, id_field, token_ready in platform_fields:
-            raw_id = record.get(id_field)
-            if raw_id in (None, "", 0, "0"):
-                continue
-            try:
-                message_id = int(raw_id)
-                if message_id <= 0:
-                    raise ValueError("invalid message ID")
-            except (TypeError, ValueError, OverflowError):
-                print(f"CAPTION_REPAIR_SKIPPED product_id={product_key} platform={platform} reason=invalid_message_id")
-                results["skipped"] += 1
-                continue
-            # Expired messages successfully removed by the preceding cleanup pass must not be edited again.
-            raw_expiry = record.get("expires_at")
-            deadline = _parse_utc_datetime(raw_expiry) if raw_expiry else None
-            status_field = "expiry_status" if platform == "telegram" else "bale_expiry_status"
-            # Never re-enable a purchase button after cleanup has deleted, disabled,
-            # or failed to verify an offer. In particular, a caption repair must not
-            # undo the safety fallback used when deletion of an unknown-deadline post fails.
-            non_editable_statuses = {
-                "deleted", "already_absent", "delete_failed",
-            }
-            if record.get(status_field) in non_editable_statuses:
-                print(
-                    f"CAPTION_REPAIR_SKIPPED product_id={product_key} platform={platform} "
-                    f"message_id={message_id} reason=expiry_status_{record.get(status_field)}"
-                )
-                results["skipped"] += 1
-                continue
-            # The expiry monitor immediately before this pass performs verified
-            # removal. Estimated or unavailable timestamps must not block caption cleanup.
-
-            target_count += 1
-            if not token_ready:
-                print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error=missing_credentials")
-                results[f"{platform}_failed"] += 1
-            else:
-                message_targets.append((platform, message_id))
-
-        if not message_targets:
-            continue
-
-        product_url_value = safe_product_url(record.get("product_url", ""))
-        affiliate_url = build_affilio_tracking_link(product_url_value)
-        if not affiliate_url:
-            for platform, message_id in message_targets:
-                print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error=affiliate_url_unavailable")
-                results[f"{platform}_failed"] += 1
-            continue
-
-        product = {
-            "title": record.get("title", "پیشنهاد ویژه"),
-            "current_price": record.get("posted_current_price"),
-            "original_price": record.get("posted_original_price"),
-            "discount_percent": record.get("posted_discount_percent"),
-            "deal_expires_at": record.get("expires_at", ""),
-        }
-        product_repair_success = True
-        for platform, message_id in message_targets:
-            try:
-                # Every caption edit must explicitly restore the valid affiliate purchase button.
-                # An unverified deadline affects only the timer text, never the purchase CTA.
-                edit_link = affiliate_url
-                if platform == "telegram":
-                    caption = build_caption(product, affiliate_url, TELEGRAM_CHANNEL_URL)
-                    edit_result = _edit_telegram_caption(message_id, caption, edit_link)
-                else:
-                    caption = build_caption(
-                        product,
-                        affiliate_url,
-                        BALE_CHANNEL_URL,
-                        use_unicode_strikethrough=True,
-                    )
-                    edit_result = _edit_bale_caption(message_id, caption, edit_link)
-
-                if isinstance(edit_result, dict) and edit_result.get("not_found"):
-                    results[f"{platform}_missing"] += 1
-                    product_repair_success = False
-                    print(f"CAPTION_REPAIR_UNAVAILABLE product_id={product_key} platform={platform} message_id={message_id} reason=message_not_found")
-                else:
-                    results[f"{platform}_updated"] += 1
-                    print(f"CAPTION_REPAIRED product_id={product_key} platform={platform} message_id={message_id}")
-            except Exception as exc:
-                product_repair_success = False
-                results[f"{platform}_failed"] += 1
-                detail = str(exc) if isinstance(exc, RuntimeError) else ""
-                for secret in (BOT_TOKEN, BALE_BOT_TOKEN):
-                    if secret:
-                        detail = detail.replace(secret, "[redacted]")
-                detail = re.sub(r"https?://\S+", "[url]", detail)[:120]
-                detail_suffix = f" detail={detail!r}" if detail else ""
-                print(f"CAPTION_REPAIR_FAILED product_id={product_key} platform={platform} message_id={message_id} error={type(exc).__name__}{detail_suffix}")
-            # Conservative pacing on both APIs; Telegram is kept well below one edit/second.
-            time.sleep(3.1 if platform == "telegram" else 1.1)
-        if product_repair_success:
-            # Persist the caption schema marker immediately so the scheduled migrator
-            # does not keep editing the same post on every cleanup cycle.
-            record["caption_deadline_format_version"] = CAPTION_DEADLINE_FORMAT_VERSION
-            record["caption_without_expiry_migrated_at"] = datetime.now(timezone.utc).isoformat()
-            record.pop("deadline_caption_refresh_required", None)
-            caption_format_v4_products.append(str(product_key))
-            state_changed = True
-
-    if state_changed:
-        save_json(STATE, state)
-
-    successful = (
-        results["telegram_failed"] == 0
-        and results["bale_failed"] == 0
-        and results["telegram_missing"] == 0
-        and results["bale_missing"] == 0
-        and target_count > 0
-    )
-    report = {
-        "finished_at": datetime.now(timezone.utc).isoformat(),
-        "method": DEFAULT_AFFILIO_PUBLIC_LINK_TEMPLATE,
-        "caption_deadline_format_version": CAPTION_DEADLINE_FORMAT_VERSION,
-        "caption_format_v4_products": caption_format_v4_products,
-        "tracked_products": len(published),
-        "targets": target_count,
-        **results,
-        "status": "success" if successful else ("partial_failure" if target_count > 0 else "no_targets"),
-    }
-    report_path = ROOT / "affiliate_link_repair_report.json"
-    try:
-        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(f"CAPTION_REPAIR_REPORT_WRITTEN path={report_path.name} status={report['status']}")
-    except OSError as exc:
-        print(f"CAPTION_REPAIR_REPORT_WRITE_FAILED error={type(exc).__name__}")
-
-    print(
-        "CAPTION_REPAIR_SUMMARY "
-        f"tracked_products={len(published)} targets={target_count} "
-        f"telegram_updated={results['telegram_updated']} telegram_missing={results['telegram_missing']} telegram_failed={results['telegram_failed']} "
-        f"bale_updated={results['bale_updated']} bale_missing={results['bale_missing']} bale_failed={results['bale_failed']} "
-        f"skipped={results['skipped']}"
-    )
-    return 0 if successful else 1
-
-
-
-def repair_all_published_captions() -> int:
     """Edit tracked Telegram/Bale captions in place; never creates or deletes posts."""
     state = load_state()
     published = state.get("published", {})
@@ -3595,9 +3419,9 @@ def repair_all_published_captions() -> int:
             # Truly deleted or explicitly expired posts stay untouched. Posts marked
             # only because their deadline could not be verified remain repairable:
             # a missing countdown must not permanently remove a valid buy button.
-            non_editable_statuses = {
-                "deleted", "already_absent", "expired_marked", "delete_failed",
-            }
+            # Only a confirmed removal makes a message immutable. A failed
+            # deletion must not leave a live post without its purchase button.
+            non_editable_statuses = {"deleted", "already_absent"}
             if record.get(status_field) in non_editable_statuses:
                 print(
                     f"CAPTION_REPAIR_SKIPPED product_id={product_key} platform={platform} "
@@ -3657,10 +3481,12 @@ def repair_all_published_captions() -> int:
                     )
                     edit_result = _edit_bale_caption(message_id, caption, edit_link)
 
-                if isinstance(edit_result, dict) and edit_result.get("not_found"):
+                if (isinstance(edit_result, dict) and edit_result.get("not_found")) or edit_result == "already_absent":
                     results[f"{platform}_missing"] += 1
-                    product_repair_success = False
-                    print(f"CAPTION_REPAIR_UNAVAILABLE product_id={product_key} platform={platform} message_id={message_id} reason=message_not_found")
+                    status_field = "expiry_status" if platform == "telegram" else "bale_expiry_status"
+                    record[status_field] = "already_absent"
+                    state_changed = True
+                    print(f"CAPTION_REPAIR_UNAVAILABLE product_id={product_key} platform={platform} message_id={message_id} reason=confirmed_absent")
                 else:
                     results[f"{platform}_updated"] += 1
                     print(f"CAPTION_REPAIRED product_id={product_key} platform={platform} message_id={message_id}")
@@ -3683,7 +3509,7 @@ def repair_all_published_captions() -> int:
             for platform, _message_id in message_targets:
                 status_field = "expiry_status" if platform == "telegram" else "bale_expiry_status"
                 if record.get(status_field) in {
-                    "deadline_unavailable_marked", "deadline_unavailable_delete_failed", "unknown",
+                    "deadline_unavailable_marked", "deadline_unavailable_delete_failed", "unknown", "expired_marked",
                 }:
                     if verified_deadline:
                         record[status_field] = "tracked"
@@ -3702,11 +3528,10 @@ def repair_all_published_captions() -> int:
     if state_changed:
         save_json(STATE, state)
 
+    # Missing IDs are recorded as already absent; actual edit/API failures remain fatal.
     successful = (
         results["telegram_failed"] == 0
         and results["bale_failed"] == 0
-        and results["telegram_missing"] == 0
-        and results["bale_missing"] == 0
         and target_count > 0
     )
     report = {
@@ -3754,7 +3579,7 @@ def refresh_active_countdowns() -> int:
     if not isinstance(published, dict):
         raise RuntimeError("Published state is not an object")
     now = datetime.now(timezone.utc)
-    terminal_statuses = {"deleted", "already_absent", "expired_marked", "delete_failed"}
+    terminal_statuses = {"deleted", "already_absent"}
     verified_sources = {"digikala_live_deals_feed", "live_product_stock_or_price"}
     due = []
     for product_key, record in published.items():
@@ -3768,30 +3593,39 @@ def refresh_active_countdowns() -> int:
             continue
 
         deadline = _parse_utc_datetime(record.get("expires_at"))
+        expiry_source = str(record.get("expiry_source") or "")
         verified_deadline = (
             deadline is not None
-            and record.get("expiry_source") in verified_sources
+            and expiry_source in verified_sources
             and record.get("expiry_estimated") is not True
+            and (
+                expiry_source != "digikala_live_deals_feed"
+                or record.get("expiry_deadline_verified_directly") is True
+            )
         )
-        # The expiry monitor owns verified deletion. Never rewrite an offer already
-        # due for removal while cleanup retries its delete request.
-        if verified_deadline and deadline - timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES) <= now:
-            continue
+        cutoff_passed = (
+            verified_deadline
+            and deadline - timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES) <= now
+        )
 
         targets = []
-        if (
-            str(record.get("telegram_message_id") or "").isdigit()
-            and record.get("expiry_status") not in terminal_statuses
-            and BOT_TOKEN
+        for platform, id_field, status_field, token_ready in (
+            ("telegram", "telegram_message_id", "expiry_status", bool(BOT_TOKEN)),
+            ("bale", "bale_message_id", "bale_expiry_status", bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)),
         ):
-            targets.append(("telegram", int(record["telegram_message_id"])))
-        if (
-            str(record.get("bale_message_id") or "").isdigit()
-            and record.get("bale_expiry_status") not in terminal_statuses
-            and BALE_BOT_TOKEN
-            and BALE_CHANNEL_ID
-        ):
-            targets.append(("bale", int(record["bale_message_id"])))
+            raw_id = str(record.get(id_field) or "")
+            status = str(record.get(status_field) or "")
+            if not raw_id.isdigit() or status in terminal_statuses or not token_ready:
+                continue
+            # After a deletion failure, repair the live caption and button in place
+            # while the next cleanup cycle retries permanent removal.
+            if cutoff_passed and status not in {"delete_failed", "expired_marked"}:
+                print(
+                    f"STATIC_CAPTION_MIGRATION_SKIPPED product_id={product_key} "
+                    f"platform={platform} message_id={raw_id} reason=verified_expiry_cutoff"
+                )
+                continue
+            targets.append((platform, int(raw_id))))
         if not targets:
             continue
         try:
@@ -3845,12 +3679,14 @@ def refresh_active_countdowns() -> int:
                         use_unicode_strikethrough=True,
                     )
                     result = _edit_bale_caption(message_id, caption, affiliate_url)
-                if isinstance(result, dict) and result.get("not_found"):
+                if (isinstance(result, dict) and result.get("not_found")) or result == "already_absent":
                     counters[f"{platform}_missing"] += 1
-                    product_had_failure = True
+                    status_field = "expiry_status" if platform == "telegram" else "bale_expiry_status"
+                    record[status_field] = "already_absent"
+                    changed = True
                     print(
                         f"STATIC_CAPTION_MIGRATION_UNAVAILABLE product_id={product_key} "
-                        f"platform={platform} message_id={message_id} reason=message_not_found"
+                        f"platform={platform} message_id={message_id} reason=confirmed_absent"
                     )
                 else:
                     counters[f"{platform}_updated"] += 1

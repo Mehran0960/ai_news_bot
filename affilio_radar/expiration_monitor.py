@@ -41,7 +41,7 @@ POST_REMOVAL_BUFFER_MINUTES = max(
 )
 # Recheck the first-party deal feed every five minutes so cached deadlines remain current.
 LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 5 * 60
-CAPTION_FORMAT_VERSION = 7
+CAPTION_FORMAT_VERSION = 8
 
 
 def walk_dicts(value):
@@ -1000,6 +1000,8 @@ def _telegram_edit_caption(message_id, caption, remove_purchase_button=False, af
             description = _delete_error_description(exc)
             if _is_message_absent(description):
                 return "already_absent"
+            if "message is not modified" in description.lower():
+                return "edited"
             if "retry after" in description.lower() and attempt < 3:
                 wait_match = re.search(r"retry after\s+(\d+)", description.lower())
                 pause = min(60, int(wait_match.group(1)) if wait_match else 5)
@@ -1012,6 +1014,8 @@ def _telegram_edit_caption(message_id, caption, remove_purchase_button=False, af
         description = str(result.get("description") or "Telegram editMessageCaption failed")
         if _is_message_absent(description):
             return "already_absent"
+        if "message is not modified" in description.lower():
+            return "edited"
         if "retry after" in description.lower() and attempt < 3:
             wait_match = re.search(r"retry after\s+(\d+)", description.lower())
             pause = min(60, int(wait_match.group(1)) if wait_match else 5)
@@ -1085,9 +1089,7 @@ def audit_public_channel_history(published, now=None, posts=None):
 
     changed = False
     deleted = marked_expired = reformatted = found_expired = 0
-    non_editable_statuses = {
-        "deleted", "already_absent", "expired_marked", "delete_failed",
-    }
+    non_editable_statuses = {"deleted", "already_absent"}
     for message_id, post in sorted(posts.items()):
         caption_text = str(post.get("caption_text") or "")
         caption_html = str(post.get("caption_html") or "")
@@ -1129,6 +1131,10 @@ def audit_public_channel_history(published, now=None, posts=None):
         needs_static_migration = (
             caption_version < CAPTION_FORMAT_VERSION
             or bool(record.get("deadline_caption_refresh_required"))
+            or str(record.get("expiry_status") or "") in {
+                "delete_failed", "expired_marked", "deadline_unavailable_marked",
+                "deadline_unavailable_delete_failed",
+            }
             or _caption_needs_repair(caption_html, caption_text, fields, deadline, now)
         )
         if not needs_static_migration:
@@ -1150,7 +1156,7 @@ def audit_public_channel_history(published, now=None, posts=None):
                 record["caption_countdown_refreshed_at"] = now.isoformat()
                 record["caption_without_expiry_migrated_at"] = now.isoformat()
                 if record.get("expiry_status") in {
-                    "deadline_unavailable_marked", "deadline_unavailable_delete_failed", "unknown",
+                    "deadline_unavailable_marked", "deadline_unavailable_delete_failed", "unknown", "expired_marked",
                 }:
                     record["expiry_status"] = "tracked" if deadline is not None else "unknown"
                 changed = True
