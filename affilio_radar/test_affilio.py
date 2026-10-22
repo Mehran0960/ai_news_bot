@@ -1,4 +1,5 @@
 import json
+import shutil
 import subprocess
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -2525,6 +2526,7 @@ class AffilioRadarTests(unittest.TestCase):
 
 
 
+    @unittest.skipUnless(shutil.which("ffmpeg"), "ffmpeg is installed by the publishing workflow")
     def test_real_short_video_renderer_creates_vertical_mp4(self):
         import short_video
 
