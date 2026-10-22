@@ -63,17 +63,17 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/expiration_monitor.py
 
-      - name: Refresh source-backed countdowns and restore purchase buttons
+      - name: Migrate captions without countdowns and restore purchase buttons
         if: ${{ !contains(github.event.head_commit.message, '[repair-all-captions]') }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          # Refresh countdowns from the synchronized site deadline and explicitly restore valid buy buttons.
+          # Captions are static; explicitly restore valid purchase buttons using verified publisher links.
           AFFILIO_COUNTDOWN_REFRESH_FORCE: "true"
           AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && '100' || '80' }}
-          AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS: "240"
+          AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS: "240" # Kept for compatibility; schema migration is one-time
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_DEAL_LIST_PAGES: "5"
           PYTHONUNBUFFERED: "1"
