@@ -41,6 +41,7 @@ POST_REMOVAL_BUFFER_MINUTES = max(
 )
 # The scheduled cleanup job runs every five minutes; refresh its source deadline at that cadence.
 LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 5 * 60
+CAPTION_FORMAT_VERSION = 6
 
 
 def walk_dicts(value):
