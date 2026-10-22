@@ -1217,12 +1217,20 @@ def audit_public_channel_history(published, now=None, posts=None):
         fields = _extract_legacy_caption_fields(caption_text)
         if not fields.get("title") or not fields.get("current_price") or not fields.get("discount_percent"):
             continue
-        deadline = parse_expiry(record.get("expires_at"))
+        deadline_text = parse_expiry(record.get("expires_at"))
+        deadline = None
         if (
-            record.get("expiry_source") not in {"digikala_live_deals_feed", "live_product_stock_or_price"}
-            or record.get("expiry_estimated") is True
+            record.get("expiry_source") in {"digikala_live_deals_feed", "live_product_stock_or_price"}
+            and record.get("expiry_estimated") is not True
+            and deadline_text
         ):
-            deadline = None
+            try:
+                deadline = datetime.fromisoformat(deadline_text)
+                if deadline.tzinfo is None:
+                    deadline = deadline.replace(tzinfo=timezone.utc)
+                deadline = deadline.astimezone(timezone.utc)
+            except (TypeError, ValueError, OverflowError):
+                deadline = None
         if not _caption_needs_repair(caption_html, caption_text, fields, deadline, now):
             continue
         affiliate_url = _build_affilio_tracking_url(record.get("product_url", ""))
