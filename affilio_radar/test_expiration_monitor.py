@@ -265,6 +265,21 @@ class ExpirationMonitorTests(unittest.TestCase):
 
 
 
+    def test_telegram_caption_edit_explicitly_restores_affilio_purchase_button(self):
+        url = monitor._build_affilio_tracking_url("https://www.digikala.com/product/dkp-123/")
+        self.assertTrue(monitor._is_valid_affilio_tracking_url(url))
+        with (
+            patch.object(monitor, "BOT_TOKEN", "test-token"),
+            patch.object(monitor, "urlopen", return_value=BytesIO(b'{"ok":true,"result":{"message_id":77}}')),
+            patch.object(monitor.time, "sleep"),
+        ):
+            self.assertEqual(monitor._telegram_edit_caption(77, "updated caption", affiliate_url=url), "edited")
+        # The request body sent to Telegram is inspected in the dedicated request mock below.
+
+    def test_build_affilio_tracking_url_rejects_non_product_destinations(self):
+        self.assertEqual(monitor._build_affilio_tracking_url("https://example.com/product/dkp-123/"), "")
+        self.assertEqual(monitor._build_affilio_tracking_url("https://www.digikala.com/category/phones/"), "")
+
     def test_delete_http_error_includes_provider_reason(self):
         error = HTTPError(
             "https://api.telegram.org/botredacted/deleteMessage",
@@ -386,6 +401,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         published = {
             "dkp-123": {
                 "telegram_message_id": 88,
+                "product_url": "https://www.digikala.com/product/dkp-123/",
                 "expires_at": "2026-10-18T20:29:00+00:00",
                 "expiry_source": "digikala_live_deals_feed",
                 "expiry_estimated": False,
@@ -399,10 +415,14 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertIn("<b><u>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</u></b>", edited_caption)
         self.assertIn("<b><u>⚡️ ۸۹٪ تخفیف</u></b>", edited_caption)
         self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', edited_caption)
-        self.assertNotIn("⏳ ", edited_caption)
-        self.assertNotIn("مانده به پایان تخفیف", edited_caption)
+        self.assertIn("⏳ ", edited_caption)
+        self.assertIn("مانده به پایان تخفیف", edited_caption)
         self.assertNotIn("📅 پایان تخفیف:", edited_caption)
-        self.assertEqual(published["dkp-123"]["caption_deadline_format_version"], 4)
+        self.assertEqual(published["dkp-123"]["caption_deadline_format_version"], 5)
+        self.assertIn("caption_countdown_refreshed_at", published["dkp-123"])
+        expected_affiliate = monitor._build_affilio_tracking_url("https://www.digikala.com/product/dkp-123/")
+        edit.assert_called_once()
+        self.assertEqual(edit.call_args.kwargs["affiliate_url"], expected_affiliate)
         self.assertEqual(result[3], 1)
 
 
@@ -427,6 +447,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         published = {
             "dkp-legacy-89": {
                 "telegram_message_id": 89,
+                "product_url": "https://www.digikala.com/product/dkp-123/",
                 "expires_at": deadline.isoformat(),
                 "expiry_source": "digikala_live_deals_feed",
                 "expiry_estimated": False,
@@ -437,9 +458,9 @@ class ExpirationMonitorTests(unittest.TestCase):
             monitor.audit_public_channel_history(published, now=now, posts={89: stale_caption})
         edit.assert_called_once()
         updated = edit.call_args.args[1]
-        self.assertNotIn("مانده به پایان تخفیف", updated)
+        expected_remaining = monitor._remaining_label(deadline, now)
+        self.assertIn(f"⏳ {expected_remaining} مانده به پایان تخفیف", updated)
         self.assertNotIn("📅 پایان تخفیف:", updated)
-        self.assertNotIn("⏳", updated)
         self.assertEqual(published["dkp-legacy-89"]["expires_at"], deadline.isoformat())
 
     def test_posts_are_deleted_ten_minutes_before_deadline_on_both_channels(self):
