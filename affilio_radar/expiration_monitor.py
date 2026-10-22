@@ -968,7 +968,7 @@ def _is_valid_affilio_tracking_url(value):
         and destination is not None
         and destination.scheme == "https"
         and (destination.hostname or "").lower() == "www.digikala.com"
-        and re.fullmatch(r"/product/dkp-\\d+/", destination.path, re.IGNORECASE)
+        and re.fullmatch(r"/product/dkp-\d+/", destination.path, re.IGNORECASE)
     )
 
 
@@ -981,7 +981,7 @@ def _build_affilio_tracking_url(product_url):
     host = (parsed.hostname or "").lower()
     if parsed.scheme not in {"https", "http"} or host not in {"digikala.com", "www.digikala.com"}:
         return ""
-    match = re.fullmatch(r"/product/(dkp-\\d+)/?", parsed.path, re.IGNORECASE)
+    match = re.fullmatch(r"/product/(dkp-\d+)/?", parsed.path, re.IGNORECASE)
     if not match:
         return ""
     canonical = f"https://www.digikala.com/product/{match.group(1).lower()}/"
@@ -1025,7 +1025,7 @@ def _telegram_edit_caption(message_id, caption, remove_purchase_button=False, af
             if _is_message_absent(description):
                 return "already_absent"
             if "retry after" in description.lower() and attempt < 3:
-                wait_match = re.search(r"retry after\\s+(\\d+)", description.lower())
+                wait_match = re.search(r"retry after\s+(\d+)", description.lower())
                 pause = min(60, int(wait_match.group(1)) if wait_match else 5)
                 print(f"TELEGRAM_HISTORY_EDIT_RATE_LIMIT message_id={message_id} retry_after={pause}s")
                 time.sleep(pause + 1)
@@ -1037,7 +1037,7 @@ def _telegram_edit_caption(message_id, caption, remove_purchase_button=False, af
         if _is_message_absent(description):
             return "already_absent"
         if "retry after" in description.lower() and attempt < 3:
-            wait_match = re.search(r"retry after\\s+(\\d+)", description.lower())
+            wait_match = re.search(r"retry after\s+(\d+)", description.lower())
             pause = min(60, int(wait_match.group(1)) if wait_match else 5)
             print(f"TELEGRAM_HISTORY_EDIT_RATE_LIMIT message_id={message_id} retry_after={pause}s")
             time.sleep(pause + 1)
