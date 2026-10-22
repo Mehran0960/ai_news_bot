@@ -170,37 +170,39 @@ def fetch_mcp_offer_candidates(page_numbers=None):
         except Exception as exc:
             print(f"EXPIRY_MCP_FAILED page={page} error={type(exc).__name__} detail={str(exc)[:140]!r}")
             break
+        page_observed_at = datetime.now(timezone.utc)
         page_candidates = 0
         for node in walk_dicts(payload):
             pid = _product_id(node)
             if not pid:
                 continue
-            # Only use a real product/offer card as the deadline source. Nested
-            # variant/price dictionaries may repeat the product ID and carry unrelated
-            # expiry-like fields; letting them overwrite a card's deadline was unsafe.
             title = node.get("title_fa") or node.get("product_title") or node.get("title")
             if not title:
                 continue
             raw_url = node.get("url") or node.get("product_url") or node.get("web_url")
             if isinstance(raw_url, dict):
                 raw_url = raw_url.get("uri") or raw_url.get("url") or ""
-            product_shaped = any(
-                key in node
-                for key in ("default_variant", "variants", "price", "status", "product_type", "is_incredible")
-            )
-            if not raw_url and not product_shaped:
+            url_match = re.search(r"/product/(dkp-\d+)", str(raw_url or ""), re.I)
+            # A real offer card has its own canonical product URL. A nested variant
+            # can repeat the ID/title but must never supersede the card countdown.
+            if not url_match or url_match.group(1).lower() != pid.lower():
                 continue
+            expiry = extract_expiry(node, now=page_observed_at)
             old = candidate_nodes.get(pid)
-            if old is None or len(node) > len(old):
+            should_replace = (
+                old is None
+                or (
+                    bool(expiry)
+                    and (pid not in expiries or len(node) > len(old))
+                )
+            )
+            if should_replace:
                 candidate_nodes[pid] = dict(node)
+                if expiry:
+                    expiries[pid] = expiry
+                    candidate_nodes[pid]["deal_expires_at"] = expiry
                 page_candidates += 1
-        page_count = 0
-        for pid, card in candidate_nodes.items():
-            expiry = extract_expiry(card)
-            if expiry:
-                expiries[pid] = expiry
-                card["deal_expires_at"] = expiry
-                page_count += 1
+        page_count = sum(1 for pid in candidate_nodes if pid in expiries)
         print(
             f"EXPIRY_MCP_PAGE page={page} products_with_deadlines={page_count} "
             f"offer_cards={page_candidates}"
@@ -241,6 +243,7 @@ def fetch_direct_api_offer_expiries():
             if len(raw) > 8_000_000:
                 raise RuntimeError("Digikala feed response exceeded 8 MB")
             payload = json.loads(raw.decode("utf-8"))
+            page_observed_at = datetime.now(timezone.utc)
         except Exception as exc:
             print(f"EXPIRY_FEED_FAILED page={page} error={type(exc).__name__} detail={str(exc)[:140]!r}")
             break
@@ -254,13 +257,14 @@ def fetch_direct_api_offer_expiries():
             raw_url = node.get("url") or node.get("product_url") or node.get("web_url")
             if isinstance(raw_url, dict):
                 raw_url = raw_url.get("uri") or raw_url.get("url") or ""
-            if not raw_url and not any(key in node for key in ("default_variant", "variants", "price", "status", "product_type", "is_incredible")):
+            url_match = re.search(r"/product/(dkp-\d+)", str(raw_url or ""), re.I)
+            if not url_match or url_match.group(1).lower() != pid.lower():
                 continue
             old = candidate_nodes.get(pid)
             if old is None or len(node) > len(old):
                 candidate_nodes[pid] = dict(node)
         for pid, card in candidate_nodes.items():
-            expiry = extract_expiry(card)
+            expiry = extract_expiry(card, now=page_observed_at)
             if expiry:
                 results[pid] = expiry
                 page_found += 1

@@ -177,6 +177,52 @@ class ExpirationMonitorTests(unittest.TestCase):
             "2026-10-20T08:30:00+00:00",
         )
 
+    def test_expiry_extractor_parses_two_part_site_timer_as_hours_and_minutes(self):
+        now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
+        card = {
+            "title_fa": "محصول تخفیف‌دار",
+            "campaign": {"remaining_time": "03:24"},
+        }
+        self.assertEqual(
+            monitor.extract_expiry(card, now=now),
+            (now + timedelta(hours=3, minutes=24)).isoformat(),
+        )
+
+    def test_mcp_feed_does_not_let_nested_variant_override_offer_card_countdown(self):
+        before = datetime.now(timezone.utc)
+        payload = {
+            "products": [{
+                "id": 123,
+                "title_fa": "هدفون تخفیف‌دار",
+                "url": {"uri": "/product/dkp-123/"},
+                "is_incredible": True,
+                "campaign": {"remaining_time": "3 hours 24 minutes"},
+                "default_variant": {
+                    "id": 123,
+                    "title": "variant",
+                    "status": "marketable",
+                    "price": {"selling_price": 199000},
+                    "ends_at": "2026-10-22T18:00:00+03:30",
+                    "stock": 30,
+                    "sku": "sku-123",
+                    "seller": {"id": 1, "name": "seller"},
+                    "images": ["one", "two"],
+                    "specifications": [{"name": "a", "value": "b"}],
+                    "nested": {"foo": "bar", "baz": 3},
+                },
+            }]
+        }
+        with patch.object(monitor, "DEAL_LIST_PAGES", 1), patch.object(
+            monitor, "_mcp_call_incredible_offers_page", return_value=payload
+        ):
+            deadlines, candidates = monitor.fetch_mcp_offer_candidates(page_numbers=[1])
+        after = datetime.now(timezone.utc)
+        deadline = datetime.fromisoformat(deadlines["dkp-123"])
+        self.assertGreaterEqual(deadline, before + timedelta(hours=3, minutes=24))
+        self.assertLessEqual(deadline, after + timedelta(hours=3, minutes=24))
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]["title_fa"], "هدفون تخفیف‌دار")
+
     def test_mcp_feed_returns_offer_cards_and_deadlines_together(self):
         payload = {
             "products": [{

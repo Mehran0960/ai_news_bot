@@ -99,16 +99,33 @@ MIN_MARKET_MATCH_SCORE = max(40, min(95, int(os.getenv("AFFILIO_MIN_MARKET_MATCH
 MARKET_UNDERCUT_BLOCK_PERCENT = max(1, min(30, int(os.getenv("AFFILIO_MARKET_UNDERCUT_BLOCK_PERCENT", "5"))))
 
 SEARCH_TERMS = [
+    # Keep proven electronics searches, but avoid letting them dominate discovery.
     "پاوربانک",
     "هندزفری بلوتوث",
     "شارژر سریع",
     "چراغ اضطراری شارژی",
-    "ابزار کاربردی آشپزخانه",
-    "نظم دهنده خانه",
     "ماوس بی سیم",
     "اسپیکر بلوتوثی",
     "دوربین امنیتی بی سیم",
     "جارو شارژی",
+    # Rotate through everyday shopping categories to broaden the channel mix.
+    "کفش روزمره زنانه مردانه",
+    "لباس راحتی و تیشرت",
+    "کیف و کوله پشتی",
+    "عطر و ادکلن",
+    "لوازم مراقبت پوست و مو",
+    "زیورآلات نقره و بدلیجات",
+    "کتاب و لوازم التحریر",
+    "اسباب بازی کودک",
+    "لوازم خانه و آشپزخانه",
+    "لوازم خودرو",
+    "لوازم ورزشی و کمپینگ",
+    "لوازم کودک و نوزاد",
+    "عینک آفتابی",
+    "ساعت مچی",
+    "قهوه ساز و لوازم نوشیدنی",
+    "نظم دهنده خانه",
+    "ابزار کاربردی آشپزخانه",
 ]
 MAX_INCREDIBLE_OFFER_CANDIDATES = max(
     1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "32")))
@@ -2476,18 +2493,22 @@ def discover_product_urls(
 
 
 def classify_category(title: str) -> str:
-    value = (title or "").lower()
+    value = (title or "").lower().replace("\u200c", " ")
+    # Specific product families first; "other" should be the true fallback.
     patterns = [
-        ("power_backup", r"پاوربانک|پاور بانک|شارژر|باتری|چراغ اضطراری|برق اضطراری"),
-        ("audio_wearables", r"هندزفری|هدفون|ایرپاد|اسپیکر|ساعت هوشمند|اسمارت واچ"),
-        ("digital_accessories", r"کابل|مبدل|گلس|محافظ صفحه|قاب گوشی|پایه نگهدارنده|فلش مموری|هاب usb|نگهدارنده گوشی"),
-        ("home", r"آشپزخانه|نظم دهنده|ارگانایزر|چراغ خواب|جارو|خردکن|ظرف|لامپ|ابزار آشپزخانه|خانه"),
-        ("personal_care", r"پوست|مو|اصلاح|ماساژ|بهداشت|آرایش|ضدآفتاب|مسواک|دندان|سشوار|برس حرارتی|اتو مو|ریش.?تراش|موزن|اپیلاتور|مسواک برقی|دستگاه بخور"),
-        ("kids_sports", r"کودک|نوزاد|اسباب بازی|ورزشی|سفر|کمپینگ|کوهنوردی"),
-        ("automotive", r"خودرو|ماشین|موتور سیکلت|داشبورد|کمپرسور باد"),
-        ("fashion", r"لباس|کفش|کیف|عینک|ساعت مچی"),
-        ("computer_network", r"لپ تاپ|لپتاپ|کامپیوتر|مودم|روتر|مانیتور|تبلت"),
-        ("gaming", r"گیم|بازی|کنسول|پلی استیشن|xbox"),
+        ("power_backup", r"پاور\s*بانک|شارژر|باتری|چراغ اضطراری|برق اضطراری"),
+        ("audio_wearables", r"هندزفری|هدفون|ایرپاد|اسپیکر|ساعت\s*هوشمند|اسمارت\s*واچ"),
+        ("digital_accessories", r"کابل|مبدل|گلس|محافظ صفحه|قاب گوشی|پایه نگهدارنده|فلش مموری|هاب\s*usb|نگهدارنده گوشی"),
+        ("computer_network", r"لپ\s*تاپ|لپتاپ|کامپیوتر|مودم|روتر|مانیتور|تبلت|پرینتر|کیبورد|ماوس"),
+        ("gaming", r"گیم|بازی|کنسول|پلی\s*استیشن|xbox"),
+        ("jewelry", r"زیورآلات|بدلیجات|گوشواره|انگشتر|دستبند|گردنبند|نقره زنانه|نقره مردانه|پرسته"),
+        ("books_stationery", r"کتاب|دفتر|خودکار|مداد|لوازم التحریر|لوازم‌التحریر|نوشت افزار"),
+        ("beauty_fragrance", r"عطر|ادکلن|ادو\s*پرفیوم|ادوپرفیوم|بادی\s*اسپلش"),
+        ("personal_care", r"پوست|مو|کرم|سرم|آبرسان|اصلاح|ماساژور|بهداشت|آرایش|ضدآفتاب|مسواک|دندان|سشوار|برس حرارتی|اتو مو|ریش.?تراش|موزن|اپیلاتور|دستگاه بخور|تونر|پاک کننده آرایش"),
+        ("kids_sports", r"کودک|نوزاد|اسباب\s*بازی|ورزشی|سفر|کمپینگ|کوهنوردی|بادی نوزادی"),
+        ("automotive", r"خودرو|ماشین|موتور سیکلت|داشبورد|کمپرسور باد|لوازم خودرو|شارژر فندکی"),
+        ("home", r"آشپزخانه|نظم دهنده|ارگانایزر|چراغ خواب|جارو|خردکن|ظرف|لامپ|ابزار آشپزخانه|خانه|قهوه ساز|فلاسک|ماگ|ظروف"),
+        ("fashion", r"تی\s*شرت|تیشرت|شلوار|بلوز|شومیز|تاپ|مانتو|دامن|پیراهن|پوشاک|لباس|کفش|صندل|بوت|کاپشن|کوله|کیف|جوراب|شال|روسری|عینک|ساعت مچی|لباس زیر|مام فیت|پالتو"),
     ]
     for category, pattern in patterns:
         if re.search(pattern, value, re.I):
@@ -3993,24 +4014,19 @@ def previous_publication_posts_removed(previous: dict | None) -> bool:
 
 
 def is_materially_improved_offer(previous: dict, product: dict, now: datetime | None = None) -> bool:
-    """Permit a repeat product only for a new offer cycle or a real price drop of at least 10%."""
+    """Allow a repeat within cooldown only when the current price is at least 10% lower.
+
+    DigiKala can refresh or extend a campaign timer without materially improving the
+    deal. A new timestamp alone must never bypass the 30-day product cooldown.
+    """
     if not isinstance(previous, dict) or not isinstance(product, dict):
         return False
-    current = now or datetime.now(timezone.utc)
-    if current.tzinfo is None:
-        current = current.replace(tzinfo=timezone.utc)
-    current = current.astimezone(timezone.utc)
     try:
         old_price = int(previous.get("posted_current_price") or previous.get("current_price") or 0)
         new_price = int(product.get("current_price") or 0)
     except (TypeError, ValueError, OverflowError):
         old_price, new_price = 0, 0
-    price_improved = bool(old_price > 0 and new_price > 0 and new_price <= old_price * 0.90)
-
-    old_deadline = _parse_utc_datetime(previous.get("expires_at") or previous.get("deal_expires_at"))
-    new_deadline = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
-    new_offer_cycle = bool(old_deadline and old_deadline <= current and new_deadline and new_deadline > current)
-    return price_improved or new_offer_cycle
+    return bool(old_price > 0 and new_price > 0 and new_price <= old_price * 0.90)
 
 
 def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
@@ -4075,12 +4091,122 @@ def defer_pending_publication(
     return record
 
 
+def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
+    """Return a broad category, narrower product family, and known brand hint."""
+    title = (
+        str(product_or_title.get("title") or "")
+        if isinstance(product_or_title, dict)
+        else str(product_or_title or "")
+    )
+    normalized = title.lower().replace("\u200c", " ")
+    category = classify_category(normalized)
+    family_patterns = {
+        "power_backup": [
+            ("battery", r"باتری|قلمی|نیم\s*قلمی"),
+            ("charger", r"شارژر"),
+            ("emergency_light", r"چراغ اضطراری|برق اضطراری"),
+            ("power_bank", r"پاور\s*بانک|پاوربانک"),
+        ],
+        "audio_wearables": [
+            ("headphones", r"هدفون|هندزفری|ایرپاد"),
+            ("speaker", r"اسپیکر"),
+            ("smartwatch", r"ساعت\s*هوشمند|اسمارت\s*واچ"),
+        ],
+        "personal_care": [
+            ("skincare", r"پوست|کرم|سرم|آبرسان|تونر|ضدآفتاب"),
+            ("haircare", r"مو|سشوار|برس حرارتی|اتو مو"),
+            ("massage", r"ماساژ"),
+        ],
+        "fashion": [
+            ("apparel", r"تی\s*شرت|تیشرت|شلوار|بلوز|شومیز|تاپ|پیراهن|مانتو|لباس"),
+            ("footwear", r"کفش|صندل|بوت"),
+            ("bags", r"کیف|کوله"),
+            ("eyewear", r"عینک"),
+        ],
+        "jewelry": [("jewelry", r"نقره|گوشواره|انگشتر|دستبند|گردنبند|زیورآلات|بدلیجات")],
+        "beauty_fragrance": [("fragrance", r"عطر|ادکلن|پرفیوم|بادی\s*اسپلش")],
+        "home": [
+            ("kitchen", r"آشپزخانه|ظرف|قهوه ساز|فلاسک|ماگ"),
+            ("organization", r"نظم دهنده|ارگانایزر"),
+            ("lighting", r"چراغ|لامپ"),
+        ],
+        "kids_sports": [
+            ("baby", r"نوزاد|نوزادی|کودک"),
+            ("sports_outdoor", r"ورزشی|کمپینگ|کوهنوردی|سفر"),
+        ],
+    }
+    family = category
+    for subfamily, pattern in family_patterns.get(category, []):
+        if re.search(pattern, normalized, re.I):
+            family = f"{category}:{subfamily}"
+            break
+    brand_hints = [
+        ("muzik_apollo", r"موزیک\s*آپولو"),
+        ("vonk", r"وونک"),
+        ("reolink", r"ریولینک"),
+        ("tilsim", r"تیلسیم"),
+        ("easydo", r"ایزی\s*دو|ایزی2"),
+        ("panbineh", r"پنبینه"),
+        ("paresteh", r"پرسته"),
+        ("one_by_one", r"وان\s*بای\s*وان"),
+        ("radis", r"رادیس"),
+        ("art_vina", r"آرت\s*وینا"),
+        ("eurovital", r"یوروویتال"),
+        ("blatos", r"بلاتوس"),
+        ("antonio_rossini", r"آنتونیو\s*روسینی"),
+        ("zanama", r"زاناما"),
+        ("dellbesto", r"دلبستو"),
+    ]
+    brand = next((key for key, pattern in brand_hints if re.search(pattern, normalized, re.I)), "")
+    return category, family, brand
+
+
+def _recent_publication_diversity(published: dict | None, limit: int = 12) -> list[dict]:
+    """Read recent post-history records, including expired posts, for variety."""
+    records = []
+    for raw_pid, record in (published.items() if isinstance(published, dict) else []):
+        if not isinstance(record, dict):
+            continue
+        histories = record.get("post_history")
+        posts = [*(histories if isinstance(histories, list) else []), record]
+        for post in posts:
+            if not isinstance(post, dict):
+                continue
+            message_ids = [
+                int(post[key]) for key in ("telegram_message_id", "bale_message_id")
+                if str(post.get(key) or "").isdigit()
+            ]
+            if not message_ids:
+                continue
+            title = str(post.get("title") or record.get("title") or "").strip()
+            if not title:
+                continue
+            try:
+                timestamp = float(post.get("ts") or 0)
+            except (TypeError, ValueError, OverflowError):
+                timestamp = 0.0
+            order = timestamp if timestamp > 0 else float(max(message_ids))
+            category, family, brand = _publication_diversity_group(title)
+            records.append({
+                "product_id": str(raw_pid),
+                "title": title,
+                "message_id": max(message_ids),
+                "order": order,
+                "category": category,
+                "family": family,
+                "brand": brand,
+            })
+    unique = {(r["product_id"], r["message_id"]): r for r in records}
+    return sorted(unique.values(), key=lambda r: (r["order"], r["message_id"]))[-max(1, int(limit)):]
+
+
 def select_publish_candidates(
     pending_queue: dict[str, dict],
     eligible_by_id: dict[str, dict],
     now: datetime | None = None,
+    published: dict | None = None,
 ) -> list[dict]:
-    """Keep queue priority order but skip candidates whose publish retry is backed off."""
+    """Respect retry backoff and softly diversify the next batch from recent history."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -4098,7 +4224,51 @@ def select_publish_candidates(
         selected.append(product)
     if deferred:
         print(f"PUBLISH_QUEUE_BACKOFF skipped_deferred={deferred} ready={len(selected)}")
-    return selected
+    if len(selected) < 2 or not published:
+        return selected
+
+    recent = _recent_publication_diversity(published, limit=12)
+    category_counts, family_counts, brand_counts = {}, {}, {}
+    recent_product_ids = []
+    for post in recent:
+        category_counts[post["category"]] = category_counts.get(post["category"], 0) + 1
+        family_counts[post["family"]] = family_counts.get(post["family"], 0) + 1
+        if post["brand"]:
+            brand_counts[post["brand"]] = brand_counts.get(post["brand"], 0) + 1
+        recent_product_ids.append(post["product_id"])
+
+    remaining, diversified = list(selected), []
+    while remaining:
+        pool = remaining[:min(8, len(remaining))]
+        scored = []
+        for rank, product in enumerate(pool):
+            pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
+            category, family, brand = _publication_diversity_group(product)
+            score = rank
+            score += min(8.0, category_counts.get(category, 0) * 1.8)
+            score += min(8.0, family_counts.get(family, 0) * 2.2)
+            if brand:
+                score += min(5.0, brand_counts.get(brand, 0) * 1.5)
+            if pid in recent_product_ids[-8:]:
+                score += 4.0
+            scored.append((score, rank, product, pid, category, family, brand))
+        _, rank, chosen, pid, category, family, brand = min(scored, key=lambda x: (x[0], x[1]))
+        if rank:
+            print(
+                f"PUBLICATION_DIVERSITY_REORDER id={pid} original_rank={rank + 1} "
+                f"category={category} family={family} "
+                f"recent_category_count={category_counts.get(category, 0)} "
+                f"recent_family_count={family_counts.get(family, 0)} "
+                f"recent_brand_count={brand_counts.get(brand, 0) if brand else 0}"
+            )
+        diversified.append(chosen)
+        remaining.pop(rank)
+        category_counts[category] = category_counts.get(category, 0) + 1
+        family_counts[family] = family_counts.get(family, 0) + 1
+        if brand:
+            brand_counts[brand] = brand_counts.get(brand, 0) + 1
+        recent_product_ids.append(pid)
+    return diversified
 
 
 def refresh_pending_queue(state: dict, eligible: list[dict],
@@ -5161,7 +5331,7 @@ def run(publish=False):
             )
             break
 
-    eligible = select_publish_candidates(pending_queue, eligible_by_id, queue_now)
+    eligible = select_publish_candidates(pending_queue, eligible_by_id, queue_now, state.get("published"))
     market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
         f"ranked_products={len(products)} listed_discount_eligible={listed_eligible_count} "

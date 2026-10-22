@@ -37,6 +37,7 @@ from affilio_radar import (
     select_publish_candidates,
     parse_product_page,
     score_product,
+    classify_category,
     is_publish_eligible,
     build_caption,
     format_remaining_time,
@@ -484,7 +485,42 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(is_deadline_critical_deal(too_soon, now))
         self.assertFalse(is_deadline_critical_deal({**close_but_safe, "deal_expires_at": ""}, now))
 
-    def test_new_offer_cycle_or_real_price_drop_can_bypass_product_cooldown(self):
+    def test_category_classifier_recognizes_everyday_merchandise(self):
+        self.assertEqual(classify_category("تیشرت یقه گرد مردانه ایزی دو"), "fashion")
+        self.assertEqual(classify_category("کتاب جوجوتسو کایسن سه جلدی"), "books_stationery")
+        self.assertEqual(classify_category("گوشواره نقره زنانه پرسته"), "jewelry")
+        self.assertEqual(classify_category("عطر زنانه مدل نمونه"), "beauty_fragrance")
+        self.assertEqual(classify_category("هدفون بلوتوثی مدل نمونه"), "audio_wearables")
+        self.assertEqual(classify_category("باتری قلمی قابل شارژ"), "power_backup")
+
+    def test_publish_selection_softly_reorders_repetitive_categories_for_diversity(self):
+        now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
+        published = {}
+        for index in range(6):
+            published[f"dkp-old-audio-{index}"] = {
+                "title": f"هدفون بلوتوثی موزیک آپولو مدل {index}",
+                "telegram_message_id": 100 + index,
+                "ts": now.timestamp() - (60 * (6 - index)),
+            }
+        for index in range(3):
+            published[f"dkp-old-power-{index}"] = {
+                "title": f"شارژر سریع وونک مدل {index}",
+                "telegram_message_id": 200 + index,
+                "ts": now.timestamp() - (60 * (3 - index)),
+            }
+        candidates = [
+            {"product_id": "dkp-audio-new", "title": "هدفون بلوتوثی موزیک آپولو مدل جدید"},
+            {"product_id": "dkp-audio-2", "title": "هدفون بلوتوثی ریولینک مدل جدید"},
+            {"product_id": "dkp-power-new", "title": "باتری قلمی قابل شارژ"},
+            {"product_id": "dkp-fashion-new", "title": "تیشرت یقه گرد مردانه مدل جدید"},
+        ]
+        queue = {p["product_id"]: {} for p in candidates}
+        eligible = {p["product_id"]: p for p in candidates}
+        selected = select_publish_candidates(queue, eligible, now, published)
+        self.assertEqual(selected[0]["product_id"], "dkp-fashion-new")
+        self.assertEqual({p["product_id"] for p in selected}, {p["product_id"] for p in candidates})
+
+    def test_repeat_product_requires_real_price_drop_to_bypass_product_cooldown(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
         previous = {
             "posted_current_price": 1_000_000,
@@ -502,7 +538,7 @@ class AffilioRadarTests(unittest.TestCase):
             "current_price": 1_000_000,
             "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
         }
-        self.assertTrue(is_materially_improved_offer(previous, same_price_new_campaign, now))
+        self.assertFalse(is_materially_improved_offer(previous, same_price_new_campaign, now))
         self.assertTrue(is_materially_improved_offer({**previous, "expires_at": (now + timedelta(hours=2)).isoformat()}, materially_cheaper, now))
         self.assertFalse(is_materially_improved_offer({**previous, "expires_at": (now + timedelta(hours=2)).isoformat()}, unchanged, now))
 

@@ -119,12 +119,19 @@ def _duration_seconds(value):
     except (TypeError, ValueError, OverflowError):
         pass
 
-    # Common live countdown serialization, e.g. "03:24:00".
+    # Common live countdown serializations:
+    # "03:24:00" = hours:minutes:seconds; "03:24" = hours:minutes.
     match = re.fullmatch(r"(\d{1,3}):(\d{1,2}):(\d{1,2})", text)
     if match:
         hours, minutes, secs = map(int, match.groups())
         if minutes < 60 and secs < 60:
             total = hours * 3600 + minutes * 60 + secs
+            return float(total) if total <= MAX_OFFER_SECONDS else None
+    match = re.fullmatch(r"(\d{1,3}):(\d{1,2})", text)
+    if match:
+        hours, minutes = map(int, match.groups())
+        if minutes < 60:
+            total = hours * 3600 + minutes * 60
             return float(total) if total <= MAX_OFFER_SECONDS else None
 
     # Some source wrappers expose the human-readable timer rather than seconds.
