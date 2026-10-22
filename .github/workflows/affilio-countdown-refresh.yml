@@ -36,15 +36,15 @@ jobs:
       - name: Validate syntax
         run: python -m py_compile affilio_radar/affilio_radar.py
 
-      - name: Refresh live offer countdowns
+      - name: Migrate captions without countdowns and restore purchase buttons
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_LINK_TEMPLATE: ${{ secrets.AFFILIO_LINK_TEMPLATE }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          AFFILIO_COUNTDOWN_REFRESH_FORCE: "true"
-          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
+          AFFILIO_COUNTDOWN_REFRESH_FORCE: "true" # Retained for workflow compatibility; captions are static
+          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10" # Applies only to verified offer removal
           AFFILIO_DEAL_LIST_PAGES: "5"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --refresh-countdowns
