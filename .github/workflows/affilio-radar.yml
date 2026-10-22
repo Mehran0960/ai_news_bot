@@ -91,6 +91,7 @@ jobs:
       - name: Validate syntax and run unit tests
         if: ${{ github.event_name != 'schedule' }}
         run: |
+          # Regression coverage includes timer-free captions, direct deadlines, and purchase-button recovery.
           python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py
           cd affilio_radar
           python -m unittest -v test_affilio.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py
