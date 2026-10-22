@@ -3359,7 +3359,7 @@ def repair_bale_caption(message_id: int) -> int:
 
 
 def repair_all_published_captions() -> int:
-    """Edit tracked Telegram/Bale captions in place; never creates or deletes posts."""
+    """[repair-all-captions] Rebuild active captions with verified timers and explicit affiliate buttons."""
     state = load_state()
     published = state.get("published", {})
     if not isinstance(published, dict):
