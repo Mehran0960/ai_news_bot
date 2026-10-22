@@ -2951,6 +2951,7 @@ def build_caption(
     if p.get("deal_expires_at") and p.get("expiry_estimated") is not True:
         countdown = format_remaining_time(
             p.get("deal_expires_at"),
+            now=p.get("_countdown_now"),
             safety_buffer_minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES,
         )
     if countdown and countdown != "مهلت آفر به پایان رسیده":
