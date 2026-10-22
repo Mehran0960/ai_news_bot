@@ -2774,7 +2774,7 @@
       "aparat_shorts_upload_status": "queued",
       "aparat_upload_status": "waiting_shorts_uploader",
       "bale_message_id": 537,
-      "caption_deadline_format_version": 6,
+      "caption_deadline_format_version": 7,
       "click_tracking_url": "",
       "delivery_attempts": {
         "bale": 1,
@@ -2805,7 +2805,10 @@
       "youtube_next_attempt_at": "2026-10-22T19:59:48.705448+00:00",
       "youtube_upload_attempts": 1,
       "youtube_upload_started_at": "2026-10-22T19:54:48.182592+00:00",
-      "youtube_upload_status": "retry"
+      "youtube_upload_status": "retry",
+      "caption_static_migrated_at": "2026-10-22T19:55:07.970196+00:00",
+      "caption_countdown_refreshed_at": "2026-10-22T19:55:07.970196+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-22T19:55:07.970196+00:00"
     },
     "dkp-unknown-deadline": {
       "caption_countdown_refreshed_at": "2026-10-22T19:54:07.808481+00:00",
@@ -2819,7 +2822,10 @@
       "product_url": "https://www.digikala.com/product/dkp-15970075/",
       "telegram_message_id": 88,
       "title": "پیشنهاد بدون مهلت معتبر",
-      "ts": 1
+      "ts": 1,
+      "telegram_unverified_deadline_preserved_at": "2026-10-22T19:55:07.970196+00:00",
+      "expiry_last_probed_at": "2026-10-22T19:55:07.970196+00:00",
+      "expiry_last_product_check_at": "2026-10-22T19:55:07.970196+00:00"
     }
   }
 }
