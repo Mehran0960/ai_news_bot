@@ -64,7 +64,6 @@ jobs:
         run: python affilio_radar/expiration_monitor.py
 
       - name: Migrate captions without countdowns and restore purchase buttons
-        if: ${{ !contains(github.event.head_commit.message, '[repair-all-captions]') }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
@@ -77,7 +76,12 @@ jobs:
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_DEAL_LIST_PAGES: "5"
           PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/affilio_radar.py --refresh-countdowns
+        run: |
+          if [[ "${{ contains(github.event.head_commit.message, '[repair-all-captions]') }}" == "true" ]]; then
+            python affilio_radar/affilio_radar.py --repair-all-captions
+          else
+            python affilio_radar/affilio_radar.py --refresh-countdowns
+          fi
       - name: Commit expiry tracking changes only when changed
         run: |
           git config user.name "github-actions[bot]"
