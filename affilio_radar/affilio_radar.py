@@ -3580,7 +3580,7 @@ def refresh_active_countdowns() -> int:
         raise RuntimeError("Published state is not an object")
     now = datetime.now(timezone.utc)
     terminal_statuses = {"deleted", "already_absent"}
-    verified_sources = {"digikala_live_deals_feed", "live_product_stock_or_price"}
+    verified_sources = {"digikala_live_deals_feed", "digikala_product_detail_api", "live_product_stock_or_price"}
     due = []
     for product_key, record in published.items():
         if not isinstance(record, dict):
@@ -3589,7 +3589,18 @@ def refresh_active_countdowns() -> int:
             current_version = int(record.get("caption_deadline_format_version") or 0)
         except (TypeError, ValueError, OverflowError):
             current_version = 0
-        if current_version >= CAPTION_DEADLINE_FORMAT_VERSION and not record.get("deadline_caption_refresh_required"):
+        needs_button_retry = any(
+            record.get(field) in {
+                "delete_failed", "expired_marked",
+                "deadline_unavailable_marked", "deadline_unavailable_delete_failed",
+            }
+            for field in ("expiry_status", "bale_expiry_status")
+        )
+        if (
+            current_version >= CAPTION_DEADLINE_FORMAT_VERSION
+            and not record.get("deadline_caption_refresh_required")
+            and not needs_button_retry
+        ):
             continue
 
         deadline = _parse_utc_datetime(record.get("expires_at"))
@@ -3599,7 +3610,7 @@ def refresh_active_countdowns() -> int:
             and expiry_source in verified_sources
             and record.get("expiry_estimated") is not True
             and (
-                expiry_source != "digikala_live_deals_feed"
+                expiry_source not in {"digikala_live_deals_feed", "digikala_product_detail_api"}
                 or record.get("expiry_deadline_verified_directly") is True
             )
         )

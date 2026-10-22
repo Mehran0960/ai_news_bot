@@ -6,7 +6,7 @@ from io import BytesIO
 from urllib.error import HTTPError
 from urllib.parse import parse_qs
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import expiration_monitor as monitor
 from affilio_radar import format_remaining_time
@@ -40,6 +40,36 @@ class ExpirationMonitorTests(unittest.TestCase):
         after = datetime.now(timezone.utc)
         self.assertGreaterEqual(parsed, before + timedelta(seconds=89))
         self.assertLessEqual(parsed, after + timedelta(seconds=91))
+
+    def test_product_detail_api_exposes_site_campaign_deadline_for_verification(self):
+        payload = {
+            "data": {
+                "product": {
+                    "id": 123,
+                    "title_fa": "محصول تخفیف‌دار",
+                    "campaign": {"ends_at": "2026-10-23T18:00:00+00:00"},
+                    "default_variant": {
+                        "id": 123,
+                        "marketable": True,
+                        "price": {
+                            "selling_price_toman": 100_000,
+                            "rrp_price_toman": 200_000,
+                        },
+                    },
+                }
+            }
+        }
+        response = MagicMock()
+        response.status = 200
+        response.read.return_value = json.dumps(payload).encode("utf-8")
+        response.__enter__.return_value = response
+        response.__exit__.return_value = False
+        with patch.object(monitor, "urlopen", return_value=response):
+            result = monitor.fetch_live_product_status("dkp-123")
+        self.assertEqual(result["deal_expires_at"], "2026-10-23T18:00:00+00:00")
+        self.assertTrue(result["expiry_verified_directly"])
+        self.assertEqual(result["current_price"], 100_000)
+        self.assertTrue(result["in_stock"])
 
     def test_expiry_cleanup_uses_direct_digikala_feed_only(self):
         direct = {
@@ -252,6 +282,17 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(deadlines, {})
         self.assertEqual(candidates, [])
         self.assertEqual([call.args[0] for call in fetch.call_args_list], [4, 5])
+
+    def test_unverified_cached_deadline_still_needs_direct_product_probe(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "telegram_message_id": 77,
+            "expires_at": (now + timedelta(hours=2)).isoformat(),
+            "expiry_source": "direct_verification_pending",
+            "expiry_deadline_verified_directly": False,
+            "expiry_estimated": False,
+        }
+        self.assertTrue(monitor._should_probe(record, now))
 
     def test_probe_interval_prevents_repeated_unknown_feed_checks(self):
         now = datetime.now(timezone.utc)
@@ -626,6 +667,8 @@ class ExpirationMonitorTests(unittest.TestCase):
         record = {
             "telegram_message_id": 77,
             "expires_at": (now + timedelta(minutes=10)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
         }
         self.assertFalse(monitor._should_probe(record, now))

@@ -59,6 +59,21 @@ def parse_expiry(value):
     return parse_absolute_deadline(value)
 
 
+
+def _has_verified_deadline(record):
+    """True only when an authoritative DigiKala API/source confirmed the timestamp."""
+    if not isinstance(record, dict) or record.get("expiry_estimated") is True:
+        return False
+    if not parse_expiry(record.get("expires_at")):
+        return False
+    source = str(record.get("expiry_source") or "")
+    if source == "live_product_stock_or_price":
+        return True
+    return (
+        source in {"digikala_live_deals_feed", "digikala_product_detail_api"}
+        and record.get("expiry_deadline_verified_directly") is True
+    )
+
 def extract_expiry(obj, now=None):
     """Use the same site-countdown parser as initial publication and caption refresh."""
     return extract_offer_expiry(obj, now=now)
@@ -480,7 +495,15 @@ def fetch_live_product_status(product_id):
                     break
             if in_stock is not None:
                 break
-        return {"current_price": current, "original_price": original, "in_stock": in_stock, "api_version": version}
+        deal_expiry = extract_expiry(product, now=datetime.now(timezone.utc))
+        return {
+            "current_price": current,
+            "original_price": original,
+            "in_stock": in_stock,
+            "api_version": version,
+            "deal_expires_at": deal_expiry or "",
+            "expiry_verified_directly": bool(deal_expiry),
+        }
     return {}
 
 
@@ -504,13 +527,13 @@ def _write_state(state):
 
 
 def _should_probe(record, now):
-    terminal = {"deleted", "already_absent", "expired_marked", "deadline_unavailable_marked", "deadline_unavailable_delete_failed"}
+    terminal = {"deleted", "already_absent"}
     telegram_done = record.get("expiry_status") in terminal
     bale_message_id = record.get("bale_message_id")
     bale_done = record.get("bale_expiry_status") in terminal
     if telegram_done and (not str(bale_message_id or "").isdigit() or bale_done):
         return False
-    if record.get("expires_at") and not record.get("expiry_estimated"):
+    if _has_verified_deadline(record):
         return False
     last_raw = record.get("expiry_last_probed_at")
     try:
@@ -1112,11 +1135,7 @@ def audit_public_channel_history(published, now=None, posts=None):
             continue
         deadline_text = parse_expiry(record.get("expires_at"))
         deadline = None
-        if (
-            record.get("expiry_source") in {"digikala_live_deals_feed", "live_product_stock_or_price"}
-            and record.get("expiry_estimated") is not True
-            and deadline_text
-        ):
+        if _has_verified_deadline(record) and deadline_text:
             try:
                 deadline = datetime.fromisoformat(deadline_text)
                 if deadline.tzinfo is None:
@@ -1201,10 +1220,7 @@ def _delete_posts_without_verified_deadline(published, now):
             if deadline <= now:
                 # The normal explicit-deadline path handles expiry and retries.
                 continue
-            if (
-                rec.get("expiry_source") == "digikala_live_deals_feed"
-                and rec.get("expiry_estimated") is not True
-            ):
+            if _has_verified_deadline(rec):
                 continue
 
         reason = "missing_deadline" if deadline is None else "deadline_not_verified"
@@ -1248,15 +1264,7 @@ def _delete_expired_posts(published, now, mark_unknown=False):
         expires_at = datetime.fromisoformat(expiry)
         if expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
-        allowed_sources = {"digikala_live_deals_feed", "live_product_stock_or_price"}
-        if (
-            rec.get("expiry_estimated") is True
-            or rec.get("expiry_source") not in allowed_sources
-            or (
-                rec.get("expiry_source") == "digikala_live_deals_feed"
-                and rec.get("expiry_deadline_verified_directly") is not True
-            )
-        ):
+        if not _has_verified_deadline(rec):
             print(
                 f"EXPIRY_DEADLINE_NOT_AUTHORITATIVE_PRESERVED product_id={pid} "
                 f"source={rec.get('expiry_source') or 'missing'} "
@@ -1339,7 +1347,7 @@ def _delete_expired_aparat_videos(published, now):
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
-        if rec.get("expiry_estimated") is True or rec.get("expiry_source") not in {"digikala_live_deals_feed", "live_product_stock_or_price"}:
+        if not _has_verified_deadline(rec):
             continue
         video_hash = str(rec.get("aparat_video_hash") or "").strip()
         expiry_status = str(rec.get("aparat_expiry_status") or "")
@@ -1437,7 +1445,7 @@ def _delete_expired_youtube_videos(published, now):
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
-        if rec.get("expiry_estimated") is True or rec.get("expiry_source") not in {"digikala_live_deals_feed", "live_product_stock_or_price"}:
+        if not _has_verified_deadline(rec):
             continue
         video_id = str(rec.get("youtube_video_id") or "").strip()
         expiry_status = str(rec.get("youtube_expiry_status") or "")
@@ -1588,8 +1596,8 @@ def run():
         (pid, rec) for pid, rec in published.items()
         if isinstance(rec, dict)
         and (
-            (str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent", "expired_marked"})
-            or (str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent", "expired_marked"})
+            (str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent"})
+            or (str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"})
         )
         and _should_probe(rec, now)
     ]
@@ -1598,7 +1606,7 @@ def run():
     max_product_probes = 3
     max_probe_candidates = max_product_probes * 2
     for pid, rec in probe_candidates[:max_probe_candidates]:
-        if not isinstance(rec, dict) or (rec.get("expires_at") and not rec.get("expiry_estimated")):
+        if not isinstance(rec, dict) or _has_verified_deadline(rec):
             continue
         rec["expiry_last_probed_at"] = now.isoformat()
         changed = True
@@ -1609,6 +1617,22 @@ def run():
         rec["expiry_last_product_check_at"] = now.isoformat()
         if not snapshot:
             continue
+        direct_product_deadline = (
+            parse_expiry(snapshot.get("deal_expires_at"))
+            if snapshot.get("expiry_verified_directly") is True else None
+        )
+        if direct_product_deadline:
+            previous_deadline = parse_expiry(rec.get("expires_at"))
+            rec["expires_at"] = direct_product_deadline
+            rec["expiry_source"] = "digikala_product_detail_api"
+            rec["expiry_deadline_verified_directly"] = True
+            rec["expiry_estimated"] = False
+            rec.pop("expiry_reason", None)
+            changed = True
+            print(
+                f"EXPIRY_DEADLINE_FROM_DIRECT_PRODUCT_API product_id={pid} "
+                f"previous={previous_deadline or 'missing'} live={direct_product_deadline}"
+            )
         current = snapshot.get("current_price")
         posted = rec.get("posted_current_price")
         stock = snapshot.get("in_stock")

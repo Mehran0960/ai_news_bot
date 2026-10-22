@@ -1357,7 +1357,7 @@ class AffilioRadarTests(unittest.TestCase):
             "expiry_estimated": False,
             "expiry_status": "delete_failed",
             "bale_expiry_status": "delete_failed",
-            "caption_deadline_format_version": 7,
+            "caption_deadline_format_version": 8,
         }
         state = {"published": {"dkp-9001": record}}
         with (
