@@ -493,12 +493,12 @@ class ExpirationMonitorTests(unittest.TestCase):
             patch.object(monitor, "_bale_delete") as bale_delete,
         ):
             changed, deleted = monitor._delete_expired_posts(published, now)
-        self.assertTrue(changed)
+        self.assertFalse(changed)
         self.assertEqual(deleted, 0)
         tg_delete.assert_not_called()
         bale_delete.assert_not_called()
         self.assertEqual(published["dkp-estimated"]["expiry_status"], "tracked_estimated")
-        self.assertIn("expiry_estimate_cutoff_preserved_at", published["dkp-estimated"])
+        self.assertNotIn("expiry_estimate_cutoff_preserved_at", published["dkp-estimated"])
 
     def test_caption_countdown_zero_matches_exact_post_deletion_cutoff(self):
         deadline = datetime(2026, 10, 21, 23, 0, tzinfo=timezone.utc)
@@ -626,6 +626,8 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "title": "محصول منقضی",
                 "telegram_message_id": 991,
                 "expires_at": (now - timedelta(minutes=5)).isoformat(),
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_estimated": False,
                 "expiry_status": "tracked",
             }
         }
@@ -656,6 +658,8 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "title": "محصول منقضی",
                 "telegram_message_id": 991,
                 "expires_at": (now - timedelta(minutes=5)).isoformat(),
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_estimated": False,
                 "expiry_status": "tracked",
             }
         }
@@ -864,7 +868,12 @@ class ExpirationMonitorTests(unittest.TestCase):
 
     def test_youtube_expired_short_is_deleted(self):
         now = datetime.now(timezone.utc)
-        record = {"youtube_video_id": "yt_expired", "expires_at": (now - timedelta(minutes=1)).isoformat()}
+        record = {
+            "youtube_video_id": "yt_expired",
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_estimated": False,
+        }
         with patch("short_video.youtube_credentials_available", return_value=True), patch(
             "short_video.delete_youtube_video", return_value="deleted"
         ) as delete_video:
@@ -890,7 +899,12 @@ class ExpirationMonitorTests(unittest.TestCase):
 
     def test_youtube_delete_failure_privatises_as_fallback_and_retries(self):
         now = datetime.now(timezone.utc)
-        record = {"youtube_video_id": "yt_retry", "expires_at": (now - timedelta(minutes=1)).isoformat()}
+        record = {
+            "youtube_video_id": "yt_retry",
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_estimated": False,
+        }
         with patch("short_video.youtube_credentials_available", return_value=True), patch(
             "short_video.delete_youtube_video", side_effect=RuntimeError("delete failed")
         ), patch("short_video.set_youtube_video_private", return_value=True) as fallback:
@@ -902,7 +916,12 @@ class ExpirationMonitorTests(unittest.TestCase):
 
     def test_expired_youtube_video_waits_for_credentials(self):
         now = datetime.now(timezone.utc)
-        record = {"youtube_video_id": "yt_pending", "expires_at": (now - timedelta(minutes=1)).isoformat()}
+        record = {
+            "youtube_video_id": "yt_pending",
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_estimated": False,
+        }
         with patch("short_video.youtube_credentials_available", return_value=False), patch(
             "short_video.delete_youtube_video"
         ) as delete_video:
@@ -950,6 +969,8 @@ class ExpirationMonitorTests(unittest.TestCase):
             "aparat_video_hash": "aparat_retry",
             "aparat_visibility": "public",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_estimated": False,
         }
         with patch("aparat_uploader.aparat_credentials_available", return_value=True), patch(
             "aparat_uploader.delete_aparat_video", side_effect=RuntimeError("delete failed")
@@ -966,6 +987,8 @@ class ExpirationMonitorTests(unittest.TestCase):
             "aparat_video_hash": "aparat_pending",
             "aparat_visibility": "public",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_estimated": False,
         }
         with patch("aparat_uploader.aparat_credentials_available", return_value=False), patch(
             "aparat_uploader.delete_aparat_video"
