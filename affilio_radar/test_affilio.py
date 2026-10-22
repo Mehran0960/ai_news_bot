@@ -1035,9 +1035,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("💰", caption)
         self.assertNotIn("<u>", caption)
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
-        self.assertIn("مانده به پایان تخفیف", caption)
+        self.assertNotIn("مانده به پایان تخفیف", caption)
         self.assertNotIn("📅 پایان تخفیف:", caption)
-        self.assertIn("⏳", caption)
+        self.assertNotIn("⏳", caption)
         self.assertIn("<b>👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.</b>", caption)
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', caption)
         self.assertLess(caption.index("عضویت در کانال"), caption.index("برای خرید از دیجی‌کالا"))
@@ -1083,9 +1083,9 @@ class AffilioRadarTests(unittest.TestCase):
             "deal_expires_at": "2026-12-16T20:30:00+00:00",
             "_countdown_now": datetime(2026, 10, 16, 20, 30, tzinfo=timezone.utc),
         }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
-        self.assertIn("⏳ ", caption)
-        self.assertIn("مانده به پایان تخفیف", caption)
+        self.assertNotIn("مانده به پایان تخفیف", caption)
         self.assertNotIn("📅 پایان تخفیف:", caption)
+        self.assertNotIn("⏳", caption)
 
     def test_send_photo_adds_one_direct_affiliate_purchase_button(self):
         response = unittest.mock.Mock()
