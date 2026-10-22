@@ -1204,7 +1204,7 @@ class AffilioRadarTests(unittest.TestCase):
             "deal_expires_at": "2026-10-18T09:59:59+00:00"
         }, now))
 
-    def test_build_caption_shows_source_backed_countdown_without_absolute_deadline(self):
+    def test_build_caption_never_displays_countdown_with_verified_deadline(self):
         url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
         product = {
             "title": "محصول نمونه",
@@ -1216,9 +1216,9 @@ class AffilioRadarTests(unittest.TestCase):
         }
         with patch("affilio_radar.format_remaining_time", return_value="۵۰ دقیقه مانده به پایان تخفیف") as countdown:
             caption = build_caption(product, url, "https://t.me/OfferChin")
-        countdown.assert_called_once()
-        self.assertEqual(countdown.call_args.kwargs["safety_buffer_minutes"], 10)
-        self.assertIn("⏳ ۵۰ دقیقه مانده به پایان تخفیف", caption)
+        countdown.assert_not_called()
+        self.assertNotIn("⏳", caption)
+        self.assertNotIn("مانده به پایان تخفیف", caption)
         self.assertNotIn("📅 پایان تخفیف:", caption)
 
     def test_unicode_underline_marks_visible_characters(self):
@@ -1265,11 +1265,13 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(state["published"]["dkp-15970075"]["expires_at"], stale_expiry)
         self.assertEqual(edit_telegram.call_count, 1)
         self.assertEqual(edit_bale.call_count, 1)
-        self.assertIn("مانده به پایان تخفیف", edit_telegram.call_args.args[1])
-        self.assertIn("مانده به پایان تخفیف", edit_bale.call_args.args[1])
+        self.assertNotIn("مانده به پایان تخفیف", edit_telegram.call_args.args[1])
+        self.assertNotIn("مانده به پایان تخفیف", edit_bale.call_args.args[1])
+        self.assertNotIn("⏳", edit_telegram.call_args.args[1])
+        self.assertNotIn("⏳", edit_bale.call_args.args[1])
         self.assertNotIn("📅 پایان تخفیف:", edit_telegram.call_args.args[1])
         self.assertNotIn("📅 پایان تخفیف:", edit_bale.call_args.args[1])
-        self.assertEqual(state["published"]["dkp-15970075"]["caption_deadline_format_version"], 5)
+        self.assertEqual(state["published"]["dkp-15970075"]["caption_deadline_format_version"], 6)
         self.assertIn("caption_countdown_refreshed_at", state["published"]["dkp-15970075"])
         self.assertEqual(edit_telegram.call_args.args[2], url)
         self.assertEqual(edit_bale.call_args.args[2], url)
@@ -1326,10 +1328,12 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(state["published"]["dkp-missing"]["expiry_source"], "unavailable")
         self.assertTrue(state["published"]["dkp-missing"]["expiry_estimated"])
         self.assertEqual([call.args[0] for call in edit_telegram.call_args_list], [501, 502])
-        self.assertEqual(state["published"]["dkp-live"]["caption_deadline_format_version"], 5)
-        self.assertEqual(state["published"]["dkp-missing"]["caption_deadline_format_version"], 5)
-        self.assertIn("مانده به پایان تخفیف", edit_telegram.call_args_list[0].args[1])
+        self.assertEqual(state["published"]["dkp-live"]["caption_deadline_format_version"], 6)
+        self.assertEqual(state["published"]["dkp-missing"]["caption_deadline_format_version"], 6)
+        self.assertNotIn("مانده به پایان تخفیف", edit_telegram.call_args_list[0].args[1])
         self.assertNotIn("مانده به پایان تخفیف", edit_telegram.call_args_list[1].args[1])
+        self.assertNotIn("⏳", edit_telegram.call_args_list[0].args[1])
+        self.assertNotIn("⏳", edit_telegram.call_args_list[1].args[1])
         self.assertEqual(edit_telegram.call_args_list[0].args[2], url)
         self.assertEqual(edit_telegram.call_args_list[1].args[2], url)
         self.assertTrue(save_state.called)
@@ -1373,8 +1377,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(result, 0)
         self.assertEqual([call.args[0] for call in edit_telegram.call_args_list], [200, 201])
         self.assertEqual([call.args[0] for call in edit_bale.call_args_list], [400, 401])
-        self.assertEqual(published["dkp-1000"]["caption_deadline_format_version"], 5)
-        self.assertEqual(published["dkp-1001"]["caption_deadline_format_version"], 5)
+        self.assertEqual(published["dkp-1000"]["caption_deadline_format_version"], 6)
+        self.assertEqual(published["dkp-1001"]["caption_deadline_format_version"], 6)
         self.assertEqual(published["dkp-1002"]["caption_deadline_format_version"], 3)
         self.assertNotIn("caption_countdown_refreshed_at", published["dkp-1002"])
         self.assertEqual(edit_telegram.call_args_list[0].args[2], url)
