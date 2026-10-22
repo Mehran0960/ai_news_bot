@@ -38,7 +38,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install dependencies for caption countdown refresh
+      - name: Install dependencies for one-time caption migration
         run: python -m pip install -r affilio_radar/requirements.txt
 
       - name: Validate expiry monitor and run its unit tests
@@ -47,14 +47,14 @@ jobs:
           cd affilio_radar
           python -m unittest -v test_expiration_monitor.py
 
-      - name: Refresh countdowns for active OfferChin posts
+      - name: Remove obsolete expiry timers from tracked OfferChin captions
         if: ${{ !contains(github.event.head_commit.message, '[repair-all-captions]') }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          # Captions are static text; recalculate every active countdown during each five-minute cleanup cycle.
+          # The v4 migrator edits only captions that still contain an obsolete expiry timer.
           AFFILIO_COUNTDOWN_REFRESH_FORCE: "true"
           AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && '100' || '80' }}
           AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS: "240"
