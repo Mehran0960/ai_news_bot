@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Keep OfferChin deal posts live only when their absolute deadline is verified.
 
-Expired offers and posts whose deadlines are missing, estimated, or otherwise
-unverifiable are deleted from Telegram and Bale. If deletion temporarily fails,
-the purchase button is disabled where possible and deletion is retried on later
-cleanup runs. Public-history auditing also removes legacy offer captions without
-a recoverable absolute deadline while preserving ordinary channel announcements.
+Only verified expired offers are deleted from Telegram and Bale. Missing or estimated
+deadlines are not proof of expiry, so affected posts are preserved until a source-backed
+deadline can be re-established. Caption edits explicitly reattach the product's approved
+Affilio purchase button and refresh the displayed countdown using the same ten-minute
+safety buffer used by automatic removal.
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ import re
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, quote, urlencode, urlsplit
 from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
@@ -803,7 +803,7 @@ def _extract_legacy_caption_fields(caption_text):
 
 
 def _build_legacy_repaired_caption(fields, deadline, now):
-    """Rebuild a pre-tracker caption with the current link, underline, and countdown format."""
+    """Rebuild a legacy caption with a source-backed countdown and standard footer."""
     title = html.escape(str(fields.get("title") or "پیشنهاد ویژه").strip())
     parts = [
         "<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>",
@@ -820,12 +820,17 @@ def _build_legacy_repaired_caption(fields, deadline, now):
         parts.append(f"<b><u>⚡️ {_persian_number(discount)}٪ تخفیف</u></b>")
     if original and current and original > current:
         parts += ["", f"<b>🏷️ قیمت اصلی: <s>{_persian_number(original)} تومان</s></b>"]
-    # Deadlines are operational state only; never render them in captions.
+
+    if deadline is not None:
+        remaining = _remaining_label(deadline, now)
+        if remaining != "مهلت آفر به پایان رسیده":
+            parts += ["", f"⏳ {remaining} مانده به پایان تخفیف"]
+
     parts += [
         "",
         '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>',
         "",
-        "<b>👇 برای دیدن جزئیات، دکمهٔ زیر رو بزن.</b>",
+        "<b>👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.</b>",
     ]
     caption = "\n".join(parts)
     if len(caption) > 1024:
@@ -835,25 +840,33 @@ def _build_legacy_repaired_caption(fields, deadline, now):
 
 
 def _caption_needs_repair(caption_html, caption_text, fields, deadline=None, now=None):
-    """Check formatting and detect obsolete visible countdown/deadline text."""
+    """Check price formatting and compare a displayed timer with the current deadline."""
     if "عضویت در کانال OfferChin" not in caption_text or "t.me/OfferChin" in caption_text:
         return True
 
-    # Any expiry-related wording is obsolete, including both the formerly
-    # refreshed relative timer and the absolute date added during legacy repair.
-    obsolete_expiry_text = (
-        "مانده به پایان تخفیف",
-        "پایان تخفیف",
-        "مهلت آفر به پایان رسیده",
-        "کمتر از ۱ دقیقه",
-    )
-    if any(term in caption_text for term in obsolete_expiry_text):
+    # Absolute deadline text is never displayed. A relative countdown is kept only
+    # if it matches the same verified deadline and ten-minute buffer as cleanup.
+    if "📅 پایان تخفیف:" in caption_text or "پایان تخفیف:" in caption_text:
         return True
-    if re.search(
-        r"\b(?:[۰-۹0-9]{1,2})\s*(?:ساعت|دقیقه)\b.*(?:پایان|تخفیف)",
-        caption_text,
-    ):
-        return True
+    has_timer = any(term in caption_text for term in (
+        "مانده به پایان تخفیف", "مهلت آفر به پایان رسیده", "کمتر از ۱ دقیقه",
+    ))
+    if deadline is None:
+        if has_timer:
+            return True
+    else:
+        current = now or datetime.now(timezone.utc)
+        if current.tzinfo is None:
+            current = current.replace(tzinfo=timezone.utc)
+        current = current.astimezone(timezone.utc)
+        expected = _remaining_label(deadline, current)
+        if expected == "مهلت آفر به پایان رسیده":
+            if has_timer:
+                return True
+        else:
+            expected_text = f"⏳ {expected} مانده به پایان تخفیف"
+            if expected_text not in caption_text:
+                return True
 
     soup = BeautifulSoup(caption_html or "", "html.parser")
     underline_texts = [" ".join(node.get_text(" ", strip=True).split()) for node in soup.find_all("u")]
@@ -941,8 +954,43 @@ def fetch_public_channel_posts(max_pages=None):
     return all_posts
 
 
-def _telegram_edit_caption(message_id, caption, remove_purchase_button=False):
-    """Edit a public channel caption while retaining or removing its purchase button."""
+def _is_valid_affilio_tracking_url(value):
+    try:
+        parsed = urlsplit(str(value or "").strip())
+        destinations = parse_qs(parsed.query, keep_blank_values=True).get("p", [])
+        destination = urlsplit(destinations[0]) if len(destinations) == 1 else None
+    except Exception:
+        return False
+    return bool(
+        parsed.scheme == "https"
+        and (parsed.hostname or "").lower() == "aflo.ir"
+        and parsed.path == "/QekEYTRg"
+        and destination is not None
+        and destination.scheme == "https"
+        and (destination.hostname or "").lower() == "www.digikala.com"
+        and re.fullmatch(r"/product/dkp-\\d+/", destination.path, re.IGNORECASE)
+    )
+
+
+def _build_affilio_tracking_url(product_url):
+    """Build only the confirmed OfferChin public Affilio link for a DigiKala product."""
+    try:
+        parsed = urlsplit(str(product_url or "").strip())
+    except Exception:
+        return ""
+    host = (parsed.hostname or "").lower()
+    if parsed.scheme not in {"https", "http"} or host not in {"digikala.com", "www.digikala.com"}:
+        return ""
+    match = re.fullmatch(r"/product/(dkp-\\d+)/?", parsed.path, re.IGNORECASE)
+    if not match:
+        return ""
+    canonical = f"https://www.digikala.com/product/{match.group(1).lower()}/"
+    result = "https://aflo.ir/QekEYTRg?p=" + quote(canonical, safe="")
+    return result if _is_valid_affilio_tracking_url(result) else ""
+
+
+def _telegram_edit_caption(message_id, caption, remove_purchase_button=False, affiliate_url=""):
+    """Edit a public caption and explicitly restore or remove its purchase button."""
     if not BOT_TOKEN:
         raise RuntimeError("TELEGRAM_BOT_TOKEN missing")
     payload = {
@@ -953,6 +1001,13 @@ def _telegram_edit_caption(message_id, caption, remove_purchase_button=False):
     }
     if remove_purchase_button:
         payload["reply_markup"] = json.dumps({"inline_keyboard": []})
+    elif _is_valid_affilio_tracking_url(affiliate_url):
+        payload["reply_markup"] = json.dumps({
+            "inline_keyboard": [[{
+                "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
+                "url": affiliate_url,
+            }]]
+        }, ensure_ascii=False)
     endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/editMessageCaption"
     for attempt in range(4):
         request = Request(
@@ -970,7 +1025,7 @@ def _telegram_edit_caption(message_id, caption, remove_purchase_button=False):
             if _is_message_absent(description):
                 return "already_absent"
             if "retry after" in description.lower() and attempt < 3:
-                wait_match = re.search(r"retry after\s+(\d+)", description.lower())
+                wait_match = re.search(r"retry after\\s+(\\d+)", description.lower())
                 pause = min(60, int(wait_match.group(1)) if wait_match else 5)
                 print(f"TELEGRAM_HISTORY_EDIT_RATE_LIMIT message_id={message_id} retry_after={pause}s")
                 time.sleep(pause + 1)
@@ -982,8 +1037,9 @@ def _telegram_edit_caption(message_id, caption, remove_purchase_button=False):
         if _is_message_absent(description):
             return "already_absent"
         if "retry after" in description.lower() and attempt < 3:
-            wait_match = re.search(r"retry after\s+(\d+)", description.lower())
+            wait_match = re.search(r"retry after\\s+(\\d+)", description.lower())
             pause = min(60, int(wait_match.group(1)) if wait_match else 5)
+            print(f"TELEGRAM_HISTORY_EDIT_RATE_LIMIT message_id={message_id} retry_after={pause}s")
             time.sleep(pause + 1)
             continue
         raise RuntimeError(description[:180])
@@ -1140,7 +1196,6 @@ def audit_public_channel_history(published, now=None, posts=None):
     deleted = marked_expired = reformatted = found_expired = 0
     non_editable_statuses = {
         "deleted", "already_absent", "expired_marked", "delete_failed",
-        "deadline_unavailable_marked", "deadline_unavailable_delete_failed",
     }
     for message_id, post in sorted(posts.items()):
         caption_text = str(post.get("caption_text") or "")
@@ -1163,17 +1218,34 @@ def audit_public_channel_history(published, now=None, posts=None):
         if not fields.get("title") or not fields.get("current_price") or not fields.get("discount_percent"):
             continue
         deadline = parse_expiry(record.get("expires_at"))
+        if (
+            record.get("expiry_source") not in {"digikala_live_deals_feed", "live_product_stock_or_price"}
+            or record.get("expiry_estimated") is True
+        ):
+            deadline = None
         if not _caption_needs_repair(caption_html, caption_text, fields, deadline, now):
             continue
-        caption = _build_legacy_repaired_caption(fields, None, now)
+        affiliate_url = _build_affilio_tracking_url(record.get("product_url", ""))
+        if not affiliate_url:
+            print(
+                f"PUBLIC_HISTORY_CAPTION_REPAIR_SKIPPED message_id={message_id} "
+                "reason=affiliate_url_unavailable; existing keyboard left untouched"
+            )
+            continue
+        caption = _build_legacy_repaired_caption(fields, deadline, now)
         try:
-            result = _telegram_edit_caption(int(message_id), caption)
+            result = _telegram_edit_caption(int(message_id), caption, affiliate_url=affiliate_url)
             if result == "edited":
                 reformatted += 1
-                record["caption_deadline_format_version"] = 4
+                record["caption_deadline_format_version"] = 5
+                record["caption_countdown_refreshed_at"] = now.isoformat()
                 record["caption_without_expiry_migrated_at"] = now.isoformat()
+                if record.get("expiry_status") in {
+                    "deadline_unavailable_marked", "deadline_unavailable_delete_failed", "unknown",
+                }:
+                    record["expiry_status"] = "tracked" if deadline is not None else "unknown"
                 changed = True
-                print(f"PUBLIC_HISTORY_CAPTION_EXPIRY_REMOVED message_id={message_id}")
+                print(f"PUBLIC_HISTORY_CAPTION_REPAIRED message_id={message_id} button=restored")
             elif result == "already_absent":
                 print(f"PUBLIC_HISTORY_CAPTION_UNAVAILABLE message_id={message_id} reason=message_not_found")
         except Exception as exc:
