@@ -23,7 +23,7 @@ jobs:
   expire:
     # The radar workflow already performs expiry cleanup immediately before its
     # one-time full caption repair. Do not run both channel-mutating jobs concurrently.
-    if: ${{ !(github.event_name == 'push' && contains(github.event.head_commit.message, '[repair-all-captions]')) }}
+    if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[expiry-cleanup-now]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -47,23 +47,7 @@ jobs:
           cd affilio_radar
           python -m unittest -v test_expiration_monitor.py
 
-      - name: Remove obsolete expiry timers from tracked OfferChin captions
-        if: ${{ !contains(github.event.head_commit.message, '[repair-all-captions]') }}
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
-          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
-          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          # The v4 migrator edits only captions that still contain an obsolete expiry timer.
-          AFFILIO_COUNTDOWN_REFRESH_FORCE: "true"
-          AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && '100' || '80' }}
-          AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS: "240"
-          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
-          AFFILIO_DEAL_LIST_PAGES: "5"
-          PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/affilio_radar.py --refresh-countdowns
-
-      - name: Remove expired and unverifiable OfferChin posts
+      - name: Clean up offers with verified expired deadlines
         env:
           AFFILIO_FORCE_DEADLINE_SYNC: ${{ (contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[repair-all-captions]')) && 'true' || 'false' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -79,6 +63,21 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/expiration_monitor.py
 
+      - name: Refresh source-backed countdowns and restore purchase buttons
+        if: ${{ !contains(github.event.head_commit.message, '[repair-all-captions]') }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          # Refresh countdowns from the synchronized site deadline and explicitly restore valid buy buttons.
+          AFFILIO_COUNTDOWN_REFRESH_FORCE: "true"
+          AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && '100' || '80' }}
+          AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS: "240"
+          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
+          AFFILIO_DEAL_LIST_PAGES: "5"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/affilio_radar.py --refresh-countdowns
       - name: Commit expiry tracking changes only when changed
         run: |
           git config user.name "github-actions[bot]"
