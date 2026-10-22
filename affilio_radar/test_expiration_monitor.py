@@ -136,6 +136,30 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(summary["skipped"], 1)
         self.assertEqual(published["dkp-deleted"]["expires_at"], "2026-10-20T20:30:00+00:00")
 
+    def test_expiry_extractor_prioritizes_site_timer_over_nested_variant_timestamp(self):
+        now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
+        card = {
+            "id": 123,
+            "title_fa": "محصول تخفیف‌دار",
+            "campaign": {"remaining_seconds": 3 * 3600 + 24 * 60},
+            "default_variant": {"ends_at": "2026-10-22T18:00:00+03:30"},
+        }
+        self.assertEqual(
+            monitor.extract_expiry(card, now=now),
+            (now + timedelta(hours=3, minutes=24)).isoformat(),
+        )
+
+    def test_expiry_extractor_parses_human_readable_persian_site_countdown(self):
+        now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
+        card = {
+            "title_fa": "محصول تخفیف‌دار",
+            "campaign": {"remaining_time": "۳ ساعت و ۲۴ دقیقه"},
+        }
+        self.assertEqual(
+            monitor.extract_expiry(card, now=now),
+            (now + timedelta(hours=3, minutes=24)).isoformat(),
+        )
+
     def test_expiry_extractor_prefers_card_campaign_over_nested_variant(self):
         card = {
             "id": 123,
