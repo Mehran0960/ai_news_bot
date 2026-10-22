@@ -3636,7 +3636,7 @@ def refresh_active_countdowns() -> int:
                     f"platform={platform} message_id={raw_id} reason=verified_expiry_cutoff"
                 )
                 continue
-            targets.append((platform, int(raw_id))))
+            targets.append((platform, int(raw_id)))
         if not targets:
             continue
         try:
