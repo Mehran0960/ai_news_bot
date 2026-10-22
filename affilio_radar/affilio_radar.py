@@ -3454,11 +3454,9 @@ def repair_all_published_captions() -> int:
         product_repair_success = True
         for platform, message_id in message_targets:
             try:
-                preserve_existing_keyboard = (
-                    record.get("expiry_estimated") is True
-                    or record.get("expiry_source") not in {"digikala_live_deals_feed", "live_product_stock_or_price"}
-                )
-                edit_link = "" if preserve_existing_keyboard else affiliate_url
+                # Every caption edit must explicitly restore the valid affiliate purchase button.
+                # An unverified deadline affects only the timer text, never the purchase CTA.
+                edit_link = affiliate_url
                 if platform == "telegram":
                     caption = build_caption(product, affiliate_url, TELEGRAM_CHANNEL_URL)
                     edit_result = _edit_telegram_caption(message_id, caption, edit_link)
