@@ -21,6 +21,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, quote, urlencode, urljoin, urlsplit, urlunsplit
 
 import requests
+from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from offerchin_visuals import draw_discount_burst
@@ -610,67 +611,13 @@ def _offer_savings_toman(obj: dict) -> int:
 
 
 def _parse_deal_expiry_value(value):
-    """Parse a feed-provided absolute offer deadline into a UTC ISO timestamp."""
-    if value is None or isinstance(value, bool):
-        return None
-    if isinstance(value, (int, float)):
-        number = float(value)
-        if number > 10_000_000_000_000:
-            number /= 1000.0
-        if number >= 1_000_000_000:
-            try:
-                return datetime.fromtimestamp(number, tz=timezone.utc).isoformat()
-            except (OverflowError, OSError, ValueError):
-                return None
-        return None
-    text = normalize_digits(str(value)).strip()
-    if not text:
-        return None
-    if re.fullmatch(r"\d{10,16}(?:\.\d+)?", text):
-        return _parse_deal_expiry_value(float(text))
-    try:
-        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    if parsed.tzinfo is None:
-        # Digikala displays deal countdowns in Iran local time when no offset is included.
-        try:
-            from zoneinfo import ZoneInfo
-            parsed = parsed.replace(tzinfo=ZoneInfo("Asia/Tehran"))
-        except Exception:
-            parsed = parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc).isoformat()
+    """Parse an explicitly absolute offer deadline into a UTC ISO timestamp."""
+    return parse_absolute_deadline(value) or None
 
 
-def extract_deal_expiry(obj: dict) -> str:
-    """Extract explicit Incredible Offer expiry metadata, never infer expiry from discount size."""
-    if not isinstance(obj, dict):
-        return ""
-    absolute_keys = ("ends_at", "endsAt", "deal_ends_at", "dealEndsAt", "expires_at", "expiresAt")
-    seconds_keys = ("ends_in_seconds", "endsInSeconds", "remaining_seconds", "remainingSeconds")
-    nodes = list(_walk_dicts(obj))
-    for node in nodes:
-        for key in absolute_keys:
-            if key in node:
-                expiry = _parse_deal_expiry_value(node.get(key))
-                if expiry:
-                    return expiry
-    now = datetime.now(timezone.utc)
-    for node in nodes:
-        for key in seconds_keys:
-            raw = node.get(key)
-            try:
-                seconds = float(normalize_digits(str(raw)).strip())
-            except (TypeError, ValueError, OverflowError):
-                seconds = -1
-            if seconds >= 0 and seconds <= 7 * 24 * 3600:
-                return (now + timedelta(seconds=seconds)).isoformat()
-            if isinstance(raw, str) and re.fullmatch(r"\d{1,3}:\d{2}:\d{2}", raw.strip()):
-                hours, minutes, secs = (int(part) for part in raw.strip().split(":"))
-                duration = hours * 3600 + minutes * 60 + secs
-                if duration <= 7 * 24 * 3600:
-                    return (now + timedelta(seconds=duration)).isoformat()
-    return ""
+def extract_deal_expiry(obj: dict, now: datetime | None = None) -> str:
+    """Use the shared site-countdown parser for both discovery and caption refresh."""
+    return extract_offer_expiry(obj, now=now)
 
 
 def api_incredible_offer_product_candidates(payload) -> list[dict]:
@@ -2262,6 +2209,7 @@ def discover_product_urls(
     # The live Incredible Offers feed is the primary discovery source.
     deals_found = []
     deal_expiries: dict[str, str] = dict(queued_expiries)
+    direct_feed_expiries: dict[str, str] = {}
     for page_number in range(1, DEAL_LIST_PAGES + 1):
         try:
             response = SESSION.get(
@@ -2275,6 +2223,14 @@ def discover_product_urls(
             payload = response.json()
             local = api_incredible_offer_product_candidates(payload)
             deals_found.extend(local)
+            # Capture the first-party page's own timer immediately. Later MCP data
+            # may fill gaps but must never replace this product's source timer.
+            for candidate_row in local:
+                candidate_pid = product_id(candidate_row.get("product_url", ""))
+                candidate_deadline = str(candidate_row.get("deal_expires_at") or "").strip()
+                if candidate_pid and candidate_deadline:
+                    direct_feed_expiries[candidate_pid] = candidate_deadline
+                    deal_expiries[candidate_pid] = candidate_deadline
             diagnostics.append({
                 "term": f"incredible_offers_page_{page_number}",
                 "ok": bool(local),
@@ -2328,14 +2284,24 @@ def discover_product_urls(
     try:
         from expiration_monitor import fetch_mcp_offer_candidates
         mcp_expiries, mcp_candidate_nodes = fetch_mcp_offer_candidates(page_numbers=mcp_scan_pages)
-        deal_expiries.update(mcp_expiries)
+        for pid, expiry in mcp_expiries.items():
+            # This feed supplements the first-party site; it cannot overwrite it.
+            if str(pid) not in direct_feed_expiries and str(expiry or "").strip():
+                deal_expiries[str(pid)] = str(expiry).strip()
         mcp_candidates = api_incredible_offer_product_candidates(mcp_candidate_nodes)
         for row in mcp_candidates:
             pid = product_id(row.get("product_url", ""))
-            expiry = str(row.get("deal_expires_at") or mcp_expiries.get(pid) or "").strip()
+            expiry = str(
+                direct_feed_expiries.get(pid)
+                or row.get("deal_expires_at")
+                or mcp_expiries.get(pid)
+                or deal_expiries.get(pid)
+                or ""
+            ).strip()
             if expiry:
                 row["deal_expires_at"] = expiry
-                deal_expiries[pid] = expiry
+                if pid not in direct_feed_expiries:
+                    deal_expiries[pid] = expiry
         deals_found.extend(mcp_candidates)
 
         # Save these additional sightings before ranking or deep product-page checks.
@@ -2361,10 +2327,16 @@ def discover_product_urls(
         if is_prohibited_product_title(row.get("title", "")):
             continue
         pid = product_id(url)
-        expiry = str(row.get("deal_expires_at") or deal_expiries.get(pid) or "").strip()
+        expiry = str(
+            direct_feed_expiries.get(pid)
+            or row.get("deal_expires_at")
+            or deal_expiries.get(pid)
+            or ""
+        ).strip()
         if expiry:
             row["deal_expires_at"] = expiry
-            deal_expiries[pid] = expiry
+            if pid not in direct_feed_expiries:
+                deal_expiries[pid] = expiry
         old = best_by_url.get(url)
         key = (int(bool(expiry)), int(row.get("discount_percent") or 0), int(row.get("savings_toman") or 0))
         old_key = (
@@ -3451,6 +3423,18 @@ def repair_all_published_captions() -> int:
                 results[f"{platform}_failed"] += 1
             continue
 
+        source_remaining_seconds = max(0, (live_deadline - caption_now).total_seconds())
+        caption_remaining_seconds = max(
+            0,
+            source_remaining_seconds - COUNTDOWN_SAFETY_BUFFER_MINUTES * 60,
+        )
+        print(
+            f"COUNTDOWN_SOURCE product_id={product_key} "
+            f"site_deadline={live_deadline.isoformat()} "
+            f"site_remaining_seconds={int(source_remaining_seconds)} "
+            f"buffer_seconds={COUNTDOWN_SAFETY_BUFFER_MINUTES * 60} "
+            f"caption_remaining_seconds={int(caption_remaining_seconds)}"
+        )
         product = {
             "title": record.get("title", "پیشنهاد ویژه"),
             "current_price": record.get("posted_current_price"),
