@@ -77,6 +77,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             "dkp-123": {
                 "expires_at": "2026-10-20T20:30:00+00:00",
                 "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                 "expiry_estimated": False,
                 "telegram_message_id": 61,
                 "bale_message_id": 27,
@@ -100,11 +101,13 @@ class ExpirationMonitorTests(unittest.TestCase):
             "dkp-123": {
                 "expires_at": old_deadline,
                 "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                 "telegram_message_id": 61,
                 "expiry_status": "tracked",
                 "post_history": [{
                     "expires_at": "2026-10-20T18:00:00+00:00",
                     "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                     "telegram_message_id": 51,
                     "expiry_status": "tracked",
                 }],
@@ -123,6 +126,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             "dkp-deleted": {
                 "expires_at": "2026-10-20T20:30:00+00:00",
                 "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                 "telegram_message_id": 61,
                 "expiry_status": "deleted",
                 "bale_message_id": 27,
@@ -280,6 +284,17 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(keyboard["inline_keyboard"][0][0]["text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
         self.assertEqual(keyboard["inline_keyboard"][0][0]["url"], url)
 
+    def test_caption_edit_refuses_to_remove_purchase_button_or_edit_without_verified_link(self):
+        with (
+            patch.object(monitor, "BOT_TOKEN", "test-token"),
+            patch.object(monitor, "urlopen") as request,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "remove the purchase button"):
+                monitor._telegram_edit_caption(77, "caption", remove_purchase_button=True)
+            with self.assertRaisesRegex(RuntimeError, "verified Affilio purchase button"):
+                monitor._telegram_edit_caption(77, "caption")
+        request.assert_not_called()
+
     def test_build_affilio_tracking_url_rejects_non_product_destinations(self):
         self.assertEqual(monitor._build_affilio_tracking_url("https://example.com/product/dkp-123/"), "")
         self.assertEqual(monitor._build_affilio_tracking_url("https://www.digikala.com/category/phones/"), "")
@@ -408,6 +423,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "product_url": "https://www.digikala.com/product/dkp-123/",
                 "expires_at": "2026-10-18T20:29:00+00:00",
                 "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                 "expiry_estimated": False,
                 "expiry_status": "tracked",
             }
@@ -419,11 +435,11 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertIn("<b><u>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</u></b>", edited_caption)
         self.assertIn("<b><u>⚡️ ۸۹٪ تخفیف</u></b>", edited_caption)
         self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', edited_caption)
-        self.assertIn("⏳ ", edited_caption)
-        self.assertIn("مانده به پایان تخفیف", edited_caption)
+        self.assertNotIn("⏳", edited_caption)
+        self.assertNotIn("مانده به پایان تخفیف", edited_caption)
         self.assertNotIn("📅 پایان تخفیف:", edited_caption)
-        self.assertEqual(published["dkp-123"]["caption_deadline_format_version"], 5)
-        self.assertIn("caption_countdown_refreshed_at", published["dkp-123"])
+        self.assertEqual(published["dkp-123"]["caption_deadline_format_version"], monitor.CAPTION_FORMAT_VERSION)
+        self.assertIn("caption_static_migrated_at", published["dkp-123"])
         expected_affiliate = monitor._build_affilio_tracking_url("https://www.digikala.com/product/dkp-123/")
         edit.assert_called_once()
         self.assertEqual(edit.call_args.kwargs["affiliate_url"], expected_affiliate)
@@ -454,6 +470,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "product_url": "https://www.digikala.com/product/dkp-123/",
                 "expires_at": deadline.isoformat(),
                 "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                 "expiry_estimated": False,
                 "expiry_status": "tracked",
             }
@@ -462,9 +479,10 @@ class ExpirationMonitorTests(unittest.TestCase):
             monitor.audit_public_channel_history(published, now=now, posts={89: stale_caption})
         edit.assert_called_once()
         updated = edit.call_args.args[1]
-        expected_remaining = monitor._remaining_label(deadline, now)
-        self.assertIn(f"⏳ {expected_remaining} مانده به پایان تخفیف", updated)
+        self.assertNotIn("⏳", updated)
+        self.assertNotIn("مانده به پایان تخفیف", updated)
         self.assertNotIn("📅 پایان تخفیف:", updated)
+        self.assertEqual(published["dkp-legacy-89"]["caption_deadline_format_version"], monitor.CAPTION_FORMAT_VERSION)
         self.assertEqual(published["dkp-legacy-89"]["expires_at"], deadline.isoformat())
 
     def test_posts_are_deleted_ten_minutes_before_deadline_on_both_channels(self):
@@ -475,6 +493,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "bale_message_id": 201,
                 "expires_at": (now + timedelta(minutes=10)).isoformat(),
                 "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                 "expiry_estimated": False,
                 "expiry_status": "tracked",
                 "bale_expiry_status": "tracked",
@@ -483,6 +502,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "telegram_message_id": 102,
                 "expires_at": (now + timedelta(minutes=10, seconds=1)).isoformat(),
                 "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                 "expiry_estimated": False,
                 "expiry_status": "tracked",
             },
@@ -540,6 +560,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "telegram_message_id": 909,
                 "expires_at": deadline.isoformat(),
                 "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                 "expiry_estimated": False,
                 "expiry_status": "tracked",
             }
@@ -575,6 +596,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                         "telegram_message_id": 77,
                         "expires_at": (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat(),
                         "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                         "expiry_estimated": False,
                         "expiry_status": "tracked",
                     },
@@ -592,7 +614,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                 patch.object(monitor, "STATE_PATH", state_path),
                 patch.object(monitor, "BOT_TOKEN", "test-token"),
                 patch.object(monitor, "audit_public_channel_history", return_value=(False, 0, 0, 0, 0)),
-                patch.object(monitor, "fetch_offer_expiries", side_effect=RuntimeError("feed unavailable")) as fetch,
+                patch.object(monitor, "fetch_direct_api_offer_expiries", side_effect=RuntimeError("feed unavailable")) as fetch,
                 patch.object(monitor, "fetch_live_product_status", return_value={}) as product_check,
                 patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion,
             ):
@@ -620,6 +642,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "bale_expiry_status": "tracked",
                 "expiry_estimated": False,
                 "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                 "post_history": [{
                     "title": "شارژر فندکی وونک VC-50",
                     "telegram_message_id": 97,
@@ -629,6 +652,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                     "bale_expiry_status": "tracked",
                     "expiry_estimated": False,
                     "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                 }],
             }
         }
@@ -644,7 +668,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["dkp-22104577"]["post_history"][0]["bale_expiry_status"], "deleted")
 
 
-    def test_expired_post_disables_buy_button_when_delete_fails_and_retries(self):
+    def test_expired_post_delete_failure_preserves_button_and_retries_deletion(self):
         now = datetime.now(timezone.utc)
         published = {
             "dkp-expired": {
@@ -652,6 +676,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "telegram_message_id": 991,
                 "expires_at": (now - timedelta(minutes=5)).isoformat(),
                 "expiry_source": "digikala_live_deals_feed",
+                "expiry_deadline_verified_directly": True,
                 "expiry_estimated": False,
                 "expiry_status": "tracked",
             }
@@ -661,13 +686,13 @@ class ExpirationMonitorTests(unittest.TestCase):
                 monitor, "_telegram_delete",
                 side_effect=[RuntimeError("temporary delete failure"), "deleted"],
             ) as deletion,
-            patch.object(monitor, "_telegram_mark_expired", return_value="edited") as mark,
+            patch.object(monitor, "_telegram_mark_expired") as mark,
         ):
             changed, deleted = monitor._delete_expired_posts(published, now)
             self.assertTrue(changed)
             self.assertEqual(deleted, 0)
-            self.assertEqual(published["dkp-expired"]["expiry_status"], "expired_marked")
-            mark.assert_called_once_with(991, "محصول منقضی")
+            self.assertEqual(published["dkp-expired"]["expiry_status"], "delete_failed")
+            mark.assert_not_called()
             changed, deleted = monitor._delete_expired_posts(
                 published, now + timedelta(minutes=5)
             )
@@ -676,7 +701,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["dkp-expired"]["expiry_status"], "deleted")
 
 
-    def test_expired_post_disables_buy_button_when_delete_fails_and_retries(self):
+    def test_expired_post_delete_failure_preserves_button_and_retries_deletion(self):
         now = datetime.now(timezone.utc)
         published = {
             "dkp-expired": {
@@ -684,6 +709,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "telegram_message_id": 991,
                 "expires_at": (now - timedelta(minutes=5)).isoformat(),
                 "expiry_source": "digikala_live_deals_feed",
+                "expiry_deadline_verified_directly": True,
                 "expiry_estimated": False,
                 "expiry_status": "tracked",
             }
@@ -693,13 +719,13 @@ class ExpirationMonitorTests(unittest.TestCase):
                 monitor, "_telegram_delete",
                 side_effect=[RuntimeError("temporary delete failure"), "deleted"],
             ) as deletion,
-            patch.object(monitor, "_telegram_mark_expired", return_value="edited") as mark,
+            patch.object(monitor, "_telegram_mark_expired") as mark,
         ):
             changed, deleted = monitor._delete_expired_posts(published, now)
             self.assertTrue(changed)
             self.assertEqual(deleted, 0)
-            self.assertEqual(published["dkp-expired"]["expiry_status"], "expired_marked")
-            mark.assert_called_once_with(991, "محصول منقضی")
+            self.assertEqual(published["dkp-expired"]["expiry_status"], "delete_failed")
+            mark.assert_not_called()
             changed, deleted = monitor._delete_expired_posts(
                 published, now + timedelta(minutes=5)
             )
@@ -716,6 +742,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                         "telegram_message_id": 77,
                         "expires_at": (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat(),
                         "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                         "expiry_estimated": False,
                         "expiry_status": "tracked",
                     }
@@ -746,6 +773,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                         "bale_message_id": 202,
                         "expires_at": (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat(),
                         "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                         "expiry_estimated": False,
                         "expiry_status": "tracked",
                         "bale_expiry_status": "tracked",
@@ -799,6 +827,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "bale_message_id": 83,
                 "expires_at": (now + timedelta(hours=2)).isoformat(),
                 "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
                 "expiry_estimated": False,
                 "expiry_status": "tracked",
             },
@@ -897,6 +926,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             "youtube_video_id": "yt_expired",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
         }
         with patch("short_video.youtube_credentials_available", return_value=True), patch(
@@ -928,6 +958,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             "youtube_video_id": "yt_retry",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
         }
         with patch("short_video.youtube_credentials_available", return_value=True), patch(
@@ -945,6 +976,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             "youtube_video_id": "yt_pending",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
         }
         with patch("short_video.youtube_credentials_available", return_value=False), patch(
@@ -962,6 +994,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             "aparat_visibility": "public",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
         }
         with patch("aparat_uploader.aparat_credentials_available", return_value=True), patch(
@@ -995,6 +1028,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             "aparat_visibility": "public",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
         }
         with patch("aparat_uploader.aparat_credentials_available", return_value=True), patch(
@@ -1013,6 +1047,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             "aparat_visibility": "public",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+                        "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
         }
         with patch("aparat_uploader.aparat_credentials_available", return_value=False), patch(
