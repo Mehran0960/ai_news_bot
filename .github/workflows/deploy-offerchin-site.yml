@@ -9,7 +9,9 @@ on:
       - "affilio_radar/state.json"
       - ".github/workflows/deploy-offerchin-site.yml"
   workflow_run:
-    workflows: ["Affilio Product Radar"]
+    workflows:
+      - "Affilio Product Radar"
+      - "Affilio Expired Offer Cleanup"
     types: [completed]
     branches: [main]
   workflow_dispatch:
