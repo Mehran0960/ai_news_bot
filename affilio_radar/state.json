@@ -5509,13 +5509,13 @@
       "title": "ماساژور گردن و کمر اسنیلکس مدل last"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-22T05:15:22.892680+00:00",
+  "expiry_feed_last_checked_at": "2026-10-22T05:32:07.681878+00:00",
   "expiry_feed_last_sync_summary": {
-    "matched": 17,
-    "missing_from_feed": 12,
-    "skipped": 164,
-    "unchanged": 14,
-    "updated": 3
+    "matched": 5,
+    "updated": 0,
+    "unchanged": 5,
+    "missing_from_feed": 25,
+    "skipped": 163
   },
   "growth_tracking": {
     "daily_member_counts": {
@@ -7889,7 +7889,7 @@
       "expires_at": "2026-10-22T20:30:00+00:00",
       "expiry_estimated": true,
       "expiry_last_live_sync_at": "2026-10-22T04:35:21.916095+00:00",
-      "expiry_last_probed_at": "2026-10-22T05:02:20.551227+00:00",
+      "expiry_last_probed_at": "2026-10-22T05:32:07.681878+00:00",
       "expiry_last_product_check_at": "2026-10-22T04:22:18.708843+00:00",
       "expiry_reason": "missing_from_current_live_deadline_sources",
       "expiry_source": "unavailable",
@@ -8761,7 +8761,7 @@
       "expires_at": "2026-10-22T20:30:00+00:00",
       "expiry_estimated": true,
       "expiry_last_live_sync_at": "2026-10-22T04:35:21.916095+00:00",
-      "expiry_last_probed_at": "2026-10-22T05:02:20.551227+00:00",
+      "expiry_last_probed_at": "2026-10-22T05:32:07.681878+00:00",
       "expiry_last_product_check_at": "2026-10-22T04:22:18.708843+00:00",
       "expiry_reason": "missing_from_current_live_deadline_sources",
       "expiry_source": "unavailable",
@@ -8843,8 +8843,8 @@
       "expires_at": "2026-10-22T20:30:00+00:00",
       "expiry_estimated": true,
       "expiry_last_live_sync_at": "2026-10-22T05:00:25.306576+00:00",
-      "expiry_last_probed_at": "2026-10-22T04:37:34.164813+00:00",
-      "expiry_last_product_check_at": "2026-10-22T00:42:12.495408+00:00",
+      "expiry_last_probed_at": "2026-10-22T05:32:07.681878+00:00",
+      "expiry_last_product_check_at": "2026-10-22T05:32:07.681878+00:00",
       "expiry_reason": "missing_from_current_live_deadline_sources",
       "expiry_source": "unavailable",
       "expiry_status": "tracked",
@@ -10048,8 +10048,8 @@
       "expires_at": "2026-10-23T20:30:00+00:00",
       "expiry_estimated": true,
       "expiry_last_live_sync_at": "2026-10-22T05:00:25.306576+00:00",
-      "expiry_last_probed_at": "2026-10-22T04:37:34.164813+00:00",
-      "expiry_last_product_check_at": "2026-10-22T04:37:34.164813+00:00",
+      "expiry_last_probed_at": "2026-10-22T05:32:07.681878+00:00",
+      "expiry_last_product_check_at": "2026-10-22T05:32:07.681878+00:00",
       "expiry_reason": "missing_from_current_live_deadline_sources",
       "expiry_source": "unavailable",
       "expiry_status": "tracked",
@@ -13042,7 +13042,7 @@
       "expires_at": "2026-10-23T20:30:00+00:00",
       "expiry_estimated": true,
       "expiry_last_live_sync_at": "2026-10-22T04:35:21.916095+00:00",
-      "expiry_last_probed_at": "2026-10-22T05:02:20.551227+00:00",
+      "expiry_last_probed_at": "2026-10-22T05:32:07.681878+00:00",
       "expiry_last_product_check_at": "2026-10-22T05:02:20.551227+00:00",
       "expiry_reason": "missing_from_current_live_deadline_sources",
       "expiry_source": "unavailable",
@@ -13089,8 +13089,8 @@
       "expires_at": "2026-10-23T20:30:00+00:00",
       "expiry_estimated": true,
       "expiry_last_live_sync_at": "2026-10-22T04:35:21.916095+00:00",
-      "expiry_last_probed_at": "2026-10-22T04:22:18.708843+00:00",
-      "expiry_last_product_check_at": "2026-10-22T03:12:06.151483+00:00",
+      "expiry_last_probed_at": "2026-10-22T05:32:07.681878+00:00",
+      "expiry_last_product_check_at": "2026-10-22T05:32:07.681878+00:00",
       "expiry_reason": "missing_from_current_live_deadline_sources",
       "expiry_source": "unavailable",
       "expiry_status": "tracked",
@@ -15390,7 +15390,9 @@
       "youtube_next_attempt_at": "2026-10-22T05:31:57.477492+00:00",
       "youtube_upload_attempts": 1,
       "youtube_upload_started_at": "2026-10-22T05:26:56.952205+00:00",
-      "youtube_upload_status": "retry"
+      "youtube_upload_status": "retry",
+      "expiry_status": "tracked",
+      "bale_expiry_status": "tracked"
     },
     "dkp-22847300": {
       "click_tracking_url": "",
