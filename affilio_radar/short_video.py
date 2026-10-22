@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [repair-all-captions] Trigger button restoration without also queueing the cleanup workflow.
 """Generate short vertical OfferChin product videos for configured video destinations.
 
 The overlay contains the discount badge and two platform-marked channel IDs only.
