@@ -325,7 +325,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(fetch.call_count, 3)
         self.assertEqual(fetch.call_args_list[1].args[0], 39)
 
-    def test_public_history_audit_deletes_untracked_expired_post(self):
+    def test_public_history_does_not_delete_untracked_post_from_caption_deadline(self):
         old_post = {
             "message_id": 77,
             "caption_text": (
@@ -338,28 +338,35 @@ class ExpirationMonitorTests(unittest.TestCase):
             "caption_html": "",
         }
         now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)
-        with patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion:
+        with patch.object(monitor, "_telegram_delete") as deletion:
             result = monitor.audit_public_channel_history({}, now=now, posts={77: old_post})
-        deletion.assert_called_once_with(77)
-        self.assertEqual(result[1], 1)
+        deletion.assert_not_called()
+        self.assertEqual(result[1], 0)
         self.assertEqual(result[2], 0)
 
-    def test_public_history_falls_back_to_expired_label_and_removes_purchase_button(self):
+    def test_public_history_does_not_expire_a_post_using_caption_text_alone(self):
         old_post = {
             "message_id": 77,
             "caption_text": "🛍️ محصول نمونه ⏳ پایان تخفیف: شنبه ۲۵ مهر ۱۴۰۵، ساعت ۲۳:۵۹",
             "caption_html": "",
         }
-        record = {"telegram_message_id": 77, "title": "محصول نمونه", "expiry_status": "tracked"}
+        record = {
+            "telegram_message_id": 77,
+            "title": "محصول نمونه",
+            "expiry_source": "unavailable",
+            "expiry_estimated": True,
+            "expiry_status": "tracked_estimated",
+        }
         now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)
         with (
-            patch.object(monitor, "_telegram_delete", return_value="already_absent"),
-            patch.object(monitor, "_telegram_mark_expired", return_value="edited") as mark,
+            patch.object(monitor, "_telegram_delete") as deletion,
+            patch.object(monitor, "_telegram_mark_expired") as mark,
         ):
             result = monitor.audit_public_channel_history({"dkp-123": record}, now=now, posts={77: old_post})
-        mark.assert_called_once_with(77, "محصول نمونه")
-        self.assertEqual(record["expiry_status"], "expired_marked")
-        self.assertEqual(result[2], 1)
+        deletion.assert_not_called()
+        mark.assert_not_called()
+        self.assertEqual(record["expiry_status"], "tracked_estimated")
+        self.assertEqual(result[1], 0)
 
     def test_public_history_repairs_untracked_active_legacy_caption(self):
         legacy = {
@@ -376,21 +383,31 @@ class ExpirationMonitorTests(unittest.TestCase):
             "caption_html": "<b>💚 قیمت ویژه: 💰 <u>۱۱۴٬۰۰۰</u> تومان</b>",
         }
         now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)
+        published = {
+            "dkp-123": {
+                "telegram_message_id": 88,
+                "expires_at": "2026-10-18T20:29:00+00:00",
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_estimated": False,
+                "expiry_status": "tracked",
+            }
+        }
         with patch.object(monitor, "_telegram_edit_caption", return_value="edited") as edit:
-            result = monitor.audit_public_channel_history({}, now=now, posts={88: legacy})
+            result = monitor.audit_public_channel_history(published, now=now, posts={88: legacy})
         edit.assert_called_once()
         edited_caption = edit.call_args.args[1]
         self.assertIn("<b><u>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</u></b>", edited_caption)
         self.assertIn("<b><u>⚡️ ۸۹٪ تخفیف</u></b>", edited_caption)
         self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', edited_caption)
-        self.assertIn("⏳ ", edited_caption)
-        self.assertIn("مانده به پایان تخفیف", edited_caption)
-        self.assertIn("📅 پایان تخفیف:", edited_caption)
+        self.assertNotIn("⏳ ", edited_caption)
+        self.assertNotIn("مانده به پایان تخفیف", edited_caption)
+        self.assertNotIn("📅 پایان تخفیف:", edited_caption)
+        self.assertEqual(published["dkp-123"]["caption_deadline_format_version"], 4)
         self.assertEqual(result[3], 1)
 
 
 
-    def test_public_history_refreshes_stale_relative_countdown_and_keeps_source_deadline(self):
+    def test_public_history_removes_stale_countdown_and_absolute_deadline_from_caption(self):
         now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)
         stale_caption = {
             "message_id": 89,
@@ -407,13 +424,23 @@ class ExpirationMonitorTests(unittest.TestCase):
             ),
         }
         deadline = monitor.extract_jalali_deadline(stale_caption["caption_text"])
-        expected = monitor._remaining_label(deadline, now)
+        published = {
+            "dkp-legacy-89": {
+                "telegram_message_id": 89,
+                "expires_at": deadline.isoformat(),
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_estimated": False,
+                "expiry_status": "tracked",
+            }
+        }
         with patch.object(monitor, "_telegram_edit_caption", return_value="edited") as edit:
-            monitor.audit_public_channel_history({}, now=now, posts={89: stale_caption})
+            monitor.audit_public_channel_history(published, now=now, posts={89: stale_caption})
         edit.assert_called_once()
         updated = edit.call_args.args[1]
-        self.assertIn(f"{expected} مانده به پایان تخفیف", updated)
-        self.assertIn("📅 پایان تخفیف:", updated)
+        self.assertNotIn("مانده به پایان تخفیف", updated)
+        self.assertNotIn("📅 پایان تخفیف:", updated)
+        self.assertNotIn("⏳", updated)
+        self.assertEqual(published["dkp-legacy-89"]["expires_at"], deadline.isoformat())
 
     def test_posts_are_deleted_ten_minutes_before_deadline_on_both_channels(self):
         now = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
@@ -659,7 +686,8 @@ class ExpirationMonitorTests(unittest.TestCase):
                     "dkp-12345": {
                         "telegram_message_id": 77,
                         "expires_at": (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat(),
-                        "expiry_source": "test",
+                        "expiry_source": "digikala_live_deals_feed",
+                        "expiry_estimated": False,
                         "expiry_status": "tracked",
                     }
                 }
@@ -688,7 +716,8 @@ class ExpirationMonitorTests(unittest.TestCase):
                         "telegram_message_id": 101,
                         "bale_message_id": 202,
                         "expires_at": (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat(),
-                        "expiry_source": "test",
+                        "expiry_source": "digikala_live_deals_feed",
+                        "expiry_estimated": False,
                         "expiry_status": "tracked",
                         "bale_expiry_status": "tracked",
                     }
@@ -888,6 +917,8 @@ class ExpirationMonitorTests(unittest.TestCase):
             "aparat_video_hash": "aparat_expired",
             "aparat_visibility": "public",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_estimated": False,
         }
         with patch("aparat_uploader.aparat_credentials_available", return_value=True), patch(
             "aparat_uploader.delete_aparat_video", return_value="deleted"
