@@ -21,3 +21,7 @@ The generated static site is written to offerchin-site/dist/.
 The GitHub Actions workflow deploys to Cloudflare Pages project offerchin-storefront, creating the project if needed. Repository Actions secrets required: CLOUDFLARE_API_TOKEN (with Cloudflare Pages edit access) and CLOUDFLARE_ACCOUNT_ID. URL after a successful deployment: https://offerchin-storefront.pages.dev.
 
 The workflow runs on relevant source/data updates and can also be started manually.
+
+## Automatic publishing
+
+A change to any file under `offerchin-site/` (including this README) automatically triggers the GitHub Actions build and deployment workflow. Updates to `affilio_radar/candidates.json` or `affilio_radar/state.json` trigger it as well, so routine data refreshes do not require a manual workflow run.
