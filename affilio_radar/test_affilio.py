@@ -1034,8 +1034,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("💰", caption)
         self.assertNotIn("<u>", caption)
         self.assertIn("<b>🏷️ قیمت اصلی: <s>۷۰۰٬۰۰۰ تومان</s></b>", caption)
-        self.assertIn("مانده به پایان تخفیف", caption)
-        self.assertNotIn("⏳ پایان تخفیف:", caption)
+        self.assertNotIn("مانده به پایان تخفیف", caption)
+        self.assertNotIn("پایان تخفیف", caption)
+        self.assertNotIn("⏳", caption)
         self.assertIn("<b>👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.</b>", caption)
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', caption)
         self.assertLess(caption.index("عضویت در کانال"), caption.index("برای خرید از دیجی‌کالا"))
@@ -1049,7 +1050,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertLess(caption.index("💚 قیمت ویژه"), caption.index("⚡️"))
         self.assertLess(caption.index("────────────"), caption.index("⚡️"))
         self.assertLess(caption.index("⚡️"), caption.index("🏷️ قیمت اصلی"))
-        self.assertLess(caption.index("🏷️ قیمت اصلی"), caption.index("⏳ "))
+        self.assertLess(caption.index("🏷️ قیمت اصلی"), caption.index("برای خرید از دیجی‌کالا"))
         self.assertLessEqual(len(caption), 1024)
         self.assertNotIn("کمیسیون", caption)
         self.assertNotIn("تاریخچه", caption)
@@ -1072,14 +1073,18 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(gregorian_to_jalali(2026, 3, 21), (1405, 1, 1))
         self.assertEqual(gregorian_to_jalali(2025, 3, 20), (1403, 12, 30))
 
-    def test_caption_omits_deadline_when_source_has_no_confirmed_expiry(self):
+    def test_caption_never_displays_deadline_even_when_source_has_one(self):
         caption = build_caption({
-            "title": "محصول بی‌زمان پایان",
+            "title": "محصول دارای مهلت معتبر",
             "current_price": 100_000,
             "original_price": 200_000,
             "discount_percent": 50,
+            "deal_expires_at": "2026-12-16T20:30:00+00:00",
+            "_countdown_now": datetime(2026, 10, 16, 20, 30, tzinfo=timezone.utc),
         }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
         self.assertNotIn("پایان تخفیف", caption)
+        self.assertNotIn("مانده به پایان تخفیف", caption)
+        self.assertNotIn("⏳", caption)
 
     def test_send_photo_adds_one_direct_affiliate_purchase_button(self):
         response = unittest.mock.Mock()
@@ -1201,8 +1206,7 @@ class AffilioRadarTests(unittest.TestCase):
     def test_unicode_underline_marks_visible_characters(self):
         self.assertEqual(unicode_underline("۱۲۳"), "۱\u0332۲\u0332۳\u0332")
 
-    def test_refresh_active_countdowns_updates_verified_posts_in_place(self):
-        expiry = (datetime.now(timezone.utc) + timedelta(hours=2, minutes=17)).isoformat()
+    def test_refresh_active_countdowns_migrates_tracked_captions_without_deadlines(self):
         stale_expiry = (datetime.now(timezone.utc) + timedelta(hours=3)).isoformat()
         state = {
             "published": {
@@ -1213,6 +1217,7 @@ class AffilioRadarTests(unittest.TestCase):
                     "posted_current_price": 123_200, "posted_original_price": 1_108_800,
                     "posted_discount_percent": 89, "expires_at": stale_expiry,
                     "expiry_source": "digikala_live_deals_feed", "expiry_estimated": False,
+                    "caption_deadline_format_version": 3,
                 },
                 "dkp-expired": {
                     "ts": 2, "title": "پیشنهاد تمام‌شده",
@@ -1221,13 +1226,13 @@ class AffilioRadarTests(unittest.TestCase):
                     "posted_original_price": 200_000, "posted_discount_percent": 50,
                     "expires_at": "2026-10-17T20:30:00+00:00",
                     "expiry_source": "digikala_live_deals_feed", "expiry_estimated": False,
+                    "caption_deadline_format_version": 3,
                 },
             }
         }
         url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-15970075/")
         with (
             patch("affilio_radar.load_state", return_value=state),
-            patch("expiration_monitor.fetch_offer_expiries", return_value={"dkp-15970075": expiry}),
             patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
             patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
             patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
@@ -1239,16 +1244,15 @@ class AffilioRadarTests(unittest.TestCase):
         ):
             result = refresh_active_countdowns()
         self.assertEqual(result, 0)
-        self.assertEqual(state["published"]["dkp-15970075"]["expires_at"], expiry)
+        self.assertEqual(state["published"]["dkp-15970075"]["expires_at"], stale_expiry)
         self.assertEqual(edit_telegram.call_count, 1)
         self.assertEqual(edit_bale.call_count, 1)
-        last_update = datetime.fromisoformat(state["published"]["dkp-15970075"]["countdown_last_updated_at"])
-        expected_countdown = format_remaining_time(expiry, last_update, safety_buffer_minutes=10)
-        self.assertIn(expected_countdown, edit_telegram.call_args.args[1])
-        self.assertIn(expected_countdown, edit_bale.call_args.args[1])
-        self.assertIn("مانده به پایان تخفیف", edit_telegram.call_args.args[1])
-        self.assertIn("مانده به پایان تخفیف", edit_bale.call_args.args[1])
-        self.assertEqual(state["published"]["dkp-15970075"]["caption_deadline_format_version"], 3)
+        self.assertNotIn("مانده به پایان تخفیف", edit_telegram.call_args.args[1])
+        self.assertNotIn("مانده به پایان تخفیف", edit_bale.call_args.args[1])
+        self.assertNotIn("پایان تخفیف", edit_telegram.call_args.args[1])
+        self.assertNotIn("پایان تخفیف", edit_bale.call_args.args[1])
+        self.assertEqual(state["published"]["dkp-15970075"]["caption_deadline_format_version"], 4)
+        self.assertIn("caption_without_expiry_migrated_at", state["published"]["dkp-15970075"])
         self.assertNotIn("deadline_caption_refresh_required", state["published"]["dkp-15970075"])
         self.assertIn("عضویت در کانال OfferChin", edit_telegram.call_args.args[1])
         self.assertIn("عضویت در کانال OfferChin", edit_bale.call_args.args[1])
@@ -1256,7 +1260,7 @@ class AffilioRadarTests(unittest.TestCase):
 
 
 
-    def test_refresh_marks_specific_products_unverifiable_when_live_feed_loses_deadline(self):
+    def test_caption_migration_does_not_require_deadline_feed_presence(self):
         now = datetime.now(timezone.utc)
         live_expiry = (now + timedelta(hours=3)).isoformat()
         state = {
@@ -1265,50 +1269,45 @@ class AffilioRadarTests(unittest.TestCase):
                     "title": "پیشنهاد قابل تأیید",
                     "product_url": "https://www.digikala.com/product/dkp-1001/",
                     "telegram_message_id": 501,
-                    "bale_message_id": 601,
                     "posted_current_price": 100_000,
                     "posted_original_price": 200_000,
                     "posted_discount_percent": 50,
                     "expires_at": live_expiry,
                     "expiry_source": "digikala_live_deals_feed",
                     "expiry_estimated": False,
+                    "caption_deadline_format_version": 3,
                 },
                 "dkp-missing": {
-                    "title": "پیشنهادی که دیگر در فید زنده نیست",
+                    "title": "پیشنهادی که مهلتش فعلاً تأیید نشده",
                     "product_url": "https://www.digikala.com/product/dkp-1002/",
                     "telegram_message_id": 502,
-                    "bale_message_id": 602,
                     "posted_current_price": 100_000,
                     "posted_original_price": 200_000,
                     "posted_discount_percent": 50,
                     "expires_at": (now + timedelta(hours=4)).isoformat(),
-                    "expiry_source": "digikala_live_deals_feed",
-                    "expiry_estimated": False,
+                    "expiry_source": "unavailable",
+                    "expiry_estimated": True,
+                    "caption_deadline_format_version": 3,
                 },
             }
         }
         url = build_affilio_tracking_link("https://www.digikala.com/product/dkp-1001/")
         with (
             patch("affilio_radar.load_state", return_value=state),
-            patch("expiration_monitor.fetch_offer_expiries", return_value={"dkp-live": live_expiry}),
             patch("affilio_radar.BOT_TOKEN", "telegram-test-token"),
-            patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
-            patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
             patch("affilio_radar.build_affilio_tracking_link", return_value=url),
-            patch("affilio_radar._edit_telegram_caption", return_value={"message_id": 501}) as edit_telegram,
-            patch("affilio_radar._edit_bale_caption", return_value={"message_id": 601}) as edit_bale,
+            patch("affilio_radar._edit_telegram_caption", side_effect=lambda mid, *args: {"message_id": mid}) as edit_telegram,
             patch("affilio_radar.save_json") as save_state,
             patch("affilio_radar.time.sleep"),
         ):
             result = refresh_active_countdowns()
 
         self.assertEqual(result, 0)
-        missing = state["published"]["dkp-missing"]
-        self.assertEqual(missing["expiry_source"], "unavailable")
-        self.assertTrue(missing["expiry_estimated"])
-        self.assertEqual(missing["expiry_reason"], "missing_from_current_live_deadline_sources")
-        self.assertNotIn(502, [call.args[0] for call in edit_telegram.call_args_list])
-        self.assertNotIn(602, [call.args[0] for call in edit_bale.call_args_list])
+        self.assertEqual(state["published"]["dkp-missing"]["expiry_source"], "unavailable")
+        self.assertTrue(state["published"]["dkp-missing"]["expiry_estimated"])
+        self.assertEqual([call.args[0] for call in edit_telegram.call_args_list], [501, 502])
+        self.assertEqual(state["published"]["dkp-live"]["caption_deadline_format_version"], 4)
+        self.assertEqual(state["published"]["dkp-missing"]["caption_deadline_format_version"], 4)
         self.assertTrue(save_state.called)
 
     def test_refresh_active_countdowns_caps_batch_and_rotates_fairly(self):
@@ -1319,7 +1318,6 @@ class AffilioRadarTests(unittest.TestCase):
             published[f"dkp-{1000 + index}"] = {
                 "ts": index + 1,
                 "caption_deadline_format_version": 3,
-                "countdown_last_updated_at": (now - timedelta(minutes=5)).isoformat(),
                 "title": f"محصول نمونه {index}",
                 "product_url": f"https://www.digikala.com/product/dkp-{1000 + index}/",
                 "telegram_message_id": 200 + index,
@@ -1351,9 +1349,10 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(result, 0)
         self.assertEqual([call.args[0] for call in edit_telegram.call_args_list], [200, 201])
         self.assertEqual([call.args[0] for call in edit_bale.call_args_list], [400, 401])
-        self.assertTrue(published["dkp-1000"].get("countdown_refresh_attempted_at"))
-        self.assertTrue(published["dkp-1001"].get("countdown_last_updated_at"))
-        self.assertNotIn("countdown_refresh_attempted_at", published["dkp-1002"])
+        self.assertEqual(published["dkp-1000"]["caption_deadline_format_version"], 4)
+        self.assertEqual(published["dkp-1001"]["caption_deadline_format_version"], 4)
+        self.assertEqual(published["dkp-1002"]["caption_deadline_format_version"], 3)
+        self.assertNotIn("caption_without_expiry_migrated_at", published["dkp-1002"])
         self.assertTrue(save_state.called)
 
 
