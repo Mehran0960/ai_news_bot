@@ -2976,7 +2976,11 @@
       "youtube_next_attempt_at": "2026-10-22T18:18:21.873431+00:00",
       "youtube_upload_attempts": 1,
       "youtube_upload_started_at": "2026-10-22T18:13:21.447287+00:00",
-      "youtube_upload_status": "retry"
+      "youtube_upload_status": "retry",
+      "expiry_status": "tracked",
+      "bale_expiry_status": "tracked",
+      "caption_countdown_refreshed_at": "2026-10-22T18:15:25.477679+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-22T18:15:25.477679+00:00"
     },
     "dkp-unknown-deadline": {
       "caption_countdown_refreshed_at": "2026-10-22T18:11:36.676500+00:00",
@@ -2990,7 +2994,18 @@
       "product_url": "https://www.digikala.com/product/dkp-15970075/",
       "telegram_message_id": 88,
       "title": "پیشنهاد بدون مهلت معتبر",
-      "ts": 1
+      "ts": 1,
+      "telegram_unverified_deadline_preserved_at": "2026-10-22T18:15:25.477679+00:00",
+      "expiry_last_probed_at": "2026-10-22T18:15:25.477679+00:00",
+      "expiry_last_product_check_at": "2026-10-22T18:15:25.477679+00:00"
     }
+  },
+  "expiry_feed_last_checked_at": "2026-10-22T18:15:25.477679+00:00",
+  "expiry_feed_last_sync_summary": {
+    "matched": 0,
+    "updated": 0,
+    "unchanged": 0,
+    "missing_from_feed": 1,
+    "skipped": 1
   }
 }
