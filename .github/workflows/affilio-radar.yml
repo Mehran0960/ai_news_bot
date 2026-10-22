@@ -78,7 +78,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Persian font for the discount badge
+      - name: Install Persian font and FFmpeg for publishing
+        if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[repair-bale-caption]') }}
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends fonts-noto-core
