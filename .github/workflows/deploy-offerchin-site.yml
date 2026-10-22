@@ -46,9 +46,7 @@ jobs:
             echo "Manual run requested; forcing a deployment."
           elif [[ -n "${CLOUDFLARE_API_TOKEN:-}" && -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
             base="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/offerchin-storefront"
-            code="$(curl -sS -o /tmp/pages-project.json -w "%{http_code}" \\
-              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \\
-              -H "Content-Type: application/json" "$base" || true)"
+            code="$(curl -sS -o /tmp/pages-project.json -w "%{http_code}" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" "$base" || true)"
             if [[ "$code" == "200" ]]; then
               previous_sha="$(python - <<'PY'
           import json
@@ -69,7 +67,7 @@ jobs:
                   echo "No relevant source or product-data changes since the last deployment."
                 else
                   echo "Relevant changes detected:"
-                  printf '%s\\n' "$changed_paths"
+                  echo "$changed_paths"
                 fi
               else
                 echo "No comparable previous deployment commit; refreshing the catalog."
