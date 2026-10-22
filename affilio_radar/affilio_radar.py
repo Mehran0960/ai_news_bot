@@ -69,7 +69,7 @@ COUNTDOWN_SAFETY_BUFFER_MINUTES = max(0, min(30, int(os.getenv("AFFILIO_COUNTDOW
 COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
     120, min(600, int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS", "240")))
 )
-CAPTION_DEADLINE_FORMAT_VERSION = 5
+CAPTION_DEADLINE_FORMAT_VERSION = 6
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
 URGENT_MIN_POST_INTERVAL_MINUTES = 10
@@ -252,6 +252,22 @@ def _affiliate_destination_matches_product(affiliate_url: str, canonical_product
         and parsed.path == "/QekEYTRg"
         and len(destinations) == 1
         and safe_product_url(destinations[0]) == canonical
+    )
+
+
+def _is_valid_affilio_tracking_url(affiliate_url: str) -> bool:
+    """Validate the exact public Affilio template and its DigiKala product destination."""
+    try:
+        parsed = urlsplit(str(affiliate_url or "").strip())
+        destinations = parse_qs(parsed.query, keep_blank_values=True).get("p", [])
+    except Exception:
+        return False
+    return bool(
+        len(destinations) == 1
+        and parsed.scheme == "https"
+        and (parsed.hostname or "").lower() == "aflo.ir"
+        and parsed.path == "/QekEYTRg"
+        and _affiliate_destination_matches_product(str(affiliate_url or ""), destinations[0])
     )
 
 
@@ -2946,17 +2962,7 @@ def build_caption(
         else:
             parts += ["", f"<b>🏷️ قیمت اصلی: <s>{original_amount} تومان</s></b>"]
 
-    # A source-backed absolute deadline is refreshed every few minutes. Show its
-    # current remaining time minus the same 10-minute guard used for auto-removal.
-    countdown = ""
-    if p.get("deal_expires_at") and p.get("expiry_estimated") is not True:
-        countdown = format_remaining_time(
-            p.get("deal_expires_at"),
-            now=p.get("_countdown_now"),
-            safety_buffer_minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES,
-        )
-    if countdown and countdown != "مهلت آفر به پایان رسیده":
-        parts += ["", f"⏳ {countdown}"]
+    # Offer deadlines remain in state for verified cleanup; captions never show timers.
 
     detail_line = bold("👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.")
     parts += ["", channel_footer, "", detail_line]
@@ -3124,14 +3130,14 @@ def _send_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
         raise RuntimeError("Missing TELEGRAM_BOT_TOKEN secret; no post sent")
     endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
     data = {"chat_id": TARGET_CHAT, "caption": caption, "parse_mode": "HTML"}
-    parsed_link = urlsplit(str(affiliate_url or "").strip())
-    if parsed_link.scheme == "https" and parsed_link.netloc:
-        data["reply_markup"] = json.dumps({
-            "inline_keyboard": [[{
-                "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
-                "url": affiliate_url,
-            }]]
-        }, ensure_ascii=False)
+    if not _is_valid_affilio_tracking_url(affiliate_url):
+        raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
+    data["reply_markup"] = json.dumps({
+        "inline_keyboard": [[{
+            "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
+            "url": affiliate_url,
+        }]]
+    }, ensure_ascii=False)
     response = requests.post(
         endpoint,
         data=data,
@@ -3153,14 +3159,14 @@ def _send_bale_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
         raise RuntimeError("Missing BALE_CHANNEL_ID secret")
     endpoint = f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/sendPhoto"
     data = {"chat_id": BALE_CHANNEL_ID, "caption": caption}
-    parsed_link = urlsplit(str(affiliate_url or "").strip())
-    if parsed_link.scheme == "https" and parsed_link.netloc:
-        data["reply_markup"] = json.dumps({
-            "inline_keyboard": [[{
-                "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
-                "url": affiliate_url,
-            }]]
-        }, ensure_ascii=False)
+    if not _is_valid_affilio_tracking_url(affiliate_url):
+        raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
+    data["reply_markup"] = json.dumps({
+        "inline_keyboard": [[{
+            "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
+            "url": affiliate_url,
+        }]]
+    }, ensure_ascii=False)
     response = requests.post(
         endpoint,
         data=data,
@@ -3220,14 +3226,14 @@ def _edit_telegram_caption(message_id: int, caption: str, affiliate_url: str = "
         "caption": caption,
         "parse_mode": "HTML",
     }
-    parsed_link = urlsplit(str(affiliate_url or "").strip())
-    if parsed_link.scheme == "https" and parsed_link.netloc:
-        data["reply_markup"] = json.dumps({
-            "inline_keyboard": [[{
-                "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
-                "url": affiliate_url,
-            }]]
-        }, ensure_ascii=False)
+    if not _is_valid_affilio_tracking_url(affiliate_url):
+        raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
+    data["reply_markup"] = json.dumps({
+        "inline_keyboard": [[{
+            "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
+            "url": affiliate_url,
+        }]]
+    }, ensure_ascii=False)
 
     for attempt in range(4):
         response = requests.post(endpoint, data=data, timeout=(20, 40))
@@ -3273,14 +3279,14 @@ def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
         "message_id": int(message_id),
         "caption": caption,
     }
-    parsed_link = urlsplit(str(affiliate_url or "").strip())
-    if parsed_link.scheme == "https" and parsed_link.netloc:
-        data["reply_markup"] = json.dumps({
-            "inline_keyboard": [[{
-                "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
-                "url": affiliate_url,
-            }]]
-        }, ensure_ascii=False)
+    if not _is_valid_affilio_tracking_url(affiliate_url):
+        raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
+    data["reply_markup"] = json.dumps({
+        "inline_keyboard": [[{
+            "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
+            "url": affiliate_url,
+        }]]
+    }, ensure_ascii=False)
 
     for attempt in range(4):
         response = requests.post(endpoint, data=data, timeout=(20, 40))
@@ -3733,13 +3739,10 @@ def repair_all_published_captions() -> int:
 
 
 def refresh_active_countdowns() -> int:
-    """Refresh active countdown captions and explicitly restore affiliate purchase buttons.
+    """Migrate old captions to the static format and restore verified purchase buttons.
 
-    The cleanup workflow synchronizes source deadlines first, then runs this function.
-    Only a non-estimated deadline from DigiKala's live feed is displayed. Its remaining
-    time is reduced by COUNTDOWN_SAFETY_BUFFER_MINUTES, matching the auto-removal cutoff.
-    Captions without a verified deadline keep the purchase button but do not show a
-    speculative timer. Records are rotated by last refresh time to keep the batch fair.
+    The historic CLI name is kept for workflow compatibility. This routine never
+    renders a countdown; each tracked post is repaired once per caption schema version.
     """
     try:
         max_records = int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS", "80"))
@@ -3758,25 +3761,22 @@ def refresh_active_countdowns() -> int:
     for product_key, record in published.items():
         if not isinstance(record, dict):
             continue
+        try:
+            current_version = int(record.get("caption_deadline_format_version") or 0)
+        except (TypeError, ValueError, OverflowError):
+            current_version = 0
+        if current_version >= CAPTION_DEADLINE_FORMAT_VERSION and not record.get("deadline_caption_refresh_required"):
+            continue
+
         deadline = _parse_utc_datetime(record.get("expires_at"))
         verified_deadline = (
             deadline is not None
             and record.get("expiry_source") in verified_sources
             and record.get("expiry_estimated") is not True
         )
-        if (
-            verified_deadline
-            and deadline - timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES) <= now
-        ):
-            # The expiry monitor handles deletion at the same cutoff; don't edit a post
-            # that is already due to disappear.
-            continue
-
-        last_refresh = _parse_utc_datetime(record.get("caption_countdown_refreshed_at"))
-        if (
-            last_refresh is not None
-            and (now - last_refresh).total_seconds() < COUNTDOWN_REFRESH_INTERVAL_SECONDS
-        ):
+        # The expiry monitor owns verified deletion. Never rewrite an offer already
+        # due for removal while cleanup retries its delete request.
+        if verified_deadline and deadline - timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES) <= now:
             continue
 
         targets = []
@@ -3799,7 +3799,7 @@ def refresh_active_countdowns() -> int:
             posted_ts = float(record.get("ts") or 0)
         except (TypeError, ValueError, OverflowError):
             posted_ts = 0.0
-        # Never-refreshed records lead; then the oldest refresh is served first.
+        last_refresh = _parse_utc_datetime(record.get("caption_countdown_refreshed_at"))
         due.append((
             last_refresh or datetime.min.replace(tzinfo=timezone.utc),
             posted_ts,
@@ -3817,16 +3817,15 @@ def refresh_active_countdowns() -> int:
     }
     changed = False
     print(
-        f"CAPTION_COUNTDOWN_REFRESH_BATCH eligible={len(due)} selected={len(selected)} "
-        f"limit={max_records} interval_seconds={COUNTDOWN_REFRESH_INTERVAL_SECONDS}"
+        f"STATIC_CAPTION_MIGRATION_BATCH eligible={len(due)} selected={len(selected)} "
+        f"limit={max_records} schema_version={CAPTION_DEADLINE_FORMAT_VERSION}"
     )
 
     for _, _, product_key, record, targets, verified_deadline in selected:
-        product_url_value = safe_product_url(record.get("product_url", ""))
-        affiliate_url = build_affilio_tracking_link(product_url_value)
-        if not affiliate_url:
+        affiliate_url = build_affilio_tracking_link(safe_product_url(record.get("product_url", "")))
+        if not _is_valid_affilio_tracking_url(affiliate_url):
             counters["skipped"] += 1
-            print(f"CAPTION_COUNTDOWN_REFRESH_SKIPPED product_id={product_key} reason=affiliate_url_unavailable")
+            print(f"STATIC_CAPTION_MIGRATION_SKIPPED product_id={product_key} reason=affiliate_url_unavailable")
             continue
 
         product = {
@@ -3834,13 +3833,10 @@ def refresh_active_countdowns() -> int:
             "current_price": record.get("posted_current_price"),
             "original_price": record.get("posted_original_price"),
             "discount_percent": record.get("posted_discount_percent"),
-            "deal_expires_at": record.get("expires_at", "") if verified_deadline else "",
-            "expiry_estimated": not verified_deadline,
         }
         product_had_failure = False
         for platform, message_id in targets:
             try:
-                # Always reattach the verified Affilio destination while editing the caption.
                 if platform == "telegram":
                     caption = build_caption(product, affiliate_url, TELEGRAM_CHANNEL_URL)
                     result = _edit_telegram_caption(message_id, caption, affiliate_url)
@@ -3854,52 +3850,48 @@ def refresh_active_countdowns() -> int:
                     counters[f"{platform}_missing"] += 1
                     product_had_failure = True
                     print(
-                        f"CAPTION_COUNTDOWN_REFRESH_UNAVAILABLE product_id={product_key} "
+                        f"STATIC_CAPTION_MIGRATION_UNAVAILABLE product_id={product_key} "
                         f"platform={platform} message_id={message_id} reason=message_not_found"
                     )
                 else:
                     counters[f"{platform}_updated"] += 1
                     print(
-                        f"CAPTION_COUNTDOWN_REFRESHED product_id={product_key} "
-                        f"platform={platform} message_id={message_id} button=restored"
+                        f"STATIC_CAPTION_MIGRATED product_id={product_key} "
+                        f"platform={platform} message_id={message_id} button=restored countdown=removed"
                     )
             except Exception as exc:
                 counters[f"{platform}_failed"] += 1
                 product_had_failure = True
                 print(
-                    f"CAPTION_COUNTDOWN_REFRESH_FAILED product_id={product_key} "
+                    f"STATIC_CAPTION_MIGRATION_FAILED product_id={product_key} "
                     f"platform={platform} message_id={message_id} error={type(exc).__name__}"
                 )
             time.sleep(1.1 if len(targets) > 1 else (3.1 if platform == "telegram" else 1.1))
 
         if not product_had_failure:
             record["caption_deadline_format_version"] = CAPTION_DEADLINE_FORMAT_VERSION
+            record["caption_static_migrated_at"] = now.isoformat()
             record["caption_countdown_refreshed_at"] = now.isoformat()
-            record["caption_without_expiry_migrated_at"] = now.isoformat()
             record.pop("deadline_caption_refresh_required", None)
             for platform, _message_id in targets:
                 status_field = "expiry_status" if platform == "telegram" else "bale_expiry_status"
                 if record.get(status_field) in {
                     "deadline_unavailable_marked", "deadline_unavailable_delete_failed", "unknown",
                 }:
-                    if verified_deadline:
-                        record[status_field] = "tracked"
-                    elif record.get("expiry_estimated") is True:
-                        record[status_field] = "tracked_estimated"
-                    else:
-                        record[status_field] = "unknown"
+                    record[status_field] = "tracked" if verified_deadline else "unknown"
             changed = True
 
     if changed:
         save_json(STATE, state)
     print(
-        "CAPTION_COUNTDOWN_REFRESH_SUMMARY "
+        "STATIC_CAPTION_MIGRATION_SUMMARY "
         f"records_selected={len(selected)} telegram_updated={counters['telegram_updated']} "
         f"telegram_missing={counters['telegram_missing']} telegram_failed={counters['telegram_failed']} "
         f"bale_updated={counters['bale_updated']} bale_missing={counters['bale_missing']} "
         f"bale_failed={counters['bale_failed']} skipped={counters['skipped']}"
     )
     return 0
+
 
 
 def _delivery_retry_delay(attempt: int) -> int:
@@ -5693,6 +5685,7 @@ def run(publish=False):
                 "expires_at": expiry_at,
                 "expiry_source": "digikala_live_deals_feed" if expiry_at else "unavailable",
                 "expiry_estimated": False,
+                "expiry_deadline_verified_directly": False,
                 "caption_deadline_format_version": CAPTION_DEADLINE_FORMAT_VERSION,
                 "posted_discount_percent": int(item.get("discount_percent") or 0),
                 "posted_current_price": int(item.get("current_price") or 0),
