@@ -1216,7 +1216,7 @@ class AffilioRadarTests(unittest.TestCase):
             "expiry_estimated": False,
         }
         with patch("affilio_radar.format_remaining_time", return_value="۵۰ دقیقه مانده به پایان تخفیف") as countdown:
-            caption = build_caption(product, url, TELEGRAM_CHANNEL_URL)
+            caption = build_caption(product, url, "https://t.me/OfferChin")
         countdown.assert_called_once()
         self.assertEqual(countdown.call_args.kwargs["safety_buffer_minutes"], 10)
         self.assertIn("⏳ ۵۰ دقیقه مانده به پایان تخفیف", caption)
