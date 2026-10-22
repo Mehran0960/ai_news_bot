@@ -1446,6 +1446,7 @@ class AffilioRadarTests(unittest.TestCase):
             patch("affilio_radar._send_photo") as send_telegram,
             patch("affilio_radar._send_bale_photo") as send_bale,
             patch("affilio_radar.time.sleep"),
+            patch("affilio_radar.save_json") as save_state,
         ):
             result = repair_all_published_captions()
         self.assertEqual(result, 0)
@@ -1453,6 +1454,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(edit_bale.call_count, 1)
         self.assertFalse(send_telegram.called)
         self.assertFalse(send_bale.called)
+        save_state.assert_called_once()
         telegram_caption = edit_telegram.call_args_list[0].args[1]
         bale_caption = edit_bale.call_args_list[0].args[1]
         self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', telegram_caption)
