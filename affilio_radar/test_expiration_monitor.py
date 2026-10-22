@@ -41,36 +41,28 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertGreaterEqual(parsed, before + timedelta(seconds=89))
         self.assertLessEqual(parsed, after + timedelta(seconds=91))
 
-    def test_offer_expiries_prioritizes_official_digikala_data_and_supplements_gaps(self):
+    def test_expiry_cleanup_uses_direct_digikala_feed_only(self):
         direct = {
             "dkp-1": "2026-10-20T20:00:00+00:00",
             "dkp-2": "2026-10-20T21:00:00+00:00",
         }
-        mcp = {
-            "dkp-1": "2026-10-20T22:00:00+00:00",
-            "dkp-3": "2026-10-20T23:00:00+00:00",
-        }
+        mcp = {"dkp-3": "2026-10-20T23:00:00+00:00"}
         with (
             patch.object(monitor, "fetch_direct_api_offer_expiries", return_value=direct),
             patch.object(monitor, "fetch_mcp_offer_expiries", return_value=mcp) as fallback,
         ):
-            result = monitor.fetch_offer_expiries(
-                required_product_ids=["dkp-1", "dkp-2", "dkp-3"]
-            )
-
-        self.assertEqual(result["dkp-1"], direct["dkp-1"])
-        self.assertEqual(result["dkp-2"], direct["dkp-2"])
-        self.assertEqual(result["dkp-3"], mcp["dkp-3"])
-        fallback.assert_called_once()
+            result = monitor.fetch_offer_expiries(required_product_ids=["dkp-1", "dkp-2", "dkp-3"])
+        self.assertEqual(result, direct)
+        self.assertNotIn("dkp-3", result)
+        fallback.assert_not_called()
 
         with (
-            patch.object(monitor, "fetch_direct_api_offer_expiries", return_value=direct),
+            patch.object(monitor, "fetch_direct_api_offer_expiries", return_value={}),
             patch.object(monitor, "fetch_mcp_offer_expiries") as unnecessary_fallback,
         ):
-            result = monitor.fetch_offer_expiries(required_product_ids=["dkp-1", "dkp-2"])
-        self.assertEqual(result, direct)
+            result = monitor.fetch_offer_expiries(required_product_ids=["dkp-1"])
+        self.assertEqual(result, {})
         unnecessary_fallback.assert_not_called()
-
     def test_live_deadline_sync_corrects_stale_deadline_before_cleanup(self):
         now = datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
         published = {

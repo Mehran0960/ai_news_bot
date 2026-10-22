@@ -39,9 +39,9 @@ UNKNOWN_PROBE_INTERVAL_SECONDS = 900
 POST_REMOVAL_BUFFER_MINUTES = max(
     0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10")))
 )
-# The scheduled cleanup job runs every five minutes; refresh its source deadline at that cadence.
+# Recheck the first-party deal feed every five minutes so cached deadlines remain current.
 LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 5 * 60
-CAPTION_FORMAT_VERSION = 6
+CAPTION_FORMAT_VERSION = 7
 
 
 def walk_dicts(value):
@@ -273,41 +273,32 @@ def fetch_direct_api_offer_expiries():
 
 
 def fetch_offer_expiries(required_product_ids=None):
-    """Use DigiKala's own live API first; use MCP only to fill deadline gaps.
+    """Return deadlines verified from DigiKala’s first-party live API only.
 
-    required_product_ids lets the caption refresher avoid a slower MCP scan when
-    every currently visible product already has a deadline in the first-party feed.
-    A direct-site deadline always wins over a duplicate reported by the MCP wrapper.
+    MCP remains useful for discovery, but a wrapper/feed gap must never be treated
+    as direct proof that an offer is still active or has expired. Missing direct
+    deadlines remain unresolved and are never used as deletion authority.
     """
-    results = {}
+    required = {str(pid) for pid in (required_product_ids or []) if str(pid)}
     direct = {}
     try:
-        direct = fetch_direct_api_offer_expiries()
-        if isinstance(direct, dict):
-            results.update(direct)
+        payload = fetch_direct_api_offer_expiries()
+        if isinstance(payload, dict):
+            direct = {
+                str(pid): expiry
+                for pid, expiry in payload.items()
+                if str(pid) and parse_expiry(expiry)
+            }
     except Exception as exc:
         print(f"EXPIRY_DIRECT_FEED_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
 
-    required = {str(pid) for pid in (required_product_ids or []) if str(pid)}
-    missing_required = required.difference(results)
-    should_use_mcp = not required or bool(missing_required)
-    supplemental = {}
-    if should_use_mcp:
-        try:
-            supplemental = fetch_mcp_offer_expiries()
-        except Exception as exc:
-            print(f"EXPIRY_MCP_FALLBACK_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
-        if isinstance(supplemental, dict):
-            for pid, expiry in supplemental.items():
-                results.setdefault(str(pid), expiry)
-
+    missing_required = required.difference(direct)
     print(
-        f"EXPIRY_SOURCE_PRIORITY direct_site={len(direct)} "
-        f"mcp_added={max(0, len(results) - len(direct))} "
-        f"required={len(required)} unresolved_required={len(required.difference(results))}"
+        f"EXPIRY_SOURCE_PRIORITY direct_site={len(direct)} mcp_added=0 "
+        f"required={len(required)} unresolved_required={len(missing_required)} "
+        "cleanup_authority=direct_site_only"
     )
-    return results
-
+    return direct
 def _money_to_toman(raw, is_toman):
     if raw in (None, "", 0, "0"):
         return None
@@ -323,9 +314,7 @@ def _money_to_toman(raw, is_toman):
 def sync_live_offer_deadlines(published, live_expiries, now):
     """Reconcile every still-visible tracked post with the latest verified deal-card deadline."""
     summary = {"matched": 0, "updated": 0, "unchanged": 0, "missing_from_feed": 0, "skipped": 0}
-    terminal = {
-        "deleted", "already_absent", "expired_marked", "delete_failed",
-    }
+    terminal = {"deleted", "already_absent"}
     # DigiKala's current feed represents the current campaign only. Never copy its
     # deadline onto post_history records from earlier campaigns of the same product.
     for pid, rec in (published or {}).items():
@@ -364,6 +353,13 @@ def sync_live_offer_deadlines(published, live_expiries, now):
             or rec.get("expiry_source") != "digikala_live_deals_feed"
             or rec.get("expiry_deadline_verified_directly") is not True
             or (delta_seconds is not None and abs(delta_seconds) >= 60)
+            or any(
+                rec.get(status_field) in {
+                    "expired_marked", "delete_failed", "deadline_unavailable_marked",
+                    "deadline_unavailable_delete_failed", "unknown",
+                }
+                for status_field in ("expiry_status", "bale_expiry_status")
+            )
         )
         if not must_update:
             summary["unchanged"] += 1

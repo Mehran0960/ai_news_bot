@@ -63,13 +63,13 @@ DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEU
 MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(32, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "24"))))
 # Never publish an offer that gives the audience less than this much time to act.
 MIN_PUBLICATION_RUNWAY_MINUTES = max(30, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "60"))))
-# Captions show site-backed remaining time minus the same safety buffer used for removal.
+# The same ten-minute safety buffer gates publication and removal; captions remain static.
 COUNTDOWN_SAFETY_BUFFER_MINUTES = max(0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10"))))
 # Countdown captions are refreshed periodically so the displayed time does not go stale.
 COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
     120, min(600, int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS", "240")))
 )
-CAPTION_DEADLINE_FORMAT_VERSION = 6
+CAPTION_DEADLINE_FORMAT_VERSION = 7
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
 URGENT_MIN_POST_INTERVAL_MINUTES = 10
@@ -3420,8 +3420,7 @@ def repair_all_published_captions() -> int:
             # or failed to verify an offer. In particular, a caption repair must not
             # undo the safety fallback used when deletion of an unknown-deadline post fails.
             non_editable_statuses = {
-                "deleted", "already_absent", "expired_marked", "deadline_unavailable_marked",
-                "deadline_unavailable_delete_failed", "delete_failed",
+                "deleted", "already_absent", "delete_failed",
             }
             if record.get(status_field) in non_editable_statuses:
                 print(
@@ -5683,7 +5682,7 @@ def run(publish=False):
                 "delivery_status": statuses,
                 "delivery_attempts": attempts,
                 "expires_at": expiry_at,
-                "expiry_source": "digikala_live_deals_feed" if expiry_at else "unavailable",
+                "expiry_source": "direct_verification_pending" if expiry_at else "unavailable",
                 "expiry_estimated": False,
                 "expiry_deadline_verified_directly": False,
                 "caption_deadline_format_version": CAPTION_DEADLINE_FORMAT_VERSION,
