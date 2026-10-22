@@ -3423,18 +3423,6 @@ def repair_all_published_captions() -> int:
                 results[f"{platform}_failed"] += 1
             continue
 
-        source_remaining_seconds = max(0, (live_deadline - caption_now).total_seconds())
-        caption_remaining_seconds = max(
-            0,
-            source_remaining_seconds - COUNTDOWN_SAFETY_BUFFER_MINUTES * 60,
-        )
-        print(
-            f"COUNTDOWN_SOURCE product_id={product_key} "
-            f"site_deadline={live_deadline.isoformat()} "
-            f"site_remaining_seconds={int(source_remaining_seconds)} "
-            f"buffer_seconds={COUNTDOWN_SAFETY_BUFFER_MINUTES * 60} "
-            f"caption_remaining_seconds={int(caption_remaining_seconds)}"
-        )
         product = {
             "title": record.get("title", "پیشنهاد ویژه"),
             "current_price": record.get("posted_current_price"),
@@ -3728,6 +3716,18 @@ def refresh_active_countdowns() -> int:
             changed = True
             continue
 
+        source_remaining_seconds = max(0, (live_deadline - caption_now).total_seconds())
+        caption_remaining_seconds = max(
+            0,
+            source_remaining_seconds - COUNTDOWN_SAFETY_BUFFER_MINUTES * 60,
+        )
+        print(
+            f"COUNTDOWN_SOURCE product_id={product_key} "
+            f"site_deadline={live_deadline.isoformat()} "
+            f"site_remaining_seconds={int(source_remaining_seconds)} "
+            f"buffer_seconds={COUNTDOWN_SAFETY_BUFFER_MINUTES * 60} "
+            f"caption_remaining_seconds={int(caption_remaining_seconds)}"
+        )
         product = {
             "title": record.get("title", "پیشنهاد ویژه"),
             "current_price": record.get("posted_current_price"),
