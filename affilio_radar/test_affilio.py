@@ -1101,6 +1101,25 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("@OfferChin", telegram_caption)
 
 
+    def test_source_visible_countdown_is_reduced_by_exactly_ten_minutes(self):
+        now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
+        source_card = {
+            "id": 123,
+            "title_fa": "محصول نمونه",
+            "campaign": {"remaining_seconds": 3 * 3600 + 24 * 60},
+            # This nested variant timestamp is unrelated to the card's visible timer.
+            "default_variant": {"ends_at": "2026-10-22T18:00:00+03:30"},
+        }
+        deadline = extract_deal_expiry(source_card, now=now)
+        self.assertEqual(
+            deadline,
+            (now + timedelta(hours=3, minutes=24)).isoformat(),
+        )
+        self.assertEqual(
+            format_remaining_time(deadline, now, safety_buffer_minutes=10),
+            "۳ ساعت و ۱۴ دقیقه مانده به پایان تخفیف",
+        )
+
     def test_countdown_formats_hours_minutes_and_expired_deadlines(self):
         now = datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc)
         self.assertEqual(
