@@ -2,13 +2,17 @@ name: Affilio Countdown Refresh
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/affilio-countdown-refresh.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  # Serialize caption edits with cleanup and publication workflows.
-  group: affilio-channel-updates
+  # Emergency button repair has a dedicated group so stale discovery/cleanup queue
+  # entries cannot delay restoring the CTA; all normal refreshes remain serialized.
+  group: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[restore-purchase-buttons]') && 'affilio-emergency-button-repair' || 'affilio-channel-updates' }}
   cancel-in-progress: false
 
 jobs:
