@@ -2,10 +2,9 @@
 """Keep OfferChin deal posts live only when their absolute deadline is verified.
 
 Only verified expired offers are deleted from Telegram and Bale. Missing or estimated
-deadlines are not proof of expiry, so affected posts are preserved until a source-backed
-deadline can be re-established. Caption edits explicitly reattach the product's approved
-Affilio purchase button and refresh the displayed countdown using the same ten-minute
-safety buffer used by automatic removal.
+deadlines are not proof of expiry, so affected posts are preserved until a direct DigiKala
+source-backed deadline can be re-established. Caption edits explicitly reattach the
+approved Affilio purchase button and never display a remaining-time countdown.
 """
 from __future__ import annotations
 
@@ -36,7 +35,7 @@ HTTP_TIMEOUT = 18
 BOT_API_MIN_GAP_SECONDS = 1.1
 PROBE_INTERVAL_SECONDS = 900
 UNKNOWN_PROBE_INTERVAL_SECONDS = 900
-# The caption countdown uses the same ten-minute buffer as automatic post deletion.
+# Remove verified expired offers ten minutes before DigiKala's source deadline; never display a countdown.
 POST_REMOVAL_BUFFER_MINUTES = max(
     0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10")))
 )
@@ -324,9 +323,7 @@ def sync_live_offer_deadlines(published, live_expiries, now):
     """Reconcile every still-visible tracked post with the latest verified deal-card deadline."""
     summary = {"matched": 0, "updated": 0, "unchanged": 0, "missing_from_feed": 0, "skipped": 0}
     terminal = {
-        "deleted", "already_absent", "expired_marked",
-        "deadline_unavailable_marked", "deadline_unavailable_delete_failed",
-        "delete_failed", "unknown",
+        "deleted", "already_absent", "expired_marked", "delete_failed",
     }
     # DigiKala's current feed represents the current campaign only. Never copy its
     # deadline onto post_history records from earlier campaigns of the same product.
@@ -364,6 +361,7 @@ def sync_live_offer_deadlines(published, live_expiries, now):
             not previous_dt
             or bool(rec.get("expiry_estimated"))
             or rec.get("expiry_source") != "digikala_live_deals_feed"
+            or rec.get("expiry_deadline_verified_directly") is not True
             or (delta_seconds is not None and abs(delta_seconds) >= 60)
         )
         if not must_update:
@@ -373,9 +371,9 @@ def sync_live_offer_deadlines(published, live_expiries, now):
         rec["expires_at"] = live
         rec["expiry_source"] = "digikala_live_deals_feed"
         rec["expiry_estimated"] = False
+        rec["expiry_deadline_verified_directly"] = True
         rec["expiry_last_live_sync_at"] = now.isoformat()
-        # Force this exact post to the front of the caption-repair queue. A new
-        # absolute deadline must be reflected in the visible caption promptly.
+        # Force this exact post to the front of the static-caption migration queue.
         rec["deadline_caption_refresh_required"] = True
         for platform in platforms:
             status_field = "expiry_status" if platform == "telegram" else "bale_expiry_status"
@@ -821,11 +819,6 @@ def _build_legacy_repaired_caption(fields, deadline, now):
     if original and current and original > current:
         parts += ["", f"<b>🏷️ قیمت اصلی: <s>{_persian_number(original)} تومان</s></b>"]
 
-    if deadline is not None:
-        remaining = _remaining_label(deadline, now)
-        if remaining != "مهلت آفر به پایان رسیده":
-            parts += ["", f"⏳ {remaining} مانده به پایان تخفیف"]
-
     parts += [
         "",
         '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>',
@@ -844,29 +837,14 @@ def _caption_needs_repair(caption_html, caption_text, fields, deadline=None, now
     if "عضویت در کانال OfferChin" not in caption_text or "t.me/OfferChin" in caption_text:
         return True
 
-    # Absolute deadline text is never displayed. A relative countdown is kept only
-    # if it matches the same verified deadline and ten-minute buffer as cleanup.
-    if "📅 پایان تخفیف:" in caption_text or "پایان تخفیف:" in caption_text:
+    # Countdown and deadline lines are never part of a caption. Rebuild old posts
+    # that still contain any of these labels, without changing expiry authority.
+    timer_or_deadline_markers = (
+        "⏳", "⌛", "مانده به پایان تخفیف", "مهلت آفر به پایان رسیده",
+        "کمتر از ۱ دقیقه", "📅 پایان تخفیف:", "پایان تخفیف:",
+    )
+    if any(marker in caption_text for marker in timer_or_deadline_markers):
         return True
-    has_timer = any(term in caption_text for term in (
-        "مانده به پایان تخفیف", "مهلت آفر به پایان رسیده", "کمتر از ۱ دقیقه",
-    ))
-    if deadline is None:
-        if has_timer:
-            return True
-    else:
-        current = now or datetime.now(timezone.utc)
-        if current.tzinfo is None:
-            current = current.replace(tzinfo=timezone.utc)
-        current = current.astimezone(timezone.utc)
-        expected = _remaining_label(deadline, current)
-        if expected == "مهلت آفر به پایان رسیده":
-            if has_timer:
-                return True
-        else:
-            expected_text = f"⏳ {expected} مانده به پایان تخفیف"
-            if expected_text not in caption_text:
-                return True
 
     soup = BeautifulSoup(caption_html or "", "html.parser")
     underline_texts = [" ".join(node.get_text(" ", strip=True).split()) for node in soup.find_all("u")]
@@ -990,24 +968,25 @@ def _build_affilio_tracking_url(product_url):
 
 
 def _telegram_edit_caption(message_id, caption, remove_purchase_button=False, affiliate_url=""):
-    """Edit a public caption and explicitly restore or remove its purchase button."""
+    """Edit a caption only when a verified purchase button can be attached."""
     if not BOT_TOKEN:
         raise RuntimeError("TELEGRAM_BOT_TOKEN missing")
+    if remove_purchase_button:
+        raise RuntimeError("Refusing to remove the purchase button; expired posts must be deleted instead")
+    if not _is_valid_affilio_tracking_url(affiliate_url):
+        raise RuntimeError("Refusing to edit a post without a verified Affilio purchase button")
     payload = {
         "chat_id": CHAT_ID,
         "message_id": int(message_id),
         "caption": caption,
         "parse_mode": "HTML",
-    }
-    if remove_purchase_button:
-        payload["reply_markup"] = json.dumps({"inline_keyboard": []})
-    elif _is_valid_affilio_tracking_url(affiliate_url):
-        payload["reply_markup"] = json.dumps({
+        "reply_markup": json.dumps({
             "inline_keyboard": [[{
                 "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
                 "url": affiliate_url,
             }]]
-        }, ensure_ascii=False)
+        }, ensure_ascii=False),
+    }
     endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/editMessageCaption"
     for attempt in range(4):
         request = Request(
@@ -1047,104 +1026,19 @@ def _telegram_edit_caption(message_id, caption, remove_purchase_button=False, af
 
 
 def _telegram_mark_expired(message_id, title):
-    title = html.escape(str(title or "پیشنهاد ویژه").strip()[:140])
-    caption = (
-        "<b>⛔ مهلت این آفر به پایان رسیده و دکمهٔ خرید غیرفعال شده است.</b>\n\n"
-        f"<b>🛍️ {title}</b>\n\n"
-        '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>'
-    )
-    return _telegram_edit_caption(message_id, caption, remove_purchase_button=True)
+    raise RuntimeError("Expired posts must be deleted; purchase-button removal is prohibited")
 
 
 def _telegram_mark_deadline_unavailable(message_id, title):
-    title = html.escape(str(title or "پیشنهاد ویژه").strip()[:140])
-    caption = (
-        "<b>⚠️ زمان پایان این تخفیف قابل تأیید نیست؛ دکمهٔ خرید غیرفعال شده است.</b>\n\n"
-        f"<b>🛍️ {title}</b>\n\n"
-        '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>'
-    )
-    return _telegram_edit_caption(message_id, caption, remove_purchase_button=True)
+    raise RuntimeError("Unverified expiry is not proof of expiry; purchase-button removal is prohibited")
 
 
 def _bale_mark_expired(message_id, title):
-    """Disable a Bale purchase button when deletion of an expired post fails."""
-    if not BALE_BOT_TOKEN:
-        raise RuntimeError("BALE_BOT_TOKEN missing")
-    if not BALE_CHANNEL_ID:
-        raise RuntimeError("BALE_CHANNEL_ID missing")
-    safe_title = str(title or "پیشنهاد ویژه").strip()[:140]
-    caption = (
-        "⛔ مهلت این آفر به پایان رسیده و دکمهٔ خرید غیرفعال شده است.\n\n"
-        f"🛍️ {safe_title}\n\n"
-        "[عضویت در کانال OfferChin](https://ble.ir/OfferChin)"
-    )
-    payload = {
-        "chat_id": BALE_CHANNEL_ID,
-        "message_id": int(message_id),
-        "caption": caption,
-        "reply_markup": json.dumps({"inline_keyboard": []}),
-    }
-    request = Request(
-        f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/editMessageCaption",
-        data=urlencode(payload).encode("utf-8"),
-        method="POST",
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-    )
-    _pace_bot_api()
-    try:
-        with urlopen(request, timeout=HTTP_TIMEOUT) as response:
-            result = _decode_delete_response(response)
-    except HTTPError as exc:
-        description = _delete_error_description(exc)
-        if _is_message_absent(description):
-            return "already_absent"
-        raise RuntimeError(description) from None
-    if result.get("ok") is True:
-        return "edited"
-    description = str(result.get("description") or "Bale editMessageCaption failed")
-    if _is_message_absent(description):
-        return "already_absent"
-    raise RuntimeError(description[:180] or "Bale editMessageCaption failed")
+    raise RuntimeError("Expired posts must be deleted; purchase-button removal is prohibited")
 
 
 def _bale_mark_deadline_unavailable(message_id, title):
-    if not BALE_BOT_TOKEN:
-        raise RuntimeError("BALE_BOT_TOKEN missing")
-    if not BALE_CHANNEL_ID:
-        raise RuntimeError("BALE_CHANNEL_ID missing")
-    safe_title = str(title or "پیشنهاد ویژه").strip()[:140]
-    caption = (
-        "⚠️ زمان پایان این تخفیف قابل تأیید نیست؛ دکمهٔ خرید غیرفعال شده است.\n\n"
-        f"🛍️ {safe_title}\n\n"
-        "[عضویت در کانال OfferChin](https://ble.ir/OfferChin)"
-    )
-    payload = {
-        "chat_id": BALE_CHANNEL_ID,
-        "message_id": int(message_id),
-        "caption": caption,
-        "reply_markup": json.dumps({"inline_keyboard": []}),
-    }
-    request = Request(
-        f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/editMessageCaption",
-        data=urlencode(payload).encode("utf-8"),
-        method="POST",
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-    )
-    _pace_bot_api()
-    try:
-        with urlopen(request, timeout=HTTP_TIMEOUT) as response:
-            result = _decode_delete_response(response)
-    except HTTPError as exc:
-        description = _delete_error_description(exc)
-        if _is_message_absent(description):
-            return "already_absent"
-        raise RuntimeError(description) from None
-    if result.get("ok") is True:
-        return "edited"
-    description = str(result.get("description") or "Bale editMessageCaption failed")
-    if _is_message_absent(description):
-        return "already_absent"
-    raise RuntimeError(description[:180] or "Bale editMessageCaption failed")
+    raise RuntimeError("Unverified expiry is not proof of expiry; purchase-button removal is prohibited")
 
 
 def _looks_like_offer_post(caption_text):
@@ -1231,7 +1125,16 @@ def audit_public_channel_history(published, now=None, posts=None):
                 deadline = deadline.astimezone(timezone.utc)
             except (TypeError, ValueError, OverflowError):
                 deadline = None
-        if not _caption_needs_repair(caption_html, caption_text, fields, deadline, now):
+        try:
+            caption_version = int(record.get("caption_deadline_format_version") or 0)
+        except (TypeError, ValueError, OverflowError):
+            caption_version = 0
+        needs_static_migration = (
+            caption_version < CAPTION_FORMAT_VERSION
+            or bool(record.get("deadline_caption_refresh_required"))
+            or _caption_needs_repair(caption_html, caption_text, fields, deadline, now)
+        )
+        if not needs_static_migration:
             continue
         affiliate_url = _build_affilio_tracking_url(record.get("product_url", ""))
         if not affiliate_url:
@@ -1245,7 +1148,8 @@ def audit_public_channel_history(published, now=None, posts=None):
             result = _telegram_edit_caption(int(message_id), caption, affiliate_url=affiliate_url)
             if result == "edited":
                 reformatted += 1
-                record["caption_deadline_format_version"] = 5
+                record["caption_deadline_format_version"] = CAPTION_FORMAT_VERSION
+                record["caption_static_migrated_at"] = now.isoformat()
                 record["caption_countdown_refreshed_at"] = now.isoformat()
                 record["caption_without_expiry_migrated_at"] = now.isoformat()
                 if record.get("expiry_status") in {
@@ -1342,7 +1246,14 @@ def _delete_expired_posts(published, now, mark_unknown=False):
         if expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
         allowed_sources = {"digikala_live_deals_feed", "live_product_stock_or_price"}
-        if rec.get("expiry_estimated") is True or rec.get("expiry_source") not in allowed_sources:
+        if (
+            rec.get("expiry_estimated") is True
+            or rec.get("expiry_source") not in allowed_sources
+            or (
+                rec.get("expiry_source") == "digikala_live_deals_feed"
+                and rec.get("expiry_deadline_verified_directly") is not True
+            )
+        ):
             print(
                 f"EXPIRY_DEADLINE_NOT_AUTHORITATIVE_PRESERVED product_id={pid} "
                 f"source={rec.get('expiry_source') or 'missing'} "
@@ -1370,9 +1281,9 @@ def _delete_expired_posts(published, now, mark_unknown=False):
                     f"reason=estimated_timestamp_not_authoritative"
                 )
             continue
-        for platform, id_field, status_field, timestamp_field, delete_fn, mark_fn in (
-            ("telegram", "telegram_message_id", "expiry_status", "expired_deleted_at", _telegram_delete, _telegram_mark_expired),
-            ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete, _bale_mark_expired),
+        for platform, id_field, status_field, timestamp_field, delete_fn in (
+            ("telegram", "telegram_message_id", "expiry_status", "expired_deleted_at", _telegram_delete),
+            ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete),
         ):
             raw_id = rec.get(id_field)
             if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent"}:
@@ -1391,33 +1302,15 @@ def _delete_expired_posts(published, now, mark_unknown=False):
             except Exception as exc:
                 error_text = str(exc)[:180]
                 rec[f"{platform}_expiry_last_delete_error"] = f"{type(exc).__name__}: {error_text}"
+                # Never edit a live caption or remove its keyboard on delete failure.
+                # Keep the purchase button intact and retry permanent deletion next cycle.
                 rec[status_field] = "delete_failed"
-                try:
-                    fallback = mark_fn(int(raw_id), rec.get("title") or "پیشنهاد ویژه")
-                    fallback_succeeded = (
-                        fallback == "edited"
-                        or (
-                            isinstance(fallback, dict)
-                            and not fallback.get("not_found")
-                        )
-                    )
-                    if fallback_succeeded:
-                        rec[status_field] = "expired_marked"
-                        rec[f"{platform}_expired_marked_at"] = now.isoformat()
-                        print(
-                            f"EXPIRY_POST_MARKED platform={platform} product_id={pid} "
-                            f"message_id={raw_id} reason=delete_failed_purchase_button_disabled"
-                        )
-                    elif fallback == "already_absent":
-                        rec[status_field] = "already_absent"
-                    else:
-                        rec[f"{platform}_expiry_mark_error"] = "unexpected_fallback_result"
-                except Exception as mark_exc:
-                    rec[f"{platform}_expiry_mark_error"] = (
-                        f"{type(mark_exc).__name__}: {str(mark_exc)[:120]}"
-                    )
                 changed = True
-                print(f"EXPIRY_DELETE_FAILED platform={platform} product_id={pid} message_id={raw_id} error={type(exc).__name__} detail={error_text[:160]!r}")
+                print(
+                    f"EXPIRY_DELETE_FAILED platform={platform} product_id={pid} "
+                    f"message_id={raw_id} error={type(exc).__name__} "
+                    f"detail={error_text[:160]!r}; purchase_button_untouched=true"
+                )
     return changed, deleted
 
 
@@ -1642,9 +1535,11 @@ def run():
     ):
         live_expiries = {}
         try:
-            live_expiries = fetch_offer_expiries()
+            # Only DigiKala's own endpoint can authorize a deadline-driven deletion.
+            # The MCP wrapper may assist discovery, but is never expiry-deletion authority.
+            live_expiries = fetch_direct_api_offer_expiries()
         except Exception as exc:
-            print(f"EXPIRY_FEED_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
+            print(f"EXPIRY_DIRECT_FEED_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
         if live_expiries:
             sync_summary = sync_live_offer_deadlines(published, live_expiries, now)
             state["expiry_feed_last_checked_at"] = now.isoformat()
