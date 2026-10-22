@@ -3363,6 +3363,7 @@ def repair_all_published_captions() -> int:
     }
     target_count = 0
     caption_format_v4_products = []
+    state_changed = False
     now = datetime.now(timezone.utc)
 
     # Stable order plus spacing reduces the chance of Telegram per-chat rate limits.
@@ -3477,9 +3478,16 @@ def repair_all_published_captions() -> int:
             # Conservative pacing on both APIs; Telegram is kept well below one edit/second.
             time.sleep(3.1 if platform == "telegram" else 1.1)
         if product_repair_success:
-            # The report persists across runs; the next regular radar run copies this
-            # marker into state without needlessly re-editing an already-correct caption.
+            # Persist the caption schema marker immediately so the scheduled migrator
+            # does not keep editing the same post on every cleanup cycle.
+            record["caption_deadline_format_version"] = CAPTION_DEADLINE_FORMAT_VERSION
+            record["caption_without_expiry_migrated_at"] = datetime.now(timezone.utc).isoformat()
+            record.pop("deadline_caption_refresh_required", None)
             caption_format_v4_products.append(str(product_key))
+            state_changed = True
+
+    if state_changed:
+        save_json(STATE, state)
 
     successful = (
         results["telegram_failed"] == 0
