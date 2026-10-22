@@ -270,11 +270,14 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertTrue(monitor._is_valid_affilio_tracking_url(url))
         with (
             patch.object(monitor, "BOT_TOKEN", "test-token"),
-            patch.object(monitor, "urlopen", return_value=BytesIO(b'{"ok":true,"result":{"message_id":77}}')),
+            patch.object(monitor, "urlopen", return_value=BytesIO(b'{"ok":true,"result":{"message_id":77}}')) as request,
             patch.object(monitor.time, "sleep"),
         ):
             self.assertEqual(monitor._telegram_edit_caption(77, "updated caption", affiliate_url=url), "edited")
-        # The request body sent to Telegram is inspected in the dedicated request mock below.
+        payload = parse_qs(request.call_args.args[0].data.decode("utf-8"))
+        keyboard = json.loads(payload["reply_markup"][0])
+        self.assertEqual(keyboard["inline_keyboard"][0][0]["text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
+        self.assertEqual(keyboard["inline_keyboard"][0][0]["url"], url)
 
     def test_build_affilio_tracking_url_rejects_non_product_destinations(self):
         self.assertEqual(monitor._build_affilio_tracking_url("https://example.com/product/dkp-123/"), "")
