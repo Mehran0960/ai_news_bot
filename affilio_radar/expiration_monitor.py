@@ -20,6 +20,7 @@ from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
+from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
@@ -54,104 +55,13 @@ def walk_dicts(value):
 
 
 def parse_expiry(value):
-    """Parse an explicit absolute deadline to UTC; naive timestamps use Tehran time."""
-    if value is None or isinstance(value, bool):
-        return ""
-    if isinstance(value, (int, float)):
-        number = float(value)
-        if number > 10_000_000_000_000:
-            number /= 1000.0
-        if number >= 1_000_000_000:
-            try:
-                return datetime.fromtimestamp(number, tz=timezone.utc).isoformat()
-            except (OverflowError, OSError, ValueError):
-                return ""
-        return ""
-    text = str(value).strip()
-    if not text:
-        return ""
-    if re.fullmatch(r"\d{10,16}(?:\.\d+)?", text):
-        return parse_expiry(float(text))
-    try:
-        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
-    except ValueError:
-        return ""
-    if parsed.tzinfo is None:
-        try:
-            from zoneinfo import ZoneInfo
-            parsed = parsed.replace(tzinfo=ZoneInfo("Asia/Tehran"))
-        except Exception:
-            parsed = parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc).isoformat()
+    """Parse an explicitly absolute deadline to UTC; naive timestamps use Tehran time."""
+    return parse_absolute_deadline(value)
 
 
-def extract_expiry(obj):
-    """Read the offer-card deadline before inspecting nested variant metadata."""
-    absolute_keys = ("ends_at", "endsAt", "deal_ends_at", "dealEndsAt", "expires_at", "expiresAt")
-    seconds_keys = ("ends_in_seconds", "endsInSeconds", "remaining_seconds", "remainingSeconds")
-    if not isinstance(obj, dict):
-        return ""
-
-    def direct_absolute(node):
-        if not isinstance(node, dict):
-            return ""
-        for key in absolute_keys:
-            value = parse_expiry(node.get(key))
-            if value:
-                return value
-        return ""
-
-    def direct_seconds(node, now):
-        if not isinstance(node, dict):
-            return ""
-        for key in seconds_keys:
-            try:
-                seconds = float(node.get(key))
-            except (TypeError, ValueError, OverflowError):
-                seconds = -1
-            if 0 <= seconds <= 7 * 24 * 3600:
-                return (now + timedelta(seconds=seconds)).isoformat()
-        return ""
-
-    # Prefer fields on the card itself and its campaign containers. Otherwise a
-    # nested default_variant carrying the same product ID can incorrectly override
-    # the card countdown with a different timestamp.
-    expiry = direct_absolute(obj)
-    if expiry:
-        return expiry
-    campaign_keys = (
-        "campaign", "incredible_offer", "incredibleOffer", "deal", "offer",
-        "promotion", "discount_campaign", "discountCampaign",
-    )
-    for key in campaign_keys:
-        child = obj.get(key)
-        if isinstance(child, dict):
-            expiry = direct_absolute(child)
-            if expiry:
-                return expiry
-    now = datetime.now(timezone.utc)
-    seconds = direct_seconds(obj, now)
-    if seconds:
-        return seconds
-    for key in campaign_keys:
-        child = obj.get(key)
-        if isinstance(child, dict):
-            seconds = direct_seconds(child, now)
-            if seconds:
-                return seconds
-
-    # Fall back to any explicit descendant fields only when the offer card itself
-    # and known campaign containers do not expose a deadline.
-    nodes = list(walk_dicts(obj))[1:]
-    for node in nodes:
-        expiry = direct_absolute(node)
-        if expiry:
-            return expiry
-    for node in nodes:
-        seconds = direct_seconds(node, now)
-        if seconds:
-            return seconds
-    return ""
+def extract_expiry(obj, now=None):
+    """Use the same site-countdown parser as initial publication and caption refresh."""
+    return extract_offer_expiry(obj, now=now)
 
 
 def _product_id(node):
