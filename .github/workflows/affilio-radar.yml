@@ -152,7 +152,7 @@ jobs:
           print("CLICK_TRACKER_AGGREGATED_STATS_OK")
           PY
 
-      # [repair-all-captions] Final sweep includes newly published posts and reports unavailable IDs.
+      # [repair-all-captions] Remove obsolete expiry labels from every tracked live caption in place.
       # A commit tagged [scan-now] runs one fresh eligibility-checked scan; at most one product posts.
       - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
         # Normal code pushes run tests above, but must not consume a full product-discovery cycle.
