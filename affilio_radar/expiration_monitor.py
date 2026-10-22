@@ -820,17 +820,7 @@ def _build_legacy_repaired_caption(fields, deadline, now):
         parts.append(f"<b><u>⚡️ {_persian_number(discount)}٪ تخفیف</u></b>")
     if original and current and original > current:
         parts += ["", f"<b>🏷️ قیمت اصلی: <s>{_persian_number(original)} تومان</s></b>"]
-    if deadline:
-        remaining_label = _remaining_label(deadline, now)
-        if remaining_label == "مهلت آفر به پایان رسیده":
-            parts += ["", f"<b>⏳ {remaining_label}</b>"]
-        else:
-            parts += ["", f"<b>⏳ {remaining_label} مانده به پایان تخفیف</b>"]
-        # These public-history posts have no state record, so preserve a parseable
-        # absolute deadline too; the auditor uses it for future correction/deletion.
-        deadline_label = _format_jalali_deadline(deadline)
-        if deadline_label:
-            parts.append(f"<b>📅 پایان تخفیف: {deadline_label}</b>")
+    # Deadlines are operational state only; never render them in captions.
     parts += [
         "",
         '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>',
@@ -844,40 +834,45 @@ def _build_legacy_repaired_caption(fields, deadline, now):
     return caption
 
 
-def _caption_needs_repair(caption_html, caption_text, fields, deadline, now=None):
-    """Repair legacy formatting and refresh relative countdowns that have drifted."""
+def _caption_needs_repair(caption_html, caption_text, fields, deadline=None, now=None):
+    """Check formatting and detect obsolete visible countdown/deadline text."""
     if "عضویت در کانال OfferChin" not in caption_text or "t.me/OfferChin" in caption_text:
         return True
+
+    # Any expiry-related wording is obsolete, including both the formerly
+    # refreshed relative timer and the absolute date added during legacy repair.
+    obsolete_expiry_text = (
+        "مانده به پایان تخفیف",
+        "پایان تخفیف",
+        "مهلت آفر به پایان رسیده",
+        "کمتر از ۱ دقیقه",
+    )
+    if any(term in caption_text for term in obsolete_expiry_text):
+        return True
+    if re.search(
+        r"\b(?:[۰-۹0-9]{1,2})\s*(?:ساعت|دقیقه)\b.*(?:پایان|تخفیف)",
+        caption_text,
+    ):
+        return True
+
     soup = BeautifulSoup(caption_html or "", "html.parser")
     underline_texts = [" ".join(node.get_text(" ", strip=True).split()) for node in soup.find_all("u")]
     current = fields.get("current_price")
     discount = fields.get("discount_percent")
     if current:
         expected_amount = _persian_number(current)
-        if not any("قیمت ویژه" in value and "تومان" in value and expected_amount in value for value in underline_texts):
+        if not any(
+            "قیمت ویژه" in value and "تومان" in value and expected_amount in value
+            for value in underline_texts
+        ):
             return True
     if discount:
         expected_discount = _persian_number(discount) + "٪"
-        if not any("⚡️" in value and "تخفیف" in value and expected_discount in value for value in underline_texts):
-            return True
-    if deadline:
-        expected = _remaining_label(deadline, now or datetime.now(timezone.utc))
-        expected_line = (
-            expected
-            if expected == "مهلت آفر به پایان رسیده"
-            else f"{expected} مانده به پایان تخفیف"
-        )
-        # The displayed timer must equal the current verified deadline minus ten minutes.
-        if expected_line not in caption_text:
-            return True
-        # Keep a parseable absolute deadline for the public-history auditor.
-        if "📅 پایان تخفیف:" not in caption_text and not re.search(
-            r"پایان\s*تخفیف\s*[:：].*ساعت\s*[۰-۹0-9]{1,2}[:٫][۰-۹0-9]{2}",
-            caption_text,
+        if not any(
+            "⚡️" in value and "تخفیف" in value and expected_discount in value
+            for value in underline_texts
         ):
             return True
-    elif "پایان تخفیف" in caption_text or "مانده به پایان تخفیف" in caption_text:
-        return True
     return False
 
 
@@ -1120,7 +1115,12 @@ def _iter_post_records(published):
 
 
 def audit_public_channel_history(published, now=None, posts=None):
-    """Delete expired untracked public posts and repair active legacy captions in place."""
+    """Repair legacy captions without trusting caption text as expiry authority.
+
+    Deletion is exclusively handled from persisted, verified DigiKala deadlines
+    or a live product-status confirmation. A public caption is not a source of
+    truth for deletion because old countdowns can drift.
+    """
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
@@ -1138,86 +1138,42 @@ def audit_public_channel_history(published, now=None, posts=None):
 
     changed = False
     deleted = marked_expired = reformatted = found_expired = 0
+    non_editable_statuses = {
+        "deleted", "already_absent", "expired_marked", "delete_failed",
+        "deadline_unavailable_marked", "deadline_unavailable_delete_failed",
+    }
     for message_id, post in sorted(posts.items()):
         caption_text = str(post.get("caption_text") or "")
         caption_html = str(post.get("caption_html") or "")
         if not caption_text.strip():
             continue
-        deadline = extract_jalali_deadline(caption_text)
+
+        # Without a mapped state record, we cannot prove the current site's
+        # deadline or preserve a future deletion time after removing the caption
+        # label. Do not delete or rewrite such a message based on stale caption text.
         record = tracked_by_message_id.get(int(message_id))
-        removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES) if deadline else None
-        if deadline and removal_deadline <= now:
-            found_expired += 1
-            outcome = ""
-            delete_error = ""
-            try:
-                outcome = _telegram_delete(int(message_id))
-            except Exception as exc:
-                delete_error = f"{type(exc).__name__}: {str(exc)[:180]}"
-                print(f"PUBLIC_HISTORY_DELETE_FAILED message_id={message_id} error={delete_error!r}")
-            if outcome == "deleted":
-                deleted += 1
-                print(
-                    f"PUBLIC_HISTORY_EXPIRY_BUFFER_DELETED message_id={message_id} "
-                    f"expiry={deadline.isoformat()} remove_at={removal_deadline.isoformat()}"
-                )
-                if record is not None:
-                    record["expiry_status"] = "deleted"
-                    record["expired_deleted_at"] = now.isoformat()
-                    changed = True
-                continue
-
-            # The public page confirms the post is present; if deletion is rejected, disable its buy button.
-            try:
-                marked = _telegram_mark_expired(
-                    int(message_id),
-                    record.get("title") if record else _extract_legacy_caption_fields(caption_text).get("title"),
-                )
-                if marked == "edited":
-                    marked_expired += 1
-                    print(f"PUBLIC_HISTORY_EXPIRED_MARKED message_id={message_id} reason=delete_rejected_or_api_disagreement")
-                    if record is not None:
-                        record["expiry_status"] = "expired_marked"
-                        record["expired_marked_at"] = now.isoformat()
-                        record["expiry_last_delete_error"] = delete_error or "Delete API reported absent while public history still showed the post"
-                        changed = True
-                elif marked == "already_absent":
-                    print(f"PUBLIC_HISTORY_API_ABSENT message_id={message_id} public_preview_may_be_stale")
-                    if record is not None:
-                        record["expiry_status"] = "already_absent"
-                        changed = True
-            except Exception as exc:
-                print(f"PUBLIC_HISTORY_MARK_EXPIRED_FAILED message_id={message_id} error={type(exc).__name__} detail={str(exc)[:140]!r}")
-                if record is not None:
-                    record["expiry_status"] = "delete_failed"
-                    record["expiry_last_delete_error"] = delete_error or f"{type(exc).__name__}: {str(exc)[:140]}"
-                    changed = True
-            continue
-
-        # Tracked messages are evaluated from state, where their verified deadline lives.
-        if record is not None:
-            continue
-        fields = _extract_legacy_caption_fields(caption_text)
-        if deadline is None:
-            # A missing absolute deadline is not proof that an offer has expired.
-            # Preserve untracked legacy offer posts instead of deleting them during
-            # a temporary feed/parser gap; only a parsed, explicit deadline can
-            # authorize automatic deletion.
+        if record is None:
             if _looks_like_offer_post(caption_text):
-                print(
-                    f"PUBLIC_HISTORY_DEADLINE_UNVERIFIABLE_PRESERVED message_id={message_id}"
-                )
+                print(f"PUBLIC_HISTORY_UNTRACKED_PRESERVED message_id={message_id} reason=no_verified_state_record")
             continue
+        if str(record.get("expiry_status") or "") in non_editable_statuses:
+            continue
+
+        fields = _extract_legacy_caption_fields(caption_text)
         if not fields.get("title") or not fields.get("current_price") or not fields.get("discount_percent"):
             continue
+        deadline = parse_expiry(record.get("expires_at"))
         if not _caption_needs_repair(caption_html, caption_text, fields, deadline, now):
             continue
-        caption = _build_legacy_repaired_caption(fields, deadline, now)
+        caption = _build_legacy_repaired_caption(fields, None, now)
         try:
             result = _telegram_edit_caption(int(message_id), caption)
             if result == "edited":
                 reformatted += 1
-                print(f"PUBLIC_HISTORY_CAPTION_REPAIRED message_id={message_id}")
+                record["caption_deadline_format_version"] = 4
+                record["caption_without_expiry_migrated_at"] = now.isoformat()
+                changed = True
+                print(f"PUBLIC_HISTORY_CAPTION_EXPIRY_REMOVED message_id={message_id}")
             elif result == "already_absent":
                 print(f"PUBLIC_HISTORY_CAPTION_UNAVAILABLE message_id={message_id} reason=message_not_found")
         except Exception as exc:
@@ -1229,7 +1185,6 @@ def audit_public_channel_history(published, now=None, posts=None):
         f"marked_expired={marked_expired} active_captions_repaired={reformatted}"
     )
     return changed, deleted, marked_expired, reformatted, found_expired
-
 
 
 def _delete_posts_without_verified_deadline(published, now):
@@ -1306,6 +1261,14 @@ def _delete_expired_posts(published, now, mark_unknown=False):
         expires_at = datetime.fromisoformat(expiry)
         if expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
+        allowed_sources = {"digikala_live_deals_feed", "live_product_stock_or_price"}
+        if rec.get("expiry_estimated") is True or rec.get("expiry_source") not in allowed_sources:
+            print(
+                f"EXPIRY_DEADLINE_NOT_AUTHORITATIVE_PRESERVED product_id={pid} "
+                f"source={rec.get('expiry_source') or 'missing'} "
+                f"estimated={bool(rec.get('expiry_estimated'))}"
+            )
+            continue
         removal_deadline = expires_at - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
         if now < removal_deadline:
             if str(rec.get("telegram_message_id") or "").isdigit() and not rec.get("expiry_status"):
@@ -1399,6 +1362,8 @@ def _delete_expired_aparat_videos(published, now):
     terminal = {"deleted", "already_absent"}
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
+            continue
+        if rec.get("expiry_estimated") is True or rec.get("expiry_source") not in {"digikala_live_deals_feed", "live_product_stock_or_price"}:
             continue
         video_hash = str(rec.get("aparat_video_hash") or "").strip()
         expiry_status = str(rec.get("aparat_expiry_status") or "")
@@ -1495,6 +1460,8 @@ def _delete_expired_youtube_videos(published, now):
     terminal = {"deleted", "already_absent"}
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
+            continue
+        if rec.get("expiry_estimated") is True or rec.get("expiry_source") not in {"digikala_live_deals_feed", "live_product_stock_or_price"}:
             continue
         video_id = str(rec.get("youtube_video_id") or "").strip()
         expiry_status = str(rec.get("youtube_expiry_status") or "")
