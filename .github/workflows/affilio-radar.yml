@@ -38,7 +38,7 @@ on:
         type: boolean
         default: false
       external_scheduler:
-        description: "One-minute Cloudflare scheduler trigger; product scans run every five minutes and normal posts can publish on every successful scan"
+        description: "One-minute Cloudflare scheduler trigger; product scans run every five minutes, with about 24-minute normal spacing between posts"
         required: false
         type: boolean
         default: false
@@ -221,7 +221,7 @@ jobs:
           AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "32"
           AFFILIO_MCP_PAGES_PER_SCAN: "5"
           AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || inputs.external_scheduler || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}
-          AFFILIO_MIN_POST_INTERVAL_HOURS: "0.03333333333333333"
+          AFFILIO_MIN_POST_INTERVAL_HOURS: "0.4"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "60"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_FORCE_DEADLINE_SYNC: ${{ contains(github.event.head_commit.message, '[repair-all-captions]') && 'true' || 'false' }}
