@@ -401,7 +401,7 @@ def build_vertical_poster(
     )
     draw.text(
         (WIDTH // 2, 1000),
-        _shape_rtl("برای دریافت لینک خرید، به کانال‌های ما بپیوندید"),
+        _shape_rtl("لینک خرید: کانال بله و تلگرام"),
         font=_font(23),
         fill=(255, 220, 75, 255),
         anchor="mm",
