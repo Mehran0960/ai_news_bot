@@ -168,7 +168,7 @@ jobs:
 
       # [repair-all-captions] Repairs every surviving caption without timers and restores its verified purchase button.
       # [repair-all-captions] Remove obsolete expiry labels from every tracked live caption in place.
-      # A commit tagged [scan-now] runs one fresh eligibility-checked scan; at most one product posts.
+      # [scan-now] Runs a fresh direct-feed timer diagnostic and eligibility-checked publication pass.
       - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
         # Normal code pushes run tests above, but must not consume a full product-discovery cycle.
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[growth-tracking-only]') }}
