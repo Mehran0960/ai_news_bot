@@ -1079,24 +1079,58 @@ class ExpirationMonitorTests(unittest.TestCase):
         deletion.assert_not_called()
         self.assertEqual(result[1], 0)
 
-    def test_public_history_preserves_untracked_offer_without_absolute_deadline(self):
+    def test_public_history_removes_untracked_offer_without_purchase_button(self):
         post = {
             "message_id": 79,
             "caption_text": (
                 "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا "
-                "🛍️ محصول بدون مهلت "
+                "🛍️ محصول بدون دکمه خرید "
                 "💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان "
                 "⚡️ ۸۹٪ تخفیف "
                 "⏳ ۲ ساعت و ۲۰ دقیقه مانده به پایان تخفیف"
             ),
             "caption_html": "",
+            "product_ids": [],
+            "purchase_button_visible": False,
         }
-        with patch.object(monitor, "_telegram_delete") as deletion:
+        with patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion:
             result = monitor.audit_public_channel_history(
                 {}, now=datetime.now(timezone.utc), posts={79: post}
             )
-        deletion.assert_not_called()
-        self.assertEqual(result[1], 0)
+        deletion.assert_called_once_with(79)
+        self.assertEqual(result[1], 1)
+
+    def test_public_history_adopts_buttoned_untracked_offer_without_countdown(self):
+        now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
+        title = "هدفون بلوتوثی نمونه"
+        post = {
+            "message_id": 91,
+            "caption_text": (
+                "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا "
+                f"🛍️ {title} "
+                "💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان "
+                "⚡️ ۸۹٪ تخفیف "
+                "⏳ ۲ ساعت و ۲۰ دقیقه مانده به پایان تخفیف"
+            ),
+            "caption_html": "",
+            "product_ids": ["dkp-123456"],
+            "purchase_button_visible": True,
+        }
+        with patch.object(
+            monitor, "_telegram_edit_caption", return_value="edited"
+        ) as edit:
+            changed, deleted, marked, repaired, expired = monitor.audit_public_channel_history(
+                {}, now=now, posts={91: post}
+            )
+        self.assertTrue(changed)
+        self.assertEqual((deleted, repaired, expired), (0, 1, 0))
+        edit.assert_called_once()
+        self.assertEqual(edit.call_args.args[0], 91)
+        self.assertNotIn("مانده به پایان تخفیف", edit.call_args.args[1])
+        self.assertEqual(
+            edit.call_args.kwargs["affiliate_url"],
+            monitor._build_affilio_tracking_url("https://www.digikala.com/product/dkp-123456/")
+        )
 
 
     def test_one_time_specific_product_removal_cleans_ids_and_preserves_normal_cooldown(self):

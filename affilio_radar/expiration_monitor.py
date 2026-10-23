@@ -42,6 +42,8 @@ POST_REMOVAL_BUFFER_MINUTES = max(
 )
 # Recheck the first-party deal feed every five minutes so cached deadlines remain current.
 LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 5 * 60
+# Bound detail lookups so missing timers cannot stall expiry cleanup.
+DIRECT_PRODUCT_DETAIL_CHECK_LIMIT = max(1, min(10, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "3"))))
 CAPTION_FORMAT_VERSION = 8
 
 
@@ -1591,13 +1593,148 @@ def audit_public_channel_history(published, now=None, posts=None):
         if not caption_text.strip():
             continue
 
-        # Without a mapped state record, we cannot prove the current site's
-        # deadline or preserve a future deletion time after removing the caption
-        # label. Do not delete or rewrite such a message based on stale caption text.
         record = tracked_by_message_id.get(int(message_id))
         if record is None:
-            if _looks_like_offer_post(caption_text):
-                print(f"PUBLIC_HISTORY_UNTRACKED_PRESERVED message_id={message_id} reason=no_verified_state_record")
+            if not _looks_like_offer_post(caption_text):
+                continue
+
+            product_ids = sorted({
+                str(value).lower()
+                for value in (post.get("product_ids") or [])
+                if re.fullmatch(r"dkp-\\d+", str(value).lower())
+            })
+            purchase_button_visible = bool(post.get("purchase_button_visible")) and len(product_ids) == 1
+
+            # Never leave an untracked buttonless advert in the public channel.
+            # When the platform cannot confirm deletion, leave it unchanged and retry
+            # next cycle rather than editing it into another buttonless caption.
+            if not purchase_button_visible:
+                try:
+                    outcome = _telegram_delete(int(message_id))
+                    if outcome in {"deleted", "already_absent"}:
+                        if outcome == "deleted":
+                            deleted += 1
+                        print(
+                            f"PUBLIC_HISTORY_UNTRACKED_NO_BUTTON_REMOVED message_id={message_id} "
+                            f"outcome={outcome}"
+                        )
+                    else:
+                        print(
+                            f"PUBLIC_HISTORY_UNTRACKED_NO_BUTTON_DELETE_UNCONFIRMED "
+                            f"message_id={message_id} outcome={outcome!r}"
+                        )
+                except Exception as exc:
+                    print(
+                        f"PUBLIC_HISTORY_UNTRACKED_NO_BUTTON_DELETE_FAILED message_id={message_id} "
+                        f"error={type(exc).__name__} detail={str(exc)[:120]!r}"
+                    )
+                continue
+
+            pid = product_ids[0]
+            canonical_url = f"https://www.digikala.com/product/{pid}/"
+            affiliate_url = _build_affilio_tracking_url(canonical_url)
+            if not affiliate_url:
+                print(
+                    f"PUBLIC_HISTORY_UNTRACKED_REPAIR_DEFERRED message_id={message_id} "
+                    "reason=affiliate_url_unavailable; existing keyboard left untouched"
+                )
+                continue
+
+            # If this product already has a live Telegram post, keep it and remove
+            # this untracked duplicate without changing the product's cooldown.
+            existing_record = published.get(pid) if isinstance(published, dict) else None
+            existing_tg_id = str((existing_record or {}).get("telegram_message_id") or "")
+            existing_tg_status = str((existing_record or {}).get("expiry_status") or "")
+            if (
+                existing_tg_id.isdigit()
+                and int(existing_tg_id) != int(message_id)
+                and existing_tg_status not in non_editable_statuses
+            ):
+                try:
+                    outcome = _telegram_delete(int(message_id))
+                    if outcome in {"deleted", "already_absent"}:
+                        if outcome == "deleted":
+                            deleted += 1
+                        print(
+                            f"PUBLIC_HISTORY_UNTRACKED_DUPLICATE_REMOVED product_id={pid} "
+                            f"message_id={message_id} kept={existing_tg_id} outcome={outcome}"
+                        )
+                    else:
+                        print(
+                            f"PUBLIC_HISTORY_UNTRACKED_DUPLICATE_DELETE_UNCONFIRMED "
+                            f"product_id={pid} message_id={message_id} outcome={outcome!r}"
+                        )
+                except Exception as exc:
+                    print(
+                        f"PUBLIC_HISTORY_UNTRACKED_DUPLICATE_DELETE_FAILED product_id={pid} "
+                        f"message_id={message_id} error={type(exc).__name__}"
+                    )
+                continue
+
+            fields = _extract_legacy_caption_fields(caption_text)
+            caption = _build_legacy_repaired_caption(fields, None, now)
+            try:
+                result = _telegram_edit_caption(
+                    int(message_id), caption, affiliate_url=affiliate_url
+                )
+                if result != "edited":
+                    print(
+                        f"PUBLIC_HISTORY_UNTRACKED_REPAIR_UNAVAILABLE product_id={pid} "
+                        f"message_id={message_id} result={result}"
+                    )
+                    continue
+
+                # Adopt the post so direct DigiKala lookup and expiry retries manage it.
+                # Preserve any older campaign as its own history record; do not copy an
+                # old deadline onto a newly discovered channel post.
+                if isinstance(existing_record, dict):
+                    prior = dict(existing_record)
+                    prior.pop("post_history", None)
+                    history = list(existing_record.get("post_history") or [])
+                    if any(
+                        str(prior.get(key) or "").isdigit()
+                        for key in ("telegram_message_id", "bale_message_id")
+                    ):
+                        history.append(prior)
+                    record = {
+                        key: value for key, value in existing_record.items()
+                        if key not in {
+                            "telegram_message_id", "bale_message_id", "expiry_status",
+                            "bale_expiry_status", "expires_at", "expiry_source",
+                            "expiry_estimated", "expiry_deadline_verified_directly",
+                            "expiry_deadline_verified_from_site_card",
+                        }
+                    }
+                    record["post_history"] = history[-100:]
+                else:
+                    record = {}
+
+                record.update({
+                    "title": fields.get("title") or "پیشنهاد شگفت‌انگیز دیجی‌کالا",
+                    "product_url": canonical_url,
+                    "telegram_message_id": int(message_id),
+                    "ts": now.timestamp(),
+                    "expires_at": "",
+                    "expiry_source": "unavailable",
+                    "expiry_estimated": False,
+                    "expiry_status": "unknown",
+                    "caption_deadline_format_version": CAPTION_FORMAT_VERSION,
+                    "caption_static_migrated_at": now.isoformat(),
+                })
+                record.pop("expiry_deadline_verified_directly", None)
+                record.pop("expiry_deadline_verified_from_site_card", None)
+                published[pid] = record
+                changed = True
+                reformatted += 1
+                print(
+                    f"PUBLIC_HISTORY_UNTRACKED_ADOPTED product_id={pid} "
+                    f"message_id={message_id} button=restored countdown=removed"
+                )
+            except Exception as exc:
+                print(
+                    f"PUBLIC_HISTORY_UNTRACKED_REPAIR_FAILED product_id={pid} "
+                    f"message_id={message_id} error={type(exc).__name__} detail={str(exc)[:140]!r}"
+                )
             continue
         if str(record.get("expiry_status") or "") in non_editable_statuses:
             continue
