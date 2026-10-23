@@ -89,6 +89,8 @@ jobs:
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
           AFFILIO_DEAL_LIST_PAGES: "5"
+          # Smaller routine history scans reduce lock duration; deep scans are reserved for repair.
+          AFFILIO_PUBLIC_HISTORY_PAGES: ${{ contains(github.event.head_commit.message, '[repair-buttons-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[deadline-audit-only]') ? '10' : '2' }}
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/expiration_monitor.py
@@ -106,6 +108,7 @@ jobs:
           AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS: "240" # Kept for compatibility; schema migration is one-time
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_DEAL_LIST_PAGES: "5"
+          AFFILIO_PUBLIC_HISTORY_PAGES: "10"
           PYTHONUNBUFFERED: "1"
         run: |
           if [[ "${{ contains(github.event.head_commit.message, '[repair-all-captions]') }}" == "true" || "${{ contains(github.event.head_commit.message, '[repair-buttons-now]') }}" == "true" ]]; then
