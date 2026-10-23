@@ -83,6 +83,7 @@ from affilio_radar import (
     is_product_repeat_blocked,
     delete_previous_channel_posts,
     process_pending_short_video,
+    _delete_superseded_youtube_video,
     VIDEO_STYLE_VERSION,
     MIN_POST_INTERVAL_HOURS,
     effective_posts_per_run,
@@ -2013,6 +2014,49 @@ class AffilioRadarTests(unittest.TestCase):
             bale_chat_id="@OfferChinBale",
         ))
         self.assertEqual(len(session.calls), calls_before)
+
+    def test_replaced_youtube_video_is_deleted_only_after_new_upload_is_confirmed(self):
+        from affilio_radar import PERSIAN_TEXT_RENDERER_VERSION
+
+        now = datetime(2026, 10, 23, 18, 0, tzinfo=timezone.utc)
+        record = {
+            "youtube_previous_video_id": "oldBrokenShort",
+            "youtube_video_id": "newReadableShort",
+            "youtube_upload_status": "uploaded",
+            "video_repair_priority": True,
+        }
+        with patch("affilio_radar.delete_youtube_video", return_value="deleted", create=True) as delete:
+            changed = _delete_superseded_youtube_video(
+                record, "dkp-19336870", delete, now
+            )
+        self.assertTrue(changed)
+        delete.assert_called_once_with("oldBrokenShort")
+        self.assertNotIn("youtube_previous_video_id", record)
+        self.assertNotIn("video_repair_priority", record)
+        self.assertEqual(record["youtube_video_renderer_version"], PERSIAN_TEXT_RENDERER_VERSION)
+        self.assertEqual(record["youtube_previous_video_deleted_at"], now.isoformat())
+
+    def test_failed_old_video_deletion_keeps_id_for_retry_without_losing_new_video(self):
+        now = datetime(2026, 10, 23, 18, 0, tzinfo=timezone.utc)
+        record = {
+            "youtube_previous_video_id": "oldBrokenShort",
+            "youtube_video_id": "newReadableShort",
+            "youtube_upload_status": "uploaded",
+            "video_repair_priority": True,
+        }
+        with patch(
+            "affilio_radar.delete_youtube_video",
+            side_effect=RuntimeError("temporary YouTube delete failure"),
+            create=True,
+        ) as delete:
+            changed = _delete_superseded_youtube_video(
+                record, "dkp-19336870", delete, now
+            )
+        self.assertTrue(changed)
+        delete.assert_called_once_with("oldBrokenShort")
+        self.assertEqual(record["youtube_previous_video_id"], "oldBrokenShort")
+        self.assertEqual(record["youtube_video_id"], "newReadableShort")
+        self.assertIn("youtube_previous_video_delete_next_attempt_at", record)
 
     def test_youtube_description_uses_clean_public_channel_links(self):
         state = {
