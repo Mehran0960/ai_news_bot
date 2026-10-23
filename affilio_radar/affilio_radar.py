@@ -2275,6 +2275,7 @@ def discover_product_urls(
     deals_found = []
     deal_expiries: dict[str, str] = dict(queued_expiries)
     direct_feed_expiries: dict[str, str] = {}
+    mcp_card_expiries: dict[str, str] = {}
     for page_number in range(1, DEAL_LIST_PAGES + 1):
         try:
             response = SESSION.get(
@@ -2381,9 +2382,13 @@ def discover_product_urls(
         from expiration_monitor import fetch_mcp_offer_candidates
         mcp_expiries, mcp_candidate_nodes = fetch_mcp_offer_candidates(page_numbers=mcp_scan_pages)
         for pid, expiry in mcp_expiries.items():
-            # This feed supplements the first-party site; it cannot overwrite it.
+            # The MCP wrapper returns current DigiKala offer-card timers keyed by exact
+            # product ID. Keep this source distinct and strictly lower priority than
+            # DigiKala's own REST responses; never mix in a cached queue deadline.
             if str(pid) not in direct_feed_expiries and str(expiry or "").strip():
-                deal_expiries[str(pid)] = str(expiry).strip()
+                clean_expiry = str(expiry).strip()
+                deal_expiries[str(pid)] = clean_expiry
+                mcp_card_expiries[str(pid)] = clean_expiry
         mcp_candidates = api_incredible_offer_product_candidates(mcp_candidate_nodes)
         for row in mcp_candidates:
             pid = product_id(row.get("product_url", ""))
@@ -2568,7 +2573,7 @@ def discover_product_urls(
                 found.append(url)
                 added += 1
         print(f"DISCOVERY term={term!r} products={len(local)} added={added} source={diagnostics[-1].get('source')}")
-    return found, diagnostics, deal_expiries, direct_feed_expiries
+    return found, diagnostics, deal_expiries, direct_feed_expiries, mcp_card_expiries
 
 
 def classify_category(title: str) -> str:
@@ -3512,8 +3517,15 @@ def repair_all_published_captions() -> int:
                 results[f"{platform}_failed"] += 1
             continue
 
+        source = str(record.get("expiry_source") or "")
         verified_deadline = (
-            record.get("expiry_source") in {"digikala_live_deals_feed", "live_product_stock_or_price"}
+            source in {"digikala_live_deals_feed", "live_product_stock_or_price"}
+            and record.get("expiry_estimated") is not True
+            and _parse_utc_datetime(record.get("expires_at")) is not None
+            and (source != "digikala_live_deals_feed" or record.get("expiry_deadline_verified_directly") is True)
+        ) or (
+            source == "digikala_mcp_offer_card"
+            and record.get("expiry_deadline_verified_from_site_card") is True
             and record.get("expiry_estimated") is not True
             and _parse_utc_datetime(record.get("expires_at")) is not None
         )
@@ -3642,7 +3654,7 @@ def refresh_active_countdowns() -> int:
         raise RuntimeError("Published state is not an object")
     now = datetime.now(timezone.utc)
     terminal_statuses = {"deleted", "already_absent"}
-    verified_sources = {"digikala_live_deals_feed", "digikala_product_detail_api", "live_product_stock_or_price"}
+    verified_sources = {"digikala_live_deals_feed", "digikala_product_detail_api", "digikala_mcp_offer_card", "live_product_stock_or_price"}
     due = []
     for product_key, record in published.items():
         if not isinstance(record, dict):
@@ -3672,8 +3684,9 @@ def refresh_active_countdowns() -> int:
             and expiry_source in verified_sources
             and record.get("expiry_estimated") is not True
             and (
-                expiry_source not in {"digikala_live_deals_feed", "digikala_product_detail_api"}
-                or record.get("expiry_deadline_verified_directly") is True
+                (expiry_source in {"digikala_live_deals_feed", "digikala_product_detail_api"} and record.get("expiry_deadline_verified_directly") is True)
+                or (expiry_source == "digikala_mcp_offer_card" and record.get("expiry_deadline_verified_from_site_card") is True)
+                or expiry_source == "live_product_stock_or_price"
             )
         )
         cutoff_passed = (
@@ -3926,15 +3939,16 @@ def is_offer_expired(product: dict, now: datetime | None = None) -> bool:
 
 
 def has_verified_deal_deadline(product: dict, now: datetime | None = None) -> bool:
-    """Only a directly fetched DigiKala offer/product response can authorize publication."""
+    """Require a current, product-matched deadline extracted from a DigiKala offer card or detail API."""
     if not isinstance(product, dict):
         return False
-    if product.get("expiry_deadline_verified_directly") is not True:
-        return False
-    if str(product.get("expiry_source") or "") not in {
-        "digikala_live_deals_feed",
-        "digikala_product_detail_api",
-    }:
+    source = str(product.get("expiry_source") or "")
+    direct_source = source in {"digikala_live_deals_feed", "digikala_product_detail_api"}
+    site_card_source = (
+        source == "digikala_mcp_offer_card"
+        and product.get("expiry_deadline_verified_from_site_card") is True
+    )
+    if not ((direct_source and product.get("expiry_deadline_verified_directly") is True) or site_card_source):
         return False
     expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
     if expiry is None:
@@ -4776,8 +4790,9 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             if (
                 live_expiry is None
                 or live_expiry <= current + timedelta(minutes=10)
-                or existing_record.get("expiry_source") != "digikala_live_deals_feed"
+                or existing_record.get("expiry_source") not in {"digikala_live_deals_feed", "digikala_mcp_offer_card"}
                 or existing_record.get("expiry_estimated") is True
+                or (existing_record.get("expiry_source") == "digikala_mcp_offer_card" and existing_record.get("expiry_deadline_verified_from_site_card") is not True)
                 or existing_record.get("youtube_expiry_status") in {"private", "already_private"}
             ):
                 continue
@@ -4887,8 +4902,9 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             )
             if (
                 prior_expiry is not None
-                and record.get("expiry_source") == "digikala_live_deals_feed"
+                and record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_mcp_offer_card"}
                 and record.get("expiry_estimated") is not True
+                and (record.get("expiry_source") != "digikala_mcp_offer_card" or record.get("expiry_deadline_verified_from_site_card") is True)
                 and prior_expiry > current + timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES)
             ):
                 record["video_generation_status"] = "pending"
@@ -4933,8 +4949,9 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("expires_at")))
         if (
             expiry is None
-            or record.get("expiry_source") != "digikala_live_deals_feed"
+            or record.get("expiry_source") not in {"digikala_live_deals_feed", "digikala_mcp_offer_card"}
             or record.get("expiry_estimated") is True
+            or (record.get("expiry_source") == "digikala_mcp_offer_card" and record.get("expiry_deadline_verified_from_site_card") is not True)
         ):
             record["video_generation_status"] = "skipped_unverified_deadline"
             if upload_status in pending_youtube:
@@ -5402,7 +5419,7 @@ def run(publish=False):
     if not isinstance(discovery_queue, dict):
         discovery_queue = {}
         state["discovery_queue"] = discovery_queue
-    urls, search_diagnostics, deal_expiries, direct_feed_expiries = discover_product_urls(
+    urls, search_diagnostics, deal_expiries, direct_feed_expiries, mcp_card_expiries = discover_product_urls(
         queued_records if isinstance(queued_records, dict) else {},
         discovery_queue,
         state,
@@ -5427,21 +5444,35 @@ def run(publish=False):
             pid = item.get("product_id", "")
             mcp_deadline_hint = deal_expiries.get(pid, "")
             direct_feed_deadline = direct_feed_expiries.get(pid, "")
+            mcp_card_deadline = mcp_card_expiries.get(pid, "")
             if direct_feed_deadline:
                 item["deal_expires_at"] = direct_feed_deadline
                 item["expiry_source"] = "digikala_live_deals_feed"
                 item["expiry_deadline_verified_directly"] = True
+                item["expiry_deadline_verified_from_site_card"] = False
+                item["expiry_estimated"] = False
+            elif not (
+                item.get("expiry_deadline_verified_directly") is True
+                and item.get("expiry_source") == "digikala_product_detail_api"
+                and item.get("deal_expires_at")
+            ) and mcp_card_deadline:
+                # DigiKala's direct REST list currently omits the live timer on many
+                # cards. Use only the matching product's current live offer-card timer
+                # as a tagged fallback; never use an old discovery-queue timestamp.
+                item["deal_expires_at"] = mcp_card_deadline
+                item["expiry_source"] = "digikala_mcp_offer_card"
+                item["expiry_deadline_verified_directly"] = False
+                item["expiry_deadline_verified_from_site_card"] = True
                 item["expiry_estimated"] = False
             elif not (
                 item.get("expiry_deadline_verified_directly") is True
                 and item.get("expiry_source") == "digikala_product_detail_api"
                 and item.get("deal_expires_at")
             ):
-                # MCP deadlines aid discovery only. They never satisfy the direct
-                # first-party check required to publish a buyable offer.
                 item["deal_expires_at"] = ""
                 item["expiry_source"] = "unavailable"
                 item["expiry_deadline_verified_directly"] = False
+                item["expiry_deadline_verified_from_site_card"] = False
                 item["expiry_estimated"] = False
                 if mcp_deadline_hint:
                     item["mcp_deadline_hint"] = mcp_deadline_hint
@@ -5904,6 +5935,10 @@ def run(publish=False):
                     and str(item.get("expiry_source") or "") in {
                         "digikala_live_deals_feed", "digikala_product_detail_api"
                     }
+                ),
+                "expiry_deadline_verified_from_site_card": (
+                    item.get("expiry_deadline_verified_from_site_card") is True
+                    and str(item.get("expiry_source") or "") == "digikala_mcp_offer_card"
                 ),
                 "caption_deadline_format_version": CAPTION_DEADLINE_FORMAT_VERSION,
                 "posted_discount_percent": int(item.get("discount_percent") or 0),
