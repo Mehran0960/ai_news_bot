@@ -24,7 +24,7 @@ jobs:
   expire:
     # The radar workflow already performs expiry cleanup immediately before its
     # one-time full caption repair. Do not run both channel-mutating jobs concurrently.
-    if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[expiry-cleanup-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-now]') || contains(github.event.head_commit.message, '[remove-glama-once]') }}
+    if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[expiry-cleanup-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-now]') || contains(github.event.head_commit.message, '[remove-glama-once]') || contains(github.event.head_commit.message, '[repair-buttons-now]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -72,8 +72,8 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/expiration_monitor.py
 
-      - name: Migrate captions without countdowns and restore purchase buttons
-        if: ${{ !contains(github.event.head_commit.message, '[duplicate-cleanup-now]') && !contains(github.event.head_commit.message, '[remove-glama-once]') }}
+      - name: One-time migration: remove obsolete timers and restore verified purchase buttons
+        if: ${{ contains(github.event.head_commit.message, '[repair-buttons-now]') }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
