@@ -203,8 +203,9 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
-          # Publish 9:16 videos to Aparat's regular video feed on its own cadence.
-          # Aparat Shorts-feed placement still requires the official mobile app.
+          # Aparat uploads are handled by the independent Aparat-video-upload workflow.
+          # This radar path remains responsible for YouTube and the public channels only.
+          AFFILIO_APARAT_UPLOAD_ENABLED: "false"
           APARAT_SHORTS_ONLY: "false"
           APARAT_VIDEO_PASS: "0"
           AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS: "3"
