@@ -79,12 +79,23 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Persian font and FFmpeg for publishing
+      - name: Check optional media tools without blocking channel publication
         if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[repair-bale-caption]') }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends fonts-noto-core
-          if ! command -v ffmpeg >/dev/null 2>&1; then sudo apt-get install -y --no-install-recommends ffmpeg; fi
+          # GitHub-hosted images already include common fonts and often FFmpeg.
+          # These are enhancements only: never run apt-get or fail publishing because
+          # the package mirror/media tool is unavailable.
+          if command -v ffmpeg >/dev/null 2>&1; then
+            ffmpeg -version | head -n 1
+          else
+            echo "OPTIONAL_VIDEO_TOOL_UNAVAILABLE: image publishing will continue."
+          fi
+          for font in NotoSansArabic-Regular.ttf NotoNaskhArabic-Regular.ttf DejaVuSans.ttf; do
+            if find /usr/share/fonts/truetype -name "$font" -print -quit 2>/dev/null | grep -q .; then
+              echo "PERSIAN_FONT_OK=$font"
+              break
+            fi
+          done
 
       - name: Install Python dependencies
         run: python -m pip install -r affilio_radar/requirements.txt
