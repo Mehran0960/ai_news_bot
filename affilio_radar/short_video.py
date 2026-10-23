@@ -260,23 +260,9 @@ def build_vertical_poster(
     )
     draw = ImageDraw.Draw(background)
 
-    # Channel IDs stay at the top-left, where previous creative reviews requested them.
-    social_panel = (34, 14, 430, 122)
-    draw.rounded_rectangle(
-        social_panel,
-        radius=20,
-        fill=(14, 28, 22, 242),
-        outline=(255, 255, 255, 240),
-        width=2,
-    )
-    watermark_font = _font(23)
-    _draw_telegram_logo(draw, 56, 20, 36)
-    draw.text((103, 38), "T.me/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
-    _draw_bale_logo(draw, 56, 68, 36)
-    draw.text((103, 86), "ble.ir/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
-
+    # Keep the top clear of channel IDs; the product title leads the frame.
     # Product name is readable without opening the caption.
-    title_panel = (34, 134, WIDTH - 34, 250)
+    title_panel = (34, 34, WIDTH - 34, 150)
     draw.rounded_rectangle(
         (title_panel[0] + 4, title_panel[1] + 6, title_panel[2] + 4, title_panel[3] + 6),
         radius=24,
@@ -297,7 +283,7 @@ def build_vertical_poster(
         max_width=574,
         max_lines=2,
     )
-    line_y = 173 if len(title_lines) == 1 else 165
+    line_y = 73 if len(title_lines) == 1 else 65
     for line in title_lines:
         draw.text(
             (WIDTH // 2, line_y),
@@ -310,7 +296,7 @@ def build_vertical_poster(
         line_y += 47
 
     # Product photo gets its own clean card; all critical selling copy sits outside it.
-    card = (34, 264, WIDTH - 34, 778)
+    card = (34, 164, WIDTH - 34, 678)
     draw.rounded_rectangle(
         (card[0] + 5, card[1] + 9, card[2] + 5, card[3] + 9),
         radius=30,
@@ -330,11 +316,11 @@ def build_vertical_poster(
         discount = 0
     if 0 < discount <= 100:
         badge_width, badge_height = 188, 140
-        left, top = WIDTH - 44 - badge_width, 273
+        left, top = WIDTH - 44 - badge_width, 173
         draw_discount_burst(draw, left, top, badge_width, badge_height, discount)
 
     # Large current price and a crossed-out former price communicate the deal instantly.
-    price_panel = (34, 795, WIDTH - 34, 1048)
+    price_panel = (34, 695, WIDTH - 34, 948)
     draw.rounded_rectangle(
         (price_panel[0] + 4, price_panel[1] + 7, price_panel[2] + 4, price_panel[3] + 7),
         radius=26,
@@ -348,7 +334,7 @@ def build_vertical_poster(
         width=3,
     )
     draw.text(
-        (WIDTH // 2, 825),
+        (WIDTH // 2, 725),
         _shape_rtl("قیمت ویژه در دیجی‌کالا"),
         font=_font(25),
         fill=(24, 111, 54, 255),
@@ -358,7 +344,7 @@ def build_vertical_poster(
     current_text = format_persian_price(current_price)
     if current_text:
         draw.text(
-            (WIDTH // 2, 883),
+            (WIDTH // 2, 783),
             _shape_rtl(f"{current_text} تومان"),
             font=_font(43),
             fill=(10, 79, 40, 255),
@@ -384,7 +370,7 @@ def build_vertical_poster(
         old_line = f"قیمت اصلی: {old_amount} تومان"
         old_font = _font(21)
         old_visual = _shape_rtl(old_line)
-        old_bbox = draw.textbbox((WIDTH // 2, 986), old_visual, font=old_font, anchor="mm", **_rtl_layout_kwargs())
+        old_bbox = draw.textbbox((WIDTH // 2, 886), old_visual, font=old_font, anchor="mm", **_rtl_layout_kwargs())
         draw.text(
             (WIDTH // 2, 986),
             old_visual,
@@ -399,30 +385,35 @@ def build_vertical_poster(
             width=3,
         )
 
-    # The call-to-action is part of the video frame, not something the viewer must find in the caption.
-    cta = (72, 1072, WIDTH - 72, 1192)
+    # YouTube video frames are not clickable: direct viewers to the channel links.
+    social_panel = (34, 970, WIDTH - 34, 1245)
     draw.rounded_rectangle(
-        (cta[0] + 4, cta[1] + 7, cta[2] + 4, cta[3] + 7),
-        radius=30,
-        fill=(0, 0, 0, 80),
+        (social_panel[0] + 4, social_panel[1] + 7, social_panel[2] + 4, social_panel[3] + 7),
+        radius=28,
+        fill=(0, 0, 0, 85),
     )
     draw.rounded_rectangle(
-        cta,
-        radius=30,
-        fill=(255, 211, 45, 255),
-        outline=(255, 255, 245, 255),
-        width=4,
+        social_panel,
+        radius=28,
+        fill=(14, 28, 22, 246),
+        outline=(255, 255, 255, 240),
+        width=2,
     )
     draw.text(
-        (WIDTH // 2, 1132),
-        _shape_rtl("خرید از دیجی‌کالا"),
-        font=_font(36),
-        fill=(28, 50, 24, 255),
+        (WIDTH // 2, 1000),
+        _shape_rtl("برای دریافت لینک خرید، به کانال‌های ما بپیوندید"),
+        font=_font(23),
+        fill=(255, 220, 75, 255),
         anchor="mm",
         **_rtl_layout_kwargs(),
     )
+    watermark_font = _font(23)
+    _draw_telegram_logo(draw, 56, 1020, 36)
+    draw.text((103, 1038), "T.me/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
+    _draw_bale_logo(draw, 56, 1078, 36)
+    draw.text((103, 1096), "ble.ir/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
     draw.text(
-        (WIDTH // 2, 1232),
+        (WIDTH // 2, 1207),
         _shape_rtl("آفِرچین | شکار تخفیف‌های واقعی"),
         font=_font(19),
         fill=(255, 255, 255, 245),
