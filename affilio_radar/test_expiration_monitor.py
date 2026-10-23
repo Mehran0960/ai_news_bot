@@ -438,6 +438,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             },
         }
         with (
+            patch.object(monitor, "BOT_TOKEN", "test-token"),
             patch.object(monitor, "fetch_public_channel_posts", return_value=posts),
             patch.object(monitor, "_telegram_delete", return_value="deleted") as delete,
             patch.object(monitor, "_write_state") as write_state,
