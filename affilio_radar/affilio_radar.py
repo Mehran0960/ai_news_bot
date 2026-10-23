@@ -4326,11 +4326,59 @@ def is_product_repeat_blocked(previous: dict, product: dict,
     )
 
 
+def is_product_suppressed(state: dict, pid: str) -> bool:
+    """Return true for a product explicitly excluded by the user."""
+    if not isinstance(state, dict):
+        return False
+    key = str(pid or "").strip().lower()
+    if not re.fullmatch(r"dkp-\d{1,12}", key):
+        key = product_id(key)
+    suppressions = state.get("product_suppressions", {})
+    return bool(key and isinstance(suppressions, dict) and key in suppressions)
+
+
+def prune_suppressed_product_queues(state: dict) -> bool:
+    """Remove permanently excluded IDs from the two publication queues."""
+    suppressions = state.get("product_suppressions", {}) if isinstance(state, dict) else {}
+    if not isinstance(suppressions, dict) or not suppressions:
+        return False
+    suppressed = {str(k).strip().lower() for k in suppressions if re.fullmatch(r"dkp-\d{1,12}", str(k).strip().lower())}
+    changed = False
+    for name in ("pending_queue", "discovery_queue"):
+        queue = state.get(name)
+        if isinstance(queue, dict):
+            for key, value in list(queue.items()):
+                pid = str(key or "").strip().lower()
+                if not re.fullmatch(r"dkp-\d{1,12}", pid) and isinstance(value, dict):
+                    pid = str(value.get("product_id") or value.get("id") or "").strip().lower()
+                    if not re.fullmatch(r"dkp-\d{1,12}", pid):
+                        pid = product_id(value.get("product_url") or value.get("url") or "")
+                if pid in suppressed:
+                    queue.pop(key, None)
+                    changed = True
+        elif isinstance(queue, list):
+            retained = []
+            for item in queue:
+                pid = ""
+                if isinstance(item, dict):
+                    pid = str(item.get("product_id") or item.get("id") or "").strip().lower()
+                    if not re.fullmatch(r"dkp-\d{1,12}", pid):
+                        pid = product_id(item.get("product_url") or item.get("url") or "")
+                if pid in suppressed:
+                    changed = True
+                else:
+                    retained.append(item)
+            if len(retained) != len(queue):
+                state[name] = retained
+    return changed
+
+
 def refresh_pending_queue(state: dict, eligible: list[dict],
                           now: datetime | None = None,
                           observed_product_ids: set[str] | None = None) -> dict:
     """Persist valid offers; keep unobserved queued offers until rechecked or their deadline passes."""
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    prune_suppressed_product_queues(state)
     old_queue = state.get("pending_queue")
     if not isinstance(old_queue, dict):
         old_queue = {}
@@ -4340,7 +4388,7 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
     pending = {}
     for product in eligible:
         pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
-        if not re.fullmatch(r"dkp-\d{1,12}", pid) or is_offer_expired(product, now):
+        if not re.fullmatch(r"dkp-\d{1,12}", pid) or is_product_suppressed(state, pid) or is_offer_expired(product, now):
             continue
         previous_publication = _publication_cooldown_record(state, pid)
         if is_product_repeat_blocked(previous_publication, product, now):
@@ -4382,7 +4430,7 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
     observed_ids = {str(value) for value in observed_product_ids} if observed_product_ids is not None else None
     if observed_ids is not None:
         for pid, old in old_queue.items():
-            if not isinstance(old, dict) or pid in pending or pid in observed_ids:
+            if not isinstance(old, dict) or pid in pending or pid in observed_ids or is_product_suppressed(state, str(pid)):
                 continue
             url = safe_product_url(old.get("product_url", ""))
             expiry = _parse_utc_datetime(_parse_deal_expiry_value(old.get("deal_expires_at")))
@@ -5150,6 +5198,8 @@ def run(publish=False):
     # [scan-now] Read the persistent queue before discovery so offers temporarily missing from one
     # page remain eligible for a live recheck on the next scan.
     state = load_state()
+    if prune_suppressed_product_queues(state):
+        save_json(STATE, state)
     if ensure_publication_ledger(state):
         save_json(STATE, state)
     # Growth attribution/count telemetry is best-effort and must never block regular offer publishing.
@@ -5168,6 +5218,7 @@ def run(publish=False):
         discovery_queue,
         state,
     )
+    prune_suppressed_product_queues(state)
     # Write the discovery queue before per-product page checks; the workflow's final
     # state-commit step also runs on failed validation/check steps so these sightings survive.
     save_json(STATE, state)
@@ -5234,6 +5285,7 @@ def run(publish=False):
     eligible = [
         p for p in products
         if p.get("has_affiliate_link")
+        and not is_product_suppressed(state, str(p.get("product_id") or product_id(p.get("product_url", ""))))
         and is_discount_publish_eligible(p)
         and is_market_value_publish_eligible(p)
         and has_verified_deal_deadline(p, queue_now)
@@ -5511,6 +5563,10 @@ def run(publish=False):
                 )
                 break
             pid = item["product_id"]
+            if is_product_suppressed(state, pid):
+                print(f"PUBLISH_SKIP id={pid} reason=user_requested_product_suppression")
+                state.get("pending_queue", {}).pop(pid, None)
+                continue
             publish_guard_time = datetime.now(timezone.utc)
             if not has_minimum_publication_runway(item, publish_guard_time):
                 expiry = _parse_utc_datetime(_parse_deal_expiry_value(item.get("deal_expires_at")))
