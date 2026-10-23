@@ -52,7 +52,7 @@ MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", 
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
-MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(10, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "4"))))
+MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(10, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "8"))))
 MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.03333333333333333")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
@@ -60,12 +60,12 @@ PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TT
 MAX_QUEUED_RECHECKS = max(0, min(12, int(os.getenv("AFFILIO_MAX_QUEUED_RECHECKS", "8"))))
 DISCOVERY_QUEUE_LIMIT = max(100, min(1000, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_LIMIT", "500"))))
 DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_TTL_HOURS", "24"))))
-MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(32, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "24"))))
+MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(32, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "32"))))
 # Never publish an offer that gives the audience less than this much time to act.
 MIN_PUBLICATION_RUNWAY_MINUTES = max(30, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "60"))))
 # The same ten-minute safety buffer gates publication and removal; captions remain static.
 COUNTDOWN_SAFETY_BUFFER_MINUTES = max(0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10"))))
-# Countdown captions are refreshed periodically so the displayed time does not go stale.
+# Site-side deadlines are retained for eligibility and cleanup; public captions never show timers.
 COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
     120, min(600, int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS", "240")))
 )
@@ -2168,7 +2168,7 @@ def _diversify_ranked_records(
         return source[:cap]
     try:
         recent = _recent_publication_diversity(
-            published, limit=30, durable_history=recent_publications
+            published, limit=45, durable_history=recent_publications
         )
     except Exception as exc:
         print(f"{label}_DIVERSITY_HISTORY_UNAVAILABLE error={type(exc).__name__}")
@@ -2188,9 +2188,9 @@ def _diversify_ranked_records(
         recent_product_ids.append(str(post.get("product_id") or ""))
     # Use a longer rolling window to avoid a one-brand/product-family feed.
     # If no diverse alternative exists, the selector still relaxes constraints.
-    recent_categories = [str(post.get("category") or "other") for post in recent[-6:]]
-    recent_families = [str(post.get("family") or post.get("category") or "other") for post in recent[-8:]]
-    recent_brands = [str(post.get("brand") or "") for post in recent[-8:] if post.get("brand")]
+    recent_categories = [str(post.get("category") or "other") for post in recent[-10:]]
+    recent_families = [str(post.get("family") or post.get("category") or "other") for post in recent[-12:]]
+    recent_brands = [str(post.get("brand") or "") for post in recent[-12:] if post.get("brand")]
     remaining, selected = list(source), []
     def _as_product(entry):
         if isinstance(entry, tuple) and len(entry) >= 2 and isinstance(entry[1], dict):
@@ -2213,7 +2213,7 @@ def _diversify_ranked_records(
                 penalty += 210.0
             if brand and brand in recent_brands:
                 penalty += 160.0
-            if pid and pid in recent_product_ids[-12:]:
+            if pid and pid in recent_product_ids[-20:]:
                 penalty += 250.0
             ranked.append((penalty, position, entry, pid, category, family, brand))
         allowed = [row for row in ranked if row[4] not in recent_categories and row[5] not in recent_families and (not row[6] or row[6] not in recent_brands)]
@@ -2232,10 +2232,10 @@ def _diversify_ranked_records(
             brand_counts[brand] = brand_counts.get(brand, 0) + 1
         if pid:
             recent_product_ids.append(pid)
-        recent_categories = (recent_categories + [category])[-4:]
-        recent_families = (recent_families + [family])[-5:]
+        recent_categories = (recent_categories + [category])[-10:]
+        recent_families = (recent_families + [family])[-12:]
         if brand:
-            recent_brands = (recent_brands + [brand])[-4:]
+            recent_brands = (recent_brands + [brand])[-10:]
     return selected
 
 
@@ -4451,9 +4451,9 @@ def select_publish_candidates(
         recent_product_ids.append(post["product_id"])
 
     remaining, diversified = list(selected), []
-    recent_categories = [post["category"] for post in recent[-6:]]
-    recent_families = [post["family"] for post in recent[-8:]]
-    recent_brands = [post["brand"] for post in recent[-8:] if post["brand"]]
+    recent_categories = [post["category"] for post in recent[-10:]]
+    recent_families = [post["family"] for post in recent[-12:]]
+    recent_brands = [post["brand"] for post in recent[-12:] if post["brand"]]
     while remaining:
         ranked = []
         for rank, product in enumerate(remaining):
@@ -4471,7 +4471,7 @@ def select_publish_candidates(
                 score += 210.0
             if brand and brand in recent_brands:
                 score += 160.0
-            if pid in recent_product_ids[-12:]:
+            if pid in recent_product_ids[-20:]:
                 score += 250.0
             ranked.append((score, rank, product, pid, category, family, brand))
 
