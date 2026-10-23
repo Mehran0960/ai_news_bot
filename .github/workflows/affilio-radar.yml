@@ -155,6 +155,7 @@ jobs:
           print("CLICK_TRACKER_AGGREGATED_STATS_OK")
           PY
 
+      # [repair-all-captions] Repairs every surviving caption without timers and restores its verified purchase button.
       # [repair-all-captions] Remove obsolete expiry labels from every tracked live caption in place.
       # A commit tagged [scan-now] runs one fresh eligibility-checked scan; at most one product posts.
       - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
