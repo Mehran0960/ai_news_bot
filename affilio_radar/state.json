@@ -3793,13 +3793,13 @@
       "title": "محافظ برق هوشمند تایمردار هادرون مدل P103"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-23T09:10:28.284004+00:00",
+  "expiry_feed_last_checked_at": "2026-10-23T09:20:42.891042+00:00",
   "expiry_feed_last_sync_summary": {
-    "matched": 1,
+    "matched": 3,
+    "updated": 1,
+    "unchanged": 2,
     "missing_from_feed": 1,
-    "skipped": 0,
-    "unchanged": 0,
-    "updated": 1
+    "skipped": 0
   },
   "growth_tracking": {
     "daily_member_counts": {
@@ -4750,15 +4750,20 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T09:24:40.677655+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expiry_status": "tracked",
+      "bale_expiry_status": "tracked",
+      "caption_static_migrated_at": "2026-10-23T09:20:42.891042+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T09:20:42.891042+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T09:20:42.891042+00:00"
     },
     "dkp-20917825": {
       "bale_expiry_status": "tracked",
       "bale_message_id": 608,
-      "caption_countdown_refreshed_at": "2026-10-23T09:15:24.075015+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T09:20:42.891042+00:00",
       "caption_deadline_format_version": 8,
-      "caption_static_migrated_at": "2026-10-23T09:15:24.075015+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-23T09:15:24.075015+00:00",
+      "caption_static_migrated_at": "2026-10-23T09:20:42.891042+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T09:20:42.891042+00:00",
       "click_tracking_url": "",
       "deadline_caption_refresh_required": true,
       "delivery_attempts": {
@@ -4770,11 +4775,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-24T20:32:44.784456+00:00",
+      "expires_at": "2026-10-24T20:30:04.747056+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T09:10:28.284004+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T09:20:42.891042+00:00",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/3bd35f5418f4e43e4b69326154a79743c0a72a64_1788869555.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
@@ -4796,8 +4801,8 @@
       "caption_deadline_format_version": 8,
       "caption_without_expiry_migrated_at": "2026-10-23T09:03:28.658183+00:00",
       "expires_at": "",
-      "expiry_last_probed_at": "2026-10-23T09:05:23.940012+00:00",
-      "expiry_last_product_check_at": "2026-10-23T09:05:23.940012+00:00",
+      "expiry_last_probed_at": "2026-10-23T09:20:42.891042+00:00",
+      "expiry_last_product_check_at": "2026-10-23T09:20:42.891042+00:00",
       "expiry_status": "unknown",
       "posted_current_price": 100000,
       "posted_discount_percent": 50,
