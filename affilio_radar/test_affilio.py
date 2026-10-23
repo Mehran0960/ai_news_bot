@@ -2315,7 +2315,7 @@ class AffilioRadarTests(unittest.TestCase):
         with (
             patch("affilio_radar.MAX_PRODUCT_CHECKS", 1),
             patch("affilio_radar.DEAL_LIST_PAGES", 1),
-            patch("affilio_radar.SEARCH_TERMS", ()),
+            patch("affilio_radar.SEARCH_TERMS", ("test-term",)),
             patch("affilio_radar.select_queued_records_for_recheck", return_value=[
                 ("dkp-91001", queued["dkp-91001"])
             ]),
