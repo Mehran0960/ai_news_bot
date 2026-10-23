@@ -5174,8 +5174,8 @@
       "caption_without_expiry_migrated_at": "2026-10-23T13:55:08.166469+00:00",
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-23T15:35:26.648160+00:00",
-      "expiry_last_product_check_at": "2026-10-23T15:35:26.648160+00:00",
+      "expiry_last_probed_at": "2026-10-23T15:50:30.642996+00:00",
+      "expiry_last_product_check_at": "2026-10-23T15:50:30.642996+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
       "product_url": "https://www.digikala.com/product/dkp-20073095/",
@@ -5864,8 +5864,8 @@
       "caption_without_expiry_migrated_at": "2026-10-23T13:55:11.662776+00:00",
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-23T15:35:26.648160+00:00",
-      "expiry_last_product_check_at": "2026-10-23T15:35:26.648160+00:00",
+      "expiry_last_probed_at": "2026-10-23T15:50:30.642996+00:00",
+      "expiry_last_product_check_at": "2026-10-23T15:50:30.642996+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
       "product_url": "https://www.digikala.com/product/dkp-22328533/",
@@ -5969,7 +5969,7 @@
       "ts": 1792751503.108114
     },
     "dkp-22636504": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 639,
       "caption_countdown_refreshed_at": "2026-10-23T13:56:10.101924+00:00",
       "caption_deadline_format_version": 10,
@@ -5990,7 +5990,7 @@
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/74b9d463c7dcafde339c74d1f117e59636fe9a3c_1790411079.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 1450000,
       "posted_discount_percent": 74,
@@ -6003,7 +6003,9 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T16:44:48.040763+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T15:50:30.642996+00:00",
+      "bale_expired_deleted_at": "2026-10-23T15:50:30.642996+00:00"
     },
     "dkp-22783516": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -6045,7 +6047,7 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22790974": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 641,
       "caption_countdown_refreshed_at": "2026-10-23T15:45:24.578741+00:00",
       "caption_deadline_format_version": 10,
@@ -6068,7 +6070,7 @@
       "expiry_estimated": false,
       "expiry_last_live_sync_at": "2026-10-23T15:35:26.648160+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/47010577999020ee8fc75f31adad175cfcf5049a_1789995930.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 2199990,
       "posted_discount_percent": 90,
@@ -6081,10 +6083,12 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T16:44:50.308808+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T15:50:30.642996+00:00",
+      "bale_expired_deleted_at": "2026-10-23T15:50:30.642996+00:00"
     },
     "dkp-22841932": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 633,
       "caption_countdown_refreshed_at": "2026-10-23T15:45:24.578741+00:00",
       "caption_deadline_format_version": 10,
@@ -6107,7 +6111,7 @@
       "expiry_estimated": false,
       "expiry_last_live_sync_at": "2026-10-23T15:35:26.648160+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/1230a8bb8f5d482dc12228feb0b07dcc689414d0_1790491622.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 1899990,
       "posted_discount_percent": 90,
@@ -6120,7 +6124,9 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T15:59:52.832545+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T15:50:30.642996+00:00",
+      "bale_expired_deleted_at": "2026-10-23T15:50:30.642996+00:00"
     },
     "dkp-22847300": {
       "bale_expiry_status": "tracked",
@@ -6160,7 +6166,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-22854669": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 646,
       "caption_countdown_refreshed_at": "2026-10-23T13:56:43.094683+00:00",
       "caption_deadline_format_version": 10,
@@ -6181,7 +6187,7 @@
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/0eedfb6d505bef9dfc8e0169b3bc1914a80aeba7_1790593771.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 1949990,
       "posted_discount_percent": 90,
@@ -6191,7 +6197,9 @@
       "title": "هدفون بلوتوثی وونک مدل S48_TWS",
       "ts": 1792760381.6611328,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T15:50:30.642996+00:00",
+      "bale_expired_deleted_at": "2026-10-23T15:50:30.642996+00:00"
     },
     "dkp-22879463": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -6277,7 +6285,7 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22896990": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 661,
       "caption_countdown_refreshed_at": "2026-10-23T15:45:24.578741+00:00",
       "caption_deadline_format_version": 10,
@@ -6300,7 +6308,7 @@
       "expiry_estimated": false,
       "expiry_last_live_sync_at": "2026-10-23T15:35:26.648160+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/a3900cd2a007130ff6e92b93988b6c07c5112688_1791041233.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 4399990,
       "posted_discount_percent": 90,
@@ -6310,10 +6318,12 @@
       "title": "هدفون بلوتوثی موزیک آپولو مدل PRO3/GRK8",
       "ts": 1792767241.6763568,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T15:50:30.642996+00:00",
+      "bale_expired_deleted_at": "2026-10-23T15:50:30.642996+00:00"
     },
     "dkp-22905402": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 648,
       "caption_countdown_refreshed_at": "2026-10-23T15:45:24.578741+00:00",
       "caption_deadline_format_version": 10,
@@ -6336,7 +6346,7 @@
       "expiry_estimated": false,
       "expiry_last_live_sync_at": "2026-10-23T15:35:26.648160+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/9742c2fe2a83028a51737ecd8ebb298287335710_1791127254.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 1500000,
       "posted_discount_percent": 90,
@@ -6346,10 +6356,12 @@
       "title": "باتری قلمی قابل شارژ موزیک آپولو مدل AA27 بسته 2 عددی",
       "ts": 1792760944.7382913,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T15:50:30.642996+00:00",
+      "bale_expired_deleted_at": "2026-10-23T15:50:30.642996+00:00"
     },
     "dkp-22917182": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 643,
       "caption_countdown_refreshed_at": "2026-10-23T15:45:24.578741+00:00",
       "caption_deadline_format_version": 10,
@@ -6372,7 +6384,7 @@
       "expiry_estimated": false,
       "expiry_last_live_sync_at": "2026-10-23T15:35:26.648160+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/cf7653f53677180e9b1b5bf398e7b2584929b8fb_1791278880.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 1400000,
       "posted_discount_percent": 90,
@@ -6385,10 +6397,12 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T15:24:49.456470+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T15:50:30.642996+00:00",
+      "bale_expired_deleted_at": "2026-10-23T15:50:30.642996+00:00"
     },
     "dkp-22923722": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 654,
       "caption_countdown_refreshed_at": "2026-10-23T15:45:24.578741+00:00",
       "caption_deadline_format_version": 10,
@@ -6411,7 +6425,7 @@
       "expiry_estimated": false,
       "expiry_last_live_sync_at": "2026-10-23T15:35:26.648160+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/d4663be50fdcfc54b9fea49c7c8c8b2d2013af07_1791359133.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 4699990,
       "posted_discount_percent": 90,
@@ -6421,10 +6435,12 @@
       "title": "هدفون بلوتوثی موزیک آپولو مدل VBH-300",
       "ts": 1792763912.8514848,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T15:50:30.642996+00:00",
+      "bale_expired_deleted_at": "2026-10-23T15:50:30.642996+00:00"
     },
     "dkp-22925901": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 637,
       "caption_countdown_refreshed_at": "2026-10-23T15:45:24.578741+00:00",
       "caption_deadline_format_version": 10,
@@ -6447,7 +6463,7 @@
       "expiry_estimated": false,
       "expiry_last_live_sync_at": "2026-10-23T15:35:26.648160+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/7fa1c0c0a8908790b9b5d137538b725b253d8463_1791454045.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 1000000,
       "posted_discount_percent": 90,
@@ -6460,10 +6476,12 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T16:39:51.071166+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T15:50:30.642996+00:00",
+      "bale_expired_deleted_at": "2026-10-23T15:50:30.642996+00:00"
     },
     "dkp-22938145": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 663,
       "caption_countdown_refreshed_at": "2026-10-23T15:45:24.578741+00:00",
       "caption_deadline_format_version": 10,
@@ -6486,7 +6504,7 @@
       "expiry_estimated": false,
       "expiry_last_live_sync_at": "2026-10-23T15:35:26.648160+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/ca777016c5fa4700cf8df6c154447099661f3c17_1791543824.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 3099990,
       "posted_discount_percent": 90,
@@ -6496,7 +6514,9 @@
       "title": "هدفون بلوتوثی موزیک آپولو مدل RAY-K2",
       "ts": 1792767592.8035622,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T15:50:30.642996+00:00",
+      "bale_expired_deleted_at": "2026-10-23T15:50:30.642996+00:00"
     },
     "dkp-22942845": {
       "aparat_upload_status": "skipped_expiring_soon",
