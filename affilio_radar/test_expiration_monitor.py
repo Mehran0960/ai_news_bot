@@ -101,6 +101,26 @@ class ExpirationMonitorTests(unittest.TestCase):
             deadlines, sources = monitor.fetch_offer_deadlines(required_product_ids=["dkp-1"])
         self.assertIn("dkp-1", deadlines)
         self.assertEqual(sources["dkp-1"], "digikala_mcp_offer_card")
+    def test_deadline_cleanup_checks_unresolved_ids_with_first_party_product_api(self):
+        current = datetime.now(timezone.utc)
+        deadline = (current + timedelta(hours=4)).isoformat()
+        snapshot = {
+            "deal_expires_at": deadline,
+            "expiry_verified_directly": True,
+            "current_price": 100_000,
+            "in_stock": True,
+        }
+        with (
+            patch.object(monitor, "fetch_direct_api_offer_expiries", return_value={}),
+            patch.object(monitor, "fetch_mcp_offer_candidates", return_value=({}, [])) as mcp,
+            patch.object(monitor, "fetch_live_product_status", return_value=snapshot) as detail,
+        ):
+            deadlines, sources = monitor.fetch_offer_deadlines(required_product_ids=["dkp-123"])
+        self.assertEqual(deadlines["dkp-123"], deadline)
+        self.assertEqual(sources["dkp-123"], "digikala_product_detail_api")
+        mcp.assert_called_once_with(page_numbers=[1])
+        detail.assert_called_once_with("dkp-123")
+
     def test_live_deadline_sync_corrects_stale_deadline_before_cleanup(self):
         now = datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
         published = {

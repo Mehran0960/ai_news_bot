@@ -32,6 +32,7 @@ from affilio_radar import (
     select_queued_records_for_recheck,
     merge_discovery_queue,
     select_discovery_records_for_check,
+    mcp_scan_pages_for_cursor,
     discovery_queue_sort_key,
     mark_discovery_candidate_checked,
     defer_pending_publication,
@@ -2337,6 +2338,13 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_discovery_records_for_check(queue, now, max_count=2)
         self.assertEqual([pid for pid, _ in selected], ["dkp-91001", "dkp-91002"])
 
+    def test_mcp_scan_always_reads_page_one_and_rotates_supplemental_pages(self):
+        self.assertEqual(mcp_scan_pages_for_cursor(5, 1, 2), ([1, 2], 3))
+        self.assertEqual(mcp_scan_pages_for_cursor(5, 3, 2), ([1, 3], 4))
+        self.assertEqual(mcp_scan_pages_for_cursor(5, 4, 2), ([1, 4], 5))
+        self.assertEqual(mcp_scan_pages_for_cursor(5, 5, 2), ([1, 5], 2))
+        self.assertEqual(mcp_scan_pages_for_cursor(1, 5, 2), ([1], 1))
+
     def test_discovery_queue_check_results_schedule_fast_retry_for_near_expiry(self):
         now = datetime(2026, 10, 19, 12, 0, tzinfo=timezone.utc)
         queue = {}
@@ -2364,6 +2372,37 @@ class AffilioRadarTests(unittest.TestCase):
         )
         merge_discovery_queue(queue, [], now + timedelta(minutes=20))
         self.assertNotIn("dkp-91011", queue)
+
+    def test_discovery_check_budget_spreads_recently_repeated_categories(self):
+        now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
+        recent = [
+            {"product_id": f"dkp-recent-audio-{i}", "title": f"هدفون بلوتوثی نمونه {i}",
+             "ts": now.timestamp() - 60 * (6 - i)}
+            for i in range(6)
+        ]
+        queue = {}
+        for pid, title, demand in [
+            ("dkp-93031", "هدفون بلوتوثی مدل برتر", 95),
+            ("dkp-93032", "اسپیکر بلوتوثی مدل جدید", 80),
+            ("dkp-93033", "تیشرت یقه گرد مردانه مدل جدید", 25),
+        ]:
+            queue[pid] = {
+                "product_id": pid,
+                "product_url": f"https://www.digikala.com/product/{pid}/",
+                "title": title,
+                "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+                "demand_score": demand,
+                "discount_percent": 55,
+                "savings_toman": 400_000,
+                "first_seen_at": now.isoformat(),
+                "last_seen_at": now.isoformat(),
+                "next_check_at": "",
+            }
+        selected = select_discovery_records_for_check(
+            queue, now, max_count=2, published={}, recent_publications=recent
+        )
+        self.assertEqual(len(selected), 2)
+        self.assertEqual(selected[0][0], "dkp-93033")
 
     def test_discovery_checks_prioritize_demand_over_deadline_urgency(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)

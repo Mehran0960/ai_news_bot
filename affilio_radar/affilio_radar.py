@@ -2152,10 +2152,97 @@ def merge_discovery_queue(
     return queue
 
 
+def _diversify_ranked_records(
+    records,
+    limit: int | None = None,
+    published: dict | None = None,
+    recent_publications: list | None = None,
+    label: str = "DISCOVERY",
+):
+    """Spread a ranked work batch across recent categories, product families and brands."""
+    source = list(records or [])
+    cap = len(source) if limit is None else max(0, int(limit))
+    if cap <= 0 or not source:
+        return []
+    if len(source) < 2 or not (published or recent_publications):
+        return source[:cap]
+    try:
+        recent = _recent_publication_diversity(
+            published, limit=30, durable_history=recent_publications
+        )
+    except Exception as exc:
+        print(f"{label}_DIVERSITY_HISTORY_UNAVAILABLE error={type(exc).__name__}")
+        return source[:cap]
+    if not recent:
+        return source[:cap]
+    category_counts, family_counts, brand_counts = {}, {}, {}
+    recent_product_ids = []
+    for post in recent:
+        category = str(post.get("category") or "other")
+        family = str(post.get("family") or category)
+        brand = str(post.get("brand") or "")
+        category_counts[category] = category_counts.get(category, 0) + 1
+        family_counts[family] = family_counts.get(family, 0) + 1
+        if brand:
+            brand_counts[brand] = brand_counts.get(brand, 0) + 1
+        recent_product_ids.append(str(post.get("product_id") or ""))
+    recent_categories = [str(post.get("category") or "other") for post in recent[-2:]]
+    recent_families = [str(post.get("family") or post.get("category") or "other") for post in recent[-3:]]
+    recent_brands = [str(post.get("brand") or "") for post in recent[-2:] if post.get("brand")]
+    remaining, selected = list(source), []
+    def _as_product(entry):
+        if isinstance(entry, tuple) and len(entry) >= 2 and isinstance(entry[1], dict):
+            return {**entry[1], "product_id": str(entry[0])}
+        return entry if isinstance(entry, dict) else {}
+    while remaining and len(selected) < cap:
+        ranked = []
+        for position, entry in enumerate(remaining):
+            item = _as_product(entry)
+            category, family, brand = _publication_diversity_group(item)
+            pid = str(item.get("product_id") or item.get("id") or product_id(item.get("product_url") or item.get("url") or ""))
+            penalty = float(position)
+            penalty += min(240.0, category_counts.get(category, 0) * 30.0)
+            penalty += min(300.0, family_counts.get(family, 0) * 40.0)
+            if brand:
+                penalty += min(150.0, brand_counts.get(brand, 0) * 20.0)
+            if category in recent_categories:
+                penalty += 90.0
+            if family in recent_families:
+                penalty += 130.0
+            if brand and brand in recent_brands:
+                penalty += 80.0
+            if pid and pid in recent_product_ids[-12:]:
+                penalty += 250.0
+            ranked.append((penalty, position, entry, pid, category, family, brand))
+        allowed = [row for row in ranked if row[4] not in recent_categories and row[5] not in recent_families and (not row[6] or row[6] not in recent_brands)]
+        if not allowed:
+            allowed = [row for row in ranked if row[4] not in recent_categories and row[5] not in recent_families]
+        if not allowed:
+            allowed = [row for row in ranked if row[4] not in recent_categories]
+        _, position, entry, pid, category, family, brand = min(allowed or ranked, key=lambda row: (row[0], row[1]))
+        if position:
+            print(f"{label}_DIVERSITY_REORDER product_id={pid or 'unknown'} original_rank={position + 1} category={category} family={family}")
+        selected.append(entry)
+        remaining.pop(position)
+        category_counts[category] = category_counts.get(category, 0) + 1
+        family_counts[family] = family_counts.get(family, 0) + 1
+        if brand:
+            brand_counts[brand] = brand_counts.get(brand, 0) + 1
+        if pid:
+            recent_product_ids.append(pid)
+        recent_categories = (recent_categories + [category])[-2:]
+        recent_families = (recent_families + [family])[-3:]
+        if brand:
+            recent_brands = (recent_brands + [brand])[-2:]
+    return selected
+
+
 def select_discovery_records_for_check(
     queue: dict[str, dict],
     now: datetime | None = None,
     max_count: int | None = None,
+    published: dict | None = None,
+    recent_publications: list | None = None,
 ) -> list[tuple[str, dict]]:
     """Select due, purchase-ready candidates by demand and deal value."""
     current = now or datetime.now(timezone.utc)
@@ -2183,7 +2270,10 @@ def select_discovery_records_for_check(
             continue
         due.append((pid, record))
     due.sort(key=lambda pair: discovery_queue_sort_key(pair[1], current), reverse=True)
-    selected = due[:limit]
+    selected = _diversify_ranked_records(
+        due, limit=limit, published=published,
+        recent_publications=recent_publications, label="DISCOVERY_QUEUE",
+    )
     print(f"DISCOVERY_QUEUE_CHECK_BATCH due={len(due)} selected={len(selected)} limit={limit}")
     return selected
 
@@ -2248,6 +2338,32 @@ def mark_discovery_candidate_checked(
     record["next_check_at"] = (current + timedelta(minutes=retry_minutes)).isoformat()
 
 
+def mcp_scan_pages_for_cursor(page_count: int, cursor: int, pages_per_scan: int = 2):
+    """Always read the newest live-offer page and rotate the supplemental page(s)."""
+    try:
+        count = max(1, min(5, int(page_count)))
+    except (TypeError, ValueError, OverflowError):
+        count = 1
+    if count == 1:
+        return [1], 1
+    try:
+        start = int(cursor)
+    except (TypeError, ValueError, OverflowError):
+        start = 2
+    if start < 2 or start > count:
+        start = 2
+    try:
+        extra_count = max(0, min(count - 1, int(pages_per_scan) - 1))
+    except (TypeError, ValueError, OverflowError):
+        extra_count = 1
+    pages = [1]
+    next_cursor = start
+    for _ in range(extra_count):
+        pages.append(next_cursor)
+        next_cursor = 2 if next_cursor >= count else next_cursor + 1
+    return pages, next_cursor
+
+
 def discover_product_urls(
     queued_records: dict[str, dict] | None = None,
     discovery_queue: dict[str, dict] | None = None,
@@ -2264,12 +2380,21 @@ def discover_product_urls(
     for pid, record in select_queued_records_for_recheck(
         queued_records, queue_now
     ):
+        if len(found) >= presearch_candidate_limit:
+            break
         canonical = safe_product_url(record.get("product_url", ""))
         deadline = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
         if not canonical or deadline is None or deadline <= queue_now:
             continue
         found.append(canonical)
         queued_expiries[str(pid)] = deadline.isoformat()
+
+    # Reserve a substantial part of the detail-check budget for rotated general
+    # searches; the Incredible Offers feed can be overwhelmingly one category.
+    search_reserve = min(12, max(1, MAX_PRODUCT_CHECKS // 3)) if MAX_PRODUCT_CHECKS > 1 else 0
+    presearch_candidate_limit = max(1, MAX_PRODUCT_CHECKS - search_reserve)
+    publish_history = state_to_persist.get("published", {}) if isinstance(state_to_persist, dict) else {}
+    recent_history = state_to_persist.get("recent_publications", []) if isinstance(state_to_persist, dict) else []
 
     # The live Incredible Offers feed is the primary discovery source.
     deals_found = []
@@ -2364,19 +2489,17 @@ def discover_product_urls(
             save_json(STATE, state_to_persist)
         print(f"DISCOVERY_QUEUE_PERSISTED stage=direct_feed retained={len(discovery_queue)}")
 
-    # The direct REST feed above is scanned in full. MCP is a slower complementary
-    # source, so rotate a two-page window each scan instead of re-fetching all five pages.
-    mcp_scan_pages = list(range(1, DEAL_LIST_PAGES + 1))
-    mcp_cursor = 1
-    if isinstance(state_to_persist, dict) and DEAL_LIST_PAGES > 0:
+    # MCP page 1 yielded all usable timed offers on recent scans, while later
+    # pages often returned no cards. Always refresh page 1, then rotate a supplement.
+    mcp_cursor = 2
+    if isinstance(state_to_persist, dict) and DEAL_LIST_PAGES > 1:
         try:
-            mcp_cursor = ((int(state_to_persist.get("mcp_offer_page_cursor", 1) or 1) - 1) % DEAL_LIST_PAGES) + 1
+            mcp_cursor = int(state_to_persist.get("mcp_offer_page_cursor", 2) or 2)
         except (TypeError, ValueError, OverflowError):
-            mcp_cursor = 1
-        mcp_scan_pages = [
-            ((mcp_cursor - 1 + offset) % DEAL_LIST_PAGES) + 1
-            for offset in range(min(MCP_OFFER_PAGES_PER_SCAN, DEAL_LIST_PAGES))
-        ]
+            mcp_cursor = 2
+    mcp_scan_pages, next_mcp_cursor = mcp_scan_pages_for_cursor(
+        DEAL_LIST_PAGES, mcp_cursor, MCP_OFFER_PAGES_PER_SCAN
+    )
     mcp_expiries = {}
     try:
         from expiration_monitor import fetch_mcp_offer_candidates
@@ -2409,7 +2532,7 @@ def discover_product_urls(
         if isinstance(discovery_queue, dict):
             merge_discovery_queue(discovery_queue, mcp_candidates, datetime.now(timezone.utc))
         if isinstance(state_to_persist, dict):
-            state_to_persist["mcp_offer_page_cursor"] = (mcp_cursor % DEAL_LIST_PAGES) + 1
+            state_to_persist["mcp_offer_page_cursor"] = next_mcp_cursor
             if isinstance(discovery_queue, dict):
                 state_to_persist["discovery_queue"] = discovery_queue
             save_json(STATE, state_to_persist)
@@ -2417,7 +2540,7 @@ def discover_product_urls(
         print(
             f"MCP_OFFER_CANDIDATES pages={mcp_scan_pages} extracted={len(mcp_candidates)} "
             f"deadline_verified={sum(bool(row.get('deal_expires_at')) for row in mcp_candidates)} "
-            f"next_cursor={(mcp_cursor % DEAL_LIST_PAGES) + 1}"
+            f"next_cursor={next_mcp_cursor}"
         )
     except Exception as exc:
         print(f"EXPIRY_MCP_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
@@ -2462,12 +2585,13 @@ def discover_product_urls(
     if isinstance(discovery_queue, dict):
         merge_discovery_queue(discovery_queue, list(best_by_url.values()), discovery_now)
         queued_due = select_discovery_records_for_check(
-            discovery_queue, discovery_now
+            discovery_queue, discovery_now,
+            published=publish_history, recent_publications=recent_history,
         )
         queued_added = 0
         for pid, record in queued_due:
             queued_url = safe_product_url(record.get("product_url", ""))
-            if not queued_url or queued_url in found or len(found) >= MAX_PRODUCT_CHECKS:
+            if not queued_url or queued_url in found or len(found) >= presearch_candidate_limit:
                 continue
             found.append(queued_url)
             queued_added += 1
@@ -2492,7 +2616,11 @@ def discover_product_urls(
         eligible_discovery_deals.append(row)
 
     sorted_deals = sorted(eligible_discovery_deals, key=discovery_key, reverse=True)
-    selected_deals = sorted_deals[:MAX_INCREDIBLE_OFFER_CANDIDATES]
+    selected_deals = _diversify_ranked_records(
+        sorted_deals, limit=MAX_INCREDIBLE_OFFER_CANDIDATES,
+        published=publish_history, recent_publications=recent_history,
+        label="INCREDIBLE_FEED",
+    )
     print(
         f"DEAL_DEMAND_ORDER pool={len(best_by_url)} eligible={len(eligible_discovery_deals)} "
         f"selected={len(selected_deals)} skipped_expired_or_short={skipped_short_or_expired}"
@@ -2500,7 +2628,7 @@ def discover_product_urls(
 
     for row in selected_deals:
         url = row["product_url"]
-        if url not in found and len(found) < MAX_PRODUCT_CHECKS:
+        if url not in found and len(found) < presearch_candidate_limit:
             found.append(url)
         pid = product_id(url)
         expiry = str(row.get("deal_expires_at") or deal_expiries.get(pid) or "").strip()
@@ -2568,8 +2696,10 @@ def discover_product_urls(
                 diagnostics.append({"term": term, "ok": False, "products_found": 0, "source": "api_and_html", "status": api_error or "no_product_urls"})
 
         added = 0
+        # Limit each rotated query to one new product; a busy first query must not
+        # suppress all later product categories in this scan.
         for url in local:
-            if url not in found and len(found) < MAX_PRODUCT_CHECKS:
+            if url not in found and len(found) < MAX_PRODUCT_CHECKS and added < 1:
                 found.append(url)
                 added += 1
         print(f"DISCOVERY term={term!r} products={len(local)} added={added} source={diagnostics[-1].get('source')}")
