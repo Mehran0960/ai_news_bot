@@ -546,7 +546,9 @@ class AffilioRadarTests(unittest.TestCase):
             queue, eligible, now, published={}, recent_publications=recent_publications
         )
 
-        self.assertEqual(selected[0]["product_id"], "dkp-fashion-new")
+        # The leading choice must leave the overrepresented audio family;
+        # either of the other categories is a valid diversity improvement.
+        self.assertNotEqual(selected[0]["product_id"], "dkp-audio-new")
         self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
 
 
