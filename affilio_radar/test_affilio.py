@@ -3028,12 +3028,14 @@ class AffilioRadarTests(unittest.TestCase):
             "video_generation_status": "pending",
             "youtube_upload_status": "pending",
         }
+        record["youtube_last_error"] = (
+            "HTTPError: YouTube resumable upload initialization HTTP 400 "
+            "reason=uploadLimitExceeded message=The user has exceeded the number of videos they may upload."
+        )
+        record["youtube_upload_attempts"] = 1
         pause_until = (now + timedelta(hours=24, minutes=15)).isoformat()
-        state = {
-            "published": {pid: record},
-            "youtube_uploads_paused_until": pause_until,
-            "youtube_upload_pause_reason": "daily_upload_limit",
-        }
+        # Simulate persisted state written by the old code before the global pause existed.
+        state = {"published": {pid: record}}
 
         with (
             TemporaryDirectory() as output_dir,
@@ -3051,6 +3053,8 @@ class AffilioRadarTests(unittest.TestCase):
         render.assert_not_called()
         upload.assert_not_called()
         self.assertEqual(state["youtube_uploads_paused_until"], pause_until)
+        self.assertEqual(state["youtube_upload_pause_reason"], "daily_upload_limit")
+        self.assertTrue(state["youtube_upload_pause_diagnostic_migrated"])
 
     @unittest.skipUnless(shutil.which("ffmpeg"), "ffmpeg is installed by the publishing workflow")
     def test_real_short_video_renderer_creates_vertical_mp4(self):
