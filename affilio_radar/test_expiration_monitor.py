@@ -1067,6 +1067,60 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(result[1], 0)
 
 
+    def test_one_time_specific_product_removal_cleans_all_channel_ids_and_uses_standard_cooldown(self):
+        title = "ژل آبرسان صورت گلاما مدل Limited مناسب برای انواع پوست حجم 50 میلی‌لیتر"
+        unrelated = {
+            "message_id": 700,
+            "caption_text": "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا محصول دیگری",
+            "caption_html": "",
+            "product_ids": ["dkp-12345678"],
+        }
+        target_by_id = {
+            501: {
+                "message_id": 501,
+                "caption_text": "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا محصول با عنوان دیگر",
+                "caption_html": "",
+                "product_ids": ["dkp-20917779"],
+            },
+            499: {
+                "message_id": 499,
+                "caption_text": f"🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا {title}",
+                "caption_html": "",
+                "product_ids": [],
+            },
+            700: unrelated,
+        }
+        state = {
+            "published": {},
+            "pending_queue": {"dkp-20917779": {"product_id": "dkp-20917779"}},
+            "discovery_queue": {"dkp-20917779": {"product_id": "dkp-20917779"}},
+        }
+        with (
+            patch.object(monitor, "BOT_TOKEN", "telegram-test-token"),
+            patch.object(monitor, "BALE_BOT_TOKEN", "bale-test-token"),
+            patch.object(monitor, "BALE_CHANNEL_ID", "-10012345"),
+            patch.object(monitor, "fetch_public_channel_posts", return_value=target_by_id),
+            patch.object(monitor, "_telegram_delete", return_value="deleted") as tg_delete,
+            patch.object(monitor, "_bale_delete", return_value="deleted") as bale_delete,
+            patch.object(monitor, "_write_state") as write_state,
+            patch.object(monitor.time, "sleep"),
+        ):
+            result = monitor._delete_one_specific_product(
+                state, "dkp-20917779", title,
+                "499,500,501", "598,599,600",
+            )
+        self.assertEqual(result, 0)
+        self.assertCountEqual([call.args[0] for call in tg_delete.call_args_list], [499, 500, 501])
+        self.assertCountEqual([call.args[0] for call in bale_delete.call_args_list], [598, 599, 600])
+        self.assertNotIn(700, [call.args[0] for call in tg_delete.call_args_list])
+        record = state["published"]["dkp-20917779"]
+        self.assertEqual(record["expiry_status"], "deleted")
+        self.assertEqual(record["bale_expiry_status"], "deleted")
+        self.assertEqual(state["publication_ledger"]["dkp-20917779"]["ts"], record["ts"])
+        self.assertFalse(state["pending_queue"].get("dkp-20917779"))
+        self.assertFalse(state["discovery_queue"].get("dkp-20917779"))
+        self.assertEqual(write_state.call_count, 1)
+
     def test_youtube_expired_short_is_deleted(self):
         now = datetime.now(timezone.utc)
         record = {
