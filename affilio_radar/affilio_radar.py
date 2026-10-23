@@ -654,7 +654,7 @@ def extract_deal_expiry(obj: dict, now: datetime | None = None) -> str:
     return extract_offer_expiry(obj, now=now)
 
 
-def api_incredible_offer_product_candidates(payload) -> list[dict]:
+def api_incredible_offer_product_candidates(payload, now: datetime | None = None) -> list[dict]:
     """Extract and rank product URLs from Digikala's public Incredible Offers feed."""
     by_url = {}
     for obj in _walk_dicts(payload):
@@ -715,13 +715,25 @@ def api_incredible_offer_product_candidates(payload) -> list[dict]:
             "savings_toman": _offer_savings_toman(obj),
             "review_count": review_count,
             "rating": rating,
-            "deal_expires_at": extract_deal_expiry(obj),
+            "deal_expires_at": extract_deal_expiry(obj, now=now),
         }
         old = by_url.get(candidate)
-        if not old or (row["discount_percent"], row["savings_toman"]) > (old["discount_percent"], old["savings_toman"]):
+        if not old:
             by_url[candidate] = row
-        elif old and not old.get("deal_expires_at") and row.get("deal_expires_at"):
-            by_url[candidate]["deal_expires_at"] = row["deal_expires_at"]
+            continue
+
+        # Multiple nested nodes can describe the same product: the highest
+        # discount node may omit the card's expiry timer. Merge the timer before
+        # replacing the ranking row, or the best-priced node erases the only
+        # deadline source and the scheduler cannot publish anything.
+        merged_deadline = str(old.get("deal_expires_at") or row.get("deal_expires_at") or "").strip()
+        if (row["discount_percent"], row["savings_toman"]) > (old["discount_percent"], old["savings_toman"]):
+            replacement = dict(row)
+            if merged_deadline:
+                replacement["deal_expires_at"] = merged_deadline
+            by_url[candidate] = replacement
+        elif merged_deadline and not old.get("deal_expires_at"):
+            by_url[candidate]["deal_expires_at"] = merged_deadline
     return sorted(
         by_url.values(),
         key=lambda row: (row["discount_percent"], row["savings_toman"]),
@@ -2272,11 +2284,39 @@ def discover_product_urls(
                 "source": "incredible_offers_api",
                 "status": "ok" if local else "no_discounted_product_urls",
             })
+            timed_urls = sum(bool(str(row.get("deal_expires_at") or "").strip()) for row in local)
             print(
                 f"INCREDIBLE_OFFERS_API page={page_number} status={response.status_code} "
-                f"discounted_urls={len(local)} "
+                f"discounted_urls={len(local)} timed_urls={timed_urls} "
                 f"data_keys={list(payload.get('data', {}).keys())[:24] if isinstance(payload, dict) and isinstance(payload.get('data'), dict) else 'n/a'}"
             )
+            if page_number == 1 and local and timed_urls == 0:
+                deadline_nodes = []
+                deadline_field_names = set()
+                for node in _walk_dicts(payload):
+                    if not isinstance(node, dict):
+                        continue
+                    relevant = {
+                        str(key): value
+                        for key, value in node.items()
+                        if any(term in str(key).lower() for term in ("end", "expir", "countdown", "remaining", "campaign"))
+                    }
+                    if relevant:
+                        deadline_field_names.update(relevant.keys())
+                        if len(deadline_nodes) < 3:
+                            deadline_nodes.append({
+                                "product_id": node.get("id") or node.get("product_id"),
+                                "title": str(node.get("title_fa") or node.get("product_title") or node.get("title") or "")[:100],
+                                "fields": list(relevant.keys())[:20],
+                            })
+                print(
+                    "FIRST_PARTY_DEADLINE_DIAGNOSTIC "
+                    + json.dumps({
+                        "page": page_number,
+                        "timer_fields_anywhere": sorted(deadline_field_names)[:40],
+                        "sample_nodes": deadline_nodes,
+                    }, ensure_ascii=False, sort_keys=True)
+                )
             if not local:
                 # An empty/partial page is not proof that later pages are empty.
                 continue
