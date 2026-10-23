@@ -1218,7 +1218,8 @@ def _delete_one_specific_product(state, product_id, title, telegram_ids_raw="", 
             "bale_already_absent": sum(v == "already_absent" for v in result_bale.values()),
             "delete_failures": len(failures),
             "history_scan_ok": history_scan_ok,
-            "repeat_cooldown_hours": MIN_REPEAT_PRODUCT_INTERVAL_HOURS,
+            # Keep aligned with affilio_radar.py's standard 24-hour repeat guard.
+            "repeat_cooldown_hours": 24,
             "permanent_exclusion_added": False,
         }, ensure_ascii=False, sort_keys=True)
     )
