@@ -218,7 +218,7 @@ jobs:
           AFFILIO_PENDING_QUEUE_LIMIT: "200"
           AFFILIO_DISCOVERY_QUEUE_LIMIT: "500"
           AFFILIO_DISCOVERY_QUEUE_TTL_HOURS: "24"
-          AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "24"
+          AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "32"
           AFFILIO_MCP_PAGES_PER_SCAN: "2"
           AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || inputs.external_scheduler || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.03333333333333333"
@@ -228,7 +228,7 @@ jobs:
           AFFILIO_MAX_POSTS_PER_RUN: ${{ contains(github.event.head_commit.message, '[publish-now]') && '10' || inputs.batch_count || (github.event_name == 'schedule' && '2' || '1') }}
           AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD: "8"
           AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS: "2"
-          AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "4"
+          AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "8"
           # Historical posts are removed only by verified expiry. A manual workflow_dispatch
           # may opt into the legacy Telegram cleanup; scheduled scans never clear channel history.
           AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS: ${{ github.event_name == 'workflow_dispatch' && inputs.clear_previous_posts == true }}
