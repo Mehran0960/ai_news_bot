@@ -38,6 +38,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: affilio_radar/requirements.txt
 
       - name: Install dependencies for one-time caption migration (retry transient failures)
         run: |
@@ -97,7 +99,7 @@ jobs:
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          # Captions are static; explicitly restore valid purchase buttons using verified publisher links.
+          # [repair-buttons-now] Rebuild every tracked caption without timers and restore verified purchase buttons.
           AFFILIO_COUNTDOWN_REFRESH_FORCE: "true"
           AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && '100' || '80' }}
           AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS: "240" # Kept for compatibility; schema migration is one-time
