@@ -2,15 +2,9 @@ const OWNER = "Mehran0960";
 const REPO = "ai_news_bot";
 const WORKFLOW = "affilio-radar.yml";
 const API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}`;
-const COUNTDOWN_WORKFLOW = "affilio-countdown-refresh.yml";
-const COUNTDOWN_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${COUNTDOWN_WORKFLOW}`;
 const CLEANUP_WORKFLOW = "affilio-expiration-cleanup.yml";
 const CLEANUP_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${CLEANUP_WORKFLOW}`;
-const CHANNEL_WORKFLOWS = [
-  { name: COUNTDOWN_WORKFLOW, api: COUNTDOWN_API },
-  { name: WORKFLOW, api: API },
-  { name: CLEANUP_WORKFLOW, api: CLEANUP_API }
-];
+const RUNS_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
 
 function response(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -39,76 +33,91 @@ async function githubRequest(url, token, options = {}) {
 }
 
 async function findActiveWorkflow(api, token) {
-  // "pending" is important too: GitHub reports concurrency-blocked runs that way.
-  for (const status of ["queued", "pending", "in_progress"]) {
-    const query = new URLSearchParams({ branch: "main", status, per_page: "1" });
+  // Check running jobs first: a queued copy must not hide a hung active execution.
+  for (const status of ["in_progress", "pending", "queued"]) {
+    const query = new URLSearchParams({ branch: "main", status, per_page: "5" });
     const data = await githubRequest(`${api}/runs?${query}`, token);
     if (Array.isArray(data.workflow_runs) && data.workflow_runs.length > 0) {
-      return status;
+      return { status, run: data.workflow_runs[0] };
     }
   }
-  return "";
+  return null;
+}
+
+async function recoverStaleWorkflow(api, token, label, runningLimitMinutes, queuedLimitMinutes) {
+  const active = await findActiveWorkflow(api, token);
+  if (!active) return null;
+  const run = active.run || {};
+  const started = Date.parse(run.run_started_at || run.created_at || "");
+  if (!run.id || !Number.isFinite(started)) return active;
+  const ageMinutes = (Date.now() - started) / 60000;
+  const limit = active.status === "in_progress" ? runningLimitMinutes : queuedLimitMinutes;
+  if (ageMinutes < limit) return active;
+
+  // A stuck run owns the shared channel-mutation concurrency lock. Cancel it so
+  // a future tick can recover; never let an old worker block publishing forever.
+  await githubRequest(`${RUNS_API}/${run.id}/cancel`, token, { method: "POST" });
+  console.log(
+    `CHANNEL_DISPATCH_STALE_CANCEL_REQUESTED workflow=${label} run_id=${run.id} ` +
+    `status=${active.status} age_minutes=${Math.floor(ageMinutes)} threshold_minutes=${limit}`
+  );
+  return { status: "stale_cancelling", run };
 }
 
 async function runScheduledCheck(env, scheduledTime) {
   if (!env.GITHUB_TOKEN) {
-    console.error("COUNTDOWN_DISPATCH_BLOCKED: GITHUB_TOKEN Worker secret is not configured.");
+    console.error("CHANNEL_DISPATCH_BLOCKED: GITHUB_TOKEN Worker secret is not configured.");
     return;
   }
 
-  const now = Number.isFinite(Number(scheduledTime)) ? new Date(Number(scheduledTime)) : new Date();
-  const minute = now.getUTCMinutes();
+  const tick = Number.isFinite(Number(scheduledTime)) ? new Date(Number(scheduledTime)) : new Date();
+  const minute = tick.getUTCMinutes();
   const offset = minute % 5;
 
-  // Reserve :02/:07/... for GitHub's native product-radar schedule.
-  // Countdown edits run inside the cleanup workflow; avoid a separate countdown job
-  // competing for the same channel-mutation lock.
+  // Keep :02/:07/... for GitHub's native five-minute product-radar schedule.
   if (offset === 2) {
     console.log(`CHANNEL_DISPATCH_SKIPPED: reserving UTC minute ${minute} for native product-radar schedule.`);
     return;
   }
-  // Cleanup is the priority job at :00; :01 and :04 remain quiet to avoid creating
-  // a new run that overlaps cleanup or the five-minute radar slot.
   if (offset !== 0 && offset !== 3) {
-    console.log(`CHANNEL_DISPATCH_SKIPPED: no standalone countdown dispatch at UTC minute ${minute}; cleanup refreshes active captions.`);
+    console.log(`CHANNEL_DISPATCH_SKIPPED: reserved UTC minute ${minute}; no dispatch on this tick.`);
     return;
   }
 
   try {
-    // Every channel-mutating workflow shares one concurrency group. Avoid overlap and queue buildup.
-    for (const workflow of CHANNEL_WORKFLOWS) {
-      const status = await findActiveWorkflow(workflow.api, env.GITHUB_TOKEN);
-      if (status) {
-        console.log(`CHANNEL_DISPATCH_SKIPPED: ${workflow.name} is already ${status}.`);
-        return;
-      }
+    const radar = await recoverStaleWorkflow(API, env.GITHUB_TOKEN, WORKFLOW, 18, 8);
+    if (radar?.status === "stale_cancelling") return;
+    if (radar) {
+      console.log(`CHANNEL_DISPATCH_SKIPPED: product radar is already ${radar.status}; preserving publishing priority.`);
+      return;
     }
+
+    const cleanup = await recoverStaleWorkflow(CLEANUP_API, env.GITHUB_TOKEN, CLEANUP_WORKFLOW, 12, 8);
+    if (cleanup?.status === "stale_cancelling") return;
 
     const cleanupDispatch = offset === 0;
     const radarFallback = offset === 3;
-    const targetApi = cleanupDispatch ? CLEANUP_API : (radarFallback ? API : COUNTDOWN_API);
+    if (cleanupDispatch && cleanup) {
+      console.log(`CHANNEL_DISPATCH_SKIPPED: expiry cleanup is already ${cleanup.status}.`);
+      return;
+    }
+
+    // Cleanup refreshes legacy captions only on an explicit one-time repair.
+    // Every normal tick must keep fresh product discovery as the first priority.
     if (cleanupDispatch) {
-      // Re-enable cleanup if GitHub has automatically disabled its scheduled workflow.
-      // The workflow is manually dispatched by this Worker, so it must remain enabled.
-      await githubRequest(`${CLEANUP_API}/enable`, env.GITHUB_TOKEN, { method: "PUT" });
+      await githubRequest(CLEANUP_API + "/enable", env.GITHUB_TOKEN, { method: "PUT" });
       console.log("EXPIRATION_CLEANUP_WORKFLOW_ENABLED");
     }
 
-    const payload = radarFallback
-      ? { ref: "main", inputs: { external_scheduler: true } }
-      : { ref: "main" };
-
-    await githubRequest(`${targetApi}/dispatches`, env.GITHUB_TOKEN, {
+    const targetApi = cleanupDispatch ? CLEANUP_API : API;
+    const payload = radarFallback ? { ref: "main", inputs: { external_scheduler: true } } : { ref: "main" };
+    await githubRequest(targetApi + "/dispatches", env.GITHUB_TOKEN, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    const dispatchMessage = cleanupDispatch
-      ? "EXPIRATION_CLEANUP_DISPATCH_ACCEPTED"
-      : (radarFallback ? "PRODUCT_RADAR_FALLBACK_DISPATCH_ACCEPTED" : "COUNTDOWN_DISPATCH_ACCEPTED");
-    console.log(dispatchMessage);
+    console.log(cleanupDispatch ? "EXPIRATION_CLEANUP_DISPATCH_ACCEPTED" : "PRODUCT_RADAR_FALLBACK_DISPATCH_ACCEPTED");
   } catch (error) {
-    // Never keep queuing failed dispatch attempts; the next one-minute tick can retry.
     console.error("CHANNEL_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 }
