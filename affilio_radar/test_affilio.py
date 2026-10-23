@@ -2961,6 +2961,51 @@ class AffilioRadarTests(unittest.TestCase):
 
 
 
+    def test_youtube_upload_failure_preserves_http_diagnostic_for_retry(self):
+        now = datetime.now(timezone.utc)
+        pid = "dkp-youtube-http-diagnostic"
+        diagnostic = (
+            "YouTube video content upload HTTP 429 reason=rateLimitExceeded "
+            "message=Quota exceeded for Video Uploads per day."
+        )
+        record = {
+            "ts": now.timestamp(),
+            "title": "گجت نمونه برای تشخیص خطای یوتیوب",
+            "product_url": f"https://www.digikala.com/product/{pid}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "expires_at": (now + timedelta(hours=3)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+            "posted_discount_percent": 45,
+            "delivery_status": {"telegram": "sent", "bale": "sent"},
+            "video_generation_status": "pending",
+            "youtube_upload_status": "pending",
+        }
+        state = {"published": {pid: record}}
+
+        def fake_render(image_bytes, discount, path, **kwargs):
+            output = Path(path)
+            output.write_bytes(b"diagnostic-test-mp4")
+            return output
+
+        with (
+            TemporaryDirectory() as output_dir,
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
+            patch("affilio_radar.save_json"),
+            patch("short_video.youtube_credentials_available", return_value=True),
+            patch("aparat_uploader.aparat_credentials_available", return_value=False),
+            patch("short_video.render_short_video", side_effect=fake_render),
+            patch("short_video.upload_youtube_video", side_effect=RuntimeError(diagnostic)),
+        ):
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
+
+        self.assertEqual(record["youtube_upload_status"], "retry")
+        self.assertIn("HTTP 429", record["youtube_last_error"])
+        self.assertIn("rateLimitExceeded", record["youtube_last_error"])
+        self.assertIn("Video Uploads per day", record["youtube_last_error"])
+        self.assertIsNotNone(record.get("youtube_next_attempt_at"))
+
     @unittest.skipUnless(shutil.which("ffmpeg"), "ffmpeg is installed by the publishing workflow")
     def test_real_short_video_renderer_creates_vertical_mp4(self):
         import short_video
