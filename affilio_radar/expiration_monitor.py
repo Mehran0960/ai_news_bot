@@ -1001,12 +1001,7 @@ def _parse_explicit_message_ids(value):
 
 
 def _delete_one_specific_product(state, product_id, title, telegram_ids_raw="", bale_ids_raw=""):
-    """One-shot deletion of all existing channel posts for one explicit product.
-
-    This does not add a permanent exclusion. It records the removal in the normal
-    publication cooldown ledger so the just-removed product is not immediately
-    reposted, then normal product selection resumes automatically.
-    """
+    """Delete all known/public channel copies and persist the user's permanent suppression."""
     product_id = str(product_id or "").strip().lower()
     title = str(title or "").strip()
     if not re.fullmatch(r"dkp-\d{1,12}", product_id) or not title:
@@ -1103,6 +1098,19 @@ def _delete_one_specific_product(state, product_id, title, telegram_ids_raw="", 
         return 2
 
     now = datetime.now(timezone.utc)
+    suppressions = state.setdefault("product_suppressions", {})
+    if not isinstance(suppressions, dict):
+        suppressions = {}
+        state["product_suppressions"] = suppressions
+    existing_suppression = suppressions.get(product_id, {})
+    suppression_record = dict(existing_suppression) if isinstance(existing_suppression, dict) else {}
+    suppression_record.update({
+        "title": title,
+        "reason": "user_requested_product_removal",
+        "permanent": True,
+    })
+    suppression_record.setdefault("created_at", now.isoformat())
+    suppressions[product_id] = suppression_record
     result_telegram = {}
     result_bale = {}
     failures = []
@@ -1218,9 +1226,8 @@ def _delete_one_specific_product(state, product_id, title, telegram_ids_raw="", 
             "bale_already_absent": sum(v == "already_absent" for v in result_bale.values()),
             "delete_failures": len(failures),
             "history_scan_ok": history_scan_ok,
-            # Keep aligned with affilio_radar.py's standard 24-hour repeat guard.
-            "repeat_cooldown_hours": 24,
-            "permanent_exclusion_added": False,
+            "permanent_exclusion_added": True,
+            "suppression_reason": "user_requested_product_removal",
         }, ensure_ascii=False, sort_keys=True)
     )
     return 1 if failures else 0
