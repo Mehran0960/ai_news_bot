@@ -71,28 +71,36 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(result["current_price"], 100_000)
         self.assertTrue(result["in_stock"])
 
-    def test_expiry_cleanup_uses_direct_digikala_feed_only(self):
+    def test_expiry_cleanup_prefers_direct_feed_and_fills_only_missing_ids_from_live_offer_cards(self):
         direct = {
             "dkp-1": "2026-10-20T20:00:00+00:00",
             "dkp-2": "2026-10-20T21:00:00+00:00",
         }
-        mcp = {"dkp-3": "2026-10-20T23:00:00+00:00"}
+        mcp = {
+            "dkp-1": "2026-10-20T22:30:00+00:00",
+            "dkp-3": "2026-10-20T23:00:00+00:00",
+            "dkp-not-required": "2026-10-24T23:00:00+00:00",
+        }
         with (
             patch.object(monitor, "fetch_direct_api_offer_expiries", return_value=direct),
-            patch.object(monitor, "fetch_mcp_offer_expiries", return_value=mcp) as fallback,
+            patch.object(monitor, "fetch_mcp_offer_candidates", return_value=(mcp, [])) as fallback,
         ):
-            result = monitor.fetch_offer_expiries(required_product_ids=["dkp-1", "dkp-2", "dkp-3"])
-        self.assertEqual(result, direct)
-        self.assertNotIn("dkp-3", result)
-        fallback.assert_not_called()
+            deadlines, sources = monitor.fetch_offer_deadlines(required_product_ids=["dkp-1", "dkp-2", "dkp-3"])
+        self.assertEqual(deadlines["dkp-1"], direct["dkp-1"])
+        self.assertEqual(deadlines["dkp-2"], direct["dkp-2"])
+        self.assertEqual(deadlines["dkp-3"], mcp["dkp-3"])
+        self.assertEqual(sources["dkp-1"], "digikala_live_deals_feed")
+        self.assertEqual(sources["dkp-3"], "digikala_mcp_offer_card")
+        self.assertNotIn("dkp-not-required", deadlines)
+        fallback.assert_called_once()
 
         with (
             patch.object(monitor, "fetch_direct_api_offer_expiries", return_value={}),
-            patch.object(monitor, "fetch_mcp_offer_expiries") as unnecessary_fallback,
+            patch.object(monitor, "fetch_mcp_offer_candidates", return_value=({"dkp-1": "2026-10-20T23:00:00+00:00"}, [])),
         ):
-            result = monitor.fetch_offer_expiries(required_product_ids=["dkp-1"])
-        self.assertEqual(result, {})
-        unnecessary_fallback.assert_not_called()
+            deadlines, sources = monitor.fetch_offer_deadlines(required_product_ids=["dkp-1"])
+        self.assertIn("dkp-1", deadlines)
+        self.assertEqual(sources["dkp-1"], "digikala_mcp_offer_card")
     def test_live_deadline_sync_corrects_stale_deadline_before_cleanup(self):
         now = datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
         published = {
@@ -115,6 +123,30 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["dkp-123"]["expiry_last_live_sync_at"], now.isoformat())
         self.assertTrue(published["dkp-123"]["deadline_caption_refresh_required"])
 
+
+    def test_live_card_deadline_sync_preserves_its_distinct_verified_source(self):
+        now = datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
+        published = {
+            "dkp-456": {
+                "expires_at": "",
+                "expiry_source": "unavailable",
+                "expiry_estimated": False,
+                "telegram_message_id": 91,
+                "expiry_status": "unknown",
+            }
+        }
+        summary = monitor.sync_live_offer_deadlines(
+            published,
+            {"dkp-456": "2026-10-20T22:00:00+00:00"},
+            now,
+            live_sources={"dkp-456": "digikala_mcp_offer_card"},
+        )
+        rec = published["dkp-456"]
+        self.assertEqual(summary["updated"], 1)
+        self.assertEqual(rec["expiry_source"], "digikala_mcp_offer_card")
+        self.assertTrue(rec["expiry_deadline_verified_from_site_card"])
+        self.assertFalse(rec["expiry_deadline_verified_directly"])
+        self.assertTrue(monitor._has_verified_deadline(rec))
 
     def test_live_deadline_sync_does_not_apply_current_campaign_to_post_history(self):
         now = datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
