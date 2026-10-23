@@ -47,6 +47,7 @@ jobs:
           cd affilio_radar
           python -m unittest -v test_expiration_monitor.py
 
+      # [duplicate-cleanup-now] runs only the dedupe branch in expiration_monitor.py.
       - name: Clean up offers with verified expired deadlines
         env:
           AFFILIO_FORCE_DEADLINE_SYNC: ${{ (contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[repair-all-captions]')) && 'true' || 'false' }}
