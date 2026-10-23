@@ -4876,7 +4876,7 @@ def effective_posts_per_run(backlog_count, configured_limit=None, force_full_bat
 
 
 
-VIDEO_STYLE_VERSION = 3  # upper-left platform links + comic discount burst + original soundtrack
+VIDEO_STYLE_VERSION = 4  # product title, price comparison, discount badge and on-frame DigiKala CTA
 YOUTUBE_DESCRIPTION_VERSION = 2  # public channel links, minimal YouTube description
 # Do not use the generic web uploader for public Aparat posts: it cannot guarantee Shorts placement.
 APARAT_SHORTS_ONLY = str(os.getenv("APARAT_SHORTS_ONLY", "true")).strip().lower() in {"1", "true", "yes", "on"}
@@ -5187,7 +5187,14 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
 
     try:
         image_bytes = _fetch_image(str(record["image_url"]))
-        render_short_video(image_bytes, record.get("posted_discount_percent"), output_path)
+        render_short_video(
+            image_bytes,
+            record.get("posted_discount_percent"),
+            output_path,
+            title=str(record.get("title") or "پیشنهاد ویژه دیجی‌کالا"),
+            current_price=record.get("posted_current_price"),
+            original_price=record.get("posted_original_price"),
+        )
         record["video_generation_status"] = "generated"
         record["video_style_version"] = VIDEO_STYLE_VERSION
         record["video_generated_at"] = current.isoformat()
@@ -5207,12 +5214,12 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             attempts = 1
         record["video_generation_attempts"] = attempts
         record["video_generation_status"] = "pending"
-        record["video_generation_last_error"] = type(exc).__name__
+        record["video_generation_last_error"] = f"{type(exc).__name__}: {str(exc)[:260]}"
         record["video_generation_next_attempt_at"] = (
             current + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
         ).isoformat()
         save_json(STATE, state)
-        print(f"SHORT_VIDEO_GENERATION_FAILED id={pid} error={type(exc).__name__}")
+        print(f"SHORT_VIDEO_GENERATION_FAILED id={pid} error={type(exc).__name__} detail={str(exc)[:260]!r}")
         return True
 
     # Optional private preview goes to a user-configured chat, never to the public channel.
