@@ -54,6 +54,8 @@ MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2
 MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "70"))))
 # Current channel uploadLimitExceeded behavior is consistent with ~8/day; keep Shorts evenly spaced.
 YOUTUBE_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS", "3"))))
+# Aparat has an independent cadence and remains eligible during a YouTube quota pause.
+APARAT_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS", "3"))))
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(10, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "8"))))
@@ -4907,8 +4909,9 @@ VIDEO_STYLE_VERSION = 4  # product title, price comparison, discount badge and o
 YOUTUBE_DESCRIPTION_VERSION = 2  # public channel links, minimal YouTube description
 PERSIAN_TEXT_RENDERER_VERSION = 2  # single RTL/bidi pass via Pillow RAQM when available
 PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
-# Do not use the generic web uploader for public Aparat posts: it cannot guarantee Shorts placement.
-APARAT_SHORTS_ONLY = str(os.getenv("APARAT_SHORTS_ONLY", "true")).strip().lower() in {"1", "true", "yes", "on"}
+# The generic web uploader can publish vertical 9:16 videos to Aparat's regular feed, but cannot guarantee
+# placement in Aparat Shorts (which currently requires the official app). Keep queue-only mode opt-in.
+APARAT_SHORTS_ONLY = str(os.getenv("APARAT_SHORTS_ONLY", "false")).strip().lower() in {"1", "true", "yes", "on"}
 # Match video throughput to channel publication bursts so the video queue does not lag behind.
 MAX_SHORT_VIDEOS_PER_RUN = max(1, min(4, int(os.getenv("AFFILIO_MAX_SHORT_VIDEOS_PER_RUN", "2"))))
 
@@ -5102,6 +5105,53 @@ def _next_youtube_daily_upload_retry_at(now: datetime | None = None) -> datetime
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     return current.astimezone(timezone.utc) + timedelta(hours=24, minutes=15)
+
+
+def _initialize_aparat_upload_slot(state: dict) -> datetime | None:
+    """Load Aparat's next-upload slot or migrate it from Aparat upload history."""
+    next_slot = _parse_utc_datetime(state.get("aparat_next_upload_at"))
+    if next_slot is not None:
+        return next_slot
+
+    published = state.get("published", {})
+    candidates: list[datetime] = []
+    if isinstance(published, dict):
+        for record in published.values():
+            if not isinstance(record, dict):
+                continue
+            if str(record.get("aparat_upload_status") or "") != "uploaded":
+                continue
+            uploaded_at = _parse_utc_datetime(record.get("aparat_uploaded_at"))
+            if uploaded_at is not None:
+                candidates.append(uploaded_at)
+
+    for key in ("aparat_last_upload_success_at", "aparat_last_upload_outcome_unknown_at"):
+        timestamp = _parse_utc_datetime(state.get(key))
+        if timestamp is not None:
+            candidates.append(timestamp)
+
+    if not candidates:
+        return None
+
+    next_slot = max(candidates) + timedelta(hours=APARAT_UPLOAD_INTERVAL_HOURS)
+    state["aparat_next_upload_at"] = next_slot.isoformat()
+    return next_slot
+
+
+def _aparat_upload_slot_due(
+    state: dict,
+    now: datetime | None = None,
+    credentials_ready: bool = True,
+) -> bool:
+    """Check Aparat's upload slot independently of YouTube status and credentials."""
+    if not credentials_ready:
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    next_slot = _initialize_aparat_upload_slot(state)
+    return next_slot is None or current >= next_slot
 
 
 def process_pending_short_video(state: dict, now: datetime | None = None, output_dir: str | Path = "video_artifacts") -> bool:
