@@ -3877,13 +3877,13 @@
       "title": "محافظ برق هوشمند تایمردار هادرون مدل P103"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-23T15:05:31.499280+00:00",
+  "expiry_feed_last_checked_at": "2026-10-23T15:15:35.479103+00:00",
   "expiry_feed_last_sync_summary": {
     "matched": 9,
+    "updated": 9,
+    "unchanged": 0,
     "missing_from_feed": 32,
-    "skipped": 7,
-    "unchanged": 9,
-    "updated": 0
+    "skipped": 7
   },
   "growth_tracking": {
     "daily_member_counts": {
@@ -5170,8 +5170,8 @@
       "caption_without_expiry_migrated_at": "2026-10-23T13:55:08.166469+00:00",
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-23T15:00:26.291967+00:00",
-      "expiry_last_product_check_at": "2026-10-23T15:00:26.291967+00:00",
+      "expiry_last_probed_at": "2026-10-23T15:15:35.479103+00:00",
+      "expiry_last_product_check_at": "2026-10-23T15:15:35.479103+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
       "product_url": "https://www.digikala.com/product/dkp-20073095/",
@@ -5854,8 +5854,8 @@
       "caption_without_expiry_migrated_at": "2026-10-23T13:55:11.662776+00:00",
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-23T15:00:26.291967+00:00",
-      "expiry_last_product_check_at": "2026-10-23T15:00:26.291967+00:00",
+      "expiry_last_probed_at": "2026-10-23T15:15:35.479103+00:00",
+      "expiry_last_product_check_at": "2026-10-23T15:15:35.479103+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
       "product_url": "https://www.digikala.com/product/dkp-22328533/",
@@ -5943,11 +5943,11 @@
       "caption_deadline_format_version": 10,
       "caption_static_migrated_at": "2026-10-23T13:52:37.083918+00:00",
       "caption_without_expiry_migrated_at": "2026-10-23T13:55:15.146721+00:00",
-      "expires_at": "2026-10-23T20:30:01.425239+00:00",
+      "expires_at": "2026-10-23T20:32:08.012454+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T12:40:26.217446+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T15:15:35.479103+00:00",
       "expiry_last_probed_at": "2026-10-23T10:31:43.108114+00:00",
       "expiry_last_product_check_at": "2026-10-23T10:31:43.108114+00:00",
       "expiry_source": "digikala_mcp_offer_card",
@@ -5955,7 +5955,8 @@
       "product_url": "https://www.digikala.com/product/dkp-22502190/",
       "telegram_message_id": 480,
       "title": "ژل آبرسان تیلسیم مدل هیالورونیک اسید حجم ۵۰ میلی‌لیتر مناسب پوست خیلی خشک حاوی آلوئه‌ورا",
-      "ts": 1792751503.108114
+      "ts": 1792751503.108114,
+      "deadline_caption_refresh_required": true
     },
     "dkp-22636504": {
       "bale_expiry_status": "tracked",
@@ -6036,10 +6037,10 @@
     "dkp-22790974": {
       "bale_expiry_status": "tracked",
       "bale_message_id": 641,
-      "caption_countdown_refreshed_at": "2026-10-23T13:56:15.566481+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T15:15:35.479103+00:00",
       "caption_deadline_format_version": 10,
-      "caption_static_migrated_at": "2026-10-23T13:52:37.083918+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-23T13:56:15.566510+00:00",
+      "caption_static_migrated_at": "2026-10-23T15:15:35.479103+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T15:15:35.479103+00:00",
       "click_tracking_url": "",
       "delivery_attempts": {
         "bale": 1,
@@ -6050,11 +6051,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T16:00:01.425239+00:00",
+      "expires_at": "2026-10-23T16:02:08.012454+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T12:40:26.217446+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T15:15:35.479103+00:00",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/47010577999020ee8fc75f31adad175cfcf5049a_1789995930.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
@@ -6069,15 +6070,16 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T15:44:25.962656+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "deadline_caption_refresh_required": true
     },
     "dkp-22841932": {
       "bale_expiry_status": "tracked",
       "bale_message_id": 633,
-      "caption_countdown_refreshed_at": "2026-10-23T13:55:53.792174+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T15:15:35.479103+00:00",
       "caption_deadline_format_version": 10,
-      "caption_static_migrated_at": "2026-10-23T13:52:37.083918+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-23T13:55:53.792203+00:00",
+      "caption_static_migrated_at": "2026-10-23T15:15:35.479103+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T15:15:35.479103+00:00",
       "click_tracking_url": "",
       "delivery_attempts": {
         "bale": 1,
@@ -6088,11 +6090,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T16:00:01.425239+00:00",
+      "expires_at": "2026-10-23T16:02:08.012454+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T12:40:26.217446+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T15:15:35.479103+00:00",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/1230a8bb8f5d482dc12228feb0b07dcc689414d0_1790491622.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
@@ -6107,7 +6109,8 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T15:59:52.832545+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "deadline_caption_refresh_required": true
     },
     "dkp-22847300": {
       "bale_expiry_status": "tracked",
@@ -6277,7 +6280,7 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T16:00:01.266801+00:00",
+      "expires_at": "2026-10-23T16:02:08.012454+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -6292,15 +6295,20 @@
       "title": "هدفون بلوتوثی موزیک آپولو مدل PRO3/GRK8",
       "ts": 1792767241.6763568,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expiry_last_live_sync_at": "2026-10-23T15:15:35.479103+00:00",
+      "deadline_caption_refresh_required": true,
+      "caption_static_migrated_at": "2026-10-23T15:15:35.479103+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T15:15:35.479103+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T15:15:35.479103+00:00"
     },
     "dkp-22905402": {
       "bale_expiry_status": "tracked",
       "bale_message_id": 648,
-      "caption_countdown_refreshed_at": "2026-10-23T13:56:54.232870+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T15:15:35.479103+00:00",
       "caption_deadline_format_version": 10,
-      "caption_static_migrated_at": "2026-10-23T13:52:37.083918+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-23T13:56:54.232897+00:00",
+      "caption_static_migrated_at": "2026-10-23T15:15:35.479103+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T15:15:35.479103+00:00",
       "click_tracking_url": "",
       "delivery_attempts": {
         "bale": 1,
@@ -6311,7 +6319,7 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T16:00:01.651553+00:00",
+      "expires_at": "2026-10-23T16:02:08.012454+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -6326,15 +6334,17 @@
       "title": "باتری قلمی قابل شارژ موزیک آپولو مدل AA27 بسته 2 عددی",
       "ts": 1792760944.7382913,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expiry_last_live_sync_at": "2026-10-23T15:15:35.479103+00:00",
+      "deadline_caption_refresh_required": true
     },
     "dkp-22917182": {
       "bale_expiry_status": "tracked",
       "bale_message_id": 643,
-      "caption_countdown_refreshed_at": "2026-10-23T13:56:26.492200+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T15:15:35.479103+00:00",
       "caption_deadline_format_version": 10,
-      "caption_static_migrated_at": "2026-10-23T13:52:37.083918+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-23T13:56:26.492227+00:00",
+      "caption_static_migrated_at": "2026-10-23T15:15:35.479103+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T15:15:35.479103+00:00",
       "click_tracking_url": "",
       "delivery_attempts": {
         "bale": 1,
@@ -6345,11 +6355,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T16:00:01.425239+00:00",
+      "expires_at": "2026-10-23T16:02:08.012454+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T12:40:26.217446+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T15:15:35.479103+00:00",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/cf7653f53677180e9b1b5bf398e7b2584929b8fb_1791278880.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
@@ -6361,15 +6371,16 @@
       "title": "باتری نیم قلمی قابل شارژ موزیک آپولو مدل MW بسته 2 عددی",
       "ts": 1792758860.9957159,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "deadline_caption_refresh_required": true
     },
     "dkp-22923722": {
       "bale_expiry_status": "tracked",
       "bale_message_id": 654,
-      "caption_countdown_refreshed_at": "2026-10-23T15:10:27.834718+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T15:15:35.479103+00:00",
       "caption_deadline_format_version": 10,
-      "caption_static_migrated_at": "2026-10-23T15:10:27.834718+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-23T15:10:27.834718+00:00",
+      "caption_static_migrated_at": "2026-10-23T15:15:35.479103+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T15:15:35.479103+00:00",
       "click_tracking_url": "",
       "deadline_caption_refresh_required": true,
       "delivery_attempts": {
@@ -6381,11 +6392,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T16:00:01.633877+00:00",
+      "expires_at": "2026-10-23T16:02:08.012454+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T14:05:28.476689+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T15:15:35.479103+00:00",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/d4663be50fdcfc54b9fea49c7c8c8b2d2013af07_1791359133.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
@@ -6402,10 +6413,10 @@
     "dkp-22925901": {
       "bale_expiry_status": "tracked",
       "bale_message_id": 637,
-      "caption_countdown_refreshed_at": "2026-10-23T13:56:04.790059+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T15:15:35.479103+00:00",
       "caption_deadline_format_version": 10,
-      "caption_static_migrated_at": "2026-10-23T13:52:37.083918+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-23T13:56:04.790092+00:00",
+      "caption_static_migrated_at": "2026-10-23T15:15:35.479103+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T15:15:35.479103+00:00",
       "click_tracking_url": "",
       "delivery_attempts": {
         "bale": 1,
@@ -6416,11 +6427,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T16:00:01.425239+00:00",
+      "expires_at": "2026-10-23T16:02:08.012454+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T12:40:26.217446+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T15:15:35.479103+00:00",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/7fa1c0c0a8908790b9b5d137538b725b253d8463_1791454045.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
@@ -6435,15 +6446,16 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T15:34:02.764872+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "deadline_caption_refresh_required": true
     },
     "dkp-22938145": {
       "bale_expiry_status": "tracked",
       "bale_message_id": 663,
-      "caption_countdown_refreshed_at": "2026-10-23T15:10:27.834718+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T15:15:35.479103+00:00",
       "caption_deadline_format_version": 10,
-      "caption_static_migrated_at": "2026-10-23T15:10:27.834718+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-23T15:10:27.834718+00:00",
+      "caption_static_migrated_at": "2026-10-23T15:15:35.479103+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T15:15:35.479103+00:00",
       "click_tracking_url": "",
       "deadline_caption_refresh_required": true,
       "delivery_attempts": {
@@ -6455,11 +6467,11 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T16:00:01.788343+00:00",
+      "expires_at": "2026-10-23T16:02:08.012454+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T15:00:26.291967+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T15:15:35.479103+00:00",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/ca777016c5fa4700cf8df6c154447099661f3c17_1791543824.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
