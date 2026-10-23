@@ -5265,6 +5265,15 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
     elif youtube_ready and not youtube_upload_due and youtube_next_upload_at is not None:
         print(f"YOUTUBE_UPLOAD_SLOT_WAIT next_at={youtube_next_upload_at.isoformat()}")
 
+    # Aparat's upload clock is independent: a YouTube pause/cadence must not postpone it.
+    aparat_schedule_before = str(state.get("aparat_next_upload_at") or "")
+    aparat_upload_due = _aparat_upload_slot_due(state, current, aparat_ready)
+    aparat_next_upload_at = _parse_utc_datetime(state.get("aparat_next_upload_at"))
+    if str(state.get("aparat_next_upload_at") or "") != aparat_schedule_before:
+        state_changed = True
+    if aparat_ready and not aparat_upload_due and aparat_next_upload_at is not None:
+        print(f"APARAT_UPLOAD_SLOT_WAIT next_at={aparat_next_upload_at.isoformat()}")
+
     if youtube_ready:
         for existing_pid, existing_record in published.items():
             if isinstance(existing_record, dict) and _delete_superseded_youtube_video(
@@ -5405,6 +5414,14 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
                 print(f"SHORT_VIDEO_REGENERATE id={pid} old_style={style_version} new_style={VIDEO_STYLE_VERSION}")
         upload_status = str(record.get("youtube_upload_status") or "pending_credentials")
         aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
+        # Requeue deals previously held for manual Shorts publication. They still must
+        # pass the live-deadline checks below before a public upload can occur.
+        if not APARAT_SHORTS_ONLY and aparat_status == "waiting_shorts_uploader":
+            record["aparat_upload_status"] = "pending"
+            record["aparat_shorts_upload_status"] = "superseded_by_regular_video_upload"
+            aparat_status = "pending"
+            state_changed = True
+            print(f"APARAT_QUEUE_REACTIVATED id={pid} target=regular_video_feed")
 
         # Revisit records skipped by the previous, stricter 20-minute rule when
         # the same live-deal record still has enough time before channel cleanup.
@@ -5505,9 +5522,10 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             youtube_upload_due and upload_status in pending_youtube
             and not youtube_in_flight
         )
-        aparat_need = aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not aparat_in_flight
+        aparat_pending = aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not aparat_in_flight
+        aparat_need = aparat_pending and (APARAT_SHORTS_ONLY or aparat_upload_due)
         public_aparat_need = aparat_need and not APARAT_SHORTS_ONLY
-        shorts_queue_need = aparat_need and APARAT_SHORTS_ONLY
+        shorts_queue_need = aparat_pending and APARAT_SHORTS_ONLY
         manual_artifact_need = (
             not youtube_ready and upload_status in pending_youtube
             and generation_status == "pending"
@@ -5630,9 +5648,15 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
     # Aparat uses the authenticated web uploader. The workflow defaults to non-public
     # uploads until the owner has validated the first end-to-end run.
     aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
-    if aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not APARAT_SHORTS_ONLY:
+    if aparat_ready and aparat_upload_due and aparat_status in PENDING_APARAT_STATUSES and not APARAT_SHORTS_ONLY:
+        aparat_started_at = datetime.now(timezone.utc)
         record["aparat_upload_status"] = "uploading"
-        record["aparat_upload_started_at"] = datetime.now(timezone.utc).isoformat()
+        record["aparat_upload_started_at"] = aparat_started_at.isoformat()
+        state["aparat_last_upload_attempt_at"] = aparat_started_at.isoformat()
+        # Reserve the next slot before uploading so failures cannot cause a five-minute burst.
+        state["aparat_next_upload_at"] = (
+            aparat_started_at + timedelta(hours=APARAT_UPLOAD_INTERVAL_HOURS)
+        ).isoformat()
         save_json(STATE, state)
         try:
             aparat_result = upload_aparat_video(
@@ -5647,7 +5671,13 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             record["aparat_visibility"] = aparat_result.get("visibility", "unknown")
             if aparat_result.get("lookup_error"):
                 record["aparat_video_lookup_last_error"] = aparat_result["lookup_error"]
-            record["aparat_uploaded_at"] = datetime.now(timezone.utc).isoformat()
+            aparat_uploaded_at = datetime.now(timezone.utc)
+            record["aparat_uploaded_at"] = aparat_uploaded_at.isoformat()
+            state["aparat_last_upload_success_at"] = aparat_uploaded_at.isoformat()
+            state["aparat_next_upload_at"] = (
+                aparat_uploaded_at + timedelta(hours=APARAT_UPLOAD_INTERVAL_HOURS)
+            ).isoformat()
+            state.pop("aparat_last_upload_outcome_unknown_at", None)
             record.pop("aparat_next_attempt_at", None)
             record.pop("aparat_last_error", None)
             print(
@@ -5655,10 +5685,15 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
                 f"url={record['aparat_video_url'] or 'pending_hash'}"
             )
         except Exception as exc:
+            aparat_failure_at = datetime.now(timezone.utc)
+            state["aparat_next_upload_at"] = (
+                aparat_failure_at + timedelta(hours=APARAT_UPLOAD_INTERVAL_HOURS)
+            ).isoformat()
             if isinstance(exc, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)):
                 record["aparat_upload_status"] = "upload_result_unknown"
                 record["aparat_review_required"] = True
                 record["aparat_last_error"] = type(exc).__name__
+                state["aparat_last_upload_outcome_unknown_at"] = aparat_failure_at.isoformat()
                 print(f"APARAT_UPLOAD_RESULT_UNKNOWN id={pid} error={type(exc).__name__}; no automatic duplicate retry")
             else:
                 try:
