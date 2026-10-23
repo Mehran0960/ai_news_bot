@@ -56,6 +56,7 @@ from affilio_radar import (
     api_search_product_urls,
     api_incredible_offer_product_urls,
     api_incredible_offer_product_candidates,
+    discover_product_urls,
     parse_product_api,
     is_discount_publish_eligible,
     is_prohibited_product_title,
@@ -2325,7 +2326,7 @@ class AffilioRadarTests(unittest.TestCase):
             urls, diagnostics, expiries, direct_expiries, mcp_expiries = discover_product_urls(
                 queued_records=queued,
                 discovery_queue={},
-                state_to_persist={},
+                state_to_persist=None,
             )
 
         self.assertIn("https://www.digikala.com/product/dkp-91001/", urls)
