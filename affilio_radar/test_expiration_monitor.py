@@ -715,7 +715,8 @@ class ExpirationMonitorTests(unittest.TestCase):
         updated = edit.call_args.args[1]
         self.assertEqual(updated.count("────────────"), 2)
         self.assertNotIn("⏳", updated)
-        self.assertIn("<s>۱٬۰۵۶٬۰۰۰ تومان</s>", updated)
+        self.assertNotIn("قیمت اصلی", updated)
+        self.assertNotIn("۱٬۰۵۶٬۰۰۰", updated)
         self.assertTrue(monitor._is_valid_affilio_tracking_url(edit.call_args.kwargs["affiliate_url"]))
         self.assertEqual(result[3], 1)
 
@@ -753,6 +754,8 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertTrue(monitor._is_valid_affilio_tracking_url(edit.call_args.kwargs["affiliate_url"]))
         self.assertNotIn("مانده به پایان تخفیف", edit.call_args.args[1])
         self.assertNotIn("⏳", edit.call_args.args[1])
+        self.assertNotIn("قیمت اصلی", edit.call_args.args[1])
+        self.assertNotIn("۱٬۰۵۶٬۰۰۰", edit.call_args.args[1])
         self.assertEqual(result[3], 1)
 
     def test_public_history_removes_stale_countdown_and_absolute_deadline_from_caption(self):
@@ -790,6 +793,8 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertNotIn("⏳", updated)
         self.assertNotIn("مانده به پایان تخفیف", updated)
         self.assertNotIn("📅 پایان تخفیف:", updated)
+        self.assertNotIn("قیمت اصلی", updated)
+        self.assertNotIn("۱٬۰۵۶٬۰۰۰", updated)
         self.assertEqual(published["dkp-legacy-89"]["caption_deadline_format_version"], monitor.CAPTION_FORMAT_VERSION)
         self.assertEqual(published["dkp-legacy-89"]["expires_at"], deadline.isoformat())
 
