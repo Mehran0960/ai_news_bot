@@ -5458,15 +5458,22 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         aparat_need = aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not aparat_in_flight
         public_aparat_need = aparat_need and not APARAT_SHORTS_ONLY
         shorts_queue_need = aparat_need and APARAT_SHORTS_ONLY
+        manual_artifact_need = (
+            not youtube_ready and upload_status in pending_youtube
+            and generation_status == "pending"
+        )
         review_next = _parse_utc_datetime(record.get("video_review_next_attempt_at"))
         review_need = review_ready and not record.get("video_review_sent") and not (
             review_next and current < review_next
         )
-        if not (yt_need or public_aparat_need or shorts_queue_need or review_need):
-            # Don't render/select public YouTube content before its next scheduled slot.
-            # A distinct Aparat Shorts queue can still be serviced independently.
+        if youtube_pause_active and not (public_aparat_need or review_need):
+            # A channel-wide YouTube limit suppresses its Shorts artifact queue until reset,
+            # but never blocks an independently configured public Aparat upload.
             continue
-        if generation_status == "generated" and not (yt_need or public_aparat_need or shorts_queue_need or review_need):
+        if not (yt_need or public_aparat_need or shorts_queue_need or review_need or manual_artifact_need):
+            # Don't render/select public YouTube content before its next scheduled slot.
+            continue
+        if generation_status == "generated" and not (yt_need or public_aparat_need or shorts_queue_need or review_need or manual_artifact_need):
             # A previously generated MP4 has no configured destination needing work.
             continue
 
