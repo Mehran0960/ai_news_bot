@@ -44,7 +44,7 @@ POST_REMOVAL_BUFFER_MINUTES = max(
 LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 5 * 60
 # Bound detail lookups so missing timers cannot stall expiry cleanup.
 DIRECT_PRODUCT_DETAIL_CHECK_LIMIT = max(1, min(10, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "3"))))
-CAPTION_FORMAT_VERSION = 8
+CAPTION_FORMAT_VERSION = 9
 
 
 def walk_dicts(value):

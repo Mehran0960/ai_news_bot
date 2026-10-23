@@ -581,6 +581,35 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(selected[0]["product_id"], "dkp-fashion-new")
         self.assertEqual({p["product_id"] for p in selected}, {p["product_id"] for p in candidates})
 
+    def test_publish_selection_avoids_categories_seen_in_the_last_four_posts(self):
+        now = datetime(2026, 10, 23, 12, 0, tzinfo=timezone.utc)
+        recent_posts = [
+            ("dkp-recent-fashion", "تیشرت مردانه مدل نمونه", 4),
+            ("dkp-recent-home", "باکس نظم دهنده مدل نمونه", 3),
+            ("dkp-recent-audio", "هدفون بلوتوثی مدل نمونه", 2),
+            ("dkp-recent-power", "شارژر سریع مدل نمونه", 1),
+        ]
+        published = {
+            product_id: {
+                "title": title,
+                "telegram_message_id": 900 + index,
+                "ts": now.timestamp() - minutes * 60,
+            }
+            for index, (product_id, title, minutes) in enumerate(recent_posts)
+        }
+        candidates = [
+            {"product_id": "dkp-audio-new", "title": "هدفون بلوتوثی مدل تازه"},
+            {"product_id": "dkp-fragrance-new", "title": "ادوپرفیوم زنانه مدل تازه"},
+        ]
+        queue = {item["product_id"]: {} for item in candidates}
+        eligible = {item["product_id"]: item for item in candidates}
+
+        selected = select_publish_candidates(queue, eligible, now, published)
+
+        self.assertEqual(selected[0]["product_id"], "dkp-fragrance-new")
+        self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
+
+
     def test_publish_selection_uses_durable_history_after_channel_posts_are_deleted(self):
         now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
         recent_publications = [

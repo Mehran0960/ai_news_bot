@@ -69,7 +69,7 @@ COUNTDOWN_SAFETY_BUFFER_MINUTES = max(0, min(30, int(os.getenv("AFFILIO_COUNTDOW
 COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
     120, min(600, int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS", "240")))
 )
-CAPTION_DEADLINE_FORMAT_VERSION = 8
+CAPTION_DEADLINE_FORMAT_VERSION = 9
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
 URGENT_MIN_POST_INTERVAL_MINUTES = 10
@@ -2159,7 +2159,7 @@ def _diversify_ranked_records(
     recent_publications: list | None = None,
     label: str = "DISCOVERY",
 ):
-    """Spread a ranked work batch across recent categories, product families and brands."""
+    """Prefer 4-category, 5-family and 4-brand rotation when valid alternatives exist."""
     source = list(records or [])
     cap = len(source) if limit is None else max(0, int(limit))
     if cap <= 0 or not source:
@@ -2186,9 +2186,9 @@ def _diversify_ranked_records(
         if brand:
             brand_counts[brand] = brand_counts.get(brand, 0) + 1
         recent_product_ids.append(str(post.get("product_id") or ""))
-    recent_categories = [str(post.get("category") or "other") for post in recent[-2:]]
-    recent_families = [str(post.get("family") or post.get("category") or "other") for post in recent[-3:]]
-    recent_brands = [str(post.get("brand") or "") for post in recent[-2:] if post.get("brand")]
+    recent_categories = [str(post.get("category") or "other") for post in recent[-4:]]
+    recent_families = [str(post.get("family") or post.get("category") or "other") for post in recent[-5:]]
+    recent_brands = [str(post.get("brand") or "") for post in recent[-4:] if post.get("brand")]
     remaining, selected = list(source), []
     def _as_product(entry):
         if isinstance(entry, tuple) and len(entry) >= 2 and isinstance(entry[1], dict):
@@ -2230,10 +2230,10 @@ def _diversify_ranked_records(
             brand_counts[brand] = brand_counts.get(brand, 0) + 1
         if pid:
             recent_product_ids.append(pid)
-        recent_categories = (recent_categories + [category])[-2:]
-        recent_families = (recent_families + [family])[-3:]
+        recent_categories = (recent_categories + [category])[-4:]
+        recent_families = (recent_families + [family])[-5:]
         if brand:
-            recent_brands = (recent_brands + [brand])[-2:]
+            recent_brands = (recent_brands + [brand])[-4:]
     return selected
 
 
@@ -4415,7 +4415,7 @@ def select_publish_candidates(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> list[dict]:
-    """Respect retry backoff and strongly prefer broad variety across recent posts."""
+    """Respect retry backoff and enforce strong recent category/family/brand rotation."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -4449,9 +4449,9 @@ def select_publish_candidates(
         recent_product_ids.append(post["product_id"])
 
     remaining, diversified = list(selected), []
-    recent_categories = [post["category"] for post in recent[-2:]]
-    recent_families = [post["family"] for post in recent[-3:]]
-    recent_brands = [post["brand"] for post in recent[-2:] if post["brand"]]
+    recent_categories = [post["category"] for post in recent[-4:]]
+    recent_families = [post["family"] for post in recent[-5:]]
+    recent_brands = [post["brand"] for post in recent[-4:] if post["brand"]]
     while remaining:
         ranked = []
         for rank, product in enumerate(remaining):
@@ -4503,10 +4503,10 @@ def select_publish_candidates(
         if brand:
             brand_counts[brand] = brand_counts.get(brand, 0) + 1
         recent_product_ids.append(pid)
-        recent_categories = (recent_categories + [category])[-2:]
-        recent_families = (recent_families + [family])[-3:]
+        recent_categories = (recent_categories + [category])[-4:]
+        recent_families = (recent_families + [family])[-5:]
         if brand:
-            recent_brands = (recent_brands + [brand])[-2:]
+            recent_brands = (recent_brands + [brand])[-4:]
     return diversified
 
 
