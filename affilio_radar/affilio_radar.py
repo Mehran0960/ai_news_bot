@@ -5095,16 +5095,11 @@ def repair_persian_text_video_uploads() -> int:
 
 
 def _next_youtube_daily_upload_retry_at(now: datetime | None = None) -> datetime:
-    """Defer confirmed daily-upload-limit errors until after the next Pacific-time reset."""
+    """Defer a channel daily-upload-limit error for 24 hours, plus a small safety buffer."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
-    pacific = ZoneInfo("America/Los_Angeles")
-    next_date = current.astimezone(pacific).date() + timedelta(days=1)
-    reset_plus_buffer = datetime(
-        next_date.year, next_date.month, next_date.day, 0, 15, tzinfo=pacific
-    )
-    return reset_plus_buffer.astimezone(timezone.utc)
+    return current.astimezone(timezone.utc) + timedelta(hours=24, minutes=15)
 
 
 def process_pending_short_video(state: dict, now: datetime | None = None, output_dir: str | Path = "video_artifacts") -> bool:
@@ -5149,6 +5144,14 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
     pending_youtube = {"pending", "pending_credentials", "retry"}
     candidates = []
     state_changed = False
+
+    youtube_pause_until = _parse_utc_datetime(state.get("youtube_uploads_paused_until"))
+    if youtube_pause_until and current >= youtube_pause_until:
+        state.pop("youtube_uploads_paused_until", None)
+        state.pop("youtube_upload_pause_reason", None)
+        youtube_pause_until = None
+        state_changed = True
+    youtube_pause_active = bool(youtube_pause_until and current < youtube_pause_until)
 
     if youtube_ready:
         for existing_pid, existing_record in published.items():
@@ -5386,13 +5389,19 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         if not any(value == "sent" for value in delivery.values()):
             continue
 
-        yt_need = youtube_ready and upload_status in pending_youtube and not youtube_in_flight
+        yt_need = (
+            youtube_ready and upload_status in pending_youtube
+            and not youtube_in_flight and not youtube_pause_active
+        )
         aparat_need = aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not aparat_in_flight
         review_next = _parse_utc_datetime(record.get("video_review_next_attempt_at"))
         review_need = review_ready and not record.get("video_review_sent") and not (
             review_next and current < review_next
         )
-        if generation_status == "generated" and not (yt_need or aparat_need or review_need):
+        if youtube_pause_active and not ((aparat_need and not APARAT_SHORTS_ONLY) or review_need):
+            # Don't waste CPU regenerating videos while the channel-wide YouTube cap is active.
+            continue
+        if generation_status == "generated" and not (yt_need or (aparat_need and not APARAT_SHORTS_ONLY) or review_need):
             # A previously generated MP4 has no configured destination needing work.
             continue
 
@@ -5610,6 +5619,10 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
                 failure_time = datetime.now(timezone.utc)
                 if daily_upload_limit:
                     next_attempt = _next_youtube_daily_upload_retry_at(failure_time)
+                    state["youtube_uploads_paused_until"] = next_attempt.isoformat()
+                    state["youtube_upload_pause_reason"] = "daily_upload_limit"
+                    youtube_pause_until = next_attempt
+                    youtube_pause_active = True
                 else:
                     next_attempt = failure_time + timedelta(
                         seconds=min(3600, 300 * (2 ** min(attempts - 1, 4)))
@@ -5620,7 +5633,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
                     f"YOUTUBE_UPLOAD_FAILED id={pid} error={type(exc).__name__} "
                     f"http_status={http_status or 'unknown'} detail={error_detail!r} "
                     f"retry_attempt={attempts} "
-                    f"deferred_until_daily_reset={daily_upload_limit} "
+                    f"deferred_for_24h={daily_upload_limit} "
                     f"next_attempt_at={next_attempt.isoformat()}"
                 )
     elif not youtube_ready and upload_status in pending_youtube:
