@@ -414,6 +414,12 @@ def sync_live_offer_deadlines(published, live_expiries, now, live_sources=None):
             )
         )
         if not must_update:
+            # Same-value deadlines still count as fresh first-party confirmation.
+            rec["expiry_last_live_sync_at"] = now.isoformat()
+            if source in {"digikala_live_deals_feed", "digikala_product_detail_api"}:
+                rec["expiry_last_direct_verification_at"] = now.isoformat()
+            elif source == "digikala_mcp_offer_card":
+                rec["expiry_last_site_card_sync_at"] = now.isoformat()
             summary["unchanged"] += 1
             continue
 
@@ -423,6 +429,10 @@ def sync_live_offer_deadlines(published, live_expiries, now, live_sources=None):
         rec["expiry_deadline_verified_directly"] = source in {"digikala_live_deals_feed", "digikala_product_detail_api"}
         rec["expiry_deadline_verified_from_site_card"] = source == "digikala_mcp_offer_card"
         rec["expiry_last_live_sync_at"] = now.isoformat()
+        if source in {"digikala_live_deals_feed", "digikala_product_detail_api"}:
+            rec["expiry_last_direct_verification_at"] = now.isoformat()
+        elif source == "digikala_mcp_offer_card":
+            rec["expiry_last_site_card_sync_at"] = now.isoformat()
         # Force this exact post to the front of the static-caption migration queue.
         rec["deadline_caption_refresh_required"] = True
         for platform in platforms:
@@ -1937,7 +1947,132 @@ def _delete_posts_without_verified_deadline(published, now):
             )
     return changed, deleted, marked
 
-def _delete_expired_posts(published, now, mark_unknown=False):
+def _confirm_expiry_for_deletion(product_id, record, now, budget=None):
+    """Reconfirm a near-expiry offer through DigiKala's own product API before deletion.
+
+    A first-party feed confirmation can be used while fresh. A cached/MCP offer-card
+    deadline must be rechecked against the current product API at the removal cutoff.
+    If DigiKala returns no usable timer or direct evidence that the offer ended, retain
+    the post and its purchase button until the next scheduled check.
+    """
+    interval = LIVE_DEADLINE_SYNC_INTERVAL_SECONDS
+
+    def is_fresh(value):
+        parsed = parse_expiry(value)
+        if not parsed:
+            return False
+        try:
+            checked = datetime.fromisoformat(parsed)
+        except ValueError:
+            return False
+        if checked.tzinfo is None:
+            checked = checked.replace(tzinfo=timezone.utc)
+        age = (now - checked.astimezone(timezone.utc)).total_seconds()
+        return -60 <= age <= interval
+
+    source = str(record.get("expiry_source") or "")
+    direct_source = source in {"digikala_live_deals_feed", "digikala_product_detail_api"}
+    if (
+        direct_source
+        and _has_verified_deadline(record)
+        and is_fresh(record.get("expiry_last_direct_verification_at"))
+    ):
+        return "confirmed", False
+    if (
+        source == "live_product_stock_or_price"
+        and is_fresh(record.get("expiry_last_direct_verification_at"))
+    ):
+        return "confirmed", False
+
+    previous_check = parse_expiry(record.get("expiry_last_removal_check_at"))
+    if previous_check and is_fresh(previous_check):
+        previous_result = str(record.get("expiry_last_removal_check_result") or "")
+        return ("confirmed" if previous_result == "confirmed" else "inconclusive"), False
+
+    if isinstance(budget, dict):
+        remaining = int(budget.get("remaining", 0) or 0)
+        if remaining <= 0:
+            print(
+                f"EXPIRY_DIRECT_RECHECK_DEFERRED product_id={product_id} "
+                "reason=per-run-direct-check-budget; post_and_purchase_button_preserved=true"
+            )
+            return "inconclusive", False
+        budget["remaining"] = remaining - 1
+
+    before = dict(record)
+    snapshot = fetch_live_product_status(product_id)
+    record["expiry_last_removal_check_at"] = now.isoformat()
+    if not snapshot:
+        record["expiry_last_removal_check_result"] = "inconclusive"
+        changed = record != before
+        print(
+            f"EXPIRY_DIRECT_RECHECK_UNCONFIRMED product_id={product_id} "
+            "reason=direct_product_api_returned_no_usable_status; "
+            "post_and_purchase_button_preserved=true"
+        )
+        return "inconclusive", changed
+
+    direct_deadline = (
+        parse_expiry(snapshot.get("deal_expires_at"))
+        if snapshot.get("expiry_verified_directly") is True else ""
+    )
+    record["last_seen_current_price"] = snapshot.get("current_price")
+    record["last_seen_in_stock"] = snapshot.get("in_stock")
+    if direct_deadline:
+        previous_deadline = parse_expiry(record.get("expires_at"))
+        record["expires_at"] = direct_deadline
+        record["expiry_source"] = "digikala_product_detail_api"
+        record["expiry_deadline_verified_directly"] = True
+        record["expiry_deadline_verified_from_site_card"] = False
+        record["expiry_estimated"] = False
+        record["expiry_last_direct_verification_at"] = now.isoformat()
+        record["expiry_last_removal_check_result"] = "confirmed"
+        record.pop("expiry_reason", None)
+        print(
+            f"EXPIRY_DIRECT_PRODUCT_RECHECK product_id={product_id} "
+            f"previous={previous_deadline or 'missing'} live={direct_deadline}"
+        )
+        return "confirmed", True
+
+    # When DigiKala directly reports no stock or a material price reversion, the
+    # offer is no longer purchasable even if its card no longer carries a timer.
+    reason = ""
+    if snapshot.get("in_stock") is False:
+        reason = "out_of_stock"
+    else:
+        try:
+            posted_price = int(record.get("posted_current_price") or 0)
+            live_price = int(snapshot.get("current_price") or 0)
+            if posted_price > 0 and live_price > posted_price * 1.05:
+                reason = "price_reverted"
+        except (TypeError, ValueError, OverflowError):
+            pass
+
+    if reason:
+        record["expires_at"] = now.isoformat()
+        record["expiry_source"] = "live_product_stock_or_price"
+        record["expiry_deadline_verified_directly"] = True
+        record["expiry_deadline_verified_from_site_card"] = False
+        record["expiry_estimated"] = False
+        record["expiry_last_direct_verification_at"] = now.isoformat()
+        record["expiry_last_removal_check_result"] = "confirmed"
+        record["expiry_reason"] = reason
+        print(
+            f"EXPIRY_DIRECT_PRODUCT_INVALIDATION product_id={product_id} "
+            f"reason={reason} current_price={snapshot.get('current_price')}"
+        )
+        return "confirmed", True
+
+    record["expiry_last_removal_check_result"] = "inconclusive"
+    print(
+        f"EXPIRY_DIRECT_RECHECK_UNCONFIRMED product_id={product_id} "
+        "reason=no_current_timer_or_proof_offer_ended; "
+        "post_and_purchase_button_preserved=true"
+    )
+    return "inconclusive", record != before
+
+
+def _delete_expired_posts(published, now, mark_unknown=False, direct_confirm=None):
     """Delete posts whose explicit deadline has passed; return state change and actual deletions."""
     changed = False
     deleted = 0
@@ -1988,6 +2123,22 @@ def _delete_expired_posts(published, now, mark_unknown=False):
                     f"reason=estimated_timestamp_not_authoritative"
                 )
             continue
+        if direct_confirm is not None:
+            decision, verification_changed = direct_confirm(pid, rec, now)
+            changed = changed or verification_changed
+            if decision != "confirmed":
+                continue
+            # Direct confirmation may extend the offer past the former cached cutoff.
+            expiry = parse_expiry(rec.get("expires_at"))
+            if not expiry or not _has_verified_deadline(rec):
+                continue
+            expires_at = datetime.fromisoformat(expiry)
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            removal_deadline = expires_at - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
+            if now < removal_deadline:
+                continue
+
         for platform, id_field, status_field, timestamp_field, delete_fn in (
             ("telegram", "telegram_message_id", "expiry_status", "expired_deleted_at", _telegram_delete),
             ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete),
@@ -2023,7 +2174,7 @@ def _delete_expired_posts(published, now, mark_unknown=False):
 
 
 
-def _delete_expired_aparat_videos(published, now):
+def _delete_expired_aparat_videos(published, now, direct_confirm=None):
     """Permanently delete expired Aparat videos, hiding them only as a failure fallback."""
     changed = False
     try:
@@ -2064,6 +2215,20 @@ def _delete_expired_aparat_videos(published, now):
         removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
         if removal_deadline > now:
             continue
+        if direct_confirm is not None:
+            decision, confirmation_changed = direct_confirm(pid, rec, now)
+            changed = changed or confirmation_changed
+            if decision != "confirmed":
+                continue
+            expires = parse_expiry(rec.get("expires_at"))
+            if not expires:
+                continue
+            deadline = datetime.fromisoformat(expires)
+            if deadline.tzinfo is None:
+                deadline = deadline.replace(tzinfo=timezone.utc)
+            removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
+            if removal_deadline > now:
+                continue
 
         retry_raw = parse_expiry(rec.get("aparat_expiry_next_attempt_at"))
         if retry_raw:
@@ -2121,7 +2286,7 @@ def _delete_expired_aparat_videos(published, now):
     return changed
 
 
-def _delete_expired_youtube_videos(published, now):
+def _delete_expired_youtube_videos(published, now, direct_confirm=None):
     """Permanently delete expired YouTube Shorts, using privacy only as a failure fallback."""
     changed = False
     try:
@@ -2163,6 +2328,20 @@ def _delete_expired_youtube_videos(published, now):
         removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
         if removal_deadline > now:
             continue
+        if direct_confirm is not None:
+            decision, confirmation_changed = direct_confirm(pid, rec, now)
+            changed = changed or confirmation_changed
+            if decision != "confirmed":
+                continue
+            expires = parse_expiry(rec.get("expires_at"))
+            if not expires:
+                continue
+            deadline = datetime.fromisoformat(expires)
+            if deadline.tzinfo is None:
+                deadline = deadline.replace(tzinfo=timezone.utc)
+            removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
+            if removal_deadline > now:
+                continue
 
         retry_raw = parse_expiry(rec.get("youtube_expiry_next_attempt_at"))
         if retry_raw:
@@ -2281,7 +2460,15 @@ def run():
     else:
         print(f"EXPIRY_LIVE_SYNC_SKIPPED reason=not_due forced={force_feed_sync}")
 
-    pre_changed, pre_deleted = _delete_expired_posts(published, now, mark_unknown=True)
+    direct_recheck_budget = {"remaining": DIRECT_PRODUCT_DETAIL_CHECK_LIMIT}
+    def confirm_near_expiry(product_id, record, current_time):
+        return _confirm_expiry_for_deletion(
+            product_id, record, current_time, budget=direct_recheck_budget
+        )
+
+    pre_changed, pre_deleted = _delete_expired_posts(
+        published, now, mark_unknown=True, direct_confirm=confirm_near_expiry
+    )
     changed = changed or pre_changed
     deleted += pre_deleted
     if pre_changed:
@@ -2340,7 +2527,9 @@ def run():
             rec["expires_at"] = direct_product_deadline
             rec["expiry_source"] = "digikala_product_detail_api"
             rec["expiry_deadline_verified_directly"] = True
+            rec["expiry_deadline_verified_from_site_card"] = False
             rec["expiry_estimated"] = False
+            rec["expiry_last_direct_verification_at"] = now.isoformat()
             rec.pop("expiry_reason", None)
             changed = True
             print(
@@ -2366,19 +2555,30 @@ def run():
         if reason:
             rec["expires_at"] = now.isoformat()
             rec["expiry_source"] = "live_product_stock_or_price"
+            rec["expiry_deadline_verified_directly"] = True
+            rec["expiry_deadline_verified_from_site_card"] = False
             rec["expiry_estimated"] = False
+            rec["expiry_last_direct_verification_at"] = now.isoformat()
+            rec["expiry_last_removal_check_at"] = now.isoformat()
+            rec["expiry_last_removal_check_result"] = "confirmed"
             rec["expiry_reason"] = reason
             rec["expiry_status"] = "expired_confirmed"
             changed = True
             print(f"EXPIRY_CONFIRMED_BY_LIVE_PRODUCT product_id={pid} reason={reason} current_price={current}")
 
-    post_changed, post_deleted = _delete_expired_posts(published, now, mark_unknown=True)
+    post_changed, post_deleted = _delete_expired_posts(
+        published, now, mark_unknown=True, direct_confirm=confirm_near_expiry
+    )
     changed = changed or post_changed
     deleted += post_deleted
 
-    youtube_delete_changed = _delete_expired_youtube_videos(published, now)
+    youtube_delete_changed = _delete_expired_youtube_videos(
+        published, now, direct_confirm=confirm_near_expiry
+    )
     changed = changed or youtube_delete_changed
-    aparat_delete_changed = _delete_expired_aparat_videos(published, now)
+    aparat_delete_changed = _delete_expired_aparat_videos(
+        published, now, direct_confirm=confirm_near_expiry
+    )
     changed = changed or aparat_delete_changed
     if changed:
         _write_state(state)
