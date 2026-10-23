@@ -53,8 +53,8 @@ concurrency:
   # Code-only pushes run CI independently; publication/repair pushes and scheduled jobs
   # still serialize all channel mutations with cleanup and countdown refreshes.
   group: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[repair-all-captions]') && 'affilio-channel-updates' || github.event_name == 'push' && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') && !contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') && !contains(github.event.head_commit.message, '[growth-tracking-only]') && format('affilio-ci-{0}', github.run_id) || 'affilio-channel-updates' }}
-  # A one-off [scan-now] run can clear a stuck older run; ordinary publishing runs never preempt each other.
-  cancel-in-progress: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[scan-now]') }}
+  # Never preempt a healthy publication run. Stale-run recovery belongs to the Cloudflare dispatcher.
+  cancel-in-progress: ${{ false }}
 
 jobs:
   radar:
