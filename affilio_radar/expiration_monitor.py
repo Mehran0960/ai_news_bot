@@ -1601,7 +1601,7 @@ def audit_public_channel_history(published, now=None, posts=None):
             product_ids = sorted({
                 str(value).lower()
                 for value in (post.get("product_ids") or [])
-                if re.fullmatch(r"dkp-\\d+", str(value).lower())
+                if re.fullmatch(r"dkp-\d+", str(value).lower())
             })
             purchase_button_visible = bool(post.get("purchase_button_visible")) and len(product_ids) == 1
 
