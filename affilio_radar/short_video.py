@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Mapping
 
 import requests
-from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps, features
 from offerchin_visuals import draw_discount_burst
 from offerchin_audio import write_original_soundtrack
 
@@ -30,6 +30,15 @@ YOUTUBE_UPLOAD_URL = "https://www.googleapis.com/upload/youtube/v3/videos"
 YOUTUBE_UPLOAD_SCOPE = "https://www.googleapis.com/auth/youtube.force-ssl"
 
 
+# Use exactly one right-to-left layout engine. Pillow's RAQM engine performs
+# Arabic shaping and bidirectional ordering itself; the manual reshaper/bidi path
+# is used only on runners where RAQM is unavailable.
+try:
+    PERSIAN_TEXT_RAQM_AVAILABLE = bool(features.check_feature("raqm"))
+except Exception:
+    PERSIAN_TEXT_RAQM_AVAILABLE = False
+
+
 def _font(size: int, bold: bool = True) -> ImageFont.ImageFont:
     candidates = (
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold
@@ -37,9 +46,15 @@ def _font(size: int, bold: bool = True) -> ImageFont.ImageFont:
         "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf" if bold
         else "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
     )
+    layout_engine = (
+        ImageFont.Layout.RAQM if PERSIAN_TEXT_RAQM_AVAILABLE
+        else ImageFont.Layout.BASIC
+    )
     for candidate in candidates:
         try:
-            return ImageFont.truetype(candidate, size=size)
+            return ImageFont.truetype(
+                candidate, size=size, layout_engine=layout_engine
+            )
         except OSError:
             continue
     return ImageFont.load_default()
@@ -142,21 +157,34 @@ def send_telegram_video_review(
 
 
 
+def _rtl_layout_kwargs() -> dict:
+    """Return Pillow options for RTL paragraphs when RAQM is available."""
+    return {"direction": "rtl"} if PERSIAN_TEXT_RAQM_AVAILABLE else {}
+
+
 def _shape_rtl(value: object) -> str:
+    """Prepare Persian text once; never bidi-reorder text before RAQM processes it."""
     text = str(value or "").strip()
     if not text:
         return ""
+    if PERSIAN_TEXT_RAQM_AVAILABLE:
+        # RAQM combines Arabic shaping and the Unicode bidi algorithm at draw time.
+        # Passing pre-reordered text here applies bidi twice and corrupts word order.
+        return text
     try:
         import arabic_reshaper
         from bidi.algorithm import get_display
         return get_display(arabic_reshaper.reshape(text), base_dir="R")
     except Exception:
-        # Keep the media pipeline usable even if an optional shaping library is absent.
+        # The project's dependencies install these libraries; this fallback remains
+        # non-fatal on constrained environments, while BASIC avoids double bidi.
         return text
 
 
 def _text_width(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.ImageFont) -> int:
-    bbox = draw.textbbox((0, 0), _shape_rtl(text), font=font)
+    bbox = draw.textbbox(
+        (0, 0), _shape_rtl(text), font=font, **_rtl_layout_kwargs()
+    )
     return int(bbox[2] - bbox[0])
 
 
@@ -277,6 +305,7 @@ def build_vertical_poster(
             font=title_font,
             fill=(17, 57, 34, 255),
             anchor="mm",
+            **_rtl_layout_kwargs(),
         )
         line_y += 47
 
@@ -324,6 +353,7 @@ def build_vertical_poster(
         font=_font(25),
         fill=(24, 111, 54, 255),
         anchor="mm",
+        **_rtl_layout_kwargs(),
     )
     current_text = format_persian_price(current_price)
     if current_text:
@@ -333,6 +363,7 @@ def build_vertical_poster(
             font=_font(43),
             fill=(10, 79, 40, 255),
             anchor="mm",
+            **_rtl_layout_kwargs(),
         )
     else:
         draw.text(
@@ -341,6 +372,7 @@ def build_vertical_poster(
             font=_font(28),
             fill=(10, 79, 40, 255),
             anchor="mm",
+            **_rtl_layout_kwargs(),
         )
 
     old_amount = format_persian_price(original_price)
@@ -352,13 +384,14 @@ def build_vertical_poster(
         old_line = f"قیمت اصلی: {old_amount} تومان"
         old_font = _font(21)
         old_visual = _shape_rtl(old_line)
-        old_bbox = draw.textbbox((WIDTH // 2, 986), old_visual, font=old_font, anchor="mm")
+        old_bbox = draw.textbbox((WIDTH // 2, 986), old_visual, font=old_font, anchor="mm", **_rtl_layout_kwargs())
         draw.text(
             (WIDTH // 2, 986),
             old_visual,
             font=old_font,
             fill=(92, 102, 95, 255),
             anchor="mm",
+            **_rtl_layout_kwargs(),
         )
         draw.line(
             (old_bbox[0] - 2, 986, old_bbox[2] + 2, 986),
@@ -386,6 +419,7 @@ def build_vertical_poster(
         font=_font(36),
         fill=(28, 50, 24, 255),
         anchor="mm",
+        **_rtl_layout_kwargs(),
     )
     draw.text(
         (WIDTH // 2, 1232),
@@ -393,6 +427,7 @@ def build_vertical_poster(
         font=_font(19),
         fill=(255, 255, 255, 245),
         anchor="mm",
+        **_rtl_layout_kwargs(),
     )
 
     output = BytesIO()
