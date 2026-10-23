@@ -4878,10 +4878,195 @@ def effective_posts_per_run(backlog_count, configured_limit=None, force_full_bat
 
 VIDEO_STYLE_VERSION = 4  # product title, price comparison, discount badge and on-frame DigiKala CTA
 YOUTUBE_DESCRIPTION_VERSION = 2  # public channel links, minimal YouTube description
+PERSIAN_TEXT_RENDERER_VERSION = 2  # single RTL/bidi pass via Pillow RAQM when available
+PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
 # Do not use the generic web uploader for public Aparat posts: it cannot guarantee Shorts placement.
 APARAT_SHORTS_ONLY = str(os.getenv("APARAT_SHORTS_ONLY", "true")).strip().lower() in {"1", "true", "yes", "on"}
 # Match video throughput to channel publication bursts so the video queue does not lag behind.
 MAX_SHORT_VIDEOS_PER_RUN = max(1, min(4, int(os.getenv("AFFILIO_MAX_SHORT_VIDEOS_PER_RUN", "2"))))
+
+
+def _delete_superseded_youtube_video(
+    record: dict,
+    product_id_value: str,
+    delete_fn,
+    now: datetime | None = None,
+) -> bool:
+    """Delete a replaced Short only after its corrected replacement is confirmed uploaded."""
+    old_video_id = str(record.get("youtube_previous_video_id") or "").strip()
+    new_video_id = str(record.get("youtube_video_id") or "").strip()
+    if (
+        not old_video_id
+        or not new_video_id
+        or old_video_id == new_video_id
+        or str(record.get("youtube_upload_status") or "") != "uploaded"
+    ):
+        return False
+
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    retry_at = _parse_utc_datetime(
+        record.get("youtube_previous_video_delete_next_attempt_at")
+    )
+    if retry_at and current < retry_at:
+        return False
+
+    try:
+        outcome = delete_fn(old_video_id)
+        if outcome not in {"deleted", "already_absent"}:
+            raise RuntimeError("YouTube did not confirm deletion of the replaced Short")
+        record["youtube_previous_video_deleted_at"] = current.isoformat()
+        record["youtube_video_renderer_version"] = PERSIAN_TEXT_RENDERER_VERSION
+        record.pop("youtube_previous_video_id", None)
+        record.pop("youtube_previous_video_delete_next_attempt_at", None)
+        record.pop("youtube_previous_video_delete_attempts", None)
+        record.pop("youtube_previous_video_delete_last_error", None)
+        record.pop("video_repair_priority", None)
+        print(
+            f"YOUTUBE_REPLACED_VIDEO_DELETE_OK product_id={product_id_value} "
+            f"old_video_id={old_video_id} outcome={outcome}"
+        )
+    except Exception as exc:
+        try:
+            attempts = int(record.get("youtube_previous_video_delete_attempts", 0) or 0) + 1
+        except (TypeError, ValueError, OverflowError):
+            attempts = 1
+        record["youtube_previous_video_delete_attempts"] = attempts
+        delay = min(3600, 300 * (2 ** min(attempts - 1, 4)))
+        record["youtube_previous_video_delete_next_attempt_at"] = (
+            current + timedelta(seconds=delay)
+        ).isoformat()
+        record["youtube_previous_video_delete_last_error"] = type(exc).__name__
+        print(
+            f"YOUTUBE_REPLACED_VIDEO_DELETE_FAILED product_id={product_id_value} "
+            f"old_video_id={old_video_id} error={type(exc).__name__} retry_attempt={attempts}"
+        )
+    return True
+
+
+def repair_persian_text_video_uploads() -> int:
+    """Safely replace the two latest Shorts rendered with the broken Persian text layout."""
+    current = datetime.now(timezone.utc)
+    state = load_state()
+    published = state.get("published") if isinstance(state, dict) else None
+    if not isinstance(published, dict):
+        print("PERSIAN_TEXT_VIDEO_REPAIR_ABORTED reason=published_state_unavailable")
+        return 1
+
+    queued = 0
+    already_current = 0
+    unavailable = []
+    for pid in PERSIAN_TEXT_REPAIR_PRODUCT_IDS:
+        record = published.get(pid)
+        if not isinstance(record, dict):
+            unavailable.append(f"{pid}:record_missing")
+            print(f"PERSIAN_TEXT_VIDEO_REPAIR_SKIP product_id={pid} reason=record_missing")
+            continue
+
+        current_video_id = str(record.get("youtube_video_id") or "").strip()
+        previous_video_id = str(record.get("youtube_previous_video_id") or "").strip()
+        status = str(record.get("youtube_upload_status") or "")
+        if (
+            int(record.get("youtube_video_renderer_version", 0) or 0)
+            >= PERSIAN_TEXT_RENDERER_VERSION
+            and current_video_id
+            and status == "uploaded"
+            and not previous_video_id
+        ):
+            already_current += 1
+            print(f"PERSIAN_TEXT_VIDEO_REPAIR_SKIP product_id={pid} reason=already_repaired")
+            continue
+
+        # A previous attempt may have uploaded the replacement but failed to delete
+        # the old video. Keep that transaction and retry cleanup; never upload twice.
+        if previous_video_id and current_video_id and status == "uploaded":
+            record["video_repair_priority"] = True
+            queued += 1
+            continue
+
+        if previous_video_id and not current_video_id and status in {
+            "pending", "retry", "uploading", "upload_result_unknown", "pending_credentials"
+        }:
+            record["video_repair_priority"] = True
+            queued += 1
+            continue
+
+        if not current_video_id or status != "uploaded":
+            unavailable.append(f"{pid}:existing_upload_not_confirmed")
+            print(f"PERSIAN_TEXT_VIDEO_REPAIR_SKIP product_id={pid} reason=existing_upload_not_confirmed")
+            continue
+
+        # Preserve the known-good public video until its corrected replacement uploads.
+        record["youtube_previous_video_id"] = current_video_id
+        record["youtube_video_id"] = ""
+        record["youtube_video_url"] = ""
+        record["youtube_upload_status"] = "pending"
+        record["video_generation_status"] = "pending"
+        record["video_style_version"] = 0
+        record["video_repair_priority"] = True
+        record["youtube_visual_repair_started_at"] = current.isoformat()
+        record.pop("youtube_next_attempt_at", None)
+        record.pop("video_generation_next_attempt_at", None)
+        record.pop("youtube_last_error", None)
+        queued += 1
+        print(
+            f"PERSIAN_TEXT_VIDEO_REPAIR_QUEUED product_id={pid} "
+            f"previous_video_id={current_video_id}"
+        )
+
+    save_json(STATE, state)
+    # Each call handles at most one generated video. Repair-priority records are
+    # selected before any unrelated backlog item, while all other queues stay intact.
+    attempts = 0
+    max_attempts = max(2, len(PERSIAN_TEXT_REPAIR_PRODUCT_IDS) * 2)
+    while attempts < max_attempts:
+        state = load_state()
+        published = state.get("published", {}) if isinstance(state, dict) else {}
+        remaining = []
+        for pid in PERSIAN_TEXT_REPAIR_PRODUCT_IDS:
+            record = published.get(pid, {}) if isinstance(published, dict) else {}
+            if not isinstance(record, dict):
+                remaining.append(pid)
+                continue
+            vid = str(record.get("youtube_video_id") or "").strip()
+            old_vid = str(record.get("youtube_previous_video_id") or "").strip()
+            status = str(record.get("youtube_upload_status") or "")
+            version = int(record.get("youtube_video_renderer_version", 0) or 0)
+            if not (version >= PERSIAN_TEXT_RENDERER_VERSION and vid and status == "uploaded" and not old_vid):
+                remaining.append(pid)
+        if not remaining:
+            break
+        if not process_pending_short_video(state, now=current, output_dir="video_artifacts"):
+            break
+        attempts += 1
+
+    final_state = load_state()
+    final_published = final_state.get("published", {}) if isinstance(final_state, dict) else {}
+    repaired = []
+    pending = []
+    for pid in PERSIAN_TEXT_REPAIR_PRODUCT_IDS:
+        record = final_published.get(pid, {}) if isinstance(final_published, dict) else {}
+        if not isinstance(record, dict):
+            pending.append(pid)
+            continue
+        vid = str(record.get("youtube_video_id") or "").strip()
+        old_vid = str(record.get("youtube_previous_video_id") or "").strip()
+        status = str(record.get("youtube_upload_status") or "")
+        version = int(record.get("youtube_video_renderer_version", 0) or 0)
+        if version >= PERSIAN_TEXT_RENDERER_VERSION and vid and status == "uploaded" and not old_vid:
+            repaired.append(pid)
+        else:
+            pending.append(pid)
+    print(
+        f"PERSIAN_TEXT_VIDEO_REPAIR_SUMMARY repaired={len(repaired)} "
+        f"pending={len(pending)} already_current={already_current} "
+        f"queued_initially={queued} unavailable={len(unavailable)}"
+    )
+    if pending:
+        print(f"PERSIAN_TEXT_VIDEO_REPAIR_PENDING product_ids={','.join(pending)}")
+    return 0 if len(repaired) + already_current == len(PERSIAN_TEXT_REPAIR_PRODUCT_IDS) else 1
 
 
 def process_pending_short_video(state: dict, now: datetime | None = None, output_dir: str | Path = "video_artifacts") -> bool:
@@ -4897,6 +5082,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             render_short_video,
             upload_youtube_video,
             update_youtube_video_description,
+            delete_youtube_video,
             youtube_credentials_available,
             send_telegram_video_review,
             telegram_video_review_available,
@@ -4925,6 +5111,13 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
     pending_youtube = {"pending", "pending_credentials", "retry"}
     candidates = []
     state_changed = False
+
+    if youtube_ready:
+        for existing_pid, existing_record in published.items():
+            if isinstance(existing_record, dict) and _delete_superseded_youtube_video(
+                existing_record, str(existing_pid), delete_youtube_video, current
+            ):
+                state_changed = True
 
     # Bring descriptions on already-published, still-live Shorts into line with the current
     # clean channel-link template. Updates are versioned, capped per scan, and failure-isolated.
@@ -5179,7 +5372,9 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
     if not candidates:
         return False
 
-    candidates.sort(key=lambda row: row[0])
+    candidates.sort(
+        key=lambda row: (0 if row[2].get("video_repair_priority") else 1, row[0])
+    )
     _, pid, record, expiry = candidates[0]
     output_folder = Path(output_dir)
     output_folder.mkdir(parents=True, exist_ok=True)
@@ -5322,10 +5517,15 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             record["youtube_video_url"] = result["url"]
             record["youtube_uploaded_at"] = datetime.now(timezone.utc).isoformat()
             record["youtube_description_version"] = YOUTUBE_DESCRIPTION_VERSION
+            record["youtube_video_renderer_version"] = PERSIAN_TEXT_RENDERER_VERSION
+            record["youtube_visual_repair_completed_at"] = datetime.now(timezone.utc).isoformat() if record.get("youtube_previous_video_id") else record.get("youtube_visual_repair_completed_at", "")
             record["youtube_review_required"] = False
             record.pop("youtube_next_attempt_at", None)
             record.pop("youtube_last_error", None)
             print(f"YOUTUBE_UPLOAD_OK id={pid} video_id={result['video_id']} url={result['url']}")
+            _delete_superseded_youtube_video(
+                record, pid, delete_youtube_video, datetime.now(timezone.utc)
+            )
         except Exception as exc:
             if isinstance(exc, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)):
                 record["youtube_upload_status"] = "upload_result_unknown"
@@ -6239,6 +6439,11 @@ def main():
         action="store_true",
         help="refresh remaining-hours/minutes timers on active deadline-verified posts",
     )
+    parser.add_argument(
+        "--repair-persian-video-text",
+        action="store_true",
+        help="safely replace the two recent YouTube Shorts whose Persian text layout was broken",
+    )
     args = parser.parse_args()
     if args.setup_growth_invites:
         state = load_state()
@@ -6265,6 +6470,12 @@ def main():
             sys.exit(refresh_active_countdowns())
         except Exception as exc:
             print(f"COUNTDOWN_REFRESH_FAILED error={type(exc).__name__}")
+            sys.exit(1)
+    if args.repair_persian_video_text:
+        try:
+            sys.exit(repair_persian_text_video_uploads())
+        except Exception as exc:
+            print(f"PERSIAN_TEXT_VIDEO_REPAIR_ABORTED error={type(exc).__name__} detail={str(exc)[:240]!r}")
             sys.exit(1)
     if args.repair_all_captions:
         try:
