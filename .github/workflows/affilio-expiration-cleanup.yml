@@ -102,7 +102,7 @@ jobs:
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          # [repair-buttons-now] Rebuild every tracked caption without timers and restore verified purchase buttons.
+          # [repair-buttons-now] One-time channel-wide migration: remove timers, restore valid purchase buttons, and adopt orphaned offers.
           AFFILIO_COUNTDOWN_REFRESH_FORCE: "true"
           AFFILIO_COUNTDOWN_REFRESH_MAX_RECORDS: ${{ contains(github.event.head_commit.message, '[deadline-audit-only]') && '100' || '80' }}
           AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS: "240" # Kept for compatibility; schema migration is one-time
