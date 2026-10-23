@@ -9,6 +9,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from urllib.parse import parse_qs, urlsplit
+from zoneinfo import ZoneInfo
 
 from PIL import Image
 
@@ -3005,6 +3006,10 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("rateLimitExceeded", record["youtube_last_error"])
         self.assertIn("Video Uploads per day", record["youtube_last_error"])
         self.assertIsNotNone(record.get("youtube_next_attempt_at"))
+        retry_local = datetime.fromisoformat(record["youtube_next_attempt_at"]).astimezone(
+            ZoneInfo("America/Los_Angeles")
+        )
+        self.assertEqual((retry_local.hour, retry_local.minute), (0, 15))
 
     @unittest.skipUnless(shutil.which("ffmpeg"), "ffmpeg is installed by the publishing workflow")
     def test_real_short_video_renderer_creates_vertical_mp4(self):
