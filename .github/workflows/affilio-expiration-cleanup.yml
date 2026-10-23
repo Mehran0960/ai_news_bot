@@ -15,16 +15,16 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  # Serialize deletion with publishing to prevent stale runs from overwriting removal state.
-  group: affilio-channel-updates
-  cancel-in-progress: false
-
 jobs:
   expire:
     # The radar workflow already performs expiry cleanup immediately before its
     # one-time full caption repair. Do not run both channel-mutating jobs concurrently.
     if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[expiry-cleanup-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-now]') || contains(github.event.head_commit.message, '[remove-glama-once]') || contains(github.event.head_commit.message, '[repair-buttons-now]') }}
+    # Only a cleanup job that will actually run may take the shared channel lock.
+    # Skipped workflow pushes must not cancel or replace a queued Product Radar run.
+    concurrency:
+      group: affilio-channel-updates
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
