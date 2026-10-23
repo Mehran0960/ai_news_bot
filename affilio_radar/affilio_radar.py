@@ -5155,12 +5155,11 @@ def _aparat_upload_slot_due(
 
 
 def process_pending_short_video(state: dict, now: datetime | None = None, output_dir: str | Path = "video_artifacts") -> bool:
-    """Generate a vertical product video and service only verified destinations.
+    """Generate one vertical artifact and publish independently to configured destinations.
 
-    YouTube uses its official Data API. Aparat Shorts placement is app-only according to
-    Aparat's public instructions; the current generic web uploader does not guarantee it.
-    When APARAT_SHORTS_ONLY is enabled, videos are retained in the Shorts queue instead
-    of being publicly published to Aparat's regular video feed.
+    YouTube uses its official Data API and has its own quota/cadence. Aparat uses the
+    authenticated web uploader with a separate cadence and publishes to the regular video
+    feed. Aparat Shorts-feed placement is not guaranteed by this web upload path.
     """
     try:
         from short_video import (
@@ -5172,6 +5171,13 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             send_telegram_video_review,
             telegram_video_review_available,
         )
+    except Exception as exc:
+        print(f"SHORT_VIDEO_SKIP reason=renderer_import_failed error={type(exc).__name__}")
+        return False
+
+    # Keep the Aparat integration optional: an import failure there must not suppress
+    # the YouTube destination or the private review artifact.
+    try:
         from aparat_uploader import (
             aparat_credentials_available,
             upload_aparat_video,
@@ -5179,8 +5185,13 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             PENDING_APARAT_STATUSES,
         )
     except Exception as exc:
-        print(f"SHORT_VIDEO_SKIP reason=renderer_import_failed error={type(exc).__name__}")
-        return False
+        def _aparat_unavailable() -> bool:
+            return False
+        aparat_credentials_available = _aparat_unavailable
+        upload_aparat_video = None
+        find_uploaded_aparat_video = None
+        PENDING_APARAT_STATUSES = {"pending", "pending_credentials", "retry"}
+        print(f"APARAT_SETUP_UNAVAILABLE error={type(exc).__name__}; YouTube processing continues")
 
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -5191,7 +5202,11 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         return False
 
     youtube_ready = youtube_credentials_available()
-    aparat_ready = aparat_credentials_available()
+    try:
+        aparat_ready = aparat_credentials_available()
+    except Exception as exc:
+        aparat_ready = False
+        print(f"APARAT_CREDENTIAL_CHECK_FAILED error={type(exc).__name__}; YouTube processing continues")
     review_ready = telegram_video_review_available()
     pending_youtube = {"pending", "pending_credentials", "retry"}
     candidates = []
@@ -5645,8 +5660,8 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             print(f"TELEGRAM_VIDEO_REVIEW_FAILED id={pid} error={type(exc).__name__}")
         save_json(STATE, state)
 
-    # Aparat uses the authenticated web uploader. The workflow defaults to non-public
-    # uploads until the owner has validated the first end-to-end run.
+    # Aparat public uploads use their own slot and status fields; all errors are caught
+    # locally so they cannot interrupt the YouTube publication attempt below.
     aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
     if aparat_ready and aparat_upload_due and aparat_status in PENDING_APARAT_STATUSES and not APARAT_SHORTS_ONLY:
         aparat_started_at = datetime.now(timezone.utc)
