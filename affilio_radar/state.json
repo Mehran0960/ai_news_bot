@@ -3877,13 +3877,13 @@
       "title": "محافظ برق هوشمند تایمردار هادرون مدل P103"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-23T14:50:29.888939+00:00",
+  "expiry_feed_last_checked_at": "2026-10-23T15:00:26.291967+00:00",
   "expiry_feed_last_sync_summary": {
-    "matched": 7,
+    "matched": 9,
+    "updated": 1,
+    "unchanged": 8,
     "missing_from_feed": 31,
-    "skipped": 7,
-    "unchanged": 7,
-    "updated": 0
+    "skipped": 7
   },
   "growth_tracking": {
     "daily_member_counts": {
@@ -5145,8 +5145,8 @@
       "caption_without_expiry_migrated_at": "2026-10-23T13:55:08.166469+00:00",
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-23T14:40:29.318088+00:00",
-      "expiry_last_product_check_at": "2026-10-23T14:40:29.318088+00:00",
+      "expiry_last_probed_at": "2026-10-23T15:00:26.291967+00:00",
+      "expiry_last_product_check_at": "2026-10-23T15:00:26.291967+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
       "product_url": "https://www.digikala.com/product/dkp-20073095/",
@@ -5795,8 +5795,8 @@
       "caption_without_expiry_migrated_at": "2026-10-23T13:55:11.662776+00:00",
       "expires_at": "",
       "expiry_estimated": false,
-      "expiry_last_probed_at": "2026-10-23T14:40:29.318088+00:00",
-      "expiry_last_product_check_at": "2026-10-23T14:40:29.318088+00:00",
+      "expiry_last_probed_at": "2026-10-23T15:00:26.291967+00:00",
+      "expiry_last_product_check_at": "2026-10-23T15:00:26.291967+00:00",
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
       "product_url": "https://www.digikala.com/product/dkp-22328533/",
@@ -6307,10 +6307,10 @@
     "dkp-22923722": {
       "bale_expiry_status": "tracked",
       "bale_message_id": 654,
-      "caption_countdown_refreshed_at": "2026-10-23T14:55:29.245531+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T15:00:26.291967+00:00",
       "caption_deadline_format_version": 10,
-      "caption_static_migrated_at": "2026-10-23T14:55:29.245531+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-23T14:55:29.245531+00:00",
+      "caption_static_migrated_at": "2026-10-23T15:00:26.291967+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T15:00:26.291967+00:00",
       "click_tracking_url": "",
       "deadline_caption_refresh_required": true,
       "delivery_attempts": {
@@ -6391,7 +6391,7 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T16:04:59.007209+00:00",
+      "expires_at": "2026-10-23T16:00:01.788343+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -6405,7 +6405,14 @@
       "title": "هدفون بلوتوثی موزیک آپولو مدل RAY-K2",
       "ts": 1792767592.8035622,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expiry_last_live_sync_at": "2026-10-23T15:00:26.291967+00:00",
+      "deadline_caption_refresh_required": true,
+      "expiry_status": "tracked",
+      "bale_expiry_status": "tracked",
+      "caption_static_migrated_at": "2026-10-23T15:00:26.291967+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T15:00:26.291967+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T15:00:26.291967+00:00"
     },
     "dkp-22942845": {
       "aparat_upload_status": "skipped_expiring_soon",
