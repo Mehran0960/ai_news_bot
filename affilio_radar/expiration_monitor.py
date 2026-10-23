@@ -20,6 +20,7 @@ from urllib.parse import parse_qs, quote, unquote, urlencode, urlsplit
 from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
+from affilio_radar import build_caption, TELEGRAM_CHANNEL_URL
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -44,7 +45,7 @@ POST_REMOVAL_BUFFER_MINUTES = max(
 LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 5 * 60
 # Bound detail lookups so missing timers cannot stall expiry cleanup.
 DIRECT_PRODUCT_DETAIL_CHECK_LIMIT = max(1, min(10, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "3"))))
-CAPTION_FORMAT_VERSION = 9
+CAPTION_FORMAT_VERSION = 10
 
 
 def walk_dicts(value):
@@ -857,72 +858,104 @@ def _extract_legacy_caption_fields(caption_text):
     }
 
 
-def _build_legacy_repaired_caption(fields, deadline, now):
-    """Rebuild a legacy caption with a source-backed countdown and standard footer."""
-    title = html.escape(str(fields.get("title") or "پیشنهاد ویژه").strip())
-    parts = [
-        "<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>",
-        "",
-        f"<b>🛍️ {title}</b>",
-        "",
-    ]
-    current = fields.get("current_price")
-    original = fields.get("original_price")
-    discount = fields.get("discount_percent")
-    if current:
-        parts.append(f"<b><u>💚 قیمت ویژه: 💰 {_persian_number(current)} تومان</u></b>")
-    if discount:
-        parts.append(f"<b><u>⚡️ {_persian_number(discount)}٪ تخفیف</u></b>")
-    if original and current and original > current:
-        parts += ["", f"<b>🏷️ قیمت اصلی: <s>{_persian_number(original)} تومان</s></b>"]
-
-    parts += [
-        "",
-        '<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>',
-        "",
-        "<b>👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.</b>",
-    ]
-    caption = "\n".join(parts)
-    if len(caption) > 1024:
-        parts[2] = f"<b>🛍️ {html.escape(str(fields.get('title') or 'پیشنهاد ویژه')[:90])}…</b>"
-        caption = "\n".join(parts)
-    return caption
-
+def _build_legacy_repaired_caption(fields, deadline=None, now=None, affiliate_url=""):
+    """Compatibility wrapper: every caption edit uses the canonical publication formatter."""
+    product = {
+        "title": fields.get("title") or "پیشنهاد ویژه",
+        "current_price": fields.get("current_price"),
+        "original_price": fields.get("original_price"),
+        "discount_percent": fields.get("discount_percent"),
+    }
+    # The deadline remains authoritative only in state; caption text intentionally has no timer.
+    return build_caption(product, affiliate_url, TELEGRAM_CHANNEL_URL)
 
 def _caption_needs_repair(caption_html, caption_text, fields, deadline=None, now=None):
-    """Check price formatting and compare a displayed timer with the current deadline."""
-    if "عضویت در کانال OfferChin" not in caption_text or "t.me/OfferChin" in caption_text:
+    """Check captions against the canonical static layout, not the former underline style."""
+    text = str(caption_text or "")
+    if "عضویت در کانال OfferChin" not in text or "t.me/OfferChin" in text:
         return True
 
-    # Countdown and deadline lines are never part of a caption. Rebuild old posts
-    # that still contain any of these labels, without changing expiry authority.
+    # Captions never contain a timer or a textual deadline: only state drives deletion.
     timer_or_deadline_markers = (
         "⏳", "⌛", "مانده به پایان تخفیف", "مهلت آفر به پایان رسیده",
         "کمتر از ۱ دقیقه", "📅 پایان تخفیف:", "پایان تخفیف:",
     )
-    if any(marker in caption_text for marker in timer_or_deadline_markers):
+    if any(marker in text for marker in timer_or_deadline_markers):
         return True
 
     soup = BeautifulSoup(caption_html or "", "html.parser")
-    underline_texts = [" ".join(node.get_text(" ", strip=True).split()) for node in soup.find_all("u")]
+    if soup.find("u") is not None:
+        return True
+    bold_texts = [
+        " ".join(_normalize_digits(node.get_text(" ", strip=True)).split())
+        for node in soup.find_all(["b", "strong"])
+    ]
+    normalized_text = " ".join(_normalize_digits(text).split())
+
+    if not any(
+        "پیشنهاد شگفت‌انگیز دیجی‌کالا" in value for value in bold_texts
+    ):
+        return True
+    if not any("🛍️" in value for value in bold_texts):
+        return True
+    if "برای خرید از دیجی‌کالا" not in normalized_text or "دکمهٔ زیر" not in normalized_text:
+        return True
+
     current = fields.get("current_price")
+    original = fields.get("original_price")
     discount = fields.get("discount_percent")
-    if current:
-        expected_amount = _persian_number(current)
+    expected_dividers = 0
+
+    try:
+        current_value = int(current) if current is not None else 0
+    except (TypeError, ValueError, OverflowError):
+        current_value = 0
+    try:
+        original_value = int(original) if original is not None else 0
+    except (TypeError, ValueError, OverflowError):
+        original_value = 0
+    try:
+        discount_value = int(discount) if discount is not None else 0
+    except (TypeError, ValueError, OverflowError):
+        discount_value = 0
+
+    if current_value > 0:
+        expected_amount = _normalize_digits(_persian_number(current_value))
         if not any(
             "قیمت ویژه" in value and "تومان" in value and expected_amount in value
-            for value in underline_texts
+            for value in bold_texts
         ):
             return True
-    if discount:
-        expected_discount = _persian_number(discount) + "٪"
-        if not any(
-            "⚡️" in value and "تخفیف" in value and expected_discount in value
-            for value in underline_texts
-        ):
-            return True
-    return False
+        expected_dividers += 1
 
+    if discount_value > 0:
+        expected_discount = _normalize_digits(_persian_number(discount_value)) + "٪"
+        if not any(
+            "تخفیف" in value and expected_discount in value
+            for value in bold_texts
+        ):
+            return True
+        expected_dividers += 1
+
+    # The divider count/order is the visual signature of the agreed caption format.
+    if text.count("────────────") != expected_dividers:
+        return True
+
+    if original_value > current_value > 0:
+        expected_original = _normalize_digits(_persian_number(original_value))
+        strike_nodes = soup.find_all(["s", "del", "strike"])
+        if not any(
+            expected_original in _normalize_digits(node.get_text(" ", strip=True))
+            for node in strike_nodes
+        ):
+            return True
+        if not any(
+            "قیمت اصلی" in value and expected_original in value and "تومان" in value
+            for value in bold_texts
+        ):
+            return True
+
+    return False
 
 def _fetch_public_channel_page(before=None):
     username = re.sub(r"[^A-Za-z0-9_]", "", TELEGRAM_CHANNEL_USERNAME) or "OfferChin"
@@ -1675,7 +1708,7 @@ def audit_public_channel_history(published, now=None, posts=None):
                 continue
 
             fields = _extract_legacy_caption_fields(caption_text)
-            caption = _build_legacy_repaired_caption(fields, None, now)
+            caption = _build_legacy_repaired_caption(fields, None, now, affiliate_url=affiliate_url)
             try:
                 result = _telegram_edit_caption(
                     int(message_id), caption, affiliate_url=affiliate_url
@@ -1828,7 +1861,7 @@ def audit_public_channel_history(published, now=None, posts=None):
                     "reason=affiliate_url_unavailable; existing keyboard left untouched"
                 )
             continue
-        caption = _build_legacy_repaired_caption(fields, deadline, now)
+        caption = _build_legacy_repaired_caption(fields, deadline, now, affiliate_url=affiliate_url)
         try:
             result = _telegram_edit_caption(int(message_id), caption, affiliate_url=affiliate_url)
             if result == "edited":

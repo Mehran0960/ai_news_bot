@@ -10,7 +10,8 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import expiration_monitor as monitor
-from affilio_radar import format_remaining_time
+from affilio_radar import build_caption, format_remaining_time
+from bs4 import BeautifulSoup
 
 
 # [deadline-audit-only] Marker to run one live deadline audit and refresh active channel captions.
@@ -590,9 +591,13 @@ class ExpirationMonitorTests(unittest.TestCase):
             result = monitor.audit_public_channel_history(published, now=now, posts={88: legacy})
         edit.assert_called_once()
         edited_caption = edit.call_args.args[1]
-        self.assertIn("<b><u>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</u></b>", edited_caption)
-        self.assertIn("<b><u>⚡️ ۸۹٪ تخفیف</u></b>", edited_caption)
-        self.assertIn('<a href="https://telegram.me/OfferChin">عضویت در کانال OfferChin</a>', edited_caption)
+        self.assertIn("<b>💚 قیمت ویژه: ۱۱۴٬۰۰۰ تومان</b>", edited_caption)
+        self.assertIn("────────────", edited_caption)
+        self.assertIn("<b>⚡️ ۸۹٪ تخفیف</b>", edited_caption)
+        self.assertIn("<s>۱٬۰۵۶٬۰۰۰ تومان</s>", edited_caption)
+        self.assertNotIn("<u>", edited_caption)
+        self.assertIn('<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>', edited_caption)
+        self.assertIn("برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.", edited_caption)
         self.assertNotIn("⏳", edited_caption)
         self.assertNotIn("مانده به پایان تخفیف", edited_caption)
         self.assertNotIn("📅 پایان تخفیف:", edited_caption)
@@ -604,6 +609,95 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(result[3], 1)
 
 
+
+    def test_canonical_caption_layout_is_not_rewritten_by_expiry_audit(self):
+        now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)
+        affiliate = monitor._build_affilio_tracking_url("https://www.digikala.com/product/dkp-123/")
+        product = {
+            "title": "محصول نمونه",
+            "current_price": 114000,
+            "original_price": 1056000,
+            "discount_percent": 89,
+        }
+        canonical = build_caption(product, affiliate, "https://t.me/OfferChin")
+        soup = BeautifulSoup(canonical, "html.parser")
+        record = {
+            "telegram_message_id": 88,
+            "product_url": "https://www.digikala.com/product/dkp-123/",
+            "title": "محصول نمونه",
+            "posted_current_price": 114000,
+            "posted_original_price": 1056000,
+            "posted_discount_percent": 89,
+            "expires_at": "2026-10-18T20:29:00+00:00",
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+            "expiry_status": "tracked",
+            "caption_deadline_format_version": monitor.CAPTION_FORMAT_VERSION,
+        }
+        post = {
+            "message_id": 88,
+            "caption_text": soup.get_text(" ", strip=True),
+            "caption_html": canonical,
+            "product_ids": ["dkp-123"],
+            "purchase_button_visible": True,
+        }
+        with patch.object(monitor, "_telegram_edit_caption") as edit:
+            result = monitor.audit_public_channel_history(
+                {"dkp-123": record}, now=now, posts={88: post}
+            )
+        edit.assert_not_called()
+        self.assertEqual(result[3], 0)
+        self.assertEqual(record["caption_deadline_format_version"], monitor.CAPTION_FORMAT_VERSION)
+
+    def test_legacy_caption_without_dividers_is_rebuilt_to_canonical_layout(self):
+        now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)
+        affiliate = monitor._build_affilio_tracking_url("https://www.digikala.com/product/dkp-123/")
+        record = {
+            "telegram_message_id": 88,
+            "product_url": "https://www.digikala.com/product/dkp-123/",
+            "title": "محصول نمونه",
+            "posted_current_price": 114000,
+            "posted_original_price": 1056000,
+            "posted_discount_percent": 89,
+            "expires_at": "2026-10-18T20:29:00+00:00",
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+            "expiry_status": "tracked",
+            "caption_deadline_format_version": monitor.CAPTION_FORMAT_VERSION,
+        }
+        legacy = {
+            "message_id": 88,
+            "caption_text": (
+                "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا 🛍️ محصول نمونه "
+                "💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان ⚡️ ۸۹٪ تخفیف "
+                "🏷️ قیمت اصلی: ۱٬۰۵۶٬۰۰۰ تومان عضویت در کانال OfferChin "
+                "👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن."
+            ),
+            "caption_html": (
+                "<b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b>"
+                "<b>🛍️ محصول نمونه</b>"
+                "<b>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</b>"
+                "<b>⚡️ ۸۹٪ تخفیف</b>"
+                "<b>🏷️ قیمت اصلی: <s>۱٬۰۵۶٬۰۰۰ تومان</s></b>"
+                '<a href="https://t.me/OfferChin">عضویت در کانال OfferChin</a>'
+                "<b>👇 برای خرید از دیجی‌کالا، دکمهٔ زیر رو بزن.</b>"
+            ),
+            "product_ids": ["dkp-123"],
+            "purchase_button_visible": True,
+        }
+        with patch.object(monitor, "_telegram_edit_caption", return_value="edited") as edit:
+            result = monitor.audit_public_channel_history(
+                {"dkp-123": record}, now=now, posts={88: legacy}
+            )
+        edit.assert_called_once()
+        updated = edit.call_args.args[1]
+        self.assertEqual(updated.count("────────────"), 2)
+        self.assertNotIn("⏳", updated)
+        self.assertIn("<s>۱٬۰۵۶٬۰۰۰ تومان</s>", updated)
+        self.assertTrue(monitor._is_valid_affilio_tracking_url(edit.call_args.kwargs["affiliate_url"]))
+        self.assertEqual(result[3], 1)
 
     def test_public_history_restores_button_after_delete_failure(self):
         caption = {
