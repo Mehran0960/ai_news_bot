@@ -5403,7 +5403,14 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         return False
 
     candidates.sort(
-        key=lambda row: (0 if row[2].get("video_repair_priority") else 1, row[0])
+        key=lambda row: (
+            0 if row[2].get("video_repair_priority") else 1,
+            -safe_int(row[2].get("demand_score")),
+            -safe_int(row[2].get("promo_score")),
+            -safe_int(row[2].get("click_count_30d")),
+            row[3],  # among similarly attractive deals, upload the one expiring sooner first
+            row[0],
+        )
     )
     _, pid, record, expiry = candidates[0]
     output_folder = Path(output_dir)
