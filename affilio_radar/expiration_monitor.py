@@ -31,9 +31,6 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
 BALE_CHANNEL_ID = os.getenv("BALE_CHANNEL_ID", "").strip()
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "3"))))
-DIRECT_PRODUCT_DETAIL_CHECK_LIMIT = max(
-    1, min(20, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "8")))
-)
 FEED_URL = "https://api.digikala.com/v1/incredible-offers/products/"
 HTTP_TIMEOUT = 18
 BOT_API_MIN_GAP_SECONDS = 1.1
@@ -335,39 +332,12 @@ def fetch_offer_deadlines(required_product_ids=None):
         except Exception as exc:
             print(f"EXPIRY_MCP_FALLBACK_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
 
-    still_missing = sorted(required.difference(combined))
-    detail_checked = 0
-    detail_added = 0
-    if still_missing:
-        # Do not hold the shared channel lock while scanning all five slow MCP pages.
-        # Direct product details are checked in rotating, bounded batches instead.
-        slot = int(datetime.now(timezone.utc).timestamp() // LIVE_DEADLINE_SYNC_INTERVAL_SECONDS)
-        batch_size = min(DIRECT_PRODUCT_DETAIL_CHECK_LIMIT, len(still_missing))
-        offset = (slot * batch_size) % len(still_missing)
-        rotated = still_missing[offset:] + still_missing[:offset]
-        for pid in rotated[:DIRECT_PRODUCT_DETAIL_CHECK_LIMIT]:
-            detail_checked += 1
-            try:
-                snapshot = fetch_live_product_status(pid)
-            except Exception as exc:
-                print(f"EXPIRY_PRODUCT_DETAIL_FAILED product_id={pid} error={type(exc).__name__}")
-                continue
-            if not isinstance(snapshot, dict) or snapshot.get("expiry_verified_directly") is not True:
-                continue
-            parsed_deadline = parse_expiry(snapshot.get("deal_expires_at"))
-            if not parsed_deadline:
-                continue
-            combined[pid] = parsed_deadline
-            sources[pid] = "digikala_product_detail_api"
-            detail_added += 1
-            print(f"EXPIRY_PRODUCT_DETAIL_DEADLINE product_id={pid} deadline={parsed_deadline}")
-
     unresolved_count = len(required.difference(combined))
     print(
         f"EXPIRY_SOURCE_PRIORITY direct_site={len(direct)} mcp_page1_added={mcp_added} "
-        f"detail_checked={detail_checked} detail_added={detail_added} "
         f"required={len(required)} unresolved_required={unresolved_count} "
-        "direct_site_wins=true cached_deadlines_preserved_without_live_evidence=true"
+        "direct_site_wins=true cached_deadlines_preserved_without_live_evidence=true "
+        "product_detail_probes_deferred_to_rotating_monitor=true"
     )
     return combined, sources
 
