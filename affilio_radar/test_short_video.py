@@ -1,6 +1,7 @@
 import io
 import tempfile
 import unittest
+import requests
 from unittest import mock
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from short_video import (
     telegram_video_review_available,
     update_youtube_video_description,
     upload_youtube_video,
+    _raise_for_youtube_http_error,
     delete_youtube_video,
 )
 
@@ -193,6 +195,27 @@ class ShortVideoTests(unittest.TestCase):
         self.assertEqual(request["params"], {"id": "testVideo123"})
         self.assertEqual(request["headers"]["Authorization"], "Bearer test-token")
         self.assertNotIn("json", request)
+
+    def test_youtube_http_errors_include_google_reason_and_message_without_url(self):
+        response = FakeResponse({
+            "error": {
+                "code": 403,
+                "message": "The YouTube Data API quota has been exceeded.",
+                "errors": [{
+                    "message": "The request cannot be completed because quota was exceeded.",
+                    "reason": "quotaExceeded",
+                }],
+            }
+        }, status_code=403)
+
+        with self.assertRaises(requests.HTTPError) as caught:
+            _raise_for_youtube_http_error(response, "video content upload")
+
+        message = str(caught.exception)
+        self.assertIn("YouTube video content upload HTTP 403", message)
+        self.assertIn("reason=quotaExceeded", message)
+        self.assertIn("quota was exceeded", message)
+        self.assertNotIn("https://", message)
 
     def test_youtube_uploader_accepts_source_specific_description(self):
         http = FakeYouTubeHTTP()
