@@ -112,7 +112,7 @@ jobs:
 
       - name: Validate Python syntax (required for safe publishing)
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py affilio_radar/expiration_monitor.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py affilio_radar/expiration_monitor.py affilio_radar/test_aparat_upload_schedule.py
 
       - name: Run regression tests on code pushes only (never in the live publishing path)
         if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[growth-tracking-only]') }}
@@ -128,7 +128,7 @@ jobs:
           }
           trap restore_live_files EXIT
           cd affilio_radar
-          python -m unittest -v test_affilio.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py
+          python -m unittest -v test_affilio.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py test_aparat_upload_schedule.py
 
       - name: Smoke-test the deployed click tracker (diagnostic only)
         if: ${{ github.event_name == 'push' }}
@@ -203,10 +203,11 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
-          # Do not confuse the generic Aparat web feed with Aparat Shorts.
-          # Shorts uploads must be completed through the official mobile app.
-          APARAT_SHORTS_ONLY: "true"
+          # Publish 9:16 videos to Aparat's regular video feed on its own cadence.
+          # Aparat Shorts-feed placement still requires the official mobile app.
+          APARAT_SHORTS_ONLY: "false"
           APARAT_VIDEO_PASS: "0"
+          AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS: "3"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
           AFFILIO_VIDEO_REVIEW_CHAT_ID: ${{ secrets.AFFILIO_VIDEO_REVIEW_CHAT_ID }}
           # Publish generated vertical videos publicly; YouTube classifies vertical videos up to 3 minutes as Shorts.
