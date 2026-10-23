@@ -389,6 +389,66 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertIn("پایان تخفیف", result[44]["caption_text"])
         self.assertIn("💚 قیمت ویژه", result[44]["caption_text"])
 
+    def test_public_history_parser_extracts_purchase_destination_for_deduplication(self):
+        sample = """
+        <div class="tgme_widget_message_wrap">
+          <div class="tgme_widget_message" data-post="OfferChin/44">
+            <div class="tgme_widget_message_text">
+              <b>🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا</b><br>
+              <b>🛍️ ژل آبرسان گلاما مدل Limited</b><br>
+              <b>💚 قیمت ویژه: ۱۰۰٬۰۰۰ تومان</b>
+            </div>
+            <a class="tgme_widget_message_inline_button" href="https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-123%2F">خرید</a>
+          </div>
+        </div>
+        """.encode("utf-8")
+        with patch.object(monitor, "urlopen", return_value=BytesIO(sample)):
+            posts = monitor._fetch_public_channel_page()
+        self.assertEqual(posts[44]["product_ids"], ["dkp-123"])
+        self.assertTrue(posts[44]["purchase_button_visible"])
+
+    def test_duplicate_cleanup_groups_same_product_and_keeps_purchase_button_copy(self):
+        state = {
+            "published": {
+                "dkp-123": {
+                    "title": "ژل آبرسان گلاما مدل Limited",
+                    "telegram_message_id": 44,
+                    "delivery_status": {"telegram": "sent"},
+                    "expiry_status": "tracked",
+                    "post_history": [
+                        {"telegram_message_id": 43, "expiry_status": "tracked"}
+                    ],
+                }
+            }
+        }
+        posts = {
+            43: {
+                "message_id": 43,
+                "caption_text": "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا 🛍️ ژل آبرسان گلاما مدل Limited 💚 قیمت ویژه: ۱۰۰٬۰۰۰ تومان",
+                "title": "ژل آبرسان گلاما مدل Limited",
+                "product_ids": ["dkp-123"],
+                "purchase_button_visible": False,
+            },
+            44: {
+                "message_id": 44,
+                "caption_text": "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا 🛍️ ژل آبرسان گلاما مدل Limited 💚 قیمت ویژه: ۱۰۰٬۰۰۰ تومان",
+                "title": "ژل آبرسان گلاما مدل Limited",
+                "product_ids": ["dkp-123"],
+                "purchase_button_visible": True,
+            },
+        }
+        with (
+            patch.object(monitor, "fetch_public_channel_posts", return_value=posts),
+            patch.object(monitor, "_telegram_delete", return_value="deleted") as delete,
+            patch.object(monitor, "_write_state") as write_state,
+        ):
+            status = monitor._run_duplicate_cleanup(state, apply=True)
+        self.assertEqual(status, 0)
+        delete.assert_called_once_with(43)
+        self.assertEqual(state["published"]["dkp-123"]["expiry_status"], "tracked")
+        self.assertEqual(state["published"]["dkp-123"]["post_history"][0]["expiry_status"], "deleted")
+        write_state.assert_called_once_with(state)
+
     def test_public_history_paginates_backwards_without_duplicate_ids(self):
         page_one = {
             40: {"message_id": 40, "caption_text": "post 40", "caption_html": ""},
