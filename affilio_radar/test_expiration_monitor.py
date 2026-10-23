@@ -1124,7 +1124,6 @@ class ExpirationMonitorTests(unittest.TestCase):
         )
         record = {
             "title": title,
-            "product_url": "https://www.digikala.com/product/dkp-15970077/",
             "telegram_message_id": 92,
             "expires_at": (now + timedelta(hours=2)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
@@ -1137,7 +1136,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             "message_id": 92,
             "caption_text": caption,
             "caption_html": "<b>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</b>",
-            "product_ids": [],
+            "product_ids": ["dkp-15970077"],
             "purchase_button_visible": False,
         }
         with patch.object(

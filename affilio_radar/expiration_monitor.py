@@ -1748,8 +1748,14 @@ def audit_public_channel_history(published, now=None, posts=None):
             )
 
         fields = _extract_legacy_caption_fields(caption_text)
-        if not fields.get("title") or not fields.get("current_price") or not fields.get("discount_percent"):
-            continue
+        fields["title"] = fields.get("title") or record.get("title") or "پیشنهاد ویژه"
+        fields["current_price"] = (
+            fields.get("current_price") or record.get("posted_current_price") or record.get("current_price")
+        )
+        fields["original_price"] = (
+            fields.get("original_price") or record.get("posted_original_price") or record.get("original_price")
+        )
+        fields["discount_percent"] = fields.get("discount_percent") or record.get("discount_percent")
         deadline_text = parse_expiry(record.get("expires_at"))
         deadline = None
         if _has_verified_deadline(record) and deadline_text:
@@ -1782,7 +1788,7 @@ def audit_public_channel_history(published, now=None, posts=None):
         if not record_product_url:
             ids = [
                 str(value).lower() for value in (post.get("product_ids") or [])
-                if re.fullmatch(r"dkp-\\d+", str(value).lower())
+                if re.fullmatch(r"dkp-\d+", str(value).lower())
             ]
             if len(ids) == 1:
                 record_product_url = f"https://www.digikala.com/product/{ids[0]}/"
