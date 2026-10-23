@@ -2186,9 +2186,11 @@ def _diversify_ranked_records(
         if brand:
             brand_counts[brand] = brand_counts.get(brand, 0) + 1
         recent_product_ids.append(str(post.get("product_id") or ""))
-    recent_categories = [str(post.get("category") or "other") for post in recent[-4:]]
-    recent_families = [str(post.get("family") or post.get("category") or "other") for post in recent[-5:]]
-    recent_brands = [str(post.get("brand") or "") for post in recent[-4:] if post.get("brand")]
+    # Use a longer rolling window to avoid a one-brand/product-family feed.
+    # If no diverse alternative exists, the selector still relaxes constraints.
+    recent_categories = [str(post.get("category") or "other") for post in recent[-6:]]
+    recent_families = [str(post.get("family") or post.get("category") or "other") for post in recent[-8:]]
+    recent_brands = [str(post.get("brand") or "") for post in recent[-8:] if post.get("brand")]
     remaining, selected = list(source), []
     def _as_product(entry):
         if isinstance(entry, tuple) and len(entry) >= 2 and isinstance(entry[1], dict):
@@ -2201,16 +2203,16 @@ def _diversify_ranked_records(
             category, family, brand = _publication_diversity_group(item)
             pid = str(item.get("product_id") or item.get("id") or product_id(item.get("product_url") or item.get("url") or ""))
             penalty = float(position)
-            penalty += min(240.0, category_counts.get(category, 0) * 30.0)
-            penalty += min(300.0, family_counts.get(family, 0) * 40.0)
+            penalty += min(360.0, category_counts.get(category, 0) * 45.0)
+            penalty += min(440.0, family_counts.get(family, 0) * 55.0)
             if brand:
-                penalty += min(150.0, brand_counts.get(brand, 0) * 20.0)
+                penalty += min(240.0, brand_counts.get(brand, 0) * 35.0)
             if category in recent_categories:
-                penalty += 90.0
+                penalty += 150.0
             if family in recent_families:
-                penalty += 130.0
+                penalty += 210.0
             if brand and brand in recent_brands:
-                penalty += 80.0
+                penalty += 160.0
             if pid and pid in recent_product_ids[-12:]:
                 penalty += 250.0
             ranked.append((penalty, position, entry, pid, category, family, brand))
@@ -4449,9 +4451,9 @@ def select_publish_candidates(
         recent_product_ids.append(post["product_id"])
 
     remaining, diversified = list(selected), []
-    recent_categories = [post["category"] for post in recent[-4:]]
-    recent_families = [post["family"] for post in recent[-5:]]
-    recent_brands = [post["brand"] for post in recent[-4:] if post["brand"]]
+    recent_categories = [post["category"] for post in recent[-6:]]
+    recent_families = [post["family"] for post in recent[-8:]]
+    recent_brands = [post["brand"] for post in recent[-8:] if post["brand"]]
     while remaining:
         ranked = []
         for rank, product in enumerate(remaining):
@@ -4459,16 +4461,16 @@ def select_publish_candidates(
             category, family, brand = _publication_diversity_group(product)
             score = float(rank)
             # Strongly rotate categories, product families and known brands across the recent feed.
-            score += min(240.0, category_counts.get(category, 0) * 30.0)
-            score += min(300.0, family_counts.get(family, 0) * 40.0)
+            score += min(360.0, category_counts.get(category, 0) * 45.0)
+            score += min(440.0, family_counts.get(family, 0) * 55.0)
             if brand:
-                score += min(150.0, brand_counts.get(brand, 0) * 20.0)
+                score += min(240.0, brand_counts.get(brand, 0) * 35.0)
             if category in recent_categories:
-                score += 90.0
+                score += 150.0
             if family in recent_families:
-                score += 130.0
+                score += 210.0
             if brand and brand in recent_brands:
-                score += 80.0
+                score += 160.0
             if pid in recent_product_ids[-12:]:
                 score += 250.0
             ranked.append((score, rank, product, pid, category, family, brand))
