@@ -1536,7 +1536,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("⏳", edit_bale.call_args.args[1])
         self.assertNotIn("📅 پایان تخفیف:", edit_telegram.call_args.args[1])
         self.assertNotIn("📅 پایان تخفیف:", edit_bale.call_args.args[1])
-        self.assertEqual(state["published"]["dkp-15970075"]["caption_deadline_format_version"], 10)
+        self.assertEqual(state["published"]["dkp-15970075"]["caption_deadline_format_version"], 11)
         self.assertIn("caption_countdown_refreshed_at", state["published"]["dkp-15970075"])
         self.assertEqual(edit_telegram.call_args.args[2], url)
         self.assertEqual(edit_bale.call_args.args[2], url)
@@ -1593,8 +1593,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(state["published"]["dkp-missing"]["expiry_source"], "unavailable")
         self.assertTrue(state["published"]["dkp-missing"]["expiry_estimated"])
         self.assertEqual([call.args[0] for call in edit_telegram.call_args_list], [501, 502])
-        self.assertEqual(state["published"]["dkp-live"]["caption_deadline_format_version"], 10)
-        self.assertEqual(state["published"]["dkp-missing"]["caption_deadline_format_version"], 10)
+        self.assertEqual(state["published"]["dkp-live"]["caption_deadline_format_version"], 11)
+        self.assertEqual(state["published"]["dkp-missing"]["caption_deadline_format_version"], 11)
         self.assertNotIn("مانده به پایان تخفیف", edit_telegram.call_args_list[0].args[1])
         self.assertNotIn("مانده به پایان تخفیف", edit_telegram.call_args_list[1].args[1])
         self.assertNotIn("⏳", edit_telegram.call_args_list[0].args[1])
@@ -1644,7 +1644,7 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertNotIn("⏳", caption)
         self.assertEqual(edit_telegram.call_args.args[2], url)
         self.assertEqual(edit_bale.call_args.args[2], url)
-        self.assertEqual(record["caption_deadline_format_version"], 10)
+        self.assertEqual(record["caption_deadline_format_version"], 11)
 
     def test_refresh_active_countdowns_caps_batch_and_rotates_fairly(self):
         now = datetime.now(timezone.utc)
@@ -1685,8 +1685,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(result, 0)
         self.assertEqual([call.args[0] for call in edit_telegram.call_args_list], [200, 201])
         self.assertEqual([call.args[0] for call in edit_bale.call_args_list], [400, 401])
-        self.assertEqual(published["dkp-1000"]["caption_deadline_format_version"], 10)
-        self.assertEqual(published["dkp-1001"]["caption_deadline_format_version"], 10)
+        self.assertEqual(published["dkp-1000"]["caption_deadline_format_version"], 11)
+        self.assertEqual(published["dkp-1001"]["caption_deadline_format_version"], 11)
         self.assertEqual(published["dkp-1002"]["caption_deadline_format_version"], 3)
         self.assertNotIn("caption_countdown_refreshed_at", published["dkp-1002"])
         self.assertEqual(edit_telegram.call_args_list[0].args[2], url)
@@ -2681,6 +2681,7 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
             "expires_at": (now + timedelta(hours=3)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
             "posted_discount_percent": 55,
             "delivery_status": {"telegram": "sent", "bale": "sent"},
@@ -2720,6 +2721,7 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
             "expires_at": (now + timedelta(minutes=15)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
             "posted_discount_percent": 45,
             "delivery_status": {"telegram": "sent", "bale": "sent"},
@@ -2756,6 +2758,7 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
             "expires_at": (now + timedelta(minutes=15)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
             "posted_discount_percent": 40,
             "delivery_status": {"telegram": "sent"},
@@ -2794,6 +2797,7 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
             "expires_at": (now + timedelta(hours=2)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
             "posted_discount_percent": 45,
             "delivery_status": {"telegram": "sent", "bale": "sent"},
@@ -2832,6 +2836,7 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
             "expires_at": (now + timedelta(hours=2)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
             "posted_discount_percent": 45,
             "delivery_status": {"telegram": "sent", "bale": "sent"},
@@ -2873,6 +2878,7 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
             "expires_at": (now + timedelta(hours=2)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
             "posted_discount_percent": 45,
             "delivery_status": {"telegram": "sent", "bale": "sent"},
@@ -2923,6 +2929,7 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
             "expires_at": (now + timedelta(hours=2)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
             "posted_discount_percent": 60,
             "delivery_status": {"telegram": "sent", "bale": "sent"},
