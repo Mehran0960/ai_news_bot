@@ -9,7 +9,6 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from urllib.parse import parse_qs, urlsplit
-from zoneinfo import ZoneInfo
 
 from PIL import Image
 
@@ -3006,10 +3005,52 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("rateLimitExceeded", record["youtube_last_error"])
         self.assertIn("Video Uploads per day", record["youtube_last_error"])
         self.assertIsNotNone(record.get("youtube_next_attempt_at"))
-        retry_local = datetime.fromisoformat(record["youtube_next_attempt_at"]).astimezone(
-            ZoneInfo("America/Los_Angeles")
-        )
-        self.assertEqual((retry_local.hour, retry_local.minute), (0, 15))
+        retry_at = datetime.fromisoformat(record["youtube_next_attempt_at"])
+        self.assertGreaterEqual(retry_at, now + timedelta(hours=24))
+        self.assertLess(retry_at, now + timedelta(hours=25))
+        self.assertEqual(state["youtube_uploads_paused_until"], record["youtube_next_attempt_at"])
+        self.assertEqual(state["youtube_upload_pause_reason"], "daily_upload_limit")
+
+    def test_youtube_daily_limit_pause_prevents_more_upload_attempts(self):
+        now = datetime.now(timezone.utc)
+        pid = "dkp-youtube-daily-pause"
+        record = {
+            "ts": now.timestamp(),
+            "title": "گجت نمونه در زمان توقف سهمیه",
+            "product_url": f"https://www.digikala.com/product/{pid}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "expires_at": (now + timedelta(hours=3)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+            "posted_discount_percent": 45,
+            "delivery_status": {"telegram": "sent"},
+            "video_generation_status": "pending",
+            "youtube_upload_status": "pending",
+        }
+        pause_until = (now + timedelta(hours=24, minutes=15)).isoformat()
+        state = {
+            "published": {pid: record},
+            "youtube_uploads_paused_until": pause_until,
+            "youtube_upload_pause_reason": "daily_upload_limit",
+        }
+
+        with (
+            TemporaryDirectory() as output_dir,
+            patch("affilio_radar._fetch_image") as fetch_image,
+            patch("affilio_radar.save_json"),
+            patch("affilio_radar.APARAT_SHORTS_ONLY", True),
+            patch("short_video.youtube_credentials_available", return_value=True),
+            patch("aparat_uploader.aparat_credentials_available", return_value=True),
+            patch("short_video.render_short_video") as render,
+            patch("short_video.upload_youtube_video") as upload,
+        ):
+            self.assertFalse(process_pending_short_video(state, now=now, output_dir=output_dir))
+
+        fetch_image.assert_not_called()
+        render.assert_not_called()
+        upload.assert_not_called()
+        self.assertEqual(state["youtube_uploads_paused_until"], pause_until)
 
     @unittest.skipUnless(shutil.which("ffmpeg"), "ffmpeg is installed by the publishing workflow")
     def test_real_short_video_renderer_creates_vertical_mp4(self):
