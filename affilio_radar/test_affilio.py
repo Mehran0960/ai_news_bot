@@ -85,6 +85,7 @@ from affilio_radar import (
     process_pending_short_video,
     _delete_superseded_youtube_video,
     VIDEO_STYLE_VERSION,
+    YOUTUBE_UPLOAD_INTERVAL_HOURS,
     MIN_POST_INTERVAL_HOURS,
     effective_posts_per_run,
     ensure_telegram_source_invites,
@@ -2958,8 +2959,63 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(record["youtube_upload_status"], "uploaded")
             self.assertEqual(record["youtube_video_id"], "yt_test_123")
             self.assertEqual(record["youtube_video_url"], "https://www.youtube.com/shorts/yt_test_123")
+            uploaded_at = datetime.fromisoformat(record["youtube_uploaded_at"])
+            next_upload_at = datetime.fromisoformat(state["youtube_next_upload_at"])
+            self.assertEqual(
+                next_upload_at,
+                uploaded_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS),
+            )
+            self.assertEqual(state["youtube_last_upload_success_at"], record["youtube_uploaded_at"])
 
 
+
+    def test_youtube_upload_waits_three_hours_after_previous_success_and_selects_late(self):
+        now = datetime.now(timezone.utc)
+        prior_uploaded_at = now - timedelta(hours=1)
+        prior_id = "dkp-previous-youtube-success"
+        pending_id = "dkp-youtube-waiting-slot"
+        prior = {
+            "title": "ویدئوی قبلی",
+            "youtube_upload_status": "uploaded",
+            "youtube_uploaded_at": prior_uploaded_at.isoformat(),
+            "video_generation_status": "generated",
+            "delivery_status": {"telegram": "sent"},
+        }
+        pending = {
+            "ts": now.timestamp(),
+            "title": "پیشنهاد بهتر برای اسلات بعدی",
+            "product_url": f"https://www.digikala.com/product/{pending_id}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "expires_at": (now + timedelta(hours=4)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+            "posted_discount_percent": 80,
+            "demand_score": 90,
+            "promo_score": 80,
+            "delivery_status": {"telegram": "sent", "bale": "sent"},
+            "video_generation_status": "pending",
+            "youtube_upload_status": "pending",
+        }
+        state = {"published": {prior_id: prior, pending_id: pending}}
+        expected_next = prior_uploaded_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS)
+
+        with (
+            TemporaryDirectory() as output_dir,
+            patch("affilio_radar._fetch_image") as fetch_image,
+            patch("affilio_radar.save_json"),
+            patch("short_video.youtube_credentials_available", return_value=True),
+            patch("aparat_uploader.aparat_credentials_available", return_value=False),
+            patch("short_video.telegram_video_review_available", return_value=False),
+            patch("short_video.render_short_video") as render,
+            patch("short_video.upload_youtube_video") as upload,
+        ):
+            self.assertFalse(process_pending_short_video(state, now=now, output_dir=output_dir))
+
+        self.assertEqual(state["youtube_next_upload_at"], expected_next.isoformat())
+        fetch_image.assert_not_called()
+        render.assert_not_called()
+        upload.assert_not_called()
 
     def test_youtube_upload_failure_preserves_http_diagnostic_for_retry(self):
         now = datetime.now(timezone.utc)
