@@ -3031,25 +3031,18 @@
   },
   "publication_ledger": {
     "dkp-20917779": {
-      "bale_message_id": 603,
-      "delivery_attempts": {
-        "bale": 1,
-        "telegram": 1
-      },
-      "delivery_status": {
-        "bale": "sent",
-        "telegram": "sent"
-      },
-      "expires_at": "2026-10-23T20:30:01.261758+00:00",
-      "expiry_estimated": false,
-      "expiry_source": "direct_verification_pending",
-      "posted_current_price": 290000,
-      "posted_discount_percent": 80,
-      "posted_original_price": 1450000,
+      "ts": 1792740400.551056,
+      "title": "ژل آبرسان صورت گلاما مدل Limited مناسب برای انواع پوست حجم 50 میلی‌لیتر",
       "product_url": "https://www.digikala.com/product/dkp-20917779/",
       "telegram_message_id": 503,
-      "title": "ژل آبرسان صورت گلاما مدل Limited مناسب برای انواع پوست حجم 50 میلی‌لیتر",
-      "ts": 1792739956.296936
+      "bale_message_id": 603,
+      "expiry_status": "deleted",
+      "bale_expiry_status": "deleted",
+      "one_time_removed_at": "2026-10-23T07:26:40.551056+00:00",
+      "one_time_removal_reason": "user_requested_product_cleanup",
+      "posted_current_price": 290000,
+      "posted_original_price": 1450000,
+      "posted_discount_percent": 80
     }
   },
   "published": {
@@ -3078,7 +3071,7 @@
       "product_url": "https://www.digikala.com/product/dkp-20917779/",
       "telegram_message_id": 503,
       "title": "ژل آبرسان صورت گلاما مدل Limited مناسب برای انواع پوست حجم 50 میلی‌لیتر",
-      "ts": 1792739956.296936,
+      "ts": 1792740400.551056,
       "video_generation_status": "skipped_unverified_deadline",
       "youtube_upload_status": "skipped_unverified_deadline",
       "telegram_unverified_deadline_preserved_at": "2026-10-23T07:25:25.389435+00:00",
@@ -3087,7 +3080,58 @@
       "caption_countdown_refreshed_at": "2026-10-23T07:25:25.389435+00:00",
       "caption_without_expiry_migrated_at": "2026-10-23T07:25:25.389435+00:00",
       "expiry_last_probed_at": "2026-10-23T07:25:25.389435+00:00",
-      "expiry_last_product_check_at": "2026-10-23T07:25:25.389435+00:00"
+      "expiry_last_product_check_at": "2026-10-23T07:25:25.389435+00:00",
+      "one_time_removed_at": "2026-10-23T07:26:40.551056+00:00",
+      "one_time_removal_reason": "user_requested_product_cleanup",
+      "expiry_status": "deleted",
+      "bale_expiry_status": "deleted",
+      "post_history": [
+        {
+          "telegram_message_id": 499,
+          "expiry_status": "already_absent",
+          "one_time_removed_at": "2026-10-23T07:26:40.551056+00:00"
+        },
+        {
+          "telegram_message_id": 500,
+          "expiry_status": "already_absent",
+          "one_time_removed_at": "2026-10-23T07:26:40.551056+00:00"
+        },
+        {
+          "telegram_message_id": 501,
+          "expiry_status": "already_absent",
+          "one_time_removed_at": "2026-10-23T07:26:40.551056+00:00"
+        },
+        {
+          "telegram_message_id": 502,
+          "expiry_status": "deleted",
+          "one_time_removed_at": "2026-10-23T07:26:40.551056+00:00"
+        },
+        {
+          "bale_message_id": 598,
+          "bale_expiry_status": "already_absent",
+          "one_time_removed_at": "2026-10-23T07:26:40.551056+00:00"
+        },
+        {
+          "bale_message_id": 599,
+          "bale_expiry_status": "already_absent",
+          "one_time_removed_at": "2026-10-23T07:26:40.551056+00:00"
+        },
+        {
+          "bale_message_id": 600,
+          "bale_expiry_status": "already_absent",
+          "one_time_removed_at": "2026-10-23T07:26:40.551056+00:00"
+        },
+        {
+          "bale_message_id": 601,
+          "bale_expiry_status": "deleted",
+          "one_time_removed_at": "2026-10-23T07:26:40.551056+00:00"
+        },
+        {
+          "bale_message_id": 602,
+          "bale_expiry_status": "deleted",
+          "one_time_removed_at": "2026-10-23T07:26:40.551056+00:00"
+        }
+      ]
     },
     "dkp-unknown-deadline": {
       "caption_countdown_refreshed_at": "2026-10-23T07:18:41.263336+00:00",
