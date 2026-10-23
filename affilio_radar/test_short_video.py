@@ -13,6 +13,10 @@ from short_video import (
     YOUTUBE_UPLOAD_URL,
     build_vertical_poster,
     format_persian_price,
+    _font,
+    _rtl_layout_kwargs,
+    _shape_rtl,
+    PERSIAN_TEXT_RAQM_AVAILABLE,
     _resolve_ffmpeg_binary,
     telegram_video_review_available,
     update_youtube_video_description,
@@ -117,6 +121,20 @@ class ShortVideoTests(unittest.TestCase):
         )
         self.assertGreater(red_pixels, 1500)
         self.assertEqual(poster.size, (720, 1280))
+
+    def test_persian_text_uses_one_bidi_engine_without_double_reordering(self):
+        from PIL import ImageFont
+
+        sample = "خرید از دیجی‌کالا"
+        font = _font(28)
+        if PERSIAN_TEXT_RAQM_AVAILABLE:
+            self.assertEqual(font.layout_engine, ImageFont.Layout.RAQM)
+            self.assertEqual(_shape_rtl(sample), sample)
+            self.assertEqual(_rtl_layout_kwargs(), {"direction": "rtl"})
+        else:
+            self.assertEqual(font.layout_engine, ImageFont.Layout.BASIC)
+            self.assertNotEqual(_shape_rtl(sample), sample)
+            self.assertEqual(_rtl_layout_kwargs(), {})
 
     def test_video_poster_shows_product_title_prices_and_digikala_cta(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
