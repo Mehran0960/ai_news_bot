@@ -3903,13 +3903,13 @@
       "title": "محافظ برق هوشمند تایمردار هادرون مدل P103"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-23T15:45:24.578741+00:00",
+  "expiry_feed_last_checked_at": "2026-10-23T15:55:28.320477+00:00",
   "expiry_feed_last_sync_summary": {
-    "matched": 9,
-    "missing_from_feed": 32,
-    "skipped": 7,
-    "unchanged": 9,
-    "updated": 0
+    "matched": 1,
+    "updated": 0,
+    "unchanged": 1,
+    "missing_from_feed": 30,
+    "skipped": 17
   },
   "growth_tracking": {
     "daily_member_counts": {
@@ -5633,7 +5633,7 @@
     },
     "dkp-21590676": {
       "aparat_upload_status": "skipped_expiring_soon",
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 642,
       "caption_countdown_refreshed_at": "2026-10-23T13:56:21.148303+00:00",
       "caption_deadline_format_version": 10,
@@ -5655,7 +5655,7 @@
       "expiry_estimated": false,
       "expiry_last_live_sync_at": "2026-10-23T12:35:25.780844+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/82dbb4b742b5b85fdc69dfa14721f8520097b17e_1774188151.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 2900000,
       "posted_discount_percent": 86,
@@ -5668,7 +5668,9 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T15:29:47.530238+00:00",
       "video_generation_status": "skipped_expiring_soon",
-      "youtube_upload_status": "skipped_expiring_soon"
+      "youtube_upload_status": "skipped_expiring_soon",
+      "expired_deleted_at": "2026-10-23T15:55:28.320477+00:00",
+      "bale_expired_deleted_at": "2026-10-23T15:55:28.320477+00:00"
     },
     "dkp-21624318": {
       "bale_expiry_status": "tracked",
