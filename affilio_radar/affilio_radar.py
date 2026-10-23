@@ -5291,9 +5291,14 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             )
             if (
                 prior_expiry is not None
-                and record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_mcp_offer_card"}
+                and record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_product_detail_api", "digikala_mcp_offer_card"}
                 and record.get("expiry_estimated") is not True
-                and (record.get("expiry_source") != "digikala_mcp_offer_card" or record.get("expiry_deadline_verified_from_site_card") is True)
+                and (
+                    (record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_product_detail_api"}
+                     and record.get("expiry_deadline_verified_directly") is True)
+                    or (record.get("expiry_source") == "digikala_mcp_offer_card"
+                        and record.get("expiry_deadline_verified_from_site_card") is True)
+                )
                 and prior_expiry > current + timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES)
             ):
                 record["video_generation_status"] = "pending"
@@ -5338,9 +5343,16 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("expires_at")))
         if (
             expiry is None
-            or record.get("expiry_source") not in {"digikala_live_deals_feed", "digikala_mcp_offer_card"}
+            or record.get("expiry_source") not in {"digikala_live_deals_feed", "digikala_product_detail_api", "digikala_mcp_offer_card"}
             or record.get("expiry_estimated") is True
-            or (record.get("expiry_source") == "digikala_mcp_offer_card" and record.get("expiry_deadline_verified_from_site_card") is not True)
+            or (
+                record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_product_detail_api"}
+                and record.get("expiry_deadline_verified_directly") is not True
+            )
+            or (
+                record.get("expiry_source") == "digikala_mcp_offer_card"
+                and record.get("expiry_deadline_verified_from_site_card") is not True
+            )
         ):
             record["video_generation_status"] = "skipped_unverified_deadline"
             if upload_status in pending_youtube:
