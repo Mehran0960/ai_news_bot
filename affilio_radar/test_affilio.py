@@ -524,6 +524,32 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(selected[0]["product_id"], "dkp-fashion-new")
         self.assertEqual({p["product_id"] for p in selected}, {p["product_id"] for p in candidates})
 
+    def test_publish_selection_uses_durable_history_after_channel_posts_are_deleted(self):
+        now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
+        recent_publications = [
+            {
+                "product_id": f"dkp-old-audio-{index}",
+                "title": f"هدفون بلوتوثی موزیک آپولو مدل {index}",
+                "ts": now.timestamp() - (60 * (6 - index)),
+            }
+            for index in range(6)
+        ]
+        candidates = [
+            {"product_id": "dkp-audio-new", "title": "هدفون بلوتوثی موزیک آپولو مدل جدید"},
+            {"product_id": "dkp-power-new", "title": "باتری قلمی قابل شارژ"},
+            {"product_id": "dkp-fashion-new", "title": "تیشرت یقه گرد مردانه مدل جدید"},
+        ]
+        queue = {item["product_id"]: {} for item in candidates}
+        eligible = {item["product_id"]: item for item in candidates}
+
+        selected = select_publish_candidates(
+            queue, eligible, now, published={}, recent_publications=recent_publications
+        )
+
+        self.assertEqual(selected[0]["product_id"], "dkp-fashion-new")
+        self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
+
+
     def test_repeat_product_requires_real_price_drop_to_bypass_product_cooldown(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
         previous = {
