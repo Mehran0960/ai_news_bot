@@ -136,7 +136,7 @@ class ShortVideoTests(unittest.TestCase):
             self.assertNotEqual(_shape_rtl(sample), sample)
             self.assertEqual(_rtl_layout_kwargs(), {})
 
-    def test_video_poster_shows_product_title_prices_and_digikala_cta(self):
+    def test_video_poster_shows_product_title_prices_and_channel_cta(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
         image.save(stream, format="PNG")
@@ -149,15 +149,15 @@ class ShortVideoTests(unittest.TestCase):
         ))).convert("RGB")
 
         self.assertEqual(format_persian_price(1_999_000), "۱٬۹۹۹٬۰۰۰")
-        # The purchase prompt uses a high-contrast yellow button in the lower frame.
-        cta = poster.crop((70, 1070, 650, 1195))
-        yellow_pixels = sum(
+        # The lower panel now directs viewers to both OfferChin channels instead of implying the frame is clickable.
+        cta = poster.crop((35, 970, 685, 1245))
+        dark_green_pixels = sum(
             1 for red, green, blue in cta.getdata()
-            if red > 220 and green > 160 and blue < 100
+            if green < 65 and red < 55 and blue < 60
         )
-        self.assertGreater(yellow_pixels, 25_000)
+        self.assertGreater(dark_green_pixels, 25_000)
         # The price panel has a consistent pale-green surface distinct from the dark background.
-        price_panel = poster.getpixel((45, 805))
+        price_panel = poster.getpixel((45, 705))
         self.assertGreater(price_panel[1], price_panel[0])
         self.assertEqual(poster.size, (720, 1280))
 
