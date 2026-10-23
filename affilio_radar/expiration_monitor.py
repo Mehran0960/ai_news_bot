@@ -13,6 +13,7 @@ import json
 import os
 import re
 import time
+import requests
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, urlencode, urlsplit
@@ -69,6 +70,8 @@ def _has_verified_deadline(record):
     source = str(record.get("expiry_source") or "")
     if source == "live_product_stock_or_price":
         return True
+    if source == "digikala_mcp_offer_card":
+        return record.get("expiry_deadline_verified_from_site_card") is True
     return (
         source in {"digikala_live_deals_feed", "digikala_product_detail_api"}
         and record.get("expiry_deadline_verified_directly") is True
@@ -238,26 +241,25 @@ def fetch_mcp_offer_expiries():
 
 
 def fetch_direct_api_offer_expiries():
-    """Fallback for direct API responses that carry the same optional deadline fields."""
+    """Read the first-party DigiKala live-deals REST endpoint using redirect-safe HTTP."""
     results = {}
+    session = requests.Session()
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 OfferChin/1.0",
+        "Accept": "application/json",
+        "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
+        "Referer": "https://www.digikala.com/",
+    }
     for page in range(1, DEAL_LIST_PAGES + 1):
-        params = urlencode({"page": page, "q": ""})
-        request = Request(
-            f"{FEED_URL}?{params}",
-            headers={
-                "User-Agent": "OfferChin-Expiry-Monitor/1.0",
-                "Accept": "application/json",
-                "Referer": "https://www.digikala.com/",
-            },
-        )
         try:
-            with urlopen(request, timeout=HTTP_TIMEOUT) as response:
-                if response.status != 200:
-                    raise RuntimeError(f"Digikala feed HTTP {response.status}")
-                raw = response.read(8_000_001)
-            if len(raw) > 8_000_000:
+            response = session.get(
+                FEED_URL, params={"page": page, "q": ""}, headers=headers,
+                timeout=HTTP_TIMEOUT, allow_redirects=True,
+            )
+            response.raise_for_status()
+            if len(response.content) > 8_000_000:
                 raise RuntimeError("Digikala feed response exceeded 8 MB")
-            payload = json.loads(raw.decode("utf-8"))
+            payload = response.json()
             page_observed_at = datetime.now(timezone.utc)
         except Exception as exc:
             print(f"EXPIRY_FEED_FAILED page={page} error={type(exc).__name__} detail={str(exc)[:140]!r}")
@@ -287,12 +289,13 @@ def fetch_direct_api_offer_expiries():
     return results
 
 
-def fetch_offer_expiries(required_product_ids=None):
-    """Return deadlines verified from DigiKala’s first-party live API only.
+def fetch_offer_deadlines(required_product_ids=None):
+    """Fetch current exact DigiKala card deadlines, preferring first-party REST data.
 
-    MCP remains useful for discovery, but a wrapper/feed gap must never be treated
-    as direct proof that an offer is still active or has expired. Missing direct
-    deadlines remain unresolved and are never used as deletion authority.
+    The REST endpoint is authoritative when it exposes a timer. On products where
+    the list endpoint omits timer fields, the same product-matched live offer card
+    returned by the DigiKala MCP adapter can supplement the gap. Estimated/cache-only
+    timestamps never enter this map.
     """
     required = {str(pid) for pid in (required_product_ids or []) if str(pid)}
     direct = {}
@@ -307,13 +310,39 @@ def fetch_offer_expiries(required_product_ids=None):
     except Exception as exc:
         print(f"EXPIRY_DIRECT_FEED_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
 
+    combined = dict(direct)
+    sources = {pid: "digikala_live_deals_feed" for pid in direct}
     missing_required = required.difference(direct)
+    mcp_added = 0
+    if missing_required:
+        try:
+            mcp, _cards = fetch_mcp_offer_candidates(page_numbers=range(1, DEAL_LIST_PAGES + 1))
+            for raw_pid, raw_expiry in mcp.items():
+                pid = str(raw_pid)
+                if pid in direct or (required and pid not in missing_required):
+                    continue
+                expiry = parse_expiry(raw_expiry)
+                if not expiry:
+                    continue
+                combined[pid] = expiry
+                sources[pid] = "digikala_mcp_offer_card"
+                mcp_added += 1
+        except Exception as exc:
+            print(f"EXPIRY_MCP_FALLBACK_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
+
+    still_missing = required.difference(combined)
     print(
-        f"EXPIRY_SOURCE_PRIORITY direct_site={len(direct)} mcp_added=0 "
-        f"required={len(required)} unresolved_required={len(missing_required)} "
-        "cleanup_authority=direct_site_only"
+        f"EXPIRY_SOURCE_PRIORITY direct_site={len(direct)} mcp_added={mcp_added} "
+        f"required={len(required)} unresolved_required={len(still_missing)} "
+        "direct_site_wins=true cache_deadlines_used=false"
     )
-    return direct
+    return combined, sources
+
+
+def fetch_offer_expiries(required_product_ids=None):
+    """Compatibility wrapper returning only the combined current source-backed deadlines."""
+    deadlines, _sources = fetch_offer_deadlines(required_product_ids=required_product_ids)
+    return deadlines
 def _money_to_toman(raw, is_toman):
     if raw in (None, "", 0, "0"):
         return None
@@ -326,8 +355,8 @@ def _money_to_toman(raw, is_toman):
 
 
 
-def sync_live_offer_deadlines(published, live_expiries, now):
-    """Reconcile every still-visible tracked post with the latest verified deal-card deadline."""
+def sync_live_offer_deadlines(published, live_expiries, now, live_sources=None):
+    """Reconcile tracked posts with current card timers while preserving each timer's source."""
     summary = {"matched": 0, "updated": 0, "unchanged": 0, "missing_from_feed": 0, "skipped": 0}
     terminal = {"deleted", "already_absent"}
     # DigiKala's current feed represents the current campaign only. Never copy its
@@ -350,6 +379,7 @@ def sync_live_offer_deadlines(published, live_expiries, now):
 
         raw_live = live_expiries.get(str(pid))
         live = parse_expiry(raw_live)
+        source = str((live_sources or {}).get(str(pid)) or "digikala_live_deals_feed")
         if not live:
             summary["missing_from_feed"] += 1
             continue
@@ -365,8 +395,9 @@ def sync_live_offer_deadlines(published, live_expiries, now):
         must_update = (
             not previous_dt
             or bool(rec.get("expiry_estimated"))
-            or rec.get("expiry_source") != "digikala_live_deals_feed"
-            or rec.get("expiry_deadline_verified_directly") is not True
+            or rec.get("expiry_source") != source
+            or (source in {"digikala_live_deals_feed", "digikala_product_detail_api"} and rec.get("expiry_deadline_verified_directly") is not True)
+            or (source == "digikala_mcp_offer_card" and rec.get("expiry_deadline_verified_from_site_card") is not True)
             or (delta_seconds is not None and abs(delta_seconds) >= 60)
             or any(
                 rec.get(status_field) in {
@@ -381,9 +412,10 @@ def sync_live_offer_deadlines(published, live_expiries, now):
             continue
 
         rec["expires_at"] = live
-        rec["expiry_source"] = "digikala_live_deals_feed"
+        rec["expiry_source"] = source
         rec["expiry_estimated"] = False
-        rec["expiry_deadline_verified_directly"] = True
+        rec["expiry_deadline_verified_directly"] = source in {"digikala_live_deals_feed", "digikala_product_detail_api"}
+        rec["expiry_deadline_verified_from_site_card"] = source == "digikala_mcp_offer_card"
         rec["expiry_last_live_sync_at"] = now.isoformat()
         # Force this exact post to the front of the static-caption migration queue.
         rec["deadline_caption_refresh_required"] = True
@@ -1996,11 +2028,18 @@ def run():
         try:
             # Only DigiKala's own endpoint can authorize a deadline-driven deletion.
             # The MCP wrapper may assist discovery, but is never expiry-deletion authority.
-            live_expiries = fetch_direct_api_offer_expiries()
+            active_required_ids = [
+                str(pid) for pid, rec in published.items()
+                if isinstance(rec, dict) and (
+                    (str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent"})
+                    or (str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"})
+                )
+            ]
+            live_expiries, live_sources = fetch_offer_deadlines(required_product_ids=active_required_ids)
         except Exception as exc:
             print(f"EXPIRY_DIRECT_FEED_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
         if live_expiries:
-            sync_summary = sync_live_offer_deadlines(published, live_expiries, now)
+            sync_summary = sync_live_offer_deadlines(published, live_expiries, now, live_sources=live_sources)
             state["expiry_feed_last_checked_at"] = now.isoformat()
             state["expiry_feed_last_sync_summary"] = sync_summary
             changed = True
