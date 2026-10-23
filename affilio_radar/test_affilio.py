@@ -611,6 +611,61 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
 
 
+    def test_publish_selection_uses_extended_brand_rotation_window(self):
+        now = datetime(2026, 10, 23, 12, 0, tzinfo=timezone.utc)
+        recent_publications = []
+
+        # A repeated brand is just outside the old eight-post hard-avoid window.
+        recent_publications.append({
+            "product_id": "dkp-old-muzik-audio",
+            "title": "هدفون بلوتوثی موزیک آپولو مدل قدیمی",
+            "ts": now.timestamp() - (30 * 60),
+        })
+
+        middle_titles = [
+            "کفش چرم زنانه مدل نمونه",
+            "فلاسک استیل مدل نمونه",
+            "گوشواره نقره زنانه پرسته مدل نمونه",
+            "بادی نوزادی نیل کوک مدل نمونه",
+            "ادوپرفیوم زنانه مدل نمونه",
+            "کتاب داستان نوجوان مدل نمونه",
+            "قاب گوشی مدل نمونه",
+            "چراغ مطالعه رومیزی مدل نمونه",
+            "عینک آفتابی مدل نمونه",
+            "قمقمه ورزشی مدل نمونه",
+        ]
+        for index, title in enumerate(middle_titles, start=1):
+            recent_publications.append({
+                "product_id": f"dkp-middle-{index}",
+                "title": title,
+                "ts": now.timestamp() - ((30 - index) * 60),
+            })
+
+        # Repeated skincare appears often in the longer lookback, but not in the last ten posts.
+        for index in range(8):
+            recent_publications.insert(index, {
+                "product_id": f"dkp-old-skin-{index}",
+                "title": f"کرم ضد چروک پوست تیلسیم مدل قدیمی {index}",
+                "ts": now.timestamp() - ((60 + index) * 60),
+            })
+        recent_publications.sort(key=lambda item: item["ts"])
+
+        candidates = [
+            {"product_id": "dkp-muzik-battery-new", "title": "باتری قلمی قابل شارژ موزیک آپولو مدل تازه"},
+            {"product_id": "dkp-tilsim-skin-new", "title": "کرم آبرسان صورت تیلسیم مدل تازه"},
+        ]
+        queue = {item["product_id"]: {} for item in candidates}
+        eligible = {item["product_id"]: item for item in candidates}
+
+        selected = select_publish_candidates(
+            queue, eligible, now, published={}, recent_publications=recent_publications
+        )
+
+        # The broader brand lookback must override the otherwise-favored repeated Muzik Apollo candidate.
+        self.assertEqual(selected[0]["product_id"], "dkp-tilsim-skin-new")
+        self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
+
+
     def test_publish_selection_uses_durable_history_after_channel_posts_are_deleted(self):
         now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
         recent_publications = [
