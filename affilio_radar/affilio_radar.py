@@ -50,6 +50,8 @@ BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
 MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "40"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
+# Keep channel posts paired with Shorts while preserving 40 of the default 100 daily videos.insert calls as safety headroom.
+MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "60"))))
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(10, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "8"))))
@@ -4856,6 +4858,34 @@ def _last_post_timestamp(state):
     except (TypeError, ValueError):
         return 0.0
 
+def daily_channel_posts_count(state: dict, now: datetime | None = None) -> int:
+    """Count today's channel publications in YouTube's Pacific-time quota day."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    quota_day = current.astimezone(ZoneInfo("America/Los_Angeles")).date()
+    published = state.get("published", {}) if isinstance(state, dict) else {}
+    count = 0
+    for record in published.values() if isinstance(published, dict) else []:
+        if not isinstance(record, dict):
+            continue
+        delivery = record.get("delivery_status", {})
+        if not isinstance(delivery, dict) or not any(value == "sent" for value in delivery.values()):
+            continue
+        try:
+            stamp = float(record.get("ts") or 0)
+            if stamp <= 0:
+                continue
+            posted_day = datetime.fromtimestamp(stamp, timezone.utc).astimezone(
+                ZoneInfo("America/Los_Angeles")
+            ).date()
+        except (TypeError, ValueError, OverflowError, OSError):
+            continue
+        if posted_day == quota_day:
+            count += 1
+    return count
+
+
 def effective_posts_per_run(backlog_count, configured_limit=None, force_full_batch=False):
     """Use one post per scan normally, and permit a two-post burst only during backlog."""
     try:
@@ -6160,11 +6190,23 @@ def run(publish=False):
         sent = 0
         attempted_candidates = 0
         backlog_count = len(pending_queue) if isinstance(pending_queue, dict) else 0
-        run_post_limit = effective_posts_per_run(
-            backlog_count,
-            configured_limit=MAX_POSTS_PER_RUN,
-            force_full_batch=FORCE_POST_COOLDOWN_BYPASS,
+        daily_posts_used = daily_channel_posts_count(state, datetime.now(timezone.utc))
+        daily_posts_remaining = max(0, MAX_DAILY_CHANNEL_POSTS - daily_posts_used)
+        run_post_limit = min(
+            effective_posts_per_run(
+                backlog_count,
+                configured_limit=MAX_POSTS_PER_RUN,
+                force_full_batch=FORCE_POST_COOLDOWN_BYPASS,
+            ),
+            daily_posts_remaining,
         )
+        print(
+            f"YOUTUBE_SAFE_DAILY_CAP pacific_day_posts={daily_posts_used} "
+            f"cap={MAX_DAILY_CHANNEL_POSTS} remaining={daily_posts_remaining} "
+            "reason=reserve_upload_quota_headroom"
+        )
+        if daily_posts_remaining <= 0:
+            print("PUBLISH_BLOCKED: daily paired-video safety cap reached; no new channel post without reserved YouTube upload capacity.")
         print(
             f"PUBLICATION_CAPACITY backlog={backlog_count} configured_limit={MAX_POSTS_PER_RUN} "
             f"effective_limit={run_post_limit} burst_threshold={PUBLISH_BACKLOG_BURST_THRESHOLD}"
@@ -6317,6 +6359,9 @@ def run(publish=False):
                 "posted_discount_percent": int(item.get("discount_percent") or 0),
                 "posted_current_price": int(item.get("current_price") or 0),
                 "posted_original_price": int(item.get("original_price") or 0),
+                "demand_score": int(item.get("demand_score") or 0),
+                "promo_score": int(item.get("promo_score") or 0),
+                "click_count_30d": int(item.get("click_count_30d") or 0),
             }
             failed_ready_platforms = _delivery_retry_platforms(record)
             if failed_ready_platforms:
