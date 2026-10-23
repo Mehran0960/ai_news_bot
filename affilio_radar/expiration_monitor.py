@@ -991,6 +991,240 @@ def _normalise_duplicate_title(value):
     return "".join(re.findall(r"[^\W_]+", value, flags=re.UNICODE))
 
 
+def _parse_explicit_message_ids(value):
+    """Parse a comma/space separated list of known message IDs for a one-off cleanup."""
+    return {
+        int(item)
+        for item in re.findall(r"\d+", str(value or ""))
+        if int(item) > 0
+    }
+
+
+def _delete_one_specific_product(state, product_id, title, telegram_ids_raw="", bale_ids_raw=""):
+    """One-shot deletion of all existing channel posts for one explicit product.
+
+    This does not add a permanent exclusion. It records the removal in the normal
+    publication cooldown ledger so the just-removed product is not immediately
+    reposted, then normal product selection resumes automatically.
+    """
+    product_id = str(product_id or "").strip().lower()
+    title = str(title or "").strip()
+    if not re.fullmatch(r"dkp-\d{1,12}", product_id) or not title:
+        print("ONE_TIME_PRODUCT_DELETE_ABORTED reason=invalid_product_id_or_title")
+        return 2
+    if not BOT_TOKEN:
+        print("ONE_TIME_PRODUCT_DELETE_ABORTED reason=telegram_bot_token_missing")
+        return 2
+    if not BALE_BOT_TOKEN or not BALE_CHANNEL_ID:
+        print("ONE_TIME_PRODUCT_DELETE_ABORTED reason=bale_credentials_missing")
+        return 2
+
+    published = state.setdefault("published", {})
+    if not isinstance(published, dict):
+        print("ONE_TIME_PRODUCT_DELETE_ABORTED reason=published_state_invalid")
+        return 2
+    ledger = state.setdefault("publication_ledger", {})
+    if not isinstance(ledger, dict):
+        ledger = {}
+        state["publication_ledger"] = ledger
+
+    telegram_ids = _parse_explicit_message_ids(telegram_ids_raw)
+    bale_ids = _parse_explicit_message_ids(bale_ids_raw)
+    related_records = []
+    target_title = _normalise_duplicate_title(title)
+    for candidate_id, record in _iter_post_records(published):
+        if not isinstance(record, dict):
+            continue
+        record_id = str(candidate_id or "").lower()
+        url_id = _product_id_from_public_url(record.get("product_url", ""))
+        record_title = _normalise_duplicate_title(record.get("title", ""))
+        if record_id != product_id and url_id != product_id and record_title != target_title:
+            continue
+        related_records.append(record)
+    durable_record = ledger.get(product_id)
+    if isinstance(durable_record, dict):
+        related_records.append(durable_record)
+
+    for record in related_records:
+        raw_id = record.get("telegram_message_id")
+        if str(raw_id or "").isdigit():
+            telegram_ids.add(int(raw_id))
+        raw_bale_id = record.get("bale_message_id")
+        if str(raw_bale_id or "").isdigit():
+            bale_ids.add(int(raw_bale_id))
+        history = record.get("post_history")
+        if isinstance(history, list):
+            for prior in history:
+                if not isinstance(prior, dict):
+                    continue
+                raw_tg = prior.get("telegram_message_id")
+                raw_bale = prior.get("bale_message_id")
+                if str(raw_tg or "").isdigit():
+                    telegram_ids.add(int(raw_tg))
+                if str(raw_bale or "").isdigit():
+                    bale_ids.add(int(raw_bale))
+
+    # Telegram's public preview can reveal older posts whose IDs disappeared from state.
+    history_scan_ok = False
+    try:
+        public_posts = fetch_public_channel_posts(max_pages=80)
+        history_scan_ok = True
+        for message_id, post in public_posts.items():
+            caption = str(post.get("caption_text") or "")
+            caption_key = _normalise_duplicate_title(caption)
+            post_product_ids = {str(value).lower() for value in (post.get("product_ids") or [])}
+            matched = (
+                product_id in post_product_ids
+                or product_id in caption.lower()
+                or (bool(target_title) and target_title in caption_key)
+            )
+            if matched:
+                telegram_ids.add(int(message_id))
+                print(f"ONE_TIME_PRODUCT_DELETE_MATCH platform=telegram message_id={message_id} product_id={product_id}")
+        print(
+            f"ONE_TIME_PRODUCT_DELETE_SCAN product_id={product_id} "
+            f"posts_scanned={len(public_posts)} "
+            f"matches={sum(1 for mid, post in public_posts.items() if (
+                product_id in {str(value).lower() for value in (post.get('product_ids') or [])}
+                or product_id in str(post.get('caption_text') or '').lower()
+                or target_title in _normalise_duplicate_title(post.get('caption_text') or '')
+            ))} "
+            f"complete_to_oldest={bool(public_posts) and min(public_posts) <= 1}"
+        )
+    except Exception as exc:
+        print(
+            f"ONE_TIME_PRODUCT_DELETE_SCAN_FAILED product_id={product_id} "
+            f"error={type(exc).__name__} detail={str(exc)[:140]!r}; "
+            "tracked and explicitly supplied IDs will still be attempted"
+        )
+
+    if not telegram_ids and not bale_ids:
+        print(f"ONE_TIME_PRODUCT_DELETE_ABORTED product_id={product_id} reason=no_message_ids_found")
+        return 2
+
+    now = datetime.now(timezone.utc)
+    result_telegram = {}
+    result_bale = {}
+    failures = []
+
+    for platform, message_ids, delete_fn, results in (
+        ("telegram", sorted(telegram_ids), _telegram_delete, result_telegram),
+        ("bale", sorted(bale_ids), _bale_delete, result_bale),
+    ):
+        for message_id in message_ids:
+            last_error = ""
+            for attempt in range(1, 4):
+                try:
+                    outcome = delete_fn(message_id)
+                    if outcome not in {"deleted", "already_absent"}:
+                        raise RuntimeError(f"unconfirmed deletion outcome: {outcome}")
+                    results[message_id] = outcome
+                    print(
+                        f"ONE_TIME_PRODUCT_DELETE_RESULT platform={platform} "
+                        f"product_id={product_id} message_id={message_id} outcome={outcome}"
+                    )
+                    break
+                except Exception as exc:
+                    last_error = f"{type(exc).__name__}: {str(exc)[:140]}"
+                    if attempt < 3:
+                        time.sleep(float(attempt))
+            else:
+                results[message_id] = "delete_failed"
+                failures.append((platform, message_id, last_error))
+                print(
+                    f"ONE_TIME_PRODUCT_DELETE_FAILED platform={platform} "
+                    f"product_id={product_id} message_id={message_id} error={last_error!r}"
+                )
+
+    # Store every attempted message ID, including old IDs recovered from public
+    # history, so the usual duplicate guard cannot immediately repost the item.
+    old_record = published.get(product_id)
+    base = dict(old_record) if isinstance(old_record, dict) else {}
+    base["title"] = title
+    base["product_url"] = (
+        base.get("product_url") or f"https://www.digikala.com/product/{product_id}/"
+    )
+    base["ts"] = now.timestamp()
+    base["one_time_removed_at"] = now.isoformat()
+    base["one_time_removal_reason"] = "user_requested_product_cleanup"
+    if telegram_ids:
+        latest_tg = max(telegram_ids)
+        base["telegram_message_id"] = latest_tg
+        base["expiry_status"] = result_telegram.get(latest_tg, "delete_failed")
+    if bale_ids:
+        latest_bale = max(bale_ids)
+        base["bale_message_id"] = latest_bale
+        base["bale_expiry_status"] = result_bale.get(latest_bale, "delete_failed")
+
+    history_records = []
+    for message_id in sorted(telegram_ids):
+        if message_id == max(telegram_ids):
+            continue
+        history_records.append({
+            "telegram_message_id": message_id,
+            "expiry_status": result_telegram.get(message_id, "delete_failed"),
+            "one_time_removed_at": now.isoformat(),
+        })
+    for message_id in sorted(bale_ids):
+        if message_id == max(bale_ids):
+            continue
+        history_records.append({
+            "bale_message_id": message_id,
+            "bale_expiry_status": result_bale.get(message_id, "delete_failed"),
+            "one_time_removed_at": now.isoformat(),
+        })
+    base["post_history"] = history_records[-80:]
+    published[product_id] = base
+
+    ledger_entry = {
+        "ts": now.timestamp(),
+        "title": title,
+        "product_url": base["product_url"],
+        "telegram_message_id": base.get("telegram_message_id"),
+        "bale_message_id": base.get("bale_message_id"),
+        "expiry_status": base.get("expiry_status", "deleted"),
+        "bale_expiry_status": base.get("bale_expiry_status", "deleted"),
+        "one_time_removed_at": now.isoformat(),
+        "one_time_removal_reason": "user_requested_product_cleanup",
+    }
+    for price_field in ("posted_current_price", "posted_original_price", "posted_discount_percent"):
+        if price_field in base:
+            ledger_entry[price_field] = base[price_field]
+    ledger[product_id] = ledger_entry
+
+    for queue_name in ("pending_queue", "discovery_queue"):
+        queue = state.get(queue_name)
+        if isinstance(queue, dict):
+            queue.pop(product_id, None)
+        elif isinstance(queue, list):
+            state[queue_name] = [
+                item for item in queue
+                if not (
+                    isinstance(item, dict)
+                    and str(item.get("product_id") or item.get("id") or "").lower() == product_id
+                )
+            ]
+
+    _write_state(state)
+    print(
+        "ONE_TIME_PRODUCT_DELETE_SUMMARY "
+        + json.dumps({
+            "product_id": product_id,
+            "telegram_ids_attempted": sorted(telegram_ids),
+            "telegram_deleted": sum(v == "deleted" for v in result_telegram.values()),
+            "telegram_already_absent": sum(v == "already_absent" for v in result_telegram.values()),
+            "bale_ids_attempted": sorted(bale_ids),
+            "bale_deleted": sum(v == "deleted" for v in result_bale.values()),
+            "bale_already_absent": sum(v == "already_absent" for v in result_bale.values()),
+            "delete_failures": len(failures),
+            "history_scan_ok": history_scan_ok,
+            "repeat_cooldown_hours": MIN_REPEAT_PRODUCT_INTERVAL_HOURS,
+            "permanent_exclusion_added": False,
+        }, ensure_ascii=False, sort_keys=True)
+    )
+    return 1 if failures else 0
+
+
 def _run_duplicate_cleanup(state, apply=True):
     """Delete older duplicate product posts while keeping one copy of each live offer."""
     if not BOT_TOKEN:
@@ -1724,6 +1958,15 @@ def _delete_expired_youtube_videos(published, now):
 
 def run():
     state = _read_state()
+    one_time_product_id = os.getenv("AFFILIO_DELETE_SPECIFIC_PRODUCT_ID", "").strip()
+    if one_time_product_id:
+        return _delete_one_specific_product(
+            state,
+            one_time_product_id,
+            os.getenv("AFFILIO_DELETE_SPECIFIC_PRODUCT_TITLE", ""),
+            os.getenv("AFFILIO_DELETE_SPECIFIC_PRODUCT_TELEGRAM_IDS", ""),
+            os.getenv("AFFILIO_DELETE_SPECIFIC_PRODUCT_BALE_IDS", ""),
+        )
     if os.getenv("AFFILIO_DEDUPLICATE_ONLY", "false").strip().lower() in {"1", "true", "yes", "on"}:
         return _run_duplicate_cleanup(state, apply=True)
     published = state.get("published", {})
