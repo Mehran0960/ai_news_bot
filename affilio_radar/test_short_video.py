@@ -1,6 +1,7 @@
 import io
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from PIL import Image
@@ -11,6 +12,8 @@ from short_video import (
     YOUTUBE_TOKEN_URL,
     YOUTUBE_UPLOAD_URL,
     build_vertical_poster,
+    format_persian_price,
+    _resolve_ffmpeg_binary,
     telegram_video_review_available,
     update_youtube_video_description,
     upload_youtube_video,
@@ -106,7 +109,7 @@ class ShortVideoTests(unittest.TestCase):
         poster = Image.open(io.BytesIO(build_vertical_poster(stream.getvalue(), 76))).convert("RGB")
 
         # The upper-right region should contain a clearly visible red burst, not the old green pill.
-        crop = poster.crop((455, 125, 710, 325))
+        crop = poster.crop((448, 250, 710, 430))
         red_pixels = sum(
             1
             for red, green, blue in crop.getdata()
@@ -114,6 +117,38 @@ class ShortVideoTests(unittest.TestCase):
         )
         self.assertGreater(red_pixels, 1500)
         self.assertEqual(poster.size, (720, 1280))
+
+    def test_video_poster_shows_product_title_prices_and_digikala_cta(self):
+        image = Image.new("RGB", (400, 500), (255, 255, 255))
+        stream = io.BytesIO()
+        image.save(stream, format="PNG")
+        poster = Image.open(io.BytesIO(build_vertical_poster(
+            stream.getvalue(),
+            80,
+            title="هدفون بلوتوثی نمونه مدل X",
+            current_price=1_999_000,
+            original_price=10_000_000,
+        ))).convert("RGB")
+
+        self.assertEqual(format_persian_price(1_999_000), "۱٬۹۹۹٬۰۰۰")
+        # The purchase prompt uses a high-contrast yellow button in the lower frame.
+        cta = poster.crop((70, 1070, 650, 1195))
+        yellow_pixels = sum(
+            1 for red, green, blue in cta.getdata()
+            if red > 220 and green > 160 and blue < 100
+        )
+        self.assertGreater(yellow_pixels, 25_000)
+        # The price panel has a consistent pale-green surface distinct from the dark background.
+        price_panel = poster.getpixel((45, 805))
+        self.assertGreater(price_panel[1], price_panel[0])
+        self.assertEqual(poster.size, (720, 1280))
+
+    def test_ffmpeg_resolver_falls_back_to_bundled_binary(self):
+        with (
+            mock.patch("short_video.shutil.which", return_value=None),
+            mock.patch("short_video._bundled_ffmpeg_binary", return_value="/bundled/ffmpeg"),
+        ):
+            self.assertEqual(_resolve_ffmpeg_binary(), "/bundled/ffmpeg")
 
     def test_private_review_is_disabled_until_both_settings_exist(self):
         self.assertFalse(telegram_video_review_available({}))
