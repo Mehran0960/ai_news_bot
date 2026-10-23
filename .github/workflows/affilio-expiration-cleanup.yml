@@ -55,7 +55,8 @@ jobs:
       - name: Validate expiry-monitor syntax (required for safe deletion)
         run: python -m py_compile affilio_radar/expiration_monitor.py affilio_radar/affilio_radar.py
 
-      - name: Run expiry-monitor regression tests without blocking cleanup or caption repair
+      - name: Run expiry-monitor regression tests on code pushes only
+        if: ${{ github.event_name == 'push' }}
         continue-on-error: true
         run: |
           # Tests write state; always restore the live channel ledger after test execution.
