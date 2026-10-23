@@ -2189,8 +2189,8 @@ def _diversify_ranked_records(
     # Use a longer rolling window to avoid a one-brand/product-family feed.
     # If no diverse alternative exists, the selector still relaxes constraints.
     recent_categories = [str(post.get("category") or "other") for post in recent[-10:]]
-    recent_families = [str(post.get("family") or post.get("category") or "other") for post in recent[-12:]]
-    recent_brands = [str(post.get("brand") or "") for post in recent[-12:] if post.get("brand")]
+    recent_families = [str(post.get("family") or post.get("category") or "other") for post in recent[-14:]]
+    recent_brands = [str(post.get("brand") or "") for post in recent[-16:] if post.get("brand")]
     remaining, selected = list(source), []
     def _as_product(entry):
         if isinstance(entry, tuple) and len(entry) >= 2 and isinstance(entry[1], dict):
@@ -2232,10 +2232,10 @@ def _diversify_ranked_records(
             brand_counts[brand] = brand_counts.get(brand, 0) + 1
         if pid:
             recent_product_ids.append(pid)
-        recent_categories = (recent_categories + [category])[-10:]
-        recent_families = (recent_families + [family])[-12:]
+        recent_categories = (recent_categories + [category])[-6:]
+        recent_families = (recent_families + [family])[-10:]
         if brand:
-            recent_brands = (recent_brands + [brand])[-10:]
+            recent_brands = (recent_brands + [brand])[-12:]
     return selected
 
 
@@ -4452,8 +4452,8 @@ def select_publish_candidates(
 
     remaining, diversified = list(selected), []
     recent_categories = [post["category"] for post in recent[-10:]]
-    recent_families = [post["family"] for post in recent[-12:]]
-    recent_brands = [post["brand"] for post in recent[-12:] if post["brand"]]
+    recent_families = [post["family"] for post in recent[-14:]]
+    recent_brands = [post["brand"] for post in recent[-16:] if post["brand"]]
     while remaining:
         ranked = []
         for rank, product in enumerate(remaining):
@@ -4505,10 +4505,10 @@ def select_publish_candidates(
         if brand:
             brand_counts[brand] = brand_counts.get(brand, 0) + 1
         recent_product_ids.append(pid)
-        recent_categories = (recent_categories + [category])[-4:]
-        recent_families = (recent_families + [family])[-5:]
+        recent_categories = (recent_categories + [category])[-6:]
+        recent_families = (recent_families + [family])[-10:]
         if brand:
-            recent_brands = (recent_brands + [brand])[-4:]
+            recent_brands = (recent_brands + [brand])[-12:]
     return diversified
 
 

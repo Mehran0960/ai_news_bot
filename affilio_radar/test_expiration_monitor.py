@@ -979,6 +979,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                         "expiry_source": "digikala_live_deals_feed",
                         "expiry_deadline_verified_directly": True,
                         "expiry_estimated": False,
+                        "expiry_last_direct_verification_at": datetime.now(timezone.utc).isoformat(),
                         "expiry_status": "tracked",
                     },
                     "dkp-67890": {
@@ -1156,6 +1157,7 @@ class ExpirationMonitorTests(unittest.TestCase):
                         "expiry_source": "digikala_live_deals_feed",
                         "expiry_deadline_verified_directly": True,
                         "expiry_estimated": False,
+                        "expiry_last_direct_verification_at": datetime.now(timezone.utc).isoformat(),
                         "expiry_status": "tracked",
                         "bale_expiry_status": "tracked",
                     }

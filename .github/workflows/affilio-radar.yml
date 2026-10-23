@@ -219,7 +219,7 @@ jobs:
           AFFILIO_DISCOVERY_QUEUE_LIMIT: "500"
           AFFILIO_DISCOVERY_QUEUE_TTL_HOURS: "24"
           AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "32"
-          AFFILIO_MCP_PAGES_PER_SCAN: "2"
+          AFFILIO_MCP_PAGES_PER_SCAN: "5"
           AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || inputs.external_scheduler || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.03333333333333333"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "60"
