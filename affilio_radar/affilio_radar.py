@@ -71,7 +71,7 @@ COUNTDOWN_SAFETY_BUFFER_MINUTES = max(0, min(30, int(os.getenv("AFFILIO_COUNTDOW
 COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
     120, min(600, int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS", "240")))
 )
-CAPTION_DEADLINE_FORMAT_VERSION = 11
+CAPTION_DEADLINE_FORMAT_VERSION = 12
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
 URGENT_MIN_POST_INTERVAL_MINUTES = 10
@@ -3158,14 +3158,8 @@ def build_caption(
         discount_value = format_persian_number(discount) + "٪"
         parts.append(bold(f"⚡️ {discount_value} تخفیف"))
         parts.append("────────────")
-    # Keep the extra reference price only for stronger discounts (30%+), reducing number clutter on modest offers.
-    if original and current and int(original) > int(current) and discount is not None and int(discount) >= 30:
-        original_amount = format_persian_number(original)
-        if is_bale:
-            original_amount = unicode_strikethrough(original_amount)
-            parts += ["", f"🏷️ قیمت اصلی: {original_amount} تومان"]
-        else:
-            parts += ["", f"🏷️ قیمت اصلی: <s>{original_amount} تومان</s>"]
+    # The original/list price is deliberately omitted from every public caption for a consistent, uncluttered layout.
+    # Keep original_price in the internal record for discount calculation and validation.
 
     # Offer deadlines remain in state for verified cleanup; captions never show timers.
 
