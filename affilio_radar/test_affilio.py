@@ -366,6 +366,34 @@ class AffilioRadarTests(unittest.TestCase):
         # The highest-discount item is a clothing product; no category filter is applied.
         self.assertEqual(candidates[0]["discount_percent"], 99)
 
+    def test_incredible_offer_candidate_merge_preserves_deadline_from_other_node(self):
+        payload = [
+            {
+                "id": 123,
+                "title_fa": "هدفون تخفیف‌دار آزمایشی",
+                "url": {"uri": "/product/dkp-123/"},
+                "is_incredible": True,
+                "campaign": {"ends_in_seconds": 7200},
+                "default_variant": {
+                    "price": {"discount_percent": 35, "selling_price_toman": 650000, "rrp_price_toman": 1000000}
+                },
+            },
+            {
+                "id": 123,
+                "title_fa": "هدفون تخفیف‌دار آزمایشی",
+                "url": {"uri": "/product/dkp-123/"},
+                "is_incredible": True,
+                "default_variant": {
+                    "price": {"discount_percent": 80, "selling_price_toman": 200000, "rrp_price_toman": 1000000}
+                },
+            },
+        ]
+        rows = api_incredible_offer_product_candidates(payload, now=datetime(2026, 10, 23, 9, 0, tzinfo=timezone.utc))
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["discount_percent"], 80)
+        self.assertEqual(rows[0]["deal_expires_at"], "2026-10-23T11:00:00+00:00")
+
+
     def test_audience_demand_outranks_an_extreme_listed_discount(self):
         popular_gadget = score_product({
             "title": "پاوربانک محبوب",
