@@ -2381,7 +2381,7 @@ def discover_product_urls(
     search_reserve = min(12, max(1, MAX_PRODUCT_CHECKS // 3)) if MAX_PRODUCT_CHECKS > 1 else 0
     presearch_candidate_limit = max(1, MAX_PRODUCT_CHECKS - search_reserve)
 
-    # Recheck persistent candidates even when their deadline is earlier than active
+    # [scan-now] Recheck persistent candidates even when their deadline is earlier than active
     # channel posts; chronology is not a publication eligibility rule anymore.
     for pid, record in select_queued_records_for_recheck(
         queued_records, queue_now
