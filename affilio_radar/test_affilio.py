@@ -1369,6 +1369,19 @@ class AffilioRadarTests(unittest.TestCase):
             "expiry_estimated": False,
         }
         self.assertTrue(has_verified_deal_deadline(verified, now))
+        self.assertTrue(has_verified_deal_deadline({
+            "deal_expires_at": "2026-10-18T12:17:20+00:00",
+            "expiry_source": "digikala_mcp_offer_card",
+            "expiry_deadline_verified_directly": False,
+            "expiry_deadline_verified_from_site_card": True,
+            "expiry_estimated": False,
+        }, now))
+        self.assertFalse(has_verified_deal_deadline({
+            "deal_expires_at": "2026-10-18T12:17:20+00:00",
+            "expiry_source": "digikala_mcp_offer_card",
+            "expiry_deadline_verified_from_site_card": False,
+            "expiry_estimated": False,
+        }, now))
         self.assertFalse(has_verified_deal_deadline({
             "deal_expires_at": "2026-10-18T12:17:20+00:00",
             "expiry_source": "mcp_unverified",
