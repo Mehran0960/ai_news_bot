@@ -1001,7 +1001,7 @@ def _parse_explicit_message_ids(value):
 
 
 def _delete_one_specific_product(state, product_id, title, telegram_ids_raw="", bale_ids_raw=""):
-    """Delete all known/public channel copies and persist the user's permanent suppression."""
+    """Delete all known/public channel copies; keep only the normal repeat cooldown."""
     product_id = str(product_id or "").strip().lower()
     title = str(title or "").strip()
     if not re.fullmatch(r"dkp-\d{1,12}", product_id) or not title:
@@ -1098,19 +1098,14 @@ def _delete_one_specific_product(state, product_id, title, telegram_ids_raw="", 
         return 2
 
     now = datetime.now(timezone.utc)
-    suppressions = state.setdefault("product_suppressions", {})
-    if not isinstance(suppressions, dict):
-        suppressions = {}
-        state["product_suppressions"] = suppressions
-    existing_suppression = suppressions.get(product_id, {})
-    suppression_record = dict(existing_suppression) if isinstance(existing_suppression, dict) else {}
-    suppression_record.update({
-        "title": title,
-        "reason": "user_requested_product_removal",
-        "permanent": True,
-    })
-    suppression_record.setdefault("created_at", now.isoformat())
-    suppressions[product_id] = suppression_record
+    # This is an exception for one cleanup, not a permanent exclusion. The ledger
+    # timestamp below activates the standard repeat cooldown; normal discovery
+    # will reconsider this product afterward under ordinary rules.
+    suppressions = state.get("product_suppressions")
+    if isinstance(suppressions, dict):
+        suppressions.pop(product_id, None)
+        if not suppressions:
+            state.pop("product_suppressions", None)
     result_telegram = {}
     result_bale = {}
     failures = []
@@ -1226,8 +1221,9 @@ def _delete_one_specific_product(state, product_id, title, telegram_ids_raw="", 
             "bale_already_absent": sum(v == "already_absent" for v in result_bale.values()),
             "delete_failures": len(failures),
             "history_scan_ok": history_scan_ok,
-            "permanent_exclusion_added": True,
-            "suppression_reason": "user_requested_product_removal",
+            "permanent_exclusion_added": False,
+            "repeat_cooldown_hours": 24,
+            "suppression_reason": "one_time_product_removal_only",
         }, ensure_ascii=False, sort_keys=True)
     )
     return 1 if failures else 0
