@@ -543,6 +543,55 @@ def render_short_video(
         raise RuntimeError("ffmpeg did not produce a valid MP4 file")
     return target
 
+def _raise_for_youtube_http_error(response, operation: str) -> None:
+    """Raise an HTTP error with Google's safe, concise reason/message for diagnostics.
+
+    Never include the request URL or headers: they may contain sensitive values.
+    """
+    status_code = getattr(response, "status_code", None)
+    try:
+        status_code = int(status_code) if status_code is not None else None
+    except (TypeError, ValueError, OverflowError):
+        status_code = None
+
+    if status_code is None or status_code < 400:
+        response.raise_for_status()
+        return
+
+    payload = {}
+    try:
+        candidate = response.json()
+        if isinstance(candidate, dict):
+            payload = candidate
+    except (ValueError, TypeError, AttributeError):
+        pass
+
+    raw_error = payload.get("error", {})
+    error = raw_error if isinstance(raw_error, dict) else {}
+    errors = error.get("errors", [])
+    first_detail = next((item for item in errors if isinstance(item, dict)), {})
+    reason = str(
+        first_detail.get("reason")
+        or error.get("status")
+        or (raw_error if isinstance(raw_error, str) else "")
+        or payload.get("error_description")
+        or ""
+    ).strip()
+    message = str(
+        first_detail.get("message")
+        or error.get("message")
+        or payload.get("error_description")
+        or ""
+    )
+    message = " ".join(message.split())[:200]
+    detail = f"YouTube {operation} HTTP {status_code}"
+    if reason:
+        detail += f" reason={reason[:80]}"
+    if message:
+        detail += f" message={message}"
+    raise requests.HTTPError(detail, response=response)
+
+
 def youtube_credentials_available(env: Mapping[str, str] | None = None) -> bool:
     source = env if env is not None else os.environ
     return all(str(source.get(name, "")).strip() for name in (
@@ -563,7 +612,7 @@ def _youtube_access_token(session, env: Mapping[str, str]) -> str:
         },
         timeout=(10, 30),
     )
-    response.raise_for_status()
+    _raise_for_youtube_http_error(response, "OAuth token refresh")
     payload = response.json()
     token = str(payload.get("access_token") or "").strip()
     if not token:
@@ -635,7 +684,7 @@ def upload_youtube_video(
         headers=headers,
         timeout=(10, 45),
     )
-    init.raise_for_status()
+    _raise_for_youtube_http_error(init, "resumable upload initialization")
     upload_url = str(init.headers.get("Location") or "").strip()
     if not upload_url.startswith("https://www.googleapis.com/upload/youtube/"):
         raise RuntimeError("YouTube did not return a safe resumable-upload URL")
@@ -647,7 +696,7 @@ def upload_youtube_video(
     }
     with path.open("rb") as handle:
         uploaded = http.put(upload_url, data=handle, headers=upload_headers, timeout=(30, 240))
-    uploaded.raise_for_status()
+    _raise_for_youtube_http_error(uploaded, "video content upload")
     result = uploaded.json()
     video_id = str(result.get("id") or "").strip()
     if not video_id:
@@ -682,7 +731,7 @@ def update_youtube_video_description(
         headers={"Authorization": f"Bearer {token}"},
         timeout=(10, 45),
     )
-    response.raise_for_status()
+    _raise_for_youtube_http_error(response, "video metadata lookup")
     payload = response.json()
     items = payload.get("items", []) if isinstance(payload, dict) else []
     current = next(
@@ -716,7 +765,7 @@ def update_youtube_video_description(
         headers=headers,
         timeout=(10, 45),
     )
-    updated.raise_for_status()
+    _raise_for_youtube_http_error(updated, "video description update")
     return True
 
 
@@ -751,7 +800,7 @@ def delete_youtube_video(video_id: str, *, session=None, env: Mapping[str, str] 
         }
         if "videoNotFound" in reasons or str(error.get("status") or "") == "NOT_FOUND":
             return "already_absent"
-    response.raise_for_status()
+    _raise_for_youtube_http_error(response, "video deletion")
     raise RuntimeError(f"YouTube delete returned unexpected HTTP {response.status_code}")
 
 
@@ -770,5 +819,5 @@ def set_youtube_video_private(video_id: str, *, session=None, env: Mapping[str, 
         headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
         timeout=(10, 45),
     )
-    response.raise_for_status()
+    _raise_for_youtube_http_error(response, "privacy update")
     return True
