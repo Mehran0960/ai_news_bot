@@ -546,8 +546,11 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(classify_category("کتاب جوجوتسو کایسن سه جلدی"), "books_stationery")
         self.assertEqual(classify_category("گوشواره نقره زنانه پرسته"), "jewelry")
         self.assertEqual(classify_category("عطر زنانه مدل نمونه"), "beauty_fragrance")
+        self.assertEqual(classify_category("ادو تویلت مردانه فالکون مدل Chromium حجم 100 میلی لیتر"), "beauty_fragrance")
         self.assertEqual(classify_category("هدفون بلوتوثی مدل نمونه"), "audio_wearables")
         self.assertEqual(classify_category("باتری قلمی قابل شارژ"), "power_backup")
+        self.assertEqual(classify_category("بادی نوزادی نیل کوک مدل Winter Teddy مجموعه 5 عددی"), "kids_sports")
+        self.assertEqual(classify_category("سنگ پا برقی مدل M100"), "personal_care")
 
     def test_publish_selection_softly_reorders_repetitive_categories_for_diversity(self):
         now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
@@ -2001,8 +2004,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("https://ble.ir/OfferChin", aparat_description)
         self.assertEqual(tracked_telegram_invite_url(state, "bale"), "https://t.me/OfferChin")
 
-    def test_normal_publication_gap_matches_five_minute_scan_cadence(self):
-        self.assertEqual(MIN_POST_INTERVAL_HOURS, 5 / 60)
+    def test_publication_cooldown_leaves_room_for_five_minute_scan_cadence(self):
+        self.assertEqual(MIN_POST_INTERVAL_HOURS, 2 / 60)
 
     def test_publication_capacity_bursts_only_when_publish_queue_is_large(self):
         self.assertEqual(effective_posts_per_run(0, configured_limit=2), 1)
