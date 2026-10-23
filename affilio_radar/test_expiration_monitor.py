@@ -500,7 +500,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(fetch.call_count, 3)
         self.assertEqual(fetch.call_args_list[1].args[0], 39)
 
-    def test_public_history_does_not_delete_untracked_post_from_caption_deadline(self):
+    def test_public_history_deletes_untracked_offer_without_purchase_button(self):
         old_post = {
             "message_id": 77,
             "caption_text": (
@@ -511,12 +511,14 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "⏳ پایان تخفیف: شنبه ۲۵ مهر ۱۴۰۵، ساعت ۲۳:۵۹"
             ),
             "caption_html": "",
+            "product_ids": [],
+            "purchase_button_visible": False,
         }
         now = datetime(2026, 10, 18, 4, 30, tzinfo=timezone.utc)
-        with patch.object(monitor, "_telegram_delete") as deletion:
+        with patch.object(monitor, "_telegram_delete", return_value="deleted") as deletion:
             result = monitor.audit_public_channel_history({}, now=now, posts={77: old_post})
-        deletion.assert_not_called()
-        self.assertEqual(result[1], 0)
+        deletion.assert_called_once_with(77)
+        self.assertEqual(result[1], 1)
         self.assertEqual(result[2], 0)
 
     def test_public_history_does_not_expire_a_post_using_caption_text_alone(self):
@@ -1049,7 +1051,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         deletion.assert_not_called()
         mark.assert_not_called()
 
-    def test_public_history_preserves_incomplete_offer_without_verifiable_deadline(self):
+    def test_public_history_preserves_buttoned_incomplete_offer_for_direct_deadline_recheck(self):
         post = {
             "message_id": 80,
             "caption_text": (
@@ -1058,13 +1060,24 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "⏳ ۲ ساعت و ۲۰ دقیقه مانده به پایان تخفیف"
             ),
             "caption_html": "",
+            "product_ids": ["dkp-15970076"],
+            "purchase_button_visible": True,
         }
-        with patch.object(monitor, "_telegram_delete") as deletion:
+        published = {}
+        with (
+            patch.object(monitor, "_telegram_delete") as deletion,
+            patch.object(monitor, "_telegram_edit_caption", return_value="edited") as edit,
+        ):
             result = monitor.audit_public_channel_history(
-                {}, now=datetime.now(timezone.utc), posts={80: post}
+                published, now=datetime.now(timezone.utc), posts={80: post}
             )
         deletion.assert_not_called()
+        edit.assert_called_once()
         self.assertEqual(result[1], 0)
+        self.assertEqual(result[3], 1)
+        self.assertEqual(published["dkp-15970076"]["telegram_message_id"], 80)
+        self.assertEqual(published["dkp-15970076"]["expires_at"], "")
+        self.assertNotIn("مانده به پایان تخفیف", edit.call_args.args[1])
 
     def test_public_history_does_not_delete_non_offer_announcement_without_deadline(self):
         post = {
