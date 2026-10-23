@@ -16,8 +16,8 @@ permissions:
   contents: write
 
 concurrency:
-  # The one-shot user-requested product removal must not wait behind a stale radar run.
-  group: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[remove-glama-once]') && 'affilio-one-time-glama-removal' || 'affilio-channel-updates' }}
+  # Serialize deletion with publishing to prevent stale runs from overwriting removal state.
+  group: affilio-channel-updates
   cancel-in-progress: false
 
 jobs:
@@ -56,8 +56,8 @@ jobs:
           # This marker is a one-time manual exception; normal product selection has no exclusion.
           AFFILIO_DELETE_SPECIFIC_PRODUCT_ID: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && 'dkp-20917779' || '' }}
           AFFILIO_DELETE_SPECIFIC_PRODUCT_TITLE: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && 'ژل آبرسان صورت گلاما مدل Limited مناسب برای انواع پوست حجم 50 میلی‌لیتر' || '' }}
-          AFFILIO_DELETE_SPECIFIC_PRODUCT_TELEGRAM_IDS: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && '499,500,501' || '' }}
-          AFFILIO_DELETE_SPECIFIC_PRODUCT_BALE_IDS: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && '598,599,600' || '' }}
+          AFFILIO_DELETE_SPECIFIC_PRODUCT_TELEGRAM_IDS: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && '499,500,501,502,503' || '' }}
+          AFFILIO_DELETE_SPECIFIC_PRODUCT_BALE_IDS: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && '598,599,600,601,602,603' || '' }}
           AFFILIO_DUPLICATE_SCAN_PAGES: "30"
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
