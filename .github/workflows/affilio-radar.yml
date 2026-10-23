@@ -211,6 +211,7 @@ jobs:
           AFFILIO_VIDEO_REVIEW_CHAT_ID: ${{ secrets.AFFILIO_VIDEO_REVIEW_CHAT_ID }}
           # Publish generated vertical videos publicly; YouTube classifies vertical videos up to 3 minutes as Shorts.
           YOUTUBE_PRIVACY_STATUS: "public"
+          AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
           AFFILIO_DEAL_LIST_PAGES: "5"
           AFFILIO_MAX_PRODUCT_CHECKS: "40"
           AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES: "32"
