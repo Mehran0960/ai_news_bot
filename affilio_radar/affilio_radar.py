@@ -3823,18 +3823,22 @@ def delete_previous_channel_posts(state: dict) -> None:
             failed += 1
             print(f"DELETE_FAILED message_id={message_id} error={type(exc).__name__}")
         time.sleep(0.08)
-    removed_products = [
-        pid for pid, record in list(published.items())
-        if isinstance(record, dict) and str(record.get("telegram_message_id") or "").isdigit()
-        and int(record["telegram_message_id"]) in deleted
-    ]
-    for pid in removed_products:
-        published.pop(pid, None)
-    state["last_published_at"] = ""
+    # Clearing visible Telegram posts must never erase product history/cooldowns.
+    # Bale is not deleted by this Telegram-only helper, so its prior message ID remains
+    # tracked and will continue to block another post until its own removal is confirmed.
+    for product_id_value, record in list(published.items()):
+        if not isinstance(record, dict):
+            continue
+        raw_id = record.get("telegram_message_id")
+        if str(raw_id or "").isdigit() and int(raw_id) in deleted:
+            record["expiry_status"] = "deleted"
+            record["expired_deleted_at"] = datetime.now(timezone.utc).isoformat()
+    ensure_publication_ledger(state)
+    # Do not reset last_published_at: a cleanup/maintenance action is not a new posting window.
     save_json(STATE, state)
     print(
         f"DELETE_SUMMARY discovered={len(ids)} deleted={len(deleted)} "
-        f"failed={failed} cleared_product_cooldowns={len(removed_products)}"
+        f"failed={failed} product_cooldowns_preserved={len(published)}"
     )
 
 
@@ -4209,6 +4213,118 @@ def select_publish_candidates(
     return diversified
 
 
+MIN_REPEAT_PRODUCT_INTERVAL_HOURS = 24
+PUBLICATION_LEDGER_LIMIT = 2000
+
+
+def _publication_record_ts(record: dict | None) -> float:
+    if not isinstance(record, dict):
+        return 0.0
+    try:
+        return max(0.0, float(record.get("ts") or 0))
+    except (TypeError, ValueError, OverflowError):
+        return 0.0
+
+
+def ensure_publication_ledger(state: dict) -> bool:
+    """Persist the last successful post per product independently of expiry cleanup.
+
+    Channel messages may be deleted at expiry, but the product's publication timestamp
+    remains the deduplication source of truth so a later scan cannot repost it immediately.
+    """
+    if not isinstance(state, dict):
+        return False
+    changed = False
+    published = state.get("published")
+    if not isinstance(published, dict):
+        published = {}
+        state["published"] = published
+        changed = True
+    ledger = state.get("publication_ledger")
+    if not isinstance(ledger, dict):
+        ledger = {}
+        state["publication_ledger"] = ledger
+        changed = True
+
+    fields = (
+        "title", "product_url", "posted_current_price", "posted_original_price",
+        "posted_discount_percent", "telegram_message_id", "bale_message_id",
+        "expiry_status", "bale_expiry_status", "delivery_status", "delivery_attempts",
+        "expires_at", "expiry_source", "expiry_estimated",
+    )
+    for pid, record in published.items():
+        if not re.fullmatch(r"dkp-\d{1,12}", str(pid)) or not isinstance(record, dict):
+            continue
+        ts = _publication_record_ts(record)
+        if ts <= 0:
+            continue
+        old = ledger.get(str(pid))
+        old_ts = _publication_record_ts(old)
+        # A newer ledger entry survives any stale copy of the main published map.
+        if old_ts > ts:
+            continue
+        entry = {"ts": ts}
+        for key in fields:
+            if key in record:
+                entry[key] = record[key]
+        if old != entry:
+            ledger[str(pid)] = entry
+            changed = True
+
+    if len(ledger) > PUBLICATION_LEDGER_LIMIT:
+        retained = sorted(
+            ledger.items(),
+            key=lambda item: _publication_record_ts(item[1]),
+            reverse=True,
+        )[:PUBLICATION_LEDGER_LIMIT]
+        state["publication_ledger"] = dict(retained)
+        changed = True
+    return changed
+
+
+def _publication_cooldown_record(state: dict, pid: str) -> dict:
+    """Choose the newest publication record, falling back to the durable ledger."""
+    state = state if isinstance(state, dict) else {}
+    published = state.get("published", {})
+    ledger = state.get("publication_ledger", {})
+    current = published.get(str(pid)) if isinstance(published, dict) else None
+    durable = ledger.get(str(pid)) if isinstance(ledger, dict) else None
+    if not isinstance(current, dict):
+        return durable if isinstance(durable, dict) else {}
+    if not isinstance(durable, dict):
+        return current
+    if _publication_record_ts(durable) > _publication_record_ts(current):
+        return durable
+    return current
+
+
+def is_product_repeat_blocked(previous: dict, product: dict,
+                              now: datetime | None = None) -> bool:
+    """Block same-product repeats for at least 24 hours, even after confirmed deletion.
+
+    After that safety window, the existing 30-day cooldown still applies unless a
+    verified current price is at least 10% below the last posted price. Delivery retries
+    remain eligible and are handled independently per platform.
+    """
+    if not isinstance(previous, dict) or not isinstance(product, dict):
+        return False
+    if _has_pending_delivery(previous):
+        return False
+    posted_at = _publication_record_ts(previous)
+    if posted_at <= 0:
+        return False
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    elapsed = now.timestamp() - posted_at
+    if elapsed < MIN_REPEAT_PRODUCT_INTERVAL_HOURS * 3600:
+        return True
+    return bool(
+        elapsed < PRODUCT_COOLDOWN_DAYS * 86400
+        and not is_materially_improved_offer(previous, product, now)
+    )
+
+
 def refresh_pending_queue(state: dict, eligible: list[dict],
                           now: datetime | None = None,
                           observed_product_ids: set[str] | None = None) -> dict:
@@ -4218,23 +4334,15 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
     if not isinstance(old_queue, dict):
         old_queue = {}
     published = state.setdefault("published", {})
+    ensure_publication_ledger(state)
     candidate_by_id = {}
     pending = {}
     for product in eligible:
         pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
         if not re.fullmatch(r"dkp-\d{1,12}", pid) or is_offer_expired(product, now):
             continue
-        previous_publication = published.get(pid, {})
-        try:
-            posted_at = float(previous_publication.get("ts", 0)) if isinstance(previous_publication, dict) else 0
-        except (TypeError, ValueError, OverflowError):
-            posted_at = 0
-        if (
-            posted_at
-            and now.timestamp() - posted_at < PRODUCT_COOLDOWN_DAYS * 86400
-            and not _has_pending_delivery(previous_publication)
-            and not is_materially_improved_offer(previous_publication, product, now)
-        ):
+        previous_publication = _publication_cooldown_record(state, pid)
+        if is_product_repeat_blocked(previous_publication, product, now):
             continue
 
         old = old_queue.get(pid, {})
@@ -4279,17 +4387,8 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
             expiry = _parse_utc_datetime(_parse_deal_expiry_value(old.get("deal_expires_at")))
             if not url or product_id(url) != str(pid) or expiry is None or expiry <= now:
                 continue
-            previous_publication = published.get(pid, {})
-            try:
-                posted_at = float(previous_publication.get("ts", 0)) if isinstance(previous_publication, dict) else 0
-            except (TypeError, ValueError, OverflowError):
-                posted_at = 0
-            if (
-                posted_at
-                and now.timestamp() - posted_at < PRODUCT_COOLDOWN_DAYS * 86400
-                and not _has_pending_delivery(previous_publication)
-                and not is_materially_improved_offer(previous_publication, old, now)
-            ):
+            previous_publication = _publication_cooldown_record(state, str(pid))
+            if is_product_repeat_blocked(previous_publication, old, now):
                 continue
             retained = dict(old)
             retained["product_id"] = str(pid)
@@ -5050,6 +5149,8 @@ def run(publish=False):
     # [scan-now] Read the persistent queue before discovery so offers temporarily missing from one
     # page remain eligible for a live recheck on the next scan.
     state = load_state()
+    if ensure_publication_ledger(state):
+        save_json(STATE, state)
     # Growth attribution/count telemetry is best-effort and must never block regular offer publishing.
     growth_invites_changed = ensure_telegram_source_invites(state)
     growth_counts_changed = record_daily_member_count_snapshot(state)
@@ -5418,7 +5519,8 @@ def run(publish=False):
                 save_json(STATE, state)
                 continue
             old = state["published"].get(pid, {})
-            if is_manual_publication_quarantine_active(old, now_utc):
+            cooldown_record = _publication_cooldown_record(state, pid)
+            if is_manual_publication_quarantine_active(old or cooldown_record, now_utc):
                 print(f"PUBLISH_SKIP id={pid} reason=manual_safety_quarantine")
                 continue
             if old and not previous_publication_posts_removed(old):
@@ -5427,15 +5529,11 @@ def run(publish=False):
                     "reason=previous_channel_post_not_confirmed_removed"
                 )
                 continue
-            try:
-                last_ts = float(old.get("ts", 0))
-            except (TypeError, ValueError):
-                last_ts = 0
-            if (
-                now - last_ts < PRODUCT_COOLDOWN_DAYS * 86400
-                and not is_materially_improved_offer(old, item, now_utc)
-            ):
-                print(f"PUBLISH_SKIP id={pid} reason=product_cooldown_without_material_improvement")
+            if is_product_repeat_blocked(cooldown_record, item, now_utc):
+                print(
+                    f"PUBLISH_SKIP id={pid} reason=product_repeat_cooldown "
+                    f"minimum_repeat_interval_hours={MIN_REPEAT_PRODUCT_INTERVAL_HOURS}"
+                )
                 continue
             attempted_candidates += 1
             try:
@@ -5515,8 +5613,9 @@ def run(publish=False):
                 continue
 
             expiry_at = str(item.get("deal_expires_at") or "").strip()
+            published_at_epoch = time.time()
             record = {
-                "ts": now,
+                "ts": published_at_epoch,
                 "title": item["title"],
                 "product_url": item["product_url"],
                 "image_url": item.get("image_url", ""),
@@ -5553,7 +5652,10 @@ def run(publish=False):
             if old_history:
                 record["post_history"] = old_history[-12:]
             state["published"][pid] = record
-            state["last_published_at"] = datetime.now(timezone.utc).isoformat()
+            ensure_publication_ledger(state)
+            state["last_published_at"] = datetime.fromtimestamp(
+                published_at_epoch, tz=timezone.utc
+            ).isoformat()
             state.setdefault("pending_queue", {}).pop(pid, None)
             save_json(STATE, state)
             print(

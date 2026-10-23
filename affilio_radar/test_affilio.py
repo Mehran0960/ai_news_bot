@@ -77,6 +77,9 @@ from affilio_radar import (
     verify_live_page_price,
     previous_publication_posts_removed,
     is_manual_publication_quarantine_active,
+    ensure_publication_ledger,
+    is_product_repeat_blocked,
+    delete_previous_channel_posts,
     process_pending_short_video,
     VIDEO_STYLE_VERSION,
     MIN_POST_INTERVAL_HOURS,
@@ -542,6 +545,89 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(is_materially_improved_offer(previous, same_price_new_campaign, now))
         self.assertTrue(is_materially_improved_offer({**previous, "expires_at": (now + timedelta(hours=2)).isoformat()}, materially_cheaper, now))
         self.assertFalse(is_materially_improved_offer({**previous, "expires_at": (now + timedelta(hours=2)).isoformat()}, unchanged, now))
+
+    def test_same_product_is_blocked_for_24_hours_even_when_price_improves(self):
+        now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
+        previous = {
+            "ts": now.timestamp() - 300,
+            "title": "ژل آبرسان نمونه",
+            "posted_current_price": 1_000_000,
+        }
+        cheaper = {"current_price": 800_000}
+        self.assertTrue(is_product_repeat_blocked(previous, cheaper, now))
+
+        older = {**previous, "ts": now.timestamp() - 25 * 3600}
+        self.assertFalse(is_product_repeat_blocked(older, cheaper, now))
+        self.assertTrue(is_product_repeat_blocked(older, {"current_price": 1_000_000}, now))
+
+    def test_publication_ledger_keeps_cooldown_if_published_record_is_lost(self):
+        now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
+        state = {
+            "published": {
+                "dkp-123": {
+                    "ts": now.timestamp() - 5 * 60,
+                    "title": "ژل آبرسان نمونه",
+                    "product_url": "https://www.digikala.com/product/dkp-123/",
+                    "posted_current_price": 290_000,
+                    "posted_original_price": 1_450_000,
+                    "posted_discount_percent": 80,
+                    "telegram_message_id": 496,
+                    "bale_message_id": 594,
+                    "expiry_status": "deleted",
+                    "bale_expiry_status": "deleted",
+                }
+            },
+            "pending_queue": {},
+        }
+        self.assertTrue(ensure_publication_ledger(state))
+        state["published"].pop("dkp-123")
+        candidate = {
+            "product_id": "dkp-123",
+            "product_url": "https://www.digikala.com/product/dkp-123/",
+            "title": "ژل آبرسان نمونه",
+            "deal_expires_at": (now + timedelta(hours=8)).isoformat(),
+            "current_price": 290_000,
+            "original_price": 1_450_000,
+            "discount_percent": 80,
+            "savings_toman": 1_160_000,
+            "demand_score": 60,
+            "promo_score": 50,
+        }
+        queue = refresh_pending_queue(
+            state, [candidate], now, observed_product_ids={"dkp-123"}
+        )
+        self.assertNotIn("dkp-123", queue)
+        self.assertIn("dkp-123", state["publication_ledger"])
+
+    def test_channel_cleanup_preserves_product_record_and_last_post_cooldown(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "ts": now.timestamp() - 60,
+            "title": "ژل آبرسان نمونه",
+            "product_url": "https://www.digikala.com/product/dkp-123/",
+            "posted_current_price": 290_000,
+            "telegram_message_id": 496,
+            "bale_message_id": 594,
+            "expiry_status": "tracked",
+        }
+        state = {
+            "published": {"dkp-123": record},
+            "last_published_at": now.isoformat(),
+        }
+        mock_response = SimpleNamespace(ok=True, status_code=200, json=lambda: {"ok": True})
+        with (
+            patch("affilio_radar.BOT_TOKEN", "test-token"),
+            patch("affilio_radar._discover_public_channel_message_ids", return_value={496}),
+            patch("affilio_radar.requests.post", return_value=mock_response),
+            patch("affilio_radar.time.sleep"),
+            patch("affilio_radar.save_json"),
+        ):
+            delete_previous_channel_posts(state)
+        self.assertIn("dkp-123", state["published"])
+        self.assertEqual(state["published"]["dkp-123"]["expiry_status"], "deleted")
+        self.assertEqual(state["published"]["dkp-123"]["bale_message_id"], 594)
+        self.assertTrue(state["last_published_at"])
+        self.assertIn("dkp-123", state["publication_ledger"])
 
     def test_unobserved_queued_deal_is_retained_until_rechecked_or_expiry(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
