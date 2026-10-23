@@ -214,7 +214,7 @@
       "product_id": "dkp-12356920",
       "product_url": "https://www.digikala.com/product/dkp-12356920/",
       "promo_score": 0,
-      "rating": 83.0,
+      "rating": 83,
       "review_count": 0,
       "savings_toman": 10500000,
       "source": "digikala_live_deals_feed",
@@ -652,7 +652,7 @@
       "product_id": "dkp-17818180",
       "product_url": "https://www.digikala.com/product/dkp-17818180/",
       "promo_score": 0,
-      "rating": 80.0,
+      "rating": 80,
       "review_count": 9,
       "savings_toman": 5501000,
       "source": "digikala_live_deals_feed",
@@ -2498,7 +2498,7 @@
       "product_id": "dkp-22403708",
       "product_url": "https://www.digikala.com/product/dkp-22403708/",
       "promo_score": 0,
-      "rating": 90.0,
+      "rating": 90,
       "review_count": 12,
       "savings_toman": 805000,
       "source": "digikala_live_deals_feed",
@@ -2832,7 +2832,7 @@
       "product_id": "dkp-22741490",
       "product_url": "https://www.digikala.com/product/dkp-22741490/",
       "promo_score": 0,
-      "rating": 60.0,
+      "rating": 60,
       "review_count": 5,
       "savings_toman": 900000,
       "source": "digikala_live_deals_feed",
@@ -3648,7 +3648,7 @@
       "product_id": "dkp-5715766",
       "product_url": "https://www.digikala.com/product/dkp-5715766/",
       "promo_score": 0,
-      "rating": 90.0,
+      "rating": 90,
       "review_count": 0,
       "savings_toman": 669700,
       "source": "digikala_live_deals_feed",
@@ -7777,5 +7777,13 @@
       "title": "کرم سفت‌کننده پوست گلاما مدل مدل هیالورونیک اسید برای انواع پوست حجم 50 میلی‌لیتر",
       "ts": 1792775390.0935118
     }
-  ]
+  ],
+  "product_suppressions": {
+    "dkp-20917779": {
+      "reason": "explicit_user_requested_permanent_exclusion_after_one_time_deletion",
+      "title": "ژل آبرسان صورت گلاما مدل Limited مناسب برای انواع پوست حجم 50 میلی‌لیتر",
+      "added_at": "2026-10-23T17:50:19.772Z",
+      "scope": "this_product_only"
+    }
+  }
 }
