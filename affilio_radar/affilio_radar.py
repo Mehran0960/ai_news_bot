@@ -4227,10 +4227,11 @@ def _publication_record_ts(record: dict | None) -> float:
 
 
 def ensure_publication_ledger(state: dict) -> bool:
-    """Persist the last successful post per product independently of expiry cleanup.
+    """Persist each product's last publication independently of message deletion.
 
-    Channel messages may be deleted at expiry, but the product's publication timestamp
-    remains the deduplication source of truth so a later scan cannot repost it immediately.
+    Expiration cleanup and one-time user-requested removals keep this durable cooldown
+    record, so a fresh discovery run cannot immediately repost a just-removed product.
+    Candidate diversity ordering applies after this standard repeat guard.
     """
     if not isinstance(state, dict):
         return False
