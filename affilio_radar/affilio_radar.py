@@ -4103,8 +4103,16 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     return category, family, brand
 
 
-def _recent_publication_diversity(published: dict | None, limit: int = 12) -> list[dict]:
-    """Read recent post-history records, including expired posts, for variety."""
+def _recent_publication_diversity(
+    published: dict | None,
+    limit: int = 12,
+    durable_history: list | None = None,
+) -> list[dict]:
+    """Read durable publication history as well as surviving channel-message records.
+
+    Message deletion must not erase the diversity memory; otherwise the same broad
+    category can dominate immediately after cleanup clears the published map.
+    """
     records = []
     for raw_pid, record in (published.items() if isinstance(published, dict) else []):
         if not isinstance(record, dict):
@@ -4138,7 +4146,42 @@ def _recent_publication_diversity(published: dict | None, limit: int = 12) -> li
                 "family": family,
                 "brand": brand,
             })
-    unique = {(r["product_id"], r["message_id"]): r for r in records}
+    for entry in durable_history if isinstance(durable_history, list) else []:
+        if not isinstance(entry, dict):
+            continue
+        pid = str(entry.get("product_id") or "").strip()
+        title = str(entry.get("title") or "").strip()
+        try:
+            order = float(entry.get("ts") or 0)
+        except (TypeError, ValueError, OverflowError):
+            order = 0.0
+        if not pid or not title or order <= 0:
+            continue
+        category, family, brand = _publication_diversity_group(title)
+        raw_message_id = entry.get("telegram_message_id") or entry.get("bale_message_id")
+        try:
+            message_id = int(raw_message_id)
+        except (TypeError, ValueError, OverflowError):
+            # Synthetic tie-breaker only; this ID is never sent to a platform.
+            message_id = int(order * 1000)
+        records.append({
+            "product_id": pid,
+            "title": title,
+            "message_id": message_id,
+            "order": order,
+            "category": category,
+            "family": family,
+            "brand": brand,
+        })
+
+    # Merge a durable history item with the corresponding still-tracked post by
+    # product/time. A post can appear in both sources, but must count only once.
+    unique = {}
+    for record in records:
+        key = (record["product_id"], round(float(record["order"]), 3))
+        previous = unique.get(key)
+        if previous is None or record["message_id"] > previous["message_id"]:
+            unique[key] = record
     return sorted(unique.values(), key=lambda r: (r["order"], r["message_id"]))[-max(1, int(limit)):]
 
 
@@ -4147,8 +4190,9 @@ def select_publish_candidates(
     eligible_by_id: dict[str, dict],
     now: datetime | None = None,
     published: dict | None = None,
+    recent_publications: list | None = None,
 ) -> list[dict]:
-    """Respect retry backoff and softly diversify the next batch from recent history."""
+    """Respect retry backoff and strongly prefer broad variety across recent posts."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -4166,10 +4210,12 @@ def select_publish_candidates(
         selected.append(product)
     if deferred:
         print(f"PUBLISH_QUEUE_BACKOFF skipped_deferred={deferred} ready={len(selected)}")
-    if len(selected) < 2 or not published:
+    if len(selected) < 2 or (not published and not recent_publications):
         return selected
 
-    recent = _recent_publication_diversity(published, limit=12)
+    recent = _recent_publication_diversity(
+        published, limit=30, durable_history=recent_publications
+    )
     category_counts, family_counts, brand_counts = {}, {}, {}
     recent_product_ids = []
     for post in recent:
@@ -4187,12 +4233,14 @@ def select_publish_candidates(
             pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
             category, family, brand = _publication_diversity_group(product)
             score = rank
-            score += min(8.0, category_counts.get(category, 0) * 1.8)
-            score += min(8.0, family_counts.get(family, 0) * 2.2)
+            # Diversity is a strong preference, not a hard block: after other
+            # categories are exhausted, the best remaining deal can still publish.
+            score += min(20.0, category_counts.get(category, 0) * 5.0)
+            score += min(21.0, family_counts.get(family, 0) * 7.0)
             if brand:
-                score += min(5.0, brand_counts.get(brand, 0) * 1.5)
+                score += min(12.0, brand_counts.get(brand, 0) * 4.0)
             if pid in recent_product_ids[-8:]:
-                score += 4.0
+                score += 15.0
             scored.append((score, rank, product, pid, category, family, brand))
         _, rank, chosen, pid, category, family, brand = min(scored, key=lambda x: (x[0], x[1]))
         if rank:
@@ -4280,6 +4328,76 @@ def ensure_publication_ledger(state: dict) -> bool:
         )[:PUBLICATION_LEDGER_LIMIT]
         state["publication_ledger"] = dict(retained)
         changed = True
+    if ensure_recent_publications(state):
+        changed = True
+    return changed
+
+
+RECENT_PUBLICATION_HISTORY_LIMIT = 80
+
+
+def ensure_recent_publications(state: dict) -> bool:
+    """Seed durable category-diversity memory from the ledger and surviving records."""
+    if not isinstance(state, dict):
+        return False
+    original = state.get("recent_publications")
+    history = list(original) if isinstance(original, list) else []
+    by_key = {}
+    for entry in history:
+        if not isinstance(entry, dict):
+            continue
+        pid = str(entry.get("product_id") or "").strip()
+        title = str(entry.get("title") or "").strip()
+        ts = _publication_record_ts(entry)
+        if pid and title and ts > 0:
+            by_key[(pid, round(ts, 3))] = dict(entry)
+
+    sources = []
+    ledger = state.get("publication_ledger")
+    if isinstance(ledger, dict):
+        sources.extend(ledger.items())
+    published = state.get("published")
+    if isinstance(published, dict):
+        for pid, record in published.items():
+            if not isinstance(record, dict):
+                continue
+            sources.append((pid, record))
+            items = record.get("post_history")
+            if isinstance(items, list):
+                sources.extend((pid, item) for item in items if isinstance(item, dict))
+
+    for raw_pid, record in sources:
+        if not isinstance(record, dict):
+            continue
+        pid = str(raw_pid or "").strip()
+        title = str(record.get("title") or "").strip()
+        ts = _publication_record_ts(record)
+        if not re.fullmatch(r"dkp-\d{1,12}", pid) or not title or ts <= 0:
+            continue
+        key = (pid, round(ts, 3))
+        old = by_key.get(key)
+        if old and str(old.get("title") or "") == title:
+            continue
+        category, family, brand = _publication_diversity_group(title)
+        entry = {
+            "ts": ts,
+            "product_id": pid,
+            "title": title,
+            "category": category,
+            "family": family,
+            "brand": brand,
+        }
+        for field in ("telegram_message_id", "bale_message_id"):
+            if str(record.get(field) or "").isdigit():
+                entry[field] = int(record[field])
+        by_key[key] = entry
+
+    retained = sorted(by_key.values(), key=lambda item: _publication_record_ts(item))[
+        -RECENT_PUBLICATION_HISTORY_LIMIT:
+    ]
+    changed = not isinstance(original, list) or retained != original
+    if changed:
+        state["recent_publications"] = retained
     return changed
 
 
@@ -5423,7 +5541,10 @@ def run(publish=False):
             )
             break
 
-    eligible = select_publish_candidates(pending_queue, eligible_by_id, queue_now, state.get("published"))
+    eligible = select_publish_candidates(
+        pending_queue, eligible_by_id, queue_now, state.get("published"),
+        state.get("recent_publications"),
+    )
     market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
         f"ranked_products={len(products)} listed_discount_eligible={listed_eligible_count} "
@@ -5710,6 +5831,25 @@ def run(publish=False):
                 record["post_history"] = old_history[-12:]
             state["published"][pid] = record
             ensure_publication_ledger(state)
+            category, family, brand = _publication_diversity_group(item)
+            history = state.setdefault("recent_publications", [])
+            if not isinstance(history, list):
+                history = []
+                state["recent_publications"] = history
+            history.append({
+                "ts": published_at_epoch,
+                "product_id": pid,
+                "title": item["title"],
+                "category": category,
+                "family": family,
+                "brand": brand,
+                "telegram_message_id": results.get("telegram", {}).get("message_id"),
+                "bale_message_id": results.get("bale", {}).get("message_id"),
+            })
+            state["recent_publications"] = sorted(
+                [entry for entry in history if isinstance(entry, dict)],
+                key=_publication_record_ts,
+            )[-RECENT_PUBLICATION_HISTORY_LIMIT:]
             state["last_published_at"] = datetime.fromtimestamp(
                 published_at_epoch, tz=timezone.utc
             ).isoformat()
