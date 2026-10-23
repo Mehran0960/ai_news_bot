@@ -5405,9 +5405,9 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
     candidates.sort(
         key=lambda row: (
             0 if row[2].get("video_repair_priority") else 1,
-            -safe_int(row[2].get("demand_score")),
-            -safe_int(row[2].get("promo_score")),
-            -safe_int(row[2].get("click_count_30d")),
+            -_candidate_demand_score(row[2]),
+            -_candidate_promo_score(row[2]),
+            -(_int_value(row[2].get("click_count_30d")) or 0),
             row[3],  # among similarly attractive deals, upload the one expiring sooner first
             row[0],
         )
