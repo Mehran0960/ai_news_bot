@@ -90,7 +90,7 @@ jobs:
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
           AFFILIO_DEAL_LIST_PAGES: "5"
           # Smaller routine history scans reduce lock duration; deep scans are reserved for repair.
-          AFFILIO_PUBLIC_HISTORY_PAGES: ${{ contains(github.event.head_commit.message, '[repair-buttons-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[deadline-audit-only]') ? '10' : '2' }}
+          AFFILIO_PUBLIC_HISTORY_PAGES: ${{ (contains(github.event.head_commit.message, '[repair-buttons-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[deadline-audit-only]')) && '10' || '2' }}
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/expiration_monitor.py
