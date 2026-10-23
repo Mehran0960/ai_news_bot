@@ -44,9 +44,16 @@ jobs:
 
       - name: Validate expiry monitor and run its unit tests
         run: |
+          # Unit tests exercise save-state code; never let fixtures overwrite the live channel ledger.
+          state_backup="$RUNNER_TEMP/offerchin-live-state-before-tests.json"
+          cp "$GITHUB_WORKSPACE/affilio_radar/state.json" "$state_backup"
           python -m py_compile affilio_radar/expiration_monitor.py
-          cd affilio_radar
-          python -m unittest -v test_expiration_monitor.py
+          test_status=0
+          (cd affilio_radar && python -m unittest -v test_expiration_monitor.py) || test_status=$?
+          cp "$state_backup" "$GITHUB_WORKSPACE/affilio_radar/state.json"
+          if [[ "$test_status" -ne 0 ]]; then
+            exit "$test_status"
+          fi
 
       # [duplicate-cleanup-now] runs only the dedupe branch in expiration_monitor.py.
       - name: Clean up offers with verified expired deadlines
