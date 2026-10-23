@@ -193,7 +193,7 @@ jobs:
       # [scan-now] Runs a fresh direct-feed timer diagnostic and eligibility-checked publication pass.
       - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
         # Normal code pushes run tests above, but must not consume a full product-discovery cycle.
-        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[growth-tracking-only]') }}
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[growth-tracking-only]') || contains(github.event.head_commit.message, '[repair-persian-video-text]') }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
@@ -241,6 +241,8 @@ jobs:
             rm -f affilio_radar/affiliate_link_repair_report.json
             python affilio_radar/expiration_monitor.py
             python affilio_radar/affilio_radar.py --repair-all-captions
+          elif [[ "${{ contains(github.event.head_commit.message, '[repair-persian-video-text]') }}" == "true" ]]; then
+            python affilio_radar/affilio_radar.py --repair-persian-video-text
           elif [[ "${{ contains(github.event.head_commit.message, '[repair-bale-caption]') }}" == "true" ]]; then
             python affilio_radar/affilio_radar.py --repair-bale-message-id 2
           elif [[ "${{ contains(github.event.head_commit.message, '[growth-tracking-only]') }}" == "true" ]]; then
@@ -265,7 +267,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Only operational scans/repairs may commit live state. Test-only code pushes
           # must never serialize a test fixture over the real channel history.
-          if [[ "${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[growth-tracking-only]') || contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') || contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') }}" == "true" && -f affilio_radar/state.json ]]; then
+          if [[ "${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[growth-tracking-only]') || contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') || contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') || contains(github.event.head_commit.message, '[repair-persian-video-text]') }}" == "true" && -f affilio_radar/state.json ]]; then
             git add affilio_radar/state.json
           else
             echo "Skipping live-state commit for a test/code-only push."
