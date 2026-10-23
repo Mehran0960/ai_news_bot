@@ -394,6 +394,30 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(rows[0]["deal_expires_at"], "2026-10-23T11:00:00+00:00")
 
 
+    def test_product_detail_parser_marks_only_explicit_product_deadline_as_direct(self):
+        now = datetime(2026, 10, 23, 9, 0, tzinfo=timezone.utc)
+        payload = {
+            "data": {"product": {
+                "id": 123,
+                "title_fa": "هدفون نمونه",
+                "url": {"uri": "/product/dkp-123/"},
+                "campaign": {"ends_at": "2026-10-23T14:30:00+03:30"},
+                "default_variant": {
+                    "marketable": True,
+                    "price": {
+                        "selling_price_toman": 650000,
+                        "rrp_price_toman": 1000000,
+                        "discount_percent": 35,
+                    },
+                },
+            }}
+        }
+        parsed = parse_product_api(payload, "https://www.digikala.com/product/dkp-123/", now=now)
+        self.assertEqual(parsed["deal_expires_at"], "2026-10-23T11:00:00+00:00")
+        self.assertEqual(parsed["expiry_source"], "digikala_product_detail_api")
+        self.assertTrue(parsed["expiry_deadline_verified_directly"])
+
+
     def test_audience_demand_outranks_an_extreme_listed_discount(self):
         popular_gadget = score_product({
             "title": "پاوربانک محبوب",
@@ -1336,14 +1360,24 @@ class AffilioRadarTests(unittest.TestCase):
             "مهلت آفر به پایان رسیده",
         )
 
-    def test_publication_requires_an_explicit_future_deadline_for_countdown(self):
+    def test_publication_requires_a_directly_verified_future_deadline(self):
         now = datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc)
-        self.assertTrue(has_verified_deal_deadline({
-            "deal_expires_at": "2026-10-18T12:17:20+00:00"
+        verified = {
+            "deal_expires_at": "2026-10-18T12:17:20+00:00",
+            "expiry_source": "digikala_product_detail_api",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+        }
+        self.assertTrue(has_verified_deal_deadline(verified, now))
+        self.assertFalse(has_verified_deal_deadline({
+            "deal_expires_at": "2026-10-18T12:17:20+00:00",
+            "expiry_source": "mcp_unverified",
+            "expiry_deadline_verified_directly": False,
         }, now))
         self.assertFalse(has_verified_deal_deadline({}, now))
         self.assertFalse(has_verified_deal_deadline({
-            "deal_expires_at": "2026-10-18T09:59:59+00:00"
+            **verified,
+            "deal_expires_at": "2026-10-18T09:59:59+00:00",
         }, now))
 
     def test_build_caption_never_displays_countdown_with_verified_deadline(self):
