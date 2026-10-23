@@ -4912,6 +4912,8 @@ PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
 # The generic web uploader can publish vertical 9:16 videos to Aparat's regular feed, but cannot guarantee
 # placement in Aparat Shorts (which currently requires the official app). Keep queue-only mode opt-in.
 APARAT_SHORTS_ONLY = str(os.getenv("APARAT_SHORTS_ONLY", "false")).strip().lower() in {"1", "true", "yes", "on"}
+# The main radar and the dedicated Aparat workflow can independently enable this destination.
+APARAT_UPLOAD_ENABLED = str(os.getenv("AFFILIO_APARAT_UPLOAD_ENABLED", "true")).strip().lower() in {"1", "true", "yes", "on"}
 # Match video throughput to channel publication bursts so the video queue does not lag behind.
 MAX_SHORT_VIDEOS_PER_RUN = max(1, min(4, int(os.getenv("AFFILIO_MAX_SHORT_VIDEOS_PER_RUN", "2"))))
 
@@ -5154,13 +5156,24 @@ def _aparat_upload_slot_due(
     return next_slot is None or current >= next_slot
 
 
-def process_pending_short_video(state: dict, now: datetime | None = None, output_dir: str | Path = "video_artifacts") -> bool:
+def process_pending_short_video(
+    state: dict,
+    now: datetime | None = None,
+    output_dir: str | Path = "video_artifacts",
+    destinations: set[str] | None = None,
+) -> bool:
     """Generate one vertical artifact and publish independently to configured destinations.
 
-    YouTube uses its official Data API and has its own quota/cadence. Aparat uses the
-    authenticated web uploader with a separate cadence and publishes to the regular video
-    feed. Aparat Shorts-feed placement is not guaranteed by this web upload path.
+    YouTube uses its official Data API and Aparat uses the authenticated web uploader.
+    Each destination has independent credentials, cadence, status and failure handling.
+    Pass destinations={"aparat"} to run the dedicated Aparat-only path without touching
+    YouTube uploads or the optional private Telegram preview.
+    Aparat Shorts-feed placement is not guaranteed by this web upload path.
     """
+    selected_destinations = (
+        {"youtube", "aparat"} if destinations is None
+        else {str(item).strip().lower() for item in destinations}
+    )
     try:
         from short_video import (
             render_short_video,
@@ -5201,13 +5214,17 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
     if not isinstance(published, dict):
         return False
 
-    youtube_ready = youtube_credentials_available()
+    youtube_ready = "youtube" in selected_destinations and youtube_credentials_available()
     try:
-        aparat_ready = aparat_credentials_available()
+        aparat_ready = (
+            "aparat" in selected_destinations
+            and APARAT_UPLOAD_ENABLED
+            and aparat_credentials_available()
+        )
     except Exception as exc:
         aparat_ready = False
-        print(f"APARAT_CREDENTIAL_CHECK_FAILED error={type(exc).__name__}; YouTube processing continues")
-    review_ready = telegram_video_review_available()
+        print(f"APARAT_CREDENTIAL_CHECK_FAILED error={type(exc).__name__}; other destinations continue")
+    review_ready = destinations is None and telegram_video_review_available()
     pending_youtube = {"pending", "pending_credentials", "retry"}
     candidates = []
     state_changed = False
@@ -6710,9 +6727,33 @@ def run(publish=False):
     return 0 if products or any(d.get("ok") for d in search_diagnostics) else 2
 
 
+def run_aparat_uploads_only() -> int:
+    """Process the persisted video queue for Aparat only; never run product/channel discovery."""
+    state = load_state()
+    processed = 0
+    while processed < MAX_SHORT_VIDEOS_PER_RUN:
+        if not process_pending_short_video(
+            state,
+            output_dir="video_artifacts",
+            destinations={"aparat"},
+        ):
+            break
+        processed += 1
+        # Each attempt persists state. Reload it so the next item sees the latest
+        # per-destination status and reserved upload slot.
+        state = load_state()
+    print(f"APARAT_ONLY_RUN_SUMMARY processed={processed} max_per_run={MAX_SHORT_VIDEOS_PER_RUN}")
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--publish", action="store_true", help="publish at most one eligible item if all checks pass")
+    parser.add_argument(
+        "--aparat-upload-only",
+        action="store_true",
+        help="process pending vertical videos for Aparat only; do not discover products or upload to YouTube",
+    )
     parser.add_argument("--dry-run", action="store_true", help="force discovery-only mode")
     parser.add_argument("--setup-growth-invites", action="store_true", help="create source-specific Telegram invite links without running product discovery or publishing offers")
     parser.add_argument(
@@ -6737,6 +6778,12 @@ def main():
         help="safely replace the two recent YouTube Shorts whose Persian text layout was broken",
     )
     args = parser.parse_args()
+    if args.aparat_upload_only:
+        try:
+            sys.exit(run_aparat_uploads_only())
+        except Exception as exc:
+            print(f"APARAT_ONLY_RUN_FAILED error={type(exc).__name__}")
+            sys.exit(1)
     if args.setup_growth_invites:
         state = load_state()
         try:
