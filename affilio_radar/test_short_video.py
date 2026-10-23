@@ -102,9 +102,9 @@ class ShortVideoTests(unittest.TestCase):
         image.save(stream, format="PNG")
         poster = Image.open(io.BytesIO(build_vertical_poster(stream.getvalue(), 50))).convert("RGB")
 
-        # Both platform marks now sit above the product card in the upper-left panel.
-        self.assertEqual(poster.getpixel((61, 38)), (36, 161, 222))
-        self.assertEqual(poster.getpixel((60, 86)), (0, 184, 148))
+        # Both platform marks now sit in the lower CTA panel, immediately before each channel ID.
+        self.assertEqual(poster.getpixel((61, 1038)), (36, 161, 222))
+        self.assertEqual(poster.getpixel((60, 1096)), (0, 184, 148))
 
     def test_discount_is_drawn_inside_red_comic_burst(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
@@ -113,7 +113,7 @@ class ShortVideoTests(unittest.TestCase):
         poster = Image.open(io.BytesIO(build_vertical_poster(stream.getvalue(), 76))).convert("RGB")
 
         # The upper-right region should contain a clearly visible red burst, not the old green pill.
-        crop = poster.crop((448, 250, 710, 430))
+        crop = poster.crop((448, 150, 710, 330))
         red_pixels = sum(
             1
             for red, green, blue in crop.getdata()
