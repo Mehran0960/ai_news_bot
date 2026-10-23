@@ -45,7 +45,7 @@ POST_REMOVAL_BUFFER_MINUTES = max(
 LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 5 * 60
 # Bound detail lookups so missing timers cannot stall expiry cleanup.
 DIRECT_PRODUCT_DETAIL_CHECK_LIMIT = max(1, min(10, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "3"))))
-CAPTION_FORMAT_VERSION = 11
+CAPTION_FORMAT_VERSION = 12
 
 
 def walk_dicts(value):
@@ -894,6 +894,10 @@ def _caption_needs_repair(caption_html, caption_text, fields, deadline=None, now
         return True
 
     soup = BeautifulSoup(caption_html or "", "html.parser")
+    # The reference/list price is no longer part of the public caption. Repair
+    # legacy posts that still mention it or display a struck-through amount.
+    if "قیمت اصلی" in text or soup.find(["s", "del", "strike"]) is not None:
+        return True
     if soup.find("u") is not None:
         return True
     bold_texts = [
@@ -949,22 +953,8 @@ def _caption_needs_repair(caption_html, caption_text, fields, deadline=None, now
     if text.count("────────────") != expected_dividers:
         return True
 
-    should_show_original = original_value > current_value > 0 and discount_value >= 30
-    if should_show_original:
-        expected_original = _normalize_digits(_persian_number(original_value))
-        strike_nodes = soup.find_all(["s", "del", "strike"])
-        if not any(
-            expected_original in _normalize_digits(node.get_text(" ", strip=True))
-            for node in strike_nodes
-        ):
-            return True
-        if "قیمت اصلی" not in normalized_text or expected_original not in normalized_text:
-            return True
-        if any("قیمت اصلی" in value for value in bold_texts):
-            return True
-    elif "قیمت اصلی" in normalized_text:
-        return True
-
+    # No original-price label or strike-through is allowed in the canonical caption,
+    # regardless of the discount band; the legacy form was rejected above.
     return False
 
 def _fetch_public_channel_page(before=None):
