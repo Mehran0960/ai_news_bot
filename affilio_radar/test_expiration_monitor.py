@@ -1113,6 +1113,46 @@ class ExpirationMonitorTests(unittest.TestCase):
         deletion.assert_called_once_with(79)
         self.assertEqual(result[1], 1)
 
+    def test_public_history_repairs_tracked_post_when_purchase_button_is_missing(self):
+        now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
+        title = "هدفون بلوتوثی نمونه"
+        caption = (
+            "🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا "
+            f"🛍️ {title} "
+            "💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان "
+            "⚡️ ۸۹٪ تخفیف "
+        )
+        record = {
+            "title": title,
+            "product_url": "https://www.digikala.com/product/dkp-15970077/",
+            "telegram_message_id": 92,
+            "expires_at": (now + timedelta(hours=2)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+            "expiry_status": "deleted",
+            "caption_deadline_format_version": monitor.CAPTION_FORMAT_VERSION,
+        }
+        post = {
+            "message_id": 92,
+            "caption_text": caption,
+            "caption_html": "<b>💚 قیمت ویژه: 💰 ۱۱۴٬۰۰۰ تومان</b>",
+            "product_ids": [],
+            "purchase_button_visible": False,
+        }
+        with patch.object(
+            monitor, "_telegram_edit_caption", return_value="edited"
+        ) as edit, patch.object(monitor, "_telegram_delete") as delete:
+            result = monitor.audit_public_channel_history(
+                {"dkp-15970077": record}, now=now, posts={92: post}
+            )
+        edit.assert_called_once()
+        delete.assert_not_called()
+        self.assertEqual(result[3], 1)
+        self.assertEqual(record["expiry_status"], "tracked")
+        self.assertNotIn("پایان تخفیف", edit.call_args.args[1])
+        self.assertTrue(edit.call_args.kwargs["affiliate_url"].startswith("https://aflo.ir/"))
+
     def test_public_history_adopts_buttoned_untracked_offer_without_countdown(self):
         now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
         title = "هدفون بلوتوثی نمونه"

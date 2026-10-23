@@ -1736,8 +1736,16 @@ def audit_public_channel_history(published, now=None, posts=None):
                     f"message_id={message_id} error={type(exc).__name__} detail={str(exc)[:140]!r}"
                 )
             continue
+        # Public history confirms this message still exists. If persisted state says
+        # it was deleted, treat that status as stale and re-evaluate the real message.
         if str(record.get("expiry_status") or "") in non_editable_statuses:
-            continue
+            record["expiry_status"] = "tracked" if _has_verified_deadline(record) else "unknown"
+            record.pop("expired_deleted_at", None)
+            changed = True
+            print(
+                f"PUBLIC_HISTORY_TERMINAL_STATE_REOPENED message_id={message_id} "
+                f"status={record['expiry_status']} reason=public_preview_confirms_presence"
+            )
 
         fields = _extract_legacy_caption_fields(caption_text)
         if not fields.get("title") or not fields.get("current_price") or not fields.get("discount_percent"):
@@ -1756,8 +1764,11 @@ def audit_public_channel_history(published, now=None, posts=None):
             caption_version = int(record.get("caption_deadline_format_version") or 0)
         except (TypeError, ValueError, OverflowError):
             caption_version = 0
+        button_state_known = "purchase_button_visible" in post
+        button_missing = button_state_known and not bool(post.get("purchase_button_visible"))
         needs_static_migration = (
-            caption_version < CAPTION_FORMAT_VERSION
+            button_missing
+            or caption_version < CAPTION_FORMAT_VERSION
             or bool(record.get("deadline_caption_refresh_required"))
             or str(record.get("expiry_status") or "") in {
                 "delete_failed", "expired_marked", "deadline_unavailable_marked",
@@ -1767,12 +1778,46 @@ def audit_public_channel_history(published, now=None, posts=None):
         )
         if not needs_static_migration:
             continue
-        affiliate_url = _build_affilio_tracking_url(record.get("product_url", ""))
+        record_product_url = str(record.get("product_url") or "").strip()
+        if not record_product_url:
+            ids = [
+                str(value).lower() for value in (post.get("product_ids") or [])
+                if re.fullmatch(r"dkp-\\d+", str(value).lower())
+            ]
+            if len(ids) == 1:
+                record_product_url = f"https://www.digikala.com/product/{ids[0]}/"
+        affiliate_url = _build_affilio_tracking_url(record_product_url)
         if not affiliate_url:
-            print(
-                f"PUBLIC_HISTORY_CAPTION_REPAIR_SKIPPED message_id={message_id} "
-                "reason=affiliate_url_unavailable; existing keyboard left untouched"
-            )
+            if button_missing:
+                # Never leave a known buttonless tracked post live if its approved
+                # purchase destination cannot be rebuilt.
+                try:
+                    outcome = _telegram_delete(int(message_id))
+                    if outcome in {"deleted", "already_absent"}:
+                        if outcome == "deleted":
+                            deleted += 1
+                        record["expiry_status"] = outcome
+                        record["expired_deleted_at" if outcome == "deleted" else "expiry_last_absent_at"] = now.isoformat()
+                        changed = True
+                        print(
+                            f"PUBLIC_HISTORY_NO_BUTTON_REMOVED message_id={message_id} "
+                            f"outcome={outcome} reason=affiliate_url_unavailable"
+                        )
+                    else:
+                        print(
+                            f"PUBLIC_HISTORY_NO_BUTTON_DELETE_UNCONFIRMED message_id={message_id} "
+                            f"outcome={outcome!r}"
+                        )
+                except Exception as exc:
+                    print(
+                        f"PUBLIC_HISTORY_NO_BUTTON_DELETE_FAILED message_id={message_id} "
+                        f"error={type(exc).__name__} detail={str(exc)[:140]!r}"
+                    )
+            else:
+                print(
+                    f"PUBLIC_HISTORY_CAPTION_REPAIR_SKIPPED message_id={message_id} "
+                    "reason=affiliate_url_unavailable; existing keyboard left untouched"
+                )
             continue
         caption = _build_legacy_repaired_caption(fields, deadline, now)
         try:
