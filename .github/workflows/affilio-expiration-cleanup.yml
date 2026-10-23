@@ -72,7 +72,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/expiration_monitor.py
 
-      - name: One-time migration: remove obsolete timers and restore verified purchase buttons
+      - name: "One-time migration: remove obsolete timers and restore verified purchase buttons"
         if: ${{ contains(github.event.head_commit.message, '[repair-buttons-now]') }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
