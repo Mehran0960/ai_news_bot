@@ -52,6 +52,8 @@ MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", 
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
 # Keep paired channel posts and Shorts below YouTube’s default 100 daily uploads; default to 70 to leave 30 calls for retries and operational headroom.
 MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "70"))))
+# Current channel uploadLimitExceeded behavior is consistent with ~8/day; keep Shorts evenly spaced.
+YOUTUBE_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS", "3"))))
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(10, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "8"))))
@@ -5178,7 +5180,40 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
         state.pop("youtube_upload_pause_reason", None)
         youtube_pause_until = None
         state_changed = True
+
+    # Migrate existing uploads into a durable three-hour spacing schedule. The radar
+    # still refreshes candidates every five minutes, but only chooses/renders a public
+    # YouTube Short when a publication slot is due.
+    youtube_next_upload_at = _parse_utc_datetime(state.get("youtube_next_upload_at"))
+    if youtube_next_upload_at is None:
+        last_successful_uploads = []
+        for existing_record in published.values():
+            if not isinstance(existing_record, dict):
+                continue
+            if str(existing_record.get("youtube_upload_status") or "") != "uploaded":
+                continue
+            uploaded_at = _parse_utc_datetime(existing_record.get("youtube_uploaded_at"))
+            if uploaded_at is not None:
+                last_successful_uploads.append(uploaded_at)
+        last_upload_at = max(last_successful_uploads) if last_successful_uploads else None
+        if last_upload_at is not None:
+            youtube_next_upload_at = last_upload_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS)
+            state["youtube_next_upload_at"] = youtube_next_upload_at.isoformat()
+            state_changed = True
+
     youtube_pause_active = bool(youtube_pause_until and current < youtube_pause_until)
+    youtube_upload_due = (
+        youtube_ready
+        and not youtube_pause_active
+        and (youtube_next_upload_at is None or current >= youtube_next_upload_at)
+    )
+    if youtube_pause_active:
+        print(
+            f"YOUTUBE_UPLOADS_PAUSED reason={state.get('youtube_upload_pause_reason', 'daily_upload_limit')} "
+            f"until={youtube_pause_until.isoformat()}"
+        )
+    elif youtube_ready and not youtube_upload_due and youtube_next_upload_at is not None:
+        print(f"YOUTUBE_UPLOAD_SLOT_WAIT next_at={youtube_next_upload_at.isoformat()}")
 
     if youtube_ready:
         for existing_pid, existing_record in published.items():
@@ -5417,18 +5452,22 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             continue
 
         yt_need = (
-            youtube_ready and upload_status in pending_youtube
-            and not youtube_in_flight and not youtube_pause_active
+            youtube_upload_due and upload_status in pending_youtube
+            and not youtube_in_flight
         )
         aparat_need = aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not aparat_in_flight
+        public_aparat_need = aparat_need and not APARAT_SHORTS_ONLY
         review_next = _parse_utc_datetime(record.get("video_review_next_attempt_at"))
         review_need = review_ready and not record.get("video_review_sent") and not (
             review_next and current < review_next
         )
-        if youtube_pause_active and not ((aparat_need and not APARAT_SHORTS_ONLY) or review_need):
-            # Don't waste CPU regenerating videos while the channel-wide YouTube cap is active.
+        if not (yt_need or public_aparat_need or review_need):
+            # Don't render/select public YouTube content before its next scheduled slot.
             continue
-        if generation_status == "generated" and not (yt_need or (aparat_need and not APARAT_SHORTS_ONLY) or review_need):
+        if youtube_upload_due and yt_need and expiry <= current + timedelta(minutes=MIN_PUBLICATION_RUNWAY_MINUTES):
+            # Only publish a Short when its deal has at least the normal publication runway left.
+            continue
+        if generation_status == "generated" and not (yt_need or public_aparat_need or review_need):
             # A previously generated MP4 has no configured destination needing work.
             continue
 
@@ -5594,7 +5633,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
 
     # Existing official YouTube upload stays independent from Aparat.
     upload_status = str(record.get("youtube_upload_status") or "pending_credentials")
-    if youtube_ready and upload_status in pending_youtube:
+    if youtube_upload_due and upload_status in pending_youtube:
         record["youtube_upload_status"] = "uploading"
         record["youtube_upload_started_at"] = datetime.now(timezone.utc).isoformat()
         save_json(STATE, state)
@@ -5608,7 +5647,12 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
             record["youtube_upload_status"] = "uploaded"
             record["youtube_video_id"] = result["video_id"]
             record["youtube_video_url"] = result["url"]
-            record["youtube_uploaded_at"] = datetime.now(timezone.utc).isoformat()
+            uploaded_at = datetime.now(timezone.utc)
+            record["youtube_uploaded_at"] = uploaded_at.isoformat()
+            state["youtube_last_upload_success_at"] = uploaded_at.isoformat()
+            state["youtube_next_upload_at"] = (
+                uploaded_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS)
+            ).isoformat()
             record["youtube_description_version"] = YOUTUBE_DESCRIPTION_VERSION
             record["youtube_video_renderer_version"] = PERSIAN_TEXT_RENDERER_VERSION
             record["youtube_visual_repair_completed_at"] = datetime.now(timezone.utc).isoformat() if record.get("youtube_previous_video_id") else record.get("youtube_visual_repair_completed_at", "")
@@ -5624,7 +5668,15 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
                 record["youtube_upload_status"] = "upload_result_unknown"
                 record["youtube_review_required"] = True
                 record["youtube_last_error"] = type(exc).__name__
-                print(f"YOUTUBE_UPLOAD_RESULT_UNKNOWN id={pid} error={type(exc).__name__}; no automatic duplicate retry")
+                unknown_at = datetime.now(timezone.utc)
+                state["youtube_last_upload_outcome_unknown_at"] = unknown_at.isoformat()
+                state["youtube_next_upload_at"] = (
+                    unknown_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS)
+                ).isoformat()
+                print(
+                    f"YOUTUBE_UPLOAD_RESULT_UNKNOWN id={pid} error={type(exc).__name__}; "
+                    f"next slot reserved at {state['youtube_next_upload_at']}; no automatic duplicate retry"
+                )
             else:
                 try:
                     attempts = int(record.get("youtube_upload_attempts", 0) or 0) + 1
