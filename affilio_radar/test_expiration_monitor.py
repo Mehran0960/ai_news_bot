@@ -483,6 +483,20 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(state["published"]["dkp-123"]["post_history"][0]["expiry_status"], "deleted")
         write_state.assert_called_once_with(state)
 
+    def test_public_history_paginates_past_a_repeated_pinned_message(self):
+        pinned = {1: {"message_id": 1, "caption_text": "پست سنجاق‌شده", "caption_html": ""}}
+        page_one = {**pinned, 525: {"message_id": 525, "caption_text": "آفر 525", "caption_html": ""}, 524: {"message_id": 524, "caption_text": "آفر 524", "caption_html": ""}}
+        page_two = {**pinned, 523: {"message_id": 523, "caption_text": "آفر 523", "caption_html": ""}, 522: {"message_id": 522, "caption_text": "آفر 522", "caption_html": ""}}
+        page_three = {**pinned, 521: {"message_id": 521, "caption_text": "آفر 521", "caption_html": ""}}
+        with (
+            patch.object(monitor, "_fetch_public_channel_page", side_effect=[page_one, page_two, page_three, {}]) as fetch,
+            patch.object(monitor.time, "sleep"),
+        ):
+            posts = monitor.fetch_public_channel_posts(max_pages=5)
+        self.assertEqual(set(posts), {1, 521, 522, 523, 524, 525})
+        self.assertEqual(fetch.call_count, 4)
+        self.assertEqual([call.args[0] if call.args else None for call in fetch.call_args_list], [None, 524, 522, 521])
+
     def test_public_history_paginates_backwards_without_duplicate_ids(self):
         page_one = {
             40: {"message_id": 40, "caption_text": "post 40", "caption_html": ""},
