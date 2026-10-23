@@ -23,7 +23,7 @@ jobs:
   expire:
     # The radar workflow already performs expiry cleanup immediately before its
     # one-time full caption repair. Do not run both channel-mutating jobs concurrently.
-    if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[expiry-cleanup-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-now]') }}
+    if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[expiry-cleanup-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-now]') || contains(github.event.head_commit.message, '[remove-glama-once]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -52,6 +52,11 @@ jobs:
         env:
           AFFILIO_FORCE_DEADLINE_SYNC: ${{ (contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[repair-all-captions]')) && 'true' || 'false' }}
           AFFILIO_DEDUPLICATE_ONLY: ${{ contains(github.event.head_commit.message, '[duplicate-cleanup-now]') && 'true' || 'false' }}
+          # This marker is a one-time manual exception; normal product selection has no exclusion.
+          AFFILIO_DELETE_SPECIFIC_PRODUCT_ID: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && 'dkp-20917779' || '' }}
+          AFFILIO_DELETE_SPECIFIC_PRODUCT_TITLE: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && 'ژل آبرسان صورت گلاما مدل Limited مناسب برای انواع پوست حجم 50 میلی‌لیتر' || '' }}
+          AFFILIO_DELETE_SPECIFIC_PRODUCT_TELEGRAM_IDS: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && '499,500,501' || '' }}
+          AFFILIO_DELETE_SPECIFIC_PRODUCT_BALE_IDS: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && '598,599,600' || '' }}
           AFFILIO_DUPLICATE_SCAN_PAGES: "30"
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
@@ -67,7 +72,7 @@ jobs:
         run: python affilio_radar/expiration_monitor.py
 
       - name: Migrate captions without countdowns and restore purchase buttons
-        if: ${{ !contains(github.event.head_commit.message, '[duplicate-cleanup-now]') }}
+        if: ${{ !contains(github.event.head_commit.message, '[duplicate-cleanup-now]') && !contains(github.event.head_commit.message, '[remove-glama-once]') }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
