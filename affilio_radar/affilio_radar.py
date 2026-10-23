@@ -847,7 +847,7 @@ def _int_value(value):
         return None
 
 
-def parse_product_api(payload: dict, url: str) -> dict:
+def parse_product_api(payload: dict, url: str, now: datetime | None = None) -> dict:
     """Parse the public Digikala product JSON endpoint using flexible nested-key matching."""
     target_number = product_id(url).replace("dkp-", "")
     candidates = []
@@ -975,6 +975,14 @@ def parse_product_api(payload: dict, url: str) -> dict:
         if label:
             variant_label_parts.append(str(label).strip())
     variant_label = " ".join(variant_label_parts) or _clean_title(variant.get("title_fa") or variant.get("title") or "")
+    direct_deadline = ""
+    for _score, candidate_obj, _candidate_title in candidates:
+        candidate_id = str(candidate_obj.get("product_id") or candidate_obj.get("id") or "")
+        if candidate_id != target_number:
+            continue
+        direct_deadline = extract_deal_expiry(candidate_obj, now=now)
+        if direct_deadline:
+            break
     return {
         "product_id": product_id(url),
         "product_url": safe_product_url(url),
@@ -987,6 +995,10 @@ def parse_product_api(payload: dict, url: str) -> dict:
         "review_count": review_count,
         "availability": availability,
         "availability_source": availability_source,
+        "deal_expires_at": direct_deadline,
+        "expiry_source": "digikala_product_detail_api" if direct_deadline else "unavailable",
+        "expiry_deadline_verified_directly": bool(direct_deadline),
+        "expiry_estimated": False,
         "checked_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -1107,6 +1119,9 @@ def verify_live_page_price(product: dict) -> dict:
         "api_price": expected_price,
         "price_source": price_source,
         "delta_percent": round(delta_percent, 2),
+        "deal_expires_at": live.get("deal_expires_at", ""),
+        "expiry_source": live.get("expiry_source", ""),
+        "expiry_deadline_verified_directly": live.get("expiry_deadline_verified_directly") is True,
     }
 
 
@@ -1143,7 +1158,11 @@ def fetch_product_record(url: str) -> dict:
             print(f"PRODUCT_HTML_FAILED id={product_id(url)} error={type(exc).__name__}")
 
     merged = dict(html_product)
-    for key in ("product_id", "product_url", "title", "image_url", "current_price", "original_price", "variant_label", "rating", "review_count"):
+    for key in (
+        "product_id", "product_url", "title", "image_url", "current_price", "original_price",
+        "variant_label", "rating", "review_count", "deal_expires_at", "expiry_source",
+        "expiry_deadline_verified_directly", "expiry_estimated",
+    ):
         if api_product.get(key) not in (None, "", 0):
             merged[key] = api_product[key]
     statuses = [x for x in (api_product.get("availability"), html_product.get("availability")) if x in {"in_stock", "out_of_stock"}]
@@ -2275,6 +2294,9 @@ def discover_product_urls(
                 candidate_pid = product_id(candidate_row.get("product_url", ""))
                 candidate_deadline = str(candidate_row.get("deal_expires_at") or "").strip()
                 if candidate_pid and candidate_deadline:
+                    candidate_row["expiry_source"] = "digikala_live_deals_feed"
+                    candidate_row["expiry_deadline_verified_directly"] = True
+                    candidate_row["expiry_estimated"] = False
                     direct_feed_expiries[candidate_pid] = candidate_deadline
                     deal_expiries[candidate_pid] = candidate_deadline
             diagnostics.append({
@@ -2546,7 +2568,7 @@ def discover_product_urls(
                 found.append(url)
                 added += 1
         print(f"DISCOVERY term={term!r} products={len(local)} added={added} source={diagnostics[-1].get('source')}")
-    return found, diagnostics, deal_expiries
+    return found, diagnostics, deal_expiries, direct_feed_expiries
 
 
 def classify_category(title: str) -> str:
@@ -3904,7 +3926,16 @@ def is_offer_expired(product: dict, now: datetime | None = None) -> bool:
 
 
 def has_verified_deal_deadline(product: dict, now: datetime | None = None) -> bool:
-    """True only when the product has an explicit, parseable, not-yet-expired offer deadline."""
+    """Only a directly fetched DigiKala offer/product response can authorize publication."""
+    if not isinstance(product, dict):
+        return False
+    if product.get("expiry_deadline_verified_directly") is not True:
+        return False
+    if str(product.get("expiry_source") or "") not in {
+        "digikala_live_deals_feed",
+        "digikala_product_detail_api",
+    }:
+        return False
     expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
     if expiry is None:
         return False
@@ -5371,7 +5402,7 @@ def run(publish=False):
     if not isinstance(discovery_queue, dict):
         discovery_queue = {}
         state["discovery_queue"] = discovery_queue
-    urls, search_diagnostics, deal_expiries = discover_product_urls(
+    urls, search_diagnostics, deal_expiries, direct_feed_expiries = discover_product_urls(
         queued_records if isinstance(queued_records, dict) else {},
         discovery_queue,
         state,
@@ -5393,7 +5424,27 @@ def run(publish=False):
                 print("PRODUCT_SKIP invalid_product_url")
                 continue
             item = fetch_product_record(canonical)
-            item["deal_expires_at"] = deal_expiries.get(item.get("product_id", ""), "") or item.get("deal_expires_at", "")
+            pid = item.get("product_id", "")
+            mcp_deadline_hint = deal_expiries.get(pid, "")
+            direct_feed_deadline = direct_feed_expiries.get(pid, "")
+            if direct_feed_deadline:
+                item["deal_expires_at"] = direct_feed_deadline
+                item["expiry_source"] = "digikala_live_deals_feed"
+                item["expiry_deadline_verified_directly"] = True
+                item["expiry_estimated"] = False
+            elif not (
+                item.get("expiry_deadline_verified_directly") is True
+                and item.get("expiry_source") == "digikala_product_detail_api"
+                and item.get("deal_expires_at")
+            ):
+                # MCP deadlines aid discovery only. They never satisfy the direct
+                # first-party check required to publish a buyable offer.
+                item["deal_expires_at"] = ""
+                item["expiry_source"] = "unavailable"
+                item["expiry_deadline_verified_directly"] = False
+                item["expiry_estimated"] = False
+                if mcp_deadline_hint:
+                    item["mcp_deadline_hint"] = mcp_deadline_hint
             if not item.get("title"):
                 print(f"PRODUCT_SKIP id={item.get('product_id')} reason=no_title")
                 continue
@@ -5846,9 +5897,14 @@ def run(publish=False):
                 "delivery_status": statuses,
                 "delivery_attempts": attempts,
                 "expires_at": expiry_at,
-                "expiry_source": "direct_verification_pending" if expiry_at else "unavailable",
-                "expiry_estimated": False,
-                "expiry_deadline_verified_directly": False,
+                "expiry_source": str(item.get("expiry_source") or "unavailable"),
+                "expiry_estimated": bool(item.get("expiry_estimated")),
+                "expiry_deadline_verified_directly": (
+                    item.get("expiry_deadline_verified_directly") is True
+                    and str(item.get("expiry_source") or "") in {
+                        "digikala_live_deals_feed", "digikala_product_detail_api"
+                    }
+                ),
                 "caption_deadline_format_version": CAPTION_DEADLINE_FORMAT_VERSION,
                 "posted_discount_percent": int(item.get("discount_percent") or 0),
                 "posted_current_price": int(item.get("current_price") or 0),
