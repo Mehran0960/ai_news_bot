@@ -5146,6 +5146,33 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
     state_changed = False
 
     youtube_pause_until = _parse_utc_datetime(state.get("youtube_uploads_paused_until"))
+
+    # One-time migration: earlier runs saved the channel-limit error per video
+    # before the global cooldown existed. Promote that persisted evidence into a
+    # channel-wide pause to prevent wasting another upload request after deployment.
+    if state.get("youtube_upload_pause_diagnostic_migrated") is not True:
+        if youtube_pause_until is None:
+            daily_limit_markers = (
+                "uploadlimitexceeded",
+                "video uploads per day",
+                "daily video upload limit",
+            )
+            for existing_pid, existing_record in published.items():
+                if not isinstance(existing_record, dict):
+                    continue
+                existing_error = str(existing_record.get("youtube_last_error") or "").casefold()
+                if any(marker in existing_error for marker in daily_limit_markers):
+                    youtube_pause_until = _next_youtube_daily_upload_retry_at(current)
+                    state["youtube_uploads_paused_until"] = youtube_pause_until.isoformat()
+                    state["youtube_upload_pause_reason"] = "daily_upload_limit"
+                    print(
+                        f"YOUTUBE_DAILY_LIMIT_PAUSE_MIGRATED product_id={existing_pid} "
+                        f"until={youtube_pause_until.isoformat()}"
+                    )
+                    break
+        state["youtube_upload_pause_diagnostic_migrated"] = True
+        state_changed = True
+
     if youtube_pause_until and current >= youtube_pause_until:
         state.pop("youtube_uploads_paused_until", None)
         state.pop("youtube_upload_pause_reason", None)
@@ -5621,6 +5648,7 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
                     next_attempt = _next_youtube_daily_upload_retry_at(failure_time)
                     state["youtube_uploads_paused_until"] = next_attempt.isoformat()
                     state["youtube_upload_pause_reason"] = "daily_upload_limit"
+                    state["youtube_upload_pause_diagnostic_migrated"] = True
                     youtube_pause_until = next_attempt
                     youtube_pause_active = True
                 else:
