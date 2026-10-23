@@ -2375,6 +2375,12 @@ def discover_product_urls(
     queued_records = queued_records if isinstance(queued_records, dict) else {}
     queue_now = datetime.now(timezone.utc)
     queued_expiries: dict[str, str] = {}
+    # Compute the cap before touching the persistent queue. This is deliberately
+    # first: the normal five-minute scan often begins with queued candidates, so a
+    # later assignment used to raise UnboundLocalError and abort every live scan.
+    search_reserve = min(12, max(1, MAX_PRODUCT_CHECKS // 3)) if MAX_PRODUCT_CHECKS > 1 else 0
+    presearch_candidate_limit = max(1, MAX_PRODUCT_CHECKS - search_reserve)
+
     # Recheck persistent candidates even when their deadline is earlier than active
     # channel posts; chronology is not a publication eligibility rule anymore.
     for pid, record in select_queued_records_for_recheck(
@@ -2389,10 +2395,6 @@ def discover_product_urls(
         found.append(canonical)
         queued_expiries[str(pid)] = deadline.isoformat()
 
-    # Reserve a substantial part of the detail-check budget for rotated general
-    # searches; the Incredible Offers feed can be overwhelmingly one category.
-    search_reserve = min(12, max(1, MAX_PRODUCT_CHECKS // 3)) if MAX_PRODUCT_CHECKS > 1 else 0
-    presearch_candidate_limit = max(1, MAX_PRODUCT_CHECKS - search_reserve)
     publish_history = state_to_persist.get("published", {}) if isinstance(state_to_persist, dict) else {}
     recent_history = state_to_persist.get("recent_publications", []) if isinstance(state_to_persist, dict) else []
 

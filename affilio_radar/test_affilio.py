@@ -2297,6 +2297,41 @@ class AffilioRadarTests(unittest.TestCase):
 
 
 
+    def test_discover_product_urls_handles_due_persisted_queue_without_scope_error(self):
+        now = datetime.now(timezone.utc)
+        queued = {
+            "dkp-91001": {
+                "product_url": "https://www.digikala.com/product/dkp-91001/",
+                "deal_expires_at": (now + timedelta(hours=3)).isoformat(),
+            }
+        }
+        response = SimpleNamespace(
+            status_code=200,
+            content=b"{}",
+            raise_for_status=lambda: None,
+            json=lambda: {},
+        )
+        with (
+            patch("affilio_radar.MAX_PRODUCT_CHECKS", 1),
+            patch("affilio_radar.DEAL_LIST_PAGES", 1),
+            patch("affilio_radar.SEARCH_TERMS", ()),
+            patch("affilio_radar.select_queued_records_for_recheck", return_value=[
+                ("dkp-91001", queued["dkp-91001"])
+            ]),
+            patch("affilio_radar.SESSION.get", return_value=response),
+            patch("affilio_radar.api_incredible_offer_product_candidates", return_value=[]),
+            patch("expiration_monitor.fetch_mcp_offer_candidates", return_value=({}, [])),
+        ):
+            urls, diagnostics, expiries, direct_expiries, mcp_expiries = discover_product_urls(
+                queued_records=queued,
+                discovery_queue={},
+                state_to_persist={},
+            )
+
+        self.assertIn("https://www.digikala.com/product/dkp-91001/", urls)
+        self.assertEqual(expiries["dkp-91001"], queued["dkp-91001"]["deal_expires_at"])
+        self.assertEqual(diagnostics[0]["term"], "incredible_offers_page_1")
+
     def test_discovery_queue_records_all_candidates_before_detail_check_budget(self):
         now = datetime(2026, 10, 19, 12, 0, tzinfo=timezone.utc)
         queue = {}
