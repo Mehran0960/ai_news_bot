@@ -4317,23 +4317,45 @@ def select_publish_candidates(
         recent_product_ids.append(post["product_id"])
 
     remaining, diversified = list(selected), []
+    recent_categories = [post["category"] for post in recent[-2:]]
+    recent_families = [post["family"] for post in recent[-3:]]
+    recent_brands = [post["brand"] for post in recent[-2:] if post["brand"]]
     while remaining:
-        pool = remaining[:min(8, len(remaining))]
-        scored = []
-        for rank, product in enumerate(pool):
+        ranked = []
+        for rank, product in enumerate(remaining):
             pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
             category, family, brand = _publication_diversity_group(product)
-            score = rank
-            # Diversity is a strong preference, not a hard block: after other
-            # categories are exhausted, the best remaining deal can still publish.
-            score += min(20.0, category_counts.get(category, 0) * 5.0)
-            score += min(21.0, family_counts.get(family, 0) * 7.0)
+            score = float(rank)
+            # Strongly rotate categories, product families and known brands across the recent feed.
+            score += min(240.0, category_counts.get(category, 0) * 30.0)
+            score += min(300.0, family_counts.get(family, 0) * 40.0)
             if brand:
-                score += min(12.0, brand_counts.get(brand, 0) * 4.0)
-            if pid in recent_product_ids[-8:]:
-                score += 15.0
-            scored.append((score, rank, product, pid, category, family, brand))
-        _, rank, chosen, pid, category, family, brand = min(scored, key=lambda x: (x[0], x[1]))
+                score += min(150.0, brand_counts.get(brand, 0) * 20.0)
+            if category in recent_categories:
+                score += 90.0
+            if family in recent_families:
+                score += 130.0
+            if brand and brand in recent_brands:
+                score += 80.0
+            if pid in recent_product_ids[-12:]:
+                score += 250.0
+            ranked.append((score, rank, product, pid, category, family, brand))
+
+        # Prefer unseen recent families/categories first, but relax the preference
+        # when the catalog has no alternative so the queue cannot starve.
+        allowed = [
+            entry for entry in ranked
+            if entry[4] not in recent_categories and entry[5] not in recent_families
+            and (not entry[6] or entry[6] not in recent_brands)
+        ]
+        if not allowed:
+            allowed = [
+                entry for entry in ranked
+                if entry[5] not in recent_families and entry[4] not in recent_categories
+            ]
+        if not allowed:
+            allowed = [entry for entry in ranked if entry[4] not in recent_categories]
+        _, rank, chosen, pid, category, family, brand = min(allowed or ranked, key=lambda x: (x[0], x[1]))
         if rank:
             print(
                 f"PUBLICATION_DIVERSITY_REORDER id={pid} original_rank={rank + 1} "
@@ -4349,6 +4371,10 @@ def select_publish_candidates(
         if brand:
             brand_counts[brand] = brand_counts.get(brand, 0) + 1
         recent_product_ids.append(pid)
+        recent_categories = (recent_categories + [category])[-2:]
+        recent_families = (recent_families + [family])[-3:]
+        if brand:
+            recent_brands = (recent_brands + [brand])[-2:]
     return diversified
 
 
@@ -5983,9 +6009,25 @@ def run(publish=False):
                 "telegram_message_id": results.get("telegram", {}).get("message_id"),
                 "bale_message_id": results.get("bale", {}).get("message_id"),
             })
+            unique_history = {}
+            for entry in history:
+                if not isinstance(entry, dict):
+                    continue
+                entry_pid = str(entry.get("product_id") or "")
+                entry_ts = _publication_record_ts(entry)
+                if not entry_pid or entry_ts <= 0:
+                    continue
+                event_key = (entry_pid, round(entry_ts, 3))
+                previous_entry = unique_history.get(event_key)
+                def message_order(candidate):
+                    try:
+                        return max(int(candidate.get("telegram_message_id") or 0), int(candidate.get("bale_message_id") or 0))
+                    except (TypeError, ValueError, OverflowError):
+                        return 0
+                if previous_entry is None or message_order(entry) >= message_order(previous_entry):
+                    unique_history[event_key] = entry
             state["recent_publications"] = sorted(
-                [entry for entry in history if isinstance(entry, dict)],
-                key=_publication_record_ts,
+                unique_history.values(), key=_publication_record_ts,
             )[-RECENT_PUBLICATION_HISTORY_LIMIT:]
             state["last_published_at"] = datetime.fromtimestamp(
                 published_at_epoch, tz=timezone.utc
