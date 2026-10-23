@@ -15,7 +15,7 @@ import re
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from urllib.parse import parse_qs, quote, urlencode, urlsplit
+from urllib.parse import parse_qs, quote, unquote, urlencode, urlsplit
 from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
@@ -915,10 +915,19 @@ def _fetch_public_channel_page(before=None):
         caption_node = wrap.select_one(".tgme_widget_message_text")
         caption_text = caption_node.get_text(" ", strip=True) if caption_node else ""
         caption_html = caption_node.decode_contents() if caption_node else ""
+        product_ids = set()
+        purchase_button_visible = False
+        for anchor in wrap.select("a[href]"):
+            product_id = _product_id_from_public_url(anchor.get("href", ""))
+            if product_id:
+                product_ids.add(product_id)
+                purchase_button_visible = True
         results[message_id] = {
             "message_id": message_id,
             "caption_text": caption_text,
             "caption_html": caption_html,
+            "product_ids": sorted(product_ids),
+            "purchase_button_visible": purchase_button_visible,
         }
     return results
 
@@ -950,6 +959,196 @@ def fetch_public_channel_posts(max_pages=None):
         time.sleep(0.15)
     print(f"PUBLIC_HISTORY_SUMMARY messages_scanned={len(all_posts)} pages_limit={max_pages}")
     return all_posts
+
+
+def _product_id_from_public_url(value):
+    """Extract a DigiKala ID from the confirmed Affilio purchase URL or product link."""
+    try:
+        parsed = urlsplit(html.unescape(str(value or "").strip()))
+    except Exception:
+        return ""
+    host = (parsed.hostname or "").lower()
+    if host == "aflo.ir":
+        for destination in parse_qs(parsed.query, keep_blank_values=True).get("p", []):
+            match = re.search(r"/product/(dkp-\d+)(?:/|$)", unquote(destination), re.I)
+            if match:
+                return match.group(1).lower()
+    if host in {"digikala.com", "www.digikala.com"}:
+        match = re.search(r"/product/(dkp-\d+)(?:/|$)", parsed.path, re.I)
+        if match:
+            return match.group(1).lower()
+    if host.endswith(".workers.dev"):
+        match = re.search(r"/p/(dkp-\d+)(?:/|$)", parsed.path, re.I)
+        if match:
+            return match.group(1).lower()
+    return ""
+
+
+def _normalise_duplicate_title(value):
+    value = str(value or "").lower().replace("ي", "ی").replace("ك", "ک").replace("\u200c", "")
+    value = value.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+    value = re.sub(r"[\u200b-\u200f\ufeff]", "", value)
+    return "".join(re.findall(r"[^\W_]+", value, flags=re.UNICODE))
+
+
+def _run_duplicate_cleanup(state, apply=True):
+    """Delete older duplicate product posts while keeping one copy of each live offer."""
+    if not BOT_TOKEN:
+        print("DUPLICATE_CLEANUP_ABORTED reason=telegram_bot_token_missing")
+        return 2
+    published = state.get("published", {})
+    if not isinstance(published, dict):
+        print("DUPLICATE_CLEANUP_ABORTED reason=published_state_invalid")
+        return 2
+
+    max_pages = max(1, min(80, int(os.getenv("AFFILIO_DUPLICATE_SCAN_PAGES", "30"))))
+    try:
+        posts = fetch_public_channel_posts(max_pages=max_pages)
+    except Exception as exc:
+        print(f"DUPLICATE_SCAN_ABORTED error={type(exc).__name__} detail={str(exc)[:160]!r}")
+        print("No channel posts were deleted because the live history scan failed.")
+        return 2
+    if not posts:
+        print("DUPLICATE_SCAN_ABORTED reason=no_public_posts_returned")
+        return 2
+
+    product_for_message = {}
+    sent_button_for_message = {}
+    for product_id, record in _iter_post_records(published):
+        key = str(product_id or "").lower()
+        if not re.fullmatch(r"dkp-\d+", key):
+            key = _product_id_from_public_url(record.get("product_url", ""))
+        raw_id = record.get("telegram_message_id")
+        if str(raw_id or "").isdigit():
+            product_for_message[int(raw_id)] = key
+            delivery = record.get("delivery_status")
+            sent_button_for_message[int(raw_id)] = (
+                isinstance(delivery, dict) and delivery.get("telegram") == "sent"
+            )
+
+    groups = {}
+    for message_id, post in posts.items():
+        caption_text = str(post.get("caption_text") or "")
+        if not caption_text.strip():
+            continue
+        title = _extract_legacy_caption_fields(caption_text).get("title", "")
+        product_ids = set(post.get("product_ids") or [])
+        known = product_for_message.get(int(message_id))
+        if known:
+            product_ids.add(known)
+        if not title and not product_ids:
+            continue
+        if len(product_ids) == 1:
+            key = ("product", next(iter(product_ids)))
+        elif len(product_ids) > 1:
+            print(f"DUPLICATE_SCAN_SKIP_AMBIGUOUS message_id={message_id} product_ids={sorted(product_ids)}")
+            continue
+        else:
+            normalised_title = _normalise_duplicate_title(title)
+            if len(normalised_title) < 12:
+                continue
+            key = ("title", normalised_title)
+        post["dedupe_key"] = key
+        post["dedupe_title"] = title
+        post["dedupe_has_button"] = bool(
+            post.get("purchase_button_visible") or sent_button_for_message.get(int(message_id), False)
+        )
+        groups.setdefault(key, []).append(int(message_id))
+
+    duplicate_groups = [
+        (key, sorted(set(message_ids)))
+        for key, message_ids in groups.items()
+        if len(set(message_ids)) > 1
+    ]
+    duplicate_groups.sort(key=lambda item: item[1][0])
+    deleted_telegram = absent_telegram = failed_telegram = 0
+    state_changed = False
+
+    for key, message_ids in duplicate_groups:
+        winner = max(message_ids, key=lambda mid: (
+            bool(posts.get(mid, {}).get("dedupe_has_button") or sent_button_for_message.get(mid, False)),
+            int(mid),
+        ))
+        print(f"DUPLICATE_GROUP platform=telegram key={key[1]} ids={message_ids} keep={winner}")
+        for message_id in message_ids:
+            if message_id == winner:
+                continue
+            if not apply:
+                print(f"DUPLICATE_WOULD_DELETE platform=telegram message_id={message_id} keep={winner}")
+                continue
+            try:
+                outcome = _telegram_delete(int(message_id))
+                if outcome == "deleted":
+                    deleted_telegram += 1
+                else:
+                    absent_telegram += 1
+                for _record_product_id, record in _iter_post_records(published):
+                    if str(record.get("telegram_message_id") or "").isdigit() and int(record["telegram_message_id"]) == int(message_id):
+                        record["expiry_status"] = outcome
+                        record["expired_deleted_at" if outcome == "deleted" else "expiry_absent_at"] = datetime.now(timezone.utc).isoformat()
+                        state_changed = True
+                print(f"DUPLICATE_DELETE_RESULT platform=telegram message_id={message_id} keep={winner} outcome={outcome}")
+            except Exception as exc:
+                failed_telegram += 1
+                print(f"DUPLICATE_DELETE_FAILED platform=telegram message_id={message_id} keep={winner} error={type(exc).__name__}: {str(exc)[:150]}")
+            time.sleep(BOT_API_MIN_GAP_SECONDS)
+
+    # Bale's Bot API cannot enumerate channel history: only delete duplicates whose IDs are tracked.
+    bale_groups = {}
+    for product_id, record in _iter_post_records(published):
+        key = str(product_id or "").lower()
+        if not re.fullmatch(r"dkp-\d+", key):
+            key = _product_id_from_public_url(record.get("product_url", ""))
+        raw_id = record.get("bale_message_id")
+        status = str(record.get("bale_expiry_status") or "")
+        if not key or not str(raw_id or "").isdigit() or status in {"deleted", "already_absent"}:
+            continue
+        bale_groups.setdefault(key, []).append(int(raw_id))
+    deleted_bale = absent_bale = failed_bale = 0
+    for product_id, ids in sorted(bale_groups.items()):
+        ids = sorted(set(ids))
+        if len(ids) < 2:
+            continue
+        winner = ids[-1]
+        print(f"DUPLICATE_GROUP platform=bale product_id={product_id} ids={ids} keep={winner}")
+        for message_id in ids[:-1]:
+            if not apply:
+                print(f"DUPLICATE_WOULD_DELETE platform=bale message_id={message_id} keep={winner}")
+                continue
+            try:
+                outcome = _bale_delete(message_id)
+                if outcome == "deleted":
+                    deleted_bale += 1
+                else:
+                    absent_bale += 1
+                for _record_product_id, record in _iter_post_records(published):
+                    if str(record.get("bale_message_id") or "").isdigit() and int(record["bale_message_id"]) == int(message_id):
+                        record["bale_expiry_status"] = outcome
+                        record["bale_expired_deleted_at" if outcome == "deleted" else "bale_expiry_absent_at"] = datetime.now(timezone.utc).isoformat()
+                        state_changed = True
+                print(f"DUPLICATE_DELETE_RESULT platform=bale message_id={message_id} keep={winner} outcome={outcome}")
+            except Exception as exc:
+                failed_bale += 1
+                print(f"DUPLICATE_DELETE_FAILED platform=bale message_id={message_id} keep={winner} error={type(exc).__name__}: {str(exc)[:150]}")
+            time.sleep(BOT_API_MIN_GAP_SECONDS)
+
+    if apply and state_changed:
+        _write_state(state)
+        print("DUPLICATE_STATE_UPDATED=true")
+    summary = {
+        "mode": "apply" if apply else "dry_run",
+        "telegram_groups": len(duplicate_groups),
+        "telegram_deleted": deleted_telegram,
+        "telegram_already_absent": absent_telegram,
+        "telegram_failed": failed_telegram,
+        "bale_deleted_from_tracked_ids": deleted_bale,
+        "bale_already_absent": absent_bale,
+        "bale_failed": failed_bale,
+        "posts_scanned": len(posts),
+        "max_pages": max_pages,
+    }
+    print("DUPLICATE_CLEANUP_FINAL " + json.dumps(summary, ensure_ascii=False, sort_keys=True))
+    return 1 if failed_telegram or failed_bale else 0
 
 
 def _is_valid_affilio_tracking_url(value):
@@ -1525,6 +1724,8 @@ def _delete_expired_youtube_videos(published, now):
 
 def run():
     state = _read_state()
+    if os.getenv("AFFILIO_DEDUPLICATE_ONLY", "false").strip().lower() in {"1", "true", "yes", "on"}:
+        return _run_duplicate_cleanup(state, apply=True)
     published = state.get("published", {})
     if not isinstance(published, dict):
         raise ValueError("state.json published must be an object")
