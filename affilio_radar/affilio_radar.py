@@ -50,8 +50,8 @@ BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
 MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "40"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
-# Keep channel posts paired with Shorts while preserving 40 of the default 100 daily videos.insert calls as safety headroom.
-MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "60"))))
+# Keep paired channel posts and Shorts below YouTube’s default 100 daily uploads; default to 80 to leave 20 calls for retries and operational headroom.
+MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "80"))))
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(10, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "8"))))
@@ -3142,7 +3142,7 @@ def build_caption(
         channel_footer = f'<a href="{channel_href}">{channel_text}</a>'
 
     parts = [
-        bold("🔥 پیشنهاد شگفت‌انگیز دیجی‌کالا"),
+        bold("🔥 فروش ویژه دیجی‌کالا"),
         "",
         bold(f"🛍️ {title}"),
         "",
