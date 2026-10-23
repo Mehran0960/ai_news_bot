@@ -103,11 +103,20 @@ jobs:
       - name: Validate syntax and run unit tests
         if: ${{ github.event_name != 'schedule' }}
         run: |
-          # Regression coverage includes timer-free captions, direct deadlines, and purchase-button recovery.
+          # These tests call persistence APIs. Snapshot both live JSON files so test fixtures cannot erase publication history or candidate records.
+          state_backup="$RUNNER_TEMP/offerchin-live-state-before-tests.json"
+          candidates_backup="$RUNNER_TEMP/offerchin-live-candidates-before-tests.json"
+          cp affilio_radar/state.json "$state_backup"
+          cp affilio_radar/candidates.json "$candidates_backup"
           python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py
-          cd affilio_radar
-          python -m unittest -v test_affilio.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py
-          python -m py_compile expiration_monitor.py
+          test_status=0
+          (cd affilio_radar && python -m unittest -v test_affilio.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py) || test_status=$?
+          python -m py_compile affilio_radar/expiration_monitor.py
+          cp "$state_backup" affilio_radar/state.json
+          cp "$candidates_backup" affilio_radar/candidates.json
+          if [[ "$test_status" -ne 0 ]]; then
+            exit "$test_status"
+          fi
 
       - name: Smoke-test the deployed click tracker
         if: ${{ github.event_name == 'push' }}
