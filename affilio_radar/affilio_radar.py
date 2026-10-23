@@ -5094,6 +5094,19 @@ def repair_persian_text_video_uploads() -> int:
     return 0 if len(repaired) + already_current == len(PERSIAN_TEXT_REPAIR_PRODUCT_IDS) else 1
 
 
+def _next_youtube_daily_upload_retry_at(now: datetime | None = None) -> datetime:
+    """Defer confirmed daily-upload-limit errors until after the next Pacific-time reset."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    pacific = ZoneInfo("America/Los_Angeles")
+    next_date = current.astimezone(pacific).date() + timedelta(days=1)
+    reset_plus_buffer = datetime(
+        next_date.year, next_date.month, next_date.day, 0, 15, tzinfo=pacific
+    )
+    return reset_plus_buffer.astimezone(timezone.utc)
+
+
 def process_pending_short_video(state: dict, now: datetime | None = None, output_dir: str | Path = "video_artifacts") -> bool:
     """Generate a vertical product video and service only verified destinations.
 
@@ -5588,15 +5601,27 @@ def process_pending_short_video(state: dict, now: datetime | None = None, output
                     f"{type(exc).__name__}: {error_detail}" if error_detail
                     else type(exc).__name__
                 )
-                record["youtube_next_attempt_at"] = (
-                    datetime.now(timezone.utc)
-                    + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
-                ).isoformat()
+                error_lower = error_detail.casefold()
+                daily_upload_limit = any(marker in error_lower for marker in (
+                    "video uploads per day",
+                    "uploadlimitexceeded",
+                    "daily video upload limit",
+                ))
+                failure_time = datetime.now(timezone.utc)
+                if daily_upload_limit:
+                    next_attempt = _next_youtube_daily_upload_retry_at(failure_time)
+                else:
+                    next_attempt = failure_time + timedelta(
+                        seconds=min(3600, 300 * (2 ** min(attempts - 1, 4)))
+                    )
+                record["youtube_next_attempt_at"] = next_attempt.isoformat()
                 http_status = getattr(getattr(exc, "response", None), "status_code", None)
                 print(
                     f"YOUTUBE_UPLOAD_FAILED id={pid} error={type(exc).__name__} "
                     f"http_status={http_status or 'unknown'} detail={error_detail!r} "
-                    f"retry_attempt={attempts}"
+                    f"retry_attempt={attempts} "
+                    f"deferred_until_daily_reset={daily_upload_limit} "
+                    f"next_attempt_at={next_attempt.isoformat()}"
                 )
     elif not youtube_ready and upload_status in pending_youtube:
         record["youtube_upload_status"] = "pending_credentials"
