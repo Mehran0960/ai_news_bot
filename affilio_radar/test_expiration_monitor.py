@@ -177,6 +177,26 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["dkp-123"]["post_history"][0]["expires_at"], "2026-10-20T18:00:00+00:00")
         self.assertNotIn("deadline_caption_refresh_required", published["dkp-123"]["post_history"][0])
 
+    def test_unchanged_direct_deadline_refreshes_direct_verification_timestamp(self):
+        now = datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
+        deadline = (now + timedelta(hours=2)).isoformat()
+        published = {
+            "dkp-123": {
+                "expires_at": deadline,
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_deadline_verified_directly": True,
+                "expiry_estimated": False,
+                "telegram_message_id": 61,
+                "expiry_status": "tracked",
+            }
+        }
+        summary = monitor.sync_live_offer_deadlines(
+            published, {"dkp-123": deadline}, now,
+            live_sources={"dkp-123": "digikala_live_deals_feed"},
+        )
+        self.assertEqual(summary["unchanged"], 1)
+        self.assertEqual(published["dkp-123"]["expiry_last_direct_verification_at"], now.isoformat())
+
     def test_live_deadline_sync_does_not_resurrect_deleted_messages(self):
         published = {
             "dkp-deleted": {
@@ -781,8 +801,9 @@ class ExpirationMonitorTests(unittest.TestCase):
                 "bale_message_id": 201,
                 "expires_at": (now + timedelta(minutes=10)).isoformat(),
                 "expiry_source": "digikala_live_deals_feed",
-                        "expiry_deadline_verified_directly": True,
+                "expiry_deadline_verified_directly": True,
                 "expiry_estimated": False,
+                "expiry_last_direct_verification_at": now.isoformat(),
                 "expiry_status": "tracked",
                 "bale_expiry_status": "tracked",
             },
@@ -807,6 +828,76 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["at_cutoff"]["expiry_status"], "deleted")
         self.assertEqual(published["at_cutoff"]["bale_expiry_status"], "deleted")
         self.assertEqual(published["just_before_cutoff"]["expiry_status"], "tracked")
+
+    def test_stale_site_card_cutoff_is_rechecked_directly_and_extended_deadline_is_kept(self):
+        now = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
+        fresh_deadline = now + timedelta(hours=2)
+        record = {
+            "telegram_message_id": 701,
+            "bale_message_id": 801,
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "expiry_source": "digikala_mcp_offer_card",
+            "expiry_deadline_verified_from_site_card": True,
+            "expiry_estimated": False,
+            "expiry_status": "tracked",
+            "bale_expiry_status": "tracked",
+            "posted_current_price": 900_000,
+        }
+        published = {"dkp-123": record}
+        with (
+            patch.object(monitor, "fetch_live_product_status", return_value={
+                "deal_expires_at": fresh_deadline.isoformat(),
+                "expiry_verified_directly": True,
+                "current_price": 900_000,
+                "original_price": 1_500_000,
+                "in_stock": True,
+            }) as direct_check,
+            patch.object(monitor, "_telegram_delete") as tg_delete,
+            patch.object(monitor, "_bale_delete") as bale_delete,
+        ):
+            changed, deleted = monitor._delete_expired_posts(
+                published, now, direct_confirm=monitor._confirm_expiry_for_deletion
+            )
+        direct_check.assert_called_once_with("dkp-123")
+        self.assertTrue(changed)
+        self.assertEqual(deleted, 0)
+        tg_delete.assert_not_called()
+        bale_delete.assert_not_called()
+        self.assertEqual(record["expiry_source"], "digikala_product_detail_api")
+        self.assertEqual(record["expires_at"], fresh_deadline.isoformat())
+        self.assertEqual(record["expiry_last_direct_verification_at"], now.isoformat())
+        self.assertEqual(record["expiry_status"], "tracked")
+        self.assertEqual(record["bale_expiry_status"], "tracked")
+
+    def test_inconclusive_direct_check_preserves_post_and_purchase_button(self):
+        now = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
+        record = {
+            "telegram_message_id": 702,
+            "bale_message_id": 802,
+            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "expiry_source": "digikala_mcp_offer_card",
+            "expiry_deadline_verified_from_site_card": True,
+            "expiry_estimated": False,
+            "expiry_status": "tracked",
+            "bale_expiry_status": "tracked",
+        }
+        published = {"dkp-124": record}
+        with (
+            patch.object(monitor, "fetch_live_product_status", return_value={}) as direct_check,
+            patch.object(monitor, "_telegram_delete") as tg_delete,
+            patch.object(monitor, "_bale_delete") as bale_delete,
+        ):
+            changed, deleted = monitor._delete_expired_posts(
+                published, now, direct_confirm=monitor._confirm_expiry_for_deletion
+            )
+        direct_check.assert_called_once_with("dkp-124")
+        self.assertTrue(changed)
+        self.assertEqual(deleted, 0)
+        tg_delete.assert_not_called()
+        bale_delete.assert_not_called()
+        self.assertEqual(record["expiry_last_removal_check_result"], "inconclusive")
+        self.assertEqual(record["expiry_status"], "tracked")
+        self.assertEqual(record["bale_expiry_status"], "tracked")
 
     def test_estimated_deadline_never_authorizes_channel_post_deletion(self):
         now = datetime.now(timezone.utc)
