@@ -142,8 +142,84 @@ def send_telegram_video_review(
 
 
 
-def build_vertical_poster(image_bytes: bytes, discount_percent: object = None) -> bytes:
-    """Create a 9:16 poster from the product image without adding product copy or price."""
+def _shape_rtl(value: object) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    try:
+        import arabic_reshaper
+        from bidi.algorithm import get_display
+        return get_display(arabic_reshaper.reshape(text), base_dir="R")
+    except Exception:
+        # Keep the media pipeline usable even if an optional shaping library is absent.
+        return text
+
+
+def _text_width(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.ImageFont) -> int:
+    bbox = draw.textbbox((0, 0), _shape_rtl(text), font=font)
+    return int(bbox[2] - bbox[0])
+
+
+def _wrap_rtl_text(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    font: ImageFont.ImageFont,
+    max_width: int,
+    max_lines: int = 2,
+) -> list[str]:
+    """Wrap Persian/Latin mixed product titles to a strict visual width."""
+    words = str(text or "").split()
+    if not words:
+        return []
+    lines: list[str] = []
+    current = ""
+    truncated = False
+    for word in words:
+        candidate = f"{current} {word}".strip()
+        if not current or _text_width(draw, candidate, font) <= max_width:
+            current = candidate
+            continue
+        lines.append(current)
+        current = word
+        if len(lines) >= max_lines:
+            truncated = True
+            current = ""
+            break
+    if current:
+        lines.append(current)
+    if len(lines) > max_lines:
+        truncated = True
+        lines = lines[:max_lines]
+    if truncated and lines:
+        last = lines[-1].rstrip()
+        suffix = "…"
+        while last and _text_width(draw, last + suffix, font) > max_width:
+            last = last[:-1].rstrip()
+        lines[-1] = (last + suffix) if last else suffix
+    return lines
+
+
+def format_persian_price(value: object) -> str:
+    """Format a positive integer price with Persian digits and separators."""
+    try:
+        amount = int(str(value).replace(",", "").replace("٬", "").strip())
+    except (TypeError, ValueError, OverflowError):
+        return ""
+    if amount <= 0:
+        return ""
+    latin = f"{amount:,}".replace(",", "٬")
+    return latin.translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
+
+
+def build_vertical_poster(
+    image_bytes: bytes,
+    discount_percent: object = None,
+    *,
+    title: str = "",
+    current_price: object = None,
+    original_price: object = None,
+) -> bytes:
+    """Build a self-contained 9:16 product card: name, price, discount and DigiKala CTA."""
     with Image.open(BytesIO(image_bytes)) as raw:
         raw.load()
         product = raw.convert("RGB")
@@ -152,19 +228,66 @@ def build_vertical_poster(image_bytes: bytes, discount_percent: object = None) -
     background = background.filter(ImageFilter.GaussianBlur(radius=34)).convert("RGBA")
     background = Image.alpha_composite(
         background,
-        Image.new("RGBA", (WIDTH, HEIGHT), (9, 18, 16, 142)),
+        Image.new("RGBA", (WIDTH, HEIGHT), (9, 18, 16, 150)),
     )
     draw = ImageDraw.Draw(background)
 
-    # A clean card presents the unmodified product photo on a subdued background.
-    card = (34, 132, WIDTH - 34, 1000)
+    # Channel IDs stay at the top-left, where previous creative reviews requested them.
+    social_panel = (34, 14, 430, 122)
+    draw.rounded_rectangle(
+        social_panel,
+        radius=20,
+        fill=(14, 28, 22, 242),
+        outline=(255, 255, 255, 240),
+        width=2,
+    )
+    watermark_font = _font(23)
+    _draw_telegram_logo(draw, 56, 20, 36)
+    draw.text((103, 38), "T.me/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
+    _draw_bale_logo(draw, 56, 68, 36)
+    draw.text((103, 86), "ble.ir/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
+
+    # Product name is readable without opening the caption.
+    title_panel = (34, 134, WIDTH - 34, 250)
+    draw.rounded_rectangle(
+        (title_panel[0] + 4, title_panel[1] + 6, title_panel[2] + 4, title_panel[3] + 6),
+        radius=24,
+        fill=(0, 0, 0, 70),
+    )
+    draw.rounded_rectangle(
+        title_panel,
+        radius=24,
+        fill=(250, 252, 247, 255),
+        outline=(130, 220, 150, 255),
+        width=3,
+    )
+    title_font = _font(29)
+    title_lines = _wrap_rtl_text(
+        draw,
+        str(title or "پیشنهاد ویژه دیجی‌کالا"),
+        title_font,
+        max_width=574,
+        max_lines=2,
+    )
+    line_y = 173 if len(title_lines) == 1 else 165
+    for line in title_lines:
+        draw.text(
+            (WIDTH // 2, line_y),
+            _shape_rtl(line),
+            font=title_font,
+            fill=(17, 57, 34, 255),
+            anchor="mm",
+        )
+        line_y += 47
+
+    # Product photo gets its own clean card; all critical selling copy sits outside it.
+    card = (34, 264, WIDTH - 34, 778)
     draw.rounded_rectangle(
         (card[0] + 5, card[1] + 9, card[2] + 5, card[3] + 9),
         radius=30,
-        fill=(0, 0, 0, 70),
+        fill=(0, 0, 0, 76),
     )
     draw.rounded_rectangle(card, radius=30, fill=(250, 250, 248, 255))
-
     inner = (card[2] - card[0] - 32, card[3] - card[1] - 32)
     fitted = ImageOps.contain(product, inner, method=Image.Resampling.LANCZOS)
     x = (WIDTH - fitted.width) // 2
@@ -177,24 +300,135 @@ def build_vertical_poster(image_bytes: bytes, discount_percent: object = None) -
     except (TypeError, ValueError, OverflowError):
         discount = 0
     if 0 < discount <= 100:
-        # Keep the badge at the upper-right, with a little breathing room from the edges.
-        badge_width, badge_height = 218, 160
-        left, top = WIDTH - 34 - badge_width, 142
+        badge_width, badge_height = 188, 140
+        left, top = WIDTH - 44 - badge_width, 273
         draw_discount_burst(draw, left, top, badge_width, badge_height, discount)
 
-    # Place both channel IDs in the upper-left margin, above the product card.
-    # This makes them prominent without covering the product image or discount badge.
-    footer = (34, 14, 430, 122)
-    draw.rounded_rectangle(footer, radius=20, fill=(14, 28, 22, 232), outline=(255, 255, 255, 230), width=2)
-    watermark_font = _font(23)
-    _draw_telegram_logo(draw, 56, 20, 36)
-    draw.text((103, 38), "T.me/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
-    _draw_bale_logo(draw, 56, 68, 36)
-    draw.text((103, 86), "ble.ir/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
+    # Large current price and a crossed-out former price communicate the deal instantly.
+    price_panel = (34, 795, WIDTH - 34, 1048)
+    draw.rounded_rectangle(
+        (price_panel[0] + 4, price_panel[1] + 7, price_panel[2] + 4, price_panel[3] + 7),
+        radius=26,
+        fill=(0, 0, 0, 70),
+    )
+    draw.rounded_rectangle(
+        price_panel,
+        radius=26,
+        fill=(246, 255, 247, 255),
+        outline=(63, 173, 94, 255),
+        width=3,
+    )
+    draw.text(
+        (WIDTH // 2, 825),
+        _shape_rtl("قیمت ویژه در دیجی‌کالا"),
+        font=_font(25),
+        fill=(24, 111, 54, 255),
+        anchor="mm",
+    )
+    current_text = format_persian_price(current_price)
+    if current_text:
+        draw.text(
+            (WIDTH // 2, 883),
+            _shape_rtl(f"{current_text} تومان"),
+            font=_font(43),
+            fill=(10, 79, 40, 255),
+            anchor="mm",
+        )
+    else:
+        draw.text(
+            (WIDTH // 2, 883),
+            _shape_rtl("مشاهده قیمت روز در دیجی‌کالا"),
+            font=_font(28),
+            fill=(10, 79, 40, 255),
+            anchor="mm",
+        )
+
+    old_amount = format_persian_price(original_price)
+    try:
+        is_old_price_valid = bool(current_text and old_amount and int(str(original_price).replace(",", "").replace("٬", "")) > int(str(current_price).replace(",", "").replace("٬", "")))
+    except (TypeError, ValueError, OverflowError):
+        is_old_price_valid = False
+    if is_old_price_valid:
+        old_line = f"قیمت اصلی: {old_amount} تومان"
+        old_font = _font(21)
+        old_visual = _shape_rtl(old_line)
+        old_bbox = draw.textbbox((WIDTH // 2, 986), old_visual, font=old_font, anchor="mm")
+        draw.text(
+            (WIDTH // 2, 986),
+            old_visual,
+            font=old_font,
+            fill=(92, 102, 95, 255),
+            anchor="mm",
+        )
+        draw.line(
+            (old_bbox[0] - 2, 986, old_bbox[2] + 2, 986),
+            fill=(200, 48, 48, 255),
+            width=3,
+        )
+
+    # The call-to-action is part of the video frame, not something the viewer must find in the caption.
+    cta = (72, 1072, WIDTH - 72, 1192)
+    draw.rounded_rectangle(
+        (cta[0] + 4, cta[1] + 7, cta[2] + 4, cta[3] + 7),
+        radius=30,
+        fill=(0, 0, 0, 80),
+    )
+    draw.rounded_rectangle(
+        cta,
+        radius=30,
+        fill=(255, 211, 45, 255),
+        outline=(255, 255, 245, 255),
+        width=4,
+    )
+    draw.text(
+        (WIDTH // 2, 1132),
+        _shape_rtl("خرید از دیجی‌کالا"),
+        font=_font(36),
+        fill=(28, 50, 24, 255),
+        anchor="mm",
+    )
+    draw.text(
+        (WIDTH // 2, 1232),
+        _shape_rtl("آفِرچین | شکار تخفیف‌های واقعی"),
+        font=_font(19),
+        fill=(255, 255, 255, 245),
+        anchor="mm",
+    )
 
     output = BytesIO()
     background.convert("RGB").save(output, format="PNG", optimize=True)
     return output.getvalue()
+
+
+def _bundled_ffmpeg_binary() -> str | None:
+    """Use imageio-ffmpeg's bundled executable when the hosted runner lacks system ffmpeg."""
+    try:
+        import imageio_ffmpeg
+        candidate = str(imageio_ffmpeg.get_ffmpeg_exe() or "").strip()
+        if candidate and Path(candidate).is_file():
+            return candidate
+    except Exception:
+        return None
+    return None
+
+
+def _resolve_ffmpeg_binary(configured: str | None = None) -> str:
+    preferred = str(configured or os.getenv("FFMPEG_BINARY", "")).strip()
+    if preferred:
+        if Path(preferred).is_file():
+            return preferred
+        located = shutil.which(preferred)
+        if located:
+            return located
+
+    system_binary = shutil.which("ffmpeg")
+    if system_binary:
+        return system_binary
+
+    bundled = _bundled_ffmpeg_binary()
+    if bundled:
+        return bundled
+    raise RuntimeError("FFmpeg unavailable: install imageio-ffmpeg or provide FFMPEG_BINARY")
 
 
 def render_short_video(
@@ -202,19 +436,28 @@ def render_short_video(
     discount_percent: object,
     output_path: str | Path,
     *,
+    title: str = "",
+    current_price: object = None,
+    original_price: object = None,
     ffmpeg_binary: str | None = None,
     duration_seconds: int = DURATION_SECONDS,
     fps: int = FPS,
 ) -> Path:
-    """Render a moving 9:16 MP4 with an original, upbeat synthesized instrumental."""
+    """Render a sales-ready 9:16 MP4 with product facts and an original soundtrack."""
     target = Path(output_path)
     if target.suffix.lower() != ".mp4":
         raise ValueError("video output path must end in .mp4")
     duration = max(5, min(12, int(duration_seconds)))
     frame_rate = max(12, min(30, int(fps)))
     frame_count = duration * frame_rate
-    binary = ffmpeg_binary or os.getenv("FFMPEG_BINARY", "ffmpeg")
-    poster = build_vertical_poster(image_bytes, discount_percent)
+    binary = _resolve_ffmpeg_binary(ffmpeg_binary)
+    poster = build_vertical_poster(
+        image_bytes,
+        discount_percent,
+        title=title,
+        current_price=current_price,
+        original_price=original_price,
+    )
     target.parent.mkdir(parents=True, exist_ok=True)
 
     with tempfile.TemporaryDirectory(prefix="offerchin-poster-") as directory:
