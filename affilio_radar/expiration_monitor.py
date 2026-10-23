@@ -987,9 +987,12 @@ def fetch_public_channel_posts(max_pages=None):
             print(f"PUBLIC_HISTORY_PAGE_EMPTY page={page} before={before or 'latest'}")
             break
         all_posts.update(page_posts)
-        oldest = min(page_posts)
+        # Telegram's public preview repeats the pinned post (often message 1)
+        # on every page. Do not let that pinned ID stop backward pagination.
+        pageable_ids = [message_id for message_id in page_posts if message_id > 1]
+        oldest = min(pageable_ids) if pageable_ids else min(page_posts)
         print(f"PUBLIC_HISTORY_PAGE_OK page={page} messages={len(page_posts)} oldest_id={oldest} newest_id={max(page_posts)}")
-        if oldest <= 1 or oldest == last_oldest:
+        if not pageable_ids or oldest == last_oldest:
             break
         last_oldest = oldest
         before = oldest
