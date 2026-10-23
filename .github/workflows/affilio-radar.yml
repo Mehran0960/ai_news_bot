@@ -114,8 +114,8 @@ jobs:
         run: |
           python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py affilio_radar/expiration_monitor.py
 
-      - name: Run regression tests without blocking an otherwise valid publishing pass
-        if: ${{ github.event_name != 'schedule' }}
+      - name: Run regression tests on code pushes only (never in the live publishing path)
+        if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[growth-tracking-only]') }}
         continue-on-error: true
         run: |
           # These tests call persistence APIs; restore both live files even when a test fails.
