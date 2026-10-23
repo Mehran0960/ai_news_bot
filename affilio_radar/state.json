@@ -3827,13 +3827,13 @@
       "title": "محافظ برق هوشمند تایمردار هادرون مدل P103"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-23T11:21:38.232883+00:00",
+  "expiry_feed_last_checked_at": "2026-10-23T11:50:26.999370+00:00",
   "expiry_feed_last_sync_summary": {
     "matched": 5,
-    "missing_from_feed": 13,
-    "skipped": 2,
+    "updated": 5,
     "unchanged": 0,
-    "updated": 5
+    "missing_from_feed": 15,
+    "skipped": 2
   },
   "growth_tracking": {
     "daily_member_counts": {
@@ -4692,7 +4692,12 @@
       "title": "کفش زنانه چرم مشهد مدل J2783-016-37",
       "ts": 1792756151.2014017,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expiry_status": "tracked",
+      "bale_expiry_status": "tracked",
+      "caption_static_migrated_at": "2026-10-23T11:50:26.999370+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T11:50:26.999370+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T11:50:26.999370+00:00"
     },
     "dkp-20917779": {
       "bale_expiry_status": "already_absent",
@@ -4951,7 +4956,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-22104577": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 612,
       "caption_countdown_refreshed_at": "2026-10-23T11:45:25.274571+00:00",
       "caption_deadline_format_version": 8,
@@ -4968,13 +4973,13 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T12:03:04.003269+00:00",
+      "expires_at": "2026-10-23T12:00:01.673554+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T11:21:38.232883+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T11:50:26.999370+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/4c6d57e6a1ebbfb699a0cae62a6bc13707e096bc_1782729558.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 1924990,
       "posted_discount_percent": 89,
@@ -4987,7 +4992,9 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T11:59:16.262381+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T11:50:26.999370+00:00",
+      "bale_expired_deleted_at": "2026-10-23T11:50:26.999370+00:00"
     },
     "dkp-22328533": {
       "caption_countdown_refreshed_at": "2026-10-23T10:46:59.613801+00:00",
@@ -5078,16 +5085,16 @@
       "youtube_upload_status": "pending"
     },
     "dkp-22502190": {
-      "caption_countdown_refreshed_at": "2026-10-23T11:45:25.274571+00:00",
+      "caption_countdown_refreshed_at": "2026-10-23T11:50:26.999370+00:00",
       "caption_deadline_format_version": 8,
-      "caption_static_migrated_at": "2026-10-23T11:45:25.274571+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-23T11:45:25.274571+00:00",
+      "caption_static_migrated_at": "2026-10-23T11:50:26.999370+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-23T11:50:26.999370+00:00",
       "deadline_caption_refresh_required": true,
-      "expires_at": "2026-10-23T20:33:04.003269+00:00",
+      "expires_at": "2026-10-23T20:30:01.673554+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T11:21:38.232883+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T11:50:26.999370+00:00",
       "expiry_last_probed_at": "2026-10-23T10:31:43.108114+00:00",
       "expiry_last_product_check_at": "2026-10-23T10:31:43.108114+00:00",
       "expiry_source": "digikala_mcp_offer_card",
@@ -5098,7 +5105,7 @@
       "ts": 1792751503.108114
     },
     "dkp-22783516": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 625,
       "caption_countdown_refreshed_at": "2026-10-23T11:45:25.274571+00:00",
       "caption_deadline_format_version": 8,
@@ -5115,13 +5122,13 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T12:03:04.003269+00:00",
+      "expires_at": "2026-10-23T12:00:01.673554+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T11:21:38.232883+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T11:50:26.999370+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/f0469a2edc32fea433a9440465c5d1bfb0ca18ee_1789913752.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 990000,
       "posted_discount_percent": 91,
@@ -5131,10 +5138,12 @@
       "title": "محافظ ولتاژ آی تی لینک مدل PS",
       "ts": 1792752855.9717607,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T11:50:26.999370+00:00",
+      "bale_expired_deleted_at": "2026-10-23T11:50:26.999370+00:00"
     },
     "dkp-22879463": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 614,
       "caption_countdown_refreshed_at": "2026-10-23T10:50:30.409335+00:00",
       "caption_deadline_format_version": 8,
@@ -5156,7 +5165,7 @@
       "expiry_estimated": false,
       "expiry_last_live_sync_at": "2026-10-23T10:05:37.062415+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/df949c4354cfe95ae7579fdd08e56ad943ff3972_1790845699.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 1518000,
       "posted_discount_percent": 78,
@@ -5169,10 +5178,12 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T12:34:19.415713+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T11:50:26.999370+00:00",
+      "bale_expired_deleted_at": "2026-10-23T11:50:26.999370+00:00"
     },
     "dkp-22892994": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 622,
       "caption_countdown_refreshed_at": "2026-10-23T11:45:25.274571+00:00",
       "caption_deadline_format_version": 8,
@@ -5189,13 +5200,13 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T12:03:04.003269+00:00",
+      "expires_at": "2026-10-23T12:00:01.673554+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T11:21:38.232883+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T11:50:26.999370+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/6504cc54995f30f0dc1eb5f44ec187cd57c1e322_1791013015.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 1849990,
       "posted_discount_percent": 90,
@@ -5208,10 +5219,12 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T12:01:02.028688+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T11:50:26.999370+00:00",
+      "bale_expired_deleted_at": "2026-10-23T11:50:26.999370+00:00"
     },
     "dkp-22942845": {
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 617,
       "caption_countdown_refreshed_at": "2026-10-23T11:45:25.274571+00:00",
       "caption_deadline_format_version": 8,
@@ -5228,13 +5241,13 @@
         "telegram": "sent"
       },
       "delivery_version": 1,
-      "expires_at": "2026-10-23T12:03:04.003269+00:00",
+      "expires_at": "2026-10-23T12:00:01.673554+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-23T11:21:38.232883+00:00",
+      "expiry_last_live_sync_at": "2026-10-23T11:50:26.999370+00:00",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "deleted",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/7f37253617d0a56feb8ba35815df45a7f95355d2_1791620188.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 800000,
       "posted_discount_percent": 90,
@@ -5247,7 +5260,9 @@
       "video_generation_last_error": "RuntimeError",
       "video_generation_next_attempt_at": "2026-10-23T12:20:59.768705+00:00",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expired_deleted_at": "2026-10-23T11:50:26.999370+00:00",
+      "bale_expired_deleted_at": "2026-10-23T11:50:26.999370+00:00"
     },
     "dkp-23020276": {
       "bale_expiry_status": "tracked",
