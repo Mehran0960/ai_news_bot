@@ -82,7 +82,7 @@ jobs:
       - name: Check optional media tools without blocking channel publication
         if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[repair-bale-caption]') }}
         run: |
-          # GitHub-hosted images already include common fonts and often FFmpeg.
+          # Hosted runners already include common fonts and often FFmpeg; verify quickly, never install on the posting path.
           # These are enhancements only: never run apt-get or fail publishing because
           # the package mirror/media tool is unavailable.
           if command -v ffmpeg >/dev/null 2>&1; then
