@@ -246,8 +246,9 @@ def build_vertical_poster(
     title: str = "",
     current_price: object = None,
     original_price: object = None,
+    merchant: str = "دیجی‌کالا",
 ) -> bytes:
-    """Build a self-contained 9:16 product card: name, price, discount and DigiKala CTA."""
+    """Build a self-contained 9:16 product card with a retailer-specific CTA."""
     with Image.open(BytesIO(image_bytes)) as raw:
         raw.load()
         product = raw.convert("RGB")
@@ -335,7 +336,7 @@ def build_vertical_poster(
     )
     draw.text(
         (WIDTH // 2, 725),
-        _shape_rtl("قیمت ویژه در دیجی‌کالا"),
+        _shape_rtl(f"قیمت ویژه در {merchant}"),
         font=_font(25),
         fill=(24, 111, 54, 255),
         anchor="mm",
@@ -354,7 +355,7 @@ def build_vertical_poster(
     else:
         draw.text(
             (WIDTH // 2, 883),
-            _shape_rtl("مشاهده قیمت روز در دیجی‌کالا"),
+            _shape_rtl(f"مشاهده قیمت روز در {merchant}"),
             font=_font(28),
             fill=(10, 79, 40, 255),
             anchor="mm",
@@ -465,6 +466,7 @@ def render_short_video(
     title: str = "",
     current_price: object = None,
     original_price: object = None,
+    merchant: str = "دیجی‌کالا",
     ffmpeg_binary: str | None = None,
     duration_seconds: int = DURATION_SECONDS,
     fps: int = FPS,
@@ -483,6 +485,7 @@ def render_short_video(
         title=title,
         current_price=current_price,
         original_price=original_price,
+        merchant=merchant,
     )
     target.parent.mkdir(parents=True, exist_ok=True)
 

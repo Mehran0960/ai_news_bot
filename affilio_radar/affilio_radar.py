@@ -5687,6 +5687,7 @@ def process_pending_short_video(
             title=str(record.get("title") or "پیشنهاد ویژه دیجی‌کالا"),
             current_price=record.get("posted_current_price"),
             original_price=record.get("posted_original_price"),
+            merchant="اسنپ‌شاپ" if product_id(record.get("product_url", "")).startswith("snp-") else "دیجی‌کالا",
         )
         record["video_generation_status"] = "generated"
         record["video_style_version"] = VIDEO_STYLE_VERSION
@@ -6076,7 +6077,7 @@ def build_video_channel_description(state: dict, source: str) -> str:
     """Build clean platform descriptions; keep YouTube links public and directly clickable."""
     if source == "youtube":
         return (
-            "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\n\n"
+            "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا و اسنپ‌شاپ را در آفِرچین دنبال کنید.\n\n"
             "کانال تلگرام:\n"
             "https://t.me/OfferChin\n"
             "کانال بله:\n"
@@ -6095,8 +6096,8 @@ def build_video_channel_description(state: dict, source: str) -> str:
     source_names = {"aparat": "آپارات", "youtube": "یوتیوب"}
     source_label = source_names.get(source, "این ویدئو")
     return (
-        "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\n"
-        "قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در دیجی‌کالا بررسی کنید.\n\n"
+        "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا و اسنپ‌شاپ را در آفِرچین دنبال کنید.\n"
+        "قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در فروشگاه مربوط بررسی کنید.\n\n"
         f"برای عضویت در تلگرام از {source_label}:\n{invite_url}\n"
         "کانال بله: https://ble.ir/OfferChin"
     )
