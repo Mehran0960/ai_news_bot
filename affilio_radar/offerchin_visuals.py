@@ -150,6 +150,9 @@ _RETAILER_LOGO_FALLBACK_URLS = {
         "https://cdn.snappshop.ir/customer-production-assets/public/text-logo.webp",
         # One-time download proxy fallback: still retrieves the official first-party asset.
         "https://images.weserv.nl/?url=cdn.snappshop.ir%2Fcustomer-production-assets%2Fpublic%2Fassets%2Fimages%2Fapplication%2Ficon-72x72.png%3Fq%3D75%26w%3D96",
+        # Archived app icon from the official SnappShop Android package (shop.snapp),
+        # used only when the first-party CDN blocks the GitHub runner.
+        "https://certfa.com/res/data/get/cache/img/droid/6b32a61b388bf7c9dec80e28ca649f48942ccdfc/c8bf55ac07eef70cfcc8cf2fd74bf159.png",
     ),
 }
 
