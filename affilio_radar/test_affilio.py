@@ -2105,15 +2105,25 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(preview.size, (480, 640))
         self.assertNotEqual(rendered_without_badge, image_bytes.getvalue())
 
-    def test_retailer_logo_sources_are_first_party_assets(self):
-        from offerchin_visuals import _RETAILER_LOGO_URLS
+    def test_adaptive_text_colors_switch_for_light_and_dark_backgrounds(self):
+        from offerchin_visuals import adaptive_text_colors
 
-        self.assertIn("dkstatics-public.digikala.com", _RETAILER_LOGO_URLS["digikala"])
-        self.assertIn("cdn.snappshop.ir", _RETAILER_LOGO_URLS["snappshop"])
-        self.assertNotIn("brandfetch", _RETAILER_LOGO_URLS["snappshop"].lower())
-        from offerchin_visuals import _RETAILER_LOGO_FALLBACK_URLS
-        self.assertIn("cdn.snappshop.ir", _RETAILER_LOGO_FALLBACK_URLS["snappshop"][0])
-        self.assertIn("cdn.snappshop.ir", _RETAILER_LOGO_FALLBACK_URLS["snappshop"][1])
+        light = Image.new("RGB", (80, 40), (250, 250, 250))
+        dark = Image.new("RGB", (80, 40), (20, 22, 25))
+        light_fill, light_stroke = adaptive_text_colors(light, (0, 0, 80, 40))
+        dark_fill, dark_stroke = adaptive_text_colors(dark, (0, 0, 80, 40))
+        self.assertLess(sum(light_fill), sum(light_stroke))
+        self.assertGreater(sum(dark_fill), sum(dark_stroke))
+        self.assertEqual(light_fill, (18, 23, 28))
+        self.assertEqual(dark_fill, (255, 255, 255))
+
+    def test_retailer_logo_assets_are_stored_locally(self):
+        import offerchin_visuals as visuals
+
+        self.assertTrue(visuals._LOCAL_LOGO_PATHS["digikala"].is_file())
+        self.assertTrue(visuals._LOCAL_LOGO_PATHS["snappshop"].is_file())
+        self.assertIn("<svg", visuals._LOCAL_LOGO_PATHS["digikala"].read_text(encoding="utf-8")[:200])
+        self.assertGreater(visuals._LOCAL_LOGO_PATHS["snappshop"].stat().st_size, 100)
 
     def test_committed_retailer_logo_assets_load_without_network(self):
         import offerchin_visuals as visuals
@@ -2137,12 +2147,14 @@ class AffilioRadarTests(unittest.TestCase):
             snappshop_path = directory / "snappshop.png"
             digikala_path.write_text(
                 '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">'
-                '<rect width="64" height="64" rx="14" fill="#E52332"/>'
-                '<path d="M16 36 Q32 52 48 36" fill="none" stroke="#ffffff" stroke-width="6"/>'
+                '<path d="M16 36 Q32 52 48 36" fill="none" stroke="#E52332" stroke-width="6"/>'
                 '</svg>',
                 encoding="utf-8",
             )
-            Image.new("RGBA", (64, 64), (180, 0, 174, 255)).save(snappshop_path)
+            from PIL import ImageDraw
+            snapp_icon = Image.new("RGB", (64, 64), (180, 0, 174))
+            ImageDraw.Draw(snapp_icon).text((5, 20), "Shop!", fill=(255, 255, 255))
+            snapp_icon.save(snappshop_path, format="PNG")
 
             with patch.dict(
                 visuals._LOCAL_LOGO_PATHS,

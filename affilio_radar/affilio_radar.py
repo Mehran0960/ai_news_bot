@@ -25,7 +25,7 @@ import requests
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
-from offerchin_visuals import draw_discount_burst, draw_retailer_badge
+from offerchin_visuals import draw_discount_burst, draw_retailer_badge, adaptive_text_colors
 import arabic_reshaper
 from bidi.algorithm import get_display
 
@@ -3581,10 +3581,11 @@ def build_discount_image(
     store_badge_height = max(36, min(56, int(min_dim * 0.085)))
     draw_retailer_badge(image, margin, margin, store_badge_width, store_badge_height, merchant)
 
-    # Every photo carries both channel IDs so audiences can discover either platform.
+    # Keep the channel IDs at the lower-left without a card or solid panel.
+    # Choose each text color from the pixels directly behind it; use a thin opposing
+    # stroke to retain legibility over both pale and dark product photography.
     watermarks = [("telegram", "T.me/OfferChin"), ("bale", "ble.ir/OfferChin")]
     margin = max(10, min_dim // 35)
-    pad = max(7, min_dim // 80)
     icon_size = max(12, min(48, min_dim // 32))
     icon_gap = max(5, icon_size // 4)
     row_gap = max(3, min_dim // 180)
@@ -3594,27 +3595,28 @@ def build_discount_image(
         box = draw.textbbox((0, 0), label_text, font=font)
         rows.append((platform, label_text, max(1, box[2]-box[0]), max(font.size, box[3]-box[1])))
     max_width = max(1, width - 2 * margin)
-    while pad*2 + icon_size + icon_gap + max(r[2] for r in rows) > max_width and font.size > 9:
+    while icon_size + icon_gap + max(r[2] for r in rows) > max_width and font.size > 9:
         font = _latin_font(font.size - 1)
         rows = []
         for platform, label_text in watermarks:
             box = draw.textbbox((0, 0), label_text, font=font)
             rows.append((platform, label_text, max(1, box[2]-box[0]), max(font.size, box[3]-box[1])))
-    box_width = min(max_width, pad*2 + icon_size + icon_gap + max(r[2] for r in rows))
     row_height = max(icon_size, max(r[3] for r in rows))
-    box_height = 2*row_height + row_gap + 2*pad
-    box_left = margin
-    box_top = max(0, height - margin - box_height)
-    draw.rounded_rectangle((box_left, box_top, box_left+box_width, box_top+box_height),
-        radius=max(6, pad), fill="#17251D", outline="#ffffff", width=max(1, min_dim//500))
-    for index, (platform, label_text, _text_width, text_height) in enumerate(rows):
-        row_top = box_top + pad + index*(row_height+row_gap)
-        icon_x = box_left + pad
-        icon_y = row_top + (row_height-icon_size)//2
+    box_top = max(0, height - margin - (2 * row_height + row_gap))
+    stroke_width = max(1, min(3, min_dim // 320))
+    for index, (platform, label_text, text_width, text_height) in enumerate(rows):
+        row_top = box_top + index * (row_height + row_gap)
+        icon_x = margin
+        icon_y = row_top + (row_height - icon_size) // 2
         _draw_platform_watermark_icon(draw, platform, icon_x, icon_y, icon_size)
         text_x = icon_x + icon_size + icon_gap
-        text_y = row_top + (row_height-text_height)//2 + text_height//2
-        draw.text((text_x, text_y), label_text, font=font, fill="#ffffff", anchor="lm")
+        text_y = row_top + (row_height - text_height) // 2 + text_height // 2
+        region = (text_x - 2, row_top - 1, min(width, text_x + text_width + 3), row_top + row_height + 2)
+        fill, stroke = adaptive_text_colors(image, region)
+        draw.text(
+            (text_x, text_y), label_text, font=font, fill=fill, anchor="lm",
+            stroke_width=stroke_width, stroke_fill=stroke,
+        )
     output = BytesIO()
     image.save(output, format="JPEG", quality=92, optimize=True)
     return output.getvalue()

@@ -168,13 +168,10 @@ class ShortVideoTests(unittest.TestCase):
         ))).convert("RGB")
 
         self.assertEqual(format_persian_price(1_999_000), "۱٬۹۹۹٬۰۰۰")
-        # The lower panel now directs viewers to both OfferChin channels instead of implying the frame is clickable.
-        cta = poster.crop((35, 970, 685, 1245))
-        dark_green_pixels = sum(
-            1 for red, green, blue in cta.getdata()
-            if green < 65 and red < 55 and blue < 60
-        )
-        self.assertGreater(dark_green_pixels, 25_000)
+        # Channel IDs now sit directly on the image; there is no opaque backing panel.
+        background_sample = poster.getpixel((680, 1150))
+        self.assertGreater(min(background_sample), 45)
+        self.assertNotEqual(background_sample, (14, 28, 22))
         # The price panel has a consistent pale-green surface distinct from the dark background.
         price_panel = poster.getpixel((45, 705))
         self.assertGreater(price_panel[1], price_panel[0])

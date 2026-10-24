@@ -17,7 +17,7 @@ from typing import Mapping
 
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps, features
-from offerchin_visuals import draw_discount_burst, draw_retailer_badge
+from offerchin_visuals import draw_discount_burst, draw_retailer_badge, adaptive_text_colors
 from offerchin_audio import write_original_soundtrack
 
 WIDTH = 720
@@ -376,7 +376,7 @@ def build_vertical_poster(
         old_visual = _shape_rtl(old_line)
         old_bbox = draw.textbbox((WIDTH // 2, 886), old_visual, font=old_font, anchor="mm", **_rtl_layout_kwargs())
         draw.text(
-            (WIDTH // 2, 986),
+            (WIDTH // 2, 886),
             old_visual,
             font=old_font,
             fill=(92, 102, 95, 255),
@@ -384,45 +384,53 @@ def build_vertical_poster(
             **_rtl_layout_kwargs(),
         )
         draw.line(
-            (old_bbox[0] - 2, 986, old_bbox[2] + 2, 986),
+            (old_bbox[0] - 2, 886, old_bbox[2] + 2, 886),
             fill=(200, 48, 48, 255),
             width=3,
         )
 
-    # YouTube video frames are not clickable: direct viewers to the channel links.
-    social_panel = (34, 970, WIDTH - 34, 1245)
-    draw.rounded_rectangle(
-        (social_panel[0] + 4, social_panel[1] + 7, social_panel[2] + 4, social_panel[3] + 7),
-        radius=28,
-        fill=(0, 0, 0, 85),
-    )
-    draw.rounded_rectangle(
-        social_panel,
-        radius=28,
-        fill=(14, 28, 22, 246),
-        outline=(255, 255, 255, 240),
-        width=2,
+    # Channel IDs remain at the lower-left, directly over the video background.
+    # Per-label sampling selects dark or light lettering and a contrasting outline;
+    # no opaque card/panel is drawn behind the text.
+    cta_text = _shape_rtl("لینک خرید: کانال بله و تلگرام")
+    cta_font = _font(23)
+    cta_pos = (WIDTH // 2, 1000)
+    cta_bbox = draw.textbbox(cta_pos, cta_text, font=cta_font, anchor="mm", **_rtl_layout_kwargs())
+    cta_fill, cta_stroke = adaptive_text_colors(
+        background, (cta_bbox[0] - 5, cta_bbox[1] - 4, cta_bbox[2] + 5, cta_bbox[3] + 4)
     )
     draw.text(
-        (WIDTH // 2, 1000),
-        _shape_rtl("لینک خرید: کانال بله و تلگرام"),
-        font=_font(23),
-        fill=(255, 220, 75, 255),
-        anchor="mm",
-        **_rtl_layout_kwargs(),
+        cta_pos, cta_text, font=cta_font, fill=cta_fill, anchor="mm",
+        stroke_width=2, stroke_fill=cta_stroke, **_rtl_layout_kwargs(),
     )
+
     watermark_font = _font(23)
-    _draw_telegram_logo(draw, 56, 1020, 36)
-    draw.text((103, 1038), "T.me/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
-    _draw_bale_logo(draw, 56, 1078, 36)
-    draw.text((103, 1096), "ble.ir/OfferChin", font=watermark_font, fill=(255, 255, 255, 255), anchor="lm")
+    channel_labels = (
+        (_draw_telegram_logo, 1020, "T.me/OfferChin", (103, 1038)),
+        (_draw_bale_logo, 1078, "ble.ir/OfferChin", (103, 1096)),
+    )
+    for draw_icon, icon_y, label, text_pos in channel_labels:
+        draw_icon(draw, 56, icon_y, 36)
+        label_bbox = draw.textbbox(text_pos, label, font=watermark_font, anchor="lm")
+        label_fill, label_stroke = adaptive_text_colors(
+            background,
+            (label_bbox[0] - 4, label_bbox[1] - 3, label_bbox[2] + 4, label_bbox[3] + 3),
+        )
+        draw.text(
+            text_pos, label, font=watermark_font, fill=label_fill, anchor="lm",
+            stroke_width=2, stroke_fill=label_stroke,
+        )
+
+    tagline = _shape_rtl("آفِرچین | شکار تخفیف‌های واقعی")
+    tagline_font = _font(19)
+    tagline_pos = (WIDTH // 2, 1207)
+    tagline_bbox = draw.textbbox(tagline_pos, tagline, font=tagline_font, anchor="mm", **_rtl_layout_kwargs())
+    tagline_fill, tagline_stroke = adaptive_text_colors(
+        background, (tagline_bbox[0] - 5, tagline_bbox[1] - 3, tagline_bbox[2] + 5, tagline_bbox[3] + 3)
+    )
     draw.text(
-        (WIDTH // 2, 1207),
-        _shape_rtl("آفِرچین | شکار تخفیف‌های واقعی"),
-        font=_font(19),
-        fill=(255, 255, 255, 245),
-        anchor="mm",
-        **_rtl_layout_kwargs(),
+        tagline_pos, tagline, font=tagline_font, fill=tagline_fill, anchor="mm",
+        stroke_width=2, stroke_fill=tagline_stroke, **_rtl_layout_kwargs(),
     )
 
     output = BytesIO()
