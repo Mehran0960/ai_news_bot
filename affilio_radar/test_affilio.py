@@ -3088,7 +3088,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(state["youtube_uploads_paused_until"], record["youtube_next_attempt_at"])
         self.assertEqual(state["youtube_upload_pause_reason"], "daily_upload_limit")
 
-    def test_youtube_daily_limit_pause_prevents_more_upload_attempts(self):
+    def test_youtube_daily_limit_pause_does_not_block_aparat_shorts_queue(self):
         now = datetime.now(timezone.utc)
         pid = "dkp-youtube-daily-pause"
         record = {
@@ -3124,11 +3124,14 @@ class AffilioRadarTests(unittest.TestCase):
             patch("short_video.render_short_video") as render,
             patch("short_video.upload_youtube_video") as upload,
         ):
-            self.assertFalse(process_pending_short_video(state, now=now, output_dir=output_dir))
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
 
-        fetch_image.assert_not_called()
-        render.assert_not_called()
+        # YouTube remains paused, but the independent Aparat Shorts queue still advances.
+        fetch_image.assert_called_once()
+        render.assert_called_once()
         upload.assert_not_called()
+        self.assertEqual(record["aparat_upload_status"], "waiting_shorts_uploader")
+        self.assertEqual(record["aparat_shorts_upload_status"], "queued")
         self.assertEqual(state["youtube_uploads_paused_until"], pause_until)
         self.assertEqual(state["youtube_upload_pause_reason"], "daily_upload_limit")
         self.assertTrue(state["youtube_upload_pause_diagnostic_migrated"])

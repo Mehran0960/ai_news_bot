@@ -5566,9 +5566,10 @@ def process_pending_short_video(
         review_need = review_ready and not record.get("video_review_sent") and not (
             review_next and current < review_next
         )
-        if youtube_pause_active and not (public_aparat_need or review_need):
-            # A channel-wide YouTube limit suppresses its Shorts artifact queue until reset,
-            # but never blocks an independently configured public Aparat upload.
+        if youtube_pause_active and not (public_aparat_need or shorts_queue_need or review_need):
+            # A YouTube daily limit suppresses only YouTube uploads; public Aparat uploads,
+            # the separately queued Aparat Shorts path, and an explicitly configured private
+            # review destination remain eligible.
             continue
         if not (yt_need or public_aparat_need or shorts_queue_need or review_need or manual_artifact_need):
             # Don't render/select public YouTube content before its next scheduled slot.
