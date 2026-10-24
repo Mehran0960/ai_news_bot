@@ -1,0 +1,119 @@
+name: Bootstrap OfferChin retailer logos
+on:
+  push:
+    branches: [main]
+    paths:
+      - "affilio_radar/assets/retailer-logos/.bootstrap-trigger"
+permissions:
+  contents: write
+jobs:
+  bootstrap:
+    if: ${{ hashFiles('affilio_radar/assets/retailer-logos/.bootstrap-trigger') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download and normalize official first-party retailer logos
+        run: |
+          python -m pip install --disable-pip-version-check requests pillow
+          python - <<'PY'
+          from io import BytesIO
+          from pathlib import Path
+          import requests
+          from PIL import Image, ImageChops, ImageStat
+
+          out = Path("affilio_radar/assets/retailer-logos")
+          out.mkdir(parents=True, exist_ok=True)
+          headers = {
+              "User-Agent": "Mozilla/5.0 (compatible; OfferChin/1.0)",
+              "Accept": "image/svg+xml,image/png,image/webp,*/*;q=0.8",
+              "Referer": "https://www.digikala.com/",
+          }
+
+          digikala_url = (
+              "https://dkstatics-public.digikala.com/digikala-static/"
+              "0d072059918d0c22b88320554ce4b3e07d0472f2_1746354551.svg"
+          )
+          r = requests.get(digikala_url, timeout=(8, 25), headers=headers)
+          r.raise_for_status()
+          if b"<svg" not in r.content[:1000]:
+              raise RuntimeError("Unexpected non-SVG response for official Digikala logo")
+          (out / "digikala.svg").write_bytes(r.content)
+
+          snapp_urls = [
+              "https://cdn.snappshop.ir/customer-production-assets/public/assets/images/application/icon-72x72.png?q=75&w=96",
+              "https://cdn.snappshop.ir/customer-production-assets/public/assets/images/application/icon-72x72.png",
+          ]
+          raw_content = None
+          last_error = None
+          for url in snapp_urls:
+              try:
+                  rr = requests.get(url, timeout=(8, 25), headers={
+                      **headers, "Referer": "https://snappshop.ir/"
+                  })
+                  rr.raise_for_status()
+                  Image.open(BytesIO(rr.content)).verify()
+                  raw_content = rr.content
+                  break
+              except Exception as exc:
+                  last_error = exc
+          if raw_content is None:
+              raise RuntimeError(f"Unable to download official SnappShop logo: {last_error}")
+
+          with Image.open(BytesIO(raw_content)) as im:
+              im.load()
+              logo = im.convert("RGBA")
+
+          alpha = logo.getchannel("A")
+          # If the official app mark is an opaque magenta tile with white lettering,
+          # remove only the tile, retaining the lettering and anti-aliased edges.
+          if alpha.getextrema() == (255, 255):
+              rgb = logo.convert("RGB")
+              w, h = rgb.size
+              corners = [rgb.getpixel((x, y)) for x, y in (
+                  (0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)
+              )]
+              bg = tuple(sorted(p[i] for p in corners)[len(corners)//2] for i in range(3))
+              # Official SnappShop background is magenta. Use its corner color as
+              # the matte and recover the white logo's alpha from the green channel.
+              magenta_bg = bg[0] > 100 and bg[2] > 100 and bg[1] < 80
+              if magenta_bg:
+                  import numpy as np
+                  arr = np.asarray(rgb).astype("float32")
+                  a = np.clip((arr[:, :, 1] - bg[1]) / max(1.0, 255.0 - bg[1]), 0.0, 1.0)
+                  # Reject the tile color itself; retain anti-aliased white glyph pixels.
+                  rgba = np.empty((h, w, 4), dtype="uint8")
+                  rgba[:, :, :3] = 255
+                  rgba[:, :, 3] = np.rint(a * 255).astype("uint8")
+                  logo = Image.fromarray(rgba, "RGBA")
+              else:
+                  # Generic edge matte fallback: preserve anything noticeably unlike
+                  # the corner background, with soft alpha for antialiased boundaries.
+                  background = Image.new("RGB", rgb.size, bg)
+                  delta = ImageChops.difference(rgb, background)
+                  strength = ImageStat.Stat(delta).mean
+                  gray = delta.convert("L")
+                  logo.putalpha(gray.point(lambda p: min(255, max(0, int(p * 3)))))
+          bounds = logo.getchannel("A").getbbox()
+          if not bounds:
+              raise RuntimeError("SnappShop logo became empty after background removal")
+          logo = logo.crop(bounds)
+          logo.save(out / "snappshop.png", format="PNG", optimize=True)
+          print(f"Stored Digikala SVG ({(out / 'digikala.svg').stat().st_size} bytes)")
+          print(f"Stored transparent SnappShop PNG ({(out / 'snappshop.png').stat().st_size} bytes, {logo.size[0]}x{logo.size[1]})")
+          PY
+      - name: Commit the local logo assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add affilio_radar/assets/retailer-logos/digikala.svg affilio_radar/assets/retailer-logos/snappshop.png
+          if ! git diff --cached --quiet; then
+            git commit -m "Store official retailer logos locally"
+            git push
+          else
+            echo "Logo assets are already current."
+          fi
