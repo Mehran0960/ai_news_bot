@@ -145,6 +145,42 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(product_id("https://www.digikala.com/product/dkp-9876/"), "dkp-9876")
         self.assertEqual(product_id("https://www.digikala.com/search/?q=phone"), "")
 
+    def test_snappshop_product_urls_and_affilio_destination(self):
+        product = "https://snappshop.ir/product/snp-2097083854?utm_source=ignored"
+        canonical = "https://snappshop.ir/product/snp-2097083854"
+        self.assertEqual(safe_product_url(product), canonical)
+        self.assertEqual(product_id(canonical), "snp-2097083854")
+        self.assertEqual(safe_product_url("https://snappshop.ir/search?q=earbuds"), "")
+        self.assertEqual(safe_product_url("https://evil-snappshop.ir/product/snp-2097083854"), "")
+        affiliate = build_affilio_tracking_link(product)
+        self.assertEqual(parse_qs(urlsplit(affiliate).query).get("p"), [canonical])
+        # The legacy click-counter Worker only supports dkp IDs, so don't wrap SnappShop links.
+        self.assertEqual(build_click_tracking_link(canonical, affiliate, "https://tracker.example"), affiliate)
+
+    def test_snappshop_caption_uses_correct_store_name(self):
+        product_url = "https://snappshop.ir/product/snp-2097083854"
+        affiliate = build_affilio_tracking_link(product_url)
+        caption = build_caption({
+            "title": "ایرفون نمونه",
+            "product_url": product_url,
+            "merchant": "اسنپ‌شاپ",
+            "current_price": 1_065_000,
+            "original_price": 2_250_000,
+            "discount_percent": 53,
+        }, affiliate)
+        self.assertIn("اسنپ‌شاپ", caption)
+        self.assertNotIn("دیجی‌کالا", caption)
+
+    def test_snappshop_recheck_window_is_eligible_for_deadline_gate(self):
+        now = datetime.now(timezone.utc)
+        product = {
+            "expiry_source": "snappshop_recheck_window",
+            "expiry_deadline_verified_directly": True,
+            "deal_expires_at": (now + timedelta(hours=12)).isoformat(),
+        }
+        self.assertTrue(has_verified_deal_deadline(product, now=now))
+        self.assertTrue(has_minimum_publication_runway(product, now=now))
+
     def test_affilio_product_link_uses_only_publishers_public_template(self):
         product = "https://www.digikala.com/product/dkp-1234567/"
         linked = build_affilio_tracking_link(product)
