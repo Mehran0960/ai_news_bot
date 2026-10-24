@@ -321,7 +321,8 @@ def build_vertical_poster(
         draw_discount_burst(draw, left, top, badge_width, badge_height, discount)
 
     # The retailer mark sits at upper-left, opposite the discount badge.
-    draw_retailer_badge(background, 48, 178, 176, 46, merchant)
+    # Match the larger full-color official logo tile used on channel images.
+    draw_retailer_badge(background, 48, 178, 280, 88, merchant)
 
     # Large current price and a crossed-out former price communicate the deal instantly.
     price_panel = (34, 695, WIDTH - 34, 948)

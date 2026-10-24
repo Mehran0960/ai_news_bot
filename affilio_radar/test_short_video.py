@@ -122,8 +122,8 @@ class ShortVideoTests(unittest.TestCase):
         snappshop_crop = snappshop.crop((35, 165, 250, 235))
         red_pixels = sum(1 for red, green, blue in digikala_crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
         purple_pixels = sum(1 for red, green, blue in snappshop_crop.getdata() if blue > 90 and red > green * 1.6 and blue > green * 1.6)
-        self.assertGreater(red_pixels, 100)
-        self.assertGreater(purple_pixels, 100)
+        self.assertGreater(red_pixels, 1500, "video poster must show the official DigiKala tile at readable size")
+        self.assertGreater(purple_pixels, 1500, "video poster must show the official SnappShop tile at readable size")
 
     def test_discount_is_drawn_inside_red_comic_burst(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
