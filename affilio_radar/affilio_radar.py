@@ -4765,6 +4765,54 @@ def _recent_publication_diversity(
     return sorted(unique.values(), key=lambda r: (r["order"], r["message_id"]))[-max(1, int(limit)):]
 
 
+def select_urgent_publication_candidate(
+    eligible: list[dict],
+    now: datetime | None = None,
+    published: dict | None = None,
+    recent_publications: list | None = None,
+) -> dict | None:
+    """Pick an urgent offer without bypassing cadence for an avoidable same-family repeat."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
+    urgent = [
+        product for product in eligible
+        if is_urgent_priority_deal(product, current)
+        or is_deadline_critical_deal(product, current)
+    ]
+    if not urgent:
+        return None
+
+    recent = _recent_publication_diversity(
+        published, limit=4, durable_history=recent_publications
+    )
+    last_post = recent[-1] if recent else None
+    last_family = str(last_post.get("family") or "") if last_post else ""
+    if not last_family:
+        return urgent[0]
+
+    different_family_available = any(
+        _publication_diversity_group(product)[1] != last_family
+        for product in eligible
+    )
+    if not different_family_available:
+        return urgent[0]
+
+    for product in urgent:
+        if _publication_diversity_group(product)[1] != last_family:
+            return product
+
+    # An urgent exception is not enough reason to repeat the last product family
+    # when a different family can be published after the ordinary cadence.
+    print(
+        f"URGENT_PRIORITY_SUPPRESSED_RECENT_FAMILY family={last_family} "
+        "different_family_alternative=true"
+    )
+    return None
+
+
 def select_publish_candidates(
     pending_queue: dict[str, dict],
     eligible_by_id: dict[str, dict],
@@ -6638,8 +6686,8 @@ def run(publish=False):
             fresh_item = eligible_by_id.get(pid)
             if not fresh_item:
                 continue
-            if not has_minimum_publication_runway(fresh_item, datetime.now(timezone.utc)):
-                print(f"DELIVERY_RETRY_SKIP id={pid} reason=minimum_publication_runway")
+            if not has_publishable_expiry_or_open_offer(fresh_item, datetime.now(timezone.utc)):
+                print(f"DELIVERY_RETRY_SKIP id={pid} reason=offer_not_live_or_not_safely_publishable")
                 continue
             delivery_retry_handled = True
             try:
@@ -6746,12 +6794,11 @@ def run(publish=False):
         f"POSTING_WINDOW iran_time={local_now.strftime('%H:%M')} "
         f"preferred_window={posting_window} posting_allowed={regular_window_open}"
     )
-    urgent_candidate = next(
-        (
-            p for p in eligible
-            if is_urgent_priority_deal(p, now_utc) or is_deadline_critical_deal(p, now_utc)
-        ),
-        None,
+    urgent_candidate = select_urgent_publication_candidate(
+        eligible,
+        now=now_utc,
+        published=state.get("published"),
+        recent_publications=state.get("recent_publications"),
     )
     urgent_minimum_spacing = URGENT_MIN_POST_INTERVAL_MINUTES
     if urgent_candidate:
@@ -6852,10 +6899,11 @@ def run(publish=False):
                 state.get("pending_queue", {}).pop(pid, None)
                 continue
             publish_guard_time = datetime.now(timezone.utc)
-            if not has_minimum_publication_runway(item, publish_guard_time):
+            if not has_publishable_expiry_or_open_offer(item, publish_guard_time):
                 expiry = _parse_utc_datetime(_parse_deal_expiry_value(item.get("deal_expires_at")))
                 remaining_minutes = int((expiry - publish_guard_time).total_seconds() / 60) if expiry else -1
-                print(f"PUBLISH_SKIP id={pid} reason=minimum_publication_runway remaining_minutes={remaining_minutes}")
+                reason = "minimum_publication_runway" if expiry else "open_offer_not_verified"
+                print(f"PUBLISH_SKIP id={pid} reason={reason} remaining_minutes={remaining_minutes}")
                 state.get("pending_queue", {}).pop(pid, None)
                 save_json(STATE, state)
                 continue
