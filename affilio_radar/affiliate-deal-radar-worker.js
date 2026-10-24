@@ -63,7 +63,7 @@ function jsonResponse(body, status = 200) {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "cache-control": "public, max-age=300"
+      "cache-control": "no-store, max-age=0"
     }
   });
 }
