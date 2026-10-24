@@ -69,35 +69,23 @@ jobs:
               logo = im.convert("RGBA")
 
           alpha = logo.getchannel("A")
-          # If the official app mark is an opaque magenta tile with white lettering,
-          # remove only the tile, retaining the lettering and anti-aliased edges.
-          if alpha.getextrema() == (255, 255):
-              rgb = logo.convert("RGB")
-              w, h = rgb.size
-              corners = [rgb.getpixel((x, y)) for x, y in (
-                  (0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)
-              )]
-              bg = tuple(sorted(p[i] for p in corners)[len(corners)//2] for i in range(3))
-              # Official SnappShop background is magenta. Use its corner color as
-              # the matte and recover the white logo's alpha from the green channel.
-              magenta_bg = bg[0] > 100 and bg[2] > 100 and bg[1] < 80
-              if magenta_bg:
-                  import numpy as np
-                  arr = np.asarray(rgb).astype("float32")
-                  a = np.clip((arr[:, :, 1] - bg[1]) / max(1.0, 255.0 - bg[1]), 0.0, 1.0)
-                  # Reject the tile color itself; retain anti-aliased white glyph pixels.
-                  rgba = np.empty((h, w, 4), dtype="uint8")
-                  rgba[:, :, :3] = 255
-                  rgba[:, :, 3] = np.rint(a * 255).astype("uint8")
-                  logo = Image.fromarray(rgba, "RGBA")
-              else:
-                  # Generic edge matte fallback: preserve anything noticeably unlike
-                  # the corner background, with soft alpha for antialiased boundaries.
-                  background = Image.new("RGB", rgb.size, bg)
-                  delta = ImageChops.difference(rgb, background)
-                  strength = ImageStat.Stat(delta).mean
-                  gray = delta.convert("L")
-                  logo.putalpha(gray.point(lambda p: min(255, max(0, int(p * 3)))))
+          rgb = logo.convert("RGB")
+          # The official SnappShop app mark is white lettering on its brand-magenta
+          # tile. Remove that tile even if the source has a non-uniform alpha channel.
+          # Derive the matte from the image's median pixels to tolerate small CDN changes.
+          import numpy as np
+          arr = np.asarray(rgb).astype("float32")
+          median = np.median(arr.reshape(-1, 3), axis=0)
+          if median[0] < 100 or median[2] < 100 or median[1] > 80:
+              raise RuntimeError(f"Unexpected SnappShop icon colors; refusing to alter logo: {median.tolist()}")
+          original_alpha = np.asarray(alpha).astype("float32") / 255.0
+          # In the white-on-magenta mark, the green channel is a reliable coverage
+          # estimate because the official magenta matte has a near-zero green value.
+          coverage = np.clip(arr[:, :, 1] / 255.0, 0.0, 1.0) * original_alpha
+          rgba = np.empty((arr.shape[0], arr.shape[1], 4), dtype="uint8")
+          rgba[:, :, :3] = 255
+          rgba[:, :, 3] = np.rint(coverage * 255).astype("uint8")
+          logo = Image.fromarray(rgba, "RGBA")
           bounds = logo.getchannel("A").getbbox()
           if not bounds:
               raise RuntimeError("SnappShop logo became empty after background removal")
