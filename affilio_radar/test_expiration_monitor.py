@@ -401,6 +401,12 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(monitor._build_affilio_tracking_url("https://example.com/product/dkp-123/"), "")
         self.assertEqual(monitor._build_affilio_tracking_url("https://www.digikala.com/category/phones/"), "")
 
+    def test_snappshop_affilio_link_is_supported_for_caption_repair(self):
+        product = "https://snappshop.ir/product/snp-25751584"
+        affiliate = monitor._build_affilio_tracking_url(product)
+        self.assertTrue(monitor._is_valid_affilio_tracking_url(affiliate))
+        self.assertEqual(monitor._product_id_from_public_url(affiliate), "snp-25751584")
+
     def test_delete_http_error_includes_provider_reason(self):
         error = HTTPError(
             "https://api.telegram.org/botredacted/deleteMessage",

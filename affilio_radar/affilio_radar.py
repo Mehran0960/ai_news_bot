@@ -157,6 +157,12 @@ SESSION.headers.update({
     "Referer": "https://www.digikala.com/",
 })
 
+SNAPPSHOP_API_BASE_URL = "https://apix.snappshop.ir"
+SNAPPSHOP_API_IDS_BY_URL: dict[str, str] = {}
+SNAPPSHOP_SEARCH_CARDS_BY_URL: dict[str, dict] = {}
+SNAPPSHOP_LATITUDE = 35.77331
+SNAPPSHOP_LONGITUDE = 51.418591
+
 
 def is_prohibited_product_title(title: str) -> bool:
     """Reject medicines, pharmacy items, vitamins, and dietary supplements from affiliate posts."""
@@ -1156,8 +1162,201 @@ def verify_live_page_price(product: dict) -> dict:
     }
 
 
+def _snappshop_request_headers() -> dict[str, str]:
+    return {
+        "Accept": "application/json, text/plain, */*",
+        "Content-Type": "application/json",
+        "Origin": "https://snappshop.ir",
+        "Referer": "https://snappshop.ir/",
+        "User-Agent": "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/140.0.0.0 Mobile Safari/537.36",
+    }
+
+
+def _snappshop_search_items(payload: dict) -> list[dict]:
+    data = payload.get("data") if isinstance(payload, dict) else None
+    structure = data.get("structure", []) if isinstance(data, dict) else []
+    items = []
+    if isinstance(structure, list):
+        for section in structure:
+            if not isinstance(section, dict):
+                continue
+            raw_items = section.get("items", [])
+            if isinstance(raw_items, list):
+                items.extend(item for item in raw_items if isinstance(item, dict))
+    return items
+
+
+def parse_snappshop_product_api(payload: dict, url: str, search_card: dict | None = None) -> dict:
+    """Parse SnappShop's public JSON product response; require an explicit stock signal."""
+    canonical = safe_product_url(url)
+    if not canonical or not product_id(canonical).startswith("snp-"):
+        return {}
+    data = payload.get("data") if isinstance(payload, dict) and isinstance(payload.get("data"), dict) else payload
+    if not isinstance(data, dict):
+        return {}
+    content = data.get("content") if isinstance(data.get("content"), dict) else {}
+    card = search_card if isinstance(search_card, dict) else {}
+    title = _clean_title(
+        content.get("title_fa") or content.get("title") or content.get("name")
+        or data.get("title_fa") or data.get("title") or card.get("title")
+    )
+    if not title:
+        return {}
+
+    vendors_seen = 0
+    availability_signals = []
+    in_stock_offers = []
+    variants = data.get("variants") or []
+    if isinstance(variants, dict):
+        variants = list(variants.values())
+    if isinstance(variants, list):
+        for variant in variants:
+            if not isinstance(variant, dict):
+                continue
+            vendors = variant.get("vendor") or variant.get("vendors") or []
+            if isinstance(vendors, dict):
+                vendors = list(vendors.values())
+            if not isinstance(vendors, list):
+                continue
+            for vendor in vendors:
+                if not isinstance(vendor, dict):
+                    continue
+                vendors_seen += 1
+                signals = []
+                for key in ("is_available_in_vendor_inventory", "is_available_in_shop"):
+                    if isinstance(vendor.get(key), bool):
+                        signals.append(vendor[key])
+                quantity = _int_value(vendor.get("stock"))
+                if quantity is None:
+                    quantity = _int_value(vendor.get("stock_quantity"))
+                if quantity is not None:
+                    signals.append(quantity > 0)
+                if signals:
+                    availability_signals.extend(signals)
+                available = any(signals) if signals else None
+                regular_raw = vendor.get("price") or vendor.get("original_price")
+                special_raw = vendor.get("special_price") or vendor.get("discounted_price")
+                regular = _money_to_toman(regular_raw, "IRR")
+                special = _money_to_toman(special_raw, "IRR")
+                current = special if special and special > 0 and (not regular or special < regular) else regular
+                if available is not True or not current:
+                    continue
+                original = regular if regular and regular > current else None
+                in_stock_offers.append({
+                    "current_price": int(current),
+                    "original_price": int(original) if original else None,
+                    "discounted": bool(original and original > current),
+                })
+
+    # Do not infer availability from a search result, title, price, or empty error response.
+    if in_stock_offers:
+        availability = "in_stock"
+        availability_source = "snappshop_product_api"
+        discounted = [offer for offer in in_stock_offers if offer["discounted"]]
+        chosen = min(discounted or in_stock_offers, key=lambda offer: offer["current_price"])
+        current_price = chosen["current_price"]
+        original_price = chosen["original_price"] if chosen["discounted"] else None
+    elif vendors_seen and availability_signals and not any(availability_signals):
+        availability = "out_of_stock"
+        availability_source = "snappshop_product_api"
+        current_price = None
+        original_price = None
+    else:
+        availability = "unknown"
+        availability_source = "snappshop_api_no_stock_signal"
+        current_price = None
+        original_price = None
+
+    rating_raw = data.get("rating") or data.get("rate") or card.get("state") or {}
+    if isinstance(rating_raw, dict):
+        rating_value = rating_raw.get("rate") or rating_raw.get("rating") or rating_raw.get("rating_value")
+        review_raw = (
+            rating_raw.get("rate_count") or rating_raw.get("review_count")
+            or rating_raw.get("rating_count") or rating_raw.get("count")
+        )
+    else:
+        rating_value = rating_raw
+        review_raw = None
+    card_state = card.get("state") if isinstance(card.get("state"), dict) else {}
+    if rating_value in (None, ""):
+        rating_value = card_state.get("rate")
+    if review_raw in (None, ""):
+        review_raw = card_state.get("rate_count")
+    try:
+        rating = float(normalize_digits(str(rating_value))) if rating_value not in (None, "") else None
+        if rating is not None and not 0 <= rating <= 5:
+            rating = None
+    except (TypeError, ValueError, OverflowError):
+        rating = None
+    review_count = max(0, _int_value(review_raw) or 0)
+
+    image = ""
+    for value in (
+        data.get("images"), content.get("images"), data.get("image"), data.get("image_url"),
+        data.get("main_image"), content.get("image"), card.get("image"), card.get("images"),
+        card.get("image_url"), card.get("thumbnail"),
+    ):
+        image = _image_from_api(value)
+        if image:
+            break
+
+    return {
+        "product_id": product_id(canonical),
+        "product_url": canonical,
+        "title": title,
+        "image_url": image,
+        "current_price": current_price,
+        "original_price": original_price,
+        "rating": rating,
+        "review_count": review_count,
+        "availability": availability,
+        "availability_source": availability_source,
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "expiry_source": "snappshop_no_confirmed_expiry",
+        "deal_expires_at": "",
+        "expiry_deadline_verified_directly": False,
+        "expiry_deadline_verified_from_site_card": False,
+        "expiry_estimated": False,
+    }
+
+
+def fetch_snappshop_product_record(url: str) -> dict:
+    """Fetch and verify a SnappShop product using its public JSON API, not blocked HTML."""
+    canonical = safe_product_url(url)
+    if not canonical:
+        return {}
+    api_id = str(SNAPPSHOP_API_IDS_BY_URL.get(canonical) or "").strip()
+    if not api_id:
+        api_id = product_id(canonical).removeprefix("snp-")
+    params = {"lat": SNAPPSHOP_LATITUDE, "lng": SNAPPSHOP_LONGITUDE}
+    response = SESSION.get(
+        f"{SNAPPSHOP_API_BASE_URL}/products/v2/{api_id}",
+        params=params,
+        headers=_snappshop_request_headers(),
+        timeout=HTTP_TIMEOUT,
+    )
+    response.raise_for_status()
+    if len(response.content) > 8_000_000:
+        raise RuntimeError("SnappShop product API response exceeded 8 MB")
+    payload = response.json()
+    record = parse_snappshop_product_api(
+        payload, canonical, SNAPPSHOP_SEARCH_CARDS_BY_URL.get(canonical)
+    )
+    if not record:
+        raise RuntimeError("SnappShop product API returned no verifiable product record")
+    print(
+        f"SNAPPSHOP_PRODUCT_API id={product_id(canonical)} title=True "
+        f"price={bool(record.get('current_price'))} stock={record.get('availability')} "
+        f"discount={bool(record.get('original_price') and record.get('current_price') and record['original_price'] > record['current_price'])}"
+    )
+    return record
+
+
 def fetch_product_record(url: str) -> dict:
-    """Use the public product JSON endpoint first, then cross-check/fill from its HTML page."""
+    """Use the store's JSON product API first, then HTML only for DigiKala."""
+    canonical = safe_product_url(url)
+    if canonical and product_id(canonical).startswith("snp-"):
+        return fetch_snappshop_product_record(canonical)
     pid = product_id(url).replace("dkp-", "")
     api_product = {}
     if pid.isdigit():
@@ -2328,7 +2527,7 @@ def mark_discovery_candidate_checked(
     else:
         product = {}
         raw = str(product_or_id or "")
-        pid = raw if re.fullmatch(r"dkp-\d{1,12}", raw) else product_id(raw)
+        pid = raw if re.fullmatch(r"(?:dkp|snp)-\d{1,12}", raw) else product_id(raw)
     record = queue.get(pid) if isinstance(queue, dict) else None
     if not isinstance(record, dict):
         return
@@ -2676,38 +2875,86 @@ def discover_product_urls(
         f"verified_deadline_candidates={sum(bool(str(row.get('deal_expires_at') or '').strip()) for row in selected_deals)}"
     )
 
-    # SnappShop homepage cards expose product links and visible discounts without a
-    # documented public search API. Discover candidates here, then verify each detail page.
+    # SnappShop blocks homepage HTML requests from this runner (403), so query the
+    # public JSON surface used by its frontend. Its internal API IDs differ from
+    # the public /product/snp-... suffix, so persist the mapping for later detail checks.
+    global SNAPPSHOP_API_IDS_BY_URL, SNAPPSHOP_SEARCH_CARDS_BY_URL
+    SNAPPSHOP_SEARCH_CARDS_BY_URL = {}
+    saved_api_ids = state_to_persist.get("snappshop_api_ids", {}) if isinstance(state_to_persist, dict) else {}
+    SNAPPSHOP_API_IDS_BY_URL = {}
+    if isinstance(saved_api_ids, dict):
+        for raw_url, raw_id in saved_api_ids.items():
+            canonical = safe_product_url(str(raw_url))
+            api_id = str(raw_id or "").strip()
+            if canonical and product_id(canonical).startswith("snp-") and api_id:
+                SNAPPSHOP_API_IDS_BY_URL[canonical] = api_id
+
     if len(found) < MAX_PRODUCT_CHECKS:
-        try:
-            response = SESSION.get("https://snappshop.ir/", timeout=HTTP_TIMEOUT)
-            response.raise_for_status()
-            if len(response.content) > 8_000_000:
-                raise RuntimeError("SnappShop homepage exceeded 8 MB")
-            soup = BeautifulSoup(response.text, "html.parser")
-            snapp_candidates = []
-            for anchor in soup.select("a[href]"):
-                candidate = safe_product_url(urljoin(response.url, anchor.get("href", "")))
-                if not candidate or not product_id(candidate).startswith("snp-"):
-                    continue
-                card_text = _clean_title(anchor.get_text(" ", strip=True))
-                if not re.search(r"%|٪", card_text):
-                    continue
-                if candidate not in snapp_candidates and candidate not in found:
-                    snapp_candidates.append(candidate)
-                if len(snapp_candidates) >= min(8, MAX_PER_QUERY):
-                    break
-            added = 0
-            for candidate in snapp_candidates:
-                if len(found) >= MAX_PRODUCT_CHECKS:
-                    break
-                found.append(candidate)
-                added += 1
-            diagnostics.append({"term": "snappshop_homepage_deals", "ok": bool(snapp_candidates), "products_found": len(snapp_candidates), "source": "snappshop_homepage", "status": "ok" if snapp_candidates else "no_discount_product_links"})
-            print(f"SNAPPSHOP_DISCOVERY products={len(snapp_candidates)} added={added}")
-        except Exception as exc:
-            diagnostics.append({"term": "snappshop_homepage_deals", "ok": False, "products_found": 0, "source": "snappshop_homepage", "status": type(exc).__name__})
-            print(f"SNAPPSHOP_DISCOVERY_FAILED error={type(exc).__name__} detail={str(exc)[:180]!r}")
+        search_offset = int(time.time() // 300) % len(SEARCH_TERMS)
+        snapp_queries = [SEARCH_TERMS[search_offset], SEARCH_TERMS[(search_offset + 1) % len(SEARCH_TERMS)]]
+        headers = _snappshop_request_headers()
+        snapp_candidates = []
+        for term in snapp_queries:
+            try:
+                response = SESSION.post(
+                    f"{SNAPPSHOP_API_BASE_URL}/search/v1",
+                    params={"lat": SNAPPSHOP_LATITUDE, "lng": SNAPPSHOP_LONGITUDE},
+                    json={"query": term, "render": 4},
+                    headers=headers,
+                    timeout=HTTP_TIMEOUT,
+                )
+                response.raise_for_status()
+                if len(response.content) > 8_000_000:
+                    raise RuntimeError("SnappShop search API response exceeded 8 MB")
+                payload = response.json()
+                items = _snappshop_search_items(payload)
+                added_this_query = 0
+                discounted_seen = 0
+                for card in items:
+                    raw_href = str(card.get("href") or card.get("url") or "").strip()
+                    candidate = safe_product_url(urljoin("https://snappshop.ir/", raw_href))
+                    if not candidate or not product_id(candidate).startswith("snp-"):
+                        continue
+                    raw_api_id = card.get("id") or card.get("product_id")
+                    if raw_api_id is not None and str(raw_api_id).strip():
+                        SNAPPSHOP_API_IDS_BY_URL[candidate] = str(raw_api_id).strip()
+                    SNAPPSHOP_SEARCH_CARDS_BY_URL[candidate] = card
+                    price_obj = card.get("price") if isinstance(card.get("price"), dict) else {}
+                    listed = _money_to_toman(price_obj.get("price") or price_obj.get("original_price"), "IRR")
+                    discounted = _money_to_toman(price_obj.get("discounted_price") or price_obj.get("special_price"), "IRR")
+                    if not listed or not discounted or discounted >= listed:
+                        continue
+                    discount = round(100 * (listed - discounted) / listed)
+                    savings = listed - discounted
+                    if discount < MIN_DISCOUNT_PERCENT or savings < MIN_SAVINGS_TOMAN:
+                        continue
+                    discounted_seen += 1
+                    if candidate not in snapp_candidates:
+                        snapp_candidates.append(candidate)
+                    if candidate not in found and len(found) < MAX_PRODUCT_CHECKS:
+                        found.append(candidate)
+                        added_this_query += 1
+                    if len(snapp_candidates) >= min(12, MAX_PER_QUERY * 2):
+                        break
+                print(
+                    f"SNAPPSHOP_API_SEARCH term={term!r} status={response.status_code} "
+                    f"cards={len(items)} discounted_candidates={discounted_seen} added={added_this_query}"
+                )
+            except Exception as exc:
+                print(f"SNAPPSHOP_API_SEARCH_FAILED term={term!r} error={type(exc).__name__} detail={str(exc)[:160]!r}")
+        if isinstance(state_to_persist, dict):
+            state_to_persist["snappshop_api_ids"] = dict(list(SNAPPSHOP_API_IDS_BY_URL.items())[-1000:])
+        diagnostics.append({
+            "term": "snappshop_public_api_search",
+            "ok": bool(snapp_candidates),
+            "products_found": len(snapp_candidates),
+            "source": "snappshop_public_api",
+            "status": "ok" if snapp_candidates else "no_discounted_product_cards",
+        })
+        print(
+            f"SNAPPSHOP_DISCOVERY source=public_api queries={len(snapp_queries)} "
+            f"products={len(snapp_candidates)} retained_api_ids={len(SNAPPSHOP_API_IDS_BY_URL)}"
+        )
 
     # Rotate the starting category every five-minute scan. Otherwise the first few
     # search terms monopolize the remaining slots and later categories are rarely checked.
@@ -2908,7 +3155,7 @@ def fetch_click_statistics() -> dict[str, int]:
             return {}
         counts = {}
         for pid, raw_count in products.items():
-            if not re.fullmatch(r"dkp-\d{1,12}", str(pid)):
+            if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", str(pid)):
                 continue
             try:
                 count = int(raw_count)
@@ -4138,7 +4385,7 @@ def has_verified_deal_deadline(product: dict, now: datetime | None = None) -> bo
     if not isinstance(product, dict):
         return False
     source = str(product.get("expiry_source") or "")
-    direct_source = source in {"digikala_live_deals_feed", "digikala_product_detail_api", "snappshop_recheck_window"}
+    direct_source = source in {"digikala_live_deals_feed", "digikala_product_detail_api"}
     site_card_source = (
         source == "digikala_mcp_offer_card"
         and product.get("expiry_deadline_verified_from_site_card") is True
@@ -4164,6 +4411,34 @@ def has_minimum_publication_runway(product: dict, now: datetime | None = None) -
         current = current.replace(tzinfo=timezone.utc)
     remaining_seconds = (expiry - current.astimezone(timezone.utc)).total_seconds()
     return remaining_seconds >= MIN_PUBLICATION_RUNWAY_MINUTES * 60
+
+
+def has_publishable_expiry_or_open_offer(product: dict, now: datetime | None = None) -> bool:
+    """Allow a live, discounted offer with no published timer, but never accept unknown stock."""
+    if not isinstance(product, dict):
+        return False
+    source = str(product.get("expiry_source") or "")
+    deadline = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
+    # Legacy artificial SnappShop recheck timestamps are not real campaign deadlines.
+    if source == "snappshop_recheck_window":
+        deadline = None
+    if deadline is not None:
+        return bool(
+            has_verified_deal_deadline(product, now)
+            and not is_offer_expired(product, now)
+            and has_minimum_publication_runway(product, now)
+        )
+    try:
+        current_price = int(product.get("current_price") or 0)
+        original_price = int(product.get("original_price") or 0)
+    except (TypeError, ValueError, OverflowError):
+        return False
+    return bool(
+        product.get("availability") == "in_stock"
+        and product.get("availability_source")
+        and current_price > 0
+        and original_price > current_price
+    )
 
 
 def is_urgent_priority_deal(product: dict, now: datetime | None = None) -> bool:
@@ -4613,7 +4888,7 @@ def ensure_publication_ledger(state: dict) -> bool:
         "expires_at", "expiry_source", "expiry_estimated",
     )
     for pid, record in published.items():
-        if not re.fullmatch(r"dkp-\d{1,12}", str(pid)) or not isinstance(record, dict):
+        if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", str(pid)) or not isinstance(record, dict):
             continue
         ts = _publication_record_ts(record)
         if ts <= 0:
@@ -4683,7 +4958,7 @@ def ensure_recent_publications(state: dict) -> bool:
         pid = str(raw_pid or "").strip()
         title = str(record.get("title") or "").strip()
         ts = _publication_record_ts(record)
-        if not re.fullmatch(r"dkp-\d{1,12}", pid) or not title or ts <= 0:
+        if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", pid) or not title or ts <= 0:
             continue
         key = (pid, round(ts, 3))
         old = by_key.get(key)
@@ -4760,7 +5035,7 @@ def is_product_suppressed(state: dict, pid: str) -> bool:
     if not isinstance(state, dict):
         return False
     key = str(pid or "").strip().lower()
-    if not re.fullmatch(r"dkp-\d{1,12}", key):
+    if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", key):
         key = product_id(key)
     suppressions = state.get("product_suppressions", {})
     return bool(key and isinstance(suppressions, dict) and key in suppressions)
@@ -4771,16 +5046,16 @@ def prune_suppressed_product_queues(state: dict) -> bool:
     suppressions = state.get("product_suppressions", {}) if isinstance(state, dict) else {}
     if not isinstance(suppressions, dict) or not suppressions:
         return False
-    suppressed = {str(k).strip().lower() for k in suppressions if re.fullmatch(r"dkp-\d{1,12}", str(k).strip().lower())}
+    suppressed = {str(k).strip().lower() for k in suppressions if re.fullmatch(r"(?:dkp|snp)-\d{1,12}", str(k).strip().lower())}
     changed = False
     for name in ("pending_queue", "discovery_queue"):
         queue = state.get(name)
         if isinstance(queue, dict):
             for key, value in list(queue.items()):
                 pid = str(key or "").strip().lower()
-                if not re.fullmatch(r"dkp-\d{1,12}", pid) and isinstance(value, dict):
+                if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", pid) and isinstance(value, dict):
                     pid = str(value.get("product_id") or value.get("id") or "").strip().lower()
-                    if not re.fullmatch(r"dkp-\d{1,12}", pid):
+                    if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", pid):
                         pid = product_id(value.get("product_url") or value.get("url") or "")
                 if pid in suppressed:
                     queue.pop(key, None)
@@ -4791,7 +5066,7 @@ def prune_suppressed_product_queues(state: dict) -> bool:
                 pid = ""
                 if isinstance(item, dict):
                     pid = str(item.get("product_id") or item.get("id") or "").strip().lower()
-                    if not re.fullmatch(r"dkp-\d{1,12}", pid):
+                    if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", pid):
                         pid = product_id(item.get("product_url") or item.get("url") or "")
                 if pid in suppressed:
                     changed = True
@@ -4817,7 +5092,7 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
     pending = {}
     for product in eligible:
         pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
-        if not re.fullmatch(r"dkp-\d{1,12}", pid) or is_product_suppressed(state, pid) or is_offer_expired(product, now):
+        if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", pid) or is_product_suppressed(state, pid) or is_offer_expired(product, now):
             continue
         previous_publication = _publication_cooldown_record(state, pid)
         if is_product_repeat_blocked(previous_publication, product, now):
@@ -5525,7 +5800,7 @@ def process_pending_short_video(
                 and record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_product_detail_api", "digikala_mcp_offer_card"}
                 and record.get("expiry_estimated") is not True
                 and (
-                    (record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_product_detail_api", "snappshop_recheck_window"}
+                    (record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_product_detail_api"}
                      and record.get("expiry_deadline_verified_directly") is True)
                     or (record.get("expiry_source") == "digikala_mcp_offer_card"
                         and record.get("expiry_deadline_verified_from_site_card") is True)
@@ -6118,7 +6393,7 @@ def tracked_telegram_invite_url(state: dict, source: str) -> str:
 def run(publish=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
-    print(f"Ranking mode=audience-demand-first/deal-value-ranked; deadline urgency is a secondary tie-breaker; medicines and dietary supplements excluded; offers need a verified deadline with at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining at publish time; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman.")
+    print(f"Ranking mode=audience-demand-first/deal-value-ranked; deadline urgency is a secondary tie-breaker; medicines and dietary supplements excluded; offers need verified live stock, a valid price and the minimum discount; confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining, while offers with no confirmed timer stay eligible when live offer details verify the discount; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman.")
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
@@ -6194,15 +6469,14 @@ def run(publish=False):
                 item["expiry_deadline_verified_from_site_card"] = True
                 item["expiry_estimated"] = False
             elif product_id(canonical).startswith("snp-"):
-                # No reliable product-specific countdown is exposed in the public page.
-                # This is a conservative 12-hour recheck/removal window, not a claim about
-                # the retailer's actual promotion end time; captions never display it.
-                item["deal_expires_at"] = (datetime.now(timezone.utc) + timedelta(hours=12)).isoformat()
-                item["expiry_source"] = "snappshop_recheck_window"
-                item["expiry_deadline_verified_directly"] = True
+                # No source-confirmed timer: keep the offer open-ended and validate
+                # current stock, price, and discount instead of inventing a deadline.
+                item["deal_expires_at"] = ""
+                item["expiry_source"] = "snappshop_no_confirmed_expiry"
+                item["expiry_deadline_verified_directly"] = False
                 item["expiry_deadline_verified_from_site_card"] = False
                 item["expiry_estimated"] = False
-                item["expiry_is_recheck_window"] = True
+                item["expiry_is_recheck_window"] = False
             elif not (
                 item.get("expiry_deadline_verified_directly") is True
                 and item.get("expiry_source") == "digikala_product_detail_api"
@@ -6249,9 +6523,7 @@ def run(publish=False):
         bool(
             p.get("has_affiliate_link")
             and is_discount_publish_eligible(p)
-            and has_verified_deal_deadline(p, queue_now)
-            and not is_offer_expired(p, queue_now)
-            and has_minimum_publication_runway(p, queue_now)
+            and has_publishable_expiry_or_open_offer(p, queue_now)
         )
         for p in products
     )
@@ -6267,9 +6539,7 @@ def run(publish=False):
         and not is_product_suppressed(state, str(p.get("product_id") or product_id(p.get("product_url", ""))))
         and is_discount_publish_eligible(p)
         and is_market_value_publish_eligible(p)
-        and has_verified_deal_deadline(p, queue_now)
-        and not is_offer_expired(p, queue_now)
-        and has_minimum_publication_runway(p, queue_now)
+        and has_publishable_expiry_or_open_offer(p, queue_now)
     ]
     observed_product_ids = {
         str(p.get("product_id") or product_id(p.get("product_url", "")))
@@ -6614,7 +6884,7 @@ def run(publish=False):
             # Check again after image download, immediately before sending to either channel:
             # a candidate may cross the minimum runway while the rest of the pipeline is running.
             publish_check_time = datetime.now(timezone.utc)
-            if not has_minimum_publication_runway(item, publish_check_time):
+            if not has_publishable_expiry_or_open_offer(item, publish_check_time):
                 expiry = _parse_utc_datetime(_parse_deal_expiry_value(item.get("deal_expires_at")))
                 remaining_minutes = int((expiry - publish_check_time).total_seconds() / 60) if expiry else -1
                 print(
@@ -6684,7 +6954,7 @@ def run(publish=False):
                 "expiry_deadline_verified_directly": (
                     item.get("expiry_deadline_verified_directly") is True
                     and str(item.get("expiry_source") or "") in {
-                        "digikala_live_deals_feed", "digikala_product_detail_api", "snappshop_recheck_window"
+                        "digikala_live_deals_feed", "digikala_product_detail_api"
                     }
                 ),
                 "expiry_deadline_verified_from_site_card": (

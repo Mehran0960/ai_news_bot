@@ -1043,11 +1043,11 @@ def _product_id_from_public_url(value):
     host = (parsed.hostname or "").lower()
     if host == "aflo.ir":
         for destination in parse_qs(parsed.query, keep_blank_values=True).get("p", []):
-            match = re.search(r"/product/(dkp-\d+)(?:/|$)", unquote(destination), re.I)
+            match = re.search(r"/product/((?:dkp|snp)-\d+)(?:/|$)", unquote(destination), re.I)
             if match:
                 return match.group(1).lower()
-    if host in {"digikala.com", "www.digikala.com"}:
-        match = re.search(r"/product/(dkp-\d+)(?:/|$)", parsed.path, re.I)
+    if host in {"digikala.com", "www.digikala.com", "snappshop.ir"}:
+        match = re.search(r"/product/((?:dkp|snp)-\d+)(?:/|$)", parsed.path, re.I)
         if match:
             return match.group(1).lower()
     if host.endswith(".workers.dev"):
@@ -1077,7 +1077,7 @@ def _delete_one_specific_product(state, product_id, title, telegram_ids_raw="", 
     """Delete all known/public channel copies; keep only the normal repeat cooldown."""
     product_id = str(product_id or "").strip().lower()
     title = str(title or "").strip()
-    if not re.fullmatch(r"dkp-\d{1,12}", product_id) or not title:
+    if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", product_id) or not title:
         print("ONE_TIME_PRODUCT_DELETE_ABORTED reason=invalid_product_id_or_title")
         return 2
     if not BOT_TOKEN:
@@ -1327,7 +1327,7 @@ def _run_duplicate_cleanup(state, apply=True):
     sent_button_for_message = {}
     for product_id, record in _iter_post_records(published):
         key = str(product_id or "").lower()
-        if not re.fullmatch(r"dkp-\d+", key):
+        if not re.fullmatch(r"(?:dkp|snp)-\d+", key):
             key = _product_id_from_public_url(record.get("product_url", ""))
         raw_id = record.get("telegram_message_id")
         if str(raw_id or "").isdigit():
@@ -1408,7 +1408,7 @@ def _run_duplicate_cleanup(state, apply=True):
     bale_groups = {}
     for product_id, record in _iter_post_records(published):
         key = str(product_id or "").lower()
-        if not re.fullmatch(r"dkp-\d+", key):
+        if not re.fullmatch(r"(?:dkp|snp)-\d+", key):
             key = _product_id_from_public_url(record.get("product_url", ""))
         raw_id = record.get("bale_message_id")
         status = str(record.get("bale_expiry_status") or "")
@@ -1475,24 +1475,34 @@ def _is_valid_affilio_tracking_url(value):
         and parsed.path == "/QekEYTRg"
         and destination is not None
         and destination.scheme == "https"
-        and (destination.hostname or "").lower() == "www.digikala.com"
-        and re.fullmatch(r"/product/dkp-\d+/", destination.path, re.IGNORECASE)
+        and (
+            ((destination.hostname or "").lower() == "www.digikala.com"
+             and re.fullmatch(r"/product/dkp-\d+/", destination.path, re.IGNORECASE))
+            or ((destination.hostname or "").lower() == "snappshop.ir"
+                and re.fullmatch(r"/product/snp-\d+", destination.path, re.IGNORECASE))
+        )
     )
 
 
 def _build_affilio_tracking_url(product_url):
-    """Build only the confirmed OfferChin public Affilio link for a DigiKala product."""
+    """Build the confirmed OfferChin Affilio link for either supported retailer."""
     try:
         parsed = urlsplit(str(product_url or "").strip())
     except Exception:
         return ""
     host = (parsed.hostname or "").lower()
-    if parsed.scheme not in {"https", "http"} or host not in {"digikala.com", "www.digikala.com"}:
+    if parsed.scheme not in {"https", "http"}:
         return ""
-    match = re.fullmatch(r"/product/(dkp-\d+)/?", parsed.path, re.IGNORECASE)
-    if not match:
+    if host in {"digikala.com", "www.digikala.com"}:
+        match = re.fullmatch(r"/product/(dkp-\d+)/?", parsed.path, re.IGNORECASE)
+        canonical = f"https://www.digikala.com/product/{match.group(1).lower()}/" if match else ""
+    elif host == "snappshop.ir":
+        match = re.fullmatch(r"/product/(snp-\d+)/?", parsed.path, re.IGNORECASE)
+        canonical = f"https://snappshop.ir/product/{match.group(1).lower()}" if match else ""
+    else:
+        canonical = ""
+    if not canonical:
         return ""
-    canonical = f"https://www.digikala.com/product/{match.group(1).lower()}/"
     result = "https://aflo.ir/QekEYTRg?p=" + quote(canonical, safe="")
     return result if _is_valid_affilio_tracking_url(result) else ""
 
@@ -1637,7 +1647,7 @@ def audit_public_channel_history(published, now=None, posts=None):
             product_ids = sorted({
                 str(value).lower()
                 for value in (post.get("product_ids") or [])
-                if re.fullmatch(r"dkp-\d+", str(value).lower())
+                if re.fullmatch(r"(?:dkp|snp)-\d+", str(value).lower())
             })
             purchase_button_visible = bool(post.get("purchase_button_visible")) and len(product_ids) == 1
 
@@ -1824,10 +1834,14 @@ def audit_public_channel_history(published, now=None, posts=None):
         if not record_product_url:
             ids = [
                 str(value).lower() for value in (post.get("product_ids") or [])
-                if re.fullmatch(r"dkp-\d+", str(value).lower())
+                if re.fullmatch(r"(?:dkp|snp)-\d+", str(value).lower())
             ]
             if len(ids) == 1:
-                record_product_url = f"https://www.digikala.com/product/{ids[0]}/"
+                record_product_url = (
+                    f"https://snappshop.ir/product/{ids[0]}"
+                    if ids[0].startswith("snp-")
+                    else f"https://www.digikala.com/product/{ids[0]}/"
+                )
         affiliate_url = _build_affilio_tracking_url(record_product_url)
         if not affiliate_url:
             if button_missing:

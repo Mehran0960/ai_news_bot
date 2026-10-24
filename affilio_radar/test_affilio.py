@@ -22,6 +22,8 @@ from affilio_radar import (
     is_offer_expired,
     has_verified_deal_deadline,
     has_minimum_publication_runway,
+    has_publishable_expiry_or_open_offer,
+    parse_snappshop_product_api,
     is_urgent_priority_deal,
     is_deadline_critical_deal,
     is_materially_improved_offer,
@@ -171,15 +173,73 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("اسنپ‌شاپ", caption)
         self.assertNotIn("دیجی‌کالا", caption)
 
-    def test_snappshop_recheck_window_is_eligible_for_deadline_gate(self):
+    def test_snappshop_without_confirmed_expiry_can_publish_when_live_deal_is_verified(self):
         now = datetime.now(timezone.utc)
         product = {
-            "expiry_source": "snappshop_recheck_window",
-            "expiry_deadline_verified_directly": True,
-            "deal_expires_at": (now + timedelta(hours=12)).isoformat(),
+            "expiry_source": "snappshop_no_confirmed_expiry",
+            "deal_expires_at": "",
+            "expiry_deadline_verified_directly": False,
+            "availability": "in_stock",
+            "availability_source": "snappshop_product_api",
+            "current_price": 3_398_000,
+            "original_price": 4_900_000,
         }
-        self.assertTrue(has_verified_deal_deadline(product, now=now))
-        self.assertTrue(has_minimum_publication_runway(product, now=now))
+        self.assertFalse(has_verified_deal_deadline(product, now=now))
+        self.assertFalse(has_minimum_publication_runway(product, now=now))
+        self.assertTrue(has_publishable_expiry_or_open_offer(product, now=now))
+
+    def test_open_ended_offer_still_requires_confirmed_in_stock_and_real_discount(self):
+        base = {
+            "expiry_source": "snappshop_no_confirmed_expiry",
+            "deal_expires_at": "",
+            "availability_source": "snappshop_product_api",
+            "current_price": 3_398_000,
+            "original_price": 4_900_000,
+        }
+        self.assertFalse(has_publishable_expiry_or_open_offer({**base, "availability": "unknown"}))
+        self.assertFalse(has_publishable_expiry_or_open_offer({**base, "availability": "in_stock", "original_price": 3_398_000}))
+        self.assertTrue(has_publishable_expiry_or_open_offer({**base, "availability": "in_stock"}))
+
+    def test_parse_snappshop_product_api_uses_live_vendor_stock_and_rial_prices(self):
+        url = "https://snappshop.ir/product/snp-25751584"
+        payload = {
+            "data": {
+                "id": "42yeLw",
+                "content": {"title_fa": "گوشی نمونه"},
+                "images": ["https://cdn.snappshop.ir/products/phone-main.webp"],
+                "variants": [{
+                    "variation_id": "v1",
+                    "vendor": [{
+                        "vendor_product_info_id": "offer-1",
+                        "vendor_id": "seller-1",
+                        "price": 49_000_000,
+                        "special_price": 33_980_000,
+                        "stock": 2,
+                        "is_available_in_vendor_inventory": True,
+                    }],
+                }],
+            }
+        }
+        parsed = parse_snappshop_product_api(payload, url)
+        self.assertEqual(parsed["product_id"], "snp-25751584")
+        self.assertEqual(parsed["current_price"], 3_398_000)
+        self.assertEqual(parsed["original_price"], 4_900_000)
+        self.assertEqual(parsed["availability"], "in_stock")
+        self.assertIn("cdn.snappshop.ir", parsed["image_url"])
+        self.assertEqual(parsed["expiry_source"], "snappshop_no_confirmed_expiry")
+
+    def test_parse_snappshop_product_api_does_not_infer_stock_from_price_only(self):
+        url = "https://snappshop.ir/product/snp-25751584"
+        parsed = parse_snappshop_product_api({
+            "data": {
+                "id": "42yeLw",
+                "content": {"title_fa": "گوشی نمونه"},
+                "variants": [{"vendor": [{"price": 49_000_000, "special_price": 33_980_000}]}],
+            }
+        }, url)
+        self.assertEqual(parsed["availability"], "unknown")
+        self.assertIsNone(parsed["current_price"])
+        self.assertIsNone(parsed["original_price"])
 
     def test_affilio_product_link_uses_only_publishers_public_template(self):
         product = "https://www.digikala.com/product/dkp-1234567/"
