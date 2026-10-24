@@ -2894,7 +2894,10 @@ def discover_product_urls(
         snapp_queries = [SEARCH_TERMS[search_offset], SEARCH_TERMS[(search_offset + 1) % len(SEARCH_TERMS)]]
         headers = _snappshop_request_headers()
         snapp_candidates = []
+        snappshop_queries_succeeded = 0
+        snappshop_query_failures = []
         for term in snapp_queries:
+            response = None
             try:
                 response = SESSION.post(
                     f"{SNAPPSHOP_API_BASE_URL}/search/v1",
@@ -2904,6 +2907,7 @@ def discover_product_urls(
                     timeout=HTTP_TIMEOUT,
                 )
                 response.raise_for_status()
+                snappshop_queries_succeeded += 1
                 if len(response.content) > 8_000_000:
                     raise RuntimeError("SnappShop search API response exceeded 8 MB")
                 payload = response.json()
@@ -2941,15 +2945,38 @@ def discover_product_urls(
                     f"cards={len(items)} discounted_candidates={discounted_seen} added={added_this_query}"
                 )
             except Exception as exc:
-                print(f"SNAPPSHOP_API_SEARCH_FAILED term={term!r} error={type(exc).__name__} detail={str(exc)[:160]!r}")
+                status_code = getattr(response, "status_code", None)
+                failure = {
+                    "term": term,
+                    "error": type(exc).__name__,
+                    "http_status": int(status_code) if isinstance(status_code, int) else None,
+                }
+                snappshop_query_failures.append(failure)
+                print(
+                    f"SNAPPSHOP_API_SEARCH_FAILED term={term!r} "
+                    f"error={type(exc).__name__} http_status={failure['http_status']} "
+                    f"detail={str(exc)[:160]!r}"
+                )
         if isinstance(state_to_persist, dict):
             state_to_persist["snappshop_api_ids"] = dict(list(SNAPPSHOP_API_IDS_BY_URL.items())[-1000:])
+        if snapp_candidates:
+            snappshop_status = "ok"
+        elif snappshop_queries_succeeded == 0:
+            snappshop_status = "api_unavailable"
+        elif snappshop_query_failures:
+            snappshop_status = "partial_api_failure_no_discounted_cards"
+        else:
+            snappshop_status = "no_discounted_product_cards"
         diagnostics.append({
             "term": "snappshop_public_api_search",
             "ok": bool(snapp_candidates),
             "products_found": len(snapp_candidates),
             "source": "snappshop_public_api",
-            "status": "ok" if snapp_candidates else "no_discounted_product_cards",
+            "status": snappshop_status,
+            "queries_attempted": len(snapp_queries),
+            "queries_succeeded": snappshop_queries_succeeded,
+            "queries_failed": len(snappshop_query_failures),
+            "query_failures": snappshop_query_failures,
         })
         print(
             f"SNAPPSHOP_DISCOVERY source=public_api queries={len(snapp_queries)} "
