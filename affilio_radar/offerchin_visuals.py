@@ -123,6 +123,7 @@ def adaptive_text_colors(image, region, threshold: int = 145):
 def _decode_retailer_logo(content: bytes, is_snappshop: bool):
     """Decode the complete official retailer artwork without recoloring or stripping its background."""
     from io import BytesIO
+    from PIL import Image
 
     if not content or len(content) > 3_000_000:
         return None
