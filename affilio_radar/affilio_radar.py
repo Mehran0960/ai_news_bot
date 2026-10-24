@@ -3714,7 +3714,7 @@ def repair_all_published_captions() -> int:
 
         source = str(record.get("expiry_source") or "")
         verified_deadline = (
-            source in {"digikala_live_deals_feed", "live_product_stock_or_price"}
+            source in {"digikala_live_deals_feed", "live_product_stock_or_price", "snappshop_recheck_window"}
             and record.get("expiry_estimated") is not True
             and _parse_utc_datetime(record.get("expires_at")) is not None
             and (source != "digikala_live_deals_feed" or record.get("expiry_deadline_verified_directly") is True)
@@ -5525,7 +5525,7 @@ def process_pending_short_video(
                 and record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_product_detail_api", "digikala_mcp_offer_card"}
                 and record.get("expiry_estimated") is not True
                 and (
-                    (record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_product_detail_api"}
+                    (record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_product_detail_api", "snappshop_recheck_window"}
                      and record.get("expiry_deadline_verified_directly") is True)
                     or (record.get("expiry_source") == "digikala_mcp_offer_card"
                         and record.get("expiry_deadline_verified_from_site_card") is True)
@@ -5574,7 +5574,7 @@ def process_pending_short_video(
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("expires_at")))
         if (
             expiry is None
-            or record.get("expiry_source") not in {"digikala_live_deals_feed", "digikala_product_detail_api", "digikala_mcp_offer_card"}
+            or record.get("expiry_source") not in {"digikala_live_deals_feed", "digikala_product_detail_api", "digikala_mcp_offer_card", "snappshop_recheck_window"}
             or record.get("expiry_estimated") is True
             or (
                 record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_product_detail_api"}
@@ -6683,7 +6683,7 @@ def run(publish=False):
                 "expiry_deadline_verified_directly": (
                     item.get("expiry_deadline_verified_directly") is True
                     and str(item.get("expiry_source") or "") in {
-                        "digikala_live_deals_feed", "digikala_product_detail_api"
+                        "digikala_live_deals_feed", "digikala_product_detail_api", "snappshop_recheck_window"
                     }
                 ),
                 "expiry_deadline_verified_from_site_card": (
