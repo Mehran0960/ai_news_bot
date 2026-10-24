@@ -195,6 +195,21 @@ jobs:
               assert location.query.startswith("p="), (product_id, location.query)
               print(f"CLICK_TRACKER_VALID_AFFILIO_REDIRECT_OK product={product_id} source={source}")
 
+              # The production Python publisher uses the same non-counting HEAD probe before wrapping buttons.
+              probe = requests.head(
+                  f"{base}/p/{product_id}",
+                  params={"u": publisher_link, "src": source},
+                  headers={"User-Agent": "OfferChinClickTrackerProbe/1.0"},
+                  allow_redirects=False,
+                  timeout=20,
+              )
+              assert probe.status_code == 302, (product_id, probe.status_code, probe.text[:200])
+              probe_location = urlsplit(probe.headers.get("Location", ""))
+              assert probe_location.hostname == "aflo.ir" and probe_location.path == "/QekEYTRg", (
+                  product_id, probe.headers.get("Location")
+              )
+              print(f"CLICK_TRACKER_HEAD_PROBE_OK product={product_id} source={source}")
+
           stats = requests.get(f"{base}/stats", timeout=20, headers=headers)
           stats.raise_for_status()
           analytics = stats.json()
