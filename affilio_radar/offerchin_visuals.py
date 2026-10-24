@@ -140,7 +140,7 @@ def _load_retailer_logo(is_snappshop: bool):
 
 def draw_retailer_badge(image, left: int, top: int, width: int, height: int, merchant: str) -> None:
     """Place retailer logo artwork on a compact badge; do not fabricate brand marks."""
-    from PIL import ImageDraw, ImageOps
+    from PIL import Image, ImageDraw, ImageOps
 
     store = str(merchant or "").strip().lower()
     is_snappshop = "snapp" in store or "اسنپ" in store
