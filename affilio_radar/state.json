@@ -1,7 +1,7 @@
 {
-  "aparat_last_upload_attempt_at": "2026-10-24T09:04:42.998165+00:00",
-  "aparat_last_upload_success_at": "2026-10-24T09:04:45.702581+00:00",
-  "aparat_next_upload_at": "2026-10-24T12:04:45.702581+00:00",
+  "aparat_last_upload_attempt_at": "2026-10-24T19:25:08.509636+00:00",
+  "aparat_last_upload_success_at": "2026-10-24T19:25:11.570633+00:00",
+  "aparat_next_upload_at": "2026-10-24T22:25:11.570633+00:00",
   "discovery_queue": {
     "dkp-10148025": {
       "check_count": 0,
@@ -8859,6 +8859,13 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-20881046": {
+      "aparat_upload_started_at": "2026-10-24T19:25:08.509636+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-10-24T19:25:11.570633+00:00",
+      "aparat_video_hash": "vlhu58c",
+      "aparat_video_record_id": "73894913",
+      "aparat_video_url": "https://www.aparat.com/v/vlhu58c",
+      "aparat_visibility": "public",
       "bale_expiry_status": "tracked",
       "bale_message_id": 741,
       "caption_deadline_format_version": 12,
@@ -8889,8 +8896,12 @@
       "telegram_message_id": 607,
       "title": "سرم آبرسان پوست گلاما مدل نیاسینامید مناسب برای انواع پوست حجم 30 میلی لیتر",
       "ts": 1792850710.7190964,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-20881046.mp4",
+      "video_generated_at": "2026-10-24T19:25:04.722831+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 4,
+      "youtube_last_error": "",
+      "youtube_upload_status": "pending_credentials"
     },
     "dkp-20881240": {
       "bale_expiry_status": "tracked",
