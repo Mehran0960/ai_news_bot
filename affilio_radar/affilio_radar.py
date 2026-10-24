@@ -3579,7 +3579,7 @@ def build_discount_image(
     margin = max(10, int(min_dim * 0.025))
     store_badge_width = min(width - 2 * margin, max(124, min(260, int(min_dim * 0.31))))
     store_badge_height = max(36, min(56, int(min_dim * 0.085)))
-    draw_retailer_badge(draw, margin, margin, store_badge_width, store_badge_height, merchant)
+    draw_retailer_badge(image, margin, margin, store_badge_width, store_badge_height, merchant)
 
     # Every photo carries both channel IDs so audiences can discover either platform.
     watermarks = [("telegram", "T.me/OfferChin"), ("bale", "ble.ir/OfferChin")]

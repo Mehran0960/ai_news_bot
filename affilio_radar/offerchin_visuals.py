@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
+from functools import lru_cache
 
 
 def _sale_font(size: int):
@@ -79,12 +80,68 @@ def draw_discount_burst(draw, left: int, top: int, width: int, height: int, disc
 
 
 
-def draw_retailer_badge(draw, left: int, top: int, width: int, height: int, merchant: str) -> None:
-    """Draw a compact, self-contained storefront badge without network/font-asset dependencies.
 
-    Brand-colored marks and wordmarks make the seller source visible without covering
-    the discount burst or depending on remote logo hosting at publication time.
-    """
+# Current DigiKala logo served by DigiKala's own static asset CDN.
+# SnappShop's branded symbol is served by its Brandfetch identity record.
+_RETAILER_LOGO_URLS = {
+    "digikala": (
+        "https://dkstatics-public.digikala.com/digikala-static/"
+        "0d072059918d0c22b88320554ce4b3e07d0472f2_1746354551.svg"
+    ),
+    "snappshop": (
+        "https://cdn.brandfetch.io/id9SrR5Y27/w/512/h/512/theme/dark/logo.png"
+        "?c=1bxid64Mup7aczewSAYMX&t=1695361662415"
+    ),
+}
+
+
+@lru_cache(maxsize=2)
+def _load_retailer_logo(is_snappshop: bool):
+    """Fetch and decode real retailer artwork once per process; a logo outage never blocks a deal."""
+    from io import BytesIO
+    import requests
+    from PIL import Image
+
+    key = "snappshop" if is_snappshop else "digikala"
+    try:
+        response = requests.get(
+            _RETAILER_LOGO_URLS[key],
+            timeout=(3.5, 6),
+            headers={
+                "User-Agent": "Mozilla/5.0 (compatible; OfferChin/1.0)",
+                "Accept": "image/png,image/webp,image/svg+xml,*/*;q=0.8",
+                "Referer": "https://snappshop.ir/" if is_snappshop else "https://www.digikala.com/",
+            },
+        )
+        response.raise_for_status()
+        content_type = response.headers.get("Content-Type", "").lower()
+        content = response.content
+        if not content or len(content) > 3_000_000:
+            return None
+        if "svg" in content_type or content.lstrip().startswith(b"<svg") or b"<svg" in content[:500]:
+            try:
+                import cairosvg
+                content = cairosvg.svg2png(bytestring=content, output_width=900)
+            except Exception:
+                return None
+        with Image.open(BytesIO(content)) as raw:
+            raw.load()
+            logo = raw.convert("RGBA")
+        bounds = logo.getchannel("A").getbbox()
+        if bounds:
+            logo = logo.crop(bounds)
+        if logo.width < 2 or logo.height < 2:
+            return None
+        return logo.copy()
+    except Exception:
+        # Brand asset hosts are external dependencies; their temporary failure must not stop publishing.
+        return None
+
+
+def draw_retailer_badge(image, left: int, top: int, width: int, height: int, merchant: str) -> None:
+    """Place retailer logo artwork on a compact badge; do not fabricate brand marks."""
+    from PIL import ImageDraw, ImageOps
+
     store = str(merchant or "").strip().lower()
     is_snappshop = "snapp" in store or "اسنپ" in store
     brand_color = "#B400AE" if is_snappshop else "#E52332"
@@ -93,6 +150,7 @@ def draw_retailer_badge(draw, left: int, top: int, width: int, height: int, merc
     width, height = max(70, int(width)), max(28, int(height))
     right, bottom = left + width, top + height
     radius = max(5, height // 5)
+    draw = ImageDraw.Draw(image)
     draw.rounded_rectangle(
         (left + 2, top + 3, right + 2, bottom + 3),
         radius=radius,
@@ -107,37 +165,28 @@ def draw_retailer_badge(draw, left: int, top: int, width: int, height: int, merc
     )
 
     pad = max(4, height // 9)
-    icon_size = max(20, height - 2 * pad)
-    icon_left = left + pad
-    icon_top = top + (height - icon_size) // 2
-    icon_right = icon_left + icon_size
-    icon_bottom = icon_top + icon_size
-    draw.rounded_rectangle(
-        (icon_left, icon_top, icon_right, icon_bottom),
-        radius=max(4, icon_size // 5),
-        fill=brand_color,
-    )
-    if is_snappshop:
-        icon_font = _sale_font(max(11, int(icon_size * 0.46)))
-        draw.text(
-            (icon_left + icon_size / 2, icon_top + icon_size / 2),
-            "S!",
-            font=icon_font,
-            fill="#FFFFFF",
-            anchor="mm",
-        )
-    else:
-        # A white smile gives the small red mark a distinctive DigiKala-like shape.
-        inset = max(5, icon_size // 5)
-        draw.arc(
-            (icon_left + inset, icon_top + inset, icon_right - inset, icon_bottom - inset),
-            start=20,
-            end=160,
-            fill="#FFFFFF",
-            width=max(2, icon_size // 10),
-        )
+    inner_width = max(1, width - 2 * pad)
+    inner_height = max(1, height - 2 * pad)
+    logo = _load_retailer_logo(is_snappshop)
+    text_left = left + pad
 
-    text_left = icon_right + max(5, height // 8)
+    if logo is not None and logo.width / max(1, logo.height) >= 1.8:
+        # A horizontal logo already contains the brand wordmark.
+        fitted = ImageOps.contain(logo, (inner_width, inner_height), method=Image.Resampling.LANCZOS)
+        image.paste(
+            fitted,
+            (left + (width - fitted.width) // 2, top + (height - fitted.height) // 2),
+            fitted,
+        )
+        return
+
+    # If the asset is a square brand symbol, keep the original symbol and label it clearly.
+    if logo is not None:
+        icon_size = min(inner_height, max(18, height - 2 * pad))
+        fitted = ImageOps.contain(logo, (icon_size, icon_size), method=Image.Resampling.LANCZOS)
+        image.paste(fitted, (text_left, top + (height - fitted.height) // 2), fitted)
+        text_left += icon_size + max(4, height // 8)
+
     available_width = max(1, right - pad - text_left)
     font_size = max(9, int(height * 0.42))
     font = _sale_font(font_size)
