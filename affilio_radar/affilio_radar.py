@@ -3604,8 +3604,10 @@ def build_discount_image(
     width, height = image.size
     min_dim = min(width, height)
     margin = max(10, int(min_dim * 0.025))
-    store_badge_width = min(width - 2 * margin, max(124, min(260, int(min_dim * 0.31))))
-    store_badge_height = max(36, min(56, int(min_dim * 0.085)))
+    # The supplied official marks include their own full-color backgrounds. Give those
+    # logo tiles enough height to remain recognizable, while preserving source aspect ratios.
+    store_badge_width = min(width - 2 * margin, max(124, min(320, int(min_dim * 0.38))))
+    store_badge_height = max(48, min(88, int(min_dim * 0.14)))
     draw_retailer_badge(image, margin, margin, store_badge_width, store_badge_height, merchant)
 
     # Keep the channel IDs at the lower-left without a card or solid panel.

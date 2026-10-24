@@ -2225,6 +2225,12 @@ class AffilioRadarTests(unittest.TestCase):
                 self.assertGreater(asset.height, 100)
                 self.assertEqual(asset.format, "WEBP")
 
+        # Preserve the full supplied wordmark canvas: DigiKala is landscape; SnappShop is square.
+        with Image.open(visuals._LOCAL_LOGO_PATHS["digikala"]) as asset:
+            self.assertAlmostEqual(asset.width / asset.height, 1.58, delta=0.03)
+        with Image.open(visuals._LOCAL_LOGO_PATHS["snappshop"]) as asset:
+            self.assertAlmostEqual(asset.width / asset.height, 1.0, delta=0.01)
+
     def test_committed_retailer_logo_assets_load_without_network(self):
         import offerchin_visuals as visuals
 
@@ -2303,11 +2309,11 @@ class AffilioRadarTests(unittest.TestCase):
         with Image.open(BytesIO(digikala)).convert("RGB") as preview:
             crop = preview.crop((0, 0, 185, 90))
             red_pixels = sum(1 for red, green, blue in crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
-            self.assertGreater(red_pixels, 100)
+            self.assertGreater(red_pixels, 1500, "official DigiKala red tile must remain clearly visible")
         with Image.open(BytesIO(snappshop)).convert("RGB") as preview:
             crop = preview.crop((0, 0, 185, 90))
             purple_pixels = sum(1 for red, green, blue in crop.getdata() if blue > 90 and red > green * 1.6 and blue > green * 1.6)
-            self.assertGreater(purple_pixels, 100)
+            self.assertGreater(purple_pixels, 1500, "official SnappShop purple tile must remain clearly visible")
 
     def test_channel_watermarks_use_platform_specific_compact_links(self):
         image_bytes = BytesIO()
