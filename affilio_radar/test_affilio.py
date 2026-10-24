@@ -2115,6 +2115,19 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("cdn.snappshop.ir", _RETAILER_LOGO_FALLBACK_URLS["snappshop"][0])
         self.assertIn("cdn.snappshop.ir", _RETAILER_LOGO_FALLBACK_URLS["snappshop"][1])
 
+    def test_committed_retailer_logo_assets_load_without_network(self):
+        import offerchin_visuals as visuals
+
+        visuals._load_retailer_logo.cache_clear()
+        try:
+            with patch("requests.get", side_effect=AssertionError("committed retailer logos must not use the network")):
+                self.assertTrue(visuals._LOCAL_LOGO_PATHS["digikala"].is_file())
+                self.assertTrue(visuals._LOCAL_LOGO_PATHS["snappshop"].is_file())
+                self.assertIsNotNone(visuals._load_retailer_logo(False))
+                self.assertIsNotNone(visuals._load_retailer_logo(True))
+        finally:
+            visuals._load_retailer_logo.cache_clear()
+
     def test_local_retailer_logo_assets_load_without_network(self):
         import offerchin_visuals as visuals
 
