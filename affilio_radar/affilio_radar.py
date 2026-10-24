@@ -3453,7 +3453,7 @@ def build_caption(
     merchant = p.get("merchant") or product_merchant(p.get("product_url") or affiliate_url)
     merchant_marker = "🟣" if "اسنپ" in str(merchant) or "snapp" in str(merchant).lower() else "🔴"
     parts = [
-        f"🔥 فروش ویژه {merchant_marker}",
+        f"🔥 فروش ویژه {merchant} {merchant_marker}",
         "",
         f"🛍️ {title}",
         "",

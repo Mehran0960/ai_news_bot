@@ -204,8 +204,7 @@ class AffilioRadarTests(unittest.TestCase):
             "original_price": 2_250_000,
             "discount_percent": 53,
         }, affiliate)
-        self.assertIn("🔥 فروش ویژه 🟣", caption)
-        self.assertIn("برای خرید از اسنپ‌شاپ", caption)
+        self.assertIn("🔥 فروش ویژه اسنپ‌شاپ 🟣", caption)
         self.assertNotIn("دیجی‌کالا", caption)
 
     def test_snappshop_without_confirmed_expiry_can_publish_when_live_deal_is_verified(self):
@@ -1398,9 +1397,9 @@ class AffilioRadarTests(unittest.TestCase):
             "rating": 4.4,
             "review_count": 1243,
         }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
-        self.assertIn("🔥 فروش ویژه 🔴", caption)
+        self.assertIn("🔥 فروش ویژه دیجی‌کالا 🔴", caption)
         self.assertIn("🛍️ گجت نمونه ۶۰", caption)
-        self.assertNotIn("<b>🔥 فروش ویژه 🔴</b>", caption)
+        self.assertNotIn("<b>🔥 فروش ویژه دیجی‌کالا</b>", caption)
         self.assertIn("<b>💚 قیمت ویژه: ۵۰۰٬۰۰۰ تومان</b>", caption)
         self.assertIn("<b>⚡️ ۲۹٪ تخفیف</b>", caption)
         self.assertEqual(caption.count("────────────"), 2)
