@@ -5044,13 +5044,13 @@
       "title": "روغن موتور خودرو بنزینی کاسپین مدل 20W-50 SG حجم 4 لیتر"
     }
   },
-  "expiry_feed_last_checked_at": "2026-10-24T08:30:29.040988+00:00",
+  "expiry_feed_last_checked_at": "2026-10-24T08:45:22.911829+00:00",
   "expiry_feed_last_sync_summary": {
     "matched": 1,
-    "missing_from_feed": 69,
-    "skipped": 21,
+    "updated": 1,
     "unchanged": 0,
-    "updated": 1
+    "missing_from_feed": 70,
+    "skipped": 21
   },
   "growth_tracking": {
     "daily_member_counts": {
@@ -7324,10 +7324,10 @@
     "dkp-11314772": {
       "bale_expiry_status": "tracked",
       "bale_message_id": 721,
-      "caption_countdown_refreshed_at": "2026-10-24T08:35:25.005600+00:00",
+      "caption_countdown_refreshed_at": "2026-10-24T08:45:22.911829+00:00",
       "caption_deadline_format_version": 12,
-      "caption_static_migrated_at": "2026-10-24T08:35:25.005600+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-24T08:35:25.005600+00:00",
+      "caption_static_migrated_at": "2026-10-24T08:45:22.911829+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-24T08:45:22.911829+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "deadline_caption_refresh_required": true,
@@ -7341,12 +7341,12 @@
       },
       "delivery_version": 1,
       "demand_score": 41,
-      "expires_at": "2026-10-24T20:32:02.315299+00:00",
+      "expires_at": "2026-10-24T20:30:01.363066+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_live_sync_at": "2026-10-24T08:30:29.040988+00:00",
-      "expiry_last_site_card_sync_at": "2026-10-24T08:30:29.040988+00:00",
+      "expiry_last_live_sync_at": "2026-10-24T08:45:22.911829+00:00",
+      "expiry_last_site_card_sync_at": "2026-10-24T08:45:22.911829+00:00",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/44070524d450ff429cf6033b8cf1f0d89c5823df_1683807500.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
@@ -7466,7 +7466,7 @@
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_removal_check_at": "2026-10-24T08:30:29.040988+00:00",
+      "expiry_last_removal_check_at": "2026-10-24T08:45:22.911829+00:00",
       "expiry_last_removal_check_result": "inconclusive",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -7573,7 +7573,7 @@
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_removal_check_at": "2026-10-24T08:30:29.040988+00:00",
+      "expiry_last_removal_check_at": "2026-10-24T08:45:22.911829+00:00",
       "expiry_last_removal_check_result": "inconclusive",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -7660,7 +7660,7 @@
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_removal_check_at": "2026-10-24T08:30:29.040988+00:00",
+      "expiry_last_removal_check_at": "2026-10-24T08:45:22.911829+00:00",
       "expiry_last_removal_check_result": "inconclusive",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -8026,7 +8026,9 @@
       "title": "کتاب ناتوان، قدرتمند، بی پروا، بی باک و بیمناک اثر لورن رابرتس نشر آذرگون 5 جلدی",
       "ts": 1792831370.6170213,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "expiry_status": "tracked",
+      "bale_expiry_status": "tracked"
     },
     "dkp-20894773": {
       "aparat_upload_status": "skipped_expiring_soon",
