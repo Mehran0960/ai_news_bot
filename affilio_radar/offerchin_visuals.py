@@ -142,15 +142,39 @@ def _decode_retailer_logo(content: bytes, is_snappshop: bool):
     return logo.copy()
 
 
+_RETAILER_LOGO_FALLBACK_URLS = {
+    "snappshop": (
+        # Also first-party SnappShop CDN: the unqualified variant and the site's
+        # official wordmark are fallbacks if the app icon URL is blocked by a runner.
+        "https://cdn.snappshop.ir/customer-production-assets/public/assets/images/application/icon-72x72.png",
+        "https://cdn.snappshop.ir/customer-production-assets/public/text-logo.webp",
+    ),
+}
+
+
+def _cacheable_logo_bytes(content: bytes, is_snappshop: bool) -> bytes:
+    """Store raster responses as a real PNG, regardless of whether the CDN returned WebP."""
+    from io import BytesIO
+    from PIL import Image
+
+    if content.lstrip().startswith(b"<svg") or b"<svg" in content[:500]:
+        return content
+    with Image.open(BytesIO(content)) as raw:
+        raw.load()
+        output = BytesIO()
+        raw.convert("RGBA").save(output, format="PNG", optimize=True)
+        return output.getvalue()
+
+
 @lru_cache(maxsize=2)
 def _load_retailer_logo(is_snappshop: bool):
-    """Read the persistent local asset first; download only to bootstrap a missing asset."""
+    """Read persistent local assets first; bootstrap from official CDN URLs only if absent."""
     import requests
 
     key = "snappshop" if is_snappshop else "digikala"
     local_path = _LOCAL_LOGO_PATHS[key]
 
-    # Normal publication path: no external request when the committed file exists.
+    # Normal publication path: no external request when the committed asset exists.
     try:
         if local_path.is_file():
             logo = _decode_retailer_logo(local_path.read_bytes(), is_snappshop)
@@ -159,35 +183,44 @@ def _load_retailer_logo(is_snappshop: bool):
     except Exception:
         pass
 
-    # One-time bootstrap for a checkout where the asset has not been saved yet.
-    try:
-        response = requests.get(
-            _RETAILER_LOGO_URLS[key],
-            timeout=(3.5, 6),
-            headers={
-                "User-Agent": "Mozilla/5.0 (compatible; OfferChin/1.0)",
-                "Accept": "image/png,image/webp,image/svg+xml,*/*;q=0.8",
-                "Referer": "https://snappshop.ir/" if is_snappshop else "https://www.digikala.com/",
-            },
-        )
-        response.raise_for_status()
-        content = response.content
-        logo = _decode_retailer_logo(content, is_snappshop)
-        if logo is None:
-            return None
-
-        # Saving is best-effort: logo download failures must never block a post.
-        # The main workflow stages these files so future scheduled runs read them offline.
+    urls = (_RETAILER_LOGO_URLS[key], *_RETAILER_LOGO_FALLBACK_URLS.get(key, ()))
+    for url in urls:
         try:
-            local_path.parent.mkdir(parents=True, exist_ok=True)
-            temp_path = local_path.with_suffix(local_path.suffix + ".tmp")
-            temp_path.write_bytes(content)
-            temp_path.replace(local_path)
-        except Exception:
-            pass
-        return logo
-    except Exception:
-        return None
+            response = requests.get(
+                url,
+                timeout=(3.5, 8),
+                headers={
+                    "User-Agent": "Mozilla/5.0 (compatible; OfferChin/1.0)",
+                    "Accept": "image/png,image/webp,image/svg+xml,*/*;q=0.8",
+                    "Referer": "https://snappshop.ir/" if is_snappshop else "https://www.digikala.com/",
+                },
+            )
+            response.raise_for_status()
+            content = response.content
+            logo = _decode_retailer_logo(content, is_snappshop)
+            if logo is None:
+                print(f"RETAILER_LOGO_BOOTSTRAP_INVALID store={key} source={url}")
+                continue
+
+            # Persist normalized PNG/SVG data so later scheduled jobs load it offline.
+            try:
+                stored_content = _cacheable_logo_bytes(content, is_snappshop)
+                local_path.parent.mkdir(parents=True, exist_ok=True)
+                temp_path = local_path.with_suffix(local_path.suffix + ".tmp")
+                temp_path.write_bytes(stored_content)
+                temp_path.replace(local_path)
+                print(f"RETAILER_LOGO_CACHED store={key} path={local_path.name} source={url}")
+            except Exception as exc:
+                print(f"RETAILER_LOGO_CACHE_FAILED store={key} error={type(exc).__name__}")
+            return logo
+        except Exception as exc:
+            # Diagnostics make first-run bootstrapping observable, but this never
+            # prevents publishing if logo hosting is temporarily unavailable.
+            print(
+                f"RETAILER_LOGO_BOOTSTRAP_RETRY store={key} "
+                f"source={url} error={type(exc).__name__}: {exc}"
+            )
+    return None
 
 
 def draw_retailer_badge(image, left: int, top: int, width: int, height: int, merchant: str) -> None:

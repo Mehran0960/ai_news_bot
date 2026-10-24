@@ -2111,6 +2111,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("dkstatics-public.digikala.com", _RETAILER_LOGO_URLS["digikala"])
         self.assertIn("cdn.snappshop.ir", _RETAILER_LOGO_URLS["snappshop"])
         self.assertNotIn("brandfetch", _RETAILER_LOGO_URLS["snappshop"].lower())
+        from offerchin_visuals import _RETAILER_LOGO_FALLBACK_URLS
+        self.assertIn("cdn.snappshop.ir", _RETAILER_LOGO_FALLBACK_URLS["snappshop"][0])
+        self.assertIn("cdn.snappshop.ir", _RETAILER_LOGO_FALLBACK_URLS["snappshop"][1])
 
     def test_local_retailer_logo_assets_load_without_network(self):
         import offerchin_visuals as visuals
