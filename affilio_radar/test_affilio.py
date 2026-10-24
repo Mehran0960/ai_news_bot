@@ -204,7 +204,7 @@ class AffilioRadarTests(unittest.TestCase):
             "original_price": 2_250_000,
             "discount_percent": 53,
         }, affiliate)
-        self.assertIn("اسنپ‌شاپ", caption)
+        self.assertIn("🔥 فروش ویژه اسنپ‌شاپ 🟣", caption)
         self.assertNotIn("دیجی‌کالا", caption)
 
     def test_snappshop_without_confirmed_expiry_can_publish_when_live_deal_is_verified(self):
@@ -1397,7 +1397,7 @@ class AffilioRadarTests(unittest.TestCase):
             "rating": 4.4,
             "review_count": 1243,
         }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
-        self.assertIn("🔥 فروش ویژه دیجی‌کالا", caption)
+        self.assertIn("🔥 فروش ویژه دیجی‌کالا 🔴", caption)
         self.assertIn("🛍️ گجت نمونه ۶۰", caption)
         self.assertNotIn("<b>🔥 فروش ویژه دیجی‌کالا</b>", caption)
         self.assertIn("<b>💚 قیمت ویژه: ۵۰۰٬۰۰۰ تومان</b>", caption)
@@ -1490,6 +1490,20 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(result["message_id"], 88)
+
+    def test_snappshop_bale_purchase_button_uses_correct_store_name(self):
+        response = unittest.mock.Mock()
+        response.json.return_value = {"ok": True, "result": {"message_id": 89}}
+        link = build_affilio_tracking_link("https://snappshop.ir/product/snp-25751584")
+        with (
+            patch("affilio_radar.BALE_BOT_TOKEN", "bale-test-token"),
+            patch("affilio_radar.BALE_CHANNEL_ID", "-10012345"),
+            patch("affilio_radar.requests.post", return_value=response) as post,
+        ):
+            _send_bale_photo(b"photo-bytes", "caption", link)
+        markup = json.loads(post.call_args.kwargs["data"]["reply_markup"])
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده و خرید از اسنپ‌شاپ")
+        self.assertEqual(markup["inline_keyboard"][0][0]["url"], link)
 
     def test_original_price_is_never_shown_in_telegram_or_bale_caption(self):
         product = {"title": "محصول نمونه", "current_price": 123_200, "original_price": 1_108_800, "discount_percent": 89}
@@ -2090,6 +2104,23 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(preview.format, "JPEG")
             self.assertEqual(preview.size, (480, 640))
         self.assertNotEqual(rendered_without_badge, image_bytes.getvalue())
+
+    def test_store_badge_is_visible_in_upper_left_and_changes_by_retailer(self):
+        image_bytes = BytesIO()
+        Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")
+        source = image_bytes.getvalue()
+        digikala = build_discount_image(source, None, merchant="دیجی‌کالا")
+        snappshop = build_discount_image(source, None, merchant="اسنپ‌شاپ")
+        self.assertNotEqual(digikala, snappshop)
+
+        with Image.open(BytesIO(digikala)).convert("RGB") as preview:
+            crop = preview.crop((0, 0, 185, 90))
+            red_pixels = sum(1 for red, green, blue in crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
+            self.assertGreater(red_pixels, 100)
+        with Image.open(BytesIO(snappshop)).convert("RGB") as preview:
+            crop = preview.crop((0, 0, 185, 90))
+            purple_pixels = sum(1 for red, green, blue in crop.getdata() if blue > 90 and red > green * 1.6 and blue > green * 1.6)
+            self.assertGreater(purple_pixels, 100)
 
     def test_channel_watermarks_use_platform_specific_compact_links(self):
         image_bytes = BytesIO()

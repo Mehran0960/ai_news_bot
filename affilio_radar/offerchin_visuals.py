@@ -76,3 +76,81 @@ def draw_discount_burst(draw, left: int, top: int, width: int, height: int, disc
         stroke_width=max(1, min(width, height) // 75),
         stroke_fill=(105, 0, 0),
     )
+
+
+
+def draw_retailer_badge(draw, left: int, top: int, width: int, height: int, merchant: str) -> None:
+    """Draw a compact, self-contained storefront badge without network/font-asset dependencies.
+
+    Brand-colored marks and wordmarks make the seller source visible without covering
+    the discount burst or depending on remote logo hosting at publication time.
+    """
+    store = str(merchant or "").strip().lower()
+    is_snappshop = "snapp" in store or "اسنپ" in store
+    brand_color = "#B400AE" if is_snappshop else "#E52332"
+    wordmark = "Snapp! Shop" if is_snappshop else "digikala"
+
+    width, height = max(70, int(width)), max(28, int(height))
+    right, bottom = left + width, top + height
+    radius = max(5, height // 5)
+    draw.rounded_rectangle(
+        (left + 2, top + 3, right + 2, bottom + 3),
+        radius=radius,
+        fill="#17251D",
+    )
+    draw.rounded_rectangle(
+        (left, top, right, bottom),
+        radius=radius,
+        fill="#FFFFFF",
+        outline=brand_color,
+        width=max(1, height // 24),
+    )
+
+    pad = max(4, height // 9)
+    icon_size = max(20, height - 2 * pad)
+    icon_left = left + pad
+    icon_top = top + (height - icon_size) // 2
+    icon_right = icon_left + icon_size
+    icon_bottom = icon_top + icon_size
+    draw.rounded_rectangle(
+        (icon_left, icon_top, icon_right, icon_bottom),
+        radius=max(4, icon_size // 5),
+        fill=brand_color,
+    )
+    if is_snappshop:
+        icon_font = _sale_font(max(11, int(icon_size * 0.46)))
+        draw.text(
+            (icon_left + icon_size / 2, icon_top + icon_size / 2),
+            "S!",
+            font=icon_font,
+            fill="#FFFFFF",
+            anchor="mm",
+        )
+    else:
+        # A white smile gives the small red mark a distinctive DigiKala-like shape.
+        inset = max(5, icon_size // 5)
+        draw.arc(
+            (icon_left + inset, icon_top + inset, icon_right - inset, icon_bottom - inset),
+            start=20,
+            end=160,
+            fill="#FFFFFF",
+            width=max(2, icon_size // 10),
+        )
+
+    text_left = icon_right + max(5, height // 8)
+    available_width = max(1, right - pad - text_left)
+    font_size = max(9, int(height * 0.42))
+    font = _sale_font(font_size)
+    try:
+        while font_size > 8 and draw.textbbox((0, 0), wordmark, font=font)[2] > available_width:
+            font_size -= 1
+            font = _sale_font(font_size)
+    except Exception:
+        pass
+    draw.text(
+        (text_left, top + height / 2),
+        wordmark,
+        font=font,
+        fill=brand_color,
+        anchor="lm",
+    )

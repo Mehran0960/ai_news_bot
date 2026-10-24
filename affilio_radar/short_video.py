@@ -17,7 +17,7 @@ from typing import Mapping
 
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps, features
-from offerchin_visuals import draw_discount_burst
+from offerchin_visuals import draw_discount_burst, draw_retailer_badge
 from offerchin_audio import write_original_soundtrack
 
 WIDTH = 720
@@ -319,6 +319,9 @@ def build_vertical_poster(
         badge_width, badge_height = 188, 140
         left, top = WIDTH - 44 - badge_width, 173
         draw_discount_burst(draw, left, top, badge_width, badge_height, discount)
+
+    # The retailer mark sits at upper-left, opposite the discount badge.
+    draw_retailer_badge(draw, 48, 178, 176, 46, merchant)
 
     # Large current price and a crossed-out former price communicate the deal instantly.
     price_panel = (34, 695, WIDTH - 34, 948)

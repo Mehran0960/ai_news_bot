@@ -25,7 +25,7 @@ import requests
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
-from offerchin_visuals import draw_discount_burst
+from offerchin_visuals import draw_discount_burst, draw_retailer_badge
 import arabic_reshaper
 from bidi.algorithm import get_display
 
@@ -3450,8 +3450,10 @@ def build_caption(
     else:
         channel_footer = f'<a href="{channel_href}">{channel_text}</a>'
 
+    merchant = p.get("merchant") or product_merchant(p.get("product_url") or affiliate_url)
+    merchant_marker = "🟣" if "اسنپ" in str(merchant) or "snapp" in str(merchant).lower() else "🔴"
     parts = [
-        f"🔥 فروش ویژه {p.get('merchant') or product_merchant(p.get('product_url') or affiliate_url)}",
+        f"🔥 فروش ویژه {merchant} {merchant_marker}",
         "",
         f"🛍️ {title}",
         "",
@@ -3472,7 +3474,6 @@ def build_caption(
 
     # Offer deadlines remain in state for verified cleanup; captions never show timers.
 
-    merchant = p.get("merchant") or product_merchant(p.get("product_url") or affiliate_url)
     detail_line = f"👇 برای خرید از {merchant}، دکمهٔ زیر رو بزن."
     parts += ["", channel_footer, "", detail_line]
     caption = "\n".join(parts)
@@ -3535,8 +3536,13 @@ def _draw_platform_watermark_icon(draw, platform: str, x: int, y: int, size: int
     )
 
 
-def build_discount_image(image_bytes: bytes, discount_percent=None, watermark: str = "T.me/OfferChin") -> bytes:
-    """Prepare a channel-specific product image with a discount badge and brand watermark."""
+def build_discount_image(
+    image_bytes: bytes,
+    discount_percent=None,
+    watermark: str = "T.me/OfferChin",
+    merchant: str = "دیجی‌کالا",
+) -> bytes:
+    """Prepare a product image with store identity, discount badge, and OfferChin channel watermark."""
     from io import BytesIO
     with Image.open(BytesIO(image_bytes)) as raw:
         raw.load()
@@ -3567,9 +3573,15 @@ def build_discount_image(image_bytes: bytes, discount_percent=None, watermark: s
                 discount_value,
             )
 
-    # Every photo carries both channel IDs so audiences can discover either platform.
+    # Store identity sits at the upper-left, opposite the discount burst at upper-right.
     width, height = image.size
     min_dim = min(width, height)
+    margin = max(10, int(min_dim * 0.025))
+    store_badge_width = min(width - 2 * margin, max(124, min(260, int(min_dim * 0.31))))
+    store_badge_height = max(36, min(56, int(min_dim * 0.085)))
+    draw_retailer_badge(draw, margin, margin, store_badge_width, store_badge_height, merchant)
+
+    # Every photo carries both channel IDs so audiences can discover either platform.
     watermarks = [("telegram", "T.me/OfferChin"), ("bale", "ble.ir/OfferChin")]
     margin = max(10, min_dim // 35)
     pad = max(7, min_dim // 80)
@@ -3672,7 +3684,7 @@ def _send_bale_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
-            "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
+            "text": purchase_button_label(affiliate_url),
             "url": affiliate_url,
         }]]
     }, ensure_ascii=False)
@@ -3711,10 +3723,16 @@ def _has_pending_delivery(record: dict) -> bool:
 def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliate_url: str):
     """Render the correct channel watermark and send to one destination."""
     if platform == "telegram":
-        photo = build_discount_image(image_bytes, item.get("discount_percent"), watermark="T.me/OfferChin")
+        photo = build_discount_image(
+            image_bytes, item.get("discount_percent"),
+            watermark="T.me/OfferChin", merchant=item.get("merchant") or "دیجی‌کالا",
+        )
         return _send_photo(photo, build_caption(item, affiliate_url, TELEGRAM_CHANNEL_URL), affiliate_url)
     if platform == "bale":
-        photo = build_discount_image(image_bytes, item.get("discount_percent"), watermark="ble.ir/OfferChin")
+        photo = build_discount_image(
+            image_bytes, item.get("discount_percent"),
+            watermark="ble.ir/OfferChin", merchant=item.get("merchant") or "دیجی‌کالا",
+        )
         return _send_bale_photo(
             photo,
             build_caption(item, affiliate_url, BALE_CHANNEL_URL, use_unicode_strikethrough=True),
@@ -3739,7 +3757,7 @@ def _edit_telegram_caption(message_id: int, caption: str, affiliate_url: str = "
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
-            "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
+            "text": purchase_button_label(affiliate_url),
             "url": affiliate_url,
         }]]
     }, ensure_ascii=False)
@@ -3792,7 +3810,7 @@ def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
-            "text": "🛍️ مشاهده و خرید از دیجی‌کالا",
+            "text": purchase_button_label(affiliate_url),
             "url": affiliate_url,
         }]]
     }, ensure_ascii=False)

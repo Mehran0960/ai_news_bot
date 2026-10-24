@@ -108,6 +108,23 @@ class ShortVideoTests(unittest.TestCase):
         self.assertEqual(poster.getpixel((61, 1038)), (36, 161, 222))
         self.assertEqual(poster.getpixel((60, 1096)), (0, 184, 148))
 
+    def test_retailer_badge_appears_on_video_poster_for_each_store(self):
+        image = Image.new("RGB", (400, 500), (255, 255, 255))
+        stream = io.BytesIO()
+        image.save(stream, format="PNG")
+        digikala = Image.open(io.BytesIO(build_vertical_poster(
+            stream.getvalue(), 50, merchant="دیجی‌کالا",
+        ))).convert("RGB")
+        snappshop = Image.open(io.BytesIO(build_vertical_poster(
+            stream.getvalue(), 50, merchant="اسنپ‌شاپ",
+        ))).convert("RGB")
+        digikala_crop = digikala.crop((35, 165, 250, 235))
+        snappshop_crop = snappshop.crop((35, 165, 250, 235))
+        red_pixels = sum(1 for red, green, blue in digikala_crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
+        purple_pixels = sum(1 for red, green, blue in snappshop_crop.getdata() if blue > 90 and red > green * 1.6 and blue > green * 1.6)
+        self.assertGreater(red_pixels, 100)
+        self.assertGreater(purple_pixels, 100)
+
     def test_discount_is_drawn_inside_red_comic_burst(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
