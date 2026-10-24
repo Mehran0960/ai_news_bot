@@ -43,6 +43,7 @@ AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
     "AFFILIO_CLICK_TRACKER_BASE_URL",
     "https://affiliate-deal-radar.m-hoseyni-6966.workers.dev",
 ).strip().rstrip("/")
+_CLICK_TRACKER_HEALTH_CACHE: bool | None = None
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
 FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "false").strip().lower() in {"1", "true", "yes", "on"}
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
@@ -271,7 +272,7 @@ def build_affilio_tracking_link(product_url: str, template: str | None = None) -
 
 
 def _affiliate_destination_matches_product(affiliate_url: str, canonical_product_url: str) -> bool:
-    """Accept only the confirmed OfferChin public link for the same DigiKala product."""
+    """Accept only the confirmed OfferChin public link for the same DigiKala or SnappShop product."""
     canonical = safe_product_url(canonical_product_url)
     if not canonical:
         return False
@@ -290,7 +291,7 @@ def _affiliate_destination_matches_product(affiliate_url: str, canonical_product
 
 
 def _is_valid_affilio_tracking_url(affiliate_url: str) -> bool:
-    """Validate the exact public Affilio template and its DigiKala product destination."""
+    """Validate the exact public Affilio template and its DigiKala or SnappShop destination."""
     try:
         parsed = urlsplit(str(affiliate_url or "").strip())
         destinations = parse_qs(parsed.query, keep_blank_values=True).get("p", [])
@@ -309,14 +310,13 @@ def build_click_tracking_link(
     product_url: str,
     affiliate_url: str,
     base_url: str | None = None,
+    source: str = "unknown",
 ) -> str:
-    """Wrap a verified affiliate destination in the first-party click counter."""
+    """Wrap a verified Affilio link for privacy-preserving product/source click counts."""
     canonical = safe_product_url(product_url)
     original = str(affiliate_url or "").strip()
-    if not canonical or not original:
-        return original
-    # The click-counter Worker currently understands only DigiKala dkp IDs.
-    if product_id(canonical).startswith("snp-"):
+    pid = product_id(canonical) if canonical else ""
+    if not canonical or not original or not re.fullmatch(r"(?:dkp-\d{1,12}|snp-\d{1,20})", pid):
         return original
     if not _affiliate_destination_matches_product(original, canonical):
         return original
@@ -335,7 +335,90 @@ def build_click_tracking_link(
         or parsed_base.password
     ):
         return original
-    return f"{base}/p/{product_id(canonical)}?u={quote(original, safe='')}"
+
+    allowed_sources = {"telegram", "bale", "youtube", "aparat"}
+    source_value = str(source or "unknown").strip().lower()
+    if source_value not in allowed_sources:
+        source_value = "unknown"
+    return f"{base}/p/{pid}?u={quote(original, safe='')}&src={quote(source_value, safe='')}"
+
+
+def _click_tracker_is_healthy() -> bool:
+    """Probe health and both retailer redirect paths without recording click events."""
+    global _CLICK_TRACKER_HEALTH_CACHE
+    if _CLICK_TRACKER_HEALTH_CACHE is not None:
+        return _CLICK_TRACKER_HEALTH_CACHE
+
+    base = AFFILIO_CLICK_TRACKER_BASE_URL.strip().rstrip("/")
+    try:
+        parsed_base = urlsplit(base)
+        if (
+            parsed_base.scheme != "https"
+            or not parsed_base.netloc
+            or parsed_base.query
+            or parsed_base.fragment
+            or parsed_base.username
+            or parsed_base.password
+        ):
+            raise RuntimeError("tracker_base_invalid")
+
+        health = SESSION.get(
+            f"{base}/health",
+            headers={"Accept": "application/json", "User-Agent": "OfferChinClickTrackerProbe/1.0"},
+            timeout=(3, 5),
+        )
+        health.raise_for_status()
+        health_payload = health.json()
+        if health_payload.get("ok") is not True or health_payload.get("clickStoreReady") is not True:
+            raise RuntimeError("tracker_health_not_ready")
+
+        # HEAD never writes a click event. Both retailer paths must validate before tracking is enabled.
+        probes = (
+            ("https://www.digikala.com/product/dkp-15970075/", "telegram"),
+            ("https://snappshop.ir/product/snp-2097083854", "bale"),
+        )
+        for product_url, source in probes:
+            affiliate = build_affilio_tracking_link(product_url)
+            if not _is_valid_affilio_tracking_url(affiliate):
+                raise RuntimeError("tracker_probe_affilio_link_invalid")
+            wrapped = build_click_tracking_link(product_url, affiliate, base, source=source)
+            probe = SESSION.head(
+                wrapped,
+                headers={"User-Agent": "OfferChinClickTrackerProbe/1.0"},
+                allow_redirects=False,
+                timeout=(3, 5),
+            )
+            location = urlsplit(str(probe.headers.get("Location") or ""))
+            if (
+                probe.status_code != 302
+                or (location.hostname or "").lower() != "aflo.ir"
+                or location.path != "/QekEYTRg"
+                or parse_qs(location.query, keep_blank_values=True).get("p") != [safe_product_url(product_url)]
+            ):
+                raise RuntimeError(f"tracker_redirect_probe_failed_{probe.status_code}")
+
+        _CLICK_TRACKER_HEALTH_CACHE = True
+        print("CLICK_TRACKER_READY retailers=digikala,snappshop source_attribution=enabled")
+    except Exception as exc:
+        _CLICK_TRACKER_HEALTH_CACHE = False
+        print(f"CLICK_TRACKER_BYPASS reason={type(exc).__name__}; direct_affilio_links_preserved")
+    return _CLICK_TRACKER_HEALTH_CACHE
+
+
+def tracked_affiliate_button_url(affiliate_url: str, source: str) -> str:
+    """Use source-aware click tracking only after health checks; otherwise preserve the direct Affilio link."""
+    original = str(affiliate_url or "").strip()
+    if not _is_valid_affilio_tracking_url(original) or not _click_tracker_is_healthy():
+        return original
+    try:
+        destinations = parse_qs(urlsplit(original).query, keep_blank_values=True).get("p", [])
+    except Exception:
+        return original
+    if len(destinations) != 1:
+        return original
+    canonical = safe_product_url(destinations[0])
+    wrapped = build_click_tracking_link(canonical, original, source=source)
+    return wrapped if wrapped and wrapped != original else original
 
 
 def _walk_dicts(value):
@@ -3161,8 +3244,8 @@ def deal_sort_key(p: dict) -> tuple:
     )
 
 
-def fetch_click_statistics() -> dict[str, int]:
-    """Fetch aggregate last-30-day clicks; analytics outages never block publication."""
+def _fetch_click_statistics_snapshot() -> dict:
+    """Fetch a complete aggregate 30-day click snapshot; analytics outages never block publication."""
     base = AFFILIO_CLICK_TRACKER_BASE_URL.strip().rstrip("/")
     if not base.startswith("https://"):
         print("CLICK_STATS_UNAVAILABLE reason=tracker_url_not_https")
@@ -3176,37 +3259,73 @@ def fetch_click_statistics() -> dict[str, int]:
         response.raise_for_status()
         payload = response.json()
         products = payload.get("products") if isinstance(payload, dict) else None
-        # Ignore partial snapshots so a truncated day's results cannot distort rankings.
         if payload.get("ok") is not True or payload.get("complete") is not True or not isinstance(products, dict):
             print("CLICK_STATS_UNAVAILABLE reason=incomplete_or_invalid_snapshot")
             return {}
-        counts = {}
-        for pid, raw_count in products.items():
-            if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", str(pid)):
-                continue
-            try:
-                count = int(raw_count)
-            except (TypeError, ValueError, OverflowError):
-                continue
-            if count >= 0:
-                counts[str(pid)] = count
-        print(
-            f"CLICK_STATS_LOADED days={payload.get('days', 30)} "
-            f"products={len(counts)} total_clicks={int(payload.get('totalClicks') or 0)} "
-            f"updated_at={payload.get('updatedAt', 'unknown')}"
-        )
-        return counts
+        return payload
     except Exception as exc:
         print(f"CLICK_STATS_UNAVAILABLE error={type(exc).__name__}")
         return {}
 
 
+def _valid_click_counts(raw_counts) -> dict[str, int]:
+    if not isinstance(raw_counts, dict):
+        return {}
+    counts = {}
+    for pid, raw_count in raw_counts.items():
+        if not re.fullmatch(r"(?:dkp-\d{1,12}|snp-\d{1,20})", str(pid)):
+            continue
+        try:
+            count = int(raw_count)
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if count >= 0:
+            counts[str(pid)] = count
+    return counts
+
+
+def fetch_click_statistics() -> dict[str, int]:
+    """Return aggregate click totals by product for backwards-compatible ranking."""
+    payload = _fetch_click_statistics_snapshot()
+    counts = _valid_click_counts(payload.get("products") if isinstance(payload, dict) else {})
+    if payload:
+        channels = payload.get("channels", {}) if isinstance(payload.get("channels"), dict) else {}
+        print(
+            f"CLICK_STATS_LOADED days={payload.get('days', 30)} products={len(counts)} "
+            f"total_clicks={int(payload.get('totalClicks') or 0)} channels={len(channels)} "
+            f"updated_at={payload.get('updatedAt', 'unknown')}"
+        )
+    return counts
+
+
 def enrich_click_statistics(products: list[dict]) -> None:
-    """Attach valid aggregate click counts for tie-breaking, never as a hard publish filter."""
-    counts = fetch_click_statistics()
+    """Attach total and source-specific click counts; analytics outages never block publishing."""
+    payload = _fetch_click_statistics_snapshot()
+    counts = _valid_click_counts(payload.get("products") if isinstance(payload, dict) else {})
+    raw_by_product = payload.get("productChannels", {}) if isinstance(payload, dict) else {}
+    allowed_sources = {"telegram", "bale", "youtube", "aparat", "unknown"}
     for product in products:
         pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
         product["click_count_30d"] = counts.get(pid, 0)
+        raw_sources = raw_by_product.get(pid, {}) if isinstance(raw_by_product, dict) else {}
+        source_counts = {}
+        if isinstance(raw_sources, dict):
+            for source, value in raw_sources.items():
+                if str(source) not in allowed_sources:
+                    continue
+                try:
+                    count = int(value)
+                except (TypeError, ValueError, OverflowError):
+                    continue
+                if count >= 0:
+                    source_counts[str(source)] = count
+        product["click_counts_30d_by_source"] = source_counts
+    if payload:
+        print(
+            f"CLICK_STATS_ENRICHED products={len(products)} "
+            f"with_clicks={sum(1 for product in products if product.get('click_count_30d', 0) > 0)} "
+            f"source_breakdowns={sum(1 for product in products if product.get('click_counts_30d_by_source'))}"
+        )
 
 
 def load_catalog() -> list[dict]:
@@ -3688,10 +3807,11 @@ def _send_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     data = {"chat_id": TARGET_CHAT, "caption": caption, "parse_mode": "HTML"}
     if not _is_valid_affilio_tracking_url(affiliate_url):
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
+    button_url = tracked_affiliate_button_url(affiliate_url, "telegram")
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
             "text": purchase_button_label(affiliate_url),
-            "url": affiliate_url,
+            "url": button_url,
         }]]
     }, ensure_ascii=False)
     response = requests.post(
@@ -3717,10 +3837,11 @@ def _send_bale_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     data = {"chat_id": BALE_CHANNEL_ID, "caption": caption}
     if not _is_valid_affilio_tracking_url(affiliate_url):
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
+    button_url = tracked_affiliate_button_url(affiliate_url, "bale")
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
             "text": purchase_button_label(affiliate_url),
-            "url": affiliate_url,
+            "url": button_url,
         }]]
     }, ensure_ascii=False)
     response = requests.post(
@@ -3790,10 +3911,11 @@ def _edit_telegram_caption(message_id: int, caption: str, affiliate_url: str = "
     }
     if not _is_valid_affilio_tracking_url(affiliate_url):
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
+    button_url = tracked_affiliate_button_url(affiliate_url, "telegram")
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
             "text": purchase_button_label(affiliate_url),
-            "url": affiliate_url,
+            "url": button_url,
         }]]
     }, ensure_ascii=False)
 
@@ -3843,10 +3965,11 @@ def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
     }
     if not _is_valid_affilio_tracking_url(affiliate_url):
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
+    button_url = tracked_affiliate_button_url(affiliate_url, "bale")
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
             "text": purchase_button_label(affiliate_url),
-            "url": affiliate_url,
+            "url": button_url,
         }]]
     }, ensure_ascii=False)
 
@@ -5341,7 +5464,7 @@ def effective_posts_per_run(backlog_count, configured_limit=None, force_full_bat
 
 
 VIDEO_STYLE_VERSION = 4  # product title, price comparison, discount badge and on-frame DigiKala CTA
-YOUTUBE_DESCRIPTION_VERSION = 2  # public channel links, minimal YouTube description
+YOUTUBE_DESCRIPTION_VERSION = 3  # public channel links plus product-specific checked purchase link
 PERSIAN_TEXT_RENDERER_VERSION = 2  # single RTL/bidi pass via Pillow RAQM when available
 PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
 # The generic web uploader can publish vertical 9:16 videos to Aparat's regular feed, but cannot guarantee
@@ -5794,7 +5917,7 @@ def process_pending_short_video(
             try:
                 update_youtube_video_description(
                     video_id,
-                    build_video_channel_description(state, "youtube"),
+                    build_video_channel_description(state, "youtube", record=existing_record),
                 )
                 existing_record["youtube_description_version"] = YOUTUBE_DESCRIPTION_VERSION
                 existing_record["youtube_description_updated_at"] = current.isoformat()
@@ -6131,7 +6254,7 @@ def process_pending_short_video(
             aparat_result = upload_aparat_video(
                 output_path,
                 str(record.get("title") or "پیشنهاد آفِرچین"),
-                description=build_video_channel_description(state, "aparat"),
+                description=build_video_channel_description(state, "aparat", record=record),
             )
             record["aparat_upload_status"] = "uploaded"
             record["aparat_video_record_id"] = aparat_result.get("video_id", "")
@@ -6202,7 +6325,7 @@ def process_pending_short_video(
                 output_path,
                 str(record.get("title") or "پیشنهاد آفِرچین"),
                 record.get("posted_discount_percent"),
-                description=build_video_channel_description(state, "youtube"),
+                description=build_video_channel_description(state, "youtube", record=record),
             )
             record["youtube_upload_status"] = "uploaded"
             record["youtube_video_id"] = result["video_id"]
@@ -6449,35 +6572,53 @@ def record_daily_member_count_snapshot(
 
 
 
-def build_video_channel_description(state: dict, source: str) -> str:
-    """Build clean platform descriptions; keep YouTube links public and directly clickable."""
-    if source == "youtube":
-        return (
-            "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا و اسنپ‌شاپ را در آفِرچین دنبال کنید.\n\n"
-            "کانال تلگرام:\n"
-            "https://t.me/OfferChin\n"
-            "کانال بله:\n"
-            "https://ble.ir/OfferChin\n"
-            "آپارات:\n"
-            "https://www.aparat.com/OfferChin"
-        )
+def build_video_channel_description(state: dict, source: str, record: dict | None = None) -> str:
+    """Build platform descriptions with the video's product-specific Affilio buying link."""
+    source_value = str(source or "").strip().lower()
+    lines = [
+        "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا و اسنپ‌شاپ را در آفِرچین دنبال کنید.",
+    ]
+    if source_value != "youtube":
+        lines.append("قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در فروشگاه مربوط بررسی کنید.")
+
+    product_url = safe_product_url((record or {}).get("product_url", "")) if isinstance(record, dict) else ""
+    if product_url:
+        affiliate_url = build_affilio_tracking_link(product_url)
+        if _is_valid_affilio_tracking_url(affiliate_url):
+            purchase_url = tracked_affiliate_button_url(
+                affiliate_url,
+                source_value if source_value in {"youtube", "aparat"} else "unknown",
+            )
+            lines.extend(["", "لینک خرید محصول:", purchase_url])
+
+    if source_value == "youtube":
+        lines.extend([
+            "",
+            "کانال تلگرام:",
+            "https://t.me/OfferChin",
+            "کانال بله:",
+            "https://ble.ir/OfferChin",
+            "آپارات:",
+            "https://www.aparat.com/OfferChin",
+        ])
+        return "\n".join(lines)
 
     tracking = state.get("growth_tracking", {}) if isinstance(state, dict) else {}
     links = tracking.get("telegram_invite_links", {}) if isinstance(tracking, dict) else {}
-    record = links.get(source, {}) if isinstance(links, dict) else {}
-    invite_url = str(record.get("url") or "").strip() if isinstance(record, dict) else ""
+    link_record = links.get(source_value, {}) if isinstance(links, dict) else {}
+    invite_url = str(link_record.get("url") or "").strip() if isinstance(link_record, dict) else ""
     parsed = urlsplit(invite_url)
     if not (parsed.scheme == "https" and parsed.netloc.lower() in {"t.me", "telegram.me"} and parsed.path):
         invite_url = TELEGRAM_CHANNEL_URL
     source_names = {"aparat": "آپارات", "youtube": "یوتیوب"}
-    source_label = source_names.get(source, "این ویدئو")
-    return (
-        "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا و اسنپ‌شاپ را در آفِرچین دنبال کنید.\n"
-        "قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در فروشگاه مربوط بررسی کنید.\n\n"
-        f"برای عضویت در تلگرام از {source_label}:\n{invite_url}\n"
-        "کانال بله: https://ble.ir/OfferChin"
-    )
-
+    source_label = source_names.get(source_value, "این ویدئو")
+    lines.extend([
+        "",
+        f"برای عضویت در تلگرام از {source_label}:",
+        invite_url,
+        "کانال بله: https://ble.ir/OfferChin",
+    ])
+    return "\n".join(lines)
 
 def tracked_telegram_invite_url(state: dict, source: str) -> str:
     """Get a validated saved invite URL for replacing a source link in a pinned message."""

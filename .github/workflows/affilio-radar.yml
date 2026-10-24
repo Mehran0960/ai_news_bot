@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - "affilio_radar/affilio_radar.py"
+      - "affilio_radar/affiliate-deal-radar-worker.js"
+      - "affilio_radar/affiliate-deal-radar-worker.js"
       - "affilio_radar/short_video.py"
       - "affilio_radar/offerchin_visuals.py"
       - "affilio_radar/assets/retailer-logos/**"
@@ -137,12 +139,14 @@ jobs:
         run: |
           python - <<'PY'
           import os
+          from urllib.parse import quote, urlsplit
           import requests
 
           base = os.getenv(
               "AFFILIO_CLICK_TRACKER_BASE_URL",
               "https://affiliate-deal-radar.m-hoseyni-6966.workers.dev",
           ).rstrip("/")
+          # This UA is intentionally bot-like so probes never count as customer clicks.
           headers = {"User-Agent": "Bot"}
           health = requests.get(f"{base}/health", timeout=20, headers=headers)
           health.raise_for_status()
@@ -151,9 +155,8 @@ jobs:
           assert status.get("clickStoreReady") is True, status
           print("CLICK_TRACKER_HEALTH_OK")
 
-          product_id = "dkp-15970075"
           bad = requests.get(
-              f"{base}/p/{product_id}",
+              f"{base}/p/dkp-15970075",
               params={"u": "https://example.com/"},
               headers=headers,
               allow_redirects=False,
@@ -162,33 +165,46 @@ jobs:
           assert bad.status_code == 400, (bad.status_code, bad.text[:200])
           print("CLICK_TRACKER_REJECTS_UNTRUSTED_DESTINATION")
 
-          destination = (
-              f"https://www.digikala.com/product/{product_id}/"
-              "?utm_source=19166&utm_medium=Affilio&utm_id=14657"
-              "&affid=OTgxYTY0OTAtODJhNS00MDNkLTg0NDItMWE0MGVkOGI1Yjhj"
+          samples = (
+              (
+                  "dkp-15970075",
+                  "https://www.digikala.com/product/dkp-15970075/",
+                  "telegram",
+              ),
+              (
+                  "snp-2097083854",
+                  "https://snappshop.ir/product/snp-2097083854",
+                  "bale",
+              ),
           )
-          good = requests.get(
-              f"{base}/p/{product_id}",
-              params={"u": destination},
-              headers=headers,
-              allow_redirects=False,
-              timeout=20,
-          )
-          assert good.status_code == 302, (good.status_code, good.text[:200])
-          assert good.headers.get("Location", "").startswith(
-              f"https://www.digikala.com/product/{product_id}/"
-          ), good.headers.get("Location")
-          print("CLICK_TRACKER_VALID_REDIRECT_OK")
+          for product_id, product_url, source in samples:
+              publisher_link = "https://aflo.ir/QekEYTRg?p=" + quote(product_url, safe="")
+              good = requests.get(
+                  f"{base}/p/{product_id}",
+                  params={"u": publisher_link, "src": source},
+                  headers=headers,
+                  allow_redirects=False,
+                  timeout=20,
+              )
+              assert good.status_code == 302, (product_id, good.status_code, good.text[:200])
+              location = urlsplit(good.headers.get("Location", ""))
+              assert location.scheme == "https" and location.hostname == "aflo.ir", (
+                  product_id, good.headers.get("Location")
+              )
+              assert location.path == "/QekEYTRg", (product_id, location.path)
+              assert location.query.startswith("p="), (product_id, location.query)
+              print(f"CLICK_TRACKER_VALID_AFFILIO_REDIRECT_OK product={product_id} source={source}")
 
           stats = requests.get(f"{base}/stats", timeout=20, headers=headers)
           stats.raise_for_status()
           analytics = stats.json()
           assert analytics.get("ok") is True, analytics
           assert isinstance(analytics.get("products"), dict), analytics
+          assert isinstance(analytics.get("channels"), dict), analytics
+          assert isinstance(analytics.get("productChannels"), dict), analytics
           assert isinstance(analytics.get("totalClicks"), int), analytics
-          print("CLICK_TRACKER_AGGREGATED_STATS_OK")
+          print("CLICK_TRACKER_PRODUCT_AND_SOURCE_STATS_OK")
           PY
-
       # [repair-all-captions] Repairs every surviving caption without timers and restores its verified purchase button.
       # [repair-all-captions] Remove obsolete expiry labels from every tracked live caption in place.
       # [scan-now] Runs a fresh direct-feed timer diagnostic and eligibility-checked publication pass.

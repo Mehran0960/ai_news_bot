@@ -17,6 +17,7 @@ from affilio_radar import (
     product_id,
     build_affilio_tracking_link,
     build_click_tracking_link,
+    tracked_affiliate_button_url,
     enrich_click_statistics,
     deal_sort_key,
     is_offer_expired,
@@ -137,6 +138,12 @@ UNKNOWN_STOCK_HTML = """
 
 
 class AffilioRadarTests(unittest.TestCase):
+    def setUp(self):
+        # Never make live HTTP requests from unit tests; deployed Worker health is smoke-tested separately.
+        self._click_tracker_health_patch = patch("affilio_radar._click_tracker_is_healthy", return_value=False)
+        self._click_tracker_health_patch.start()
+        self.addCleanup(self._click_tracker_health_patch.stop)
+
     def test_product_url_accepts_only_digikala_product_pages(self):
         self.assertEqual(
             safe_product_url("https://www.digikala.com/product/dkp-1234567/some-slug/?ref=x"),
@@ -158,8 +165,11 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(safe_product_url("https://evil-snappshop.ir/product/snp-2097083854"), "")
         affiliate = build_affilio_tracking_link(product)
         self.assertEqual(parse_qs(urlsplit(affiliate).query).get("p"), [canonical])
-        # The legacy click-counter Worker only supports dkp IDs, so don't wrap SnappShop links.
-        self.assertEqual(build_click_tracking_link(canonical, affiliate, "https://tracker.example"), affiliate)
+        tracked = build_click_tracking_link(canonical, affiliate, "https://tracker.example", source="bale")
+        parsed = urlsplit(tracked)
+        self.assertEqual(parsed.path, "/p/snp-2097083854")
+        self.assertEqual(parse_qs(parsed.query).get("u"), [affiliate])
+        self.assertEqual(parse_qs(parsed.query).get("src"), ["bale"])
 
     def test_fetch_product_record_uses_snappshop_internal_api_id_mapping(self):
         url = "https://snappshop.ir/product/snp-25751584"
@@ -409,6 +419,49 @@ class AffilioRadarTests(unittest.TestCase):
         affiliate = build_affilio_tracking_link(product, template)
         tracked = build_click_tracking_link(product, affiliate, "https://tracker.example")
         self.assertTrue(tracked.startswith("https://tracker.example/p/dkp-1234567?u="))
+
+    def test_click_tracker_supports_channel_attribution_and_rejects_unknown_source_names(self):
+        product = "https://www.digikala.com/product/dkp-15970075/"
+        affiliate = build_affilio_tracking_link(product)
+        telegram = build_click_tracking_link(product, affiliate, "https://tracker.example", source="telegram")
+        bale = build_click_tracking_link(product, affiliate, "https://tracker.example", source="bale")
+        self.assertNotEqual(telegram, bale)
+        self.assertEqual(parse_qs(urlsplit(telegram).query).get("src"), ["telegram"])
+        self.assertEqual(parse_qs(urlsplit(bale).query).get("src"), ["bale"])
+        unsafe = build_click_tracking_link(product, affiliate, "https://tracker.example", source="unknown-user-input")
+        self.assertEqual(parse_qs(urlsplit(unsafe).query).get("src"), ["unknown"])
+
+    def test_tracked_affiliate_url_falls_back_directly_when_tracker_is_unhealthy(self):
+        product = "https://snappshop.ir/product/snp-2097083854"
+        affiliate = build_affilio_tracking_link(product)
+        with patch("affilio_radar._click_tracker_is_healthy", return_value=False):
+            self.assertEqual(tracked_affiliate_button_url(affiliate, "bale"), affiliate)
+        with patch("affilio_radar._click_tracker_is_healthy", return_value=True):
+            wrapped = tracked_affiliate_button_url(affiliate, "bale")
+        self.assertEqual(urlsplit(wrapped).netloc, "affiliate-deal-radar.m-hoseyni-6966.workers.dev")
+        self.assertEqual(urlsplit(wrapped).path, "/p/snp-2097083854")
+        self.assertEqual(parse_qs(urlsplit(wrapped).query).get("src"), ["bale"])
+
+    def test_click_statistics_include_per_product_source_counts(self):
+        payload = {
+            "ok": True, "complete": True, "days": 30, "totalClicks": 18,
+            "products": {"dkp-15970075": 12, "snp-2097083854": 6, "bad-id": 99},
+            "channels": {"telegram": 8, "bale": 6, "youtube": 4},
+            "productChannels": {
+                "dkp-15970075": {"telegram": 5, "bale": 4, "unknown": 3, "unsafe": 99},
+                "snp-2097083854": {"aparat": 6},
+            },
+        }
+        products = [
+            {"product_id": "dkp-15970075", "product_url": "https://www.digikala.com/product/dkp-15970075/"},
+            {"product_id": "snp-2097083854", "product_url": "https://snappshop.ir/product/snp-2097083854"},
+        ]
+        with patch("affilio_radar._fetch_click_statistics_snapshot", return_value=payload):
+            enrich_click_statistics(products)
+        self.assertEqual(products[0]["click_count_30d"], 12)
+        self.assertEqual(products[0]["click_counts_30d_by_source"], {"telegram": 5, "bale": 4, "unknown": 3})
+        self.assertEqual(products[1]["click_count_30d"], 6)
+        self.assertEqual(products[1]["click_counts_30d_by_source"], {"aparat": 6})
 
     def test_default_affilio_link_uses_publishers_public_link_template(self):
         product = "https://www.digikala.com/product/dkp-15970075/?old_tracking=remove"
@@ -2508,6 +2561,19 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("قیمت، موجودی و شرایط تخفیف", youtube_description)
         self.assertIn("https://ble.ir/OfferChin", aparat_description)
         self.assertEqual(tracked_telegram_invite_url(state, "bale"), "https://t.me/OfferChin")
+
+    def test_video_descriptions_include_verified_product_purchase_link_when_record_is_available(self):
+        state = {"growth_tracking": {"telegram_invite_links": {"aparat": {"url": "https://t.me/+from_aparat"}}}}
+        record = {"product_url": "https://www.digikala.com/product/dkp-15970075/"}
+        expected_affiliate = build_affilio_tracking_link(record["product_url"])
+        with patch("affilio_radar._click_tracker_is_healthy", return_value=False):
+            aparat_description = build_video_channel_description(state, "aparat", record=record)
+            youtube_description = build_video_channel_description(state, "youtube", record=record)
+        self.assertIn("لینک خرید محصول:", aparat_description)
+        self.assertIn(expected_affiliate, aparat_description)
+        self.assertIn(expected_affiliate, youtube_description)
+        self.assertIn("https://t.me/+from_aparat", aparat_description)
+        self.assertIn("https://t.me/OfferChin", youtube_description)
 
     def test_publication_cooldown_leaves_room_for_five_minute_scan_cadence(self):
         self.assertEqual(MIN_POST_INTERVAL_HOURS, 2 / 60)
