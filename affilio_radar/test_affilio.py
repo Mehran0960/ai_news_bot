@@ -2216,10 +2216,14 @@ class AffilioRadarTests(unittest.TestCase):
     def test_retailer_logo_assets_are_stored_locally(self):
         import offerchin_visuals as visuals
 
-        self.assertTrue(visuals._LOCAL_LOGO_PATHS["digikala"].is_file())
-        self.assertTrue(visuals._LOCAL_LOGO_PATHS["snappshop"].is_file())
-        self.assertIn("<svg", visuals._LOCAL_LOGO_PATHS["digikala"].read_text(encoding="utf-8")[:200])
-        self.assertGreater(visuals._LOCAL_LOGO_PATHS["snappshop"].stat().st_size, 100)
+        self.assertEqual(visuals._LOCAL_LOGO_PATHS["digikala"].suffix, ".webp")
+        self.assertEqual(visuals._LOCAL_LOGO_PATHS["snappshop"].suffix, ".webp")
+        for path in visuals._LOCAL_LOGO_PATHS.values():
+            self.assertTrue(path.is_file())
+            with Image.open(path) as asset:
+                self.assertGreater(asset.width, 100)
+                self.assertGreater(asset.height, 100)
+                self.assertEqual(asset.format, "WEBP")
 
     def test_committed_retailer_logo_assets_load_without_network(self):
         import offerchin_visuals as visuals
@@ -2264,16 +2268,29 @@ class AffilioRadarTests(unittest.TestCase):
                 finally:
                     visuals._load_retailer_logo.cache_clear()
 
-    def test_retailer_badge_is_logo_only_and_has_no_wordmark_space(self):
+    def test_retailer_badge_preserves_official_color_background_and_wordmark(self):
         import offerchin_visuals as visuals
 
-        artwork = Image.new("RGB", (240, 90), (250, 250, 250))
-        visuals.draw_retailer_badge(artwork, 10, 10, 180, 48, "دیجی‌کالا")
-        # Icon tile is compact; the former horizontal wordmark area stays untouched.
-        self.assertEqual(
-            list(artwork.crop((70, 10, 190, 58)).getdata()),
-            list(Image.new("RGB", (120, 48), (250, 250, 250)).getdata()),
-        )
+        for merchant, box, brand in (
+            ("دیجی‌کالا", (10, 10, 86, 58), "red"),
+            ("اسنپ‌شاپ", (10, 10, 58, 58), "purple"),
+        ):
+            artwork = Image.new("RGB", (240, 90), (250, 250, 250))
+            visuals.draw_retailer_badge(artwork, 10, 10, 180, 48, merchant)
+            pixels = list(artwork.crop(box).getdata())
+            if brand == "red":
+                brand_pixels = sum(
+                    1 for r, g, b in pixels
+                    if r > 150 and r > g * 1.7 and r > b * 1.5
+                )
+            else:
+                brand_pixels = sum(
+                    1 for r, g, b in pixels
+                    if r > 100 and b > 100 and r > g * 1.6 and b > g * 1.6
+                )
+            white_pixels = sum(1 for r, g, b in pixels if r > 220 and g > 220 and b > 220)
+            self.assertGreater(brand_pixels, 500, f"{merchant} official background must remain visible")
+            self.assertGreater(white_pixels, 100, f"{merchant} official white wordmark must remain visible")
 
     def test_store_badge_is_visible_in_upper_left_and_changes_by_retailer(self):
         image_bytes = BytesIO()

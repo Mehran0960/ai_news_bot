@@ -85,8 +85,8 @@ def draw_discount_burst(draw, left: int, top: int, width: int, height: int, disc
 # reads these local files only: a temporary CDN outage can never remove a logo.
 _RETAILER_LOGO_DIR = Path(__file__).resolve().parent / "assets" / "retailer-logos"
 _LOCAL_LOGO_PATHS = {
-    "digikala": _RETAILER_LOGO_DIR / "digikala.svg",
-    "snappshop": _RETAILER_LOGO_DIR / "snappshop.png",
+    "digikala": _RETAILER_LOGO_DIR / "digikala-official.webp",
+    "snappshop": _RETAILER_LOGO_DIR / "snappshop-official.webp",
 }
 
 
@@ -121,9 +121,8 @@ def adaptive_text_colors(image, region, threshold: int = 145):
 
 
 def _decode_retailer_logo(content: bytes, is_snappshop: bool):
-    """Decode a local official asset into a tightly-cropped transparent brand mark."""
+    """Decode the complete official retailer artwork without recoloring or stripping its background."""
     from io import BytesIO
-    from PIL import Image, ImageChops
 
     if not content or len(content) > 3_000_000:
         return None
@@ -131,10 +130,6 @@ def _decode_retailer_logo(content: bytes, is_snappshop: bool):
     image_bytes = content
     is_svg = content.lstrip().startswith(b"<svg") or b"<svg" in content[:500]
     if is_svg:
-        if not is_snappshop:
-            # Use the official DigiKala shape in its brand red. This source variant
-            # contains the same mark in white for dark backgrounds.
-            image_bytes = content.replace(b"#FAFAFA", b"#E52332").replace(b"#fafafa", b"#E52332")
         try:
             import cairosvg
             image_bytes = cairosvg.svg2png(bytestring=image_bytes, output_width=900)
@@ -148,26 +143,7 @@ def _decode_retailer_logo(content: bytes, is_snappshop: bool):
     except Exception:
         return None
 
-    if is_snappshop:
-        # The official app icon is white "Shop!" lettering on a solid magenta tile.
-        # Convert the tile to transparency, keeping the original glyph and antialiasing.
-        alpha = logo.getchannel("A")
-        if alpha.getextrema() == (255, 255):
-            rgb = logo.convert("RGB")
-            w, h = rgb.size
-            sample_points = ((w // 2, 0), (w // 2, h - 1), (0, h // 2), (w - 1, h // 2))
-            samples = [rgb.getpixel(point) for point in sample_points]
-            bg = tuple(sorted(pixel[channel] for pixel in samples)[len(samples) // 2] for channel in range(3))
-            if bg[0] > 100 and bg[2] > 100 and bg[1] < 90:
-                green = rgb.getchannel("G")
-                mask = ImageChops.multiply(green, alpha)
-                white = Image.new("L", logo.size, 255)
-                logo = Image.merge("RGBA", (white, white, white, mask))
-
-    bounds = logo.getchannel("A").getbbox()
-    if bounds:
-        logo = logo.crop(bounds)
-    if logo.width < 2 or logo.height < 2 or logo.getchannel("A").getbbox() is None:
+    if logo.width < 2 or logo.height < 2 or logo.getbbox() is None:
         return None
     return logo.copy()
 
@@ -187,8 +163,8 @@ def _load_retailer_logo(is_snappshop: bool):
 
 
 def draw_retailer_badge(image, left: int, top: int, width: int, height: int, merchant: str) -> None:
-    """Paste a transparent official retailer mark in a corner, without a backing tile."""
-    from PIL import Image, ImageFilter, ImageOps
+    """Place the complete official retailer logo, preserving its original color and background tile."""
+    from PIL import ImageOps
 
     store = str(merchant or "").strip().lower()
     is_snappshop = "snapp" in store or "اسنپ" in store
@@ -198,44 +174,17 @@ def draw_retailer_badge(image, left: int, top: int, width: int, height: int, mer
 
     target_width = max(1, int(width))
     target_height = max(1, int(height))
-    # The DigiKala source is a brand symbol, not a wordmark: keep it compact
-    # even when an unusual local SVG crop is wider than the official mark.
-    fit_width = target_width if is_snappshop else min(target_width, max(1, int(target_height * 1.2)))
+    # Scale the full supplied artwork proportionally. The tile/background is part of
+    # each official logo and must never be removed, recolored, or replaced by a redraw.
     fitted = ImageOps.contain(
-        logo, (fit_width, target_height), method=Image.Resampling.LANCZOS
+        logo, (target_width, target_height), method=Image.Resampling.LANCZOS
     )
     if fitted.width < 1 or fitted.height < 1:
         return
 
-    alpha = fitted.getchannel("A")
-    if is_snappshop:
-        # A fine brand-magenta keyline keeps the white lettering legible on pale
-        # product cards without reintroducing a filled tile or opaque background.
-        kernel = 5 if min(fitted.size) >= 12 else 3
-        if kernel % 2 == 0:
-            kernel += 1
-        expanded = alpha.filter(ImageFilter.MaxFilter(kernel))
-        outline = Image.new("RGBA", fitted.size, (180, 0, 174, 255))
-        outline.putalpha(expanded)
-        mark = Image.alpha_composite(outline, fitted)
-    else:
-        # DigiKala's red mark receives an opposite-contrast outline based on the
-        # image behind it; the mark remains transparent around the actual symbol.
-        text_fill, _text_stroke = adaptive_text_colors(
-            image,
-            (int(left), int(top), int(left) + fitted.width, int(top) + fitted.height),
-        )
-        kernel = 5 if min(fitted.size) >= 12 else 3
-        if kernel % 2 == 0:
-            kernel += 1
-        expanded = alpha.filter(ImageFilter.MaxFilter(kernel))
-        outline = Image.new("RGBA", fitted.size, (*text_fill, 255))
-        outline.putalpha(expanded)
-        mark = Image.alpha_composite(outline, fitted)
-
     x = int(left)
-    y = int(top) + max(0, (target_height - mark.height) // 2)
+    y = int(top) + max(0, (target_height - fitted.height) // 2)
     if image.mode == "RGBA":
-        image.alpha_composite(mark, (x, y))
+        image.alpha_composite(fitted, (x, y))
     else:
-        image.paste(mark, (x, y), mark.getchannel("A"))
+        image.paste(fitted, (x, y), fitted.getchannel("A"))
