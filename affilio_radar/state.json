@@ -1,7 +1,7 @@
 {
-  "aparat_last_upload_attempt_at": "2026-10-23T23:50:12.265989+00:00",
-  "aparat_last_upload_success_at": "2026-10-23T23:50:14.872172+00:00",
-  "aparat_next_upload_at": "2026-10-24T02:50:14.872172+00:00",
+  "aparat_last_upload_attempt_at": "2026-10-24T04:27:24.519037+00:00",
+  "aparat_last_upload_success_at": "2026-10-24T04:27:27.449802+00:00",
+  "aparat_next_upload_at": "2026-10-24T07:27:27.449802+00:00",
   "discovery_queue": {
     "dkp-10148025": {
       "check_count": 0,
@@ -7801,7 +7801,13 @@
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
       "aparat_shorts_queued_at": "2026-10-23T19:44:31.497856+00:00",
       "aparat_shorts_upload_status": "superseded_by_regular_video_upload",
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-10-24T04:27:24.519037+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-10-24T04:27:27.449802+00:00",
+      "aparat_video_hash": "bpr4w6i",
+      "aparat_video_record_id": "73882106",
+      "aparat_video_url": "https://www.aparat.com/v/bpr4w6i",
+      "aparat_visibility": "public",
       "bale_expiry_status": "tracked",
       "bale_message_id": 693,
       "caption_deadline_format_version": 12,
@@ -7833,14 +7839,14 @@
       "title": "کرم دور چشم روز و شب گلاما مدل Smart مناسب برای انواع پوست حجم 50 میلی لیتر",
       "ts": 1792784669.301747,
       "video_file_name": "offerchin-dkp-20918175.mp4",
-      "video_generated_at": "2026-10-23T19:44:29.367202+00:00",
+      "video_generated_at": "2026-10-24T04:27:21.966533+00:00",
       "video_generation_status": "generated",
       "video_style_version": 4,
-      "youtube_last_error": "HTTPError: YouTube resumable upload initialization HTTP 400 reason=uploadLimitExceeded message=The user has exceeded the number of videos they may upload.",
+      "youtube_last_error": "",
       "youtube_next_attempt_at": "2026-10-24T19:59:31.966003+00:00",
       "youtube_upload_attempts": 1,
       "youtube_upload_started_at": "2026-10-23T19:44:31.503867+00:00",
-      "youtube_upload_status": "retry"
+      "youtube_upload_status": "pending_credentials"
     },
     "dkp-21053127": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
