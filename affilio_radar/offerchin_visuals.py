@@ -148,6 +148,8 @@ _RETAILER_LOGO_FALLBACK_URLS = {
         # official wordmark are fallbacks if the app icon URL is blocked by a runner.
         "https://cdn.snappshop.ir/customer-production-assets/public/assets/images/application/icon-72x72.png",
         "https://cdn.snappshop.ir/customer-production-assets/public/text-logo.webp",
+        # One-time download proxy fallback: still retrieves the official first-party asset.
+        "https://images.weserv.nl/?url=cdn.snappshop.ir%2Fcustomer-production-assets%2Fpublic%2Fassets%2Fimages%2Fapplication%2Ficon-72x72.png%3Fq%3D75%26w%3D96",
     ),
 }
 
