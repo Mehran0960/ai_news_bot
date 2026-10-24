@@ -81,9 +81,9 @@ def draw_discount_burst(draw, left: int, top: int, width: int, height: int, disc
 
 
 
-# DigiKala's current logo is served by DigiKala's own static asset CDN.
-# SnappShop's app logo is served directly by the official SnappShop website CDN:
-# https://snappshop.ir (the site's linked icon-72x72.png asset).
+# The source files below are official, first-party retailer assets. They are bootstrapped
+# once, then committed into the repository so scheduled publishers never need a network
+# request to display them.
 _RETAILER_LOGO_URLS = {
     "digikala": (
         "https://dkstatics-public.digikala.com/digikala-static/"
@@ -94,16 +94,72 @@ _RETAILER_LOGO_URLS = {
         "application/icon-72x72.png?q=75&w=96"
     ),
 }
+_RETAILER_LOGO_DIR = Path(__file__).resolve().parent / "assets" / "retailer-logos"
+_LOCAL_LOGO_PATHS = {
+    "digikala": _RETAILER_LOGO_DIR / "digikala.svg",
+    "snappshop": _RETAILER_LOGO_DIR / "snappshop.png",
+}
+
+
+def _decode_retailer_logo(content: bytes, is_snappshop: bool):
+    """Decode a local or downloaded official logo and keep only its brand mark."""
+    from io import BytesIO
+    from PIL import Image
+
+    if not content or len(content) > 3_000_000:
+        return None
+
+    image_bytes = content
+    if content.lstrip().startswith(b"<svg") or b"<svg" in content[:500]:
+        try:
+            import cairosvg
+            image_bytes = cairosvg.svg2png(bytestring=content, output_width=900)
+        except Exception:
+            return None
+
+    try:
+        with Image.open(BytesIO(image_bytes)) as raw:
+            raw.load()
+            logo = raw.convert("RGBA")
+    except Exception:
+        return None
+
+    bounds = logo.getchannel("A").getbbox()
+    if bounds:
+        logo = logo.crop(bounds)
+
+    # DigiKala's first-party source is a horizontal wordmark. Keep its official
+    # symbol on the left; do not add another textual brand label to the artwork.
+    if not is_snappshop and logo.width / max(1, logo.height) >= 1.8:
+        mark_width = max(1, min(logo.width, round(logo.height * 1.08)))
+        logo = logo.crop((0, 0, mark_width, logo.height))
+        bounds = logo.getchannel("A").getbbox()
+        if bounds:
+            logo = logo.crop(bounds)
+
+    if logo.width < 2 or logo.height < 2:
+        return None
+    return logo.copy()
 
 
 @lru_cache(maxsize=2)
 def _load_retailer_logo(is_snappshop: bool):
-    """Fetch and decode real retailer artwork once per process; a logo outage never blocks a deal."""
-    from io import BytesIO
+    """Read the persistent local asset first; download only to bootstrap a missing asset."""
     import requests
-    from PIL import Image
 
     key = "snappshop" if is_snappshop else "digikala"
+    local_path = _LOCAL_LOGO_PATHS[key]
+
+    # Normal publication path: no external request when the committed file exists.
+    try:
+        if local_path.is_file():
+            logo = _decode_retailer_logo(local_path.read_bytes(), is_snappshop)
+            if logo is not None:
+                return logo
+    except Exception:
+        pass
+
+    # One-time bootstrap for a checkout where the asset has not been saved yet.
     try:
         response = requests.get(
             _RETAILER_LOGO_URLS[key],
@@ -115,42 +171,37 @@ def _load_retailer_logo(is_snappshop: bool):
             },
         )
         response.raise_for_status()
-        content_type = response.headers.get("Content-Type", "").lower()
         content = response.content
-        if not content or len(content) > 3_000_000:
+        logo = _decode_retailer_logo(content, is_snappshop)
+        if logo is None:
             return None
-        if "svg" in content_type or content.lstrip().startswith(b"<svg") or b"<svg" in content[:500]:
-            try:
-                import cairosvg
-                content = cairosvg.svg2png(bytestring=content, output_width=900)
-            except Exception:
-                return None
-        with Image.open(BytesIO(content)) as raw:
-            raw.load()
-            logo = raw.convert("RGBA")
-        bounds = logo.getchannel("A").getbbox()
-        if bounds:
-            logo = logo.crop(bounds)
-        if logo.width < 2 or logo.height < 2:
-            return None
-        return logo.copy()
+
+        # Saving is best-effort: logo download failures must never block a post.
+        # The main workflow stages these files so future scheduled runs read them offline.
+        try:
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+            temp_path = local_path.with_suffix(local_path.suffix + ".tmp")
+            temp_path.write_bytes(content)
+            temp_path.replace(local_path)
+        except Exception:
+            pass
+        return logo
     except Exception:
-        # Brand asset hosts are external dependencies; their temporary failure must not stop publishing.
         return None
 
 
 def draw_retailer_badge(image, left: int, top: int, width: int, height: int, merchant: str) -> None:
-    """Place retailer logo artwork on a compact badge; do not fabricate brand marks."""
-    from PIL import Image, ImageDraw, ImageOps
+    """Draw the official retailer symbol only, with no added platform-name wordmark."""
+    from PIL import ImageDraw, ImageOps
 
     store = str(merchant or "").strip().lower()
     is_snappshop = "snapp" in store or "اسنپ" in store
     brand_color = "#B400AE" if is_snappshop else "#E52332"
-    wordmark = "Snapp! Shop" if is_snappshop else "digikala"
 
-    width, height = max(70, int(width)), max(28, int(height))
-    right, bottom = left + width, top + height
-    radius = max(5, height // 5)
+    # Use a compact icon tile so neither wordmarks nor labels compete with the product.
+    side = max(28, min(int(width), int(height)))
+    right, bottom = left + side, top + side
+    radius = max(5, side // 5)
     draw = ImageDraw.Draw(image)
     draw.rounded_rectangle(
         (left + 2, top + 3, right + 2, bottom + 3),
@@ -162,45 +213,19 @@ def draw_retailer_badge(image, left: int, top: int, width: int, height: int, mer
         radius=radius,
         fill="#FFFFFF",
         outline=brand_color,
-        width=max(1, height // 24),
+        width=max(2, side // 14),
     )
 
-    pad = max(4, height // 9)
-    inner_width = max(1, width - 2 * pad)
-    inner_height = max(1, height - 2 * pad)
     logo = _load_retailer_logo(is_snappshop)
-    text_left = left + pad
-
-    if logo is not None and logo.width / max(1, logo.height) >= 1.8:
-        # A horizontal logo already contains the brand wordmark.
-        fitted = ImageOps.contain(logo, (inner_width, inner_height), method=Image.Resampling.LANCZOS)
-        image.paste(
-            fitted,
-            (left + (width - fitted.width) // 2, top + (height - fitted.height) // 2),
-            fitted,
-        )
+    if logo is None:
+        # Retain only a brand-color frame, rather than inventing a substitute mark.
         return
 
-    # If the asset is a square brand symbol, keep the original symbol and label it clearly.
-    if logo is not None:
-        icon_size = min(inner_height, max(18, height - 2 * pad))
-        fitted = ImageOps.contain(logo, (icon_size, icon_size), method=Image.Resampling.LANCZOS)
-        image.paste(fitted, (text_left, top + (height - fitted.height) // 2), fitted)
-        text_left += icon_size + max(4, height // 8)
-
-    available_width = max(1, right - pad - text_left)
-    font_size = max(9, int(height * 0.42))
-    font = _sale_font(font_size)
-    try:
-        while font_size > 8 and draw.textbbox((0, 0), wordmark, font=font)[2] > available_width:
-            font_size -= 1
-            font = _sale_font(font_size)
-    except Exception:
-        pass
-    draw.text(
-        (text_left, top + height / 2),
-        wordmark,
-        font=font,
-        fill=brand_color,
-        anchor="lm",
+    pad = max(3, side // 10)
+    inner_side = max(1, side - 2 * pad)
+    fitted = ImageOps.contain(logo, (inner_side, inner_side), method=Image.Resampling.LANCZOS)
+    image.paste(
+        fitted,
+        (left + (side - fitted.width) // 2, top + (side - fitted.height) // 2),
+        fitted,
     )

@@ -204,7 +204,8 @@ class AffilioRadarTests(unittest.TestCase):
             "original_price": 2_250_000,
             "discount_percent": 53,
         }, affiliate)
-        self.assertIn("🔥 فروش ویژه اسنپ‌شاپ 🟣", caption)
+        self.assertIn("🔥 فروش ویژه 🟣", caption)
+        self.assertIn("برای خرید از اسنپ‌شاپ", caption)
         self.assertNotIn("دیجی‌کالا", caption)
 
     def test_snappshop_without_confirmed_expiry_can_publish_when_live_deal_is_verified(self):
@@ -1397,9 +1398,9 @@ class AffilioRadarTests(unittest.TestCase):
             "rating": 4.4,
             "review_count": 1243,
         }, "https://www.digikala.com/product/dkp-15970075/?utm_source=19166")
-        self.assertIn("🔥 فروش ویژه دیجی‌کالا 🔴", caption)
+        self.assertIn("🔥 فروش ویژه 🔴", caption)
         self.assertIn("🛍️ گجت نمونه ۶۰", caption)
-        self.assertNotIn("<b>🔥 فروش ویژه دیجی‌کالا</b>", caption)
+        self.assertNotIn("<b>🔥 فروش ویژه 🔴</b>", caption)
         self.assertIn("<b>💚 قیمت ویژه: ۵۰۰٬۰۰۰ تومان</b>", caption)
         self.assertIn("<b>⚡️ ۲۹٪ تخفیف</b>", caption)
         self.assertEqual(caption.count("────────────"), 2)
@@ -2111,6 +2112,45 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("dkstatics-public.digikala.com", _RETAILER_LOGO_URLS["digikala"])
         self.assertIn("cdn.snappshop.ir", _RETAILER_LOGO_URLS["snappshop"])
         self.assertNotIn("brandfetch", _RETAILER_LOGO_URLS["snappshop"].lower())
+
+    def test_local_retailer_logo_assets_load_without_network(self):
+        import offerchin_visuals as visuals
+
+        with TemporaryDirectory() as asset_dir:
+            directory = Path(asset_dir)
+            digikala_path = directory / "digikala.svg"
+            snappshop_path = directory / "snappshop.png"
+            digikala_path.write_text(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">'
+                '<rect width="64" height="64" rx="14" fill="#E52332"/>'
+                '<path d="M16 36 Q32 52 48 36" fill="none" stroke="#ffffff" stroke-width="6"/>'
+                '</svg>',
+                encoding="utf-8",
+            )
+            Image.new("RGBA", (64, 64), (180, 0, 174, 255)).save(snappshop_path)
+
+            with patch.dict(
+                visuals._LOCAL_LOGO_PATHS,
+                {"digikala": digikala_path, "snappshop": snappshop_path},
+            ):
+                visuals._load_retailer_logo.cache_clear()
+                try:
+                    with patch("requests.get", side_effect=AssertionError("network must not be used for saved logos")):
+                        self.assertIsNotNone(visuals._load_retailer_logo(False))
+                        self.assertIsNotNone(visuals._load_retailer_logo(True))
+                finally:
+                    visuals._load_retailer_logo.cache_clear()
+
+    def test_retailer_badge_is_logo_only_and_has_no_wordmark_space(self):
+        import offerchin_visuals as visuals
+
+        artwork = Image.new("RGB", (240, 90), (250, 250, 250))
+        visuals.draw_retailer_badge(artwork, 10, 10, 180, 48, "دیجی‌کالا")
+        # Icon tile is compact; the former horizontal wordmark area stays untouched.
+        self.assertEqual(
+            list(artwork.crop((70, 10, 190, 58)).getdata()),
+            list(Image.new("RGB", (120, 48), (250, 250, 250)).getdata()),
+        )
 
     def test_store_badge_is_visible_in_upper_left_and_changes_by_retailer(self):
         image_bytes = BytesIO()

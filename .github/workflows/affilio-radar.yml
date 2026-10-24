@@ -6,6 +6,7 @@ on:
       - "affilio_radar/affilio_radar.py"
       - "affilio_radar/short_video.py"
       - "affilio_radar/offerchin_visuals.py"
+      - "affilio_radar/assets/retailer-logos/**"
       - "affilio_radar/offerchin_audio.py"
       - "affilio_radar/aparat_uploader.py"
       - "affilio_radar/aparat_shorts_migration.py"
@@ -312,6 +313,10 @@ jobs:
           PY
           if [[ "${{ contains(github.event.head_commit.message, '[repair-all-captions]') }}" == "true" && -f affilio_radar/affiliate_link_repair_report.json ]]; then
             git add affilio_radar/affiliate_link_repair_report.json
+          fi
+          # Persist first-party logo files downloaded by the bootstrap path; future runs are offline for logos.
+          if [[ -d affilio_radar/assets/retailer-logos ]]; then
+            git add affilio_radar/assets/retailer-logos
           fi
           if git diff --cached --quiet; then
             echo "No material Affilio report/state changes."
