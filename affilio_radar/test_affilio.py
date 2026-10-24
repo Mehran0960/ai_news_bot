@@ -2164,17 +2164,44 @@ class AffilioRadarTests(unittest.TestCase):
         with patch("affilio_radar.BALE_BOT_TOKEN", ""), patch("affilio_radar.BALE_CHANNEL_ID", ""):
             self.assertEqual(_delivery_retry_platforms(record), [])
 
-    def test_discount_badge_uses_short_english_label(self):
-        self.assertEqual(format_discount_badge(81), "81% OFF")
-        self.assertEqual(format_discount_badge("24"), "24% OFF")
+    def test_discount_badge_uses_persian_label_and_numerals(self):
+        self.assertEqual(format_discount_badge(81), "۸۱٪ تخفیف")
+        self.assertEqual(format_discount_badge("24"), "۲۴٪ تخفیف")
         self.assertEqual(format_discount_badge(0), "")
         self.assertEqual(format_discount_badge("not-a-number"), "")
 
-    def test_badge_font_supports_latin_percent_and_letters(self):
-        font = _latin_font(32)
-        # The badge is ASCII-only; do not reuse the Arabic-only font used for Persian text.
-        self.assertGreater(font.getlength("89% OFF"), font.getlength("89"))
-        self.assertGreater(font.getlength("% OFF"), 0)
+    def test_persian_discount_word_uses_right_to_left_shaping_not_raw_pillow_text(self):
+        import offerchin_visuals as visuals
+
+        prepared, options = visuals._prepare_persian_badge_text("تخفیف", use_raqm=True)
+        self.assertEqual(prepared, "تخفیف")
+        self.assertEqual(options, {"direction": "rtl", "language": "fa"})
+
+        # Explicitly exercise the non-RAQM fallback too; it must reshape letters and
+        # bidi-reorder once rather than handing isolated Persian characters to Pillow.
+        fallback, fallback_options = visuals._prepare_persian_badge_text("تخفیف", use_raqm=False)
+        self.assertTrue(fallback)
+        self.assertNotEqual(fallback, "تخفیف")
+        self.assertEqual(fallback_options, {})
+        self.assertTrue(any("\\uFB50" <= char <= "\\uFDFF" or "\\uFE70" <= char <= "\\uFEFF" for char in fallback))
+
+    def test_discount_badge_uses_store_brand_color_and_persian_wordmark(self):
+        import offerchin_visuals as visuals
+        from PIL import ImageDraw
+
+        for merchant, predicate in (
+            ("دیجی‌کالا", lambda red, green, blue: red > 150 and red > green * 1.7 and red > blue * 1.4),
+            ("اسنپ‌شاپ", lambda red, green, blue: red > 100 and blue > 100 and red > green * 1.6 and blue > green * 1.6),
+        ):
+            canvas = Image.new("RGB", (260, 160), (246, 246, 246))
+            visuals.draw_discount_burst(ImageDraw.Draw(canvas), 25, 15, 210, 125, 45, merchant=merchant)
+            crop = list(canvas.crop((25, 15, 235, 140)).getdata())
+            brand_pixels = sum(1 for red, green, blue in crop if predicate(red, green, blue))
+            white_pixels = sum(1 for red, green, blue in crop if red > 230 and green > 230 and blue > 230)
+            yellow_pixels = sum(1 for red, green, blue in crop if red > 180 and green > 150 and blue < 100)
+            self.assertGreater(brand_pixels, 12000, f"{merchant} badge should use its brand color")
+            self.assertGreater(white_pixels, 300, "the Persian label and percentage should be visible in white")
+            self.assertLess(yellow_pixels, 100, "the old yellow burst treatment should be gone")
 
     def test_discount_image_returns_photo_with_badge(self):
         image_bytes = BytesIO()
@@ -2185,7 +2212,7 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(preview.size, (480, 640))
         self.assertNotEqual(rendered, image_bytes.getvalue())
 
-        # The comic-burst badge is red/yellow and remains in the upper-right of channel photos.
+        # A clean, brand-colored rounded badge remains in the upper-right of channel photos.
         with Image.open(BytesIO(rendered)).convert("RGB") as preview:
             crop = preview.crop((300, 0, 480, 150))
             red_pixels = sum(
@@ -2193,6 +2220,15 @@ class AffilioRadarTests(unittest.TestCase):
                 if red > 120 and red > green * 1.6 and red > blue * 1.5
             )
             self.assertGreater(red_pixels, 500)
+
+        snapp_rendered = build_discount_image(image_bytes.getvalue(), 24, merchant="اسنپ‌شاپ")
+        with Image.open(BytesIO(snapp_rendered)).convert("RGB") as preview:
+            crop = preview.crop((300, 0, 480, 150))
+            purple_pixels = sum(
+                1 for red, green, blue in crop.getdata()
+                if red > 100 and blue > 100 and red > green * 1.6 and blue > green * 1.6
+            )
+            self.assertGreater(purple_pixels, 500, "SnappShop badge should use SnappShop purple")
 
         # Channel watermark must still render when a discount badge is unavailable.
         rendered_without_badge = build_discount_image(image_bytes.getvalue(), None)

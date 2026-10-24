@@ -318,7 +318,7 @@ def build_vertical_poster(
     if 0 < discount <= 100:
         badge_width, badge_height = 188, 140
         left, top = WIDTH - 44 - badge_width, 173
-        draw_discount_burst(draw, left, top, badge_width, badge_height, discount)
+        draw_discount_burst(draw, left, top, badge_width, badge_height, discount, merchant=merchant)
 
     # The retailer mark sits at upper-left, opposite the discount badge.
     # Match the larger full-color official logo tile used on channel images.

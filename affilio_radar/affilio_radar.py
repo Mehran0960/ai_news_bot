@@ -3511,12 +3511,15 @@ def build_caption(
     return caption
 
 def format_discount_badge(discount_percent) -> str:
-    """Return the visual discount badge label in concise English, e.g. '81% OFF'."""
+    """Return a compact Persian badge label such as '۸۱٪ تخفیف'."""
     try:
         discount = int(discount_percent)
     except (TypeError, ValueError):
         return ""
-    return f"{discount}% OFF" if 0 < discount <= 100 else ""
+    if not 0 < discount <= 100:
+        return ""
+    persian_digits = str(discount).translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
+    return f"{persian_digits}٪ تخفیف"
 
 
 def _draw_platform_watermark_icon(draw, platform: str, x: int, y: int, size: int) -> None:
@@ -3598,6 +3601,7 @@ def build_discount_image(
                 min(badge_width, width - badge_left),
                 min(badge_height, height - badge_top),
                 discount_value,
+                merchant=merchant,
             )
 
     # Store identity sits at the upper-left, opposite the discount burst at upper-right.

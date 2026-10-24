@@ -125,13 +125,13 @@ class ShortVideoTests(unittest.TestCase):
         self.assertGreater(red_pixels, 1500, "video poster must show the official DigiKala tile at readable size")
         self.assertGreater(purple_pixels, 1500, "video poster must show the official SnappShop tile at readable size")
 
-    def test_discount_is_drawn_inside_red_comic_burst(self):
+    def test_discount_badge_uses_brand_tile_on_vertical_poster(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
         image.save(stream, format="PNG")
         poster = Image.open(io.BytesIO(build_vertical_poster(stream.getvalue(), 76))).convert("RGB")
 
-        # The upper-right region should contain a clearly visible red burst, not the old green pill.
+        # The upper-right region should contain the clean DigiKala-red rounded tile.
         crop = poster.crop((448, 150, 710, 330))
         red_pixels = sum(
             1
@@ -140,6 +140,21 @@ class ShortVideoTests(unittest.TestCase):
         )
         self.assertGreater(red_pixels, 1500)
         self.assertEqual(poster.size, (720, 1280))
+
+    def test_vertical_discount_badge_uses_snappshop_purple(self):
+        image = Image.new("RGB", (400, 500), (255, 255, 255))
+        stream = io.BytesIO()
+        image.save(stream, format="PNG")
+        poster = Image.open(io.BytesIO(build_vertical_poster(
+            stream.getvalue(), 42, merchant="اسنپ‌شاپ",
+        ))).convert("RGB")
+        crop = poster.crop((448, 150, 710, 330))
+        purple_pixels = sum(
+            1
+            for red, green, blue in crop.getdata()
+            if red > 100 and blue > 100 and red > green * 1.6 and blue > green * 1.6
+        )
+        self.assertGreater(purple_pixels, 1500)
 
     def test_persian_text_uses_one_bidi_engine_without_double_reordering(self):
         from PIL import ImageFont

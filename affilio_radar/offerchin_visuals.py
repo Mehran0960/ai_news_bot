@@ -23,61 +23,143 @@ def _sale_font(size: int):
     return ImageFont.load_default()
 
 
-def draw_discount_burst(draw, left: int, top: int, width: int, height: int, discount: int) -> None:
-    """Draw a red comic-burst sticker with a golden discount percentage and OFF label."""
+def _badge_font(size: int):
+    """Load a bold Arabic-capable font and report whether Pillow can shape RTL text natively."""
+    from PIL import ImageFont, features
+
+    try:
+        use_raqm = bool(features.check("raqm"))
+    except Exception:
+        use_raqm = False
+    layout = ImageFont.Layout.RAQM if use_raqm else ImageFont.Layout.BASIC
+    candidates = (
+        "/usr/share/fonts/truetype/noto/NotoSansArabic-Bold.ttf",
+        "/usr/share/fonts/truetype/noto/NotoNaskhArabic-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    )
+    for font_path in candidates:
+        if Path(font_path).is_file():
+            try:
+                return ImageFont.truetype(font_path, size=max(10, int(size)), layout_engine=layout), use_raqm
+            except OSError:
+                pass
+    return ImageFont.load_default(), False
+
+
+def _prepare_persian_badge_text(text: str, use_raqm: bool | None = None):
+    """Return text plus Pillow options that keep the Persian word shaped and right-to-left.
+
+    Native RAQM must receive logical Unicode text; the fallback reshapes and applies
+    bidi exactly once. If neither path is available, return an empty label rather than
+    draw broken Persian glyphs.
+    """
+    if use_raqm is None:
+        try:
+            from PIL import features
+            use_raqm = bool(features.check("raqm"))
+        except Exception:
+            use_raqm = False
+    if use_raqm:
+        return str(text or ""), {"direction": "rtl", "language": "fa"}
+    try:
+        import arabic_reshaper
+        from bidi.algorithm import get_display
+        shaped = get_display(arabic_reshaper.reshape(str(text or "")), base_dir="R")
+        return shaped, {}
+    except Exception:
+        return "", {}
+
+
+def _persian_digits(value: object) -> str:
+    return str(value).translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
+
+
+def _discount_badge_color(merchant: str) -> tuple[int, int, int]:
+    """Use the corresponding retailer's signature color while keeping one shared style."""
+    store = str(merchant or "").strip().lower()
+    if "snapp" in store or "اسنپ" in store:
+        return (170, 0, 181)  # SnappShop purple
+    return (237, 23, 69)  # DigiKala red
+
+
+def draw_discount_burst(
+    draw,
+    left: int,
+    top: int,
+    width: int,
+    height: int,
+    discount: int,
+    merchant: str = "دیجی‌کالا",
+) -> None:
+    """Draw a calm, rounded, retailer-colored discount tile with a properly shaped Persian label."""
+    from PIL import ImageFont
+
     width, height = int(width), int(height)
-    if width < 50 or height < 45 or not 0 < int(discount) <= 100:
+    if width < 70 or height < 55 or not 0 < int(discount) <= 100:
         return
 
-    center_x = left + width / 2
-    center_y = top + height / 2
-    points = []
-    spikes = 14
-    for index in range(spikes * 2):
-        angle = -math.pi / 2 + index * math.pi / spikes
-        outer = index % 2 == 0
-        radius_x = width * (0.50 if outer else 0.405)
-        radius_y = height * (0.50 if outer else 0.405)
-        points.append((
-            round(center_x + math.cos(angle) * radius_x),
-            round(center_y + math.sin(angle) * radius_y),
-        ))
+    left, top = int(left), int(top)
+    right, bottom = left + width, top + height
+    radius = max(10, min(24, int(height * 0.22)))
+    shadow = max(2, int(height * 0.035))
+    brand = _discount_badge_color(merchant)
 
-    # An offset charcoal shadow and double outline give the sticker depth.
-    draw.polygon([(x + 6, y + 8) for x, y in points], fill=(25, 10, 10))
-    draw.polygon(points, fill=(196, 8, 12), outline=(255, 255, 244), width=max(2, min(width, height) // 34))
-    draw.line(points + [points[0]], fill=(255, 216, 35), width=max(2, min(width, height) // 52), joint="curve")
+    # One quiet shadow and a fine white keyline echo the full-color retailer logos.
+    draw.rounded_rectangle(
+        (left + shadow, top + shadow * 2, right + shadow, bottom + shadow * 2),
+        radius=radius,
+        fill=(24, 15, 24),
+    )
+    draw.rounded_rectangle(
+        (left, top, right, bottom),
+        radius=radius,
+        fill=brand,
+        outline=(255, 255, 255),
+        width=max(2, min(width, height) // 42),
+    )
 
-    percentage = f"{int(discount)}%"
-    percentage_size = max(13, int(height * 0.34))
-    percentage_font = _sale_font(percentage_size)
-    while percentage_size > max(12, int(height * 0.20)):
-        bbox = draw.textbbox((0, 0), percentage, font=percentage_font, stroke_width=1)
-        if bbox[2] - bbox[0] <= width * 0.80:
+    font_size = max(14, int(height * 0.37))
+    percentage = f"{_persian_digits(int(discount))}٪"
+    percent_font, use_raqm = _badge_font(font_size)
+    percent_layout = {"direction": "ltr", "language": "fa"} if use_raqm else {}
+    while font_size > max(12, int(height * 0.24)):
+        try:
+            box = draw.textbbox((0, 0), percentage, font=percent_font, **percent_layout)
+        except (TypeError, ValueError):
+            box = draw.textbbox((0, 0), percentage, font=percent_font)
+        if box[2] - box[0] <= width * 0.82:
             break
-        percentage_size -= 2
-        percentage_font = _sale_font(percentage_size)
+        font_size -= 2
+        percent_font, use_raqm = _badge_font(font_size)
+        percent_layout = {"direction": "ltr", "language": "fa"} if use_raqm else {}
 
+    # Keep the numeric sequence left-to-right so the percent sign stays after the digits.
     draw.text(
-        (round(center_x), round(top + height * 0.41)),
+        (round(left + width / 2), round(top + height * 0.37)),
         percentage,
-        font=percentage_font,
-        fill=(255, 222, 36),
+        font=percent_font,
+        fill=(255, 255, 255),
         anchor="mm",
-        stroke_width=max(1, min(width, height) // 60),
-        stroke_fill=(105, 0, 0),
-    )
-    off_font = _sale_font(max(11, int(height * 0.15)))
-    draw.text(
-        (round(center_x), round(top + height * 0.70)),
-        "OFF",
-        font=off_font,
-        fill=(255, 237, 82),
-        anchor="mm",
-        stroke_width=max(1, min(width, height) // 75),
-        stroke_fill=(105, 0, 0),
+        stroke_width=1,
+        stroke_fill=tuple(max(0, channel - 70) for channel in brand),
+        **percent_layout,
     )
 
+    label_font, label_raqm = _badge_font(max(12, int(height * 0.19)))
+    label, label_layout = _prepare_persian_badge_text("تخفیف", use_raqm=label_raqm)
+    if not label:
+        print("DISCOUNT_BADGE_PERSIAN_LABEL_SKIPPED: no safe RTL shaping backend available")
+        return
+    draw.text(
+        (round(left + width / 2), round(top + height * 0.76)),
+        label,
+        font=label_font,
+        fill=(255, 255, 255),
+        anchor="mm",
+        stroke_width=1,
+        stroke_fill=tuple(max(0, channel - 70) for channel in brand),
+        **label_layout,
+    )
 
 
 
