@@ -2105,6 +2105,13 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(preview.size, (480, 640))
         self.assertNotEqual(rendered_without_badge, image_bytes.getvalue())
 
+    def test_retailer_logo_sources_are_first_party_assets(self):
+        from offerchin_visuals import _RETAILER_LOGO_URLS
+
+        self.assertIn("dkstatics-public.digikala.com", _RETAILER_LOGO_URLS["digikala"])
+        self.assertIn("cdn.snappshop.ir", _RETAILER_LOGO_URLS["snappshop"])
+        self.assertNotIn("brandfetch", _RETAILER_LOGO_URLS["snappshop"].lower())
+
     def test_store_badge_is_visible_in_upper_left_and_changes_by_retailer(self):
         image_bytes = BytesIO()
         Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")

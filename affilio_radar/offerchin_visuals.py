@@ -81,16 +81,17 @@ def draw_discount_burst(draw, left: int, top: int, width: int, height: int, disc
 
 
 
-# Current DigiKala logo served by DigiKala's own static asset CDN.
-# SnappShop's branded symbol is served by its Brandfetch identity record.
+# DigiKala's current logo is served by DigiKala's own static asset CDN.
+# SnappShop's app logo is served directly by the official SnappShop website CDN:
+# https://snappshop.ir (the site's linked icon-72x72.png asset).
 _RETAILER_LOGO_URLS = {
     "digikala": (
         "https://dkstatics-public.digikala.com/digikala-static/"
         "0d072059918d0c22b88320554ce4b3e07d0472f2_1746354551.svg"
     ),
     "snappshop": (
-        "https://cdn.brandfetch.io/id9SrR5Y27/w/512/h/512/theme/dark/logo.png"
-        "?c=1bxid64Mup7aczewSAYMX&t=1695361662415"
+        "https://cdn.snappshop.ir/customer-production-assets/public/assets/images/"
+        "application/icon-72x72.png?q=75&w=96"
     ),
 }
 
