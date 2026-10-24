@@ -3289,43 +3289,20 @@ def fetch_click_statistics() -> dict[str, int]:
     payload = _fetch_click_statistics_snapshot()
     counts = _valid_click_counts(payload.get("products") if isinstance(payload, dict) else {})
     if payload:
-        channels = payload.get("channels", {}) if isinstance(payload.get("channels"), dict) else {}
         print(
             f"CLICK_STATS_LOADED days={payload.get('days', 30)} products={len(counts)} "
-            f"total_clicks={int(payload.get('totalClicks') or 0)} channels={len(channels)} "
+            f"total_clicks={int(payload.get('totalClicks') or 0)} "
             f"updated_at={payload.get('updatedAt', 'unknown')}"
         )
     return counts
 
 
 def enrich_click_statistics(products: list[dict]) -> None:
-    """Attach total and source-specific click counts; analytics outages never block publishing."""
-    payload = _fetch_click_statistics_snapshot()
-    counts = _valid_click_counts(payload.get("products") if isinstance(payload, dict) else {})
-    raw_by_product = payload.get("productChannels", {}) if isinstance(payload, dict) else {}
-    allowed_sources = {"telegram", "bale", "youtube", "aparat", "unknown"}
+    """Attach aggregate 30-day click counts; source-level click details stay private in Cloudflare KV."""
+    counts = fetch_click_statistics()
     for product in products:
         pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
         product["click_count_30d"] = counts.get(pid, 0)
-        raw_sources = raw_by_product.get(pid, {}) if isinstance(raw_by_product, dict) else {}
-        source_counts = {}
-        if isinstance(raw_sources, dict):
-            for source, value in raw_sources.items():
-                if str(source) not in allowed_sources:
-                    continue
-                try:
-                    count = int(value)
-                except (TypeError, ValueError, OverflowError):
-                    continue
-                if count >= 0:
-                    source_counts[str(source)] = count
-        product["click_counts_30d_by_source"] = source_counts
-    if payload:
-        print(
-            f"CLICK_STATS_ENRICHED products={len(products)} "
-            f"with_clicks={sum(1 for product in products if product.get('click_count_30d', 0) > 0)} "
-            f"source_breakdowns={sum(1 for product in products if product.get('click_counts_30d_by_source'))}"
-        )
 
 
 def load_catalog() -> list[dict]:

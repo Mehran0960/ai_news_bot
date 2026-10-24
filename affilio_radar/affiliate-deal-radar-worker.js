@@ -84,16 +84,14 @@ export default {
     }
     if (url.pathname === "/stats") {
       if (!env.CLICKS) return jsonResponse({ok:false,error:"click_store_unavailable"},503);
-      const cacheKey = "analytics:clicks:30d";
+      const cacheKey = "analytics:clicks:30d:v2";
       try {
         const cached = await env.CLICKS.get(cacheKey, "json");
         if (
           cached &&
           cached.ok === true &&
           cached.updatedAt &&
-          cached.products && typeof cached.products === "object" &&
-          cached.channels && typeof cached.channels === "object" &&
-          cached.productChannels && typeof cached.productChannels === "object"
+          cached.products && typeof cached.products === "object"
         ) {
           return jsonResponse(cached);
         }
@@ -102,8 +100,6 @@ export default {
       const now = new Date();
       const today = now.toISOString().slice(0, 10);
       const products = Object.create(null);
-      const channels = Object.create(null);
-      const productChannels = Object.create(null);
       let complete = true;
       try {
         // Day-scoped prefixes avoid scanning old keys first as the namespace grows.
@@ -117,14 +113,10 @@ export default {
         for (let index = 0; index < pages.length; index++) {
           const page = pages[index];
           for (const key of page.keys || []) {
-            const match = String(key.name || "").match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20}))(?::(telegram|bale|youtube|aparat|unknown))?:/);
+            const match = String(key.name || "").match(/^click:(d{4}-d{2}-d{2}):((?:dkp-d{1,12})|(?:snp-d{1,20}))(?::(?:telegram|bale|youtube|aparat|unknown))?:/);
             if (match) {
               const productId = match[2];
-              const channel = match[3] || "unknown";
               products[productId] = (products[productId] || 0) + 1;
-              channels[channel] = (channels[channel] || 0) + 1;
-              if (!productChannels[productId]) productChannels[productId] = Object.create(null);
-              productChannels[productId][channel] = (productChannels[productId][channel] || 0) + 1;
             }
           }
           if (page.list_complete === false) complete = false;
@@ -141,12 +133,10 @@ export default {
         updatedAt: now.toISOString(),
         complete,
         totalClicks: Object.values(products).reduce((sum, count) => sum + count, 0),
-        products,
-        channels,
-        productChannels
+        products
       };
       try {
-        await env.CLICKS.put(cacheKey, JSON.stringify(result), {expirationTtl:3600});
+        await env.CLICKS.put(cacheKey, JSON.stringify(result), {expirationTtl:120});
       } catch (error) {
         console.error("CLICK_STATS_CACHE_WRITE_FAILED", String(error).slice(0,120));
       }

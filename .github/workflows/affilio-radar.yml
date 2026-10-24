@@ -200,10 +200,10 @@ jobs:
           analytics = stats.json()
           assert analytics.get("ok") is True, analytics
           assert isinstance(analytics.get("products"), dict), analytics
-          assert isinstance(analytics.get("channels"), dict), analytics
-          assert isinstance(analytics.get("productChannels"), dict), analytics
           assert isinstance(analytics.get("totalClicks"), int), analytics
-          print("CLICK_TRACKER_PRODUCT_AND_SOURCE_STATS_OK")
+          assert analytics.get("complete") is True, analytics
+          assert "channels" not in analytics and "productChannels" not in analytics, analytics
+          print("CLICK_TRACKER_AGGREGATE_STATS_OK_SOURCE_BREAKDOWN_NOT_PUBLIC")
           PY
       # [repair-all-captions] Repairs every surviving caption without timers and restores its verified purchase button.
       # [repair-all-captions] Remove obsolete expiry labels from every tracked live caption in place.

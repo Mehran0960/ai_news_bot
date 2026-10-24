@@ -442,26 +442,20 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(urlsplit(wrapped).path, "/p/snp-2097083854")
         self.assertEqual(parse_qs(urlsplit(wrapped).query).get("src"), ["bale"])
 
-    def test_click_statistics_include_per_product_source_counts(self):
+    def test_click_statistics_include_aggregate_counts_for_both_stores(self):
         payload = {
             "ok": True, "complete": True, "days": 30, "totalClicks": 18,
             "products": {"dkp-15970075": 12, "snp-2097083854": 6, "bad-id": 99},
-            "channels": {"telegram": 8, "bale": 6, "youtube": 4},
-            "productChannels": {
-                "dkp-15970075": {"telegram": 5, "bale": 4, "unknown": 3, "unsafe": 99},
-                "snp-2097083854": {"aparat": 6},
-            },
         }
         products = [
             {"product_id": "dkp-15970075", "product_url": "https://www.digikala.com/product/dkp-15970075/"},
             {"product_id": "snp-2097083854", "product_url": "https://snappshop.ir/product/snp-2097083854"},
         ]
-        with patch("affilio_radar._fetch_click_statistics_snapshot", return_value=payload):
+        with patch("affilio_radar.fetch_click_statistics", return_value={"dkp-15970075": 12, "snp-2097083854": 6}):
             enrich_click_statistics(products)
         self.assertEqual(products[0]["click_count_30d"], 12)
-        self.assertEqual(products[0]["click_counts_30d_by_source"], {"telegram": 5, "bale": 4, "unknown": 3})
         self.assertEqual(products[1]["click_count_30d"], 6)
-        self.assertEqual(products[1]["click_counts_30d_by_source"], {"aparat": 6})
+        self.assertNotIn("click_counts_30d_by_source", products[0])
 
     def test_default_affilio_link_uses_publishers_public_link_template(self):
         product = "https://www.digikala.com/product/dkp-15970075/?old_tracking=remove"
