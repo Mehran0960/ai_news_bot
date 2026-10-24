@@ -6696,7 +6696,7 @@ def run(publish=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Real 30-day channel clicks and audience demand lead, followed by deal value, rating/review signals, affordability, and discount strength. Deadline urgency is a secondary tie-breaker only after actionable-deal validation; no global channel countdown-order rule applies. Medicines, pharmacy products, vitamins, and dietary supplements are excluded. Products without a verified deadline or with less than {MIN_PUBLICATION_RUNWAY_MINUTES} minutes left never publish.",
+        "ranking_note": f"Real 30-day channel clicks and audience demand lead, followed by deal value, rating/review signals, affordability, and discount strength. Deadline urgency is a secondary tie-breaker only after actionable-deal validation; no global channel countdown-order rule applies. Medicines, pharmacy products, vitamins, and dietary supplements are excluded. Offers with a confirmed deadline need at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers with no confirmed timer may publish only after current stock, price, and the qualifying discount are verified.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,

@@ -24,6 +24,7 @@ from affilio_radar import (
     has_minimum_publication_runway,
     has_publishable_expiry_or_open_offer,
     parse_snappshop_product_api,
+    fetch_product_record,
     is_urgent_priority_deal,
     is_deadline_critical_deal,
     is_materially_improved_offer,
@@ -158,6 +159,39 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(parse_qs(urlsplit(affiliate).query).get("p"), [canonical])
         # The legacy click-counter Worker only supports dkp IDs, so don't wrap SnappShop links.
         self.assertEqual(build_click_tracking_link(canonical, affiliate, "https://tracker.example"), affiliate)
+
+    def test_fetch_product_record_uses_snappshop_internal_api_id_mapping(self):
+        url = "https://snappshop.ir/product/snp-25751584"
+        payload = {
+            "data": {
+                "id": "42yeLw",
+                "content": {"title_fa": "گوشی نمونه"},
+                "images": ["https://cdn.snappshop.ir/products/phone-main.webp"],
+                "variants": [{
+                    "vendor": [{
+                        "price": 49_000_000,
+                        "special_price": 33_980_000,
+                        "stock": 2,
+                        "is_available_in_vendor_inventory": True,
+                    }],
+                }],
+            }
+        }
+        response = SimpleNamespace(
+            content=json.dumps(payload).encode("utf-8"),
+            json=lambda: payload,
+            raise_for_status=lambda: None,
+        )
+        with (
+            patch("affilio_radar.SNAPPSHOP_API_IDS_BY_URL", {url: "42yeLw"}),
+            patch("affilio_radar.SNAPPSHOP_SEARCH_CARDS_BY_URL", {}),
+            patch("affilio_radar.SESSION.get", return_value=response) as get,
+        ):
+            record = fetch_product_record(url)
+        self.assertEqual(record["availability"], "in_stock")
+        self.assertEqual(record["product_id"], "snp-25751584")
+        self.assertEqual(get.call_args.args[0], "https://apix.snappshop.ir/products/v2/42yeLw")
+        self.assertEqual(get.call_args.kwargs["headers"]["Origin"], "https://snappshop.ir")
 
     def test_snappshop_caption_uses_correct_store_name(self):
         product_url = "https://snappshop.ir/product/snp-2097083854"
