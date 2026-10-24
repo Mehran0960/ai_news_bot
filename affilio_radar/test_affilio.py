@@ -88,6 +88,7 @@ from affilio_radar import (
     YOUTUBE_UPLOAD_INTERVAL_HOURS,
     MIN_POST_INTERVAL_HOURS,
     effective_posts_per_run,
+    daily_channel_posts_count,
     ensure_telegram_source_invites,
     build_video_channel_description,
     tracked_telegram_invite_url,
@@ -2128,6 +2129,26 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(effective_posts_per_run(17, configured_limit=2), 2)
         self.assertEqual(effective_posts_per_run(17, configured_limit=2, force_full_batch=True), 2)
         self.assertEqual(effective_posts_per_run(17, configured_limit=10, force_full_batch=True), 10)
+
+    def test_daily_channel_count_uses_iran_calendar_day_not_youtube_quota_day(self):
+        # Both posts fall on October 23 in Los Angeles, but only one falls on October 24 in Iran.
+        now = datetime(2026, 10, 24, 2, 54, tzinfo=timezone.utc)
+        current_iran_day = datetime(2026, 10, 23, 22, 4, tzinfo=timezone.utc).timestamp()
+        previous_iran_day = datetime(2026, 10, 23, 20, 0, tzinfo=timezone.utc).timestamp()
+        state = {
+            "published": {
+                "current-iran-day": {
+                    "ts": current_iran_day,
+                    "delivery_status": {"telegram": "sent", "bale": "sent"},
+                },
+                "previous-iran-day": {
+                    "ts": previous_iran_day,
+                    "delivery_status": {"telegram": "sent", "bale": "sent"},
+                },
+            }
+        }
+
+        self.assertEqual(daily_channel_posts_count(state, now), 1)
 
     def test_mcp_offer_card_fields_are_normalized_as_live_deal_candidates(self):
         rows = api_incredible_offer_product_candidates([{

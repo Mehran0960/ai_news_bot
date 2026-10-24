@@ -50,7 +50,7 @@ BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
 MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "40"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
-# Keep paired channel posts and Shorts below YouTube’s default 100 daily uploads; default to 70 to leave 30 calls for retries and operational headroom.
+# Independent Telegram/Bale volume guard, counted by Iran's calendar day; never reserve or gate channel posts on YouTube API quota.
 MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "70"))))
 # Current channel uploadLimitExceeded behavior is consistent with ~8/day; keep Shorts evenly spaced.
 YOUTUBE_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS", "3"))))
@@ -4858,11 +4858,11 @@ def _last_post_timestamp(state):
         return 0.0
 
 def daily_channel_posts_count(state: dict, now: datetime | None = None) -> int:
-    """Count today's channel publications in YouTube's Pacific-time quota day."""
+    """Count channel publications on the current Iran calendar day, independently of YouTube quota resets."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
-    quota_day = current.astimezone(ZoneInfo("America/Los_Angeles")).date()
+    channel_day = current.astimezone(IRAN_TIMEZONE).date()
     published = state.get("published", {}) if isinstance(state, dict) else {}
     count = 0
     for record in published.values() if isinstance(published, dict) else []:
@@ -4876,11 +4876,11 @@ def daily_channel_posts_count(state: dict, now: datetime | None = None) -> int:
             if stamp <= 0:
                 continue
             posted_day = datetime.fromtimestamp(stamp, timezone.utc).astimezone(
-                ZoneInfo("America/Los_Angeles")
+                IRAN_TIMEZONE
             ).date()
         except (TypeError, ValueError, OverflowError, OSError):
             continue
-        if posted_day == quota_day:
+        if posted_day == channel_day:
             count += 1
     return count
 
@@ -6465,12 +6465,12 @@ def run(publish=False):
             daily_posts_remaining,
         )
         print(
-            f"YOUTUBE_SAFE_DAILY_CAP pacific_day_posts={daily_posts_used} "
+            f"CHANNEL_DAILY_CAP iran_day_posts={daily_posts_used} "
             f"cap={MAX_DAILY_CHANNEL_POSTS} remaining={daily_posts_remaining} "
-            "reason=reserve_upload_quota_headroom"
+            "reason=independent_channel_volume_guard"
         )
         if daily_posts_remaining <= 0:
-            print("PUBLISH_BLOCKED: daily paired-video safety cap reached; no new channel post without reserved YouTube upload capacity.")
+            print("PUBLISH_BLOCKED: Iran-day channel publication cap reached; YouTube quota is independent.")
         print(
             f"PUBLICATION_CAPACITY backlog={backlog_count} configured_limit={MAX_POSTS_PER_RUN} "
             f"effective_limit={run_post_limit} burst_threshold={PUBLISH_BACKLOG_BURST_THRESHOLD}"
