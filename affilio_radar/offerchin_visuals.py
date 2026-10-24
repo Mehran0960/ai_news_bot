@@ -198,8 +198,11 @@ def draw_retailer_badge(image, left: int, top: int, width: int, height: int, mer
 
     target_width = max(1, int(width))
     target_height = max(1, int(height))
+    # The DigiKala source is a brand symbol, not a wordmark: keep it compact
+    # even when an unusual local SVG crop is wider than the official mark.
+    fit_width = target_width if is_snappshop else min(target_width, max(1, int(target_height * 1.2)))
     fitted = ImageOps.contain(
-        logo, (target_width, target_height), method=Image.Resampling.LANCZOS
+        logo, (fit_width, target_height), method=Image.Resampling.LANCZOS
     )
     if fitted.width < 1 or fitted.height < 1:
         return
