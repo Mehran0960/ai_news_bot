@@ -2183,7 +2183,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(fallback)
         self.assertNotEqual(fallback, "تخفیف")
         self.assertEqual(fallback_options, {})
-        self.assertTrue(any("\\uFB50" <= char <= "\\uFDFF" or "\\uFE70" <= char <= "\\uFEFF" for char in fallback))
+        self.assertTrue(any(0xFB50 <= ord(char) <= 0xFDFF or 0xFE70 <= ord(char) <= 0xFEFF for char in fallback))
 
     def test_discount_badge_uses_store_brand_color_and_persian_wordmark(self):
         import offerchin_visuals as visuals
