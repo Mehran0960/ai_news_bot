@@ -40,6 +40,7 @@ from affilio_radar import (
     mark_discovery_candidate_checked,
     defer_pending_publication,
     select_publish_candidates,
+    select_urgent_publication_candidate,
     parse_product_page,
     score_product,
     classify_category,
@@ -233,6 +234,101 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(has_publishable_expiry_or_open_offer({**base, "availability": "unknown"}))
         self.assertFalse(has_publishable_expiry_or_open_offer({**base, "availability": "in_stock", "original_price": 3_398_000}))
         self.assertTrue(has_publishable_expiry_or_open_offer({**base, "availability": "in_stock"}))
+
+    def test_urgent_bypass_is_suppressed_for_same_recent_family_when_alternative_exists(self):
+        now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-previous-keyboard": {
+                "title": "کیبورد مکانیکال مدل قبلی",
+                "ts": (now - timedelta(minutes=15)).timestamp(),
+                "telegram_message_id": 100,
+                "delivery_status": {"telegram": "sent", "bale": "sent"},
+            }
+        }
+        repeated_family = {
+            "product_id": "dkp-keyboard-urgent",
+            "title": "کیبورد و ماوس بی‌سیم مدل تازه",
+            "discount_percent": 82,
+            "savings_toman": 600_000,
+            "demand_score": 58,
+            "deal_expires_at": (now + timedelta(minutes=150)).isoformat(),
+        }
+        different_family_alternative = {
+            "product_id": "dkp-skincare-alternative",
+            "title": "کرم آبرسان صورت مدل تازه",
+            "discount_percent": 35,
+            "savings_toman": 150_000,
+            "demand_score": 55,
+        }
+
+        chosen = select_urgent_publication_candidate(
+            [repeated_family, different_family_alternative],
+            now=now,
+            published=published,
+        )
+
+        self.assertIsNone(chosen)
+
+    def test_urgent_bypass_prefers_urgent_candidate_from_different_family(self):
+        now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-previous-keyboard": {
+                "title": "کیبورد مکانیکال مدل قبلی",
+                "ts": (now - timedelta(minutes=15)).timestamp(),
+                "telegram_message_id": 100,
+                "delivery_status": {"telegram": "sent", "bale": "sent"},
+            }
+        }
+        same_family = {
+            "product_id": "dkp-keyboard-urgent",
+            "title": "کیبورد و ماوس بی‌سیم مدل تازه",
+            "discount_percent": 82,
+            "savings_toman": 600_000,
+            "demand_score": 58,
+            "deal_expires_at": (now + timedelta(minutes=150)).isoformat(),
+        }
+        different_family = {
+            "product_id": "dkp-skincare-urgent",
+            "title": "کرم آبرسان صورت مدل تازه",
+            "discount_percent": 82,
+            "savings_toman": 600_000,
+            "demand_score": 58,
+            "deal_expires_at": (now + timedelta(minutes=150)).isoformat(),
+        }
+
+        chosen = select_urgent_publication_candidate(
+            [same_family, different_family],
+            now=now,
+            published=published,
+        )
+
+        self.assertEqual(chosen["product_id"], "dkp-skincare-urgent")
+
+    def test_urgent_bypass_keeps_only_available_family_from_starving(self):
+        now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
+        only_choice = {
+            "product_id": "dkp-keyboard-only",
+            "title": "کیبورد بی‌سیم مدل تازه",
+            "discount_percent": 82,
+            "savings_toman": 600_000,
+            "demand_score": 58,
+            "deal_expires_at": (now + timedelta(minutes=150)).isoformat(),
+        }
+        published = {
+            "dkp-previous-keyboard": {
+                "title": "کیبورد مکانیکال مدل قبلی",
+                "ts": (now - timedelta(minutes=15)).timestamp(),
+                "telegram_message_id": 100,
+            }
+        }
+
+        chosen = select_urgent_publication_candidate(
+            [only_choice],
+            now=now,
+            published=published,
+        )
+
+        self.assertEqual(chosen["product_id"], "dkp-keyboard-only")
 
     def test_parse_snappshop_product_api_uses_live_vendor_stock_and_rial_prices(self):
         url = "https://snappshop.ir/product/snp-25751584"
