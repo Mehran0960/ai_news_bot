@@ -2800,10 +2800,27 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
                 # the discount field has nevertheless become false.
                 str(snapshot.get("price_source") or "") == "snappshop_product_api"
                 and int(record.get("posted_discount_percent") or 0) > 0
-                and posted_original_price is not None
                 and live_original_price is None
             ):
                 mismatch_fields.append("original_price")
+
+            try:
+                posted_discount_percent = int(record.get("posted_discount_percent") or 0)
+            except (TypeError, ValueError, OverflowError):
+                posted_discount_percent = 0
+            if posted_discount_percent > 0 and live_original_price is not None:
+                if live_original_price <= live_price:
+                    # Retailer says the reference price is no greater than the
+                    # current price: a previously advertised discount has ended.
+                    mismatch_fields.append("discount_percent")
+                else:
+                    live_discount_percent = int(round(
+                        (live_original_price - live_price) * 100 / live_original_price
+                    ))
+                    # Allow one percentage point for retailer rounding, but do not
+                    # leave captions that advertise a materially different discount.
+                    if abs(posted_discount_percent - live_discount_percent) > 1:
+                        mismatch_fields.append("discount_percent")
 
             if mismatch_fields:
                 _mark_price_invalid(record, product_id, "price_mismatch", posted_price, live_price, now)
