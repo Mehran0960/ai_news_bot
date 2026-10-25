@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from platform_registry import PLATFORM_NAMES
+from product_quality import is_publishable_product_title
 
 
 TERMINAL_QUEUE_STATUSES = {"published", "cancelled", "stale_selection"}
@@ -244,6 +245,10 @@ def enqueue_selected_content(
         product_id = str(item.get("product_id") or "").strip().lower()
         product_url = str(item.get("product_url") or "").strip()
         affiliate_url = str(item.get("affiliate_url") or "").strip()
+        title = str(item.get("title") or "").strip()
+        if not is_publishable_product_title(title):
+            skipped += 1
+            continue
         try:
             price = int(item.get("current_price") or 0)
         except (TypeError, ValueError, OverflowError):
@@ -277,6 +282,7 @@ def enqueue_selected_content(
         # Keep only JSON-compatible fields in the hand-off record. New platform
         # adapters can consume this contract without importing the discovery module.
         payload = json.loads(json.dumps(item, ensure_ascii=False, default=str))
+        payload["title"] = title
         queue[product_id] = {
             "content_id": product_id,
             "product_id": product_id,
