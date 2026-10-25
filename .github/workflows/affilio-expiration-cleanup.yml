@@ -95,7 +95,7 @@ jobs:
           AFFILIO_PUBLIC_HISTORY_PAGES: ${{ (contains(github.event.head_commit.message, '[repair-buttons-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[deadline-audit-only]')) && '10' || '2' }}
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/expiration_monitor.py
+        run: python affilio_radar/expiration_monitor.py --bounded-maintenance
 
       - name: "One-time migration: remove obsolete timers and restore verified purchase buttons"
         if: ${{ contains(github.event.head_commit.message, '[repair-buttons-now]') }}
