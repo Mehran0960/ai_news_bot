@@ -45,9 +45,6 @@ POST_REMOVAL_BUFFER_MINUTES = max(
 LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 5 * 60
 # Bound detail lookups so missing timers cannot stall expiry cleanup.
 DIRECT_PRODUCT_DETAIL_CHECK_LIMIT = max(1, min(10, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "8"))))
-# Rotate through every live publication instead of checking only deadline-unknown posts.
-PRICE_AUDIT_INTERVAL_SECONDS = max(900, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "1800")))
-PRICE_AUDIT_PRODUCT_CHECKS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_PRICE_AUDIT_PRODUCT_CHECKS_PER_RUN", "6"))))
 CAPTION_FORMAT_VERSION = 12
 
 
@@ -2948,14 +2945,6 @@ def run():
             print("EXPIRY_LIVE_SYNC_SKIPPED reason=no_live_deadlines_received; cached deadlines retained")
     else:
         print(f"EXPIRY_LIVE_SYNC_SKIPPED reason=not_due forced={force_feed_sync}")
-
-    price_changed, price_checked, price_mismatches, price_inconclusive, price_backlog = (
-        audit_live_post_prices(published, now)
-    )
-    changed = changed or price_changed
-    if price_changed:
-        _write_state(state)
-        print("PRICE_AUDIT_STATE_SAVED")
 
     direct_recheck_budget = {"remaining": DIRECT_PRODUCT_DETAIL_CHECK_LIMIT}
     def confirm_near_expiry(product_id, record, current_time):
