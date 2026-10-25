@@ -2122,27 +2122,9 @@ def audit_public_channel_history(published, now=None, posts=None):
             current_price = fields.get("current_price")
             discount_percent = fields.get("discount_percent")
             title = str(fields.get("title") or "").strip()
-            if (
-                not is_publishable_product_title(title)
-                or not isinstance(current_price, int) or current_price <= 0
-                or not isinstance(discount_percent, int) or not 1 <= discount_percent <= 100
-            ):
-                # A public offer we cannot parse well enough to validate is not
-                # safe to adopt as a live deal. Remove it; retry next cycle if Telegram
-                # does not confirm deletion.
-                try:
-                    outcome = _telegram_delete(int(message_id))
-                    print(
-                        f"PUBLIC_HISTORY_UNTRACKED_INVALID_OFFER message_id={message_id} "
-                        f"product_id={pid} outcome={outcome!r}"
-                    )
-                except Exception as exc:
-                    print(
-                        f"PUBLIC_HISTORY_UNTRACKED_INVALID_OFFER_DELETE_FAILED "
-                        f"message_id={message_id} product_id={pid} "
-                        f"error={type(exc).__name__}: {str(exc)[:120]!r}"
-                    )
-                continue
+            # Incomplete legacy captions can still be repaired when a purchase
+            # button is confirmed. Unknown price facts remain unknown (never guessed);
+            # once a numeric price is present, the recurring live audit validates it.
             caption = _build_legacy_repaired_caption(fields, None, now, affiliate_url=affiliate_url)
             try:
                 result = _telegram_edit_caption(
