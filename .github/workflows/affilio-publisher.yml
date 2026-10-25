@@ -1,11 +1,7 @@
 name: Affilio Platform Publisher
 
 on:
-  # Run only after the selection workflow has persisted its queue to main.
-  workflow_run:
-    workflows: ["Affilio Product Radar"]
-    types: [completed]
-  # Allows an operator to drain already-selected, due content without discovery.
+  # Manual emergency fallback only. The scheduled OfferChin publisher owns routine delivery.
   workflow_dispatch:
 
 permissions:
