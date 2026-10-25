@@ -7,6 +7,7 @@ perform product discovery, and discovery never calls a platform publishing adapt
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -16,6 +17,16 @@ from platform_registry import PLATFORM_NAMES
 TERMINAL_QUEUE_STATUSES = {"published", "cancelled", "stale_selection"}
 TERMINAL_PLATFORM_STATUSES = {"sent", "not_connected", "manual_review"}
 PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
+
+
+def _configured_queue_limit(value: Any = None) -> int:
+    """Return a defensive upper bound for live content hand-off/retry records."""
+    raw = value if value is not None else os.getenv("AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT", "6")
+    try:
+        parsed = int(raw)
+    except (TypeError, ValueError, OverflowError):
+        parsed = 6
+    return max(1, min(20, parsed))
 
 
 def _utc(value: Any, default: datetime | None = None) -> datetime | None:
@@ -60,6 +71,64 @@ def _has_any_delivery_success(state: dict, product_id: str, entry: dict) -> bool
     record = published.get(product_id) if isinstance(published, dict) else None
     delivery = record.get("delivery_status") if isinstance(record, dict) else None
     return isinstance(delivery, dict) and any(status == "sent" for status in delivery.values())
+
+
+def _active_queue_entries(queue: Any) -> list[tuple[str, dict]]:
+    if not isinstance(queue, dict):
+        return []
+    return [
+        (str(product_id), entry)
+        for product_id, entry in queue.items()
+        if isinstance(entry, dict) and entry.get("status") not in TERMINAL_QUEUE_STATUSES
+    ]
+
+
+def _evict_oldest_active_queue_item(state: dict, now: datetime) -> bool:
+    """Drop the oldest unresolved hand-off when the bounded queue needs a slot."""
+    queue = state.get("content_delivery_queue")
+    entries = _active_queue_entries(queue)
+    if not entries:
+        return False
+
+    minimum_time = datetime.min.replace(tzinfo=timezone.utc)
+
+    def selected_time(pair: tuple[str, dict]) -> datetime:
+        entry = pair[1]
+        return (
+            _utc(entry.get("selected_at"))
+            or _utc(entry.get("scheduled_at"))
+            or minimum_time
+        )
+
+    product_id, _entry = min(entries, key=selected_time)
+    finish_queue_item(
+        state,
+        product_id,
+        "cancelled",
+        now=now,
+        detail="bounded_retry_queue_eviction: oldest unresolved selection dropped to protect fresh slots",
+    )
+    return True
+
+
+def enforce_queue_limit(
+    state: dict,
+    *,
+    now: datetime | None = None,
+    max_active_items: int | None = None,
+) -> int:
+    """Keep the hand-off/retry queue bounded; never replay a long publication backlog."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    limit = _configured_queue_limit(max_active_items)
+    evicted = 0
+    while len(_active_queue_entries(state.get("content_delivery_queue"))) > limit:
+        if not _evict_oldest_active_queue_item(state, current):
+            break
+        evicted += 1
+    return evicted
 
 
 def refresh_unpublished_selections(
@@ -137,6 +206,7 @@ def enqueue_selected_content(
     interval_seconds: int = 1200,
     max_items: int = 1,
     minimum_runway_minutes: int = 60,
+    max_active_items: int | None = None,
 ) -> dict:
     """Persist ranked selections for a separate publisher; never publish from here."""
     now = now or datetime.now(timezone.utc)
@@ -146,6 +216,7 @@ def enqueue_selected_content(
     interval_seconds = max(60, int(interval_seconds))
     max_items = max(1, int(max_items))
     minimum_runway_minutes = max(0, int(minimum_runway_minutes))
+    queue_limit = _configured_queue_limit(max_active_items)
 
     queue = state.setdefault("content_delivery_queue", {})
     if not isinstance(queue, dict):
@@ -157,14 +228,11 @@ def enqueue_selected_content(
         state["content_delivery_history"] = history
     published = state.get("published") if isinstance(state.get("published"), dict) else {}
 
+    # Existing retry entries do not reserve future publication slots. A slow or
+    # unavailable destination must never push fresh selections into a long queue.
+    queue_evicted = enforce_queue_limit(state, now=now, max_active_items=queue_limit)
     last_published = _utc(state.get("last_published_at"))
     next_slot = max(now, last_published + timedelta(seconds=interval_seconds)) if last_published else now
-    for entry in queue.values():
-        if not isinstance(entry, dict) or entry.get("status") in TERMINAL_QUEUE_STATUSES:
-            continue
-        existing_slot = _utc(entry.get("scheduled_at"))
-        if existing_slot and existing_slot >= next_slot:
-            next_slot = existing_slot + timedelta(seconds=interval_seconds)
 
     added = skipped = 0
     for item in items:
@@ -198,6 +266,14 @@ def enqueue_selected_content(
             skipped += 1
             continue
 
+        # Make room for the fresh selection rather than building a long retry backlog.
+        # Partial deliveries remain retryable until evicted by this bound or rejected
+        # by live price/stock/deadline validation in the publisher.
+        while len(_active_queue_entries(queue)) >= queue_limit:
+            if not _evict_oldest_active_queue_item(state, now):
+                break
+            queue_evicted += 1
+
         # Keep only JSON-compatible fields in the hand-off record. New platform
         # adapters can consume this contract without importing the discovery module.
         payload = json.loads(json.dumps(item, ensure_ascii=False, default=str))
@@ -221,10 +297,8 @@ def enqueue_selected_content(
     summary = {
         "added": added,
         "skipped": skipped,
-        "queue_size": sum(
-            1 for entry in queue.values()
-            if isinstance(entry, dict) and entry.get("status") not in TERMINAL_QUEUE_STATUSES
-        ),
+        "queue_size": len(_active_queue_entries(queue)),
+        "queue_evicted": queue_evicted,
     }
     state["content_delivery_last_enqueue_summary"] = {
         **summary,
