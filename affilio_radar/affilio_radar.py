@@ -5696,14 +5696,16 @@ def process_pending_short_video(
     now: datetime | None = None,
     output_dir: str | Path = "video_artifacts",
     destinations: set[str] | None = None,
+    force_due: bool = False,
+    product_id: str | None = None,
 ) -> bool:
-    """Generate one vertical artifact and publish independently to configured destinations.
+    """Generate and publish a vertical artifact for a selected product.
 
-    YouTube uses its official Data API and Aparat uses the authenticated web uploader.
-    Each destination has independent credentials, cadence, status and failure handling.
-    Pass destinations={"aparat"} to run the dedicated Aparat-only path without touching
-    YouTube uploads or the optional private Telegram preview.
-    Aparat Shorts-feed placement is not guaranteed by this web upload path.
+    Normal queue scans respect each platform's upload schedule. The external publisher
+    may pass force_due=True and product_id to process one selected item immediately;
+    this bypasses only cross-item spacing, never daily quotas, credentials or platform
+    failure handling. Missing expiry can be allowed in this path because the independent
+    live price/stock audit removes stale posts when the offer is no longer valid.
     """
     selected_destinations = (
         {"youtube", "aparat"} if destinations is None
@@ -5822,7 +5824,7 @@ def process_pending_short_video(
     youtube_upload_due = (
         youtube_ready
         and not youtube_pause_active
-        and (youtube_next_upload_at is None or current >= youtube_next_upload_at)
+        and (force_due or youtube_next_upload_at is None or current >= youtube_next_upload_at)
     )
     if youtube_pause_active:
         print(
@@ -5834,7 +5836,7 @@ def process_pending_short_video(
 
     # Aparat's upload clock is independent: a YouTube pause/cadence must not postpone it.
     aparat_schedule_before = str(state.get("aparat_next_upload_at") or "")
-    aparat_upload_due = _aparat_upload_slot_due(state, current, aparat_ready)
+    aparat_upload_due = bool(force_due and aparat_ready) or _aparat_upload_slot_due(state, current, aparat_ready)
     aparat_next_upload_at = _parse_utc_datetime(state.get("aparat_next_upload_at"))
     if str(state.get("aparat_next_upload_at") or "") != aparat_schedule_before:
         state_changed = True
@@ -5967,6 +5969,8 @@ def process_pending_short_video(
     for pid, record in published.items():
         if not isinstance(record, dict):
             continue
+        if product_id is not None and str(pid) != str(product_id):
+            continue
         generation_status = str(record.get("video_generation_status") or "")
         if generation_status == "generated":
             try:
@@ -6048,7 +6052,7 @@ def process_pending_short_video(
             continue
 
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("expires_at")))
-        if (
+        if not force_due and (
             expiry is None
             or record.get("expiry_source") not in {"digikala_live_deals_feed", "digikala_product_detail_api", "digikala_mcp_offer_card", "snappshop_recheck_window"}
             or record.get("expiry_estimated") is True
@@ -6069,6 +6073,10 @@ def process_pending_short_video(
             state_changed = True
             print(f"SHORT_VIDEO_SKIP id={pid} reason=unverified_deadline")
             continue
+        if expiry is None and force_due:
+            # The publisher has just revalidated current price and stock. The
+            # hourly audit is the expiry safety net for products without a site timer.
+            expiry = current + timedelta(days=3650)
         # Use the same ten-minute removal buffer as the channel posts. Do not
         # impose a separate 20-minute video eligibility rule on an already-published deal.
         if expiry <= current + timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES):
@@ -6082,7 +6090,7 @@ def process_pending_short_video(
             continue
 
         delivery = record.get("delivery_status") if isinstance(record.get("delivery_status"), dict) else {}
-        if not any(value == "sent" for value in delivery.values()):
+        if not force_due and not any(value == "sent" for value in delivery.values()):
             continue
 
         yt_need = (
