@@ -10,12 +10,16 @@ import json
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from platform_registry import PLATFORM_NAMES
+from platform_registry import PLATFORM_NAMES, VIDEO_PLATFORMS
 
 
-TERMINAL_QUEUE_STATUSES = {"published", "cancelled", "stale_selection"}
-TERMINAL_PLATFORM_STATUSES = {"sent", "not_connected", "manual_review"}
+TERMINAL_QUEUE_STATUSES = {"published", "cancelled", "stale_selection", "superseded"}
+TERMINAL_PLATFORM_STATUSES = {"sent", "not_connected", "manual_review", "superseded"}
 PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
+
+# Retain only a short hand-off window: failed destinations may retry briefly,
+# but they must not accumulate an unbounded backlog that hides fresh selections.
+MAX_ACTIVE_DELIVERY_ITEMS = 3
 
 
 def _utc(value: Any, default: datetime | None = None) -> datetime | None:
@@ -159,14 +163,10 @@ def enqueue_selected_content(
 
     last_published = _utc(state.get("last_published_at"))
     next_slot = max(now, last_published + timedelta(seconds=interval_seconds)) if last_published else now
-    for entry in queue.values():
-        if not isinstance(entry, dict) or entry.get("status") in TERMINAL_QUEUE_STATUSES:
-            continue
-        existing_slot = _utc(entry.get("scheduled_at"))
-        if existing_slot and existing_slot >= next_slot:
-            next_slot = existing_slot + timedelta(seconds=interval_seconds)
-
+    # Do not push a fresh selection behind the scheduled time of an older,
+    # partially delivered item. The current selection slot is authoritative.
     added = skipped = 0
+    added_ids: list[str] = []
     for item in items:
         if added >= max_items:
             break
@@ -216,11 +216,19 @@ def enqueue_selected_content(
             },
         }
         added += 1
+        added_ids.append(product_id)
         next_slot = scheduled + timedelta(seconds=interval_seconds)
+
+    # Bound existing backlog as well as every newly created selection. The newest
+    # selection(s) are protected; retired entries remain in bounded history.
+    trimmed = _trim_active_delivery_queue(
+        state, protect_ids=set(added_ids), now=now
+    )
 
     summary = {
         "added": added,
         "skipped": skipped,
+        "trimmed": trimmed,
         "queue_size": sum(
             1 for entry in queue.values()
             if isinstance(entry, dict) and entry.get("status") not in TERMINAL_QUEUE_STATUSES
@@ -291,3 +299,112 @@ def finish_queue_item(state: dict, product_id: str, status: str, *, now: datetim
         history.append(entry)
         state["content_delivery_history"] = history[-200:]
         queue.pop(product_id, None)
+
+
+
+def _retire_queue_entry(
+    state: dict,
+    product_id: str,
+    entry: dict,
+    *,
+    now: datetime,
+    detail: str,
+) -> bool:
+    """Retire an old hand-off safely without risking duplicate sends in flight."""
+    platforms = entry.get("platforms")
+    if not isinstance(platforms, dict):
+        platforms = {}
+        entry["platforms"] = platforms
+
+    # Never evict a destination while its external send may still be in flight.
+    # If the result has been uncertain for 30+ minutes, preserve that uncertainty
+    # as manual_review rather than retrying blindly.
+    for target in platforms.values():
+        if not isinstance(target, dict) or target.get("status") != "sending":
+            continue
+        started = _utc(target.get("attempt_started_at"))
+        if started is None or now - started < timedelta(minutes=30):
+            return False
+
+    for name, target in platforms.items():
+        if not isinstance(target, dict):
+            continue
+        status = str(target.get("status") or "pending")
+        if status == "sending":
+            target["status"] = "manual_review"
+            target["last_error"] = "send_outcome_unknown_during_queue_eviction"
+        elif status not in TERMINAL_PLATFORM_STATUSES:
+            target["status"] = "superseded"
+            target["last_error"] = detail[:300]
+        else:
+            continue
+        target["updated_at"] = now.isoformat()
+        target.pop("next_attempt_at", None)
+
+        published = state.get("published")
+        record = published.get(product_id) if isinstance(published, dict) else None
+        if isinstance(record, dict):
+            delivery_status = record.setdefault("delivery_status", {})
+            if delivery_status.get(name) != "sent":
+                delivery_status[name] = target["status"]
+
+    if all(
+        isinstance(target, dict)
+        and str(target.get("status") or "pending") in TERMINAL_PLATFORM_STATUSES
+        for target in platforms.values()
+    ):
+        finish_queue_item(state, product_id, "superseded", now=now, detail=detail)
+        return True
+    return False
+
+
+def _trim_active_delivery_queue(
+    state: dict,
+    *,
+    protect_ids: set[str] | None = None,
+    now: datetime | None = None,
+) -> int:
+    """Keep at most three active selections, favouring the freshest hand-offs."""
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    now = now.astimezone(timezone.utc)
+    protect_ids = set(protect_ids or ())
+    queue = state.get("content_delivery_queue")
+    if not isinstance(queue, dict):
+        return 0
+
+    def selected_sort(item: tuple[str, dict]) -> tuple[datetime, str]:
+        product_id, entry = item
+        selected_at = _utc(entry.get("selected_at")) or _utc(entry.get("scheduled_at")) or now
+        return selected_at, product_id
+
+    active = [
+        (str(product_id), entry)
+        for product_id, entry in queue.items()
+        if isinstance(entry, dict) and entry.get("status") not in TERMINAL_QUEUE_STATUSES
+    ]
+    active.sort(key=selected_sort)
+
+    # If a caller passes an oversized batch, protect only its newest three items.
+    if len(protect_ids) > MAX_ACTIVE_DELIVERY_ITEMS:
+        protected_in_order = [pid for pid, _ in active if pid in protect_ids]
+        protect_ids = set(protected_in_order[-MAX_ACTIVE_DELIVERY_ITEMS:])
+
+    remaining = len(active)
+    trimmed = 0
+    for product_id, entry in active:
+        if remaining <= MAX_ACTIVE_DELIVERY_ITEMS:
+            break
+        if product_id in protect_ids:
+            continue
+        if _retire_queue_entry(
+            state,
+            product_id,
+            entry,
+            now=now,
+            detail="superseded_by_newer_live_selection_to_bound_delivery_queue",
+        ):
+            remaining -= 1
+            trimmed += 1
+    return trimmed

@@ -2,8 +2,8 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 from content_delivery import (
-    due_content, due_unpublished_selection, enqueue_selected_content,
-    finish_queue_item, refresh_unpublished_selections,
+    MAX_ACTIVE_DELIVERY_ITEMS, due_content, due_unpublished_selection,
+    enqueue_selected_content, finish_queue_item, refresh_unpublished_selections,
 )
 from platform_registry import PLATFORM_NAMES
 
@@ -165,6 +165,51 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         finish_queue_item(state, "dkp-123", "published", now=self.now)
         self.assertNotIn("dkp-123", state["content_delivery_queue"])
         self.assertEqual(state["content_delivery_history"][0]["status"], "published")
+
+    def test_existing_queue_item_does_not_push_fresh_slot_into_the_future(self):
+        state = {"last_published_at": self.now.isoformat()}
+        enqueue_selected_content(
+            state, [self.item("dkp-old")], now=self.now,
+            interval_seconds=1200, max_items=1,
+        )
+        old = state["content_delivery_queue"]["dkp-old"]
+        old["status"] = "partial"
+        old["platforms"]["telegram"]["status"] = "sent"
+
+        next_slot = self.now + timedelta(seconds=1200)
+        enqueue_selected_content(
+            state, [self.item("dkp-new")], now=next_slot,
+            interval_seconds=1200, max_items=1,
+        )
+        self.assertEqual(
+            datetime.fromisoformat(state["content_delivery_queue"]["dkp-new"]["scheduled_at"]),
+            next_slot,
+        )
+
+    def test_active_delivery_queue_is_bounded_and_oldest_item_is_retired(self):
+        state = {}
+        for i in range(5):
+            now = self.now + timedelta(minutes=20 * i)
+            if i:
+                state["last_published_at"] = (now - timedelta(minutes=20)).isoformat()
+            enqueue_selected_content(
+                state, [self.item(f"dkp-{i}", demand=100 - i)], now=now,
+                interval_seconds=1200, max_items=1,
+            )
+            entry = state["content_delivery_queue"][f"dkp-{i}"]
+            entry["status"] = "partial"
+            entry["platforms"]["telegram"]["status"] = "sent"
+            entry["platforms"]["bale"]["status"] = "failed"
+            self.assertLessEqual(len(state["content_delivery_queue"]), MAX_ACTIVE_DELIVERY_ITEMS)
+
+        old = next(
+            entry for entry in state["content_delivery_history"]
+            if entry.get("product_id") == "dkp-0"
+        )
+        self.assertEqual(old["status"], "superseded")
+        self.assertEqual(old["platforms"]["bale"]["status"], "superseded")
+        self.assertEqual(old["platforms"]["youtube"]["status"], "superseded")
+        self.assertEqual(len(state["content_delivery_queue"]), MAX_ACTIVE_DELIVERY_ITEMS)
 
 
 if __name__ == "__main__":
