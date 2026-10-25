@@ -1848,6 +1848,66 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertNotEqual(record.get("expiry_source"), "live_product_stock_or_price")
         self.assertNotEqual(record.get("expiry_reason"), "price_mismatch")
 
+    def test_fetch_live_product_status_uses_snappshop_product_api(self):
+        with patch.object(monitor, "fetch_product_record", return_value={
+            "title": "ست لباس نوزادی",
+            "current_price": 620_000,
+            "original_price": 2_300_000,
+            "availability": "in_stock",
+        }) as fetch:
+            snapshot = monitor.fetch_live_product_status("snp-123456")
+        fetch.assert_called_once_with("https://snappshop.ir/product/snp-123456")
+        self.assertEqual(snapshot["current_price"], 620_000)
+        self.assertEqual(snapshot["original_price"], 2_300_000)
+        self.assertIs(snapshot["in_stock"], True)
+        self.assertEqual(snapshot["price_source"], "snappshop_product_api")
+        self.assertFalse(snapshot["expiry_verified_directly"])
+
+    def test_live_price_audit_invalidates_snappshop_post_when_live_price_changes(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "telegram_message_id": 731,
+            "expiry_status": "tracked",
+            "posted_current_price": 620_000,
+            "posted_original_price": 2_300_000,
+            "posted_discount_percent": 73,
+            "price_audit_next_check_at": (now - timedelta(minutes=1)).isoformat(),
+        }
+        published = {"snp-123456": record}
+        with patch.object(monitor, "fetch_live_product_status", return_value={
+            "current_price": 700_000,
+            "original_price": 2_300_000,
+            "in_stock": True,
+            "price_source": "snappshop_product_api",
+        }):
+            changed, summary = monitor._audit_live_prices(published, now=now, batch_size=10)
+        self.assertTrue(changed)
+        self.assertEqual(summary["price_mismatches"], 1)
+        self.assertEqual(record["price_audit_status"], "invalidated")
+        self.assertEqual(record["price_audit_reason"], "price_mismatch")
+
+    def test_live_price_audit_invalidates_snappshop_post_when_discount_disappears(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "telegram_message_id": 732,
+            "expiry_status": "tracked",
+            "posted_current_price": 620_000,
+            "posted_original_price": 2_300_000,
+            "posted_discount_percent": 73,
+        }
+        published = {"snp-123456": record}
+        with patch.object(monitor, "fetch_live_product_status", return_value={
+            "current_price": 620_000,
+            "original_price": None,
+            "in_stock": True,
+            "price_source": "snappshop_product_api",
+        }):
+            changed, summary = monitor._audit_live_prices(published, now=now, batch_size=10)
+        self.assertTrue(changed)
+        self.assertEqual(summary["price_mismatches"], 1)
+        self.assertEqual(record["price_audit_status"], "invalidated")
+        self.assertIn("original_price", record["price_audit_mismatch_fields"])
+
     def test_live_price_audit_refreshes_current_deadline_but_not_history_deadline(self):
         now = datetime(2026, 10, 25, 16, 0, tzinfo=timezone.utc)
         current_deadline = "2026-10-25T19:00:00+00:00"
