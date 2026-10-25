@@ -47,6 +47,88 @@ def _active_publication(record: Any) -> bool:
     return False
 
 
+
+def _has_any_delivery_success(state: dict, product_id: str, entry: dict) -> bool:
+    """Return whether any destination has already published this selected content."""
+    platforms = entry.get("platforms")
+    if isinstance(platforms, dict) and any(
+        isinstance(target, dict) and target.get("status") == "sent"
+        for target in platforms.values()
+    ):
+        return True
+    published = state.get("published")
+    record = published.get(product_id) if isinstance(published, dict) else None
+    delivery = record.get("delivery_status") if isinstance(record, dict) else None
+    return isinstance(delivery, dict) and any(status == "sent" for status in delivery.values())
+
+
+def refresh_unpublished_selections(
+    state: dict,
+    *,
+    now: datetime | None = None,
+    stale_after_minutes: int = 8,
+) -> int:
+    """Discard future or stale selections that have not reached any destination.
+
+    Discovery runs more often than the publication cadence. A future-scheduled item
+    must not pin the next slot to an old product; an already-due failed selection is
+    given a short delivery window before the next live scan replaces it. Items that
+    reached even one platform are retained for independent destination retries.
+    """
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    now = now.astimezone(timezone.utc)
+    stale_after = timedelta(minutes=max(1, int(stale_after_minutes)))
+    queue = state.get("content_delivery_queue")
+    if not isinstance(queue, dict):
+        return 0
+
+    replaced = 0
+    pending = state.get("pending_queue")
+    for product_id, entry in list(queue.items()):
+        if not isinstance(entry, dict) or entry.get("status") in TERMINAL_QUEUE_STATUSES:
+            continue
+        if _has_any_delivery_success(state, str(product_id), entry):
+            continue
+
+        scheduled = _utc(entry.get("scheduled_at"))
+        selected = _utc(entry.get("selected_at"), scheduled)
+        future_scheduled = scheduled is not None and scheduled > now
+        stale_due = selected is not None and now - selected >= stale_after
+        if not future_scheduled and not stale_due:
+            continue
+
+        detail = "future_selection_replaced_by_live_scan" if future_scheduled else "stale_unpublished_selection_replaced_by_live_scan"
+        finish_queue_item(
+            state, str(product_id), "stale_selection", now=now, detail=detail
+        )
+        if isinstance(pending, dict):
+            pending.pop(str(product_id), None)
+        replaced += 1
+    return replaced
+
+
+def due_unpublished_selection(state: dict, *, now: datetime | None = None) -> str | None:
+    """Find an already-due selection still awaiting its first successful destination."""
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    now = now.astimezone(timezone.utc)
+    queue = state.get("content_delivery_queue")
+    if not isinstance(queue, dict):
+        return None
+    for product_id, entry in queue.items():
+        if not isinstance(entry, dict) or entry.get("status") in TERMINAL_QUEUE_STATUSES:
+            continue
+        if _has_any_delivery_success(state, str(product_id), entry):
+            continue
+        scheduled = _utc(entry.get("scheduled_at"))
+        if scheduled is not None and scheduled <= now:
+            return str(product_id)
+    return None
+
+
 def enqueue_selected_content(
     state: dict,
     items: list[dict],
