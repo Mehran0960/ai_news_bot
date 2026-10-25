@@ -96,8 +96,9 @@ def _target_retry(entry: dict, name: str, now: datetime, detail: str = "") -> No
     ).isoformat()
 
 
-def _record_from_item(item: dict, old: dict | None, now: datetime) -> dict:
+def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: str) -> dict:
     expiry_at = str(item.get("deal_expires_at") or "").strip()
+    same_delivery = isinstance(old, dict) and str(old.get("distribution_queue_id") or "") == delivery_id
     record = {
         "ts": now.timestamp(),
         "title": str(item.get("title") or "پیشنهاد منتخب آفرچین"),
@@ -135,16 +136,16 @@ def _record_from_item(item: dict, old: dict | None, now: datetime) -> dict:
         "distribution_queue_id": str(item.get("product_id") or ""),
     }
     old_history = list(old.get("post_history") or []) if isinstance(old, dict) and isinstance(old.get("post_history"), list) else []
-    if isinstance(old, dict) and old:
+    if isinstance(old, dict) and old and not same_delivery:
         snapshot = dict(old)
         snapshot.pop("post_history", None)
         if any(str(snapshot.get(k) or "").isdigit() for k in ("telegram_message_id", "bale_message_id")) or snapshot.get("youtube_video_id") or snapshot.get("aparat_video_hash"):
             old_history.append(snapshot)
     if old_history:
         record["post_history"] = old_history[-12:]
-    # Preserve previously successful platform IDs/statuses for this same content
-    # when a queue item is resuming a partial delivery.
-    if isinstance(old, dict):
+    # Only reuse destination IDs for a retry of the exact queue generation.
+    # A later campaign for the same product must never inherit old platform IDs.
+    if same_delivery:
         for field in (
             "telegram_message_id", "bale_message_id", "youtube_video_id",
             "youtube_video_url", "youtube_upload_status", "youtube_uploaded_at",
@@ -157,6 +158,7 @@ def _record_from_item(item: dict, old: dict | None, now: datetime) -> dict:
             record["delivery_status"].update(old["delivery_status"])
         if isinstance(old.get("delivery_attempts"), dict):
             record["delivery_attempts"].update(old["delivery_attempts"])
+    record["distribution_queue_id"] = delivery_id
     return record
 
 
@@ -266,6 +268,15 @@ def _process_photo_destination(
     record_status = record.setdefault("delivery_status", {})
     status = str(target.get("status") or "pending")
     if status == "sent":
+        return
+    if status == "sending":
+        started = _utc(target.get("attempt_started_at"))
+        if started and (now - started).total_seconds() < 1800:
+            return
+        _set_target(entry, destination, "manual_review", now, "previous_send_outcome_unknown")
+        record_status[destination] = "manual_review"
+        _save(state)
+        print(f"PLATFORM_DELIVERY_MANUAL_REVIEW product_id={entry['product_id']} platform={destination} reason=previous_send_outcome_unknown")
         return
     if not _target_ready(destination):
         _set_target(entry, destination, "not_connected", now, "credentials_not_configured")
@@ -426,7 +437,8 @@ def publish_due_queue() -> int:
         old = state.get("published", {}).get(product_id)
         if not isinstance(old, dict):
             old = {}
-        record = _record_from_item(fresh, old, now)
+        delivery_id = f"{product_id}:{entry.get('selected_at') or entry.get('scheduled_at') or 'unknown'}"
+        record = _record_from_item(fresh, old, now, delivery_id)
         state.setdefault("published", {})[product_id] = record
         _save(state)
 
