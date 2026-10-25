@@ -31,7 +31,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: "Publish image deals to @OfferChin"
+        description: "Queue selected deals for the independent multi-platform publisher"
         required: true
         type: boolean
         default: false
@@ -46,13 +46,11 @@ on:
         type: boolean
         default: false
       external_scheduler:
-        description: "One-minute Cloudflare scheduler trigger; product scans run every five minutes, with about 20-minute normal spacing between posts"
+        description: "Legacy compatibility input; routine discovery is now orchestrated by the publisher workflow"
         required: false
         type: boolean
         default: false
-  schedule:
-    # Scan all selected feed pages every five minutes. Expiry cleanup is schedule/manual-only to avoid code-push contention.
-    - cron: "2-59/5 * * * *"
+  # Routine discovery is orchestrated as a separate stage by offerchin-publisher.yml.
 
 permissions:
   contents: write
@@ -228,7 +226,7 @@ jobs:
       # [repair-all-captions] Repairs every surviving caption without timers and restores its verified purchase button.
       # [repair-all-captions] Remove obsolete expiry labels from every tracked live caption in place.
       # [scan-now] Runs a fresh direct-feed timer diagnostic and eligibility-checked publication pass.
-      - name: Discover products, verify stock, compare current market prices, and publish one image if enabled
+      - name: Discover, verify and queue selected products (never publish from this workflow)
         # Normal code pushes run tests above, but must not consume a full product-discovery cycle.
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[growth-tracking-only]') || contains(github.event.head_commit.message, '[repair-persian-video-text]') }}
         env:
@@ -265,7 +263,7 @@ jobs:
           AFFILIO_DISCOVERY_QUEUE_TTL_HOURS: "24"
           AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "32"
           AFFILIO_MCP_PAGES_PER_SCAN: "5"
-          AFFILIO_AUTOPUBLISH: ${{ github.event_name == 'schedule' || inputs.publish || inputs.external_scheduler || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}
+          AFFILIO_AUTOPUBLISH: "false"
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.3333333333333333"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "60"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
@@ -295,11 +293,7 @@ jobs:
           else
             # This stage only discovers, validates, ranks and persists selected content.
             # All channel/video delivery and stale-post cleanup run in their own workflows.
-            if [[ "${{ github.event_name == 'schedule' || inputs.publish || inputs.external_scheduler || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}" == "true" ]]; then
-              python affilio_radar/affilio_radar.py --select-only
-            else
-              python affilio_radar/affilio_radar.py
-            fi
+            python affilio_radar/affilio_radar.py --select-only
           fi
 
       - name: Preserve generated vertical MP4 artifacts and upload outcomes
