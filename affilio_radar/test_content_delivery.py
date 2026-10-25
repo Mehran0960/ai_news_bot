@@ -53,6 +53,51 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(again["added"], 0)
         self.assertEqual(again["queue_size"], 2)
 
+    def test_new_selection_does_not_stack_behind_partial_retry(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-old-partial")], now=self.now,
+            interval_seconds=1200, max_items=1,
+        )
+        old = state["content_delivery_queue"]["dkp-old-partial"]
+        old["status"] = "partial"
+        old["platforms"]["telegram"]["status"] = "sent"
+        old["platforms"]["bale"]["status"] = "failed"
+        next_slot = self.now + timedelta(minutes=20)
+        old["scheduled_at"] = next_slot.isoformat()
+        old["next_attempt_at"] = next_slot.isoformat()
+        state["last_published_at"] = self.now.isoformat()
+
+        summary = enqueue_selected_content(
+            state, [self.item("dkp-fresh")], now=self.now + timedelta(minutes=5),
+            interval_seconds=1200, max_items=1,
+        )
+        self.assertEqual(summary["added"], 1)
+        self.assertEqual(
+            datetime.fromisoformat(state["content_delivery_queue"]["dkp-fresh"]["scheduled_at"]),
+            next_slot,
+        )
+
+    def test_retry_queue_is_bounded_and_prefers_fresh_selections(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-1")], now=self.now,
+            interval_seconds=1200, max_items=1, max_active_items=2,
+        )
+        enqueue_selected_content(
+            state, [self.item("dkp-2")], now=self.now + timedelta(minutes=1),
+            interval_seconds=1200, max_items=1, max_active_items=2,
+        )
+        result = enqueue_selected_content(
+            state, [self.item("dkp-3")], now=self.now + timedelta(minutes=2),
+            interval_seconds=1200, max_items=1, max_active_items=2,
+        )
+        self.assertEqual(result["queue_size"], 2)
+        self.assertEqual(set(state["content_delivery_queue"]), {"dkp-2", "dkp-3"})
+        self.assertEqual(state["content_delivery_history"][0]["product_id"], "dkp-1")
+        self.assertEqual(state["content_delivery_history"][0]["status"], "cancelled")
+        self.assertIn("bounded_retry_queue_eviction", state["content_delivery_history"][0]["last_detail"])
+
     def test_queue_rejects_past_minimum_runway(self):
         state = {}
         deadline = self.now + timedelta(minutes=45)
