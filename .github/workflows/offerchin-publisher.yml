@@ -6,10 +6,7 @@ on:
   push:
     paths:
       - ".github/workflows/offerchin-publisher.yml"
-  schedule:
-    # GitHub scheduled workflows support five-minute cadence. The publisher is
-    # independent from discovery and processes only items whose scheduled_at is due.
-    - cron: "*/5 * * * *"
+  # Cloudflare's minute dispatcher starts this workflow every five minutes.
   workflow_dispatch:
 
 permissions:
