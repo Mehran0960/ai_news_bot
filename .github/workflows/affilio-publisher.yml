@@ -1,0 +1,86 @@
+name: Affilio Platform Publisher
+
+on:
+  # Run only after the selection workflow has persisted its queue to main.
+  workflow_run:
+    workflows: ["Affilio Product Radar"]
+    types: [completed]
+  # Allows an operator to drain already-selected, due content without discovery.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: affilio-channel-updates
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.conclusion != 'cancelled' && (github.event.workflow_run.event == 'schedule' || github.event.workflow_run.event == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && (contains(github.event.workflow_run.head_commit.message, '[publish-now]') || contains(github.event.workflow_run.head_commit.message, '[scan-now]'))))) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out the persisted selection queue
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: affilio_radar/requirements.txt
+
+      - name: Install dependencies (retry transient package-index failures)
+        run: |
+          for attempt in 1 2 3; do
+            python -m pip install -r affilio_radar/requirements.txt && exit 0
+            if [[ "$attempt" -lt 3 ]]; then
+              echo "Dependency install attempt $attempt failed; retrying."
+              sleep $((attempt * 3))
+            fi
+          done
+          exit 1
+
+      - name: Validate publisher modules
+        run: |
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/content_delivery.py affilio_radar/publisher.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
+
+      - name: Deliver due selected content independently to connected platforms
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_PRIVACY_STATUS: "public"
+          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
+          AFFILIO_APARAT_UPLOAD_ENABLED: "true"
+          APARAT_SHORTS_ONLY: "false"
+          AFFILIO_DEAL_LIST_PAGES: "5"
+          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "10"
+          AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "3600"
+          AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "900"
+          AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "1"
+          AFFILIO_PUBLISHER_BATCH_SIZE: "1"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/publisher.py
+
+      - name: Persist queue and per-platform delivery outcomes
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add affilio_radar/state.json
+          if git diff --cached --quiet; then
+            echo "No delivery-state changes."
+            exit 0
+          fi
+          git commit -m "chore(offerchin): persist platform delivery outcomes [skip ci]"
+          git pull --rebase origin main
+          git push
