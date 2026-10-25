@@ -917,11 +917,22 @@ class ExpirationMonitorTests(unittest.TestCase):
             "bale_expiry_status": "unknown",
         }
         published = {"dkp-12785179": record}
+        checkpoints = []
+
+        def persist_checkpoint():
+            checkpoints.append((
+                record.get("title_quality_status"),
+                record.get("expiry_status"),
+                record.get("bale_expiry_status"),
+            ))
+
         with (
             patch.object(monitor, "_telegram_delete", return_value="deleted") as tg_delete,
             patch.object(monitor, "_bale_delete", return_value="deleted") as bale_delete,
         ):
-            changed, deleted = monitor._delete_expired_posts(published, now)
+            changed, deleted = monitor._delete_expired_posts(
+                published, now, persist_callback=persist_checkpoint
+            )
 
         self.assertTrue(changed)
         self.assertEqual(deleted, 2)
@@ -930,6 +941,12 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(record["expiry_status"], "deleted")
         self.assertEqual(record["bale_expiry_status"], "deleted")
         self.assertEqual(record["title_quality_status"], "invalid_incomplete_title")
+        # Ensure the confirmed result is checkpointed before unrelated live checks continue.
+        self.assertIn(
+            ("invalid_incomplete_title", "deleted", "deleted"),
+            checkpoints,
+        )
+        self.assertGreaterEqual(len(checkpoints), 5)
 
     def test_stale_site_card_cutoff_is_rechecked_directly_and_extended_deadline_is_kept(self):
         now = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)

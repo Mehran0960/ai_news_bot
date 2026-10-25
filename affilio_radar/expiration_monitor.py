@@ -2651,10 +2651,25 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
     return changed, summary
 
 
-def _delete_expired_posts(published, now, mark_unknown=False, direct_confirm=None):
-    """Delete posts whose explicit deadline has passed; return state change and actual deletions."""
+def _delete_expired_posts(
+    published, now, mark_unknown=False, direct_confirm=None, persist_callback=None
+):
+    """Delete invalid/expired posts; checkpoint malformed-title deletion status immediately."""
     changed = False
     deleted = 0
+
+    def persist_immediately(reason):
+        if persist_callback is None:
+            return
+        try:
+            persist_callback()
+            print(f"EXPIRY_STATE_CHECKPOINT_OK reason={reason}")
+        except Exception as exc:
+            # Persistence trouble must not suppress remaining destination delete attempts.
+            print(
+                f"EXPIRY_STATE_CHECKPOINT_FAILED reason={reason} "
+                f"error={type(exc).__name__}: {str(exc)[:120]}"
+            )
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
@@ -2667,6 +2682,8 @@ def _delete_expired_posts(published, now, mark_unknown=False, direct_confirm=Non
             rec["title_quality_status"] = "invalid_incomplete_title"
             rec["title_quality_checked_at"] = now.isoformat()
             changed = True
+            # Checkpoint the invalid-title finding before any network side effect.
+            persist_immediately(f"title_quality_detected:{pid}")
             for platform, id_field, status_field, timestamp_field, delete_fn in (
                 ("telegram", "telegram_message_id", "expiry_status", "expired_deleted_at", _telegram_delete),
                 ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete),
@@ -2674,16 +2691,22 @@ def _delete_expired_posts(published, now, mark_unknown=False, direct_confirm=Non
                 raw_id = rec.get(id_field)
                 if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent"}:
                     continue
+                # Persist an in-flight state before deletion. If the request or runner is
+                # interrupted, the next cycle retries instead of forgetting the outcome.
+                rec[status_field] = "deleting_invalid_title"
+                persist_immediately(f"title_quality_delete_started:{platform}:{pid}:{raw_id}")
                 try:
                     outcome = delete_fn(int(raw_id))
                     rec[status_field] = outcome
                     rec[timestamp_field] = now.isoformat()
+                    rec.pop(f"{platform}_title_quality_delete_error", None)
                     if outcome == "deleted":
                         deleted += 1
                     print(
                         f"TITLE_QUALITY_DELETE_OK platform={platform} product_id={pid} "
                         f"message_id={raw_id} outcome={outcome}"
                     )
+                    persist_immediately(f"title_quality_delete_confirmed:{platform}:{pid}:{raw_id}")
                 except Exception as exc:
                     rec[status_field] = "delete_failed"
                     rec[f"{platform}_title_quality_delete_error"] = f"{type(exc).__name__}: {str(exc)[:160]}"
@@ -2692,6 +2715,7 @@ def _delete_expired_posts(published, now, mark_unknown=False, direct_confirm=Non
                         f"TITLE_QUALITY_DELETE_FAILED platform={platform} product_id={pid} "
                         f"message_id={raw_id} error={type(exc).__name__}; next_cycle_retries=true"
                     )
+                    persist_immediately(f"title_quality_delete_failed:{platform}:{pid}:{raw_id}")
             continue
 
         expiry = parse_expiry(rec.get("expires_at"))
@@ -3035,7 +3059,8 @@ def run_bounded_maintenance():
 
     # Remove posts already known to have expired or to advertise an invalidated price.
     pre_changed, pre_deleted = _delete_expired_posts(
-        published, now, mark_unknown=True, direct_confirm=confirm
+        published, now, mark_unknown=True, direct_confirm=confirm,
+        persist_callback=lambda: _write_state(state),
     )
     changed = changed or pre_changed
     deleted += pre_deleted
@@ -3071,7 +3096,8 @@ def run_bounded_maintenance():
         def confirm_price_invalidation(product_id, record, current_time):
             return _confirm_expiry_for_deletion(product_id, record, current_time, budget=immediate_budget)
         channel_changed, channel_deleted = _delete_expired_posts(
-            published, immediate_now, mark_unknown=True, direct_confirm=confirm_price_invalidation
+            published, immediate_now, mark_unknown=True, direct_confirm=confirm_price_invalidation,
+            persist_callback=lambda: _write_state(state),
         )
         changed = changed or channel_changed
         deleted += channel_deleted
@@ -3172,7 +3198,8 @@ def run():
         )
 
     pre_changed, pre_deleted = _delete_expired_posts(
-        published, now, mark_unknown=True, direct_confirm=confirm_near_expiry
+        published, now, mark_unknown=True, direct_confirm=confirm_near_expiry,
+        persist_callback=lambda: _write_state(state),
     )
     changed = changed or pre_changed
     deleted += pre_deleted
@@ -3222,7 +3249,8 @@ def run():
                 product_id, record, current_time, budget=immediate_budget
             )
         channel_changed, channel_deleted = _delete_expired_posts(
-            published, immediate_now, mark_unknown=True, direct_confirm=confirm_price_invalidation
+            published, immediate_now, mark_unknown=True, direct_confirm=confirm_price_invalidation,
+            persist_callback=lambda: _write_state(state),
         )
         changed = changed or channel_changed
         deleted += channel_deleted
@@ -3318,7 +3346,8 @@ def run():
             print(f"EXPIRY_CONFIRMED_BY_LIVE_PRODUCT product_id={pid} reason={reason} current_price={current}")
 
     post_changed, post_deleted = _delete_expired_posts(
-        published, now, mark_unknown=True, direct_confirm=confirm_near_expiry
+        published, now, mark_unknown=True, direct_confirm=confirm_near_expiry,
+        persist_callback=lambda: _write_state(state),
     )
     changed = changed or post_changed
     deleted += post_deleted
