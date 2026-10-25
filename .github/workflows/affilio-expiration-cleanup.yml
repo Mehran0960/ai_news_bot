@@ -24,7 +24,8 @@ jobs:
     # Manual cleanup is independent; routine cleanup runs inside the delivery workflow.
     concurrency:
       group: ${{ github.event_name == 'push' && (contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') || contains(github.event.head_commit.message, '[duplicate-cleanup-product-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-now]')) && 'offerchin-content-publisher' || 'affilio-channel-updates' }}
-      cancel-in-progress: false
+      # Only an explicit global dedupe run may preempt a stale publisher lock; routine cleanup remains non-preemptive.
+      cancel-in-progress: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[duplicate-cleanup-now]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
