@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import affilio_radar as radar
-from content_delivery import due_content, enforce_queue_limit, finish_queue_item
+from content_delivery import _active_publication, due_content, enforce_queue_limit, finish_queue_item
 from platform_registry import PLATFORM_NAMES, PHOTO_PLATFORMS, VIDEO_PLATFORMS, validate_registry
 
 
@@ -39,6 +39,17 @@ def _utc(value: Any) -> datetime | None:
         return parsed.astimezone(timezone.utc)
     except (TypeError, ValueError, OverflowError):
         return None
+
+
+def _duplicate_guard_reason(existing: Any, delivery_id: str) -> str:
+    """Prevent a new queue generation from reposting an already-active product."""
+    if not isinstance(existing, dict) or not _active_publication(existing):
+        return ""
+    previous_delivery = str(existing.get("distribution_queue_id") or "")
+    if previous_delivery and previous_delivery == str(delivery_id or ""):
+        # This is a retry of the same hand-off, not a duplicate new selection.
+        return ""
+    return "active_publication_exists"
 
 
 def _target(entry: dict, name: str) -> dict:
@@ -456,6 +467,20 @@ def publish_due_queue() -> int:
         if not isinstance(entry, dict):
             continue
         payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+        delivery_id = f"{product_id}:{entry.get('selected_at') or entry.get('scheduled_at') or 'unknown'}"
+        existing = state.get("published", {}).get(product_id)
+        duplicate_reason = _duplicate_guard_reason(existing, delivery_id)
+        if duplicate_reason:
+            # A stale queue entry can survive after another run has already sent the
+            # same product. Cancel it before any media/network side effects and preserve
+            # the current public record; this is a last-line guard beyond discovery dedupe.
+            entry["status"] = "cancelled"
+            entry["last_detail"] = duplicate_reason
+            finish_queue_item(state, product_id, "cancelled", now=now, detail=duplicate_reason)
+            state.get("pending_queue", {}).pop(product_id, None)
+            _save(state)
+            print(f"CONTENT_DUPLICATE_BLOCKED product_id={product_id} reason={duplicate_reason}")
+            continue
         entry["status"] = "publishing"
         entry["last_attempt_at"] = now.isoformat()
         try:
@@ -494,7 +519,6 @@ def publish_due_queue() -> int:
         old = state.get("published", {}).get(product_id)
         if not isinstance(old, dict):
             old = {}
-        delivery_id = f"{product_id}:{entry.get('selected_at') or entry.get('scheduled_at') or 'unknown'}"
         record = _record_from_item(fresh, old, now, delivery_id)
         state.setdefault("published", {})[product_id] = record
         _save(state)
