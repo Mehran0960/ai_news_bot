@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import affilio_radar as radar
-from content_delivery import due_content, finish_queue_item
+from content_delivery import due_content, enforce_queue_limit, finish_queue_item
 from platform_registry import PLATFORM_NAMES, PHOTO_PLATFORMS, VIDEO_PLATFORMS, validate_registry
 
 
@@ -433,11 +433,15 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
 def publish_due_queue() -> int:
     validate_registry()
     state = radar.load_state()
+    now = _now()
+    evicted = enforce_queue_limit(state, now=now)
+    if evicted:
+        _save(state)
+        print(f"PUBLISHER_RETRY_QUEUE_BOUNDED evicted={evicted}")
     queue = state.get("content_delivery_queue")
     if not isinstance(queue, dict) or not queue:
         print("PUBLISHER_QUEUE_EMPTY")
         return 0
-    now = _now()
     due = due_content(state, now=now, limit=MAX_ITEMS_PER_RUN)
     if not due:
         print(f"PUBLISHER_NOTHING_DUE queue_size={len(queue)}")
