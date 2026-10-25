@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "affilio_radar/expiration_monitor.py"
+      - "affilio_radar/product_quality.py"
       - "affilio_radar/affilio_radar.py"
       - "affilio_radar/test_expiration_monitor.py"
       - "affilio_radar/test_affilio.py"
@@ -50,7 +51,7 @@ jobs:
           exit 1
 
       - name: Validate expiry-monitor syntax (required for safe deletion)
-        run: python -m py_compile affilio_radar/expiration_monitor.py affilio_radar/affilio_radar.py
+        run: python -m py_compile affilio_radar/expiration_monitor.py affilio_radar/affilio_radar.py affilio_radar/product_quality.py
 
       - name: Run expiry-monitor regression tests on code pushes only
         if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[deadline-audit-only]') && !contains(github.event.head_commit.message, '[expiry-cleanup-now]') && !contains(github.event.head_commit.message, '[duplicate-cleanup-now]') && !contains(github.event.head_commit.message, '[remove-glama-once]') && !contains(github.event.head_commit.message, '[repair-buttons-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') }}
