@@ -1708,6 +1708,44 @@ class ExpirationMonitorTests(unittest.TestCase):
 
 
 
+    def test_verified_price_audit_invalidation_deletes_even_if_retry_would_be_inconclusive(self):
+        now = datetime(2026, 10, 25, 20, 0, tzinfo=timezone.utc)
+        stale_check = (now - timedelta(hours=1)).isoformat()
+        record = {
+            "telegram_message_id": 571,
+            "bale_message_id": 695,
+            "expires_at": stale_check,
+            "expiry_source": "live_product_stock_or_price",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+            "expiry_last_direct_verification_at": stale_check,
+            "expiry_last_removal_check_at": stale_check,
+            "expiry_last_removal_check_result": "inconclusive",
+            "expiry_status": "expired_confirmed",
+            "bale_expiry_status": "expired_confirmed",
+            "posted_current_price": 359_000,
+            "price_audit_status": "invalidated",
+            "price_audit_reason": "price_mismatch",
+            "price_audit_posted_price": 359_000,
+            "price_audit_live_price": 479_000,
+        }
+        published = {"dkp-19304930": record}
+        with (
+            patch.object(monitor, "fetch_live_product_status") as direct_check,
+            patch.object(monitor, "_telegram_delete", return_value="deleted") as tg_delete,
+            patch.object(monitor, "_bale_delete", return_value="deleted") as bale_delete,
+        ):
+            changed, deleted = monitor._delete_expired_posts(
+                published, now, direct_confirm=monitor._confirm_expiry_for_deletion
+            )
+        self.assertTrue(changed)
+        self.assertEqual(deleted, 2)
+        direct_check.assert_not_called()
+        tg_delete.assert_called_once_with(571)
+        bale_delete.assert_called_once_with(695)
+        self.assertEqual(record["expiry_status"], "deleted")
+        self.assertEqual(record["bale_expiry_status"], "deleted")
+
 
 if __name__ == "__main__":
     unittest.main()
