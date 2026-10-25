@@ -2416,7 +2416,7 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
             # The current product-detail API is DigiKala-specific; do not
             # misinterpret SnappShop IDs as DigiKala product numbers.
             pid = str(product_id or "").strip().lower()
-            if not pid.startsWith("dkp-") or not pid[4:].isdigit():
+            if not pid.startswith("dkp-") or not pid[4:].isdigit():
                 continue
             if entry.get("price_audit_status") == "invalidated":
                 continue
