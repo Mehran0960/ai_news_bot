@@ -2074,7 +2074,11 @@ def audit_public_channel_history(published, now=None, posts=None):
                 continue
 
             pid = product_ids[0]
-            canonical_url = f"https://www.digikala.com/product/{pid}/"
+            canonical_url = (
+                f"https://snappshop.ir/product/{pid}"
+                if pid.startswith("snp-")
+                else f"https://www.digikala.com/product/{pid}/"
+            )
             affiliate_url = _build_affilio_tracking_url(canonical_url)
             if not affiliate_url:
                 print(
@@ -2115,6 +2119,30 @@ def audit_public_channel_history(published, now=None, posts=None):
                 continue
 
             fields = _extract_legacy_caption_fields(caption_text)
+            current_price = fields.get("current_price")
+            discount_percent = fields.get("discount_percent")
+            title = str(fields.get("title") or "").strip()
+            if (
+                not is_publishable_product_title(title)
+                or not isinstance(current_price, int) or current_price <= 0
+                or not isinstance(discount_percent, int) or not 1 <= discount_percent <= 100
+            ):
+                # A public offer we cannot parse well enough to validate is not
+                # safe to adopt as a live deal. Remove it; retry next cycle if Telegram
+                # does not confirm deletion.
+                try:
+                    outcome = _telegram_delete(int(message_id))
+                    print(
+                        f"PUBLIC_HISTORY_UNTRACKED_INVALID_OFFER message_id={message_id} "
+                        f"product_id={pid} outcome={outcome!r}"
+                    )
+                except Exception as exc:
+                    print(
+                        f"PUBLIC_HISTORY_UNTRACKED_INVALID_OFFER_DELETE_FAILED "
+                        f"message_id={message_id} product_id={pid} "
+                        f"error={type(exc).__name__}: {str(exc)[:120]!r}"
+                    )
+                continue
             caption = _build_legacy_repaired_caption(fields, None, now, affiliate_url=affiliate_url)
             try:
                 result = _telegram_edit_caption(
@@ -2153,10 +2181,15 @@ def audit_public_channel_history(published, now=None, posts=None):
                     record = {}
 
                 record.update({
-                    "title": fields.get("title") or "پیشنهاد شگفت‌انگیز دیجی‌کالا",
+                    "title": title,
                     "product_url": canonical_url,
                     "telegram_message_id": int(message_id),
                     "ts": now.timestamp(),
+                    "posted_current_price": current_price,
+                    "posted_original_price": int(fields.get("original_price") or 0),
+                    "posted_discount_percent": discount_percent,
+                    "price_audit_status": "pending",
+                    "price_audit_next_check_at": (now - timedelta(seconds=1)).isoformat(),
                     "expires_at": "",
                     "expiry_source": "unavailable",
                     "expiry_estimated": False,
@@ -2191,6 +2224,36 @@ def audit_public_channel_history(published, now=None, posts=None):
             )
 
         fields = _extract_legacy_caption_fields(caption_text)
+        # Preserve what the public caption actually says as the expected facts for the
+        # live audit. State may lag a successful send or an old caption edit; compare the
+        # live site to the message itself, not merely to the last serialized state.
+        caption_facts = {
+            "posted_current_price": fields.get("current_price"),
+            "posted_original_price": fields.get("original_price"),
+            "posted_discount_percent": fields.get("discount_percent"),
+        }
+        caption_facts_changed = False
+        for state_key, caption_value in caption_facts.items():
+            if caption_value is None:
+                continue
+            try:
+                old_value = int(record.get(state_key) or 0)
+                new_value = int(caption_value)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if old_value != new_value:
+                record[state_key] = new_value
+                caption_facts_changed = True
+        if caption_facts_changed:
+            record["price_audit_status"] = "pending"
+            record["price_audit_next_check_at"] = (now - timedelta(seconds=1)).isoformat()
+            record["caption_facts_reconciled_at"] = now.isoformat()
+            changed = True
+            print(
+                f"PUBLIC_HISTORY_CAPTION_FACTS_RECONCILED message_id={message_id} "
+                f"product_id={record.get('product_url') or 'unknown'} "
+                "live_recheck=due"
+            )
         fields["title"] = fields.get("title") or record.get("title") or "پیشنهاد ویژه"
         fields["current_price"] = (
             fields.get("current_price") or record.get("posted_current_price") or record.get("current_price")
@@ -3191,12 +3254,11 @@ def _delete_expired_youtube_videos(published, now, direct_confirm=None):
 
 
 def run_bounded_maintenance():
-    """Fast recurring maintenance for the selected-content delivery cycle.
+    """Recurring bounded maintenance for the live public channel.
 
-    Skip broad feed synchronization and public-history pagination here. Check a
-    small rotating batch of live prices, remove already-invalidated posts first,
-    and process confirmed expiry deletions. A slower full repair remains available
-    through the legacy no-argument command when explicitly needed.
+    Inspect the most recent public posts to adopt any untracked successful send,
+    reconcile the actual caption facts, and remove duplicates. Check a rotating batch
+    of tracked live product records and process only source-confirmed invalidations.
     """
     state = _read_state()
     published = state.get("published", {})
@@ -3205,6 +3267,29 @@ def run_bounded_maintenance():
     now = datetime.now(timezone.utc)
     changed = False
     deleted = 0
+
+    # Reconcile a bounded slice of the real public channel before price validation.
+    # This catches successful sends whose state write was interrupted and ensures the
+    # following audit compares the retailer data against the caption users can see.
+    try:
+        history_pages = max(1, min(5, int(os.getenv("AFFILIO_PUBLIC_HISTORY_PAGES", "3"))))
+        recent_posts = fetch_public_channel_posts(max_pages=history_pages)
+        history_result = audit_public_channel_history(published, now=now, posts=recent_posts)
+        history_changed, history_deleted = bool(history_result[0]), int(history_result[1] or 0)
+        changed = changed or history_changed
+        deleted += history_deleted
+        if history_changed:
+            _write_state(state)
+        print(
+            "BOUNDED_PUBLIC_HISTORY_SUMMARY "
+            f"pages={history_pages} scanned={len(recent_posts)} "
+            f"deleted={history_deleted} changed={history_changed}"
+        )
+    except Exception as exc:
+        print(
+            f"BOUNDED_PUBLIC_HISTORY_FAILED error={type(exc).__name__} "
+            f"detail={str(exc)[:160]!r}; price audit continues"
+        )
 
     channel_budget = {"remaining": max(1, min(10, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "4"))))}
     def confirm(product_id, record, current_time):
@@ -3243,7 +3328,9 @@ def run_bounded_maintenance():
         # Save verified invalidations before channel API side effects so retries survive failures.
         _write_state(state)
 
-    if summary.get("price_mismatches") or summary.get("out_of_stock_posts"):
+    # Re-run expiry cleanup after the price audit: a fresh direct product response
+    # may have moved a campaign deadline into its removal window even when price matches.
+    if price_changed or summary.get("products_checked") or summary.get("price_mismatches") or summary.get("out_of_stock_posts"):
         immediate_now = datetime.now(timezone.utc)
         immediate_budget = {"remaining": max(6, min(12, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "4"))))}
         def confirm_price_invalidation(product_id, record, current_time):
