@@ -1568,6 +1568,23 @@ def _run_duplicate_cleanup(state, apply=True):
         print("DUPLICATE_CLEANUP_ABORTED reason=published_state_invalid")
         return 2
 
+    # A targeted repair is deliberately limited to one known product. The default
+    # scheduled/manual dedupe mode keeps its existing channel-wide behavior.
+    target_product_id = os.getenv("AFFILIO_DEDUPLICATE_PRODUCT_ID", "").strip().lower()
+    target_title = ""
+    if target_product_id:
+        if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", target_product_id):
+            print("DUPLICATE_CLEANUP_ABORTED reason=invalid_target_product_id")
+            return 2
+        target_record = published.get(target_product_id)
+        if not isinstance(target_record, dict):
+            print(f"DUPLICATE_CLEANUP_ABORTED product_id={target_product_id} reason=target_product_not_tracked")
+            return 2
+        target_title = _normalise_duplicate_title(target_record.get("title", ""))
+        if not target_title:
+            print(f"DUPLICATE_CLEANUP_ABORTED product_id={target_product_id} reason=target_title_missing")
+            return 2
+
     max_pages = max(1, min(80, int(os.getenv("AFFILIO_DUPLICATE_SCAN_PAGES", "30"))))
     try:
         posts = fetch_public_channel_posts(max_pages=max_pages)
@@ -1627,8 +1644,45 @@ def _run_duplicate_cleanup(state, apply=True):
         for key, message_ids in groups.items()
         if len(set(message_ids)) > 1
     ]
+    if target_product_id:
+        # A public post can omit its product URL but still carry the exact product
+        # title. Match this one product only; do not sweep unrelated offers.
+        target_message_ids = []
+        for raw_message_id, post in posts.items():
+            try:
+                message_id = int(raw_message_id)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            caption_text = str(post.get("caption_text") or "")
+            caption_key = _normalise_duplicate_title(caption_text)
+            product_ids = {str(value).strip().lower() for value in (post.get("product_ids") or [])}
+            known_product_id = product_for_message.get(message_id, "")
+            matches_target = (
+                target_product_id in product_ids
+                or known_product_id == target_product_id
+                or target_product_id in caption_text.lower()
+                or target_title in caption_key
+            )
+            if not matches_target:
+                continue
+            post["dedupe_has_button"] = bool(
+                post.get("purchase_button_visible") or sent_button_for_message.get(message_id, False)
+            )
+            target_message_ids.append(message_id)
+
+        target_message_ids = sorted(set(target_message_ids))
+        duplicate_groups = (
+            [(("product", target_product_id), target_message_ids)]
+            if len(target_message_ids) > 1 else []
+        )
+        print(
+            f"DUPLICATE_TARGET_SCAN product_id={target_product_id} "
+            f"matches={len(target_message_ids)} ids={target_message_ids}"
+        )
+
     duplicate_groups.sort(key=lambda item: item[1][0])
     deleted_telegram = absent_telegram = failed_telegram = 0
+    telegram_delete_results = {}
     state_changed = False
 
     for key, message_ids in duplicate_groups:
@@ -1645,6 +1699,7 @@ def _run_duplicate_cleanup(state, apply=True):
                 continue
             try:
                 outcome = _telegram_delete(int(message_id))
+                telegram_delete_results[message_id] = outcome
                 if outcome == "deleted":
                     deleted_telegram += 1
                 else:
@@ -1656,13 +1711,55 @@ def _run_duplicate_cleanup(state, apply=True):
                         state_changed = True
                 print(f"DUPLICATE_DELETE_RESULT platform=telegram message_id={message_id} keep={winner} outcome={outcome}")
             except Exception as exc:
+                telegram_delete_results[message_id] = "delete_failed"
                 failed_telegram += 1
                 print(f"DUPLICATE_DELETE_FAILED platform=telegram message_id={message_id} keep={winner} error={type(exc).__name__}: {str(exc)[:150]}")
             time.sleep(BOT_API_MIN_GAP_SECONDS)
 
+    if apply and target_product_id and duplicate_groups:
+        (_target_key, target_message_ids) = duplicate_groups[0]
+        winner = max(target_message_ids, key=lambda mid: (
+            bool(posts.get(mid, {}).get("dedupe_has_button") or sent_button_for_message.get(mid, False)),
+            int(mid),
+        ))
+        target_record = published.get(target_product_id)
+        if isinstance(target_record, dict):
+            previous_keeper = str(target_record.get("telegram_message_id") or "")
+            target_record["telegram_message_id"] = winner
+            target_record["expiry_status"] = "tracked"
+            target_record.setdefault("delivery_status", {})["telegram"] = "sent"
+            target_record["duplicate_cleanup_at"] = datetime.now(timezone.utc).isoformat()
+            history = list(target_record.get("post_history") or [])
+            for message_id in target_message_ids:
+                if message_id == winner:
+                    continue
+                existing_history = next((
+                    row for row in history
+                    if isinstance(row, dict)
+                    and str(row.get("telegram_message_id") or "").isdigit()
+                    and int(row["telegram_message_id"]) == message_id
+                ), None)
+                history_row = {
+                    "telegram_message_id": message_id,
+                    "expiry_status": telegram_delete_results.get(message_id, "delete_failed"),
+                    "duplicate_keeper_message_id": winner,
+                    "duplicate_removed_at": datetime.now(timezone.utc).isoformat(),
+                }
+                if existing_history is not None:
+                    existing_history.update(history_row)
+                else:
+                    history.append(history_row)
+            target_record["post_history"] = history[-80:]
+            state_changed = True
+            print(
+                f"DUPLICATE_TARGET_STATE_RECONCILED product_id={target_product_id} "
+                f"old_keeper={previous_keeper or 'unknown'} keeper={winner}"
+            )
+
     # Bale's Bot API cannot enumerate channel history: only delete duplicates whose IDs are tracked.
+    # In targeted mode, leave every other product and the Bale ledger untouched.
     bale_groups = {}
-    for product_id, record in _iter_post_records(published):
+    for product_id, record in ([] if target_product_id else _iter_post_records(published)):
         key = str(product_id or "").lower()
         if not re.fullmatch(r"(?:dkp|snp)-\d+", key):
             key = _product_id_from_public_url(record.get("product_url", ""))
@@ -1713,6 +1810,7 @@ def _run_duplicate_cleanup(state, apply=True):
         "bale_failed": failed_bale,
         "posts_scanned": len(posts),
         "max_pages": max_pages,
+        "target_product_id": target_product_id or None,
     }
     print("DUPLICATE_CLEANUP_FINAL " + json.dumps(summary, ensure_ascii=False, sort_keys=True))
     return 1 if failed_telegram or failed_bale else 0

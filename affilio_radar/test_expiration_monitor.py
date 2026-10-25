@@ -510,6 +510,74 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(state["published"]["dkp-123"]["post_history"][0]["expiry_status"], "deleted")
         write_state.assert_called_once_with(state)
 
+    def test_targeted_duplicate_cleanup_only_removes_requested_product(self):
+        state = {
+            "published": {
+                "dkp-123": {
+                    "title": "ژل آبرسان گلاما مدل Limited",
+                    "product_url": "https://www.digikala.com/product/dkp-123/",
+                    "telegram_message_id": 44,
+                    "delivery_status": {"telegram": "sent"},
+                    "expiry_status": "tracked",
+                    "post_history": [],
+                },
+                "dkp-456": {
+                    "title": "هدفون نمونه مدل X",
+                    "product_url": "https://www.digikala.com/product/dkp-456/",
+                    "telegram_message_id": 54,
+                    "delivery_status": {"telegram": "sent"},
+                    "expiry_status": "tracked",
+                },
+            }
+        }
+        posts = {
+            43: {
+                "message_id": 43,
+                "caption_text": "🔥 فروش ویژه دیجی‌کالا 🛍️ ژل آبرسان گلاما مدل Limited 💚 قیمت ویژه: ۱۰۰٬۰۰۰ تومان",
+                "title": "ژل آبرسان گلاما مدل Limited",
+                "product_ids": ["dkp-123"],
+                "purchase_button_visible": False,
+            },
+            44: {
+                "message_id": 44,
+                "caption_text": "🔥 فروش ویژه دیجی‌کالا 🛍️ ژل آبرسان گلاما مدل Limited 💚 قیمت ویژه: ۱۰۰٬۰۰۰ تومان",
+                "title": "ژل آبرسان گلاما مدل Limited",
+                "product_ids": ["dkp-123"],
+                "purchase_button_visible": True,
+            },
+            53: {
+                "message_id": 53,
+                "caption_text": "🔥 فروش ویژه دیجی‌کالا 🛍️ هدفون نمونه مدل X 💚 قیمت ویژه: ۲۰۰٬۰۰۰ تومان",
+                "title": "هدفون نمونه مدل X",
+                "product_ids": ["dkp-456"],
+                "purchase_button_visible": False,
+            },
+            54: {
+                "message_id": 54,
+                "caption_text": "🔥 فروش ویژه دیجی‌کالا 🛍️ هدفون نمونه مدل X 💚 قیمت ویژه: ۲۰۰٬۰۰۰ تومان",
+                "title": "هدفون نمونه مدل X",
+                "product_ids": ["dkp-456"],
+                "purchase_button_visible": True,
+            },
+        }
+        with (
+            patch.object(monitor, "BOT_TOKEN", "test-token"),
+            patch.dict(monitor.os.environ, {"AFFILIO_DEDUPLICATE_PRODUCT_ID": "dkp-123"}),
+            patch.object(monitor, "fetch_public_channel_posts", return_value=posts),
+            patch.object(monitor, "_telegram_delete", return_value="deleted") as delete,
+            patch.object(monitor, "_write_state") as write_state,
+            patch.object(monitor.time, "sleep"),
+        ):
+            status = monitor._run_duplicate_cleanup(state, apply=True)
+
+        self.assertEqual(status, 0)
+        delete.assert_called_once_with(43)
+        self.assertEqual(state["published"]["dkp-123"]["telegram_message_id"], 44)
+        self.assertEqual(state["published"]["dkp-123"]["post_history"][0]["telegram_message_id"], 43)
+        self.assertEqual(state["published"]["dkp-123"]["post_history"][0]["expiry_status"], "deleted")
+        self.assertEqual(state["published"]["dkp-456"]["telegram_message_id"], 54)
+        write_state.assert_called_once_with(state)
+
     def test_public_history_paginates_past_a_repeated_pinned_message(self):
         pinned = {1: {"message_id": 1, "caption_text": "پست سنجاق‌شده", "caption_html": ""}}
         page_one = {**pinned, 525: {"message_id": 525, "caption_text": "آفر 525", "caption_html": ""}, 524: {"message_id": 524, "caption_text": "آفر 524", "caption_html": ""}}
