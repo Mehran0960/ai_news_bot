@@ -3528,5 +3528,15 @@ if __name__ == "__main__":
     if "--repair-known-duplicate" in sys.argv[1:]:
         raise SystemExit(_repair_known_duplicate_from_environment(_read_state()))
     if "--bounded-maintenance" in sys.argv[1:]:
-        raise SystemExit(run_bounded_maintenance())
+        maintenance_result = run_bounded_maintenance()
+        if "--dedupe-recent" in sys.argv[1:]:
+            # The recurring publisher workflow passes a small page limit. This is
+            # intentionally separate from the one-time broader historical sweep.
+            dedupe_result = _run_duplicate_cleanup(_read_state(), apply=True)
+            print(
+                "RECENT_DUPLICATE_MAINTENANCE_SUMMARY "
+                f"maintenance_result={maintenance_result} dedupe_result={dedupe_result}"
+            )
+            raise SystemExit(max(maintenance_result, dedupe_result))
+        raise SystemExit(maintenance_result)
     raise SystemExit(run())
