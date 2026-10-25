@@ -2600,7 +2600,7 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     now = now.astimezone(timezone.utc)
-    batch_size = batch_size if batch_size is not None else max(1, min(24, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "20"))))
+    batch_size = batch_size if batch_size is not None else max(1, min(30, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "30"))))
     interval_seconds = interval_seconds or max(
         300, min(21600, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "3600")))
     )
@@ -2659,8 +2659,25 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
         # audit or its retry interval has elapsed.
         if any(value is None or value <= now for value in next_checks):
             oldest = min((value for value in next_checks if value is not None), default=datetime.min.replace(tzinfo=timezone.utc))
-            due.append((oldest, product_id, entries))
-    due.sort(key=lambda item: (item[0], item[1]))
+            activity_times = []
+            for record, _is_history, _posted in entries:
+                raw_activity = record.get("ts")
+                try:
+                    if isinstance(raw_activity, (int, float)):
+                        activity_times.append(float(raw_activity))
+                    elif raw_activity:
+                        activity = datetime.fromisoformat(str(raw_activity).replace("Z", "+00:00"))
+                        if activity.tzinfo is None:
+                            activity = activity.replace(tzinfo=timezone.utc)
+                        activity_times.append(activity.timestamp())
+                except (TypeError, ValueError, OverflowError, OSError):
+                    continue
+            latest_activity = max(activity_times, default=0.0)
+            # Finish the oldest overdue checks first. Among products due for their
+            # first audit, prioritize the most recently published visible post, not
+            # the lexicographic product ID. This gets newly-posted offers checked first.
+            due.append((oldest, -latest_activity, product_id, entries))
+    due.sort(key=lambda item: (item[0], item[1], item[2]))
     print(f"PRICE_AUDIT_START products_due={len(due)} batch_limit={batch_size} interval_seconds={interval_seconds}")
 
     changed = False
@@ -2679,7 +2696,7 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
                     entries[0][2],
                     entries[0][0].get("posted_original_price"),
                 )
-                for _oldest, product_id, entries in selected
+                for _oldest, _latest_activity_priority, product_id, entries in selected
             }
             for product_id, future in futures.items():
                 try:
@@ -2691,7 +2708,7 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
                         f"error={type(exc).__name__}"
                     )
 
-    for _oldest, product_id, entries in selected:
+    for _oldest, _latest_activity_priority, product_id, entries in selected:
         checked += 1
         snapshot = snapshots.get(product_id) or {}
         live_price = snapshot.get("current_price") if isinstance(snapshot, dict) else None

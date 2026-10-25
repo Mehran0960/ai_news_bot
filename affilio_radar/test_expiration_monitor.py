@@ -1999,6 +1999,47 @@ class ExpirationMonitorTests(unittest.TestCase):
             now,
         )
 
+    def test_live_price_audit_prioritizes_most_recent_unchecked_post(self):
+        now = datetime.now(timezone.utc)
+        published = {}
+        for index in range(1, 41):
+            product_id = f"dkp-{10_000_000 + index}"
+            published[product_id] = {
+                "title": f"نمونه {index}",
+                "telegram_message_id": 1000 + index,
+                "expiry_status": "tracked",
+                "posted_current_price": 100_000,
+                "posted_original_price": 200_000,
+                "posted_discount_percent": 50,
+                "ts": (now - timedelta(minutes=41 - index)).timestamp(),
+            }
+        target_id = "dkp-99999999"
+        published[target_id] = {
+            "title": "جدیدترین پیشنهاد",
+            "telegram_message_id": 2000,
+            "expiry_status": "tracked",
+            "posted_current_price": 100_000,
+            "posted_original_price": 200_000,
+            "posted_discount_percent": 50,
+            "ts": now.timestamp(),
+        }
+
+        with patch.object(monitor, "fetch_live_product_status", return_value={
+            "current_price": 100_000,
+            "original_price": 200_000,
+            "in_stock": True,
+            "price_source": "digikala_product_detail_api",
+        }) as fetch:
+            changed, summary = monitor._audit_live_prices(
+                published, now=now, batch_size=1
+            )
+
+        self.assertTrue(changed)
+        self.assertEqual(summary["products_checked"], 1)
+        fetch.assert_called_once()
+        self.assertEqual(fetch.call_args.args[0], target_id)
+        self.assertEqual(published[target_id]["price_audit_status"], "match")
+
     def test_live_price_audit_refreshes_current_deadline_but_not_history_deadline(self):
         now = datetime(2026, 10, 25, 16, 0, tzinfo=timezone.utc)
         current_deadline = "2026-10-25T19:00:00+00:00"
