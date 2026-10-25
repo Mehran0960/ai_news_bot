@@ -841,6 +841,53 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["at_cutoff"]["bale_expiry_status"], "deleted")
         self.assertEqual(published["just_before_cutoff"]["expiry_status"], "tracked")
 
+    def test_known_duplicate_repair_deletes_only_duplicate_and_reconciles_survivor(self):
+        now = datetime(2026, 10, 25, 20, 9, 12, tzinfo=timezone.utc)
+        title = "پاوربانک 33 وات شیائومی مدل Integrated Cable ظرفیت 20000 میلی آمپر ساعت - گلوبال"
+        state = {
+            "published": {},
+            "publication_ledger": {},
+            "last_published_at": "2026-10-25T17:32:44+00:00",
+            "content_delivery_queue": {"dkp-18524083": {"status": "queued"}},
+            "pending_queue": {"dkp-18524083": {}},
+        }
+        with (
+            patch.object(monitor, "BOT_TOKEN", "test-token"),
+            patch.object(monitor, "BALE_BOT_TOKEN", "test-bale-token"),
+            patch.object(monitor, "BALE_CHANNEL_ID", "test-channel"),
+            patch.object(monitor, "_telegram_delete", return_value="deleted") as tg_delete,
+            patch.object(monitor, "_bale_delete", return_value="deleted") as bale_delete,
+            patch.object(monitor, "_write_state") as write_state,
+        ):
+            result = monitor._repair_known_duplicate_copy(
+                state,
+                product_id="dkp-18524083",
+                title=title,
+                product_url="https://www.digikala.com/product/dkp-18524083/",
+                keep_telegram_id=673,
+                keep_bale_id=827,
+                duplicate_telegram_id=674,
+                duplicate_bale_id=828,
+                posted_at=now.isoformat(),
+                current_price=5_700_000,
+                discount_percent=37,
+            )
+
+        self.assertEqual(result, 0)
+        tg_delete.assert_called_once_with(674)
+        bale_delete.assert_called_once_with(828)
+        write_state.assert_called_once_with(state)
+        self.assertEqual(state["published"]["dkp-18524083"]["telegram_message_id"], 673)
+        self.assertEqual(state["published"]["dkp-18524083"]["bale_message_id"], 827)
+        self.assertEqual(state["published"]["dkp-18524083"]["delivery_status"]["telegram"], "sent")
+        self.assertEqual(state["published"]["dkp-18524083"]["post_history"][0]["telegram_message_id"], 674)
+        self.assertEqual(state["published"]["dkp-18524083"]["post_history"][0]["bale_message_id"], 828)
+        self.assertEqual(state["publication_ledger"]["dkp-18524083"]["telegram_message_id"], 673)
+        self.assertEqual(state["publication_ledger"]["dkp-18524083"]["bale_message_id"], 827)
+        self.assertNotIn("dkp-18524083", state["content_delivery_queue"])
+        self.assertNotIn("dkp-18524083", state["pending_queue"])
+        self.assertEqual(state["last_published_at"], now.isoformat())
+
     def test_incomplete_title_posts_are_deleted_even_without_verified_deadline(self):
         now = datetime(2026, 10, 25, 20, 0, tzinfo=timezone.utc)
         record = {
