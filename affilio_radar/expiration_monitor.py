@@ -2141,7 +2141,7 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     now = now.astimezone(timezone.utc)
-    batch_size = batch_size if batch_size is not None else max(1, min(12, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "10"))))
+    batch_size = batch_size if batch_size is not None else max(1, min(24, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "20"))))
     interval_seconds = interval_seconds or max(
         300, min(21600, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "3600")))
     )
@@ -2802,7 +2802,7 @@ def run():
     state["price_audit_last_summary"] = {
         **price_summary,
         "checked_at": now.isoformat(),
-        "batch_size": max(1, min(12, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "10")))),
+        "batch_size": max(1, min(24, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "20")))),
         "check_interval_seconds": max(300, min(21600, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "3600")))),
     }
     changed = changed or price_changed or bool(price_summary.get("products_checked"))
