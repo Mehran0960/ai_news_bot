@@ -1387,7 +1387,53 @@ def _repair_known_duplicate_copy(
         )
         return "delete_failed"
 
-    deleted_tg_status = delete_with_retry("telegram", duplicate_tg, _telegram_delete)
+    # Sweep the public Telegram preview as well: an earlier runner may have published
+    # an extra copy but failed to persist that new message ID. Preserve the original
+    # known-good post and delete only posts matching this exact product/title.
+    telegram_duplicate_ids = {duplicate_tg}
+    telegram_history_scan_ok = False
+    try:
+        public_posts = fetch_public_channel_posts(max_pages=80)
+        telegram_history_scan_ok = True
+        normalized_title = _normalise_duplicate_title(title)
+        for raw_message_id, post in public_posts.items():
+            try:
+                message_id = int(raw_message_id)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if message_id == keep_tg or not isinstance(post, dict):
+                continue
+            caption = str(post.get("caption_text") or "")
+            caption_key = _normalise_duplicate_title(caption)
+            ids = {
+                str(item).lower()
+                for item in (post.get("product_ids") or [])
+            }
+            matches_product = (
+                pid in ids
+                or pid in caption.lower()
+                or (bool(normalized_title) and normalized_title in caption_key)
+            )
+            if matches_product:
+                telegram_duplicate_ids.add(message_id)
+        print(
+            f"DUPLICATE_REPAIR_TELEGRAM_SWEEP product_id={pid} "
+            f"posts_scanned={len(public_posts)} delete_candidates={len(telegram_duplicate_ids)} "
+            f"history_scan_ok={telegram_history_scan_ok} keeper_message_id={keep_tg}"
+        )
+    except Exception as exc:
+        print(
+            f"DUPLICATE_REPAIR_TELEGRAM_SWEEP_FAILED product_id={pid} "
+            f"error={type(exc).__name__} detail={str(exc)[:140]!r}; "
+            "known duplicate deletion will still be attempted"
+        )
+
+    telegram_delete_results = {}
+    for message_id in sorted(telegram_duplicate_ids):
+        telegram_delete_results[message_id] = delete_with_retry(
+            "telegram", message_id, _telegram_delete
+        )
+    deleted_tg_status = telegram_delete_results.get(duplicate_tg, "delete_failed")
     deleted_bale_status = delete_with_retry("bale", duplicate_bale, _bale_delete)
     now = datetime.now(timezone.utc)
 
@@ -1425,18 +1471,19 @@ def _repair_known_duplicate_copy(
 
     history = record.get("post_history")
     history = list(history) if isinstance(history, list) else []
-    history.append({
-        "title": title,
-        "product_url": canonical_url,
-        "ts": created.timestamp(),
-        "telegram_message_id": duplicate_tg,
-        "bale_message_id": duplicate_bale,
-        "expiry_status": deleted_tg_status,
-        "bale_expiry_status": deleted_bale_status,
-        "expires_at": "",
-        "expiry_source": "unavailable",
-        "duplicate_removed_at": now.isoformat(),
-    })
+    for message_id in sorted(telegram_duplicate_ids):
+        history.append({
+            "title": title,
+            "product_url": canonical_url,
+            "ts": created.timestamp(),
+            "telegram_message_id": message_id,
+            "bale_message_id": duplicate_bale if message_id == duplicate_tg else None,
+            "expiry_status": telegram_delete_results.get(message_id, "delete_failed"),
+            "bale_expiry_status": deleted_bale_status if message_id == duplicate_tg else "not_applicable",
+            "expires_at": "",
+            "expiry_source": "unavailable",
+            "duplicate_removed_at": now.isoformat(),
+        })
     record["post_history"] = history[-80:]
     published[pid] = record
 
@@ -1479,8 +1526,11 @@ def _repair_known_duplicate_copy(
             "keeper_telegram_id": keep_tg,
             "keeper_bale_id": keep_bale,
             "duplicate_telegram_id": duplicate_tg,
+            "duplicate_telegram_ids": sorted(telegram_duplicate_ids),
             "duplicate_bale_id": duplicate_bale,
             "telegram_delete_status": deleted_tg_status,
+            "telegram_delete_results": {str(k): v for k, v in sorted(telegram_delete_results.items())},
+            "telegram_history_scan_ok": telegram_history_scan_ok,
             "bale_delete_status": deleted_bale_status,
             "publication_state_reconciled": True,
         }, ensure_ascii=False, sort_keys=True)
