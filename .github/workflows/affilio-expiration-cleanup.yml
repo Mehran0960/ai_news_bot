@@ -19,6 +19,8 @@ permissions:
 
 jobs:
   expire:
+    # Never run live cleanup from a feature-branch push; production cleanup stays on main.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     # Manual cleanup is independent; routine cleanup runs inside the delivery workflow.
     concurrency:
       group: affilio-channel-updates
