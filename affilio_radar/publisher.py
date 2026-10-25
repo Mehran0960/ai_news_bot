@@ -370,7 +370,9 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
                 state,
                 now=now,
                 destinations={"youtube", "aparat"},
-                force_due=True,
+                # Respect each video platform's own quota/cadence. The selected
+                # content remains queued for that destination until its next slot.
+                force_due=False,
                 product_id=product_id,
             )
         except Exception as exc:
@@ -392,7 +394,14 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
         t = _target(entry, "youtube")
         t["status"] = "failed" if youtube_status == "retry" else "pending"
         t["last_error"] = str(record.get("youtube_last_error") or youtube_status)
-        t["next_attempt_at"] = str(record.get("youtube_next_attempt_at") or (now + timedelta(minutes=15)).isoformat())
+        next_slot = (
+            _utc(record.get("youtube_next_attempt_at"))
+            or _utc(state.get("youtube_uploads_paused_until"))
+            or _utc(state.get("youtube_next_upload_at"))
+        )
+        t["next_attempt_at"] = (
+            next_slot if next_slot and next_slot > now else now + timedelta(minutes=15)
+        ).isoformat()
     else:
         _target(entry, "youtube")["status"] = "pending"
 
@@ -412,7 +421,10 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
         t = _target(entry, "aparat")
         t["status"] = "failed" if aparat_status == "retry" else "pending"
         t["last_error"] = str(record.get("aparat_last_error") or aparat_status)
-        t["next_attempt_at"] = str(record.get("aparat_next_attempt_at") or (now + timedelta(minutes=15)).isoformat())
+        next_slot = _utc(record.get("aparat_next_attempt_at")) or _utc(state.get("aparat_next_upload_at"))
+        t["next_attempt_at"] = (
+            next_slot if next_slot and next_slot > now else now + timedelta(minutes=15)
+        ).isoformat()
     else:
         _target(entry, "aparat")["status"] = "pending"
     _save(state)
