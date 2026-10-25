@@ -320,7 +320,14 @@ def _process_photo_destination(
             raise RuntimeError("platform did not return a message id")
         _set_target(entry, destination, "sent", _now())
         record_status[destination] = "sent"
-        record["telegram_message_id" if destination == "telegram" else "bale_message_id"] = message_id
+        if destination == "telegram":
+            record["telegram_message_id"] = message_id
+        elif destination == "bale":
+            record["bale_message_id"] = message_id
+        else:
+            # Future channel adapters keep their own IDs under a neutral field;
+            # new destinations never require changes to content discovery.
+            record.setdefault("platform_message_ids", {})[destination] = message_id
         record.setdefault("delivery_attempts", {})[destination] = target["attempts"]
         record["delivery_last_attempt_at"] = _now().isoformat()
         _save(state)
