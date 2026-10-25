@@ -302,6 +302,26 @@ jobs:
             fi
           fi
 
+      # Publish the durable selected-content queue separately from discovery/ranking.
+      # Each destination is attempted independently by publisher.py; failures are retried without re-running discovery.
+      - name: Deliver due selected content to all connected platforms
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
+          AFFILIO_DEAL_LIST_PAGES: "5"
+          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "10"
+          AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "3600"
+          AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "900"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/publisher.py
       - name: Preserve generated vertical MP4 artifacts and upload outcomes
         if: always()
         uses: actions/upload-artifact@v4
