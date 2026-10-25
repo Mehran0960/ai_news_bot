@@ -1,11 +1,10 @@
 name: OfferChin Aparat Video Upload
 
 on:
+  # New selected-content deliveries are owned by offerchin-publisher.yml so
+  # Aparat receives the same selected item in the same delivery cycle as other targets.
+  # Keep manual dispatch only for deliberate legacy-queue recovery.
   workflow_dispatch:
-  schedule:
-    # Check the persisted Aparat-only queue every 15 minutes; actual uploads remain
-    # spaced by AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS (default 3 hours).
-    - cron: "3,18,33,48 * * * *"
 
 permissions:
   contents: write
