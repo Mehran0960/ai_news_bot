@@ -23,7 +23,7 @@ from zoneinfo import ZoneInfo
 from bs4 import BeautifulSoup
 from affilio_radar import (
     build_caption, TELEGRAM_CHANNEL_URL, parse_product_api, verify_live_page_price,
-    is_publishable_product_title,
+    is_publishable_product_title, fetch_product_record,
 )
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from urllib.error import HTTPError
@@ -455,14 +455,57 @@ def sync_live_offer_deadlines(published, live_expiries, now, live_sources=None):
 
 
 def fetch_live_product_status(product_id, expected_price=None, expected_original_price=None):
-    """Fetch live DigiKala price/stock using the same parser as the publishing radar.
+    """Fetch authoritative live price/availability for DigiKala or SnappShop.
 
-    The expiry monitor previously used a narrower local JSON walker; it can silently
-    reject valid API responses after DigiKala changes its response shape. Reuse the
-    production parser first, then use the radar page/API fallback before declaring the
-    live price unconfirmed. Missing data is never treated as evidence for deletion.
+    Missing or ambiguous data is inconclusive and must never trigger deletion.
+    SnappShop's product API exposes current vendor price/stock but does not expose
+    a reliable campaign deadline, so its expiry is inferred only when the live
+    price/availability actually changes—not from a guessed timestamp.
     """
-    match = re.search(r"(?:dkp-)?(\d+)$", str(product_id or ""))
+    normalized_id = str(product_id or "").strip().lower()
+    if re.fullmatch(r"snp-\d+", normalized_id):
+        url = f"https://snappshop.ir/product/{normalized_id}"
+        try:
+            parsed = fetch_product_record(url)
+        except Exception as exc:
+            print(
+                f"EXPIRY_SNAPPSHOP_PRODUCT_CHECK_FAILED product_id={normalized_id} "
+                f"error={type(exc).__name__}: {str(exc)[:140]!r}"
+            )
+            return {}
+        if not isinstance(parsed, dict):
+            return {}
+        current = parsed.get("current_price")
+        try:
+            current = int(current) if current is not None else None
+            if current is not None and current <= 0:
+                current = None
+        except (TypeError, ValueError, OverflowError):
+            current = None
+        original = parsed.get("original_price")
+        try:
+            original = int(original) if original is not None else None
+            if original is not None and original <= 0:
+                original = None
+        except (TypeError, ValueError, OverflowError):
+            original = None
+        availability = str(parsed.get("availability") or "unknown").strip().lower()
+        in_stock = True if availability == "in_stock" else False if availability == "out_of_stock" else None
+        if current is None and in_stock is not False:
+            print(f"EXPIRY_SNAPPSHOP_PRODUCT_CHECK_UNCONFIRMED product_id={normalized_id} reason=live_price_or_stock_unavailable")
+            return {}
+        return {
+            "current_price": current,
+            "original_price": original,
+            "in_stock": in_stock,
+            "api_version": "snappshop_product_api",
+            "deal_expires_at": "",
+            "expiry_verified_directly": False,
+            "price_source": "snappshop_product_api",
+            "title": str(parsed.get("title") or ""),
+        }
+
+    match = re.search(r"(?:dkp-)?(\d+)$", normalized_id)
     if not match:
         return {}
     numeric_id = match.group(1)
@@ -2502,12 +2545,11 @@ def _mark_price_invalid(record, product_id, reason, posted_price, live_price, no
 
 
 def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=None, retry_seconds=None):
-    """Continuously verify every active tracked offer price in bounded rotating batches.
+    """Continuously verify each active post against its retailer's live product API.
 
-    Only a usable first-party DigiKala product API response can invalidate a post.
-    Missing/ambiguous responses are recorded and retried, never treated as proof
-    that a price changed. Stale-price posts flow through the existing permanent
-    deletion paths for Telegram, Bale, YouTube and Aparat.
+    Only a usable first-party product response can invalidate a post. Missing or
+    ambiguous responses are recorded and retried, never treated as proof that a
+    price changed. Stale-price and out-of-stock posts flow through permanent deletion.
     """
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
@@ -2545,7 +2587,9 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
             # The current product-detail API is DigiKala-specific; do not
             # misinterpret SnappShop IDs as DigiKala product numbers.
             pid = str(product_id or "").strip().lower()
-            if not pid.startswith("dkp-") or not pid[4:].isdigit():
+            # DigiKala and SnappShop are both first-party audited. Unknown product
+            # namespaces must not be routed to either retailer's live API.
+            if not re.fullmatch(r"(?:dkp|snp)-\d+", pid):
                 continue
             if entry.get("price_audit_status") == "invalidated":
                 continue
