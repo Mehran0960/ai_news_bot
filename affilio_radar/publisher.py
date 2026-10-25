@@ -326,6 +326,11 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
         if not _target_ready(target_name):
             _set_target(entry, target_name, "not_connected", now, "credentials_not_configured")
             _save(state)
+        elif target.get("status") == "not_connected":
+            # A later-added platform becomes eligible without rerunning discovery.
+            target["status"] = "pending"
+            target.pop("last_error", None)
+            _save(state)
     if any(_target(entry, name).get("status") in {"pending", "failed", "retry", "sending"} for name in ("youtube", "aparat")):
         try:
             # The same selected product is processed immediately. The video processor
