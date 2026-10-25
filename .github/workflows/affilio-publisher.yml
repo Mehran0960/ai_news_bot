@@ -49,6 +49,10 @@ jobs:
         run: |
           python -m py_compile affilio_radar/affilio_radar.py affilio_radar/content_delivery.py affilio_radar/publisher.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
 
+      - name: Test durable queue rules
+        run: |
+          cd affilio_radar
+          python -m unittest -v test_content_delivery.py
       - name: Deliver due selected content independently to connected platforms
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
