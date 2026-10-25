@@ -23,6 +23,7 @@ from urllib.parse import parse_qs, quote, urlencode, urljoin, urlsplit, urlunspl
 
 import requests
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
+from product_quality import is_publishable_product_title
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from offerchin_visuals import draw_discount_burst, draw_retailer_badge, adaptive_text_colors
@@ -574,9 +575,10 @@ def parse_product_page(url: str, page_html: str) -> dict:
                 review_count = 0
 
     title = title or _clean_title(meta.get("og:title") or meta.get("twitter:title") or meta.get("title") or "")
-    if not title:
+    if not is_publishable_product_title(title):
         h1 = soup.find("h1")
-        title = _clean_title(h1.get_text(" ", strip=True) if h1 else "")
+        heading_title = _clean_title(h1.get_text(" ", strip=True) if h1 else "")
+        title = heading_title if is_publishable_product_title(heading_title) else ""
     image = image or meta.get("og:image") or meta.get("twitter:image") or meta.get("twitter:image:src") or ""
     image = urljoin(url, image) if image else ""
 
@@ -668,7 +670,7 @@ def api_search_product_urls(payload):
         title = obj.get("title_fa") or obj.get("product_title") or obj.get("title")
         raw_id = obj.get("id") or obj.get("product_id")
         product_shape = any(k in obj for k in ("default_variant", "variants", "images", "product_type", "status"))
-        if not title or not product_shape:
+        if not title or not product_shape or not is_publishable_product_title(title):
             continue
         candidate = _api_product_url(obj)
         if not candidate and (isinstance(raw_id, int) or (isinstance(raw_id, str) and raw_id.isdigit())):
@@ -785,7 +787,11 @@ def api_incredible_offer_product_candidates(payload, now: datetime | None = None
         has_product_shape = bool(title) and any(
             key in obj for key in ("url", "default_variant", "variants", "price", "status", "product_type", "is_incredible")
         )
-        if not has_product_shape or is_prohibited_product_title(title):
+        if (
+            not has_product_shape
+            or is_prohibited_product_title(title)
+            or not is_publishable_product_title(title)
+        ):
             continue
         status = str(obj.get("status", "")).lower()
         if status and status not in {"marketable", "active", "available"}:
@@ -973,7 +979,7 @@ def parse_product_api(payload: dict, url: str, now: datetime | None = None) -> d
     candidates = []
     for obj in _walk_dicts(payload):
         title = _clean_title(obj.get("title_fa") or obj.get("product_title") or obj.get("name_fa") or obj.get("title") or obj.get("name"))
-        if not title or len(title) < 2:
+        if not is_publishable_product_title(title):
             continue
         obj_id = str(obj.get("product_id") or obj.get("id") or "")
         has_data = any(k in obj for k in ("default_variant", "variants", "images", "image", "price", "rating", "url"))
@@ -1283,7 +1289,7 @@ def parse_snappshop_product_api(payload: dict, url: str, search_card: dict | Non
         content.get("title_fa") or content.get("title") or content.get("name")
         or data.get("title_fa") or data.get("title") or card.get("title")
     )
-    if not title:
+    if not is_publishable_product_title(title):
         return {}
 
     vendors_seen = 0
@@ -1458,8 +1464,10 @@ def fetch_product_record(url: str) -> dict:
                 print(f"PRODUCT_API_FAILED id={product_id(url)} version={api_version} error={type(exc).__name__}")
 
     needs_html = (
-        not api_product.get("title") or not api_product.get("current_price")
-        or not api_product.get("image_url") or api_product.get("availability") == "unknown"
+        not is_publishable_product_title(api_product.get("title"))
+        or not api_product.get("current_price")
+        or not api_product.get("image_url")
+        or api_product.get("availability") == "unknown"
     )
     html_product = {}
     if needs_html:
@@ -1476,8 +1484,14 @@ def fetch_product_record(url: str) -> dict:
         "variant_label", "rating", "review_count", "deal_expires_at", "expiry_source",
         "expiry_deadline_verified_directly", "expiry_estimated",
     ):
-        if api_product.get(key) not in (None, "", 0):
-            merged[key] = api_product[key]
+        value = api_product.get(key)
+        if value in (None, "", 0):
+            continue
+        if key == "title" and not is_publishable_product_title(value):
+            continue
+        merged[key] = value
+    if not is_publishable_product_title(merged.get("title")):
+        merged["title"] = ""
     statuses = [x for x in (api_product.get("availability"), html_product.get("availability")) if x in {"in_stock", "out_of_stock"}]
     # If public sources conflict, fail closed to avoid advertising unavailable goods.
     if "out_of_stock" in statuses:
@@ -2376,7 +2390,10 @@ def merge_discovery_queue(
         url = safe_product_url(str(row.get("product_url") or row.get("url") or ""))
         pid = product_id(url)
         title = str(row.get("title") or row.get("title_fa") or "").strip()[:180]
-        if not url or not pid or not title or is_prohibited_product_title(title):
+        if (
+            not url or not pid or not is_publishable_product_title(title)
+            or is_prohibited_product_title(title)
+        ):
             continue
 
         old = queue.get(pid, {})
@@ -2865,7 +2882,10 @@ def discover_product_urls(
     best_by_url = {}
     for row in deals_found:
         url = row["product_url"]
-        if is_prohibited_product_title(row.get("title", "")):
+        if (
+            is_prohibited_product_title(row.get("title", ""))
+            or not is_publishable_product_title(row.get("title", ""))
+        ):
             continue
         pid = product_id(url)
         expiry = str(
@@ -3362,6 +3382,7 @@ def is_discount_publish_eligible(product: dict) -> bool:
     return bool(
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
+        and is_publishable_product_title(product.get("title", ""))
         and int(product.get("discount_percent") or 0) >= MIN_DISCOUNT_PERCENT
         and int(product.get("savings_toman") or 0) >= MIN_SAVINGS_TOMAN
     )
@@ -5697,7 +5718,7 @@ def process_pending_short_video(
     output_dir: str | Path = "video_artifacts",
     destinations: set[str] | None = None,
     force_due: bool = False,
-    product_id: str | None = None,
+    only_product_id: str | None = None,
 ) -> bool:
     """Generate and publish a vertical artifact for a selected product.
 
@@ -5969,7 +5990,7 @@ def process_pending_short_video(
     for pid, record in published.items():
         if not isinstance(record, dict):
             continue
-        if product_id is not None and str(pid) != str(product_id):
+        if only_product_id is not None and str(pid) != str(only_product_id):
             continue
         generation_status = str(record.get("video_generation_status") or "")
         if generation_status == "generated":
@@ -6716,8 +6737,8 @@ def run(publish=False, selection_only=False):
                 item["expiry_estimated"] = False
                 if mcp_deadline_hint:
                     item["mcp_deadline_hint"] = mcp_deadline_hint
-            if not item.get("title"):
-                print(f"PRODUCT_SKIP id={item.get('product_id')} reason=no_title")
+            if not is_publishable_product_title(item.get("title")):
+                print(f"PRODUCT_SKIP id={item.get('product_id')} reason=invalid_or_incomplete_title")
                 continue
             item = score_product(item)
             override = approved.get(item["product_id"], {})
