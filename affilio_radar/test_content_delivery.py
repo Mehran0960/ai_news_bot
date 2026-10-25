@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 
 from content_delivery import (
@@ -6,6 +7,7 @@ from content_delivery import (
     finish_queue_item, refresh_unpublished_selections,
 )
 from platform_registry import PLATFORM_NAMES
+from publisher import publish_due_queue
 
 
 class ContentDeliveryQueueTests(unittest.TestCase):
@@ -213,6 +215,34 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         due = due_content(state, now=self.now, limit=1)
         self.assertEqual([pid for pid, _entry in due], ["dkp-fresh"])
 
+
+    def test_publisher_blocks_stale_queued_copy_when_current_publication_is_active(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-123")],
+            now=self.now - timedelta(minutes=10), interval_seconds=1200, max_items=1,
+        )
+        state["published"] = {
+            "dkp-123": {
+                "telegram_message_id": 55,
+                "expiry_status": "tracked",
+                "distribution_queue_id": "dkp-123:previous-selection",
+            }
+        }
+        with (
+            patch("publisher.radar.load_state", return_value=state),
+            patch("publisher._save"),
+            patch("publisher._fresh_selected_item") as revalidate,
+        ):
+            self.assertEqual(publish_due_queue(), 0)
+
+        revalidate.assert_not_called()
+        self.assertNotIn("dkp-123", state["content_delivery_queue"])
+        self.assertEqual(state["published"]["dkp-123"]["telegram_message_id"], 55)
+        self.assertEqual(
+            state["content_delivery_history"][0]["last_detail"],
+            "active_publication_exists",
+        )
 
     def test_terminal_queue_item_moves_to_bounded_history(self):
         state = {}

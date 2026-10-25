@@ -1848,6 +1848,157 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertNotEqual(record.get("expiry_source"), "live_product_stock_or_price")
         self.assertNotEqual(record.get("expiry_reason"), "price_mismatch")
 
+    def test_fetch_live_product_status_uses_snappshop_product_api(self):
+        with patch.object(monitor, "fetch_product_record", return_value={
+            "title": "ست لباس نوزادی",
+            "current_price": 620_000,
+            "original_price": 2_300_000,
+            "availability": "in_stock",
+        }) as fetch:
+            snapshot = monitor.fetch_live_product_status("snp-123456")
+        fetch.assert_called_once_with("https://snappshop.ir/product/snp-123456")
+        self.assertEqual(snapshot["current_price"], 620_000)
+        self.assertEqual(snapshot["original_price"], 2_300_000)
+        self.assertIs(snapshot["in_stock"], True)
+        self.assertEqual(snapshot["price_source"], "snappshop_product_api")
+        self.assertFalse(snapshot["expiry_verified_directly"])
+
+    def test_live_price_audit_invalidates_snappshop_post_when_live_price_changes(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "telegram_message_id": 731,
+            "expiry_status": "tracked",
+            "posted_current_price": 620_000,
+            "posted_original_price": 2_300_000,
+            "posted_discount_percent": 73,
+            "price_audit_next_check_at": (now - timedelta(minutes=1)).isoformat(),
+        }
+        published = {"snp-123456": record}
+        with patch.object(monitor, "fetch_live_product_status", return_value={
+            "current_price": 700_000,
+            "original_price": 2_300_000,
+            "in_stock": True,
+            "price_source": "snappshop_product_api",
+        }):
+            changed, summary = monitor._audit_live_prices(published, now=now, batch_size=10)
+        self.assertTrue(changed)
+        self.assertEqual(summary["price_mismatches"], 1)
+        self.assertEqual(record["price_audit_status"], "invalidated")
+        self.assertEqual(record["price_audit_reason"], "price_mismatch")
+
+    def test_live_price_audit_invalidates_snappshop_post_when_discount_disappears(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "telegram_message_id": 732,
+            "expiry_status": "tracked",
+            "posted_current_price": 620_000,
+            "posted_original_price": 2_300_000,
+            "posted_discount_percent": 73,
+        }
+        published = {"snp-123456": record}
+        with patch.object(monitor, "fetch_live_product_status", return_value={
+            "current_price": 620_000,
+            "original_price": None,
+            "in_stock": True,
+            "price_source": "snappshop_product_api",
+        }):
+            changed, summary = monitor._audit_live_prices(published, now=now, batch_size=10)
+        self.assertTrue(changed)
+        self.assertEqual(summary["price_mismatches"], 1)
+        self.assertEqual(record["price_audit_status"], "invalidated")
+        self.assertIn("original_price", record["price_audit_mismatch_fields"])
+
+    def test_live_price_audit_catches_wrong_caption_discount_percentage(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "telegram_message_id": 733,
+            "expiry_status": "tracked",
+            "posted_current_price": 620_000,
+            "posted_original_price": 2_300_000,
+            "posted_discount_percent": 65,
+        }
+        published = {"dkp-123456": record}
+        with patch.object(monitor, "fetch_live_product_status", return_value={
+            "current_price": 620_000,
+            "original_price": 2_300_000,
+            "in_stock": True,
+            "price_source": "digikala_product_detail_api",
+        }):
+            changed, summary = monitor._audit_live_prices(published, now=now, batch_size=10)
+        self.assertTrue(changed)
+        self.assertEqual(summary["price_mismatches"], 1)
+        self.assertEqual(record["price_audit_status"], "invalidated")
+        self.assertIn("discount_percent", record["price_audit_mismatch_fields"])
+
+    def test_recent_public_history_adopts_snappshop_caption_facts_for_live_audit(self):
+        now = datetime.now(timezone.utc)
+        caption = (
+            "🔥 فروش ویژه اسنپ‌شاپ 🔴 🛍️ ست لباس نوزادی نمونه "
+            "💚 قیمت ویژه: ۶۲۰٬۰۰۰ تومان ⚡️ ۷۳٪ تخفیف "
+            "📣 عضویت در کانال OfferChin"
+        )
+        posts = {
+            734: {
+                "caption_text": caption,
+                "caption_html": "<b>💚 قیمت ویژه: ۶۲۰٬۰۰۰ تومان</b> <b>⚡️ ۷۳٪ تخفیف</b>",
+                "product_ids": ["snp-123456"],
+                "purchase_button_visible": True,
+            }
+        }
+        published = {}
+        with (
+            patch.object(monitor, "_build_affilio_tracking_url", return_value="https://aflo.ir/QekEYTRg?p=test"),
+            patch.object(monitor, "_telegram_edit_caption", return_value="edited"),
+        ):
+            result = monitor.audit_public_channel_history(published, now=now, posts=posts)
+        self.assertTrue(result[0])
+        record = published["snp-123456"]
+        self.assertEqual(record["product_url"], "https://snappshop.ir/product/snp-123456")
+        self.assertEqual(record["posted_current_price"], 620_000)
+        self.assertEqual(record["posted_discount_percent"], 73)
+        self.assertEqual(record["price_audit_status"], "pending")
+        self.assertLessEqual(
+            datetime.fromisoformat(record["price_audit_next_check_at"]),
+            now,
+        )
+
+    def test_public_caption_facts_override_stale_serialized_price_before_live_audit(self):
+        now = datetime.now(timezone.utc)
+        caption = (
+            "🔥 فروش ویژه دیجی‌کالا 🔴 🛍️ محصول نمونه "
+            "💚 قیمت ویژه: ۶۲۰٬۰۰۰ تومان ⚡️ ۷۳٪ تخفیف "
+            "📣 عضویت در کانال OfferChin"
+        )
+        record = {
+            "telegram_message_id": 735,
+            "product_url": "https://www.digikala.com/product/dkp-123457/",
+            "title": "محصول نمونه",
+            "posted_current_price": 700_000,
+            "posted_original_price": 2_300_000,
+            "posted_discount_percent": 65,
+            "expiry_status": "tracked",
+            "caption_deadline_format_version": monitor.CAPTION_FORMAT_VERSION,
+        }
+        published = {"dkp-123457": record}
+        posts = {
+            735: {
+                "caption_text": caption,
+                "caption_html": "<b>💚 قیمت ویژه: ۶۲۰٬۰۰۰ تومان</b> <b>⚡️ ۷۳٪ تخفیف</b>",
+                "product_ids": ["dkp-123457"],
+                "purchase_button_visible": True,
+            }
+        }
+        with patch.object(monitor, "_telegram_edit_caption", return_value="edited"):
+            result = monitor.audit_public_channel_history(published, now=now, posts=posts)
+        self.assertTrue(result[0])
+        self.assertEqual(record["posted_current_price"], 620_000)
+        self.assertEqual(record["posted_discount_percent"], 73)
+        self.assertEqual(record["price_audit_status"], "pending")
+        self.assertLessEqual(
+            datetime.fromisoformat(record["price_audit_next_check_at"]),
+            now,
+        )
+
     def test_live_price_audit_refreshes_current_deadline_but_not_history_deadline(self):
         now = datetime(2026, 10, 25, 16, 0, tzinfo=timezone.utc)
         current_deadline = "2026-10-25T19:00:00+00:00"

@@ -23,7 +23,7 @@ from zoneinfo import ZoneInfo
 from bs4 import BeautifulSoup
 from affilio_radar import (
     build_caption, TELEGRAM_CHANNEL_URL, parse_product_api, verify_live_page_price,
-    is_publishable_product_title,
+    is_publishable_product_title, fetch_product_record,
 )
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from urllib.error import HTTPError
@@ -455,14 +455,57 @@ def sync_live_offer_deadlines(published, live_expiries, now, live_sources=None):
 
 
 def fetch_live_product_status(product_id, expected_price=None, expected_original_price=None):
-    """Fetch live DigiKala price/stock using the same parser as the publishing radar.
+    """Fetch authoritative live price/availability for DigiKala or SnappShop.
 
-    The expiry monitor previously used a narrower local JSON walker; it can silently
-    reject valid API responses after DigiKala changes its response shape. Reuse the
-    production parser first, then use the radar page/API fallback before declaring the
-    live price unconfirmed. Missing data is never treated as evidence for deletion.
+    Missing or ambiguous data is inconclusive and must never trigger deletion.
+    SnappShop's product API exposes current vendor price/stock but does not expose
+    a reliable campaign deadline, so its expiry is inferred only when the live
+    price/availability actually changes—not from a guessed timestamp.
     """
-    match = re.search(r"(?:dkp-)?(\d+)$", str(product_id or ""))
+    normalized_id = str(product_id or "").strip().lower()
+    if re.fullmatch(r"snp-\d+", normalized_id):
+        url = f"https://snappshop.ir/product/{normalized_id}"
+        try:
+            parsed = fetch_product_record(url)
+        except Exception as exc:
+            print(
+                f"EXPIRY_SNAPPSHOP_PRODUCT_CHECK_FAILED product_id={normalized_id} "
+                f"error={type(exc).__name__}: {str(exc)[:140]!r}"
+            )
+            return {}
+        if not isinstance(parsed, dict):
+            return {}
+        current = parsed.get("current_price")
+        try:
+            current = int(current) if current is not None else None
+            if current is not None and current <= 0:
+                current = None
+        except (TypeError, ValueError, OverflowError):
+            current = None
+        original = parsed.get("original_price")
+        try:
+            original = int(original) if original is not None else None
+            if original is not None and original <= 0:
+                original = None
+        except (TypeError, ValueError, OverflowError):
+            original = None
+        availability = str(parsed.get("availability") or "unknown").strip().lower()
+        in_stock = True if availability == "in_stock" else False if availability == "out_of_stock" else None
+        if current is None and in_stock is not False:
+            print(f"EXPIRY_SNAPPSHOP_PRODUCT_CHECK_UNCONFIRMED product_id={normalized_id} reason=live_price_or_stock_unavailable")
+            return {}
+        return {
+            "current_price": current,
+            "original_price": original,
+            "in_stock": in_stock,
+            "api_version": "snappshop_product_api",
+            "deal_expires_at": "",
+            "expiry_verified_directly": False,
+            "price_source": "snappshop_product_api",
+            "title": str(parsed.get("title") or ""),
+        }
+
+    match = re.search(r"(?:dkp-)?(\d+)$", normalized_id)
     if not match:
         return {}
     numeric_id = match.group(1)
@@ -2031,7 +2074,11 @@ def audit_public_channel_history(published, now=None, posts=None):
                 continue
 
             pid = product_ids[0]
-            canonical_url = f"https://www.digikala.com/product/{pid}/"
+            canonical_url = (
+                f"https://snappshop.ir/product/{pid}"
+                if pid.startswith("snp-")
+                else f"https://www.digikala.com/product/{pid}/"
+            )
             affiliate_url = _build_affilio_tracking_url(canonical_url)
             if not affiliate_url:
                 print(
@@ -2072,6 +2119,12 @@ def audit_public_channel_history(published, now=None, posts=None):
                 continue
 
             fields = _extract_legacy_caption_fields(caption_text)
+            current_price = fields.get("current_price")
+            discount_percent = fields.get("discount_percent")
+            title = str(fields.get("title") or "").strip()
+            # Incomplete legacy captions can still be repaired when a purchase
+            # button is confirmed. Unknown price facts remain unknown (never guessed);
+            # once a numeric price is present, the recurring live audit validates it.
             caption = _build_legacy_repaired_caption(fields, None, now, affiliate_url=affiliate_url)
             try:
                 result = _telegram_edit_caption(
@@ -2110,10 +2163,15 @@ def audit_public_channel_history(published, now=None, posts=None):
                     record = {}
 
                 record.update({
-                    "title": fields.get("title") or "پیشنهاد شگفت‌انگیز دیجی‌کالا",
+                    "title": title,
                     "product_url": canonical_url,
                     "telegram_message_id": int(message_id),
                     "ts": now.timestamp(),
+                    "posted_current_price": current_price,
+                    "posted_original_price": int(fields.get("original_price") or 0),
+                    "posted_discount_percent": discount_percent,
+                    "price_audit_status": "pending",
+                    "price_audit_next_check_at": (now - timedelta(seconds=1)).isoformat(),
                     "expires_at": "",
                     "expiry_source": "unavailable",
                     "expiry_estimated": False,
@@ -2148,6 +2206,36 @@ def audit_public_channel_history(published, now=None, posts=None):
             )
 
         fields = _extract_legacy_caption_fields(caption_text)
+        # Preserve what the public caption actually says as the expected facts for the
+        # live audit. State may lag a successful send or an old caption edit; compare the
+        # live site to the message itself, not merely to the last serialized state.
+        caption_facts = {
+            "posted_current_price": fields.get("current_price"),
+            "posted_original_price": fields.get("original_price"),
+            "posted_discount_percent": fields.get("discount_percent"),
+        }
+        caption_facts_changed = False
+        for state_key, caption_value in caption_facts.items():
+            if caption_value is None:
+                continue
+            try:
+                old_value = int(record.get(state_key) or 0)
+                new_value = int(caption_value)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if old_value != new_value:
+                record[state_key] = new_value
+                caption_facts_changed = True
+        if caption_facts_changed:
+            record["price_audit_status"] = "pending"
+            record["price_audit_next_check_at"] = (now - timedelta(seconds=1)).isoformat()
+            record["caption_facts_reconciled_at"] = now.isoformat()
+            changed = True
+            print(
+                f"PUBLIC_HISTORY_CAPTION_FACTS_RECONCILED message_id={message_id} "
+                f"product_id={record.get('product_url') or 'unknown'} "
+                "live_recheck=due"
+            )
         fields["title"] = fields.get("title") or record.get("title") or "پیشنهاد ویژه"
         fields["current_price"] = (
             fields.get("current_price") or record.get("posted_current_price") or record.get("current_price")
@@ -2502,12 +2590,11 @@ def _mark_price_invalid(record, product_id, reason, posted_price, live_price, no
 
 
 def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=None, retry_seconds=None):
-    """Continuously verify every active tracked offer price in bounded rotating batches.
+    """Continuously verify each active post against its retailer's live product API.
 
-    Only a usable first-party DigiKala product API response can invalidate a post.
-    Missing/ambiguous responses are recorded and retried, never treated as proof
-    that a price changed. Stale-price posts flow through the existing permanent
-    deletion paths for Telegram, Bale, YouTube and Aparat.
+    Only a usable first-party product response can invalidate a post. Missing or
+    ambiguous responses are recorded and retried, never treated as proof that a
+    price changed. Stale-price and out-of-stock posts flow through permanent deletion.
     """
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
@@ -2545,7 +2632,9 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
             # The current product-detail API is DigiKala-specific; do not
             # misinterpret SnappShop IDs as DigiKala product numbers.
             pid = str(product_id or "").strip().lower()
-            if not pid.startswith("dkp-") or not pid[4:].isdigit():
+            # DigiKala and SnappShop are both first-party audited. Unknown product
+            # namespaces must not be routed to either retailer's live API.
+            if not re.fullmatch(r"(?:dkp|snp)-\d+", pid):
                 continue
             if entry.get("price_audit_status") == "invalidated":
                 continue
@@ -2675,6 +2764,10 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
             except (TypeError, ValueError, OverflowError):
                 posted_original_price = None
 
+            try:
+                posted_discount_percent = int(record.get("posted_discount_percent") or 0)
+            except (TypeError, ValueError, OverflowError):
+                posted_discount_percent = 0
             mismatch_fields = []
             if live_price != posted_price:
                 mismatch_fields.append("current_price")
@@ -2686,6 +2779,29 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
                 and posted_original_price != live_original_price
             ):
                 mismatch_fields.append("original_price")
+            elif (
+                # The SnappShop product API returns original_price=None when it
+                # confirms there is no currently discounted vendor offer. If this
+                # post advertised a discount and the live price itself still matches,
+                # the discount field has nevertheless become false.
+                str(snapshot.get("price_source") or "") == "snappshop_product_api"
+                and posted_discount_percent > 0
+                and live_original_price is None
+            ):
+                mismatch_fields.append("original_price")
+            if posted_discount_percent > 0 and live_original_price is not None:
+                if live_original_price <= live_price:
+                    # Retailer says the reference price is no greater than the
+                    # current price: a previously advertised discount has ended.
+                    mismatch_fields.append("discount_percent")
+                else:
+                    live_discount_percent = int(round(
+                        (live_original_price - live_price) * 100 / live_original_price
+                    ))
+                    # Allow one percentage point for retailer rounding, but do not
+                    # leave captions that advertise a materially different discount.
+                    if abs(posted_discount_percent - live_discount_percent) > 1:
+                        mismatch_fields.append("discount_percent")
 
             if mismatch_fields:
                 _mark_price_invalid(record, product_id, "price_mismatch", posted_price, live_price, now)
@@ -3136,12 +3252,11 @@ def _delete_expired_youtube_videos(published, now, direct_confirm=None):
 
 
 def run_bounded_maintenance():
-    """Fast recurring maintenance for the selected-content delivery cycle.
+    """Recurring bounded maintenance for the live public channel.
 
-    Skip broad feed synchronization and public-history pagination here. Check a
-    small rotating batch of live prices, remove already-invalidated posts first,
-    and process confirmed expiry deletions. A slower full repair remains available
-    through the legacy no-argument command when explicitly needed.
+    Inspect the most recent public posts to adopt any untracked successful send,
+    reconcile the actual caption facts, and remove duplicates. Check a rotating batch
+    of tracked live product records and process only source-confirmed invalidations.
     """
     state = _read_state()
     published = state.get("published", {})
@@ -3150,6 +3265,29 @@ def run_bounded_maintenance():
     now = datetime.now(timezone.utc)
     changed = False
     deleted = 0
+
+    # Reconcile a bounded slice of the real public channel before price validation.
+    # This catches successful sends whose state write was interrupted and ensures the
+    # following audit compares the retailer data against the caption users can see.
+    try:
+        history_pages = max(1, min(5, int(os.getenv("AFFILIO_PUBLIC_HISTORY_PAGES", "3"))))
+        recent_posts = fetch_public_channel_posts(max_pages=history_pages)
+        history_result = audit_public_channel_history(published, now=now, posts=recent_posts)
+        history_changed, history_deleted = bool(history_result[0]), int(history_result[1] or 0)
+        changed = changed or history_changed
+        deleted += history_deleted
+        if history_changed:
+            _write_state(state)
+        print(
+            "BOUNDED_PUBLIC_HISTORY_SUMMARY "
+            f"pages={history_pages} scanned={len(recent_posts)} "
+            f"deleted={history_deleted} changed={history_changed}"
+        )
+    except Exception as exc:
+        print(
+            f"BOUNDED_PUBLIC_HISTORY_FAILED error={type(exc).__name__} "
+            f"detail={str(exc)[:160]!r}; price audit continues"
+        )
 
     channel_budget = {"remaining": max(1, min(10, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "4"))))}
     def confirm(product_id, record, current_time):
@@ -3188,7 +3326,9 @@ def run_bounded_maintenance():
         # Save verified invalidations before channel API side effects so retries survive failures.
         _write_state(state)
 
-    if summary.get("price_mismatches") or summary.get("out_of_stock_posts"):
+    # Re-run expiry cleanup after the price audit: a fresh direct product response
+    # may have moved a campaign deadline into its removal window even when price matches.
+    if price_changed or summary.get("products_checked") or summary.get("price_mismatches") or summary.get("out_of_stock_posts"):
         immediate_now = datetime.now(timezone.utc)
         immediate_budget = {"remaining": max(6, min(12, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "4"))))}
         def confirm_price_invalidation(product_id, record, current_time):
@@ -3473,5 +3613,15 @@ if __name__ == "__main__":
     if "--repair-known-duplicate" in sys.argv[1:]:
         raise SystemExit(_repair_known_duplicate_from_environment(_read_state()))
     if "--bounded-maintenance" in sys.argv[1:]:
-        raise SystemExit(run_bounded_maintenance())
+        maintenance_result = run_bounded_maintenance()
+        if "--dedupe-recent" in sys.argv[1:]:
+            # The recurring publisher workflow passes a small page limit. This is
+            # intentionally separate from the one-time broader historical sweep.
+            dedupe_result = _run_duplicate_cleanup(_read_state(), apply=True)
+            print(
+                "RECENT_DUPLICATE_MAINTENANCE_SUMMARY "
+                f"maintenance_result={maintenance_result} dedupe_result={dedupe_result}"
+            )
+            raise SystemExit(max(maintenance_result, dedupe_result))
+        raise SystemExit(maintenance_result)
     raise SystemExit(run())
