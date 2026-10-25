@@ -44,7 +44,7 @@ POST_REMOVAL_BUFFER_MINUTES = max(
 # Recheck the first-party deal feed every five minutes so cached deadlines remain current.
 LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 5 * 60
 # Bound detail lookups so missing timers cannot stall expiry cleanup.
-DIRECT_PRODUCT_DETAIL_CHECK_LIMIT = max(1, min(10, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "8"))))
+DIRECT_PRODUCT_DETAIL_CHECK_LIMIT = max(1, min(2, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "1"))))
 CAPTION_FORMAT_VERSION = 12
 
 
@@ -2380,7 +2380,7 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     now = now.astimezone(timezone.utc)
-    batch_size = batch_size or max(1, min(30, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "20"))))
+    batch_size = batch_size if batch_size is not None else max(1, min(3, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "3"))))
     interval_seconds = interval_seconds or max(
         300, min(21600, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "3600")))
     )
