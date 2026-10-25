@@ -3034,8 +3034,14 @@ def run():
         print("EXPIRY_STATE_SAVED phase=public_history_audit")
 
     price_changed, price_summary = _audit_live_prices(published, now)
-    changed = changed or price_changed
-    if price_changed:
+    state["price_audit_last_summary"] = {
+        **price_summary,
+        "checked_at": now.isoformat(),
+        "batch_size": max(1, min(12, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "10")))),
+        "check_interval_seconds": max(300, min(21600, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "3600")))),
+    }
+    changed = changed or price_changed or bool(price_summary.get("products_checked"))
+    if price_changed or price_summary.get("products_checked"):
         # Persist audit decisions before deletion side effects so a transient bot
         # API failure cannot erase the verified reason for the next retry.
         _write_state(state)
