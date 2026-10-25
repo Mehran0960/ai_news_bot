@@ -13,6 +13,7 @@ from typing import Any
 
 import affilio_radar as radar
 from content_delivery import due_content, finish_queue_item
+from platform_registry import PLATFORM_NAMES, PHOTO_PLATFORMS, VIDEO_PLATFORMS, validate_registry
 
 
 RETRY_BASE_SECONDS = max(60, int(os.getenv("AFFILIO_PUBLISH_RETRY_BASE_SECONDS", "300")))
@@ -111,8 +112,8 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "telegram_message_id": None,
         "bale_message_id": None,
         "delivery_version": 1,
-        "delivery_status": {"telegram": "pending", "bale": "pending"},
-        "delivery_attempts": {"telegram": 0, "bale": 0},
+        "delivery_status": {name: "pending" for name in PLATFORM_NAMES},
+        "delivery_attempts": {name: 0 for name in PLATFORM_NAMES},
         "expires_at": expiry_at,
         "expiry_source": str(item.get("expiry_source") or "unavailable"),
         "expiry_estimated": bool(item.get("expiry_estimated")),
@@ -335,7 +336,7 @@ def _process_photo_destination(
 
 def _process_video_destinations(state: dict, entry: dict, record: dict, now: datetime) -> None:
     product_id = str(entry.get("product_id") or "")
-    for target_name in ("youtube", "aparat"):
+    for target_name in VIDEO_PLATFORMS:
         target = _target(entry, target_name)
         if target.get("status") == "sent":
             continue
@@ -347,7 +348,7 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
             target["status"] = "pending"
             target.pop("last_error", None)
             _save(state)
-    if any(_target(entry, name).get("status") in {"pending", "failed", "retry", "sending"} for name in ("youtube", "aparat")):
+    if any(_target(entry, name).get("status") in {"pending", "failed", "retry", "sending"} for name in VIDEO_PLATFORMS):
         try:
             # The same selected product is processed immediately. The video processor
             # bypasses only its normal cross-item time slot, not platform quotas or errors.
@@ -404,6 +405,7 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
 
 
 def publish_due_queue() -> int:
+    validate_registry()
     state = radar.load_state()
     queue = state.get("content_delivery_queue")
     if not isinstance(queue, dict) or not queue:
@@ -474,15 +476,15 @@ def publish_due_queue() -> int:
             print(f"CONTENT_IMAGE_UNAVAILABLE product_id={product_id} error={type(exc).__name__}")
             continue
 
-        _process_photo_destination(state, entry, record, fresh, image_bytes, "telegram", now)
-        _process_photo_destination(state, entry, record, fresh, image_bytes, "bale", now)
+        for destination in PHOTO_PLATFORMS:
+            _process_photo_destination(state, entry, record, fresh, image_bytes, destination, now)
         # Refresh mutable status after each adapter. This same record is the hand-off
         # to the public video publishers, not a second independent content selection.
         state.setdefault("published", {})[product_id] = record
         _save(state)
         _process_video_destinations(state, entry, record, now)
 
-        platforms = {name: str(_target(entry, name).get("status") or "pending") for name in ("telegram", "bale", "youtube", "aparat")}
+        platforms = {name: str(_target(entry, name).get("status") or "pending") for name in PLATFORM_NAMES}
         completed = all(status in TERMINAL_PLATFORM for status in platforms.values())
         any_success = any(status == "sent" for status in platforms.values())
         unresolved = [name for name, status in platforms.items() if status not in TERMINAL_PLATFORM]
