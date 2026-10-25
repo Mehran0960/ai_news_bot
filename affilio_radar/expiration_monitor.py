@@ -2475,6 +2475,13 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
             usable_price = live_price is not None and live_price > 0
         except (TypeError, ValueError, OverflowError):
             live_price = None
+        live_original_price = snapshot.get("original_price") if isinstance(snapshot, dict) else None
+        try:
+            live_original_price = int(live_original_price) if live_original_price is not None else None
+            if live_original_price is not None and live_original_price <= 0:
+                live_original_price = None
+        except (TypeError, ValueError, OverflowError):
+            live_original_price = None
 
         direct_deadline = (
             parse_expiry(snapshot.get("deal_expires_at"))
@@ -2504,6 +2511,7 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
             record["price_audit_last_checked_at"] = checked_at
             record["price_audit_next_check_at"] = (now + timedelta(seconds=interval_seconds)).isoformat()
             record["last_seen_current_price"] = live_price
+            record["last_seen_original_price"] = live_original_price
             record["last_seen_in_stock"] = stock
 
             if product_out:
@@ -2520,8 +2528,32 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
                 changed = True
                 continue
             record.pop("price_audit_error", None)
+            posted_original_price = None
+            try:
+                raw_posted_original = record.get("posted_original_price") or record.get("original_price")
+                posted_original_price = int(raw_posted_original) if raw_posted_original is not None else None
+                if posted_original_price is not None and posted_original_price <= 0:
+                    posted_original_price = None
+            except (TypeError, ValueError, OverflowError):
+                posted_original_price = None
+
+            mismatch_fields = []
             if live_price != posted_price:
+                mismatch_fields.append("current_price")
+            # Only compare original/list prices when DigiKala returns a usable value;
+            # a missing list price is inconclusive, not permission to delete.
+            if (
+                posted_original_price is not None
+                and live_original_price is not None
+                and posted_original_price != live_original_price
+            ):
+                mismatch_fields.append("original_price")
+
+            if mismatch_fields:
                 _mark_price_invalid(record, product_id, "price_mismatch", posted_price, live_price, now)
+                record["price_audit_mismatch_fields"] = mismatch_fields
+                record["price_audit_posted_original_price"] = posted_original_price
+                record["price_audit_live_original_price"] = live_original_price
                 mismatched += 1
                 product_mismatches += 1
                 product_changed = True
@@ -2529,13 +2561,16 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
                 print(
                     f"PRICE_AUDIT_INVALIDATED product_id={product_id} "
                     f"posted_price={posted_price} live_price={live_price} "
-                    f"reason=price_mismatch historical={is_history}"
+                    f"posted_original={posted_original_price} live_original={live_original_price} "
+                    f"fields={','.join(mismatch_fields)} reason=price_mismatch historical={is_history}"
                 )
                 continue
 
             record["price_audit_status"] = "match"
             record["price_audit_posted_price"] = posted_price
             record["price_audit_live_price"] = live_price
+            record["price_audit_posted_original_price"] = posted_original_price
+            record["price_audit_live_original_price"] = live_original_price
             changed = True
             # Only refresh the current record's timer. A current campaign timer
             # must never be copied onto an older historical post for this product.
