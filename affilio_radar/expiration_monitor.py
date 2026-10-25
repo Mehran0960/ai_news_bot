@@ -2713,6 +2713,96 @@ def _delete_expired_youtube_videos(published, now, direct_confirm=None):
     return changed
 
 
+def run_bounded_maintenance():
+    """Fast recurring maintenance for the selected-content delivery cycle.
+
+    Skip broad feed synchronization and public-history pagination here. Check a
+    small rotating batch of live prices, remove already-invalidated posts first,
+    and process confirmed expiry deletions. A slower full repair remains available
+    through the legacy no-argument command when explicitly needed.
+    """
+    state = _read_state()
+    published = state.get("published", {})
+    if not isinstance(published, dict):
+        raise ValueError("state.json published must be an object")
+    now = datetime.now(timezone.utc)
+    changed = False
+    deleted = 0
+
+    channel_budget = {"remaining": max(1, min(10, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "4"))))}
+    def confirm(product_id, record, current_time):
+        return _confirm_expiry_for_deletion(product_id, record, current_time, budget=channel_budget)
+
+    # Remove posts already known to have expired or to advertise an invalidated price.
+    pre_changed, pre_deleted = _delete_expired_posts(
+        published, now, mark_unknown=True, direct_confirm=confirm
+    )
+    changed = changed or pre_changed
+    deleted += pre_deleted
+    if pre_changed:
+        _write_state(state)
+
+    try:
+        price_changed, summary = _audit_live_prices(published, now)
+    except Exception as exc:
+        price_changed = False
+        summary = {
+            "products_due": 0, "products_checked": 0, "price_mismatches": 0,
+            "out_of_stock_posts": 0, "unconfirmed": 1, "remaining_due": 0,
+            "error": f"{type(exc).__name__}: {str(exc)[:160]}",
+        }
+        print(f"BOUNDED_PRICE_AUDIT_FAILED error={type(exc).__name__} detail={str(exc)[:180]!r}")
+
+    state["price_audit_last_summary"] = {
+        **summary,
+        "checked_at": now.isoformat(),
+        "batch_size": max(1, min(30, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "10")))),
+        "check_interval_seconds": max(300, min(21600, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "3600")))),
+        "mode": "bounded-maintenance",
+    }
+    changed = changed or price_changed or bool(summary.get("products_checked"))
+    if changed:
+        # Save verified invalidations before channel API side effects so retries survive failures.
+        _write_state(state)
+
+    if summary.get("price_mismatches") or summary.get("out_of_stock_posts"):
+        immediate_now = datetime.now(timezone.utc)
+        immediate_budget = {"remaining": max(6, min(12, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "4"))))}
+        def confirm_price_invalidation(product_id, record, current_time):
+            return _confirm_expiry_for_deletion(product_id, record, current_time, budget=immediate_budget)
+        channel_changed, channel_deleted = _delete_expired_posts(
+            published, immediate_now, mark_unknown=True, direct_confirm=confirm_price_invalidation
+        )
+        changed = changed or channel_changed
+        deleted += channel_deleted
+        _write_state(state)
+        print(f"BOUNDED_PRICE_INVALIDATION_CHANNEL_RESULT changed={channel_changed} deleted={channel_deleted}")
+
+    # Video removals are separate adapter operations and must still run even when
+    # price_audit_status was persisted by a previous attempt.
+    video_budget = {"remaining": max(2, min(8, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "4"))))}
+    def confirm_video(product_id, record, current_time):
+        return _confirm_expiry_for_deletion(product_id, record, current_time, budget=video_budget)
+    youtube_changed = _delete_expired_youtube_videos(published, datetime.now(timezone.utc), direct_confirm=confirm_video)
+    changed = changed or youtube_changed
+    if youtube_changed:
+        _write_state(state)
+    aparat_changed = _delete_expired_aparat_videos(published, datetime.now(timezone.utc), direct_confirm=confirm_video)
+    changed = changed or aparat_changed
+    if aparat_changed:
+        _write_state(state)
+
+    if changed:
+        _write_state(state)
+    print(
+        "BOUNDED_MAINTENANCE_SUMMARY "
+        f"tracked={len(published)} price_checked={summary.get('products_checked', 0)} "
+        f"price_mismatches={summary.get('price_mismatches', 0)} "
+        f"out_of_stock={summary.get('out_of_stock_posts', 0)} deleted_now={deleted} "
+        f"youtube_cleanup_changed={youtube_changed} aparat_cleanup_changed={aparat_changed}"
+    )
+    return 0
+
 def run():
     state = _read_state()
     one_time_product_id = os.getenv("AFFILIO_DELETE_SPECIFIC_PRODUCT_ID", "").strip()
@@ -2952,4 +3042,7 @@ def run():
 
 
 if __name__ == "__main__":
+    import sys
+    if "--bounded-maintenance" in sys.argv[1:]:
+        raise SystemExit(run_bounded_maintenance())
     raise SystemExit(run())
