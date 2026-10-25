@@ -21,7 +21,7 @@ from urllib.parse import parse_qs, quote, unquote, urlencode, urlsplit
 from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
-from affilio_radar import build_caption, TELEGRAM_CHANNEL_URL
+from affilio_radar import build_caption, TELEGRAM_CHANNEL_URL, parse_product_api, verify_live_page_price
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -451,12 +451,20 @@ def sync_live_offer_deadlines(published, live_expiries, now, live_sources=None):
 
 
 
-def fetch_live_product_status(product_id):
-    """Fail-safe fallback: detect a reverted price or out-of-stock state for an expiry-unknown post."""
+def fetch_live_product_status(product_id, expected_price=None, expected_original_price=None):
+    """Fetch live DigiKala price/stock using the same parser as the publishing radar.
+
+    The expiry monitor previously used a narrower local JSON walker; it can silently
+    reject valid API responses after DigiKala changes its response shape. Reuse the
+    production parser first, then use the radar page/API fallback before declaring the
+    live price unconfirmed. Missing data is never treated as evidence for deletion.
+    """
     match = re.search(r"(?:dkp-)?(\d+)$", str(product_id or ""))
     if not match:
         return {}
     numeric_id = match.group(1)
+    url = f"https://www.digikala.com/product/dkp-{numeric_id}/"
+    observed_at = datetime.now(timezone.utc)
     for version in ("v2", "v1"):
         request = Request(
             f"https://api.digikala.com/{version}/product/{numeric_id}/",
@@ -469,323 +477,75 @@ def fetch_live_product_status(product_id):
         try:
             with urlopen(request, timeout=HTTP_TIMEOUT) as response:
                 if response.status != 200:
+                    print(f"EXPIRY_PRODUCT_CHECK_FAILED product_id={product_id} api={version} reason=http_{response.status}")
                     continue
                 raw = response.read(5_000_001)
             if len(raw) > 5_000_000:
+                print(f"EXPIRY_PRODUCT_CHECK_FAILED product_id={product_id} api={version} reason=response_too_large")
                 continue
             payload = json.loads(raw.decode("utf-8"))
+            parsed = parse_product_api(payload, url, now=observed_at)
+            if not isinstance(parsed, dict):
+                continue
+            current = parsed.get("current_price")
+            stock_value = str(parsed.get("availability") or "unknown")
+            if stock_value == "out_of_stock":
+                in_stock = False
+            elif stock_value == "in_stock":
+                in_stock = True
+            else:
+                in_stock = None
+            deadline = parse_expiry(parsed.get("deal_expires_at"))
+            if current or in_stock is False:
+                return {
+                    "current_price": current,
+                    "original_price": parsed.get("original_price"),
+                    "in_stock": in_stock,
+                    "api_version": version,
+                    "deal_expires_at": deadline or "",
+                    "expiry_verified_directly": bool(deadline and parsed.get("expiry_deadline_verified_directly") is True),
+                    "price_source": "digikala_product_detail_api",
+                }
         except Exception as exc:
             print(f"EXPIRY_PRODUCT_CHECK_FAILED product_id={product_id} api={version} error={type(exc).__name__}")
             continue
-        candidates = []
-        for node in walk_dicts(payload):
-            raw_id = node.get("product_id") or node.get("id")
-            if str(raw_id or "") != numeric_id:
-                continue
-            if not any(key in node for key in ("default_variant", "variants", "price", "title_fa", "product_title")):
-                continue
-            score = 0
-            score += 4 if isinstance(node.get("default_variant"), dict) else 0
-            score += 2 if isinstance(node.get("variants"), (list, dict)) else 0
-            score += 1 if isinstance(node.get("price"), dict) else 0
-            score += 1 if node.get("title_fa") or node.get("product_title") else 0
-            candidates.append((score, node))
-        if not candidates:
-            continue
-        product = max(candidates, key=lambda pair: pair[0])[1]
-        variant = product.get("default_variant") if isinstance(product.get("default_variant"), dict) else {}
-        variants = product.get("variants")
-        if isinstance(variants, dict):
-            variants = list(variants.values())
-        marketable_variant = (
-            next((v for v in variants if isinstance(v, dict) and v.get("marketable") is True), {})
-            if isinstance(variants, list) else {}
-        )
-        # If DigiKala's default variant is explicitly unavailable, prefer an
-        # actually marketable variant instead of mistaking one unavailable size
-        # or colour for the entire product being out of stock.
-        if not variant or variant.get("marketable") is False:
-            variant = marketable_variant or variant
-        variant = variant if isinstance(variant, dict) else {}
-        price_obj = variant.get("price") if isinstance(variant.get("price"), dict) else {}
-        if not price_obj:
-            price_obj = product.get("price") if isinstance(product.get("price"), dict) else {}
-        sources = (price_obj, variant, product)
 
-        def first_price(keys, is_toman):
-            for source in sources:
-                for key in keys:
-                    if source.get(key) is not None:
-                        value = _money_to_toman(source.get(key), is_toman)
-                        if value:
-                            return value
-            return None
-
-        current = first_price(("selling_price_toman", "selling_price_tooman", "price_toman", "current_price_toman"), True)
-        if current is None:
-            current = first_price(("selling_price_rial", "price_rial", "current_price_rial"), False)
-        if current is None:
-            current = first_price(("selling_price", "discounted_price", "final_price", "price"), False)
-        original = first_price(("rrp_price_toman", "original_price_toman", "list_price_toman"), True)
-        if original is None:
-            original = first_price(("rrp_price_rial", "original_price_rial", "list_price_rial"), False)
-        if original is None:
-            original = first_price(("rrp_price", "original_price", "regular_price", "list_price"), False)
-
-        in_stock = None
-        for node in (variant, product):
-            for key in ("marketable", "has_stock", "is_in_stock", "isAvailable", "available"):
-                if isinstance(node.get(key), bool):
-                    in_stock = node[key]
-                    break
-            if in_stock is not None:
-                break
-            for key in ("availability", "stock_status", "status", "availability_status"):
-                raw_status = str(node.get(key) or "").lower().replace("_", "").replace("-", "")
-                if any(token in raw_status for token in ("outofstock", "soldout", "notavailable", "ناموجود")):
-                    in_stock = False
-                    break
-                if any(token in raw_status for token in ("instock", "marketable", "available")):
-                    in_stock = True
-                    break
-            if in_stock is not None:
-                break
-        deal_expiry = extract_expiry(product, now=datetime.now(timezone.utc))
-        return {
-            "current_price": current,
-            "original_price": original,
-            "in_stock": in_stock,
-            "api_version": version,
-            "deal_expires_at": deal_expiry or "",
-            "expiry_verified_directly": bool(deal_expiry),
-        }
-    return {}
-
-
-
-def _has_active_publication(record):
-    """Whether at least one public message/video for this record still needs cleanup."""
-    if not isinstance(record, dict):
-        return False
-    terminal = {"deleted", "already_absent"}
-    targets = (
-        ("telegram_message_id", "expiry_status", True),
-        ("bale_message_id", "bale_expiry_status", True),
-        ("youtube_video_id", "youtube_expiry_status", False),
-        ("aparat_video_hash", "aparat_expiry_status", False),
-    )
-    for id_field, status_field, numeric_id in targets:
-        raw_id = str(record.get(id_field) or "").strip()
-        if not raw_id or (numeric_id and not raw_id.isdigit()):
-            continue
-        if str(record.get(status_field) or "") not in terminal:
-            return True
-    return False
-
-
-def _positive_int(value):
+    # HTML fallback is useful when the API returns a partial card. Use the
+    # previously posted price as an expected value when available, but always
+    # trust the returned live page price (including a mismatch) for the audit.
     try:
-        number = int(value)
+        expected = int(expected_price or 0)
     except (TypeError, ValueError, OverflowError):
-        return None
-    return number if number > 0 else None
-
-
-def audit_live_post_prices(published, now=None, max_products=None):
-    """Check active Telegram/Bale/video posts against DigiKala's live product API.
-
-    A verified price/original-price mismatch or confirmed out-of-stock result marks
-    the affected publication for removal on every platform. API failures are only
-    logged as inconclusive and never authorize deletion.
-    """
-    now = now or datetime.now(timezone.utc)
-    if now.tzinfo is None:
-        now = now.replace(tzinfo=timezone.utc)
-    now = now.astimezone(timezone.utc)
-    limit = PRICE_AUDIT_PRODUCT_CHECKS_PER_RUN if max_products is None else max(1, int(max_products))
-    groups = {}
-
-    for product_id, record in _iter_post_records(published):
-        if not isinstance(record, dict) or not _has_active_publication(record):
-            continue
-        # Once direct evidence has already invalidated a publication, keep retrying
-        # deletion; do not let a later price fluctuation cancel that decision.
-        if record.get("expiry_source") == "live_product_stock_or_price" and record.get("expiry_reason"):
-            continue
-        groups.setdefault(str(product_id), []).append(record)
-
-    due = []
-    interval = PRICE_AUDIT_INTERVAL_SECONDS
-    for product_id, records in groups.items():
-        stamps = []
-        is_due = False
-        for record in records:
-            raw = parse_expiry(record.get("price_audit_last_checked_at"))
-            if not raw:
-                stamps.append(0.0)
-                is_due = True
-                continue
-            try:
-                checked = datetime.fromisoformat(raw)
-                if checked.tzinfo is None:
-                    checked = checked.replace(tzinfo=timezone.utc)
-                checked_epoch = checked.astimezone(timezone.utc).timestamp()
-                stamps.append(checked_epoch)
-                if (now - checked.astimezone(timezone.utc)).total_seconds() >= interval:
-                    is_due = True
-            except (TypeError, ValueError, OverflowError):
-                stamps.append(0.0)
-                is_due = True
-        if is_due:
-            due.append((min(stamps) if stamps else 0.0, product_id, records))
-
-    due.sort(key=lambda item: (item[0], item[1]))
-    selected = due[:limit]
-    changed = False
-    checked_count = mismatched_count = inconclusive_count = 0
+        expected = 0
+    try:
+        expected_original = int(expected_original_price or 0)
+    except (TypeError, ValueError, OverflowError):
+        expected_original = 0
+    fallback = verify_live_page_price({
+        "product_url": url,
+        "current_price": expected if expected > 0 else 1,
+        "original_price": expected_original,
+    })
+    reason = str(fallback.get("reason") or "")
+    page_price = fallback.get("page_price")
+    out_of_stock = reason == "live_product_out_of_stock"
+    if page_price or out_of_stock:
+        return {
+            "current_price": page_price,
+            "original_price": fallback.get("page_original_price"),
+            "in_stock": False if out_of_stock else (True if fallback.get("ok") else None),
+            "api_version": "page_fallback",
+            "deal_expires_at": parse_expiry(fallback.get("deal_expires_at")) or "",
+            "expiry_verified_directly": fallback.get("expiry_deadline_verified_directly") is True,
+            "price_source": fallback.get("price_source") or "digikala_product_page",
+            "fallback_reason": reason,
+        }
     print(
-        f"PRICE_AUDIT_START due_products={len(due)} limit={limit} "
-        f"interval_seconds={interval} backlog={max(0, len(due) - len(selected))}"
+        f"EXPIRY_PRODUCT_CHECK_UNCONFIRMED product_id={product_id} "
+        f"reason={reason or 'no_usable_live_price_or_stock_status'} "
+        f"api_errors={fallback.get('api_errors', [])}"
     )
-
-    for _last_checked, product_id, records in selected:
-        checked_count += 1
-        snapshot = fetch_live_product_status(product_id)
-        if not snapshot:
-            inconclusive_count += 1
-            for record in records:
-                record["price_audit_last_checked_at"] = now.isoformat()
-                record["price_audit_status"] = "inconclusive"
-                record["price_audit_last_error"] = "direct_product_api_unavailable"
-                changed = True
-            print(f"PRICE_AUDIT_INCONCLUSIVE product_id={product_id} reason=direct_product_api_unavailable")
-            continue
-
-        live_current = _positive_int(snapshot.get("current_price"))
-        live_original = _positive_int(snapshot.get("original_price"))
-        in_stock = snapshot.get("in_stock")
-        live_deadline = (
-            parse_expiry(snapshot.get("deal_expires_at"))
-            if snapshot.get("expiry_verified_directly") is True else ""
-        )
-        product_had_mismatch = False
-
-        for record in records:
-            record["price_audit_last_checked_at"] = now.isoformat()
-            record["price_audit_live_current_price"] = live_current
-            record["price_audit_live_original_price"] = live_original
-            record["price_audit_live_in_stock"] = in_stock
-            record.pop("price_audit_last_error", None)
-            record.pop("price_audit_mismatch_fields", None)
-            changed = True
-
-            posted_current = _positive_int(record.get("posted_current_price") or record.get("current_price"))
-            posted_original = _positive_int(record.get("posted_original_price") or record.get("original_price"))
-            mismatch_fields = []
-            if in_stock is False:
-                reason = "out_of_stock"
-            else:
-                reason = ""
-                if posted_current is not None and live_current is not None and posted_current != live_current:
-                    mismatch_fields.append("current_price")
-                if posted_original is not None and live_original is not None and posted_original != live_original:
-                    mismatch_fields.append("original_price")
-                if mismatch_fields:
-                    reason = "price_mismatch"
-
-            if reason:
-                product_had_mismatch = True
-                mismatched_count += 1
-                record["price_audit_status"] = "mismatch_confirmed"
-                record["price_audit_mismatch_fields"] = mismatch_fields or ["stock"]
-                record["price_audit_reason"] = reason
-                record["expires_at"] = now.isoformat()
-                record["expiry_source"] = "live_product_stock_or_price"
-                record["expiry_deadline_verified_directly"] = True
-                record["expiry_deadline_verified_from_site_card"] = False
-                record["expiry_estimated"] = False
-                record["expiry_last_direct_verification_at"] = now.isoformat()
-                record["expiry_last_removal_check_at"] = now.isoformat()
-                record["expiry_last_removal_check_result"] = "confirmed"
-                record["expiry_reason"] = reason
-                print(
-                    f"PRICE_AUDIT_MISMATCH_CONFIRMED product_id={product_id} "
-                    f"reason={reason} posted_current={posted_current} live_current={live_current} "
-                    f"posted_original={posted_original} live_original={live_original} "
-                    f"fields={','.join(mismatch_fields) or 'stock'}; deletion_queued=true"
-                )
-                continue
-
-            # A direct product-detail timer supersedes any older cached card deadline.
-            # This prevents a stale deadline from deleting an offer that DigiKala extended.
-            if live_deadline:
-                previous_deadline = parse_expiry(record.get("expires_at"))
-                should_sync_deadline = (
-                    not previous_deadline
-                    or record.get("expiry_source") != "digikala_product_detail_api"
-                    or record.get("expiry_deadline_verified_directly") is not True
-                )
-                if previous_deadline:
-                    try:
-                        previous_dt = datetime.fromisoformat(previous_deadline)
-                        current_dt = datetime.fromisoformat(live_deadline)
-                        if previous_dt.tzinfo is None:
-                            previous_dt = previous_dt.replace(tzinfo=timezone.utc)
-                        if current_dt.tzinfo is None:
-                            current_dt = current_dt.replace(tzinfo=timezone.utc)
-                        should_sync_deadline = should_sync_deadline or abs((current_dt - previous_dt).total_seconds()) >= 60
-                    except (TypeError, ValueError, OverflowError):
-                        should_sync_deadline = True
-                if should_sync_deadline:
-                    record["expires_at"] = live_deadline
-                    record["expiry_source"] = "digikala_product_detail_api"
-                    record["expiry_deadline_verified_directly"] = True
-                    record["expiry_deadline_verified_from_site_card"] = False
-                    record["expiry_estimated"] = False
-                    record["expiry_last_direct_verification_at"] = now.isoformat()
-                    record["expiry_last_removal_check_result"] = "confirmed"
-                    changed = True
-
-            compared = (
-                (posted_current is not None and live_current is not None)
-                or (posted_original is not None and live_original is not None)
-            )
-            record["price_audit_status"] = "matched" if compared else "inconclusive"
-            if not compared:
-                inconclusive_count += 1
-
-            # A previously verified DigiKala card timer is already source-backed.
-            # If it has passed and the direct API returns a live product but no active
-            # countdown, allow the normal expiry cleanup to remove the stale promotion.
-            expires = parse_expiry(record.get("expires_at"))
-            source = str(record.get("expiry_source") or "")
-            if (
-                not live_deadline and expires
-                and source == "digikala_mcp_offer_card"
-                and record.get("expiry_deadline_verified_from_site_card") is True
-                and datetime.fromisoformat(expires) <= now
-                and (live_current is not None or in_stock is not None)
-            ):
-                record["expiry_last_removal_check_at"] = now.isoformat()
-                record["expiry_last_removal_check_result"] = "confirmed"
-                changed = True
-                print(
-                    f"PRICE_AUDIT_EXPIRED_CARD_CONFIRMED product_id={product_id} "
-                    f"expires_at={expires}; deletion_queued=true"
-                )
-
-        if not product_had_mismatch:
-            print(
-                f"PRICE_AUDIT_PRODUCT_CHECKED product_id={product_id} current_price={live_current} "
-                f"original_price={live_original} in_stock={in_stock}"
-            )
-
-    print(
-        f"PRICE_AUDIT_SUMMARY checked_products={checked_count} "
-        f"mismatch_records={mismatched_count} inconclusive_products={inconclusive_count} "
-        f"backlog={max(0, len(due) - len(selected))} state_changed={changed}"
-    )
-    return changed, checked_count, mismatched_count, inconclusive_count, max(0, len(due) - len(selected))
+    return {}
 
 def _read_state():
     if not STATE_PATH.exists():
@@ -2236,7 +1996,7 @@ def _confirm_expiry_for_deletion(product_id, record, now, budget=None):
         budget["remaining"] = remaining - 1
 
     before = dict(record)
-    snapshot = fetch_live_product_status(product_id)
+    snapshot = fetch_live_product_status(product_id, expected_price=record.get("posted_current_price"), expected_original_price=record.get("posted_original_price"))
     record["expiry_last_removal_check_at"] = now.isoformat()
     if not snapshot:
         record["expiry_last_removal_check_result"] = "inconclusive"
@@ -3068,7 +2828,7 @@ def run():
         if product_probe_count >= max_product_probes:
             continue
         product_probe_count += 1
-        snapshot = fetch_live_product_status(pid)
+        snapshot = fetch_live_product_status(pid, expected_price=rec.get("posted_current_price"), expected_original_price=rec.get("posted_original_price"))
         rec["expiry_last_product_check_at"] = now.isoformat()
         if not snapshot:
             continue
