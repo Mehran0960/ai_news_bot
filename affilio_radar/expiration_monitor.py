@@ -2440,6 +2440,7 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
             oldest = min((value for value in next_checks if value is not None), default=datetime.min.replace(tzinfo=timezone.utc))
             due.append((oldest, product_id, entries))
     due.sort(key=lambda item: (item[0], item[1]))
+    print(f"PRICE_AUDIT_START products_due={len(due)} batch_limit={batch_size} interval_seconds={interval_seconds}")
 
     changed = False
     checked = mismatched = out_of_stock = unconfirmed = 0
