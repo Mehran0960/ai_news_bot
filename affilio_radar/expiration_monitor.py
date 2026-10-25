@@ -1967,6 +1967,16 @@ def _confirm_expiry_for_deletion(product_id, record, now, budget=None):
         return -60 <= age <= interval
 
     source = str(record.get("expiry_source") or "")
+    # A live price audit has already established that the public caption is false.
+    # Do not leave that known-invalid post up merely because a later verification
+    # request times out or DigiKala is temporarily unavailable. Force deletion and
+    # let the publisher create a new post only after fresh selection.
+    if (
+        source == "live_product_stock_or_price"
+        and record.get("price_audit_status") == "invalidated"
+        and record.get("price_audit_reason") in {"price_mismatch", "out_of_stock"}
+    ):
+        return "confirmed", False
     direct_source = source in {"digikala_live_deals_feed", "digikala_product_detail_api"}
     if (
         direct_source
