@@ -6609,7 +6609,7 @@ def tracked_telegram_invite_url(state: dict, source: str) -> str:
     return TELEGRAM_CHANNEL_URL
 
 
-def run(publish=False):
+def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(f"Ranking mode=audience-demand-first/deal-value-ranked; deadline urgency is a secondary tie-breaker; medicines and dietary supplements excluded; offers need verified live stock, a valid price and the minimum discount; confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining, while offers with no confirmed timer stay eligible when live offer details verify the discount; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman.")
@@ -6930,6 +6930,32 @@ def run(publish=False):
         "products": products[:40],
     }
     save_json(REPORT, report)
+    if selection_only:
+        # This stage only discovers, validates, ranks and queues content.
+        # The independent publisher workflow handles all platform adapters later.
+        from content_delivery import enqueue_selected_content
+        backlog_size = len(pending_queue) if isinstance(pending_queue, dict) else 0
+        handoff_limit = effective_posts_per_run(
+            backlog_size,
+            configured_limit=MAX_POSTS_PER_RUN,
+            force_full_batch=FORCE_POST_COOLDOWN_BYPASS,
+        )
+        summary = enqueue_selected_content(
+            state,
+            eligible,
+            now=datetime.now(timezone.utc),
+            interval_seconds=max(60, int(MIN_POST_INTERVAL_HOURS * 3600)),
+            max_items=handoff_limit,
+            minimum_runway_minutes=MIN_PUBLICATION_RUNWAY_MINUTES,
+        )
+        save_json(STATE, state)
+        print(
+            "CONTENT_SELECTION_HANDOFF "
+            f"queued={summary['added']} skipped={summary['skipped']} "
+            f"queue_size={summary['queue_size']} publisher_invoked=false"
+        )
+        return 0 if products or summary["added"] else 2
+
     state.setdefault("published", {})
     state.setdefault("last_published_at", "")
     now = time.time()
@@ -7310,6 +7336,7 @@ def run_aparat_uploads_only() -> int:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--publish", action="store_true", help="publish at most one eligible item if all checks pass")
+    parser.add_argument("--select-only", action="store_true", help="discover, validate and queue selected content without publishing to any platform")
     parser.add_argument(
         "--aparat-upload-only",
         action="store_true",
@@ -7391,7 +7418,7 @@ def main():
             print(f"BALE_CAPTION_REPAIR_FAILED message_id={args.repair_bale_message_id} error={type(exc).__name__}")
             sys.exit(1)
     publish = (AUTOPUBLISH or args.publish) and not args.dry_run
-    sys.exit(run(publish=publish))
+    sys.exit(run(publish=publish, selection_only=args.select_only))
 
 
 if __name__ == "__main__":
