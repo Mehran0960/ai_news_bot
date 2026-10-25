@@ -220,10 +220,22 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     # Prefer a current page/API deadline, otherwise keep the selected card timer
     # only if the price still matches; the price-audit monitor will invalidate
     # open-ended offers if price/stock later changes.
-    current_deadline = str(price_check.get("deal_expires_at") or fresh.get("deal_expires_at") or "").strip()
+    # Preserve the selected live-card deadline only when the fresh product price
+    # still matches. Prefer any newer deadline returned by the page/API.
+    current_deadline = str(
+        price_check.get("deal_expires_at")
+        or fresh.get("deal_expires_at")
+        or payload.get("deal_expires_at")
+        or ""
+    ).strip()
     if current_deadline:
         fresh["deal_expires_at"] = current_deadline
-        source = str(price_check.get("expiry_source") or fresh.get("expiry_source") or "")
+        source = str(
+            price_check.get("expiry_source")
+            or fresh.get("expiry_source")
+            or payload.get("expiry_source")
+            or ""
+        )
         if source:
             fresh["expiry_source"] = source
         if source in {"digikala_live_deals_feed", "digikala_product_detail_api"}:
@@ -231,7 +243,11 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
             fresh["expiry_deadline_verified_from_site_card"] = False
             fresh["expiry_estimated"] = False
         elif source == "digikala_mcp_offer_card":
-            fresh["expiry_deadline_verified_from_site_card"] = True
+            fresh["expiry_deadline_verified_from_site_card"] = (
+                price_check.get("expiry_deadline_verified_from_site_card") is True
+                or fresh.get("expiry_deadline_verified_from_site_card") is True
+                or payload.get("expiry_deadline_verified_from_site_card") is True
+            )
             fresh["expiry_deadline_verified_directly"] = False
             fresh["expiry_estimated"] = False
     else:
