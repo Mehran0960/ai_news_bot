@@ -176,7 +176,11 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
         fresh = radar.fetch_product_record(product_url)
     except Exception as exc:
         return None, f"live_product_fetch_{type(exc).__name__}"
-    if not isinstance(fresh, dict) or not fresh.get("title") or not fresh.get("image_url"):
+    if (
+        not isinstance(fresh, dict)
+        or not radar.is_publishable_product_title(fresh.get("title"))
+        or not fresh.get("image_url")
+    ):
         return None, "live_product_details_incomplete"
     fresh["product_id"] = product_id
     fresh["product_url"] = product_url
@@ -373,7 +377,7 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
                 # Respect each video platform's own quota/cadence. The selected
                 # content remains queued for that destination until its next slot.
                 force_due=False,
-                product_id=product_id,
+                only_product_id=product_id,
             )
         except Exception as exc:
             print(f"VIDEO_DESTINATION_DISPATCH_FAILED product_id={product_id} error={type(exc).__name__}")
@@ -465,9 +469,9 @@ def publish_due_queue() -> int:
             # A selected item that no longer matches its live price is removed
             # from the delivery queue and will re-enter only after fresh selection.
             if reason.startswith("selected_price_stale") or reason in {
-                "live_stock_not_confirmed", "live_discount_no_longer_eligible",
-                "live_market_value_rejected", "live_offer_expired_or_unverified",
-                "insufficient_publication_runway",
+                "live_product_details_incomplete", "live_stock_not_confirmed",
+                "live_discount_no_longer_eligible", "live_market_value_rejected",
+                "live_offer_expired_or_unverified", "insufficient_publication_runway",
             }:
                 entry["status"] = "stale_selection"
                 entry["last_detail"] = reason
