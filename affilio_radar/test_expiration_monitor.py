@@ -1595,5 +1595,117 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(record["aparat_expiry_status"], "pending_credentials")
 
 
+    def test_live_price_audit_invalidates_exact_price_mismatch(self):
+        now = datetime(2026, 10, 25, 16, 0, tzinfo=timezone.utc)
+        record = {
+            "posted_current_price": 100_000,
+            "expires_at": "2026-10-25T18:00:00+00:00",
+            "expiry_source": "digikala_mcp_offer_card",
+            "expiry_estimated": False,
+            "telegram_message_id": 101,
+            "bale_message_id": 202,
+            "expiry_status": "tracked",
+            "bale_expiry_status": "tracked",
+        }
+        snapshot = {
+            "current_price": 120_000,
+            "in_stock": True,
+            "deal_expires_at": "",
+            "expiry_verified_directly": False,
+        }
+        with patch.object(monitor, "fetch_live_product_status", return_value=snapshot):
+            changed, summary = monitor._audit_live_prices(
+                {"dkp-123": record}, now=now, batch_size=1,
+                interval_seconds=3600, retry_seconds=900,
+            )
+        self.assertTrue(changed)
+        self.assertEqual(summary["products_checked"], 1)
+        self.assertEqual(summary["price_mismatches"], 1)
+        self.assertEqual(record["price_audit_status"], "invalidated")
+        self.assertEqual(record["price_audit_reason"], "price_mismatch")
+        self.assertEqual(record["expiry_source"], "live_product_stock_or_price")
+        self.assertEqual(record["expires_at"], now.isoformat())
+        self.assertTrue(monitor._has_verified_deadline(record))
+
+    def test_live_price_audit_invalidates_out_of_stock_product(self):
+        now = datetime(2026, 10, 25, 16, 0, tzinfo=timezone.utc)
+        record = {
+            "posted_current_price": 100_000,
+            "telegram_message_id": 101,
+            "expiry_status": "tracked",
+        }
+        with patch.object(
+            monitor, "fetch_live_product_status",
+            return_value={"current_price": None, "in_stock": False},
+        ):
+            changed, summary = monitor._audit_live_prices(
+                {"dkp-124": record}, now=now, batch_size=1,
+            )
+        self.assertTrue(changed)
+        self.assertEqual(summary["out_of_stock_posts"], 1)
+        self.assertEqual(record["price_audit_reason"], "out_of_stock")
+        self.assertEqual(record["price_audit_status"], "invalidated")
+
+    def test_live_price_audit_keeps_posts_when_direct_lookup_is_inconclusive(self):
+        now = datetime(2026, 10, 25, 16, 0, tzinfo=timezone.utc)
+        record = {
+            "posted_current_price": 100_000,
+            "expires_at": "2026-10-25T18:00:00+00:00",
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+            "telegram_message_id": 101,
+            "expiry_status": "tracked",
+        }
+        with patch.object(monitor, "fetch_live_product_status", return_value={}):
+            changed, summary = monitor._audit_live_prices(
+                {"dkp-125": record}, now=now, batch_size=1,
+            )
+        self.assertTrue(changed)
+        self.assertEqual(summary["unconfirmed"], 1)
+        self.assertEqual(record["price_audit_status"], "unconfirmed")
+        self.assertNotEqual(record.get("expiry_source"), "live_product_stock_or_price")
+        self.assertNotEqual(record.get("expiry_reason"), "price_mismatch")
+
+    def test_live_price_audit_refreshes_current_deadline_but_not_history_deadline(self):
+        now = datetime(2026, 10, 25, 16, 0, tzinfo=timezone.utc)
+        current_deadline = "2026-10-25T19:00:00+00:00"
+        old_deadline = "2026-10-25T17:00:00+00:00"
+        current = {
+            "posted_current_price": 100_000,
+            "expires_at": old_deadline,
+            "expiry_source": "digikala_mcp_offer_card",
+            "expiry_estimated": False,
+            "telegram_message_id": 101,
+            "expiry_status": "tracked",
+            "post_history": [{
+                "posted_current_price": 100_000,
+                "expires_at": old_deadline,
+                "expiry_source": "digikala_mcp_offer_card",
+                "expiry_estimated": False,
+                "telegram_message_id": 99,
+                "expiry_status": "tracked",
+            }],
+        }
+        with patch.object(
+            monitor, "fetch_live_product_status",
+            return_value={
+                "current_price": 100_000,
+                "in_stock": True,
+                "deal_expires_at": current_deadline,
+                "expiry_verified_directly": True,
+            },
+        ):
+            changed, summary = monitor._audit_live_prices(
+                {"dkp-126": current}, now=now, batch_size=1,
+            )
+        self.assertTrue(changed)
+        self.assertEqual(summary["price_mismatches"], 0)
+        self.assertEqual(current["expires_at"], current_deadline)
+        self.assertEqual(current["post_history"][0]["expires_at"], old_deadline)
+        self.assertEqual(current["price_audit_status"], "match")
+        self.assertEqual(current["post_history"][0]["price_audit_status"], "match")
+
+
 if __name__ == "__main__":
     unittest.main()
