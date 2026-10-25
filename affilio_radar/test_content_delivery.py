@@ -139,6 +139,26 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state["content_delivery_queue"]["dkp-pending"]["platforms"]["telegram"]["status"] = "sent"
         self.assertIsNone(due_unpublished_selection(state, now=self.now))
 
+
+    def test_fresh_unpublished_content_outranks_old_partial_delivery(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-old-partial", demand=90)],
+            now=self.now - timedelta(minutes=30), interval_seconds=1200,
+        )
+        old = state["content_delivery_queue"]["dkp-old-partial"]
+        old["status"] = "partial"
+        old["platforms"]["telegram"]["status"] = "sent"
+        old["platforms"]["youtube"]["status"] = "pending"
+        enqueue_selected_content(
+            state, [self.item("dkp-fresh", demand=45)],
+            now=self.now, interval_seconds=1200,
+        )
+
+        due = due_content(state, now=self.now, limit=1)
+        self.assertEqual([pid for pid, _entry in due], ["dkp-fresh"])
+
+
     def test_terminal_queue_item_moves_to_bounded_history(self):
         state = {}
         enqueue_selected_content(state, [self.item()], now=self.now)
