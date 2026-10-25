@@ -15,6 +15,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
     def item(self, product_id="dkp-123", price=100_000, demand=50, deadline=None):
         return {
             "product_id": product_id,
+            "title": f"Test product {product_id}",
             "product_url": f"https://www.digikala.com/product/{product_id}/",
             "affiliate_url": f"https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2F{product_id}%2F",
             "current_price": price,
@@ -52,6 +53,15 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         again = enqueue_selected_content(state, items, now=self.now, interval_seconds=1200, max_items=2)
         self.assertEqual(again["added"], 0)
         self.assertEqual(again["queue_size"], 2)
+
+    def test_enqueue_rejects_incomplete_product_title(self):
+        state = {}
+        item = self.item()
+        item["title"] = "هندزفری بلوتوثی مدل"
+
+        summary = enqueue_selected_content(state, [item], now=self.now)
+        self.assertEqual(summary["added"], 0)
+        self.assertEqual(state["content_delivery_queue"], {})
 
     def test_new_selection_does_not_stack_behind_partial_retry(self):
         state = {}
