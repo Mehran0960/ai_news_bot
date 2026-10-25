@@ -13,8 +13,9 @@ permissions:
   contents: write
 
 concurrency:
-  # Serialize all mutations of public channels and the shared state ledger.
-  group: affilio-channel-updates
+  # Keep publisher executions ordered, but never queue publication behind discovery
+  # or expiry maintenance. Destination delivery state is retried independently.
+  group: offerchin-content-publisher
   cancel-in-progress: false
 
 jobs:
