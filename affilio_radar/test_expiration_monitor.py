@@ -885,8 +885,8 @@ class ExpirationMonitorTests(unittest.TestCase):
             [call.args[0] for call in tg_delete.call_args_list],
             [674, 675],
         )
-        tg_delete.assert_not_called_with(673)
-        tg_delete.assert_not_called_with(676)
+        self.assertNotIn(673, [call.args[0] for call in tg_delete.call_args_list])
+        self.assertNotIn(676, [call.args[0] for call in tg_delete.call_args_list])
         bale_delete.assert_called_once_with(828)
         write_state.assert_called_once_with(state)
         self.assertEqual(state["published"]["dkp-18524083"]["telegram_message_id"], 673)
