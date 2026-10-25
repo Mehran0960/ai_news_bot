@@ -22,6 +22,7 @@ on:
       - "affilio_radar/expiration_monitor.py"
       - "affilio_radar/content_delivery.py"
       - "affilio_radar/publisher.py"
+      - "affilio_radar/platform_registry.py"
       - "affilio_radar/test_content_delivery.py"
       - "affilio_radar/requirements.txt"
       - "affilio_radar/config/products.json"
@@ -119,7 +120,7 @@ jobs:
 
       - name: Validate Python syntax (required for safe publishing)
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py affilio_radar/expiration_monitor.py affilio_radar/content_delivery.py affilio_radar/publisher.py affilio_radar/test_aparat_upload_schedule.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py affilio_radar/expiration_monitor.py affilio_radar/content_delivery.py affilio_radar/publisher.py affilio_radar/platform_registry.py affilio_radar/test_aparat_upload_schedule.py
 
       - name: Run regression tests on code pushes only (never in the live publishing path)
         if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[growth-tracking-only]') }}
