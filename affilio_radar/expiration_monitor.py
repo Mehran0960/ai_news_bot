@@ -21,7 +21,10 @@ from urllib.parse import parse_qs, quote, unquote, urlencode, urlsplit
 from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
-from affilio_radar import build_caption, TELEGRAM_CHANNEL_URL, parse_product_api, verify_live_page_price
+from affilio_radar import (
+    build_caption, TELEGRAM_CHANNEL_URL, parse_product_api, verify_live_page_price,
+    is_publishable_product_title,
+)
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -2394,6 +2397,42 @@ def _delete_expired_posts(published, now, mark_unknown=False, direct_confirm=Non
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
+
+        # A clearly truncated title is not a safe public offer, even when the
+        # source fails to provide a verifiable deadline. Remove the broken post
+        # while preserving independent retry/status tracking for each destination.
+        title = str(rec.get("title") or "").strip()
+        if title and not is_publishable_product_title(title):
+            rec["title_quality_status"] = "invalid_incomplete_title"
+            rec["title_quality_checked_at"] = now.isoformat()
+            changed = True
+            for platform, id_field, status_field, timestamp_field, delete_fn in (
+                ("telegram", "telegram_message_id", "expiry_status", "expired_deleted_at", _telegram_delete),
+                ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete),
+            ):
+                raw_id = rec.get(id_field)
+                if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent"}:
+                    continue
+                try:
+                    outcome = delete_fn(int(raw_id))
+                    rec[status_field] = outcome
+                    rec[timestamp_field] = now.isoformat()
+                    if outcome == "deleted":
+                        deleted += 1
+                    print(
+                        f"TITLE_QUALITY_DELETE_OK platform={platform} product_id={pid} "
+                        f"message_id={raw_id} outcome={outcome}"
+                    )
+                except Exception as exc:
+                    rec[status_field] = "delete_failed"
+                    rec[f"{platform}_title_quality_delete_error"] = f"{type(exc).__name__}: {str(exc)[:160]}"
+                    rec["title_quality_status"] = "invalid_incomplete_title_delete_failed"
+                    print(
+                        f"TITLE_QUALITY_DELETE_FAILED platform={platform} product_id={pid} "
+                        f"message_id={raw_id} error={type(exc).__name__}; next_cycle_retries=true"
+                    )
+            continue
+
         expiry = parse_expiry(rec.get("expires_at"))
         if not expiry:
             if mark_unknown:
