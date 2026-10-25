@@ -12,13 +12,13 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import affilio_radar as radar
-from content_delivery import due_content, finish_queue_item
+from content_delivery import due_content, finish_queue_item, TERMINAL_PLATFORM_STATUSES
 from platform_registry import PLATFORM_NAMES, PHOTO_PLATFORMS, VIDEO_PLATFORMS, validate_registry
 
 
 RETRY_BASE_SECONDS = max(60, int(os.getenv("AFFILIO_PUBLISH_RETRY_BASE_SECONDS", "300")))
 MAX_ITEMS_PER_RUN = max(1, min(3, int(os.getenv("AFFILIO_PUBLISHER_BATCH_SIZE", "1"))))
-TERMINAL_PLATFORM = {"sent", "not_connected", "manual_review"}
+TERMINAL_PLATFORM = set(TERMINAL_PLATFORM_STATUSES)
 
 
 def _now() -> datetime:
@@ -291,7 +291,7 @@ def _process_photo_destination(
     target = _target(entry, destination)
     record_status = record.setdefault("delivery_status", {})
     status = str(target.get("status") or "pending")
-    if status == "sent":
+    if status in {"sent", "superseded", "manual_review"}:
         return
     if status == "sending":
         started = _utc(target.get("attempt_started_at"))
@@ -350,9 +350,13 @@ def _process_photo_destination(
 
 def _process_video_destinations(state: dict, entry: dict, record: dict, now: datetime) -> None:
     product_id = str(entry.get("product_id") or "")
+    superseded_video_targets = {
+        name for name in VIDEO_PLATFORMS
+        if _target(entry, name).get("status") == "superseded"
+    }
     for target_name in VIDEO_PLATFORMS:
         target = _target(entry, target_name)
-        if target.get("status") == "sent":
+        if target.get("status") in {"sent", "superseded", "manual_review"}:
             continue
         if not _target_ready(target_name):
             _set_target(entry, target_name, "not_connected", now, "credentials_not_configured")
@@ -362,14 +366,20 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
             target["status"] = "pending"
             target.pop("last_error", None)
             _save(state)
-    if any(_target(entry, name).get("status") in {"pending", "failed", "retry", "sending"} for name in VIDEO_PLATFORMS):
+    video_destinations = {
+        name for name in VIDEO_PLATFORMS
+        if _target(entry, name).get("status") not in {
+            "sent", "superseded", "not_connected", "manual_review"
+        }
+    }
+    if video_destinations:
         try:
             # The same selected product is processed immediately. The video processor
             # bypasses only its normal cross-item time slot, not platform quotas or errors.
             radar.process_pending_short_video(
                 state,
                 now=now,
-                destinations={"youtube", "aparat"},
+                destinations=video_destinations,
                 # Respect each video platform's own quota/cadence. The selected
                 # content remains queued for that destination until its next slot.
                 force_due=False,
@@ -427,6 +437,15 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
         ).isoformat()
     else:
         _target(entry, "aparat")["status"] = "pending"
+
+    # The per-target status is authoritative. Legacy video-status fields in the
+    # product record must not reactivate a destination deliberately superseded
+    # to keep the delivery queue fresh and bounded.
+    for destination in superseded_video_targets:
+        target = _target(entry, destination)
+        target["status"] = "superseded"
+        target.pop("next_attempt_at", None)
+        record.setdefault("delivery_status", {})[destination] = "superseded"
     _save(state)
 
 
@@ -477,7 +496,7 @@ def publish_due_queue() -> int:
             entry["next_attempt_at"] = (now + timedelta(seconds=RETRY_BASE_SECONDS)).isoformat()
             for name in ("telegram", "bale", "youtube", "aparat"):
                 target = _target(entry, name)
-                if target.get("status") not in {"sent", "not_connected", "manual_review"}:
+                if target.get("status") not in {"sent", "not_connected", "manual_review", "superseded"}:
                     _target_retry(entry, name, now, reason)
             _save(state)
             print(f"CONTENT_REVALIDATION_DEFERRED product_id={product_id} reason={reason}")
