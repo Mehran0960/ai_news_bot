@@ -2232,6 +2232,16 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(fallback_options, {})
         self.assertTrue(any(0xFB50 <= ord(char) <= 0xFDFF or 0xFE70 <= ord(char) <= 0xFEFF for char in fallback))
 
+    def test_discount_badge_uses_bundled_vazirmatn_extrabold_font(self):
+        import offerchin_visuals as visuals
+        from pathlib import Path
+
+        font_path = Path(visuals.__file__).resolve().parent / "assets" / "fonts" / "Vazirmatn-ExtraBold.ttf"
+        self.assertTrue(font_path.is_file(), "bundled font must be present in the repository")
+        font, _use_raqm = visuals._badge_font(32)
+        self.assertIn("vazirmatn", font.getname()[0].casefold())
+        self.assertIsNotNone(font.getmask("تخفیف").getbbox())
+
     def test_discount_badge_uses_store_brand_color_and_persian_wordmark(self):
         import offerchin_visuals as visuals
         from PIL import ImageDraw

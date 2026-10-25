@@ -24,7 +24,7 @@ def _sale_font(size: int):
 
 
 def _badge_font(size: int):
-    """Load a bold Arabic-capable font and report whether Pillow can shape RTL text natively."""
+    """Load the bundled Vazirmatn ExtraBold font, with safe system fallbacks."""
     from PIL import ImageFont, features
 
     try:
@@ -32,7 +32,9 @@ def _badge_font(size: int):
     except Exception:
         use_raqm = False
     layout = ImageFont.Layout.RAQM if use_raqm else ImageFont.Layout.BASIC
+    bundled_font = Path(__file__).resolve().parent / "assets" / "fonts" / "Vazirmatn-ExtraBold.ttf"
     candidates = (
+        str(bundled_font),
         "/usr/share/fonts/truetype/noto/NotoSansArabic-Bold.ttf",
         "/usr/share/fonts/truetype/noto/NotoNaskhArabic-Bold.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
@@ -118,11 +120,11 @@ def draw_discount_burst(
         width=max(2, min(width, height) // 42),
     )
 
-    font_size = max(14, int(height * 0.37))
+    font_size = max(15, int(height * 0.40))
     percentage = f"{_persian_digits(int(discount))}٪"
     percent_font, use_raqm = _badge_font(font_size)
     percent_layout = {"direction": "ltr", "language": "fa"} if use_raqm else {}
-    while font_size > max(12, int(height * 0.24)):
+    while font_size > max(13, int(height * 0.25)):
         try:
             box = draw.textbbox((0, 0), percentage, font=percent_font, **percent_layout)
         except (TypeError, ValueError):
@@ -135,7 +137,7 @@ def draw_discount_burst(
 
     # Keep the numeric sequence left-to-right so the percent sign stays after the digits.
     draw.text(
-        (round(left + width / 2), round(top + height * 0.37)),
+        (round(left + width / 2), round(top + height * 0.345)),
         percentage,
         font=percent_font,
         fill=(255, 255, 255),
@@ -145,19 +147,35 @@ def draw_discount_burst(
         **percent_layout,
     )
 
-    label_font, label_raqm = _badge_font(max(12, int(height * 0.19)))
+    label_size = max(13, int(height * 0.255))
+    label_font, label_raqm = _badge_font(label_size)
     label, label_layout = _prepare_persian_badge_text("تخفیف", use_raqm=label_raqm)
     if not label:
         print("DISCOUNT_BADGE_PERSIAN_LABEL_SKIPPED: no safe RTL shaping backend available")
         return
+
+    # Use measured text bounds so the Persian word remains fully inside narrow badges.
+    while label_size > max(11, int(height * 0.19)):
+        try:
+            label_box = draw.textbbox((0, 0), label, font=label_font, **label_layout)
+        except (TypeError, ValueError):
+            label_box = draw.textbbox((0, 0), label, font=label_font)
+        if label_box[2] - label_box[0] <= width * 0.84:
+            break
+        label_size -= 1
+        label_font, label_raqm = _badge_font(label_size)
+        label, label_layout = _prepare_persian_badge_text("تخفیف", use_raqm=label_raqm)
+        if not label:
+            print("DISCOUNT_BADGE_PERSIAN_LABEL_SKIPPED: no safe RTL shaping backend available")
+            return
+
     draw.text(
-        (round(left + width / 2), round(top + height * 0.76)),
+        (round(left + width / 2), round(top + height * 0.775)),
         label,
         font=label_font,
         fill=(255, 255, 255),
         anchor="mm",
-        stroke_width=1,
-        stroke_fill=tuple(max(0, channel - 70) for channel in brand),
+        stroke_width=0,
         **label_layout,
     )
 

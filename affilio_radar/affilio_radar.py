@@ -5440,7 +5440,7 @@ def effective_posts_per_run(backlog_count, configured_limit=None, force_full_bat
 
 
 
-VIDEO_STYLE_VERSION = 4  # product title, price comparison, discount badge and on-frame DigiKala CTA
+VIDEO_STYLE_VERSION = 5  # Vazirmatn ExtraBold Persian discount badge with larger type
 YOUTUBE_DESCRIPTION_VERSION = 3  # public channel links plus product-specific checked purchase link
 PERSIAN_TEXT_RENDERER_VERSION = 2  # single RTL/bidi pass via Pillow RAQM when available
 PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
