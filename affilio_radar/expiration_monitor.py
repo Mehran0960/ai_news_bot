@@ -2812,6 +2812,38 @@ def run():
         _write_state(state)
         print("PRICE_AUDIT_STATE_SAVED")
 
+    # Critical safety path: immediately drain removals caused by this price audit
+    # before any unrelated probe/video work can fail and leave stale-price posts live.
+    if price_summary.get("price_mismatches") or price_summary.get("out_of_stock_posts"):
+        immediate_now = datetime.now(timezone.utc)
+        immediate_budget = {"remaining": max(6, DIRECT_PRODUCT_DETAIL_CHECK_LIMIT)}
+        def confirm_price_invalidation(product_id, record, current_time):
+            return _confirm_expiry_for_deletion(
+                product_id, record, current_time, budget=immediate_budget
+            )
+        channel_changed, channel_deleted = _delete_expired_posts(
+            published, immediate_now, mark_unknown=True, direct_confirm=confirm_price_invalidation
+        )
+        changed = changed or channel_changed
+        deleted += channel_deleted
+        _write_state(state)
+        print(
+            f"PRICE_AUDIT_CHANNEL_REMOVAL_RESULT changed={channel_changed} "
+            f"deleted={channel_deleted}"
+        )
+        youtube_changed = _delete_expired_youtube_videos(
+            published, immediate_now, direct_confirm=confirm_price_invalidation
+        )
+        changed = changed or youtube_changed
+        _write_state(state)
+        print(f"PRICE_AUDIT_YOUTUBE_REMOVAL_RESULT changed={youtube_changed}")
+        aparat_changed = _delete_expired_aparat_videos(
+            published, immediate_now, direct_confirm=confirm_price_invalidation
+        )
+        changed = changed or aparat_changed
+        _write_state(state)
+        print(f"PRICE_AUDIT_APARAT_REMOVAL_RESULT changed={aparat_changed}")
+
     probe_candidates = [
         (pid, rec) for pid, rec in published.items()
         if isinstance(rec, dict)
