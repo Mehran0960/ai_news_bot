@@ -14,34 +14,29 @@ jobs:
     if: ${{ contains(github.event.head_commit.message, '[scan-now]') }}
     runs-on: ubuntu-latest
     steps:
-      # Immediate recovery trigger: [scan-now] cancels any older in-progress radar run.
-      - name: Cancel stale pre-fix OfferChin radar runs
+      - name: Release stale discovery, cleanup, and legacy-publisher locks
         uses: actions/github-script@v7
         with:
           script: |
             const { owner, repo } = context.repo;
             const currentSha = context.sha;
-            const { data } = await github.rest.actions.listWorkflowRuns({
-              owner,
-              repo,
-              workflow_id: "affilio-radar.yml",
-              status: "in_progress",
-              per_page: 100,
-            });
-
-            const staleRuns = data.workflow_runs.filter(
-              run => run.status === "in_progress" && run.head_sha !== currentSha
-            );
-
-            for (const run of staleRuns) {
-              core.warning(
-                `Cancelling stale Affilio radar run ${run.id} from ${run.head_sha}`
-              );
-              await github.rest.actions.cancelWorkflowRun({
-                owner,
-                repo,
-                run_id: run.id,
+            const workflows = [
+              "affilio-radar.yml",
+              "affilio-expiration-cleanup.yml",
+              "affilio-publisher.yml",
+            ];
+            let cancelled = 0;
+            for (const workflow_id of workflows) {
+              const { data } = await github.rest.actions.listWorkflowRuns({
+                owner, repo, workflow_id, status: "in_progress", per_page: 100,
               });
+              const staleRuns = data.workflow_runs.filter(
+                run => run.status === "in_progress" && run.head_sha !== currentSha
+              );
+              for (const run of staleRuns) {
+                core.warning(`Cancelling stale ${workflow_id} run ${run.id} from ${run.head_sha}`);
+                await github.rest.actions.cancelWorkflowRun({ owner, repo, run_id: run.id });
+                cancelled += 1;
+              }
             }
-
-            core.info(`Stale radar runs cancellation requested: ${staleRuns.length}`);
+            core.info(`Stale channel-operation runs cancellation requested: ${cancelled}`);
