@@ -10,6 +10,8 @@ import json
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from platform_registry import PLATFORM_NAMES
+
 
 TERMINAL_QUEUE_STATUSES = {"published", "cancelled", "stale_selection"}
 TERMINAL_PLATFORM_STATUSES = {"sent", "not_connected", "manual_review"}
@@ -127,10 +129,8 @@ def enqueue_selected_content(
             "attempt_count": 0,
             "payload": payload,
             "platforms": {
-                "telegram": {"status": "pending", "attempts": 0},
-                "bale": {"status": "pending", "attempts": 0},
-                "youtube": {"status": "pending", "attempts": 0},
-                "aparat": {"status": "pending", "attempts": 0},
+                name: {"status": "pending", "attempts": 0}
+                for name in PLATFORM_NAMES
             },
         }
         added += 1
