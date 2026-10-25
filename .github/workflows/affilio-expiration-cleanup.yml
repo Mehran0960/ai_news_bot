@@ -23,7 +23,7 @@ jobs:
     if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     # Manual cleanup is independent; routine cleanup runs inside the delivery workflow.
     concurrency:
-      group: ${{ github.event_name == 'push' && (contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') || contains(github.event.head_commit.message, '[duplicate-cleanup-product-now]')) && 'offerchin-content-publisher' || 'affilio-channel-updates' }}
+      group: ${{ github.event_name == 'push' && (contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') || contains(github.event.head_commit.message, '[duplicate-cleanup-product-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-now]')) && 'offerchin-content-publisher' || 'affilio-channel-updates' }}
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
