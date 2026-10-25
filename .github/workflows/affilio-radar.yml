@@ -71,7 +71,8 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          ref: main
+          # Code-only pushes test the pushed branch; manual/operational runs stay on main.
+          ref: ${{ github.event_name == 'push' && github.ref || 'refs/heads/main' }}
           fetch-depth: 0
 
       - name: Log automation trigger
