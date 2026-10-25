@@ -6939,30 +6939,67 @@ def run(publish=False, selection_only=False):
     }
     save_json(REPORT, report)
     if selection_only:
-        # This stage only discovers, validates, ranks and queues content.
-        # The independent publisher workflow handles all platform adapters later.
-        from content_delivery import enqueue_selected_content
-        backlog_size = len(pending_queue) if isinstance(pending_queue, dict) else 0
-        handoff_limit = effective_posts_per_run(
-            backlog_size,
-            configured_limit=MAX_POSTS_PER_RUN,
-            force_full_batch=FORCE_POST_COOLDOWN_BYPASS,
+        # Keep discovery live on every scan, but only select a new product when a
+        # publication slot is due. Never build a long queue of products chosen early.
+        from content_delivery import (
+            due_unpublished_selection,
+            enqueue_selected_content,
+            refresh_unpublished_selections,
         )
+        selection_now = datetime.now(timezone.utc)
+        replaced = refresh_unpublished_selections(
+            state, now=selection_now, stale_after_minutes=8
+        )
+        interval_seconds = max(60, int(MIN_POST_INTERVAL_HOURS * 3600))
+        last_post = _last_post_timestamp(state)
+        elapsed = selection_now.timestamp() - last_post if last_post else interval_seconds
+        remaining = max(0, interval_seconds - int(elapsed))
+
+        # A daily cap or an unexpired cooldown is a normal no-op, not a failed scan.
+        if remaining > 0:
+            save_json(STATE, state)
+            print(
+                "CONTENT_SELECTION_SLOT_NOT_DUE "
+                f"seconds_remaining={remaining} live_candidates={len(eligible)} "
+                f"replaced_stale={replaced}"
+            )
+            return 0
+        if daily_channel_posts_count(state, selection_now) >= MAX_DAILY_CHANNEL_POSTS:
+            save_json(STATE, state)
+            print(
+                "CONTENT_SELECTION_DAILY_CAP_REACHED "
+                f"limit={MAX_DAILY_CHANNEL_POSTS} live_candidates={len(eligible)}"
+            )
+            return 0
+
+        # If a recent selection is already due but has not reached any destination,
+        # give its publisher a short chance to finish instead of stacking another item.
+        outstanding = due_unpublished_selection(state, now=selection_now)
+        if outstanding:
+            save_json(STATE, state)
+            print(
+                "CONTENT_SELECTION_WAITING_FOR_FIRST_DELIVERY "
+                f"product_id={outstanding} live_candidates={len(eligible)}"
+            )
+            return 0
+
         summary = enqueue_selected_content(
             state,
             eligible,
-            now=datetime.now(timezone.utc),
-            interval_seconds=max(60, int(MIN_POST_INTERVAL_HOURS * 3600)),
-            max_items=handoff_limit,
+            now=selection_now,
+            interval_seconds=interval_seconds,
+            max_items=1,
             minimum_runway_minutes=MIN_PUBLICATION_RUNWAY_MINUTES,
         )
         save_json(STATE, state)
         print(
             "CONTENT_SELECTION_HANDOFF "
             f"queued={summary['added']} skipped={summary['skipped']} "
-            f"queue_size={summary['queue_size']} publisher_invoked=false"
+            f"queue_size={summary['queue_size']} live_candidates={len(eligible)} "
+            f"replaced_stale={replaced} publisher_invoked=false"
         )
-        return 0 if products or summary["added"] else 2
+        # No eligible offer is a normal outcome. The next scan refreshes the pool.
+        return 0
 
     state.setdefault("published", {})
     state.setdefault("last_published_at", "")
