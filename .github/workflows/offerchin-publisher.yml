@@ -81,6 +81,42 @@ jobs:
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           PYTHONUNBUFFERED: "1"
         run: timeout --signal=TERM 330s python affilio_radar/expiration_monitor.py || echo "PRICE_AUDIT_OR_CLEANUP_INCOMPLETE; delivery continues and next cycle retries"
+      # Discovery/selection is a distinct stage. It writes the neutral content queue only.
+      # Any later publisher adapter can consume that same selected payload without changing discovery.
+      - name: Discover and queue the next verified selection
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
+          AFFILIO_APARAT_UPLOAD_ENABLED: "false"
+          APARAT_SHORTS_ONLY: "false"
+          APARAT_VIDEO_PASS: "0"
+          AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS: "3"
+          APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
+          YOUTUBE_PRIVACY_STATUS: "public"
+          AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
+          AFFILIO_DEAL_LIST_PAGES: "5"
+          AFFILIO_MAX_PRODUCT_CHECKS: "40"
+          AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES: "32"
+          AFFILIO_MAX_QUEUED_RECHECKS: "8"
+          AFFILIO_PENDING_QUEUE_LIMIT: "200"
+          AFFILIO_DISCOVERY_QUEUE_LIMIT: "500"
+          AFFILIO_DISCOVERY_QUEUE_TTL_HOURS: "24"
+          AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "32"
+          AFFILIO_MCP_PAGES_PER_SCAN: "5"
+          AFFILIO_AUTOPUBLISH: "false"
+          AFFILIO_MIN_POST_INTERVAL_HOURS: "0.3333333333333333"
+          AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "60"
+          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
+          AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "8"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/affilio_radar.py --select-only
       - name: Publish due selections to all registered destinations
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
