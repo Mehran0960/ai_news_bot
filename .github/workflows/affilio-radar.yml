@@ -20,6 +20,9 @@ on:
       - "affilio_radar/test_short_video.py"
       - "affilio_radar/test_aparat_uploader.py"
       - "affilio_radar/expiration_monitor.py"
+      - "affilio_radar/content_delivery.py"
+      - "affilio_radar/publisher.py"
+      - "affilio_radar/test_content_delivery.py"
       - "affilio_radar/requirements.txt"
       - "affilio_radar/config/products.json"
       - "affilio_radar/README.md"
@@ -116,7 +119,7 @@ jobs:
 
       - name: Validate Python syntax (required for safe publishing)
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py affilio_radar/expiration_monitor.py affilio_radar/test_aparat_upload_schedule.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py affilio_radar/expiration_monitor.py affilio_radar/content_delivery.py affilio_radar/publisher.py affilio_radar/test_aparat_upload_schedule.py
 
       - name: Run regression tests on code pushes only (never in the live publishing path)
         if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[growth-tracking-only]') }}
@@ -132,7 +135,7 @@ jobs:
           }
           trap restore_live_files EXIT
           cd affilio_radar
-          python -m unittest -v test_affilio.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py test_aparat_upload_schedule.py
+          python -m unittest -v test_affilio.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py test_aparat_upload_schedule.py test_content_delivery.py
 
       - name: Smoke-test the deployed click tracker (diagnostic only)
         if: ${{ github.event_name == 'push' }}
@@ -289,10 +292,13 @@ jobs:
           elif [[ "${{ contains(github.event.head_commit.message, '[growth-tracking-only]') }}" == "true" ]]; then
             python affilio_radar/affilio_radar.py --setup-growth-invites
           else
-            # Audit existing posts before discovering or publishing new offers.
-            # Cleanup errors are retried later and must not block the regular radar.
+            # Audit existing posts first; discovery must not inherit platform-side work.
             python affilio_radar/expiration_monitor.py || echo "PREPUBLICATION_PRICE_AUDIT_FAILED; continuing with radar"
-            python affilio_radar/affilio_radar.py
+            if [[ "${{ github.event_name == 'schedule' || inputs.publish || inputs.external_scheduler || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}" == "true" ]]; then
+              python affilio_radar/affilio_radar.py --select-only
+            else
+              python affilio_radar/affilio_radar.py
+            fi
           fi
 
       - name: Preserve generated vertical MP4 artifacts and upload outcomes
