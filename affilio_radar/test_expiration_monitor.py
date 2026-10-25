@@ -841,6 +841,33 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["at_cutoff"]["bale_expiry_status"], "deleted")
         self.assertEqual(published["just_before_cutoff"]["expiry_status"], "tracked")
 
+    def test_incomplete_title_posts_are_deleted_even_without_verified_deadline(self):
+        now = datetime(2026, 10, 25, 20, 0, tzinfo=timezone.utc)
+        record = {
+            "title": "هندزفری بلوتوثی مدل",
+            "product_url": "https://www.digikala.com/product/dkp-12785179/",
+            "telegram_message_id": 671,
+            "bale_message_id": 825,
+            "expires_at": "",
+            "expiry_source": "unavailable",
+            "expiry_status": "unknown",
+            "bale_expiry_status": "unknown",
+        }
+        published = {"dkp-12785179": record}
+        with (
+            patch.object(monitor, "_telegram_delete", return_value="deleted") as tg_delete,
+            patch.object(monitor, "_bale_delete", return_value="deleted") as bale_delete,
+        ):
+            changed, deleted = monitor._delete_expired_posts(published, now)
+
+        self.assertTrue(changed)
+        self.assertEqual(deleted, 2)
+        tg_delete.assert_called_once_with(671)
+        bale_delete.assert_called_once_with(825)
+        self.assertEqual(record["expiry_status"], "deleted")
+        self.assertEqual(record["bale_expiry_status"], "deleted")
+        self.assertEqual(record["title_quality_status"], "invalid_incomplete_title")
+
     def test_stale_site_card_cutoff_is_rechecked_directly_and_extended_deadline_is_kept(self):
         now = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
         fresh_deadline = now + timedelta(hours=2)
@@ -870,7 +897,9 @@ class ExpirationMonitorTests(unittest.TestCase):
             changed, deleted = monitor._delete_expired_posts(
                 published, now, direct_confirm=monitor._confirm_expiry_for_deletion
             )
-        direct_check.assert_called_once_with("dkp-123")
+        direct_check.assert_called_once_with(
+            "dkp-123", expected_price=900_000, expected_original_price=None
+        )
         self.assertTrue(changed)
         self.assertEqual(deleted, 0)
         tg_delete.assert_not_called()
@@ -902,7 +931,9 @@ class ExpirationMonitorTests(unittest.TestCase):
             changed, deleted = monitor._delete_expired_posts(
                 published, now, direct_confirm=monitor._confirm_expiry_for_deletion
             )
-        direct_check.assert_called_once_with("dkp-124")
+        direct_check.assert_called_once_with(
+            "dkp-124", expected_price=None, expected_original_price=None
+        )
         self.assertTrue(changed)
         self.assertEqual(deleted, 0)
         tg_delete.assert_not_called()
@@ -1015,7 +1046,9 @@ class ExpirationMonitorTests(unittest.TestCase):
                 self.assertEqual(monitor.run(), 0)
             self.assertEqual([call.args[0] for call in deletion.call_args_list], [77])
             fetch.assert_called_once()
-            product_check.assert_called_once_with("dkp-67890")
+            product_check.assert_called_once_with(
+                "dkp-67890", expected_price=None, expected_original_price=None
+            )
             saved = json.loads(state_path.read_text(encoding="utf-8"))
             self.assertEqual(saved["published"]["dkp-12345"]["expiry_status"], "deleted")
             self.assertIn("expired_deleted_at", saved["published"]["dkp-12345"])
