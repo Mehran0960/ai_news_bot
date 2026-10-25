@@ -851,10 +851,17 @@ class ExpirationMonitorTests(unittest.TestCase):
             "content_delivery_queue": {"dkp-18524083": {"status": "queued"}},
             "pending_queue": {"dkp-18524083": {}},
         }
+        public_posts = {
+            673: {"caption_text": f"🔥 فروش ویژه دیجی‌کالا 🛍️ {title} 💚 قیمت ویژه: ۵٬۷۰۰٬۰۰۰ تومان", "product_ids": ["dkp-18524083"]},
+            674: {"caption_text": f"🔥 فروش ویژه دیجی‌کالا 🛍️ {title} 💚 قیمت ویژه: ۵٬۷۰۰٬۰۰۰ تومان", "product_ids": ["dkp-18524083"]},
+            675: {"caption_text": f"🔥 فروش ویژه دیجی‌کالا 🛍️ {title} 💚 قیمت ویژه: ۵٬۷۰۰٬۰۰۰ تومان", "product_ids": ["dkp-18524083"]},
+            676: {"caption_text": "پیشنهاد محصول دیگر", "product_ids": ["dkp-111111"]},
+        }
         with (
             patch.object(monitor, "BOT_TOKEN", "test-token"),
             patch.object(monitor, "BALE_BOT_TOKEN", "test-bale-token"),
             patch.object(monitor, "BALE_CHANNEL_ID", "test-channel"),
+            patch.object(monitor, "fetch_public_channel_posts", return_value=public_posts),
             patch.object(monitor, "_telegram_delete", return_value="deleted") as tg_delete,
             patch.object(monitor, "_bale_delete", return_value="deleted") as bale_delete,
             patch.object(monitor, "_write_state") as write_state,
@@ -874,14 +881,23 @@ class ExpirationMonitorTests(unittest.TestCase):
             )
 
         self.assertEqual(result, 0)
-        tg_delete.assert_called_once_with(674)
+        self.assertEqual(
+            [call.args[0] for call in tg_delete.call_args_list],
+            [674, 675],
+        )
+        self.assertNotIn(673, [call.args[0] for call in tg_delete.call_args_list])
+        self.assertNotIn(676, [call.args[0] for call in tg_delete.call_args_list])
         bale_delete.assert_called_once_with(828)
         write_state.assert_called_once_with(state)
         self.assertEqual(state["published"]["dkp-18524083"]["telegram_message_id"], 673)
         self.assertEqual(state["published"]["dkp-18524083"]["bale_message_id"], 827)
         self.assertEqual(state["published"]["dkp-18524083"]["delivery_status"]["telegram"], "sent")
-        self.assertEqual(state["published"]["dkp-18524083"]["post_history"][0]["telegram_message_id"], 674)
+        self.assertEqual(
+            [item["telegram_message_id"] for item in state["published"]["dkp-18524083"]["post_history"]],
+            [674, 675],
+        )
         self.assertEqual(state["published"]["dkp-18524083"]["post_history"][0]["bale_message_id"], 828)
+        self.assertIsNone(state["published"]["dkp-18524083"]["post_history"][1]["bale_message_id"])
         self.assertEqual(state["publication_ledger"]["dkp-18524083"]["telegram_message_id"], 673)
         self.assertEqual(state["publication_ledger"]["dkp-18524083"]["bale_message_id"], 827)
         self.assertNotIn("dkp-18524083", state["content_delivery_queue"])
