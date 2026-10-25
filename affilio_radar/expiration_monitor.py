@@ -2730,6 +2730,17 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
                 and posted_original_price != live_original_price
             ):
                 mismatch_fields.append("original_price")
+            elif (
+                # The SnappShop product API returns original_price=None when it
+                # confirms there is no currently discounted vendor offer. If this
+                # post advertised a discount and the live price itself still matches,
+                # the discount field has nevertheless become false.
+                str(snapshot.get("price_source") or "") == "snappshop_product_api"
+                and int(record.get("posted_discount_percent") or 0) > 0
+                and posted_original_price is not None
+                and live_original_price is None
+            ):
+                mismatch_fields.append("original_price")
 
             if mismatch_fields:
                 _mark_price_invalid(record, product_id, "price_mismatch", posted_price, live_price, now)
