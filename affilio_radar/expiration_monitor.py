@@ -2212,8 +2212,13 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
     if selected:
         with ThreadPoolExecutor(max_workers=min(4, len(selected))) as executor:
             futures = {
-                product_id: executor.submit(fetch_live_product_status, product_id)
-                for _oldest, product_id, _entries in selected
+                product_id: executor.submit(
+                    fetch_live_product_status,
+                    product_id,
+                    entries[0][2],
+                    entries[0][0].get("posted_original_price"),
+                )
+                for _oldest, product_id, entries in selected
             }
             for product_id, future in futures.items():
                 try:
