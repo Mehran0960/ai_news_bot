@@ -1,0 +1,40 @@
+name: OfferChin Bounded Delivery Queue CI
+
+on:
+  push:
+    paths:
+      - "affilio_radar/content_delivery.py"
+      - "affilio_radar/publisher.py"
+      - "affilio_radar/test_content_delivery.py"
+      - ".github/workflows/offerchin-queue-ci.yml"
+  pull_request:
+    paths:
+      - "affilio_radar/content_delivery.py"
+      - "affilio_radar/publisher.py"
+      - "affilio_radar/test_content_delivery.py"
+      - ".github/workflows/offerchin-queue-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  delivery-queue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out the exact revision under test
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate syntax
+        run: |
+          python -m py_compile affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/test_content_delivery.py
+
+      - name: Run bounded-queue regression tests
+        run: |
+          cd affilio_radar
+          python -m unittest -v test_content_delivery.py
