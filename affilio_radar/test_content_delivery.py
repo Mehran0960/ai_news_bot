@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta, timezone
 
-from content_delivery import due_content, enqueue_selected_content, finish_queue_item
+from content_delivery import (\n    due_content, due_unpublished_selection, enqueue_selected_content,\n    finish_queue_item, refresh_unpublished_selections,\n)
 from platform_registry import PLATFORM_NAMES
 
 
@@ -80,6 +80,61 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual([pid for pid, _entry in due_now], ["dkp-1"])
         later = due_content(state, now=self.now + timedelta(minutes=21), limit=5)
         self.assertEqual({pid for pid, _entry in later}, {"dkp-1", "dkp-2"})
+
+
+    def test_future_selection_is_replaced_by_live_scan(self):
+        state = {"last_published_at": self.now.isoformat()}
+        enqueue_selected_content(
+            state, [self.item("dkp-old")], now=self.now,
+            interval_seconds=1200, max_items=1,
+        )
+        old = state["content_delivery_queue"]["dkp-old"]
+        self.assertGreater(datetime.fromisoformat(old["scheduled_at"]), self.now)
+
+        replaced = refresh_unpublished_selections(state, now=self.now)
+        self.assertEqual(replaced, 1)
+        self.assertNotIn("dkp-old", state["content_delivery_queue"])
+        self.assertEqual(
+            state["content_delivery_history"][-1]["status"], "stale_selection"
+        )
+
+    def test_partial_delivery_does_not_prevent_fresh_content_selection(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-video-pending")], now=self.now,
+            interval_seconds=1200, max_items=1,
+        )
+        old = state["content_delivery_queue"]["dkp-video-pending"]
+        old["status"] = "partial"
+        old["platforms"]["telegram"]["status"] = "sent"
+        old["platforms"]["youtube"]["status"] = "pending"
+        state["last_published_at"] = self.now.isoformat()
+
+        next_time = self.now + timedelta(minutes=20)
+        summary = enqueue_selected_content(
+            state, [self.item("dkp-new")], now=next_time,
+            interval_seconds=1200, max_items=1,
+        )
+        self.assertEqual(summary["added"], 1)
+        self.assertEqual(
+            datetime.fromisoformat(
+                state["content_delivery_queue"]["dkp-new"]["scheduled_at"]
+            ),
+            next_time,
+        )
+        self.assertIn("dkp-video-pending", state["content_delivery_queue"])
+
+    def test_due_unpublished_selection_is_visible_until_a_destination_succeeds(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-pending")], now=self.now,
+            interval_seconds=1200, max_items=1,
+        )
+        self.assertEqual(
+            due_unpublished_selection(state, now=self.now), "dkp-pending"
+        )
+        state["content_delivery_queue"]["dkp-pending"]["platforms"]["telegram"]["status"] = "sent"
+        self.assertIsNone(due_unpublished_selection(state, now=self.now))
 
     def test_terminal_queue_item_moves_to_bounded_history(self):
         state = {}
