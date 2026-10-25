@@ -2301,14 +2301,13 @@ def _confirm_expiry_for_deletion(product_id, record, now, budget=None):
         )
         return "confirmed", True
 
-    # The original deadline was extracted from DigiKala's live offer card and
-    # was already verified. If that deadline has passed and a fresh product-detail
-    # response has no active campaign timer, trust the source-backed cutoff instead
-    # of leaving the promotion live indefinitely because the API omits the timer.
+    # The verified site-card deadline already reached its configured removal cutoff
+    # before this confirmation is called. If DigiKala returns a usable live product
+    # but no active campaign timer, honor that source-backed cutoff instead of
+    # leaving the promotion public indefinitely because the detail API omits a timer.
     if (
         source == "digikala_mcp_offer_card"
         and _has_verified_deadline(record)
-        and is_fresh(record.get("expires_at")) is False
         and snapshot.get("expiry_verified_directly") is False
         and (snapshot.get("current_price") is not None or snapshot.get("in_stock") is not None)
     ):
