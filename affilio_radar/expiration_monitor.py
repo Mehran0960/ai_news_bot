@@ -2764,6 +2764,10 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
             except (TypeError, ValueError, OverflowError):
                 posted_original_price = None
 
+            try:
+                posted_discount_percent = int(record.get("posted_discount_percent") or 0)
+            except (TypeError, ValueError, OverflowError):
+                posted_discount_percent = 0
             mismatch_fields = []
             if live_price != posted_price:
                 mismatch_fields.append("current_price")
@@ -2781,15 +2785,10 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
                 # post advertised a discount and the live price itself still matches,
                 # the discount field has nevertheless become false.
                 str(snapshot.get("price_source") or "") == "snappshop_product_api"
-                and int(record.get("posted_discount_percent") or 0) > 0
+                and posted_discount_percent > 0
                 and live_original_price is None
             ):
                 mismatch_fields.append("original_price")
-
-            try:
-                posted_discount_percent = int(record.get("posted_discount_percent") or 0)
-            except (TypeError, ValueError, OverflowError):
-                posted_discount_percent = 0
             if posted_discount_percent > 0 and live_original_price is not None:
                 if live_original_price <= live_price:
                     # Retailer says the reference price is no greater than the
