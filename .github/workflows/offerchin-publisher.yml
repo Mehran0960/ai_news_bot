@@ -50,13 +50,16 @@ jobs:
 
       - name: Validate the delivery-only path
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
           python - <<'PY'
           from pathlib import Path
           source = Path("affilio_radar/publisher.py").read_text(encoding="utf-8")
           assert "publish_due_queue()" in source
           assert "discover_product_urls(" not in source
+          workflow = Path(".github/workflows/offerchin-publisher.yml").read_text(encoding="utf-8")
+          assert "git reset --hard HEAD" in workflow
           print("OFFERCHIN_DELIVERY_ONLY_PATH_VALIDATED")
+          print("OFFERCHIN_STATE_PERSISTENCE_WORKTREE_RESET_VALIDATED")
           PY
 
       # Routine cleanup is intentionally sequenced before delivery in the same run.
@@ -138,6 +141,7 @@ jobs:
           YOUTUBE_PRIVACY_STATUS: "public"
           AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
           AFFILIO_PUBLISHER_BATCH_SIZE: "1"
+          AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "6"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/publisher.py
 
@@ -149,6 +153,9 @@ jobs:
           if [[ -f affilio_radar/state.json ]] && ! git diff --quiet -- affilio_radar/state.json; then
             git add affilio_radar/state.json
             git commit -m "chore: persist OfferChin delivery results [skip ci]"
+            # Keep this state commit, but discard transient artifacts left modified by discovery.
+            # Without this reset, rebase aborts on unstaged candidates.json and sent IDs are lost.
+            git reset --hard HEAD
             git pull --rebase origin main
             git push
           else

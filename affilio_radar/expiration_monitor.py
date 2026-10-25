@@ -21,7 +21,10 @@ from urllib.parse import parse_qs, quote, unquote, urlencode, urlsplit
 from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
-from affilio_radar import build_caption, TELEGRAM_CHANNEL_URL, parse_product_api, verify_live_page_price
+from affilio_radar import (
+    build_caption, TELEGRAM_CHANNEL_URL, parse_product_api, verify_live_page_price,
+    is_publishable_product_title,
+)
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -1294,6 +1297,217 @@ def _delete_one_specific_product(state, product_id, title, telegram_ids_raw="", 
     return 1 if failures else 0
 
 
+def _repair_known_duplicate_copy(
+    state: dict,
+    *,
+    product_id: str,
+    title: str,
+    product_url: str,
+    keep_telegram_id: int,
+    keep_bale_id: int,
+    duplicate_telegram_id: int,
+    duplicate_bale_id: int,
+    posted_at: str,
+    current_price: int,
+    discount_percent: int,
+) -> int:
+    """Delete only the specified duplicate copy, preserve the keeper, and reconcile state."""
+    pid = str(product_id or "").strip().lower()
+    title = str(title or "").strip()
+    canonical_url = _product_id_from_public_url(product_url) and str(product_url or "").strip()
+    try:
+        keep_tg = int(keep_telegram_id)
+        keep_bale = int(keep_bale_id)
+        duplicate_tg = int(duplicate_telegram_id)
+        duplicate_bale = int(duplicate_bale_id)
+        price = int(current_price)
+        discount = int(discount_percent)
+        created = datetime.fromisoformat(str(posted_at).replace("Z", "+00:00"))
+    except (TypeError, ValueError, OverflowError):
+        print("DUPLICATE_REPAIR_ABORTED reason=invalid_numeric_or_timestamp_input")
+        return 2
+
+    if created.tzinfo is None:
+        created = created.replace(tzinfo=timezone.utc)
+    created = created.astimezone(timezone.utc)
+    if (
+        not re.fullmatch(r"dkp-\d{1,12}", pid)
+        or _product_id_from_public_url(canonical_url) != pid
+        or not is_publishable_product_title(title)
+        or min(keep_tg, keep_bale, duplicate_tg, duplicate_bale) <= 0
+        or keep_tg == duplicate_tg
+        or keep_bale == duplicate_bale
+        or price <= 0
+        or not 0 < discount <= 100
+    ):
+        print("DUPLICATE_REPAIR_ABORTED reason=invalid_product_or_message_identity")
+        return 2
+    if not BOT_TOKEN or not BALE_BOT_TOKEN or not BALE_CHANNEL_ID:
+        print("DUPLICATE_REPAIR_ABORTED reason=telegram_or_bale_credentials_missing")
+        return 2
+
+    published = state.setdefault("published", {})
+    ledger = state.setdefault("publication_ledger", {})
+    if not isinstance(published, dict) or not isinstance(ledger, dict):
+        print("DUPLICATE_REPAIR_ABORTED reason=publication_state_invalid")
+        return 2
+    existing = published.get(pid)
+    record = dict(existing) if isinstance(existing, dict) else {}
+    existing_tg = str(record.get("telegram_message_id") or "")
+    existing_bale = str(record.get("bale_message_id") or "")
+    if (
+        existing_tg.isdigit() and int(existing_tg) not in {keep_tg, duplicate_tg}
+        and record.get("expiry_status") not in {"deleted", "already_absent"}
+    ) or (
+        existing_bale.isdigit() and int(existing_bale) not in {keep_bale, duplicate_bale}
+        and record.get("bale_expiry_status") not in {"deleted", "already_absent"}
+    ):
+        print("DUPLICATE_REPAIR_ABORTED reason=conflicting_active_publication_record")
+        return 2
+
+    def delete_with_retry(platform: str, message_id: int, delete_fn) -> str:
+        last_error = ""
+        for attempt in range(1, 4):
+            try:
+                outcome = delete_fn(message_id)
+                if outcome in {"deleted", "already_absent"}:
+                    print(
+                        f"DUPLICATE_REPAIR_DELETE_OK platform={platform} product_id={pid} "
+                        f"message_id={message_id} outcome={outcome}"
+                    )
+                    return outcome
+                last_error = f"unconfirmed_outcome:{outcome}"
+            except Exception as exc:
+                last_error = f"{type(exc).__name__}: {str(exc)[:120]}"
+            if attempt < 3:
+                time.sleep(float(attempt))
+        print(
+            f"DUPLICATE_REPAIR_DELETE_FAILED platform={platform} product_id={pid} "
+            f"message_id={message_id} error={last_error!r}"
+        )
+        return "delete_failed"
+
+    deleted_tg_status = delete_with_retry("telegram", duplicate_tg, _telegram_delete)
+    deleted_bale_status = delete_with_retry("bale", duplicate_bale, _bale_delete)
+    now = datetime.now(timezone.utc)
+
+    record.update({
+        "title": title,
+        "product_url": canonical_url,
+        "ts": created.timestamp(),
+        "posted_current_price": price,
+        "posted_discount_percent": discount,
+        "telegram_message_id": keep_tg,
+        "bale_message_id": keep_bale,
+        "delivery_status": {
+            **(record.get("delivery_status") if isinstance(record.get("delivery_status"), dict) else {}),
+            "telegram": "sent",
+            "bale": "sent",
+        },
+        "delivery_attempts": {
+            **(record.get("delivery_attempts") if isinstance(record.get("delivery_attempts"), dict) else {}),
+            "telegram": max(1, int((record.get("delivery_attempts") or {}).get("telegram", 0) or 0)),
+            "bale": max(1, int((record.get("delivery_attempts") or {}).get("bale", 0) or 0)),
+        },
+        "duplicate_repair_reconciled_at": now.isoformat(),
+    })
+    if not record.get("expires_at"):
+        record["expires_at"] = ""
+        record["expiry_source"] = "unavailable"
+        record["expiry_estimated"] = False
+        record["expiry_deadline_verified_directly"] = False
+        record["expiry_deadline_verified_from_site_card"] = False
+        record["expiry_status"] = "unknown"
+        record["bale_expiry_status"] = "unknown"
+    record["video_generation_status"] = record.get("video_generation_status") or "skipped_unverified_deadline"
+    record["youtube_upload_status"] = record.get("youtube_upload_status") or "skipped_unverified_deadline"
+    record["aparat_upload_status"] = record.get("aparat_upload_status") or "skipped_unverified_deadline"
+
+    history = record.get("post_history")
+    history = list(history) if isinstance(history, list) else []
+    history.append({
+        "title": title,
+        "product_url": canonical_url,
+        "ts": created.timestamp(),
+        "telegram_message_id": duplicate_tg,
+        "bale_message_id": duplicate_bale,
+        "expiry_status": deleted_tg_status,
+        "bale_expiry_status": deleted_bale_status,
+        "expires_at": "",
+        "expiry_source": "unavailable",
+        "duplicate_removed_at": now.isoformat(),
+    })
+    record["post_history"] = history[-80:]
+    published[pid] = record
+
+    ledger[pid] = {
+        "ts": created.timestamp(),
+        "product_id": pid,
+        "title": title,
+        "product_url": canonical_url,
+        "telegram_message_id": keep_tg,
+        "bale_message_id": keep_bale,
+        "expiry_status": record.get("expiry_status", "unknown"),
+        "bale_expiry_status": record.get("bale_expiry_status", "unknown"),
+        "expires_at": record.get("expires_at", ""),
+        "expiry_source": record.get("expiry_source", "unavailable"),
+        "delivery_status": dict(record["delivery_status"]),
+        "posted_current_price": price,
+        "posted_discount_percent": discount,
+        "duplicate_repair_reconciled_at": now.isoformat(),
+    }
+    for queue_name in ("content_delivery_queue", "pending_queue"):
+        queue = state.get(queue_name)
+        if isinstance(queue, dict):
+            queue.pop(pid, None)
+
+    previous_published = state.get("last_published_at")
+    try:
+        previous_dt = datetime.fromisoformat(str(previous_published).replace("Z", "+00:00"))
+        if previous_dt.tzinfo is None:
+            previous_dt = previous_dt.replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError, OverflowError):
+        previous_dt = None
+    if previous_dt is None or previous_dt.astimezone(timezone.utc) < created:
+        state["last_published_at"] = created.isoformat()
+
+    _write_state(state)
+    print(
+        "DUPLICATE_REPAIR_SUMMARY "
+        + json.dumps({
+            "product_id": pid,
+            "keeper_telegram_id": keep_tg,
+            "keeper_bale_id": keep_bale,
+            "duplicate_telegram_id": duplicate_tg,
+            "duplicate_bale_id": duplicate_bale,
+            "telegram_delete_status": deleted_tg_status,
+            "bale_delete_status": deleted_bale_status,
+            "publication_state_reconciled": True,
+        }, ensure_ascii=False, sort_keys=True)
+    )
+    return 0
+
+
+def _repair_known_duplicate_from_environment(state: dict) -> int:
+    try:
+        return _repair_known_duplicate_copy(
+            state,
+            product_id=os.getenv("AFFILIO_REPAIR_DUPLICATE_PRODUCT_ID", ""),
+            title=os.getenv("AFFILIO_REPAIR_DUPLICATE_PRODUCT_TITLE", ""),
+            product_url=os.getenv("AFFILIO_REPAIR_DUPLICATE_PRODUCT_URL", ""),
+            keep_telegram_id=int(os.getenv("AFFILIO_REPAIR_DUPLICATE_KEEP_TELEGRAM_ID", "0")),
+            keep_bale_id=int(os.getenv("AFFILIO_REPAIR_DUPLICATE_KEEP_BALE_ID", "0")),
+            duplicate_telegram_id=int(os.getenv("AFFILIO_REPAIR_DUPLICATE_DELETE_TELEGRAM_ID", "0")),
+            duplicate_bale_id=int(os.getenv("AFFILIO_REPAIR_DUPLICATE_DELETE_BALE_ID", "0")),
+            posted_at=os.getenv("AFFILIO_REPAIR_DUPLICATE_POSTED_AT", ""),
+            current_price=int(os.getenv("AFFILIO_REPAIR_DUPLICATE_PRICE", "0")),
+            discount_percent=int(os.getenv("AFFILIO_REPAIR_DUPLICATE_DISCOUNT", "0")),
+        )
+    except (TypeError, ValueError, OverflowError):
+        print("DUPLICATE_REPAIR_ABORTED reason=invalid_environment_arguments")
+        return 2
+
+
 def _run_duplicate_cleanup(state, apply=True):
     """Delete older duplicate product posts while keeping one copy of each live offer."""
     if not BOT_TOKEN:
@@ -2394,6 +2608,42 @@ def _delete_expired_posts(published, now, mark_unknown=False, direct_confirm=Non
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
+
+        # A clearly truncated title is not a safe public offer, even when the
+        # source fails to provide a verifiable deadline. Remove the broken post
+        # while preserving independent retry/status tracking for each destination.
+        title = str(rec.get("title") or "").strip()
+        if title and not is_publishable_product_title(title):
+            rec["title_quality_status"] = "invalid_incomplete_title"
+            rec["title_quality_checked_at"] = now.isoformat()
+            changed = True
+            for platform, id_field, status_field, timestamp_field, delete_fn in (
+                ("telegram", "telegram_message_id", "expiry_status", "expired_deleted_at", _telegram_delete),
+                ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete),
+            ):
+                raw_id = rec.get(id_field)
+                if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent"}:
+                    continue
+                try:
+                    outcome = delete_fn(int(raw_id))
+                    rec[status_field] = outcome
+                    rec[timestamp_field] = now.isoformat()
+                    if outcome == "deleted":
+                        deleted += 1
+                    print(
+                        f"TITLE_QUALITY_DELETE_OK platform={platform} product_id={pid} "
+                        f"message_id={raw_id} outcome={outcome}"
+                    )
+                except Exception as exc:
+                    rec[status_field] = "delete_failed"
+                    rec[f"{platform}_title_quality_delete_error"] = f"{type(exc).__name__}: {str(exc)[:160]}"
+                    rec["title_quality_status"] = "invalid_incomplete_title_delete_failed"
+                    print(
+                        f"TITLE_QUALITY_DELETE_FAILED platform={platform} product_id={pid} "
+                        f"message_id={raw_id} error={type(exc).__name__}; next_cycle_retries=true"
+                    )
+            continue
+
         expiry = parse_expiry(rec.get("expires_at"))
         if not expiry:
             if mark_unknown:
@@ -3043,6 +3293,8 @@ def run():
 
 if __name__ == "__main__":
     import sys
+    if "--repair-known-duplicate" in sys.argv[1:]:
+        raise SystemExit(_repair_known_duplicate_from_environment(_read_state()))
     if "--bounded-maintenance" in sys.argv[1:]:
         raise SystemExit(run_bounded_maintenance())
     raise SystemExit(run())

@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "affilio_radar/expiration_monitor.py"
+      - "affilio_radar/product_quality.py"
       - "affilio_radar/affilio_radar.py"
       - "affilio_radar/test_expiration_monitor.py"
       - "affilio_radar/test_affilio.py"
@@ -18,9 +19,11 @@ permissions:
 
 jobs:
   expire:
+    # Never run live cleanup from a feature-branch push; production cleanup stays on main.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     # Manual cleanup is independent; routine cleanup runs inside the delivery workflow.
     concurrency:
-      group: affilio-channel-updates
+      group: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && 'offerchin-content-publisher' || 'affilio-channel-updates' }}
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -50,10 +53,10 @@ jobs:
           exit 1
 
       - name: Validate expiry-monitor syntax (required for safe deletion)
-        run: python -m py_compile affilio_radar/expiration_monitor.py affilio_radar/affilio_radar.py
+        run: python -m py_compile affilio_radar/expiration_monitor.py affilio_radar/affilio_radar.py affilio_radar/product_quality.py
 
       - name: Run expiry-monitor regression tests on code pushes only
-        if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[deadline-audit-only]') && !contains(github.event.head_commit.message, '[expiry-cleanup-now]') && !contains(github.event.head_commit.message, '[duplicate-cleanup-now]') && !contains(github.event.head_commit.message, '[remove-glama-once]') && !contains(github.event.head_commit.message, '[repair-buttons-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') }}
+        if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[deadline-audit-only]') && !contains(github.event.head_commit.message, '[expiry-cleanup-now]') && !contains(github.event.head_commit.message, '[duplicate-cleanup-now]') && !contains(github.event.head_commit.message, '[remove-glama-once]') && !contains(github.event.head_commit.message, '[repair-buttons-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') }}
         continue-on-error: true
         run: |
           # Tests write state; always restore the live channel ledger after test execution.
@@ -73,6 +76,17 @@ jobs:
           AFFILIO_DEDUPLICATE_ONLY: ${{ contains(github.event.head_commit.message, '[duplicate-cleanup-now]') && 'true' || 'false' }}
           # This marker is a one-time manual exception; normal product selection has no exclusion.
           AFFILIO_DELETE_SPECIFIC_PRODUCT_ID: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && 'dkp-20917779' || '' }}
+          # Targeted repair of a confirmed duplicate; exact IDs are from the failed state-persistence run.
+          AFFILIO_REPAIR_DUPLICATE_PRODUCT_ID: ${{ contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && 'dkp-18524083' || '' }}
+          AFFILIO_REPAIR_DUPLICATE_PRODUCT_TITLE: ${{ contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && 'پاوربانک 33 وات شیائومی مدل Integrated Cable ظرفیت 20000 میلی آمپر ساعت - گلوبال' || '' }}
+          AFFILIO_REPAIR_DUPLICATE_PRODUCT_URL: ${{ contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && 'https://www.digikala.com/product/dkp-18524083/' || '' }}
+          AFFILIO_REPAIR_DUPLICATE_KEEP_TELEGRAM_ID: ${{ contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && '673' || '0' }}
+          AFFILIO_REPAIR_DUPLICATE_KEEP_BALE_ID: ${{ contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && '827' || '0' }}
+          AFFILIO_REPAIR_DUPLICATE_DELETE_TELEGRAM_ID: ${{ contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && '674' || '0' }}
+          AFFILIO_REPAIR_DUPLICATE_DELETE_BALE_ID: ${{ contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && '828' || '0' }}
+          AFFILIO_REPAIR_DUPLICATE_POSTED_AT: ${{ contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && '2026-10-25T20:09:12+00:00' || '' }}
+          AFFILIO_REPAIR_DUPLICATE_PRICE: ${{ contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && '5700000' || '0' }}
+          AFFILIO_REPAIR_DUPLICATE_DISCOUNT: ${{ contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && '37' || '0' }}
           AFFILIO_DELETE_SPECIFIC_PRODUCT_TITLE: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && 'ژل آبرسان صورت گلاما مدل Limited مناسب برای انواع پوست حجم 50 میلی‌لیتر' || '' }}
           AFFILIO_DELETE_SPECIFIC_PRODUCT_TELEGRAM_IDS: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && '499,500,501,502,503,505' || '' }}
           AFFILIO_DELETE_SPECIFIC_PRODUCT_BALE_IDS: ${{ contains(github.event.head_commit.message, '[remove-glama-once]') && '598,599,600,601,602,603,606' || '' }}
@@ -95,7 +109,12 @@ jobs:
           AFFILIO_PUBLIC_HISTORY_PAGES: ${{ (contains(github.event.head_commit.message, '[repair-buttons-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[deadline-audit-only]')) && '10' || '2' }}
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/expiration_monitor.py --bounded-maintenance
+        run: |
+          if [[ "${{ contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') }}" == "true" ]]; then
+            python affilio_radar/expiration_monitor.py --repair-known-duplicate
+          else
+            python affilio_radar/expiration_monitor.py --bounded-maintenance
+          fi
 
       - name: "One-time migration: remove obsolete timers and restore verified purchase buttons"
         if: ${{ contains(github.event.head_commit.message, '[repair-buttons-now]') }}

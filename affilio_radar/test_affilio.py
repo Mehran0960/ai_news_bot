@@ -65,6 +65,7 @@ from affilio_radar import (
     parse_product_api,
     is_discount_publish_eligible,
     is_prohibited_product_title,
+    is_publishable_product_title,
     deal_sort_key,
     build_discount_image,
     _latin_font,
@@ -151,6 +152,13 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(safe_product_url("https://evil-digikala.com/product/dkp-1234567/"), "")
         self.assertEqual(safe_product_url("https://www.digikala.com/category/mobile/"), "")
+
+    def test_incomplete_product_titles_are_rejected_but_complete_model_titles_pass(self):
+        self.assertFalse(is_publishable_product_title("هندزفری بلوتوثی مدل"))
+        self.assertTrue(is_publishable_product_title(
+            "پاوربانک ۳۳ وات شیائومی مدل Integrated Cable ظرفیت ۲۰۰۰۰ میلی‌آمپر ساعت"
+        ))
+        self.assertTrue(is_publishable_product_title("کوله پشتی سفری مدل Koo-1"))
 
     def test_product_id_extraction(self):
         self.assertEqual(product_id("https://www.digikala.com/product/dkp-9876/"), "dkp-9876")
