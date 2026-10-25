@@ -2,6 +2,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 from content_delivery import due_content, enqueue_selected_content, finish_queue_item
+from platform_registry import PLATFORM_NAMES
 
 
 class ContentDeliveryQueueTests(unittest.TestCase):
@@ -31,7 +32,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertIn("payload", entry)
         self.assertEqual(
             set(entry["platforms"]),
-            {"telegram", "bale", "youtube", "aparat"},
+            set(PLATFORM_NAMES),
         )
         self.assertEqual(entry["platforms"]["telegram"]["status"], "pending")
 
