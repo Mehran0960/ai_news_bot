@@ -1,7 +1,10 @@
 import unittest
 from datetime import datetime, timedelta, timezone
 
-from content_delivery import (\n    due_content, due_unpublished_selection, enqueue_selected_content,\n    finish_queue_item, refresh_unpublished_selections,\n)
+from content_delivery import (
+    due_content, due_unpublished_selection, enqueue_selected_content,
+    finish_queue_item, refresh_unpublished_selections,
+)
 from platform_registry import PLATFORM_NAMES
 
 
