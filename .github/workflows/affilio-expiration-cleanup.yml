@@ -8,14 +8,7 @@ on:
       - "affilio_radar/test_expiration_monitor.py"
       - "affilio_radar/test_affilio.py"
       - ".github/workflows/affilio-expiration-cleanup.yml"
-  # Cloudflare's minute dispatcher launches cleanup at UTC :00/:05/... so this
-  # does not depend on GitHub's sometimes-missing native schedule event.
-  schedule:
-    # Backup path: cleanup must still run even when the external dispatcher is starved.
-    - cron: "*/5 * * * *"
-  workflow_run:
-    workflows: ["Affilio Product Radar"]
-    types: [completed]
+  # Routine cleanup now runs inside the scheduled publisher job, before delivery.
   issues:
     types: [opened]
   workflow_dispatch:
@@ -25,11 +18,7 @@ permissions:
 
 jobs:
   expire:
-    # The radar workflow already performs expiry cleanup immediately before its
-    # one-time full caption repair. Do not run both channel-mutating jobs concurrently.
-    if: ${{ (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.user.login == 'Mehran0960' && github.event.issue.title == '[RUN PRICE AUDIT NOW]') || (github.event_name != 'workflow_run' && github.event_name != 'issues' && (github.event_name != 'push' || contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[expiry-cleanup-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-now]') || contains(github.event.head_commit.message, '[remove-glama-once]') || contains(github.event.head_commit.message, '[repair-buttons-now]'))) || (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.conclusion != 'cancelled' && (github.event.workflow_run.event == 'schedule' || github.event.workflow_run.event == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && contains(github.event.workflow_run.head_commit.message, '[price-audit-now]')))) }}
-    # Only a cleanup job that will actually run may take the shared channel lock.
-    # Skipped workflow pushes must not cancel or replace a queued Product Radar run.
+    # Manual cleanup is independent; routine cleanup runs inside the delivery workflow.
     concurrency:
       group: affilio-channel-updates
       cancel-in-progress: false
