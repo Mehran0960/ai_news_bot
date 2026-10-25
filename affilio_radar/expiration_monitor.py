@@ -493,12 +493,18 @@ def fetch_live_product_status(product_id):
             continue
         product = max(candidates, key=lambda pair: pair[0])[1]
         variant = product.get("default_variant") if isinstance(product.get("default_variant"), dict) else {}
-        if not variant:
-            variants = product.get("variants")
-            if isinstance(variants, dict):
-                variants = list(variants.values())
-            if isinstance(variants, list):
-                variant = next((v for v in variants if isinstance(v, dict) and v.get("marketable") is True), {})
+        variants = product.get("variants")
+        if isinstance(variants, dict):
+            variants = list(variants.values())
+        marketable_variant = (
+            next((v for v in variants if isinstance(v, dict) and v.get("marketable") is True), {})
+            if isinstance(variants, list) else {}
+        )
+        # If DigiKala's default variant is explicitly unavailable, prefer an
+        # actually marketable variant instead of mistaking one unavailable size
+        # or colour for the entire product being out of stock.
+        if not variant or variant.get("marketable") is False:
+            variant = marketable_variant or variant
         variant = variant if isinstance(variant, dict) else {}
         price_obj = variant.get("price") if isinstance(variant.get("price"), dict) else {}
         if not price_obj:
@@ -2076,6 +2082,240 @@ def _confirm_expiry_for_deletion(product_id, record, now, budget=None):
     return "inconclusive", record != before
 
 
+
+def _record_has_active_publication(record):
+    """Return whether at least one tracked publication is still potentially public."""
+    if not isinstance(record, dict):
+        return False
+    terminal = {"deleted", "already_absent"}
+    for id_field, status_field in (
+        ("telegram_message_id", "expiry_status"),
+        ("bale_message_id", "bale_expiry_status"),
+    ):
+        raw_id = str(record.get(id_field) or "")
+        if raw_id.isdigit() and record.get(status_field) not in terminal:
+            return True
+    video_id = str(record.get("youtube_video_id") or "").strip()
+    if video_id and record.get("youtube_expiry_status") not in terminal:
+        return True
+    video_hash = str(record.get("aparat_video_hash") or "").strip()
+    if video_hash and record.get("aparat_expiry_status") not in terminal:
+        return True
+    return False
+
+
+def _mark_price_invalid(record, product_id, reason, posted_price, live_price, now):
+    """Turn a directly verified stale-price post into a normal permanent-deletion job."""
+    record["price_audit_status"] = "invalidated"
+    record["price_audit_reason"] = reason
+    record["price_audit_posted_price"] = posted_price
+    record["price_audit_live_price"] = live_price
+    record["price_audit_invalidated_at"] = now.isoformat()
+    record["expires_at"] = now.isoformat()
+    record["expiry_source"] = "live_product_stock_or_price"
+    record["expiry_deadline_verified_directly"] = True
+    record["expiry_deadline_verified_from_site_card"] = False
+    record["expiry_estimated"] = False
+    record["expiry_last_direct_verification_at"] = now.isoformat()
+    record["expiry_last_removal_check_at"] = now.isoformat()
+    record["expiry_last_removal_check_result"] = "confirmed"
+    record["expiry_reason"] = reason
+    if str(record.get("telegram_message_id") or "").isdigit() and record.get("expiry_status") not in {"deleted", "already_absent"}:
+        record["expiry_status"] = "expired_confirmed"
+    if str(record.get("bale_message_id") or "").isdigit() and record.get("bale_expiry_status") not in {"deleted", "already_absent"}:
+        record["bale_expiry_status"] = "expired_confirmed"
+
+
+def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=None, retry_seconds=None):
+    """Continuously verify every active tracked offer price in bounded rotating batches.
+
+    Only a usable first-party DigiKala product API response can invalidate a post.
+    Missing/ambiguous responses are recorded and retried, never treated as proof
+    that a price changed. Stale-price posts flow through the existing permanent
+    deletion paths for Telegram, Bale, YouTube and Aparat.
+    """
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    now = now.astimezone(timezone.utc)
+    batch_size = batch_size or max(1, min(30, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "20"))))
+    interval_seconds = interval_seconds or max(
+        300, min(21600, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "3600")))
+    )
+    retry_seconds = retry_seconds or max(
+        300, min(3600, int(os.getenv("AFFILIO_PRICE_AUDIT_RETRY_SECONDS", "900")))
+    )
+    terminal = {"deleted", "already_absent"}
+    groups = {}
+
+    # Include current and historical posts separately: the same product may have
+    # multiple public messages with different prices, and each message must be
+    # judged against the price it actually advertised.
+    for product_id, record in (published or {}).items():
+        if not isinstance(record, dict):
+            continue
+        entries = [(record, False)]
+        history = record.get("post_history")
+        if isinstance(history, list):
+            entries.extend((old, True) for old in history if isinstance(old, dict))
+        for entry, is_history in entries:
+            if not _record_has_active_publication(entry):
+                continue
+            try:
+                posted_price = int(entry.get("posted_current_price") or 0)
+            except (TypeError, ValueError, OverflowError):
+                posted_price = 0
+            if posted_price <= 0:
+                continue
+            # The current product-detail API is DigiKala-specific; do not
+            # misinterpret SnappShop IDs as DigiKala product numbers.
+            pid = str(product_id or "").strip().lower()
+            if not re.fullmatch(r"dkp-\\d+", pid):
+                continue
+            if entry.get("price_audit_status") == "invalidated":
+                continue
+            groups.setdefault(pid, []).append((entry, is_history, posted_price))
+
+    due = []
+    for product_id, entries in groups.items():
+        next_checks = []
+        for record, _is_history, _posted in entries:
+            raw_next = parse_expiry(record.get("price_audit_next_check_at"))
+            if not raw_next:
+                next_checks.append(None)
+                continue
+            try:
+                next_at = datetime.fromisoformat(raw_next)
+                if next_at.tzinfo is None:
+                    next_at = next_at.replace(tzinfo=timezone.utc)
+                next_checks.append(next_at.astimezone(timezone.utc))
+            except (TypeError, ValueError, OverflowError):
+                next_checks.append(None)
+        # A product is due if at least one active post for it needs its first
+        # audit or its retry interval has elapsed.
+        if any(value is None or value <= now for value in next_checks):
+            oldest = min((value for value in next_checks if value is not None), default=datetime.min.replace(tzinfo=timezone.utc))
+            due.append((oldest, product_id, entries))
+    due.sort(key=lambda item: (item[0], item[1]))
+
+    changed = False
+    checked = mismatched = out_of_stock = unconfirmed = 0
+    for _oldest, product_id, entries in due[:batch_size]:
+        checked += 1
+        try:
+            snapshot = fetch_live_product_status(product_id)
+        except Exception as exc:
+            snapshot = {}
+            print(f"PRICE_AUDIT_PRODUCT_LOOKUP_FAILED product_id={product_id} error={type(exc).__name__}")
+        live_price = snapshot.get("current_price") if isinstance(snapshot, dict) else None
+        stock = snapshot.get("in_stock") if isinstance(snapshot, dict) else None
+        usable_price = False
+        try:
+            live_price = int(live_price) if live_price is not None else None
+            usable_price = live_price is not None and live_price > 0
+        except (TypeError, ValueError, OverflowError):
+            live_price = None
+
+        direct_deadline = (
+            parse_expiry(snapshot.get("deal_expires_at"))
+            if isinstance(snapshot, dict) and snapshot.get("expiry_verified_directly") is True
+            else ""
+        )
+        lookup_ok = bool(snapshot) and (usable_price or stock is False)
+        checked_at = now.isoformat()
+
+        if not lookup_ok:
+            unconfirmed += 1
+            for record, _is_history, _posted in entries:
+                record["price_audit_last_checked_at"] = checked_at
+                record["price_audit_next_check_at"] = (now + timedelta(seconds=retry_seconds)).isoformat()
+                record["price_audit_status"] = "unconfirmed"
+                record["price_audit_error"] = "no_usable_live_price_or_stock_status"
+                changed = True
+            print(f"PRICE_AUDIT_UNCONFIRMED product_id={product_id} retry_seconds={retry_seconds}")
+            continue
+
+        product_changed = False
+        product_mismatches = 0
+        product_out = stock is False
+        for record, is_history, posted_price in entries:
+            if not _record_has_active_publication(record):
+                continue
+            record["price_audit_last_checked_at"] = checked_at
+            record["price_audit_next_check_at"] = (now + timedelta(seconds=interval_seconds)).isoformat()
+            record["last_seen_current_price"] = live_price
+            record["last_seen_in_stock"] = stock
+
+            if product_out:
+                _mark_price_invalid(record, product_id, "out_of_stock", posted_price, live_price, now)
+                out_of_stock += 1
+                product_changed = True
+                changed = True
+                continue
+            if not usable_price:
+                record["price_audit_status"] = "unconfirmed"
+                record["price_audit_error"] = "live_price_unavailable"
+                record["price_audit_next_check_at"] = (now + timedelta(seconds=retry_seconds)).isoformat()
+                unconfirmed += 1
+                changed = True
+                continue
+            record.pop("price_audit_error", None)
+            if live_price != posted_price:
+                _mark_price_invalid(record, product_id, "price_mismatch", posted_price, live_price, now)
+                mismatched += 1
+                product_mismatches += 1
+                product_changed = True
+                changed = True
+                print(
+                    f"PRICE_AUDIT_INVALIDATED product_id={product_id} "
+                    f"posted_price={posted_price} live_price={live_price} "
+                    f"reason=price_mismatch historical={is_history}"
+                )
+                continue
+
+            record["price_audit_status"] = "match"
+            record["price_audit_posted_price"] = posted_price
+            record["price_audit_live_price"] = live_price
+            changed = True
+            # Only refresh the current record's timer. A current campaign timer
+            # must never be copied onto an older historical post for this product.
+            if direct_deadline and not is_history:
+                old_deadline = parse_expiry(record.get("expires_at"))
+                if old_deadline != direct_deadline or record.get("expiry_source") != "digikala_product_detail_api":
+                    record["expires_at"] = direct_deadline
+                    record["expiry_source"] = "digikala_product_detail_api"
+                    record["expiry_deadline_verified_directly"] = True
+                    record["expiry_deadline_verified_from_site_card"] = False
+                    record["expiry_estimated"] = False
+                    changed = True
+                record["expiry_last_direct_verification_at"] = checked_at
+                record.pop("expiry_reason", None)
+        if product_out and not product_mismatches:
+            print(f"PRICE_AUDIT_INVALIDATED_PRODUCT product_id={product_id} reason=out_of_stock")
+        elif not product_changed:
+            print(
+                f"PRICE_AUDIT_MATCH product_id={product_id} live_price={live_price} "
+                f"active_posts={len(entries)}"
+            )
+
+    summary = {
+        "products_due": len(due),
+        "products_checked": checked,
+        "price_mismatches": mismatched,
+        "out_of_stock_posts": out_of_stock,
+        "unconfirmed": unconfirmed,
+        "remaining_due": max(0, len(due) - min(len(due), batch_size)),
+    }
+    if checked:
+        print(
+            "PRICE_AUDIT_SUMMARY "
+            f"products_due={summary['products_due']} checked={checked} "
+            f"price_mismatches={mismatched} out_of_stock_posts={out_of_stock} "
+            f"unconfirmed={unconfirmed} remaining_due={summary['remaining_due']}"
+        )
+    return changed, summary
+
+
 def _delete_expired_posts(published, now, mark_unknown=False, direct_confirm=None):
     """Delete posts whose explicit deadline has passed; return state change and actual deletions."""
     changed = False
@@ -2496,6 +2736,14 @@ def run():
     if history_changed:
         _write_state(state)
         print("EXPIRY_STATE_SAVED phase=public_history_audit")
+
+    price_changed, price_summary = _audit_live_prices(published, now)
+    changed = changed or price_changed
+    if price_changed:
+        # Persist audit decisions before deletion side effects so a transient bot
+        # API failure cannot erase the verified reason for the next retry.
+        _write_state(state)
+        print("PRICE_AUDIT_STATE_SAVED")
 
     probe_candidates = [
         (pid, rec) for pid, rec in published.items()
