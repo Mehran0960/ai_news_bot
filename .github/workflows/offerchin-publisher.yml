@@ -78,13 +78,14 @@ jobs:
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
           AFFILIO_DEAL_LIST_PAGES: "5"
           AFFILIO_PUBLIC_HISTORY_PAGES: "1"
-          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "10"
-          AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "3600"
-          AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "900"
-          AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "4"
+          AFFILIO_DUPLICATE_SCAN_PAGES: "3"
+          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "24"
+          AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "300"
+          AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "300"
+          AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "6"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           PYTHONUNBUFFERED: "1"
-        run: timeout --signal=TERM 330s python affilio_radar/expiration_monitor.py --bounded-maintenance || echo "PRICE_AUDIT_OR_CLEANUP_INCOMPLETE; delivery continues and next cycle retries"
+        run: timeout --signal=TERM 330s python affilio_radar/expiration_monitor.py --bounded-maintenance --dedupe-recent || echo "PRICE_AUDIT_OR_CLEANUP_INCOMPLETE; delivery continues and next cycle retries"
       # Discovery/selection is a distinct stage. It writes the neutral content queue only.
       # Any later publisher adapter can consume that same selected payload without changing discovery.
       - name: Discover and queue the next verified selection
