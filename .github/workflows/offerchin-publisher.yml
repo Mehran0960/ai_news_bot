@@ -61,6 +61,29 @@ jobs:
           print("OFFERCHIN_DELIVERY_ONLY_PATH_VALIDATED")
           PY
 
+      # Routine cleanup is intentionally sequenced before delivery in the same run.
+      # This prevents cleanup and publishing workflows from fighting over the same channel lock.
+      # A slow or failed audit is bounded and must never suppress the delivery attempt.
+      - name: Audit existing posts and remove verified stale offers
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
+          AFFILIO_DEAL_LIST_PAGES: "5"
+          AFFILIO_PUBLIC_HISTORY_PAGES: "1"
+          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "10"
+          AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "3600"
+          AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "900"
+          AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "4"
+          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
+          PYTHONUNBUFFERED: "1"
+        run: timeout --signal=TERM 330s python affilio_radar/expiration_monitor.py || echo "PRICE_AUDIT_OR_CLEANUP_INCOMPLETE; delivery continues and next cycle retries"
       - name: Publish due selections to all registered destinations
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
