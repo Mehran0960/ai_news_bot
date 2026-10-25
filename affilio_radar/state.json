@@ -6252,15 +6252,16 @@
     }
   },
   "price_audit_last_summary": {
-    "batch_size": 10,
-    "check_interval_seconds": 3600,
-    "checked_at": "2026-10-25T18:28:27.264759+00:00",
-    "out_of_stock_posts": 0,
-    "price_mismatches": 2,
-    "products_checked": 10,
     "products_due": 148,
-    "remaining_due": 138,
-    "unconfirmed": 4
+    "products_checked": 30,
+    "price_mismatches": 0,
+    "out_of_stock_posts": 0,
+    "unconfirmed": 30,
+    "remaining_due": 118,
+    "checked_at": "2026-10-25T22:14:54.537579+00:00",
+    "batch_size": 30,
+    "check_interval_seconds": 300,
+    "mode": "bounded-maintenance"
   },
   "publication_ledger": {
     "dkp-11145813": {
@@ -10205,13 +10206,13 @@
       "delivery_version": 1,
       "demand_score": 48,
       "expired_deleted_at": "2026-10-25T18:28:27.264759+00:00",
-      "expires_at": "2026-10-25T22:05:23.965528+00:00",
+      "expires_at": "2026-10-25T22:14:54.537579+00:00",
       "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
-      "expiry_last_direct_verification_at": "2026-10-25T22:05:23.965528+00:00",
-      "expiry_last_removal_check_at": "2026-10-25T22:05:23.965528+00:00",
-      "expiry_last_removal_check_result": "confirmed",
+      "expiry_last_direct_verification_at": "2026-10-25T22:14:54.537579+00:00",
+      "expiry_last_removal_check_at": "2026-10-25T22:24:49.626676+00:00",
+      "expiry_last_removal_check_result": "inconclusive",
       "expiry_reason": "price_reverted",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "already_absent",
@@ -10262,8 +10263,8 @@
       "expiry_estimated": false,
       "expiry_last_direct_verification_at": "2026-10-25T22:05:23.965528+00:00",
       "expiry_last_live_sync_at": "2026-10-24T19:25:30.777994+00:00",
-      "expiry_last_removal_check_at": "2026-10-25T22:05:23.965528+00:00",
-      "expiry_last_removal_check_result": "confirmed",
+      "expiry_last_removal_check_at": "2026-10-25T22:24:49.626676+00:00",
+      "expiry_last_removal_check_result": "inconclusive",
       "expiry_last_site_card_sync_at": "2026-10-24T19:25:30.777994+00:00",
       "expiry_reason": "price_reverted",
       "expiry_source": "live_product_stock_or_price",
@@ -10356,8 +10357,8 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_last_direct_verification_at": "2026-10-25T22:05:23.965528+00:00",
-      "expiry_last_removal_check_at": "2026-10-25T22:05:23.965528+00:00",
-      "expiry_last_removal_check_result": "confirmed",
+      "expiry_last_removal_check_at": "2026-10-25T22:24:49.626676+00:00",
+      "expiry_last_removal_check_result": "inconclusive",
       "expiry_reason": "price_reverted",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "delete_failed",
@@ -10431,7 +10432,7 @@
       "telegram_message_id": 671,
       "telegram_unverified_deadline_preserved_at": "2026-10-25T17:35:23.744778+00:00",
       "title": "هندزفری بلوتوثی مدل",
-      "title_quality_checked_at": "2026-10-25T22:05:23.965528+00:00",
+      "title_quality_checked_at": "2026-10-25T22:24:49.626676+00:00",
       "title_quality_status": "invalid_incomplete_title",
       "ts": 1792949564.106203,
       "video_generation_status": "skipped_unverified_deadline",
@@ -10461,8 +10462,8 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_last_direct_verification_at": "2026-10-25T21:20:26.168627+00:00",
-      "expiry_last_removal_check_at": "2026-10-25T21:20:26.168627+00:00",
-      "expiry_last_removal_check_result": "confirmed",
+      "expiry_last_removal_check_at": "2026-10-25T22:24:49.626676+00:00",
+      "expiry_last_removal_check_result": "inconclusive",
       "expiry_reason": "price_reverted",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "already_absent",
@@ -10506,7 +10507,7 @@
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_removal_check_at": "2026-10-25T03:35:25.179979+00:00",
+      "expiry_last_removal_check_at": "2026-10-25T22:24:49.626676+00:00",
       "expiry_last_removal_check_result": "inconclusive",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -10548,7 +10549,7 @@
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_removal_check_at": "2026-10-25T03:35:25.179979+00:00",
+      "expiry_last_removal_check_at": "2026-10-25T22:24:49.626676+00:00",
       "expiry_last_removal_check_result": "inconclusive",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -10808,7 +10809,13 @@
       "title": "مسواک اسپارکل مدل S4 با برس متوسط بسته 5 عددی",
       "ts": 1792966443.532051,
       "video_generation_status": "skipped_unverified_deadline",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "expiry_status": "unknown",
+      "bale_expiry_status": "unknown",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-15644835": {
       "bale_expiry_status": "tracked",
@@ -11308,7 +11315,9 @@
       "youtube_video_id": "r48e20-hw5Q",
       "youtube_video_renderer_version": 2,
       "youtube_video_url": "https://www.youtube.com/shorts/r48e20-hw5Q",
-      "youtube_visual_repair_completed_at": ""
+      "youtube_visual_repair_completed_at": "",
+      "expiry_last_removal_check_at": "2026-10-25T22:27:21.408636+00:00",
+      "expiry_last_removal_check_result": "inconclusive"
     },
     "dkp-18524083": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -11378,7 +11387,11 @@
       "title": "پاوربانک 33 وات شیائومی مدل Integrated Cable ظرفیت 20000 میلی آمپر ساعت - گلوبال",
       "ts": 1792958952.0,
       "video_generation_status": "skipped_unverified_deadline",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-18562859": {
       "aparat_upload_started_at": "2026-10-25T00:17:13.430619+00:00",
@@ -11434,7 +11447,9 @@
       "youtube_video_id": "gxAtflZYDZA",
       "youtube_video_renderer_version": 2,
       "youtube_video_url": "https://www.youtube.com/shorts/gxAtflZYDZA",
-      "youtube_visual_repair_completed_at": ""
+      "youtube_visual_repair_completed_at": "",
+      "expiry_last_removal_check_at": "2026-10-25T22:27:21.408636+00:00",
+      "expiry_last_removal_check_result": "inconclusive"
     },
     "dkp-18562880": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -11537,7 +11552,9 @@
       "youtube_video_id": "6xFFxAqZ4aM",
       "youtube_video_renderer_version": 2,
       "youtube_video_url": "https://www.youtube.com/shorts/6xFFxAqZ4aM",
-      "youtube_visual_repair_completed_at": ""
+      "youtube_visual_repair_completed_at": "",
+      "expiry_last_removal_check_at": "2026-10-25T22:27:21.408636+00:00",
+      "expiry_last_removal_check_result": "inconclusive"
     },
     "dkp-19265201": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -11659,7 +11676,13 @@
       "youtube_video_id": "-Wu7Qmp5kRM",
       "youtube_video_renderer_version": 2,
       "youtube_video_url": "https://www.youtube.com/shorts/-Wu7Qmp5kRM",
-      "youtube_visual_repair_completed_at": ""
+      "youtube_visual_repair_completed_at": "",
+      "youtube_expiry_status": "deleted",
+      "youtube_deleted_at": "2026-10-25T22:27:21.408636+00:00",
+      "aparat_expiry_attempts": 1,
+      "aparat_expiry_status": "delete_retry",
+      "aparat_expiry_next_attempt_at": "2026-10-25T22:57:27.900617+00:00",
+      "aparat_expiry_last_error": "RuntimeError"
     },
     "dkp-19305194": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -11742,7 +11765,7 @@
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
-      "expiry_last_removal_check_at": "2026-10-24T19:30:28.068045+00:00",
+      "expiry_last_removal_check_at": "2026-10-25T22:27:21.408636+00:00",
       "expiry_last_removal_check_result": "inconclusive",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -11902,7 +11925,13 @@
       "youtube_video_id": "qClwL0TsR8M",
       "youtube_video_renderer_version": 2,
       "youtube_video_url": "https://www.youtube.com/shorts/qClwL0TsR8M",
-      "youtube_visual_repair_completed_at": ""
+      "youtube_visual_repair_completed_at": "",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status",
+      "expiry_last_removal_check_at": "2026-10-25T22:27:21.408636+00:00",
+      "expiry_last_removal_check_result": "inconclusive"
     },
     "dkp-20465182": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -12020,7 +12049,11 @@
       "title": "جوراب ساق بلند مردانه سیرداش مدل 308 بسته 3 عددی",
       "ts": 1792906823.5353396,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-20789382": {
       "bale_expiry_status": "tracked",
@@ -12058,7 +12091,11 @@
       "video_generation_status": "generated",
       "video_style_version": 5,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_upload_status": "pending_credentials",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-20880719": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -12336,7 +12373,9 @@
       "youtube_upload_status": "uploaded",
       "youtube_uploaded_at": "2026-10-23T16:58:56.211215+00:00",
       "youtube_video_id": "Z-yzZtt5g4M",
-      "youtube_video_url": "https://www.youtube.com/shorts/Z-yzZtt5g4M"
+      "youtube_video_url": "https://www.youtube.com/shorts/Z-yzZtt5g4M",
+      "expiry_last_removal_check_at": "2026-10-25T22:27:21.408636+00:00",
+      "expiry_last_removal_check_result": "inconclusive"
     },
     "dkp-20917933": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -12512,7 +12551,11 @@
       "title": "تستر ادو پرفیوم مردانه فرانک اولیویر مدل Oud Touch با رایحه گرم حجم 100 میلی لیتر",
       "ts": 1792929428.642571,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-21151486": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -12701,7 +12744,11 @@
       "youtube_video_id": "G9k1O_XzlM0",
       "youtube_video_renderer_version": 2,
       "youtube_video_url": "https://www.youtube.com/shorts/G9k1O_XzlM0",
-      "youtube_visual_repair_completed_at": ""
+      "youtube_visual_repair_completed_at": "",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-21152151": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -12816,7 +12863,11 @@
       "title": "صندل زنانه مدل پاژین",
       "ts": 1792901570.3429205,
       "video_generation_status": "skipped_unverified_deadline",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-21307286": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -12902,7 +12953,11 @@
       "title": "ماشین اصلاح موی صورت شارژی کیمی مدل 9551 با تیغه تیتانیوم پیشرفته، صفر زن و خط زن، استفاده خشک و مرطوب، نمایشگر شارژ، تیغه خودتیزشونده، ضد التهاب، قفل ایمنی، تایمردار، همراه برس تم",
       "ts": 1792927559.2111495,
       "video_generation_status": "skipped_unverified_deadline",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-21469255": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -13391,10 +13446,10 @@
       "aparat_upload_status": "pending",
       "bale_expiry_status": "tracked",
       "bale_message_id": 793,
-      "caption_countdown_refreshed_at": "2026-10-25T22:05:23.965528+00:00",
+      "caption_countdown_refreshed_at": "2026-10-25T22:14:54.537579+00:00",
       "caption_deadline_format_version": 12,
-      "caption_static_migrated_at": "2026-10-25T22:05:23.965528+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-25T22:05:23.965528+00:00",
+      "caption_static_migrated_at": "2026-10-25T22:14:54.537579+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-25T22:14:54.537579+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "deadline_caption_refresh_required": true,
@@ -13426,7 +13481,11 @@
       "title": "هدفون بلوتوثی ریولینک مدل 3 TL360",
       "ts": 1792911291.9953349,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-21669904": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -13810,7 +13869,11 @@
       "title": "لیزر پوینتر کینگ لیزر مدل CKL-303",
       "ts": 1792944460.2779536,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-21950317": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -13920,7 +13983,11 @@
       "title": "ادوپرفیوم آنتروس مدل DEVOTION III-IV با رایحه شیرین حجم 50 میلی‌لیتر بسته 2 عددی",
       "ts": 1792914582.025116,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-21988376": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -14210,7 +14277,11 @@
       "title": "ادوپرفیوم زنانه هارلینگن مدل ویکتوریا سکرت بامب شل با رایحه خنک و معتدل حجم 35 میلی‌لیتر",
       "ts": 1792934943.5653567,
       "video_generation_status": "skipped_unverified_deadline",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-22149727": {
       "bale_expiry_status": "tracked",
@@ -14244,7 +14315,11 @@
       "title": "چسب ماتیکی آریا مدل عروسکی وزن 8 گرم بسته 24 عددی",
       "ts": 1792933524.8018284,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-22276014": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -14295,10 +14370,10 @@
       "aparat_upload_status": "skipped_expiring_soon",
       "bale_expiry_status": "tracked",
       "bale_message_id": 753,
-      "caption_countdown_refreshed_at": "2026-10-25T22:05:23.965528+00:00",
+      "caption_countdown_refreshed_at": "2026-10-25T22:14:54.537579+00:00",
       "caption_deadline_format_version": 12,
-      "caption_static_migrated_at": "2026-10-25T22:05:23.965528+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-25T22:05:23.965528+00:00",
+      "caption_static_migrated_at": "2026-10-25T22:14:54.537579+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-25T22:14:54.537579+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "deadline_caption_refresh_required": true,
@@ -14458,10 +14533,10 @@
       "aparat_upload_status": "pending",
       "bale_expiry_status": "tracked",
       "bale_message_id": 772,
-      "caption_countdown_refreshed_at": "2026-10-25T22:05:23.965528+00:00",
+      "caption_countdown_refreshed_at": "2026-10-25T22:14:54.537579+00:00",
       "caption_deadline_format_version": 12,
-      "caption_static_migrated_at": "2026-10-25T22:05:23.965528+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-25T22:05:23.965528+00:00",
+      "caption_static_migrated_at": "2026-10-25T22:14:54.537579+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-25T22:14:54.537579+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "deadline_caption_refresh_required": true,
@@ -15002,7 +15077,11 @@
       "title": "عینک محافظ چشم مدل METAL-88140C1-Anti Blue Light",
       "ts": 1792913260.781933,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-22597598": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -15391,7 +15470,11 @@
       "title": "روان نویس 0.5 میلی متری پلیکان مدل الکتیک هرون بسته 8 عددی",
       "ts": 1792904207.561454,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-22783516": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -15678,7 +15761,11 @@
       "title": "برس حرارتی حرفه ای والر مدل 5͏2͏6͏-3O9O",
       "ts": 1792908866.5617173,
       "video_generation_status": "skipped_unverified_deadline",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-22879463": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -15795,7 +15882,11 @@
       "title": "کتاب کتابخانه نیمه شب و قطار نیمه شب اثر مت هیگ ترجمه پریسا رجوند نشر خرچنگ 2 جلدی",
       "ts": 1792889810.9976335,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-22896990": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -15869,7 +15960,11 @@
       "title": "کابل تبدیل USB-C به لایتنینگ بیسوس مدل Pudding 103355701311 طول 2 متر",
       "ts": 1792931400.2249038,
       "video_generation_status": "skipped_expiring_soon",
-      "youtube_upload_status": "skipped_expiring_soon"
+      "youtube_upload_status": "skipped_expiring_soon",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-22905402": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -15991,10 +16086,10 @@
       "aparat_upload_status": "pending",
       "bale_expiry_status": "tracked",
       "bale_message_id": 760,
-      "caption_countdown_refreshed_at": "2026-10-25T22:05:23.965528+00:00",
+      "caption_countdown_refreshed_at": "2026-10-25T22:14:54.537579+00:00",
       "caption_deadline_format_version": 12,
-      "caption_static_migrated_at": "2026-10-25T22:05:23.965528+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-25T22:05:23.965528+00:00",
+      "caption_static_migrated_at": "2026-10-25T22:14:54.537579+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-25T22:14:54.537579+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "deadline_caption_refresh_required": true,
@@ -16032,10 +16127,10 @@
       "aparat_upload_status": "pending",
       "bale_expiry_status": "tracked",
       "bale_message_id": 816,
-      "caption_countdown_refreshed_at": "2026-10-25T22:05:23.965528+00:00",
+      "caption_countdown_refreshed_at": "2026-10-25T22:14:54.537579+00:00",
       "caption_deadline_format_version": 12,
-      "caption_static_migrated_at": "2026-10-25T22:05:23.965528+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-25T22:05:23.965528+00:00",
+      "caption_static_migrated_at": "2026-10-25T22:14:54.537579+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-25T22:14:54.537579+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "deadline_caption_refresh_required": true,
@@ -16067,7 +16162,11 @@
       "title": "هدفون بلوتوثی موزیک آپولو مدل opi--300",
       "ts": 1792936512.8831878,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-22923722": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -16424,7 +16523,11 @@
       "title": "ساعت هوشمند 45 میلی متر مدل QX70 MAX با بند سیلیکونی به همراه هندزفری بلوتوثی",
       "ts": 1792895443.944944,
       "video_generation_status": "skipped_expiring_soon",
-      "youtube_upload_status": "skipped_expiring_soon"
+      "youtube_upload_status": "skipped_expiring_soon",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-22954576": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -16459,7 +16562,11 @@
       "title": "دستگاه شست‌وشوی دهان و دندان شارژی مدل VR4149 به همراه 4 سری",
       "ts": 1792902896.3023353,
       "video_generation_status": "skipped_expiring_soon",
-      "youtube_upload_status": "skipped_expiring_soon"
+      "youtube_upload_status": "skipped_expiring_soon",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-22976268": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -16714,10 +16821,10 @@
       "aparat_upload_status": "pending",
       "bale_expiry_status": "tracked",
       "bale_message_id": 802,
-      "caption_countdown_refreshed_at": "2026-10-25T22:05:23.965528+00:00",
+      "caption_countdown_refreshed_at": "2026-10-25T22:14:54.537579+00:00",
       "caption_deadline_format_version": 12,
-      "caption_static_migrated_at": "2026-10-25T22:05:23.965528+00:00",
-      "caption_without_expiry_migrated_at": "2026-10-25T22:05:23.965528+00:00",
+      "caption_static_migrated_at": "2026-10-25T22:14:54.537579+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-25T22:14:54.537579+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "deadline_caption_refresh_required": true,
@@ -16749,7 +16856,11 @@
       "title": "هدفون بلوتوثی موزیک آپولو مدل SDO--A4",
       "ts": 1792918513.9104347,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-23018999": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -17000,7 +17111,11 @@
       "youtube_video_id": "FbCZg-LYKt0",
       "youtube_video_renderer_version": 2,
       "youtube_video_url": "https://www.youtube.com/shorts/FbCZg-LYKt0",
-      "youtube_visual_repair_completed_at": ""
+      "youtube_visual_repair_completed_at": "",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-5425055": {
       "bale_expiry_status": "tracked",
@@ -17034,7 +17149,11 @@
       "title": "عطر جیبی زنانه صندل مدل BURBERRY LONDON با رایحه شیرین و گرم حجم 25 میلی‌لیتر",
       "ts": 1792905574.651294,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-5744085": {
       "bale_expiry_status": "tracked",
@@ -17068,7 +17187,11 @@
       "title": "ادو پرفیوم زنانه آنتونیو روسینی مدل PATCHOULI حجم 100 میلی لیتر",
       "ts": 1792919735.278945,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-6551967": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -17107,7 +17230,13 @@
       "title": "ماوس بی سیم مدل Slim RGB",
       "ts": 1792963690.988907,
       "video_generation_status": "skipped_unverified_deadline",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "expiry_status": "unknown",
+      "bale_expiry_status": "unknown",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-7780996": {
       "caption_deadline_format_version": 12,
@@ -17163,7 +17292,11 @@
       "title": "کفش راحتی زنانه کروماکی مدل kms664",
       "ts": 1792911296.7665613,
       "video_generation_status": "skipped_unverified_deadline",
-      "youtube_upload_status": "skipped_unverified_deadline"
+      "youtube_upload_status": "skipped_unverified_deadline",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-9488546": {
       "bale_expiry_status": "tracked",
@@ -17197,7 +17330,11 @@
       "title": "کیف رودوشی زنانه چرم یلسان مدل دلسا کد GC-01-077",
       "ts": 1792898348.433605,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-9496659": {
       "bale_expiry_status": "tracked",
@@ -17231,7 +17368,11 @@
       "title": "کوله پشتی زنانه چرم یلسان مدل آدرینا کد GC-01-055",
       "ts": 1792923436.751971,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "price_audit_last_checked_at": "2026-10-25T22:14:54.537579+00:00",
+      "price_audit_next_check_at": "2026-10-25T22:19:54.537579+00:00",
+      "price_audit_status": "unconfirmed",
+      "price_audit_error": "no_usable_live_price_or_stock_status"
     },
     "dkp-9851316": {
       "bale_expiry_status": "tracked",
