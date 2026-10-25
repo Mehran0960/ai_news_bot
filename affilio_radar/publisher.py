@@ -231,12 +231,19 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     ).strip()
     if current_deadline:
         fresh["deal_expires_at"] = current_deadline
-        source = str(
-            price_check.get("expiry_source")
-            or fresh.get("expiry_source")
-            or payload.get("expiry_source")
-            or ""
-        )
+        source_candidates = [
+            str(price_check.get("expiry_source") or ""),
+            str(fresh.get("expiry_source") or ""),
+            str(payload.get("expiry_source") or ""),
+        ]
+        valid_deadline_sources = {
+            "digikala_live_deals_feed",
+            "digikala_product_detail_api",
+            "digikala_mcp_offer_card",
+        }
+        source = next((value for value in source_candidates if value in valid_deadline_sources), "")
+        if not source:
+            source = next((value for value in source_candidates if value), "")
         if source:
             fresh["expiry_source"] = source
         if source in {"digikala_live_deals_feed", "digikala_product_detail_api"}:
