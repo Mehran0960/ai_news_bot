@@ -6942,7 +6942,6 @@ def run(publish=False, selection_only=False):
         # Keep discovery live on every scan, but only select a new product when a
         # publication slot is due. Never build a long queue of products chosen early.
         from content_delivery import (
-            due_unpublished_selection,
             enqueue_selected_content,
             refresh_unpublished_selections,
         )
@@ -6951,8 +6950,18 @@ def run(publish=False, selection_only=False):
             state, now=selection_now, stale_after_minutes=8
         )
         interval_seconds = max(60, int(MIN_POST_INTERVAL_HOURS * 3600))
-        last_post = _last_post_timestamp(state)
-        elapsed = selection_now.timestamp() - last_post if last_post else interval_seconds
+
+        # Cadence is anchored to the last selection as well as the last successful
+        # publication. A broken destination must not freeze the next discovery/selection
+        # cycle simply because no platform has managed to report success yet.
+        last_selected = _parse_utc_datetime(state.get("last_content_selection_at"))
+        last_published_at = _parse_utc_datetime(state.get("last_published_at"))
+        anchors = [x for x in (last_selected, last_published_at) if x is not None]
+        last_slot_anchor = max(anchors) if anchors else None
+        elapsed = (
+            (selection_now - last_slot_anchor).total_seconds()
+            if last_slot_anchor is not None else interval_seconds
+        )
         remaining = max(0, interval_seconds - int(elapsed))
 
         # A daily cap or an unexpired cooldown is a normal no-op, not a failed scan.
@@ -6972,17 +6981,6 @@ def run(publish=False, selection_only=False):
             )
             return 0
 
-        # If a recent selection is already due but has not reached any destination,
-        # give its publisher a short chance to finish instead of stacking another item.
-        outstanding = due_unpublished_selection(state, now=selection_now)
-        if outstanding:
-            save_json(STATE, state)
-            print(
-                "CONTENT_SELECTION_WAITING_FOR_FIRST_DELIVERY "
-                f"product_id={outstanding} live_candidates={len(eligible)}"
-            )
-            return 0
-
         summary = enqueue_selected_content(
             state,
             eligible,
@@ -6991,6 +6989,8 @@ def run(publish=False, selection_only=False):
             max_items=1,
             minimum_runway_minutes=MIN_PUBLICATION_RUNWAY_MINUTES,
         )
+        if summary["added"]:
+            state["last_content_selection_at"] = selection_now.isoformat()
         save_json(STATE, state)
         print(
             "CONTENT_SELECTION_HANDOFF "
