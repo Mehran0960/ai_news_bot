@@ -284,6 +284,9 @@ jobs:
           elif [[ "${{ contains(github.event.head_commit.message, '[growth-tracking-only]') }}" == "true" ]]; then
             python affilio_radar/affilio_radar.py --setup-growth-invites
           else
+            # Audit existing posts before discovering or publishing new offers.
+            # Cleanup errors are retried later and must not block the regular radar.
+            python affilio_radar/expiration_monitor.py || echo "PREPUBLICATION_PRICE_AUDIT_FAILED; continuing with radar"
             python affilio_radar/affilio_radar.py
           fi
 
