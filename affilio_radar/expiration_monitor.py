@@ -14,6 +14,7 @@ import os
 import re
 import time
 import requests
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, urlencode, urlsplit
@@ -2380,7 +2381,7 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     now = now.astimezone(timezone.utc)
-    batch_size = batch_size if batch_size is not None else max(1, min(3, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "3"))))
+    batch_size = batch_size if batch_size is not None else max(1, min(12, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "10"))))
     interval_seconds = interval_seconds or max(
         300, min(21600, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "3600")))
     )
@@ -2442,13 +2443,30 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
 
     changed = False
     checked = mismatched = out_of_stock = unconfirmed = 0
-    for _oldest, product_id, entries in due[:batch_size]:
+    selected = due[:batch_size]
+
+    # DigiKala product-detail requests can be slow during network degradation.
+    # Fetch a small bounded batch concurrently, then apply state mutations in order.
+    snapshots = {}
+    if selected:
+        with ThreadPoolExecutor(max_workers=min(4, len(selected))) as executor:
+            futures = {
+                product_id: executor.submit(fetch_live_product_status, product_id)
+                for _oldest, product_id, _entries in selected
+            }
+            for product_id, future in futures.items():
+                try:
+                    snapshots[product_id] = future.result()
+                except Exception as exc:
+                    snapshots[product_id] = {}
+                    print(
+                        f"PRICE_AUDIT_PRODUCT_LOOKUP_FAILED product_id={product_id} "
+                        f"error={type(exc).__name__}"
+                    )
+
+    for _oldest, product_id, entries in selected:
         checked += 1
-        try:
-            snapshot = fetch_live_product_status(product_id)
-        except Exception as exc:
-            snapshot = {}
-            print(f"PRICE_AUDIT_PRODUCT_LOOKUP_FAILED product_id={product_id} error={type(exc).__name__}")
+        snapshot = snapshots.get(product_id) or {}
         live_price = snapshot.get("current_price") if isinstance(snapshot, dict) else None
         stock = snapshot.get("in_stock") if isinstance(snapshot, dict) else None
         usable_price = False
