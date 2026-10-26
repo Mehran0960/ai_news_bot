@@ -83,7 +83,7 @@ def run() -> int:
         # prevent the direct price/stock audit or retries for already-invalid posts.
         print(f"INTEGRITY_DEADLINE_SYNC_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
 
-    batch_size = _integer_env("AFFILIO_PRICE_AUDIT_BATCH_SIZE", 30, 1, 30)
+    batch_size = _integer_env("AFFILIO_PRICE_AUDIT_BATCH_SIZE", 8, 1, 30)
     audit_interval = _integer_env("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", 60, 60, 21600)
     retry_seconds = _integer_env("AFFILIO_PRICE_AUDIT_RETRY_SECONDS", 300, 60, 3600)
     try:
@@ -125,7 +125,7 @@ def run() -> int:
     )
 
     channel_budget = {
-        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 6, 1, 10)
+        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 2, 1, 10)
     }
 
     def confirm_channel(product_id, record, current_time):
@@ -151,7 +151,7 @@ def run() -> int:
     )
 
     youtube_budget = {
-        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 6, 1, 10)
+        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 2, 1, 10)
     }
 
     def confirm_youtube(product_id, record, current_time):
@@ -173,7 +173,7 @@ def run() -> int:
     )
 
     aparat_budget = {
-        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 6, 1, 10)
+        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 2, 1, 10)
     }
 
     def confirm_aparat(product_id, record, current_time):
