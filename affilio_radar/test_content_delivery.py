@@ -8,7 +8,7 @@ from content_delivery import (
     refresh_unpublished_selections, selection_cadence_anchor,
 )
 from platform_registry import PLATFORM_NAMES
-from publisher import publish_due_queue
+from publisher import publish_due_queue, _fresh_selected_item
 
 
 class ContentDeliveryQueueTests(unittest.TestCase):
@@ -118,6 +118,25 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(state["last_channel_published_at"], latest_channel_send.isoformat())
         self.assertEqual(send_photo.call_count, 2)
         # Because both channels were already sent, this retry must not reset either clock.
+
+    def test_publisher_rejects_legacy_queued_supplement_before_any_delivery(self):
+        entry = {
+            "product_id": "dkp-8478740",
+            "payload": {
+                "product_id": "dkp-8478740",
+                "product_url": "https://www.digikala.com/product/dkp-8478740/",
+                "current_price": 79000,
+                "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-8478740%2F",
+            },
+        }
+        with patch("publisher.radar.fetch_product_record", return_value={
+            "title": "شربت ال آرژنین پلاس فیشر کیندر -200 میلی لیتر",
+            "image_url": "https://example.invalid/product.jpg",
+        }):
+            fresh, reason = _fresh_selected_item(entry, self.now)
+
+        self.assertIsNone(fresh)
+        self.assertEqual(reason, "live_product_prohibited_title")
 
     def test_only_a_fresh_active_unpublished_selection_reserves_next_channel_slot(self):
         last_channel_send = self.now - timedelta(minutes=30)
