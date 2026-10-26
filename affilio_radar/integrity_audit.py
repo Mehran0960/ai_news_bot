@@ -53,7 +53,7 @@ def run() -> int:
                 "price_audit_last_summary",
             }:
                 state[key] = value
-    apply_integrity_audit_ledger(state, ledger)
+    apply_integrity_audit_ledger(state, ledger, include_audit_cadence=True)
 
     sync_changed = False
     try:
