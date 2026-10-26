@@ -9,6 +9,7 @@ on:
   # Cloudflare's minute dispatcher starts this workflow every five minutes.
   # [publisher-run-now] One-time resume after channel-publication clock repair.
   # [publisher-run-now] One-time retry after transient image-fetch and stale-selection fixes.
+  # [publisher-run-now] One-time verify active-queue cadence repair.
   workflow_dispatch:
 
 permissions:
