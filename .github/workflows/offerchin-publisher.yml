@@ -1,8 +1,8 @@
 name: OfferChin Selected Content Publisher
 
 on:
-  # A one-time guarded push trigger lets us validate the delivery path without
-  # making routine source commits publish customer-facing posts.
+  # A guarded operational push may resume an interrupted delivery cycle.
+  # Routine source commits still cannot publish customer-facing posts.
   push:
     paths:
       - ".github/workflows/offerchin-publisher.yml"
