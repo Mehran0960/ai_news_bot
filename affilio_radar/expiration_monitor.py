@@ -46,7 +46,7 @@ POST_REMOVAL_BUFFER_MINUTES = max(
     0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10")))
 )
 # Recheck the first-party deal feed every five minutes so cached deadlines remain current.
-LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 5 * 60
+LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 60
 # Bound detail lookups so missing timers cannot stall expiry cleanup.
 DIRECT_PRODUCT_DETAIL_CHECK_LIMIT = max(1, min(2, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "1"))))
 CAPTION_FORMAT_VERSION = 12
@@ -375,15 +375,25 @@ def sync_live_offer_deadlines(published, live_expiries, now, live_sources=None):
         if not isinstance(rec, dict):
             summary["skipped"] += 1
             continue
+        platform_records = (
+            ("telegram", str(rec.get("telegram_message_id") or ""), "expiry_status", True),
+            ("bale", str(rec.get("bale_message_id") or ""), "bale_expiry_status", True),
+            ("youtube", str(rec.get("youtube_video_id") or "").strip(), "youtube_expiry_status", False),
+            ("aparat", str(rec.get("aparat_video_hash") or "").strip(), "aparat_expiry_status", False),
+        )
         platforms = []
-        telegram_id = str(rec.get("telegram_message_id") or "")
-        bale_id = str(rec.get("bale_message_id") or "")
-        if telegram_id.isdigit() and rec.get("expiry_status") not in terminal:
-            platforms.append("telegram")
-        if bale_id.isdigit() and rec.get("bale_expiry_status") not in terminal:
-            platforms.append("bale")
+        status_fields = []
+        has_any_post_id = False
+        for platform, raw_id, status_field, numeric_id in platform_records:
+            valid_id = raw_id.isdigit() if numeric_id else bool(raw_id)
+            if not valid_id:
+                continue
+            has_any_post_id = True
+            if rec.get(status_field) not in terminal:
+                platforms.append(platform)
+                status_fields.append(status_field)
         if not platforms:
-            if telegram_id.isdigit() or bale_id.isdigit():
+            if has_any_post_id:
                 summary["skipped"] += 1
             continue
 
@@ -412,9 +422,9 @@ def sync_live_offer_deadlines(published, live_expiries, now, live_sources=None):
             or any(
                 rec.get(status_field) in {
                     "expired_marked", "delete_failed", "deadline_unavailable_marked",
-                    "deadline_unavailable_delete_failed", "unknown",
+                    "deadline_unavailable_delete_failed", "unknown", "delete_retry",
                 }
-                for status_field in ("expiry_status", "bale_expiry_status")
+                for status_field in status_fields
             )
         )
         if not must_update:
@@ -439,8 +449,14 @@ def sync_live_offer_deadlines(published, live_expiries, now, live_sources=None):
             rec["expiry_last_site_card_sync_at"] = now.isoformat()
         # Force this exact post to the front of the static-caption migration queue.
         rec["deadline_caption_refresh_required"] = True
+        status_field_by_platform = {
+            "telegram": "expiry_status",
+            "bale": "bale_expiry_status",
+            "youtube": "youtube_expiry_status",
+            "aparat": "aparat_expiry_status",
+        }
         for platform in platforms:
-            status_field = "expiry_status" if platform == "telegram" else "bale_expiry_status"
+            status_field = status_field_by_platform[platform]
             if rec.get(status_field) not in terminal:
                 rec[status_field] = "tracked"
         rec.pop("expiry_reason", None)
@@ -2602,10 +2618,10 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
     now = now.astimezone(timezone.utc)
     batch_size = batch_size if batch_size is not None else max(1, min(30, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "30"))))
     interval_seconds = interval_seconds or max(
-        300, min(21600, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "3600")))
+        60, min(21600, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "3600")))
     )
     retry_seconds = retry_seconds or max(
-        300, min(3600, int(os.getenv("AFFILIO_PRICE_AUDIT_RETRY_SECONDS", "900")))
+        60, min(3600, int(os.getenv("AFFILIO_PRICE_AUDIT_RETRY_SECONDS", "900")))
     )
     terminal = {"deleted", "already_absent"}
     groups = {}
@@ -3283,6 +3299,45 @@ def run_bounded_maintenance():
     changed = False
     deleted = 0
 
+    feed_last = parse_expiry(state.get("expiry_feed_last_attempt_at") or state.get("expiry_feed_last_checked_at"))
+    feed_due = not feed_last or (now - datetime.fromisoformat(feed_last)).total_seconds() >= LIVE_DEADLINE_SYNC_INTERVAL_SECONDS
+    if feed_due and any(_record_has_active_publication(rec) for rec in published.values()):
+        state["expiry_feed_last_attempt_at"] = now.isoformat()
+        try:
+            active_required_ids = [
+                str(pid) for pid, rec in published.items()
+                if _record_has_active_publication(rec)
+            ]
+            live_expiries, live_sources = fetch_offer_deadlines(required_product_ids=active_required_ids)
+            if live_expiries:
+                sync_summary = sync_live_offer_deadlines(published, live_expiries, now, live_sources=live_sources)
+                state["expiry_feed_last_checked_at"] = now.isoformat()
+                state["expiry_feed_last_sync_summary"] = sync_summary
+                print(
+                    "EXPIRY_LIVE_SYNC_SUMMARY "
+                    f"matched={sync_summary['matched']} updated={sync_summary['updated']} "
+                    f"unchanged={sync_summary['unchanged']} missing_from_feed={sync_summary['missing_from_feed']} "
+                    f"skipped={sync_summary['skipped']} bounded=true"
+                )
+            else:
+                state["expiry_feed_last_sync_summary"] = {
+                    "status": "no_live_deadlines_received",
+                    "checked_at": now.isoformat(),
+                    "active_posts": len(active_required_ids),
+                }
+                print("EXPIRY_LIVE_SYNC_SKIPPED bounded=true cached_deadlines_retained=true")
+        except Exception as exc:
+            state["expiry_feed_last_sync_summary"] = {
+                "status": "retry",
+                "checked_at": now.isoformat(),
+                "error": f"{type(exc).__name__}: {str(exc)[:160]}",
+            }
+            print(
+                f"EXPIRY_DIRECT_FEED_LOOKUP_FAILED bounded=true error={type(exc).__name__} "
+                f"detail={str(exc)[:140]!r}; active_posts_preserved=true"
+            )
+        _write_state(state)
+
     # Reconcile a bounded slice of the real public channel before price validation.
     # This catches successful sends whose state write was interrupted and ensures the
     # following audit compares the retailer data against the caption users can see.
@@ -3335,7 +3390,7 @@ def run_bounded_maintenance():
         **summary,
         "checked_at": now.isoformat(),
         "batch_size": max(1, min(30, int(os.getenv("AFFILIO_PRICE_AUDIT_BATCH_SIZE", "10")))),
-        "check_interval_seconds": max(300, min(21600, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "3600")))),
+        "check_interval_seconds": max(60, min(21600, int(os.getenv("AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS", "3600")))),
         "mode": "bounded-maintenance",
     }
     changed = changed or price_changed or bool(summary.get("products_checked"))
@@ -3406,26 +3461,18 @@ def run():
 
     # Refresh known deadlines before expiry/deletion decisions; a fresh live deadline
     # must supersede a stale cached deadline.
-    feed_last = parse_expiry(state.get("expiry_feed_last_checked_at"))
+    feed_last = parse_expiry(state.get("expiry_feed_last_attempt_at") or state.get("expiry_feed_last_checked_at"))
     force_feed_sync = os.getenv("AFFILIO_FORCE_DEADLINE_SYNC", "false").strip().lower() in {"1", "true", "yes", "on"}
     feed_due = force_feed_sync or not feed_last or (now - datetime.fromisoformat(feed_last)).total_seconds() >= LIVE_DEADLINE_SYNC_INTERVAL_SECONDS
-    if feed_due and any(
-        isinstance(rec, dict) and (
-            (str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent"})
-            or (str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"})
-        )
-        for rec in published.values()
-    ):
+    if feed_due and any(_record_has_active_publication(rec) for rec in published.values()):
+        state["expiry_feed_last_attempt_at"] = now.isoformat()
         live_expiries = {}
         try:
             # Only DigiKala's own endpoint can authorize a deadline-driven deletion.
             # The MCP wrapper may assist discovery, but is never expiry-deletion authority.
             active_required_ids = [
                 str(pid) for pid, rec in published.items()
-                if isinstance(rec, dict) and (
-                    (str(rec.get("telegram_message_id") or "").isdigit() and rec.get("expiry_status") not in {"deleted", "already_absent"})
-                    or (str(rec.get("bale_message_id") or "").isdigit() and rec.get("bale_expiry_status") not in {"deleted", "already_absent"})
-                )
+                if _record_has_active_publication(rec)
             ]
             live_expiries, live_sources = fetch_offer_deadlines(required_product_ids=active_required_ids)
         except Exception as exc:
