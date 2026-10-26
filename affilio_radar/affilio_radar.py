@@ -3738,8 +3738,10 @@ def build_discount_image(
     width, height = image.size
     min_dim = min(width, height)
     brand_margin = max(10, int(min_dim * 0.025))
-    # Use identical target bounds for the upper-left retailer tile and upper-right discount tile.
-    store_badge_width = min(width - 2 * brand_margin, max(124, min(320, int(min_dim * 0.38))))
+    # Both top-corner tiles share one width. Reserve half the available canvas
+    # width for each so equal-sized tiles cannot overlap on small source images.
+    max_badge_width = max(1, (width - 2 * brand_margin) // 2)
+    store_badge_width = min(max_badge_width, max(124, min(320, int(min_dim * 0.38))))
     store_badge_height = max(48, min(88, int(min_dim * 0.14)))
     label = format_discount_badge(discount_percent)
     draw = ImageDraw.Draw(image)
