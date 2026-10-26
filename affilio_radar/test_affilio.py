@@ -62,6 +62,8 @@ from affilio_radar import (
     api_incredible_offer_product_urls,
     api_incredible_offer_product_candidates,
     discover_product_urls,
+    SEARCH_TERMS,
+    _discovery_candidate_budgets,
     parse_product_api,
     is_discount_publish_eligible,
     is_prohibited_product_title,
@@ -837,6 +839,35 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(classify_category("باتری قلمی قابل شارژ"), "power_backup")
         self.assertEqual(classify_category("بادی نوزادی نیل کوک مدل Winter Teddy مجموعه 5 عددی"), "kids_sports")
         self.assertEqual(classify_category("سنگ پا برقی مدل M100"), "personal_care")
+        self.assertEqual(classify_category("پولوشرت آستین کوتاه مردانه مدل نمونه"), "fashion")
+        self.assertEqual(classify_category("چراغ پیشانی شارژی مدل نمونه"), "lighting")
+        self.assertEqual(classify_category("غذای گربه مدل نمونه"), "pet_supplies")
+        self.assertEqual(classify_category("جارو شارژی مدل نمونه"), "home_cleaning")
+        self.assertEqual(classify_category("بازی فکری کودک مدل نمونه"), "kids_sports")
+        self.assertEqual(classify_category("توپ فوتبال مدل نمونه"), "sports_outdoor")
+        self.assertEqual(classify_category("لیزر پوینتر ارائه مدل نمونه"), "presentation_tools")
+        self.assertEqual(classify_category("لوازم نقاشی و طراحی مدل نمونه"), "arts_crafts")
+
+    def test_discovery_budget_protects_rotating_category_search_slots(self):
+        self.assertEqual(_discovery_candidate_budgets(40), (28, 12))
+        self.assertEqual(_discovery_candidate_budgets(12), (8, 4))
+        self.assertEqual(_discovery_candidate_budgets(1), (1, 0))
+        for term in (
+            "لوازم حیوانات خانگی",
+            "ابزار دستی و ابزارآلات",
+            "لوازم نظافت و شستشوی خانه",
+            "چراغ مطالعه و لوازم روشنایی",
+            "لوازم هنری و نقاشی",
+            "لوازم مراقبت و نگهداری خودرو",
+            "لوازم حمام و سرویس بهداشتی",
+            "لوازم باغبانی و گلدان",
+        ):
+            self.assertIn(term, SEARCH_TERMS)
+
+    def test_calcium_and_arginine_supplements_are_excluded(self):
+        self.assertTrue(is_prohibited_product_title("شربت کلسی کید جویس یوروویتال"))
+        self.assertTrue(is_prohibited_product_title("شربت ال آرژنین پلاس فیشر کیندر"))
+        self.assertTrue(is_prohibited_product_title("مکمل کلسیم کودکان"))
 
     def test_publish_selection_softly_reorders_repetitive_categories_for_diversity(self):
         now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
