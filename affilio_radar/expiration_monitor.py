@@ -49,7 +49,7 @@ POST_REMOVAL_BUFFER_MINUTES = max(
 LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 60
 # Bound detail lookups so missing timers cannot stall expiry cleanup.
 DIRECT_PRODUCT_DETAIL_CHECK_LIMIT = max(1, min(2, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "1"))))
-CAPTION_FORMAT_VERSION = 12
+CAPTION_FORMAT_VERSION = 13
 
 
 def walk_dicts(value):
@@ -898,10 +898,10 @@ def _format_jalali_deadline(deadline):
 def _extract_legacy_caption_fields(caption_text):
     """Read the core fields needed to safely rebuild a legacy caption."""
     text = " ".join(str(caption_text or "").split())
-    title_match = re.search(r"🛍️\s*(.+?)\s*(?=💚\s*قیمت\s*ویژه)", text)
+    title_match = re.search(r"🛍️\s*(.+?)\s*(?=💚\s*قیمت\s*(?:ویژه|فعلی))", text)
     title = title_match.group(1).strip(" :：") if title_match else ""
     text = _normalize_digits(text)
-    current_match = re.search(r"قیمت\s*ویژه\s*[:：]\s*(?:💰\s*)?([\d٬,٫\s]+?)\s*تومان", text)
+    current_match = re.search(r"قیمت\s*(?:ویژه|فعلی)\s*[:：]\s*(?:💰\s*)?([\d٬,٫\s]+?)\s*تومان", text)
     original_match = re.search(r"قیمت\s*اصلی\s*[:：]\s*([\d٬,٫\s]+?)\s*تومان", text)
     discount_match = re.search(r"(\d{1,3})\s*٪\s*تخفیف", text)
 
@@ -934,9 +934,9 @@ def _build_legacy_repaired_caption(fields, deadline=None, now=None, affiliate_ur
     return build_caption(product, affiliate_url, TELEGRAM_CHANNEL_URL)
 
 def _caption_needs_repair(caption_html, caption_text, fields, deadline=None, now=None):
-    """Check captions against the canonical static layout, not the former underline style."""
+    """Recognize the current concise caption without repeatedly editing already-canonical posts."""
     text = str(caption_text or "")
-    if "عضویت در کانال OfferChin" not in text or "t.me/OfferChin" in text:
+    if "عضویت در کانال تلگرام آفرچین" not in text or "t.me/OfferChin" in text:
         return True
 
     # Captions never contain a timer or a textual deadline: only state drives deletion.
@@ -948,38 +948,31 @@ def _caption_needs_repair(caption_html, caption_text, fields, deadline=None, now
         return True
 
     soup = BeautifulSoup(caption_html or "", "html.parser")
-    # The reference/list price is no longer part of the public caption. Repair
-    # legacy posts that still mention it or display a struck-through amount.
+    # The reference/list price is not part of the public caption.
     if "قیمت اصلی" in text or soup.find(["s", "del", "strike"]) is not None:
         return True
     if soup.find("u") is not None:
         return True
+
     bold_texts = [
         " ".join(_normalize_digits(node.get_text(" ", strip=True)).split())
         for node in soup.find_all(["b", "strong"])
     ]
     normalized_text = " ".join(_normalize_digits(text).split())
 
-    if "فروش ویژه دیجی‌کالا" not in normalized_text:
+    if "فروش ویژه" not in normalized_text or not any(
+        retailer in normalized_text for retailer in ("دیجی‌کالا", "اسنپ‌شاپ")
+    ):
         return True
     if "🛍️" not in normalized_text:
         return True
-    if "برای خرید از دیجی‌کالا" not in normalized_text or "دکمهٔ زیر" not in normalized_text:
-        return True
 
     current = fields.get("current_price")
-    original = fields.get("original_price")
     discount = fields.get("discount_percent")
-    expected_dividers = 0
-
     try:
         current_value = int(current) if current is not None else 0
     except (TypeError, ValueError, OverflowError):
         current_value = 0
-    try:
-        original_value = int(original) if original is not None else 0
-    except (TypeError, ValueError, OverflowError):
-        original_value = 0
     try:
         discount_value = int(discount) if discount is not None else 0
     except (TypeError, ValueError, OverflowError):
@@ -988,11 +981,10 @@ def _caption_needs_repair(caption_html, caption_text, fields, deadline=None, now
     if current_value > 0:
         expected_amount = _normalize_digits(_persian_number(current_value))
         if not any(
-            "قیمت ویژه" in value and "تومان" in value and expected_amount in value
+            "قیمت فعلی" in value and "تومان" in value and expected_amount in value
             for value in bold_texts
         ):
             return True
-        expected_dividers += 1
 
     if discount_value > 0:
         expected_discount = _normalize_digits(_persian_number(discount_value)) + "٪"
@@ -1001,15 +993,17 @@ def _caption_needs_repair(caption_html, caption_text, fields, deadline=None, now
             for value in bold_texts
         ):
             return True
-        expected_dividers += 1
 
-    # The divider count/order is the visual signature of the agreed caption format.
+    # The current layout has one separator before the offer facts (when present)
+    # and one before the source-channel link. A canonical post must not be edited
+    # again by every audit run simply because the former caption version had dividers
+    # after each line or included a redundant buy instruction.
+    expected_dividers = 1 + int(current_value > 0 or discount_value > 0)
     if text.count("────────────") != expected_dividers:
         return True
 
-    # No original-price label or strike-through is allowed in the canonical caption,
-    # regardless of the discount band; the legacy form was rejected above.
     return False
+
 
 def _fetch_public_channel_page(before=None):
     username = re.sub(r"[^A-Za-z0-9_]", "", TELEGRAM_CHANNEL_USERNAME) or "OfferChin"
