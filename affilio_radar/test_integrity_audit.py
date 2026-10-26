@@ -225,6 +225,18 @@ class IntegrityAuditStateTests(unittest.TestCase):
             100,
         )
 
+    def test_integrity_audit_is_scheduled_separately_from_publisher(self):
+        root = __import__("pathlib").Path(__file__).resolve().parent.parent
+        audit_workflow = (root / ".github" / "workflows" / "offerchin-integrity-audit.yml").read_text(encoding="utf-8")
+        publisher_workflow = (root / ".github" / "workflows" / "offerchin-publisher.yml").read_text(encoding="utf-8")
+
+        self.assertIn('cron: "*/5 * * * *"', audit_workflow)
+        self.assertIn('AFFILIO_PRICE_AUDIT_BATCH_SIZE: "30"', audit_workflow)
+        self.assertIn('AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "120"', audit_workflow)
+        self.assertIn("group: offerchin-integrity-audit", audit_workflow)
+        self.assertIn("group: offerchin-content-publisher", publisher_workflow)
+        self.assertNotIn("offerchin-integrity-audit", publisher_workflow)
+
     def test_audit_entry_for_unknown_post_id_is_ignored(self):
         state = {"published": {"dkp-126": {"telegram_message_id": 301, "expiry_status": "tracked"}}}
         ledger = {
