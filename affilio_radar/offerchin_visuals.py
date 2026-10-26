@@ -119,7 +119,9 @@ def draw_discount_burst(
         return
 
     left, top = int(left), int(top)
-    right, bottom = left + width, top + height
+    # Pillow rectangle endpoints are inclusive, so subtract one to keep the
+    # rendered tile exactly `width` by `height` pixels.
+    right, bottom = left + width - 1, top + height - 1
     radius = max(10, min(24, int(height * 0.22)))
     shadow = max(2, int(height * 0.035))
     brand = _discount_badge_color(merchant)
