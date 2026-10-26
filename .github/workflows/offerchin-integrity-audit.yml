@@ -1,6 +1,10 @@
 name: OfferChin Independent Integrity Audit
 
 on:
+  # Independent trust audit; separate from the publisher so cleanup can never
+  # consume or hold the publication workflow's execution slot.
+  schedule:
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -65,10 +69,12 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
-          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "8"
-          AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "60"
-          AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "300"
-          AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "2"
+          # Revisit live offers frequently with a larger bounded batch. This job
+          # is isolated from the publisher and may never be made a publisher dependency.
+          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "30"
+          AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "300"
+          AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "120"
+          AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "6"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           PYTHONUNBUFFERED: "1"
         run: timeout --signal=TERM --kill-after=10s 240s python affilio_radar/integrity_audit.py
