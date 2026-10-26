@@ -121,6 +121,72 @@ class IntegrityAuditStateTests(unittest.TestCase):
         self.assertEqual(old["price_audit_status"], "invalidated")
         self.assertEqual(old["posted_current_price"], 100_000)
 
+    def test_audit_cadence_is_restored_only_for_the_independent_monitor(self):
+        next_check = "2026-10-26T12:05:00+00:00"
+        last_checked = "2026-10-26T12:00:00+00:00"
+        fields = {key: None for key in RECORD_FIELDS}
+        fields.update({
+            "posted_current_price": 100_000,
+            "posted_original_price": 200_000,
+            "posted_discount_percent": 50,
+            "price_audit_status": "match",
+            "price_audit_last_checked_at": last_checked,
+            "price_audit_next_check_at": next_check,
+            "last_seen_current_price": 100_000,
+            "last_seen_original_price": 200_000,
+            "last_seen_in_stock": True,
+        })
+        entry = {
+            "product_id": "dkp-127",
+            "post_id": "401",
+            "platform": "telegram",
+            "updated_at": last_checked,
+            "price_audit_status": "match",
+            "record_fields": fields,
+            "platform_status": "tracked",
+            "platform_fields": {
+                "expired_deleted_at": None,
+                "expiry_last_absent_at": None,
+                "telegram_expiry_last_delete_error": None,
+            },
+        }
+        ledger = {"posts": {post_key("telegram", 401): entry}}
+        publisher_state = {
+            "published": {
+                "dkp-127": {
+                    "telegram_message_id": 401,
+                    "expiry_status": "tracked",
+                    "posted_current_price": 100_000,
+                    "posted_discount_percent": 50,
+                }
+            }
+        }
+        monitor_state = {
+            "published": {
+                "dkp-127": {
+                    "telegram_message_id": 401,
+                    "expiry_status": "tracked",
+                    "posted_current_price": 100_000,
+                    "posted_discount_percent": 50,
+                }
+            }
+        }
+
+        self.assertFalse(apply_integrity_audit_ledger(publisher_state, ledger))
+        self.assertNotIn("price_audit_next_check_at", publisher_state["published"]["dkp-127"])
+
+        self.assertTrue(apply_integrity_audit_ledger(
+            monitor_state, ledger, include_audit_cadence=True
+        ))
+        self.assertEqual(
+            monitor_state["published"]["dkp-127"]["price_audit_next_check_at"],
+            next_check,
+        )
+        self.assertEqual(
+            monitor_state["published"]["dkp-127"]["price_audit_last_checked_at"],
+            last_checked,
+        )
+
     def test_audit_entry_for_unknown_post_id_is_ignored(self):
         state = {"published": {"dkp-126": {"telegram_message_id": 301, "expiry_status": "tracked"}}}
         ledger = {
