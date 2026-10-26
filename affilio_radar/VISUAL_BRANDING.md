@@ -4,15 +4,15 @@ This is the canonical placement and legibility standard for generated OfferChin 
 
 ## Product images
 
-- **Upper-right:** Keep the discount burst as the strongest visual accent. Do not place any logo or text in this corner.
-- **Upper-left:** Place the relevant retailer's complete official logo from its locally bundled asset. Preserve the supplied logo, wordmark, original colors, and brand background tile exactly; scale proportionally only. Do not strip the tile, recolor, redraw, or add a separate panel. Keep it secondary to the discount burst and product.
+- **Upper-right:** Place the discount tile in a target rectangle with exactly the same width and height as the upper-left retailer-logo target rectangle. Use the solid retailer-specific color and a large percentage; for the wide shared frame, place the percentage on the right and the Persian word “تخفیف” on the left. The badge remains the strongest visual accent through color and typography, not by taking more space.
+- **Upper-left:** Place the relevant retailer's complete official logo from its locally bundled asset in the same target width and height as the discount tile. Preserve the supplied logo, wordmark, original colors, brand background tile, and aspect ratio exactly; fit proportionally inside the shared bounds. Do not stretch, strip the tile, recolor, redraw, or add a separate panel.
 - **Lower-left:** Place the Telegram and Bale channel IDs on two compact lines: `T.me/OfferChin` and `ble.ir/OfferChin`. Keep the text directly over the image, without a box or solid background.
 - Choose each ID's foreground color from the luminance behind its actual text area: white over dark areas, dark over light areas. Add only a thin opposing outline when needed for legibility.
 - Keep all overlays inside a consistent safe margin. They must not cover essential product details.
 
 ## Vertical 9:16 videos
 
-- Keep the same hierarchy: discount upper-right and retailer mark upper-left within the product-card area.
+- Keep the same hierarchy: discount upper-right and retailer mark upper-left within the product-card area; use exactly equal target width and height for both elements.
 - Keep the channel IDs at the lower-left, above the bottom platform-interface safe area. Do not add a solid text panel.
 - Do not let the zoom/pan crop the discount, retailer mark, or channel IDs.
 - Preserve the product title, main product image, current price, and call-to-action as the primary sales content; brand marks remain secondary.
