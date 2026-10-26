@@ -282,11 +282,33 @@ def capture_integrity_audit_ledger(
         for field in STATE_META_FIELDS
         if field in state
     }
-    # The ledger retains recent outcomes beyond the active state window, but remains bounded.
-    if len(posts) > max(100, int(keep_posts)):
-        ordered = sorted(
-            posts.items(),
-            key=lambda item: str((item[1] or {}).get("updated_at") or ""),
-        )
-        snapshot["posts"] = dict(ordered[-max(100, int(keep_posts)):])
+    # Never evict an unresolved live post from the audit ledger. Otherwise an
+    # old public offer could lose its next_check_at after the ledger cap and never
+    # receive a fair recheck. Bound only the terminal/deleted history.
+    terminal = {"deleted", "already_absent"}
+    active_keys = set()
+    for product_id, record in _record_refs(published):
+        for platform, spec in PLATFORM_SPECS.items():
+            raw_id = str(record.get(spec["id_field"]) or "").strip()
+            if not raw_id or (platform in {"telegram", "bale"} and not raw_id.isdigit()):
+                continue
+            if record.get(spec["status_field"]) not in terminal:
+                active_keys.add(post_key(platform, raw_id))
+
+    max_history = max(100, int(keep_posts))
+    terminal_entries = [
+        (key, item)
+        for key, item in posts.items()
+        if key not in active_keys
+    ]
+    terminal_entries.sort(
+        key=lambda item: str((item[1] or {}).get("updated_at") or ""),
+    )
+    keep_keys = active_keys | {
+        key for key, _item in terminal_entries[-max_history:]
+    }
+    snapshot["posts"] = {
+        key: item for key, item in posts.items()
+        if key in keep_keys
+    }
     return snapshot
