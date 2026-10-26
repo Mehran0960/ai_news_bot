@@ -138,8 +138,19 @@ jobs:
             # Keep this state commit, but discard transient artifacts left modified by discovery.
             # Without this reset, rebase aborts on unstaged candidates.json and sent IDs are lost.
             git reset --hard HEAD
-            git pull --rebase origin main
-            git push
+            # The independent trust auditor commits a different sidecar file. Retry a transient
+            # concurrent push/rebase so a successful public send's message IDs are not lost.
+            for attempt in 1 2 3; do
+              if git pull --rebase origin main && git push; then
+                echo "PUBLISHER_STATE_PERSISTED attempt=$attempt"
+                exit 0
+              fi
+              git rebase --abort 2>/dev/null || true
+              echo "Publisher state persistence attempt $attempt failed; retrying."
+              sleep $((attempt * 2))
+            done
+            echo "PUBLISHER_STATE_PERSIST_FAILED; public sends already attempted, next run will reconcile status."
+            exit 1
           else
             echo "No delivery-state changes to persist."
           fi
