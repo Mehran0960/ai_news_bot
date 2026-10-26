@@ -3284,6 +3284,67 @@ def _delete_expired_youtube_videos(published, now, direct_confirm=None):
     return changed
 
 
+def _sync_live_deadline_feed(state, published, now, force=False):
+    """Refresh verified offer deadlines for every active publishing destination.
+
+    Failed/empty source responses are recorded for retry; they never invalidate a
+    deal or authorize deletion. Destination IDs remain independently tracked.
+    """
+    last_raw = state.get("expiry_feed_last_attempt_at") or state.get("expiry_feed_last_checked_at")
+    last_attempt = parse_expiry(last_raw)
+    if not force and last_attempt:
+        try:
+            last_dt = datetime.fromisoformat(last_attempt)
+            if last_dt.tzinfo is None:
+                last_dt = last_dt.replace(tzinfo=timezone.utc)
+            if (now.astimezone(timezone.utc) - last_dt.astimezone(timezone.utc)).total_seconds() < LIVE_DEADLINE_SYNC_INTERVAL_SECONDS:
+                return False
+        except (TypeError, ValueError):
+            pass
+
+    active_ids = [
+        str(pid) for pid, rec in (published or {}).items()
+        if _record_has_active_publication(rec)
+    ]
+    if not active_ids:
+        return False
+
+    state["expiry_feed_last_attempt_at"] = now.isoformat()
+    try:
+        live_expiries, live_sources = fetch_offer_deadlines(required_product_ids=active_ids)
+    except Exception as exc:
+        state["expiry_feed_last_sync_summary"] = {
+            "status": "retry",
+            "checked_at": now.isoformat(),
+            "error": f"{type(exc).__name__}: {str(exc)[:160]}",
+        }
+        print(
+            f"EXPIRY_DIRECT_FEED_LOOKUP_FAILED error={type(exc).__name__} "
+            f"detail={str(exc)[:140]!r}; active_posts_preserved=true"
+        )
+        return True
+
+    if not live_expiries:
+        state["expiry_feed_last_sync_summary"] = {
+            "status": "no_live_deadlines_received",
+            "checked_at": now.isoformat(),
+            "active_posts": len(active_ids),
+        }
+        print("EXPIRY_LIVE_SYNC_SKIPPED reason=no_live_deadlines_received; cached_deadlines_retained=true")
+        return True
+
+    summary = sync_live_offer_deadlines(published, live_expiries, now, live_sources=live_sources)
+    state["expiry_feed_last_checked_at"] = now.isoformat()
+    state["expiry_feed_last_sync_summary"] = summary
+    print(
+        "EXPIRY_LIVE_SYNC_SUMMARY "
+        f"matched={summary['matched']} updated={summary['updated']} "
+        f"unchanged={summary['unchanged']} missing_from_feed={summary['missing_from_feed']} "
+        f"skipped={summary['skipped']} forced={force}"
+    )
+    return True
+
+
 def run_bounded_maintenance():
     """Recurring bounded maintenance for the live public channel.
 
@@ -3299,43 +3360,8 @@ def run_bounded_maintenance():
     changed = False
     deleted = 0
 
-    feed_last = parse_expiry(state.get("expiry_feed_last_attempt_at") or state.get("expiry_feed_last_checked_at"))
-    feed_due = not feed_last or (now - datetime.fromisoformat(feed_last)).total_seconds() >= LIVE_DEADLINE_SYNC_INTERVAL_SECONDS
-    if feed_due and any(_record_has_active_publication(rec) for rec in published.values()):
-        state["expiry_feed_last_attempt_at"] = now.isoformat()
-        try:
-            active_required_ids = [
-                str(pid) for pid, rec in published.items()
-                if _record_has_active_publication(rec)
-            ]
-            live_expiries, live_sources = fetch_offer_deadlines(required_product_ids=active_required_ids)
-            if live_expiries:
-                sync_summary = sync_live_offer_deadlines(published, live_expiries, now, live_sources=live_sources)
-                state["expiry_feed_last_checked_at"] = now.isoformat()
-                state["expiry_feed_last_sync_summary"] = sync_summary
-                print(
-                    "EXPIRY_LIVE_SYNC_SUMMARY "
-                    f"matched={sync_summary['matched']} updated={sync_summary['updated']} "
-                    f"unchanged={sync_summary['unchanged']} missing_from_feed={sync_summary['missing_from_feed']} "
-                    f"skipped={sync_summary['skipped']} bounded=true"
-                )
-            else:
-                state["expiry_feed_last_sync_summary"] = {
-                    "status": "no_live_deadlines_received",
-                    "checked_at": now.isoformat(),
-                    "active_posts": len(active_required_ids),
-                }
-                print("EXPIRY_LIVE_SYNC_SKIPPED bounded=true cached_deadlines_retained=true")
-        except Exception as exc:
-            state["expiry_feed_last_sync_summary"] = {
-                "status": "retry",
-                "checked_at": now.isoformat(),
-                "error": f"{type(exc).__name__}: {str(exc)[:160]}",
-            }
-            print(
-                f"EXPIRY_DIRECT_FEED_LOOKUP_FAILED bounded=true error={type(exc).__name__} "
-                f"detail={str(exc)[:140]!r}; active_posts_preserved=true"
-            )
+    deadline_sync_changed = _sync_live_deadline_feed(state, published, now)
+    if deadline_sync_changed:
         _write_state(state)
 
     # Reconcile a bounded slice of the real public channel before price validation.
@@ -3459,39 +3485,12 @@ def run():
     changed = False
     deleted = 0
 
-    # Refresh known deadlines before expiry/deletion decisions; a fresh live deadline
-    # must supersede a stale cached deadline.
-    feed_last = parse_expiry(state.get("expiry_feed_last_attempt_at") or state.get("expiry_feed_last_checked_at"))
     force_feed_sync = os.getenv("AFFILIO_FORCE_DEADLINE_SYNC", "false").strip().lower() in {"1", "true", "yes", "on"}
-    feed_due = force_feed_sync or not feed_last or (now - datetime.fromisoformat(feed_last)).total_seconds() >= LIVE_DEADLINE_SYNC_INTERVAL_SECONDS
-    if feed_due and any(_record_has_active_publication(rec) for rec in published.values()):
-        state["expiry_feed_last_attempt_at"] = now.isoformat()
-        changed = True
-        live_expiries = {}
-        try:
-            # Only DigiKala's own endpoint can authorize a deadline-driven deletion.
-            # The MCP wrapper may assist discovery, but is never expiry-deletion authority.
-            active_required_ids = [
-                str(pid) for pid, rec in published.items()
-                if _record_has_active_publication(rec)
-            ]
-            live_expiries, live_sources = fetch_offer_deadlines(required_product_ids=active_required_ids)
-        except Exception as exc:
-            print(f"EXPIRY_DIRECT_FEED_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
-        if live_expiries:
-            sync_summary = sync_live_offer_deadlines(published, live_expiries, now, live_sources=live_sources)
-            state["expiry_feed_last_checked_at"] = now.isoformat()
-            state["expiry_feed_last_sync_summary"] = sync_summary
-            changed = True
-            print(
-                "EXPIRY_LIVE_SYNC_SUMMARY "
-                f"matched={sync_summary['matched']} updated={sync_summary['updated']} "
-                f"unchanged={sync_summary['unchanged']} missing_from_feed={sync_summary['missing_from_feed']} "
-                f"skipped={sync_summary['skipped']} forced={force_feed_sync}"
-            )
-        else:
-            print("EXPIRY_LIVE_SYNC_SKIPPED reason=no_live_deadlines_received; cached deadlines retained")
-    else:
+    feed_sync_changed = _sync_live_deadline_feed(state, published, now, force=force_feed_sync)
+    changed = changed or feed_sync_changed
+    if feed_sync_changed:
+        _write_state(state)
+    if not feed_sync_changed:
         print(f"EXPIRY_LIVE_SYNC_SKIPPED reason=not_due forced={force_feed_sync}")
 
     direct_recheck_budget = {"remaining": DIRECT_PRODUCT_DETAIL_CHECK_LIMIT}
