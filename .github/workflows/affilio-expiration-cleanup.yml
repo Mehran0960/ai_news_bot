@@ -25,7 +25,7 @@ jobs:
     concurrency:
       group: ${{ github.event_name == 'push' && (contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') || contains(github.event.head_commit.message, '[duplicate-cleanup-product-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-now]') || contains(github.event.head_commit.message, '[live-audit-now]') || contains(github.event.head_commit.message, '[remove-bale-duplicate-once]')) && 'offerchin-content-publisher' || 'affilio-channel-updates' }}
       # Only an explicit global dedupe run may preempt a stale publisher lock; routine cleanup remains non-preemptive.
-      cancel-in-progress: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[duplicate-cleanup-now]') }}
+      cancel-in-progress: ${{ github.event_name == 'push' && (contains(github.event.head_commit.message, '[duplicate-cleanup-now]') || contains(github.event.head_commit.message, '[remove-bale-duplicate-once]')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -84,7 +84,7 @@ jobs:
           PY
 
       - name: Run expiry-monitor regression tests on code pushes only
-        if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[deadline-audit-only]') && !contains(github.event.head_commit.message, '[expiry-cleanup-now]') && !contains(github.event.head_commit.message, '[duplicate-cleanup-now]') && !contains(github.event.head_commit.message, '[remove-glama-once]') && !contains(github.event.head_commit.message, '[repair-buttons-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && !contains(github.event.head_commit.message, '[duplicate-cleanup-product-now]') }}
+        if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[deadline-audit-only]') && !contains(github.event.head_commit.message, '[expiry-cleanup-now]') && !contains(github.event.head_commit.message, '[duplicate-cleanup-now]') && !contains(github.event.head_commit.message, '[remove-glama-once]') && !contains(github.event.head_commit.message, '[repair-buttons-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && !contains(github.event.head_commit.message, '[duplicate-cleanup-product-now]') && !contains(github.event.head_commit.message, '[remove-bale-duplicate-once]') }}
         continue-on-error: true
         run: |
           # Tests write state; always restore the live channel ledger after test execution.
@@ -99,6 +99,7 @@ jobs:
 
       # [duplicate-cleanup-now] runs global dedupe; [duplicate-cleanup-product-now] limits dedupe to one exact product.
       - name: Clean up offers with verified expired deadlines
+        if: ${{ !contains(github.event.head_commit.message, '[remove-bale-duplicate-once]') }}
         env:
           AFFILIO_FORCE_DEADLINE_SYNC: ${{ (contains(github.event.head_commit.message, '[deadline-audit-only]') || contains(github.event.head_commit.message, '[repair-all-captions]')) && 'true' || 'false' }}
           AFFILIO_DEDUPLICATE_ONLY: ${{ (contains(github.event.head_commit.message, '[duplicate-cleanup-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-product-now]')) && 'true' || 'false' }}
