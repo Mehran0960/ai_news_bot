@@ -28,7 +28,7 @@ from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from offerchin_visuals import (
     draw_discount_burst, draw_retailer_badge, adaptive_text_colors,
-    discount_badge_dimensions_for_reference_height,
+    discount_badge_dimensions_for_reference_bounds,
 )
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -3738,13 +3738,13 @@ def build_discount_image(
     width, height = image.size
     min_dim = min(width, height)
     brand_margin = max(10, int(min_dim * 0.025))
-    # Use one shared height for the upper-left retailer tile and upper-right discount tile.
+    # Use identical target bounds for the upper-left retailer tile and upper-right discount tile.
     store_badge_width = min(width - 2 * brand_margin, max(124, min(320, int(min_dim * 0.38))))
     store_badge_height = max(48, min(88, int(min_dim * 0.14)))
     label = format_discount_badge(discount_percent)
     draw = ImageDraw.Draw(image)
     if label:
-        badge_width, badge_height = discount_badge_dimensions_for_reference_height(store_badge_height)
+        badge_width, badge_height = discount_badge_dimensions_for_reference_bounds(store_badge_width, store_badge_height)
         badge_left = max(0, width - brand_margin - badge_width)
         badge_top = brand_margin
         try:
