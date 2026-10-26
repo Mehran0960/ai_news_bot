@@ -139,6 +139,12 @@ class ShortVideoTests(unittest.TestCase):
             if red > 120 and red > green * 1.6 and red > blue * 1.5
         )
         self.assertGreater(red_pixels, 1500)
+        # The compact badge is 150x112 and remains anchored to the upper-right margin.
+        self.assertGreater(
+            sum(1 for red, green, blue in poster.crop((526, 173, 676, 285)).getdata()
+                if red > 120 and red > green * 1.6 and red > blue * 1.5),
+            10000,
+        )
         self.assertEqual(poster.size, (720, 1280))
 
     def test_vertical_discount_badge_uses_snappshop_purple(self):
