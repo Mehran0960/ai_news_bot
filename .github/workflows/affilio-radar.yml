@@ -23,8 +23,6 @@ on:
       - "affilio_radar/expiration_monitor.py"
       - "affilio_radar/trust_audit_ledger.py"
       - "affilio_radar/test_trust_audit_ledger.py"
-      - "affilio_radar/price_audit_state.json"
-      - ".github/workflows/offerchin-trust-monitor.yml"
       - "affilio_radar/content_delivery.py"
       - "affilio_radar/publisher.py"
       - "affilio_radar/platform_registry.py"
