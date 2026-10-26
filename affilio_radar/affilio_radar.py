@@ -4928,6 +4928,37 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     return category, family, brand
 
 
+def _publication_diversity_history_key(record: dict, product_id_override: str | None = None):
+    """Identify one real post by platform message IDs, not timestamps refreshed by audits.
+
+    A post's metadata timestamp can be rewritten during countdown/cleanup runs.
+    Stable channel message IDs are the durable identity; timestamps are only a
+    fallback for legacy records that never stored a platform message ID.
+    """
+    if not isinstance(record, dict):
+        return None
+    pid = str(product_id_override or record.get("product_id") or "").strip()
+    if not pid:
+        return None
+
+    def valid_id(field: str) -> int:
+        value = str(record.get(field) or "").strip()
+        return int(value) if value.isdigit() and int(value) > 0 else 0
+
+    telegram_id = valid_id("telegram_message_id")
+    bale_id = valid_id("bale_message_id")
+    if telegram_id or bale_id:
+        return ("message", pid, telegram_id, bale_id)
+
+    try:
+        timestamp = float(record.get("ts") or record.get("order") or 0)
+    except (TypeError, ValueError, OverflowError):
+        timestamp = 0.0
+    if timestamp > 0:
+        return ("time", pid, round(timestamp, 3))
+    return None
+
+
 def _recent_publication_diversity(
     published: dict | None,
     limit: int = 12,
@@ -4966,6 +4997,9 @@ def _recent_publication_diversity(
                 "product_id": str(raw_pid),
                 "title": title,
                 "message_id": max(message_ids),
+                "telegram_message_id": int(post["telegram_message_id"]) if str(post.get("telegram_message_id") or "").isdigit() else 0,
+                "bale_message_id": int(post["bale_message_id"]) if str(post.get("bale_message_id") or "").isdigit() else 0,
+                "ts": order,
                 "order": order,
                 "category": category,
                 "family": family,
@@ -4993,19 +5027,25 @@ def _recent_publication_diversity(
             "product_id": pid,
             "title": title,
             "message_id": message_id,
+            "telegram_message_id": int(entry["telegram_message_id"]) if str(entry.get("telegram_message_id") or "").isdigit() else 0,
+            "bale_message_id": int(entry["bale_message_id"]) if str(entry.get("bale_message_id") or "").isdigit() else 0,
+            "ts": order,
             "order": order,
             "category": category,
             "family": family,
             "brand": brand,
         })
 
-    # Merge a durable history item with the corresponding still-tracked post by
-    # product/time. A post can appear in both sources, but must count only once.
+    # The same real post can be represented at many audit timestamps. Deduplicate
+    # by stable platform message IDs and keep its earliest timestamp (the original
+    # publication time), otherwise a refreshed snapshot can masquerade as a new post.
     unique = {}
     for record in records:
-        key = (record["product_id"], round(float(record["order"]), 3))
+        key = _publication_diversity_history_key(record)
+        if key is None:
+            continue
         previous = unique.get(key)
-        if previous is None or record["message_id"] > previous["message_id"]:
+        if previous is None or float(record["order"]) < float(previous["order"]):
             unique[key] = record
     return sorted(unique.values(), key=lambda r: (r["order"], r["message_id"]))[-max(1, int(limit)):]
 
@@ -5248,8 +5288,16 @@ def ensure_recent_publications(state: dict) -> bool:
         pid = str(entry.get("product_id") or "").strip()
         title = str(entry.get("title") or "").strip()
         ts = _publication_record_ts(entry)
-        if pid and title and ts > 0:
-            by_key[(pid, round(ts, 3))] = dict(entry)
+        if not pid or not title or ts <= 0:
+            continue
+        key = _publication_diversity_history_key(entry, pid)
+        if key is None:
+            continue
+        previous = by_key.get(key)
+        # When an identical message ID appears under multiple changed timestamps,
+        # retain the earliest timestamp as the actual publication time.
+        if previous is None or ts < _publication_record_ts(previous):
+            by_key[key] = dict(entry)
 
     sources = []
     ledger = state.get("publication_ledger")
@@ -5273,10 +5321,6 @@ def ensure_recent_publications(state: dict) -> bool:
         ts = _publication_record_ts(record)
         if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", pid) or not title or ts <= 0:
             continue
-        key = (pid, round(ts, 3))
-        old = by_key.get(key)
-        if old and str(old.get("title") or "") == title:
-            continue
         category, family, brand = _publication_diversity_group(title)
         entry = {
             "ts": ts,
@@ -5289,6 +5333,12 @@ def ensure_recent_publications(state: dict) -> bool:
         for field in ("telegram_message_id", "bale_message_id"):
             if str(record.get(field) or "").isdigit():
                 entry[field] = int(record[field])
+        key = _publication_diversity_history_key(entry, pid)
+        if key is None:
+            continue
+        old = by_key.get(key)
+        if old and _publication_record_ts(old) <= ts:
+            continue
         by_key[key] = entry
 
     retained = sorted(by_key.values(), key=lambda item: _publication_record_ts(item))[
@@ -7416,18 +7466,16 @@ def run(publish=False, selection_only=False):
             for entry in history:
                 if not isinstance(entry, dict):
                     continue
-                entry_pid = str(entry.get("product_id") or "")
                 entry_ts = _publication_record_ts(entry)
-                if not entry_pid or entry_ts <= 0:
+                if not entry_ts:
                     continue
-                event_key = (entry_pid, round(entry_ts, 3))
+                event_key = _publication_diversity_history_key(entry)
+                if event_key is None:
+                    continue
                 previous_entry = unique_history.get(event_key)
-                def message_order(candidate):
-                    try:
-                        return max(int(candidate.get("telegram_message_id") or 0), int(candidate.get("bale_message_id") or 0))
-                    except (TypeError, ValueError, OverflowError):
-                        return 0
-                if previous_entry is None or message_order(entry) >= message_order(previous_entry):
+                # Stable IDs mean this is the same post even if a maintenance run
+                # refreshed its metadata timestamp. Preserve the original post time.
+                if previous_entry is None or entry_ts < _publication_record_ts(previous_entry):
                     unique_history[event_key] = entry
             state["recent_publications"] = sorted(
                 unique_history.values(), key=_publication_record_ts,

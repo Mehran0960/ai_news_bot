@@ -88,6 +88,8 @@ from affilio_radar import (
     previous_publication_posts_removed,
     is_manual_publication_quarantine_active,
     ensure_publication_ledger,
+    ensure_recent_publications,
+    _recent_publication_diversity,
     is_product_repeat_blocked,
     delete_previous_channel_posts,
     process_pending_short_video,
@@ -989,6 +991,79 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotEqual(selected[0]["product_id"], "dkp-audio-new")
         self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
 
+
+    def test_recent_publication_diversity_deduplicates_same_message_ids_across_timestamps(self):
+        first_at = datetime(2026, 10, 26, 1, 0, tzinfo=timezone.utc).timestamp()
+        history = [
+            {
+                "ts": first_at,
+                "product_id": "dkp-same-post",
+                "title": "هدفون بلوتوثی مدل تست",
+                "telegram_message_id": 681,
+                "bale_message_id": 835,
+            },
+            {
+                # A maintenance/countdown snapshot changed ts but not the actual messages.
+                "ts": first_at + 600,
+                "product_id": "dkp-same-post",
+                "title": "هدفون بلوتوثی مدل تست",
+                "telegram_message_id": 681,
+                "bale_message_id": 835,
+            },
+            {
+                "ts": first_at + 1200,
+                "product_id": "dkp-different-post",
+                "title": "چراغ مطالعه رومیزی مدل تست",
+                "telegram_message_id": 682,
+                "bale_message_id": 836,
+            },
+        ]
+
+        recent = _recent_publication_diversity(
+            published={}, limit=10, durable_history=history
+        )
+
+        self.assertEqual(len(recent), 2)
+        same_post = next(item for item in recent if item["product_id"] == "dkp-same-post")
+        self.assertEqual(same_post["order"], first_at)
+        self.assertEqual(same_post["telegram_message_id"], 681)
+        self.assertEqual(same_post["bale_message_id"], 835)
+
+    def test_ensure_recent_publications_normalizes_same_message_history(self):
+        first_at = datetime(2026, 10, 26, 1, 0, tzinfo=timezone.utc).timestamp()
+        state = {
+            "recent_publications": [
+                {
+                    "ts": first_at,
+                    "product_id": "dkp-same-post",
+                    "title": "هدفون بلوتوثی مدل تست",
+                    "telegram_message_id": 681,
+                    "bale_message_id": 835,
+                },
+                {
+                    "ts": first_at + 600,
+                    "product_id": "dkp-same-post",
+                    "title": "هدفون بلوتوثی مدل تست",
+                    "telegram_message_id": 681,
+                    "bale_message_id": 835,
+                },
+                {
+                    "ts": first_at + 1200,
+                    "product_id": "dkp-different-post",
+                    "title": "چراغ مطالعه رومیزی مدل تست",
+                    "telegram_message_id": 682,
+                    "bale_message_id": 836,
+                },
+            ],
+            "publication_ledger": {},
+            "published": {},
+        }
+
+        self.assertTrue(ensure_recent_publications(state))
+        history = state["recent_publications"]
+        self.assertEqual(len(history), 2)
+        same_post = next(item for item in history if item["product_id"] == "dkp-same-post")
+        self.assertEqual(same_post["ts"], first_at)
 
     def test_repeat_product_requires_real_price_drop_to_bypass_product_cooldown(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
