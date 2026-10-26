@@ -1,0 +1,87 @@
+name: OfferChin Trust Monitor
+
+on:
+  # Dispatched by the minute Worker on the off-minute slot. This workflow is
+  # deliberately independent of the publisher and writes only the audit ledger.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: offerchin-trust-monitor
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Check out the latest publication record and trust ledger
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: affilio_radar/requirements.txt
+
+      - name: Install dependencies with transient-failure retries
+        run: |
+          for attempt in 1 2 3; do
+            python -m pip install -r affilio_radar/requirements.txt && exit 0
+            if [[ "$attempt" -lt 3 ]]; then
+              echo "Dependency install attempt $attempt failed; retrying."
+              sleep $((attempt * 3))
+            fi
+          done
+          exit 1
+
+      - name: Validate monitor-only code path
+        run: |
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/trust_audit_ledger.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
+          cd affilio_radar
+          python -m unittest -v test_trust_audit_ledger.py
+
+      - name: Audit live prices, discount percentages and stock
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
+          AFFILIO_ISOLATED_AUDIT_LEDGER: "true"
+          AFFILIO_DEAL_LIST_PAGES: "5"
+          AFFILIO_PUBLIC_HISTORY_PAGES: "2"
+          AFFILIO_DUPLICATE_SCAN_PAGES: "1"
+          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "30"
+          AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "60"
+          AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "300"
+          AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "2"
+          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
+          PYTHONUNBUFFERED: "1"
+        run: timeout --signal=TERM --kill-after=10s 210s python affilio_radar/expiration_monitor.py --bounded-maintenance
+
+      - name: Persist audit results without touching publication state
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [[ -f affilio_radar/price_audit_state.json ]] && ! git diff --quiet -- affilio_radar/price_audit_state.json; then
+            git add affilio_radar/price_audit_state.json
+            git commit -m "chore: persist OfferChin trust audit ledger [skip ci]"
+            # The sidecar ledger and state.json are separate files, so publication
+            # state commits can be rebased without a price-audit merge conflict.
+            git reset --hard HEAD
+            git pull --rebase origin main
+            git push
+          else
+            echo "No trust audit ledger changes to persist."
+          fi
