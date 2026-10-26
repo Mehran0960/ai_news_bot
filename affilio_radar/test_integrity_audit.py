@@ -3,6 +3,8 @@ import unittest
 from integrity_audit_state import (
     RECORD_FIELDS,
     apply_integrity_audit_ledger,
+    capture_integrity_audit_ledger,
+    empty_ledger,
     post_key,
 )
 
@@ -185,6 +187,42 @@ class IntegrityAuditStateTests(unittest.TestCase):
         self.assertEqual(
             monitor_state["published"]["dkp-127"]["price_audit_last_checked_at"],
             last_checked,
+        )
+
+    def test_active_posts_are_never_evicted_when_terminal_history_is_bounded(self):
+        published = {}
+        for post_id in range(1, 111):
+            published[f"dkp-{post_id}"] = {
+                "telegram_message_id": post_id,
+                "expiry_status": "deleted",
+                "posted_current_price": 100_000,
+                "price_audit_status": "match",
+            }
+        published["dkp-active"] = {
+            "telegram_message_id": 9001,
+            "expiry_status": "tracked",
+            "posted_current_price": 100_000,
+            "posted_original_price": 200_000,
+            "posted_discount_percent": 50,
+            "price_audit_status": "match",
+            "price_audit_next_check_at": "2026-10-26T13:00:00+00:00",
+        }
+
+        ledger = capture_integrity_audit_ledger(
+            {"published": published},
+            empty_ledger(),
+            now_iso="2026-10-26T12:00:00+00:00",
+            keep_posts=100,
+        )
+
+        self.assertIn(post_key("telegram", 9001), ledger["posts"])
+        self.assertGreater(len(ledger["posts"]), 100)
+        self.assertLessEqual(
+            sum(
+                1 for item in ledger["posts"].values()
+                if item.get("platform_status") in {"deleted", "already_absent"}
+            ),
+            100,
         )
 
     def test_audit_entry_for_unknown_post_id_is_ignored(self):
