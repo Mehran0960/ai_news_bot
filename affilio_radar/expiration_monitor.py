@@ -3466,6 +3466,7 @@ def run():
     feed_due = force_feed_sync or not feed_last or (now - datetime.fromisoformat(feed_last)).total_seconds() >= LIVE_DEADLINE_SYNC_INTERVAL_SECONDS
     if feed_due and any(_record_has_active_publication(rec) for rec in published.values()):
         state["expiry_feed_last_attempt_at"] = now.isoformat()
+        changed = True
         live_expiries = {}
         try:
             # Only DigiKala's own endpoint can authorize a deadline-driven deletion.
