@@ -2416,6 +2416,34 @@ class AffilioRadarTests(unittest.TestCase):
             purple_pixels = sum(1 for red, green, blue in crop.getdata() if blue > 90 and red > green * 1.6 and blue > green * 1.6)
             self.assertGreater(purple_pixels, 1500, "official SnappShop purple tile must remain clearly visible")
 
+    def test_channel_discount_badge_matches_retailer_badge_height(self):
+        from offerchin_visuals import discount_badge_dimensions_for_reference_height
+
+        source_image = BytesIO()
+        Image.new("RGB", (480, 640), (238, 241, 246)).save(source_image, format="JPEG")
+        rendered = build_discount_image(source_image.getvalue(), 76, merchant="دیجی‌کالا")
+        with Image.open(BytesIO(rendered)).convert("RGB") as poster:
+            min_dim = min(poster.size)
+            retailer_height = max(48, min(88, int(min_dim * 0.14)))
+            expected_width, expected_height = discount_badge_dimensions_for_reference_height(retailer_height)
+            self.assertEqual(expected_height, retailer_height)
+            # The red discount tile is at the upper-right and has the paired height.
+            red_points = [
+                (x, y)
+                for y in range(0, 100)
+                for x in range(330, poster.width)
+                if (lambda p: p[0] > 120 and p[0] > p[1] * 1.6 and p[0] > p[2] * 1.5)(
+                    poster.getpixel((x, y))
+                )
+            ]
+            self.assertTrue(red_points)
+            xs = [point[0] for point in red_points]
+            ys = [point[1] for point in red_points]
+            self.assertLessEqual(max(xs) - min(xs) + 1, expected_width)
+            self.assertGreaterEqual(max(xs) - min(xs) + 1, expected_width - 4)
+            self.assertLessEqual(max(ys) - min(ys) + 1, expected_height + 2)
+            self.assertGreaterEqual(max(ys) - min(ys) + 1, expected_height - 4)
+
     def test_channel_watermarks_use_platform_specific_compact_links(self):
         image_bytes = BytesIO()
         Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")
