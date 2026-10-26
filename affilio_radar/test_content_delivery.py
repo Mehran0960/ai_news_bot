@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 from content_delivery import (
     due_content, due_unpublished_selection, enqueue_selected_content,
-    finish_queue_item, refresh_unpublished_selections,
+    finish_queue_item, get_last_channel_published_at, refresh_unpublished_selections,
 )
 from platform_registry import PLATFORM_NAMES
 from publisher import publish_due_queue
@@ -41,6 +41,82 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             set(PLATFORM_NAMES),
         )
         self.assertEqual(entry["platforms"]["telegram"]["status"], "pending")
+
+    def test_legacy_media_retry_clock_is_recovered_from_actual_channel_send_times(self):
+        actual_channel_send = self.now - timedelta(minutes=25)
+        latest_channel_send = actual_channel_send + timedelta(seconds=1)
+        state = {
+            # Older partial-media retries incorrectly moved this into the future.
+            "last_published_at": (self.now + timedelta(minutes=15)).isoformat(),
+            "content_delivery_queue": {
+                "dkp-partial": {
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "sent", "updated_at": actual_channel_send.isoformat()},
+                        "bale": {"status": "sent", "updated_at": latest_channel_send.isoformat()},
+                        "youtube": {"status": "pending"},
+                        "aparat": {"status": "pending"},
+                    },
+                }
+            },
+        }
+
+        anchor = get_last_channel_published_at(state)
+        self.assertEqual(anchor, latest_channel_send)
+        self.assertEqual(state["last_channel_published_at"], latest_channel_send.isoformat())
+        self.assertEqual(state["last_published_at"], latest_channel_send.isoformat())
+
+        # The stale future retry time must not delay a fresh queue hand-off.
+        summary = enqueue_selected_content(
+            state, [self.item("dkp-fresh")], now=self.now,
+            interval_seconds=1200, max_items=1, minimum_runway_minutes=0,
+        )
+        self.assertEqual(summary["added"], 1)
+        self.assertEqual(
+            datetime.fromisoformat(state["content_delivery_queue"]["dkp-fresh"]["scheduled_at"]),
+            self.now,
+        )
+
+    def test_partial_media_retry_does_not_advance_channel_publication_clock(self):
+        from unittest.mock import patch
+        import publisher
+
+        actual_channel_send = self.now - timedelta(minutes=30)
+        latest_channel_send = actual_channel_send + timedelta(seconds=1)
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-video-pending")], now=actual_channel_send,
+            interval_seconds=1200, max_items=1, minimum_runway_minutes=0,
+        )
+        entry = state["content_delivery_queue"]["dkp-video-pending"]
+        entry["status"] = "partial"
+        entry["next_attempt_at"] = (self.now - timedelta(minutes=1)).isoformat()
+        entry["platforms"]["telegram"].update(
+            status="sent", updated_at=actual_channel_send.isoformat(), attempts=1
+        )
+        entry["platforms"]["bale"].update(
+            status="sent", updated_at=latest_channel_send.isoformat(), attempts=1
+        )
+        entry["platforms"]["youtube"]["status"] = "pending"
+        entry["platforms"]["aparat"]["status"] = "pending"
+        state["last_published_at"] = latest_channel_send.isoformat()
+        state["last_channel_published_at"] = latest_channel_send.isoformat()
+
+        with (
+            patch("publisher.radar.load_state", return_value=state),
+            patch("publisher._save"),
+            patch("publisher._now", return_value=self.now),
+            patch("publisher._fresh_selected_item", return_value=(self.item("dkp-video-pending"), "")),
+            patch("publisher.radar._fetch_image", return_value=b"image"),
+            patch("publisher._process_photo_destination") as send_photo,
+            patch("publisher._process_video_destinations"),
+        ):
+            publisher.publish_due_queue()
+
+        self.assertEqual(state["last_published_at"], latest_channel_send.isoformat())
+        self.assertEqual(state["last_channel_published_at"], latest_channel_send.isoformat())
+        self.assertEqual(send_photo.call_count, 2)
+        # Because both channels were already sent, this retry must not reset either clock.
 
     def test_queue_enforces_spacing_and_dedupes_active_content(self):
         state = {}

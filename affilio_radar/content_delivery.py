@@ -42,6 +42,60 @@ def _utc(value: Any, default: datetime | None = None) -> datetime | None:
         return default
 
 
+def get_last_channel_published_at(state: dict) -> datetime | None:
+    """Return the latest real Telegram/Bale send time and migrate old state safely.
+
+    Older publisher versions could advance last_published_at on every partial retry,
+    even when Telegram and Bale had already sent successfully. Per-destination
+    updated_at values remain stable and provide a safe recovery source.
+    """
+    if not isinstance(state, dict):
+        return None
+
+    stored = _utc(state.get("last_channel_published_at"))
+    observed: list[datetime] = []
+    for collection in (
+        state.get("content_delivery_queue"),
+        state.get("content_delivery_history"),
+    ):
+        entries = collection.values() if isinstance(collection, dict) else (
+            collection if isinstance(collection, list) else []
+        )
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            platforms = entry.get("platforms")
+            if not isinstance(platforms, dict):
+                continue
+            for destination in ("telegram", "bale"):
+                target = platforms.get(destination)
+                if not isinstance(target, dict) or target.get("status") != "sent":
+                    continue
+                sent_at = _utc(target.get("updated_at"))
+                if sent_at is not None:
+                    observed.append(sent_at)
+
+    observed_latest = max(observed) if observed else None
+    legacy = _utc(state.get("last_published_at"))
+    candidates = [value for value in (stored, observed_latest) if value is not None]
+    anchor = max(candidates) if candidates else legacy
+    if anchor is None:
+        return None
+
+    if stored is None or anchor != stored:
+        state["last_channel_published_at"] = anchor.isoformat()
+
+    # Keep the legacy field in sync too, so older/direct publishing paths do not
+    # inherit a timestamp that was only advanced by a YouTube/Aparat retry.
+    if legacy is None or abs((legacy - anchor).total_seconds()) > 90:
+        state["last_published_at"] = anchor.isoformat()
+        print(
+            "CHANNEL_PUBLICATION_CLOCK_RECOVERED "
+            f"previous={legacy.isoformat() if legacy else 'missing'} actual={anchor.isoformat()}"
+        )
+    return anchor
+
+
 def _active_publication(record: Any) -> bool:
     if not isinstance(record, dict):
         return False
@@ -232,8 +286,11 @@ def enqueue_selected_content(
     # Existing retry entries do not reserve future publication slots. A slow or
     # unavailable destination must never push fresh selections into a long queue.
     queue_evicted = enforce_queue_limit(state, now=now, max_active_items=queue_limit)
-    last_published = _utc(state.get("last_published_at"))
-    next_slot = max(now, last_published + timedelta(seconds=interval_seconds)) if last_published else now
+    last_channel_published = get_last_channel_published_at(state)
+    next_slot = (
+        max(now, last_channel_published + timedelta(seconds=interval_seconds))
+        if last_channel_published else now
+    )
 
     added = skipped = 0
     for item in items:

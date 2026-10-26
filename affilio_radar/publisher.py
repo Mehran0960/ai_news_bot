@@ -534,6 +534,10 @@ def publish_due_queue() -> int:
             print(f"CONTENT_IMAGE_UNAVAILABLE product_id={product_id} error={type(exc).__name__}")
             continue
 
+        prior_public_status = {
+            name: str(_target(entry, name).get("status") or "pending")
+            for name in PHOTO_PLATFORMS
+        }
         for destination in PHOTO_PLATFORMS:
             _process_photo_destination(state, entry, record, fresh, image_bytes, destination, now)
         # Refresh mutable status after each adapter. This same record is the hand-off
@@ -546,13 +550,44 @@ def publish_due_queue() -> int:
         completed = all(status in TERMINAL_PLATFORM for status in platforms.values())
         any_success = any(status == "sent" for status in platforms.values())
         unresolved = [name for name, status in platforms.items() if status not in TERMINAL_PLATFORM]
+        new_public_delivery = any(
+            prior_public_status.get(name) != "sent" and platforms.get(name) == "sent"
+            for name in PHOTO_PLATFORMS
+        )
+        if new_public_delivery:
+            public_posted_at = _now().isoformat()
+            state["last_channel_published_at"] = public_posted_at
+            state["last_published_at"] = public_posted_at
+
+        # Preserve the original post timestamp when retrying pending video platforms.
+        # Destination updated_at is written only when that platform actually sends.
+        existing_same_delivery = (
+            isinstance(old, dict)
+            and str(old.get("distribution_queue_id") or "") == delivery_id
+        )
+        if existing_same_delivery:
+            sent_epochs = [
+                dt.timestamp()
+                for name in PHOTO_PLATFORMS
+                if _target(entry, name).get("status") == "sent"
+                and (dt := _utc(_target(entry, name).get("updated_at"))) is not None
+            ]
+            if sent_epochs:
+                try:
+                    previous_epoch = float(old.get("ts") or 0)
+                except (TypeError, ValueError, OverflowError):
+                    previous_epoch = 0
+                first_channel_epoch = min(sent_epochs)
+                record["ts"] = (
+                    min(previous_epoch, first_channel_epoch)
+                    if previous_epoch > 0 else first_channel_epoch
+                )
         if completed:
             if any_success:
                 record["delivery_status"] = {
                     name: ("sent" if status == "sent" else status)
                     for name, status in platforms.items()
                 }
-                state["last_published_at"] = _now().isoformat()
                 state.get("pending_queue", {}).pop(product_id, None)
                 finish_queue_item(state, product_id, "published", now=_now(), detail=",".join(f"{k}={v}" for k, v in platforms.items()))
                 sent_content += 1
@@ -573,7 +608,6 @@ def publish_due_queue() -> int:
             entry["next_attempt_at"] = (min(retry_times) if retry_times else now + timedelta(minutes=15)).isoformat()
             entry["last_detail"] = "unresolved=" + ",".join(unresolved)
             if any_success:
-                state["last_published_at"] = _now().isoformat()
                 state.get("pending_queue", {}).pop(product_id, None)
             print(f"CONTENT_DELIVERY_PARTIAL product_id={product_id} platforms={platforms} retry_at={entry['next_attempt_at']}")
         _save(state)
