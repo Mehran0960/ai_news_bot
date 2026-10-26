@@ -138,6 +138,15 @@ SEARCH_TERMS = [
     "قهوه ساز و لوازم نوشیدنی",
     "نظم دهنده خانه",
     "ابزار کاربردی آشپزخانه",
+    # Underrepresented everyday categories are deliberately in the same rotating search pool.
+    "لوازم حیوانات خانگی",
+    "ابزار دستی و ابزارآلات",
+    "لوازم نظافت و شستشوی خانه",
+    "چراغ مطالعه و لوازم روشنایی",
+    "لوازم هنری و نقاشی",
+    "لوازم مراقبت و نگهداری خودرو",
+    "لوازم حمام و سرویس بهداشتی",
+    "لوازم باغبانی و گلدان",
 ]
 MAX_INCREDIBLE_OFFER_CANDIDATES = max(
     1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "32")))
@@ -145,7 +154,8 @@ MAX_INCREDIBLE_OFFER_CANDIDATES = max(
 EXCLUDED_HEALTH_PRODUCT_RE = re.compile(
     r"(?:قرص|کپسول|دارو(?:یی)?|مکمل|ویتامین|زینک|منیزیم|"
     r"ب[\s\u200c-]*کمپلکس|بی[\s\u200c-]*کمپلکس|امگا[\s\u200c-]*3|"
-    r"کلاژن|ال[\s\u200c-]*کارنیتین|کارنیتین|پروبیوتیک|کلروفیل|اسپیرولینا|"
+    r"کلاژن|کلسیم|کلسی[\s\u200c-]*کید|آرژنین|ال[\s\u200c-]*آرژنین|"
+    r"ال[\s\u200c-]*کارنیتین|کارنیتین|پروبیوتیک|کلروفیل|اسپیرولینا|"
     r"کراتین|گینر|پودر[\s\u200c]+پروتئین|پروتئین[\s\u200c]+وی|"
     r"چربی[\s\u200c-]*سوز|شربت[\s\u200c]+(?:خوراکی|ویتامین|مولتی)|"
     r"قطره[\s\u200c]+(?:خوراکی|ویتامین|آهن)|آمپول|ویال[\s\u200c]*(?:خوراکی)?|"
@@ -2699,6 +2709,20 @@ def mcp_scan_pages_for_cursor(page_count: int, cursor: int, pages_per_scan: int 
     return pages, next_cursor
 
 
+def _discovery_candidate_budgets(max_checks: int) -> tuple[int, int]:
+    """Return (early-source cap, rotating category-search reserve).
+
+    The reserved slots are for targeted category searches at the end of discovery.
+    A retailer source or a warm queue must not be able to consume those slots early.
+    """
+    try:
+        cap = max(1, int(max_checks))
+    except (TypeError, ValueError, OverflowError):
+        cap = 1
+    reserve = min(12, max(1, cap // 3)) if cap > 1 else 0
+    return max(1, cap - reserve), reserve
+
+
 def discover_product_urls(
     queued_records: dict[str, dict] | None = None,
     discovery_queue: dict[str, dict] | None = None,
@@ -2713,8 +2737,12 @@ def discover_product_urls(
     # Compute the cap before touching the persistent queue. This is deliberately
     # first: the normal five-minute scan often begins with queued candidates, so a
     # later assignment used to raise UnboundLocalError and abort every live scan.
-    search_reserve = min(12, max(1, MAX_PRODUCT_CHECKS // 3)) if MAX_PRODUCT_CHECKS > 1 else 0
-    presearch_candidate_limit = max(1, MAX_PRODUCT_CHECKS - search_reserve)
+    presearch_candidate_limit, search_reserve = _discovery_candidate_budgets(MAX_PRODUCT_CHECKS)
+    print(
+        f"DISCOVERY_SOURCE_BUDGET checks={MAX_PRODUCT_CHECKS} "
+        f"early_sources_cap={presearch_candidate_limit} "
+        f"reserved_rotating_search_slots={search_reserve}"
+    )
 
     # [scan-now] Recheck persistent candidates even when their deadline is earlier than active
     # channel posts; chronology is not a publication eligibility rule anymore.
@@ -2995,7 +3023,9 @@ def discover_product_urls(
             if canonical and product_id(canonical).startswith("snp-") and api_id:
                 SNAPPSHOP_API_IDS_BY_URL[canonical] = api_id
 
-    if len(found) < MAX_PRODUCT_CHECKS:
+    # SnappShop discovery shares the early-source budget. It cannot consume the
+    # reserved slots needed for rotating DigiKala category searches below.
+    if len(found) < presearch_candidate_limit:
         search_offset = int(time.time() // 300) % len(SEARCH_TERMS)
         snapp_queries = [SEARCH_TERMS[search_offset], SEARCH_TERMS[(search_offset + 1) % len(SEARCH_TERMS)]]
         headers = _snappshop_request_headers()
@@ -3041,7 +3071,7 @@ def discover_product_urls(
                     discounted_seen += 1
                     if candidate not in snapp_candidates:
                         snapp_candidates.append(candidate)
-                    if candidate not in found and len(found) < MAX_PRODUCT_CHECKS:
+                    if candidate not in found and len(found) < presearch_candidate_limit:
                         found.append(candidate)
                         added_this_query += 1
                     if len(snapp_candidates) >= min(12, MAX_PER_QUERY * 2):
@@ -3158,20 +3188,27 @@ def classify_category(title: str) -> str:
     value = (title or "").lower().replace("\u200c", " ")
     # Specific product families first; "other" should be the true fallback.
     patterns = [
+        # Keep dedicated families ahead of broad matches; otherwise the rotation can't see them as distinct.
         ("power_backup", r"پاور\s*بانک|شارژر|باتری|چراغ اضطراری|برق اضطراری|چراغ قوه|چراغ دستی"),
+        ("lighting", r"چراغ پیشانی|هدلامپ|چراغ مطالعه|چراغ خواب|چراغ روشنایی|چراغ کار|لامپ|نورافکن|چراغ کمپینگ|ریسه روشنایی"),
+        ("home_cleaning", r"جارو(?:برقی| شارژی)?|تی زمین شوی|تی چرخشی|زمین شوی|بخارشوی|مواد شوینده|شوینده سطوح|تمیزکننده سطوح|دستمال نظافت|نظافت خانه"),
+        ("pet_supplies", r"حیوانات خانگی|حیوان خانگی|غذای سگ|غذای گربه|تشویقی سگ|تشویقی گربه|قلاده|خاک گربه|اسکرچر|پد بهداشتی سگ"),
+        ("arts_crafts", r"بوم نقاشی|لوازم نقاشی|لوازم هنری|قلم طراحی|رنگ اکریلیک|رنگ روغن|لوازم خیاطی|چرخ خیاطی|کاموا|قلاب بافی|بافتنی"),
+        ("presentation_tools", r"لیزر پوینتر|پوینتر ارائه|ریموت ارائه|کنترل ارائه"),
         ("audio_wearables", r"هندزفری|هدفون|ایرپاد|اسپیکر|ساعت\s*هوشمند|اسمارت\s*واچ"),
         ("digital_accessories", r"کابل|مبدل|گلس|محافظ صفحه|قاب گوشی|پایه نگهدارنده|فلش مموری|هاب\s*usb|نگهدارنده گوشی"),
         ("computer_network", r"لپ\s*تاپ|لپتاپ|کامپیوتر|مودم|روتر|مانیتور|تبلت|پرینتر|کیبورد|ماوس"),
-        ("gaming", r"گیم|بازی|کنسول|پلی\s*استیشن|xbox"),
+        # Put children before sport terms so «کفش ورزشی کودک» remains a kids product.
+        ("kids_sports", r"نوزاد|نوزادی|کودک|اسباب\s*بازی|بازی فکری|بازی آموزشی"),
+        ("sports_outdoor", r"ورزشی|کمپینگ|کوهنوردی|سفر و طبیعت|دوچرخه|اسکی|شنا|بدنسازی|دمبل|تردمیل|توپ فوتبال|چادر مسافرتی"),
+        ("gaming", r"گیم|بازی ویدیویی|بازی رایانه.?ای|بازی کامپیوتری|کنسول|پلی\s*استیشن|xbox"),
         ("jewelry", r"زیورآلات|بدلیجات|گوشواره|انگشتر|دستبند|گردنبند|نقره زنانه|نقره مردانه|پرسته"),
         ("books_stationery", r"کتاب|دفتر|خودکار|مداد|لوازم التحریر|لوازم‌التحریر|نوشت افزار"),
-        # Child and baby products must be classified before generic personal-care keywords.
-        ("kids_sports", r"نوزاد|نوزادی|کودک|اسباب\s*بازی|ورزشی|سفر|کمپینگ|کوهنوردی"),
         ("beauty_fragrance", r"عطر|ادکلن|ادو\s*پرفیوم|ادوپرفیوم|ادو\s*تویلت|ادوتویلت|تستر\s*ادو|بادی\s*اسپلش"),
         ("personal_care", r"پوست|(?<!\w)مو(?!\w)|کرم|سرم|آبرسان|اصلاح|ماساژور|بهداشت|آرایش|ضدآفتاب|مسواک|دندان|سشوار|برس حرارتی|اتو مو|ریش.?تراش|موزن|اپیلاتور|دستگاه بخور|تونر|پاک کننده آرایش|سنگ پا|پاشنه کش|سوهان پا"),
-        ("automotive", r"خودرو|ماشین|موتور سیکلت|داشبورد|کمپرسور باد|لوازم خودرو|شارژر فندکی"),
-        ("home", r"آشپزخانه|نظم دهنده|ارگانایزر|چراغ خواب|جارو|خردکن|ظرف|لامپ|ابزار آشپزخانه|خانه|قهوه ساز|فلاسک|ماگ|قمقمه|بطری آب|ظروف"),
-        ("fashion", r"تی\s*شرت|تیشرت|شلوار|بلوز|شومیز|تاپ|مانتو|دامن|پیراهن|پوشاک|لباس|کفش|صندل|بوت|کاپشن|کوله|کیف|جوراب|زیرپوش|شورت|شال|روسری|عینک|ساعت مچی|لباس زیر|مام فیت|پالتو"),
+        ("automotive", r"خودرو|ماشین|موتور سیکلت|داشبورد|کمپرسور باد|لوازم خودرو|شارژر فندکی|روکش صندلی|کفپوش خودرو|مراقبت خودرو"),
+        ("home", r"آشپزخانه|نظم دهنده|ارگانایزر|خردکن|ظرف|ابزار آشپزخانه|خانه|قهوه ساز|فلاسک|ماگ|قمقمه|بطری آب|ظروف|حمام|سرویس بهداشتی|باغبانی|گلدان"),
+        ("fashion", r"تی\s*شرت|تیشرت|پولو\s*شرت|پولوشرت|سویشرت|سوییشرت|هودی|شلوار|بلوز|شومیز|تاپ|مانتو|دامن|پیراهن|پوشاک|لباس|کفش|صندل|بوت|کاپشن|کوله|کیف|جاکارتی|کمربند|کراوات|کلاه|دستکش|جوراب|زیرپوش|شورت|شال|روسری|عینک|ساعت مچی|لباس زیر|مام فیت|پالتو"),
     ]
     for category, pattern in patterns:
         if re.search(pattern, value, re.I):
@@ -4797,6 +4834,33 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     normalized = title.lower().replace("\u200c", " ")
     category = classify_category(normalized)
     family_patterns = {
+        "lighting": [
+            ("desk_lighting", r"چراغ مطالعه|چراغ خواب"),
+            ("outdoor_lighting", r"چراغ پیشانی|هدلامپ|چراغ کمپینگ|نورافکن"),
+            ("bulbs_and_strips", r"لامپ|ریسه روشنایی"),
+        ],
+        "home_cleaning": [
+            ("floor_cleaning", r"تی زمین شوی|تی چرخشی|زمین شوی|بخارشوی"),
+            ("vacuum_cleaning", r"جارو(?:برقی| شارژی)?"),
+            ("surface_cleaning", r"مواد شوینده|شوینده سطوح|تمیزکننده سطوح|دستمال نظافت"),
+        ],
+        "pet_supplies": [
+            ("pet_food", r"غذای سگ|غذای گربه|تشویقی سگ|تشویقی گربه"),
+            ("pet_accessories", r"قلاده|خاک گربه|اسکرچر|پد بهداشتی سگ"),
+        ],
+        "arts_crafts": [
+            ("art_materials", r"بوم نقاشی|لوازم نقاشی|لوازم هنری|قلم طراحی|رنگ اکریلیک|رنگ روغن"),
+            ("sewing_crafts", r"لوازم خیاطی|چرخ خیاطی|کاموا|قلاب بافی|بافتنی"),
+        ],
+        "presentation_tools": [
+            ("presentation_remote", r"ریموت ارائه|کنترل ارائه"),
+            ("laser_pointer", r"لیزر پوینتر|پوینتر ارائه"),
+        ],
+        "sports_outdoor": [
+            ("camping", r"کمپینگ|کوهنوردی|چادر مسافرتی|سفر و طبیعت"),
+            ("fitness", r"بدنسازی|دمبل|تردمیل"),
+            ("cycling_and_sports", r"دوچرخه|توپ فوتبال|شنا|اسکی"),
+        ],
         "power_backup": [
             ("battery", r"باتری|قلمی|نیم\s*قلمی"),
             ("charger", r"شارژر"),
@@ -4814,10 +4878,12 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             ("massage", r"ماساژ"),
         ],
         "fashion": [
-            ("apparel", r"تی\s*شرت|تیشرت|شلوار|بلوز|شومیز|تاپ|پیراهن|مانتو|لباس"),
+            ("apparel", r"تی\s*شرت|تیشرت|پولو\s*شرت|پولوشرت|سویشرت|سوییشرت|هودی|شلوار|بلوز|شومیز|تاپ|پیراهن|مانتو|لباس"),
             ("footwear", r"کفش|صندل|بوت"),
+            ("wallets", r"کیف پول|جاکارتی"),
             ("bags", r"کیف|کوله"),
             ("eyewear", r"عینک"),
+            ("accessories", r"کمربند|کراوات|کلاه|دستکش"),
         ],
         "jewelry": [("jewelry", r"نقره|گوشواره|انگشتر|دستبند|گردنبند|زیورآلات|بدلیجات")],
         "beauty_fragrance": [("fragrance", r"عطر|ادکلن|پرفیوم|تویلت|بادی\s*اسپلش")],
