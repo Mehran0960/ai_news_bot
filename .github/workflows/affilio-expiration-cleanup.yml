@@ -23,7 +23,7 @@ jobs:
     if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     # Manual cleanup is independent; routine cleanup runs inside the delivery workflow.
     concurrency:
-      group: ${{ github.event_name == 'push' && (contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') || contains(github.event.head_commit.message, '[duplicate-cleanup-product-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-now]') || contains(github.event.head_commit.message, '[live-audit-now]')) && 'offerchin-content-publisher' || 'affilio-channel-updates' }}
+      group: ${{ github.event_name == 'push' && (contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') || contains(github.event.head_commit.message, '[duplicate-cleanup-product-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-now]') || contains(github.event.head_commit.message, '[live-audit-now]') || contains(github.event.head_commit.message, '[remove-bale-duplicate-once]')) && 'offerchin-content-publisher' || 'affilio-channel-updates' }}
       # Only an explicit global dedupe run may preempt a stale publisher lock; routine cleanup remains non-preemptive.
       cancel-in-progress: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[duplicate-cleanup-now]') }}
     runs-on: ubuntu-latest
@@ -55,6 +55,33 @@ jobs:
 
       - name: Validate expiry-monitor syntax (required for safe deletion)
         run: python -m py_compile affilio_radar/expiration_monitor.py affilio_radar/affilio_radar.py affilio_radar/product_quality.py
+
+      - name: Remove the verified duplicate Bale copy of the baby outfit offer
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[remove-bale-duplicate-once]') }}
+        env:
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          AFFILIO_REMOVE_BALE_MESSAGE_ID: ${{ contains(github.event.head_commit.message, '[remove-bale-duplicate-once]') && '830' || '' }}
+        run: |
+          cd affilio_radar
+          python - <<'PY'
+          import os
+          import sys
+          from expiration_monitor import _bale_delete
+
+          raw_id = (os.getenv("AFFILIO_REMOVE_BALE_MESSAGE_ID") or "").strip()
+          if not raw_id.isdigit():
+              print("BALE_DUPLICATE_DELETE_ABORTED reason=invalid_message_id")
+              raise SystemExit(2)
+          message_id = int(raw_id)
+          result = _bale_delete(message_id)
+          print(
+              "BALE_DUPLICATE_DELETE_RESULT "
+              f"product_id=dkp-21152067 platform=bale message_id={message_id} result={result}"
+          )
+          if result not in {"deleted", "already_absent"}:
+              raise SystemExit(1)
+          PY
 
       - name: Run expiry-monitor regression tests on code pushes only
         if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[deadline-audit-only]') && !contains(github.event.head_commit.message, '[expiry-cleanup-now]') && !contains(github.event.head_commit.message, '[duplicate-cleanup-now]') && !contains(github.event.head_commit.message, '[remove-glama-once]') && !contains(github.event.head_commit.message, '[repair-buttons-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') && !contains(github.event.head_commit.message, '[duplicate-cleanup-product-now]') }}
