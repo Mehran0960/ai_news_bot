@@ -2831,9 +2831,9 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
                     live_discount_percent = int(round(
                         (live_original_price - live_price) * 100 / live_original_price
                     ))
-                    # Allow one percentage point for retailer rounding, but do not
-                    # leave captions that advertise a materially different discount.
-                    if abs(posted_discount_percent - live_discount_percent) > 1:
+                    # The public caption advertises this exact rounded percentage.
+                    # Any different displayed value is a mismatch, even by one point.
+                    if posted_discount_percent != live_discount_percent:
                         mismatch_fields.append("discount_percent")
 
             if mismatch_fields:
@@ -2850,6 +2850,28 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
                     f"posted_price={posted_price} live_price={live_price} "
                     f"posted_original={posted_original_price} live_original={live_original_price} "
                     f"fields={','.join(mismatch_fields)} reason=price_mismatch historical={is_history}"
+                )
+                continue
+
+            # If the post advertises a discount but DigiKala did not return a usable
+            # reference price, price equality alone cannot verify the displayed discount.
+            # Do not mark the post as a match; retry quickly. SnappShop's explicit
+            # no-reference-price case was already handled as a confirmed lost discount above.
+            if (
+                posted_discount_percent > 0
+                and live_original_price is None
+                and str(snapshot.get("price_source") or "") != "snappshop_product_api"
+            ):
+                record["price_audit_status"] = "unconfirmed"
+                record["price_audit_error"] = "discount_reference_price_unavailable"
+                record["price_audit_next_check_at"] = (
+                    now + timedelta(seconds=retry_seconds)
+                ).isoformat()
+                unconfirmed += 1
+                changed = True
+                print(
+                    f"PRICE_AUDIT_UNCONFIRMED product_id={product_id} "
+                    "reason=discount_reference_price_unavailable retrying=true"
                 )
                 continue
 
@@ -3131,7 +3153,7 @@ def _delete_expired_aparat_videos(published, now, direct_confirm=None):
 
         if not credentials_ready or delete_aparat_video is None:
             rec["aparat_expiry_status"] = "pending_credentials"
-            rec["aparat_expiry_next_attempt_at"] = (now + timedelta(minutes=60)).isoformat()
+            rec["aparat_expiry_next_attempt_at"] = (now + timedelta(minutes=5)).isoformat()
             rec["aparat_expiry_last_error"] = "aparat_cookie_secret_missing"
             changed = True
             continue
@@ -3161,7 +3183,7 @@ def _delete_expired_aparat_videos(published, now, direct_confirm=None):
             attempts = int(rec.get("aparat_expiry_attempts", 0) or 0) + 1
             rec["aparat_expiry_attempts"] = attempts
             rec["aparat_expiry_status"] = "delete_retry"
-            rec["aparat_expiry_next_attempt_at"] = (now + timedelta(minutes=30)).isoformat()
+            rec["aparat_expiry_next_attempt_at"] = (now + timedelta(minutes=5)).isoformat()
             rec["aparat_expiry_last_error"] = type(exc).__name__
             changed = True
             print(
@@ -3244,7 +3266,7 @@ def _delete_expired_youtube_videos(published, now, direct_confirm=None):
 
         if not credentials_ready or delete_youtube_video is None:
             rec["youtube_expiry_status"] = "pending_credentials"
-            rec["youtube_expiry_next_attempt_at"] = (now + timedelta(minutes=60)).isoformat()
+            rec["youtube_expiry_next_attempt_at"] = (now + timedelta(minutes=5)).isoformat()
             rec["youtube_expiry_last_error"] = "youtube_oauth_secrets_missing"
             changed = True
             continue
@@ -3273,7 +3295,7 @@ def _delete_expired_youtube_videos(published, now, direct_confirm=None):
             attempts = int(rec.get("youtube_expiry_attempts", 0) or 0) + 1
             rec["youtube_expiry_attempts"] = attempts
             rec["youtube_expiry_status"] = "delete_retry"
-            rec["youtube_expiry_next_attempt_at"] = (now + timedelta(minutes=30)).isoformat()
+            rec["youtube_expiry_next_attempt_at"] = (now + timedelta(minutes=5)).isoformat()
             rec["youtube_expiry_last_error"] = type(exc).__name__
             changed = True
             print(
