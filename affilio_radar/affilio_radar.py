@@ -3701,7 +3701,7 @@ def build_discount_image(
         width, height = image.size
         min_dim = min(width, height)
         # Sized proportionally but capped so the burst does not dominate larger product photos.
-        badge_width = max(150, min(300, int(min_dim * 0.28)))
+        badge_width = max(120, min(240, int(min_dim * 0.224)))
         badge_height = int(badge_width * 0.73)
         margin = max(10, int(min_dim * 0.025))
         badge_left = max(0, width - margin - badge_width)
