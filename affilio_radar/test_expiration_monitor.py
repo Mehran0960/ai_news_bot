@@ -1930,6 +1930,59 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(record["price_audit_status"], "invalidated")
         self.assertIn("discount_percent", record["price_audit_mismatch_fields"])
 
+    def test_live_price_audit_invalidates_one_percentage_point_discount_mismatch(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "telegram_message_id": 735,
+            "expiry_status": "tracked",
+            "posted_current_price": 620_000,
+            "posted_original_price": 2_300_000,
+            "posted_discount_percent": 72,
+        }
+        with patch.object(monitor, "fetch_live_product_status", return_value={
+            "current_price": 620_000,
+            "original_price": 2_300_000,
+            "in_stock": True,
+            "price_source": "digikala_product_detail_api",
+        }):
+            changed, summary = monitor._audit_live_prices(
+                {"dkp-123457": record}, now=now, batch_size=1,
+                interval_seconds=3600, retry_seconds=300,
+            )
+        self.assertTrue(changed)
+        self.assertEqual(summary["price_mismatches"], 1)
+        self.assertEqual(record["price_audit_status"], "invalidated")
+        self.assertIn("discount_percent", record["price_audit_mismatch_fields"])
+
+    def test_live_price_audit_does_not_call_discount_verified_when_reference_price_is_missing(self):
+        now = datetime.now(timezone.utc)
+        record = {
+            "telegram_message_id": 736,
+            "expiry_status": "tracked",
+            "posted_current_price": 100_000,
+            "posted_original_price": 200_000,
+            "posted_discount_percent": 50,
+        }
+        with patch.object(monitor, "fetch_live_product_status", return_value={
+            "current_price": 100_000,
+            "original_price": None,
+            "in_stock": True,
+            "price_source": "digikala_product_detail_api",
+        }):
+            changed, summary = monitor._audit_live_prices(
+                {"dkp-123458": record}, now=now, batch_size=1,
+                interval_seconds=3600, retry_seconds=300,
+            )
+        self.assertTrue(changed)
+        self.assertEqual(summary["price_mismatches"], 0)
+        self.assertEqual(summary["unconfirmed"], 1)
+        self.assertEqual(record["price_audit_status"], "unconfirmed")
+        self.assertEqual(record["price_audit_error"], "discount_reference_price_unavailable")
+        self.assertLessEqual(
+            datetime.fromisoformat(record["price_audit_next_check_at"]),
+            now + timedelta(seconds=301),
+        )
+
     def test_recent_public_history_adopts_snappshop_caption_facts_for_live_audit(self):
         now = datetime.now(timezone.utc)
         caption = (
