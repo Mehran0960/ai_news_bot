@@ -20,8 +20,19 @@ permissions:
 jobs:
   expire:
     # Never run live cleanup from a feature-branch push; production cleanup stays on main.
-    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
-    # Manual cleanup is independent; routine cleanup runs inside the delivery workflow.
+    if: ${{ github.event_name != 'push' || (github.ref == 'refs/heads/main' && (
+      contains(github.event.head_commit.message, '[deadline-audit-only]') ||
+      contains(github.event.head_commit.message, '[live-audit-now]') ||
+      contains(github.event.head_commit.message, '[expiry-cleanup-now]') ||
+      contains(github.event.head_commit.message, '[duplicate-cleanup-now]') ||
+      contains(github.event.head_commit.message, '[duplicate-cleanup-product-now]') ||
+      contains(github.event.head_commit.message, '[remove-glama-once]') ||
+      contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') ||
+      contains(github.event.head_commit.message, '[remove-bale-duplicate-once]') ||
+      contains(github.event.head_commit.message, '[repair-buttons-now]') ||
+      contains(github.event.head_commit.message, '[repair-all-captions]')
+    )) }}
+    # Code-only pushes never run destructive cleanup. Only explicit one-time markers or manual dispatch may mutate public posts.
     concurrency:
       group: ${{ github.event_name == 'push' && (contains(github.event.head_commit.message, '[repair-powerbank-duplicate-once]') || contains(github.event.head_commit.message, '[duplicate-cleanup-product-now]') || contains(github.event.head_commit.message, '[duplicate-cleanup-now]') || contains(github.event.head_commit.message, '[live-audit-now]') || contains(github.event.head_commit.message, '[remove-bale-duplicate-once]')) && 'offerchin-content-publisher' || 'affilio-channel-updates' }}
       # Only an explicit global dedupe run may preempt a stale publisher lock; routine cleanup remains non-preemptive.
