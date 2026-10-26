@@ -9,9 +9,7 @@ on:
       - "affilio_radar/test_expiration_monitor.py"
       - "affilio_radar/test_affilio.py"
       - ".github/workflows/affilio-expiration-cleanup.yml"
-  # Routine cleanup now runs inside the scheduled publisher job, before delivery.
-  issues:
-    types: [opened]
+  # Explicit manual dispatch remains available for one-time cleanup/repair.
   workflow_dispatch:
 
 permissions:
