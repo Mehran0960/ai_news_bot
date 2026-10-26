@@ -4,8 +4,8 @@ from datetime import datetime, timedelta, timezone
 
 from content_delivery import (
     due_content, due_unpublished_selection, enqueue_selected_content,
-    finish_queue_item, get_last_channel_published_at, refresh_unpublished_selections,
-    selection_cadence_anchor,
+    finish_queue_item, get_last_channel_published_at, has_fresh_unpublished_selection,
+    refresh_unpublished_selections, selection_cadence_anchor,
 )
 from platform_registry import PLATFORM_NAMES
 from publisher import publish_due_queue
@@ -119,22 +119,51 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(send_photo.call_count, 2)
         # Because both channels were already sent, this retry must not reset either clock.
 
-    def test_stale_unpublished_selection_does_not_reserve_next_channel_slot(self):
+    def test_only_a_fresh_active_unpublished_selection_reserves_next_channel_slot(self):
         last_channel_send = self.now - timedelta(minutes=30)
         failed_selection = self.now - timedelta(minutes=3)
+        state = {
+            "content_delivery_queue": {
+                "dkp-failed-image": {
+                    "status": "queued",
+                    "selected_at": failed_selection.isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                        "youtube": {"status": "pending"},
+                        "aparat": {"status": "pending"},
+                    },
+                }
+            }
+        }
 
-        # While an unpublished selection is still within its retry window, keep the slot reserved.
-        self.assertEqual(
-            selection_cadence_anchor(failed_selection, last_channel_send),
-            failed_selection,
-        )
-        # After a never-delivered selection is replaced as stale, only the actual
-        # Telegram/Bale send should anchor the next publication cadence.
+        self.assertTrue(has_fresh_unpublished_selection(state, now=self.now, stale_after_minutes=8))
         self.assertEqual(
             selection_cadence_anchor(
-                failed_selection,
-                last_channel_send,
-                replaced_stale_selections=1,
+                failed_selection, last_channel_send,
+                has_fresh_unpublished_selection=True,
+            ),
+            failed_selection,
+        )
+
+        # A previously failed selection may already have been marked stale by an older
+        # workflow revision. The next run still sees no fresh active selection and must
+        # use the real channel clock rather than the stale last-selection timestamp.
+        state["content_delivery_queue"].pop("dkp-failed-image")
+        state["content_delivery_history"] = [{
+            "product_id": "dkp-failed-image",
+            "status": "stale_selection",
+            "selected_at": failed_selection.isoformat(),
+            "platforms": {
+                "telegram": {"status": "pending"},
+                "bale": {"status": "pending"},
+            },
+        }]
+        self.assertFalse(has_fresh_unpublished_selection(state, now=self.now, stale_after_minutes=8))
+        self.assertEqual(
+            selection_cadence_anchor(
+                failed_selection, last_channel_send,
+                has_fresh_unpublished_selection=False,
             ),
             last_channel_send,
         )

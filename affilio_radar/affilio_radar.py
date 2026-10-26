@@ -6990,6 +6990,7 @@ def run(publish=False, selection_only=False):
         from content_delivery import (
             enqueue_selected_content,
             get_last_channel_published_at,
+            has_fresh_unpublished_selection,
             refresh_unpublished_selections,
             selection_cadence_anchor,
         )
@@ -7004,10 +7005,13 @@ def run(publish=False, selection_only=False):
         # The helper also recovers older state from immutable per-platform send times.
         last_selected = _parse_utc_datetime(state.get("last_content_selection_at"))
         last_channel_published = get_last_channel_published_at(state)
+        fresh_unpublished_selection = has_fresh_unpublished_selection(
+            state, now=selection_now, stale_after_minutes=8
+        )
         last_slot_anchor = selection_cadence_anchor(
             last_selected,
             last_channel_published,
-            replaced_stale_selections=replaced,
+            has_fresh_unpublished_selection=fresh_unpublished_selection,
         )
         elapsed = (
             (selection_now - last_slot_anchor).total_seconds()

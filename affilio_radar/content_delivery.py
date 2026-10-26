@@ -42,15 +42,53 @@ def _utc(value: Any, default: datetime | None = None) -> datetime | None:
         return default
 
 
+def has_fresh_unpublished_selection(
+    state: dict,
+    *,
+    now: datetime,
+    stale_after_minutes: int = 8,
+) -> bool:
+    """Whether an active selection with no Telegram/Bale success still reserves the slot."""
+    queue = state.get("content_delivery_queue")
+    if not isinstance(queue, dict):
+        return False
+    current = _utc(now)
+    if current is None:
+        return False
+    cutoff = current - timedelta(minutes=max(1, int(stale_after_minutes)))
+    for entry in queue.values():
+        if not isinstance(entry, dict) or entry.get("status") in TERMINAL_QUEUE_STATUSES:
+            continue
+        platforms = entry.get("platforms")
+        if not isinstance(platforms, dict):
+            return True
+        if any(
+            isinstance(platforms.get(name), dict)
+            and platforms[name].get("status") == "sent"
+            for name in ("telegram", "bale")
+        ):
+            continue
+        selected = _utc(
+            entry.get("selected_at")
+            or entry.get("scheduled_at")
+            or entry.get("created_at")
+        )
+        # Unknown timestamps are handled conservatively: do not enqueue another
+        # selection until the existing hand-off is resolved.
+        if selected is None or selected >= cutoff:
+            return True
+    return False
+
+
 def selection_cadence_anchor(
     last_selected_at: Any,
     last_channel_published_at: Any,
     *,
-    replaced_stale_selections: int = 0,
+    has_fresh_unpublished_selection: bool = False,
 ) -> datetime | None:
-    """Do not let a never-delivered, stale selection reserve the next public slot."""
+    """Only a fresh, active unpublished selection can reserve the selection cadence."""
     channel_post = _utc(last_channel_published_at)
-    if int(replaced_stale_selections or 0) > 0:
+    if not has_fresh_unpublished_selection:
         return channel_post
     selected = _utc(last_selected_at)
     anchors = [value for value in (selected, channel_post) if value is not None]
