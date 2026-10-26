@@ -316,7 +316,7 @@ def build_vertical_poster(
     except (TypeError, ValueError, OverflowError):
         discount = 0
     if 0 < discount <= 100:
-        badge_width, badge_height = 188, 140
+        badge_width, badge_height = 150, 112
         left, top = WIDTH - 44 - badge_width, 173
         draw_discount_burst(draw, left, top, badge_width, badge_height, discount, merchant=merchant)
 
