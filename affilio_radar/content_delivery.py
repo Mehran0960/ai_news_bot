@@ -42,6 +42,21 @@ def _utc(value: Any, default: datetime | None = None) -> datetime | None:
         return default
 
 
+def selection_cadence_anchor(
+    last_selected_at: Any,
+    last_channel_published_at: Any,
+    *,
+    replaced_stale_selections: int = 0,
+) -> datetime | None:
+    """Do not let a never-delivered, stale selection reserve the next public slot."""
+    channel_post = _utc(last_channel_published_at)
+    if int(replaced_stale_selections or 0) > 0:
+        return channel_post
+    selected = _utc(last_selected_at)
+    anchors = [value for value in (selected, channel_post) if value is not None]
+    return max(anchors) if anchors else None
+
+
 def get_last_channel_published_at(state: dict) -> datetime | None:
     """Return the latest real Telegram/Bale send time and migrate old state safely.
 

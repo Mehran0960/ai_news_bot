@@ -3772,27 +3772,55 @@ def build_discount_image(
 def _fetch_image(url: str) -> bytes:
     if not url or urlsplit(url).scheme != "https":
         raise RuntimeError("No safe HTTPS product image URL")
-    response = SESSION.get(url, timeout=HTTP_TIMEOUT, stream=True)
-    response.raise_for_status()
-    content_type = response.headers.get("Content-Type", "").lower()
-    if not content_type.startswith("image/"):
-        response.close()
-        raise RuntimeError("product image URL did not return an image")
-    parts, total = [], 0
-    for chunk in response.iter_content(64 * 1024):
-        if not chunk:
-            continue
-        total += len(chunk)
-        if total > 10_000_000:
-            response.close()
-            raise RuntimeError("product image exceeded 10 MB")
-        parts.append(chunk)
-    response.close()
-    data = b"".join(parts)
-    from io import BytesIO
-    with Image.open(BytesIO(data)) as check:
-        check.verify()
-    return data
+
+    # Retry only transient connection/timeout/server failures. A short second attempt
+    # reduces the chance that a temporary CDN handshake issue blocks both photo channels.
+    attempts = 2
+    for attempt in range(1, attempts + 1):
+        response = None
+        try:
+            response = SESSION.get(url, timeout=(8, HTTP_TIMEOUT), stream=True)
+            response.raise_for_status()
+            content_type = response.headers.get("Content-Type", "").lower()
+            if not content_type.startswith("image/"):
+                raise RuntimeError("product image URL did not return an image")
+            parts, total = [], 0
+            for chunk in response.iter_content(64 * 1024):
+                if not chunk:
+                    continue
+                total += len(chunk)
+                if total > 10_000_000:
+                    raise RuntimeError("product image exceeded 10 MB")
+                parts.append(chunk)
+            data = b"".join(parts)
+            from io import BytesIO
+            with Image.open(BytesIO(data)) as check:
+                check.verify()
+            if attempt > 1:
+                print(f"PRODUCT_IMAGE_FETCH_RETRY_OK attempt={attempt}")
+            return data
+        except requests.exceptions.RequestException as exc:
+            retryable = isinstance(
+                exc, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)
+            )
+            if response is not None:
+                status_code = getattr(response, "status_code", 0) or 0
+                retryable = retryable or status_code in {408, 425, 429} or status_code >= 500
+            if not retryable or attempt >= attempts:
+                raise
+            print(
+                f"PRODUCT_IMAGE_FETCH_RETRY attempt={attempt} "
+                f"error={type(exc).__name__}"
+            )
+            time.sleep(1)
+        finally:
+            if response is not None:
+                try:
+                    response.close()
+                except Exception:
+                    pass
+
+    raise RuntimeError("product image fetch failed after bounded retry")
 
 
 def _send_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
@@ -6963,6 +6991,7 @@ def run(publish=False, selection_only=False):
             enqueue_selected_content,
             get_last_channel_published_at,
             refresh_unpublished_selections,
+            selection_cadence_anchor,
         )
         selection_now = datetime.now(timezone.utc)
         replaced = refresh_unpublished_selections(
@@ -6975,8 +7004,11 @@ def run(publish=False, selection_only=False):
         # The helper also recovers older state from immutable per-platform send times.
         last_selected = _parse_utc_datetime(state.get("last_content_selection_at"))
         last_channel_published = get_last_channel_published_at(state)
-        anchors = [x for x in (last_selected, last_channel_published) if x is not None]
-        last_slot_anchor = max(anchors) if anchors else None
+        last_slot_anchor = selection_cadence_anchor(
+            last_selected,
+            last_channel_published,
+            replaced_stale_selections=replaced,
+        )
         elapsed = (
             (selection_now - last_slot_anchor).total_seconds()
             if last_slot_anchor is not None else interval_seconds

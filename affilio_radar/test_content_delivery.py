@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from content_delivery import (
     due_content, due_unpublished_selection, enqueue_selected_content,
     finish_queue_item, get_last_channel_published_at, refresh_unpublished_selections,
+    selection_cadence_anchor,
 )
 from platform_registry import PLATFORM_NAMES
 from publisher import publish_due_queue
@@ -117,6 +118,26 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(state["last_channel_published_at"], latest_channel_send.isoformat())
         self.assertEqual(send_photo.call_count, 2)
         # Because both channels were already sent, this retry must not reset either clock.
+
+    def test_stale_unpublished_selection_does_not_reserve_next_channel_slot(self):
+        last_channel_send = self.now - timedelta(minutes=30)
+        failed_selection = self.now - timedelta(minutes=3)
+
+        # While an unpublished selection is still within its retry window, keep the slot reserved.
+        self.assertEqual(
+            selection_cadence_anchor(failed_selection, last_channel_send),
+            failed_selection,
+        )
+        # After a never-delivered selection is replaced as stale, only the actual
+        # Telegram/Bale send should anchor the next publication cadence.
+        self.assertEqual(
+            selection_cadence_anchor(
+                failed_selection,
+                last_channel_send,
+                replaced_stale_selections=1,
+            ),
+            last_channel_send,
+        )
 
     def test_queue_enforces_spacing_and_dedupes_active_content(self):
         state = {}
