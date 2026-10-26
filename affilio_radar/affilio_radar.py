@@ -6961,6 +6961,7 @@ def run(publish=False, selection_only=False):
         # publication slot is due. Never build a long queue of products chosen early.
         from content_delivery import (
             enqueue_selected_content,
+            get_last_channel_published_at,
             refresh_unpublished_selections,
         )
         selection_now = datetime.now(timezone.utc)
@@ -6969,12 +6970,12 @@ def run(publish=False, selection_only=False):
         )
         interval_seconds = max(60, int(MIN_POST_INTERVAL_HOURS * 3600))
 
-        # Cadence is anchored to the last selection as well as the last successful
-        # publication. A broken destination must not freeze the next discovery/selection
-        # cycle simply because no platform has managed to report success yet.
+        # Cadence follows the last selection and an actual Telegram/Bale send.
+        # Retries to YouTube/Aparat cannot move the public-channel slot forward.
+        # The helper also recovers older state from immutable per-platform send times.
         last_selected = _parse_utc_datetime(state.get("last_content_selection_at"))
-        last_published_at = _parse_utc_datetime(state.get("last_published_at"))
-        anchors = [x for x in (last_selected, last_published_at) if x is not None]
+        last_channel_published = get_last_channel_published_at(state)
+        anchors = [x for x in (last_selected, last_channel_published) if x is not None]
         last_slot_anchor = max(anchors) if anchors else None
         elapsed = (
             (selection_now - last_slot_anchor).total_seconds()
@@ -7329,9 +7330,11 @@ def run(publish=False, selection_only=False):
             state["recent_publications"] = sorted(
                 unique_history.values(), key=_publication_record_ts,
             )[-RECENT_PUBLICATION_HISTORY_LIMIT:]
-            state["last_published_at"] = datetime.fromtimestamp(
+            actual_post_time = datetime.fromtimestamp(
                 published_at_epoch, tz=timezone.utc
             ).isoformat()
+            state["last_published_at"] = actual_post_time
+            state["last_channel_published_at"] = actual_post_time
             state.setdefault("pending_queue", {}).pop(pid, None)
             save_json(STATE, state)
             print(
