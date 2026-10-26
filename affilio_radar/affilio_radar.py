@@ -30,6 +30,7 @@ from offerchin_visuals import (
     draw_discount_burst, draw_retailer_badge, adaptive_text_colors,
     discount_badge_dimensions_for_reference_bounds,
 )
+from trust_audit_ledger import apply_audit_ledger
 import arabic_reshaper
 from bidi.algorithm import get_display
 
@@ -3393,9 +3394,12 @@ def load_catalog() -> list[dict]:
 def load_state() -> dict:
     try:
         data = json.loads(STATE.read_text(encoding="utf-8"))
-        return data if isinstance(data, dict) else {}
+        state = data if isinstance(data, dict) else {}
     except (OSError, json.JSONDecodeError):
-        return {}
+        state = {}
+    # The trust monitor stores audit/deletion deltas in a separate ledger so it
+    # never races the publisher's shared state.json writes.
+    return apply_audit_ledger(state)
 
 
 def save_json(path: Path, data):
