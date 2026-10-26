@@ -84,6 +84,21 @@ def _discount_badge_color(merchant: str) -> tuple[int, int, int]:
     return (237, 23, 69)  # DigiKala red
 
 
+def discount_badge_dimensions_for_reference_height(reference_height: int) -> tuple[int, int]:
+    """Size the two-line discount tile to visually align with the retailer badge height.
+
+    The 150:112 ratio preserves the compact OfferChin discount tile's typography.
+    A 55px minimum height keeps Persian text readable on small source images.
+    """
+    try:
+        target_height = int(reference_height)
+    except (TypeError, ValueError, OverflowError):
+        target_height = 88
+    height = max(55, min(88, target_height))
+    width = max(74, int(round(height * 150 / 112)))
+    return width, height
+
+
 def draw_discount_burst(
     draw,
     left: int,

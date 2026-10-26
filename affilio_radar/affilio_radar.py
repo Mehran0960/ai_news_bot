@@ -26,7 +26,10 @@ from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from product_quality import is_publishable_product_title
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
-from offerchin_visuals import draw_discount_burst, draw_retailer_badge, adaptive_text_colors
+from offerchin_visuals import (
+    draw_discount_burst, draw_retailer_badge, adaptive_text_colors,
+    discount_badge_dimensions_for_reference_height,
+)
 import arabic_reshaper
 from bidi.algorithm import get_display
 
@@ -3695,17 +3698,18 @@ def build_discount_image(
         raw.load()
         image = raw.convert("RGB")
     image.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
+    width, height = image.size
+    min_dim = min(width, height)
+    brand_margin = max(10, int(min_dim * 0.025))
+    # Use one shared height for the upper-left retailer tile and upper-right discount tile.
+    store_badge_width = min(width - 2 * brand_margin, max(124, min(320, int(min_dim * 0.38))))
+    store_badge_height = max(48, min(88, int(min_dim * 0.14)))
     label = format_discount_badge(discount_percent)
     draw = ImageDraw.Draw(image)
     if label:
-        width, height = image.size
-        min_dim = min(width, height)
-        # Sized proportionally but capped so the burst does not dominate larger product photos.
-        badge_width = max(120, min(240, int(min_dim * 0.224)))
-        badge_height = int(badge_width * 0.73)
-        margin = max(10, int(min_dim * 0.025))
-        badge_left = max(0, width - margin - badge_width)
-        badge_top = margin
+        badge_width, badge_height = discount_badge_dimensions_for_reference_height(store_badge_height)
+        badge_left = max(0, width - brand_margin - badge_width)
+        badge_top = brand_margin
         try:
             discount_value = int(discount_percent)
         except (TypeError, ValueError, OverflowError):
@@ -3721,15 +3725,8 @@ def build_discount_image(
                 merchant=merchant,
             )
 
-    # Store identity sits at the upper-left, opposite the discount burst at upper-right.
-    width, height = image.size
-    min_dim = min(width, height)
-    margin = max(10, int(min_dim * 0.025))
-    # The supplied official marks include their own full-color backgrounds. Give those
-    # logo tiles enough height to remain recognizable, while preserving source aspect ratios.
-    store_badge_width = min(width - 2 * margin, max(124, min(320, int(min_dim * 0.38))))
-    store_badge_height = max(48, min(88, int(min_dim * 0.14)))
-    draw_retailer_badge(image, margin, margin, store_badge_width, store_badge_height, merchant)
+    # Store identity sits opposite the discount tile; both use the same top inset and height.
+    draw_retailer_badge(image, brand_margin, brand_margin, store_badge_width, store_badge_height, merchant)
 
     # Keep the channel IDs at the lower-left without a card or solid panel.
     # Choose each text color from the pixels directly behind it; use a thin opposing
