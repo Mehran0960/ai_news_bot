@@ -85,7 +85,7 @@ jobs:
           AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "6"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           PYTHONUNBUFFERED: "1"
-        run: timeout --signal=TERM --kill-after=15s 330s python affilio_radar/expiration_monitor.py --bounded-maintenance --dedupe-recent || echo "PRICE_AUDIT_OR_CLEANUP_INCOMPLETE; delivery continues and next cycle retries"
+        run: timeout --signal=TERM --kill-after=15s 180s python affilio_radar/expiration_monitor.py --bounded-maintenance --dedupe-recent || echo "PRICE_AUDIT_OR_CLEANUP_INCOMPLETE; delivery continues and next cycle retries"
       # Discovery/selection is a distinct stage. It writes the neutral content queue only.
       # Any later publisher adapter can consume that same selected payload without changing discovery.
       - name: Discover and queue the next verified selection
