@@ -448,7 +448,7 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
 
 def publish_due_queue() -> int:
     validate_registry()
-    state = radar.load_state()
+    state = radar.load_state(apply_integrity_ledger=False)
     if apply_integrity_audit_ledger(state):
         _save(state)
         print("PUBLISHER_INTEGRITY_LEDGER_APPLIED")
