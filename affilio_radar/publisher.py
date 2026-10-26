@@ -187,11 +187,11 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
         fresh = radar.fetch_product_record(product_url)
     except Exception as exc:
         return None, f"live_product_fetch_{type(exc).__name__}"
-    if (
-        not isinstance(fresh, dict)
-        or not radar.is_publishable_product_title(fresh.get("title"))
-        or not fresh.get("image_url")
-    ):
+    if not isinstance(fresh, dict):
+        return None, "live_product_details_incomplete"
+    if radar.is_prohibited_product_title(fresh.get("title")):
+        return None, "live_product_prohibited_title"
+    if not radar.is_publishable_product_title(fresh.get("title")) or not fresh.get("image_url"):
         return None, "live_product_details_incomplete"
     fresh["product_id"] = product_id
     fresh["product_url"] = product_url
