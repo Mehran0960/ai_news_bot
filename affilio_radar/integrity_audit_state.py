@@ -154,11 +154,15 @@ def _same_post(entry: dict[str, Any], product_id: str, post_id: str) -> bool:
 def apply_integrity_audit_ledger(
     state: dict[str, Any],
     ledger: dict[str, Any] | None = None,
+    *,
+    include_audit_cadence: bool = False,
 ) -> bool:
-    """Merge the auditor's per-post deletion outcomes into a publisher state snapshot.
+    """Merge exact-post audit results; optionally restore cadence for the audit worker.
 
-    Only exact destination IDs are matched. A new post for the same product can
-    never inherit an older post's deletion or invalidation status.
+    The publisher imports only confirmed invalidations and per-platform removal
+    outcomes. The independent audit worker also restores match/unconfirmed timestamps,
+    retry times, and refreshed live-offer facts from the same ledger, without writing
+    those routine timestamps into the publisher's shared state.json.
     """
     snapshot = ledger if isinstance(ledger, dict) else load_ledger()
     posts = snapshot.get("posts")
@@ -183,10 +187,9 @@ def apply_integrity_audit_ledger(
             if not isinstance(entry, dict) or not _same_post(entry, product_id, post_id):
                 continue
 
-            # Do not import ordinary "match" timestamps into state.json. That keeps
-            # routine audit traffic from causing needless publisher-state commits.
-            # A confirmed mismatch is authoritative and must survive API/delete failures.
-            if entry.get("price_audit_status") == "invalidated":
+            # Routine audit fields are restored only inside the independent monitor.
+            # The publisher imports these facts only when a mismatch was confirmed.
+            if entry.get("price_audit_status") == "invalidated" or include_audit_cadence:
                 fields = entry.get("record_fields")
                 fields = fields if isinstance(fields, dict) else {}
                 for field in RECORD_FIELDS:
