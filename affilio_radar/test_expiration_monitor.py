@@ -716,6 +716,9 @@ class ExpirationMonitorTests(unittest.TestCase):
             "discount_percent": 89,
         }
         canonical = build_caption(product, affiliate, "https://t.me/OfferChin")
+        self.assertIn("<b>💚 قیمت فعلی: ۱۱۴٬۰۰۰ تومان</b>", canonical)
+        self.assertIn('<a href="https://t.me/OfferChin">📣 عضویت در کانال تلگرام آفرچین</a>', canonical)
+        self.assertNotIn("دکمهٔ زیر رو بزن", canonical)
         soup = BeautifulSoup(canonical, "html.parser")
         record = {
             "telegram_message_id": 88,
