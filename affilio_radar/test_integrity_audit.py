@@ -230,9 +230,13 @@ class IntegrityAuditStateTests(unittest.TestCase):
         audit_workflow = (root / ".github" / "workflows" / "offerchin-integrity-audit.yml").read_text(encoding="utf-8")
         publisher_workflow = (root / ".github" / "workflows" / "offerchin-publisher.yml").read_text(encoding="utf-8")
 
-        self.assertIn('cron: "*/5 * * * *"', audit_workflow)
-        self.assertIn('AFFILIO_PRICE_AUDIT_BATCH_SIZE: "30"', audit_workflow)
-        self.assertIn('AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "120"', audit_workflow)
+        # Cloudflare dispatches the audit on an off-slot minute; a second GitHub
+        # cron would duplicate the work and compete with fresh product validation.
+        self.assertIn("workflow_dispatch:", audit_workflow)
+        self.assertNotIn('cron: "*/5 * * * *"', audit_workflow)
+        self.assertIn('AFFILIO_PRICE_AUDIT_BATCH_SIZE: "8"', audit_workflow)
+        self.assertIn('AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "300"', audit_workflow)
+        self.assertIn('120s python affilio_radar/integrity_audit.py', audit_workflow)
         self.assertIn("group: offerchin-integrity-audit", audit_workflow)
         self.assertIn("group: offerchin-content-publisher", publisher_workflow)
         self.assertNotIn("offerchin-integrity-audit", publisher_workflow)
