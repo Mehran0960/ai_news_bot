@@ -1779,6 +1779,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("۱٬۱۰۸٬۸۰۰", telegram_caption)
         self.assertIn("[📣 عضویت در کانال بله آفرچین](https://ble.ir/OfferChin)", bale_caption)
         self.assertIn('<a href="https://t.me/OfferChin">📣 عضویت در کانال تلگرام آفرچین</a>', telegram_caption)
+        self.assertNotIn("دکمهٔ زیر رو بزن", bale_caption)
+        self.assertNotIn("دکمهٔ زیر رو بزن", telegram_caption)
         self.assertLess(bale_caption.index("⚡️"), bale_caption.index("عضویت در کانال بله آفرچین"))
         self.assertNotIn("<b>", bale_caption)
         self.assertNotIn("@OfferChin", bale_caption)
