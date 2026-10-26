@@ -3615,7 +3615,7 @@ def build_caption(
     channel_label: str = TELEGRAM_CHANNEL_URL,
     use_unicode_strikethrough: bool = False,
 ) -> str:
-    """Build a clean cross-platform caption with bold price/discount lines and continuous dividers."""
+    """Build a concise cross-platform caption with a clear price hierarchy and channel CTA."""
     is_bale = use_unicode_strikethrough
 
     def bold(value: str) -> str:
@@ -3628,13 +3628,16 @@ def build_caption(
     title = _escape_bale_markdown(raw_title) if is_bale else html.escape(raw_title)
 
     current = p.get("current_price")
-    original = p.get("original_price")
     discount = p.get("discount_percent")
     channel_url = str(channel_label or (BALE_CHANNEL_URL if is_bale else TELEGRAM_CHANNEL_URL)).strip()
     if not urlsplit(channel_url).scheme:
         channel_url = "https://" + channel_url
     channel_href = html.escape(channel_url, quote=True)
-    channel_text = "عضویت در کانال OfferChin"
+    channel_text = (
+        "📣 عضویت در کانال بله آفرچین"
+        if is_bale
+        else "📣 عضویت در کانال تلگرام آفرچین"
+    )
     if is_bale:
         channel_footer = f"[{channel_text}]({html.unescape(channel_href)})"
     else:
@@ -3646,29 +3649,25 @@ def build_caption(
         f"🔥 فروش ویژه {merchant} {merchant_marker}",
         "",
         f"🛍️ {title}",
-        "",
     ]
+
+    # Keep the offer's two decision-making facts prominent, with no list price,
+    # savings amount, countdown, or redundant instruction to press the buy button.
+    if current or (discount is not None and int(discount) > 0):
+        parts += ["", "────────────"]
     if current:
         price = format_persian_number(current)
-        price_line = f"💚 قیمت ویژه: {price} تومان"
-        parts.append(bold(price_line))
-        # Underline markup and per-character combining marks render inconsistently
-        # across Persian shaping engines. A separate divider stays continuous on both apps.
-        parts.append("────────────")
+        parts.append(bold(f"💚 قیمت فعلی: {price} تومان"))
     if discount is not None and int(discount) > 0:
         discount_value = format_persian_number(discount) + "٪"
         parts.append(bold(f"⚡️ {discount_value} تخفیف"))
-        parts.append("────────────")
-    # The original/list price is deliberately omitted from every public caption for a consistent, uncluttered layout.
-    # Keep original_price in the internal record for discount calculation and validation.
 
-    # Offer deadlines remain in state for verified cleanup; captions never show timers.
-
-    detail_line = f"👇 برای خرید از {merchant}، دکمهٔ زیر رو بزن."
-    parts += ["", channel_footer, "", detail_line]
+    # Keep one source-channel membership link for forwarded posts; the purchase button
+    # remains a separate inline button and its presence is validated by the sender.
+    parts += ["", "────────────", "", channel_footer]
     caption = "\n".join(parts)
-    footer = f"\n\n{channel_footer}\n\n{detail_line}"
     if len(caption) > 1024:
+        footer = f"\n\n────────────\n\n{channel_footer}"
         body = "\n".join(parts[:-4])
         caption = body[:1024 - len(footer)].rstrip() + footer
     return caption
