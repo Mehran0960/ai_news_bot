@@ -190,8 +190,8 @@ def draw_discount_burst(
 
         combined_width = percent_width + gap + label_width
         center_y = round(top + height * 0.52)
-        # In Persian reading order, the descriptor precedes the percentage from
-        # right to left, so place the percentage on the right side of the group.
+        # In Persian reading order, the percentage comes first on the right,
+        # followed by the descriptor on the left.
         label_center_x = left + (width - combined_width) / 2 + label_width / 2
         percent_center_x = left + (width + combined_width) / 2 - percent_width / 2
         draw.text(
