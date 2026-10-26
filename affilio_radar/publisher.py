@@ -14,6 +14,7 @@ from typing import Any
 import affilio_radar as radar
 from content_delivery import _active_publication, due_content, enforce_queue_limit, finish_queue_item
 from platform_registry import PLATFORM_NAMES, PHOTO_PLATFORMS, VIDEO_PLATFORMS, validate_registry
+from integrity_audit_state import apply_integrity_audit_ledger
 
 
 RETRY_BASE_SECONDS = max(60, int(os.getenv("AFFILIO_PUBLISH_RETRY_BASE_SECONDS", "300")))
@@ -448,6 +449,9 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
 def publish_due_queue() -> int:
     validate_registry()
     state = radar.load_state()
+    if apply_integrity_audit_ledger(state):
+        _save(state)
+        print("PUBLISHER_INTEGRITY_LEDGER_APPLIED")
     now = _now()
     evicted = enforce_queue_limit(state, now=now)
     if evicted:
