@@ -2120,5 +2120,59 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(record["bale_expiry_status"], "deleted")
 
 
+    def test_live_deadline_sync_updates_video_only_posts(self):
+        now = datetime(2026, 10, 26, 10, 0, tzinfo=timezone.utc)
+        current_deadline = (now + timedelta(hours=1)).isoformat()
+        new_deadline = (now + timedelta(hours=3)).isoformat()
+        record = {
+            "expires_at": current_deadline,
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_deadline_verified_from_site_card": False,
+            "expiry_estimated": False,
+            "youtube_video_id": "YtVideo123",
+            "youtube_expiry_status": "tracked",
+            "aparat_video_hash": "AparatHash123",
+            "aparat_expiry_status": "tracked",
+        }
+        summary = monitor.sync_live_offer_deadlines(
+            {"dkp-123": record},
+            {"dkp-123": new_deadline},
+            now,
+            live_sources={"dkp-123": "digikala_live_deals_feed"},
+        )
+        self.assertEqual(summary["updated"], 1)
+        self.assertEqual(record["expires_at"], new_deadline)
+        self.assertEqual(record["youtube_expiry_status"], "tracked")
+        self.assertEqual(record["aparat_expiry_status"], "tracked")
+
+    def test_live_deadline_feed_refresh_runs_for_video_only_publication(self):
+        now = datetime(2026, 10, 26, 10, 0, tzinfo=timezone.utc)
+        new_deadline = (now + timedelta(hours=2)).isoformat()
+        state = {}
+        published = {
+            "dkp-123": {
+                "expires_at": (now + timedelta(hours=1)).isoformat(),
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_deadline_verified_directly": True,
+                "expiry_deadline_verified_from_site_card": False,
+                "expiry_estimated": False,
+                "youtube_video_id": "YtVideo123",
+                "youtube_expiry_status": "tracked",
+            }
+        }
+        with patch.object(
+            monitor,
+            "fetch_offer_deadlines",
+            return_value=({"dkp-123": new_deadline}, {"dkp-123": "digikala_live_deals_feed"}),
+        ) as fetch:
+            changed = monitor._sync_live_deadline_feed(state, published, now)
+        self.assertTrue(changed)
+        fetch.assert_called_once_with(required_product_ids=["dkp-123"])
+        self.assertEqual(published["dkp-123"]["expires_at"], new_deadline)
+        self.assertEqual(state["expiry_feed_last_attempt_at"], now.isoformat())
+        self.assertEqual(state["expiry_feed_last_checked_at"], now.isoformat())
+
+
 if __name__ == "__main__":
     unittest.main()
