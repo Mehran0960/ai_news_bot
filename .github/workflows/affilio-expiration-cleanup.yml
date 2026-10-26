@@ -132,7 +132,7 @@ jobs:
           AFFILIO_DEAL_LIST_PAGES: "5"
           # Rotate through live offers every run without risking the 15-minute job timeout.
           AFFILIO_PRICE_AUDIT_BATCH_SIZE: "30"
-          AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "300"
+          AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "60"
           AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "300"
           AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "6"
           # Smaller routine history scans reduce lock duration; deep scans are reserved for repair.
