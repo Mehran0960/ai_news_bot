@@ -2399,6 +2399,49 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertGreater(brand_pixels, 500, f"{merchant} official background must remain visible")
             self.assertGreater(white_pixels, 100, f"{merchant} official white wordmark must remain visible")
 
+    def test_fetch_image_retries_transient_connect_timeout_once(self):
+        import requests
+        from unittest.mock import patch
+        from affilio_radar import _fetch_image
+
+        image_buffer = BytesIO()
+        Image.new("RGB", (16, 16), (240, 240, 240)).save(image_buffer, format="PNG")
+        image_bytes = image_buffer.getvalue()
+
+        class FakeResponse:
+            headers = {"Content-Type": "image/png"}
+            status_code = 200
+            def __init__(self, data):
+                self.data = data
+                self.closed = False
+            def raise_for_status(self):
+                return None
+            def iter_content(self, chunk_size):
+                yield self.data
+            def close(self):
+                self.closed = True
+
+        response = FakeResponse(image_bytes)
+        class FakeSession:
+            def __init__(self):
+                self.calls = 0
+                self.last_kwargs = {}
+            def get(self, url, **kwargs):
+                self.calls += 1
+                if self.calls == 1:
+                    raise requests.exceptions.ConnectTimeout("temporary image CDN timeout")
+                self.last_kwargs = kwargs
+                return response
+
+        session = FakeSession()
+        with patch("affilio_radar.SESSION", session), patch("affilio_radar.time.sleep"):
+            result = _fetch_image("https://images.example.test/product.png")
+
+        self.assertEqual(result, image_bytes)
+        self.assertEqual(session.calls, 2)
+        self.assertEqual(session.last_kwargs["timeout"], (8, 18))
+        self.assertTrue(response.closed)
+
     def test_store_badge_is_visible_in_upper_left_and_changes_by_retailer(self):
         image_bytes = BytesIO()
         Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")
