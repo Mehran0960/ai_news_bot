@@ -55,6 +55,26 @@ def run() -> int:
                 state[key] = value
     apply_integrity_audit_ledger(state, ledger, include_audit_cadence=True)
 
+    def checkpoint(phase: str, **metadata) -> None:
+        """Durably checkpoint audit facts and deletion outcomes without touching state.json."""
+        nonlocal ledger
+        checked_at = datetime.now(timezone.utc).isoformat()
+        ledger = capture_integrity_audit_ledger(
+            state,
+            ledger,
+            now_iso=checked_at,
+        )
+        last_run = dict(ledger.get("last_run") or {})
+        last_run.update(metadata)
+        last_run.update({
+            "checked_at": checked_at,
+            "phase": phase,
+            "publisher_state_write": False,
+            "ledger_path": LEDGER_PATH.name,
+        })
+        ledger["last_run"] = last_run
+        save_ledger(ledger)
+
     sync_changed = False
     try:
         sync_changed = monitor._sync_live_deadline_feed(state, published, now)
@@ -89,6 +109,21 @@ def run() -> int:
 
     # Use separate budgets for each adapter. All removals are best effort per post
     # and persisted to this lane's ledger; a failure is retried on a later audit run.
+    # Checkpoint confirmed mismatches before any destructive network operations.
+    # If a later platform call times out, the next run still knows what must be removed.
+    checkpoint(
+        "price_audit_complete",
+        batch_size=batch_size,
+        interval_seconds=audit_interval,
+        retry_seconds=retry_seconds,
+        products_due=int(summary.get("products_due") or 0),
+        products_checked=int(summary.get("products_checked") or 0),
+        price_mismatches=int(summary.get("price_mismatches") or 0),
+        out_of_stock_posts=int(summary.get("out_of_stock_posts") or 0),
+        unconfirmed=int(summary.get("unconfirmed") or 0),
+        deadline_sync_changed=bool(sync_changed),
+    )
+
     channel_budget = {
         "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 6, 1, 10)
     }
@@ -109,6 +144,12 @@ def run() -> int:
         channel_changed, channel_deleted = False, 0
         print(f"INTEGRITY_CHANNEL_CLEANUP_FAILED error={type(exc).__name__} detail={str(exc)[:150]!r}")
 
+    checkpoint(
+        "channel_cleanup_complete",
+        channel_cleanup_changed=bool(channel_changed),
+        channel_deleted=int(channel_deleted or 0),
+    )
+
     youtube_budget = {
         "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 6, 1, 10)
     }
@@ -126,6 +167,11 @@ def run() -> int:
         youtube_changed = False
         print(f"INTEGRITY_YOUTUBE_CLEANUP_FAILED error={type(exc).__name__} detail={str(exc)[:150]!r}")
 
+    checkpoint(
+        "youtube_cleanup_complete",
+        youtube_cleanup_changed=bool(youtube_changed),
+    )
+
     aparat_budget = {
         "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 6, 1, 10)
     }
@@ -142,6 +188,11 @@ def run() -> int:
     except Exception as exc:
         aparat_changed = False
         print(f"INTEGRITY_APARAT_CLEANUP_FAILED error={type(exc).__name__} detail={str(exc)[:150]!r}")
+
+    checkpoint(
+        "aparat_cleanup_complete",
+        aparat_cleanup_changed=bool(aparat_changed),
+    )
 
     completed_at = datetime.now(timezone.utc).isoformat()
     ledger = capture_integrity_audit_ledger(
