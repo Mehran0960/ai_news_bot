@@ -26,7 +26,6 @@ from affilio_radar import (
     is_publishable_product_title, fetch_product_record,
 )
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
-from trust_audit_ledger import apply_audit_ledger, write_audit_ledger
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
@@ -610,36 +609,18 @@ def fetch_live_product_status(product_id, expected_price=None, expected_original
     )
     return {}
 
-_AUDIT_LEDGER_BASELINE = None
-
-
-def _isolated_audit_ledger_enabled() -> bool:
-    return os.getenv("AFFILIO_ISOLATED_AUDIT_LEDGER", "false").strip().lower() in {
-        "1", "true", "yes", "on"
-    }
-
-
 def _read_state():
-    global _AUDIT_LEDGER_BASELINE
     if not STATE_PATH.exists():
-        state = {"published": {}, "last_published_at": ""}
-    else:
-        with STATE_PATH.open("r", encoding="utf-8") as handle:
-            state = json.load(handle)
+        return {"published": {}, "last_published_at": ""}
+    with STATE_PATH.open("r", encoding="utf-8") as handle:
+        state = json.load(handle)
     if not isinstance(state, dict):
         raise ValueError("state.json must contain an object")
     state.setdefault("published", {})
-    state = apply_audit_ledger(state)
-    # In isolated mode, write deltas to a separate ledger rather than touching the
-    # shared publication state file. Publication can then run independently.
-    _AUDIT_LEDGER_BASELINE = json.loads(json.dumps(state, ensure_ascii=False)) if _isolated_audit_ledger_enabled() else None
     return state
 
 
 def _write_state(state):
-    if _isolated_audit_ledger_enabled():
-        write_audit_ledger(state, _AUDIT_LEDGER_BASELINE)
-        return
     temporary = STATE_PATH.with_suffix(".json.tmp")
     with temporary.open("w", encoding="utf-8") as handle:
         json.dump(state, handle, ensure_ascii=False, indent=2)
