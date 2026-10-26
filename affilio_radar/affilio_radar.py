@@ -3762,7 +3762,7 @@ def build_discount_image(
                 merchant=merchant,
             )
 
-    # Store identity sits opposite the discount tile; both use the same top inset and height.
+    # Store identity sits opposite the discount tile; both target bounds are identical.
     draw_retailer_badge(image, brand_margin, brand_margin, store_badge_width, store_badge_height, merchant)
 
     # Keep the channel IDs at the lower-left without a card or solid panel.
