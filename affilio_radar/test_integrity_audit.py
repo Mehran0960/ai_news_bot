@@ -1,0 +1,136 @@
+import unittest
+
+from integrity_audit_state import (
+    RECORD_FIELDS,
+    apply_integrity_audit_ledger,
+    post_key,
+)
+
+
+class IntegrityAuditStateTests(unittest.TestCase):
+    def invalidated_entry(self, product_id, post_id, platform_status):
+        fields = {key: None for key in RECORD_FIELDS}
+        fields.update({
+            "posted_current_price": 100_000,
+            "posted_original_price": 200_000,
+            "posted_discount_percent": 50,
+            "price_audit_status": "invalidated",
+            "price_audit_reason": "price_mismatch",
+            "price_audit_invalidated_at": "2026-10-26T10:00:00+00:00",
+            "price_audit_mismatch_fields": ["current_price"],
+            "price_audit_posted_price": 100_000,
+            "price_audit_live_price": 120_000,
+            "expires_at": "2026-10-26T10:00:00+00:00",
+            "expiry_source": "live_product_stock_or_price",
+            "expiry_estimated": False,
+            "expiry_deadline_verified_directly": True,
+            "expiry_deadline_verified_from_site_card": False,
+            "expiry_reason": "price_mismatch",
+        })
+        return {
+            "product_id": product_id,
+            "post_id": str(post_id),
+            "platform": "telegram",
+            "updated_at": "2026-10-26T10:00:00+00:00",
+            "price_audit_status": "invalidated",
+            "record_fields": fields,
+            "platform_status": platform_status,
+            "platform_fields": {
+                "expired_deleted_at": "2026-10-26T10:00:01+00:00" if platform_status == "deleted" else None,
+                "expiry_last_absent_at": None,
+                "telegram_expiry_last_delete_error": "network error" if platform_status == "delete_failed" else None,
+            },
+        }
+
+    def test_confirmed_invalidation_is_applied_to_exact_post_and_terminal_status(self):
+        state = {
+            "published": {
+                "dkp-123": {
+                    "product_url": "https://www.digikala.com/product/dkp-123/",
+                    "telegram_message_id": 101,
+                    "expiry_status": "tracked",
+                    "posted_current_price": 100_000,
+                    "posted_discount_percent": 50,
+                }
+            }
+        }
+        ledger = {
+            "posts": {
+                post_key("telegram", 101): self.invalidated_entry("dkp-123", 101, "deleted")
+            }
+        }
+
+        changed = apply_integrity_audit_ledger(state, ledger)
+        record = state["published"]["dkp-123"]
+
+        self.assertTrue(changed)
+        self.assertEqual(record["expiry_status"], "deleted")
+        self.assertEqual(record["price_audit_status"], "invalidated")
+        self.assertEqual(record["expiry_source"], "live_product_stock_or_price")
+        self.assertEqual(record["posted_current_price"], 100_000)
+        self.assertEqual(record["price_audit_live_price"], 120_000)
+
+    def test_delete_failure_is_preserved_for_retry(self):
+        state = {
+            "published": {
+                "dkp-124": {
+                    "telegram_message_id": 102,
+                    "expiry_status": "tracked",
+                }
+            }
+        }
+        ledger = {
+            "posts": {
+                post_key("telegram", 102): self.invalidated_entry("dkp-124", 102, "delete_failed")
+            }
+        }
+
+        self.assertTrue(apply_integrity_audit_ledger(state, ledger))
+        record = state["published"]["dkp-124"]
+        self.assertEqual(record["expiry_status"], "delete_failed")
+        self.assertEqual(record["price_audit_status"], "invalidated")
+        self.assertEqual(record["telegram_expiry_last_delete_error"], "network error")
+
+    def test_historical_post_status_does_not_leak_to_new_post_for_same_product(self):
+        state = {
+            "published": {
+                "dkp-125": {
+                    "telegram_message_id": 201,
+                    "expiry_status": "tracked",
+                    "posted_current_price": 150_000,
+                    "post_history": [{
+                        "telegram_message_id": 200,
+                        "expiry_status": "tracked",
+                        "posted_current_price": 100_000,
+                    }],
+                }
+            }
+        }
+        ledger = {
+            "posts": {
+                post_key("telegram", 200): self.invalidated_entry("dkp-125", 200, "deleted")
+            }
+        }
+
+        self.assertTrue(apply_integrity_audit_ledger(state, ledger))
+        current = state["published"]["dkp-125"]
+        old = current["post_history"][0]
+        self.assertEqual(current["expiry_status"], "tracked")
+        self.assertEqual(current["posted_current_price"], 150_000)
+        self.assertEqual(old["expiry_status"], "deleted")
+        self.assertEqual(old["price_audit_status"], "invalidated")
+        self.assertEqual(old["posted_current_price"], 100_000)
+
+    def test_audit_entry_for_unknown_post_id_is_ignored(self):
+        state = {"published": {"dkp-126": {"telegram_message_id": 301, "expiry_status": "tracked"}}}
+        ledger = {
+            "posts": {
+                post_key("telegram", 999): self.invalidated_entry("dkp-126", 999, "deleted")
+            }
+        }
+        self.assertFalse(apply_integrity_audit_ledger(state, ledger))
+        self.assertEqual(state["published"]["dkp-126"]["expiry_status"], "tracked")
+
+
+if __name__ == "__main__":
+    unittest.main()
