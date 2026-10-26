@@ -8,6 +8,7 @@ on:
       - ".github/workflows/offerchin-publisher.yml"
   # Cloudflare's minute dispatcher starts this workflow every five minutes.
   # [publisher-run-now] One-time resume after channel-publication clock repair.
+  # [publisher-run-now] One-time retry after transient image-fetch and stale-selection fixes.
   workflow_dispatch:
 
 permissions:
