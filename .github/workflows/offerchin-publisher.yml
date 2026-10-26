@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/offerchin-publisher.yml"
   # Cloudflare's minute dispatcher starts this workflow every five minutes.
+  # [publisher-run-now] One-time resume after channel-publication clock repair.
   workflow_dispatch:
 
 permissions:
