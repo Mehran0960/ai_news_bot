@@ -125,7 +125,7 @@ class ShortVideoTests(unittest.TestCase):
         self.assertGreater(red_pixels, 1500, "video poster must show the official DigiKala tile at readable size")
         self.assertGreater(purple_pixels, 1500, "video poster must show the official SnappShop tile at readable size")
 
-    def test_discount_badge_uses_brand_tile_on_vertical_poster(self):
+    def test_discount_badge_matches_retailer_bounds_on_vertical_poster(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
         image.save(stream, format="PNG")
@@ -139,11 +139,11 @@ class ShortVideoTests(unittest.TestCase):
             if red > 120 and red > green * 1.6 and red > blue * 1.5
         )
         self.assertGreater(red_pixels, 1500)
-        # Red badge bounds should now align with the 88px retailer tile height.
+        # Red pixels should span nearly the same 280x88 target bounds as the retailer tile.
         red_points = [
             (x, y)
             for y in range(150, 300)
-            for x in range(500, 700)
+            for x in range(380, 690)
             if (lambda p: p[0] > 120 and p[0] > p[1] * 1.6 and p[0] > p[2] * 1.5)(
                 poster.getpixel((x, y))
             )
@@ -151,21 +151,27 @@ class ShortVideoTests(unittest.TestCase):
         self.assertTrue(red_points)
         xs = [point[0] for point in red_points]
         ys = [point[1] for point in red_points]
-        self.assertLessEqual(max(xs) - min(xs) + 1, 120)
-        self.assertGreaterEqual(max(xs) - min(xs) + 1, 112)
-        self.assertLessEqual(max(ys) - min(ys) + 1, 90)
+        self.assertLessEqual(max(xs) - min(xs) + 1, 280)
+        self.assertGreaterEqual(max(xs) - min(xs) + 1, 270)
+        self.assertLessEqual(max(ys) - min(ys) + 1, 88)
         self.assertGreaterEqual(max(ys) - min(ys) + 1, 82)
-        self.assertGreaterEqual(min(ys), 175)
+        self.assertGreaterEqual(min(ys), 178)
         self.assertLessEqual(min(ys), 182)
         self.assertEqual(poster.size, (720, 1280))
 
-    def test_discount_badge_dimensions_follow_retailer_badge_height(self):
+    def test_compact_badge_dimensions_legacy_helper_retains_compatibility(self):
         from offerchin_visuals import discount_badge_dimensions_for_reference_height
 
         self.assertEqual(discount_badge_dimensions_for_reference_height(88), (118, 88))
         self.assertEqual(discount_badge_dimensions_for_reference_height(67), (90, 67))
         # Very small source artwork keeps the discount label readable.
         self.assertEqual(discount_badge_dimensions_for_reference_height(48), (74, 55))
+
+    def test_discount_badge_can_match_exact_retailer_bounds(self):
+        from offerchin_visuals import discount_badge_dimensions_for_reference_bounds
+
+        self.assertEqual(discount_badge_dimensions_for_reference_bounds(280, 88), (280, 88))
+        self.assertEqual(discount_badge_dimensions_for_reference_bounds(124, 48), (124, 48))
 
     def test_vertical_discount_badge_uses_snappshop_purple(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
