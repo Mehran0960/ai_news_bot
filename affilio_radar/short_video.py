@@ -17,7 +17,10 @@ from typing import Mapping
 
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps, features
-from offerchin_visuals import draw_discount_burst, draw_retailer_badge, adaptive_text_colors
+from offerchin_visuals import (
+    draw_discount_burst, draw_retailer_badge, adaptive_text_colors,
+    discount_badge_dimensions_for_reference_height,
+)
 from offerchin_audio import write_original_soundtrack
 
 WIDTH = 720
@@ -315,14 +318,19 @@ def build_vertical_poster(
         discount = int(discount_percent)
     except (TypeError, ValueError, OverflowError):
         discount = 0
+    retailer_left, retailer_top = 48, 178
+    retailer_width, retailer_height = 280, 88
     if 0 < discount <= 100:
-        badge_width, badge_height = 150, 112
-        left, top = WIDTH - 44 - badge_width, 173
-        draw_discount_burst(draw, left, top, badge_width, badge_height, discount, merchant=merchant)
+        badge_width, badge_height = discount_badge_dimensions_for_reference_height(retailer_height)
+        left = WIDTH - retailer_left - badge_width
+        draw_discount_burst(
+            draw, left, retailer_top, badge_width, badge_height, discount, merchant=merchant
+        )
 
-    # The retailer mark sits at upper-left, opposite the discount badge.
-    # Match the larger full-color official logo tile used on channel images.
-    draw_retailer_badge(background, 48, 178, 280, 88, merchant)
+    # Keep the two upper elements aligned on the same top inset and target height.
+    draw_retailer_badge(
+        background, retailer_left, retailer_top, retailer_width, retailer_height, merchant
+    )
 
     # Large current price and a crossed-out former price communicate the deal instantly.
     price_panel = (34, 695, WIDTH - 34, 948)
