@@ -53,7 +53,7 @@ jobs:
 
       - name: Validate the delivery-only path
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py affilio_radar/trust_audit_ledger.py
           python - <<'PY'
           from pathlib import Path
           source = Path("affilio_radar/publisher.py").read_text(encoding="utf-8")
@@ -125,31 +125,8 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/publisher.py
 
-      # Trust-and-safety audit runs only AFTER the current delivery attempt.
-      # The selected post must not wait on a stale-post audit or retailer API outage.
-      # A bounded audit failure is recorded for the next cycle and cannot undo this run's publication.
-      - name: Audit existing posts and remove verified stale offers
-        if: ${{ !(github.event_name == 'push' && contains(github.event.head_commit.message, '[publisher-run-now]')) }}
-        continue-on-error: true
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
-          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
-          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
-          AFFILIO_DEAL_LIST_PAGES: "5"
-          AFFILIO_PUBLIC_HISTORY_PAGES: "1"
-          AFFILIO_DUPLICATE_SCAN_PAGES: "1"
-          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "30"
-          AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "60"
-          AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "300"
-          AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "6"
-          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
-          PYTHONUNBUFFERED: "1"
-        run: timeout --signal=TERM --kill-after=10s 90s python affilio_radar/expiration_monitor.py --bounded-maintenance --dedupe-recent || echo "PRICE_AUDIT_OR_CLEANUP_INCOMPLETE; delivery continues and next cycle retries"
+      # Cleanup has its own scheduled workflow and audit ledger; it never
+      # occupies this publisher's execution window or competes for state.json.
       - name: Persist independent per-platform results
         if: always()
         run: |
