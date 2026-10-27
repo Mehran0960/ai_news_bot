@@ -5447,7 +5447,7 @@ def is_fresh_selection_candidate(
 ) -> bool:
     """True only when the product can create a new post without duplicating live work."""
     key = str(pid or "").strip().lower()
-    if not re.fullmatch(r"(?:dkp|snp)-\\d{1,12}", key):
+    if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", key):
         return False
     if _has_active_publication_or_delivery(state, key):
         return False
