@@ -73,9 +73,10 @@ jobs:
           AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "300"
           AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "1"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
-          AFFILIO_PRODUCT_STATUS_TIMEOUT_SECONDS: "8"
+          AFFILIO_HTTP_TIMEOUT: "8"
+          AFFILIO_PRODUCT_STATUS_TIMEOUT_SECONDS: "6"
           PYTHONUNBUFFERED: "1"
-        run: timeout --signal=TERM --kill-after=10s 120s python affilio_radar/integrity_audit.py
+        run: timeout --signal=TERM --kill-after=10s 210s python affilio_radar/integrity_audit.py
 
       - name: Persist audit cadence and per-platform removal results only
         if: always()
