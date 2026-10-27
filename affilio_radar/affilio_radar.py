@@ -96,9 +96,14 @@ IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
 PREFERRED_POSTING_WINDOWS = (("morning", 9, 11), ("afternoon", 14, 17), ("evening", 20, 23))
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
 MCP_OFFER_PAGES_PER_SCAN = max(1, min(DEAL_LIST_PAGES, int(os.getenv("AFFILIO_MCP_PAGES_PER_SCAN", "2"))))
-MIN_DISCOUNT_PERCENT = max(1, min(90, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "1"))))
-# No fixed absolute-saving floor: meaningful value depends on product price and demand.
-MIN_SAVINGS_TOMAN = max(0, int(os.getenv("AFFILIO_MIN_SAVINGS_TOMAN", "0")))
+MIN_DISCOUNT_PERCENT = max(1, min(90, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "20"))))
+MIN_SAVINGS_TOMAN = max(0, int(os.getenv("AFFILIO_MIN_SAVINGS_TOMAN", "100000")))
+# High-ticket products may qualify below the standard percentage only when the saving
+# is substantial and independent product-demand signals are strong.
+HIGH_VALUE_MIN_CURRENT_PRICE_TOMAN = max(1_000_000, int(os.getenv("AFFILIO_HIGH_VALUE_MIN_CURRENT_PRICE_TOMAN", "10000000")))
+HIGH_VALUE_MIN_DISCOUNT_PERCENT = max(1, min(90, int(os.getenv("AFFILIO_HIGH_VALUE_MIN_DISCOUNT_PERCENT", "10"))))
+HIGH_VALUE_MIN_SAVINGS_TOMAN = max(100_000, int(os.getenv("AFFILIO_HIGH_VALUE_MIN_SAVINGS_TOMAN", "1000000")))
+HIGH_VALUE_MIN_DEMAND_SCORE = max(0, min(100, int(os.getenv("AFFILIO_HIGH_VALUE_MIN_DEMAND_SCORE", "40"))))
 PRICE_HISTORY_CHECK_LIMIT = max(0, min(25, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "15"))))
 MIN_HISTORICAL_PRICE_DAYS = max(3, min(30, int(os.getenv("AFFILIO_MIN_HISTORICAL_PRICE_DAYS", "7"))))
 MIN_HISTORICAL_DISCOUNT_PERCENT = max(1, min(50, int(os.getenv("AFFILIO_MIN_HISTORICAL_DISCOUNT_PERCENT", "10"))))
@@ -2351,6 +2356,42 @@ def _candidate_promo_score(record: dict) -> int:
     return max(0, min(100, round(discount * 0.65 + savings_score + review_score + rating_score)))
 
 
+def has_meaningful_discount(record: dict, require_demand: bool = True) -> bool:
+    """Apply OfferChin's valuable-deal floor with a narrow high-ticket exception.
+
+    General rule: at least MIN_DISCOUNT_PERCENT and MIN_SAVINGS_TOMAN.
+    High-ticket exception: at least 10% and 1M toman saved on a product currently
+    priced at 10M toman or more; the final eligibility gate also requires demand.
+    Discovery can find the candidate before demand is loaded, but publication cannot.
+    """
+    if not isinstance(record, dict):
+        return False
+    try:
+        discount = max(0, int(record.get("discount_percent") or 0))
+        savings = max(0, int(record.get("savings_toman") or 0))
+        current_price = max(
+            0,
+            int(record.get("current_price") or record.get("listed_current_price") or 0),
+        )
+    except (TypeError, ValueError, OverflowError):
+        return False
+
+    if (
+        discount >= MIN_DISCOUNT_PERCENT
+        and savings > 0
+        and savings >= MIN_SAVINGS_TOMAN
+    ):
+        return True
+
+    if not (
+        current_price >= HIGH_VALUE_MIN_CURRENT_PRICE_TOMAN
+        and discount >= HIGH_VALUE_MIN_DISCOUNT_PERCENT
+        and savings >= HIGH_VALUE_MIN_SAVINGS_TOMAN
+    ):
+        return False
+    return not require_demand or _candidate_demand_score(record) >= HIGH_VALUE_MIN_DEMAND_SCORE
+
+
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
     """Rank publishable candidates by demand and deal value; deadline urgency breaks ties."""
     current = now or datetime.now(timezone.utc)
@@ -2366,9 +2407,9 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
     )
     discount = max(0, int(record.get("discount_percent") or 0))
     savings = max(0, int(record.get("savings_toman") or 0))
-    # Require a genuine positive listed-price reduction, but no fixed savings floor
-    # and no penalty for expensive products.
-    value_gate = int(discount >= MIN_DISCOUNT_PERCENT and savings > 0)
+    # Rank genuine deals ahead of weak discounts, while allowing the narrow
+    # high-ticket exception to reach the detail-check stage.
+    value_gate = int(has_meaningful_discount(record, require_demand=False))
     if not active_deadline:
         urgency_tier = -1
     elif remaining <= 120 * 60:
@@ -3130,7 +3171,13 @@ def discover_product_urls(
                         continue
                     discount = round(100 * (listed - discounted) / listed)
                     savings = listed - discounted
-                    if discount < MIN_DISCOUNT_PERCENT or savings < MIN_SAVINGS_TOMAN:
+                    discount_candidate = {
+                        **card,
+                        "current_price": discounted,
+                        "discount_percent": discount,
+                        "savings_toman": savings,
+                    }
+                    if not has_meaningful_discount(discount_candidate, require_demand=False):
                         continue
                     discounted_seen += 1
                     if candidate not in snapp_candidates:
@@ -3326,9 +3373,7 @@ def score_product(p: dict) -> dict:
     p["category"] = category
     p["demand_score"] = max(0, min(100, int(score)))
     p["promo_score"] = max(0, min(100, int(discount_pct * 0.65 + savings_score + review_score + rating_score)))
-    p["qualifies_as_deal"] = bool(
-        discount_pct >= MIN_DISCOUNT_PERCENT and savings > 0
-    )
+    p["qualifies_as_deal"] = has_meaningful_discount(p)
     return p
 
 
@@ -3482,8 +3527,7 @@ def is_discount_publish_eligible(product: dict) -> bool:
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
-        and int(product.get("discount_percent") or 0) >= MIN_DISCOUNT_PERCENT
-        and int(product.get("savings_toman") or 0) > 0
+        and has_meaningful_discount(product)
     )
 
 
@@ -4768,8 +4812,7 @@ def is_deadline_critical_deal(product: dict, now: datetime | None = None) -> boo
     remaining_seconds = (expiry - current.astimezone(timezone.utc)).total_seconds()
     return bool(
         0 < remaining_seconds <= DEADLINE_CRITICAL_WINDOW_MINUTES * 60
-        and int(product.get("discount_percent") or 0) >= MIN_DISCOUNT_PERCENT
-        and int(product.get("savings_toman") or 0) > 0
+        and has_meaningful_discount(product)
     )
 
 
@@ -6884,7 +6927,7 @@ def tracked_telegram_invite_url(state: dict, source: str) -> str:
 def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
-    print(f"Ranking mode=Iran-market-demand-first; product price and category do not penalize demand; offer value ranks after demand; medicines/pharmacy products/vitamins/supplements remain excluded; publication requires verified stock, current price, image, valid affiliate link, and at least {MIN_DISCOUNT_PERCENT}% listed reduction with no fixed savings floor; confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining.")
+    print(f"Ranking mode=Iran-market-demand-first; product price/category do not penalize demand; normal offer floor={MIN_DISCOUNT_PERCENT}% and {MIN_SAVINGS_TOMAN:,} toman saved; high-ticket exception requires price >= {HIGH_VALUE_MIN_CURRENT_PRICE_TOMAN:,}, discount >= {HIGH_VALUE_MIN_DISCOUNT_PERCENT}%, saving >= {HIGH_VALUE_MIN_SAVINGS_TOMAN:,}, and demand score >= {HIGH_VALUE_MIN_DEMAND_SCORE}; live stock, price, image, and affiliate link remain mandatory; medicines/pharmacy products/vitamins/supplements remain excluded; confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining.")
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
@@ -7187,7 +7230,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Real 30-day channel clicks and product demand lead; review/rating signals support demand, while product price and category do not penalize ranking. Discount strength is a secondary quality signal after demand; no fixed absolute-savings floor. Deadline urgency is a secondary tie-breaker after offer validation. Medicines, pharmacy products, vitamins, and dietary supplements remain excluded. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; no-timer offers still require live stock, price, and a positive listed reduction.",
+        "ranking_note": f"Real 30-day channel clicks and product demand lead; product price and category do not penalize demand. The standard offer floor is {MIN_DISCOUNT_PERCENT}% and {MIN_SAVINGS_TOMAN:,} toman saved. A price >= {HIGH_VALUE_MIN_CURRENT_PRICE_TOMAN:,} may qualify at {HIGH_VALUE_MIN_DISCOUNT_PERCENT}% only with at least {HIGH_VALUE_MIN_SAVINGS_TOMAN:,} toman saved and demand score >= {HIGH_VALUE_MIN_DEMAND_SCORE}. Deadline urgency is secondary after deal validation. Medicines, pharmacy products, vitamins, and dietary supplements remain excluded. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers without a verified timer still require live stock, current price, and meaningful discount.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
