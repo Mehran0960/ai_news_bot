@@ -8,6 +8,11 @@ on:
       - "affilio_radar/candidates.json"
       - "affilio_radar/state.json"
       - ".github/workflows/deploy-offerchin-site.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "offerchin-site/**"
+      - ".github/workflows/deploy-offerchin-site.yml"
   workflow_run:
     workflows:
       - "Affilio Product Radar"
@@ -24,7 +29,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate-pr:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out proposed storefront changes
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build catalog and run regression tests without deployment
+        run: |
+          python -m py_compile offerchin-site/build.py offerchin-site/test_build.py
+          python offerchin-site/build.py
+          python -m unittest discover -s offerchin-site -p 'test_*.py'
+          node --check offerchin-site/assets/site.js
+          test -f offerchin-site/dist/index.html
+          test -f offerchin-site/dist/products.json
+
   build-and-deploy:
+    if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -99,6 +127,10 @@ jobs:
       - name: Build static Persian storefront from current radar state
         if: steps.detect.outputs.deploy_required == 'true'
         run: python offerchin-site/build.py
+
+      - name: Run storefront quality and conversion regression tests
+        if: steps.detect.outputs.deploy_required == 'true'
+        run: python -m unittest discover -s offerchin-site -p 'test_*.py'
 
       - name: Validate generated catalog, safety rules and SEO files
         if: steps.detect.outputs.deploy_required == 'true'

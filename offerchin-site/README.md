@@ -1,27 +1,34 @@
-# OfferChin storefront
+# فروشگاه آفرچین
 
-A static Persian product catalog designed for Cloudflare Pages. It uses the existing public data files in affilio_radar/candidates.json and affilio_radar/state.json; it does not scrape a second feed or modify the publishing automation.
+کاتالوگ فارسی و ایستا برای Cloudflare Pages که از snapshotهای موجود affilio_radar/candidates.json و affilio_radar/state.json استفاده می‌کند؛ این بخش منبع کشف جداگانه نمی‌سازد و نباید مسیر انتشار کانال‌ها را متوقف کند.
 
-## Product eligibility
+## معیار نمایش پیشنهاد
 
-A product appears only if it was previously sent successfully to at least one OfferChin channel, the state still marks it as tracked, the latest candidate snapshot says it qualifies and is in stock, the price and HTTPS links are usable, and both the current candidate and publication record carry a reliable future deadline. If the two deadlines differ, the earlier one wins. The listing stops showing it 10 minutes before that deadline, matching the existing channel safety buffer.
+محصول باید قبلاً با موفقیت در یکی از مقصدهای عمومی آفرچین منتشر شده باشد، وضعیت انتشار آن همچنان قابل پایش باشد، در snapshot اخیر واجد شرایط و موجود باشد، قیمت و پیوندهای HTTPS قابل استفاده داشته باشد، و مهلت هم از منبع محصول و هم از رکورد انتشار قابل‌اعتماد باشد. در اختلاف دو مهلت، زودترِ آن انتخاب می‌شود و کاتالوگ ۱۰ دقیقه زودتر از پایان ثبت‌شده محصول را از نمایش خارج می‌کند. اختلاف بیش از ۵ واحد درصدی بین تخفیف منبع و محاسبه قیمت/قیمت قبلی، برای جلوگیری از تبلیغ گمراه‌کننده رد می‌شود.
 
-The browser refreshes products.json every minute, updates countdowns locally, and disables product detail pages if the product disappears from the active feed. The build regenerates product detail pages, robots.txt, and sitemap.xml whenever candidates or publication state materially change.
+شناسه‌ها و برچسب فروشگاه به یک قالب ثابت دیجی‌کالا محدود نیستند؛ پشتیبانی فعلی شامل دیجی‌کالا و اسنپ‌شاپ است و لایه کاتالوگ می‌تواند retailerهای دیگر را با شناسه امن، URL معتبر و برچسب فروشگاه نمایش دهد. هر مقصد انتشار همچنان وضعیت مستقل خود را دارد.
 
-## Build locally
+## بهبودهای فروش و اعتبار
 
-From the repository root, run:
+- مرتب‌سازی پیش‌فرض ابتدا از سیگنال‌های تقاضا و کلیک ۳۰ روزه استفاده می‌کند و سپس جذابیت پیشنهاد را در نظر می‌گیرد.
+- فیلتر دسته‌بندی، فیلتر فروشگاه و جست‌وجوی ترکیبی عنوان/دسته/فروشگاه، رسیدن به محصول مرتبط را ساده‌تر می‌کند.
+- CTA خرید نام فروشگاه واقعی را نشان می‌دهد؛ اشتراک‌گذاری محصول از طریق share sheet موبایل یا کپی پیوند فراهم است.
+- صفحه جزئیات شامل metadata اشتراک‌گذاری اجتماعی و دادهٔ ساختاریافتهٔ Product/Offer است. قیمت داخلی بر حسب تومان در دادهٔ ساختاریافته به ریال تبدیل می‌شود، چون کد ISO رسمی ارز IRR است.
+- خرید در UI فقط برای محصولی فعال می‌ماند که مهلت معتبر، موجودی، قیمت، تصویر و لینک HTTPS داشته باشد؛ فروشنده مرجع نهایی قیمت و شرایط است.
+- کاتالوگ فقط پیشنهادهای منتشرشده و قابل‌پایش را نشان می‌دهد؛ آیتم‌های پیش از انتشار یا دارای دادهٔ ناقص ناخواسته به مشتری نمایش داده نمی‌شوند.
+
+## ساخت و تست محلی
+
+از ریشه مخزن:
 
     python offerchin-site/build.py
+    python -m unittest discover -s offerchin-site -p 'test_*.py'
+    node --check offerchin-site/assets/site.js
 
-The generated static site is written to offerchin-site/dist/.
+خروجی ایستای سایت در offerchin-site/dist/ قرار می‌گیرد.
 
-## Deploy
+## استقرار
 
-The GitHub Actions workflow deploys to Cloudflare Pages project offerchin-storefront, creating the project if needed. Repository Actions secrets required: CLOUDFLARE_API_TOKEN (with Cloudflare Pages edit access) and CLOUDFLARE_ACCOUNT_ID. URL after a successful deployment: https://offerchin-storefront.pages.dev.
+گردش‌کار GitHub Actions پروژه Cloudflare Pages با نام offerchin-storefront را می‌سازد/به‌روزرسانی می‌کند. secrets لازم: CLOUDFLARE_API_TOKEN با دسترسی ویرایش Pages و CLOUDFLARE_ACCOUNT_ID. URL مورد انتظار پس از استقرار موفق: https://offerchin-storefront.pages.dev.
 
-The workflow runs on relevant source/data updates and can also be started manually.
-
-## Automatic publishing
-
-A change to any file under `offerchin-site/` (including this README) automatically triggers the GitHub Actions build and deployment workflow. Updates to `affilio_radar/candidates.json` or `affilio_radar/state.json` trigger it as well, so routine data refreshes do not require a manual workflow run.
+هر تغییر مرتبط در کاتالوگ یا داده‌های محصول، انتشار سایت را به‌روزرسانی می‌کند.

@@ -66,14 +66,37 @@ def safe_https(value: str) -> bool:
         return False
 
 
+def valid_product_id(value: object) -> bool:
+    """Accept retailer-neutral IDs without allowing path traversal or HTML delimiters."""
+    return bool(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{2,99}", str(value or "")))
+
+
+def retailer_info(product_id: str, product_url: str, merchant: object = "") -> tuple[str, str]:
+    """Resolve a user-facing retailer label from the validated product source."""
+    try:
+        host = (urlparse(str(product_url or "").strip()).hostname or "").casefold()
+    except ValueError:
+        host = ""
+    identifier = str(product_id or "").casefold()
+    if identifier.startswith("snp-") or host == "snappshop.ir" or host.endswith(".snappshop.ir"):
+        return "snappshop", "اسنپ‌شاپ"
+    if identifier.startswith("dkp-") or host == "digikala.com" or host.endswith(".digikala.com"):
+        return "digikala", "دیجی‌کالا"
+    label = re.sub(r"\s+", " ", str(merchant or "").strip())[:80]
+    return "other", label or "فروشگاه"
+
+
 def build_products(candidates: dict, state: dict, now: datetime) -> list[dict]:
+    """Build a safe retailer-neutral feed only from live-eligible published offers."""
     published = state.get("published", {})
     result = []
     seen = set()
 
     for source in candidates.get("products", []):
-        product_id = str(source.get("product_id") or "")
-        if not re.fullmatch(r"dkp-\d+", product_id) or product_id in seen:
+        if not isinstance(source, dict):
+            continue
+        product_id = str(source.get("product_id") or "").strip()
+        if not valid_product_id(product_id) or product_id in seen:
             continue
         record = published.get(product_id)
         if not isinstance(record, dict):
@@ -90,17 +113,33 @@ def build_products(candidates: dict, state: dict, now: datetime) -> list[dict]:
 
         current_price = money(source.get("current_price"))
         original_price = money(source.get("original_price"))
-        savings = money(source.get("savings_toman"))
         if current_price <= 0 or original_price <= current_price:
             continue
+
+        calculated_discount = round(100 * (original_price - current_price) / original_price)
+        supplied_discount = money(source.get("discount_percent"))
+        # Avoid advertising a feed discount that materially conflicts with the prices.
+        if not 1 <= calculated_discount <= 100:
+            continue
+        if supplied_discount > 0 and abs(supplied_discount - calculated_discount) > 5:
+            continue
+        discount_percent = calculated_discount
+        savings = original_price - current_price
 
         affiliate_url = str(source.get("affiliate_url") or "")
         product_url = str(source.get("product_url") or "")
         image_url = str(source.get("image_url") or "")
         if not safe_https(affiliate_url) or not safe_https(product_url) or not safe_https(image_url):
             continue
-        if product_id not in urlparse(product_url).path:
+        try:
+            product_path = urlparse(product_url).path.casefold()
+        except ValueError:
             continue
+        if product_id.casefold() not in product_path:
+            continue
+
+        retailer_key, retailer_name = retailer_info(product_id, product_url, source.get("merchant"))
+        category = re.sub(r"\s+", " ", str(source.get("category") or "سایر").strip())[:100] or "سایر"
 
         feed_deadline = parse_date(source.get("deal_expires_at"))
         post_deadline = parse_date(record.get("expires_at"))
@@ -113,16 +152,19 @@ def build_products(candidates: dict, state: dict, now: datetime) -> list[dict]:
             continue
 
         title = str(source.get("title") or record.get("title") or "").strip()
-        if not title:
+        if len(title) < 5:
             continue
 
         product = {
             "product_id": product_id,
             "title": title,
+            "retailer_key": retailer_key,
+            "retailer_name": retailer_name,
+            "category": category,
             "current_price": current_price,
             "original_price": original_price,
-            "discount_percent": money(source.get("discount_percent")),
-            "savings_toman": savings or max(0, original_price - current_price),
+            "discount_percent": discount_percent,
+            "savings_toman": savings,
             "image_url": image_url,
             "affiliate_url": affiliate_url,
             "product_url": product_url,
@@ -131,6 +173,7 @@ def build_products(candidates: dict, state: dict, now: datetime) -> list[dict]:
             "availability": "in_stock",
             "promo_score": float(source.get("promo_score") or 0),
             "demand_score": float(source.get("demand_score") or 0),
+            "click_count_30d": money(source.get("click_count_30d")),
             "review_count": money(source.get("review_count")),
             "rating": source.get("rating"),
             "published_at": datetime.fromtimestamp(float(record.get("ts") or 0), timezone.utc).isoformat()
@@ -139,37 +182,47 @@ def build_products(candidates: dict, state: dict, now: datetime) -> list[dict]:
         result.append(product)
         seen.add(product_id)
 
-    result.sort(key=lambda p: (p["promo_score"], p["demand_score"], p["savings_toman"]), reverse=True)
+    # Demand/popularity leads; deal appeal is a secondary signal.
+    result.sort(
+        key=lambda p: (p["demand_score"], p["click_count_30d"], p["promo_score"], p["review_count"]),
+        reverse=True,
+    )
     return result
 
 
 def card_html(p: dict) -> str:
     pid, title = esc(p["product_id"]), esc(p["title"])
+    retailer_key = esc(p.get("retailer_key") or "other")
+    retailer_name = esc(p.get("retailer_name") or "فروشگاه")
+    category = esc(p.get("category") or "سایر")
     return f"""
-    <article class="deal-card" data-product-id="{pid}" data-active-until="{esc(p['active_until'])}">
+    <article class="deal-card" data-product-id="{pid}" data-category="{category}" data-retailer="{retailer_key}" data-active-until="{esc(p['active_until'])}">
       <a class="product-media" href="/products/{pid}/" aria-label="جزئیات {title}">
         <img src="{esc(p['image_url'])}" alt="{title}" loading="lazy" decoding="async"
              onerror="this.style.display='none';this.parentElement.classList.add('image-missing')">
         <span class="discount-badge">{money(p['discount_percent'])}٪ تخفیف</span>
       </a>
       <div class="product-body">
+        <div class="product-meta"><span class="retailer-tag">{retailer_name}</span><span class="category-tag">{category}</span></div>
         <h3 class="product-title"><a href="/products/{pid}/">{title}</a></h3>
         <div class="price-block">
           <div class="price-now">{money(p['current_price']):,} <span class="currency">تومان</span></div>
           <div class="price-old">قیمت قبلی: <s>{money(p['original_price']):,} تومان</s></div>
-          <div class="saving">صرفه‌جویی {money(p['savings_toman']):,} تومان</div>
+          <div class="saving">اختلاف با قیمت قبلی {money(p['savings_toman']):,} تومان</div>
         </div>
-        <div class="deadline"><span aria-hidden="true">◷</span><span>فرصت امن خرید: <strong data-countdown="{esc(p['active_until'])}">در حال محاسبه…</strong></span></div>
+        <div class="deadline"><span aria-hidden="true">◷</span><span>مهلت امن خرید: <strong data-countdown="{esc(p['active_until'])}">در حال محاسبه…</strong></span></div>
         <div class="card-actions">
-          <a class="buy-link" href="{esc(p['affiliate_url'])}" target="_blank" rel="sponsored nofollow noopener noreferrer">مشاهده در دیجی‌کالا ↗</a>
-          <a class="details-link" href="/products/{pid}/">جزئیات پیشنهاد</a>
+          <a class="buy-link" href="{esc(p['affiliate_url'])}" target="_blank" rel="sponsored nofollow noopener noreferrer">مشاهده و خرید در {retailer_name} ↗</a>
+          <button class="share-link" type="button" data-share-product="{pid}" aria-label="اشتراک‌گذاری {title}">اشتراک‌گذاری</button>
+          <a class="details-link" href="/products/{pid}/">جزئیات</a>
         </div>
       </div>
     </article>"""
 
 
-def shared_head(title: str, description: str, canonical: str, image: str = "") -> str:
+def shared_head(title: str, description: str, canonical: str, image: str = "", page_type: str = "website") -> str:
     og_image = f'<meta property="og:image" content="{esc(image)}">' if image else ""
+    twitter_image = f'<meta name="twitter:image" content="{esc(image)}">' if image else ""
     return f"""<!doctype html>
 <html lang="fa" dir="rtl">
 <head>
@@ -182,12 +235,17 @@ def shared_head(title: str, description: str, canonical: str, image: str = "") -
 <link rel="stylesheet" href="/assets/site.css">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23b8f34a'/%3E%3Ctext x='20' y='28' font-size='25' text-anchor='middle' font-family='sans-serif' fill='%23102a43'%3Eآ%3C/text%3E%3C/svg%3E">
 <title>{esc(title)}</title>
+<meta property="og:site_name" content="آفِرچین">
 <meta property="og:locale" content="fa_IR">
-<meta property="og:type" content="website">
+<meta property="og:type" content="{esc(page_type)}">
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(description)}">
 <meta property="og:url" content="{esc(canonical)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{esc(title)}">
+<meta name="twitter:description" content="{esc(description)}">
 {og_image}
+{twitter_image}
 <script defer src="/assets/site.js"></script>
 </head>"""
 
@@ -201,14 +259,14 @@ def site_header() -> str:
 
 def site_footer() -> str:
     return f"""<footer class="site-footer"><div class="container footer-inner">
-<p>آفِرچین، شکارچی تخفیف‌های ناب دیجی‌کالا. قیمت و موجودی ممکن است تغییر کند؛ پیش از خرید، اطلاعات نهایی را در صفحه دیجی‌کالا بررسی کنید. برخی پیوندهای خرید ممکن است شامل همکاری در فروش باشند.</p>
+<p>آفِرچین، شکارچی پیشنهادهای قابل‌بررسی دیجی‌کالا و اسنپ‌شاپ. قیمت و موجودی ممکن است تغییر کند؛ پیش از خرید، اطلاعات نهایی را در صفحه فروشنده بررسی کنید. برخی پیوندهای خرید ممکن است شامل همکاری در فروش باشند.</p>
 <div class="footer-links"><a href="{CHANNEL_TELEGRAM}" target="_blank" rel="noopener noreferrer">کانال تلگرام</a><a href="{CHANNEL_BALE}" target="_blank" rel="noopener noreferrer">کانال بله</a></div>
 </div></footer>"""
 
 
 def build_index(products: list[dict]) -> str:
-    title = "آفِرچین | پیشنهادهای معتبر دیجی‌کالا"
-    description = "پیشنهادهای تخفیفی آفِرچین با لینک خرید، قیمت و مهلت معتبر. پیشنهادهای منقضی‌شده به‌طور خودکار از فهرست حذف می‌شوند."
+    title = "آفِرچین | پیشنهادهای معتبر دیجی‌کالا و اسنپ‌شاپ"
+    description = "پیشنهادهای منتخب آفرچین از دیجی‌کالا و اسنپ‌شاپ با لینک خرید، قیمت و اعتبار کنترل‌شده؛ پیشنهاد نامعتبر یا منقضی به‌طور خودکار کنار می‌رود."
     cards = "".join(card_html(p) for p in products)
     if not cards:
         cards = '<div class="empty-state"><strong>فعلاً پیشنهاد فعالی نداریم</strong>پیشنهادهای واجد شرایط به‌صورت خودکار در همین صفحه ظاهر می‌شوند.</div>'
@@ -225,22 +283,24 @@ def build_index(products: list[dict]) -> str:
 <body>
 {site_header()}
 <section class="hero"><div class="container hero-grid">
-<div><p class="eyebrow">● پیشنهادهایی با مهلت معتبر</p><h1>خرید هوشمندانه‌تر،<br>با تخفیف‌های قابل بررسی</h1>
-<p>پیشنهادهای دیجی‌کالا که از فیلترهای قیمت، موجودی، لینک خرید و مهلت معتبر آفِرچین عبور کرده‌اند.</p>
-<p class="hero-note">برای جلوگیری از معرفی دیرهنگام، پیشنهادها ۱۰ دقیقه پیش از مهلت ثبت‌شده از فهرست کنار می‌روند.</p></div>
+<div><p class="eyebrow">● پیشنهادهای منتخب با اعتبار کنترل‌شده</p><h1>خرید هوشمندانه‌تر،<br>بدون گشتن بین تخفیف‌های تکراری</h1>
+<p>پیشنهادهای دیجی‌کالا و اسنپ‌شاپ که از فیلترهای قیمت، موجودی، لینک خرید و اعتبار آفرچین عبور کرده‌اند.</p>
+<p class="hero-note">برای کاهش احتمال خرید با قیمت منقضی، پیشنهادها ۱۰ دقیقه پیش از مهلت تأییدشده از فهرست کنار می‌روند.</p></div>
 <div class="hero-stat"><div><div class="stat-number" id="offerCount">{len(products)}</div><div class="stat-label">پیشنهاد قابل خرید</div></div><div aria-hidden="true" style="font-size:2.4rem">↘</div></div>
 </div></section>
 <main class="container catalog" id="offers">
-<div class="section-head"><div><h2>پیشنهادهای فعال</h2><p>فقط محصولاتی که قبلاً در یکی از کانال‌های آفِرچین منتشر شده‌اند.</p></div></div>
+<div class="section-head"><div><h2>پیشنهادهای فعال</h2><p>پیشنهادها ابتدا بر پایهٔ سیگنال‌های تقاضا مرتب می‌شوند؛ می‌توانید فروشگاه و دسته را فیلتر کنید.</p></div></div>
 <div class="toolbar">
-<label class="search-wrap"><span class="search-icon" aria-hidden="true">⌕</span><input id="offerSearch" class="search-input" type="search" autocomplete="off" placeholder="جست‌وجوی نام محصول…" aria-label="جست‌وجوی نام محصول"></label>
-<label><span style="position:absolute;clip:rect(0,0,0,0)">مرتب‌سازی</span><select id="offerSort" class="sort-select" aria-label="مرتب‌سازی پیشنهادها"><option value="score">بهترین پیشنهادها</option><option value="discount">بیشترین تخفیف</option><option value="saving">بیشترین صرفه‌جویی</option></select></label>
+<label class="search-wrap"><span class="search-icon" aria-hidden="true">⌕</span><input id="offerSearch" class="search-input" type="search" autocomplete="off" placeholder="جست‌وجوی نام محصول…" aria-label="جست‌وجوی نام محصول، دسته یا فروشگاه"></label>
+<label><span class="visually-hidden">دسته‌بندی</span><select id="offerCategory" class="sort-select" aria-label="فیلتر دسته‌بندی"><option value="">همه دسته‌ها</option></select></label>
+<label><span class="visually-hidden">فروشگاه</span><select id="offerRetailer" class="sort-select" aria-label="فیلتر فروشگاه"><option value="">همه فروشگاه‌ها</option></select></label>
+<label><span class="visually-hidden">مرتب‌سازی</span><select id="offerSort" class="sort-select" aria-label="مرتب‌سازی پیشنهادها"><option value="demand">تقاضای بیشتر</option><option value="promo">جذابیت پیشنهاد</option><option value="discount">بیشترین تخفیف</option><option value="saving">بیشترین اختلاف قیمت</option></select></label>
 </div>
 <p class="status-line" id="feedStatus" aria-live="polite">در حال آماده‌سازی فهرست…</p>
 <div class="grid" id="offerGrid">{cards}</div>
 <section class="policy" id="about"><h2>پیشنهادها چطور انتخاب می‌شوند؟</h2>
-<p>محصول باید قبلاً در یکی از کانال‌های آفِرچین منتشر شده باشد و همچنان موجودی، لینک خرید و مهلت پایان قابل‌اعتماد داشته باشد. در صورت رسیدن به مهلت امن یا تأیید نامعتبر بودن پیشنهاد، محصول از فهرست حذف یا خرید آن غیرفعال می‌شود.</p>
-<p>ممکن است دیجی‌کالا قیمت یا موجودی را پیش از موعد تغییر دهد؛ صفحه فروشنده مرجع نهایی معامله است.</p></section>
+<p>فقط محصولاتی نمایش داده می‌شوند که قبلاً در یکی از کانال‌های آفرچین منتشر شده‌اند و همچنان موجودی، لینک خرید، قیمت و مهلت قابل‌اعتماد دارند. اختلاف غیرمنطقی بین درصد اعلام‌شده و محاسبه‌شده تخفیف، باعث حذف پیشنهاد از کاتالوگ می‌شود.</p>
+<p>قیمت و موجودی در فروشگاه ممکن است تغییر کند؛ صفحه فروشنده مرجع نهایی معامله است. برخی پیوندهای خرید ممکن است شامل همکاری در فروش باشند.</p></section>
 </main>
 {site_footer()}
 <script type="application/ld+json">{script_json(itemlist)}</script>
@@ -250,8 +310,9 @@ def build_index(products: list[dict]) -> str:
 
 def build_detail(p: dict) -> str:
     title = p["title"]
+    retailer_name = p.get("retailer_name") or "فروشگاه"
     canonical = f"{SITE_URL}/products/{p['product_id']}/"
-    description = f"{title} با {money(p['discount_percent'])} درصد تخفیف. قیمت فعلی ثبت‌شده {money(p['current_price']):,} تومان؛ مهلت نمایش پیشنهاد به‌صورت خودکار کنترل می‌شود."
+    description = f"{title} با {money(p['discount_percent'])} درصد تخفیف. قیمت فعلی ثبت‌شده {money(p['current_price']):,} تومان؛ اعتبار پیشنهاد به‌صورت خودکار کنترل می‌شود."
     product_schema = {
         "@context": "https://schema.org",
         "@type": "Product",
@@ -260,22 +321,34 @@ def build_detail(p: dict) -> str:
         "description": description,
         "url": canonical,
         "sku": p["product_id"],
+        "category": p.get("category") or "سایر",
+        "offers": {
+            "@type": "Offer",
+            # Retailer feeds store toman; schema.org's ISO currency code is IRR (rial).
+            "price": int(p["current_price"]) * 10,
+            "priceCurrency": "IRR",
+            "availability": "https://schema.org/InStock",
+            "url": canonical,
+            "priceValidUntil": p.get("deal_expires_at") or p["active_until"],
+            "seller": {"@type": "Organization", "name": retailer_name},
+        },
     }
-    return f"""{shared_head(title + " | آفِرچین", description, canonical, image=p['image_url'])}
+    return f"""{shared_head(title + " | آفِرچین", description, canonical, image=p['image_url'], page_type="product")}
 <body data-product-id="{esc(p['product_id'])}">
 {site_header()}
 <main class="container detail-wrap">
 <p class="breadcrumb"><a href="/">آفِرچین</a> ← <a href="/#offers">پیشنهادهای فعال</a> ← جزئیات محصول</p>
-<div class="expired-notice" id="expiredNotice" hidden><h2>این پیشنهاد دیگر فعال نیست</h2><p>برای جلوگیری از خرید با تخفیف منقضی، لینک خرید این صفحه غیرفعال شده است.</p><a href="/#offers">دیدن پیشنهادهای فعال ←</a></div>
+<div class="expired-notice" id="expiredNotice" hidden><h2>این پیشنهاد دیگر فعال نیست</h2><p>برای جلوگیری از خرید با قیمت یا تخفیف منقضی، لینک خرید این صفحه غیرفعال شده است.</p><a href="/#offers">دیدن پیشنهادهای فعال ←</a></div>
 <section class="detail-card" id="detailContent">
 <div class="detail-image"><img id="detailImage" src="{esc(p['image_url'])}" alt="{esc(title)}" decoding="async" onerror="this.style.display='none'"></div>
-<div><p class="eyebrow" style="color:#5e7c20">پیشنهاد بررسی‌شده آفِرچین</p><span class="discount-badge" id="detailDiscount">{money(p['discount_percent'])}٪ تخفیف</span>
+<div><p class="eyebrow" style="color:#5e7c20">پیشنهاد بررسی‌شده آفرچین</p><span class="discount-badge" id="detailDiscount">{money(p['discount_percent'])}٪ تخفیف</span>
+<p class="retailer-tag detail-retailer" id="detailRetailer">فروشگاه: {esc(retailer_name)}</p>
 <h1 class="detail-title" id="detailTitle">{esc(title)}</h1>
 <div class="detail-price"><div class="price-now" id="detailCurrentPrice">{money(p['current_price']):,} تومان</div><div class="price-old">قیمت قبلی: <s id="detailOldPrice">{money(p['original_price']):,} تومان</s></div></div>
-<p class="detail-savings" id="detailSaving">صرفه‌جویی {money(p['savings_toman']):,} تومان</p>
-<p class="deadline">فرصت امن خرید: <strong data-countdown="{esc(p['active_until'])}" id="detailCountdown">در حال محاسبه…</strong></p>
-<a class="buy-link detail-buy" id="detailBuy" href="{esc(p['affiliate_url'])}" target="_blank" rel="sponsored nofollow noopener noreferrer">مشاهده و خرید در دیجی‌کالا ↗</a>
-<p class="notice">قیمت و موجودی در دیجی‌کالا ممکن است تغییر کند. پیش از نهایی‌کردن خرید، قیمت و شرایط فعلی را در صفحه فروشنده بررسی کنید.</p></div>
+<p class="detail-savings" id="detailSaving">اختلاف با قیمت قبلی {money(p['savings_toman']):,} تومان</p>
+<p class="deadline">مهلت امن خرید: <strong data-countdown="{esc(p['active_until'])}" id="detailCountdown">در حال محاسبه…</strong></p>
+<div class="detail-actions"><a class="buy-link detail-buy" id="detailBuy" href="{esc(p['affiliate_url'])}" target="_blank" rel="sponsored nofollow noopener noreferrer">مشاهده و خرید در {esc(retailer_name)} ↗</a><button class="share-link detail-share" type="button" data-share-product="{esc(p['product_id'])}">اشتراک‌گذاری پیشنهاد</button></div>
+<p class="notice">قیمت و موجودی در فروشگاه ممکن است تغییر کند. پیش از نهایی‌کردن خرید، قیمت و شرایط فعلی را در صفحه فروشنده بررسی کنید.</p></div>
 </section>
 </main>
 {site_footer()}
