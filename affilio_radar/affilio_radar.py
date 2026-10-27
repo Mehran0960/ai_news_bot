@@ -2745,19 +2745,31 @@ def discover_product_urls(
         f"reserved_rotating_search_slots={search_reserve}"
     )
 
-    # [scan-now] Recheck persistent candidates even when their deadline is earlier than active
-    # channel posts; chronology is not a publication eligibility rule anymore.
+    # Recheck persistent candidates, but do not let already-published/cooldown items
+    # consume discovery slots before the live feed and rotating search terms run.
+    queued_repeat_or_active_skips = 0
     for pid, record in select_queued_records_for_recheck(
         queued_records, queue_now
     ):
         if len(found) >= presearch_candidate_limit:
             break
+        if (
+            not is_fresh_selection_candidate(state_to_persist or {}, pid, record, queue_now)
+            and not _has_pending_channel_retry(state_to_persist or {}, pid)
+        ):
+            queued_repeat_or_active_skips += 1
+            continue
         canonical = safe_product_url(record.get("product_url", ""))
         deadline = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
         if not canonical or deadline is None or deadline <= queue_now:
             continue
         found.append(canonical)
         queued_expiries[str(pid)] = deadline.isoformat()
+    if queued_repeat_or_active_skips:
+        print(
+            "DISCOVERY_PENDING_QUEUE_FILTERED "
+            f"repeat_or_active={queued_repeat_or_active_skips}"
+        )
 
     publish_history = state_to_persist.get("published", {}) if isinstance(state_to_persist, dict) else {}
     recent_history = state_to_persist.get("recent_publications", []) if isinstance(state_to_persist, dict) else []
