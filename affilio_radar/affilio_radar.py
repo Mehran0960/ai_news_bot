@@ -97,7 +97,7 @@ PREFERRED_POSTING_WINDOWS = (("morning", 9, 11), ("afternoon", 14, 17), ("evenin
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
 MCP_OFFER_PAGES_PER_SCAN = max(1, min(DEAL_LIST_PAGES, int(os.getenv("AFFILIO_MCP_PAGES_PER_SCAN", "2"))))
 # One price- and category-neutral floor; real-value checks remain mandatory before publishing.
-MIN_DISCOUNT_PERCENT = 20
+MIN_DISCOUNT_PERCENT = 15
 MIN_SAVINGS_TOMAN = 100_000
 PRICE_HISTORY_CHECK_LIMIT = max(0, min(25, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "15"))))
 MIN_HISTORICAL_PRICE_DAYS = max(3, min(30, int(os.getenv("AFFILIO_MIN_HISTORICAL_PRICE_DAYS", "7"))))
@@ -2355,7 +2355,7 @@ def _candidate_promo_score(record: dict) -> int:
 def has_meaningful_discount(record: dict) -> bool:
     """Apply the same minimum listed discount to every product and price band.
 
-    The discount must be at least 20% and the listed saving at least 100,000 toman.
+    The discount must be at least 15% and the listed saving at least 100,000 toman.
     Historical/market-price validation still determines whether that listed saving
     is genuine; no high-ticket or category-specific exception is allowed.
     """
@@ -2533,9 +2533,9 @@ def _candidate_demand_comparable_for_diversity(candidate: dict, leader: dict) ->
     leader = leader if isinstance(leader, dict) else {}
     leader_clicks = max(0, int(leader.get("click_count_30d") or 0))
     candidate_clicks = max(0, int(candidate.get("click_count_30d") or 0))
-    if leader_clicks and candidate_clicks < leader_clicks * 0.80:
+    if leader_clicks and candidate_clicks < leader_clicks * 0.70:
         return False
-    return _candidate_demand_score(candidate) >= _candidate_demand_score(leader) - 8
+    return _candidate_demand_score(candidate) >= _candidate_demand_score(leader) - 15
 
 
 def _diversify_ranked_records(
@@ -5328,11 +5328,11 @@ def select_publish_candidates(
 
 MIN_REPEAT_PRODUCT_INTERVAL_HOURS = 24
 PUBLICATION_LEDGER_LIMIT = 2000
-# Repeat-gap preferences; diversity only reorders candidates with comparable demand.
+# Repeat-gap preferences; diversity can reorder within a bounded demand gap to avoid category saturation.
 FAMILY_REPEAT_COOLDOWN_HOURS = 3
 BRAND_REPEAT_COOLDOWN_HOURS = 2
-CATEGORY_REPEAT_COOLDOWN_MINUTES = 45
-DIVERSITY_LOOKAHEAD_CANDIDATES = 5
+CATEGORY_REPEAT_COOLDOWN_MINUTES = 120
+DIVERSITY_LOOKAHEAD_CANDIDATES = 12
 
 
 def _publication_record_ts(record: dict | None) -> float:
