@@ -1669,7 +1669,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("دکمهٔ زیر رو بزن", caption)
         self.assertNotIn("برای خرید از دیجی‌کالا", caption)
         self.assertIn('<a href="https://t.me/OfferChin">➕ عضویت در تلگرام | آفرچین</a>', caption)
-        self.assertLess(caption.index("⚡️"), caption.index("عضویت در کانال تلگرام آفرچین"))
+        self.assertLess(caption.index("⚡️"), caption.index("عضویت در تلگرام | آفرچین"))
         self.assertNotRegex(caption, r"[0-9]")
         self.assertNotIn("قیمت امروز", caption)
         self.assertNotIn("صرفه‌جویی", caption)
@@ -1679,7 +1679,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("لینک خرید همکاری در فروش است", caption)
         self.assertLess(caption.index("💚 قیمت فعلی"), caption.index("⚡️"))
         self.assertLess(caption.index("────────────"), caption.index("💚 قیمت فعلی"))
-        self.assertLess(caption.index("⚡️"), caption.index("عضویت در کانال تلگرام آفرچین"))
+        self.assertLess(caption.index("⚡️"), caption.index("عضویت در تلگرام | آفرچین"))
         self.assertLessEqual(len(caption), 1024)
         self.assertNotIn("کمیسیون", caption)
         self.assertNotIn("تاریخچه", caption)
@@ -1781,7 +1781,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn('<a href="https://t.me/OfferChin">➕ عضویت در تلگرام | آفرچین</a>', telegram_caption)
         self.assertNotIn("دکمهٔ زیر رو بزن", bale_caption)
         self.assertNotIn("دکمهٔ زیر رو بزن", telegram_caption)
-        self.assertLess(bale_caption.index("⚡️"), bale_caption.index("عضویت در کانال بله آفرچین"))
+        self.assertLess(bale_caption.index("⚡️"), bale_caption.index("عضویت در بله | آفرچین"))
         self.assertNotIn("<b>", bale_caption)
         self.assertNotIn("@OfferChin", bale_caption)
         self.assertNotIn("@OfferChin", telegram_caption)
@@ -1944,8 +1944,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(edit_telegram.call_args.args[2], url)
         self.assertEqual(edit_bale.call_args.args[2], url)
         self.assertNotIn("deadline_caption_refresh_required", state["published"]["dkp-15970075"])
-        self.assertIn("عضویت در کانال تلگرام آفرچین", edit_telegram.call_args.args[1])
-        self.assertIn("عضویت در کانال بله آفرچین", edit_bale.call_args.args[1])
+        self.assertIn("عضویت در تلگرام | آفرچین", edit_telegram.call_args.args[1])
+        self.assertIn("عضویت در بله | آفرچین", edit_bale.call_args.args[1])
         self.assertTrue(save_state.called)
 
 
@@ -2206,8 +2206,8 @@ class AffilioRadarTests(unittest.TestCase):
         bale_caption = edit_bale.call_args_list[0].args[1]
         self.assertIn('<a href="https://t.me/OfferChin">➕ عضویت در تلگرام | آفرچین</a>', telegram_caption)
         self.assertIn("[➕ عضویت در بله | آفرچین](https://ble.ir/OfferChin)", bale_caption)
-        self.assertLess(telegram_caption.index("⚡️"), telegram_caption.index("عضویت در کانال تلگرام آفرچین"))
-        self.assertLess(bale_caption.index("⚡️"), bale_caption.index("عضویت در کانال بله آفرچین"))
+        self.assertLess(telegram_caption.index("⚡️"), telegram_caption.index("عضویت در تلگرام | آفرچین"))
+        self.assertLess(bale_caption.index("⚡️"), bale_caption.index("عضویت در بله | آفرچین"))
 
 
     def test_repair_does_not_reactivate_unknown_deadline_post(self):
