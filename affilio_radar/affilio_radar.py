@@ -2653,8 +2653,6 @@ def _diversify_ranked_records(
 
 
 def select_discovery_records_for_check(
-
-def select_discovery_records_for_check(
     queue: dict[str, dict],
     now: datetime | None = None,
     max_count: int | None = None,
