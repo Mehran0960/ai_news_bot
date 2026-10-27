@@ -91,6 +91,7 @@ from affilio_radar import (
     ensure_recent_publications,
     _recent_publication_diversity,
     is_product_repeat_blocked,
+    is_fresh_selection_candidate,
     delete_previous_channel_posts,
     process_pending_short_video,
     _delete_superseded_youtube_video,
@@ -1086,6 +1087,78 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(is_materially_improved_offer(previous, same_price_new_campaign, now))
         self.assertTrue(is_materially_improved_offer({**previous, "expires_at": (now + timedelta(hours=2)).isoformat()}, materially_cheaper, now))
         self.assertFalse(is_materially_improved_offer({**previous, "expires_at": (now + timedelta(hours=2)).isoformat()}, unchanged, now))
+
+    def test_active_publications_and_delivery_retries_do_not_block_fresh_selection(self):
+        now = datetime(2026, 10, 27, 10, 0, tzinfo=timezone.utc)
+        future_deadline = (now + timedelta(hours=5)).isoformat()
+        active = {
+            "product_id": "dkp-1001",
+            "product_url": "https://www.digikala.com/product/dkp-1001/",
+            "title": "محصول منتشرشده",
+            "current_price": 800_000,
+            "original_price": 1_000_000,
+            "discount_percent": 20,
+            "deal_expires_at": future_deadline,
+        }
+        queue_retry = {
+            "product_id": "dkp-1002",
+            "product_url": "https://www.digikala.com/product/dkp-1002/",
+            "title": "محصول در صف ویدئو",
+            "current_price": 700_000,
+            "original_price": 1_000_000,
+            "discount_percent": 30,
+            "deal_expires_at": future_deadline,
+        }
+        fresh = {
+            "product_id": "dkp-1003",
+            "product_url": "https://www.digikala.com/product/dkp-1003/",
+            "title": "محصول تازه",
+            "current_price": 600_000,
+            "original_price": 1_000_000,
+            "discount_percent": 40,
+            "deal_expires_at": future_deadline,
+        }
+        state = {
+            "published": {
+                "dkp-1001": {
+                    "ts": now.timestamp() - 2 * 86400,
+                    "title": active["title"],
+                    "posted_current_price": 1_000_000,
+                    "telegram_message_id": 101,
+                    "bale_message_id": 201,
+                    "expiry_status": "tracked",
+                    "bale_expiry_status": "tracked",
+                    "delivery_status": {"telegram": "sent", "bale": "sent"},
+                },
+            },
+            "content_delivery_queue": {
+                "dkp-1002": {
+                    "product_id": "dkp-1002",
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "sent"},
+                        "youtube": {"status": "pending"},
+                        "aparat": {"status": "pending"},
+                    },
+                },
+            },
+        }
+
+        # Even a 20% better price must not create a duplicate while the previous
+        # Telegram/Bale post is still live. A queued video retry is not new content.
+        self.assertFalse(is_fresh_selection_candidate(state, "dkp-1001", active, now))
+        self.assertFalse(is_fresh_selection_candidate(state, "dkp-1002", queue_retry, now))
+        self.assertTrue(is_fresh_selection_candidate(state, "dkp-1003", fresh, now))
+
+        pending = refresh_pending_queue(
+            state,
+            [active, queue_retry, fresh],
+            now,
+            observed_product_ids={"dkp-1001", "dkp-1002", "dkp-1003"},
+        )
+        self.assertEqual(set(pending), {"dkp-1003"})
+
 
     def test_same_product_is_blocked_for_24_hours_even_when_price_improves(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
