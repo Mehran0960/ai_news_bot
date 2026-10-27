@@ -81,7 +81,7 @@ COUNTDOWN_SAFETY_BUFFER_MINUTES = max(0, min(30, int(os.getenv("AFFILIO_COUNTDOW
 COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
     120, min(600, int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS", "240")))
 )
-CAPTION_DEADLINE_FORMAT_VERSION = 13
+CAPTION_DEADLINE_FORMAT_VERSION = 14
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
 URGENT_MIN_POST_INTERVAL_MINUTES = 10
@@ -3634,9 +3634,9 @@ def build_caption(
         channel_url = "https://" + channel_url
     channel_href = html.escape(channel_url, quote=True)
     channel_text = (
-        "➕ عضویت در بله | آفرچین"
+        "➕ عضویت در کانال آفِرچین"
         if is_bale
-        else "➕ عضویت در تلگرام | آفرچین"
+        else "➕ عضویت در کانال آفِرچین"
     )
     if is_bale:
         channel_footer = f"[{channel_text}]({html.unescape(channel_href)})"
