@@ -2967,11 +2967,15 @@ def _audit_live_prices(published, now=None, batch_size=None, interval_seconds=No
 
 
 def _delete_expired_posts(
-    published, now, mark_unknown=False, direct_confirm=None, persist_callback=None
+    published, now, mark_unknown=False, direct_confirm=None, persist_callback=None,
+    max_delete_attempts=None,
 ):
     """Delete invalid/expired posts; checkpoint malformed-title deletion status immediately."""
     changed = False
     deleted = 0
+    delete_attempts = 0
+    if max_delete_attempts is not None:
+        max_delete_attempts = max(1, int(max_delete_attempts))
 
     def persist_immediately(reason):
         if persist_callback is None:
@@ -3004,12 +3008,19 @@ def _delete_expired_posts(
                 ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete),
             ):
                 raw_id = rec.get(id_field)
-                if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent"}:
+                if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent", "delete_unavailable"}:
                     continue
                 # Persist an in-flight state before deletion. If the request or runner is
                 # interrupted, the next cycle retries instead of forgetting the outcome.
+                if max_delete_attempts is not None and delete_attempts >= max_delete_attempts:
+                    print(
+                        f"EXPIRY_DELETE_BUDGET_EXHAUSTED max_attempts={max_delete_attempts} "
+                        f"attempted={delete_attempts} next_product_id={pid}; remaining_items_deferred=true"
+                    )
+                    return changed, deleted
                 rec[status_field] = "deleting_invalid_title"
                 persist_immediately(f"title_quality_delete_started:{platform}:{pid}:{raw_id}")
+                delete_attempts += 1
                 try:
                     outcome = delete_fn(int(raw_id))
                     rec[status_field] = outcome
@@ -3023,12 +3034,16 @@ def _delete_expired_posts(
                     )
                     persist_immediately(f"title_quality_delete_confirmed:{platform}:{pid}:{raw_id}")
                 except Exception as exc:
-                    rec[status_field] = "delete_failed"
-                    rec[f"{platform}_title_quality_delete_error"] = f"{type(exc).__name__}: {str(exc)[:160]}"
+                    error_text = str(exc)[:160]
+                    blocked = platform == "telegram" and "message can't be deleted" in error_text.lower()
+                    rec[status_field] = "delete_unavailable" if blocked else "delete_failed"
+                    rec[f"{platform}_title_quality_delete_error"] = f"{type(exc).__name__}: {error_text}"
                     rec["title_quality_status"] = "invalid_incomplete_title_delete_failed"
+                    event = "TITLE_QUALITY_DELETE_UNAVAILABLE" if blocked else "TITLE_QUALITY_DELETE_FAILED"
+                    retry_text = "automatic_retry=false" if blocked else "next_cycle_retries=true"
                     print(
-                        f"TITLE_QUALITY_DELETE_FAILED platform={platform} product_id={pid} "
-                        f"message_id={raw_id} error={type(exc).__name__}; next_cycle_retries=true"
+                        f"{event} platform={platform} product_id={pid} "
+                        f"message_id={raw_id} error={type(exc).__name__}; {retry_text}"
                     )
                     persist_immediately(f"title_quality_delete_failed:{platform}:{pid}:{raw_id}")
             continue
@@ -3098,8 +3113,15 @@ def _delete_expired_posts(
             ("bale", "bale_message_id", "bale_expiry_status", "bale_expired_deleted_at", _bale_delete),
         ):
             raw_id = rec.get(id_field)
-            if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent"}:
+            if not str(raw_id or "").isdigit() or rec.get(status_field) in {"deleted", "already_absent", "delete_unavailable"}:
                 continue
+            if max_delete_attempts is not None and delete_attempts >= max_delete_attempts:
+                print(
+                    f"EXPIRY_DELETE_BUDGET_EXHAUSTED max_attempts={max_delete_attempts} "
+                    f"attempted={delete_attempts} next_product_id={pid}; remaining_items_deferred=true"
+                )
+                return changed, deleted
+            delete_attempts += 1
             try:
                 outcome = delete_fn(int(raw_id))
                 rec[status_field] = outcome
@@ -3114,23 +3136,35 @@ def _delete_expired_posts(
             except Exception as exc:
                 error_text = str(exc)[:180]
                 rec[f"{platform}_expiry_last_delete_error"] = f"{type(exc).__name__}: {error_text}"
-                # Never edit a live caption or remove its keyboard on delete failure.
-                # Keep the purchase button intact and retry permanent deletion next cycle.
-                rec[status_field] = "delete_failed"
+                # Telegram's explicit rejection is non-retryable for this message ID.
+                # Preserve the error, leave the purchase button untouched, and move on.
+                blocked = platform == "telegram" and "message can't be deleted" in error_text.lower()
+                rec[status_field] = "delete_unavailable" if blocked else "delete_failed"
                 changed = True
-                print(
-                    f"EXPIRY_DELETE_FAILED platform={platform} product_id={pid} "
-                    f"message_id={raw_id} error={type(exc).__name__} "
-                    f"detail={error_text[:160]!r}; purchase_button_untouched=true"
-                )
+                if blocked:
+                    print(
+                        f"EXPIRY_DELETE_UNAVAILABLE platform={platform} product_id={pid} message_id={raw_id} "
+                        f"error={type(exc).__name__} detail={error_text[:160]!r}; "
+                        "purchase_button_untouched=true; automatic_retry=false"
+                    )
+                else:
+                    print(
+                        f"EXPIRY_DELETE_FAILED platform={platform} product_id={pid} message_id={raw_id} "
+                        f"error={type(exc).__name__} detail={error_text[:160]!r}; purchase_button_untouched=true"
+                    )
     return changed, deleted
 
 
 
 
-def _delete_expired_aparat_videos(published, now, direct_confirm=None):
-    """Permanently delete expired Aparat videos, hiding them only as a failure fallback."""
+def _delete_expired_aparat_videos(
+    published, now, direct_confirm=None, max_delete_attempts=None
+):
+    """Permanently delete a bounded batch of expired Aparat videos."""
     changed = False
+    delete_attempts = 0
+    if max_delete_attempts is not None:
+        max_delete_attempts = max(1, int(max_delete_attempts))
     try:
         from aparat_uploader import (
             delete_aparat_video,
@@ -3144,10 +3178,13 @@ def _delete_expired_aparat_videos(published, now, direct_confirm=None):
         credentials_ready = False
         print(f"APARAT_EXPIRY_SETUP_UNAVAILABLE error={type(exc).__name__}")
 
-    terminal = {"deleted", "already_absent"}
+    terminal = {"deleted", "already_absent", "delete_unavailable"}
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
+        if max_delete_attempts is not None and delete_attempts >= max_delete_attempts:
+            print(f"APARAT_EXPIRY_DELETE_BUDGET_EXHAUSTED max_attempts={max_delete_attempts} attempted={delete_attempts}; remaining_items_deferred=true")
+            return changed
         if not _has_verified_deadline(rec):
             continue
         video_hash = str(rec.get("aparat_video_hash") or "").strip()
@@ -3204,6 +3241,7 @@ def _delete_expired_aparat_videos(published, now, direct_confirm=None):
             changed = True
             continue
 
+        delete_attempts += 1
         try:
             outcome = delete_aparat_video(video_hash)
             if outcome not in terminal:
@@ -3240,9 +3278,14 @@ def _delete_expired_aparat_videos(published, now, direct_confirm=None):
     return changed
 
 
-def _delete_expired_youtube_videos(published, now, direct_confirm=None):
-    """Permanently delete expired YouTube Shorts, using privacy only as a failure fallback."""
+def _delete_expired_youtube_videos(
+    published, now, direct_confirm=None, max_delete_attempts=None
+):
+    """Permanently delete a bounded batch of expired YouTube Shorts."""
     changed = False
+    delete_attempts = 0
+    if max_delete_attempts is not None:
+        max_delete_attempts = max(1, int(max_delete_attempts))
     try:
         from short_video import (
             delete_youtube_video,
@@ -3256,10 +3299,13 @@ def _delete_expired_youtube_videos(published, now, direct_confirm=None):
         credentials_ready = False
         print(f"YOUTUBE_EXPIRY_SETUP_UNAVAILABLE error={type(exc).__name__}")
 
-    terminal = {"deleted", "already_absent"}
+    terminal = {"deleted", "already_absent", "delete_unavailable"}
     for pid, rec in _iter_post_records(published):
         if not isinstance(rec, dict):
             continue
+        if max_delete_attempts is not None and delete_attempts >= max_delete_attempts:
+            print(f"YOUTUBE_EXPIRY_DELETE_BUDGET_EXHAUSTED max_attempts={max_delete_attempts} attempted={delete_attempts}; remaining_items_deferred=true")
+            return changed
         if not _has_verified_deadline(rec):
             continue
         video_id = str(rec.get("youtube_video_id") or "").strip()
@@ -3317,6 +3363,7 @@ def _delete_expired_youtube_videos(published, now, direct_confirm=None):
             changed = True
             continue
 
+        delete_attempts += 1
         try:
             outcome = delete_youtube_video(video_id)
             if outcome not in terminal:
