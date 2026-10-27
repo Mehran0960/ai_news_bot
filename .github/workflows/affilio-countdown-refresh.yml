@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - ".github/workflows/affilio-countdown-refresh.yml"
+      - "affilio_radar/affilio_radar.py"
 
 permissions:
   contents: read
@@ -17,6 +18,8 @@ concurrency:
 
 jobs:
   refresh:
+    # Never edit live channel posts from feature branches; run only after the change reaches main.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:

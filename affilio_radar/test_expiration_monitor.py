@@ -720,7 +720,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertNotIn("قیمت اصلی", edited_caption)
         self.assertNotIn("۱٬۰۵۶٬۰۰۰", edited_caption)
         self.assertNotIn("<u>", edited_caption)
-        self.assertIn('<a href="https://t.me/OfferChin">➕ عضویت در تلگرام | آفرچین</a>', edited_caption)
+        self.assertIn('<a href="https://t.me/OfferChin">➕ عضویت در کانال آفِرچین</a>', edited_caption)
         self.assertNotIn("دکمهٔ زیر رو بزن", edited_caption)
         self.assertNotIn("برای خرید از دیجی‌کالا", edited_caption)
         self.assertNotIn("⏳", edited_caption)
@@ -746,7 +746,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         }
         canonical = build_caption(product, affiliate, "https://t.me/OfferChin")
         self.assertIn("<b>💚 قیمت فعلی: ۱۱۴٬۰۰۰ تومان</b>", canonical)
-        self.assertIn('<a href="https://t.me/OfferChin">➕ عضویت در تلگرام | آفرچین</a>', canonical)
+        self.assertIn('<a href="https://t.me/OfferChin">➕ عضویت در کانال آفِرچین</a>', canonical)
         self.assertNotIn("دکمهٔ زیر رو بزن", canonical)
         soup = BeautifulSoup(canonical, "html.parser")
         record = {
