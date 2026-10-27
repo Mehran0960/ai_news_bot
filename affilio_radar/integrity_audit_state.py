@@ -173,7 +173,7 @@ def apply_integrity_audit_ledger(
         return False
 
     changed = False
-    terminal = {"deleted", "already_absent"}
+    terminal = {"deleted", "already_absent", "delete_unavailable"}
     for product_id, record in _record_refs(published):
         for platform, spec in PLATFORM_SPECS.items():
             raw_id = record.get(spec["id_field"])
@@ -208,7 +208,7 @@ def apply_integrity_audit_ledger(
                 # Import confirmed terminal results and failures/retry states. A platform
                 # deletion failure must stay visible to the next cleanup attempt.
                 if desired_status in terminal or desired_status in {
-                    "delete_failed", "delete_retry", "pending_credentials",
+                    "delete_failed", "delete_retry", "delete_unavailable", "pending_credentials",
                     "expired_confirmed", "expired_marked", "deadline_unavailable_delete_failed",
                     "deadline_unavailable_marked", "unknown", "tracked", "tracked_estimated",
                 }:
@@ -285,7 +285,7 @@ def capture_integrity_audit_ledger(
     # Never evict an unresolved live post from the audit ledger. Otherwise an
     # old public offer could lose its next_check_at after the ledger cap and never
     # receive a fair recheck. Bound only the terminal/deleted history.
-    terminal = {"deleted", "already_absent"}
+    terminal = {"deleted", "already_absent", "delete_unavailable"}
     active_keys = set()
     for product_id, record in _record_refs(published):
         for platform, spec in PLATFORM_SPECS.items():

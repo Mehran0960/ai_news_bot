@@ -1341,6 +1341,79 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(deleted, 1)
         self.assertEqual(published["dkp-expired"]["expiry_status"], "deleted")
 
+
+    def test_expired_post_cleanup_respects_delete_attempt_budget_and_resumes(self):
+        now = datetime.now(timezone.utc)
+        published = {}
+        for number in range(1, 5):
+            published[f"dkp-{number}"] = {
+                "telegram_message_id": 100 + number,
+                "bale_message_id": 200 + number,
+                "expires_at": (now - timedelta(minutes=10)).isoformat(),
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_deadline_verified_directly": True,
+                "expiry_estimated": False,
+                "expiry_status": "tracked",
+                "bale_expiry_status": "tracked",
+            }
+
+        with (
+            patch.object(monitor, "_telegram_delete", return_value="deleted") as tg_delete,
+            patch.object(monitor, "_bale_delete", return_value="deleted") as bale_delete,
+        ):
+            _changed, deleted_first = monitor._delete_expired_posts(
+                published, now, max_delete_attempts=3
+            )
+            first_tg_count = tg_delete.call_count
+            first_bale_count = bale_delete.call_count
+            first_attempted = {
+                call.args[0] for call in tg_delete.call_args_list
+            } | {
+                call.args[0] for call in bale_delete.call_args_list
+            }
+            self.assertEqual(deleted_first, 3)
+            self.assertEqual(first_tg_count + first_bale_count, 3)
+
+            _changed, deleted_second = monitor._delete_expired_posts(
+                published, now + timedelta(seconds=5), max_delete_attempts=3
+            )
+            second_attempted = {
+                call.args[0] for call in tg_delete.call_args_list[first_tg_count:]
+            } | {
+                call.args[0] for call in bale_delete.call_args_list[first_bale_count:]
+            }
+
+        self.assertEqual(deleted_second, 3)
+        self.assertEqual(len(second_attempted), 3)
+        self.assertTrue(first_attempted.isdisjoint(second_attempted))
+        self.assertEqual(tg_delete.call_count + bale_delete.call_count, 6)
+
+    def test_telegram_message_that_cannot_be_deleted_is_not_retried_forever(self):
+        now = datetime.now(timezone.utc)
+        published = {
+            "dkp-blocked": {
+                "telegram_message_id": 991,
+                "expires_at": (now - timedelta(minutes=5)).isoformat(),
+                "expiry_source": "digikala_live_deals_feed",
+                "expiry_deadline_verified_directly": True,
+                "expiry_estimated": False,
+                "expiry_status": "tracked",
+            }
+        }
+        with patch.object(
+            monitor, "_telegram_delete",
+            side_effect=RuntimeError("Bad Request: message can't be deleted"),
+        ) as deletion:
+            _changed, deleted = monitor._delete_expired_posts(published, now)
+            self.assertEqual(deleted, 0)
+            self.assertEqual(published["dkp-blocked"]["expiry_status"], "delete_unavailable")
+            self.assertIn(
+                "message can't be deleted",
+                published["dkp-blocked"]["telegram_expiry_last_delete_error"],
+            )
+            monitor._delete_expired_posts(published, now + timedelta(minutes=5))
+        deletion.assert_called_once_with(991)
+
     def test_expired_post_is_deleted_and_persisted(self):
         with tempfile.TemporaryDirectory() as temp:
             state_path = Path(temp) / "state.json"

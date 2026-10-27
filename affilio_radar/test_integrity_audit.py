@@ -40,7 +40,11 @@ class IntegrityAuditStateTests(unittest.TestCase):
             "platform_fields": {
                 "expired_deleted_at": "2026-10-26T10:00:01+00:00" if platform_status == "deleted" else None,
                 "expiry_last_absent_at": None,
-                "telegram_expiry_last_delete_error": "network error" if platform_status == "delete_failed" else None,
+                "telegram_expiry_last_delete_error": (
+                    "network error" if platform_status == "delete_failed"
+                    else "Bad Request: message can't be deleted" if platform_status == "delete_unavailable"
+                    else None
+                ),
             },
         }
 
@@ -71,6 +75,25 @@ class IntegrityAuditStateTests(unittest.TestCase):
         self.assertEqual(record["expiry_source"], "live_product_stock_or_price")
         self.assertEqual(record["posted_current_price"], 100_000)
         self.assertEqual(record["price_audit_live_price"], 120_000)
+
+
+    def test_delete_unavailable_is_preserved_as_terminal(self):
+        state = {
+            "published": {
+                "dkp-124b": {
+                    "telegram_message_id": 103,
+                    "expiry_status": "tracked",
+                }
+            }
+        }
+        entry = self.invalidated_entry("dkp-124b", 103, "delete_unavailable")
+        entry["platform_fields"]["telegram_expiry_last_delete_error"] = "Bad Request: message can't be deleted"
+        ledger = {"posts": {post_key("telegram", 103): entry}}
+
+        self.assertTrue(apply_integrity_audit_ledger(state, ledger))
+        record = state["published"]["dkp-124b"]
+        self.assertEqual(record["expiry_status"], "delete_unavailable")
+        self.assertEqual(record["telegram_expiry_last_delete_error"], "Bad Request: message can't be deleted")
 
     def test_delete_failure_is_preserved_for_retry(self):
         state = {
@@ -220,7 +243,7 @@ class IntegrityAuditStateTests(unittest.TestCase):
         self.assertLessEqual(
             sum(
                 1 for item in ledger["posts"].values()
-                if item.get("platform_status") in {"deleted", "already_absent"}
+                if item.get("platform_status") in {"deleted", "already_absent", "delete_unavailable"}
             ),
             100,
         )
@@ -236,6 +259,8 @@ class IntegrityAuditStateTests(unittest.TestCase):
         self.assertNotIn('cron: "*/5 * * * *"', audit_workflow)
         self.assertIn('AFFILIO_PRICE_AUDIT_BATCH_SIZE: "4"', audit_workflow)
         self.assertIn('AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "1"', audit_workflow)
+        self.assertIn('AFFILIO_MAX_CHANNEL_EXPIRY_DELETE_ATTEMPTS: "24"', audit_workflow)
+        self.assertIn('AFFILIO_MAX_VIDEO_EXPIRY_DELETE_ATTEMPTS: "2"', audit_workflow)
         self.assertIn('AFFILIO_HTTP_TIMEOUT: "8"', audit_workflow)
         self.assertIn('AFFILIO_PRODUCT_STATUS_TIMEOUT_SECONDS: "6"', audit_workflow)
         self.assertIn('AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "300"', audit_workflow)
@@ -244,6 +269,8 @@ class IntegrityAuditStateTests(unittest.TestCase):
         self.assertIn('budget=channel_budget', audit_code)
         self.assertIn('budget=youtube_budget', audit_code)
         self.assertIn('budget=aparat_budget', audit_code)
+        self.assertIn('max_delete_attempts=channel_delete_budget', audit_code)
+        self.assertIn('max_delete_attempts=video_delete_budget', audit_code)
         self.assertIn("group: offerchin-integrity-audit", audit_workflow)
         self.assertIn("group: offerchin-content-publisher", publisher_workflow)
         self.assertNotIn("offerchin-integrity-audit", publisher_workflow)
