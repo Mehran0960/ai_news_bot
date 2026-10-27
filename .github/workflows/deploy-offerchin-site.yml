@@ -100,6 +100,10 @@ jobs:
         if: steps.detect.outputs.deploy_required == 'true'
         run: python offerchin-site/build.py
 
+      - name: Run storefront quality and conversion regression tests
+        if: steps.detect.outputs.deploy_required == 'true'
+        run: python -m unittest discover -s offerchin-site -p 'test_*.py'
+
       - name: Validate generated catalog, safety rules and SEO files
         if: steps.detect.outputs.deploy_required == 'true'
         run: |
