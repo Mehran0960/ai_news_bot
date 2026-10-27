@@ -3634,9 +3634,9 @@ def build_caption(
         channel_url = "https://" + channel_url
     channel_href = html.escape(channel_url, quote=True)
     channel_text = (
-        "📣 عضویت در کانال بله آفرچین"
+        "➕ عضویت در بله | آفرچین"
         if is_bale
-        else "📣 عضویت در کانال تلگرام آفرچین"
+        else "➕ عضویت در تلگرام | آفرچین"
     )
     if is_bale:
         channel_footer = f"[{channel_text}]({html.unescape(channel_href)})"
