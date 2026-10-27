@@ -64,6 +64,7 @@ from affilio_radar import (
     discover_product_urls,
     SEARCH_TERMS,
     _discovery_candidate_budgets,
+    _rotating_search_terms,
     parse_product_api,
     is_discount_publish_eligible,
     is_prohibited_product_title,
@@ -839,6 +840,10 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(classify_category("عطر زنانه مدل نمونه"), "beauty_fragrance")
         self.assertEqual(classify_category("ادو تویلت مردانه فالکون مدل Chromium حجم 100 میلی لیتر"), "beauty_fragrance")
         self.assertEqual(classify_category("هدفون بلوتوثی مدل نمونه"), "audio_wearables")
+        self.assertEqual(classify_category("گوشی موبایل سامسونگ مدل Galaxy نمونه"), "mobile_devices")
+        self.assertEqual(classify_category("لپ تاپ گیمینگ مدل نمونه"), "computer_network")
+        self.assertEqual(classify_category("تلویزیون هوشمند ۵۵ اینچ مدل نمونه"), "tv_audio_video")
+        self.assertEqual(classify_category("یخچال فریزر مدل نمونه"), "large_appliances")
         self.assertEqual(classify_category("باتری قلمی قابل شارژ"), "power_backup")
         self.assertEqual(classify_category("بادی نوزادی نیل کوک مدل Winter Teddy مجموعه 5 عددی"), "kids_sports")
         self.assertEqual(classify_category("سنگ پا برقی مدل M100"), "personal_care")
@@ -855,17 +860,29 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(_discovery_candidate_budgets(40), (28, 12))
         self.assertEqual(_discovery_candidate_budgets(12), (8, 4))
         self.assertEqual(_discovery_candidate_budgets(1), (1, 0))
+        self.assertEqual(len(SEARCH_TERMS), 60)
         for term in (
-            "لوازم حیوانات خانگی",
-            "ابزار دستی و ابزارآلات",
-            "لوازم نظافت و شستشوی خانه",
-            "چراغ مطالعه و لوازم روشنایی",
-            "لوازم هنری و نقاشی",
-            "لوازم مراقبت و نگهداری خودرو",
-            "لوازم حمام و سرویس بهداشتی",
+            "گوشی موبایل", "گوشی سامسونگ و شیائومی", "آیفون اپل", "لپ تاپ",
+            "لپ تاپ گیمینگ", "تبلت و آیپد", "کارت گرافیک و پردازنده",
+            "تلویزیون هوشمند", "یخچال فریزر", "ماشین لباسشویی",
+            "ماشین ظرفشویی", "سرخ کن بدون روغن", "لوازم حیوانات خانگی",
+            "ابزار دستی و ابزارآلات", "لوازم نظافت و شستشوی خانه",
+            "چراغ مطالعه و لوازم روشنایی", "لوازم هنری و نقاشی",
+            "لوازم مراقبت و نگهداری خودرو", "لوازم حمام و سرویس بهداشتی",
             "لوازم باغبانی و گلدان",
         ):
             self.assertIn(term, SEARCH_TERMS)
+
+    def test_rotating_search_batches_cover_all_terms_without_one_term_per_scan(self):
+        batches = [_rotating_search_terms(slot, 12)[:12] for slot in range(5)]
+        self.assertEqual(batches[0], SEARCH_TERMS[:12])
+        self.assertEqual(batches[1], SEARCH_TERMS[12:24])
+        self.assertEqual(batches[2], SEARCH_TERMS[24:36])
+        self.assertEqual(batches[3], SEARCH_TERMS[36:48])
+        self.assertEqual(batches[4], SEARCH_TERMS[48:60])
+        self.assertEqual({term for batch in batches for term in batch}, set(SEARCH_TERMS))
+        snapp_batches = [_rotating_search_terms(slot, 2)[:2] for slot in range(30)]
+        self.assertEqual({term for batch in snapp_batches for term in batch}, set(SEARCH_TERMS))
 
     def test_calcium_and_arginine_supplements_are_excluded(self):
         self.assertTrue(is_prohibited_product_title("شربت کلسی کید جویس یوروویتال"))
@@ -1524,7 +1541,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("dkp-888", queue)
         self.assertEqual(state["pending_queue"], queue)
 
-    def test_discount_publishing_requires_minimum_percentage_and_saving(self):
+    def test_discount_publishing_requires_a_real_price_drop_not_fixed_savings(self):
         base = {
             "title": "پاوربانک آزمایشی",
             "availability": "in_stock",
@@ -1534,14 +1551,15 @@ class AffilioRadarTests(unittest.TestCase):
             "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
         }
         ten_percent = score_product(dict(base))
-        self.assertFalse(is_discount_publish_eligible(ten_percent))
-        strong_discount = score_product({
-            **base,
-            "current_price": 700_000,
-            "original_price": 1_000_000,
-        })
-        self.assertTrue(is_discount_publish_eligible(strong_discount))
-        missing_stock = dict(strong_discount, availability="unknown")
+        self.assertTrue(is_discount_publish_eligible(ten_percent))
+        small_saving = score_product({**base, "current_price": 990_000})
+        self.assertEqual(small_saving["discount_percent"], 1)
+        self.assertLess(small_saving["savings_toman"], 100_000)
+        self.assertTrue(is_discount_publish_eligible(small_saving))
+        no_real_drop = score_product({**base, "current_price": 1_000_000})
+        self.assertEqual(no_real_drop["discount_percent"], 0)
+        self.assertFalse(is_discount_publish_eligible(no_real_drop))
+        missing_stock = dict(ten_percent, availability="unknown")
         self.assertFalse(is_discount_publish_eligible(missing_stock))
 
 
@@ -1676,6 +1694,34 @@ class AffilioRadarTests(unittest.TestCase):
         unrelated = score_product({**shared, "title": "مکمل غذایی"})
         self.assertEqual(digital["demand_score"], unrelated["demand_score"])
         self.assertEqual(digital["promo_score"], unrelated["promo_score"])
+
+    def test_price_band_does_not_change_demand_score(self):
+        low_price = score_product({
+            "title": "گوشی موبایل مدل اقتصادی",
+            "current_price": 300_000,
+            "original_price": 400_000,
+            "rating": 4.2,
+            "review_count": 280,
+            "image_url": "https://example.com/image.jpg",
+        })
+        high_price = score_product({
+            "title": "گوشی موبایل مدل پرچمدار",
+            "current_price": 40_000_000,
+            "original_price": 50_000_000,
+            "rating": 4.2,
+            "review_count": 280,
+            "image_url": "https://example.com/image.jpg",
+        })
+        self.assertEqual(low_price["demand_score"], high_price["demand_score"])
+        common = {
+            "discount_percent": 25, "savings_toman": 100_000,
+            "demand_score": 35, "review_count": 280,
+            "first_seen_at": "2026-10-19T00:00:00+00:00",
+        }
+        self.assertEqual(
+            discovery_queue_sort_key({**common, "current_price": 300_000}, now=datetime(2026, 10, 20, tzinfo=timezone.utc)),
+            discovery_queue_sort_key({**common, "current_price": 40_000_000}, now=datetime(2026, 10, 20, tzinfo=timezone.utc)),
+        )
 
     def test_high_review_volume_can_outweigh_price_band_for_demand_ranking(self):
         broad_demand = score_product({
