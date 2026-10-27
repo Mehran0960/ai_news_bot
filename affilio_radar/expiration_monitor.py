@@ -41,7 +41,7 @@ HTTP_TIMEOUT = 18
 # Keep per-product source checks bounded; slow retailer endpoints must not consume the
 # entire audit job timeout. The value is independently configurable for operations.
 PRODUCT_STATUS_TIMEOUT_SECONDS = max(
-    4, min(15, int(os.getenv("AFFILIO_PRODUCT_STATUS_TIMEOUT_SECONDS", "8")))
+    4, min(15, int(os.getenv("AFFILIO_PRODUCT_STATUS_TIMEOUT_SECONDS", "6")))
 )
 BOT_API_MIN_GAP_SECONDS = 1.1
 PROBE_INTERVAL_SECONDS = 900
