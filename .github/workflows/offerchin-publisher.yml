@@ -3,6 +3,7 @@ name: OfferChin Selected Content Publisher
 on:
   # A guarded operational push may resume an interrupted delivery cycle.
   # Routine source commits still cannot publish customer-facing posts.
+  # [publisher-run-now] One-time controlled resume after repeat-candidate starvation fix.
   push:
     paths:
       - ".github/workflows/offerchin-publisher.yml"
