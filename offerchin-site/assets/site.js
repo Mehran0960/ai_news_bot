@@ -33,7 +33,7 @@ function card(p) {
  const retailer=esc(p.retailer_name||"فروشگاه"), retailerKey=esc(p.retailer_key||"other"), category=esc(p.category||"سایر");
  const detail="/products/"+encodeURIComponent(p.product_id)+"/";
  return '<article class="deal-card" data-product-id="'+id+'" data-category="'+category+'" data-retailer="'+retailerKey+'" data-active-until="'+until+'">'+
- '<a class="product-media" href="'+detail+'" aria-label="جزئیات '+title+'"><img src="'+img+'" alt="'+title+'" loading="lazy" decoding="async" onerror="this.style.display=\\'none\\';this.parentElement.classList.add(\\'image-missing\\')">'+
+ '<a class="product-media" href="'+detail+'" aria-label="جزئیات '+title+'"><img src="'+img+'" alt="'+title+'" loading="lazy" decoding="async" onerror="this.style.display=\'none\';this.parentElement.classList.add(\'image-missing\')">'+
  '<span class="discount-badge">'+toman(p.discount_percent)+'٪ تخفیف</span></a><div class="product-body">'+
  '<div class="product-meta"><span class="retailer-tag">'+retailer+'</span><span class="category-tag">'+category+'</span></div>'+
  '<h3 class="product-title"><a href="'+detail+'">'+title+'</a></h3><div class="price-block">'+
