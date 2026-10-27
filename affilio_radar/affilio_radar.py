@@ -5277,7 +5277,7 @@ def select_urgent_publication_candidate(
         return None
     return _order_candidates_by_primary_rank(
         urgent, published=published, recent_publications=recent_publications, now=current
-    )
+    )[0]
 
 
 def select_publish_candidates(
