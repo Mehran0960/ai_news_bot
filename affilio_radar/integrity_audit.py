@@ -107,7 +107,7 @@ def run() -> int:
         }
         print(f"INTEGRITY_PRICE_AUDIT_FAILED error={type(exc).__name__} detail={str(exc)[:180]!r}")
 
-    # Use separate budgets for each adapter. All removals are best effort per post
+    # Use one shared bounded lookup budget across cleanup adapters. Removals are best effort per post
     # and persisted to this lane's ledger; a failure is retried on a later audit run.
     # Checkpoint confirmed mismatches before any destructive network operations.
     # If a later platform call times out, the next run still knows what must be removed.
@@ -124,9 +124,10 @@ def run() -> int:
         deadline_sync_changed=bool(sync_changed),
     )
 
-    channel_budget = {
-        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 2, 1, 10)
-    }
+    # Give every destination its own bounded source-confirmation budget. This keeps
+    # channel cleanup from starving video cleanup, while each request is time-bounded.
+    direct_limit = _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 1, 1, 10)
+    channel_budget = {"remaining": direct_limit}
 
     def confirm_channel(product_id, record, current_time):
         return monitor._confirm_expiry_for_deletion(
@@ -150,9 +151,7 @@ def run() -> int:
         channel_deleted=int(channel_deleted or 0),
     )
 
-    youtube_budget = {
-        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 2, 1, 10)
-    }
+    youtube_budget = {"remaining": direct_limit}
 
     def confirm_youtube(product_id, record, current_time):
         return monitor._confirm_expiry_for_deletion(
@@ -172,9 +171,7 @@ def run() -> int:
         youtube_cleanup_changed=bool(youtube_changed),
     )
 
-    aparat_budget = {
-        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 2, 1, 10)
-    }
+    aparat_budget = {"remaining": direct_limit}
 
     def confirm_aparat(product_id, record, current_time):
         return monitor._confirm_expiry_for_deletion(

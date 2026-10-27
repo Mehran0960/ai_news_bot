@@ -66,15 +66,17 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
-          # Revisit live offers frequently with a larger bounded batch. This job
+          # Revisit live offers frequently with a smaller bounded batch and bounded request time. This job
           # is isolated from the publisher and may never be made a publisher dependency.
-          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "8"
+          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "4"
           AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "300"
           AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "300"
-          AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "2"
+          AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "1"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
+          AFFILIO_HTTP_TIMEOUT: "8"
+          AFFILIO_PRODUCT_STATUS_TIMEOUT_SECONDS: "6"
           PYTHONUNBUFFERED: "1"
-        run: timeout --signal=TERM --kill-after=10s 120s python affilio_radar/integrity_audit.py
+        run: timeout --signal=TERM --kill-after=10s 210s python affilio_radar/integrity_audit.py
 
       - name: Persist audit cadence and per-platform removal results only
         if: always()
