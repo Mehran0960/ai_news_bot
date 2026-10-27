@@ -23,7 +23,7 @@ from zoneinfo import ZoneInfo
 from bs4 import BeautifulSoup
 from affilio_radar import (
     build_caption, TELEGRAM_CHANNEL_URL, parse_product_api, parse_product_page,
-    safe_product_url, product_id, is_publishable_product_title, fetch_product_record,
+    safe_product_url, is_publishable_product_title, fetch_product_record,
 )
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from urllib.error import HTTPError
@@ -614,7 +614,7 @@ def fetch_live_product_status(product_id, expected_price=None, expected_original
             print(f"EXPIRY_PRODUCT_PAGE_CHECK_FAILED product_id={normalized_id} reason=response_too_large")
             return {}
         final_url = safe_product_url(response.url) or url
-        if product_id(final_url) != normalized_id:
+        if _product_id_from_public_url(final_url) != normalized_id:
             print(f"EXPIRY_PRODUCT_PAGE_CHECK_FAILED product_id={normalized_id} reason=product_identity_mismatch")
             return {}
         parsed = parse_product_page(final_url, response.text)
