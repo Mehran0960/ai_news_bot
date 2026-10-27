@@ -991,6 +991,40 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
 
 
+    def test_publish_selection_looks_beyond_top_five_for_category_diversity(self):
+        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-recent-skincare": {
+                "title": "سرم آبرسان پوست مدل قبلی",
+                "telegram_message_id": 889,
+                "ts": now.timestamp() - 10 * 60,
+            }
+        }
+        candidates = [
+            {
+                "product_id": f"dkp-skincare-{index}",
+                "title": f"کرم مراقبت پوست مدل {index}",
+                "demand_score": score,
+                "review_count": 500,
+            }
+            for index, score in enumerate((64, 63, 62, 61, 60, 59), start=1)
+        ]
+        # This valid alternate category ranks seventh, with a still-comparable demand score.
+        candidates.append({
+            "product_id": "dkp-diverse-charger",
+            "title": "شارژر دیواری سریع مدل جدید",
+            "demand_score": 49,
+            "review_count": 450,
+        })
+        queue = {item["product_id"]: {} for item in candidates}
+        eligible = {item["product_id"]: item for item in candidates}
+
+        selected = select_publish_candidates(queue, eligible, now, published)
+
+        self.assertEqual(selected[0]["product_id"], "dkp-diverse-charger")
+        self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
+
+
     def test_publish_selection_avoids_a_brand_seen_twelve_publications_ago(self):
         now = datetime(2026, 10, 23, 12, 0, tzinfo=timezone.utc)
         recent_titles = [
@@ -1637,6 +1671,23 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertGreaterEqual(high_ticket_22_percent["discount_percent"], 20)
         self.assertGreaterEqual(high_ticket_22_percent["savings_toman"], 100_000)
         self.assertTrue(is_discount_publish_eligible(high_ticket_22_percent))
+
+    def test_fifteen_percent_discount_can_qualify_when_savings_are_material(self):
+        product = {
+            "title": "چراغ مطالعه مدل تست",
+            "current_price": 850_000,
+            "original_price": 1_000_000,
+            "availability": "in_stock",
+            "image_url": "https://example.com/product.webp",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12345%2F",
+            "review_count": 100,
+            "rating": 4.5,
+        }
+        scored = score_product(product)
+        self.assertEqual(scored["discount_percent"], 15)
+        self.assertEqual(scored["savings_toman"], 150_000)
+        self.assertTrue(is_discount_publish_eligible(scored))
+
 
     def test_discovery_ranks_demand_before_discount_size(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
