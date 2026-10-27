@@ -124,13 +124,15 @@ def run() -> int:
         deadline_sync_changed=bool(sync_changed),
     )
 
-    channel_budget = {
-        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 2, 1, 10)
+    # Share one direct-detail lookup budget across all cleanup adapters. This bounds
+    # slow source checks while still allowing already-confirmed invalidations to delete.
+    cleanup_budget = {
+        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 1, 1, 10)
     }
 
     def confirm_channel(product_id, record, current_time):
         return monitor._confirm_expiry_for_deletion(
-            product_id, record, current_time, budget=channel_budget
+            product_id, record, current_time, budget=cleanup_budget
         )
 
     try:
@@ -150,13 +152,9 @@ def run() -> int:
         channel_deleted=int(channel_deleted or 0),
     )
 
-    youtube_budget = {
-        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 2, 1, 10)
-    }
-
     def confirm_youtube(product_id, record, current_time):
         return monitor._confirm_expiry_for_deletion(
-            product_id, record, current_time, budget=youtube_budget
+            product_id, record, current_time, budget=cleanup_budget
         )
 
     try:
@@ -172,13 +170,9 @@ def run() -> int:
         youtube_cleanup_changed=bool(youtube_changed),
     )
 
-    aparat_budget = {
-        "remaining": _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 2, 1, 10)
-    }
-
     def confirm_aparat(product_id, record, current_time):
         return monitor._confirm_expiry_for_deletion(
-            product_id, record, current_time, budget=aparat_budget
+            product_id, record, current_time, budget=cleanup_budget
         )
 
     try:
