@@ -1668,7 +1668,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("⏳", caption)
         self.assertNotIn("دکمهٔ زیر رو بزن", caption)
         self.assertNotIn("برای خرید از دیجی‌کالا", caption)
-        self.assertIn('<a href="https://t.me/OfferChin">📣 عضویت در کانال تلگرام آفرچین</a>', caption)
+        self.assertIn('<a href="https://t.me/OfferChin">➕ عضویت در تلگرام | آفرچین</a>', caption)
         self.assertLess(caption.index("⚡️"), caption.index("عضویت در کانال تلگرام آفرچین"))
         self.assertNotRegex(caption, r"[0-9]")
         self.assertNotIn("قیمت امروز", caption)
@@ -1777,8 +1777,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("<s>", bale_caption)
         self.assertNotIn("قیمت اصلی", telegram_caption)
         self.assertNotIn("۱٬۱۰۸٬۸۰۰", telegram_caption)
-        self.assertIn("[📣 عضویت در کانال بله آفرچین](https://ble.ir/OfferChin)", bale_caption)
-        self.assertIn('<a href="https://t.me/OfferChin">📣 عضویت در کانال تلگرام آفرچین</a>', telegram_caption)
+        self.assertIn("[➕ عضویت در بله | آفرچین](https://ble.ir/OfferChin)", bale_caption)
+        self.assertIn('<a href="https://t.me/OfferChin">➕ عضویت در تلگرام | آفرچین</a>', telegram_caption)
         self.assertNotIn("دکمهٔ زیر رو بزن", bale_caption)
         self.assertNotIn("دکمهٔ زیر رو بزن", telegram_caption)
         self.assertLess(bale_caption.index("⚡️"), bale_caption.index("عضویت در کانال بله آفرچین"))
@@ -2204,8 +2204,8 @@ class AffilioRadarTests(unittest.TestCase):
         save_state.assert_called_once()
         telegram_caption = edit_telegram.call_args_list[0].args[1]
         bale_caption = edit_bale.call_args_list[0].args[1]
-        self.assertIn('<a href="https://t.me/OfferChin">📣 عضویت در کانال تلگرام آفرچین</a>', telegram_caption)
-        self.assertIn("[📣 عضویت در کانال بله آفرچین](https://ble.ir/OfferChin)", bale_caption)
+        self.assertIn('<a href="https://t.me/OfferChin">➕ عضویت در تلگرام | آفرچین</a>', telegram_caption)
+        self.assertIn("[➕ عضویت در بله | آفرچین](https://ble.ir/OfferChin)", bale_caption)
         self.assertLess(telegram_caption.index("⚡️"), telegram_caption.index("عضویت در کانال تلگرام آفرچین"))
         self.assertLess(bale_caption.index("⚡️"), bale_caption.index("عضویت در کانال بله آفرچین"))
 
