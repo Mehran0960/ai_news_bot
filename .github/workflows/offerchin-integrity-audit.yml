@@ -68,11 +68,12 @@ jobs:
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
           # Revisit live offers frequently with a larger bounded batch. This job
           # is isolated from the publisher and may never be made a publisher dependency.
-          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "8"
+          AFFILIO_PRICE_AUDIT_BATCH_SIZE: "4"
           AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "300"
           AFFILIO_PRICE_AUDIT_RETRY_SECONDS: "300"
-          AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "2"
+          AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "1"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
+          AFFILIO_PRODUCT_STATUS_TIMEOUT_SECONDS: "8"
           PYTHONUNBUFFERED: "1"
         run: timeout --signal=TERM --kill-after=10s 120s python affilio_radar/integrity_audit.py
 
