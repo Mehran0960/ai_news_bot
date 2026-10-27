@@ -99,7 +99,7 @@ PREFERRED_POSTING_WINDOWS = (("morning", 9, 11), ("afternoon", 14, 17), ("evenin
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
 MCP_OFFER_PAGES_PER_SCAN = max(1, min(DEAL_LIST_PAGES, int(os.getenv("AFFILIO_MCP_PAGES_PER_SCAN", "2"))))
 # One price- and category-neutral floor; real-value checks remain mandatory before publishing.
-MIN_DISCOUNT_PERCENT = 15
+MIN_DISCOUNT_PERCENT = max(50, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "50"))))
 MIN_SAVINGS_TOMAN = 100_000
 PRICE_HISTORY_CHECK_LIMIT = max(0, min(25, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "15"))))
 MIN_HISTORICAL_PRICE_DAYS = max(3, min(30, int(os.getenv("AFFILIO_MIN_HISTORICAL_PRICE_DAYS", "7"))))
@@ -2387,7 +2387,7 @@ def _candidate_promo_score(record: dict) -> int:
 def has_meaningful_discount(record: dict) -> bool:
     """Apply the same minimum listed discount to every product and price band.
 
-    The discount must be at least 15% and the listed saving at least 100,000 toman.
+    The discount must be at least 50% and the listed saving at least 100,000 toman.
     Historical/market-price validation still determines whether that listed saving
     is genuine; no high-ticket or category-specific exception is allowed.
     """
