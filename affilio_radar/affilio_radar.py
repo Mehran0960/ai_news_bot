@@ -2745,19 +2745,31 @@ def discover_product_urls(
         f"reserved_rotating_search_slots={search_reserve}"
     )
 
-    # [scan-now] Recheck persistent candidates even when their deadline is earlier than active
-    # channel posts; chronology is not a publication eligibility rule anymore.
+    # Recheck persistent candidates, but do not let already-published/cooldown items
+    # consume discovery slots before the live feed and rotating search terms run.
+    queued_repeat_or_active_skips = 0
     for pid, record in select_queued_records_for_recheck(
         queued_records, queue_now
     ):
         if len(found) >= presearch_candidate_limit:
             break
+        if (
+            not is_fresh_selection_candidate(state_to_persist or {}, pid, record, queue_now)
+            and not _has_pending_channel_retry(state_to_persist or {}, pid)
+        ):
+            queued_repeat_or_active_skips += 1
+            continue
         canonical = safe_product_url(record.get("product_url", ""))
         deadline = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
         if not canonical or deadline is None or deadline <= queue_now:
             continue
         found.append(canonical)
         queued_expiries[str(pid)] = deadline.isoformat()
+    if queued_repeat_or_active_skips:
+        print(
+            "DISCOVERY_PENDING_QUEUE_FILTERED "
+            f"repeat_or_active={queued_repeat_or_active_skips}"
+        )
 
     publish_history = state_to_persist.get("published", {}) if isinstance(state_to_persist, dict) else {}
     recent_history = state_to_persist.get("recent_publications", []) if isinstance(state_to_persist, dict) else []
@@ -2958,20 +2970,45 @@ def discover_product_urls(
             published=publish_history, recent_publications=recent_history,
         )
         queued_added = 0
+        excluded_repeat_or_active_queue_candidates = 0
         for pid, record in queued_due:
             queued_url = safe_product_url(record.get("product_url", ""))
             if not queued_url or queued_url in found or len(found) >= presearch_candidate_limit:
+                continue
+            # Previously published/queued products are not new content candidates.
+            # Failed Telegram/Bale delivery retries remain discoverable through the
+            # separate pending-delivery path, but must never reserve a fresh slot.
+            if (
+                not is_fresh_selection_candidate(state_to_persist or {}, pid, record, discovery_now)
+                and not _has_pending_channel_retry(state_to_persist or {}, pid)
+            ):
+                excluded_repeat_or_active_queue_candidates += 1
                 continue
             found.append(queued_url)
             queued_added += 1
             queued_expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
             if queued_expiry:
                 deal_expiries[pid] = queued_expiry.isoformat()
-        print(f"DISCOVERY_QUEUE_URLS_ADDED count={queued_added} already_selected_or_capacity={len(queued_due) - queued_added}")
+        print(
+            f"DISCOVERY_QUEUE_URLS_ADDED count={queued_added} "
+            f"already_selected_or_capacity={len(queued_due) - queued_added - excluded_repeat_or_active_queue_candidates} "
+            f"excluded_repeat_or_active={excluded_repeat_or_active_queue_candidates}"
+        )
 
     eligible_discovery_deals = []
     skipped_short_or_expired = 0
+    skipped_repeat_or_active = 0
     for row in best_by_url.values():
+        pid = product_id(row.get("product_url", ""))
+        # Rank unseen/currently publishable products above repeatedly surfaced
+        # products. Otherwise the top feed rows can all be inside cooldown, leaving
+        # one already-published item as the only hand-off candidate.
+        if (
+            not is_fresh_selection_candidate(state_to_persist or {}, pid, row, discovery_now)
+            and not _has_pending_channel_retry(state_to_persist or {}, pid)
+        ):
+            skipped_repeat_or_active += 1
+            continue
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(row.get("deal_expires_at")))
         if expiry is None:
             # Keep unknown deadlines behind verified, actionable offers; detail checks
@@ -2992,7 +3029,8 @@ def discover_product_urls(
     )
     print(
         f"DEAL_DEMAND_ORDER pool={len(best_by_url)} eligible={len(eligible_discovery_deals)} "
-        f"selected={len(selected_deals)} skipped_expired_or_short={skipped_short_or_expired}"
+        f"selected={len(selected_deals)} skipped_expired_or_short={skipped_short_or_expired} "
+        f"skipped_repeat_or_active={skipped_repeat_or_active}"
     )
 
     for row in selected_deals:
@@ -5399,6 +5437,41 @@ def is_product_repeat_blocked(previous: dict, product: dict,
         and not is_materially_improved_offer(previous, product, now)
     )
 
+def _has_active_publication_or_delivery(state: dict, pid: str) -> bool:
+    """Whether this product already has an active public post or hand-off record."""
+    from content_delivery import TERMINAL_QUEUE_STATUSES, _active_publication
+
+    state = state if isinstance(state, dict) else {}
+    published = state.get("published", {})
+    record = published.get(str(pid)) if isinstance(published, dict) else None
+    if _active_publication(record):
+        return True
+    queue = state.get("content_delivery_queue", {})
+    entry = queue.get(str(pid)) if isinstance(queue, dict) else None
+    return isinstance(entry, dict) and entry.get("status") not in TERMINAL_QUEUE_STATUSES
+
+
+def is_fresh_selection_candidate(
+    state: dict,
+    pid: str,
+    product: dict,
+    now: datetime | None = None,
+) -> bool:
+    """True only when the product can create a new post without duplicating live work."""
+    key = str(pid or "").strip().lower()
+    if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", key):
+        return False
+    if _has_active_publication_or_delivery(state, key):
+        return False
+    previous = _publication_cooldown_record(state, key)
+    return not is_product_repeat_blocked(previous, product, now)
+
+
+def _has_pending_channel_retry(state: dict, pid: str) -> bool:
+    """A failed channel destination may be rechecked, but never becomes a new selection."""
+    return _has_pending_delivery(_publication_cooldown_record(state or {}, str(pid)))
+
+
 
 def is_product_suppressed(state: dict, pid: str) -> bool:
     """Return true for a product explicitly excluded by the user."""
@@ -5465,6 +5538,11 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
         if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", pid) or is_product_suppressed(state, pid) or is_offer_expired(product, now):
             continue
         previous_publication = _publication_cooldown_record(state, pid)
+        # Delivery retries are handled independently below. A product with an
+        # already-active public post (or a video still awaiting its own quota slot)
+        # must not re-enter the fresh-selection queue.
+        if _has_active_publication_or_delivery(state, pid):
+            continue
         if is_product_repeat_blocked(previous_publication, product, now):
             continue
 
@@ -5511,6 +5589,8 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
             if not url or product_id(url) != str(pid) or expiry is None or expiry <= now:
                 continue
             previous_publication = _publication_cooldown_record(state, str(pid))
+            if _has_active_publication_or_delivery(state, str(pid)):
+                continue
             if is_product_repeat_blocked(previous_publication, old, now):
                 continue
             retained = dict(old)
