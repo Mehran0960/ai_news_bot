@@ -220,8 +220,9 @@ def card_html(p: dict) -> str:
     </article>"""
 
 
-def shared_head(title: str, description: str, canonical: str, image: str = "") -> str:
+def shared_head(title: str, description: str, canonical: str, image: str = "", page_type: str = "website") -> str:
     og_image = f'<meta property="og:image" content="{esc(image)}">' if image else ""
+    twitter_image = f'<meta name="twitter:image" content="{esc(image)}">' if image else ""
     return f"""<!doctype html>
 <html lang="fa" dir="rtl">
 <head>
@@ -234,12 +235,17 @@ def shared_head(title: str, description: str, canonical: str, image: str = "") -
 <link rel="stylesheet" href="/assets/site.css">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23b8f34a'/%3E%3Ctext x='20' y='28' font-size='25' text-anchor='middle' font-family='sans-serif' fill='%23102a43'%3Eآ%3C/text%3E%3C/svg%3E">
 <title>{esc(title)}</title>
+<meta property="og:site_name" content="آفِرچین">
 <meta property="og:locale" content="fa_IR">
-<meta property="og:type" content="website">
+<meta property="og:type" content="{esc(page_type)}">
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(description)}">
 <meta property="og:url" content="{esc(canonical)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{esc(title)}">
+<meta name="twitter:description" content="{esc(description)}">
 {og_image}
+{twitter_image}
 <script defer src="/assets/site.js"></script>
 </head>"""
 
@@ -253,14 +259,14 @@ def site_header() -> str:
 
 def site_footer() -> str:
     return f"""<footer class="site-footer"><div class="container footer-inner">
-<p>آفِرچین، شکارچی تخفیف‌های ناب دیجی‌کالا. قیمت و موجودی ممکن است تغییر کند؛ پیش از خرید، اطلاعات نهایی را در صفحه دیجی‌کالا بررسی کنید. برخی پیوندهای خرید ممکن است شامل همکاری در فروش باشند.</p>
+<p>آفِرچین، شکارچی پیشنهادهای قابل‌بررسی دیجی‌کالا و اسنپ‌شاپ. قیمت و موجودی ممکن است تغییر کند؛ پیش از خرید، اطلاعات نهایی را در صفحه فروشنده بررسی کنید. برخی پیوندهای خرید ممکن است شامل همکاری در فروش باشند.</p>
 <div class="footer-links"><a href="{CHANNEL_TELEGRAM}" target="_blank" rel="noopener noreferrer">کانال تلگرام</a><a href="{CHANNEL_BALE}" target="_blank" rel="noopener noreferrer">کانال بله</a></div>
 </div></footer>"""
 
 
 def build_index(products: list[dict]) -> str:
-    title = "آفِرچین | پیشنهادهای معتبر دیجی‌کالا"
-    description = "پیشنهادهای تخفیفی آفِرچین با لینک خرید، قیمت و مهلت معتبر. پیشنهادهای منقضی‌شده به‌طور خودکار از فهرست حذف می‌شوند."
+    title = "آفِرچین | پیشنهادهای معتبر دیجی‌کالا و اسنپ‌شاپ"
+    description = "پیشنهادهای منتخب آفرچین از دیجی‌کالا و اسنپ‌شاپ با لینک خرید، قیمت و اعتبار کنترل‌شده؛ پیشنهاد نامعتبر یا منقضی به‌طور خودکار کنار می‌رود."
     cards = "".join(card_html(p) for p in products)
     if not cards:
         cards = '<div class="empty-state"><strong>فعلاً پیشنهاد فعالی نداریم</strong>پیشنهادهای واجد شرایط به‌صورت خودکار در همین صفحه ظاهر می‌شوند.</div>'
@@ -277,22 +283,24 @@ def build_index(products: list[dict]) -> str:
 <body>
 {site_header()}
 <section class="hero"><div class="container hero-grid">
-<div><p class="eyebrow">● پیشنهادهایی با مهلت معتبر</p><h1>خرید هوشمندانه‌تر،<br>با تخفیف‌های قابل بررسی</h1>
-<p>پیشنهادهای دیجی‌کالا که از فیلترهای قیمت، موجودی، لینک خرید و مهلت معتبر آفِرچین عبور کرده‌اند.</p>
-<p class="hero-note">برای جلوگیری از معرفی دیرهنگام، پیشنهادها ۱۰ دقیقه پیش از مهلت ثبت‌شده از فهرست کنار می‌روند.</p></div>
+<div><p class="eyebrow">● پیشنهادهای منتخب با اعتبار کنترل‌شده</p><h1>خرید هوشمندانه‌تر،<br>بدون گشتن بین تخفیف‌های تکراری</h1>
+<p>پیشنهادهای دیجی‌کالا و اسنپ‌شاپ که از فیلترهای قیمت، موجودی، لینک خرید و اعتبار آفرچین عبور کرده‌اند.</p>
+<p class="hero-note">برای کاهش احتمال خرید با قیمت منقضی، پیشنهادها ۱۰ دقیقه پیش از مهلت تأییدشده از فهرست کنار می‌روند.</p></div>
 <div class="hero-stat"><div><div class="stat-number" id="offerCount">{len(products)}</div><div class="stat-label">پیشنهاد قابل خرید</div></div><div aria-hidden="true" style="font-size:2.4rem">↘</div></div>
 </div></section>
 <main class="container catalog" id="offers">
-<div class="section-head"><div><h2>پیشنهادهای فعال</h2><p>فقط محصولاتی که قبلاً در یکی از کانال‌های آفِرچین منتشر شده‌اند.</p></div></div>
+<div class="section-head"><div><h2>پیشنهادهای فعال</h2><p>پیشنهادها ابتدا بر پایهٔ سیگنال‌های تقاضا مرتب می‌شوند؛ می‌توانید فروشگاه و دسته را فیلتر کنید.</p></div></div>
 <div class="toolbar">
-<label class="search-wrap"><span class="search-icon" aria-hidden="true">⌕</span><input id="offerSearch" class="search-input" type="search" autocomplete="off" placeholder="جست‌وجوی نام محصول…" aria-label="جست‌وجوی نام محصول"></label>
-<label><span style="position:absolute;clip:rect(0,0,0,0)">مرتب‌سازی</span><select id="offerSort" class="sort-select" aria-label="مرتب‌سازی پیشنهادها"><option value="score">بهترین پیشنهادها</option><option value="discount">بیشترین تخفیف</option><option value="saving">بیشترین صرفه‌جویی</option></select></label>
+<label class="search-wrap"><span class="search-icon" aria-hidden="true">⌕</span><input id="offerSearch" class="search-input" type="search" autocomplete="off" placeholder="جست‌وجوی نام محصول…" aria-label="جست‌وجوی نام محصول، دسته یا فروشگاه"></label>
+<label><span class="visually-hidden">دسته‌بندی</span><select id="offerCategory" class="sort-select" aria-label="فیلتر دسته‌بندی"><option value="">همه دسته‌ها</option></select></label>
+<label><span class="visually-hidden">فروشگاه</span><select id="offerRetailer" class="sort-select" aria-label="فیلتر فروشگاه"><option value="">همه فروشگاه‌ها</option></select></label>
+<label><span class="visually-hidden">مرتب‌سازی</span><select id="offerSort" class="sort-select" aria-label="مرتب‌سازی پیشنهادها"><option value="demand">تقاضای بیشتر</option><option value="promo">جذابیت پیشنهاد</option><option value="discount">بیشترین تخفیف</option><option value="saving">بیشترین اختلاف قیمت</option></select></label>
 </div>
 <p class="status-line" id="feedStatus" aria-live="polite">در حال آماده‌سازی فهرست…</p>
 <div class="grid" id="offerGrid">{cards}</div>
 <section class="policy" id="about"><h2>پیشنهادها چطور انتخاب می‌شوند؟</h2>
-<p>محصول باید قبلاً در یکی از کانال‌های آفِرچین منتشر شده باشد و همچنان موجودی، لینک خرید و مهلت پایان قابل‌اعتماد داشته باشد. در صورت رسیدن به مهلت امن یا تأیید نامعتبر بودن پیشنهاد، محصول از فهرست حذف یا خرید آن غیرفعال می‌شود.</p>
-<p>ممکن است دیجی‌کالا قیمت یا موجودی را پیش از موعد تغییر دهد؛ صفحه فروشنده مرجع نهایی معامله است.</p></section>
+<p>فقط محصولاتی نمایش داده می‌شوند که قبلاً در یکی از کانال‌های آفرچین منتشر شده‌اند و همچنان موجودی، لینک خرید، قیمت و مهلت قابل‌اعتماد دارند. اختلاف غیرمنطقی بین درصد اعلام‌شده و محاسبه‌شده تخفیف، باعث حذف پیشنهاد از کاتالوگ می‌شود.</p>
+<p>قیمت و موجودی در فروشگاه ممکن است تغییر کند؛ صفحه فروشنده مرجع نهایی معامله است. برخی پیوندهای خرید ممکن است شامل همکاری در فروش باشند.</p></section>
 </main>
 {site_footer()}
 <script type="application/ld+json">{script_json(itemlist)}</script>
@@ -302,8 +310,9 @@ def build_index(products: list[dict]) -> str:
 
 def build_detail(p: dict) -> str:
     title = p["title"]
+    retailer_name = p.get("retailer_name") or "فروشگاه"
     canonical = f"{SITE_URL}/products/{p['product_id']}/"
-    description = f"{title} با {money(p['discount_percent'])} درصد تخفیف. قیمت فعلی ثبت‌شده {money(p['current_price']):,} تومان؛ مهلت نمایش پیشنهاد به‌صورت خودکار کنترل می‌شود."
+    description = f"{title} با {money(p['discount_percent'])} درصد تخفیف. قیمت فعلی ثبت‌شده {money(p['current_price']):,} تومان؛ اعتبار پیشنهاد به‌صورت خودکار کنترل می‌شود."
     product_schema = {
         "@context": "https://schema.org",
         "@type": "Product",
@@ -312,22 +321,34 @@ def build_detail(p: dict) -> str:
         "description": description,
         "url": canonical,
         "sku": p["product_id"],
+        "category": p.get("category") or "سایر",
+        "offers": {
+            "@type": "Offer",
+            # Retailer feeds store toman; schema.org's ISO currency code is IRR (rial).
+            "price": int(p["current_price"]) * 10,
+            "priceCurrency": "IRR",
+            "availability": "https://schema.org/InStock",
+            "url": canonical,
+            "priceValidUntil": p.get("deal_expires_at") or p["active_until"],
+            "seller": {"@type": "Organization", "name": retailer_name},
+        },
     }
-    return f"""{shared_head(title + " | آفِرچین", description, canonical, image=p['image_url'])}
+    return f"""{shared_head(title + " | آفِرچین", description, canonical, image=p['image_url'], page_type="product")}
 <body data-product-id="{esc(p['product_id'])}">
 {site_header()}
 <main class="container detail-wrap">
 <p class="breadcrumb"><a href="/">آفِرچین</a> ← <a href="/#offers">پیشنهادهای فعال</a> ← جزئیات محصول</p>
-<div class="expired-notice" id="expiredNotice" hidden><h2>این پیشنهاد دیگر فعال نیست</h2><p>برای جلوگیری از خرید با تخفیف منقضی، لینک خرید این صفحه غیرفعال شده است.</p><a href="/#offers">دیدن پیشنهادهای فعال ←</a></div>
+<div class="expired-notice" id="expiredNotice" hidden><h2>این پیشنهاد دیگر فعال نیست</h2><p>برای جلوگیری از خرید با قیمت یا تخفیف منقضی، لینک خرید این صفحه غیرفعال شده است.</p><a href="/#offers">دیدن پیشنهادهای فعال ←</a></div>
 <section class="detail-card" id="detailContent">
 <div class="detail-image"><img id="detailImage" src="{esc(p['image_url'])}" alt="{esc(title)}" decoding="async" onerror="this.style.display='none'"></div>
-<div><p class="eyebrow" style="color:#5e7c20">پیشنهاد بررسی‌شده آفِرچین</p><span class="discount-badge" id="detailDiscount">{money(p['discount_percent'])}٪ تخفیف</span>
+<div><p class="eyebrow" style="color:#5e7c20">پیشنهاد بررسی‌شده آفرچین</p><span class="discount-badge" id="detailDiscount">{money(p['discount_percent'])}٪ تخفیف</span>
+<p class="retailer-tag detail-retailer" id="detailRetailer">فروشگاه: {esc(retailer_name)}</p>
 <h1 class="detail-title" id="detailTitle">{esc(title)}</h1>
 <div class="detail-price"><div class="price-now" id="detailCurrentPrice">{money(p['current_price']):,} تومان</div><div class="price-old">قیمت قبلی: <s id="detailOldPrice">{money(p['original_price']):,} تومان</s></div></div>
-<p class="detail-savings" id="detailSaving">صرفه‌جویی {money(p['savings_toman']):,} تومان</p>
-<p class="deadline">فرصت امن خرید: <strong data-countdown="{esc(p['active_until'])}" id="detailCountdown">در حال محاسبه…</strong></p>
-<a class="buy-link detail-buy" id="detailBuy" href="{esc(p['affiliate_url'])}" target="_blank" rel="sponsored nofollow noopener noreferrer">مشاهده و خرید در دیجی‌کالا ↗</a>
-<p class="notice">قیمت و موجودی در دیجی‌کالا ممکن است تغییر کند. پیش از نهایی‌کردن خرید، قیمت و شرایط فعلی را در صفحه فروشنده بررسی کنید.</p></div>
+<p class="detail-savings" id="detailSaving">اختلاف با قیمت قبلی {money(p['savings_toman']):,} تومان</p>
+<p class="deadline">مهلت امن خرید: <strong data-countdown="{esc(p['active_until'])}" id="detailCountdown">در حال محاسبه…</strong></p>
+<div class="detail-actions"><a class="buy-link detail-buy" id="detailBuy" href="{esc(p['affiliate_url'])}" target="_blank" rel="sponsored nofollow noopener noreferrer">مشاهده و خرید در {esc(retailer_name)} ↗</a><button class="share-link detail-share" type="button" data-share-product="{esc(p['product_id'])}">اشتراک‌گذاری پیشنهاد</button></div>
+<p class="notice">قیمت و موجودی در فروشگاه ممکن است تغییر کند. پیش از نهایی‌کردن خرید، قیمت و شرایط فعلی را در صفحه فروشنده بررسی کنید.</p></div>
 </section>
 </main>
 {site_footer()}
