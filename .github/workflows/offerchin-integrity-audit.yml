@@ -66,7 +66,7 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
-          # Revisit live offers frequently with a larger bounded batch. This job
+          # Revisit live offers frequently with a smaller bounded batch and bounded request time. This job
           # is isolated from the publisher and may never be made a publisher dependency.
           AFFILIO_PRICE_AUDIT_BATCH_SIZE: "4"
           AFFILIO_PRICE_AUDIT_INTERVAL_SECONDS: "300"
