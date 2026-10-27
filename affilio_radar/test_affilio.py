@@ -38,6 +38,7 @@ from affilio_radar import (
     select_discovery_records_for_check,
     mcp_scan_pages_for_cursor,
     discovery_queue_sort_key,
+    has_meaningful_discount,
     mark_discovery_candidate_checked,
     defer_pending_publication,
     select_publish_candidates,
@@ -1541,7 +1542,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("dkp-888", queue)
         self.assertEqual(state["pending_queue"], queue)
 
-    def test_discount_publishing_requires_a_real_price_drop_not_fixed_savings(self):
+    def test_discount_publishing_requires_a_valuable_deal(self):
         base = {
             "title": "پاوربانک آزمایشی",
             "availability": "in_stock",
@@ -1551,16 +1552,52 @@ class AffilioRadarTests(unittest.TestCase):
             "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
         }
         ten_percent = score_product(dict(base))
-        self.assertTrue(is_discount_publish_eligible(ten_percent))
+        self.assertEqual(ten_percent["discount_percent"], 10)
+        self.assertFalse(is_discount_publish_eligible(ten_percent))
+
+        strong_discount = score_product({**base, "current_price": 700_000})
+        self.assertEqual(strong_discount["discount_percent"], 30)
+        self.assertGreaterEqual(strong_discount["savings_toman"], 100_000)
+        self.assertTrue(is_discount_publish_eligible(strong_discount))
+
         small_saving = score_product({**base, "current_price": 990_000})
         self.assertEqual(small_saving["discount_percent"], 1)
-        self.assertLess(small_saving["savings_toman"], 100_000)
-        self.assertTrue(is_discount_publish_eligible(small_saving))
+        self.assertFalse(is_discount_publish_eligible(small_saving))
         no_real_drop = score_product({**base, "current_price": 1_000_000})
-        self.assertEqual(no_real_drop["discount_percent"], 0)
         self.assertFalse(is_discount_publish_eligible(no_real_drop))
-        missing_stock = dict(ten_percent, availability="unknown")
+        missing_stock = dict(strong_discount, availability="unknown")
         self.assertFalse(is_discount_publish_eligible(missing_stock))
+
+    def test_high_ticket_exception_requires_large_saving_and_real_demand(self):
+        hot_flagship = score_product({
+            "title": "گوشی موبایل پرتقاضا مدل آزمایشی",
+            "availability": "in_stock",
+            "current_price": 16_000_000,
+            "original_price": 18_000_000,
+            "rating": 4.7,
+            "review_count": 20_000,
+            "image_url": "https://example.com/phone.jpg",
+            "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
+        })
+        self.assertEqual(hot_flagship["discount_percent"], 11)
+        self.assertEqual(hot_flagship["savings_toman"], 2_000_000)
+        self.assertGreaterEqual(hot_flagship["demand_score"], 40)
+        self.assertTrue(is_discount_publish_eligible(hot_flagship))
+
+        weak_demand = score_product({
+            **hot_flagship,
+            "rating": 3.0,
+            "review_count": 0,
+        })
+        self.assertLess(weak_demand["demand_score"], 40)
+        self.assertFalse(is_discount_publish_eligible(weak_demand))
+
+        small_high_ticket_saving = score_product({
+            **hot_flagship,
+            "current_price": 15_500_000,
+            "original_price": 16_500_000,
+        })
+        self.assertFalse(is_discount_publish_eligible(small_high_ticket_saving))
 
 
     def test_irr_prices_are_converted_to_toman(self):
