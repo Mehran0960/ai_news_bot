@@ -917,6 +917,51 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(selected[0]["product_id"], "dkp-fashion-new")
         self.assertEqual({p["product_id"] for p in selected}, {p["product_id"] for p in candidates})
 
+
+    def test_publication_diversity_history_uses_a_rolling_24_hour_window(self):
+        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-old-fashion": {
+                "title": "تیشرت مردانه مدل قدیمی",
+                "telegram_message_id": 701,
+                "ts": (now - timedelta(hours=25)).timestamp(),
+            },
+            "dkp-in-window": {
+                "title": "هدفون بلوتوثی مدل تازه",
+                "telegram_message_id": 702,
+                "ts": (now - timedelta(hours=23)).timestamp(),
+            },
+        }
+        recent = _recent_publication_diversity(published, limit=2000, now=now)
+        self.assertEqual([item["product_id"] for item in recent], ["dkp-in-window"])
+
+    def test_recent_similar_product_family_is_spaced_when_demand_is_comparable(self):
+        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-recent-headphones": {
+                "title": "هدفون بلوتوثی ریولینک مدل قبلی",
+                "telegram_message_id": 811,
+                "ts": (now - timedelta(hours=2)).timestamp(),
+            }
+        }
+        candidates = [
+            {
+                "product_id": "dkp-headphones-new",
+                "title": "هدفون بلوتوثی ریولینک مدل جدید",
+                "click_count_30d": 100, "demand_score": 60, "review_count": 500,
+            },
+            {
+                "product_id": "dkp-desk-light",
+                "title": "چراغ مطالعه رومیزی مدل جدید",
+                "click_count_30d": 98, "demand_score": 59, "review_count": 480,
+            },
+        ]
+        queue = {item["product_id"]: {} for item in candidates}
+        eligible = {item["product_id"]: item for item in candidates}
+        selected = select_publish_candidates(queue, eligible, now, published)
+        self.assertEqual(selected[0]["product_id"], "dkp-desk-light")
+
+
     def test_publish_selection_avoids_categories_seen_in_the_last_four_posts(self):
         now = datetime(2026, 10, 23, 12, 0, tzinfo=timezone.utc)
         recent_posts = [
@@ -1568,8 +1613,9 @@ class AffilioRadarTests(unittest.TestCase):
         missing_stock = dict(strong_discount, availability="unknown")
         self.assertFalse(is_discount_publish_eligible(missing_stock))
 
-    def test_high_ticket_exception_requires_large_saving_and_real_demand(self):
-        hot_flagship = score_product({
+
+    def test_high_ticket_products_have_no_discount_floor_exception(self):
+        high_ticket_11_percent = score_product({
             "title": "گوشی موبایل پرتقاضا مدل آزمایشی",
             "availability": "in_stock",
             "current_price": 16_000_000,
@@ -1579,26 +1625,37 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://example.com/phone.jpg",
             "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
         })
-        self.assertEqual(hot_flagship["discount_percent"], 11)
-        self.assertEqual(hot_flagship["savings_toman"], 2_000_000)
-        self.assertGreaterEqual(hot_flagship["demand_score"], 40)
-        self.assertTrue(is_discount_publish_eligible(hot_flagship))
+        self.assertEqual(high_ticket_11_percent["discount_percent"], 11)
+        self.assertEqual(high_ticket_11_percent["savings_toman"], 2_000_000)
+        self.assertFalse(is_discount_publish_eligible(high_ticket_11_percent))
 
-        weak_demand = score_product({
-            **hot_flagship,
-            "rating": 3.0,
-            "review_count": 0,
+        high_ticket_22_percent = score_product({
+            **high_ticket_11_percent,
+            "current_price": 14_000_000,
+            "original_price": 18_000_000,
         })
-        self.assertLess(weak_demand["demand_score"], 40)
-        self.assertFalse(is_discount_publish_eligible(weak_demand))
+        self.assertGreaterEqual(high_ticket_22_percent["discount_percent"], 20)
+        self.assertGreaterEqual(high_ticket_22_percent["savings_toman"], 100_000)
+        self.assertTrue(is_discount_publish_eligible(high_ticket_22_percent))
 
-        small_high_ticket_saving = score_product({
-            **hot_flagship,
-            "current_price": 15_500_000,
-            "original_price": 16_500_000,
-        })
-        self.assertFalse(is_discount_publish_eligible(small_high_ticket_saving))
-
+    def test_discovery_ranks_demand_before_discount_size(self):
+        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+        popular_regular_discount = {
+            "click_count_30d": 900, "demand_score": 78, "review_count": 2_000,
+            "rating": 4.6, "discount_percent": 25, "savings_toman": 200_000,
+            "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+            "first_seen_at": (now - timedelta(minutes=2)).isoformat(),
+        }
+        low_demand_huge_discount = {
+            "click_count_30d": 4, "demand_score": 18, "review_count": 25,
+            "rating": 3.8, "discount_percent": 75, "savings_toman": 1_500_000,
+            "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+            "first_seen_at": (now - timedelta(minutes=1)).isoformat(),
+        }
+        self.assertGreater(
+            discovery_queue_sort_key(popular_regular_discount, now),
+            discovery_queue_sort_key(low_demand_huge_discount, now),
+        )
 
     def test_irr_prices_are_converted_to_toman(self):
         self.assertEqual(_money_to_toman("12900000", "IRR"), 1_290_000)
