@@ -19,7 +19,8 @@ concurrency:
 jobs:
   refresh:
     # Never edit live channel posts from feature branches; run only after the change reaches main.
-    if: github.ref == 'refs/heads/main'
+    # Editing live captions is operational: allow a manual run or an explicitly tagged repair only.
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[restore-purchase-buttons]'))
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
