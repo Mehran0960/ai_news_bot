@@ -96,8 +96,9 @@ IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
 PREFERRED_POSTING_WINDOWS = (("morning", 9, 11), ("afternoon", 14, 17), ("evening", 20, 23))
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
 MCP_OFFER_PAGES_PER_SCAN = max(1, min(DEAL_LIST_PAGES, int(os.getenv("AFFILIO_MCP_PAGES_PER_SCAN", "2"))))
-MIN_DISCOUNT_PERCENT = max(1, min(90, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "20"))))
-MIN_SAVINGS_TOMAN = max(0, int(os.getenv("AFFILIO_MIN_SAVINGS_TOMAN", "100000")))
+MIN_DISCOUNT_PERCENT = max(1, min(90, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "1"))))
+# No fixed absolute-saving floor: meaningful value depends on product price and demand.
+MIN_SAVINGS_TOMAN = max(0, int(os.getenv("AFFILIO_MIN_SAVINGS_TOMAN", "0")))
 PRICE_HISTORY_CHECK_LIMIT = max(0, min(25, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "15"))))
 MIN_HISTORICAL_PRICE_DAYS = max(3, min(30, int(os.getenv("AFFILIO_MIN_HISTORICAL_PRICE_DAYS", "7"))))
 MIN_HISTORICAL_DISCOUNT_PERCENT = max(1, min(50, int(os.getenv("AFFILIO_MIN_HISTORICAL_DISCOUNT_PERCENT", "10"))))
@@ -112,7 +113,7 @@ MIN_MARKET_MATCH_SCORE = max(40, min(95, int(os.getenv("AFFILIO_MIN_MARKET_MATCH
 MARKET_UNDERCUT_BLOCK_PERCENT = max(1, min(30, int(os.getenv("AFFILIO_MARKET_UNDERCUT_BLOCK_PERCENT", "5"))))
 
 SEARCH_TERMS = [
-    # Keep proven electronics searches, but avoid letting them dominate discovery.
+    # Broad catalog coverage; query rotation advances by a full batch each scan.
     "پاوربانک",
     "هندزفری بلوتوث",
     "شارژر سریع",
@@ -121,7 +122,6 @@ SEARCH_TERMS = [
     "اسپیکر بلوتوثی",
     "دوربین امنیتی بی سیم",
     "جارو شارژی",
-    # Rotate through everyday shopping categories to broaden the channel mix.
     "کفش روزمره زنانه مردانه",
     "لباس راحتی و تیشرت",
     "کیف و کوله پشتی",
@@ -139,7 +139,6 @@ SEARCH_TERMS = [
     "قهوه ساز و لوازم نوشیدنی",
     "نظم دهنده خانه",
     "ابزار کاربردی آشپزخانه",
-    # Underrepresented everyday categories are deliberately in the same rotating search pool.
     "لوازم حیوانات خانگی",
     "ابزار دستی و ابزارآلات",
     "لوازم نظافت و شستشوی خانه",
@@ -148,6 +147,33 @@ SEARCH_TERMS = [
     "لوازم مراقبت و نگهداری خودرو",
     "لوازم حمام و سرویس بهداشتی",
     "لوازم باغبانی و گلدان",
+    "گوشی موبایل",
+    "گوشی سامسونگ و شیائومی",
+    "آیفون اپل",
+    "لپ تاپ",
+    "لپ تاپ گیمینگ",
+    "تبلت و آیپد",
+    "کامپیوتر و مینی پی سی",
+    "کارت گرافیک و پردازنده",
+    "رم و حافظه اس اس دی",
+    "مانیتور و تجهیزات کامپیوتر",
+    "تلویزیون هوشمند",
+    "کنسول بازی پلی استیشن و ایکس باکس",
+    "لوازم جانبی گیمینگ",
+    "یخچال فریزر",
+    "ماشین لباسشویی",
+    "ماشین ظرفشویی",
+    "کولر گازی و بخاری برقی",
+    "مایکروویو و آون توستر",
+    "سرخ کن بدون روغن",
+    "دوربین عکاسی و لنز",
+    "ساعت هوشمند و مچ بند",
+    "مودم 4G و 5G",
+    "هارد اکسترنال و فلش مموری",
+    "دوچرخه و لوازم دوچرخه",
+    "کالای خواب و تشک",
+    "مبلمان و صندلی اداری",
+    "لوازم برقی شخصی و سشوار",
 ]
 MAX_INCREDIBLE_OFFER_CANDIDATES = max(
     1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "32")))
@@ -2340,25 +2366,9 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
     )
     discount = max(0, int(record.get("discount_percent") or 0))
     savings = max(0, int(record.get("savings_toman") or 0))
-    value_gate = int(discount >= MIN_DISCOUNT_PERCENT and savings >= MIN_SAVINGS_TOMAN)
-    current_price = max(
-        0,
-        int(record.get("current_price") or record.get("listed_current_price") or 0),
-    )
-    if current_price and current_price <= 500_000:
-        affordability = 24
-    elif current_price and current_price <= 1_000_000:
-        affordability = 22
-    elif current_price and current_price <= 2_000_000:
-        affordability = 18
-    elif current_price and current_price <= 5_000_000:
-        affordability = 13
-    elif current_price and current_price <= 10_000_000:
-        affordability = 8
-    elif current_price:
-        affordability = 3
-    else:
-        affordability = 0
+    # Require a genuine positive listed-price reduction, but no fixed savings floor
+    # and no penalty for expensive products.
+    value_gate = int(discount >= MIN_DISCOUNT_PERCENT and savings > 0)
     if not active_deadline:
         urgency_tier = -1
     elif remaining <= 120 * 60:
@@ -2373,9 +2383,8 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
         int(has_runway),
         value_gate,
         _candidate_demand_score(record),
-        _candidate_promo_score(record),
-        affordability,
         max(0, int(record.get("review_count") or 0)),
+        _candidate_promo_score(record),
         discount,
         savings,
         urgency_tier,
@@ -2724,6 +2733,22 @@ def _discovery_candidate_budgets(max_checks: int) -> tuple[int, int]:
     return max(1, cap - reserve), reserve
 
 
+def _rotating_search_terms(slot: int, batch_size: int) -> list[str]:
+    """Rotate by a full query batch, not one term, to cover the catalog quickly."""
+    if not SEARCH_TERMS:
+        return []
+    try:
+        safe_slot = max(0, int(slot))
+    except (TypeError, ValueError, OverflowError):
+        safe_slot = 0
+    try:
+        safe_batch = max(1, min(len(SEARCH_TERMS), int(batch_size)))
+    except (TypeError, ValueError, OverflowError):
+        safe_batch = 1
+    offset = (safe_slot * safe_batch) % len(SEARCH_TERMS)
+    return SEARCH_TERMS[offset:] + SEARCH_TERMS[:offset]
+
+
 def discover_product_urls(
     queued_records: dict[str, dict] | None = None,
     discovery_queue: dict[str, dict] | None = None,
@@ -3051,6 +3076,7 @@ def discover_product_urls(
     # SnappShop blocks homepage HTML requests from this runner (403), so query the
     # public JSON surface used by its frontend. Its internal API IDs differ from
     # the public /product/snp-... suffix, so persist the mapping for later detail checks.
+    search_slot = int(time.time() // 300)
     global SNAPPSHOP_API_IDS_BY_URL, SNAPPSHOP_SEARCH_CARDS_BY_URL
     SNAPPSHOP_SEARCH_CARDS_BY_URL = {}
     saved_api_ids = state_to_persist.get("snappshop_api_ids", {}) if isinstance(state_to_persist, dict) else {}
@@ -3065,8 +3091,7 @@ def discover_product_urls(
     # SnappShop discovery shares the early-source budget. It cannot consume the
     # reserved slots needed for rotating DigiKala category searches below.
     if len(found) < presearch_candidate_limit:
-        search_offset = int(time.time() // 300) % len(SEARCH_TERMS)
-        snapp_queries = [SEARCH_TERMS[search_offset], SEARCH_TERMS[(search_offset + 1) % len(SEARCH_TERMS)]]
+        snapp_queries = _rotating_search_terms(search_slot, 2)[:2]
         headers = _snappshop_request_headers()
         snapp_candidates = []
         snappshop_queries_succeeded = 0
@@ -3158,11 +3183,11 @@ def discover_product_urls(
             f"products={len(snapp_candidates)} retained_api_ids={len(SNAPPSHOP_API_IDS_BY_URL)}"
         )
 
-    # Rotate the starting category every five-minute scan. Otherwise the first few
-    # search terms monopolize the remaining slots and later categories are rarely checked.
-    search_offset = int(time.time() // 300) % len(SEARCH_TERMS)
-    rotated_search_terms = SEARCH_TERMS[search_offset:] + SEARCH_TERMS[:search_offset]
-    print(f"SEARCH_ROTATION offset={search_offset} first_term={rotated_search_terms[0]!r}")
+    # The reserved slot count determines batch stride. With 60 terms and 12
+    # reserved slots, the full DigiKala search catalog is swept in five scans (~25 min).
+    search_offset = (search_slot * max(1, search_reserve)) % len(SEARCH_TERMS)
+    rotated_search_terms = _rotating_search_terms(search_slot, max(1, search_reserve))
+    print(f"SEARCH_ROTATION offset={search_offset} batch_size={max(1, search_reserve)} first_term={rotated_search_terms[0]!r}")
 
     # Fill remaining slots with targeted searches for tech, home, and practical gadgets.
     for term in rotated_search_terms:
@@ -3228,6 +3253,9 @@ def classify_category(title: str) -> str:
     # Specific product families first; "other" should be the true fallback.
     patterns = [
         # Keep dedicated families ahead of broad matches; otherwise the rotation can't see them as distinct.
+        ("mobile_devices", r"گوشی\s*(?:موبایل|هوشمند)|گوشی\s+(?:سامسونگ|شیائومی|ردمی|پوکو|اپل|آیفون|هواوی|آنر|نوکیا|realme)|آیفون|iphone|smartphone|mobile phone|تبلت|آیپد|ipad"),
+        ("tv_audio_video", r"تلویزیون|android\s*tv|smart\s*tv|پروژکتور|سینما خانگی|گیرنده دیجیتال|اندروید باکس|دوربین عکاسی|لنز دوربین|camcorder"),
+        ("large_appliances", r"یخچال|فریزر|ماشین لباسشویی|لباسشویی|ماشین ظرفشویی|ظرفشویی|کولر گازی|اسپلیت|بخاری برقی|آبگرمکن|اجاق گاز|فر توکار|مایکروویو|آون توستر"),
         ("power_backup", r"پاور\s*بانک|شارژر|باتری|چراغ اضطراری|برق اضطراری|چراغ قوه|چراغ دستی"),
         ("lighting", r"چراغ پیشانی|هدلامپ|چراغ مطالعه|چراغ خواب|چراغ روشنایی|چراغ کار|لامپ|نورافکن|چراغ کمپینگ|ریسه روشنایی"),
         ("home_cleaning", r"جارو(?:برقی| شارژی)?|تی زمین شوی|تی چرخشی|زمین شوی|بخارشوی|مواد شوینده|شوینده سطوح|تمیزکننده سطوح|دستمال نظافت|نظافت خانه"),
@@ -3236,7 +3264,7 @@ def classify_category(title: str) -> str:
         ("presentation_tools", r"لیزر پوینتر|پوینتر ارائه|ریموت ارائه|کنترل ارائه"),
         ("audio_wearables", r"هندزفری|هدفون|ایرپاد|اسپیکر|ساعت\s*هوشمند|اسمارت\s*واچ"),
         ("digital_accessories", r"کابل|مبدل|گلس|محافظ صفحه|قاب گوشی|پایه نگهدارنده|فلش مموری|هاب\s*usb|نگهدارنده گوشی"),
-        ("computer_network", r"لپ\s*تاپ|لپتاپ|کامپیوتر|مودم|روتر|مانیتور|تبلت|پرینتر|کیبورد|ماوس"),
+        ("computer_network", r"لپ\s*تاپ|لپتاپ|کامپیوتر|مینی\s*پی\s*سی|کارت گرافیک|پردازنده|\bcpu\b|\bgpu\b|حافظه\s*(?:اس\s*اس\s*دی|ssd|رم)|\bram\b|\bssd\b|مودم|روتر|مانیتور|پرینتر|کیبورد|ماوس"),
         # Put children before sport terms so «کفش ورزشی کودک» remains a kids product.
         ("kids_sports", r"نوزاد|نوزادی|کودک|اسباب\s*بازی|بازی فکری|بازی آموزشی"),
         ("sports_outdoor", r"ورزشی|کمپینگ|کوهنوردی|سفر و طبیعت|دوچرخه|اسکی|شنا|بدنسازی|دمبل|تردمیل|توپ فوتبال|چادر مسافرتی"),
@@ -3259,20 +3287,9 @@ def score_product(p: dict) -> dict:
     # Category is retained for diagnostics only; it never adds or subtracts ranking points.
     category = classify_category(p.get("title", ""))
     score = 0
+    # Product price and category never define demand; high-ticket goods compete on
+    # the same review, rating, and real-audience signals as low-priced goods.
     price = p.get("current_price")
-    if price:
-        if price <= 500_000:
-            score += 24
-        elif price <= 1_000_000:
-            score += 22
-        elif price <= 2_000_000:
-            score += 18
-        elif price <= 5_000_000:
-            score += 13
-        elif price <= 10_000_000:
-            score += 8
-        else:
-            score += 3
 
     original = p.get("original_price")
     if original and price and original > price:
@@ -3295,12 +3312,10 @@ def score_product(p: dict) -> dict:
             score -= 5
 
     reviews = max(0, int(p.get("review_count") or 0))
-    # Review volume and rating are popularity proxies, used only after discount and saving.
+    # Review volume and rating are demand proxies; deal value belongs in promo_score.
     score += min(30, round(3.5 * math.log1p(reviews)))
     if p.get("image_url"):
         score += 4
-    if not price:
-        score -= 12
 
     discount_pct = int(p.get("discount_percent") or 0)
     savings = int(p.get("savings_toman") or 0)
@@ -3312,7 +3327,7 @@ def score_product(p: dict) -> dict:
     p["demand_score"] = max(0, min(100, int(score)))
     p["promo_score"] = max(0, min(100, int(discount_pct * 0.65 + savings_score + review_score + rating_score)))
     p["qualifies_as_deal"] = bool(
-        discount_pct >= MIN_DISCOUNT_PERCENT and savings >= MIN_SAVINGS_TOMAN
+        discount_pct >= MIN_DISCOUNT_PERCENT and savings > 0
     )
     return p
 
@@ -3468,7 +3483,7 @@ def is_discount_publish_eligible(product: dict) -> bool:
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
         and int(product.get("discount_percent") or 0) >= MIN_DISCOUNT_PERCENT
-        and int(product.get("savings_toman") or 0) >= MIN_SAVINGS_TOMAN
+        and int(product.get("savings_toman") or 0) > 0
     )
 
 
@@ -4754,7 +4769,7 @@ def is_deadline_critical_deal(product: dict, now: datetime | None = None) -> boo
     return bool(
         0 < remaining_seconds <= DEADLINE_CRITICAL_WINDOW_MINUTES * 60
         and int(product.get("discount_percent") or 0) >= MIN_DISCOUNT_PERCENT
-        and int(product.get("savings_toman") or 0) >= MIN_SAVINGS_TOMAN
+        and int(product.get("savings_toman") or 0) > 0
     )
 
 
@@ -6869,7 +6884,7 @@ def tracked_telegram_invite_url(state: dict, source: str) -> str:
 def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
-    print(f"Ranking mode=audience-demand-first/deal-value-ranked; deadline urgency is a secondary tie-breaker; medicines and dietary supplements excluded; offers need verified live stock, a valid price and the minimum discount; confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining, while offers with no confirmed timer stay eligible when live offer details verify the discount; minimum listed discount={MIN_DISCOUNT_PERCENT}%; minimum savings={MIN_SAVINGS_TOMAN:,} toman.")
+    print(f"Ranking mode=Iran-market-demand-first; product price and category do not penalize demand; offer value ranks after demand; medicines/pharmacy products/vitamins/supplements remain excluded; publication requires verified stock, current price, image, valid affiliate link, and at least {MIN_DISCOUNT_PERCENT}% listed reduction with no fixed savings floor; confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining.")
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
@@ -7172,7 +7187,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Real 30-day channel clicks and audience demand lead, followed by deal value, rating/review signals, affordability, and discount strength. Deadline urgency is a secondary tie-breaker only after actionable-deal validation; no global channel countdown-order rule applies. Medicines, pharmacy products, vitamins, and dietary supplements are excluded. Offers with a confirmed deadline need at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers with no confirmed timer may publish only after current stock, price, and the qualifying discount are verified.",
+        "ranking_note": f"Real 30-day channel clicks and product demand lead; review/rating signals support demand, while product price and category do not penalize ranking. Discount strength is a secondary quality signal after demand; no fixed absolute-savings floor. Deadline urgency is a secondary tie-breaker after offer validation. Medicines, pharmacy products, vitamins, and dietary supplements remain excluded. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; no-timer offers still require live stock, price, and a positive listed reduction.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
