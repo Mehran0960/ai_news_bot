@@ -127,6 +127,8 @@ def run() -> int:
     # Give every destination its own bounded source-confirmation budget. This keeps
     # channel cleanup from starving video cleanup, while each request is time-bounded.
     direct_limit = _integer_env("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", 1, 1, 10)
+    channel_delete_budget = _integer_env("AFFILIO_MAX_CHANNEL_EXPIRY_DELETE_ATTEMPTS", 24, 1, 100)
+    video_delete_budget = _integer_env("AFFILIO_MAX_VIDEO_EXPIRY_DELETE_ATTEMPTS", 2, 1, 10)
     channel_budget = {"remaining": direct_limit}
 
     def confirm_channel(product_id, record, current_time):
@@ -140,6 +142,7 @@ def run() -> int:
             datetime.now(timezone.utc),
             mark_unknown=True,
             direct_confirm=confirm_channel,
+            max_delete_attempts=channel_delete_budget,
         )
     except Exception as exc:
         channel_changed, channel_deleted = False, 0
@@ -160,7 +163,8 @@ def run() -> int:
 
     try:
         youtube_changed = monitor._delete_expired_youtube_videos(
-            published, datetime.now(timezone.utc), direct_confirm=confirm_youtube
+            published, datetime.now(timezone.utc), direct_confirm=confirm_youtube,
+            max_delete_attempts=video_delete_budget,
         )
     except Exception as exc:
         youtube_changed = False
@@ -180,7 +184,8 @@ def run() -> int:
 
     try:
         aparat_changed = monitor._delete_expired_aparat_videos(
-            published, datetime.now(timezone.utc), direct_confirm=confirm_aparat
+            published, datetime.now(timezone.utc), direct_confirm=confirm_aparat,
+            max_delete_attempts=video_delete_budget,
         )
     except Exception as exc:
         aparat_changed = False
