@@ -3484,9 +3484,11 @@ class AffilioRadarTests(unittest.TestCase):
             queue, now, max_count=2, published={}, recent_publications=recent
         )
         self.assertEqual(len(selected), 2)
-        # Category variety cannot let the much lower-demand fashion item replace
-        # the high-demand audio candidates in the finite detail-check budget.
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93031", "dkp-93032"])
+        # Family diversity may reorder close-demand audio candidates, but cannot
+        # let the much lower-demand fashion item consume either detail-check slot.
+        self.assertEqual({pid for pid, _ in selected}, {"dkp-93031", "dkp-93032"})
+        self.assertNotIn("dkp-93033", {pid for pid, _ in selected})
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93032", "dkp-93031"])
 
     def test_discovery_checks_prioritize_demand_over_deadline_urgency(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
