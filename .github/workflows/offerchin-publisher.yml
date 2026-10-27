@@ -105,7 +105,6 @@ jobs:
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "60"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "10"
-          AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "8"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --select-only
       - name: Publish due selections to all registered destinations
