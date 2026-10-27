@@ -3404,7 +3404,7 @@ class AffilioRadarTests(unittest.TestCase):
         merge_discovery_queue(queue, [], now + timedelta(minutes=20))
         self.assertNotIn("dkp-91011", queue)
 
-    def test_discovery_check_budget_spreads_recently_repeated_categories(self):
+    def test_discovery_check_budget_ranks_demand_before_category_diversity(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
         recent = [
             {"product_id": f"dkp-recent-audio-{i}", "title": f"هدفون بلوتوثی نمونه {i}",
@@ -3433,7 +3433,9 @@ class AffilioRadarTests(unittest.TestCase):
             queue, now, max_count=2, published={}, recent_publications=recent
         )
         self.assertEqual(len(selected), 2)
-        self.assertEqual(selected[0][0], "dkp-93033")
+        # Category variety cannot let the much lower-demand fashion item replace
+        # the high-demand audio candidates in the finite detail-check budget.
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93031", "dkp-93032"])
 
     def test_discovery_checks_prioritize_demand_over_deadline_urgency(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
