@@ -823,7 +823,7 @@ class AffilioRadarTests(unittest.TestCase):
     def test_deadline_critical_priority_never_overrides_runway_floor(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
         close_but_safe = {
-            "discount_percent": 35,
+            "discount_percent": 50,
             "savings_toman": 150_000,
             "deal_expires_at": (now + timedelta(minutes=110)).isoformat(),
         }
