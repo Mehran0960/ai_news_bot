@@ -1646,8 +1646,12 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(ten_percent["discount_percent"], 10)
         self.assertFalse(is_discount_publish_eligible(ten_percent))
 
-        strong_discount = score_product({**base, "current_price": 700_000})
-        self.assertEqual(strong_discount["discount_percent"], 30)
+        just_below_floor = score_product({**base, "current_price": 510_000})
+        self.assertEqual(just_below_floor["discount_percent"], 49)
+        self.assertFalse(is_discount_publish_eligible(just_below_floor))
+
+        strong_discount = score_product({**base, "current_price": 500_000})
+        self.assertEqual(strong_discount["discount_percent"], 50)
         self.assertGreaterEqual(strong_discount["savings_toman"], 100_000)
         self.assertTrue(is_discount_publish_eligible(strong_discount))
 
@@ -1675,16 +1679,16 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(high_ticket_11_percent["savings_toman"], 2_000_000)
         self.assertFalse(is_discount_publish_eligible(high_ticket_11_percent))
 
-        high_ticket_22_percent = score_product({
+        high_ticket_50_percent = score_product({
             **high_ticket_11_percent,
-            "current_price": 14_000_000,
+            "current_price": 9_000_000,
             "original_price": 18_000_000,
         })
-        self.assertGreaterEqual(high_ticket_22_percent["discount_percent"], 20)
-        self.assertGreaterEqual(high_ticket_22_percent["savings_toman"], 100_000)
-        self.assertTrue(is_discount_publish_eligible(high_ticket_22_percent))
+        self.assertEqual(high_ticket_50_percent["discount_percent"], 50)
+        self.assertGreaterEqual(high_ticket_50_percent["savings_toman"], 100_000)
+        self.assertTrue(is_discount_publish_eligible(high_ticket_50_percent))
 
-    def test_fifteen_percent_discount_can_qualify_when_savings_are_material(self):
+    def test_fifteen_percent_discount_is_rejected_by_fifty_percent_floor(self):
         product = {
             "title": "چراغ مطالعه مدل تست",
             "current_price": 850_000,
@@ -1698,7 +1702,7 @@ class AffilioRadarTests(unittest.TestCase):
         scored = score_product(product)
         self.assertEqual(scored["discount_percent"], 15)
         self.assertEqual(scored["savings_toman"], 150_000)
-        self.assertTrue(is_discount_publish_eligible(scored))
+        self.assertFalse(is_discount_publish_eligible(scored))
 
 
     def test_discovery_ranks_demand_before_discount_size(self):
