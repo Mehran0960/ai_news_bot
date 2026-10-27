@@ -2346,7 +2346,6 @@ def _candidate_demand_score(record: dict) -> int:
 
     explicit = safe_int(record.get("demand_score"))
     reviews = safe_int(record.get("review_count"))
-    clicks = safe_int(record.get("click_count_30d"))
     try:
         rating = float(normalize_digits(str(record.get("rating") or record.get("rating_value") or "0")))
     except (TypeError, ValueError, OverflowError):
@@ -2403,7 +2402,7 @@ def has_meaningful_discount(record: dict) -> bool:
 
 
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Rank by audience demand first; discount value is secondary and expiry is a safety tie-break."""
+    """Rank retailer-side demand signals first, discount percentage second, then safety/value signals."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -3390,7 +3389,7 @@ def score_product(p: dict) -> dict:
     category = classify_category(p.get("title", ""))
     score = 0
     # Product price and category never define demand; high-ticket goods compete on
-    # the same review, rating, and real-audience signals as low-priced goods.
+    # the same retailer review/rating signals as low-priced goods.
     price = p.get("current_price")
 
     original = p.get("original_price")
@@ -3433,7 +3432,7 @@ def score_product(p: dict) -> dict:
 
 
 def deal_sort_key(p: dict) -> tuple:
-    """Rank demand/popularity first, then verified real discount value."""
+    """Rank retailer-side demand signals first and discount percentage second."""
     verified_median = (
         p.get("market_status") == "verified"
         and p.get("market_reference_kind") == "seller_median"
@@ -4919,7 +4918,7 @@ def is_materially_improved_offer(previous: dict, product: dict, now: datetime | 
 
 def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
                            now: datetime | None = None) -> tuple:
-    """Prioritize observed demand and deal value; use urgency only to break close ties."""
+    """Prioritize market-demand signals, then discount percentage; urgency only follows those signals."""
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
@@ -4936,8 +4935,8 @@ def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
         deadline_priority = 1
     else:
         deadline_priority = 0
-    # The core deal_sort_key starts with real clicks, then demand/reviews/rating/value.
-    # A nearer deadline can only win after those product signals are tied.
+    # deal_sort_key prioritizes retailer-side demand signals, then discount percentage.
+    # Channel clicks and deadline urgency cannot override those two ranking criteria.
     return (
         *deal_sort_key(product),
         int(is_urgent_priority_deal(product, now)),
