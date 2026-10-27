@@ -260,7 +260,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(has_publishable_expiry_or_open_offer({**base, "availability": "in_stock", "original_price": 3_398_000}))
         self.assertTrue(has_publishable_expiry_or_open_offer({**base, "availability": "in_stock"}))
 
-    def test_urgent_bypass_is_suppressed_for_same_recent_family_when_alternative_exists(self):
+    def test_urgent_bypass_keeps_highest_demand_urgent_offer_even_if_family_repeats(self):
         now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
         published = {
             "dkp-previous-keyboard": {
@@ -292,7 +292,7 @@ class AffilioRadarTests(unittest.TestCase):
             published=published,
         )
 
-        self.assertIsNone(chosen)
+        self.assertEqual(chosen["product_id"], "dkp-keyboard-urgent")
 
     def test_urgent_bypass_prefers_urgent_candidate_from_different_family(self):
         now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
@@ -858,10 +858,11 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(classify_category("لوازم نقاشی و طراحی مدل نمونه"), "arts_crafts")
 
     def test_discovery_budget_protects_rotating_category_search_slots(self):
-        self.assertEqual(_discovery_candidate_budgets(40), (28, 12))
+        self.assertEqual(_discovery_candidate_budgets(60), (40, 20))
+        self.assertEqual(_discovery_candidate_budgets(40), (27, 13))
         self.assertEqual(_discovery_candidate_budgets(12), (8, 4))
         self.assertEqual(_discovery_candidate_budgets(1), (1, 0))
-        self.assertEqual(len(SEARCH_TERMS), 60)
+        self.assertEqual(len(SEARCH_TERMS), 90)
         for term in (
             "گوشی موبایل", "گوشی سامسونگ و شیائومی", "آیفون اپل", "لپ تاپ",
             "لپ تاپ گیمینگ", "تبلت و آیپد", "کارت گرافیک و پردازنده",
@@ -870,19 +871,28 @@ class AffilioRadarTests(unittest.TestCase):
             "ابزار دستی و ابزارآلات", "لوازم نظافت و شستشوی خانه",
             "چراغ مطالعه و لوازم روشنایی", "لوازم هنری و نقاشی",
             "لوازم مراقبت و نگهداری خودرو", "لوازم حمام و سرویس بهداشتی",
-            "لوازم باغبانی و گلدان",
+            "لوازم باغبانی و گلدان", "مواد غذایی و خواربار", "چای و دمنوش",
+            "آجیل و خشکبار", "فرش و قالیچه", "چمدان و ساک مسافرتی",
+            "لوازم موسیقی و ساز", "دوربین مداربسته", "لوازم ماهیگیری",
+            "لاستیک خودرو", "گیاه آپارتمانی و گلدان",
         ):
             self.assertIn(term, SEARCH_TERMS)
 
     def test_rotating_search_batches_cover_all_terms_without_one_term_per_scan(self):
-        batches = [_rotating_search_terms(slot, 12)[:12] for slot in range(5)]
-        self.assertEqual(batches[0], SEARCH_TERMS[:12])
-        self.assertEqual(batches[1], SEARCH_TERMS[12:24])
-        self.assertEqual(batches[2], SEARCH_TERMS[24:36])
-        self.assertEqual(batches[3], SEARCH_TERMS[36:48])
-        self.assertEqual(batches[4], SEARCH_TERMS[48:60])
+        batch_size = 12
+        batch_count = (len(SEARCH_TERMS) + batch_size - 1) // batch_size
+        batches = [_rotating_search_terms(slot, batch_size)[:batch_size] for slot in range(batch_count)]
+        for slot, batch in enumerate(batches):
+            offset = slot * batch_size
+            expected = (SEARCH_TERMS[offset:] + SEARCH_TERMS[:offset])[:batch_size]
+            self.assertEqual(batch, expected)
         self.assertEqual({term for batch in batches for term in batch}, set(SEARCH_TERMS))
-        snapp_batches = [_rotating_search_terms(slot, 2)[:2] for slot in range(30)]
+        snapp_batch_size = 4
+        snapp_batch_count = (len(SEARCH_TERMS) + snapp_batch_size - 1) // snapp_batch_size
+        snapp_batches = [
+            _rotating_search_terms(slot, snapp_batch_size)[:snapp_batch_size]
+            for slot in range(snapp_batch_count)
+        ]
         self.assertEqual({term for batch in snapp_batches for term in batch}, set(SEARCH_TERMS))
 
     def test_calcium_and_arginine_supplements_are_excluded(self):
@@ -959,7 +969,8 @@ class AffilioRadarTests(unittest.TestCase):
         queue = {item["product_id"]: {} for item in candidates}
         eligible = {item["product_id"]: item for item in candidates}
         selected = select_publish_candidates(queue, eligible, now, published)
-        self.assertEqual(selected[0]["product_id"], "dkp-desk-light")
+        # A recently repeated family cannot outrank a product with stronger market-demand signals.
+        self.assertEqual(selected[0]["product_id"], "dkp-headphones-new")
 
 
     def test_publish_selection_avoids_categories_seen_in_the_last_four_posts(self):
@@ -991,7 +1002,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
 
 
-    def test_publish_selection_looks_beyond_top_five_for_category_diversity(self):
+    def test_publish_selection_keeps_market_demand_ahead_of_category_diversity(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-recent-skincare": {
@@ -1009,7 +1020,7 @@ class AffilioRadarTests(unittest.TestCase):
             }
             for index, score in enumerate((64, 63, 62, 61, 60, 59), start=1)
         ]
-        # This valid alternate category ranks seventh, with a still-comparable demand score.
+        # The alternate category is valid, but its much weaker market demand must not win.
         candidates.append({
             "product_id": "dkp-diverse-charger",
             "title": "شارژر دیواری سریع مدل جدید",
@@ -1021,7 +1032,8 @@ class AffilioRadarTests(unittest.TestCase):
 
         selected = select_publish_candidates(queue, eligible, now, published)
 
-        self.assertEqual(selected[0]["product_id"], "dkp-diverse-charger")
+        self.assertEqual(selected[0]["product_id"], "dkp-skincare-1")
+        self.assertNotEqual(selected[0]["product_id"], "dkp-diverse-charger")
         self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
 
 
@@ -1707,6 +1719,56 @@ class AffilioRadarTests(unittest.TestCase):
             discovery_queue_sort_key(popular_regular_discount, now),
             discovery_queue_sort_key(low_demand_huge_discount, now),
         )
+
+    def test_selection_uses_market_demand_first_and_discount_percentage_second(self):
+        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+        popular_lower_discount = {
+            "demand_score": 82, "review_count": 12_000, "rating": 4.7,
+            "discount_percent": 25, "savings_toman": 500_000,
+            "click_count_30d": 0, "market_status": "not_checked",
+            "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+            "first_seen_at": now.isoformat(),
+        }
+        weak_demand_higher_discount = {
+            "demand_score": 52, "review_count": 300, "rating": 4.1,
+            "discount_percent": 85, "savings_toman": 8_000_000,
+            "click_count_30d": 0, "market_status": "verified",
+            "market_reference_kind": "seller_median", "market_price_advantage_pct": 25,
+            "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+            "first_seen_at": now.isoformat(),
+        }
+        self.assertGreater(deal_sort_key(popular_lower_discount), deal_sort_key(weak_demand_higher_discount))
+        self.assertGreater(
+            discovery_queue_sort_key(popular_lower_discount, now),
+            discovery_queue_sort_key(weak_demand_higher_discount, now),
+        )
+
+        same_demand_higher_pct = {
+            **popular_lower_discount,
+            "demand_score": 70, "review_count": 3_000, "rating": 4.5,
+            "discount_percent": 75, "savings_toman": 150_000,
+            "market_status": "not_checked",
+        }
+        same_demand_lower_pct = {
+            **same_demand_higher_pct,
+            "discount_percent": 30, "savings_toman": 2_000_000,
+            "market_status": "verified",
+            "market_reference_kind": "seller_median", "market_price_advantage_pct": 30,
+        }
+        self.assertGreater(deal_sort_key(same_demand_higher_pct), deal_sort_key(same_demand_lower_pct))
+        self.assertGreater(
+            discovery_queue_sort_key(same_demand_higher_pct, now),
+            discovery_queue_sort_key(same_demand_lower_pct, now),
+        )
+
+        candidates = [
+            {"product_id": "dkp-popular", "title": "کرم مراقبت پوست مدل پرتقاضا", **popular_lower_discount},
+            {"product_id": "dkp-less-popular", "title": "شارژر مدل تخفیف خیلی بالا", **weak_demand_higher_discount},
+        ]
+        queue = {item["product_id"]: {} for item in candidates}
+        eligible = {item["product_id"]: item for item in candidates}
+        selected = select_publish_candidates(queue, eligible, now)
+        self.assertEqual(selected[0]["product_id"], "dkp-popular")
 
     def test_irr_prices_are_converted_to_toman(self):
         self.assertEqual(_money_to_toman("12900000", "IRR"), 1_290_000)
