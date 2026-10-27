@@ -49,7 +49,7 @@ POST_REMOVAL_BUFFER_MINUTES = max(
 LIVE_DEADLINE_SYNC_INTERVAL_SECONDS = 60
 # Bound detail lookups so missing timers cannot stall expiry cleanup.
 DIRECT_PRODUCT_DETAIL_CHECK_LIMIT = max(1, min(2, int(os.getenv("AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT", "1"))))
-CAPTION_FORMAT_VERSION = 13
+CAPTION_FORMAT_VERSION = 14
 
 
 def walk_dicts(value):
@@ -936,7 +936,7 @@ def _build_legacy_repaired_caption(fields, deadline=None, now=None, affiliate_ur
 def _caption_needs_repair(caption_html, caption_text, fields, deadline=None, now=None):
     """Recognize the current concise caption without repeatedly editing already-canonical posts."""
     text = str(caption_text or "")
-    if "عضویت در کانال تلگرام آفرچین" not in text or "t.me/OfferChin" in text:
+    if "عضویت در تلگرام | آفرچین" not in text or "t.me/OfferChin" in text:
         return True
 
     # Captions never contain a timer or a textual deadline: only state drives deletion.
