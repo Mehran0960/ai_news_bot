@@ -53,8 +53,10 @@ AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1",
 FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "false").strip().lower() in {"1", "true", "yes", "on"}
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
 BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
-MAX_PER_QUERY = max(1, min(12, int(os.getenv("AFFILIO_MAX_PER_QUERY", "8"))))
-MAX_PRODUCT_CHECKS = max(1, min(40, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "40"))))
+MAX_PER_QUERY = max(1, min(20, int(os.getenv("AFFILIO_MAX_PER_QUERY", "12"))))
+MAX_PRODUCT_CHECKS = max(1, min(60, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "60"))))
+SNAPPSHOP_RESERVED_CANDIDATES = max(4, min(12, MAX_PRODUCT_CHECKS // 7))
+SNAPPSHOP_QUERIES_PER_SCAN = max(1, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN", "4"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
 # Independent Telegram/Bale volume guard, counted by Iran's calendar day; never reserve or gate channel posts on YouTube API quota.
 MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "70"))))
@@ -69,10 +71,10 @@ MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
-MAX_QUEUED_RECHECKS = max(0, min(12, int(os.getenv("AFFILIO_MAX_QUEUED_RECHECKS", "8"))))
-DISCOVERY_QUEUE_LIMIT = max(100, min(1000, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_LIMIT", "500"))))
+MAX_QUEUED_RECHECKS = max(0, min(16, int(os.getenv("AFFILIO_MAX_QUEUED_RECHECKS", "12"))))
+DISCOVERY_QUEUE_LIMIT = max(100, min(1000, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_LIMIT", "1000"))))
 DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_TTL_HOURS", "24"))))
-MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(32, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "32"))))
+MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(64, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "48"))))
 # Never publish an offer that gives the audience less than this much time to act.
 MIN_PUBLICATION_RUNWAY_MINUTES = max(30, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "60"))))
 # The same ten-minute safety buffer gates publication and removal; captions remain static.
@@ -174,9 +176,40 @@ SEARCH_TERMS = [
     "کالای خواب و تشک",
     "مبلمان و صندلی اداری",
     "لوازم برقی شخصی و سشوار",
+    # Additional targeted queries widen category coverage beyond the main deal feed.
+    "مواد غذایی و خواربار",
+    "چای و دمنوش",
+    "قهوه و نسکافه",
+    "آجیل و خشکبار",
+    "شکلات و تنقلات",
+    "سرویس قابلمه و تابه",
+    "ظروف پذیرایی",
+    "فرش و قالیچه",
+    "پرده و دکوراسیون",
+    "میز تحریر و کتابخانه",
+    "صندلی گیمینگ و اداری",
+    "چمدان و ساک مسافرتی",
+    "کفش مردانه",
+    "کفش زنانه",
+    "کفش ورزشی",
+    "لباس مردانه",
+    "لباس زنانه",
+    "لباس بچگانه",
+    "لوازم موسیقی و ساز",
+    "پرینتر و اسکنر",
+    "دوربین مداربسته",
+    "لوازم مادر و کودک",
+    "بازی فکری و آموزشی",
+    "تجهیزات بدنسازی",
+    "لوازم ماهیگیری",
+    "ابزار برقی دریل و فرز",
+    "لوازم یدکی خودرو",
+    "لاستیک خودرو",
+    "خوراک حیوانات خانگی",
+    "گیاه آپارتمانی و گلدان",
 ]
 MAX_INCREDIBLE_OFFER_CANDIDATES = max(
-    1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "32")))
+    1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "60")))
 )
 EXCLUDED_HEALTH_PRODUCT_RE = re.compile(
     r"(?:قرص|کپسول|دارو(?:یی)?|مکمل|ویتامین|زینک|منیزیم|"
@@ -2321,11 +2354,11 @@ def _candidate_demand_score(record: dict) -> int:
 
     review_proxy = min(30, round(3.5 * math.log1p(reviews))) if reviews else 0
     rating_proxy = max(0, min(10, round((rating - 3.0) * 5))) if rating else 0
-    # Explicit product demand score wins when available; otherwise use rating/review
-    # signals. Real channel clicks are additional evidence and therefore add on top.
+    # Market demand is estimated from retailer-side demand/review/rating signals.
+    # OfferChin click-through is kept as a later tie-breaker, not mistaken for
+    # demand across the Iranian market.
     base = explicit if explicit > 0 else review_proxy + rating_proxy
-    click_proxy = min(100, round(10 * math.log1p(clicks))) if clicks else 0
-    return max(0, min(200, base + click_proxy))
+    return max(0, min(200, base))
 
 
 def _candidate_promo_score(record: dict) -> int:
@@ -2408,9 +2441,9 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
     first_seen = _parse_utc_datetime(record.get("first_seen_at"))
     first_seen_ts = first_seen.timestamp() if first_seen else current.timestamp()
     return (
-        int(has_runway), clicks, _candidate_demand_score(record), reviews, rating_score,
-        market_verified, market_advantage, value_gate, _candidate_promo_score(record),
-        discount, savings, urgency_tier,
+        _candidate_demand_score(record), reviews, rating_score, discount,
+        clicks, market_verified, market_advantage, value_gate,
+        _candidate_promo_score(record), savings, int(has_runway), urgency_tier,
         -remaining if active_deadline else float("-inf"), -first_seen_ts,
     )
 
@@ -2789,7 +2822,7 @@ def _discovery_candidate_budgets(max_checks: int) -> tuple[int, int]:
         cap = max(1, int(max_checks))
     except (TypeError, ValueError, OverflowError):
         cap = 1
-    reserve = min(12, max(1, cap // 3)) if cap > 1 else 0
+    reserve = min(20, max(1, cap // 3)) if cap > 1 else 0
     return max(1, cap - reserve), reserve
 
 
@@ -2824,9 +2857,11 @@ def discover_product_urls(
     # first: the normal five-minute scan often begins with queued candidates, so a
     # later assignment used to raise UnboundLocalError and abort every live scan.
     presearch_candidate_limit, search_reserve = _discovery_candidate_budgets(MAX_PRODUCT_CHECKS)
+    early_source_candidate_limit = max(1, presearch_candidate_limit - SNAPPSHOP_RESERVED_CANDIDATES)
     print(
         f"DISCOVERY_SOURCE_BUDGET checks={MAX_PRODUCT_CHECKS} "
-        f"early_sources_cap={presearch_candidate_limit} "
+        f"early_sources_cap={early_source_candidate_limit} "
+        f"reserved_snappshop_candidates={SNAPPSHOP_RESERVED_CANDIDATES} "
         f"reserved_rotating_search_slots={search_reserve}"
     )
 
@@ -2836,7 +2871,7 @@ def discover_product_urls(
     for pid, record in select_queued_records_for_recheck(
         queued_records, queue_now
     ):
-        if len(found) >= presearch_candidate_limit:
+        if len(found) >= early_source_candidate_limit:
             break
         if (
             not is_fresh_selection_candidate(state_to_persist or {}, pid, record, queue_now)
@@ -3058,7 +3093,7 @@ def discover_product_urls(
         excluded_repeat_or_active_queue_candidates = 0
         for pid, record in queued_due:
             queued_url = safe_product_url(record.get("product_url", ""))
-            if not queued_url or queued_url in found or len(found) >= presearch_candidate_limit:
+            if not queued_url or queued_url in found or len(found) >= early_source_candidate_limit:
                 continue
             # Previously published/queued products are not new content candidates.
             # Failed Telegram/Bale delivery retries remain discoverable through the
@@ -3120,7 +3155,7 @@ def discover_product_urls(
 
     for row in selected_deals:
         url = row["product_url"]
-        if url not in found and len(found) < presearch_candidate_limit:
+        if url not in found and len(found) < early_source_candidate_limit:
             found.append(url)
         pid = product_id(url)
         expiry = str(row.get("deal_expires_at") or deal_expiries.get(pid) or "").strip()
@@ -3151,7 +3186,7 @@ def discover_product_urls(
     # SnappShop discovery shares the early-source budget. It cannot consume the
     # reserved slots needed for rotating DigiKala category searches below.
     if len(found) < presearch_candidate_limit:
-        snapp_queries = _rotating_search_terms(search_slot, 2)[:2]
+        snapp_queries = _rotating_search_terms(search_slot, SNAPPSHOP_QUERIES_PER_SCAN)[:SNAPPSHOP_QUERIES_PER_SCAN]
         headers = _snappshop_request_headers()
         snapp_candidates = []
         snappshop_queries_succeeded = 0
@@ -3250,8 +3285,8 @@ def discover_product_urls(
             f"products={len(snapp_candidates)} retained_api_ids={len(SNAPPSHOP_API_IDS_BY_URL)}"
         )
 
-    # The reserved slot count determines batch stride. With 60 terms and 12
-    # reserved slots, the full DigiKala search catalog is swept in five scans (~25 min).
+    # The reserved slot count determines batch stride. The expanded 90-term
+    # catalog is swept in five scans when 20 category-search slots are available.
     search_offset = (search_slot * max(1, search_reserve)) % len(SEARCH_TERMS)
     rotated_search_terms = _rotating_search_terms(search_slot, max(1, search_reserve))
     print(f"SEARCH_ROTATION offset={search_offset} batch_size={max(1, search_reserve)} first_term={rotated_search_terms[0]!r}")
@@ -3381,8 +3416,7 @@ def score_product(p: dict) -> dict:
     reviews = max(0, int(p.get("review_count") or 0))
     # Review volume and rating are demand proxies; deal value belongs in promo_score.
     score += min(30, round(3.5 * math.log1p(reviews)))
-    if p.get("image_url"):
-        score += 4
+    # Image availability is an eligibility requirement, not a market-demand signal.
 
     discount_pct = int(p.get("discount_percent") or 0)
     savings = int(p.get("savings_toman") or 0)
@@ -3415,10 +3449,10 @@ def deal_sort_key(p: dict) -> tuple:
     except (TypeError, ValueError, OverflowError):
         rating_score = 0
     return (
-        int(p.get("click_count_30d") or 0), int(p.get("demand_score") or 0),
-        int(p.get("review_count") or 0), rating_score,
-        market_known, market_advantage, int(p.get("promo_score") or 0),
-        int(p.get("discount_percent") or 0), int(p.get("savings_toman") or 0),
+        _candidate_demand_score(p), max(0, int(p.get("review_count") or 0)), rating_score,
+        max(0, int(p.get("discount_percent") or 0)), max(0, int(p.get("click_count_30d") or 0)),
+        market_known, market_advantage, int(has_meaningful_discount(p)),
+        int(p.get("promo_score") or 0), max(0, int(p.get("savings_toman") or 0)),
     )
 
 def _fetch_click_statistics_snapshot() -> dict:
@@ -5166,45 +5200,13 @@ def _recent_publication_diversity(
     return ordered[-max(1, int(limit)):]
 
 
-def select_urgent_publication_candidate(
-    eligible: list[dict],
-    now: datetime | None = None,
-    published: dict | None = None,
-    recent_publications: list | None = None,
-) -> dict | None:
-    """Pick the highest-demand urgent offer without unnecessarily repeating a family."""
-    current = now or datetime.now(timezone.utc)
-    if current.tzinfo is None:
-        current = current.replace(tzinfo=timezone.utc)
-    current = current.astimezone(timezone.utc)
-    urgent = [
-        product for product in eligible
-        if is_urgent_priority_deal(product, current) or is_deadline_critical_deal(product, current)
-    ]
-    if not urgent:
+.join(sorted(recent_families))} different_family_alternative=true"
+        )
         return None
-    urgent.sort(key=deal_sort_key, reverse=True)
-    recent = _recent_publication_diversity(
-        published, limit=2000, durable_history=recent_publications, now=current
-    )
-    recent_families = {
-        str(post.get("family") or "") for post in recent
-        if str(post.get("family") or "")
-        and float(post.get("order") or post.get("ts") or 0)
-        >= current.timestamp() - FAMILY_REPEAT_COOLDOWN_HOURS * 3600
-    }
-    if not recent_families:
-        return urgent[0]
-    diverse_urgent = [
-        product for product in urgent
-        if _publication_diversity_group(product)[1] not in recent_families
-    ]
-    if diverse_urgent:
-        return diverse_urgent[0]
-    if any(_publication_diversity_group(product)[1] not in recent_families for product in eligible):
-        print(
-            "URGENT_PRIORITY_SUPPRESSED_RECENT_FAMILY "
-            f"recent_families={','.join(sorted(recent_families))} different_family_alternative=true"
+    return urgent[0]
+
+
+','.join(sorted(recent_families))} different_family_alternative=true"
         )
         return None
     return urgent[0]
@@ -5217,7 +5219,7 @@ def select_publish_candidates(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> list[dict]:
-    """Rank by demand first; use 24-hour diversity as a bounded secondary preference."""
+    """Rank by market-demand signals first, discount percentage second, then exact-score tie diversity."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -5235,96 +5237,10 @@ def select_publish_candidates(
         selected.append(product)
     if deferred:
         print(f"PUBLISH_QUEUE_BACKOFF skipped_deferred={deferred} ready={len(selected)}")
-    selected.sort(key=deal_sort_key, reverse=True)
-    if len(selected) < 2 or not (published or recent_publications):
-        return selected
-    recent = _recent_publication_diversity(
-        published, limit=2000, durable_history=recent_publications, now=current
+    return _order_candidates_by_primary_rank(
+        selected, published=published, recent_publications=recent_publications, now=current
     )
-    if not recent:
-        return selected
-    category_counts, family_counts, brand_counts = {}, {}, {}
-    recent_product_ids = []
-    for post in recent:
-        category = str(post.get("category") or "other")
-        family = str(post.get("family") or category)
-        brand = str(post.get("brand") or "")
-        category_counts[category] = category_counts.get(category, 0) + 1
-        family_counts[family] = family_counts.get(family, 0) + 1
-        if brand:
-            brand_counts[brand] = brand_counts.get(brand, 0) + 1
-        recent_product_ids.append(str(post.get("product_id") or ""))
-    now_ts = current.timestamp()
-    recent_categories = [
-        str(post.get("category") or "other") for post in recent
-        if float(post.get("order") or post.get("ts") or 0) >= now_ts - CATEGORY_REPEAT_COOLDOWN_MINUTES * 60
-    ]
-    recent_families = [
-        str(post.get("family") or post.get("category") or "other") for post in recent
-        if float(post.get("order") or post.get("ts") or 0) >= now_ts - FAMILY_REPEAT_COOLDOWN_HOURS * 3600
-    ]
-    recent_brands = [
-        str(post.get("brand") or "") for post in recent
-        if post.get("brand") and float(post.get("order") or post.get("ts") or 0) >= now_ts - BRAND_REPEAT_COOLDOWN_HOURS * 3600
-    ]
-    remaining, diversified = list(selected), []
-    while remaining:
-        leader = remaining[0]
-        lookahead = remaining[:DIVERSITY_LOOKAHEAD_CANDIDATES]
-        comparable = [
-            (position, product) for position, product in enumerate(lookahead)
-            if _candidate_demand_comparable_for_diversity(product, leader)
-        ]
-        ranked = []
-        for position, product in comparable:
-            pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
-            category, family, brand = _publication_diversity_group(product)
-            score = float(position * 20)
-            score += min(360.0, category_counts.get(category, 0) * 45.0)
-            score += min(440.0, family_counts.get(family, 0) * 55.0)
-            if brand:
-                score += min(240.0, brand_counts.get(brand, 0) * 35.0)
-            if category in recent_categories:
-                score += 150.0
-            if family in recent_families:
-                score += 210.0
-            if brand and brand in recent_brands:
-                score += 160.0
-            if pid in recent_product_ids:
-                score += 250.0
-            ranked.append((score, position, product, pid, category, family, brand))
-        allowed = [
-            row for row in ranked
-            if row[4] not in recent_categories and row[5] not in recent_families
-            and (not row[6] or row[6] not in recent_brands)
-        ]
-        if not allowed:
-            allowed = [row for row in ranked if row[4] not in recent_categories and row[5] not in recent_families]
-        if not allowed:
-            allowed = [row for row in ranked if row[5] not in recent_families]
-        if not allowed:
-            allowed = [row for row in ranked if row[4] not in recent_categories]
-        _, position, chosen, pid, category, family, brand = min(allowed or ranked, key=lambda row: (row[0], row[1]))
-        if position:
-            print(
-                f"PUBLICATION_DIVERSITY_REORDER id={pid} original_rank={position + 1} "
-                f"category={category} family={family} "
-                f"recent_category_count={category_counts.get(category, 0)} "
-                f"recent_family_count={family_counts.get(family, 0)} "
-                f"recent_brand_count={brand_counts.get(brand, 0) if brand else 0}"
-            )
-        diversified.append(chosen)
-        remaining.pop(position)
-        category_counts[category] = category_counts.get(category, 0) + 1
-        family_counts[family] = family_counts.get(family, 0) + 1
-        if brand:
-            brand_counts[brand] = brand_counts.get(brand, 0) + 1
-        recent_product_ids.append(pid)
-        recent_categories = (recent_categories + [category])[-3:]
-        recent_families = (recent_families + [family])[-14:]
-        if brand:
-            recent_brands = (recent_brands + [brand])[-9:]
-    return diversified
+
 
 MIN_REPEAT_PRODUCT_INTERVAL_HOURS = 24
 PUBLICATION_LEDGER_LIMIT = 2000
