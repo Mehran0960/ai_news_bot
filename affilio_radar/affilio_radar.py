@@ -5200,16 +5200,84 @@ def _recent_publication_diversity(
     return ordered[-max(1, int(limit)):]
 
 
-.join(sorted(recent_families))} different_family_alternative=true"
-        )
-        return None
-    return urgent[0]
+def _order_candidates_by_primary_rank(
+    candidates: list[dict],
+    published: dict | None = None,
+    recent_publications: list | None = None,
+    now: datetime | None = None,
+) -> list[dict]:
+    """Keep demand and discount ranking absolute; use category diversity only for exact-score ties."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    remaining = sorted(list(candidates or []), key=deal_sort_key, reverse=True)
+    if len(remaining) < 2 or not (published or recent_publications):
+        return remaining
+    recent = _recent_publication_diversity(
+        published, limit=2000, durable_history=recent_publications, now=current
+    )
+    if not recent:
+        return remaining
+
+    category_counts: dict[str, int] = {}
+    family_counts: dict[str, int] = {}
+    brand_counts: dict[str, int] = {}
+    for post in recent:
+        category = str(post.get("category") or "other")
+        family = str(post.get("family") or category)
+        brand = str(post.get("brand") or "")
+        category_counts[category] = category_counts.get(category, 0) + 1
+        family_counts[family] = family_counts.get(family, 0) + 1
+        if brand:
+            brand_counts[brand] = brand_counts.get(brand, 0) + 1
+
+    ordered: list[dict] = []
+    while remaining:
+        top_key = deal_sort_key(remaining[0])
+        tied: list[dict] = []
+        while remaining and deal_sort_key(remaining[0]) == top_key:
+            tied.append(remaining.pop(0))
+        while tied:
+            chosen_index = min(
+                range(len(tied)),
+                key=lambda index: (
+                    category_counts.get(_publication_diversity_group(tied[index])[0], 0),
+                    family_counts.get(_publication_diversity_group(tied[index])[1], 0),
+                    brand_counts.get(_publication_diversity_group(tied[index])[2], 0),
+                    index,
+                ),
+            )
+            chosen = tied.pop(chosen_index)
+            ordered.append(chosen)
+            category, family, brand = _publication_diversity_group(chosen)
+            category_counts[category] = category_counts.get(category, 0) + 1
+            family_counts[family] = family_counts.get(family, 0) + 1
+            if brand:
+                brand_counts[brand] = brand_counts.get(brand, 0) + 1
+    return ordered
 
 
-','.join(sorted(recent_families))} different_family_alternative=true"
-        )
+def select_urgent_publication_candidate(
+    eligible: list[dict],
+    now: datetime | None = None,
+    published: dict | None = None,
+    recent_publications: list | None = None,
+) -> dict | None:
+    """Choose the strongest qualifying urgent deal by market demand, then discount percentage."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    urgent = [
+        product for product in eligible
+        if is_urgent_priority_deal(product, current) or is_deadline_critical_deal(product, current)
+    ]
+    if not urgent:
         return None
-    return urgent[0]
+    return _order_candidates_by_primary_rank(
+        urgent, published=published, recent_publications=recent_publications, now=current
+    )
 
 
 def select_publish_candidates(
