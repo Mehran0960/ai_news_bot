@@ -2571,9 +2571,14 @@ def _candidate_demand_comparable_for_diversity(candidate: dict, leader: dict) ->
         return False
     leader_discount = max(0, int(leader.get("discount_percent") or 0))
     candidate_discount = max(0, int(candidate.get("discount_percent") or 0))
-    # Don't trade an exceptionally strong discount for variety alone.
-    minimum_comparable_discount = max(MIN_DISCOUNT_PERCENT, leader_discount - 15)
-    return candidate_discount >= minimum_comparable_discount
+    # Discount fields are sometimes absent before live detail validation.
+    # Missing data is unknown, not a known zero-percent offer; enforce the
+    # quality comparison only when both candidates have measured discounts.
+    if leader_discount > 0 and candidate_discount > 0:
+        minimum_comparable_discount = max(MIN_DISCOUNT_PERCENT, leader_discount - 15)
+        if candidate_discount < minimum_comparable_discount:
+            return False
+    return True
 
 
 def _diversify_ranked_records(
