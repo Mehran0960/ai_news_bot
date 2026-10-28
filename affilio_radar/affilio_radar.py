@@ -5205,7 +5205,7 @@ def _order_candidates_by_primary_rank(
     recent_publications: list | None = None,
     now: datetime | None = None,
 ) -> list[dict]:
-    """Rank by demand/discount first, then maximize category and product-family variety within a small quality band."""
+    """Rank by demand first, but strongly prefer a non-repeating category when comparable alternatives exist."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -5214,14 +5214,12 @@ def _order_candidates_by_primary_rank(
     if len(remaining) < 2 or not (published or recent_publications):
         return remaining
 
-    # Compare the rolling day, week, month, and year independently. A category that
-    # was common months ago should not outweigh today's mix, while long-term
-    # concentration still gets a gentle corrective signal.
+    # Rolling day/week/month/year concentration scores.
     horizons = (
-        (24.0, 4.0),       # day: strongest short-term anti-repetition
-        (24.0 * 7, 2.5),   # week
-        (24.0 * 30, 1.5),  # month
-        (24.0 * 365, 0.75),# year
+        (24.0, 4.0),        # day
+        (24.0 * 7, 2.5),    # week
+        (24.0 * 30, 1.5),   # month
+        (24.0 * 365, 0.75), # year
     )
     horizon_counts: list[tuple[dict[str, int], dict[str, int], dict[str, int], float, int]] = []
     for hours, weight in horizons:
@@ -5244,45 +5242,122 @@ def _order_candidates_by_primary_rank(
     if not any(categories or families or brands for categories, families, brands, _, _ in horizon_counts):
         return remaining
 
-    # Keep hard eligibility and primary ranking intact. Diversity may only reorder a
-    # short lookahead whose demand score is close to the best candidate; it never
-    # promotes a weak deal over a materially stronger demand signal.
+    # Apply cooldowns at the final selection point too. The old 4-point-only
+    # lookahead could let repeated apparel offers beat comparable alternatives.
+    cooldown_hours = max(
+        CATEGORY_REPEAT_COOLDOWN_MINUTES / 60.0,
+        FAMILY_REPEAT_COOLDOWN_HOURS,
+        BRAND_REPEAT_COOLDOWN_HOURS,
+    )
+    cooldown_records = _recent_publication_diversity(
+        published, limit=RECENT_PUBLICATION_HISTORY_LIMIT,
+        durable_history=recent_publications, now=current, window_hours=cooldown_hours,
+    )
+    now_ts = current.timestamp()
+    recent_categories = [
+        str(post.get("category") or "other") for post in cooldown_records
+        if float(post.get("order") or post.get("ts") or 0)
+        >= now_ts - CATEGORY_REPEAT_COOLDOWN_MINUTES * 60
+    ]
+    recent_families = [
+        str(post.get("family") or post.get("category") or "other") for post in cooldown_records
+        if float(post.get("order") or post.get("ts") or 0)
+        >= now_ts - FAMILY_REPEAT_COOLDOWN_HOURS * 3600
+    ]
+    recent_brands = [
+        str(post.get("brand") or "") for post in cooldown_records
+        if post.get("brand") and float(post.get("order") or post.get("ts") or 0)
+        >= now_ts - BRAND_REPEAT_COOLDOWN_HOURS * 3600
+    ]
+
     ordered: list[dict] = []
     while remaining:
-        best_demand = _candidate_demand_score(remaining[0])
-        lookahead = []
-        while remaining and len(lookahead) < DIVERSITY_LOOKAHEAD_CANDIDATES:
-            candidate = remaining[0]
-            if best_demand - _candidate_demand_score(candidate) > 4:
-                break
-            lookahead.append(remaining.pop(0))
-        if not lookahead:
-            ordered.append(remaining.pop(0))
-            continue
+        leader = remaining[0]
+        lookahead = remaining[:DIVERSITY_LOOKAHEAD_CANDIDATES]
+        comparable = [
+            (position, item) for position, item in enumerate(lookahead)
+            if position == 0 or _candidate_demand_comparable_for_diversity(item, leader)
+        ]
+        if not comparable:
+            comparable = [(0, leader)]
 
-        while lookahead:
-            chosen_index = min(
-                range(len(lookahead)),
-                key=lambda index: (
-                    sum(weight * categories.get(_publication_diversity_group(lookahead[index])[0], 0) / total
-                        for categories, _, _, weight, total in horizon_counts),
-                    sum(weight * families.get(_publication_diversity_group(lookahead[index])[1], 0) / total
-                        for _, families, _, weight, total in horizon_counts),
-                    sum(weight * brands.get(_publication_diversity_group(lookahead[index])[2], 0) / total
-                        for _, _, brands, weight, total in horizon_counts),
-                    index,
-                ),
+        def group(item: dict) -> tuple[str, str, str]:
+            return _publication_diversity_group(item)
+
+        fresh_category_and_family = [
+            row for row in comparable
+            if group(row[1])[0] not in recent_categories
+            and group(row[1])[1] not in recent_families
+        ]
+        fresh_category = [
+            row for row in comparable if group(row[1])[0] not in recent_categories
+        ]
+        fresh_family = [
+            row for row in comparable if group(row[1])[1] not in recent_families
+        ]
+        if fresh_category_and_family:
+            pool = fresh_category_and_family
+        elif fresh_category:
+            pool = fresh_category
+        elif fresh_family:
+            pool = fresh_family
+        else:
+            pool = comparable
+
+        def diversity_key(row: tuple[int, dict]):
+            position, item = row
+            category, family, brand = group(item)
+            weighted_category = sum(
+                weight * categories.get(category, 0) / total
+                for categories, _, _, weight, total in horizon_counts
             )
-            chosen = lookahead.pop(chosen_index)
-            ordered.append(chosen)
-            category, family, brand = _publication_diversity_group(chosen)
-            # Simulate earlier selections in this same batch so we don't fill a
-            # single publication cycle with near-identical products.
-            for categories, families, brands, _, _ in horizon_counts:
-                categories[category] = categories.get(category, 0) + 1
-                families[family] = families.get(family, 0) + 1
-                if brand:
-                    brands[brand] = brands.get(brand, 0) + 1
+            weighted_family = sum(
+                weight * families.get(family, 0) / total
+                for _, families, _, weight, total in horizon_counts
+            )
+            weighted_brand = sum(
+                weight * brands.get(brand, 0) / total
+                for _, _, brands, weight, total in horizon_counts
+            ) if brand else 0.0
+            cooldown_penalty = (
+                (10_000 if category in recent_categories else 0)
+                + (5_000 if family in recent_families else 0)
+                + (2_000 if brand and brand in recent_brands else 0)
+            )
+            return (cooldown_penalty, weighted_category, weighted_family, weighted_brand, position)
+
+        chosen_position, chosen = min(pool, key=diversity_key)
+        remaining.pop(chosen_position)
+        ordered.append(chosen)
+        category, family, brand = group(chosen)
+
+        # Simulate earlier ranked choices so one returned batch isn't concentrated
+        # in one category if alternatives of comparable quality exist.
+        for categories, families, brands, _, _ in horizon_counts:
+            categories[category] = categories.get(category, 0) + 1
+            families[family] = families.get(family, 0) + 1
+            if brand:
+                brands[brand] = brands.get(brand, 0) + 1
+        repeated_category = category in recent_categories
+        recent_categories.append(category)
+        recent_categories = recent_categories[-24:]
+        recent_families.append(family)
+        recent_families = recent_families[-36:]
+        if brand:
+            recent_brands.append(brand)
+            recent_brands = recent_brands[-24:]
+
+        if repeated_category:
+            has_comparable_other_category = any(
+                group(item)[0] != category
+                and _candidate_demand_comparable_for_diversity(item, chosen)
+                for _, item in comparable
+            )
+            if not has_comparable_other_category:
+                print(
+                    "PUBLISH_DIVERSITY_COOLDOWN_FALLBACK "
+                    f"category={category} family={family} reason=no_comparable_alternative_in_lookahead"
+                )
     return ordered
 
 def select_urgent_publication_candidate(
@@ -5343,7 +5418,7 @@ PUBLICATION_LEDGER_LIMIT = 2000
 FAMILY_REPEAT_COOLDOWN_HOURS = 3
 BRAND_REPEAT_COOLDOWN_HOURS = 2
 CATEGORY_REPEAT_COOLDOWN_MINUTES = 120
-DIVERSITY_LOOKAHEAD_CANDIDATES = 12
+DIVERSITY_LOOKAHEAD_CANDIDATES = 24
 
 
 def _publication_record_ts(record: dict | None) -> float:
