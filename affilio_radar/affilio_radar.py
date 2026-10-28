@@ -5223,7 +5223,7 @@ def _order_candidates_by_primary_rank(
         (24.0 * 30, 1.5),  # month
         (24.0 * 365, 0.75),# year
     )
-    horizon_counts: list[tuple[dict[str, int], dict[str, int], dict[str, int], float]] = []
+    horizon_counts: list[tuple[dict[str, int], dict[str, int], dict[str, int], float, int]] = []
     for hours, weight in horizons:
         records = _recent_publication_diversity(
             published, limit=RECENT_PUBLICATION_HISTORY_LIMIT,
@@ -5240,8 +5240,8 @@ def _order_candidates_by_primary_rank(
             family_counts[family] = family_counts.get(family, 0) + 1
             if brand:
                 brand_counts[brand] = brand_counts.get(brand, 0) + 1
-        horizon_counts.append((category_counts, family_counts, brand_counts, weight))
-    if not any(categories or families or brands for categories, families, brands, _ in horizon_counts):
+        horizon_counts.append((category_counts, family_counts, brand_counts, weight, max(1, len(records))))
+    if not any(categories or families or brands for categories, families, brands, _, _ in horizon_counts):
         return remaining
 
     # Keep hard eligibility and primary ranking intact. Diversity may only reorder a
@@ -5264,12 +5264,12 @@ def _order_candidates_by_primary_rank(
             chosen_index = min(
                 range(len(lookahead)),
                 key=lambda index: (
-                    sum(weight * categories.get(_publication_diversity_group(lookahead[index])[0], 0)
-                        for categories, _, _, weight in horizon_counts),
-                    sum(weight * families.get(_publication_diversity_group(lookahead[index])[1], 0)
-                        for _, families, _, weight in horizon_counts),
-                    sum(weight * brands.get(_publication_diversity_group(lookahead[index])[2], 0)
-                        for _, _, brands, weight in horizon_counts),
+                    sum(weight * categories.get(_publication_diversity_group(lookahead[index])[0], 0) / total
+                        for categories, _, _, weight, total in horizon_counts),
+                    sum(weight * families.get(_publication_diversity_group(lookahead[index])[1], 0) / total
+                        for _, families, _, weight, total in horizon_counts),
+                    sum(weight * brands.get(_publication_diversity_group(lookahead[index])[2], 0) / total
+                        for _, _, brands, weight, total in horizon_counts),
                     index,
                 ),
             )
@@ -5278,7 +5278,7 @@ def _order_candidates_by_primary_rank(
             category, family, brand = _publication_diversity_group(chosen)
             # Simulate earlier selections in this same batch so we don't fill a
             # single publication cycle with near-identical products.
-            for categories, families, brands, _ in horizon_counts:
+            for categories, families, brands, _, _ in horizon_counts:
                 categories[category] = categories.get(category, 0) + 1
                 families[family] = families.get(family, 0) + 1
                 if brand:
