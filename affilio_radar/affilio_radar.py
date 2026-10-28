@@ -2560,14 +2560,20 @@ def merge_discovery_queue(
 
 
 def _candidate_demand_comparable_for_diversity(candidate: dict, leader: dict) -> bool:
-    """Let diversity reorder only candidates whose demand is close to the leader's."""
+    """Allow variety only when demand, recent clicks, and deal discount remain reasonably close."""
     candidate = candidate if isinstance(candidate, dict) else {}
     leader = leader if isinstance(leader, dict) else {}
     leader_clicks = max(0, int(leader.get("click_count_30d") or 0))
     candidate_clicks = max(0, int(candidate.get("click_count_30d") or 0))
     if leader_clicks and candidate_clicks < leader_clicks * 0.70:
         return False
-    return _candidate_demand_score(candidate) >= _candidate_demand_score(leader) - 15
+    if _candidate_demand_score(candidate) < _candidate_demand_score(leader) - 15:
+        return False
+    leader_discount = max(0, int(leader.get("discount_percent") or 0))
+    candidate_discount = max(0, int(candidate.get("discount_percent") or 0))
+    # Don't trade an exceptionally strong discount for variety alone.
+    minimum_comparable_discount = max(MIN_DISCOUNT_PERCENT, leader_discount - 15)
+    return candidate_discount >= minimum_comparable_discount
 
 
 def _diversify_ranked_records(
