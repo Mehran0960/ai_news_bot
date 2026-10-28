@@ -5366,7 +5366,7 @@ def select_urgent_publication_candidate(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> dict | None:
-    """Choose the strongest qualifying urgent deal by market demand, then discount percentage."""
+    """Choose a strong urgent deal by demand; apply variety only among comparable urgent candidates."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -5389,7 +5389,7 @@ def select_publish_candidates(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> list[dict]:
-    """Rank by market-demand signals first, discount percentage second, then exact-score tie diversity."""
+    """Rank by market demand, then favor multi-horizon variety and cooldowns among comparable eligible offers."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -7345,7 +7345,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"All categories compete on real 30-day clicks and product-demand signals first; discount size is secondary and must clear the same {MIN_DISCOUNT_PERCENT}% and {MIN_SAVINGS_TOMAN:,}-toman floor at every price point, with market-price/history verification. Category rotation uses rolling 24-hour publication history; similar product families are normally spaced by at least {FAMILY_REPEAT_COOLDOWN_HOURS} hours when comparable-demand alternatives exist. Medicines, pharmacy products, vitamins, and dietary supplements remain excluded. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers without a verified timer still require live stock, current price, and a meaningful verified discount.",
+        "ranking_note": f"All categories compete on real 30-day clicks and product-demand signals first; discount size is secondary and must clear the same {MIN_DISCOUNT_PERCENT}% and {MIN_SAVINGS_TOMAN:,}-toman floor at every price point, with market-price/history verification. Category rotation uses rolling 24-hour, 7-day, 30-day, and 365-day publication history; categories are normally spaced by at least {CATEGORY_REPEAT_COOLDOWN_MINUTES} minutes and similar product families by {FAMILY_REPEAT_COOLDOWN_HOURS} hours when comparable-demand alternatives exist. Medicines, pharmacy products, vitamins, and dietary supplements remain excluded. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers without a verified timer still require live stock, current price, and a meaningful verified discount.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
