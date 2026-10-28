@@ -2638,10 +2638,16 @@ def _diversify_ranked_records(
     while remaining and len(selected) < cap:
         lookahead = remaining[:DIVERSITY_LOOKAHEAD_CANDIDATES]
         leader = _as_product(lookahead[0])
+        # Always retain the top-ranked record as the comparison baseline.
+        # Discovery feeds can contain pre-detail-check candidates below the
+        # minimum discount floor; rejecting the leader against itself can leave
+        # both comparable and ranked empty, aborting the entire selection scan.
+        # Publication eligibility and the minimum discount are still enforced
+        # by the downstream product-quality checks before any public send.
         comparable = [
             (position, entry, _as_product(entry))
             for position, entry in enumerate(lookahead)
-            if _candidate_demand_comparable_for_diversity(_as_product(entry), leader)
+            if position == 0 or _candidate_demand_comparable_for_diversity(_as_product(entry), leader)
         ]
         ranked = []
         for position, entry, item in comparable:
