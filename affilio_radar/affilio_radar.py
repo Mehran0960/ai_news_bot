@@ -5205,7 +5205,7 @@ def _order_candidates_by_primary_rank(
     recent_publications: list | None = None,
     now: datetime | None = None,
 ) -> list[dict]:
-    """Keep demand and discount ranking absolute; use category diversity only for exact-score ties."""
+    """Rank by demand/discount first, then maximize category and product-family variety within a small quality band."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -5213,6 +5213,7 @@ def _order_candidates_by_primary_rank(
     remaining = sorted(list(candidates or []), key=deal_sort_key, reverse=True)
     if len(remaining) < 2 or not (published or recent_publications):
         return remaining
+
     recent = _recent_publication_diversity(
         published, limit=2000, durable_history=recent_publications, now=current
     )
@@ -5231,23 +5232,33 @@ def _order_candidates_by_primary_rank(
         if brand:
             brand_counts[brand] = brand_counts.get(brand, 0) + 1
 
+    # Keep hard eligibility and primary ranking intact. Diversity may only reorder a
+    # short lookahead whose demand score is close to the best candidate; it never
+    # promotes a weak deal over a materially stronger demand signal.
     ordered: list[dict] = []
     while remaining:
-        top_key = deal_sort_key(remaining[0])
-        tied: list[dict] = []
-        while remaining and deal_sort_key(remaining[0]) == top_key:
-            tied.append(remaining.pop(0))
-        while tied:
+        best_demand = _candidate_demand_score(remaining[0])
+        lookahead = []
+        while remaining and len(lookahead) < DIVERSITY_LOOKAHEAD_CANDIDATES:
+            candidate = remaining[0]
+            if best_demand - _candidate_demand_score(candidate) > 4:
+                break
+            lookahead.append(remaining.pop(0))
+        if not lookahead:
+            ordered.append(remaining.pop(0))
+            continue
+
+        while lookahead:
             chosen_index = min(
-                range(len(tied)),
+                range(len(lookahead)),
                 key=lambda index: (
-                    category_counts.get(_publication_diversity_group(tied[index])[0], 0),
-                    family_counts.get(_publication_diversity_group(tied[index])[1], 0),
-                    brand_counts.get(_publication_diversity_group(tied[index])[2], 0),
+                    category_counts.get(_publication_diversity_group(lookahead[index])[0], 0),
+                    family_counts.get(_publication_diversity_group(lookahead[index])[1], 0),
+                    brand_counts.get(_publication_diversity_group(lookahead[index])[2], 0),
                     index,
                 ),
             )
-            chosen = tied.pop(chosen_index)
+            chosen = lookahead.pop(chosen_index)
             ordered.append(chosen)
             category, family, brand = _publication_diversity_group(chosen)
             category_counts[category] = category_counts.get(category, 0) + 1
@@ -5255,7 +5266,6 @@ def _order_candidates_by_primary_rank(
             if brand:
                 brand_counts[brand] = brand_counts.get(brand, 0) + 1
     return ordered
-
 
 def select_urgent_publication_candidate(
     eligible: list[dict],
