@@ -5214,23 +5214,35 @@ def _order_candidates_by_primary_rank(
     if len(remaining) < 2 or not (published or recent_publications):
         return remaining
 
-    recent = _recent_publication_diversity(
-        published, limit=2000, durable_history=recent_publications, now=current
+    # Compare the rolling day, week, month, and year independently. A category that
+    # was common months ago should not outweigh today's mix, while long-term
+    # concentration still gets a gentle corrective signal.
+    horizons = (
+        (24.0, 4.0),       # day: strongest short-term anti-repetition
+        (24.0 * 7, 2.5),   # week
+        (24.0 * 30, 1.5),  # month
+        (24.0 * 365, 0.75),# year
     )
-    if not recent:
+    horizon_counts: list[tuple[dict[str, int], dict[str, int], dict[str, int], float]] = []
+    for hours, weight in horizons:
+        records = _recent_publication_diversity(
+            published, limit=RECENT_PUBLICATION_HISTORY_LIMIT,
+            durable_history=recent_publications, now=current, window_hours=hours,
+        )
+        category_counts: dict[str, int] = {}
+        family_counts: dict[str, int] = {}
+        brand_counts: dict[str, int] = {}
+        for post in records:
+            category = str(post.get("category") or "other")
+            family = str(post.get("family") or category)
+            brand = str(post.get("brand") or "")
+            category_counts[category] = category_counts.get(category, 0) + 1
+            family_counts[family] = family_counts.get(family, 0) + 1
+            if brand:
+                brand_counts[brand] = brand_counts.get(brand, 0) + 1
+        horizon_counts.append((category_counts, family_counts, brand_counts, weight))
+    if not any(categories or families or brands for categories, families, brands, _ in horizon_counts):
         return remaining
-
-    category_counts: dict[str, int] = {}
-    family_counts: dict[str, int] = {}
-    brand_counts: dict[str, int] = {}
-    for post in recent:
-        category = str(post.get("category") or "other")
-        family = str(post.get("family") or category)
-        brand = str(post.get("brand") or "")
-        category_counts[category] = category_counts.get(category, 0) + 1
-        family_counts[family] = family_counts.get(family, 0) + 1
-        if brand:
-            brand_counts[brand] = brand_counts.get(brand, 0) + 1
 
     # Keep hard eligibility and primary ranking intact. Diversity may only reorder a
     # short lookahead whose demand score is close to the best candidate; it never
@@ -5252,19 +5264,25 @@ def _order_candidates_by_primary_rank(
             chosen_index = min(
                 range(len(lookahead)),
                 key=lambda index: (
-                    category_counts.get(_publication_diversity_group(lookahead[index])[0], 0),
-                    family_counts.get(_publication_diversity_group(lookahead[index])[1], 0),
-                    brand_counts.get(_publication_diversity_group(lookahead[index])[2], 0),
+                    sum(weight * categories.get(_publication_diversity_group(lookahead[index])[0], 0)
+                        for categories, _, _, weight in horizon_counts),
+                    sum(weight * families.get(_publication_diversity_group(lookahead[index])[1], 0)
+                        for _, families, _, weight in horizon_counts),
+                    sum(weight * brands.get(_publication_diversity_group(lookahead[index])[2], 0)
+                        for _, _, brands, weight in horizon_counts),
                     index,
                 ),
             )
             chosen = lookahead.pop(chosen_index)
             ordered.append(chosen)
             category, family, brand = _publication_diversity_group(chosen)
-            category_counts[category] = category_counts.get(category, 0) + 1
-            family_counts[family] = family_counts.get(family, 0) + 1
-            if brand:
-                brand_counts[brand] = brand_counts.get(brand, 0) + 1
+            # Simulate earlier selections in this same batch so we don't fill a
+            # single publication cycle with near-identical products.
+            for categories, families, brands, _ in horizon_counts:
+                categories[category] = categories.get(category, 0) + 1
+                families[family] = families.get(family, 0) + 1
+                if brand:
+                    brands[brand] = brands.get(brand, 0) + 1
     return ordered
 
 def select_urgent_publication_candidate(
@@ -5396,7 +5414,8 @@ def ensure_publication_ledger(state: dict) -> bool:
     return changed
 
 
-RECENT_PUBLICATION_HISTORY_LIMIT = 500
+# Keep enough compact publication events for roughly one year at the current posting cadence.
+RECENT_PUBLICATION_HISTORY_LIMIT = 30000
 
 
 def ensure_recent_publications(state: dict) -> bool:
