@@ -5291,9 +5291,21 @@ def _order_candidates_by_primary_rank(
     while remaining:
         leader = remaining[0]
         lookahead = remaining[:DIVERSITY_LOOKAHEAD_CANDIDATES]
+        def has_explicit_demand_advantage(candidate: dict, top_candidate: dict) -> bool:
+            """Do not let variety override a stronger explicit retailer demand score."""
+            try:
+                top_score = int(top_candidate.get("demand_score") or 0)
+                candidate_score = int(candidate.get("demand_score") or 0)
+            except (TypeError, ValueError, OverflowError):
+                return False
+            return top_score > 0 and candidate_score > 0 and candidate_score < top_score
+
         comparable = [
             (position, item) for position, item in enumerate(lookahead)
-            if position == 0 or _candidate_demand_comparable_for_diversity(item, leader)
+            if position == 0 or (
+                _candidate_demand_comparable_for_diversity(item, leader)
+                and not has_explicit_demand_advantage(item, leader)
+            )
         ]
         if not comparable:
             comparable = [(0, leader)]
