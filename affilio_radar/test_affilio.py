@@ -92,6 +92,7 @@ from affilio_radar import (
     ensure_publication_ledger,
     ensure_recent_publications,
     _recent_publication_diversity,
+    _diversify_ranked_records,
     is_product_repeat_blocked,
     is_fresh_selection_candidate,
     delete_previous_channel_posts,
@@ -151,6 +152,39 @@ class AffilioRadarTests(unittest.TestCase):
         self._click_tracker_health_patch = patch("affilio_radar._click_tracker_is_healthy", return_value=False)
         self._click_tracker_health_patch.start()
         self.addCleanup(self._click_tracker_health_patch.stop)
+
+    def test_diversity_selection_keeps_leader_when_all_discounts_below_floor(self):
+        now = datetime(2026, 10, 28, tzinfo=timezone.utc)
+        records = [
+            {
+                "product_id": "dkp-101",
+                "title": "محصول آزمون اول",
+                "discount_percent": 35,
+                "demand_score": 90,
+                "click_count_30d": 5,
+            },
+            {
+                "product_id": "dkp-102",
+                "title": "محصول آزمون دوم",
+                "discount_percent": 40,
+                "demand_score": 89,
+                "click_count_30d": 5,
+            },
+        ]
+        recent = [{
+            "product_id": "dkp-old",
+            "title": "کالای منتشرشده قبلی",
+            "ts": now.timestamp() - 3600,
+        }]
+
+        selected = _diversify_ranked_records(
+            records,
+            limit=1,
+            published={},
+            recent_publications=recent,
+            now=now,
+        )
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-101"])
 
     def test_product_url_accepts_only_digikala_product_pages(self):
         self.assertEqual(
