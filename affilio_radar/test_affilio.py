@@ -92,6 +92,7 @@ from affilio_radar import (
     ensure_publication_ledger,
     ensure_recent_publications,
     _recent_publication_diversity,
+    build_publication_diversity_report,
     _diversify_ranked_records,
     is_product_repeat_blocked,
     is_fresh_selection_candidate,
@@ -1003,8 +1004,8 @@ class AffilioRadarTests(unittest.TestCase):
         queue = {item["product_id"]: {} for item in candidates}
         eligible = {item["product_id"]: item for item in candidates}
         selected = select_publish_candidates(queue, eligible, now, published)
-        # A recently repeated family cannot outrank a product with stronger market-demand signals.
-        self.assertEqual(selected[0]["product_id"], "dkp-headphones-new")
+        # Demand scores differ by only one point, so the less-repeated family should win.
+        self.assertEqual(selected[0]["product_id"], "dkp-desk-light")
 
 
     def test_publish_selection_avoids_categories_seen_in_the_last_four_posts(self):
@@ -1069,6 +1070,92 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(selected[0]["product_id"], "dkp-skincare-1")
         self.assertNotEqual(selected[0]["product_id"], "dkp-diverse-charger")
         self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
+
+
+    def test_publish_selection_prioritizes_underrepresented_category_for_close_demand(self):
+        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-recent-skincare": {
+                "title": "سرم آبرسان پوست مدل قبلی",
+                "telegram_message_id": 991,
+                "ts": now.timestamp() - 10 * 60,
+            }
+        }
+        candidates = [
+            {
+                "product_id": "dkp-skincare-close",
+                "title": "کرم مراقبت پوست مدل جدید",
+                "demand_score": 64,
+                "click_count_30d": 100,
+                "discount_percent": 60,
+                "review_count": 500,
+            },
+            {
+                "product_id": "dkp-power-close",
+                "title": "شارژر دیواری سریع مدل جدید",
+                "demand_score": 60,
+                "click_count_30d": 98,
+                "discount_percent": 58,
+                "review_count": 480,
+            },
+        ]
+        queue = {item["product_id"]: {} for item in candidates}
+        eligible = {item["product_id"]: item for item in candidates}
+
+        selected = select_publish_candidates(queue, eligible, now, published)
+
+        self.assertEqual(selected[0]["product_id"], "dkp-power-close")
+
+
+    def test_publication_diversity_report_measures_category_share_brand_repeats_and_fallbacks(self):
+        now = datetime(2026, 10, 29, 9, 0, tzinfo=timezone.utc)
+        history = [
+            {
+                "product_id": "dkp-audio-1",
+                "title": "هدفون بلوتوثی موزیک آپولو مدل یک",
+                "telegram_message_id": 1101,
+                "ts": now.timestamp() - 60,
+            },
+            {
+                "product_id": "dkp-audio-2",
+                "title": "هدفون بلوتوثی موزیک آپولو مدل دو",
+                "telegram_message_id": 1102,
+                "ts": now.timestamp() - 120,
+            },
+            {
+                "product_id": "dkp-fashion-1",
+                "title": "تیشرت یقه گرد مردانه مدل سه",
+                "telegram_message_id": 1103,
+                "ts": now.timestamp() - 180,
+            },
+        ]
+        fallback_history = [
+            {
+                "at": (now - timedelta(hours=2)).isoformat(),
+                "category": "audio_wearables",
+                "family": "audio_wearables:headphones",
+                "reason": "no_comparable_other_category_in_lookahead",
+            }
+        ]
+        report = build_publication_diversity_report(
+            published={},
+            recent_publications=history,
+            now=now,
+            fallback_events=fallback_history,
+            fallback_total=4,
+        )
+
+        day = report["last_24_hours"]
+        self.assertEqual(day["posts"], 3)
+        self.assertEqual(day["distinct_categories"], 2)
+        self.assertEqual(day["distinct_families"], 2)
+        self.assertEqual(day["category_post_counts"]["audio_wearables"], 2)
+        self.assertEqual(day["category_share_percent"]["audio_wearables"], 66.7)
+        self.assertEqual(day["category_share_percent"]["fashion"], 33.3)
+        self.assertEqual(day["repeated_brand_count"], 1)
+        self.assertEqual(day["repeated_brands"], {"muzik_apollo": 2})
+        self.assertEqual(report["fallbacks"]["all_time_count"], 4)
+        self.assertEqual(report["fallbacks"]["last_7_days_count"], 1)
 
 
     def test_publish_selection_avoids_a_brand_seen_twelve_publications_ago(self):

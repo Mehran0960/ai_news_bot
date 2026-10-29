@@ -38,6 +38,7 @@ ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config" / "products.json"
 STATE = ROOT / "state.json"
 REPORT = ROOT / "candidates.json"
+DIVERSITY_REPORT = ROOT / "diversity_report.json"
 TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@OfferChin").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
@@ -4997,12 +4998,17 @@ def defer_pending_publication(
 
 def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     """Return a broad category, narrower product family, and known brand hint."""
-    title = (
-        str(product_or_title.get("title") or "")
-        if isinstance(product_or_title, dict)
-        else str(product_or_title or "")
-    )
+    explicit_brand = ""
+    if isinstance(product_or_title, dict):
+        title = str(product_or_title.get("title") or "")
+        raw_brand = product_or_title.get("brand") or product_or_title.get("brand_name") or ""
+        if isinstance(raw_brand, dict):
+            raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
+        explicit_brand = str(raw_brand or "").strip()
+    else:
+        title = str(product_or_title or "")
     normalized = title.lower().replace("\u200c", " ")
+    brand_search_text = (normalized + " " + explicit_brand.lower()).strip()
     category = classify_category(normalized)
     family_patterns = {
         "lighting": [
@@ -5095,7 +5101,11 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ("zanama", r"زاناما"),
         ("dellbesto", r"دلبستو"),
     ]
-    brand = next((key for key, pattern in brand_hints if re.search(pattern, normalized, re.I)), "")
+    brand = next((key for key, pattern in brand_hints if re.search(pattern, brand_search_text, re.I)), "")
+    if not brand and explicit_brand:
+        brand_slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", explicit_brand.lower()).strip("_")
+        if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
+            brand = f"brand:{brand_slug}"
     return category, family, brand
 
 
@@ -5166,7 +5176,7 @@ def _recent_publication_diversity(
             except (TypeError, ValueError, OverflowError):
                 timestamp = 0.0
             order = timestamp if timestamp > 0 else float(max(message_ids))
-            category, family, brand = _publication_diversity_group(title)
+            category, family, brand = _publication_diversity_group({"title": title, "brand": post.get("brand") or record.get("brand") or ""})
             records.append({
                 "product_id": str(raw_pid), "title": title,
                 "message_id": max(message_ids),
@@ -5185,7 +5195,7 @@ def _recent_publication_diversity(
             order = 0.0
         if not pid or not title or order <= 0:
             continue
-        category, family, brand = _publication_diversity_group(title)
+        category, family, brand = _publication_diversity_group({"title": title, "brand": entry.get("brand") or ""})
         raw_message_id = entry.get("telegram_message_id") or entry.get("bale_message_id")
         try:
             message_id = int(raw_message_id)
@@ -5216,6 +5226,179 @@ def _recent_publication_diversity(
     return ordered[-max(1, int(limit)):]
 
 
+
+_LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS: dict = {
+    "candidate_count": 0,
+    "top10_category_counts": {},
+    "fallback_events": [],
+}
+
+
+def _publication_distribution_summary(records: list[dict]) -> dict:
+    """Summarize category/family coverage, category shares, and repeated known brands."""
+    category_counts: dict[str, int] = {}
+    family_counts: dict[str, int] = {}
+    brand_counts: dict[str, int] = {}
+    for record in records if isinstance(records, list) else []:
+        if not isinstance(record, dict):
+            continue
+        category = str(record.get("category") or "other")
+        family = str(record.get("family") or category)
+        brand = str(record.get("brand") or "")
+        category_counts[category] = category_counts.get(category, 0) + 1
+        family_counts[family] = family_counts.get(family, 0) + 1
+        if brand:
+            brand_counts[brand] = brand_counts.get(brand, 0) + 1
+
+    post_count = len(records or [])
+    ordered_categories = sorted(category_counts.items(), key=lambda row: (-row[1], row[0]))
+    repeated_brands = {
+        brand: count
+        for brand, count in sorted(brand_counts.items(), key=lambda row: (-row[1], row[0]))
+        if count > 1
+    }
+    return {
+        "posts": post_count,
+        "distinct_categories": len(category_counts),
+        "distinct_families": len(family_counts),
+        "category_post_counts": dict(ordered_categories),
+        "category_share_percent": {
+            category: round(count * 100.0 / post_count, 1)
+            for category, count in ordered_categories
+        } if post_count else {},
+        "known_brand_posts": sum(brand_counts.values()),
+        "repeated_brand_count": sum(max(0, count - 1) for count in brand_counts.values()),
+        "repeated_brands": repeated_brands,
+    }
+
+
+def build_publication_diversity_report(
+    published: dict | None = None,
+    recent_publications: list | None = None,
+    now: datetime | None = None,
+    fallback_events: list | None = None,
+    fallback_total: int = 0,
+    fallbacks_this_selection: list | None = None,
+) -> dict:
+    """Build a rolling report from deduplicated real publication history."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
+    day_records = _recent_publication_diversity(
+        published, limit=2000, durable_history=recent_publications,
+        now=current, window_hours=24.0,
+    )
+    week_records = _recent_publication_diversity(
+        published, limit=2000, durable_history=recent_publications,
+        now=current, window_hours=24.0 * 7,
+    )
+    events = [dict(event) for event in (fallback_events or []) if isinstance(event, dict)]
+    cutoff = current - timedelta(days=7)
+    events_last_7d = []
+    for event in events:
+        event_at = _parse_utc_datetime(event.get("at"))
+        if event_at and cutoff <= event_at <= current + timedelta(minutes=5):
+            events_last_7d.append(event)
+    try:
+        total_fallbacks = max(0, int(fallback_total or 0))
+    except (TypeError, ValueError, OverflowError):
+        total_fallbacks = 0
+    current_fallbacks = [
+        dict(event) for event in (fallbacks_this_selection or []) if isinstance(event, dict)
+    ]
+
+    return {
+        "generated_at": current.isoformat(),
+        "policy": {
+            "minimum_discount_percent": MIN_DISCOUNT_PERCENT,
+            "minimum_savings_toman": MIN_SAVINGS_TOMAN,
+            "category_repeat_cooldown_minutes": CATEGORY_REPEAT_COOLDOWN_MINUTES,
+            "family_repeat_cooldown_hours": FAMILY_REPEAT_COOLDOWN_HOURS,
+            "brand_repeat_cooldown_hours": BRAND_REPEAT_COOLDOWN_HOURS,
+            "diversity_only_reorders_candidates_with_comparable_demand_and_offer_quality": True,
+        },
+        "last_24_hours": _publication_distribution_summary(day_records),
+        "last_7_days": _publication_distribution_summary(week_records),
+        "fallbacks": {
+            "all_time_count": total_fallbacks,
+            "last_7_days_count": len(events_last_7d),
+            "current_selection_count": len(current_fallbacks),
+            "current_selection_events": current_fallbacks[-10:],
+            "recent_events": events[-10:],
+        },
+    }
+
+
+def record_publication_diversity_report(state: dict, now: datetime | None = None) -> dict:
+    """Persist fallback events and write a machine-readable diversity report."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
+    diagnostics = _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
+    new_events = [
+        dict(event) for event in diagnostics.get("fallback_events", [])
+        if isinstance(event, dict)
+    ] if isinstance(diagnostics, dict) else []
+    existing_events = state.get("publication_diversity_fallback_events", [])
+    if not isinstance(existing_events, list):
+        existing_events = []
+    stamped_events = [{"at": current.isoformat(), **event} for event in new_events]
+    existing_events = [*existing_events, *stamped_events]
+    cutoff = current - timedelta(days=365)
+    retained_events = []
+    for event in existing_events:
+        if not isinstance(event, dict):
+            continue
+        event_at = _parse_utc_datetime(event.get("at"))
+        if event_at and cutoff <= event_at <= current + timedelta(minutes=5):
+            retained_events.append(event)
+    state["publication_diversity_fallback_events"] = retained_events[-500:]
+
+    try:
+        previous_total = max(0, int(state.get("publication_diversity_fallback_count") or 0))
+    except (TypeError, ValueError, OverflowError):
+        previous_total = 0
+    total = previous_total + len(stamped_events)
+    state["publication_diversity_fallback_count"] = total
+
+    report = build_publication_diversity_report(
+        published=state.get("published"),
+        recent_publications=state.get("recent_publications"),
+        now=current,
+        fallback_events=state["publication_diversity_fallback_events"],
+        fallback_total=total,
+        fallbacks_this_selection=stamped_events,
+    )
+    save_json(DIVERSITY_REPORT, report)
+    print(
+        "PUBLISH_DIVERSITY_SUMMARY "
+        + json.dumps({
+            "last_24_hours": report["last_24_hours"],
+            "last_7_days": report["last_7_days"],
+            "fallbacks": report["fallbacks"],
+            "ranked_candidates": diagnostics.get("candidate_count", 0) if isinstance(diagnostics, dict) else 0,
+            "top10_ranked_categories": diagnostics.get("top10_category_counts", {}) if isinstance(diagnostics, dict) else {},
+        }, ensure_ascii=False, sort_keys=True)
+    )
+    return report
+
+
+def _publication_rank_diagnostics(ordered: list[dict], fallback_events: list[dict], candidate_count: int) -> dict:
+    top10_category_counts: dict[str, int] = {}
+    for item in (ordered or [])[:10]:
+        category = _publication_diversity_group(item)[0]
+        top10_category_counts[category] = top10_category_counts.get(category, 0) + 1
+    return {
+        "candidate_count": max(0, int(candidate_count)),
+        "top10_category_counts": dict(sorted(top10_category_counts.items(), key=lambda row: (-row[1], row[0]))),
+        "fallback_events": list(fallback_events or []),
+    }
+
+
 def _order_candidates_by_primary_rank(
     candidates: list[dict],
     published: dict | None = None,
@@ -5228,7 +5411,13 @@ def _order_candidates_by_primary_rank(
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
     remaining = sorted(list(candidates or []), key=deal_sort_key, reverse=True)
+    initial_candidate_count = len(remaining)
+    fallback_events: list[dict] = []
+    global _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
     if len(remaining) < 2 or not (published or recent_publications):
+        _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = _publication_rank_diagnostics(
+            remaining, fallback_events, initial_candidate_count
+        )
         return remaining
 
     # Rolling day/week/month/year concentration scores.
@@ -5257,6 +5446,9 @@ def _order_candidates_by_primary_rank(
                 brand_counts[brand] = brand_counts.get(brand, 0) + 1
         horizon_counts.append((category_counts, family_counts, brand_counts, weight, max(1, len(records))))
     if not any(categories or families or brands for categories, families, brands, _, _ in horizon_counts):
+        _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = _publication_rank_diagnostics(
+            remaining, fallback_events, initial_candidate_count
+        )
         return remaining
 
     # Apply cooldowns at the final selection point too. The old 4-point-only
@@ -5298,7 +5490,15 @@ def _order_candidates_by_primary_rank(
                 candidate_score = int(candidate.get("demand_score") or 0)
             except (TypeError, ValueError, OverflowError):
                 return False
-            return top_score > 0 and candidate_score > 0 and candidate_score < top_score
+            if top_score <= 0:
+                return False
+            if candidate_score <= 0:
+                return True
+            minimum_comparable_score = max(
+                top_score - DIVERSITY_DEMAND_SCORE_GAP,
+                round(top_score * DIVERSITY_DEMAND_SCORE_RATIO),
+            )
+            return candidate_score < minimum_comparable_score
 
         comparable = [
             (position, item) for position, item in enumerate(lookahead)
@@ -5383,10 +5583,31 @@ def _order_candidates_by_primary_rank(
                 for _, item in comparable
             )
             if not has_comparable_other_category:
+                fallback_event = {
+                    "selected_rank": len(ordered),
+                    "product_id": str(chosen.get("product_id") or chosen.get("id") or ""),
+                    "category": category,
+                    "family": family,
+                    "brand": brand,
+                    "reason": "no_comparable_other_category_in_lookahead",
+                }
+                fallback_events.append(fallback_event)
                 print(
                     "PUBLISH_DIVERSITY_COOLDOWN_FALLBACK "
-                    f"category={category} family={family} reason=no_comparable_alternative_in_lookahead"
+                    f"category={category} family={family} product_id={fallback_event['product_id'] or 'unknown'} "
+                    "reason=no_comparable_alternative_in_lookahead"
                 )
+    _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = _publication_rank_diagnostics(
+        ordered, fallback_events, initial_candidate_count
+    )
+    print(
+        "PUBLISH_DIVERSITY_RANKING "
+        + json.dumps({
+            "candidates": initial_candidate_count,
+            "top10_categories": _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS["top10_category_counts"],
+            "fallbacks_without_comparable_category": len(fallback_events),
+        }, ensure_ascii=False, sort_keys=True)
+    )
     return ordered
 
 def select_urgent_publication_candidate(
@@ -5448,6 +5669,8 @@ FAMILY_REPEAT_COOLDOWN_HOURS = 3
 BRAND_REPEAT_COOLDOWN_HOURS = 2
 CATEGORY_REPEAT_COOLDOWN_MINUTES = 120
 DIVERSITY_LOOKAHEAD_CANDIDATES = 24
+DIVERSITY_DEMAND_SCORE_GAP = 12
+DIVERSITY_DEMAND_SCORE_RATIO = 0.80
 
 
 def _publication_record_ts(record: dict | None) -> float:
@@ -7354,6 +7577,8 @@ def run(publish=False, selection_only=False):
         pending_queue, eligible_by_id, queue_now, state.get("published"),
         state.get("recent_publications"),
     )
+    record_publication_diversity_report(state, now=queue_now)
+    save_json(STATE, state)
     market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
         f"ranked_products={len(products)} listed_discount_eligible={listed_eligible_count} "
