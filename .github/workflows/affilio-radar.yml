@@ -326,18 +326,13 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Only operational scans/repairs may commit live state. Test-only code pushes
           # must never serialize a test fixture over the real channel history.
-          if [[ "${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[growth-tracking-only]') || contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') || contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') || contains(github.event.head_commit.message, '[repair-persian-video-text]') }}" == "true" && -f affilio_radar/state.json ]]; then
-            git add affilio_radar/state.json
-          else
-            echo "Skipping live-state commit for a test/code-only push."
-          fi
-          # Commit the report only when actual offer data changed, not on per-scan timestamps.
-          python - <<'PY'
+                    if [[ "${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[growth-tracking-only]') || contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') || contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') || contains(github.event.head_commit.message, '[repair-persian-video-text]') }}" == "true" && -f affilio_radar/diversity_report.json ]]; then
+            python - <<'PY'
           import json
           import subprocess
           from pathlib import Path
 
-          report_path = Path("affilio_radar/candidates.json")
+          report_path = Path("affilio_radar/diversity_report.json")
 
           def normalized(raw):
               def clean(value):
@@ -356,51 +351,16 @@ jobs:
 
           current_report = report_path.read_text(encoding="utf-8")
           previous = subprocess.run(
-              ["git", "show", "HEAD:affilio_radar/candidates.json"],
+              ["git", "show", "HEAD:affilio_radar/diversity_report.json"],
               capture_output=True, text=True, check=False,
           )
           if previous.returncode != 0 or normalized(previous.stdout) != normalized(current_report):
               subprocess.run(["git", "add", str(report_path)], check=True)
-              print("Candidate report has material changes; staging it.")
+              print("Publication diversity report has material changes; staging it.")
           else:
               subprocess.run(["git", "restore", "--worktree", "--", str(report_path)], check=True)
-              print("Candidate report only has scan-time changes; restored the worktree copy.")
+              print("Diversity report only has timestamp changes; restored the previous report.")
           PY
-if [[ "${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') || contains(github.event.head_commit.message, '[repair-all-captions]') || contains(github.event.head_commit.message, '[repair-bale-caption]') || contains(github.event.head_commit.message, '[growth-tracking-only]') || contains(github.event.head_commit.message, '[aparat-shorts-reconcile]') || contains(github.event.head_commit.message, '[aparat-shorts-diagnose]') || contains(github.event.head_commit.message, '[repair-persian-video-text]') }}" == "true" && -f affilio_radar/diversity_report.json ]]; then
-            python - <<'PY'
-            import json
-            import subprocess
-            from pathlib import Path
-
-            report_path = Path("affilio_radar/diversity_report.json")
-
-            def normalized(raw):
-                def clean(value):
-                    if isinstance(value, dict):
-                        return {
-                            key: clean(item)
-                            for key, item in value.items()
-                            if key not in {"generated_at", "checked_at", "updated_at"}
-                            and not key.endswith("_checked_at")
-                            and not key.endswith("_updated_at")
-                        }
-                    if isinstance(value, list):
-                        return [clean(item) for item in value]
-                    return value
-                return json.dumps(clean(json.loads(raw)), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-
-            current_report = report_path.read_text(encoding="utf-8")
-            previous = subprocess.run(
-                ["git", "show", "HEAD:affilio_radar/diversity_report.json"],
-                capture_output=True, text=True, check=False,
-            )
-            if previous.returncode != 0 or normalized(previous.stdout) != normalized(current_report):
-                subprocess.run(["git", "add", str(report_path)], check=True)
-                print("Publication diversity report has material changes; staging it.")
-            else:
-                subprocess.run(["git", "restore", "--worktree", "--", str(report_path)], check=True)
-                print("Diversity report only has timestamp changes; restored the previous report.")
-            PY
           fi
           if [[ "${{ contains(github.event.head_commit.message, '[repair-all-captions]') }}" == "true" && -f affilio_radar/affiliate_link_repair_report.json ]]; then
             git add affilio_radar/affiliate_link_repair_report.json
