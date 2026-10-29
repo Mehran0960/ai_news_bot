@@ -3302,6 +3302,87 @@ def discover_product_urls(
             f"products={len(snapp_candidates)} retained_api_ids={len(SNAPPSHOP_API_IDS_BY_URL)}"
         )
 
+        # Fallback discovery: the undocumented search API may return 403 from
+        # GitHub-hosted runners. Try public, indexable category pages and sitemaps
+        # instead; all discovered URLs are still live-validated before publication.
+        snapp_fallback_found = []
+        snapp_fallback_failures = []
+        snapp_fallback_sources = [
+            ("category", "https://snappshop.ir/category/digital"),
+            ("category", "https://snappshop.ir/category/home"),
+            ("category", "https://snappshop.ir/category/beauty"),
+            ("category", "https://snappshop.ir/category/fashion"),
+            ("category", "https://snappshop.ir/category/supermarket"),
+            ("sitemap", "https://snappshop.ir/sitemap.xml"),
+            ("sitemap", "https://snappshop.ir/sitemap/v1/static_0.xml"),
+            ("sitemap", "https://snappshop.ir/plus/sitemap_index.xml"),
+        ]
+        if len(snapp_candidates) < min(12, MAX_PER_QUERY * 2):
+            for fallback_kind, fallback_url in snapp_fallback_sources:
+                if len(snapp_fallback_found) >= min(24, MAX_PRODUCT_CHECKS):
+                    break
+                fallback_response = None
+                try:
+                    fallback_response = SESSION.get(
+                        fallback_url, headers=headers, timeout=HTTP_TIMEOUT,
+                    )
+                    fallback_response.raise_for_status()
+                    if len(fallback_response.content) > 12_000_000:
+                        raise RuntimeError("SnappShop fallback response exceeded 12 MB")
+                    content_type = str(fallback_response.headers.get("content-type") or "").lower()
+                    if fallback_kind == "sitemap" or "xml" in content_type or fallback_response.text.lstrip().startswith("<?xml"):
+                        soup_fallback = BeautifulSoup(fallback_response.content, "xml")
+                        hrefs = [node.get_text(strip=True) for node in soup_fallback.find_all("loc")]
+                    else:
+                        soup_fallback = BeautifulSoup(fallback_response.text, "html.parser")
+                        hrefs = [urljoin(fallback_response.url, a.get("href", "")) for a in soup_fallback.select("a[href]")]
+                    added_fallback = 0
+                    for raw_href in hrefs:
+                        candidate = safe_product_url(urljoin(fallback_response.url, raw_href))
+                        if not candidate or not product_id(candidate).startswith("snp-"):
+                            continue
+                        if candidate not in snapp_fallback_found:
+                            snapp_fallback_found.append(candidate)
+                            added_fallback += 1
+                        if candidate not in found and len(found) < MAX_PRODUCT_CHECKS:
+                            found.append(candidate)
+                        if len(snapp_fallback_found) >= min(24, MAX_PRODUCT_CHECKS):
+                            break
+                    print(
+                        f"SNAPPSHOP_FALLBACK kind={fallback_kind} url={fallback_url} "
+                        f"status={fallback_response.status_code} added={added_fallback}"
+                    )
+                except Exception as exc:
+                    status_code = getattr(fallback_response, "status_code", None)
+                    snapp_fallback_failures.append({
+                        "kind": fallback_kind, "url": fallback_url,
+                        "error": type(exc).__name__,
+                        "http_status": int(status_code) if isinstance(status_code, int) else None,
+                    })
+                    print(
+                        f"SNAPPSHOP_FALLBACK_FAILED kind={fallback_kind} url={fallback_url} "
+                        f"error={type(exc).__name__} http_status={status_code}"
+                    )
+        if snapp_fallback_found:
+            diagnostics.append({
+                "term": "snappshop_public_pages_fallback", "ok": True,
+                "products_found": len(snapp_fallback_found),
+                "source": "public_category_pages_or_sitemaps", "status": "ok",
+                "failures": snapp_fallback_failures,
+            })
+        else:
+            diagnostics.append({
+                "term": "snappshop_public_pages_fallback", "ok": False,
+                "products_found": 0,
+                "source": "public_category_pages_or_sitemaps",
+                "status": "unavailable" if snapp_fallback_failures else "no_product_urls",
+                "failures": snapp_fallback_failures,
+            })
+        print(
+            f"SNAPPSHOP_DISCOVERY_FALLBACK products={len(snapp_fallback_found)} "
+            f"failed_sources={len(snapp_fallback_failures)}"
+        )
+
     # The reserved slot count determines batch stride. The expanded 90-term
     # catalog is swept in five scans when 20 category-search slots are available.
     search_offset = (search_slot * max(1, search_reserve)) % len(SEARCH_TERMS)
