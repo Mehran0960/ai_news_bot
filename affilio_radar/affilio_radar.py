@@ -8234,3 +8234,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Live discovery verification trigger: [scan-now]
