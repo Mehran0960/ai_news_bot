@@ -10,6 +10,7 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from urllib.parse import parse_qs, urlsplit
 
+import affilio_radar as radar_module
 from PIL import Image
 
 from affilio_radar import (
@@ -1105,6 +1106,39 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
 
         self.assertEqual(selected[0]["product_id"], "dkp-power-close")
+
+
+    def test_single_repeated_category_candidate_is_recorded_as_diversity_fallback(self):
+        now = datetime(2026, 10, 29, 10, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-old-audio": {
+                "title": "هدفون بلوتوثی مدل قبلی",
+                "telegram_message_id": 1201,
+                "ts": now.timestamp() - 60,
+            }
+        }
+        candidate = {
+            "product_id": "dkp-only-audio",
+            "title": "هدفون بلوتوثی مدل فعلی",
+            "demand_score": 60,
+            "discount_percent": 55,
+            "review_count": 500,
+        }
+        selected = select_publish_candidates(
+            {candidate["product_id"]: {}},
+            {candidate["product_id"]: candidate},
+            now,
+            published,
+        )
+        diagnostics = radar_module._LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
+
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-only-audio"])
+        self.assertEqual(len(diagnostics["fallback_events"]), 1)
+        self.assertEqual(diagnostics["fallback_events"][0]["category"], "audio_wearables")
+        self.assertEqual(
+            diagnostics["fallback_events"][0]["reason"],
+            "no_comparable_other_category_in_lookahead",
+        )
 
 
     def test_publication_diversity_report_measures_category_share_brand_repeats_and_fallbacks(self):

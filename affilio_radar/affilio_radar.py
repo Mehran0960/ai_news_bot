@@ -5414,7 +5414,7 @@ def _order_candidates_by_primary_rank(
     initial_candidate_count = len(remaining)
     fallback_events: list[dict] = []
     global _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
-    if len(remaining) < 2 or not (published or recent_publications):
+    if not remaining or not (published or recent_publications):
         _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = _publication_rank_diagnostics(
             remaining, fallback_events, initial_candidate_count
         )
