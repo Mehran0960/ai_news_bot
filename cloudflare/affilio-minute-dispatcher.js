@@ -2,8 +2,10 @@ const OWNER = "Mehran0960";
 const REPO = "ai_news_bot";
 const WORKFLOW = "affilio-radar.yml";
 const API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}`;
-const CLEANUP_WORKFLOW = "affilio-expiration-cleanup.yml";
-const CLEANUP_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${CLEANUP_WORKFLOW}`;
+const PUBLISHER_WORKFLOW = "offerchin-publisher.yml";
+const PUBLISHER_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${PUBLISHER_WORKFLOW}`;
+const AUDIT_WORKFLOW = "offerchin-integrity-audit.yml";
+const AUDIT_API = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/actions/workflows/" + AUDIT_WORKFLOW;
 const RUNS_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
 
 function response(payload, status = 200) {
@@ -64,64 +66,55 @@ async function recoverStaleWorkflow(api, token, label, runningLimitMinutes, queu
   return { status: "stale_cancelling", run };
 }
 
+async function dispatchWorkflowIfIdle(api, token, label, runningLimitMinutes, queuedLimitMinutes) {
+  const active = await recoverStaleWorkflow(api, token, label, runningLimitMinutes, queuedLimitMinutes);
+  if (active && active.status === "stale_cancelling") {
+    console.log("CHANNEL_DISPATCH_SKIPPED workflow=" + label + " reason=stale_run_cancellation_requested");
+    return;
+  }
+  if (active) {
+    console.log("CHANNEL_DISPATCH_SKIPPED workflow=" + label + " reason=already_" + active.status + "; independent workflow remains unaffected");
+    return;
+  }
+  await githubRequest(api + "/dispatches", token, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ref: "main" })
+  });
+  console.log("CHANNEL_DISPATCH_ACCEPTED workflow=" + label);
+}
+
 async function runScheduledCheck(env, scheduledTime) {
   if (!env.GITHUB_TOKEN) {
     console.error("CHANNEL_DISPATCH_BLOCKED: GITHUB_TOKEN Worker secret is not configured.");
     return;
   }
-
   const tick = Number.isFinite(Number(scheduledTime)) ? new Date(Number(scheduledTime)) : new Date();
   const minute = tick.getUTCMinutes();
   const offset = minute % 5;
 
-  // Keep :02/:07/... for GitHub's native five-minute product-radar schedule.
+  // Keep retailer validation traffic away from the publication slot. The
+  // independent audit runs two minutes later and never shares the publisher lock.
   if (offset === 2) {
-    console.log(`CHANNEL_DISPATCH_SKIPPED: reserving UTC minute ${minute} for native product-radar schedule.`);
+    try {
+      await dispatchWorkflowIfIdle(AUDIT_API, env.GITHUB_TOKEN, AUDIT_WORKFLOW, 8, 4);
+    } catch (error) {
+      console.error("OFFERCHIN_INTEGRITY_AUDIT_DISPATCH_FAILED", String(error).slice(0, 900));
+    }
     return;
   }
-  if (offset !== 0 && offset !== 3) {
-    console.log(`CHANNEL_DISPATCH_SKIPPED: reserved UTC minute ${minute}; no dispatch on this tick.`);
+
+  if (offset !== 0) {
+    console.log("CHANNEL_DISPATCH_SKIPPED: UTC minute " + minute + " reserved; publisher runs at :00/:05 and audit at :02/:07.");
     return;
   }
 
   try {
-    const radar = await recoverStaleWorkflow(API, env.GITHUB_TOKEN, WORKFLOW, 18, 8);
-    if (radar?.status === "stale_cancelling") return;
-    if (radar) {
-      console.log(`CHANNEL_DISPATCH_SKIPPED: product radar is already ${radar.status}; preserving publishing priority.`);
-      return;
-    }
-
-    const cleanup = await recoverStaleWorkflow(CLEANUP_API, env.GITHUB_TOKEN, CLEANUP_WORKFLOW, 12, 8);
-    if (cleanup?.status === "stale_cancelling") return;
-
-    const cleanupDispatch = offset === 0;
-    const radarFallback = offset === 3;
-    if (cleanupDispatch && cleanup) {
-      console.log(`CHANNEL_DISPATCH_SKIPPED: expiry cleanup is already ${cleanup.status}.`);
-      return;
-    }
-
-    // Cleanup refreshes legacy captions only on an explicit one-time repair.
-    // Every normal tick must keep fresh product discovery as the first priority.
-    if (cleanupDispatch) {
-      await githubRequest(CLEANUP_API + "/enable", env.GITHUB_TOKEN, { method: "PUT" });
-      console.log("EXPIRATION_CLEANUP_WORKFLOW_ENABLED");
-    }
-
-    const targetApi = cleanupDispatch ? CLEANUP_API : API;
-    const payload = radarFallback ? { ref: "main", inputs: { external_scheduler: true } } : { ref: "main" };
-    await githubRequest(targetApi + "/dispatches", env.GITHUB_TOKEN, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    console.log(cleanupDispatch ? "EXPIRATION_CLEANUP_DISPATCH_ACCEPTED" : "PRODUCT_RADAR_FALLBACK_DISPATCH_ACCEPTED");
+    await dispatchWorkflowIfIdle(PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 20, 6);
   } catch (error) {
-    console.error("CHANNEL_DISPATCH_FAILED", String(error).slice(0, 900));
+    console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 }
-
 export default {
   async scheduled(controller, env, ctx) {
     await runScheduledCheck(env, controller.scheduledTime);
