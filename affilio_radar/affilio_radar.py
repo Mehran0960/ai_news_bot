@@ -484,19 +484,9 @@ def _click_tracker_is_healthy() -> bool:
 
 
 def tracked_affiliate_button_url(affiliate_url: str, source: str) -> str:
-    """Use source-aware click tracking only after health checks; otherwise preserve the direct Affilio link."""
+    """Return the verified Affilio purchase URL unchanged; click-tracker redirects are disabled."""
     original = str(affiliate_url or "").strip()
-    if not _is_valid_affilio_tracking_url(original) or not _click_tracker_is_healthy():
-        return original
-    try:
-        destinations = parse_qs(urlsplit(original).query, keep_blank_values=True).get("p", [])
-    except Exception:
-        return original
-    if len(destinations) != 1:
-        return original
-    canonical = safe_product_url(destinations[0])
-    wrapped = build_click_tracking_link(canonical, original, source=source)
-    return wrapped if wrapped and wrapped != original else original
+    return original if _is_valid_affilio_tracking_url(original) else ""
 
 
 def _walk_dicts(value):
@@ -7738,7 +7728,8 @@ def run(publish=False, selection_only=False):
         except Exception as exc:
             print(f"PRODUCT_FETCH_FAILED url={url} error={type(exc).__name__}")
 
-    enrich_click_statistics(products)
+    # Do not fetch click-worker statistics: they are not affiliate conversions and
+    # new purchase buttons now go directly to Affilio to preserve attribution.
     products.sort(key=deal_sort_key, reverse=True)
     state.setdefault("published", {})
     if publish and CLEAR_PREVIOUS_CHANNEL_POSTS and BATCH_OPERATION_KEY and state.get("completed_batch_operation") == BATCH_OPERATION_KEY:

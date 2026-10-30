@@ -484,16 +484,17 @@ class AffilioRadarTests(unittest.TestCase):
         unsafe = build_click_tracking_link(product, affiliate, "https://tracker.example", source="unknown-user-input")
         self.assertEqual(parse_qs(urlsplit(unsafe).query).get("src"), ["unknown"])
 
-    def test_tracked_affiliate_url_falls_back_directly_when_tracker_is_unhealthy(self):
+    def test_purchase_button_always_uses_direct_affilio_url_without_tracker_probe(self):
         product = "https://snappshop.ir/product/snp-2097083854"
         affiliate = build_affilio_tracking_link(product)
-        with patch("affilio_radar._click_tracker_is_healthy", return_value=False):
+        with patch(
+            "affilio_radar._click_tracker_is_healthy",
+            side_effect=AssertionError("purchase path must not contact the click tracker"),
+        ) as health_probe:
             self.assertEqual(tracked_affiliate_button_url(affiliate, "bale"), affiliate)
-        with patch("affilio_radar._click_tracker_is_healthy", return_value=True):
-            wrapped = tracked_affiliate_button_url(affiliate, "bale")
-        self.assertEqual(urlsplit(wrapped).netloc, "affiliate-deal-radar.m-hoseyni-6966.workers.dev")
-        self.assertEqual(urlsplit(wrapped).path, "/p/snp-2097083854")
-        self.assertEqual(parse_qs(urlsplit(wrapped).query).get("src"), ["bale"])
+            self.assertEqual(tracked_affiliate_button_url(affiliate, "telegram"), affiliate)
+            health_probe.assert_not_called()
+        self.assertEqual(tracked_affiliate_button_url("https://example.com/not-affiliate", "bale"), "")
 
     def test_click_statistics_include_aggregate_counts_for_both_stores(self):
         payload = {
