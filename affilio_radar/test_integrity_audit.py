@@ -257,7 +257,7 @@ class IntegrityAuditStateTests(unittest.TestCase):
         # cron would duplicate the work and compete with fresh product validation.
         self.assertIn("workflow_dispatch:", audit_workflow)
         self.assertNotIn('cron: "*/5 * * * *"', audit_workflow)
-        self.assertIn('AFFILIO_PRICE_AUDIT_BATCH_SIZE: "4"', audit_workflow)
+        self.assertIn('AFFILIO_PRICE_AUDIT_BATCH_SIZE: "8"', audit_workflow)
         self.assertIn('AFFILIO_DIRECT_PRODUCT_DETAIL_CHECK_LIMIT: "1"', audit_workflow)
         self.assertIn('AFFILIO_MAX_CHANNEL_EXPIRY_DELETE_ATTEMPTS: "24"', audit_workflow)
         self.assertIn('AFFILIO_MAX_VIDEO_EXPIRY_DELETE_ATTEMPTS: "2"', audit_workflow)
