@@ -1060,7 +1060,7 @@ class AffilioRadarTests(unittest.TestCase):
         candidates.append({
             "product_id": "dkp-diverse-charger",
             "title": "شارژر دیواری سریع مدل جدید",
-            "demand_score": 49,
+            "demand_score": 40,
             "review_count": 450,
         })
         queue = {item["product_id"]: {} for item in candidates}
@@ -1070,6 +1070,70 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual(selected[0]["product_id"], "dkp-skincare-1")
         self.assertNotEqual(selected[0]["product_id"], "dkp-diverse-charger")
+        self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
+
+
+    def test_publish_selection_accepts_diversity_within_75_percent_demand_band(self):
+        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-recent-skincare": {
+                "title": "سرم آبرسان پوست مدل قبلی",
+                "telegram_message_id": 990,
+                "ts": now.timestamp() - 10 * 60,
+            }
+        }
+        candidates = [
+            {
+                "product_id": "dkp-skincare-top",
+                "title": "کرم مراقبت پوست مدل برتر",
+                "demand_score": 64,
+                "review_count": 500,
+            },
+            {
+                "product_id": "dkp-power-comparable",
+                "title": "شارژر دیواری سریع مدل تازه",
+                "demand_score": 49,
+                "review_count": 450,
+            },
+        ]
+        queue = {item["product_id"]: {} for item in candidates}
+        eligible = {item["product_id"]: item for item in candidates}
+
+        selected = select_publish_candidates(queue, eligible, now, published)
+
+        self.assertEqual(selected[0]["product_id"], "dkp-power-comparable")
+        self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
+
+
+    def test_publish_selection_balances_retailers_when_comparable_products_exist(self):
+        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-recent-skincare": {
+                "title": "سرم آبرسان پوست مدل قبلی",
+                "telegram_message_id": 995,
+                "ts": now.timestamp() - 10 * 60,
+            }
+        }
+        candidates = [
+            {
+                "product_id": "dkp-book-comparable",
+                "title": "کتاب داستان نوجوان چاپ جدید",
+                "demand_score": 60,
+                "review_count": 500,
+            },
+            {
+                "product_id": "snp-book-comparable",
+                "title": "کتاب داستان نوجوان چاپ تازه",
+                "demand_score": 58,
+                "review_count": 480,
+            },
+        ]
+        queue = {item["product_id"]: {} for item in candidates}
+        eligible = {item["product_id"]: item for item in candidates}
+
+        selected = select_publish_candidates(queue, eligible, now, published)
+
+        self.assertEqual(selected[0]["product_id"], "snp-book-comparable")
         self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
 
 
