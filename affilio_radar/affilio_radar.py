@@ -3440,18 +3440,22 @@ def discover_product_urls(
         # Set a source-local cooldown only when every query and every public
         # fallback failed. Other discovery sources and destination publishers
         # continue normally. A successful API response resets the failure streak.
-        if snapp_candidates:
+        if snappshop_queries_succeeded > 0:
+            # The public API is reachable even if this rotating query batch has no
+            # products above the campaign floor; stop carrying an obsolete outage.
             if isinstance(state_to_persist, dict):
                 state_to_persist.pop("snappshop_retry_after", None)
                 state_to_persist["snappshop_consecutive_failures"] = 0
         elif (
             snapp_queries
-            and snappshop_queries_succeeded == 0
             and len(snappshop_query_failures) == len(snapp_queries)
-            and len(snapp_fallback_failures) == len(snapp_fallback_sources)
         ):
             try:
-                failures = max(0, int(state_to_persist.get("snappshop_consecutive_failures") or 0)) + 1
+                previous_failures = (
+                    state_to_persist.get("snappshop_consecutive_failures", 0)
+                    if isinstance(state_to_persist, dict) else 0
+                )
+                failures = max(0, int(previous_failures or 0)) + 1
             except (TypeError, ValueError, OverflowError):
                 failures = 1
             cooldown_minutes = _snappshop_retry_cooldown_minutes(failures)
