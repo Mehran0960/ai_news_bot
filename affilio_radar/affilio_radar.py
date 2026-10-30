@@ -2863,7 +2863,8 @@ def _discovery_early_source_candidate_limit(
         usable = max(0, int(usable_optional_retailer_candidates))
     except (TypeError, ValueError, OverflowError):
         usable = 0
-    return max(1, cap - min(reserved, usable))
+    unused_reserve = max(0, reserved - min(reserved, usable))
+    return max(1, cap - unused_reserve)
 
 
 def _rotating_search_terms(slot: int, batch_size: int) -> list[str]:
