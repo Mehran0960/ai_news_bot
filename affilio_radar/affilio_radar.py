@@ -2673,7 +2673,8 @@ def _diversify_ranked_records(
         comparable = [
             (position, entry, _as_product(entry))
             for position, entry in enumerate(lookahead)
-            if _candidate_demand_comparable_for_diversity(_as_product(entry), leader)
+            if (not selected and position == 0)
+            or _candidate_demand_comparable_for_diversity(_as_product(entry), leader)
         ]
         if not comparable:
             print(
