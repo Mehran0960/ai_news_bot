@@ -5688,11 +5688,11 @@ def _order_candidates_by_primary_rank(
             category, family, brand = group(item)
             weighted_category = sum(
                 weight * categories.get(category, 0) / total
-                for categories, _, _, weight, total in horizon_counts
+                for categories, _, _, _, weight, total in horizon_counts
             )
             weighted_family = sum(
                 weight * families.get(family, 0) / total
-                for _, families, _, weight, total in horizon_counts
+                for _, families, _, _, weight, total in horizon_counts
             )
             weighted_brand = sum(
                 weight * brands.get(brand, 0) / total
