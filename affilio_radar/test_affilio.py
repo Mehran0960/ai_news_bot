@@ -1042,6 +1042,30 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual([item["product_id"] for item in selected], ["dkp-new-charger"])
 
+    def test_sport_and_regular_eyewear_share_one_global_repeat_family(self):
+        regular = radar_module._publication_diversity_group("عینک آفتابی زنانه مدل معمولی")
+        sport = radar_module._publication_diversity_group("عینک آفتابی ورزشی مدل اسپرت")
+        self.assertEqual(regular[1], "fashion:eyewear")
+        self.assertEqual(sport[1], regular[1])
+
+    def test_diversity_rebases_demand_anchor_after_each_selection(self):
+        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+        records = [
+            {"product_id": "dkp-mobile", "title": "گوشی موبایل مدل پرفروش", "demand_score": 100},
+            {"product_id": "dkp-light", "title": "چراغ مطالعه مدل تازه", "demand_score": 60},
+            {"product_id": "dkp-book", "title": "کتاب داستان مدل جدید", "demand_score": 35},
+        ]
+        recent = [{
+            "product_id": "dkp-old-eyewear",
+            "title": "عینک آفتابی مدل قبلی",
+            "ts": (now - timedelta(minutes=30)).timestamp(),
+        }]
+        selected = _diversify_ranked_records(
+            records, limit=3, published={}, recent_publications=recent, now=now,
+        )
+        self.assertEqual([item["product_id"] for item in selected],
+                         ["dkp-mobile", "dkp-light", "dkp-book"])
+
     def test_recent_similar_product_family_is_spaced_when_demand_is_comparable(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
         published = {
