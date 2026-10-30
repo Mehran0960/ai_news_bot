@@ -2568,9 +2568,9 @@ def _candidate_demand_comparable_for_diversity(candidate: dict, leader: dict) ->
     leader = leader if isinstance(leader, dict) else {}
     leader_clicks = max(0, int(leader.get("click_count_30d") or 0))
     candidate_clicks = max(0, int(candidate.get("click_count_30d") or 0))
-    if leader_clicks and candidate_clicks < leader_clicks * 0.70:
+    if leader_clicks and candidate_clicks < leader_clicks * 0.55:
         return False
-    if _candidate_demand_score(candidate) < _candidate_demand_score(leader) - 15:
+    if _candidate_demand_score(candidate) < _candidate_demand_score(leader) - 18:
         return False
     leader_discount = max(0, int(leader.get("discount_percent") or 0))
     candidate_discount = max(0, int(candidate.get("discount_percent") or 0))
@@ -2578,7 +2578,7 @@ def _candidate_demand_comparable_for_diversity(candidate: dict, leader: dict) ->
     # Missing data is unknown, not a known zero-percent offer; enforce the
     # quality comparison only when both candidates have measured discounts.
     if leader_discount > 0 and candidate_discount > 0:
-        minimum_comparable_discount = max(MIN_DISCOUNT_PERCENT, leader_discount - 15)
+        minimum_comparable_discount = max(MIN_DISCOUNT_PERCENT, leader_discount - 25)
         if candidate_discount < minimum_comparable_discount:
             return False
     return True
@@ -5192,6 +5192,27 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     return category, family, brand
 
 
+def _publication_retailer_group(product_or_record) -> str:
+    """Return the retailer from an immutable product ID, with merchant as fallback."""
+    if not isinstance(product_or_record, dict):
+        return ""
+    pid = str(
+        product_or_record.get("product_id")
+        or product_or_record.get("id")
+        or product_id(product_or_record.get("product_url") or product_or_record.get("url") or "")
+    ).strip().lower()
+    if pid.startswith("snp-"):
+        return "snappshop"
+    if pid.startswith("dkp-"):
+        return "digikala"
+    merchant = str(product_or_record.get("merchant") or product_or_record.get("store") or "").strip().lower()
+    if "snapp" in merchant or "اسنپ" in merchant:
+        return "snappshop"
+    if "digi" in merchant or "دیجی" in merchant:
+        return "digikala"
+    return ""
+
+
 def _publication_diversity_history_key(record: dict, product_id_override: str | None = None):
     """Identify one real post by platform message IDs, not timestamps refreshed by audits.
 
@@ -5260,12 +5281,14 @@ def _recent_publication_diversity(
                 timestamp = 0.0
             order = timestamp if timestamp > 0 else float(max(message_ids))
             category, family, brand = _publication_diversity_group({"title": title, "brand": post.get("brand") or record.get("brand") or ""})
+            retailer = _publication_retailer_group({"product_id": raw_pid, "merchant": post.get("merchant") or record.get("merchant") or ""})
             records.append({
                 "product_id": str(raw_pid), "title": title,
                 "message_id": max(message_ids),
                 "telegram_message_id": int(post["telegram_message_id"]) if str(post.get("telegram_message_id") or "").isdigit() else 0,
                 "bale_message_id": int(post["bale_message_id"]) if str(post.get("bale_message_id") or "").isdigit() else 0,
                 "ts": order, "order": order, "category": category, "family": family, "brand": brand,
+                "retailer": retailer,
             })
     for entry in durable_history if isinstance(durable_history, list) else []:
         if not isinstance(entry, dict):
@@ -5279,6 +5302,7 @@ def _recent_publication_diversity(
         if not pid or not title or order <= 0:
             continue
         category, family, brand = _publication_diversity_group({"title": title, "brand": entry.get("brand") or ""})
+        retailer = _publication_retailer_group({"product_id": pid, "merchant": entry.get("merchant") or ""})
         raw_message_id = entry.get("telegram_message_id") or entry.get("bale_message_id")
         try:
             message_id = int(raw_message_id)
@@ -5289,6 +5313,7 @@ def _recent_publication_diversity(
             "telegram_message_id": int(entry["telegram_message_id"]) if str(entry.get("telegram_message_id") or "").isdigit() else 0,
             "bale_message_id": int(entry["bale_message_id"]) if str(entry.get("bale_message_id") or "").isdigit() else 0,
             "ts": order, "order": order, "category": category, "family": family, "brand": brand,
+            "retailer": retailer,
         })
     unique = {}
     for record in records:
@@ -5322,6 +5347,7 @@ def _publication_distribution_summary(records: list[dict]) -> dict:
     category_counts: dict[str, int] = {}
     family_counts: dict[str, int] = {}
     brand_counts: dict[str, int] = {}
+    retailer_counts: dict[str, int] = {}
     for record in records if isinstance(records, list) else []:
         if not isinstance(record, dict):
             continue
@@ -5332,6 +5358,9 @@ def _publication_distribution_summary(records: list[dict]) -> dict:
         family_counts[family] = family_counts.get(family, 0) + 1
         if brand:
             brand_counts[brand] = brand_counts.get(brand, 0) + 1
+        retailer = str(record.get("retailer") or _publication_retailer_group(record))
+        if retailer:
+            retailer_counts[retailer] = retailer_counts.get(retailer, 0) + 1
 
     post_count = len(records or [])
     ordered_categories = sorted(category_counts.items(), key=lambda row: (-row[1], row[0]))
@@ -5344,6 +5373,12 @@ def _publication_distribution_summary(records: list[dict]) -> dict:
         "posts": post_count,
         "distinct_categories": len(category_counts),
         "distinct_families": len(family_counts),
+        "distinct_retailers": len(retailer_counts),
+        "retailer_post_counts": dict(sorted(retailer_counts.items(), key=lambda row: (-row[1], row[0]))),
+        "retailer_share_percent": {
+            retailer: round(count * 100.0 / post_count, 1)
+            for retailer, count in sorted(retailer_counts.items(), key=lambda row: (-row[1], row[0]))
+        } if post_count else {},
         "category_post_counts": dict(ordered_categories),
         "category_share_percent": {
             category: round(count * 100.0 / post_count, 1)
@@ -5400,6 +5435,9 @@ def build_publication_diversity_report(
             "category_repeat_cooldown_minutes": CATEGORY_REPEAT_COOLDOWN_MINUTES,
             "family_repeat_cooldown_hours": FAMILY_REPEAT_COOLDOWN_HOURS,
             "brand_repeat_cooldown_hours": BRAND_REPEAT_COOLDOWN_HOURS,
+            "retailer_repeat_cooldown_minutes": RETAILER_REPEAT_COOLDOWN_MINUTES,
+            "diversity_demand_score_ratio": DIVERSITY_DEMAND_SCORE_RATIO,
+            "diversity_lookahead_candidates": DIVERSITY_LOOKAHEAD_CANDIDATES,
             "diversity_only_reorders_candidates_with_comparable_demand_and_offer_quality": True,
         },
         "last_24_hours": _publication_distribution_summary(day_records),
@@ -5510,7 +5548,7 @@ def _order_candidates_by_primary_rank(
         (24.0 * 30, 1.5),   # month
         (24.0 * 365, 0.75), # year
     )
-    horizon_counts: list[tuple[dict[str, int], dict[str, int], dict[str, int], float, int]] = []
+    horizon_counts: list[tuple[dict[str, int], dict[str, int], dict[str, int], dict[str, int], float, int]] = []
     for hours, weight in horizons:
         records = _recent_publication_diversity(
             published, limit=RECENT_PUBLICATION_HISTORY_LIMIT,
@@ -5519,16 +5557,20 @@ def _order_candidates_by_primary_rank(
         category_counts: dict[str, int] = {}
         family_counts: dict[str, int] = {}
         brand_counts: dict[str, int] = {}
+        retailer_counts: dict[str, int] = {}
         for post in records:
             category = str(post.get("category") or "other")
             family = str(post.get("family") or category)
             brand = str(post.get("brand") or "")
+            retailer = str(post.get("retailer") or _publication_retailer_group(post))
             category_counts[category] = category_counts.get(category, 0) + 1
             family_counts[family] = family_counts.get(family, 0) + 1
             if brand:
                 brand_counts[brand] = brand_counts.get(brand, 0) + 1
-        horizon_counts.append((category_counts, family_counts, brand_counts, weight, max(1, len(records))))
-    if not any(categories or families or brands for categories, families, brands, _, _ in horizon_counts):
+            if retailer:
+                retailer_counts[retailer] = retailer_counts.get(retailer, 0) + 1
+        horizon_counts.append((category_counts, family_counts, brand_counts, retailer_counts, weight, max(1, len(records))))
+    if not any(categories or families or brands or retailers for categories, families, brands, retailers, _, _ in horizon_counts):
         _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = _publication_rank_diagnostics(
             remaining, fallback_events, initial_candidate_count
         )
@@ -5540,6 +5582,7 @@ def _order_candidates_by_primary_rank(
         CATEGORY_REPEAT_COOLDOWN_MINUTES / 60.0,
         FAMILY_REPEAT_COOLDOWN_HOURS,
         BRAND_REPEAT_COOLDOWN_HOURS,
+        RETAILER_REPEAT_COOLDOWN_MINUTES / 60.0,
     )
     cooldown_records = _recent_publication_diversity(
         published, limit=RECENT_PUBLICATION_HISTORY_LIMIT,
@@ -5560,6 +5603,12 @@ def _order_candidates_by_primary_rank(
         str(post.get("brand") or "") for post in cooldown_records
         if post.get("brand") and float(post.get("order") or post.get("ts") or 0)
         >= now_ts - BRAND_REPEAT_COOLDOWN_HOURS * 3600
+    ]
+    recent_retailers = [
+        str(post.get("retailer") or _publication_retailer_group(post)) for post in cooldown_records
+        if (post.get("retailer") or _publication_retailer_group(post))
+        and float(post.get("order") or post.get("ts") or 0)
+        >= now_ts - RETAILER_REPEAT_COOLDOWN_MINUTES * 60
     ]
 
     ordered: list[dict] = []
@@ -5604,15 +5653,33 @@ def _order_candidates_by_primary_rank(
         fresh_category = [
             row for row in comparable if group(row[1])[0] not in recent_categories
         ]
+        fresh_category_family_retailer = [
+            row for row in comparable
+            if group(row[1])[0] not in recent_categories
+            and group(row[1])[1] not in recent_families
+            and (
+                not _publication_retailer_group(row[1])
+                or _publication_retailer_group(row[1]) not in recent_retailers
+            )
+        ]
         fresh_family = [
             row for row in comparable if group(row[1])[1] not in recent_families
         ]
-        if fresh_category_and_family:
+        fresh_retailer = [
+            row for row in comparable
+            if _publication_retailer_group(row[1])
+            and _publication_retailer_group(row[1]) not in recent_retailers
+        ]
+        if fresh_category_family_retailer:
+            pool = fresh_category_family_retailer
+        elif fresh_category_and_family:
             pool = fresh_category_and_family
         elif fresh_category:
             pool = fresh_category
         elif fresh_family:
             pool = fresh_family
+        elif fresh_retailer:
+            pool = fresh_retailer
         else:
             pool = comparable
 
@@ -5629,14 +5696,20 @@ def _order_candidates_by_primary_rank(
             )
             weighted_brand = sum(
                 weight * brands.get(brand, 0) / total
-                for _, _, brands, weight, total in horizon_counts
+                for _, _, brands, _, weight, total in horizon_counts
             ) if brand else 0.0
+            retailer = _publication_retailer_group(item)
+            weighted_retailer = sum(
+                weight * retailers.get(retailer, 0) / total
+                for _, _, _, retailers, weight, total in horizon_counts
+            ) if retailer else 0.0
             cooldown_penalty = (
                 (10_000 if category in recent_categories else 0)
                 + (5_000 if family in recent_families else 0)
                 + (2_000 if brand and brand in recent_brands else 0)
+                + (1_000 if retailer and retailer in recent_retailers else 0)
             )
-            return (cooldown_penalty, weighted_category, weighted_family, weighted_brand, position)
+            return (cooldown_penalty, weighted_category, weighted_family, weighted_brand, weighted_retailer, position)
 
         chosen_position, chosen = min(pool, key=diversity_key)
         remaining.pop(chosen_position)
@@ -5645,11 +5718,14 @@ def _order_candidates_by_primary_rank(
 
         # Simulate earlier ranked choices so one returned batch isn't concentrated
         # in one category if alternatives of comparable quality exist.
-        for categories, families, brands, _, _ in horizon_counts:
+        retailer = _publication_retailer_group(chosen)
+        for categories, families, brands, retailers, _, _ in horizon_counts:
             categories[category] = categories.get(category, 0) + 1
             families[family] = families.get(family, 0) + 1
             if brand:
                 brands[brand] = brands.get(brand, 0) + 1
+            if retailer:
+                retailers[retailer] = retailers.get(retailer, 0) + 1
         repeated_category = category in recent_categories
         recent_categories.append(category)
         recent_categories = recent_categories[-24:]
@@ -5658,6 +5734,9 @@ def _order_candidates_by_primary_rank(
         if brand:
             recent_brands.append(brand)
             recent_brands = recent_brands[-24:]
+        if retailer:
+            recent_retailers.append(retailer)
+            recent_retailers = recent_retailers[-12:]
 
         if repeated_category:
             has_comparable_other_category = any(
@@ -5748,12 +5827,13 @@ def select_publish_candidates(
 MIN_REPEAT_PRODUCT_INTERVAL_HOURS = 24
 PUBLICATION_LEDGER_LIMIT = 2000
 # Repeat-gap preferences; diversity can reorder within a bounded demand gap to avoid category saturation.
-FAMILY_REPEAT_COOLDOWN_HOURS = 3
-BRAND_REPEAT_COOLDOWN_HOURS = 2
-CATEGORY_REPEAT_COOLDOWN_MINUTES = 120
-DIVERSITY_LOOKAHEAD_CANDIDATES = 24
-DIVERSITY_DEMAND_SCORE_GAP = 12
-DIVERSITY_DEMAND_SCORE_RATIO = 0.80
+FAMILY_REPEAT_COOLDOWN_HOURS = 4
+BRAND_REPEAT_COOLDOWN_HOURS = 3
+CATEGORY_REPEAT_COOLDOWN_MINUTES = 180
+RETAILER_REPEAT_COOLDOWN_MINUTES = 60
+DIVERSITY_LOOKAHEAD_CANDIDATES = 48
+DIVERSITY_DEMAND_SCORE_GAP = 18
+DIVERSITY_DEMAND_SCORE_RATIO = 0.75
 
 
 def _publication_record_ts(record: dict | None) -> float:
@@ -5875,6 +5955,7 @@ def ensure_recent_publications(state: dict) -> bool:
         if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", pid) or not title or ts <= 0:
             continue
         category, family, brand = _publication_diversity_group(title)
+        retailer = _publication_retailer_group({"product_id": pid, "merchant": record.get("merchant") or ""})
         entry = {
             "ts": ts,
             "product_id": pid,
@@ -5882,6 +5963,7 @@ def ensure_recent_publications(state: dict) -> bool:
             "category": category,
             "family": family,
             "brand": brand,
+            "retailer": retailer,
         }
         for field in ("telegram_message_id", "bale_message_id"):
             if str(record.get(field) or "").isdigit():
@@ -8056,6 +8138,7 @@ def run(publish=False, selection_only=False):
                 "category": category,
                 "family": family,
                 "brand": brand,
+                "retailer": _publication_retailer_group(item),
                 "telegram_message_id": results.get("telegram", {}).get("message_id"),
                 "bale_message_id": results.get("bale", {}).get("message_id"),
             })
