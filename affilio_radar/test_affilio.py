@@ -67,6 +67,7 @@ from affilio_radar import (
     SEARCH_TERMS,
     _discovery_candidate_budgets,
     _discovery_early_source_candidate_limit,
+    _snappshop_retry_cooldown_minutes,
     _rotating_search_terms,
     parse_product_api,
     is_discount_publish_eligible,
@@ -914,6 +915,14 @@ class AffilioRadarTests(unittest.TestCase):
             "لاستیک خودرو", "گیاه آپارتمانی و گلدان",
         ):
             self.assertIn(term, SEARCH_TERMS)
+
+    def test_snappshop_source_backoff_is_bounded_and_exponential(self):
+        self.assertEqual(_snappshop_retry_cooldown_minutes(0), 360)
+        self.assertEqual(_snappshop_retry_cooldown_minutes(1), 360)
+        self.assertEqual(_snappshop_retry_cooldown_minutes(2), 720)
+        self.assertEqual(_snappshop_retry_cooldown_minutes(3), 1440)
+        self.assertEqual(_snappshop_retry_cooldown_minutes(20), 1440)
+
 
     def test_unavailable_optional_retailer_releases_its_reserved_discovery_budget(self):
         # At 90 checks, 70 slots are available before category-search slots.
