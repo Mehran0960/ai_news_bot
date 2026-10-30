@@ -5345,11 +5345,14 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             ("sports_outdoor", r"ورزشی|کمپینگ|کوهنوردی|سفر"),
         ],
     }
-    family = category
-    for subfamily, pattern in family_patterns.get(category, []):
-        if re.search(pattern, normalized, re.I):
-            family = f"{category}:{subfamily}"
-            break
+    # Eyewear is one global product family, even when a sport descriptor
+    # causes the broad category classifier to label the listing as sports.
+    family = "fashion:eyewear" if re.search(r"عینک", normalized, re.I) else category
+    if family == category:
+        for subfamily, pattern in family_patterns.get(category, []):
+            if re.search(pattern, normalized, re.I):
+                family = f"{category}:{subfamily}"
+                break
     brand_hints = [
         ("muzik_apollo", r"موزیک\s*آپولو"),
         ("vonk", r"وونک"),

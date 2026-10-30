@@ -873,6 +873,19 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(is_deadline_critical_deal(too_soon, now))
         self.assertFalse(is_deadline_critical_deal({**close_but_safe, "deal_expires_at": ""}, now))
 
+    def test_regular_and_sport_eyewear_share_one_global_family(self):
+        regular_category, regular_family, _ = radar_module._publication_diversity_group(
+            "عینک آفتابی زنانه مدل معمولی"
+        )
+        sport_category, sport_family, _ = radar_module._publication_diversity_group(
+            "عینک آفتابی ورزشی مدل اسپرت"
+        )
+
+        self.assertNotEqual(regular_category, sport_category)
+        self.assertEqual(regular_family, "fashion:eyewear")
+        self.assertEqual(sport_family, regular_family)
+
+
     def test_category_classifier_recognizes_everyday_merchandise(self):
         self.assertEqual(classify_category("تیشرت یقه گرد مردانه ایزی دو"), "fashion")
         self.assertEqual(classify_category("کتاب جوجوتسو کایسن سه جلدی"), "books_stationery")
