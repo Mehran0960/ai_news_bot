@@ -87,10 +87,15 @@ export default {
       const cacheKey = "analytics:clicks:30d:v2";
       try {
         const cached = await env.CLICKS.get(cacheKey, "json");
+        const cacheAgeMs = cached && cached.updatedAt
+          ? Date.now() - Date.parse(cached.updatedAt)
+          : Number.POSITIVE_INFINITY;
         if (
           cached &&
           cached.ok === true &&
-          cached.updatedAt &&
+          Number.isFinite(cacheAgeMs) &&
+          cacheAgeMs >= 0 &&
+          cacheAgeMs < 2 * 60 * 60 * 1000 &&
           cached.products && typeof cached.products === "object"
         ) {
           return jsonResponse(cached);
@@ -136,7 +141,7 @@ export default {
         products
       };
       try {
-        await env.CLICKS.put(cacheKey, JSON.stringify(result), {expirationTtl:120});
+        await env.CLICKS.put(cacheKey, JSON.stringify(result), {expirationTtl:7200});
       } catch (error) {
         console.error("CLICK_STATS_CACHE_WRITE_FAILED", String(error).slice(0,120));
       }
