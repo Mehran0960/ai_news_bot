@@ -3854,8 +3854,7 @@ class AffilioRadarTests(unittest.TestCase):
             queue, now, max_count=2, published={}, recent_publications=recent
         )
         # The recently published headphone family is skipped. The speaker is
-        # within the demand band; the much weaker fashion product must not refill
-        # the now-empty second slot.
+        # within the demand band; the much weaker fashion product is not comparable.
         self.assertEqual([pid for pid, _ in selected], ["dkp-93032"])
 
     def test_discovery_checks_prioritize_demand_over_deadline_urgency(self):
