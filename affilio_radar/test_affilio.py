@@ -298,7 +298,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(has_publishable_expiry_or_open_offer({**base, "availability": "in_stock", "original_price": 3_398_000}))
         self.assertTrue(has_publishable_expiry_or_open_offer({**base, "availability": "in_stock"}))
 
-    def test_urgent_bypass_keeps_highest_demand_urgent_offer_even_if_family_repeats(self):
+    def test_urgent_selection_never_bypasses_recent_family_cooldown(self):
         now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
         published = {
             "dkp-previous-keyboard": {
@@ -330,9 +330,9 @@ class AffilioRadarTests(unittest.TestCase):
             published=published,
         )
 
-        self.assertEqual(chosen["product_id"], "dkp-keyboard-urgent")
+        self.assertIsNone(chosen)
 
-    def test_urgent_bypass_prefers_urgent_candidate_from_different_family(self):
+    def test_urgent_selection_prefers_available_candidate_from_different_family(self):
         now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
         published = {
             "dkp-previous-keyboard": {
@@ -367,7 +367,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual(chosen["product_id"], "dkp-skincare-urgent")
 
-    def test_urgent_bypass_keeps_only_available_family_from_starving(self):
+    def test_urgent_selection_defers_when_only_candidate_is_in_recent_family(self):
         now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
         only_choice = {
             "product_id": "dkp-keyboard-only",
@@ -391,7 +391,7 @@ class AffilioRadarTests(unittest.TestCase):
             published=published,
         )
 
-        self.assertEqual(chosen["product_id"], "dkp-keyboard-only")
+        self.assertIsNone(chosen)
 
     def test_parse_snappshop_product_api_uses_live_vendor_stock_and_rial_prices(self):
         url = "https://snappshop.ir/product/snp-25751584"
@@ -1228,6 +1228,43 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
 
         self.assertEqual(selected[0]["product_id"], "dkp-power-close")
+
+
+    def test_publish_lookahead_checks_beyond_first_48_candidates(self):
+        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-recent-apparel": {
+                "title": "تیشرت مردانه مدل قبلی",
+                "telegram_message_id": 1510,
+                "ts": (now - timedelta(minutes=20)).timestamp(),
+            }
+        }
+        candidates = [
+            {
+                "product_id": f"dkp-eyewear-{index}",
+                "title": f"عینک آفتابی مدل {index}",
+                "demand_score": 90,
+                "click_count_30d": 1000,
+                "discount_percent": 60,
+                "review_count": 1000,
+            }
+            for index in range(49)
+        ]
+        candidates.append({
+            "product_id": "dkp-late-fragrance",
+            "title": "ادوپرفیوم زنانه مدل تازه",
+            "demand_score": 75,
+            "click_count_30d": 900,
+            "discount_percent": 55,
+            "review_count": 900,
+        })
+        queue = {item["product_id"]: {} for item in candidates}
+        eligible = {item["product_id"]: item for item in candidates}
+
+        selected = select_publish_candidates(queue, eligible, now, published)
+
+        self.assertTrue(selected)
+        self.assertEqual(selected[0]["product_id"], "dkp-late-fragrance")
 
 
     def test_single_repeated_category_candidate_is_recorded_as_diversity_fallback(self):

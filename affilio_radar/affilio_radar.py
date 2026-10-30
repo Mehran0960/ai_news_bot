@@ -5998,10 +5998,14 @@ def select_urgent_publication_candidate(
     ]
     if not urgent:
         return None
-    return _order_candidates_by_primary_rank(
+    ranked = _order_candidates_by_primary_rank(
         urgent, published=published, recent_publications=recent_publications,
-        now=current, allow_family_repeat=True,
-    )[0]
+        now=current, allow_family_repeat=False,
+    )
+    if not ranked:
+        print("URGENT_PUBLICATION_DEFERRED reason=recent_family_cooldown_or_no_diverse_candidate")
+        return None
+    return ranked[0]
 
 
 def select_publish_candidates(
@@ -6041,7 +6045,7 @@ FAMILY_REPEAT_COOLDOWN_HOURS = 4
 BRAND_REPEAT_COOLDOWN_HOURS = 3
 CATEGORY_REPEAT_COOLDOWN_MINUTES = 180
 RETAILER_REPEAT_COOLDOWN_MINUTES = 60
-DIVERSITY_LOOKAHEAD_CANDIDATES = 48
+DIVERSITY_LOOKAHEAD_CANDIDATES = 128
 DIVERSITY_DEMAND_SCORE_GAP = 18
 DIVERSITY_DEMAND_SCORE_RATIO = 0.75
 
