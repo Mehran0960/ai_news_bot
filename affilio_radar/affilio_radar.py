@@ -55,7 +55,7 @@ FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "fa
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
 BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(20, int(os.getenv("AFFILIO_MAX_PER_QUERY", "12"))))
-MAX_PRODUCT_CHECKS = max(1, min(90, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "90"))))
+MAX_PRODUCT_CHECKS = max(1, min(180, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "150"))))
 # Expand live verification so a temporary thin 60-item feed does not starve the publisher.
 # Quality gates (50%+ listed discount, 100k toman saving, live stock/price) stay unchanged.
 SNAPPSHOP_RESERVED_CANDIDATES = max(4, min(12, MAX_PRODUCT_CHECKS // 7))
@@ -77,7 +77,7 @@ PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TT
 MAX_QUEUED_RECHECKS = max(0, min(16, int(os.getenv("AFFILIO_MAX_QUEUED_RECHECKS", "12"))))
 DISCOVERY_QUEUE_LIMIT = max(100, min(1000, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_LIMIT", "1000"))))
 DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_TTL_HOURS", "24"))))
-MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(64, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "48"))))
+MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(128, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "96"))))
 # Never publish an offer that gives the audience less than this much time to act.
 MIN_PUBLICATION_RUNWAY_MINUTES = max(30, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "60"))))
 # The same ten-minute safety buffer gates publication and removal; captions remain static.
@@ -2635,7 +2635,6 @@ def _diversify_ranked_records(
         if post.get("brand") and float(post.get("order") or post.get("ts") or 0) >= now_ts - BRAND_REPEAT_COOLDOWN_HOURS * 3600
     ]
     remaining, selected = list(source), []
-    selection_anchor = None
 
     def _as_product(entry):
         if isinstance(entry, tuple) and len(entry) >= 2 and isinstance(entry[1], dict):
@@ -2664,12 +2663,10 @@ def _diversify_ranked_records(
         if not remaining:
             break
         lookahead = remaining[:DIVERSITY_LOOKAHEAD_CANDIDATES]
-        if selection_anchor is None:
-            # The first eligible candidate becomes the fixed demand baseline for
-            # this detail-check batch. Do not refill empty slots with much weaker
-            # products after the repeated family has been filtered out.
-            selection_anchor = _as_product(lookahead[0])
-        leader = selection_anchor
+        # Rebase the demand baseline on the strongest remaining fresh candidate.
+        # A fixed first-item baseline caused starvation after one demand-score cliff,
+        # even when many valid alternatives remained beyond that point.
+        leader = _as_product(lookahead[0])
         comparable = [
             (position, entry, _as_product(entry))
             for position, entry in enumerate(lookahead)
@@ -5346,10 +5343,15 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ],
     }
     family = category
-    for subfamily, pattern in family_patterns.get(category, []):
-        if re.search(pattern, normalized, re.I):
-            family = f"{category}:{subfamily}"
-            break
+    # Treat all eyewear as one family, including sport sunglasses that otherwise
+    # fall under sports/outdoor and bypass the fashion-eyewear cooldown.
+    if re.search(r"عینک|eyewear|sun\s*glasses", normalized, re.I):
+        family = "fashion:eyewear"
+    else:
+        for subfamily, pattern in family_patterns.get(category, []):
+            if re.search(pattern, normalized, re.I):
+                family = f"{category}:{subfamily}"
+                break
     brand_hints = [
         ("muzik_apollo", r"موزیک\s*آپولو"),
         ("vonk", r"وونک"),
@@ -5998,10 +6000,13 @@ def select_urgent_publication_candidate(
     ]
     if not urgent:
         return None
-    return _order_candidates_by_primary_rank(
+    ordered = _order_candidates_by_primary_rank(
         urgent, published=published, recent_publications=recent_publications,
-        now=current, allow_family_repeat=True,
-    )[0]
+        now=current, allow_family_repeat=False,
+    )
+    # Urgency does not justify repeating a recently published product family.
+    # Defer this slot when every urgent candidate is inside its family cooldown.
+    return ordered[0] if ordered else None
 
 
 def select_publish_candidates(
