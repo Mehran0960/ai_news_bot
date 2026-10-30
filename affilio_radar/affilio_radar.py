@@ -2663,10 +2663,10 @@ def _diversify_ranked_records(
         if not remaining:
             break
         lookahead = remaining[:DIVERSITY_LOOKAHEAD_CANDIDATES]
-        # Rebase the demand baseline on the strongest remaining fresh candidate.
-        # A fixed first-item baseline caused starvation after one demand-score cliff,
-        # even when many valid alternatives remained beyond that point.
-        leader = _as_product(lookahead[0])
+        # Compare against the last selected candidate, not the first item in the
+        # original batch. This permits gradual demand tapering while preventing a
+        # single much-weaker category from filling every remaining slot.
+        leader = _as_product(selected[-1]) if selected else _as_product(lookahead[0])
         comparable = [
             (position, entry, _as_product(entry))
             for position, entry in enumerate(lookahead)
