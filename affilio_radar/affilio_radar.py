@@ -236,6 +236,7 @@ SESSION.headers.update({
 })
 
 SNAPPSHOP_API_BASE_URL = "https://apix.snappshop.ir"
+SNAPPSHOP_HTTP_TIMEOUT = max(3, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_HTTP_TIMEOUT", "6"))))
 SNAPPSHOP_API_IDS_BY_URL: dict[str, str] = {}
 SNAPPSHOP_SEARCH_CARDS_BY_URL: dict[str, dict] = {}
 SNAPPSHOP_LATITUDE = 35.77331
@@ -3243,6 +3244,7 @@ def discover_product_urls(
     snapp_queries = []
     snappshop_queries_succeeded = 0
     snappshop_query_failures = []
+    snappshop_access_denied = False
     snapp_fallback_found = []
     snapp_fallback_failures = []
     snapp_fallback_sources = [
@@ -3280,7 +3282,7 @@ def discover_product_urls(
                     params={"lat": SNAPPSHOP_LATITUDE, "lng": SNAPPSHOP_LONGITUDE},
                     json={"query": term, "render": 4},
                     headers=headers,
-                    timeout=HTTP_TIMEOUT,
+                    timeout=SNAPPSHOP_HTTP_TIMEOUT,
                 )
                 response.raise_for_status()
                 snappshop_queries_succeeded += 1
@@ -3338,15 +3340,24 @@ def discover_product_urls(
                     "http_status": int(status_code) if isinstance(status_code, int) else None,
                 }
                 snappshop_query_failures.append(failure)
+                if status_code == 403:
+                    # A host-level access denial is not a query-specific miss.
+                    # Stop probing the same blocked domain in this scan.
+                    snappshop_access_denied = True
                 print(
                     f"SNAPPSHOP_API_SEARCH_FAILED term={term!r} "
                     f"error={type(exc).__name__} http_status={failure['http_status']} "
                     f"detail={str(exc)[:160]!r}"
                 )
+                if snappshop_access_denied:
+                    print("SNAPPSHOP_HOST_ACCESS_DENIED stop_repeating_requests=true")
+                    break
         if isinstance(state_to_persist, dict):
             state_to_persist["snappshop_api_ids"] = dict(list(SNAPPSHOP_API_IDS_BY_URL.items())[-1000:])
         if snapp_candidates:
             snappshop_status = "ok"
+        elif snappshop_access_denied:
+            snappshop_status = "host_access_denied"
         elif snappshop_queries_succeeded == 0:
             snappshop_status = "api_unavailable"
         elif snappshop_query_failures:
@@ -3371,14 +3382,14 @@ def discover_product_urls(
 
         # Fallback discovery is attempted only after the API attempt, and only
         # while the optional source is not in cooldown.
-        if len(snapp_candidates) < min(12, MAX_PER_QUERY * 2):
+        if not snappshop_access_denied and len(snapp_candidates) < min(12, MAX_PER_QUERY * 2):
             for fallback_kind, fallback_url in snapp_fallback_sources:
                 if len(snapp_fallback_found) >= min(24, MAX_PRODUCT_CHECKS):
                     break
                 fallback_response = None
                 try:
                     fallback_response = SESSION.get(
-                        fallback_url, headers=headers, timeout=HTTP_TIMEOUT,
+                        fallback_url, headers=headers, timeout=SNAPPSHOP_HTTP_TIMEOUT,
                     )
                     fallback_response.raise_for_status()
                     if len(fallback_response.content) > 12_000_000:
@@ -3413,10 +3424,15 @@ def discover_product_urls(
                         "error": type(exc).__name__,
                         "http_status": int(status_code) if isinstance(status_code, int) else None,
                     })
+                    if status_code == 403:
+                        snappshop_access_denied = True
                     print(
                         f"SNAPPSHOP_FALLBACK_FAILED kind={fallback_kind} url={fallback_url} "
                         f"error={type(exc).__name__} http_status={status_code}"
                     )
+                    if snappshop_access_denied:
+                        print("SNAPPSHOP_HOST_ACCESS_DENIED stop_repeating_requests=true")
+                        break
         if snapp_fallback_found:
             diagnostics.append({
                 "term": "snappshop_public_pages_fallback", "ok": True,
@@ -3429,7 +3445,11 @@ def discover_product_urls(
                 "term": "snappshop_public_pages_fallback", "ok": False,
                 "products_found": 0,
                 "source": "public_category_pages_or_sitemaps",
-                "status": "unavailable" if snapp_fallback_failures else "no_product_urls",
+                "status": (
+                    "skipped_host_access_denied" if snappshop_access_denied
+                    else "unavailable" if snapp_fallback_failures
+                    else "no_product_urls"
+                ),
                 "failures": snapp_fallback_failures,
             })
         print(
@@ -3448,7 +3468,10 @@ def discover_product_urls(
                 state_to_persist["snappshop_consecutive_failures"] = 0
         elif (
             snapp_queries
-            and len(snappshop_query_failures) == len(snapp_queries)
+            and (
+                (snappshop_access_denied and snappshop_queries_succeeded == 0)
+                or len(snappshop_query_failures) == len(snapp_queries)
+            )
         ):
             try:
                 previous_failures = (
