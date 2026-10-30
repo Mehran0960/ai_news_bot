@@ -1376,7 +1376,10 @@ class AffilioRadarTests(unittest.TestCase):
         # The leading choice must leave the overrepresented audio family;
         # either of the other categories is a valid diversity improvement.
         self.assertNotEqual(selected[0]["product_id"], "dkp-audio-new")
-        self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
+        self.assertEqual(
+            {item["product_id"] for item in selected},
+            {"dkp-power-new", "dkp-fashion-new"},
+        )
 
 
     def test_recent_publication_diversity_deduplicates_same_message_ids_across_timestamps(self):
@@ -3826,12 +3829,10 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_discovery_records_for_check(
             queue, now, max_count=2, published={}, recent_publications=recent
         )
-        self.assertEqual(len(selected), 2)
-        # Family diversity may reorder close-demand audio candidates, but cannot
-        # let the much lower-demand fashion item consume either detail-check slot.
-        self.assertEqual({pid for pid, _ in selected}, {"dkp-93031", "dkp-93032"})
-        self.assertNotIn("dkp-93033", {pid for pid, _ in selected})
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93032", "dkp-93031"])
+        # The recently published headphone family is skipped. The speaker is
+        # within the demand band; the much weaker fashion product must not refill
+        # the now-empty second slot.
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93032"])
 
     def test_discovery_checks_prioritize_demand_over_deadline_urgency(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)

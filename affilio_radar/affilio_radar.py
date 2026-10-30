@@ -2635,6 +2635,7 @@ def _diversify_ranked_records(
         if post.get("brand") and float(post.get("order") or post.get("ts") or 0) >= now_ts - BRAND_REPEAT_COOLDOWN_HOURS * 3600
     ]
     remaining, selected = list(source), []
+    selection_anchor = None
 
     def _as_product(entry):
         if isinstance(entry, tuple) and len(entry) >= 2 and isinstance(entry[1], dict):
@@ -2663,18 +2664,23 @@ def _diversify_ranked_records(
         if not remaining:
             break
         lookahead = remaining[:DIVERSITY_LOOKAHEAD_CANDIDATES]
-        leader = _as_product(lookahead[0])
-        # Always retain the top-ranked record as the comparison baseline.
-        # Discovery feeds can contain pre-detail-check candidates below the
-        # minimum discount floor; rejecting the leader against itself can leave
-        # both comparable and ranked empty, aborting the entire selection scan.
-        # Publication eligibility and the minimum discount are still enforced
-        # by the downstream product-quality checks before any public send.
+        if selection_anchor is None:
+            # The first eligible candidate becomes the fixed demand baseline for
+            # this detail-check batch. Do not refill empty slots with much weaker
+            # products after the repeated family has been filtered out.
+            selection_anchor = _as_product(lookahead[0])
+        leader = selection_anchor
         comparable = [
             (position, entry, _as_product(entry))
             for position, entry in enumerate(lookahead)
-            if position == 0 or _candidate_demand_comparable_for_diversity(_as_product(entry), leader)
+            if _candidate_demand_comparable_for_diversity(_as_product(entry), leader)
         ]
+        if not comparable:
+            print(
+                f"{label}_DIVERSITY_DEMAND_GAP_STOP "
+                f"selected={len(selected)} baseline_product_id={leader.get('product_id') or 'unknown'}"
+            )
+            break
         ranked = []
         for position, entry, item in comparable:
             category, family, brand = _publication_diversity_group(item)
