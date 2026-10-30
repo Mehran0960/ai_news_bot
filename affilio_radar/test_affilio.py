@@ -301,16 +301,16 @@ class AffilioRadarTests(unittest.TestCase):
     def test_urgent_selection_never_bypasses_recent_family_cooldown(self):
         now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
         published = {
-            "dkp-previous-keyboard": {
-                "title": "کیبورد مکانیکال مدل قبلی",
+            "dkp-previous-eyewear": {
+                "title": "عینک آفتابی زنانه مدل قبلی",
                 "ts": (now - timedelta(minutes=15)).timestamp(),
                 "telegram_message_id": 100,
                 "delivery_status": {"telegram": "sent", "bale": "sent"},
             }
         }
         repeated_family = {
-            "product_id": "dkp-keyboard-urgent",
-            "title": "کیبورد و ماوس بی‌سیم مدل تازه",
+            "product_id": "dkp-eyewear-urgent",
+            "title": "عینک آفتابی ورزشی مدل تازه",
             "discount_percent": 82,
             "savings_toman": 600_000,
             "demand_score": 58,
@@ -335,16 +335,16 @@ class AffilioRadarTests(unittest.TestCase):
     def test_urgent_selection_prefers_available_candidate_from_different_family(self):
         now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
         published = {
-            "dkp-previous-keyboard": {
-                "title": "کیبورد مکانیکال مدل قبلی",
+            "dkp-previous-eyewear": {
+                "title": "عینک آفتابی زنانه مدل قبلی",
                 "ts": (now - timedelta(minutes=15)).timestamp(),
                 "telegram_message_id": 100,
                 "delivery_status": {"telegram": "sent", "bale": "sent"},
             }
         }
         same_family = {
-            "product_id": "dkp-keyboard-urgent",
-            "title": "کیبورد و ماوس بی‌سیم مدل تازه",
+            "product_id": "dkp-eyewear-urgent",
+            "title": "عینک آفتابی ورزشی مدل تازه",
             "discount_percent": 82,
             "savings_toman": 600_000,
             "demand_score": 58,
@@ -370,16 +370,16 @@ class AffilioRadarTests(unittest.TestCase):
     def test_urgent_selection_defers_when_only_candidate_is_in_recent_family(self):
         now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
         only_choice = {
-            "product_id": "dkp-keyboard-only",
-            "title": "کیبورد بی‌سیم مدل تازه",
+            "product_id": "dkp-eyewear-only",
+            "title": "عینک آفتابی اسپرت مدل تازه",
             "discount_percent": 82,
             "savings_toman": 600_000,
             "demand_score": 58,
             "deal_expires_at": (now + timedelta(minutes=150)).isoformat(),
         }
         published = {
-            "dkp-previous-keyboard": {
-                "title": "کیبورد مکانیکال مدل قبلی",
+            "dkp-previous-eyewear": {
+                "title": "عینک آفتابی زنانه مدل قبلی",
                 "ts": (now - timedelta(minutes=15)).timestamp(),
                 "telegram_message_id": 100,
             }
