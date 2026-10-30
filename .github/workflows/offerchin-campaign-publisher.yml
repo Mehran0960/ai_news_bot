@@ -1,0 +1,67 @@
+name: OfferChin Affilio Campaign Publisher
+
+on:
+  # Manual only: a special campaign is never published merely because code changes.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: offerchin-affilio-campaign-publisher
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out campaign configuration and delivery ledger
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate campaign link, copy and expiry
+        run: |
+          python -m py_compile affilio_radar/campaign_publisher.py
+          cd affilio_radar
+          python -m unittest -v test_campaign_publisher
+          cd ..
+          python affilio_radar/campaign_publisher.py --dry-run
+
+      - name: Publish campaign independently to Telegram and Bale
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/campaign_publisher.py
+
+      - name: Persist per-platform campaign results
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [[ -f affilio_radar/campaign_publication_state.json ]] && ! git diff --quiet -- affilio_radar/campaign_publication_state.json; then
+            git add affilio_radar/campaign_publication_state.json
+            git commit -m "chore: persist Affilio campaign delivery state [skip ci]"
+            for attempt in 1 2 3; do
+              if git pull --rebase origin main && git push; then
+                echo "CAMPAIGN_STATE_PERSISTED attempt=$attempt"
+                exit 0
+              fi
+              git rebase --abort 2>/dev/null || true
+              sleep $((attempt * 2))
+            done
+            echo "CAMPAIGN_STATE_PERSIST_FAILED"
+            exit 1
+          else
+            echo "No campaign delivery state changes to persist."
+          fi
