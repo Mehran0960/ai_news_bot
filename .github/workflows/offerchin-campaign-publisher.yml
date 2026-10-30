@@ -1,7 +1,14 @@
 name: OfferChin Affilio Campaign Publisher
 
 on:
-  # Manual only: a special campaign is never published merely because code changes.
+  # Code pushes validate the campaign safely but never publish it.
+  push:
+    paths:
+      - "affilio_radar/campaign_publisher.py"
+      - "affilio_radar/test_campaign_publisher.py"
+      - "affilio_radar/campaigns/**"
+      - ".github/workflows/offerchin-campaign-publisher.yml"
+  # Publishing is always an explicit manual action.
   workflow_dispatch:
 
 permissions:
@@ -12,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish:
+  campaign:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -36,6 +43,7 @@ jobs:
           python affilio_radar/campaign_publisher.py --dry-run
 
       - name: Publish campaign independently to Telegram and Bale
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
@@ -45,7 +53,7 @@ jobs:
         run: python affilio_radar/campaign_publisher.py
 
       - name: Persist per-platform campaign results
-        if: always()
+        if: ${{ always() && github.event_name == 'workflow_dispatch' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
