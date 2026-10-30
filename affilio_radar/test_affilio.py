@@ -66,6 +66,7 @@ from affilio_radar import (
     discover_product_urls,
     SEARCH_TERMS,
     _discovery_candidate_budgets,
+    _discovery_early_source_candidate_limit,
     _rotating_search_terms,
     parse_product_api,
     is_discount_publish_eligible,
@@ -913,6 +914,15 @@ class AffilioRadarTests(unittest.TestCase):
             "لاستیک خودرو", "گیاه آپارتمانی و گلدان",
         ):
             self.assertIn(term, SEARCH_TERMS)
+
+    def test_unavailable_optional_retailer_releases_its_reserved_discovery_budget(self):
+        # At 90 checks, 70 slots are available before category-search slots.
+        # Hold 12 provisionally, then return every unused slot to DigiKala.
+        self.assertEqual(_discovery_early_source_candidate_limit(70, 12, 0), 58)
+        self.assertEqual(_discovery_early_source_candidate_limit(70, 12, 4), 62)
+        self.assertEqual(_discovery_early_source_candidate_limit(70, 12, 12), 70)
+        self.assertEqual(_discovery_early_source_candidate_limit(40, 0, 0), 40)
+
 
     def test_rotating_search_batches_cover_all_terms_without_one_term_per_scan(self):
         batch_size = 12
