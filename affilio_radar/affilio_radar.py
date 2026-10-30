@@ -2845,6 +2845,27 @@ def _discovery_candidate_budgets(max_checks: int) -> tuple[int, int]:
     return max(1, cap - reserve), reserve
 
 
+def _discovery_early_source_candidate_limit(
+    presearch_candidate_limit: int,
+    retailer_reserved_slots: int,
+    usable_optional_retailer_candidates: int,
+) -> int:
+    """Release every unused optional-retailer slot back to the primary DigiKala pool."""
+    try:
+        cap = max(1, int(presearch_candidate_limit))
+    except (TypeError, ValueError, OverflowError):
+        cap = 1
+    try:
+        reserved = max(0, min(cap - 1, int(retailer_reserved_slots)))
+    except (TypeError, ValueError, OverflowError):
+        reserved = 0
+    try:
+        usable = max(0, int(usable_optional_retailer_candidates))
+    except (TypeError, ValueError, OverflowError):
+        usable = 0
+    return max(1, cap - min(reserved, usable))
+
+
 def _rotating_search_terms(slot: int, batch_size: int) -> list[str]:
     """Rotate by a full query batch, not one term, to cover the catalog quickly."""
     if not SEARCH_TERMS:
@@ -2876,7 +2897,11 @@ def discover_product_urls(
     # first: the normal five-minute scan often begins with queued candidates, so a
     # later assignment used to raise UnboundLocalError and abort every live scan.
     presearch_candidate_limit, search_reserve = _discovery_candidate_budgets(MAX_PRODUCT_CHECKS)
-    early_source_candidate_limit = max(1, presearch_candidate_limit - SNAPPSHOP_RESERVED_CANDIDATES)
+    # Hold a small reserve for SnappShop provisionally. If its API yields fewer
+    # usable candidates, the unused capacity is returned to DigiKala in this scan.
+    early_source_candidate_limit = _discovery_early_source_candidate_limit(
+        presearch_candidate_limit, SNAPPSHOP_RESERVED_CANDIDATES, 0
+    )
     print(
         f"DISCOVERY_SOURCE_BUDGET checks={MAX_PRODUCT_CHECKS} "
         f"early_sources_cap={early_source_candidate_limit} "
@@ -3234,8 +3259,11 @@ def discover_product_urls(
                     if not candidate or not product_id(candidate).startswith("snp-"):
                         continue
                     raw_api_id = card.get("id") or card.get("product_id")
-                    if raw_api_id is not None and str(raw_api_id).strip():
-                        SNAPPSHOP_API_IDS_BY_URL[candidate] = str(raw_api_id).strip()
+                    if raw_api_id is None or not str(raw_api_id).strip():
+                        # Without the retailer's internal API identity the public
+                        # product slug cannot be live-validated; don't waste a slot.
+                        continue
+                    SNAPPSHOP_API_IDS_BY_URL[candidate] = str(raw_api_id).strip()
                     SNAPPSHOP_SEARCH_CARDS_BY_URL[candidate] = card
                     price_obj = card.get("price") if isinstance(card.get("price"), dict) else {}
                     listed = _money_to_toman(price_obj.get("price") or price_obj.get("original_price"), "IRR")
@@ -3346,8 +3374,8 @@ def discover_product_urls(
                         if candidate not in snapp_fallback_found:
                             snapp_fallback_found.append(candidate)
                             added_fallback += 1
-                        if candidate not in found and len(found) < MAX_PRODUCT_CHECKS:
-                            found.append(candidate)
+                        # Sitemap/category URLs alone lack the API ID needed for
+                        # live stock/price verification, so never hand them to publisher.
                         if len(snapp_fallback_found) >= min(24, MAX_PRODUCT_CHECKS):
                             break
                     print(
@@ -3383,6 +3411,50 @@ def discover_product_urls(
         print(
             f"SNAPPSHOP_DISCOVERY_FALLBACK products={len(snapp_fallback_found)} "
             f"failed_sources={len(snapp_fallback_failures)}"
+        )
+
+    # Rebalance unused optional-retailer capacity immediately. A blocked or
+    # empty SnappShop source must never reduce DigiKala coverage or starve the
+    # existing category-search rotation.
+    usable_snappshop_candidates = min(
+        SNAPPSHOP_RESERVED_CANDIDATES, len(snapp_candidates)
+    ) if "snapp_candidates" in locals() else 0
+    rebalanced_limit = _discovery_early_source_candidate_limit(
+        presearch_candidate_limit,
+        SNAPPSHOP_RESERVED_CANDIDATES,
+        usable_snappshop_candidates,
+    )
+    if rebalanced_limit > early_source_candidate_limit:
+        previous_limit = early_source_candidate_limit
+        early_source_candidate_limit = rebalanced_limit
+        recovered = 0
+        for row in selected_deals:
+            if len(found) >= early_source_candidate_limit:
+                break
+            url = str(row.get("product_url") or "").strip()
+            if url and url not in found:
+                found.append(url)
+                recovered += 1
+                pid = product_id(url)
+                expiry = str(row.get("deal_expires_at") or deal_expiries.get(pid) or "").strip()
+                if expiry:
+                    deal_expiries[pid] = expiry
+        print(
+            f"DISCOVERY_SOURCE_BUDGET_REBALANCED primary=digikala "
+            f"previous_cap={previous_limit} new_cap={early_source_candidate_limit} "
+            f"usable_snappshop_candidates={usable_snappshop_candidates} "
+            f"recovered_digikala_candidates={recovered}"
+        )
+    elif usable_snappshop_candidates:
+        print(
+            f"DISCOVERY_SOURCE_BUDGET_RETAINED snappshop_candidates={usable_snappshop_candidates} "
+            f"early_sources_cap={early_source_candidate_limit}"
+        )
+    else:
+        print(
+            "SNAPPSHOP_OPTIONAL_SOURCE_UNAVAILABLE "
+            f"status={snappshop_status if 'snappshop_status' in locals() else 'not_attempted'} "
+            "primary_digikala_discovery_continues=true"
         )
 
     # The reserved slot count determines batch stride. The expanded 90-term
