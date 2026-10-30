@@ -2553,6 +2553,13 @@ def merge_discovery_queue(
 
 
 
+def _is_specific_product_family(category: str, family: str) -> bool:
+    """Only apply the hard family cooldown to real subfamilies, not broad/unknown buckets."""
+    category = str(category or "").strip()
+    family = str(family or "").strip()
+    return bool(family and family not in {"other", "unknown"} and family != category)
+
+
 def _candidate_demand_comparable_for_diversity(candidate: dict, leader: dict) -> bool:
     """Allow variety only when demand, recent clicks, and deal discount remain reasonably close."""
     candidate = candidate if isinstance(candidate, dict) else {}
@@ -2588,7 +2595,7 @@ def _diversify_ranked_records(
     cap = len(source) if limit is None else max(0, int(limit))
     if cap <= 0 or not source:
         return []
-    if len(source) < 2 or not (published or recent_publications):
+    if not (published or recent_publications):
         return source[:cap]
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -2635,6 +2642,26 @@ def _diversify_ranked_records(
         return entry if isinstance(entry, dict) else {}
 
     while remaining and len(selected) < cap:
+        # A specific family published inside its cooldown window is ineligible.
+        # Filter the full ranked pool before lookahead so a repeated leader cannot
+        # win via a last-resort fallback or hide alternatives just beyond lookahead.
+        fresh_remaining = []
+        skipped_families = []
+        for entry in remaining:
+            item = _as_product(entry)
+            category, family, _ = _publication_diversity_group(item)
+            if _is_specific_product_family(category, family) and family in recent_families:
+                skipped_families.append(family)
+                continue
+            fresh_remaining.append(entry)
+        if skipped_families:
+            print(
+                f"{label}_DIVERSITY_FAMILY_COOLDOWN_SKIP "
+                f"count={len(skipped_families)} families={','.join(sorted(set(skipped_families))[:5])}"
+            )
+        remaining = fresh_remaining
+        if not remaining:
+            break
         lookahead = remaining[:DIVERSITY_LOOKAHEAD_CANDIDATES]
         leader = _as_product(lookahead[0])
         # Always retain the top-ranked record as the comparison baseline.
@@ -5679,8 +5706,9 @@ def _order_candidates_by_primary_rank(
     published: dict | None = None,
     recent_publications: list | None = None,
     now: datetime | None = None,
+    allow_family_repeat: bool = False,
 ) -> list[dict]:
-    """Rank by demand first, but strongly prefer a non-repeating category when comparable alternatives exist."""
+    """Rank by demand, enforce specific-family cooldowns, and softly balance categories."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -5765,8 +5793,24 @@ def _order_candidates_by_primary_rank(
         >= now_ts - RETAILER_REPEAT_COOLDOWN_MINUTES * 60
     ]
 
+    def group(item: dict) -> tuple[str, str, str]:
+        return _publication_diversity_group(item)
+
     ordered: list[dict] = []
+    family_cooldown_skips = 0
     while remaining:
+        if not allow_family_repeat:
+            family_fresh_remaining = [
+                item for item in remaining
+                if not (
+                    _is_specific_product_family(group(item)[0], group(item)[1])
+                    and group(item)[1] in recent_families
+                )
+            ]
+            family_cooldown_skips += len(remaining) - len(family_fresh_remaining)
+            remaining = family_fresh_remaining
+            if not remaining:
+                break
         leader = remaining[0]
         lookahead = remaining[:DIVERSITY_LOOKAHEAD_CANDIDATES]
         def has_explicit_demand_advantage(candidate: dict, top_candidate: dict) -> bool:
@@ -5795,9 +5839,6 @@ def _order_candidates_by_primary_rank(
         ]
         if not comparable:
             comparable = [(0, leader)]
-
-        def group(item: dict) -> tuple[str, str, str]:
-            return _publication_diversity_group(item)
 
         fresh_category_and_family = [
             row for row in comparable
@@ -5916,10 +5957,17 @@ def _order_candidates_by_primary_rank(
     _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = _publication_rank_diagnostics(
         ordered, fallback_events, initial_candidate_count
     )
+    if family_cooldown_skips:
+        print(
+            f"PUBLISH_DIVERSITY_FAMILY_COOLDOWN_SKIP count={family_cooldown_skips} "
+            f"remaining_candidates={len(remaining)}"
+        )
     print(
         "PUBLISH_DIVERSITY_RANKING "
         + json.dumps({
             "candidates": initial_candidate_count,
+            "selected": len(ordered),
+            "family_cooldown_skips": family_cooldown_skips,
             "top10_categories": _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS["top10_category_counts"],
             "fallbacks_without_comparable_category": len(fallback_events),
         }, ensure_ascii=False, sort_keys=True)
@@ -5944,7 +5992,8 @@ def select_urgent_publication_candidate(
     if not urgent:
         return None
     return _order_candidates_by_primary_rank(
-        urgent, published=published, recent_publications=recent_publications, now=current
+        urgent, published=published, recent_publications=recent_publications,
+        now=current, allow_family_repeat=True,
     )[0]
 
 
