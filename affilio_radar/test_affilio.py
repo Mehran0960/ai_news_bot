@@ -2051,6 +2051,7 @@ class AffilioRadarTests(unittest.TestCase):
             candidates, {"published": {}}, now
         )
         self.assertEqual(floor, 50)
+        self.assertEqual(selected[0]["selection_discount_floor"], 50)
         self.assertEqual(selected[0]["product_id"], "dkp-95001")
         self.assertEqual(len(quality), 2)
 
@@ -2104,6 +2105,7 @@ class AffilioRadarTests(unittest.TestCase):
             candidates, {"published": published}, now
         )
         self.assertEqual(floor, 45)
+        self.assertEqual(selected[0]["selection_discount_floor"], 45)
         self.assertEqual([item["product_id"] for item in selected], ["dkp-95103"])
 
 
@@ -2157,6 +2159,7 @@ class AffilioRadarTests(unittest.TestCase):
             candidates, {"published": published}, now
         )
         self.assertEqual(floor, 40)
+        self.assertEqual(selected[0]["selection_discount_floor"], 40)
         self.assertEqual([item["product_id"] for item in selected], ["dkp-95205"])
 
 

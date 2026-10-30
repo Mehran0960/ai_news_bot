@@ -184,6 +184,18 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     if not product_url or radar.product_id(product_url) != product_id:
         return None, "invalid_product_identity"
 
+    # New queue entries persist the exact fallback tier selected by discovery.
+    # Legacy queue entries without this field retain the historical 50% default.
+    raw_discount_floor = payload.get("selection_discount_floor")
+    minimum_discount_percent = None
+    if raw_discount_floor is not None:
+        try:
+            minimum_discount_percent = int(raw_discount_floor)
+        except (TypeError, ValueError, OverflowError):
+            return None, "invalid_selection_discount_floor"
+        if minimum_discount_percent not in radar.DISCOUNT_FALLBACK_FLOORS:
+            return None, "invalid_selection_discount_floor"
+
     try:
         fresh = radar.fetch_product_record(product_url)
     except Exception as exc:
@@ -283,7 +295,9 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
 
     if fresh.get("availability") != "in_stock":
         return None, "live_stock_not_confirmed"
-    if not radar.is_discount_publish_eligible(fresh):
+    if not radar.is_discount_publish_eligible(
+        fresh, minimum_discount_percent=minimum_discount_percent
+    ):
         return None, "live_discount_no_longer_eligible"
     if not radar.is_market_value_publish_eligible(fresh):
         return None, "live_market_value_rejected"

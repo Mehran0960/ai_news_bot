@@ -138,6 +138,95 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertIsNone(fresh)
         self.assertEqual(reason, "live_product_prohibited_title")
 
+    def test_publisher_honors_selected_fallback_floor_and_keeps_legacy_50_percent_default(self):
+        from unittest.mock import patch
+
+        product_id = "dkp-95045"
+        product_url = f"https://www.digikala.com/product/{product_id}/"
+        affiliate_url = (
+            "https://aflo.ir/QekEYTRg?p="
+            "https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95045%2F"
+        )
+        payload = {
+            "product_id": product_id,
+            "product_url": product_url,
+            "title": "شارژر سریع دیواری مدل تست",
+            "current_price": 550_000,
+            "original_price": 1_000_000,
+            "discount_percent": 45,
+            "savings_toman": 450_000,
+            "affiliate_url": affiliate_url,
+            "selection_discount_floor": 45,
+            "deal_expires_at": "",
+        }
+        fresh_record = {
+            "title": "شارژر سریع دیواری مدل تست",
+            "image_url": "https://example.com/product.webp",
+            "current_price": 550_000,
+            "original_price": 1_000_000,
+            "discount_percent": 45,
+            "savings_toman": 450_000,
+            "availability": "in_stock",
+            "deal_expires_at": "",
+        }
+
+        def discount_gate(record, minimum_discount_percent=None):
+            floor = 50 if minimum_discount_percent is None else minimum_discount_percent
+            return (
+                int(record.get("discount_percent") or 0) >= floor
+                and int(record.get("savings_toman") or 0) >= 100_000
+            )
+
+        patches = (
+            patch("publisher.radar.fetch_product_record", return_value=dict(fresh_record)),
+            patch("publisher.radar.is_prohibited_product_title", return_value=False),
+            patch("publisher.radar.is_publishable_product_title", return_value=True),
+            patch("publisher.radar._is_valid_affilio_tracking_url", return_value=True),
+            patch("publisher.radar.score_product", side_effect=lambda item: item),
+            patch(
+                "publisher.radar.verify_live_page_price",
+                return_value={"ok": True, "page_price": 550_000},
+            ),
+            patch("publisher.radar.is_discount_publish_eligible", side_effect=discount_gate),
+            patch("publisher.radar.is_market_value_publish_eligible", return_value=True),
+            patch("publisher.radar.has_publishable_expiry_or_open_offer", return_value=True),
+        )
+        with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6] as discount_check, patches[7], patches[8]:
+            entry = {"product_id": product_id, "payload": dict(payload)}
+            fresh, reason = _fresh_selected_item(entry, self.now)
+            self.assertIsNotNone(fresh)
+            self.assertEqual(reason, "")
+            discount_check.assert_called_once()
+            self.assertEqual(
+                discount_check.call_args.kwargs["minimum_discount_percent"], 45
+            )
+
+            # Old queued items have no selected floor: keep their original 50% rule.
+            discount_check.reset_mock()
+            legacy_payload = dict(payload)
+            legacy_payload.pop("selection_discount_floor")
+            legacy_entry = {"product_id": product_id, "payload": legacy_payload}
+            fresh, reason = _fresh_selected_item(legacy_entry, self.now)
+            self.assertIsNone(fresh)
+            self.assertEqual(reason, "live_discount_no_longer_eligible")
+            discount_check.assert_called_once()
+            self.assertIsNone(
+                discount_check.call_args.kwargs["minimum_discount_percent"]
+            )
+
+    def test_publisher_rejects_invalid_selected_discount_floor(self):
+        entry = {
+            "product_id": "dkp-95045",
+            "payload": {
+                "product_id": "dkp-95045",
+                "product_url": "https://www.digikala.com/product/dkp-95045/",
+                "selection_discount_floor": 44,
+            },
+        }
+        fresh, reason = _fresh_selected_item(entry, self.now)
+        self.assertIsNone(fresh)
+        self.assertEqual(reason, "invalid_selection_discount_floor")
+
     def test_only_a_fresh_active_unpublished_selection_reserves_next_channel_slot(self):
         last_channel_send = self.now - timedelta(minutes=30)
         failed_selection = self.now - timedelta(minutes=3)

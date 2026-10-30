@@ -6372,12 +6372,21 @@ def select_discount_fallback_candidates(
         )
         if ranked:
             label = discount_fallback_band_label(floor, upper_exclusive)
+            # Carry the exact selected fallback floor into the independent publisher.
+            # Its final live validation must enforce this same threshold, not silently
+            # revert to the preferred 50% default for a legitimate lower-tier selection.
+            handoff_candidates = []
+            for product in ranked:
+                selected_product = dict(product)
+                selected_product["selection_discount_floor"] = int(floor)
+                selected_product["selection_discount_band"] = label
+                handoff_candidates.append(selected_product)
             print(
                 f"DISCOUNT_FALLBACK_SELECTED band={label} floor={floor}% "
                 f"quality_pool={len(quality_eligible)} fresh_pool={len(fresh_candidates)} "
                 f"band_candidates={len(band)}"
             )
-            return ranked, floor, quality_eligible
+            return handoff_candidates, floor, quality_eligible
         print(
             f"DISCOUNT_FALLBACK_BAND_EXHAUSTED band={discount_fallback_band_label(floor, upper_exclusive)} "
             "reason=recent_family_cooldown"
