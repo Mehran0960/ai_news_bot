@@ -177,7 +177,7 @@ jobs:
           assert stats.get("complete") is True, stats
           assert isinstance(stats.get("products"), dict), stats
           assert all(
-              __import__("re").fullmatch(r"(?:dkp-\\d{1,12}|snp-\\d{1,20})", str(pid))
+              __import__("re").fullmatch(r"(?:dkp-\d{1,12}|snp-\d{1,20})", str(pid))
               for pid in stats["products"]
           ), "click statistics contain invalid product IDs"
           print(
