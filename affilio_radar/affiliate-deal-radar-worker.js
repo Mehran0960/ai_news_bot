@@ -113,7 +113,7 @@ export default {
         for (let index = 0; index < pages.length; index++) {
           const page = pages[index];
           for (const key of page.keys || []) {
-            const match = String(key.name || "").match(/^click:(d{4}-d{2}-d{2}):((?:dkp-d{1,12})|(?:snp-d{1,20}))(?::(?:telegram|bale|youtube|aparat|unknown))?:/);
+            const match = String(key.name || "").match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20}))(?::(?:telegram|bale|youtube|aparat|unknown))?:/);
             if (match) {
               const productId = match[2];
               products[productId] = (products[productId] || 0) + 1;
