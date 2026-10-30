@@ -2845,6 +2845,15 @@ def _discovery_candidate_budgets(max_checks: int) -> tuple[int, int]:
     return max(1, cap - reserve), reserve
 
 
+def _snappshop_retry_cooldown_minutes(consecutive_failures: int) -> int:
+    """Back off a retailer that repeatedly blocks every supported public entry point."""
+    try:
+        failures = max(1, int(consecutive_failures))
+    except (TypeError, ValueError, OverflowError):
+        failures = 1
+    return min(24 * 60, 6 * 60 * (2 ** min(failures - 1, 2)))
+
+
 def _discovery_early_source_candidate_limit(
     presearch_candidate_limit: int,
     retailer_reserved_slots: int,
@@ -3228,14 +3237,41 @@ def discover_product_urls(
             if canonical and product_id(canonical).startswith("snp-") and api_id:
                 SNAPPSHOP_API_IDS_BY_URL[canonical] = api_id
 
+    # SnappShop is an optional source. After repeated failures from both its API
+    # and indexable public pages, pause only this source with bounded backoff.
+    snapp_candidates = []
+    snapp_queries = []
+    snappshop_queries_succeeded = 0
+    snappshop_query_failures = []
+    snapp_fallback_found = []
+    snapp_fallback_failures = []
+    snapp_fallback_sources = [
+        ("category", "https://snappshop.ir/category/digital"),
+        ("category", "https://snappshop.ir/category/home"),
+        ("category", "https://snappshop.ir/category/beauty"),
+        ("category", "https://snappshop.ir/category/fashion"),
+        ("category", "https://snappshop.ir/category/supermarket"),
+        ("sitemap", "https://snappshop.ir/sitemap.xml"),
+        ("sitemap", "https://snappshop.ir/sitemap/v1/static_0.xml"),
+        ("sitemap", "https://snappshop.ir/plus/sitemap_index.xml"),
+    ]
+    snappshop_status = "not_attempted"
+    retry_until = _parse_utc_datetime(
+        state_to_persist.get("snappshop_retry_after") if isinstance(state_to_persist, dict) else None
+    )
+    snappshop_cooldown_active = bool(retry_until and retry_until > datetime.now(timezone.utc))
+    if snappshop_cooldown_active:
+        snappshop_status = "cooldown"
+        print(
+            f"SNAPPSHOP_OPTIONAL_SOURCE_COOLDOWN retry_at={retry_until.isoformat()} "
+            "primary_digikala_discovery_continues=true"
+        )
+
     # SnappShop discovery shares the early-source budget. It cannot consume the
     # reserved slots needed for rotating DigiKala category searches below.
-    if len(found) < presearch_candidate_limit:
+    if len(found) < presearch_candidate_limit and not snappshop_cooldown_active:
         snapp_queries = _rotating_search_terms(search_slot, SNAPPSHOP_QUERIES_PER_SCAN)[:SNAPPSHOP_QUERIES_PER_SCAN]
         headers = _snappshop_request_headers()
-        snapp_candidates = []
-        snappshop_queries_succeeded = 0
-        snappshop_query_failures = []
         for term in snapp_queries:
             response = None
             try:
@@ -3333,21 +3369,8 @@ def discover_product_urls(
             f"products={len(snapp_candidates)} retained_api_ids={len(SNAPPSHOP_API_IDS_BY_URL)}"
         )
 
-        # Fallback discovery: the undocumented search API may return 403 from
-        # GitHub-hosted runners. Try public, indexable category pages and sitemaps
-        # instead; all discovered URLs are still live-validated before publication.
-        snapp_fallback_found = []
-        snapp_fallback_failures = []
-        snapp_fallback_sources = [
-            ("category", "https://snappshop.ir/category/digital"),
-            ("category", "https://snappshop.ir/category/home"),
-            ("category", "https://snappshop.ir/category/beauty"),
-            ("category", "https://snappshop.ir/category/fashion"),
-            ("category", "https://snappshop.ir/category/supermarket"),
-            ("sitemap", "https://snappshop.ir/sitemap.xml"),
-            ("sitemap", "https://snappshop.ir/sitemap/v1/static_0.xml"),
-            ("sitemap", "https://snappshop.ir/plus/sitemap_index.xml"),
-        ]
+        # Fallback discovery is attempted only after the API attempt, and only
+        # while the optional source is not in cooldown.
         if len(snapp_candidates) < min(12, MAX_PER_QUERY * 2):
             for fallback_kind, fallback_url in snapp_fallback_sources:
                 if len(snapp_fallback_found) >= min(24, MAX_PRODUCT_CHECKS):
@@ -3413,6 +3436,47 @@ def discover_product_urls(
             f"SNAPPSHOP_DISCOVERY_FALLBACK products={len(snapp_fallback_found)} "
             f"failed_sources={len(snapp_fallback_failures)}"
         )
+
+        # Set a source-local cooldown only when every query and every public
+        # fallback failed. Other discovery sources and destination publishers
+        # continue normally. A successful API response resets the failure streak.
+        if snapp_candidates:
+            if isinstance(state_to_persist, dict):
+                state_to_persist.pop("snappshop_retry_after", None)
+                state_to_persist["snappshop_consecutive_failures"] = 0
+        elif (
+            snapp_queries
+            and snappshop_queries_succeeded == 0
+            and len(snappshop_query_failures) == len(snapp_queries)
+            and len(snapp_fallback_failures) == len(snapp_fallback_sources)
+        ):
+            try:
+                failures = max(0, int(state_to_persist.get("snappshop_consecutive_failures") or 0)) + 1
+            except (TypeError, ValueError, OverflowError):
+                failures = 1
+            cooldown_minutes = _snappshop_retry_cooldown_minutes(failures)
+            retry_at = datetime.now(timezone.utc) + timedelta(minutes=cooldown_minutes)
+            if isinstance(state_to_persist, dict):
+                state_to_persist["snappshop_consecutive_failures"] = failures
+                state_to_persist["snappshop_retry_after"] = retry_at.isoformat()
+            snappshop_status = "api_and_public_pages_unavailable_backoff"
+            print(
+                f"SNAPPSHOP_OPTIONAL_SOURCE_BACKOFF failures={failures} "
+                f"cooldown_minutes={cooldown_minutes} retry_at={retry_at.isoformat()} "
+                "primary_digikala_discovery_continues=true"
+            )
+        if isinstance(state_to_persist, dict):
+            save_json(STATE, state_to_persist)
+
+    if snappshop_cooldown_active:
+        diagnostics.append({
+            "term": "snappshop_optional_source",
+            "ok": False,
+            "products_found": 0,
+            "source": "snappshop_public_api",
+            "status": "cooldown",
+            "retry_after": retry_until.isoformat(),
+        })
 
     # Rebalance unused optional-retailer capacity immediately. A blocked or
     # empty SnappShop source must never reduce DigiKala coverage or starve the
