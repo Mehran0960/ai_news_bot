@@ -2018,6 +2018,216 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertGreaterEqual(high_ticket_50_percent["savings_toman"], 100_000)
         self.assertTrue(is_discount_publish_eligible(high_ticket_50_percent))
 
+    def test_discount_fallback_prefers_50_plus_before_higher_demand_45_band(self):
+        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+
+        def product(pid, title, discount, demand):
+            current_price = 1_000_000
+            original_price = int(round(current_price / (1 - discount / 100)))
+            return {
+                "product_id": pid,
+                "title": title,
+                "availability": "in_stock",
+                "availability_source": "digikala_api",
+                "current_price": current_price,
+                "original_price": original_price,
+                "discount_percent": discount,
+                "savings_toman": original_price - current_price,
+                "image_url": "https://example.com/product.webp",
+                "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2F" + pid + "%2F",
+                "has_affiliate_link": True,
+                "demand_score": demand,
+                "review_count": 1000,
+                "rating": 4.5,
+                "deal_expires_at": "",
+                "expiry_source": "unavailable",
+            }
+
+        candidates = [
+            product("dkp-tier-50", "هدفون بلوتوثی مدل برتر", 50, 55),
+            product("dkp-tier-45", "شارژر سریع مدل پرفروش", 49, 99),
+        ]
+        selected, floor, quality = radar_module.select_discount_fallback_candidates(
+            candidates, {"published": {}}, now
+        )
+        self.assertEqual(floor, 50)
+        self.assertEqual(selected[0]["product_id"], "dkp-tier-50")
+        self.assertEqual(len(quality), 2)
+
+
+    def test_discount_fallback_steps_down_when_top_band_is_in_recent_family_cooldown(self):
+        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-recent-eyewear": {
+                "title": "عینک آفتابی زنانه مدل قبلی",
+                "telegram_message_id": 1511,
+                "ts": (now - timedelta(minutes=20)).timestamp(),
+            }
+        }
+        candidates = [
+            {
+                "product_id": "dkp-tier-eyewear",
+                "title": "عینک آفتابی ورزشی مدل تازه",
+                "availability": "in_stock",
+                "availability_source": "digikala_api",
+                "current_price": 1_000_000,
+                "original_price": 2_000_000,
+                "discount_percent": 50,
+                "savings_toman": 1_000_000,
+                "image_url": "https://example.com/eyewear.webp",
+                "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-tier-eyewear%2F",
+                "has_affiliate_link": True,
+                "demand_score": 95,
+                "review_count": 2000,
+                "rating": 4.7,
+                "deal_expires_at": "",
+            },
+            {
+                "product_id": "dkp-tier-charger",
+                "title": "شارژر سریع دیواری مدل جدید",
+                "availability": "in_stock",
+                "availability_source": "digikala_api",
+                "current_price": 1_000_000,
+                "original_price": 1_818_182,
+                "discount_percent": 45,
+                "savings_toman": 818_182,
+                "image_url": "https://example.com/charger.webp",
+                "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-tier-charger%2F",
+                "has_affiliate_link": True,
+                "demand_score": 65,
+                "review_count": 1200,
+                "rating": 4.6,
+                "deal_expires_at": "",
+            },
+        ]
+        selected, floor, _ = radar_module.select_discount_fallback_candidates(
+            candidates, {"published": published}, now
+        )
+        self.assertEqual(floor, 45)
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-tier-charger"])
+
+
+    def test_discount_fallback_descends_multiple_bands_when_recent_families_block_higher_bands(self):
+        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-recent-eyewear": {
+                "title": "عینک آفتابی زنانه مدل قبلی",
+                "telegram_message_id": 1521,
+                "ts": (now - timedelta(minutes=20)).timestamp(),
+            },
+            "dkp-recent-charger": {
+                "title": "شارژر سریع مدل قبلی",
+                "telegram_message_id": 1522,
+                "ts": (now - timedelta(minutes=15)).timestamp(),
+            },
+        }
+        candidates = [
+            {
+                "product_id": "dkp-tier-eyewear",
+                "title": "عینک آفتابی ورزشی مدل تازه",
+                "availability": "in_stock", "availability_source": "digikala_api",
+                "current_price": 1_000_000, "original_price": 2_000_000,
+                "discount_percent": 50, "savings_toman": 1_000_000,
+                "image_url": "https://example.com/a.webp",
+                "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fa",
+                "has_affiliate_link": True, "deal_expires_at": "",
+            },
+            {
+                "product_id": "dkp-tier-charger",
+                "title": "شارژر سریع دیواری مدل تازه",
+                "availability": "in_stock", "availability_source": "digikala_api",
+                "current_price": 1_000_000, "original_price": 1_818_182,
+                "discount_percent": 45, "savings_toman": 818_182,
+                "image_url": "https://example.com/b.webp",
+                "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fb",
+                "has_affiliate_link": True, "deal_expires_at": "",
+            },
+            {
+                "product_id": "dkp-tier-fragrance",
+                "title": "ادوپرفیوم زنانه مدل تازه",
+                "availability": "in_stock", "availability_source": "digikala_api",
+                "current_price": 1_000_000, "original_price": 1_666_667,
+                "discount_percent": 40, "savings_toman": 666_667,
+                "image_url": "https://example.com/c.webp",
+                "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fc",
+                "has_affiliate_link": True, "deal_expires_at": "",
+            },
+        ]
+        selected, floor, _ = radar_module.select_discount_fallback_candidates(
+            candidates, {"published": published}, now
+        )
+        self.assertEqual(floor, 40)
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-tier-fragrance"])
+
+
+    def test_discount_fallback_does_not_bypass_savings_or_market_value_hard_gates(self):
+        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+        high_discount = {
+            "product_id": "dkp-market-bad",
+            "title": "گوشی موبایل پرتقاضا مدل نمونه",
+            "availability": "in_stock", "availability_source": "digikala_api",
+            "current_price": 1_000_000, "original_price": 2_000_000,
+            "discount_percent": 60, "savings_toman": 1_000_000,
+            "image_url": "https://example.com/a.webp",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fa",
+            "has_affiliate_link": True, "deal_expires_at": "",
+            "market_status": "verified", "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": -8,
+        }
+        lower_discount = {
+            "product_id": "dkp-market-good",
+            "title": "ادوپرفیوم زنانه مدل تازه",
+            "availability": "in_stock", "availability_source": "digikala_api",
+            "current_price": 1_000_000, "original_price": 1_538_462,
+            "discount_percent": 35, "savings_toman": 538_462,
+            "image_url": "https://example.com/b.webp",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fb",
+            "has_affiliate_link": True, "deal_expires_at": "",
+        }
+        small_saving = {
+            **lower_discount,
+            "product_id": "dkp-small-saving",
+            "discount_percent": 10,
+            "savings_toman": 50_000,
+        }
+        selected, floor, quality = radar_module.select_discount_fallback_candidates(
+            [high_discount, lower_discount, small_saving], {"published": {}}, now
+        )
+        self.assertEqual(floor, 35)
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-market-good"])
+        self.assertEqual({item["product_id"] for item in quality}, {"dkp-market-good"})
+
+
+    def test_fallback_discount_comparison_does_not_reimpose_the_50_percent_floor(self):
+        stronger = {"demand_score": 60, "click_count_30d": 100, "discount_percent": 49}
+        comparable = {"demand_score": 50, "click_count_30d": 90, "discount_percent": 45}
+        self.assertTrue(
+            radar_module._candidate_demand_comparable_for_diversity(comparable, stronger)
+        )
+
+
+    def test_open_ended_discovery_candidates_are_not_rejected_before_live_detail_check(self):
+        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+        queue = {
+            "dkp-open-deal": {
+                "product_id": "dkp-open-deal",
+                "product_url": "https://www.digikala.com/product/dkp-open-deal/",
+                "title": "کالای پرفروش با آفر باز",
+                "deal_expires_at": "",
+                "discount_percent": 45,
+                "savings_toman": 400_000,
+                "demand_score": 80,
+                "next_check_at": "",
+            }
+        }
+        selected = select_discovery_records_for_check(queue, now, max_count=1)
+        self.assertEqual([pid for pid, _ in selected], ["dkp-open-deal"])
+        queued_rechecks = radar_module.select_queued_records_for_recheck(
+            {"dkp-open-deal": queue["dkp-open-deal"]}, now, max_count=1
+        )
+        self.assertEqual([pid for pid, _ in queued_rechecks], ["dkp-open-deal"])
+
+
     def test_fifteen_percent_discount_is_rejected_by_fifty_percent_floor(self):
         product = {
             "title": "چراغ مطالعه مدل تست",
@@ -3879,10 +4089,10 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_discovery_records_for_check(
             queue, now, max_count=2, published={}, recent_publications=recent
         )
-        # The recently published headphone family is skipped. The speaker is
-        # within the demand band; the much weaker fashion product must not refill
-        # the now-empty second slot.
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93032"])
+        # The recently published headphone family is skipped. The speaker stays
+        # first by demand; the lower-demand fashion candidate fills the remaining
+        # bounded detail-check slot instead of starving the discovery pipeline.
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93032", "dkp-93033"])
 
     def test_discovery_checks_prioritize_demand_over_deadline_urgency(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)

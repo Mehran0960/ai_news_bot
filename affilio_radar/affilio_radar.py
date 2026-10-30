@@ -102,7 +102,11 @@ PREFERRED_POSTING_WINDOWS = (("morning", 9, 11), ("afternoon", 14, 17), ("evenin
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
 MCP_OFFER_PAGES_PER_SCAN = max(1, min(DEAL_LIST_PAGES, int(os.getenv("AFFILIO_MCP_PAGES_PER_SCAN", "2"))))
 # One price- and category-neutral floor; real-value checks remain mandatory before publishing.
+# Start at 50%+, then step down in five-point bands only when the higher band
+# has no fresh, fully validated product. Do not drop below a real 5% discount.
 MIN_DISCOUNT_PERCENT = max(50, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "50"))))
+DISCOUNT_FALLBACK_FLOORS = tuple(range(50, 4, -5))
+MIN_DISCOUNT_FALLBACK_PERCENT = DISCOUNT_FALLBACK_FLOORS[-1]
 MIN_SAVINGS_TOMAN = 100_000
 PRICE_HISTORY_CHECK_LIMIT = max(0, min(25, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "15"))))
 MIN_HISTORICAL_PRICE_DAYS = max(3, min(30, int(os.getenv("AFFILIO_MIN_HISTORICAL_PRICE_DAYS", "7"))))
@@ -2291,10 +2295,14 @@ def select_queued_records_for_recheck(
             continue
         canonical = safe_product_url(record.get("product_url", ""))
         deadline = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
-        if not canonical or product_id(canonical) != pid or deadline is None or deadline <= current:
+        if not canonical or product_id(canonical) != pid:
             continue
-        # Never spend detail-check budget on a deal that leaves too little time to act.
-        if not has_minimum_publication_runway(record, current):
+        # An unknown timer is not proof that an offer has expired. It may be
+        # rechecked as an open offer, then accepted only after live stock/price
+        # validation. A known deadline must still leave the full publication runway.
+        if deadline is not None and (
+            deadline <= current or not has_minimum_publication_runway(record, current)
+        ):
             continue
         eligible.append((pid, record))
 
@@ -2378,21 +2386,28 @@ def _candidate_promo_score(record: dict) -> int:
 
 
 
-def has_meaningful_discount(record: dict) -> bool:
-    """Apply the same minimum listed discount to every product and price band.
+def has_meaningful_discount(
+    record: dict,
+    minimum_discount_percent: int | None = None,
+) -> bool:
+    """Validate a real listed reduction with a selectable five-point fallback floor.
 
-    The discount must be at least 50% and the listed saving at least 100,000 toman.
-    Historical/market-price validation still determines whether that listed saving
-    is genuine; no high-ticket or category-specific exception is allowed.
+    The default remains the preferred 50%+ band. The scheduled selector explicitly
+    walks lower bands only after every higher band is empty after the other hard gates.
+    The minimum absolute saving remains 100,000 toman at every band.
     """
     if not isinstance(record, dict):
         return False
     try:
         discount = max(0, int(record.get("discount_percent") or 0))
         savings = max(0, int(record.get("savings_toman") or 0))
+        floor = MIN_DISCOUNT_PERCENT if minimum_discount_percent is None else max(
+            MIN_DISCOUNT_FALLBACK_PERCENT,
+            min(100, int(minimum_discount_percent)),
+        )
     except (TypeError, ValueError, OverflowError):
         return False
-    return discount >= MIN_DISCOUNT_PERCENT and savings >= MIN_SAVINGS_TOMAN and savings > 0
+    return discount >= floor and savings >= MIN_SAVINGS_TOMAN and savings > 0
 
 
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
@@ -2576,7 +2591,7 @@ def _candidate_demand_comparable_for_diversity(candidate: dict, leader: dict) ->
     # Missing data is unknown, not a known zero-percent offer; enforce the
     # quality comparison only when both candidates have measured discounts.
     if leader_discount > 0 and candidate_discount > 0:
-        minimum_comparable_discount = max(MIN_DISCOUNT_PERCENT, leader_discount - 25)
+        minimum_comparable_discount = max(0, leader_discount - 25)
         if candidate_discount < minimum_comparable_discount:
             return False
     return True
@@ -2677,11 +2692,15 @@ def _diversify_ranked_records(
             or _candidate_demand_comparable_for_diversity(_as_product(entry), leader)
         ]
         if not comparable:
+            # Demand is a ranking signal, not a hard eligibility gate. Continue with
+            # the next best remaining record so a large catalog can fill the bounded
+            # live-detail budget and reveal the next available discount tier.
             print(
-                f"{label}_DIVERSITY_DEMAND_GAP_STOP "
-                f"selected={len(selected)} baseline_product_id={leader.get('product_id') or 'unknown'}"
+                f"{label}_DIVERSITY_DEMAND_GAP_CONTINUE "
+                f"selected={len(selected)} baseline_product_id={leader.get('product_id') or 'unknown'} "
+                f"next_product_id={_as_product(lookahead[0]).get('product_id') or 'unknown'}"
             )
-            break
+            comparable = [(0, lookahead[0], _as_product(lookahead[0]))]
         ranked = []
         for position, entry, item in comparable:
             category, family, brand = _publication_diversity_group(item)
@@ -2751,11 +2770,11 @@ def select_discovery_records_for_check(
         if not url or product_id(url) != pid:
             continue
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
-        # Unknown, expired, or too-near deadlines cannot publish and should not use
-        # the finite detailed-check budget.
-        if expiry is None or expiry <= current:
-            continue
-        if not has_minimum_publication_runway(record, current):
+        # Open-ended offers may use a bounded detail check. Only a known expired
+        # or too-near deadline is ineligible; live stock/price is checked afterwards.
+        if expiry is not None and (
+            expiry <= current or not has_minimum_publication_runway(record, current)
+        ):
             continue
         next_check = _parse_utc_datetime(record.get("next_check_at"))
         if next_check and next_check > current:
@@ -2960,10 +2979,11 @@ def discover_product_urls(
             continue
         canonical = safe_product_url(record.get("product_url", ""))
         deadline = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
-        if not canonical or deadline is None or deadline <= queue_now:
+        if not canonical or (deadline is not None and deadline <= queue_now):
             continue
         found.append(canonical)
-        queued_expiries[str(pid)] = deadline.isoformat()
+        if deadline is not None:
+            queued_expiries[str(pid)] = deadline.isoformat()
     if queued_repeat_or_active_skips:
         print(
             "DISCOVERY_PENDING_QUEUE_FILTERED "
@@ -3861,13 +3881,16 @@ def is_publish_eligible(product: dict) -> bool:
     )
 
 
-def is_discount_publish_eligible(product: dict) -> bool:
-    """Require a meaningful listed price reduction; RRP is not historical proof."""
+def is_discount_publish_eligible(
+    product: dict,
+    minimum_discount_percent: int | None = None,
+) -> bool:
+    """Require verified stock, a tracked link, a complete title, and a real price drop."""
     return bool(
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
-        and has_meaningful_discount(product)
+        and has_meaningful_discount(product, minimum_discount_percent)
     )
 
 
@@ -5621,7 +5644,9 @@ def build_publication_diversity_report(
     return {
         "generated_at": current.isoformat(),
         "policy": {
-            "minimum_discount_percent": MIN_DISCOUNT_PERCENT,
+            "minimum_discount_percent": MIN_DISCOUNT_FALLBACK_PERCENT,
+            "preferred_discount_floor_percent": MIN_DISCOUNT_PERCENT,
+            "discount_fallback_floors": list(DISCOUNT_FALLBACK_FLOORS),
             "minimum_savings_toman": MIN_SAVINGS_TOMAN,
             "category_repeat_cooldown_minutes": CATEGORY_REPEAT_COOLDOWN_MINUTES,
             "family_repeat_cooldown_hours": FAMILY_REPEAT_COOLDOWN_HOURS,
@@ -6272,6 +6297,97 @@ def is_fresh_selection_candidate(
         return False
     previous = _publication_cooldown_record(state, key)
     return not is_product_repeat_blocked(previous, product, now)
+
+
+def discount_fallback_band_label(floor: int, upper_exclusive: int | None) -> str:
+    """Human-readable discount band used in logs and operational reports."""
+    if upper_exclusive is None:
+        return f"{floor}%+"
+    return f"{floor}%–{upper_exclusive - 1}%"
+
+
+def select_discount_fallback_candidates(
+    products: list[dict],
+    state: dict,
+    now: datetime | None = None,
+) -> tuple[list[dict], int | None, list[dict]]:
+    """Choose the highest available discount band after every other hard gate.
+
+    Hard gates are unchanged: live stock, current price, image, affiliate link,
+    complete/non-prohibited title, at least 100,000 toman saved, competitive market
+    price when reliable data exists, valid open-ended/verified offer, user suppression,
+    product cooldown, active-post protection, and recent-family cooldown.
+
+    Within the first non-empty band, demand remains the primary ranking signal and
+    category/family/brand/retailer history drives diversity. The returned third value
+    contains every product that passed the non-discount quality gates in any band;
+    it is used for delivery retries and truthful diagnostics, not new selection.
+    """
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    state = state if isinstance(state, dict) else {}
+
+    quality_eligible: list[dict] = []
+    fresh_candidates: list[dict] = []
+    seen_ids: set[str] = set()
+    for product in products or []:
+        if not isinstance(product, dict):
+            continue
+        pid = str(product.get("product_id") or product_id(product.get("product_url") or "")).strip()
+        if not pid or pid in seen_ids or is_product_suppressed(state, pid):
+            continue
+        if not is_discount_publish_eligible(
+            product, minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT
+        ):
+            continue
+        if not is_market_value_publish_eligible(product):
+            continue
+        if not has_publishable_expiry_or_open_offer(product, current):
+            continue
+        seen_ids.add(pid)
+        quality_eligible.append(product)
+        if is_fresh_selection_candidate(state, pid, product, current):
+            fresh_candidates.append(product)
+
+    for index, floor in enumerate(DISCOUNT_FALLBACK_FLOORS):
+        upper_exclusive = DISCOUNT_FALLBACK_FLOORS[index - 1] if index > 0 else None
+        band = [
+            product for product in fresh_candidates
+            if int(product.get("discount_percent") or 0) >= floor
+            and (
+                upper_exclusive is None
+                or int(product.get("discount_percent") or 0) < upper_exclusive
+            )
+        ]
+        if not band:
+            continue
+        ranked = _order_candidates_by_primary_rank(
+            band,
+            published=state.get("published"),
+            recent_publications=state.get("recent_publications"),
+            now=current,
+            allow_family_repeat=False,
+        )
+        if ranked:
+            label = discount_fallback_band_label(floor, upper_exclusive)
+            print(
+                f"DISCOUNT_FALLBACK_SELECTED band={label} floor={floor}% "
+                f"quality_pool={len(quality_eligible)} fresh_pool={len(fresh_candidates)} "
+                f"band_candidates={len(band)}"
+            )
+            return ranked, floor, quality_eligible
+        print(
+            f"DISCOUNT_FALLBACK_BAND_EXHAUSTED band={discount_fallback_band_label(floor, upper_exclusive)} "
+            "reason=recent_family_cooldown"
+        )
+
+    print(
+        f"DISCOUNT_FALLBACK_EXHAUSTED floors={','.join(str(x) for x in DISCOUNT_FALLBACK_FLOORS)} "
+        f"quality_pool={len(quality_eligible)} fresh_pool={len(fresh_candidates)}"
+    )
+    return [], None, quality_eligible
 
 
 def _has_pending_channel_retry(state: dict, pid: str) -> bool:
@@ -7676,7 +7792,14 @@ def tracked_telegram_invite_url(state: dict, source: str) -> str:
 def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
-    print(f"Ranking mode=demand-first across categories and price bands; uniform offer floor={MIN_DISCOUNT_PERCENT}% and {MIN_SAVINGS_TOMAN:,} toman saved; demand/clicks/reviews rank before discount size; verified market-price and historical-discount checks remain mandatory; medicines/pharmacy products/vitamins/supplements remain excluded; confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining.")
+    print(
+        "Ranking mode=demand-first within the highest available discount band; "
+        f"fallback bands={','.join(str(x) for x in DISCOUNT_FALLBACK_FLOORS)}%+ "
+        f"with at least {MIN_SAVINGS_TOMAN:,} toman saved; only when a higher band "
+        "has no fresh product passing stock, price, market, affiliate, repeat, and diversity checks "
+        "does selection step down five percentage points. Open-ended offers are allowed only "
+        "with live stock/current-price validation; confirmed deadlines retain the runway guard."
+    )
     catalog = load_catalog()
     approved = link_map(catalog)
     probe_link = build_affilio_tracking_link("https://www.digikala.com/product/dkp-12345/")
@@ -7806,7 +7929,10 @@ def run(publish=False, selection_only=False):
     listed_eligible_count = sum(
         bool(
             p.get("has_affiliate_link")
-            and is_discount_publish_eligible(p)
+            and is_discount_publish_eligible(
+                p, minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT
+            )
+            and is_market_value_publish_eligible(p)
             and has_publishable_expiry_or_open_offer(p, queue_now)
         )
         for p in products
@@ -7817,14 +7943,9 @@ def run(publish=False, selection_only=False):
         for p in products
     )
     market_blocked_count = sum(is_market_price_uncompetitive(p) for p in products)
-    eligible = [
-        p for p in products
-        if p.get("has_affiliate_link")
-        and not is_product_suppressed(state, str(p.get("product_id") or product_id(p.get("product_url", ""))))
-        and is_discount_publish_eligible(p)
-        and is_market_value_publish_eligible(p)
-        and has_publishable_expiry_or_open_offer(p, queue_now)
-    ]
+    eligible, selected_discount_floor, quality_eligible = select_discount_fallback_candidates(
+        products, state, now=queue_now
+    )
     observed_product_ids = {
         str(p.get("product_id") or product_id(p.get("product_url", "")))
         for p in products
@@ -7840,7 +7961,7 @@ def run(publish=False, selection_only=False):
         }
         eligible_ids = {
             str(p.get("product_id") or product_id(p.get("product_url", "")))
-            for p in eligible
+            for p in quality_eligible
         }
         for checked_url in urls:
             checked_pid = product_id(checked_url)
@@ -7853,16 +7974,22 @@ def run(publish=False, selection_only=False):
                 mark_discovery_candidate_checked(discovery_queue, checked, "eligible", queue_now)
             elif checked.get("availability") != "in_stock":
                 mark_discovery_candidate_checked(discovery_queue, checked, "stock_not_confirmed", queue_now)
-            elif not has_verified_deal_deadline(checked, queue_now) or is_offer_expired(checked, queue_now):
+            elif _parse_utc_datetime(_parse_deal_expiry_value(checked.get("deal_expires_at"))) and (
+                not has_verified_deal_deadline(checked, queue_now) or is_offer_expired(checked, queue_now)
+            ):
                 mark_discovery_candidate_checked(discovery_queue, checked, "deadline_not_publishable", queue_now)
-            elif not has_minimum_publication_runway(checked, queue_now):
+            elif has_verified_deal_deadline(checked, queue_now) and not has_minimum_publication_runway(checked, queue_now):
                 mark_discovery_candidate_checked(discovery_queue, checked, "deadline_too_close_for_publication", queue_now)
             elif not checked.get("has_affiliate_link"):
                 mark_discovery_candidate_checked(discovery_queue, checked, "affiliate_link_missing", queue_now)
-            elif not is_discount_publish_eligible(checked):
+            elif not is_discount_publish_eligible(
+                checked, minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT
+            ):
                 mark_discovery_candidate_checked(discovery_queue, checked, "discount_or_content_gate", queue_now)
-            else:
+            elif not is_market_value_publish_eligible(checked):
                 mark_discovery_candidate_checked(discovery_queue, checked, "market_price_rejected", queue_now)
+            else:
+                mark_discovery_candidate_checked(discovery_queue, checked, "selection_tier_deferred", queue_now)
         save_json(STATE, state)
         print(f"DISCOVERY_QUEUE_CHECK_RESULTS updated={len(urls)} retained={len(discovery_queue)}")
     missing_deadline_count = sum(
@@ -7871,15 +7998,30 @@ def run(publish=False, selection_only=False):
     )
     expired_deadline_count = sum(is_offer_expired(p, queue_now) for p in products)
     prohibited_product_count = sum(is_prohibited_product_title(p.get("title", "")) for p in products)
+    selected_discount_band = (
+        discount_fallback_band_label(
+            selected_discount_floor,
+            DISCOUNT_FALLBACK_FLOORS[DISCOUNT_FALLBACK_FLOORS.index(selected_discount_floor) - 1]
+            if selected_discount_floor in DISCOUNT_FALLBACK_FLOORS
+            and DISCOUNT_FALLBACK_FLOORS.index(selected_discount_floor) > 0
+            else None,
+        )
+        if selected_discount_floor is not None else "none"
+    )
     print(
         f"ELIGIBILITY_DIAGNOSTICS ranked={len(products)} "
         f"missing_deadline={missing_deadline_count} expired_deadline={expired_deadline_count} "
         f"deadline_too_close_for_publication={deadline_too_close_count} "
         f"medicine_or_supplement={prohibited_product_count} "
-        f"future_deadline_and_discount_ok={len(eligible)} "
+        f"quality_eligible_all_bands={listed_eligible_count} "
+        f"selected_discount_band={selected_discount_band} "
+        f"fresh_selected_candidates={len(eligible)} "
         f"fresh_after_duplicate_cooldown={len(pending_queue)}"
     )
-    eligible_by_id = {str(p.get("product_id") or product_id(p.get("product_url", ""))): p for p in eligible}
+    eligible_by_id = {
+        str(p.get("product_id") or product_id(p.get("product_url", ""))): p
+        for p in quality_eligible
+    }
 
     # Retry a failed destination for a previously published product before posting another product.
     # This keeps each channel's delivery independent and avoids reposting to the channel that succeeded.
@@ -7982,7 +8124,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"All categories compete on real 30-day clicks and product-demand signals first; discount size is secondary and must clear the same {MIN_DISCOUNT_PERCENT}% and {MIN_SAVINGS_TOMAN:,}-toman floor at every price point, with market-price/history verification. Category rotation uses rolling 24-hour, 7-day, 30-day, and 365-day publication history; categories are normally spaced by at least {CATEGORY_REPEAT_COOLDOWN_MINUTES} minutes and similar product families by {FAMILY_REPEAT_COOLDOWN_HOURS} hours when comparable-demand alternatives exist. Medicines, pharmacy products, vitamins, and dietary supplements remain excluded. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers without a verified timer still require live stock, current price, and a meaningful verified discount.",
+        "ranking_note": f"Market demand/clicks/reviews rank products first within the highest available discount band. The selector tries 50%+ first, then 45–49%, 40–44%, 35–39%, 30–34%, 25–29%, 20–24%, 15–19%, 10–14%, and 5–9%; it steps down only when the higher band has no fresh product passing every other hard gate. Every band still requires at least {MIN_SAVINGS_TOMAN:,} toman saved, live stock/current price/image, an affiliate link, publishable title, no prohibited category, no verified market-price rejection, and no product/family repeat conflict. Category rotation uses rolling 24-hour, 7-day, 30-day, and 365-day publication history. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers with no verified timer remain eligible only as live open offers after stock/current-price validation.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
@@ -8141,9 +8283,10 @@ def run(publish=False, selection_only=False):
         print("PUBLISH_BLOCKED: no valid Affilio tracking parameters/template configured; no post attempted.")
     elif not eligible:
         print(
-            "PUBLISH_BLOCKED: no fresh product passed stock, price, image, affiliate-link, "
-            "minimum-discount, and future verified-deadline checks; unverified deals are held "
-            "and previously published products remain on product cooldown."
+            "PUBLISH_BLOCKED: no fresh product passed every discount fallback band "
+            "(50%+ down in five-point steps to 5%) plus the stock, price, image, affiliate-link, "
+            "market-value, absolute-saving, product-repeat, and family-diversity checks. "
+            "Open-ended offers are accepted only after live stock/current-price validation."
         )
     elif not regular_window_open and not urgent_override_allowed and not FORCE_POST_COOLDOWN_BYPASS:
         print("PUBLISH_BLOCKED: quiet hours in Iran; regular offer retained for the next audience window.")
