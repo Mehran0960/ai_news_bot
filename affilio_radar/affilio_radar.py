@@ -55,7 +55,9 @@ FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "fa
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
 BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(20, int(os.getenv("AFFILIO_MAX_PER_QUERY", "12"))))
-MAX_PRODUCT_CHECKS = max(1, min(60, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "60"))))
+MAX_PRODUCT_CHECKS = max(1, min(90, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "90"))))
+# Expand live verification so a temporary thin 60-item feed does not starve the publisher.
+# Quality gates (50%+ listed discount, 100k toman saving, live stock/price) stay unchanged.
 SNAPPSHOP_RESERVED_CANDIDATES = max(4, min(12, MAX_PRODUCT_CHECKS // 7))
 SNAPPSHOP_QUERIES_PER_SCAN = max(1, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN", "4"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
@@ -210,7 +212,7 @@ SEARCH_TERMS = [
     "گیاه آپارتمانی و گلدان",
 ]
 MAX_INCREDIBLE_OFFER_CANDIDATES = max(
-    1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "60")))
+    1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "90")))
 )
 EXCLUDED_HEALTH_PRODUCT_RE = re.compile(
     r"(?:قرص|کپسول|دارو(?:یی)?|مکمل|ویتامین|زینک|منیزیم|"
