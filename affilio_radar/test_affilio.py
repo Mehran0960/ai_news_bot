@@ -1052,8 +1052,8 @@ class AffilioRadarTests(unittest.TestCase):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         records = [
             {"product_id": "dkp-mobile", "title": "گوشی موبایل مدل پرفروش", "demand_score": 100},
-            {"product_id": "dkp-light", "title": "چراغ مطالعه مدل تازه", "demand_score": 60},
-            {"product_id": "dkp-book", "title": "کتاب داستان مدل جدید", "demand_score": 35},
+            {"product_id": "dkp-light", "title": "چراغ مطالعه مدل تازه", "demand_score": 80},
+            {"product_id": "dkp-book", "title": "کتاب داستان مدل جدید", "demand_score": 65},
         ]
         recent = [{
             "product_id": "dkp-old-eyewear",
