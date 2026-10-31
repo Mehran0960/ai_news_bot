@@ -4742,6 +4742,70 @@ def _edit_telegram_caption(message_id: int, caption: str, affiliate_url: str = "
     raise RuntimeError("Telegram editMessageCaption retry limit reached")
 
 
+def _edit_telegram_media(message_id: int, photo_bytes: bytes, caption: str, affiliate_url: str = ""):
+    """Replace an existing Telegram post photo and caption while retaining its verified buy button."""
+    if not BOT_TOKEN:
+        raise RuntimeError("Missing TELEGRAM_BOT_TOKEN secret")
+    if not _is_valid_affilio_tracking_url(affiliate_url):
+        raise RuntimeError("Refusing to update a post without a verified Affilio purchase button")
+
+    endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/editMessageMedia"
+    media = {
+        "type": "photo",
+        "media": "attach://photo",
+        "caption": caption,
+        "parse_mode": "HTML",
+    }
+    button_url = tracked_affiliate_button_url(affiliate_url, "telegram")
+    data = {
+        "chat_id": TARGET_CHAT,
+        "message_id": int(message_id),
+        "media": json.dumps(media, ensure_ascii=False),
+        "reply_markup": json.dumps({
+            "inline_keyboard": [[{
+                "text": purchase_button_label(affiliate_url),
+                "url": button_url,
+            }]]
+        }, ensure_ascii=False),
+    }
+
+    for attempt in range(4):
+        response = requests.post(
+            endpoint,
+            data=data,
+            files={"photo": ("product.jpg", photo_bytes, "image/jpeg")},
+            timeout=(20, 120),
+        )
+        try:
+            payload = response.json()
+        except ValueError:
+            response.raise_for_status()
+            raise RuntimeError("Telegram editMessageMedia returned invalid JSON")
+        if payload.get("ok"):
+            response.raise_for_status()
+            return payload.get("result")
+
+        description = str(payload.get("description") or "Telegram editMessageMedia returned ok=false")
+        lowered = description.lower()
+        if "message is not modified" in lowered:
+            return {"message_id": int(message_id), "not_modified": True}
+        if "message to edit not found" in lowered or "message not found" in lowered:
+            return {"message_id": int(message_id), "not_found": True}
+
+        error_code = int(payload.get("error_code") or response.status_code or 0)
+        if error_code == 429 and attempt < 3:
+            parameters = payload.get("parameters") if isinstance(payload.get("parameters"), dict) else {}
+            try:
+                retry_after = max(1, min(60, int(parameters.get("retry_after") or (3 * (2 ** attempt)))))
+            except (TypeError, ValueError, OverflowError):
+                retry_after = min(60, 3 * (2 ** attempt))
+            print(f"TELEGRAM_MEDIA_RATE_LIMIT message_id={int(message_id)} retry_after={retry_after}s")
+            time.sleep(retry_after + 1)
+            continue
+        raise RuntimeError(description[:180])
+    raise RuntimeError("Telegram editMessageMedia retry limit reached")
+
+
 def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
     """Edit an existing Bale photo caption, retaining the purchase button and retrying rate limits."""
     if not BALE_BOT_TOKEN:
@@ -4794,6 +4858,43 @@ def _edit_bale_caption(message_id: int, caption: str, affiliate_url: str = ""):
             continue
         raise RuntimeError(description[:180])
     raise RuntimeError("Bale editMessageCaption retry limit reached")
+
+
+
+def _delete_bale_message(message_id: int):
+    """Delete a prior Bale channel photo after its replacement has been sent successfully."""
+    if not BALE_BOT_TOKEN or not BALE_CHANNEL_ID:
+        raise RuntimeError("BALE_BOT_TOKEN and BALE_CHANNEL_ID are required")
+    endpoint = f"https://tapi.bale.ai/bot{BALE_BOT_TOKEN}/deleteMessage"
+    data = {"chat_id": BALE_CHANNEL_ID, "message_id": int(message_id)}
+    for attempt in range(4):
+        response = requests.post(endpoint, data=data, timeout=(20, 40))
+        try:
+            payload = response.json()
+        except ValueError:
+            response.raise_for_status()
+            raise RuntimeError("Bale deleteMessage returned invalid JSON")
+        if payload.get("ok"):
+            response.raise_for_status()
+            return payload.get("result", True)
+
+        description = str(payload.get("description") or "Bale deleteMessage returned ok=false")
+        lowered = description.lower()
+        if "message to delete not found" in lowered or "message not found" in lowered:
+            return {"message_id": int(message_id), "not_found": True}
+        error_code = int(payload.get("error_code") or response.status_code or 0)
+        if error_code == 429 and attempt < 3:
+            parameters = payload.get("parameters") if isinstance(payload.get("parameters"), dict) else {}
+            try:
+                retry_after = max(1, min(60, int(parameters.get("retry_after") or (3 * (2 ** attempt)))))
+            except (TypeError, ValueError, OverflowError):
+                retry_after = min(60, 3 * (2 ** attempt))
+            print(f"BALE_DELETE_RATE_LIMIT message_id={int(message_id)} retry_after={retry_after}s")
+            time.sleep(retry_after + 1)
+            continue
+        raise RuntimeError(description[:180])
+    raise RuntimeError("Bale deleteMessage retry limit reached")
+
 
 
 
@@ -5089,6 +5190,236 @@ def repair_all_published_captions(max_products: int | None = None) -> int:
         f"skipped={results['skipped']}"
     )
     return 0 if successful else 1
+
+
+
+def repair_recent_product_images(max_products: int = 2) -> int:
+    """Refresh the newest published product images using identical framed brand marks.
+
+    Telegram media is edited in place. Bale's documented Bot API exposes sendPhoto
+    and deleteMessage, but not editMessageMedia, so Bale uses send-new-then-delete-old.
+    The old Bale post is deleted only after its replacement and purchase button exist.
+    """
+    state = load_state()
+    published = state.get("published", {})
+    if not isinstance(published, dict):
+        raise RuntimeError("Published state is not an object")
+    records = _recent_caption_repair_records(published, max_products)
+    results = {
+        "telegram_updated": 0, "telegram_missing": 0, "telegram_failed": 0,
+        "bale_updated": 0, "bale_missing": 0, "bale_failed": 0,
+        "bale_skipped": 0, "skipped": 0,
+    }
+    targets = 0
+    state_changed = False
+    print(f"RECENT_IMAGE_REPAIR_SELECTION selected_products={len(records)} requested={max_products}")
+
+    # Bale replacements are sent oldest-first so their final channel order remains chronological.
+    for product_key, record in reversed(records):
+        if not isinstance(record, dict):
+            results["skipped"] += 1
+            continue
+
+        # Finish a previous replacement's cleanup before attempting any further media work.
+        pending_old_bale_id = record.get("bale_image_repair_old_message_id")
+        if pending_old_bale_id:
+            try:
+                cleanup = _delete_bale_message(int(pending_old_bale_id))
+                record.pop("bale_image_repair_old_message_id", None)
+                state_changed = True
+                print(
+                    f"BALE_IMAGE_REPAIR_OLD_POST_CLEANED product_id={product_key} "
+                    f"message_id={int(pending_old_bale_id)} not_found={bool(isinstance(cleanup, dict) and cleanup.get('not_found'))}"
+                )
+            except Exception as exc:
+                results["bale_failed"] += 1
+                state_changed = True
+                print(
+                    f"BALE_IMAGE_REPAIR_CLEANUP_FAILED product_id={product_key} "
+                    f"message_id={pending_old_bale_id} error={type(exc).__name__}"
+                )
+                continue
+
+        telegram_id = _int_value(record.get("telegram_message_id")) or 0
+        bale_id = _int_value(record.get("bale_message_id")) or 0
+        telegram_needed = bool(
+            telegram_id > 0 and record.get("expiry_status") not in {"deleted", "already_absent"}
+            and int(record.get("telegram_image_layout_version") or 0) < 1
+        )
+        bale_needed = bool(
+            bale_id > 0 and record.get("bale_expiry_status") not in {"deleted", "already_absent"}
+            and int(record.get("bale_image_layout_version") or 0) < 1
+        )
+        if not telegram_needed and not bale_needed:
+            results["skipped"] += 1
+            continue
+
+        product_url_value = safe_product_url(record.get("product_url", ""))
+        if not product_url_value or product_id(product_url_value) != str(product_key):
+            if telegram_needed:
+                results["telegram_failed"] += 1
+            if bale_needed:
+                results["bale_failed"] += 1
+            print(f"IMAGE_REPAIR_FAILED product_id={product_key} reason=product_identity_or_url_invalid")
+            continue
+
+        affiliate_url = build_affilio_tracking_link(product_url_value)
+        if not _is_valid_affilio_tracking_url(affiliate_url):
+            if telegram_needed:
+                results["telegram_failed"] += 1
+            if bale_needed:
+                results["bale_failed"] += 1
+            print(f"IMAGE_REPAIR_FAILED product_id={product_key} reason=affiliate_url_invalid")
+            continue
+
+        image_url = str(record.get("image_url") or "").strip()
+        try:
+            if not image_url:
+                fresh_record = fetch_product_record(product_url_value)
+                if product_id(fresh_record.get("product_url") or "") != str(product_key):
+                    raise RuntimeError("fresh_product_identity_mismatch")
+                image_url = str(fresh_record.get("image_url") or "").strip()
+            if not image_url:
+                raise RuntimeError("product_image_url_unavailable")
+            try:
+                image_bytes = _fetch_image(image_url)
+            except Exception:
+                fresh_record = fetch_product_record(product_url_value)
+                if product_id(fresh_record.get("product_url") or "") != str(product_key):
+                    raise RuntimeError("fresh_product_identity_mismatch")
+                fresh_image_url = str(fresh_record.get("image_url") or "").strip()
+                if not fresh_image_url or fresh_image_url == image_url:
+                    raise
+                image_bytes = _fetch_image(fresh_image_url)
+                record["image_url"] = fresh_image_url
+                state_changed = True
+        except Exception as exc:
+            if telegram_needed:
+                results["telegram_failed"] += 1
+            if bale_needed:
+                results["bale_failed"] += 1
+            print(f"IMAGE_REPAIR_FAILED product_id={product_key} reason=image_fetch error={type(exc).__name__}")
+            continue
+
+        merchant = "اسنپ‌شاپ" if str(product_key).startswith("snp-") else "دیجی‌کالا"
+        discount = record.get("posted_discount_percent")
+        photo = build_discount_image(image_bytes, discount, merchant=merchant)
+        product = {
+            "title": record.get("title", "پیشنهاد ویژه"),
+            "current_price": record.get("posted_current_price"),
+            "original_price": record.get("posted_original_price"),
+            "discount_percent": discount,
+        }
+
+        if telegram_needed:
+            targets += 1
+            if not BOT_TOKEN:
+                results["telegram_failed"] += 1
+                print(f"IMAGE_REPAIR_FAILED product_id={product_key} platform=telegram reason=missing_credentials")
+            else:
+                try:
+                    caption = build_caption(product, affiliate_url, TELEGRAM_CHANNEL_URL)
+                    edited = _edit_telegram_media(telegram_id, photo, caption, affiliate_url)
+                    if isinstance(edited, dict) and edited.get("not_found"):
+                        results["telegram_missing"] += 1
+                        record["expiry_status"] = "already_absent"
+                    else:
+                        results["telegram_updated"] += 1
+                        record["telegram_image_layout_version"] = 1
+                        record["telegram_image_layout_updated_at"] = datetime.now(timezone.utc).isoformat()
+                    state_changed = True
+                    print(
+                        f"TELEGRAM_IMAGE_REPAIRED product_id={product_key} "
+                        f"message_id={telegram_id} not_modified={bool(isinstance(edited, dict) and edited.get('not_modified'))}"
+                    )
+                except Exception as exc:
+                    results["telegram_failed"] += 1
+                    print(f"IMAGE_REPAIR_FAILED product_id={product_key} platform=telegram error={type(exc).__name__}")
+            time.sleep(3.1)
+
+        if bale_needed:
+            targets += 1
+            if not BALE_BOT_TOKEN or not BALE_CHANNEL_ID:
+                results["bale_failed"] += 1
+                print(f"IMAGE_REPAIR_FAILED product_id={product_key} platform=bale reason=missing_credentials")
+            else:
+                try:
+                    try:
+                        posted_at = float(record.get("ts") or 0)
+                    except (TypeError, ValueError, OverflowError):
+                        posted_at = 0
+                    # Bale documents deleteMessage only for posts less than 48 hours old.
+                    if posted_at <= 0 or time.time() - posted_at >= 47 * 3600:
+                        results["bale_skipped"] += 1
+                        print(f"IMAGE_REPAIR_SKIPPED product_id={product_key} platform=bale reason=outside_safe_delete_window")
+                    else:
+                        caption = build_caption(
+                            product, affiliate_url, BALE_CHANNEL_URL, use_unicode_strikethrough=True,
+                        )
+                        replacement = _send_bale_photo(photo, caption, affiliate_url)
+                        new_id = _int_value(replacement.get("message_id")) if isinstance(replacement, dict) else None
+                        if not new_id or new_id <= 0:
+                            raise RuntimeError("Bale replacement photo returned no message_id")
+                        try:
+                            deleted = _delete_bale_message(bale_id)
+                        except Exception:
+                            # Roll back the new post when the old one cannot be removed.
+                            try:
+                                _delete_bale_message(new_id)
+                            except Exception:
+                                record["bale_message_id"] = new_id
+                                record["bale_image_layout_version"] = 1
+                                record["bale_image_repair_old_message_id"] = bale_id
+                                record["bale_image_layout_updated_at"] = datetime.now(timezone.utc).isoformat()
+                                state_changed = True
+                                print(
+                                    f"BALE_IMAGE_REPAIR_DUPLICATE_CLEANUP_PENDING product_id={product_key} "
+                                    f"new_message_id={new_id} old_message_id={bale_id}"
+                                )
+                            raise
+                        record["bale_message_id"] = new_id
+                        record["bale_image_layout_version"] = 1
+                        record["bale_image_layout_updated_at"] = datetime.now(timezone.utc).isoformat()
+                        state_changed = True
+                        results["bale_updated"] += 1
+                        print(
+                            f"BALE_IMAGE_REPAIRED product_id={product_key} old_message_id={bale_id} "
+                            f"new_message_id={new_id} old_not_found={bool(isinstance(deleted, dict) and deleted.get('not_found'))}"
+                        )
+                except Exception as exc:
+                    results["bale_failed"] += 1
+                    print(f"IMAGE_REPAIR_FAILED product_id={product_key} platform=bale error={type(exc).__name__}")
+            time.sleep(1.1)
+
+    if state_changed:
+        ensure_publication_ledger(state)
+        save_json(STATE, state)
+
+    successful = results["telegram_failed"] == 0 and results["bale_failed"] == 0 and targets > 0
+    report = {
+        "finished_at": datetime.now(timezone.utc).isoformat(),
+        "layout_version": 1,
+        "selected_products": len(records),
+        "targets": targets,
+        **results,
+        "status": "success" if successful else ("partial_failure" if targets else "no_targets"),
+    }
+    report_path = ROOT / "product_image_repair_report.json"
+    try:
+        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"IMAGE_REPAIR_REPORT_WRITTEN path={report_path.name} status={report['status']}")
+    except OSError as exc:
+        print(f"IMAGE_REPAIR_REPORT_WRITE_FAILED error={type(exc).__name__}")
+
+    print(
+        "IMAGE_REPAIR_SUMMARY "
+        f"selected_products={len(records)} targets={targets} "
+        f"telegram_updated={results['telegram_updated']} telegram_missing={results['telegram_missing']} telegram_failed={results['telegram_failed']} "
+        f"bale_updated={results['bale_updated']} bale_missing={results['bale_missing']} bale_failed={results['bale_failed']} "
+        f"bale_skipped={results['bale_skipped']} skipped={results['skipped']}"
+    )
+    return 0 if successful else 1
+
 
 
 
@@ -9169,6 +9500,12 @@ def main():
         help="edit only the newest N active Telegram/Bale product posts in place; never publish new products",
     )
     parser.add_argument(
+        "--repair-recent-product-images",
+        type=int,
+        default=None,
+        help="update the product photos of the newest N active Telegram/Bale posts with the current branded layout",
+    )
+    parser.add_argument(
         "--refresh-countdowns",
         action="store_true",
         help="refresh remaining-hours/minutes timers on active deadline-verified posts",
@@ -9222,6 +9559,12 @@ def main():
             sys.exit(repair_all_published_captions(max_products=args.repair_recent_captions))
         except Exception as exc:
             print(f"RECENT_CAPTION_REPAIR_FAILED error={type(exc).__name__}")
+            sys.exit(1)
+    if args.repair_recent_product_images is not None:
+        try:
+            sys.exit(repair_recent_product_images(max_products=args.repair_recent_product_images))
+        except Exception as exc:
+            print(f"RECENT_IMAGE_REPAIR_FAILED error={type(exc).__name__}")
             sys.exit(1)
     if args.repair_all_captions:
         try:
