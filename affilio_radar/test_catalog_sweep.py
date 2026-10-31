@@ -41,7 +41,8 @@ class FakeSession:
         self.calls.append((url, params))
         if not self.responses:
             raise AssertionError("unexpected request")
-        return self.responses.pop(0)
+        response = self.responses.pop(0)
+        return response if hasattr(response, "raise_for_status") else FakeResponse(response)
 
 
 class CatalogSweepTests(unittest.TestCase):
