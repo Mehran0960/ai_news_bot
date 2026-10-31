@@ -67,6 +67,7 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
         selected_floor = radar.MIN_DISCOUNT_FALLBACK_PERCENT
         candidate = dict(candidate)
         candidate["selection_discount_floor"] = selected_floor
+        candidate["selection_discount_band"] = "1%+"
         if radar.is_discount_publish_eligible(
             candidate,
             minimum_discount_percent=selected_floor,
@@ -247,9 +248,7 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     fresh["product_url"] = product_url
     fresh["merchant"] = "اسنپ‌شاپ" if product_id.startswith("snp-") else "دیجی‌کالا"
     fresh["selection_discount_floor"] = radar.MIN_DISCOUNT_FALLBACK_PERCENT
-    selection_band = str(payload.get("selection_discount_band") or "").strip()
-    if selection_band:
-        fresh["selection_discount_band"] = selection_band
+    fresh["selection_discount_band"] = "1%+"
 
     try:
         selected_price = int(payload.get("current_price") or 0)
