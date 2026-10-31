@@ -2399,6 +2399,36 @@ class AffilioRadarTests(unittest.TestCase):
             discovery_queue_sort_key(low_demand_huge_discount, now),
         )
 
+    def test_lifetime_popularity_ranks_before_short_term_review_growth(self):
+        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+        established_popularity = {
+            "historical_popularity_score": 42,
+            "review_count": 15_000,
+            "rating": 4.7,
+            "current_demand_verified": False,
+            "current_demand_score": 0,
+            "demand_score": 0,
+            "discount_percent": 18,
+            "savings_toman": 180_000,
+            "first_seen_at": now.isoformat(),
+        }
+        short_term_spike = {
+            "historical_popularity_score": 24,
+            "review_count": 250,
+            "rating": 4.1,
+            "current_demand_verified": True,
+            "current_demand_score": 100,
+            "demand_score": 100,
+            "discount_percent": 80,
+            "savings_toman": 800_000,
+            "first_seen_at": now.isoformat(),
+        }
+        self.assertGreater(deal_sort_key(established_popularity), deal_sort_key(short_term_spike))
+        self.assertGreater(
+            discovery_queue_sort_key(established_popularity, now),
+            discovery_queue_sort_key(short_term_spike, now),
+        )
+
     def test_selection_uses_market_demand_first_and_discount_percentage_second(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
         popular_lower_discount = {
