@@ -1276,7 +1276,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         selected = select_publish_candidates(queue, eligible, now, published)
 
-        self.assertEqual(selected[0]["product_id"], "dkp-book-comparable")
+        self.assertEqual(selected[0]["product_id"], "snp-book-comparable")
         self.assertEqual({item["product_id"] for item in selected}, {item["product_id"] for item in candidates})
 
 
@@ -1312,7 +1312,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         selected = select_publish_candidates(queue, eligible, now, published)
 
-        self.assertEqual(selected[0]["product_id"], "dkp-skincare-close")
+        self.assertEqual(selected[0]["product_id"], "dkp-power-close")
 
 
     def test_publish_lookahead_checks_beyond_first_48_candidates(self):
