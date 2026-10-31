@@ -76,6 +76,29 @@ def _persian_digits(value: object) -> str:
     return str(value).translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
 
 
+def _badge_corner_radius(width: int, height: int) -> int:
+    """Return the shared soft-corner radius used by all three top-corner tiles."""
+    width, height = max(1, int(width)), max(1, int(height))
+    return max(2, min(24, int(round(min(width, height) * 0.22))))
+
+
+def _apply_rounded_badge_corners(image, radius: int):
+    """Anti-alias a rounded alpha mask without changing the logo's artwork or colors."""
+    from PIL import Image, ImageChops, ImageDraw
+
+    width, height = image.size
+    scale = 4
+    mask = Image.new("L", (width * scale, height * scale), 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        (0, 0, width * scale - 1, height * scale - 1),
+        radius=max(1, int(radius)) * scale,
+        fill=255,
+    )
+    mask = mask.resize((width, height), Image.Resampling.LANCZOS)
+    image.putalpha(ImageChops.multiply(image.getchannel("A"), mask))
+    return image
+
+
 def _discount_badge_color(merchant: str) -> tuple[int, int, int]:
     """Use the corresponding retailer's signature color while keeping one shared style."""
     store = str(merchant or "").strip().lower()
@@ -122,7 +145,7 @@ def draw_discount_burst(
     # Pillow rectangle endpoints are inclusive, so subtract one to keep the
     # rendered tile exactly `width` by `height` pixels.
     right, bottom = left + width - 1, top + height - 1
-    radius = max(10, min(24, int(height * 0.22)))
+    radius = _badge_corner_radius(width, height)
     shadow = max(2, int(height * 0.035))
     brand = _discount_badge_color(merchant)
 
@@ -416,7 +439,7 @@ def draw_digipay_badge(image, left: int, top: int, width: int, height: int) -> N
 
     frame = Image.new("RGBA", (target_width, target_height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(frame)
-    radius = max(2, min(target_height // 5, target_width // 5))
+    radius = _badge_corner_radius(target_width, target_height)
     draw.rounded_rectangle(
         (0, 0, target_width - 1, target_height - 1),
         radius=radius,
@@ -456,9 +479,13 @@ def draw_retailer_badge(image, left: int, top: int, width: int, height: int, mer
 
     target_width = max(1, int(width))
     target_height = max(1, int(height))
-    # Preserve the previous logo placement and original aspect ratio exactly.
+    # Preserve the official artwork and aspect ratio, but soften its four outer
+    # corners with the same anti-aliased radius used by the DigiPay and discount tiles.
     fitted = ImageOps.contain(
         logo, (target_width, target_height), method=Image.Resampling.LANCZOS
+    )
+    _apply_rounded_badge_corners(
+        fitted, _badge_corner_radius(fitted.width, fitted.height)
     )
     if fitted.width < 1 or fitted.height < 1:
         return None
