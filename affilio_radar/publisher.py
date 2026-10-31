@@ -47,7 +47,7 @@ def _utc(value: Any) -> datetime | None:
 
 
 def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
-    """Keep only backups that still meet the same hard gate as a primary selection."""
+    """Keep only backups that still pass their assigned tier and verified-demand gate."""
     if not isinstance(candidates, list):
         return []
     eligible: list[dict] = []
@@ -55,16 +55,18 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
         if not isinstance(candidate, dict):
             continue
         raw_floor = candidate.get("selection_discount_floor")
-        if raw_floor is not None:
+        if raw_floor is None:
+            selected_floor = radar.DISCOUNT_FALLBACK_FLOORS[0]
+        else:
             try:
                 selected_floor = int(raw_floor)
             except (TypeError, ValueError, OverflowError):
                 continue
-            if selected_floor != radar.MIN_DISCOUNT_FALLBACK_PERCENT:
-                continue
+        if selected_floor not in radar.DISCOUNT_FALLBACK_FLOORS:
+            continue
         if radar.is_discount_publish_eligible(
             candidate,
-            minimum_discount_percent=radar.MIN_DISCOUNT_FALLBACK_PERCENT,
+            minimum_discount_percent=selected_floor,
             now=now,
         ):
             eligible.append(candidate)
@@ -170,6 +172,10 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         ),
         "caption_deadline_format_version": radar.CAPTION_DEADLINE_FORMAT_VERSION,
         "posted_discount_percent": int(item.get("discount_percent") or 0),
+        "selection_discount_floor": int(
+            item.get("selection_discount_floor") or radar.DISCOUNT_FALLBACK_FLOORS[0]
+        ),
+        "selection_discount_band": str(item.get("selection_discount_band") or ""),
         "posted_current_price": int(item.get("current_price") or 0),
         "posted_original_price": int(item.get("original_price") or 0),
         "demand_score": int(item.get("demand_score") or 0),
@@ -219,8 +225,8 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     product_id = str(payload.get("product_id") or "").lower()
     if not product_url or radar.product_id(product_url) != product_id:
         return None, "invalid_product_identity"
-    # The minimum is fixed at 50% or higher. Old queued selections with
-    # lower fallback tiers are rejected before any live product request.
+    # New selections carry the exact floor for their chosen band. Legacy queue
+    # items without tier metadata remain on the preferred 50% floor.
     raw_discount_floor = payload.get("selection_discount_floor")
     minimum_discount_percent = None
     if raw_discount_floor is not None:
@@ -228,7 +234,7 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
             minimum_discount_percent = int(raw_discount_floor)
         except (TypeError, ValueError, OverflowError):
             return None, "invalid_selection_discount_floor"
-        if minimum_discount_percent != radar.MIN_DISCOUNT_FALLBACK_PERCENT:
+        if minimum_discount_percent not in radar.DISCOUNT_FALLBACK_FLOORS:
             return None, "invalid_selection_discount_floor"
 
     if not radar.has_current_demand_signal(payload, now):
@@ -247,6 +253,14 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     fresh["product_id"] = product_id
     fresh["product_url"] = product_url
     fresh["merchant"] = "اسنپ‌شاپ" if product_id.startswith("snp-") else "دیجی‌کالا"
+    fresh["selection_discount_floor"] = (
+        minimum_discount_percent
+        if minimum_discount_percent is not None
+        else radar.DISCOUNT_FALLBACK_FLOORS[0]
+    )
+    selection_band = str(payload.get("selection_discount_band") or "").strip()
+    if selection_band:
+        fresh["selection_discount_band"] = selection_band
 
     try:
         selected_price = int(payload.get("current_price") or 0)

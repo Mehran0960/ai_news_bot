@@ -2043,7 +2043,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertGreaterEqual(high_ticket_50_percent["savings_toman"], 100_000)
         self.assertTrue(is_discount_publish_eligible(high_ticket_50_percent))
 
-    def test_strict_discount_floor_never_falls_back_below_50_percent(self):
+    def test_discount_fallback_ladder_prefers_50_then_45_40_and_35_percent(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
 
         def product(pid, title, discount, demand):
@@ -2070,7 +2070,11 @@ class AffilioRadarTests(unittest.TestCase):
 
         candidates = [
             product("dkp-95001", "هدفون بلوتوثی مدل برتر", 50, 55),
-            product("dkp-95002", "شارژر سریع مدل پرفروش", 49, 99),
+            product("dkp-95002", "شارژر سریع مدل پرفروش", 45, 99),
+            product("dkp-95003", "کوله پشتی مسافرتی مدل تازه", 44, 80),
+            product("dkp-95004", "ماوس بی سیم مدل کاربردی", 40, 70),
+            product("dkp-95005", "اسپیکر بلوتوثی مدل کوچک", 35, 65),
+            product("dkp-95006", "چراغ مطالعه شارژی مدل جدید", 34, 99),
         ]
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             candidates, {"published": {}}, now
@@ -2078,19 +2082,48 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(floor, 50)
         self.assertEqual(selected[0]["selection_discount_floor"], 50)
         self.assertEqual([item["product_id"] for item in selected], ["dkp-95001"])
-        self.assertEqual({item["product_id"] for item in quality}, {"dkp-95001"})
+        self.assertEqual(
+            {item["product_id"] for item in quality},
+            {"dkp-95001", "dkp-95002", "dkp-95003", "dkp-95004", "dkp-95005"},
+        )
 
-        # The publisher's backup pool must obey the same 50% floor.
+        # The hand-off carries all backups with their own strict floor.
         backup_pool, backup_floor, _ = radar_module.select_discount_fallback_candidates(
             candidates, {"published": {}}, now, include_fallback_bands=True
         )
         self.assertEqual(backup_floor, 50)
         self.assertEqual(
             [(item["product_id"], item["selection_discount_floor"]) for item in backup_pool],
-            [("dkp-95001", 50)],
+            [
+                ("dkp-95001", 50),
+                ("dkp-95002", 45),
+                ("dkp-95003", 40),
+                ("dkp-95004", 40),
+                ("dkp-95005", 35),
+            ],
         )
 
-    def test_49_percent_candidate_is_rejected_even_when_its_demand_score_is_higher(self):
+    def test_publish_ranking_keeps_higher_discount_tier_ahead_of_stronger_lower_tier_demand(self):
+        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+        preferred = {
+            "product_id": "dkp-95110", "title": "هدفون بلوتوثی مدل اول",
+            "selection_discount_floor": 50, "discount_percent": 50, "demand_score": 55,
+        }
+        fallback = {
+            "product_id": "dkp-95111", "title": "شارژر سریع مدل دوم",
+            "selection_discount_floor": 45, "discount_percent": 45, "demand_score": 99,
+        }
+        ranked = radar_module.select_publish_candidates(
+            {"dkp-95110": {}, "dkp-95111": {}},
+            {"dkp-95110": preferred, "dkp-95111": fallback},
+            now,
+        )
+        self.assertEqual(
+            [item["product_id"] for item in ranked],
+            ["dkp-95110", "dkp-95111"],
+        )
+
+    def test_49_percent_candidate_uses_45_percent_band_when_no_50_percent_offer_exists(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         price = 1_000_000
         original = 1_960_784
@@ -2116,9 +2149,10 @@ class AffilioRadarTests(unittest.TestCase):
         tiered, floor, quality = radar_module.select_discount_fallback_candidates(
             [candidate], {"published": {}}, now, include_fallback_bands=True
         )
-        self.assertIsNone(floor)
-        self.assertEqual(tiered, [])
-        self.assertEqual(quality, [])
+        self.assertEqual(floor, 45)
+        self.assertEqual([item['product_id'] for item in tiered], ['dkp-95004'])
+        self.assertEqual(tiered[0]['selection_discount_floor'], 45)
+        self.assertEqual([item['product_id'] for item in quality], ['dkp-95004'])
 
     def test_recent_family_cooldown_does_not_trigger_a_lower_discount_fallback(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
@@ -2244,9 +2278,12 @@ class AffilioRadarTests(unittest.TestCase):
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             [high_discount, lower_discount, small_saving], {"published": {}}, now
         )
-        self.assertIsNone(floor)
-        self.assertEqual(selected, [])
-        self.assertEqual(quality, [])
+        self.assertEqual(floor, 35)
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-95302"])
+        self.assertEqual(
+            {item["product_id"] for item in quality},
+            {"dkp-95302"},
+        )
 
     def test_diversity_comparison_uses_recent_activity_signal_and_not_a_discount_fallback(self):
         stronger = {
