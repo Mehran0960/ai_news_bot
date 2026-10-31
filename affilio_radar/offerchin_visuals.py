@@ -372,7 +372,7 @@ def _load_digipay_logo():
 
 def draw_digipay_badge(image, left: int, top: int, width: int, height: int) -> None:
     """Draw the official DigiPay logo, maintaining its aspect ratio and original colors."""
-    from PIL import ImageOps
+    from PIL import Image, ImageOps
 
     logo = _load_digipay_logo()
     if logo is None:
