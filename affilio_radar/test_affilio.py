@@ -2055,6 +2055,38 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(selected[0]["product_id"], "dkp-95001")
         self.assertEqual(len(quality), 2)
 
+        # Scheduled publication also retains lower-band candidates as backups;
+        # the publisher consumes them only when the primary fails live validation.
+        backup_pool, backup_floor, _ = radar_module.select_discount_fallback_candidates(
+            candidates, {"published": {}}, now, include_fallback_bands=True
+        )
+        self.assertEqual(backup_floor, 50)
+        self.assertEqual(
+            [(item["product_id"], item["selection_discount_floor"]) for item in backup_pool],
+            [("dkp-95001", 50), ("dkp-95002", 45)],
+        )
+
+    def test_live_rejected_candidate_is_cooled_down_until_offer_price_changes(self):
+        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+        state = {}
+        product = {
+            "product_id": "dkp-95003",
+            "product_url": "https://www.digikala.com/product/dkp-95003/",
+            "current_price": 1_000_000,
+            "original_price": 2_000_000,
+        }
+        radar_module.mark_selection_candidate_rejected(
+            state, product, "live_discount_no_longer_eligible", now
+        )
+        self.assertTrue(
+            radar_module.is_selection_candidate_rejected(state, "dkp-95003", product, now)
+        )
+        changed_offer = {**product, "current_price": 900_000}
+        self.assertFalse(
+            radar_module.is_selection_candidate_rejected(state, "dkp-95003", changed_offer, now)
+        )
+        self.assertNotIn("dkp-95003", state["selection_rejections"])
+
 
     def test_discount_fallback_steps_down_when_top_band_is_in_recent_family_cooldown(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
