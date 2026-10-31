@@ -1,0 +1,40 @@
+name: OfferChin Fallback Regression Tests
+
+on:
+  push:
+    branches:
+      - fix/offerchin-continuous-fallback-20261031
+    paths:
+      - "affilio_radar/**"
+      - ".github/workflows/offerchin-fallback-regression.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fallback-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install -r affilio_radar/requirements.txt
+
+      - name: Test delivery queue and same-run fallback
+        working-directory: affilio_radar
+        run: python -m unittest -v test_content_delivery
+
+      - name: Test cross-band selection and rejected-offer cooldown
+        working-directory: affilio_radar
+        run: |
+          python -m unittest -v \
+            test_affilio.AffilioRadarTests.test_discount_fallback_prefers_50_plus_before_higher_demand_45_band \
+            test_affilio.AffilioRadarTests.test_live_rejected_candidate_is_cooled_down_until_offer_price_changes

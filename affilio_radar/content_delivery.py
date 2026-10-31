@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -481,3 +482,85 @@ def finish_queue_item(state: dict, product_id: str, status: str, *, now: datetim
         history.append(entry)
         state["content_delivery_history"] = history[-200:]
         queue.pop(product_id, None)
+
+
+
+def promote_fallback_selection(
+    state: dict,
+    candidates: list[dict],
+    *,
+    now: datetime | None = None,
+    reason: str = "",
+) -> str | None:
+    """Promote the next ranked backup immediately after a hard-stale selection.
+
+    Backups are stored with the selected queue item, not as separately scheduled
+    posts. They are only promoted when live validation proves the primary stale,
+    so a healthy primary still respects the normal publication cadence.
+    """
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    if not isinstance(state, dict) or not isinstance(candidates, list):
+        return None
+
+    queue = state.setdefault("content_delivery_queue", {})
+    if not isinstance(queue, dict):
+        queue = {}
+        state["content_delivery_queue"] = queue
+    published = state.get("published") if isinstance(state.get("published"), dict) else {}
+
+    for index, raw in enumerate(candidates):
+        if not isinstance(raw, dict):
+            continue
+        item = json.loads(json.dumps(raw, ensure_ascii=False, default=str))
+        product_id = str(item.get("product_id") or "").strip().lower()
+        product_url = str(item.get("product_url") or "").strip()
+        affiliate_url = str(item.get("affiliate_url") or "").strip()
+        title = str(item.get("title") or "").strip()
+        try:
+            price = int(item.get("current_price") or 0)
+        except (TypeError, ValueError, OverflowError):
+            price = 0
+        if (
+            not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", product_id)
+            or not product_url.startswith("https://")
+            or not affiliate_url.startswith("https://")
+            or not is_publishable_product_title(title)
+            or price <= 0
+        ):
+            continue
+
+        existing = queue.get(product_id)
+        if isinstance(existing, dict) and existing.get("status") not in TERMINAL_QUEUE_STATUSES:
+            continue
+        if _active_publication(published.get(product_id)):
+            continue
+
+        remaining = [
+            value for value in candidates[index + 1:]
+            if isinstance(value, dict)
+        ][:5]
+        queue[product_id] = {
+            "content_id": product_id,
+            "product_id": product_id,
+            "selected_at": current.isoformat(),
+            "scheduled_at": current.isoformat(),
+            "next_attempt_at": current.isoformat(),
+            "status": "queued",
+            "attempt_count": 0,
+            "payload": item,
+            "platforms": {
+                name: {"status": "pending", "attempts": 0}
+                for name in PLATFORM_NAMES
+            },
+            "fallback_candidates": remaining,
+            "fallback_promoted_after": str(reason or "primary_selection_stale")[:120],
+        }
+        print(
+            f"INLINE_FALLBACK_PROMOTED product_id={product_id} "
+            f"remaining_backups={len(remaining)} reason={str(reason or 'stale')[:100]}"
+        )
+        return product_id
+    return None

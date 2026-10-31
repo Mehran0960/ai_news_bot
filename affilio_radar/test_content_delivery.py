@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from content_delivery import (
     due_content, due_unpublished_selection, enqueue_selected_content,
     finish_queue_item, get_last_channel_published_at, has_fresh_unpublished_selection,
+    promote_fallback_selection,
     refresh_unpublished_selections, selection_cadence_anchor,
 )
 from platform_registry import PLATFORM_NAMES
@@ -477,6 +478,94 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             state["content_delivery_history"][0]["last_detail"],
             "active_publication_exists",
         )
+
+    def test_stale_primary_promotes_next_backup_as_immediately_due(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-99001")], now=self.now, interval_seconds=1200,
+        )
+        primary = state["content_delivery_queue"]["dkp-99001"]
+        primary["fallback_candidates"] = [
+            self.item("dkp-99002", demand=45),
+            self.item("dkp-99003", demand=40),
+        ]
+        fallback_candidates = list(primary["fallback_candidates"])
+
+        finish_queue_item(
+            state, "dkp-99001", "stale_selection",
+            now=self.now, detail="live_discount_no_longer_eligible",
+        )
+        promoted = promote_fallback_selection(
+            state, fallback_candidates, now=self.now,
+            reason="live_discount_no_longer_eligible",
+        )
+
+        self.assertEqual(promoted, "dkp-99002")
+        due = due_content(state, now=self.now, limit=1)
+        self.assertEqual([pid for pid, _entry in due], ["dkp-99002"])
+        self.assertEqual(
+            [item["product_id"] for item in due[0][1]["fallback_candidates"]],
+            ["dkp-99003"],
+        )
+        self.assertEqual(
+            due[0][1]["fallback_promoted_after"],
+            "live_discount_no_longer_eligible",
+        )
+
+
+    def test_publisher_uses_backup_in_same_run_after_primary_fails_live_check(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-99001")], now=self.now, interval_seconds=1200,
+        )
+        state["content_delivery_queue"]["dkp-99001"]["fallback_candidates"] = [
+            self.item("dkp-99002", demand=45)
+        ]
+        backup = {
+            **self.item("dkp-99002", demand=45),
+            "image_url": "https://example.com/backup.jpg",
+            "merchant": "دیجی‌کالا",
+        }
+
+        def fake_photo(state_arg, entry, record, item, image_bytes, destination, now):
+            entry["platforms"][destination]["status"] = "sent"
+            entry["platforms"][destination]["updated_at"] = now.isoformat()
+            record.setdefault("delivery_status", {})[destination] = "sent"
+            record[f"{destination}_message_id"] = 100 + len(destination)
+
+        def fake_video(state_arg, entry, record, now):
+            for destination in ("youtube", "aparat"):
+                entry["platforms"][destination]["status"] = "not_connected"
+                record.setdefault("delivery_status", {})[destination] = "not_connected"
+
+        with (
+            patch("publisher.radar.load_state", return_value=state),
+            patch("publisher._save"),
+            patch(
+                "publisher._fresh_selected_item",
+                side_effect=[
+                    (None, "live_discount_no_longer_eligible"),
+                    (backup, ""),
+                ],
+            ) as revalidate,
+            patch("publisher.radar._fetch_image", return_value=b"image"),
+            patch("publisher._process_photo_destination", side_effect=fake_photo),
+            patch("publisher._process_video_destinations", side_effect=fake_video),
+        ):
+            self.assertEqual(publish_due_queue(), 0)
+
+        self.assertEqual(revalidate.call_count, 2)
+        self.assertNotIn("dkp-99001", state["content_delivery_queue"])
+        self.assertNotIn("dkp-99002", state["content_delivery_queue"])
+        self.assertEqual(
+            [item["product_id"] for item in state["content_delivery_history"]],
+            ["dkp-99001", "dkp-99002"],
+        )
+        self.assertEqual(state["content_delivery_history"][0]["status"], "stale_selection")
+        self.assertEqual(state["content_delivery_history"][1]["status"], "published")
+        self.assertIn("dkp-99001", state["selection_rejections"])
+        self.assertIn("dkp-99002", state["published"])
+
 
     def test_terminal_queue_item_moves_to_bounded_history(self):
         state = {}

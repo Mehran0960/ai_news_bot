@@ -12,13 +12,17 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import affilio_radar as radar
-from content_delivery import _active_publication, due_content, enforce_queue_limit, finish_queue_item
+from content_delivery import (
+    _active_publication, due_content, enforce_queue_limit, finish_queue_item,
+    promote_fallback_selection,
+)
 from platform_registry import PLATFORM_NAMES, PHOTO_PLATFORMS, VIDEO_PLATFORMS, validate_registry
 from integrity_audit_state import apply_integrity_audit_ledger
 
 
 RETRY_BASE_SECONDS = max(60, int(os.getenv("AFFILIO_PUBLISH_RETRY_BASE_SECONDS", "300")))
 MAX_ITEMS_PER_RUN = max(1, min(3, int(os.getenv("AFFILIO_PUBLISHER_BATCH_SIZE", "1"))))
+MAX_INLINE_FALLBACK_ATTEMPTS = 5
 TERMINAL_PLATFORM = {"sent", "not_connected", "manual_review"}
 
 
@@ -460,7 +464,7 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
     _save(state)
 
 
-def publish_due_queue() -> int:
+def publish_due_queue(_fallback_depth: int = 0) -> int:
     validate_registry()
     state = radar.load_state(apply_integrity_ledger=False)
     if apply_integrity_audit_ledger(state):
@@ -481,6 +485,7 @@ def publish_due_queue() -> int:
         return 0
 
     sent_content = 0
+    fallback_promoted = False
     for product_id, entry in due:
         if not isinstance(entry, dict):
             continue
@@ -512,14 +517,24 @@ def publish_due_queue() -> int:
             # A selected item that no longer matches its live price is removed
             # from the delivery queue and will re-enter only after fresh selection.
             if reason.startswith("selected_price_stale") or reason in {
-                "live_product_details_incomplete", "live_stock_not_confirmed",
-                "live_discount_no_longer_eligible", "live_market_value_rejected",
-                "live_offer_expired_or_unverified", "insufficient_publication_runway",
+                "invalid_product_identity", "live_product_details_incomplete",
+                "live_stock_not_confirmed", "live_discount_no_longer_eligible",
+                "live_market_value_rejected", "live_offer_expired_or_unverified",
+                "insufficient_publication_runway",
             }:
+                # Persist a short product-specific rejection cooldown so the next
+                # discovery cycle does not select the same stale offer again.
+                radar.mark_selection_candidate_rejected(state, payload, reason, now=now)
+                fallback_candidates = list(entry.get("fallback_candidates") or [])
                 entry["status"] = "stale_selection"
                 entry["last_detail"] = reason
                 finish_queue_item(state, product_id, "stale_selection", now=now, detail=reason)
                 state.get("pending_queue", {}).pop(product_id, None)
+                promoted_id = promote_fallback_selection(
+                    state, fallback_candidates, now=now, reason=reason
+                ) if fallback_candidates else None
+                if promoted_id:
+                    fallback_promoted = True
                 _save(state)
                 print(f"CONTENT_SELECTION_STALE product_id={product_id} reason={reason}")
                 continue
@@ -630,6 +645,14 @@ def publish_due_queue() -> int:
             print(f"CONTENT_DELIVERY_PARTIAL product_id={product_id} platforms={platforms} retry_at={entry['next_attempt_at']}")
         _save(state)
 
+    if fallback_promoted:
+        if _fallback_depth < MAX_INLINE_FALLBACK_ATTEMPTS:
+            print(
+                f"PUBLISHER_INLINE_FALLBACK_RETRY depth={_fallback_depth + 1} "
+                "reason=primary_selection_failed_live_validation"
+            )
+            return publish_due_queue(_fallback_depth + 1)
+        print("PUBLISHER_INLINE_FALLBACK_LIMIT_REACHED")
     print(f"PUBLISHER_RUN_SUMMARY due={len(due)} completed={sent_content} remaining={sum(1 for x in state.get('content_delivery_queue', {}).values() if isinstance(x, dict))}")
     return 0
 
