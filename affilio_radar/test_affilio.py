@@ -3674,32 +3674,33 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertGreater(brand_pixels, 500, f"{merchant} official background must remain visible")
             self.assertGreater(white_pixels, 100, f"{merchant} official white wordmark must remain visible")
 
-    def test_digikala_and_digipay_logos_use_equal_frames_without_distorting_artwork(self):
+    def test_digipay_blue_background_matches_retailer_tile_and_centers_untouched_icon(self):
         import offerchin_visuals as visuals
+        from PIL import ImageDraw
 
-        # Two deliberately different source ratios prove that the shared frame,
-        # not the logo artwork, is what has identical dimensions.
-        digikala_logo = Image.new("RGBA", (200, 100), (220, 25, 35, 255))
-        digipay_logo = Image.new("RGBA", (100, 100), (25, 65, 220, 255))
-        canvas = Image.new("RGB", (240, 150), (17, 23, 31))
+        # DigiKala is a landscape red tile; DigiPay's original icon is square.
+        # The result must make only the blue field landscape and keep the square
+        # source mark pixel-for-pixel unchanged in its center.
+        digikala_logo = Image.new("RGBA", (160, 100), (220, 25, 35, 255))
+        digipay_logo = Image.new("RGBA", (100, 100), (0, 0, 0, 0))
+        logo_draw = ImageDraw.Draw(digipay_logo)
+        logo_draw.rounded_rectangle((0, 0, 99, 99), radius=22, fill=(28, 91, 242, 255))
+        logo_draw.line([(23, 58), (50, 30), (77, 58)], fill=(255, 255, 255, 255), width=12, joint="curve")
 
+        canvas = Image.new("RGBA", (220, 270), (17, 23, 31, 255))
         with (
             patch.object(visuals, "_load_retailer_logo", return_value=digikala_logo),
             patch.object(visuals, "_load_digipay_logo", return_value=digipay_logo),
         ):
-            visuals.draw_retailer_badge(canvas, 20, 20, 180, 48, "دیجی‌کالا")
-            visuals.draw_digipay_badge(canvas, 20, 80, 180, 48)
+            retailer_bounds = visuals.draw_retailer_badge(
+                canvas, 20, 20, 160, 100, "دیجی‌کالا",
+            )
+            self.assertEqual(retailer_bounds, (20, 20, 160, 100))
+            visuals.draw_digipay_badge(
+                canvas, 20, 140, retailer_bounds[2], retailer_bounds[3],
+            )
 
-        border = (220, 224, 230)
-        for top in (20, 80):
-            self.assertEqual(canvas.getpixel((110, top)), border)
-            self.assertEqual(canvas.getpixel((110, top + 47)), border)
-            self.assertEqual(canvas.getpixel((20, top + 24)), border)
-            self.assertEqual(canvas.getpixel((199, top + 24)), border)
-        self.assertEqual(canvas.getpixel((19, 20)), (17, 23, 31))
-        self.assertEqual(canvas.getpixel((19, 80)), (17, 23, 31))
-
-        def colored_bbox(region, predicate):
+        def color_bbox(region, predicate):
             pixels = [
                 (x, y)
                 for y in range(region[1], region[3])
@@ -3714,18 +3715,28 @@ class AffilioRadarTests(unittest.TestCase):
                 max(y for _, y in pixels) + 1,
             )
 
-        red = colored_bbox(
-            (20, 20, 200, 68),
-            lambda p: p[0] > 180 and p[1] < 80 and p[2] < 90,
+        red_bounds = color_bbox(
+            (0, 0, 220, 130),
+            lambda p: p[0] > 180 and p[1] < 80 and p[2] < 90 and p[3] > 240,
         )
-        blue = colored_bbox(
-            (20, 80, 200, 128),
-            lambda p: p[2] > 180 and p[0] < 80 and p[1] < 100,
+        blue_bounds = color_bbox(
+            (0, 130, 220, 270),
+            lambda p: p[2] > 180 and p[0] < 80 and p[1] < 140 and p[3] > 240,
         )
-        red_ratio = (red[2] - red[0]) / (red[3] - red[1])
-        blue_ratio = (blue[2] - blue[0]) / (blue[3] - blue[1])
-        self.assertAlmostEqual(red_ratio, 2.0, delta=0.08)
-        self.assertAlmostEqual(blue_ratio, 1.0, delta=0.08)
+        self.assertEqual(
+            (red_bounds[2] - red_bounds[0], red_bounds[3] - red_bounds[1]),
+            (blue_bounds[2] - blue_bounds[0], blue_bounds[3] - blue_bounds[1]),
+        )
+        self.assertEqual((red_bounds[2] - red_bounds[0], red_bounds[3] - red_bounds[1]), (160, 100))
+
+        # The original blue square icon remains centered and is not stretched.
+        self.assertEqual(
+            canvas.crop((50, 140, 150, 240)),
+            digipay_logo,
+        )
+        self.assertEqual(canvas.getpixel((21, 190))[:3], (28, 91, 242))
+        self.assertEqual(canvas.getpixel((178, 190))[:3], (28, 91, 242))
+        self.assertEqual(canvas.getpixel((19, 190))[:3], (17, 23, 31))
 
     def test_edit_telegram_media_replaces_photo_and_preserves_verified_buy_button(self):
         from unittest.mock import patch
