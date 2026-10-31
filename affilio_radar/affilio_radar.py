@@ -24,6 +24,10 @@ from urllib.parse import parse_qs, quote, urlencode, urljoin, urlsplit, urlunspl
 import requests
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from product_quality import is_publishable_product_title
+try:
+    from .catalog_sweep import load_catalog_candidates_for_handoff
+except ImportError:
+    from catalog_sweep import load_catalog_candidates_for_handoff
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from offerchin_visuals import (
@@ -39,6 +43,7 @@ CONFIG = ROOT / "config" / "products.json"
 STATE = ROOT / "state.json"
 REPORT = ROOT / "candidates.json"
 DIVERSITY_REPORT = ROOT / "diversity_report.json"
+CATALOG_SWEEP_CANDIDATES = ROOT / "catalog_sweep_candidates.json"
 TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@OfferChin").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
@@ -2992,6 +2997,32 @@ def discover_product_urls(
 
     publish_history = state_to_persist.get("published", {}) if isinstance(state_to_persist, dict) else {}
     recent_history = state_to_persist.get("recent_publications", []) if isinstance(state_to_persist, dict) else []
+
+    # The catalog crawler runs on its own schedule and writes an acknowledged
+    # candidate sidecar. Import its fresh listing-card candidates into the same
+    # bounded discovery queue used by the existing deep price/stock verification.
+    # This path is deliberately best-effort: a crawler/schema problem must never
+    # stop the normal live-offer feed or the publishing cycle.
+    if isinstance(discovery_queue, dict) and isinstance(state_to_persist, dict):
+        try:
+            handoff_limit = max(
+                1, min(80, int(os.getenv("AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN", "40")))
+            )
+            catalog_batch = load_catalog_candidates_for_handoff(
+                CATALOG_SWEEP_CANDIDATES,
+                state_to_persist,
+                max_count=handoff_limit,
+                now=queue_now,
+            )
+            if catalog_batch:
+                merge_discovery_queue(discovery_queue, catalog_batch, queue_now)
+                state_to_persist["discovery_queue"] = discovery_queue
+            print(
+                f"CATALOG_SWEEP_HANDOFF candidates={len(catalog_batch)} "
+                f"limit={handoff_limit} backlog_source={CATALOG_SWEEP_CANDIDATES.name}"
+            )
+        except Exception as exc:
+            print(f"CATALOG_SWEEP_HANDOFF_FAILED error={type(exc).__name__}; normal_discovery_continues=true")
 
     # The live Incredible Offers feed is the primary discovery source.
     deals_found = []
