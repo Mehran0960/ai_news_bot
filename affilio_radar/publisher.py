@@ -533,10 +533,19 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
                 "live_stock_not_confirmed", "live_discount_no_longer_eligible",
                 "live_market_value_rejected", "live_offer_expired_or_unverified",
                 "insufficient_publication_runway",
+                "selected_item_lacks_fresh_current_demand_signal",
+                "live_review_count_decreased_since_selection",
+                "live_review_count_unusable",
             }:
-                # Persist a short product-specific rejection cooldown so the next
-                # discovery cycle does not select the same stale offer again.
-                radar.mark_selection_candidate_rejected(state, payload, reason, now=now)
+                # A stale price/stock/quality failure gets a short rejection cooldown.
+                # A missing current-demand signal is different: it may become valid
+                # after new retailer observations, so do not suppress that product.
+                if reason not in {
+                    "selected_item_lacks_fresh_current_demand_signal",
+                    "live_review_count_decreased_since_selection",
+                    "live_review_count_unusable",
+                }:
+                    radar.mark_selection_candidate_rejected(state, payload, reason, now=now)
                 fallback_candidates = list(entry.get("fallback_candidates") or [])
                 entry["status"] = "stale_selection"
                 entry["last_detail"] = reason
