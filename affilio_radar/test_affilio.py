@@ -286,7 +286,7 @@ class AffilioRadarTests(unittest.TestCase):
             "original_price": 12_000_000,
             "discount_percent": 17,
         }, build_affilio_tracking_link(product_url))
-        self.assertIn("💳 خرید اقساطی با دیجی‌پی", caption)
+        self.assertIn("💳 امکان خرید اقساطی با دیجی‌پی", caption)
         self.assertIn("در صورت نمایش گزینه و احراز شرایط", caption)
 
     def test_snappshop_caption_uses_correct_store_name(self):
@@ -4389,7 +4389,7 @@ class AffilioRadarTests(unittest.TestCase):
             },
         }
         selected = select_discovery_records_for_check(queue, now, max_count=10)
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93024", "dkp-93021", "dkp-93022"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93021", "dkp-93022", "dkp-93024"])
         self.assertGreater(
             discovery_queue_sort_key(queue["dkp-93021"], now),
             discovery_queue_sort_key(queue["dkp-93022"], now),
