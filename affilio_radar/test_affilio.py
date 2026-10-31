@@ -3680,6 +3680,36 @@ class AffilioRadarTests(unittest.TestCase):
                 finally:
                     visuals._load_retailer_logo.cache_clear()
 
+    def test_retailer_badge_uses_soft_rounded_corners_without_recoloring_artwork(self):
+        import offerchin_visuals as visuals
+        from PIL import Image
+
+        source = Image.new("RGBA", (160, 100), (220, 25, 35, 255))
+        background = (17, 23, 31, 255)
+        canvas = Image.new("RGBA", (200, 140), background)
+        with patch.object(visuals, "_load_retailer_logo", return_value=source):
+            bounds = visuals.draw_retailer_badge(
+                canvas, 20, 20, 160, 100, "دیجی‌کالا",
+            )
+
+        self.assertEqual(bounds, (20, 20, 160, 100))
+        self.assertEqual(canvas.getpixel((20, 20)), background)
+        self.assertEqual(canvas.getpixel((100, 70)), (220, 25, 35, 255))
+        # The supersampled mask should leave a blended antialiased edge, not a sharp corner.
+        edge_pixels = [
+            canvas.getpixel((20 + x, 20 + y))
+            for y in range(0, 28)
+            for x in range(0, 28)
+        ]
+        self.assertTrue(
+            any(pixel != background and pixel != (220, 25, 35, 255) for pixel in edge_pixels),
+            "rounded logo edge should be antialiased",
+        )
+        self.assertEqual(
+            visuals._badge_corner_radius(160, 100),
+            visuals._badge_corner_radius(320, 100),
+        )
+
     def test_retailer_badge_preserves_official_color_background_and_wordmark(self):
         import offerchin_visuals as visuals
 
