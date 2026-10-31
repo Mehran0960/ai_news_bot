@@ -6506,6 +6506,53 @@ def select_discount_fallback_candidates(
     return [], None, quality_eligible
 
 
+def restore_selection_discount_tiers(
+    selected_candidates: list[dict],
+    tiered_candidates: list[dict],
+) -> int:
+    """Restore the selected discount floor after publication ranking.
+
+    The tier selector ranks copies annotated with their own allowed minimum.
+    The publication ranker operates on the original quality records, so this
+    metadata must be copied back before the queue hand-off or the publisher
+    incorrectly falls back to the legacy 50% floor for every product.
+    """
+    tiers_by_id: dict[str, dict] = {}
+    for candidate in tiered_candidates or []:
+        if not isinstance(candidate, dict):
+            continue
+        pid = str(
+            candidate.get("product_id")
+            or product_id(candidate.get("product_url") or "")
+        ).strip()
+        try:
+            floor = int(candidate.get("selection_discount_floor"))
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if not pid or floor not in DISCOUNT_FALLBACK_FLOORS:
+            continue
+        tier = {"selection_discount_floor": floor}
+        band = str(candidate.get("selection_discount_band") or "").strip()
+        if band:
+            tier["selection_discount_band"] = band
+        tiers_by_id[pid] = tier
+
+    restored = 0
+    for candidate in selected_candidates or []:
+        if not isinstance(candidate, dict):
+            continue
+        pid = str(
+            candidate.get("product_id")
+            or product_id(candidate.get("product_url") or "")
+        ).strip()
+        tier = tiers_by_id.get(pid)
+        if not tier:
+            continue
+        candidate.update(tier)
+        restored += 1
+    return restored
+
+
 def _has_pending_channel_retry(state: dict, pid: str) -> bool:
     """A failed channel destination may be rechecked, but never becomes a new selection."""
     return _has_pending_delivery(_publication_cooldown_record(state or {}, str(pid)))
@@ -8138,6 +8185,9 @@ def run(publish=False, selection_only=False):
         str(p.get("product_id") or product_id(p.get("product_url", ""))): p
         for p in quality_eligible
     }
+    # Retain the band metadata before ranking replaces this list with the
+    # original quality records. The publisher needs the exact per-product floor.
+    selection_tier_candidates = list(eligible)
 
     # Retry a failed destination for a previously published product before posting another product.
     # This keeps each channel's delivery independent and avoids reposting to the channel that succeeded.
@@ -8218,6 +8268,11 @@ def run(publish=False, selection_only=False):
         pending_queue, eligible_by_id, queue_now, state.get("published"),
         state.get("recent_publications"),
     )
+    restored_tiers = restore_selection_discount_tiers(
+        eligible, selection_tier_candidates
+    )
+    if restored_tiers:
+        print(f"DISCOUNT_FALLBACK_TIERS_RESTORED count={restored_tiers}")
     record_publication_diversity_report(state, now=queue_now)
     save_json(STATE, state)
     market_verified = sum(p.get("market_status") == "verified" for p in products)
