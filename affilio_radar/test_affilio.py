@@ -344,6 +344,41 @@ class AffilioRadarTests(unittest.TestCase):
             ["snp-201", "dkp-101", "dkp-102"],
         )
 
+    def test_caption_only_repair_edits_every_active_post_without_touching_images(self):
+        from unittest.mock import patch
+        import affilio_radar as radar
+
+        published = {
+            "dkp-old": {"ts": 10, "telegram_message_id": 11},
+            "snp-middle": {"ts": 20, "bale_message_id": 22},
+            "dkp-new": {
+                "ts": 30,
+                "telegram_message_id": 33,
+                "bale_message_id": 44,
+                "bale_expiry_status": "deleted",
+            },
+            "dkp-deleted": {
+                "ts": 40,
+                "telegram_message_id": 55,
+                "expiry_status": "deleted",
+                "bale_message_id": 66,
+                "bale_expiry_status": "already_absent",
+            },
+        }
+        with (
+            patch.object(radar, "load_state", return_value={"published": published}),
+            patch.object(radar, "repair_all_published_captions", return_value=0) as repair,
+            patch.object(radar, "repair_recent_product_images") as image_repair,
+        ):
+            result = radar.repair_all_active_product_captions()
+
+        self.assertEqual(result, 0)
+        self.assertEqual(
+            repair.call_args.kwargs["product_ids"],
+            {"dkp-old", "snp-middle", "dkp-new"},
+        )
+        image_repair.assert_not_called()
+
     def test_all_active_published_product_selector_includes_every_platform_post(self):
         from affilio_radar import _all_active_published_product_records
 
