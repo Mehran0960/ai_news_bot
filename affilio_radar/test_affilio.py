@@ -1,6 +1,7 @@
 import json
 import shutil
 import subprocess
+import sys
 import unittest
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
@@ -10,10 +11,13 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from urllib.parse import parse_qs, urlsplit
 
-import affilio_radar.affilio_radar as radar_module
+# Run the legacy single-file radar module as "affilio_radar" during tests,
+# matching the production CLI import layout.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import affilio_radar as radar_module
 from PIL import Image
 
-from affilio_radar.affilio_radar import (
+from affilio_radar import (
     safe_product_url,
     product_id,
     build_affilio_tracking_link,
