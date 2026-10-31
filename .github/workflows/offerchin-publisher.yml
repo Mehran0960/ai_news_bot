@@ -69,7 +69,7 @@ jobs:
           import cairosvg
           source = Path("affilio_radar/assets/retailer-logos/digipay-official.svg").read_bytes()
           png = cairosvg.svg2png(bytestring=source, output_width=320)
-          assert png.startswith(b"\\x89PNG\\r\\n\\x1a\\n")
+          assert png[:8] == bytes([137, 80, 78, 71, 13, 10, 26, 10])
           print("DIGIPAY_OFFICIAL_LOGO_STAGED_AND_VALIDATED")
           PY
 
