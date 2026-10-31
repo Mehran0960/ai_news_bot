@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - fix/offerchin-continuous-fallback-20261031
+      - fix/offerchin-preserve-fallback-discount-floor-20261031
     paths:
       - "affilio_radar/**"
       - ".github/workflows/offerchin-fallback-regression.yml"
@@ -37,4 +38,5 @@ jobs:
         run: |
           python -m unittest -v \
             test_affilio.AffilioRadarTests.test_discount_fallback_prefers_50_plus_before_higher_demand_45_band \
+            test_affilio.AffilioRadarTests.test_discount_fallback_floor_survives_publish_candidate_ranking \
             test_affilio.AffilioRadarTests.test_live_rejected_candidate_is_cooled_down_until_offer_price_changes
