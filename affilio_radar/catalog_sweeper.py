@@ -120,10 +120,7 @@ def extract_queryable_categories(payload: dict, parent_id: int | None = None) ->
 
 def extract_total_pages(payload: dict) -> int | None:
     """Find explicit pagination metadata without mistaking product counts for pages."""
-    preferred_keys = {
-        "total_pages", "totalpages", "last_page", "lastpage",
-        "pages_count", "page_count", "total_page",
-    }
+    preferred_keys = {"totalpages", "lastpage", "pagescount", "pagecount", "totalpage"}
     data = _payload_data(payload)
     stack = [data]
     seen = set()
@@ -365,7 +362,7 @@ def _ensure_state(state: dict) -> dict:
     state.setdefault("category_order", list(state["categories"]))
     state.setdefault("pages_processed_total", 0)
     state.setdefault("products_seen_total", 0)
-    state.setdefault("unique_discounted_products_total", 0)
+    state.setdefault("discounted_candidate_cards_seen_total", 0)
     state.setdefault("cycle_number", 1)
     return state
 
@@ -443,7 +440,7 @@ def _finish_cycle(state: dict, candidates: list[dict], now: str) -> tuple[dict, 
     state["cycle_number"] = safe_int(state.get("cycle_number"), 1) + 1
     state["cycle_started_at"] = now
     for row in categories.values():
-        if row.get("status") == "done":
+        if row.get("status") in {"done", "unqueryable"}:
             row["next_page"] = 1
             row["total_pages"] = None
             row["pages_processed_cycle"] = 0
@@ -507,6 +504,8 @@ def run_sweep(max_pages: int = 80, max_seconds: int = 600, delay_seconds: float 
                 break
             if response.status_code in {400, 404}:
                 if page == 1:
+                    if category_id == ROOT_CATEGORY_ID:
+                        raise RuntimeError(f"root_category_unqueryable_http_{response.status_code}")
                     category["status"] = "unqueryable"
                     category["unqueryable_status"] = response.status_code
                     print(f"CATALOG_CATEGORY_UNQUERYABLE id={category_id} status={response.status_code} title={title!r}")
@@ -518,6 +517,7 @@ def run_sweep(max_pages: int = 80, max_seconds: int = 600, delay_seconds: float 
             if len(response.content) > 8_000_000:
                 raise RuntimeError("category search response exceeded 8 MB")
             payload = response.json()
+            state["last_error"] = None
             data = _payload_data(payload)
             rows = _page_products(payload)
             if page == 1:
@@ -544,12 +544,10 @@ def run_sweep(max_pages: int = 80, max_seconds: int = 600, delay_seconds: float 
                 candidate = product_card_to_candidate(product, category_id, title, observed)
                 if candidate is not None:
                     page_candidates.append(candidate)
-            old_ids = {row.get("product_id") for row in candidates}
             candidates = merge_candidate_pool(candidates, page_candidates, limit=MAX_CANDIDATES)
-            current_ids = {row.get("product_id") for row in candidates}
             discounted_this_run += len(page_candidates)
-            state["unique_discounted_products_total"] = safe_int(state.get("unique_discounted_products_total")) + len(
-                {row.get("product_id") for row in page_candidates} - old_ids
+            state["discounted_candidate_cards_seen_total"] = (
+                safe_int(state.get("discounted_candidate_cards_seen_total")) + len(page_candidates)
             )
             category["pages_processed_cycle"] = safe_int(category.get("pages_processed_cycle")) + 1
             category["products_seen_cycle"] = safe_int(category.get("products_seen_cycle")) + len(rows)
@@ -623,7 +621,7 @@ def run_sweep(max_pages: int = 80, max_seconds: int = 600, delay_seconds: float 
         "pages_with_known_total": expected_pages,
         "pages_processed_in_known_categories": completed_known_pages,
         "estimated_page_coverage_percent": (
-            round(100 * min(100, completed_known_pages) / expected_pages, 2)
+            round(100 * min(expected_pages, completed_known_pages) / expected_pages, 2)
             if expected_pages > 0 else None
         ),
         "full_cycle_completed_at": state.get("last_full_cycle_completed_at"),
