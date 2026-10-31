@@ -304,7 +304,7 @@ class AffilioRadarTests(unittest.TestCase):
             "merchant": "دیجی‌کالا",
             "current_price": 10_000_000,
             "discount_percent": 17,
-        }, build_affilio_tracking_link(product_url), BALE_CHANNEL_URL, True)
+        }, build_affilio_tracking_link(product_url), "https://ble.ir/OfferChin", True)
         self.assertIn("*💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان*", bale_caption)
         self.assertIn("*⚡️ ۱۷٪ تخفیف*", bale_caption)
         self.assertIn("*💳 با امکان خرید اقساطی (دیجی پی)*", bale_caption)
