@@ -287,8 +287,31 @@ class AffilioRadarTests(unittest.TestCase):
             "original_price": 12_000_000,
             "discount_percent": 17,
         }, build_affilio_tracking_link(product_url))
-        self.assertIn("💳 با امکان خرید اقساطی (دیجی پی)", caption)
-        self.assertNotIn("در صورت نمایش گزینه و احراز شرایط", caption)
+        self.assertIn("<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>", caption)
+        self.assertIn("<b>⚡️ ۱۷٪ تخفیف</b>", caption)
+        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
+        self.assertIn(
+            "\\n\\n────────────\\n\\n"
+            "<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>\\n\\n"
+            "<b>⚡️ ۱۷٪ تخفیف</b>\\n\\n"
+            "<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\\n────────────\\n\\n"
+            '<a href="https://t.me/OfferChin">➕ عضویت در کانال آفِرچین</a>',
+            caption,
+        )
+        bale_caption = build_caption({
+            "title": "گوشی نمونه",
+            "product_url": product_url,
+            "merchant": "دیجی‌کالا",
+            "current_price": 10_000_000,
+            "discount_percent": 17,
+        }, build_affilio_tracking_link(product_url), BALE_CHANNEL_URL, True)
+        self.assertIn("*💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان*", bale_caption)
+        self.assertIn("*⚡️ ۱۷٪ تخفیف*", bale_caption)
+        self.assertIn("*💳 با امکان خرید اقساطی (دیجی پی)*", bale_caption)
+        self.assertIn(
+            "\\n────────────\\n\\n[➕ عضویت در کانال آفِرچین](https://ble.ir/OfferChin)",
+            bale_caption,
+        )
 
     def test_recent_caption_repair_selects_only_newest_active_products(self):
         published = {
@@ -314,8 +337,13 @@ class AffilioRadarTests(unittest.TestCase):
         }, affiliate)
         self.assertIn("🔥 فروش ویژه اسنپ‌شاپ 🟣", caption)
         self.assertNotIn("دیجی‌کالا", caption)
-        self.assertIn("💳 با امکان خرید اقساطی (دیجی پی)", caption)
-        self.assertNotIn("در صورت نمایش گزینه و احراز شرایط", caption)
+        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
+        self.assertIn(
+            "\\n\\n────────────\\n\\n<b>💚 قیمت فعلی: ۱٬۰۶۵٬۰۰۰ تومان</b>"
+            "\\n\\n<b>⚡️ ۵۳٪ تخفیف</b>"
+            "\\n\\n<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\\n────────────",
+            caption,
+        )
 
     def test_snappshop_without_confirmed_expiry_can_publish_when_live_deal_is_verified(self):
         now = datetime.now(timezone.utc)
