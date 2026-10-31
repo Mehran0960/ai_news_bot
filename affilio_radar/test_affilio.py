@@ -791,6 +791,54 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertLess(popular_gadget["discount_percent"], weaker_demand_deal["discount_percent"])
         self.assertGreater(deal_sort_key(popular_gadget), deal_sort_key(weaker_demand_deal))
 
+    def test_one_recent_review_in_active_window_qualifies_current_demand(self):
+        now = datetime(2026, 11, 1, 12, 0, tzinfo=timezone.utc)
+        baseline = now - timedelta(hours=8)
+
+        growing_state = {
+            "current_demand_observations": {
+                "dkp-99001": {
+                    "samples": [{
+                        "observed_at": baseline.isoformat(),
+                        "review_count": 100,
+                    }],
+                    "last_observed_at": baseline.isoformat(),
+                }
+            }
+        }
+        growing = {
+            "product_id": "dkp-99001",
+            "review_count": 101,
+        }
+        summary = radar_module.update_current_demand_signals(
+            growing_state, [growing], now=now
+        )
+        self.assertEqual(summary["verified"], 1)
+        self.assertTrue(radar_module.has_current_demand_signal(growing, now))
+        self.assertEqual(growing["recent_review_growth_window"], 1)
+        self.assertEqual(growing["demand_window_hours"], 8.0)
+
+        unchanged_state = {
+            "current_demand_observations": {
+                "dkp-99002": {
+                    "samples": [{
+                        "observed_at": baseline.isoformat(),
+                        "review_count": 100,
+                    }],
+                    "last_observed_at": baseline.isoformat(),
+                }
+            }
+        }
+        unchanged = {
+            "product_id": "dkp-99002",
+            "review_count": 100,
+        }
+        unchanged_summary = radar_module.update_current_demand_signals(
+            unchanged_state, [unchanged], now=now
+        )
+        self.assertEqual(unchanged_summary["verified"], 0)
+        self.assertFalse(radar_module.has_current_demand_signal(unchanged, now))
+
     def test_medicines_and_supplements_are_rejected(self):
         for title in [
             "قرص زینک پلاس یوروویتال",
