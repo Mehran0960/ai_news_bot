@@ -68537,7 +68537,7 @@
     },
     "dkp-16037821": {
       "bale_expiry_status": "unknown",
-      "bale_message_id": 1159,
+      "bale_message_id": 1161,
       "delivery_attempts": {
         "aparat": 0,
         "bale": 1,
@@ -72115,7 +72115,7 @@
     },
     "dkp-21641890": {
       "bale_expiry_status": "unknown",
-      "bale_message_id": 1158,
+      "bale_message_id": 1160,
       "delivery_attempts": {
         "aparat": 0,
         "bale": 1,
@@ -80820,10 +80820,12 @@
     "dkp-16037821": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
-      "bale_message_id": 1159,
-      "caption_countdown_refreshed_at": "2026-10-31T22:53:36.404761+00:00",
+      "bale_image_layout_updated_at": "2026-10-31T23:03:56.609979+00:00",
+      "bale_image_layout_version": 1,
+      "bale_message_id": 1161,
+      "caption_countdown_refreshed_at": "2026-10-31T23:03:31.735789+00:00",
       "caption_deadline_format_version": 14,
-      "caption_without_expiry_migrated_at": "2026-10-31T22:53:36.404790+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-31T23:03:31.735813+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "current_demand_score": 26,
@@ -80928,6 +80930,8 @@
       "recent_review_growth_7d": 0,
       "selection_discount_band": "1%+",
       "selection_discount_floor": 1,
+      "telegram_image_layout_updated_at": "2026-10-31T23:03:50.277786+00:00",
+      "telegram_image_layout_version": 1,
       "telegram_message_id": 939,
       "title": "هندزفری بلوتوثی مدل ایرپاد",
       "ts": 1793487182.955025,
@@ -81169,9 +81173,9 @@
       "youtube_upload_status": "skipped_unverified_deadline"
     },
     "dkp-16711084": {
-      "aparat_expiry_attempts": 554,
+      "aparat_expiry_attempts": 555,
       "aparat_expiry_last_error": "RuntimeError",
-      "aparat_expiry_next_attempt_at": "2026-10-31T22:57:56.000331+00:00",
+      "aparat_expiry_next_attempt_at": "2026-10-31T23:07:51.070313+00:00",
       "aparat_expiry_status": "delete_retry",
       "aparat_upload_started_at": "2026-10-28T01:06:55.624026+00:00",
       "aparat_upload_status": "uploaded",
@@ -81537,9 +81541,9 @@
       "youtube_upload_status": "skipped_unverified_deadline"
     },
     "dkp-17186694": {
-      "aparat_expiry_attempts": 377,
+      "aparat_expiry_attempts": 378,
       "aparat_expiry_last_error": "RuntimeError",
-      "aparat_expiry_next_attempt_at": "2026-10-31T22:57:56.000331+00:00",
+      "aparat_expiry_next_attempt_at": "2026-10-31T23:07:51.070313+00:00",
       "aparat_expiry_status": "delete_retry",
       "aparat_upload_started_at": "2026-10-23T23:50:12.265989+00:00",
       "aparat_upload_status": "uploaded",
@@ -89567,10 +89571,12 @@
     "dkp-21641890": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
-      "bale_message_id": 1158,
-      "caption_countdown_refreshed_at": "2026-10-31T22:53:41.754237+00:00",
+      "bale_image_layout_updated_at": "2026-10-31T23:03:47.998811+00:00",
+      "bale_image_layout_version": 1,
+      "bale_message_id": 1160,
+      "caption_countdown_refreshed_at": "2026-10-31T23:03:37.661418+00:00",
       "caption_deadline_format_version": 14,
-      "caption_without_expiry_migrated_at": "2026-10-31T22:53:41.754265+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-31T23:03:37.661443+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "current_demand_score": 27,
@@ -89609,6 +89615,8 @@
       "recent_review_growth_7d": 0,
       "selection_discount_band": "1%+",
       "selection_discount_floor": 1,
+      "telegram_image_layout_updated_at": "2026-10-31T23:03:40.631604+00:00",
+      "telegram_image_layout_version": 1,
       "telegram_message_id": 938,
       "title": "اسپیکر قابل حمل کیسونلی مدل K14 Mini",
       "ts": 1793485706.961597,
@@ -109023,7 +109031,29 @@
       "ts": 1793485706.961597
     },
     {
+      "bale_message_id": 1160,
+      "brand": "",
+      "category": "audio_wearables",
+      "family": "audio_wearables:speaker",
+      "product_id": "dkp-21641890",
+      "retailer": "digikala",
+      "telegram_message_id": 938,
+      "title": "اسپیکر قابل حمل کیسونلی مدل K14 Mini",
+      "ts": 1793485706.961597
+    },
+    {
       "bale_message_id": 1159,
+      "brand": "",
+      "category": "audio_wearables",
+      "family": "audio_wearables:headphones",
+      "product_id": "dkp-16037821",
+      "retailer": "digikala",
+      "telegram_message_id": 939,
+      "title": "هندزفری بلوتوثی مدل ایرپاد",
+      "ts": 1793487182.955025
+    },
+    {
+      "bale_message_id": 1161,
       "brand": "",
       "category": "audio_wearables",
       "family": "audio_wearables:headphones",
