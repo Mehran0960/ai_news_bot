@@ -4090,7 +4090,7 @@ def is_discount_publish_eligible(
     minimum_discount_percent: int | None = None,
     now: datetime | None = None,
 ) -> bool:
-    """Require verified stock, a complete offer, and measured recent retailer activity."""
+    """Require verified stock/price/image, a valid product, and a genuine markdown."""
     return bool(
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
@@ -6253,7 +6253,7 @@ def select_urgent_publication_candidate(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> dict | None:
-    """Choose a strong urgent deal by demand; apply variety only among comparable urgent candidates."""
+    """Choose the largest verified discount among urgent candidates in the popularity-ranked pool."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -6271,6 +6271,15 @@ def select_urgent_publication_candidate(
     if not ranked:
         print("URGENT_PUBLICATION_DEFERRED reason=recent_family_cooldown_or_no_diverse_candidate")
         return None
+    ranked.sort(
+        key=lambda product: (
+            max(0, int(product.get("discount_percent") or 0)),
+            _candidate_demand_score(product),
+            max(0, int(product.get("savings_toman") or 0)),
+            max(0, int(product.get("review_count") or 0)),
+        ),
+        reverse=True,
+    )
     return ranked[0]
 
 
