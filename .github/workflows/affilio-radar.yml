@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - "affilio_radar/affilio_radar.py"
+      - "affilio_radar/catalog_sweeper.py"
+      - "affilio_radar/test_catalog_sweeper.py"
+      - ".github/workflows/digikala-catalog-sweep.yml"
       - "affilio_radar/product_quality.py"
       - "affilio_radar/affiliate-deal-radar-worker.js"
       - "affilio_radar/affiliate-deal-radar-worker.js"
@@ -124,7 +127,7 @@ jobs:
 
       - name: Validate Python syntax (required for safe publishing)
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/product_quality.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py affilio_radar/expiration_monitor.py affilio_radar/content_delivery.py affilio_radar/publisher.py affilio_radar/platform_registry.py affilio_radar/integrity_audit.py affilio_radar/integrity_audit_state.py affilio_radar/test_integrity_audit.py affilio_radar/test_aparat_upload_schedule.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/catalog_sweeper.py affilio_radar/product_quality.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py affilio_radar/expiration_monitor.py affilio_radar/content_delivery.py affilio_radar/publisher.py affilio_radar/platform_registry.py affilio_radar/integrity_audit.py affilio_radar/integrity_audit_state.py affilio_radar/test_integrity_audit.py affilio_radar/test_aparat_upload_schedule.py
 
       - name: Run regression tests on code pushes only (never in the live publishing path)
         if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[growth-tracking-only]') }}
@@ -144,7 +147,7 @@ jobs:
           }
           trap restore_live_files EXIT
           cd affilio_radar
-          python -m unittest -v test_affilio.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py test_aparat_upload_schedule.py test_content_delivery.py test_integrity_audit.py
+          python -m unittest -v test_affilio.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py test_aparat_upload_schedule.py test_content_delivery.py test_integrity_audit.py test_catalog_sweeper.py
 
       - name: Smoke-test the deployed click tracker (diagnostic only)
         if: ${{ github.event_name == 'push' }}
