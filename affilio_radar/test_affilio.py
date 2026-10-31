@@ -287,8 +287,8 @@ class AffilioRadarTests(unittest.TestCase):
             "original_price": 12_000_000,
             "discount_percent": 17,
         }, build_affilio_tracking_link(product_url))
-        self.assertIn("💳 امکان خرید اقساطی با دیجی‌پی", caption)
-        self.assertIn("در صورت نمایش گزینه و احراز شرایط", caption)
+        self.assertIn("💳 با امکان خرید اقساطی (دیجی پی)", caption)
+        self.assertNotIn("در صورت نمایش گزینه و احراز شرایط", caption)
 
     def test_recent_caption_repair_selects_only_newest_active_products(self):
         published = {
@@ -314,8 +314,8 @@ class AffilioRadarTests(unittest.TestCase):
         }, affiliate)
         self.assertIn("🔥 فروش ویژه اسنپ‌شاپ 🟣", caption)
         self.assertNotIn("دیجی‌کالا", caption)
-        self.assertIn("💳 امکان خرید اقساطی با دیجی‌پی", caption)
-        self.assertIn("در صورت نمایش گزینه و احراز شرایط", caption)
+        self.assertIn("💳 با امکان خرید اقساطی (دیجی پی)", caption)
+        self.assertNotIn("در صورت نمایش گزینه و احراز شرایط", caption)
 
     def test_snappshop_without_confirmed_expiry_can_publish_when_live_deal_is_verified(self):
         now = datetime.now(timezone.utc)
