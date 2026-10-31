@@ -288,10 +288,11 @@ class AffilioRadarTests(unittest.TestCase):
             "discount_percent": 17,
         }, build_affilio_tracking_link(product_url))
         self.assertIn("<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>", caption)
+        self.assertNotIn("────────────\n\n<b>💚 قیمت فعلی:", caption)
         self.assertIn("<b>⚡️ ۱۷٪ تخفیف</b>", caption)
         self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
         self.assertIn(
-            "\n\n────────────\n\n"
+            "\n\n────────────\n"
             "<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>\n\n"
             "<b>⚡️ ۱۷٪ تخفیف</b>\n\n"
             "<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\n────────────\n\n"
@@ -339,7 +340,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("دیجی‌کالا", caption)
         self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
         self.assertIn(
-            "\n\n────────────\n\n<b>💚 قیمت فعلی: ۱٬۰۶۵٬۰۰۰ تومان</b>"
+            "\n\n────────────\n<b>💚 قیمت فعلی: ۱٬۰۶۵٬۰۰۰ تومان</b>"
             "\n\n<b>⚡️ ۵۳٪ تخفیف</b>"
             "\n\n<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\n────────────",
             caption,
