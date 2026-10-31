@@ -1,0 +1,62 @@
+name: OfferChin Top-100 and DigiPay Regression Tests
+
+on:
+  pull_request:
+    paths:
+      - "affilio_radar/affilio_radar.py"
+      - "affilio_radar/offerchin_visuals.py"
+      - "affilio_radar/catalog_sweep.py"
+      - "affilio_radar/test_affilio.py"
+      - ".github/workflows/offerchin-publisher.yml"
+      - ".github/workflows/offerchin-top100-digipay-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install OfferChin dependencies
+        run: python -m pip install -r affilio_radar/requirements.txt
+      - name: Stage the current official DigiPay brand asset
+        run: |
+          mkdir -p affilio_radar/assets/retailer-logos
+          curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 \
+            "https://www.mydigipay.com/bck-assets/images/logos/dp-logo.svg" \
+            -o affilio_radar/assets/retailer-logos/digipay-official.svg
+          test -s affilio_radar/assets/retailer-logos/digipay-official.svg
+      - name: Compile OfferChin discovery, visuals and publisher
+        run: |
+          python -m py_compile \
+            affilio_radar/affilio_radar.py \
+            affilio_radar/offerchin_visuals.py \
+            affilio_radar/catalog_sweep.py \
+            affilio_radar/parallel_catalog_sweep.py \
+            affilio_radar/publisher.py
+      - name: Validate DigiPay artwork and caption integration
+        working-directory: affilio_radar
+        run: |
+          python - <<'PY'
+          import offerchin_visuals
+          assert offerchin_visuals._load_digipay_logo() is not None
+          import affilio_radar as radar
+          url = "https://www.digikala.com/product/dkp-990001/"
+          caption = radar.build_caption({
+              "title": "گوشی نمونه", "product_url": url, "merchant": "دیجی‌کالا",
+              "current_price": 10_000_000, "original_price": 12_000_000,
+              "discount_percent": 17,
+          }, radar.build_affilio_tracking_link(url))
+          assert "خرید اقساطی با دیجی‌پی" in caption
+          assert "در صورت نمایش گزینه و احراز شرایط" in caption
+          print("DIGIPAY_IMAGE_AND_CAPTION_OK")
+          PY
+      - name: Run OfferChin regression suite
+        working-directory: affilio_radar
+        run: python -m unittest -v test_affilio
