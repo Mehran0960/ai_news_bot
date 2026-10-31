@@ -3759,11 +3759,25 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual((red_bounds[2] - red_bounds[0], red_bounds[3] - red_bounds[1]), (160, 100))
 
-        # The original blue square icon remains centered and is not stretched.
-        self.assertEqual(
-            canvas.crop((50, 140, 150, 240)),
-            digipay_logo,
-        )
+        # The original white mark remains centered at identical pixel positions.
+        # Its transparent rounded corners correctly merge into the extended blue field.
+        output_icon = canvas.crop((50, 140, 150, 240))
+        def white_mark_bbox(artwork):
+            points = [
+                (x, y)
+                for y in range(artwork.height)
+                for x in range(artwork.width)
+                if (lambda pixel: pixel[0] > 245 and pixel[1] > 245 and pixel[2] > 245 and pixel[3] > 240)(
+                    artwork.getpixel((x, y))
+                )
+            ]
+            return (
+                min(x for x, _ in points),
+                min(y for _, y in points),
+                max(x for x, _ in points) + 1,
+                max(y for _, y in points) + 1,
+            )
+        self.assertEqual(white_mark_bbox(output_icon), white_mark_bbox(digipay_logo))
         self.assertEqual(canvas.getpixel((21, 190))[:3], (28, 91, 242))
         self.assertEqual(canvas.getpixel((178, 190))[:3], (28, 91, 242))
         self.assertEqual(canvas.getpixel((19, 190))[:3], (17, 23, 31))
