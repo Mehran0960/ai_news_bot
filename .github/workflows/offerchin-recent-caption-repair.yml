@@ -52,6 +52,9 @@ jobs:
           source = Path("affilio_radar/affilio_radar.py").read_text(encoding="utf-8")
           assert 'installment_line = bold("💳 با امکان خرید اقساطی (دیجی پی)")' in source
           assert "--repair-recent-captions" in source
+          assert "--repair-recent-product-images" in source
+          visuals = Path("affilio_radar/offerchin_visuals.py").read_text(encoding="utf-8")
+          assert "def _draw_uniform_logo_frame" in visuals
           print("OFFERCHIN_RECENT_CAPTION_REPAIR_REQUEST_VALIDATED")
           PY
           python -m py_compile affilio_radar/affilio_radar.py
@@ -59,7 +62,7 @@ jobs:
       - name: Run caption and recent-selection regression tests
         run: |
           cd affilio_radar
-          python -m unittest             test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit             test_affilio.AffilioRadarTests.test_snappshop_caption_uses_correct_store_name             test_affilio.AffilioRadarTests.test_recent_caption_repair_selects_only_newest_active_products -v
+          python -m unittest             test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit             test_affilio.AffilioRadarTests.test_snappshop_caption_uses_correct_store_name             test_affilio.AffilioRadarTests.test_recent_caption_repair_selects_only_newest_active_products             test_affilio.AffilioRadarTests.test_digikala_and_digipay_logos_use_equal_frames_without_distorting_artwork             test_affilio.AffilioRadarTests.test_edit_telegram_media_replaces_photo_and_preserves_verified_buy_button             test_affilio.AffilioRadarTests.test_delete_bale_message_uses_documented_delete_method -v
 
       - name: Edit the two most recent active product posts in place
         env:
@@ -73,6 +76,18 @@ jobs:
           limit="$(python -c 'import json; print(json.load(open(".github/offerchin-caption-repair-request.json", encoding="utf-8"))["limit"])')"
           python affilio_radar/affilio_radar.py --repair-recent-captions "$limit"
 
+      - name: Replace the two most recent product images in place
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -euo pipefail
+          limit="$(python -c 'import json; print(json.load(open(".github/offerchin-caption-repair-request.json", encoding="utf-8"))["limit"])')"
+          python affilio_radar/affilio_radar.py --repair-recent-product-images "$limit"
+
       - name: Persist the edited-post state and repair report
         if: always()
         shell: bash
@@ -81,6 +96,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add affilio_radar/state.json affilio_radar/affiliate_link_repair_report.json
+          if [[ -f affilio_radar/product_image_repair_report.json ]]; then
+            git add affilio_radar/product_image_repair_report.json
+          fi
           if git diff --cached --quiet; then
             echo "No state/report changes to persist."
             exit 0
