@@ -1,6 +1,11 @@
 name: DigiKala Full Catalog Sweep
 
 on:
+  push:
+    paths:
+      - "affilio_radar/catalog_sweeper.py"
+      - "affilio_radar/test_catalog_sweeper.py"
+      - ".github/workflows/digikala-catalog-sweep.yml"
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
@@ -14,13 +19,14 @@ concurrency:
 
 jobs:
   sweep:
+    if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[catalog-sweep-live-test]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Check out persistent catalog cursor
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event_name == 'push' && github.ref || 'refs/heads/main' }}
           fetch-depth: 0
 
       - name: Set up Python
@@ -40,14 +46,14 @@ jobs:
       - name: Sweep the next 80 DigiKala category pages
         env:
           DIGIKALA_CATALOG_MAX_CANDIDATES: "3000"
-          DIGIKALA_CATALOG_MAX_PAGES_PER_RUN: "80"
+          DIGIKALA_CATALOG_MAX_PAGES_PER_RUN: ${{ github.event_name == 'push' && '3' || '80' }}
           DIGIKALA_CATALOG_MAX_SECONDS: "600"
           DIGIKALA_CATALOG_REQUEST_DELAY_SECONDS: "0.45"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/catalog_sweeper.py
 
       - name: Persist cursor and ranked discovery candidates
-        if: always()
+        if: always() && github.event_name != 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
