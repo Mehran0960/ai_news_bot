@@ -39,27 +39,6 @@ jobs:
           done
           exit 1
 
-      - name: Fetch and validate the official DigiPay logo
-        run: |
-          mkdir -p affilio_radar/assets/retailer-logos
-          curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 \
-            "https://www.mydigipay.com/bck-assets/images/logos/dp-logo.svg" \
-            -o affilio_radar/assets/retailer-logos/digipay-official.svg
-          test -s affilio_radar/assets/retailer-logos/digipay-official.svg
-          python - <<'PY'
-          from pathlib import Path
-          import cairosvg
-          source = Path("affilio_radar/assets/retailer-logos/digipay-official.svg").read_bytes()
-          png = cairosvg.svg2png(bytestring=source, output_width=320)
-          assert png[:8] == bytes([137, 80, 78, 71, 13, 10, 26, 10])
-          print("DIGIPAY_OFFICIAL_LOGO_STAGED_AND_VALIDATED")
-          PY
-          PYTHONPATH=affilio_radar python - <<'PY'
-          import offerchin_visuals
-          assert offerchin_visuals._load_digipay_logo() is not None
-          print("DIGIPAY_RENDERER_CAN_LOAD_OFFICIAL_LOGO")
-          PY
-
       - name: Validate the one-shot request and repair implementation
         shell: bash
         run: |
@@ -68,15 +47,12 @@ jobs:
           import json
           from pathlib import Path
           request = json.loads(Path(".github/offerchin-caption-repair-request.json").read_text(encoding="utf-8"))
-          assert request.get("action") == "repair_all_active_product_posts"
-          assert int(request.get("image_layout_version", 0)) == 6
+          assert request.get("action") == "repair_all_active_product_captions"
           source = Path("affilio_radar/affilio_radar.py").read_text(encoding="utf-8")
           assert 'installment_line = bold("💳 با امکان خرید اقساطی (دیجی پی)")' in source
-          assert "--repair-all-active-product-posts" in source
+          assert "--repair-all-active-product-captions" in source
           assert "def _all_active_published_product_records" in source
-          visuals = Path("affilio_radar/offerchin_visuals.py").read_text(encoding="utf-8")
-          assert "def _digipay_brand_blue" in visuals
-          assert "def _badge_corner_radius" in visuals
+          assert "def repair_all_active_product_captions" in source
           print("OFFERCHIN_RECENT_CAPTION_REPAIR_REQUEST_VALIDATED")
           PY
           python -m py_compile affilio_radar/affilio_radar.py
@@ -84,9 +60,18 @@ jobs:
       - name: Run caption and recent-selection regression tests
         run: |
           cd affilio_radar
-          python -m unittest -v test_affilio.AffilioRadarTests.test_digikala_caption_uses_exact_digipay_installment_sentence test_affilio.AffilioRadarTests.test_exact_digipay_installment_sentence_has_no_extra_qualifier test_affilio.AffilioRadarTests.test_snappshop_caption_uses_correct_store_name test_affilio.AffilioRadarTests.test_all_active_published_product_selector_includes_every_platform_post test_affilio.AffilioRadarTests.test_digipay_blue_background_matches_retailer_tile_and_centers_untouched_icon test_affilio.AffilioRadarTests.test_retailer_badge_uses_soft_rounded_corners_without_recoloring_artwork test_affilio.AffilioRadarTests.test_edit_telegram_media_replaces_photo_and_preserves_verified_buy_button test_affilio.AffilioRadarTests.test_delete_bale_message_uses_documented_delete_method
+          python -m unittest -v \
+            test_affilio.AffilioRadarTests.test_digikala_caption_uses_exact_digipay_installment_sentence \
+            test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit \
+            test_affilio.AffilioRadarTests.test_exact_digipay_installment_sentence_has_no_extra_qualifier \
+            test_affilio.AffilioRadarTests.test_snappshop_caption_uses_correct_store_name \
+            test_affilio.AffilioRadarTests.test_all_active_published_product_selector_includes_every_platform_post \
+            test_affilio.AffilioRadarTests.test_caption_only_repair_edits_every_active_post_without_touching_images \
+            test_affilio.AffilioRadarTests.test_repair_all_published_captions_edits_in_place_on_both_platforms \
+            test_affilio.AffilioRadarTests.test_edit_telegram_caption_preserves_affiliate_purchase_button \
+            test_affilio.AffilioRadarTests.test_edit_bale_caption_preserves_purchase_button
 
-      - name: Repair every active Telegram/Bale product post in place
+      - name: Edit captions on every active Telegram/Bale product post in place
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
@@ -95,7 +80,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: |
           set -euo pipefail
-          python affilio_radar/affilio_radar.py --repair-all-active-product-posts
+          python affilio_radar/affilio_radar.py --repair-all-active-product-captions
 
       - name: Persist the edited-post state and repair report
         if: always()
@@ -105,9 +90,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add affilio_radar/state.json affilio_radar/affiliate_link_repair_report.json
-          if [[ -f affilio_radar/product_image_repair_report.json ]]; then
-            git add affilio_radar/product_image_repair_report.json
-          fi
           if git diff --cached --quiet; then
             echo "No state/report changes to persist."
             exit 0
