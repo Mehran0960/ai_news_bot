@@ -187,9 +187,11 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     product_id = str(payload.get("product_id") or "").lower()
     if not product_url or radar.product_id(product_url) != product_id:
         return None, "invalid_product_identity"
+    if not radar.has_current_demand_signal(payload, now):
+        return None, "selected_item_lacks_fresh_current_demand_signal"
 
-    # New queue entries persist the exact fallback tier selected by discovery.
-    # Legacy queue entries without this field retain the historical 50% default.
+    # The 50% discount floor is fixed. Older queued selections with lower
+    # discount tiers are rejected rather than grandfathered into publication.
     raw_discount_floor = payload.get("selection_discount_floor")
     minimum_discount_percent = None
     if raw_discount_floor is not None:
@@ -224,18 +226,28 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     if live_price != selected_price:
         return None, f"selected_price_stale_selected={selected_price}_live={live_price}"
 
-    # Keep the selection's approved tracking link and ranking signals, but never
-    # reuse a stale listed price. The price/stock and image above are freshly read.
+    # Keep the verified recent-activity signal and approved tracking link, but
+    # never reuse a stale listed price. The price/stock and image are freshly read.
+    try:
+        selected_review_count = int(payload.get("review_count") or 0)
+        live_review_count = int(fresh.get("review_count") or 0)
+    except (TypeError, ValueError, OverflowError):
+        return None, "live_review_count_unusable"
+    if live_review_count < selected_review_count:
+        return None, "live_review_count_decreased_since_selection"
+
     fresh["affiliate_url"] = str(payload.get("affiliate_url") or "").strip()
     if not fresh["affiliate_url"]:
         fresh["affiliate_url"] = radar.build_affilio_tracking_link(product_url)
     fresh["has_affiliate_link"] = bool(fresh["affiliate_url"])
     for key in (
-        "demand_score", "promo_score", "click_count_30d", "market_status",
-        "market_reference_price_toman", "market_price_advantage_pct",
-        "market_match_score", "market_seller_count",
+        "demand_score", "current_demand_verified", "current_demand_score",
+        "recent_review_growth_7d", "demand_window_hours", "demand_observed_at",
+        "demand_signal_source", "historical_popularity_score", "promo_score",
+        "click_count_30d", "market_status", "market_reference_price_toman",
+        "market_price_advantage_pct", "market_match_score", "market_seller_count",
     ):
-        if key in payload and key not in fresh:
+        if key in payload:
             fresh[key] = payload[key]
     if not fresh.get("affiliate_url") or not radar._is_valid_affilio_tracking_url(fresh["affiliate_url"]):
         return None, "affiliate_link_not_verified"
@@ -300,7 +312,7 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     if fresh.get("availability") != "in_stock":
         return None, "live_stock_not_confirmed"
     if not radar.is_discount_publish_eligible(
-        fresh, minimum_discount_percent=minimum_discount_percent
+        fresh, minimum_discount_percent=minimum_discount_percent, now=now
     ):
         return None, "live_discount_no_longer_eligible"
     if not radar.is_market_value_publish_eligible(fresh):
