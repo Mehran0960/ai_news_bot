@@ -2066,6 +2066,50 @@ class AffilioRadarTests(unittest.TestCase):
             [("dkp-95001", 50), ("dkp-95002", 45)],
         )
 
+
+    def test_discount_fallback_floor_survives_publish_candidate_ranking(self):
+        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+        price = 1_000_000
+        original = 1_960_784
+        candidate = {
+            "product_id": "dkp-95004",
+            "title": "شارژر سریع دیواری مدل پرفروش",
+            "availability": "in_stock",
+            "availability_source": "digikala_api",
+            "current_price": price,
+            "original_price": original,
+            "discount_percent": 49,
+            "savings_toman": original - price,
+            "image_url": "https://example.com/charger.webp",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95004%2F",
+            "has_affiliate_link": True,
+            "demand_score": 75,
+            "review_count": 1200,
+            "rating": 4.6,
+            "deal_expires_at": "",
+            "expiry_source": "unavailable",
+        }
+
+        tiered, floor, quality = radar_module.select_discount_fallback_candidates(
+            [candidate], {"published": {}}, now, include_fallback_bands=True
+        )
+        self.assertEqual(floor, 45)
+        self.assertEqual(tiered[0]["selection_discount_floor"], 45)
+
+        quality_by_id = {item["product_id"]: item for item in quality}
+        ranked = select_publish_candidates(
+            {"dkp-95004": {}}, quality_by_id, now, published={}
+        )
+        self.assertEqual([item["product_id"] for item in ranked], ["dkp-95004"])
+
+        restored = radar_module.restore_selection_discount_tiers(ranked, tiered)
+        self.assertEqual(restored, 1)
+        self.assertEqual(ranked[0]["selection_discount_floor"], 45)
+        self.assertEqual(
+            ranked[0]["selection_discount_band"],
+            tiered[0]["selection_discount_band"],
+        )
+
     def test_live_rejected_candidate_is_cooled_down_until_offer_price_changes(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         state = {}
