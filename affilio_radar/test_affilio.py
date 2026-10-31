@@ -290,12 +290,12 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>", caption)
         self.assertNotIn("────────────\n\n<b>💚 قیمت فعلی:", caption)
         self.assertIn("<b>⚡️ ۱۷٪ تخفیف</b>", caption)
-        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
+        self.assertIn("<b>💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)</b>", caption)
         self.assertIn(
             "\n\n────────────\n"
             "<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>\n\n"
             "<b>⚡️ ۱۷٪ تخفیف</b>\n\n"
-            "<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\n────────────\n\n"
+            "<b>💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)</b>\n────────────\n\n"
             '<a href="https://t.me/OfferChin">➕ عضویت در کانال آفِرچین</a>',
             caption,
         )
@@ -308,7 +308,7 @@ class AffilioRadarTests(unittest.TestCase):
         }, build_affilio_tracking_link(product_url), "https://ble.ir/OfferChin", True)
         self.assertIn("*💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان*", bale_caption)
         self.assertIn("*⚡️ ۱۷٪ تخفیف*", bale_caption)
-        self.assertIn("*💳 با امکان خرید اقساطی (دیجی پی)*", bale_caption)
+        self.assertIn("*💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)*", bale_caption)
         self.assertIn(
             "\n────────────\n\n[➕ عضویت در کانال آفِرچین](https://ble.ir/OfferChin)",
             bale_caption,
@@ -368,11 +368,11 @@ class AffilioRadarTests(unittest.TestCase):
         }, affiliate)
         self.assertIn("🔥 فروش ویژه اسنپ‌شاپ 🟣", caption)
         self.assertNotIn("دیجی‌کالا", caption)
-        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
+        self.assertIn("<b>💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)</b>", caption)
         self.assertIn(
             "\n\n────────────\n<b>💚 قیمت فعلی: ۱٬۰۶۵٬۰۰۰ تومان</b>"
             "\n\n<b>⚡️ ۵۳٪ تخفیف</b>"
-            "\n\n<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\n────────────",
+            "\n\n<b>💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)</b>\n────────────",
             caption,
         )
 
