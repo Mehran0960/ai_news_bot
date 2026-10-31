@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - ".github/workflows/offerchin-digikala-catalog-sweep.yml"
+      - "affilio_radar/catalog_sweep.py"
+      - "affilio_radar/test_catalog_sweep.py"
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
