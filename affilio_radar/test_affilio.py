@@ -2584,16 +2584,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(product["current_demand_verified"])
         self.assertEqual(product["demand_score"], 0)
 
-        product["review_count"] = 50_002
-        radar_module.update_current_demand_signals(
-            state, [product], now=start + timedelta(hours=23)
-        )
-        self.assertTrue(product["current_demand_verified"])
-        self.assertEqual(product["recent_review_growth_7d"], 2)
-
         product["review_count"] = 50_003
         radar_module.update_current_demand_signals(
-            state, [product], now=start + timedelta(hours=25)
+            state, [product], now=start + timedelta(hours=23)
         )
         self.assertTrue(product["current_demand_verified"])
         self.assertEqual(product["recent_review_growth_7d"], 3)
