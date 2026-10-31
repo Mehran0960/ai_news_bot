@@ -9,7 +9,9 @@ from content_delivery import (
     refresh_unpublished_selections, selection_cadence_anchor,
 )
 from platform_registry import PLATFORM_NAMES
-from publisher import publish_due_queue, _fresh_selected_item
+from publisher import (
+    publish_due_queue, _fresh_selected_item, _eligible_fallback_candidates,
+)
 
 
 class ContentDeliveryQueueTests(unittest.TestCase):
@@ -25,7 +27,17 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "current_price": price,
             "original_price": 200_000,
             "discount_percent": 50,
+            "savings_toman": 100_000,
+            "availability": "in_stock",
+            "image_url": f"https://example.com/{product_id}.webp",
             "demand_score": demand,
+            "current_demand_verified": True,
+            "current_demand_score": demand,
+            "recent_review_growth_7d": 5,
+            "demand_window_hours": 48,
+            "demand_observed_at": self.now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth",
+            "selection_discount_floor": 50,
             "deal_expires_at": deadline.isoformat() if deadline else "",
         }
 
@@ -128,6 +140,13 @@ class ContentDeliveryQueueTests(unittest.TestCase):
                 "product_url": "https://www.digikala.com/product/dkp-8478740/",
                 "current_price": 79000,
                 "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-8478740%2F",
+                "current_demand_verified": True,
+                "current_demand_score": 55,
+                "demand_score": 55,
+                "recent_review_growth_7d": 5,
+                "demand_window_hours": 48,
+                "demand_observed_at": self.now.isoformat(),
+                "demand_signal_source": "digikala_recent_review_growth",
             },
         }
         with patch("publisher.radar.fetch_product_record", return_value={
@@ -139,7 +158,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertIsNone(fresh)
         self.assertEqual(reason, "live_product_prohibited_title")
 
-    def test_publisher_honors_selected_fallback_floor_and_keeps_legacy_50_percent_default(self):
+    def test_publisher_uses_the_same_50_percent_floor_for_new_and_legacy_items(self):
         from unittest.mock import patch
 
         product_id = "dkp-95045"
@@ -148,30 +167,42 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "https://aflo.ir/QekEYTRg?p="
             "https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95045%2F"
         )
+        demand = {
+            "current_demand_verified": True,
+            "current_demand_score": 55,
+            "demand_score": 55,
+            "recent_review_growth_7d": 5,
+            "demand_window_hours": 48,
+            "demand_observed_at": self.now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth",
+        }
         payload = {
             "product_id": product_id,
             "product_url": product_url,
             "title": "شارژر سریع دیواری مدل تست",
-            "current_price": 550_000,
+            "current_price": 500_000,
             "original_price": 1_000_000,
-            "discount_percent": 45,
-            "savings_toman": 450_000,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+            "review_count": 1200,
             "affiliate_url": affiliate_url,
-            "selection_discount_floor": 45,
+            "selection_discount_floor": 50,
             "deal_expires_at": "",
+            **demand,
         }
         fresh_record = {
             "title": "شارژر سریع دیواری مدل تست",
             "image_url": "https://example.com/product.webp",
-            "current_price": 550_000,
+            "current_price": 500_000,
             "original_price": 1_000_000,
-            "discount_percent": 45,
-            "savings_toman": 450_000,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+            "review_count": 1200,
             "availability": "in_stock",
             "deal_expires_at": "",
         }
 
-        def discount_gate(record, minimum_discount_percent=None):
+        def discount_gate(record, minimum_discount_percent=None, now=None):
             floor = 50 if minimum_discount_percent is None else minimum_discount_percent
             return (
                 int(record.get("discount_percent") or 0) >= floor
@@ -186,7 +217,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             patch("publisher.radar.score_product", side_effect=lambda item: item),
             patch(
                 "publisher.radar.verify_live_page_price",
-                return_value={"ok": True, "page_price": 550_000},
+                return_value={"ok": True, "page_price": 500_000},
             ),
             patch("publisher.radar.is_discount_publish_eligible", side_effect=discount_gate),
             patch("publisher.radar.is_market_value_publish_eligible", return_value=True),
@@ -199,21 +230,37 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             self.assertEqual(reason, "")
             discount_check.assert_called_once()
             self.assertEqual(
-                discount_check.call_args.kwargs["minimum_discount_percent"], 45
+                discount_check.call_args.kwargs["minimum_discount_percent"], 50
             )
 
-            # Old queued items have no selected floor: keep their original 50% rule.
+            # Older queued selections without a stored floor still default to 50%.
             discount_check.reset_mock()
             legacy_payload = dict(payload)
             legacy_payload.pop("selection_discount_floor")
             legacy_entry = {"product_id": product_id, "payload": legacy_payload}
             fresh, reason = _fresh_selected_item(legacy_entry, self.now)
-            self.assertIsNone(fresh)
-            self.assertEqual(reason, "live_discount_no_longer_eligible")
+            self.assertIsNotNone(fresh)
+            self.assertEqual(reason, "")
             discount_check.assert_called_once()
             self.assertIsNone(
                 discount_check.call_args.kwargs["minimum_discount_percent"]
             )
+
+    def test_publisher_rejects_old_45_percent_fallback_floor_before_live_fetch(self):
+        entry = {
+            "product_id": "dkp-95045",
+            "payload": {
+                "product_id": "dkp-95045",
+                "product_url": "https://www.digikala.com/product/dkp-95045/",
+                "selection_discount_floor": 45,
+            },
+        }
+        with patch("publisher.radar.fetch_product_record") as fetch:
+            fresh, reason = _fresh_selected_item(entry, self.now)
+
+        self.assertIsNone(fresh)
+        self.assertEqual(reason, "invalid_selection_discount_floor")
+        fetch.assert_not_called()
 
     def test_publisher_rejects_invalid_selected_discount_floor(self):
         entry = {
@@ -477,6 +524,22 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(
             state["content_delivery_history"][0]["last_detail"],
             "active_publication_exists",
+        )
+
+    def test_fallback_filter_discards_old_sub_50_and_unverified_demand_candidates(self):
+        low_discount = self.item("dkp-99008", demand=95)
+        low_discount.update({"discount_percent": 45, "selection_discount_floor": 45})
+        no_current_demand = self.item("dkp-99009", demand=95)
+        no_current_demand["current_demand_verified"] = False
+        valid = self.item("dkp-99010", demand=45)
+
+        filtered = _eligible_fallback_candidates(
+            [low_discount, no_current_demand, valid], self.now
+        )
+
+        self.assertEqual(
+            [item["product_id"] for item in filtered],
+            ["dkp-99010"],
         )
 
     def test_stale_primary_promotes_next_backup_as_immediately_due(self):
