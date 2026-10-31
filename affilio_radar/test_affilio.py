@@ -3674,6 +3674,59 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertGreater(brand_pixels, 500, f"{merchant} official background must remain visible")
             self.assertGreater(white_pixels, 100, f"{merchant} official white wordmark must remain visible")
 
+    def test_digikala_and_digipay_logos_use_equal_frames_without_distorting_artwork(self):
+        import offerchin_visuals as visuals
+
+        # Two deliberately different source ratios prove that the shared frame,
+        # not the logo artwork, is what has identical dimensions.
+        digikala_logo = Image.new("RGBA", (200, 100), (220, 25, 35, 255))
+        digipay_logo = Image.new("RGBA", (100, 100), (25, 65, 220, 255))
+        canvas = Image.new("RGB", (240, 150), (17, 23, 31))
+
+        with (
+            patch.object(visuals, "_load_retailer_logo", return_value=digikala_logo),
+            patch.object(visuals, "_load_digipay_logo", return_value=digipay_logo),
+        ):
+            visuals.draw_retailer_badge(canvas, 20, 20, 180, 48, "دیجی‌کالا")
+            visuals.draw_digipay_badge(canvas, 20, 80, 180, 48)
+
+        border = (220, 224, 230)
+        for top in (20, 80):
+            self.assertEqual(canvas.getpixel((110, top)), border)
+            self.assertEqual(canvas.getpixel((110, top + 47)), border)
+            self.assertEqual(canvas.getpixel((20, top + 24)), border)
+            self.assertEqual(canvas.getpixel((199, top + 24)), border)
+        self.assertEqual(canvas.getpixel((19, 20)), (17, 23, 31))
+        self.assertEqual(canvas.getpixel((19, 80)), (17, 23, 31))
+
+        def colored_bbox(region, predicate):
+            pixels = [
+                (x, y)
+                for y in range(region[1], region[3])
+                for x in range(region[0], region[2])
+                if predicate(canvas.getpixel((x, y)))
+            ]
+            self.assertTrue(pixels)
+            return (
+                min(x for x, _ in pixels),
+                min(y for _, y in pixels),
+                max(x for x, _ in pixels) + 1,
+                max(y for _, y in pixels) + 1,
+            )
+
+        red = colored_bbox(
+            (20, 20, 200, 68),
+            lambda p: p[0] > 180 and p[1] < 80 and p[2] < 90,
+        )
+        blue = colored_bbox(
+            (20, 80, 200, 128),
+            lambda p: p[2] > 180 and p[0] < 80 and p[1] < 100,
+        )
+        red_ratio = (red[2] - red[0]) / (red[3] - red[1])
+        blue_ratio = (blue[2] - blue[0]) / (blue[3] - blue[1])
+        self.assertAlmostEqual(red_ratio, 2.0, delta=0.08)
+        self.assertAlmostEqual(blue_ratio, 1.0, delta=0.08)
+
     def test_fetch_image_retries_transient_connect_timeout_once(self):
         import requests
         from unittest.mock import patch
