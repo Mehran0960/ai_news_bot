@@ -31,8 +31,8 @@ except ImportError:
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from offerchin_visuals import (
-    draw_discount_burst, draw_retailer_badge, adaptive_text_colors,
-    discount_badge_dimensions_for_reference_bounds,
+    draw_discount_burst, draw_retailer_badge, draw_digipay_badge,
+    adaptive_text_colors, discount_badge_dimensions_for_reference_bounds,
 )
 from integrity_audit_state import apply_integrity_audit_ledger
 import arabic_reshaper
