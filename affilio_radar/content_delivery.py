@@ -524,7 +524,7 @@ def promote_fallback_selection(
         except (TypeError, ValueError, OverflowError):
             price = 0
         if (
-            not re.fullmatch(r"(?:dkp|snp)-\\d{1,12}", product_id)
+            not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", product_id)
             or not product_url.startswith("https://")
             or not affiliate_url.startswith("https://")
             or not is_publishable_product_title(title)
