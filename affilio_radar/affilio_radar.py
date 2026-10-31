@@ -4463,18 +4463,22 @@ def build_discount_image(
                 merchant=merchant,
             )
 
-    # Store identity sits opposite the discount tile; DigiKala additionally gets
-    # the official DigiPay mark directly below it, at identical target dimensions.
-    draw_retailer_badge(image, brand_margin, brand_margin, store_badge_width, store_badge_height, merchant)
+    # Keep the retailer's original tile untouched. DigiPay gets a blue field
+    # matching the retailer tile's actual rendered width and height, with its
+    # original square mark centered inside. This reproduces the prior layout.
+    retailer_bounds = draw_retailer_badge(
+        image, brand_margin, brand_margin, store_badge_width, store_badge_height, merchant
+    )
     is_snappshop = "snapp" in str(merchant or "").lower() or "اسنپ" in str(merchant or "")
-    if not is_snappshop:
-        digipay_gap = max(4, int(store_badge_height * 0.08))
+    if not is_snappshop and retailer_bounds:
+        retailer_left, retailer_top, retailer_width, retailer_height = retailer_bounds
+        digipay_gap = max(4, int(retailer_height * 0.08))
         draw_digipay_badge(
             image,
-            brand_margin,
-            brand_margin + store_badge_height + digipay_gap,
-            store_badge_width,
-            store_badge_height,
+            retailer_left,
+            retailer_top + retailer_height + digipay_gap,
+            retailer_width,
+            retailer_height,
         )
 
     # Keep the channel IDs at the lower-left without a card or solid panel.
