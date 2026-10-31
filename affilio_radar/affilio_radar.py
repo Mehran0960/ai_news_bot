@@ -4352,7 +4352,7 @@ def build_caption(
     # Show the installment notice consistently across all retailer posts.
     # The eligibility caveat avoids promising approval on products/accounts where
     # DigiPay does not present the option or the buyer does not qualify.
-    parts.append("💳 امکان خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)")
+    parts.append("💳 با امکان خرید اقساطی (دیجی پی)")
 
     # Keep one source-channel membership link for forwarded posts; the purchase button
     # remains a separate inline button and its presence is validated by the sender.
