@@ -225,7 +225,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             self.assertIsNotNone(fresh)
             self.assertEqual(reason, "")
             discount_check.assert_called_once()
-            self.assertIsNone(discount_check.call_args.kwargs["minimum_discount_percent"])
+            self.assertIsNone(discount_check.call_args.kwargs.get("minimum_discount_percent"))
             self.assertEqual(fresh["selection_discount_floor"], 1)
 
             # Older queued selections without a stored floor use the same unified pool.
@@ -237,7 +237,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             self.assertIsNotNone(fresh)
             self.assertEqual(reason, "")
             discount_check.assert_called_once()
-            self.assertIsNone(discount_check.call_args.kwargs["minimum_discount_percent"])
+            self.assertIsNone(discount_check.call_args.kwargs.get("minimum_discount_percent"))
             self.assertEqual(fresh["selection_discount_floor"], 1)
 
     def test_publisher_accepts_45_percent_offer_and_normalizes_legacy_floor(self):
