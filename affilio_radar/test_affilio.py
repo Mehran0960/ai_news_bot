@@ -2065,7 +2065,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("dkp-888", queue)
         self.assertEqual(state["pending_queue"], queue)
 
-    def test_discount_publishing_requires_a_valuable_deal(self):
+    def test_any_positive_live_discount_can_qualify_without_a_saving_floor(self):
         base = {
             "title": "پاوربانک آزمایشی",
             "availability": "in_stock",
@@ -2073,32 +2073,20 @@ class AffilioRadarTests(unittest.TestCase):
             "original_price": 1_000_000,
             "image_url": "https://example.com/image.jpg",
             "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
+            "current_demand_verified": False,
         }
-        ten_percent = score_product(dict(base))
-        self.assertEqual(ten_percent["discount_percent"], 10)
-        self.assertFalse(is_discount_publish_eligible(ten_percent))
+        for price, expected_discount in ((900_000, 10), (510_000, 49), (500_000, 50), (990_000, 1)):
+            product = score_product({**base, "current_price": price})
+            self.assertEqual(product["discount_percent"], expected_discount)
+            self.assertTrue(is_discount_publish_eligible(product))
 
-        just_below_floor = score_product({**base, "current_price": 510_000})
-        self.assertEqual(just_below_floor["discount_percent"], 49)
-        self.assertFalse(is_discount_publish_eligible(just_below_floor))
-
-        strong_discount = _with_verified_current_demand(
-            score_product({**base, "current_price": 500_000})
-        )
-        self.assertEqual(strong_discount["discount_percent"], 50)
-        self.assertGreaterEqual(strong_discount["savings_toman"], 100_000)
-        self.assertTrue(is_discount_publish_eligible(strong_discount))
-
-        small_saving = score_product({**base, "current_price": 990_000})
-        self.assertEqual(small_saving["discount_percent"], 1)
-        self.assertFalse(is_discount_publish_eligible(small_saving))
         no_real_drop = score_product({**base, "current_price": 1_000_000})
         self.assertFalse(is_discount_publish_eligible(no_real_drop))
-        missing_stock = dict(strong_discount, availability="unknown")
+        missing_stock = dict(score_product(dict(base)), availability="unknown")
         self.assertFalse(is_discount_publish_eligible(missing_stock))
 
 
-    def test_high_ticket_products_have_no_discount_floor_exception(self):
+    def test_popular_high_ticket_product_with_11_percent_discount_is_eligible(self):
         high_ticket_11_percent = score_product({
             "title": "گوشی موبایل پرتقاضا مدل آزمایشی",
             "availability": "in_stock",
@@ -2111,7 +2099,7 @@ class AffilioRadarTests(unittest.TestCase):
         })
         self.assertEqual(high_ticket_11_percent["discount_percent"], 11)
         self.assertEqual(high_ticket_11_percent["savings_toman"], 2_000_000)
-        self.assertFalse(is_discount_publish_eligible(high_ticket_11_percent))
+        self.assertTrue(is_discount_publish_eligible(high_ticket_11_percent))
 
         high_ticket_50_percent = _with_verified_current_demand(
             score_product({
@@ -2160,31 +2148,20 @@ class AffilioRadarTests(unittest.TestCase):
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             candidates, {"published": {}}, now
         )
-        self.assertEqual(floor, 50)
-        self.assertEqual(selected[0]["selection_discount_floor"], 50)
-        self.assertEqual([item["product_id"] for item in selected], ["dkp-95001"])
-        self.assertEqual(
-            {item["product_id"] for item in quality},
-            {"dkp-95001", "dkp-95002", "dkp-95003", "dkp-95004", "dkp-95005"},
-        )
+        expected_ids = {f"dkp-9500{i}" for i in range(1, 7)}
+        self.assertEqual(floor, 1)
+        self.assertEqual({item["product_id"] for item in selected}, expected_ids)
+        self.assertTrue(all(item["selection_discount_floor"] == 1 for item in selected))
+        self.assertEqual({item["product_id"] for item in quality}, expected_ids)
 
-        # The hand-off carries all backups with their own strict floor.
         backup_pool, backup_floor, _ = radar_module.select_discount_fallback_candidates(
             candidates, {"published": {}}, now, include_fallback_bands=True
         )
-        self.assertEqual(backup_floor, 50)
-        self.assertEqual(
-            [(item["product_id"], item["selection_discount_floor"]) for item in backup_pool],
-            [
-                ("dkp-95001", 50),
-                ("dkp-95002", 45),
-                ("dkp-95003", 40),
-                ("dkp-95004", 40),
-                ("dkp-95005", 35),
-            ],
-        )
+        self.assertEqual(backup_floor, 1)
+        self.assertEqual({item["product_id"] for item in backup_pool}, expected_ids)
+        self.assertTrue(all(item["selection_discount_floor"] == 1 for item in backup_pool))
 
-    def test_publish_ranking_keeps_higher_discount_tier_ahead_of_stronger_lower_tier_demand(self):
+    def test_publish_ranking_uses_popularity_and_current_activity_not_legacy_tiers(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         preferred = {
             "product_id": "dkp-95110", "title": "هدفون بلوتوثی مدل اول",
@@ -2201,7 +2178,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(
             [item["product_id"] for item in ranked],
-            ["dkp-95110", "dkp-95111"],
+            ["dkp-95111", "dkp-95110"],
         )
 
     def test_49_percent_candidate_uses_45_percent_band_when_no_50_percent_offer_exists(self):
@@ -2230,12 +2207,12 @@ class AffilioRadarTests(unittest.TestCase):
         tiered, floor, quality = radar_module.select_discount_fallback_candidates(
             [candidate], {"published": {}}, now, include_fallback_bands=True
         )
-        self.assertEqual(floor, 45)
+        self.assertEqual(floor, 1)
         self.assertEqual([item['product_id'] for item in tiered], ['dkp-95004'])
-        self.assertEqual(tiered[0]['selection_discount_floor'], 45)
+        self.assertEqual(tiered[0]['selection_discount_floor'], 1)
         self.assertEqual([item['product_id'] for item in quality], ['dkp-95004'])
 
-    def test_recent_family_cooldown_does_not_trigger_a_lower_discount_fallback(self):
+    def test_family_cooldown_skips_recent_family_but_keeps_other_popular_offers(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-95101": {
@@ -2271,10 +2248,10 @@ class AffilioRadarTests(unittest.TestCase):
         selected, floor, _ = radar_module.select_discount_fallback_candidates(
             candidates, {"published": published}, now
         )
-        self.assertIsNone(floor)
-        self.assertEqual(selected, [])
+        self.assertEqual(floor, 1)
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-95103"])
 
-    def test_lower_discount_bands_never_replace_50_percent_candidates_blocked_by_cooldown(self):
+    def test_family_cooldown_does_not_block_other_categories_regardless_of_discount(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-95201": {
@@ -2323,10 +2300,10 @@ class AffilioRadarTests(unittest.TestCase):
         selected, floor, _ = radar_module.select_discount_fallback_candidates(
             candidates, {"published": published}, now
         )
-        self.assertIsNone(floor)
-        self.assertEqual(selected, [])
+        self.assertEqual(floor, 1)
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-95205"])
 
-    def test_market_price_and_savings_hard_gates_still_apply_above_50_percent(self):
+    def test_market_price_gate_remains_but_no_savings_floor_applies(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         high_discount = _with_verified_current_demand({
             "product_id": "dkp-95301",
@@ -2359,11 +2336,11 @@ class AffilioRadarTests(unittest.TestCase):
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             [high_discount, lower_discount, small_saving], {"published": {}}, now
         )
-        self.assertEqual(floor, 35)
-        self.assertEqual([item["product_id"] for item in selected], ["dkp-95302"])
+        self.assertEqual(floor, 1)
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-95303"])
         self.assertEqual(
             {item["product_id"] for item in quality},
-            {"dkp-95302"},
+            {"dkp-95302", "dkp-95303"},
         )
 
     def test_diversity_comparison_uses_recent_activity_signal_and_not_a_discount_fallback(self):
@@ -2416,7 +2393,7 @@ class AffilioRadarTests(unittest.TestCase):
         scored = score_product(product)
         self.assertEqual(scored["discount_percent"], 15)
         self.assertEqual(scored["savings_toman"], 150_000)
-        self.assertFalse(is_discount_publish_eligible(scored))
+        self.assertTrue(is_discount_publish_eligible(scored))
 
 
     def test_discovery_ranks_demand_before_discount_size(self):
@@ -2623,11 +2600,12 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(product["current_demand_verified"])
         self.assertEqual(product["demand_score"], 0)
 
-        product["review_count"] = 50_002
+        product["review_count"] = 50_001
         radar_module.update_current_demand_signals(
             state, [product], now=start + timedelta(hours=23)
         )
-        self.assertFalse(product["current_demand_verified"])
+        self.assertTrue(product["current_demand_verified"])
+        self.assertEqual(product["recent_review_growth_7d"], 1)
 
         product["review_count"] = 50_003
         radar_module.update_current_demand_signals(
@@ -2731,7 +2709,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(broad_popularity["demand_score"], 0)
         self.assertEqual(lower_volume["demand_score"], 0)
 
-    def test_last_mile_photo_sender_rejects_a_49_percent_offer_even_with_recent_demand(self):
+    def test_last_mile_photo_sender_accepts_49_percent_offer_without_recent_demand_gate(self):
         now = datetime.now(timezone.utc)
         item = {
             "title": "شارژر سریع دیواری مدل نمونه",
@@ -2751,9 +2729,9 @@ class AffilioRadarTests(unittest.TestCase):
             "demand_signal_source": "digikala_recent_review_growth",
         }
         with patch("affilio_radar.build_discount_image") as build_image:
-            with self.assertRaisesRegex(RuntimeError, "hard discount/current-demand gate"):
+            with self.assertRaisesRegex(RuntimeError, "Missing TELEGRAM_BOT_TOKEN"):
                 radar_module._send_platform_photo("telegram", item, b"image", item["affiliate_url"])
-        build_image.assert_not_called()
+        build_image.assert_called_once()
 
     def test_publish_requires_stock_price_image_and_https_affiliate_link(self):
         base = {
@@ -3900,8 +3878,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("https://t.me/+from_aparat", aparat_description)
         self.assertIn("https://t.me/OfferChin", youtube_description)
 
-    def test_publication_cooldown_leaves_room_for_five_minute_scan_cadence(self):
-        self.assertEqual(MIN_POST_INTERVAL_HOURS, 2 / 60)
+    def test_publication_cooldown_targets_three_posts_per_hour(self):
+        self.assertEqual(MIN_POST_INTERVAL_HOURS, 20 / 60)
 
     def test_publication_capacity_bursts_only_when_publish_queue_is_large(self):
         self.assertEqual(effective_posts_per_run(0, configured_limit=2), 1)
