@@ -1,0 +1,74 @@
+name: DigiKala Full Catalog Sweep
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: digikala-full-catalog-sweep
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out persistent catalog cursor
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the read-only crawler dependency
+        run: python -m pip install "requests>=2.32,<3"
+
+      - name: Validate crawler and regression tests
+        run: |
+          python -m py_compile affilio_radar/catalog_sweeper.py
+          cd affilio_radar
+          python -m unittest -v test_catalog_sweeper.py
+
+      - name: Sweep the next 80 DigiKala category pages
+        env:
+          DIGIKALA_CATALOG_MAX_CANDIDATES: "3000"
+          DIGIKALA_CATALOG_MAX_PAGES_PER_RUN: "80"
+          DIGIKALA_CATALOG_MAX_SECONDS: "600"
+          DIGIKALA_CATALOG_REQUEST_DELAY_SECONDS: "0.45"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/catalog_sweeper.py
+
+      - name: Persist cursor and ranked discovery candidates
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for path in affilio_radar/catalog_sweep_state.json affilio_radar/catalog_candidates.json; do
+            if [[ -f "$path" ]] && ! git diff --quiet -- "$path"; then
+              git add "$path"
+            fi
+          done
+          if git diff --cached --quiet; then
+            echo "CATALOG_STATE_UNCHANGED"
+            exit 0
+          fi
+          git commit -m "chore: persist DigiKala catalog sweep cursor [skip ci]"
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push; then
+              echo "CATALOG_STATE_PERSISTED attempt=$attempt"
+              exit 0
+            fi
+            git rebase --abort 2>/dev/null || true
+            echo "Catalog state persistence attempt $attempt failed; retrying."
+            sleep $((attempt * 3))
+          done
+          echo "CATALOG_STATE_PERSIST_FAILED"
+          exit 1
