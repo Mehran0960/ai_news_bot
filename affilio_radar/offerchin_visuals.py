@@ -370,52 +370,107 @@ def _load_digipay_logo():
     return None
 
 
-def _draw_uniform_logo_frame(image, logo, left: int, top: int, width: int, height: int) -> None:
-    """Draw a fixed-size, visible frame and center the untouched logo artwork inside it.
+def _digipay_brand_blue(logo):
+    """Infer DigiPay's solid brand blue from the official mark without altering it."""
+    from collections import Counter
 
-    Every brand mark receives exactly the same outer width and height. The source
-    artwork is only scaled proportionally; it is never stretched, cropped, or recolored.
+    pixels = logo.convert("RGBA").getdata()
+    candidates = [
+        (r, g, b)
+        for r, g, b, alpha in pixels
+        if alpha > 220 and b > r * 1.20 and b > g * 1.12 and b > 100
+    ]
+    if not candidates:
+        return (29, 91, 242, 255)
+
+    quantized = Counter(
+        (r // 8, g // 8, b // 8) for r, g, b in candidates
+    )
+    dominant = quantized.most_common(1)[0][0]
+    matching = [
+        rgb for rgb in candidates
+        if tuple(channel // 8 for channel in rgb) == dominant
+    ]
+    return tuple(
+        max(0, min(255, round(sum(pixel[i] for pixel in matching) / len(matching))))
+        for i in range(3)
+    ) + (255,)
+
+
+def draw_digipay_badge(image, left: int, top: int, width: int, height: int) -> None:
+    """Stretch only DigiPay's blue background to match the retailer tile.
+
+    The official square logo mark is kept proportional and centered; only the blue
+    field extends horizontally to the exact visible size of the retailer logo.
     """
     from PIL import Image, ImageDraw, ImageOps
 
+    logo = _load_digipay_logo()
+    if logo is None:
+        return
+
     target_width = max(1, int(width))
     target_height = max(1, int(height))
-    if logo is None or target_width < 3 or target_height < 3:
+    if target_width < 2 or target_height < 2:
         return
 
     frame = Image.new("RGBA", (target_width, target_height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(frame)
-    min_dimension = min(target_width, target_height)
-    radius = max(3, min(12, int(min_dimension * 0.16)))
-    border_width = max(1, min(2, int(min_dimension * 0.02)))
+    radius = max(2, min(target_height // 5, target_width // 5))
     draw.rounded_rectangle(
         (0, 0, target_width - 1, target_height - 1),
         radius=radius,
-        fill=(255, 255, 255, 255),
-        outline=(220, 224, 230, 255),
-        width=border_width,
+        fill=_digipay_brand_blue(logo),
     )
 
-    padding = max(3, min(10, int(min_dimension * 0.08)))
-    inner_width = max(1, target_width - 2 * padding)
-    inner_height = max(1, target_height - 2 * padding)
+    # Keep the original square DigiPay mark at its natural proportions and center it.
+    icon_side = min(target_height, target_width)
     fitted = ImageOps.contain(
         logo,
-        (inner_width, inner_height),
+        (icon_side, icon_side),
         method=Image.Resampling.LANCZOS,
     )
     if fitted.width < 1 or fitted.height < 1:
         return
-
     frame.alpha_composite(
         fitted,
         ((target_width - fitted.width) // 2, (target_height - fitted.height) // 2),
     )
+
     position = (int(left), int(top))
     if image.mode == "RGBA":
         image.alpha_composite(frame, position)
     else:
         image.paste(frame.convert("RGB"), position, frame.getchannel("A"))
+
+
+def draw_retailer_badge(image, left: int, top: int, width: int, height: int, merchant: str):
+    """Draw the complete official retailer tile unchanged and return its visible bounds."""
+    from PIL import Image, ImageOps
+
+    store = str(merchant or "").strip().lower()
+    is_snappshop = "snapp" in store or "اسنپ" in store
+    logo = _load_retailer_logo(is_snappshop)
+    if logo is None:
+        return None
+
+    target_width = max(1, int(width))
+    target_height = max(1, int(height))
+    # Preserve the previous logo placement and original aspect ratio exactly.
+    fitted = ImageOps.contain(
+        logo, (target_width, target_height), method=Image.Resampling.LANCZOS
+    )
+    if fitted.width < 1 or fitted.height < 1:
+        return None
+
+    x = int(left)
+    y = int(top) + max(0, (target_height - fitted.height) // 2)
+    if image.mode == "RGBA":
+        image.alpha_composite(fitted, (x, y))
+    else:
+        image.paste(fitted, (x, y), fitted.getchannel("A"))
+    return (x, y, fitted.width, fitted.height)
+
 
 
 def draw_digipay_badge(image, left: int, top: int, width: int, height: int) -> None:
