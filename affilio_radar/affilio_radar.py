@@ -4348,7 +4348,7 @@ def build_caption(
     if discount is not None and int(discount) > 0:
         discount_value = format_persian_number(discount) + "٪"
         offer_lines.append(bold(f"⚡️ {discount_value} تخفیف"))
-    installment_line = bold("💳 با امکان خرید اقساطی (دیجی پی)")
+    installment_line = bold("💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)")
     offer_lines.append(installment_line)
 
     # Keep one source-channel membership link for forwarded posts; the purchase button
@@ -4984,7 +4984,7 @@ def _recent_caption_repair_records(published: dict, limit: int) -> list[tuple[st
     return sorted(candidates, key=posted_at, reverse=True)[:limit]
 
 
-DIGIPAY_IMAGE_LAYOUT_VERSION = 2
+DIGIPAY_IMAGE_LAYOUT_VERSION = 4
 DIGIPAY_RECENT_POST_LOOKBACK_HOURS = 46.5
 
 
@@ -5479,7 +5479,7 @@ def repair_recent_product_images(
                                 )
                             raise
                         record["bale_message_id"] = new_id
-                        record["bale_image_layout_version"] = 1
+                        record["bale_image_layout_version"] = DIGIPAY_IMAGE_LAYOUT_VERSION
                         record["bale_image_layout_updated_at"] = datetime.now(timezone.utc).isoformat()
                         state_changed = True
                         results["bale_updated"] += 1
@@ -5499,7 +5499,7 @@ def repair_recent_product_images(
     successful = results["telegram_failed"] == 0 and results["bale_failed"] == 0 and targets > 0
     report = {
         "finished_at": datetime.now(timezone.utc).isoformat(),
-        "layout_version": 1,
+        "layout_version": DIGIPAY_IMAGE_LAYOUT_VERSION,
         "selected_products": len(records),
         "targets": targets,
         **results,
