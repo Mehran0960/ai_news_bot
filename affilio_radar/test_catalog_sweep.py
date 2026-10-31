@@ -68,6 +68,26 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(child["parent_id"], "12")
         self.assertEqual(child["depth"], 2)
 
+    def test_extract_categories_prioritizes_leaf_categories_before_parents(self):
+        payload = {
+            "data": {
+                "category_tree": [{
+                    "id": 10, "title_fa": "کالای دیجیتال",
+                    "children": [
+                        {"id": 11, "title_fa": "موبایل"},
+                        {"id": 12, "title_fa": "لوازم جانبی", "children": [
+                            {"id": 13, "title_fa": "شارژر"}
+                        ]},
+                    ],
+                }]
+            }
+        }
+        categories = extract_categories(payload)
+        positions = {row["id"]: index for index, row in enumerate(categories)}
+        self.assertLess(positions["13"], positions["12"])
+        self.assertLess(positions["11"], positions["10"])
+        self.assertLess(positions["13"], positions["10"])
+
     def test_extract_categories_falls_back_to_category_filter_facets(self):
         payload = {
             "data": {
