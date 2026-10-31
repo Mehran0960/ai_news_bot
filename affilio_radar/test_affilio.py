@@ -114,6 +114,24 @@ from affilio_radar import (
 )
 
 
+def _with_verified_current_demand(product, now=None, growth=5, window_hours=48):
+    observed = now or datetime.now(timezone.utc)
+    product.update({
+        "current_demand_verified": True,
+        "current_demand_score": 55,
+        "demand_score": 55,
+        "recent_review_growth_7d": growth,
+        "demand_window_hours": window_hours,
+        "demand_observed_at": observed.isoformat(),
+        "demand_signal_source": (
+            "snappshop_recent_review_growth"
+            if str(product.get("product_id", "")).startswith("snp-")
+            else "digikala_recent_review_growth"
+        ),
+    })
+    return product
+
+
 IN_STOCK_HTML = """
 <html><head>
 <meta property="og:title" content="پاوربانک کاربردی مدل تست">
@@ -1980,7 +1998,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(just_below_floor["discount_percent"], 49)
         self.assertFalse(is_discount_publish_eligible(just_below_floor))
 
-        strong_discount = score_product({**base, "current_price": 500_000})
+        strong_discount = _with_verified_current_demand(
+            score_product({**base, "current_price": 500_000})
+        )
         self.assertEqual(strong_discount["discount_percent"], 50)
         self.assertGreaterEqual(strong_discount["savings_toman"], 100_000)
         self.assertTrue(is_discount_publish_eligible(strong_discount))
@@ -2009,22 +2029,24 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(high_ticket_11_percent["savings_toman"], 2_000_000)
         self.assertFalse(is_discount_publish_eligible(high_ticket_11_percent))
 
-        high_ticket_50_percent = score_product({
-            **high_ticket_11_percent,
-            "current_price": 9_000_000,
-            "original_price": 18_000_000,
-        })
+        high_ticket_50_percent = _with_verified_current_demand(
+            score_product({
+                **high_ticket_11_percent,
+                "current_price": 9_000_000,
+                "original_price": 18_000_000,
+            })
+        )
         self.assertEqual(high_ticket_50_percent["discount_percent"], 50)
         self.assertGreaterEqual(high_ticket_50_percent["savings_toman"], 100_000)
         self.assertTrue(is_discount_publish_eligible(high_ticket_50_percent))
 
-    def test_discount_fallback_prefers_50_plus_before_higher_demand_45_band(self):
+    def test_strict_discount_floor_never_falls_back_below_50_percent(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
 
         def product(pid, title, discount, demand):
             current_price = 1_000_000
             original_price = int(round(current_price / (1 - discount / 100)))
-            return {
+            return _with_verified_current_demand({
                 "product_id": pid,
                 "title": title,
                 "availability": "in_stock",
@@ -2041,7 +2063,7 @@ class AffilioRadarTests(unittest.TestCase):
                 "rating": 4.5,
                 "deal_expires_at": "",
                 "expiry_source": "unavailable",
-            }
+            }, now)
 
         candidates = [
             product("dkp-95001", "هدفون بلوتوثی مدل برتر", 50, 55),
@@ -2052,26 +2074,24 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(floor, 50)
         self.assertEqual(selected[0]["selection_discount_floor"], 50)
-        self.assertEqual(selected[0]["product_id"], "dkp-95001")
-        self.assertEqual(len(quality), 2)
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-95001"])
+        self.assertEqual({item["product_id"] for item in quality}, {"dkp-95001"})
 
-        # Scheduled publication also retains lower-band candidates as backups;
-        # the publisher consumes them only when the primary fails live validation.
+        # The publisher's backup pool must obey the same 50% floor.
         backup_pool, backup_floor, _ = radar_module.select_discount_fallback_candidates(
             candidates, {"published": {}}, now, include_fallback_bands=True
         )
         self.assertEqual(backup_floor, 50)
         self.assertEqual(
             [(item["product_id"], item["selection_discount_floor"]) for item in backup_pool],
-            [("dkp-95001", 50), ("dkp-95002", 45)],
+            [("dkp-95001", 50)],
         )
 
-
-    def test_discount_fallback_floor_survives_publish_candidate_ranking(self):
+    def test_49_percent_candidate_is_rejected_even_when_its_demand_score_is_higher(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         price = 1_000_000
         original = 1_960_784
-        candidate = {
+        candidate = _with_verified_current_demand({
             "product_id": "dkp-95004",
             "title": "شارژر سریع دیواری مدل پرفروش",
             "availability": "in_stock",
@@ -2083,56 +2103,21 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://example.com/charger.webp",
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95004%2F",
             "has_affiliate_link": True,
-            "demand_score": 75,
+            "demand_score": 99,
             "review_count": 1200,
             "rating": 4.6,
             "deal_expires_at": "",
             "expiry_source": "unavailable",
-        }
+        }, now)
 
         tiered, floor, quality = radar_module.select_discount_fallback_candidates(
             [candidate], {"published": {}}, now, include_fallback_bands=True
         )
-        self.assertEqual(floor, 45)
-        self.assertEqual(tiered[0]["selection_discount_floor"], 45)
+        self.assertIsNone(floor)
+        self.assertEqual(tiered, [])
+        self.assertEqual(quality, [])
 
-        quality_by_id = {item["product_id"]: item for item in quality}
-        ranked = select_publish_candidates(
-            {"dkp-95004": {}}, quality_by_id, now, published={}
-        )
-        self.assertEqual([item["product_id"] for item in ranked], ["dkp-95004"])
-
-        restored = radar_module.restore_selection_discount_tiers(ranked, tiered)
-        self.assertEqual(restored, 1)
-        self.assertEqual(ranked[0]["selection_discount_floor"], 45)
-        self.assertEqual(
-            ranked[0]["selection_discount_band"],
-            tiered[0]["selection_discount_band"],
-        )
-
-    def test_live_rejected_candidate_is_cooled_down_until_offer_price_changes(self):
-        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
-        state = {}
-        product = {
-            "product_id": "dkp-95003",
-            "product_url": "https://www.digikala.com/product/dkp-95003/",
-            "current_price": 1_000_000,
-            "original_price": 2_000_000,
-        }
-        radar_module.mark_selection_candidate_rejected(
-            state, product, "live_discount_no_longer_eligible", now
-        )
-        self.assertTrue(
-            radar_module.is_selection_candidate_rejected(state, "dkp-95003", product, now)
-        )
-        changed_offer = {**product, "current_price": 900_000}
-        self.assertFalse(
-            radar_module.is_selection_candidate_rejected(state, "dkp-95003", changed_offer, now)
-        )
-        self.assertNotIn("dkp-95003", state["selection_rejections"])
-
-
-    def test_discount_fallback_steps_down_when_top_band_is_in_recent_family_cooldown(self):
+    def test_recent_family_cooldown_does_not_trigger_a_lower_discount_fallback(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-95101": {
@@ -2142,50 +2127,36 @@ class AffilioRadarTests(unittest.TestCase):
             }
         }
         candidates = [
-            {
+            _with_verified_current_demand({
                 "product_id": "dkp-95102",
                 "title": "عینک آفتابی ورزشی مدل تازه",
-                "availability": "in_stock",
-                "availability_source": "digikala_api",
-                "current_price": 1_000_000,
-                "original_price": 2_000_000,
-                "discount_percent": 50,
-                "savings_toman": 1_000_000,
+                "availability": "in_stock", "availability_source": "digikala_api",
+                "current_price": 1_000_000, "original_price": 2_000_000,
+                "discount_percent": 50, "savings_toman": 1_000_000,
                 "image_url": "https://example.com/eyewear.webp",
                 "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95102%2F",
-                "has_affiliate_link": True,
-                "demand_score": 95,
-                "review_count": 2000,
-                "rating": 4.7,
-                "deal_expires_at": "",
-            },
-            {
+                "has_affiliate_link": True, "demand_score": 95, "review_count": 2000,
+                "rating": 4.7, "deal_expires_at": "",
+            }, now),
+            _with_verified_current_demand({
                 "product_id": "dkp-95103",
                 "title": "شارژر سریع دیواری مدل جدید",
-                "availability": "in_stock",
-                "availability_source": "digikala_api",
-                "current_price": 1_000_000,
-                "original_price": 1_818_182,
-                "discount_percent": 45,
-                "savings_toman": 818_182,
+                "availability": "in_stock", "availability_source": "digikala_api",
+                "current_price": 1_000_000, "original_price": 1_818_182,
+                "discount_percent": 45, "savings_toman": 818_182,
                 "image_url": "https://example.com/charger.webp",
                 "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95103%2F",
-                "has_affiliate_link": True,
-                "demand_score": 65,
-                "review_count": 1200,
-                "rating": 4.6,
-                "deal_expires_at": "",
-            },
+                "has_affiliate_link": True, "demand_score": 65, "review_count": 1200,
+                "rating": 4.6, "deal_expires_at": "",
+            }, now),
         ]
         selected, floor, _ = radar_module.select_discount_fallback_candidates(
             candidates, {"published": published}, now
         )
-        self.assertEqual(floor, 45)
-        self.assertEqual(selected[0]["selection_discount_floor"], 45)
-        self.assertEqual([item["product_id"] for item in selected], ["dkp-95103"])
+        self.assertIsNone(floor)
+        self.assertEqual(selected, [])
 
-
-    def test_discount_fallback_descends_multiple_bands_when_recent_families_block_higher_bands(self):
+    def test_lower_discount_bands_never_replace_50_percent_candidates_blocked_by_cooldown(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-95201": {
@@ -2200,7 +2171,7 @@ class AffilioRadarTests(unittest.TestCase):
             },
         }
         candidates = [
-            {
+            _with_verified_current_demand({
                 "product_id": "dkp-95203",
                 "title": "عینک آفتابی ورزشی مدل تازه",
                 "availability": "in_stock", "availability_source": "digikala_api",
@@ -2209,8 +2180,8 @@ class AffilioRadarTests(unittest.TestCase):
                 "image_url": "https://example.com/a.webp",
                 "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fa",
                 "has_affiliate_link": True, "deal_expires_at": "",
-            },
-            {
+            }, now),
+            _with_verified_current_demand({
                 "product_id": "dkp-95204",
                 "title": "شارژر سریع دیواری مدل تازه",
                 "availability": "in_stock", "availability_source": "digikala_api",
@@ -2219,8 +2190,8 @@ class AffilioRadarTests(unittest.TestCase):
                 "image_url": "https://example.com/b.webp",
                 "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fb",
                 "has_affiliate_link": True, "deal_expires_at": "",
-            },
-            {
+            }, now),
+            _with_verified_current_demand({
                 "product_id": "dkp-95205",
                 "title": "ادوپرفیوم زنانه مدل تازه",
                 "availability": "in_stock", "availability_source": "digikala_api",
@@ -2229,19 +2200,17 @@ class AffilioRadarTests(unittest.TestCase):
                 "image_url": "https://example.com/c.webp",
                 "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fc",
                 "has_affiliate_link": True, "deal_expires_at": "",
-            },
+            }, now),
         ]
         selected, floor, _ = radar_module.select_discount_fallback_candidates(
             candidates, {"published": published}, now
         )
-        self.assertEqual(floor, 40)
-        self.assertEqual(selected[0]["selection_discount_floor"], 40)
-        self.assertEqual([item["product_id"] for item in selected], ["dkp-95205"])
+        self.assertIsNone(floor)
+        self.assertEqual(selected, [])
 
-
-    def test_discount_fallback_does_not_bypass_savings_or_market_value_hard_gates(self):
+    def test_market_price_and_savings_hard_gates_still_apply_above_50_percent(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
-        high_discount = {
+        high_discount = _with_verified_current_demand({
             "product_id": "dkp-95301",
             "title": "گوشی موبایل پرتقاضا مدل نمونه",
             "availability": "in_stock", "availability_source": "digikala_api",
@@ -2252,8 +2221,8 @@ class AffilioRadarTests(unittest.TestCase):
             "has_affiliate_link": True, "deal_expires_at": "",
             "market_status": "verified", "market_reference_kind": "seller_median",
             "market_price_advantage_pct": -8,
-        }
-        lower_discount = {
+        }, now)
+        lower_discount = _with_verified_current_demand({
             "product_id": "dkp-95302",
             "title": "ادوپرفیوم زنانه مدل تازه",
             "availability": "in_stock", "availability_source": "digikala_api",
@@ -2262,24 +2231,29 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://example.com/b.webp",
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fb",
             "has_affiliate_link": True, "deal_expires_at": "",
-        }
-        small_saving = {
+        }, now)
+        small_saving = _with_verified_current_demand({
             **lower_discount,
             "product_id": "dkp-95303",
-            "discount_percent": 10,
+            "discount_percent": 60,
             "savings_toman": 50_000,
-        }
+        }, now)
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             [high_discount, lower_discount, small_saving], {"published": {}}, now
         )
-        self.assertEqual(floor, 35)
-        self.assertEqual([item["product_id"] for item in selected], ["dkp-95302"])
-        self.assertEqual({item["product_id"] for item in quality}, {"dkp-95302"})
+        self.assertIsNone(floor)
+        self.assertEqual(selected, [])
+        self.assertEqual(quality, [])
 
-
-    def test_fallback_discount_comparison_does_not_reimpose_the_50_percent_floor(self):
-        stronger = {"demand_score": 60, "click_count_30d": 100, "discount_percent": 49}
-        comparable = {"demand_score": 50, "click_count_30d": 90, "discount_percent": 45}
+    def test_diversity_comparison_uses_recent_activity_signal_and_not_a_discount_fallback(self):
+        stronger = {
+            "current_demand_verified": True, "demand_score": 60,
+            "click_count_30d": 100, "discount_percent": 49,
+        }
+        comparable = {
+            "current_demand_verified": True, "demand_score": 50,
+            "click_count_30d": 90, "discount_percent": 45,
+        }
         self.assertTrue(
             radar_module._candidate_demand_comparable_for_diversity(comparable, stronger)
         )
@@ -2493,7 +2467,7 @@ class AffilioRadarTests(unittest.TestCase):
         weaker_discount = {**high_clicks, "discount_percent": 59}
         self.assertGreater(deal_sort_key(high_clicks), deal_sort_key(weaker_discount))
 
-    def test_score_rewards_reviews_without_category_priority(self):
+    def test_lifetime_reviews_change_historical_popularity_not_current_demand(self):
         high = score_product({
             "title": "پاوربانک سریع",
             "current_price": 1_200_000,
@@ -2509,8 +2483,61 @@ class AffilioRadarTests(unittest.TestCase):
             "review_count": 0,
             "image_url": "",
         })
-        self.assertGreater(high["demand_score"], low["demand_score"])
+        self.assertGreater(high["historical_popularity_score"], low["historical_popularity_score"])
+        self.assertEqual(high["demand_score"], 0)
+        self.assertFalse(high["current_demand_verified"])
         self.assertEqual(high["discount_percent"], 20)
+
+    def test_current_demand_requires_measurable_recent_review_growth(self):
+        start = datetime(2026, 10, 20, 8, 0, tzinfo=timezone.utc)
+        state = {}
+        product = {
+            "product_id": "dkp-demand-test",
+            "product_url": "https://www.digikala.com/product/dkp-12345/",
+            "review_count": 50_000,
+        }
+
+        radar_module.update_current_demand_signals(state, [product], now=start)
+        self.assertFalse(product["current_demand_verified"])
+        self.assertEqual(product["demand_score"], 0)
+
+        product["review_count"] = 50_002
+        radar_module.update_current_demand_signals(
+            state, [product], now=start + timedelta(hours=23)
+        )
+        self.assertFalse(product["current_demand_verified"])
+
+        product["review_count"] = 50_003
+        radar_module.update_current_demand_signals(
+            state, [product], now=start + timedelta(hours=25)
+        )
+        self.assertTrue(product["current_demand_verified"])
+        self.assertEqual(product["recent_review_growth_7d"], 3)
+        self.assertGreater(product["demand_score"], 0)
+        self.assertTrue(
+            radar_module.has_current_demand_signal(
+                product, now=start + timedelta(hours=25)
+            )
+        )
+
+        stale = dict(product)
+        self.assertFalse(
+            radar_module.has_current_demand_signal(
+                stale, now=start + timedelta(hours=25 + radar_module.CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS + 1)
+            )
+        )
+
+    def test_large_lifetime_review_count_without_recent_growth_is_not_demand(self):
+        start = datetime(2026, 10, 20, 8, 0, tzinfo=timezone.utc)
+        state = {}
+        product = {"product_id": "dkp-static-reviews", "review_count": 250_000}
+        radar_module.update_current_demand_signals(state, [product], now=start)
+        radar_module.update_current_demand_signals(
+            state, [product], now=start + timedelta(hours=36)
+        )
+        self.assertEqual(product["recent_review_growth_7d"], 0)
+        self.assertFalse(product["current_demand_verified"])
+        self.assertEqual(product["demand_score"], 0)
 
     def test_same_offer_signals_get_same_score_across_categories(self):
         shared = {
@@ -2522,7 +2549,9 @@ class AffilioRadarTests(unittest.TestCase):
         }
         digital = score_product({**shared, "title": "پاوربانک سریع"})
         unrelated = score_product({**shared, "title": "مکمل غذایی"})
-        self.assertEqual(digital["demand_score"], unrelated["demand_score"])
+        self.assertEqual(digital["historical_popularity_score"], unrelated["historical_popularity_score"])
+        self.assertEqual(digital["demand_score"], 0)
+        self.assertEqual(unrelated["demand_score"], 0)
         self.assertEqual(digital["promo_score"], unrelated["promo_score"])
 
     def test_price_band_does_not_change_demand_score(self):
@@ -2542,7 +2571,9 @@ class AffilioRadarTests(unittest.TestCase):
             "review_count": 280,
             "image_url": "https://example.com/image.jpg",
         })
-        self.assertEqual(low_price["demand_score"], high_price["demand_score"])
+        self.assertEqual(low_price["historical_popularity_score"], high_price["historical_popularity_score"])
+        self.assertEqual(low_price["demand_score"], 0)
+        self.assertEqual(high_price["demand_score"], 0)
         common = {
             "discount_percent": 25, "savings_toman": 100_000,
             "demand_score": 35, "review_count": 280,
