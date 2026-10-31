@@ -69496,7 +69496,7 @@
     },
     "dkp-17681122": {
       "bale_expiry_status": "unknown",
-      "bale_message_id": 1166,
+      "bale_message_id": 1175,
       "delivery_attempts": {
         "aparat": 0,
         "bale": 1,
@@ -70582,7 +70582,7 @@
     },
     "dkp-19725907": {
       "bale_expiry_status": "unknown",
-      "bale_message_id": 1163,
+      "bale_message_id": 1172,
       "delivery_attempts": {
         "aparat": 0,
         "bale": 1,
@@ -70609,7 +70609,7 @@
     },
     "dkp-19968905": {
       "bale_expiry_status": "unknown",
-      "bale_message_id": 1165,
+      "bale_message_id": 1174,
       "delivery_attempts": {
         "aparat": 0,
         "bale": 1,
@@ -72675,7 +72675,7 @@
     },
     "dkp-21641890": {
       "bale_expiry_status": "unknown",
-      "bale_message_id": 1169,
+      "bale_message_id": 1177,
       "delivery_attempts": {
         "aparat": 0,
         "bale": 1,
@@ -74096,7 +74096,8 @@
       "ts": 1793342563.706841
     },
     "dkp-22265707": {
-      "bale_message_id": 1171,
+      "bale_expiry_status": "unknown",
+      "bale_message_id": 1179,
       "delivery_attempts": {
         "aparat": 0,
         "bale": 1,
@@ -74112,6 +74113,7 @@
       "expires_at": "",
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "posted_current_price": 7820000,
       "posted_discount_percent": 44,
       "posted_original_price": 14000000,
@@ -75848,7 +75850,7 @@
     },
     "dkp-22589444": {
       "bale_expiry_status": "unknown",
-      "bale_message_id": 1168,
+      "bale_message_id": 1176,
       "delivery_attempts": {
         "aparat": 0,
         "bale": 1,
@@ -78271,7 +78273,7 @@
     },
     "dkp-274934": {
       "bale_expiry_status": "unknown",
-      "bale_message_id": 1164,
+      "bale_message_id": 1173,
       "delivery_attempts": {
         "aparat": 0,
         "bale": 1,
@@ -79825,9 +79827,9 @@
       "youtube_upload_status": "skipped_unverified_deadline"
     },
     "dkp-12841195": {
-      "aparat_expiry_attempts": 23,
+      "aparat_expiry_attempts": 24,
       "aparat_expiry_last_error": "RuntimeError",
-      "aparat_expiry_next_attempt_at": "2026-10-31T23:13:00.558946+00:00",
+      "aparat_expiry_next_attempt_at": "2026-10-31T23:22:54.721469+00:00",
       "aparat_expiry_status": "delete_retry",
       "aparat_upload_started_at": "2026-10-31T02:47:39.648225+00:00",
       "aparat_upload_status": "uploaded",
@@ -81217,9 +81219,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-15649116": {
-      "aparat_expiry_attempts": 22,
+      "aparat_expiry_attempts": 23,
       "aparat_expiry_last_error": "RuntimeError",
-      "aparat_expiry_next_attempt_at": "2026-10-31T23:13:00.558946+00:00",
+      "aparat_expiry_next_attempt_at": "2026-10-31T23:22:54.721469+00:00",
       "aparat_expiry_status": "delete_retry",
       "aparat_upload_started_at": "2026-10-31T10:44:01.209516+00:00",
       "aparat_upload_status": "uploaded",
@@ -82479,12 +82481,12 @@
     "dkp-17681122": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
-      "bale_image_layout_updated_at": "2026-10-31T23:16:39.564727+00:00",
-      "bale_image_layout_version": 1,
-      "bale_message_id": 1166,
-      "caption_countdown_refreshed_at": "2026-10-31T23:15:46.122249+00:00",
+      "bale_image_layout_updated_at": "2026-10-31T23:21:50.759226+00:00",
+      "bale_image_layout_version": 4,
+      "bale_message_id": 1175,
+      "caption_countdown_refreshed_at": "2026-10-31T23:21:04.377650+00:00",
       "caption_deadline_format_version": 14,
-      "caption_without_expiry_migrated_at": "2026-10-31T23:15:46.122270+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-31T23:21:04.377671+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "delivery_attempts": {
@@ -82515,8 +82517,8 @@
       "posted_original_price": 8802000,
       "product_url": "https://www.digikala.com/product/dkp-17681122/",
       "promo_score": 33,
-      "telegram_image_layout_updated_at": "2026-10-31T23:16:33.960830+00:00",
-      "telegram_image_layout_version": 2,
+      "telegram_image_layout_updated_at": "2026-10-31T23:21:45.678403+00:00",
+      "telegram_image_layout_version": 4,
       "telegram_message_id": 936,
       "title": "ساعت هوشمند 46 میلی‌متری شیائومی مدل Smart Band 9 Active، کنترل موسیقی، کنترل سطح اکسیژن خون، شمارش ضربان قلب، پایش وضعیت خواب، با بند پلاستیکی",
       "ts": 1793467987.518982,
@@ -85230,12 +85232,12 @@
     "dkp-19725907": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
-      "bale_image_layout_updated_at": "2026-10-31T23:16:12.247094+00:00",
-      "bale_image_layout_version": 1,
-      "bale_message_id": 1163,
-      "caption_countdown_refreshed_at": "2026-10-31T23:15:29.014103+00:00",
+      "bale_image_layout_updated_at": "2026-10-31T23:21:27.381440+00:00",
+      "bale_image_layout_version": 4,
+      "bale_message_id": 1172,
+      "caption_countdown_refreshed_at": "2026-10-31T23:20:47.559541+00:00",
       "caption_deadline_format_version": 14,
-      "caption_without_expiry_migrated_at": "2026-10-31T23:15:29.014123+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-31T23:20:47.559561+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "delivery_attempts": {
@@ -85265,8 +85267,8 @@
       "posted_original_price": 27800000,
       "product_url": "https://www.digikala.com/product/dkp-19725907/",
       "promo_score": 49,
-      "telegram_image_layout_updated_at": "2026-10-31T23:16:06.294563+00:00",
-      "telegram_image_layout_version": 2,
+      "telegram_image_layout_updated_at": "2026-10-31T23:21:22.498080+00:00",
+      "telegram_image_layout_version": 4,
       "telegram_message_id": 931,
       "title": "سشوار حرفه‌ای هیسکا مدل H5262 با توان 1400 وات، موتور بدون جاروبک سه‌فاز، تولید 600 میلیون یون منفی، تنظیم دما سه حالته، تنظیم سرعت دو سرعته، سری متمرکزکننده صاف‌کننده، سطح نویز کم",
       "ts": 1793461928.122873,
@@ -85276,12 +85278,12 @@
     "dkp-19968905": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
-      "bale_image_layout_updated_at": "2026-10-31T23:16:30.715535+00:00",
-      "bale_image_layout_version": 1,
-      "bale_message_id": 1165,
-      "caption_countdown_refreshed_at": "2026-10-31T23:15:40.573509+00:00",
+      "bale_image_layout_updated_at": "2026-10-31T23:21:43.086994+00:00",
+      "bale_image_layout_version": 4,
+      "bale_message_id": 1174,
+      "caption_countdown_refreshed_at": "2026-10-31T23:20:59.163917+00:00",
       "caption_deadline_format_version": 14,
-      "caption_without_expiry_migrated_at": "2026-10-31T23:15:40.573530+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-31T23:20:59.163939+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "delivery_attempts": {
@@ -85312,8 +85314,8 @@
       "posted_original_price": 3040000,
       "product_url": "https://www.digikala.com/product/dkp-19968905/",
       "promo_score": 24,
-      "telegram_image_layout_updated_at": "2026-10-31T23:16:24.830147+00:00",
-      "telegram_image_layout_version": 2,
+      "telegram_image_layout_updated_at": "2026-10-31T23:21:37.768621+00:00",
+      "telegram_image_layout_version": 4,
       "telegram_message_id": 934,
       "title": "گوشی موبایل تی سی اچ مدل Lime دو سیم‌کارت ظرفیت 4 مگابایت",
       "ts": 1793466204.049099,
@@ -90197,12 +90199,12 @@
     "dkp-21641890": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
-      "bale_image_layout_updated_at": "2026-10-31T23:16:56.870340+00:00",
-      "bale_image_layout_version": 1,
-      "bale_message_id": 1169,
-      "caption_countdown_refreshed_at": "2026-10-31T23:15:57.193304+00:00",
+      "bale_image_layout_updated_at": "2026-10-31T23:22:06.968045+00:00",
+      "bale_image_layout_version": 4,
+      "bale_message_id": 1177,
+      "caption_countdown_refreshed_at": "2026-10-31T23:21:14.669802+00:00",
       "caption_deadline_format_version": 14,
-      "caption_without_expiry_migrated_at": "2026-10-31T23:15:57.193325+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-31T23:21:14.669823+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "current_demand_score": 27,
@@ -90241,8 +90243,8 @@
       "recent_review_growth_7d": 0,
       "selection_discount_band": "1%+",
       "selection_discount_floor": 1,
-      "telegram_image_layout_updated_at": "2026-10-31T23:16:51.228542+00:00",
-      "telegram_image_layout_version": 2,
+      "telegram_image_layout_updated_at": "2026-10-31T23:22:01.574535+00:00",
+      "telegram_image_layout_version": 4,
       "telegram_message_id": 938,
       "title": "اسپیکر قابل حمل کیسونلی مدل K14 Mini",
       "ts": 1793485706.961597,
@@ -93677,12 +93679,13 @@
     },
     "dkp-22265707": {
       "aparat_upload_status": "skipped_unverified_deadline",
-      "bale_image_layout_updated_at": "2026-10-31T23:17:05.404177+00:00",
-      "bale_image_layout_version": 1,
-      "bale_message_id": 1171,
-      "caption_countdown_refreshed_at": "2026-10-31T23:16:02.921077+00:00",
+      "bale_expiry_status": "unknown",
+      "bale_image_layout_updated_at": "2026-10-31T23:22:14.645498+00:00",
+      "bale_image_layout_version": 4,
+      "bale_message_id": 1179,
+      "caption_countdown_refreshed_at": "2026-10-31T23:21:20.060430+00:00",
       "caption_deadline_format_version": 14,
-      "caption_without_expiry_migrated_at": "2026-10-31T23:16:02.921101+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-31T23:21:20.060451+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "current_demand_score": 23,
@@ -93711,6 +93714,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "historical_popularity_score": 23,
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/e39f6553bbf181304cd2c7fb2bbbcd7c40288702_1784109074.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 7820000,
@@ -93721,8 +93725,8 @@
       "recent_review_growth_7d": 0,
       "selection_discount_band": "1%+",
       "selection_discount_floor": 1,
-      "telegram_image_layout_updated_at": "2026-10-31T23:16:59.851426+00:00",
-      "telegram_image_layout_version": 2,
+      "telegram_image_layout_updated_at": "2026-10-31T23:22:09.451740+00:00",
+      "telegram_image_layout_version": 4,
       "telegram_message_id": 940,
       "title": "جارو شارژی خودرو رومئو مدل RM-1030",
       "ts": 1793488393.658716,
@@ -97834,8 +97838,13 @@
     },
     "dkp-22589444": {
       "aparat_upload_status": "skipped_unverified_deadline",
-      "bale_message_id": 1168,
+      "bale_expiry_status": "unknown",
+      "bale_image_layout_updated_at": "2026-10-31T23:21:59.002566+00:00",
+      "bale_image_layout_version": 4,
+      "bale_message_id": 1176,
+      "caption_countdown_refreshed_at": "2026-10-31T23:21:09.518631+00:00",
       "caption_deadline_format_version": 14,
+      "caption_without_expiry_migrated_at": "2026-10-31T23:21:09.518653+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "current_demand_score": 22,
@@ -97863,6 +97872,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "historical_popularity_score": 22,
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/b2420acc59dbc65cc64198d6b200e2251a52033c_1787603308.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 668910,
@@ -97873,6 +97883,8 @@
       "recent_review_growth_7d": 0,
       "selection_discount_band": "1%+",
       "selection_discount_floor": 1,
+      "telegram_image_layout_updated_at": "2026-10-31T23:21:53.333216+00:00",
+      "telegram_image_layout_version": 4,
       "telegram_message_id": 937,
       "title": "جوراب مردانه سیرداش مدل SRS-3394 بسته 3 عددی",
       "ts": 1793484213.229015,
@@ -103376,12 +103388,12 @@
     "dkp-274934": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
-      "bale_image_layout_updated_at": "2026-10-31T23:16:21.632724+00:00",
-      "bale_image_layout_version": 1,
-      "bale_message_id": 1164,
-      "caption_countdown_refreshed_at": "2026-10-31T23:15:34.720522+00:00",
+      "bale_image_layout_updated_at": "2026-10-31T23:21:35.187772+00:00",
+      "bale_image_layout_version": 4,
+      "bale_message_id": 1173,
+      "caption_countdown_refreshed_at": "2026-10-31T23:20:52.880725+00:00",
       "caption_deadline_format_version": 14,
-      "caption_without_expiry_migrated_at": "2026-10-31T23:15:34.720543+00:00",
+      "caption_without_expiry_migrated_at": "2026-10-31T23:20:52.880744+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "delivery_attempts": {
@@ -103412,8 +103424,8 @@
       "posted_original_price": 34902100,
       "product_url": "https://www.digikala.com/product/dkp-274934/",
       "promo_score": 36,
-      "telegram_image_layout_updated_at": "2026-10-31T23:16:15.699080+00:00",
-      "telegram_image_layout_version": 2,
+      "telegram_image_layout_updated_at": "2026-10-31T23:21:30.043329+00:00",
+      "telegram_image_layout_version": 4,
       "telegram_message_id": 933,
       "title": "هارد اکسترنال ای دیتا مدل HD710 Pro ظرفیت 1 ترابایت با استاندارد ارتباطی USB 3.2 Gen1",
       "ts": 1793464986.359017,
@@ -109649,6 +109661,17 @@
       "ts": 1793461928.122873
     },
     {
+      "bale_message_id": 1172,
+      "brand": "",
+      "category": "home_cleaning",
+      "family": "home_cleaning:vacuum_cleaning",
+      "product_id": "dkp-19725907",
+      "retailer": "digikala",
+      "telegram_message_id": 931,
+      "title": "سشوار حرفه‌ای هیسکا مدل H5262 با توان 1400 وات، موتور بدون جاروبک سه‌فاز، تولید 600 میلیون یون منفی، تنظیم دما سه حالته، تنظیم سرعت دو سرعته، سری متمرکزکننده صاف‌کننده، سطح نویز کم",
+      "ts": 1793461928.122873
+    },
+    {
       "bale_message_id": 1150,
       "brand": "",
       "category": "large_appliances",
@@ -109682,6 +109705,17 @@
       "ts": 1793464986.359017
     },
     {
+      "bale_message_id": 1173,
+      "brand": "",
+      "category": "home",
+      "family": "home:kitchen",
+      "product_id": "dkp-274934",
+      "retailer": "digikala",
+      "telegram_message_id": 933,
+      "title": "هارد اکسترنال ای دیتا مدل HD710 Pro ظرفیت 1 ترابایت با استاندارد ارتباطی USB 3.2 Gen1",
+      "ts": 1793464986.359017
+    },
+    {
       "bale_message_id": 1153,
       "brand": "",
       "category": "mobile_devices",
@@ -109694,6 +109728,17 @@
     },
     {
       "bale_message_id": 1165,
+      "brand": "",
+      "category": "mobile_devices",
+      "family": "mobile_devices",
+      "product_id": "dkp-19968905",
+      "retailer": "digikala",
+      "telegram_message_id": 934,
+      "title": "گوشی موبایل تی سی اچ مدل Lime دو سیم‌کارت ظرفیت 4 مگابایت",
+      "ts": 1793466204.049099
+    },
+    {
+      "bale_message_id": 1174,
       "brand": "",
       "category": "mobile_devices",
       "family": "mobile_devices",
@@ -109737,6 +109782,17 @@
       "ts": 1793467987.518982
     },
     {
+      "bale_message_id": 1175,
+      "brand": "",
+      "category": "audio_wearables",
+      "family": "audio_wearables:smartwatch",
+      "product_id": "dkp-17681122",
+      "retailer": "digikala",
+      "telegram_message_id": 936,
+      "title": "ساعت هوشمند 46 میلی‌متری شیائومی مدل Smart Band 9 Active، کنترل موسیقی، کنترل سطح اکسیژن خون، شمارش ضربان قلب، پایش وضعیت خواب، با بند پلاستیکی",
+      "ts": 1793467987.518982
+    },
+    {
       "bale_message_id": 1157,
       "brand": "",
       "category": "fashion",
@@ -109749,6 +109805,17 @@
     },
     {
       "bale_message_id": 1168,
+      "brand": "",
+      "category": "fashion",
+      "family": "fashion",
+      "product_id": "dkp-22589444",
+      "retailer": "digikala",
+      "telegram_message_id": 937,
+      "title": "جوراب مردانه سیرداش مدل SRS-3394 بسته 3 عددی",
+      "ts": 1793484213.229015
+    },
+    {
+      "bale_message_id": 1176,
       "brand": "",
       "category": "fashion",
       "family": "fashion",
@@ -109792,6 +109859,17 @@
       "ts": 1793485706.961597
     },
     {
+      "bale_message_id": 1177,
+      "brand": "",
+      "category": "audio_wearables",
+      "family": "audio_wearables:speaker",
+      "product_id": "dkp-21641890",
+      "retailer": "digikala",
+      "telegram_message_id": 938,
+      "title": "اسپیکر قابل حمل کیسونلی مدل K14 Mini",
+      "ts": 1793485706.961597
+    },
+    {
       "bale_message_id": 1159,
       "brand": "",
       "category": "audio_wearables",
@@ -109815,6 +109893,17 @@
     },
     {
       "bale_message_id": 1171,
+      "brand": "",
+      "category": "home_cleaning",
+      "family": "home_cleaning:vacuum_cleaning",
+      "product_id": "dkp-22265707",
+      "retailer": "digikala",
+      "telegram_message_id": 940,
+      "title": "جارو شارژی خودرو رومئو مدل RM-1030",
+      "ts": 1793488393.658716
+    },
+    {
+      "bale_message_id": 1179,
       "brand": "",
       "category": "home_cleaning",
       "family": "home_cleaning:vacuum_cleaning",
