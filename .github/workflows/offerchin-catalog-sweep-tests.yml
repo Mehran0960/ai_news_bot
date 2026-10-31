@@ -42,6 +42,7 @@ jobs:
         run: python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_parallel_catalog_sweep -v
       - name: Run OfferChin selection and DigiPay regressions
         run: |
+          cd affilio_radar
           python -m unittest \
-            affilio_radar.test_affilio.AffilioRadarTests.test_no_current_demand_gate_for_verified_discount \
-            affilio_radar.test_affilio.AffilioRadarTests.test_digipay_credit_line_is_added_to_digikala_captions_only -v
+            test_affilio.AffilioRadarTests.test_no_current_demand_gate_for_verified_discount \
+            test_affilio.AffilioRadarTests.test_digipay_credit_line_is_added_to_digikala_captions_only -v
