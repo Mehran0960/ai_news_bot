@@ -527,7 +527,7 @@ def load_catalog_candidates(path: Path = CANDIDATES_PATH) -> list[dict]:
 def load_catalog_candidates_for_handoff(
     candidates_path: Path,
     publisher_state: dict,
-    max_count: int = 40,
+    max_count: int = 100,
     now: datetime | None = None,
 ) -> list[dict]:
     """Return unseen cards and record acknowledgements in publisher state."""
