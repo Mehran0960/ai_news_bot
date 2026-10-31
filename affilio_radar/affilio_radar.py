@@ -8850,6 +8850,13 @@ def run(publish=False, selection_only=False):
                 "posted_current_price": int(item.get("current_price") or 0),
                 "posted_original_price": int(item.get("original_price") or 0),
                 "demand_score": int(item.get("demand_score") or 0),
+                "current_demand_verified": item.get("current_demand_verified") is True,
+                "current_demand_score": int(item.get("current_demand_score") or 0),
+                "recent_review_growth_7d": int(item.get("recent_review_growth_7d") or 0),
+                "demand_window_hours": float(item.get("demand_window_hours") or 0),
+                "demand_observed_at": str(item.get("demand_observed_at") or ""),
+                "demand_signal_source": str(item.get("demand_signal_source") or ""),
+                "historical_popularity_score": int(item.get("historical_popularity_score") or 0),
                 "promo_score": int(item.get("promo_score") or 0),
                 "click_count_30d": int(item.get("click_count_30d") or 0),
             }
