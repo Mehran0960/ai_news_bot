@@ -839,6 +839,35 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(unchanged_summary["verified"], 0)
         self.assertFalse(radar_module.has_current_demand_signal(unchanged, now))
 
+    def test_no_current_demand_gate_for_verified_discount(self):
+        product = {
+            "product_id": "dkp-99003",
+            "title": "پاوربانک شیائومی مدل پرفروش",
+            "availability": "in_stock",
+            "current_price": 950_000,
+            "original_price": 1_000_000,
+            "discount_percent": 5,
+            "savings_toman": 50_000,
+            "image_url": "https://example.com/powerbank.webp",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-99003%2F",
+            "current_demand_verified": False,
+        }
+        self.assertTrue(is_discount_publish_eligible(product))
+
+    def test_digipay_credit_line_is_added_to_digikala_captions_only(self):
+        product = {
+            "title": "پاوربانک شیائومی مدل پرفروش",
+            "current_price": 950_000,
+            "discount_percent": 5,
+            "merchant": "دیجی‌کالا",
+        }
+        caption = build_caption(product, "https://example.com/buy")
+        self.assertIn("💳 امکان خرید اقساطی با دیجی‌پی (طبق شرایط و کالاهای مشمول)", caption)
+
+        product["merchant"] = "اسنپ‌شاپ"
+        snapp_caption = build_caption(product, "https://example.com/buy")
+        self.assertNotIn("دیجی‌پی", snapp_caption)
+
     def test_medicines_and_supplements_are_rejected(self):
         for title in [
             "قرص زینک پلاس یوروویتال",
