@@ -1,4 +1,5 @@
 name: OfferChin Selected Content Publisher
+# Tiered discount selection lives in affilio_radar.py: 50% preferred, then 45/40/35% only when higher bands have no eligible offer.
 # [publisher-run-now] Verify preserved discount floors after merge.
 # [publisher-run-now] Controlled live verification after ranked inline fallback rollout.
 # [publisher-run-now] One-time live validation after staged discount fallback implementation.
