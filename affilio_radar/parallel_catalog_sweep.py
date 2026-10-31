@@ -178,7 +178,32 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
     state["parallel_known_category_ids"] = sorted(
         known_ids, key=lambda value: int(value) if value.isdigit() else 0
     )
+    ordered_categories = base.sort_categories_for_sweep(categories)
+    category_rank = {
+        str(row.get("id") or ""): index
+        for index, row in enumerate(ordered_categories)
+        if isinstance(row, dict)
+    }
+    # Sweep every leaf category's first page before spending capacity on deeper
+    # pages or parent nodes. This prevents parent-only pages from monopolizing
+    # the crawler's early batches.
+    unique.sort(
+        key=lambda task: (
+            max(1, base._normal_int(task.get("page"), 1)),
+            category_rank.get(str(task.get("category_id") or ""), len(category_rank)),
+            base._normal_int(task.get("attempts")),
+        )
+    )
+    parent_ids = {
+        str(row.get("parent_id") or "")
+        for row in ordered_categories
+        if str(row.get("parent_id") or "").isdigit()
+    }
     state["parallel_pending_pages"] = unique
+    state["parallel_leaf_category_count"] = sum(
+        str(row.get("id") or "") not in parent_ids
+        for row in ordered_categories
+    )
     return unique
 
 
@@ -203,6 +228,7 @@ def run_parallel_sweep(
         "pages_scanned_total", "product_rows_scanned_total",
         "discounted_candidates_found_total", "catalog_candidate_cards_found_total",
         "api_failures_total", "completed_cycles", "unqueryable_categories_total",
+        "empty_product_pages_total", "nonempty_product_pages_total",
     ):
         stats[key] = max(0, base._normal_int(stats.get(key)))
 
@@ -257,6 +283,8 @@ def run_parallel_sweep(
     processed_count = 0
     terminal_count = 0
     page_row_count = 0
+    empty_product_pages = 0
+    nonempty_product_pages = 0
     pending_keys = {_task_key(task) for task in remaining if isinstance(task, dict)}
 
     for task, result in zip(batch, results):
@@ -284,6 +312,12 @@ def run_parallel_sweep(
             continue
 
         processed_count += 1
+        if rows:
+            nonempty_product_pages += 1
+            stats["nonempty_product_pages_total"] += 1
+        else:
+            empty_product_pages += 1
+            stats["empty_product_pages_total"] += 1
         if kind == "terminal":
             terminal_count += 1
             if page == 1:
@@ -345,6 +379,8 @@ def run_parallel_sweep(
     state["parallel_last_batch_retries"] = retry_count
     state["parallel_last_batch_rate_limited"] = rate_limited_count
     state["parallel_last_batch_product_rows"] = page_row_count
+    state["parallel_last_batch_empty_product_pages"] = empty_product_pages
+    state["parallel_last_batch_nonempty_product_pages"] = nonempty_product_pages
     state["unacknowledged_candidate_count"] = len(ordered_candidates)
     state["stats"] = stats
     state["category_count"] = len(categories)
@@ -358,8 +394,9 @@ def run_parallel_sweep(
         "PARALLEL_CATALOG_SWEEP_SUMMARY "
         f"pages_attempted={len(batch)} pages_ok={processed_count} "
         f"terminal_pages={terminal_count} retries={retry_count} "
+        f"empty_product_pages={empty_product_pages} nonempty_product_pages={nonempty_product_pages} "
         f"rate_limited={rate_limited_count} workers={state['parallel_workers_used']} "
-        f"products={page_row_count} categories={len(categories)} "
+        f"products={page_row_count} categories={len(categories)} leaf_categories={state.get('parallel_leaf_category_count', 0)} "
         f"pending_pages={len(remaining)} candidates={len(ordered_candidates)} "
         f"pages_total={stats['pages_scanned_total']} "
         f"completed_cycles={stats['completed_cycles']}"
