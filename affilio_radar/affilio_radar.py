@@ -6306,22 +6306,107 @@ def discount_fallback_band_label(floor: int, upper_exclusive: int | None) -> str
     return f"{floor}%–{upper_exclusive - 1}%"
 
 
+SELECTION_REJECTION_TTL_MINUTES = 20
+SELECTION_REJECTION_LIMIT = 500
+
+
+def mark_selection_candidate_rejected(
+    state: dict,
+    product: dict,
+    reason: str,
+    now: datetime | None = None,
+) -> None:
+    """Temporarily cool down a candidate rejected by the publisher's live checks.
+
+    A changed current/original price releases the cooldown immediately; otherwise a
+    bad selection cannot monopolize every five-minute discovery cycle.
+    """
+    if not isinstance(state, dict) or not isinstance(product, dict):
+        return
+    pid = str(product.get("product_id") or product_id(product.get("product_url") or "")).strip().lower()
+    if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", pid):
+        return
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    try:
+        current_price = int(product.get("current_price") or 0)
+    except (TypeError, ValueError, OverflowError):
+        current_price = 0
+    try:
+        original_price = int(product.get("original_price") or 0)
+    except (TypeError, ValueError, OverflowError):
+        original_price = 0
+
+    rejected = state.setdefault("selection_rejections", {})
+    if not isinstance(rejected, dict):
+        rejected = {}
+        state["selection_rejections"] = rejected
+    rejected[pid] = {
+        "rejected_at": current.isoformat(),
+        "retry_after": (current + timedelta(minutes=SELECTION_REJECTION_TTL_MINUTES)).isoformat(),
+        "reason": str(reason or "publisher_live_validation_rejected")[:180],
+        "current_price": current_price,
+        "original_price": original_price,
+    }
+    if len(rejected) > SELECTION_REJECTION_LIMIT:
+        retained = sorted(
+            rejected.items(),
+            key=lambda item: _parse_utc_datetime(
+                item[1].get("retry_after") if isinstance(item[1], dict) else None
+            ) or datetime.min.replace(tzinfo=timezone.utc),
+            reverse=True,
+        )[:SELECTION_REJECTION_LIMIT]
+        state["selection_rejections"] = dict(retained)
+
+
+def is_selection_candidate_rejected(
+    state: dict,
+    pid: str,
+    product: dict,
+    now: datetime | None = None,
+) -> bool:
+    """Skip a recent live-rejected candidate until its offer changes or TTL expires."""
+    rejected = state.get("selection_rejections") if isinstance(state, dict) else None
+    if not isinstance(rejected, dict):
+        return False
+    key = str(pid or "").strip().lower()
+    record = rejected.get(key)
+    if not isinstance(record, dict):
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    retry_after = _parse_utc_datetime(record.get("retry_after"))
+    if retry_after is None or retry_after <= current:
+        rejected.pop(key, None)
+        return False
+
+    for field in ("current_price", "original_price"):
+        try:
+            previous_value = int(record.get(field) or 0)
+            live_value = int((product or {}).get(field) or 0)
+        except (TypeError, ValueError, OverflowError):
+            previous_value = live_value = 0
+        if previous_value > 0 and live_value > 0 and previous_value != live_value:
+            rejected.pop(key, None)
+            return False
+    return True
+
+
 def select_discount_fallback_candidates(
     products: list[dict],
     state: dict,
     now: datetime | None = None,
+    include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Choose the highest available discount band after every other hard gate.
+    """Choose discount bands in strict order, optionally retaining lower-band backups.
 
-    Hard gates are unchanged: live stock, current price, image, affiliate link,
-    complete/non-prohibited title, at least 100,000 toman saved, competitive market
-    price when reliable data exists, valid open-ended/verified offer, user suppression,
-    product cooldown, active-post protection, and recent-family cooldown.
-
-    Within the first non-empty band, demand remains the primary ranking signal and
-    category/family/brand/retailer history drives diversity. The returned third value
-    contains every product that passed the non-discount quality gates in any band;
-    it is used for delivery retries and truthful diagnostics, not new selection.
+    All hard gates remain mandatory. The normal selector returns only the first
+    available band; the scheduled hand-off can request a ranked cross-band backup
+    pool so the publisher can replace a stale primary within the same run.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -6348,9 +6433,14 @@ def select_discount_fallback_candidates(
             continue
         seen_ids.add(pid)
         quality_eligible.append(product)
-        if is_fresh_selection_candidate(state, pid, product, current):
+        if (
+            not is_selection_candidate_rejected(state, pid, product, current)
+            and is_fresh_selection_candidate(state, pid, product, current)
+        ):
             fresh_candidates.append(product)
 
+    fallback_pool: list[dict] = []
+    first_floor: int | None = None
     for index, floor in enumerate(DISCOUNT_FALLBACK_FLOORS):
         upper_exclusive = DISCOUNT_FALLBACK_FLOORS[index - 1] if index > 0 else None
         band = [
@@ -6370,27 +6460,44 @@ def select_discount_fallback_candidates(
             now=current,
             allow_family_repeat=False,
         )
-        if ranked:
-            label = discount_fallback_band_label(floor, upper_exclusive)
-            # Carry the exact selected fallback floor into the independent publisher.
-            # Its final live validation must enforce this same threshold, not silently
-            # revert to the preferred 50% default for a legitimate lower-tier selection.
-            handoff_candidates = []
-            for product in ranked:
-                selected_product = dict(product)
-                selected_product["selection_discount_floor"] = int(floor)
-                selected_product["selection_discount_band"] = label
-                handoff_candidates.append(selected_product)
+        if not ranked:
+            print(
+                f"DISCOUNT_FALLBACK_BAND_EXHAUSTED band={discount_fallback_band_label(floor, upper_exclusive)} "
+                "reason=recent_family_cooldown"
+            )
+            continue
+
+        label = discount_fallback_band_label(floor, upper_exclusive)
+        handoff_candidates = []
+        for product in ranked:
+            selected_product = dict(product)
+            selected_product["selection_discount_floor"] = int(floor)
+            selected_product["selection_discount_band"] = label
+            handoff_candidates.append(selected_product)
+
+        if first_floor is None:
+            first_floor = floor
             print(
                 f"DISCOUNT_FALLBACK_SELECTED band={label} floor={floor}% "
                 f"quality_pool={len(quality_eligible)} fresh_pool={len(fresh_candidates)} "
                 f"band_candidates={len(band)}"
             )
+        elif include_fallback_bands:
+            print(
+                f"DISCOUNT_FALLBACK_BACKUP_BAND band={label} "
+                f"floor={floor}% candidates={len(handoff_candidates)}"
+            )
+
+        if not include_fallback_bands:
             return handoff_candidates, floor, quality_eligible
+        fallback_pool.extend(handoff_candidates)
+
+    if fallback_pool:
         print(
-            f"DISCOUNT_FALLBACK_BAND_EXHAUSTED band={discount_fallback_band_label(floor, upper_exclusive)} "
-            "reason=recent_family_cooldown"
+            f"DISCOUNT_FALLBACK_POOL_READY primary_floor={first_floor}% "
+            f"ranked_backups={max(0, len(fallback_pool) - 1)}"
         )
+        return fallback_pool, first_floor, quality_eligible
 
     print(
         f"DISCOUNT_FALLBACK_EXHAUSTED floors={','.join(str(x) for x in DISCOUNT_FALLBACK_FLOORS)} "
@@ -7953,7 +8060,7 @@ def run(publish=False, selection_only=False):
     )
     market_blocked_count = sum(is_market_price_uncompetitive(p) for p in products)
     eligible, selected_discount_floor, quality_eligible = select_discount_fallback_candidates(
-        products, state, now=queue_now
+        products, state, now=queue_now, include_fallback_bands=selection_only
     )
     observed_product_ids = {
         str(p.get("product_id") or product_id(p.get("product_url", "")))
@@ -8200,22 +8307,35 @@ def run(publish=False, selection_only=False):
             )
             return 0
 
+        # Store one due primary plus a compact ranked cross-band fallback pool.
+        # Backups are not scheduled as extra posts; the publisher promotes one only
+        # when live validation proves the primary is no longer a valid deal.
+        primary = eligible[:1]
         summary = enqueue_selected_content(
             state,
-            eligible,
+            primary,
             now=selection_now,
             interval_seconds=interval_seconds,
             max_items=1,
             minimum_runway_minutes=MIN_PUBLICATION_RUNWAY_MINUTES,
         )
-        if summary["added"]:
+        fallback_count = 0
+        if summary["added"] and primary:
+            primary_id = str(primary[0].get("product_id") or product_id(primary[0].get("product_url") or ""))
+            primary_entry = state.get("content_delivery_queue", {}).get(primary_id)
+            if isinstance(primary_entry, dict):
+                primary_entry["fallback_candidates"] = [
+                    dict(candidate) for candidate in eligible[1:6]
+                    if isinstance(candidate, dict)
+                ]
+                fallback_count = len(primary_entry["fallback_candidates"])
             state["last_content_selection_at"] = selection_now.isoformat()
         save_json(STATE, state)
         print(
             "CONTENT_SELECTION_HANDOFF "
             f"queued={summary['added']} skipped={summary['skipped']} "
             f"queue_size={summary['queue_size']} live_candidates={len(eligible)} "
-            f"replaced_stale={replaced} publisher_invoked=false"
+            f"fallback_pool={fallback_count} replaced_stale={replaced} publisher_invoked=false"
         )
         # No eligible offer is a normal outcome. The next scan refreshes the pool.
         return 0
