@@ -145,6 +145,29 @@ def _category_name(record: dict) -> str:
     return re.sub(r"\s+", " ", str(raw or "")).strip()[:120]
 
 
+def sort_categories_for_sweep(categories: Any) -> list[dict]:
+    """Prioritize leaf categories, which contain product listings, before parent nodes."""
+    rows = [row for row in (categories or []) if isinstance(row, dict)]
+    parent_ids = {
+        str(row.get("parent_id") or "").strip()
+        for row in rows
+        if str(row.get("parent_id") or "").strip().isdigit()
+    }
+
+    def priority(row: dict) -> tuple:
+        category_id = str(row.get("id") or "")
+        depth = max(0, _normal_int(row.get("depth")))
+        is_parent = category_id in parent_ids
+        return (
+            1 if is_parent else 0,
+            -depth,
+            int(category_id) if category_id.isdigit() else 0,
+            str(row.get("name") or ""),
+        )
+
+    return sorted(rows, key=priority)
+
+
 def extract_categories(payload: Any) -> list[dict]:
     """Extract category nodes from category_tree/mega_menu or search filters."""
     found: dict[str, dict] = {}
@@ -223,7 +246,7 @@ def extract_categories(payload: Any) -> list[dict]:
                             "slug": str(item.get("slug") or "")[:160],
                         })
 
-    return sorted(found.values(), key=lambda row: (int(row["id"]), row["name"]))
+    return sort_categories_for_sweep(found.values())
 
 
 def _request_json(session: requests.Session, url: str, params=None) -> dict:
