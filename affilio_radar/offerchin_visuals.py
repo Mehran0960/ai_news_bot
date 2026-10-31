@@ -282,7 +282,6 @@ _LOCAL_LOGO_PATHS = {
     "snappshop": _RETAILER_LOGO_DIR / "snappshop-official.webp",
 }
 _DIGIPAY_LOGO_URL = "https://www.mydigipay.com/bck-assets/images/logos/logo.svg"
-_DIGIPAY_LOGO_PATH = _RETAILER_LOGO_DIR / "digipay-official.svg"
 
 
 def adaptive_text_colors(image, region, threshold: int = 145):
@@ -362,20 +361,15 @@ def _load_retailer_logo(is_snappshop: bool):
 def _load_digipay_logo():
     """Load the current official Digipay wordmark from its first-party website and cache it."""
     try:
-        if _DIGIPAY_LOGO_PATH.is_file():
-            content = _DIGIPAY_LOGO_PATH.read_bytes()
-        else:
-            from urllib.request import Request, urlopen
-            request = Request(
-                _DIGIPAY_LOGO_URL,
-                headers={"User-Agent": "OfferChin/1.0 (+https://t.me/OfferChin)"},
-            )
-            with urlopen(request, timeout=8) as response:
-                content = response.read(2_000_001)
-            if not content or len(content) > 2_000_000:
-                raise ValueError("digipay_logo_size_invalid")
-            _DIGIPAY_LOGO_PATH.parent.mkdir(parents=True, exist_ok=True)
-            _DIGIPAY_LOGO_PATH.write_bytes(content)
+        from urllib.request import Request, urlopen
+        request = Request(
+            _DIGIPAY_LOGO_URL,
+            headers={"User-Agent": "OfferChin/1.0 (+https://t.me/OfferChin)"},
+        )
+        with urlopen(request, timeout=8) as response:
+            content = response.read(2_000_001)
+        if not content or len(content) > 2_000_000:
+            raise ValueError("digipay_logo_size_invalid")
         logo = _decode_retailer_logo(content, False)
         if logo is None:
             raise ValueError("digipay_logo_decode_failed")
