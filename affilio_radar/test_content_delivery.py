@@ -311,7 +311,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertIsNotNone(fresh)
         self.assertEqual(reason, "")
         self.assertEqual(fresh["selection_discount_floor"], 1)
-        self.assertEqual(fresh["selection_discount_band"], "45%–49%")
+        self.assertEqual(fresh["selection_discount_band"], "1%+")
 
     def test_publisher_normalizes_old_unsupported_discount_floor(self):
         entry = {
