@@ -16,7 +16,7 @@ concurrency:
 jobs:
   repair:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 45
     steps:
       - name: Check out the current OfferChin state
         uses: actions/checkout@v4
@@ -68,14 +68,15 @@ jobs:
           import json
           from pathlib import Path
           request = json.loads(Path(".github/offerchin-caption-repair-request.json").read_text(encoding="utf-8"))
-          assert request.get("action") == "repair_recent_captions"
-          assert request.get("limit") == 2
+          assert request.get("action") == "repair_recent_digipay_posts"
+          assert float(request.get("lookback_hours", 0)) > 0
+          assert float(request.get("lookback_hours", 48)) <= 47
           source = Path("affilio_radar/affilio_radar.py").read_text(encoding="utf-8")
           assert 'installment_line = bold("💳 با امکان خرید اقساطی (دیجی پی)")' in source
-          assert "--repair-recent-captions" in source
-          assert "--repair-recent-product-images" in source
+          assert "--repair-recent-digipay-posts" in source
+          assert "def _recent_digipay_repair_records" in source
           visuals = Path("affilio_radar/offerchin_visuals.py").read_text(encoding="utf-8")
-          assert "def _draw_uniform_logo_frame" in visuals
+          assert "def _digipay_brand_blue" in visuals
           print("OFFERCHIN_RECENT_CAPTION_REPAIR_REQUEST_VALIDATED")
           PY
           python -m py_compile affilio_radar/affilio_radar.py
@@ -83,9 +84,9 @@ jobs:
       - name: Run caption and recent-selection regression tests
         run: |
           cd affilio_radar
-          python -m unittest             test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit             test_affilio.AffilioRadarTests.test_snappshop_caption_uses_correct_store_name             test_affilio.AffilioRadarTests.test_recent_caption_repair_selects_only_newest_active_products             test_affilio.AffilioRadarTests.test_digikala_and_digipay_logos_use_equal_frames_without_distorting_artwork             test_affilio.AffilioRadarTests.test_edit_telegram_media_replaces_photo_and_preserves_verified_buy_button             test_affilio.AffilioRadarTests.test_delete_bale_message_uses_documented_delete_method -v
+          python -m unittest             test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit             test_affilio.AffilioRadarTests.test_snappshop_caption_uses_correct_store_name             test_affilio.AffilioRadarTests.test_recent_caption_repair_selects_only_newest_active_products             test_affilio.AffilioRadarTests.test_recent_digipay_selector_includes_all_recent_active_digikala_posts             test_affilio.AffilioRadarTests.test_digipay_blue_background_matches_retailer_tile_and_centers_untouched_icon             test_affilio.AffilioRadarTests.test_edit_telegram_media_replaces_photo_and_preserves_verified_buy_button             test_affilio.AffilioRadarTests.test_delete_bale_message_uses_documented_delete_method -v
 
-      - name: Edit the two most recent active product posts in place
+      - name: Repair all recent active DigiPay product posts in place
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
@@ -94,20 +95,8 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: |
           set -euo pipefail
-          limit="$(python -c 'import json; print(json.load(open(".github/offerchin-caption-repair-request.json", encoding="utf-8"))["limit"])')"
-          python affilio_radar/affilio_radar.py --repair-recent-captions "$limit"
-
-      - name: Replace the two most recent product images in place
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
-          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
-          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          PYTHONUNBUFFERED: "1"
-        run: |
-          set -euo pipefail
-          limit="$(python -c 'import json; print(json.load(open(".github/offerchin-caption-repair-request.json", encoding="utf-8"))["limit"])')"
-          python affilio_radar/affilio_radar.py --repair-recent-product-images "$limit"
+          lookback_hours="$(python -c 'import json; print(json.load(open(".github/offerchin-caption-repair-request.json", encoding="utf-8"))["lookback_hours"])')"
+          python affilio_radar/affilio_radar.py --repair-recent-digipay-posts --lookback-hours "$lookback_hours"
 
       - name: Persist the edited-post state and repair report
         if: always()
