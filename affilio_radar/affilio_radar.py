@@ -4339,28 +4339,30 @@ def build_caption(
         f"🛍️ {title}",
     ]
 
-    # Keep the offer's two decision-making facts prominent, with no list price,
-    # savings amount, countdown, or redundant instruction to press the buy button.
-    if current or (discount is not None and int(discount) > 0):
-        parts += ["", "────────────"]
+    # Keep the offer details visually separated; no list price, savings amount,
+    # countdown, or redundant instruction to press the buy button.
+    offer_lines = []
     if current:
         price = format_persian_number(current)
-        parts.append(bold(f"💚 قیمت فعلی: {price} تومان"))
+        offer_lines.append(bold(f"💚 قیمت فعلی: {price} تومان"))
     if discount is not None and int(discount) > 0:
         discount_value = format_persian_number(discount) + "٪"
-        parts.append(bold(f"⚡️ {discount_value} تخفیف"))
-    # Show the installment notice consistently across all retailer posts.
-    # The eligibility caveat avoids promising approval on products/accounts where
-    # DigiPay does not present the option or the buyer does not qualify.
-    parts.append("💳 با امکان خرید اقساطی (دیجی پی)")
+        offer_lines.append(bold(f"⚡️ {discount_value} تخفیف"))
+    installment_line = bold("💳 با امکان خرید اقساطی (دیجی پی)")
+    offer_lines.append(installment_line)
 
     # Keep one source-channel membership link for forwarded posts; the purchase button
     # remains a separate inline button and its presence is validated by the sender.
-    parts += ["", "────────────", "", channel_footer]
+    parts += ["", "────────────", ""]
+    for index, line in enumerate(offer_lines):
+        if index:
+            parts.append("")
+        parts.append(line)
+    parts += ["────────────", "", channel_footer]
     caption = "\n".join(parts)
     if len(caption) > 1024:
-        footer = f"\n\n────────────\n\n{channel_footer}"
-        body = "\n".join(parts[:-4])
+        footer = f"\n────────────\n\n{channel_footer}"
+        body = "\n".join(parts[:-3])
         caption = body[:1024 - len(footer)].rstrip() + footer
     return caption
 
