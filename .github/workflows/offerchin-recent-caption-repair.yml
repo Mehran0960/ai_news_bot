@@ -39,6 +39,27 @@ jobs:
           done
           exit 1
 
+      - name: Fetch and validate the official DigiPay logo
+        run: |
+          mkdir -p affilio_radar/assets/retailer-logos
+          curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 \
+            "https://www.mydigipay.com/bck-assets/images/logos/dp-logo.svg" \
+            -o affilio_radar/assets/retailer-logos/digipay-official.svg
+          test -s affilio_radar/assets/retailer-logos/digipay-official.svg
+          python - <<'PY'
+          from pathlib import Path
+          import cairosvg
+          source = Path("affilio_radar/assets/retailer-logos/digipay-official.svg").read_bytes()
+          png = cairosvg.svg2png(bytestring=source, output_width=320)
+          assert png[:8] == bytes([137, 80, 78, 71, 13, 10, 26, 10])
+          print("DIGIPAY_OFFICIAL_LOGO_STAGED_AND_VALIDATED")
+          PY
+          PYTHONPATH=affilio_radar python - <<'PY'
+          import offerchin_visuals
+          assert offerchin_visuals._load_digipay_logo() is not None
+          print("DIGIPAY_RENDERER_CAN_LOAD_OFFICIAL_LOGO")
+          PY
+
       - name: Validate the one-shot request and repair implementation
         shell: bash
         run: |
