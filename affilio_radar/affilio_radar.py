@@ -6271,13 +6271,10 @@ def select_urgent_publication_candidate(
     if not ranked:
         print("URGENT_PUBLICATION_DEFERRED reason=recent_family_cooldown_or_no_diverse_candidate")
         return None
+    # Stable discount sort: maximum discount leads, existing demand/diversity order
+    # is preserved when discounts are equal.
     ranked.sort(
-        key=lambda product: (
-            max(0, int(product.get("discount_percent") or 0)),
-            _candidate_demand_score(product),
-            max(0, int(product.get("savings_toman") or 0)),
-            max(0, int(product.get("review_count") or 0)),
-        ),
+        key=lambda product: max(0, int(product.get("discount_percent") or 0)),
         reverse=True,
     )
     return ranked[0]
@@ -6326,13 +6323,9 @@ def select_publish_candidates(
             recent_publications=recent_publications,
             now=current,
         )
+        # Stable sort preserves the demand/diversity rank for equal discounts.
         tier.sort(
-            key=lambda product: (
-                max(0, int(product.get("discount_percent") or 0)),
-                _candidate_demand_score(product),
-                max(0, int(product.get("savings_toman") or 0)),
-                max(0, int(product.get("review_count") or 0)),
-            ),
+            key=lambda product: max(0, int(product.get("discount_percent") or 0)),
             reverse=True,
         )
         ordered.extend(tier)
