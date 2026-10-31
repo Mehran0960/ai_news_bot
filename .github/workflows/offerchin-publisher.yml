@@ -57,6 +57,22 @@ jobs:
           done
           exit 1
 
+      - name: Fetch official DigiPay logo
+        run: |
+          mkdir -p affilio_radar/assets/retailer-logos
+          curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 \
+            "https://www.mydigipay.com/bck-assets/images/logos/dp-logo.svg" \
+            -o affilio_radar/assets/retailer-logos/digipay-official.svg
+          test -s affilio_radar/assets/retailer-logos/digipay-official.svg
+          python - <<'PY'
+          from pathlib import Path
+          import cairosvg
+          source = Path("affilio_radar/assets/retailer-logos/digipay-official.svg").read_bytes()
+          png = cairosvg.svg2png(bytestring=source, output_width=320)
+          assert png.startswith(b"\\x89PNG\\r\\n\\x1a\\n")
+          print("DIGIPAY_OFFICIAL_LOGO_STAGED_AND_VALIDATED")
+          PY
+
       - name: Validate the delivery-only path
         run: |
           python -m py_compile affilio_radar/affilio_radar.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
@@ -71,8 +87,14 @@ jobs:
           print("OFFERCHIN_STATE_PERSISTENCE_WORKTREE_RESET_VALIDATED")
           PY
 
-      - name: Validate current-demand sampling calibration
-        run: python -m unittest affilio_radar.test_affilio.AffilioRadarTests.test_one_recent_review_in_active_window_qualifies_current_demand -v
+      - name: Validate current-demand signal and OfferChin selection behavior
+        run: |
+          cd affilio_radar
+          python -m unittest \
+            test_affilio.AffilioRadarTests.test_one_recent_review_in_active_window_qualifies_current_demand \
+            test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit \
+            test_affilio.AffilioRadarTests.test_discount_publishing_requires_a_valuable_deal \
+            test_affilio.AffilioRadarTests.test_selection_uses_market_demand_first_and_discount_percentage_second -v
 
       # Discovery/selection is a distinct stage. It writes the neutral content queue only.
       # Any later publisher adapter can consume that same selected payload without changing discovery.
@@ -94,7 +116,7 @@ jobs:
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
           YOUTUBE_PRIVACY_STATUS: "public"
           AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
-          AFFILIO_MIN_DISCOUNT_PERCENT: "50"
+          AFFILIO_MIN_DISCOUNT_PERCENT: "1"
           AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "1"
           AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "1"
           AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS: "6"
@@ -103,14 +125,15 @@ jobs:
           AFFILIO_DEAL_LIST_PAGES: "5"
           AFFILIO_MAX_PER_QUERY: "12"
           AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN: "4"
-          AFFILIO_MAX_PRODUCT_CHECKS: "90"
-          AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES: "90"
+          AFFILIO_MAX_PRODUCT_CHECKS: "100"
+          AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES: "100"
           AFFILIO_MAX_QUEUED_RECHECKS: "16"
           AFFILIO_PENDING_QUEUE_LIMIT: "200"
           AFFILIO_DISCOVERY_QUEUE_LIMIT: "1000"
           # Only a small rolling set of publication hand-offs/retries may be retained.
           AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "6"
-          AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN: "80"
+          AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN: "100"
+          AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
           AFFILIO_DISCOVERY_QUEUE_TTL_HOURS: "24"
           AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "64"
           AFFILIO_MCP_PAGES_PER_SCAN: "5"
