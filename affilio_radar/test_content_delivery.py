@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from content_delivery import (
     due_content, due_unpublished_selection, enqueue_selected_content,
     finish_queue_item, get_last_channel_published_at, has_fresh_unpublished_selection,
+    promote_fallback_selection,
     refresh_unpublished_selections, selection_cadence_anchor,
 )
 from platform_registry import PLATFORM_NAMES
@@ -477,6 +478,40 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             state["content_delivery_history"][0]["last_detail"],
             "active_publication_exists",
         )
+
+    def test_stale_primary_promotes_next_backup_as_immediately_due(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-primary")], now=self.now, interval_seconds=1200,
+        )
+        primary = state["content_delivery_queue"]["dkp-primary"]
+        primary["fallback_candidates"] = [
+            self.item("dkp-backup", demand=45),
+            self.item("dkp-last", demand=40),
+        ]
+        fallback_candidates = list(primary["fallback_candidates"])
+
+        finish_queue_item(
+            state, "dkp-primary", "stale_selection",
+            now=self.now, detail="live_discount_no_longer_eligible",
+        )
+        promoted = promote_fallback_selection(
+            state, fallback_candidates, now=self.now,
+            reason="live_discount_no_longer_eligible",
+        )
+
+        self.assertEqual(promoted, "dkp-backup")
+        due = due_content(state, now=self.now, limit=1)
+        self.assertEqual([pid for pid, _entry in due], ["dkp-backup"])
+        self.assertEqual(
+            [item["product_id"] for item in due[0][1]["fallback_candidates"]],
+            ["dkp-last"],
+        )
+        self.assertEqual(
+            due[0][1]["fallback_promoted_after"],
+            "live_discount_no_longer_eligible",
+        )
+
 
     def test_terminal_queue_item_moves_to_bounded_history(self):
         state = {}
