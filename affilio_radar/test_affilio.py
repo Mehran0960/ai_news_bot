@@ -314,6 +314,32 @@ class AffilioRadarTests(unittest.TestCase):
             bale_caption,
         )
 
+    def test_recent_digipay_selector_includes_all_recent_active_digikala_posts(self):
+        from affilio_radar import _recent_digipay_repair_records
+
+        now = 2_000_000_000.0
+        published = {
+            "dkp-101": {"ts": now - 3600, "telegram_message_id": 101},
+            "dkp-102": {"ts": now - 7200, "bale_message_id": 102},
+            "dkp-stale": {"ts": now - 48 * 3600, "telegram_message_id": 103},
+            "snp-201": {"ts": now - 1800, "telegram_message_id": 201},
+            "dkp-deleted": {
+                "ts": now - 1200,
+                "telegram_message_id": 104,
+                "expiry_status": "deleted",
+                "bale_message_id": 204,
+                "bale_expiry_status": "already_absent",
+            },
+            "dkp-no-message": {"ts": now - 600},
+        }
+        selected = _recent_digipay_repair_records(
+            published, lookback_hours=46.5, now_epoch=now,
+        )
+        self.assertEqual(
+            [product_key for product_key, _record in selected],
+            ["dkp-101", "dkp-102"],
+        )
+
     def test_recent_caption_repair_selects_only_newest_active_products(self):
         published = {
             "old": {"ts": 10, "telegram_message_id": 100},
