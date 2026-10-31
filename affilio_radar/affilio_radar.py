@@ -5586,6 +5586,29 @@ def repair_recent_digipay_posts(lookback_hours: float = DIGIPAY_RECENT_POST_LOOK
     )
     return 0 if success else 1
 
+def repair_all_active_product_captions() -> int:
+    """Edit the current caption on every active tracked product post, without touching media."""
+    state = load_state()
+    published = state.get("published", {})
+    if not isinstance(published, dict):
+        raise RuntimeError("Published state is not an object")
+
+    records = _all_active_published_product_records(published)
+    product_ids = {product_key for product_key, _record in records}
+    print(f"ALL_ACTIVE_PRODUCT_CAPTIONS_SELECTED products={len(product_ids)}")
+
+    if not product_ids:
+        print("ALL_ACTIVE_PRODUCT_CAPTION_REPAIR_SUMMARY products=0 targets=0 status=no_targets")
+        return 0
+
+    result = repair_all_published_captions(product_ids=product_ids)
+    print(
+        f"ALL_ACTIVE_PRODUCT_CAPTION_REPAIR_SUMMARY products={len(product_ids)} "
+        f"captions_exit={result} media_changed=false"
+    )
+    return result
+
+
 
 def repair_all_active_product_posts() -> int:
     """Apply the current caption and image branding to every active tracked product post."""
@@ -9725,6 +9748,11 @@ def main():
         help="update the product photos of the newest N active Telegram/Bale posts with the current branded layout",
     )
     parser.add_argument(
+        "--repair-all-active-product-captions",
+        action="store_true",
+        help="edit captions on every active tracked Telegram/Bale product post without changing images",
+    )
+    parser.add_argument(
         "--repair-all-active-product-posts",
         action="store_true",
         help="apply the current OfferChin caption and branded product image to every active tracked Telegram/Bale product post",
@@ -9794,6 +9822,12 @@ def main():
             sys.exit(repair_all_published_captions(max_products=args.repair_recent_captions))
         except Exception as exc:
             print(f"RECENT_CAPTION_REPAIR_FAILED error={type(exc).__name__}")
+            sys.exit(1)
+    if args.repair_all_active_product_captions:
+        try:
+            sys.exit(repair_all_active_product_captions())
+        except Exception as exc:
+            print(f"ALL_ACTIVE_PRODUCT_CAPTION_REPAIR_FAILED error={type(exc).__name__}")
             sys.exit(1)
     if args.repair_all_active_product_posts:
         try:
