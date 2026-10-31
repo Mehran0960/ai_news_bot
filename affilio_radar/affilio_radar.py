@@ -61,13 +61,12 @@ CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS",
 BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(20, int(os.getenv("AFFILIO_MAX_PER_QUERY", "12"))))
 MAX_PRODUCT_CHECKS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "100"))))
-# Expand live verification so a temporary thin 60-item feed does not starve the publisher.
-# Quality gates (50%+ listed discount, 100k toman saving, live stock/price) stay unchanged.
+# Inspect up to 100 demand-ranked catalog candidates per run; verify live stock and price before publication.
 SNAPPSHOP_RESERVED_CANDIDATES = max(4, min(12, MAX_PRODUCT_CHECKS // 7))
 SNAPPSHOP_QUERIES_PER_SCAN = max(1, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN", "4"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
 # Independent Telegram/Bale volume guard, counted by Iran's calendar day; never reserve or gate channel posts on YouTube API quota.
-MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "70"))))
+MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "90"))))
 # Current channel uploadLimitExceeded behavior is consistent with ~8/day; keep Shorts evenly spaced.
 YOUTUBE_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS", "3"))))
 # Aparat has an independent cadence and remains eligible during a YouTube quota pause.
@@ -106,8 +105,7 @@ IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
 PREFERRED_POSTING_WINDOWS = (("morning", 9, 11), ("afternoon", 14, 17), ("evening", 20, 23))
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
 MCP_OFFER_PAGES_PER_SCAN = max(1, min(DEAL_LIST_PAGES, int(os.getenv("AFFILIO_MCP_PAGES_PER_SCAN", "2"))))
-# Keep 50% as the preferred band. Lower bands are considered only when no
-# fresh, fully-qualified candidate exists in every higher band.
+# No arbitrary discount floor: a positive, currently listed discount can compete.
 MIN_DISCOUNT_PERCENT = max(1, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "1"))))
 # Any positive listed discount can compete; popularity ranks first and discount strength breaks ties.
 DISCOUNT_FALLBACK_FLOORS = (1,)
@@ -3935,7 +3933,7 @@ def score_product(p: dict) -> dict:
 
 
 def deal_sort_key(p: dict) -> tuple:
-    """Rank retailer-side demand signals first and discount percentage second."""
+    """Rank product popularity proxies first, then recent activity, then live discount strength."""
     verified_median = (
         p.get("market_status") == "verified"
         and p.get("market_reference_kind") == "seller_median"
@@ -3948,8 +3946,10 @@ def deal_sort_key(p: dict) -> tuple:
         market_advantage = -101
     try:
         rating_score = round(float(p.get("rating") or 0) * 10)
+        reviews = max(0, int(p.get("review_count") or 0))
     except (TypeError, ValueError, OverflowError):
         rating_score = 0
+        reviews = 0
     return (
         max(0, min(100, int(p.get("historical_popularity_score") or 0))),
         reviews,
@@ -4083,7 +4083,7 @@ def is_discount_publish_eligible(
     minimum_discount_percent: int | None = None,
     now: datetime | None = None,
 ) -> bool:
-    """Require verified stock, a complete offer, and measured recent retailer activity."""
+    """Require verified stock, complete product data, and a positive currently listed discount."""
     return bool(
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
@@ -8564,7 +8564,7 @@ def run(publish=False, selection_only=False):
             "minimum_observation_hours": CURRENT_DEMAND_MIN_OBSERVATION_HOURS,
             "sample_interval_hours": CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS,
             "maximum_signal_age_hours": CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS,
-            "unverified_blocks_publication": True,
+            "unverified_blocks_publication": False,
             "sales_volume_claimed": False,
         },
         "price_market_policy": {
