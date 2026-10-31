@@ -602,6 +602,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
                 record.setdefault("delivery_status", {})[destination] = "not_connected"
 
         with (
+            patch("publisher._now", return_value=self.now),
             patch("publisher.radar.load_state", return_value=state),
             patch("publisher._save"),
             patch(
