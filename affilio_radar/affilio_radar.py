@@ -5302,6 +5302,15 @@ def repair_recent_product_images(max_products: int = 2) -> int:
             continue
 
         merchant = "اسنپ‌شاپ" if str(product_key).startswith("snp-") else "دیجی‌کالا"
+        if merchant == "دیجی‌کالا":
+            from offerchin_visuals import _load_digipay_logo
+            if _load_digipay_logo() is None:
+                if telegram_needed:
+                    results["telegram_failed"] += 1
+                if bale_needed:
+                    results["bale_failed"] += 1
+                print(f"IMAGE_REPAIR_FAILED product_id={product_key} reason=official_digipay_logo_unavailable")
+                continue
         discount = record.get("posted_discount_percent")
         photo = build_discount_image(image_bytes, discount, merchant=merchant)
         product = {
