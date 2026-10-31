@@ -472,21 +472,3 @@ def draw_retailer_badge(image, left: int, top: int, width: int, height: int, mer
     return (x, y, fitted.width, fitted.height)
 
 
-
-def draw_digipay_badge(image, left: int, top: int, width: int, height: int) -> None:
-    """Draw DigiPay inside the same exact-size frame used for retailer logos."""
-    _draw_uniform_logo_frame(image, _load_digipay_logo(), left, top, width, height)
-
-
-def draw_retailer_badge(image, left: int, top: int, width: int, height: int, merchant: str) -> None:
-    """Draw the full official retailer artwork inside the shared fixed-size logo frame."""
-    store = str(merchant or "").strip().lower()
-    is_snappshop = "snapp" in store or "اسنپ" in store
-    _draw_uniform_logo_frame(
-        image,
-        _load_retailer_logo(is_snappshop),
-        left,
-        top,
-        width,
-        height,
-    )
