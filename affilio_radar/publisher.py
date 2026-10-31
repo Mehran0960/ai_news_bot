@@ -251,10 +251,6 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     fresh["merchant"] = "اسنپ‌شاپ" if product_id.startswith("snp-") else "دیجی‌کالا"
     fresh["selection_discount_floor"] = 1
     fresh["selection_discount_band"] = "any_positive_discount"
-    selection_band = str(payload.get("selection_discount_band") or "").strip()
-    if selection_band:
-        fresh["selection_discount_band"] = selection_band
-
     try:
         selected_price = int(payload.get("current_price") or 0)
         live_price = int(fresh.get("current_price") or 0)
@@ -342,7 +338,7 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
 
     if fresh.get("availability") != "in_stock":
         return None, "live_stock_not_confirmed"
-    if not radar.is_discount_publish_eligible(fresh, now=now):
+    if not radar.is_discount_publish_eligible(fresh, minimum_discount_percent=None, now=now):
         return None, "live_discount_no_longer_eligible"
     if not radar.is_market_value_publish_eligible(fresh):
         return None, "live_market_value_rejected"
