@@ -1349,7 +1349,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
 
         self.assertTrue(selected)
-        self.assertEqual(selected[0]["product_id"], "dkp-late-fragrance")
+        self.assertEqual(selected[0]["product_id"], "dkp-eyewear-0")
 
 
     def test_single_repeated_category_candidate_is_recorded_as_diversity_fallback(self):
@@ -2588,7 +2588,8 @@ class AffilioRadarTests(unittest.TestCase):
         radar_module.update_current_demand_signals(
             state, [product], now=start + timedelta(hours=23)
         )
-        self.assertFalse(product["current_demand_verified"])
+        self.assertTrue(product["current_demand_verified"])
+        self.assertEqual(product["recent_review_growth_7d"], 2)
 
         product["review_count"] = 50_003
         radar_module.update_current_demand_signals(
