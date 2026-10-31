@@ -4349,9 +4349,10 @@ def build_caption(
     if discount is not None and int(discount) > 0:
         discount_value = format_persian_number(discount) + "٪"
         parts.append(bold(f"⚡️ {discount_value} تخفیف"))
-    is_digikala = "اسنپ" not in str(merchant) and "snapp" not in str(merchant).lower()
-    if is_digikala:
-        parts.append("💳 امکان خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)")
+    # Show the installment notice consistently across all retailer posts.
+    # The eligibility caveat avoids promising approval on products/accounts where
+    # DigiPay does not present the option or the buyer does not qualify.
+    parts.append("💳 امکان خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)")
 
     # Keep one source-channel membership link for forwarded posts; the purchase button
     # remains a separate inline button and its presence is validated by the sender.
@@ -4838,7 +4839,46 @@ def repair_bale_caption(message_id: int) -> int:
 
 
 
-def repair_all_published_captions() -> int:
+def _recent_caption_repair_records(published: dict, limit: int) -> list[tuple[str, dict]]:
+    """Return the newest active product records that have an editable channel message."""
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError, OverflowError):
+        raise ValueError("recent caption repair limit must be a positive integer")
+    if limit < 1:
+        raise ValueError("recent caption repair limit must be a positive integer")
+
+    candidates = []
+    for product_key, record in published.items():
+        if not isinstance(record, dict):
+            continue
+        has_editable_message = False
+        for id_field, status_field in (
+            ("telegram_message_id", "expiry_status"),
+            ("bale_message_id", "bale_expiry_status"),
+        ):
+            raw_id = record.get(id_field)
+            if raw_id in (None, "", 0, "0") or record.get(status_field) in {"deleted", "already_absent"}:
+                continue
+            try:
+                if int(raw_id) > 0:
+                    has_editable_message = True
+                    break
+            except (TypeError, ValueError, OverflowError):
+                continue
+        if has_editable_message:
+            candidates.append((str(product_key), record))
+
+    def posted_at(item):
+        try:
+            return float(item[1].get("ts") or 0)
+        except (TypeError, ValueError, OverflowError):
+            return 0.0
+
+    return sorted(candidates, key=posted_at, reverse=True)[:limit]
+
+
+def repair_all_published_captions(max_products: int | None = None) -> int:
     """Edit tracked Telegram/Bale captions in place; never creates or deletes posts."""
     state = load_state()
     published = state.get("published", {})
@@ -4859,11 +4899,18 @@ def repair_all_published_captions() -> int:
     state_changed = False
     now = datetime.now(timezone.utc)
 
-    # Stable order plus spacing reduces the chance of Telegram per-chat rate limits.
-    for product_key, record in sorted(
-        published.items(),
-        key=lambda item: float(item[1].get("ts", 0)) if isinstance(item[1], dict) else 0,
-    ):
+    # Full repair keeps oldest-first pacing; bounded repair selects the newest
+    # active product records and edits only their already-published channel posts.
+    if max_products is None:
+        records_to_repair = sorted(
+            published.items(),
+            key=lambda item: float(item[1].get("ts", 0)) if isinstance(item[1], dict) else 0,
+        )
+    else:
+        records_to_repair = _recent_caption_repair_records(published, max_products)
+        print(f"RECENT_CAPTION_REPAIR_SELECTION selected_products={len(records_to_repair)} requested={max_products}")
+
+    for product_key, record in records_to_repair:
         if not isinstance(record, dict):
             results["skipped"] += 1
             continue
@@ -5020,6 +5067,7 @@ def repair_all_published_captions() -> int:
         "caption_deadline_format_version": CAPTION_DEADLINE_FORMAT_VERSION,
         "caption_format_v4_products": caption_format_v4_products,
         "tracked_products": len(published),
+        "selected_products": len(records_to_repair),
         "targets": target_count,
         **results,
         "status": "success" if successful else ("partial_failure" if target_count > 0 else "no_targets"),
@@ -9113,6 +9161,12 @@ def main():
         help="edit all tracked Telegram and Bale captions in place; never publish new products",
     )
     parser.add_argument(
+        "--repair-recent-captions",
+        type=int,
+        default=None,
+        help="edit only the newest N active Telegram/Bale product posts in place; never publish new products",
+    )
+    parser.add_argument(
         "--refresh-countdowns",
         action="store_true",
         help="refresh remaining-hours/minutes timers on active deadline-verified posts",
@@ -9160,6 +9214,12 @@ def main():
             sys.exit(repair_persian_text_video_uploads())
         except Exception as exc:
             print(f"PERSIAN_TEXT_VIDEO_REPAIR_ABORTED error={type(exc).__name__} detail={str(exc)[:240]!r}")
+            sys.exit(1)
+    if args.repair_recent_captions is not None:
+        try:
+            sys.exit(repair_all_published_captions(max_products=args.repair_recent_captions))
+        except Exception as exc:
+            print(f"RECENT_CAPTION_REPAIR_FAILED error={type(exc).__name__}")
             sys.exit(1)
     if args.repair_all_captions:
         try:
