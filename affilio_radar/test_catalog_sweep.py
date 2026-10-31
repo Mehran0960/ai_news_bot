@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock
 
-from catalog_sweep import (
+from affilio_radar.catalog_sweep import (
     _advance_cursor,
     catalog_candidate_sort_key,
     discover_categories,
