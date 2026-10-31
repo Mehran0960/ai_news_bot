@@ -1,5 +1,5 @@
 name: OfferChin Selected Content Publisher
-# Tiered discount selection lives in affilio_radar.py: 50% preferred, then 45/40/35% only when higher bands have no eligible offer.
+# Selection uses popularity proxies first, then the strongest live listed discount; no arbitrary discount floor.
 # [publisher-run-now] Verify preserved discount floors after merge.
 # [publisher-run-now] Controlled live verification after ranked inline fallback rollout.
 # [publisher-run-now] One-time live validation after staged discount fallback implementation.
@@ -72,7 +72,7 @@ jobs:
           PY
 
       - name: Validate current-demand sampling calibration
-        run: python -m unittest affilio_radar.test_affilio.AffilioRadarTests.test_one_recent_review_in_active_window_qualifies_current_demand -v
+        run: PYTHONPATH=affilio_radar python -m unittest test_affilio.AffilioRadarTests.test_no_current_demand_gate_for_verified_discount test_affilio.AffilioRadarTests.test_digipay_credit_line_is_added_to_digikala_captions_only -v
 
       # Discovery/selection is a distinct stage. It writes the neutral content queue only.
       # Any later publisher adapter can consume that same selected payload without changing discovery.
@@ -94,7 +94,7 @@ jobs:
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
           YOUTUBE_PRIVACY_STATUS: "public"
           AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
-          AFFILIO_MIN_DISCOUNT_PERCENT: "50"
+          AFFILIO_MIN_DISCOUNT_PERCENT: "1"
           AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "1"
           AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "1"
           AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS: "6"
@@ -103,20 +103,22 @@ jobs:
           AFFILIO_DEAL_LIST_PAGES: "5"
           AFFILIO_MAX_PER_QUERY: "12"
           AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN: "4"
-          AFFILIO_MAX_PRODUCT_CHECKS: "90"
-          AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES: "90"
+          AFFILIO_MAX_PRODUCT_CHECKS: "100"
+          AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES: "100"
           AFFILIO_MAX_QUEUED_RECHECKS: "16"
           AFFILIO_PENDING_QUEUE_LIMIT: "200"
           AFFILIO_DISCOVERY_QUEUE_LIMIT: "1000"
           # Only a small rolling set of publication hand-offs/retries may be retained.
           AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "6"
-          AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN: "80"
+          AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN: "100"
           AFFILIO_DISCOVERY_QUEUE_TTL_HOURS: "24"
           AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "64"
           AFFILIO_MCP_PAGES_PER_SCAN: "5"
           AFFILIO_AUTOPUBLISH: "false"
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.3333333333333333"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "60"
+          AFFILIO_MAX_DAILY_CHANNEL_POSTS: "90"
+          AFFILIO_MIN_POST_INTERVAL_HOURS: "0.3333333333333333"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "10"
           PYTHONUNBUFFERED: "1"
@@ -140,6 +142,8 @@ jobs:
           AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
           AFFILIO_PUBLISHER_BATCH_SIZE: "1"
           AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "6"
+          AFFILIO_MAX_DAILY_CHANNEL_POSTS: "90"
+          AFFILIO_MIN_POST_INTERVAL_HOURS: "0.3333333333333333"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/publisher.py
 
