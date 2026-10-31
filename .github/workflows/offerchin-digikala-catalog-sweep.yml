@@ -1,6 +1,9 @@
 name: OfferChin DigiKala Catalog Sweep
 
 on:
+  push:
+    paths:
+      - ".github/workflows/offerchin-digikala-catalog-sweep.yml"
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
