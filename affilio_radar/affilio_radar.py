@@ -4632,7 +4632,6 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
         minimum_discount_percent=minimum_discount_percent,
         now=datetime.now(timezone.utc),
     ):
-        floor_label = minimum_discount_percent or DISCOUNT_FALLBACK_FLOORS[0]
         raise RuntimeError(
             "Refusing to send an OfferChin post without a currently listed positive discount"
         )
@@ -5876,9 +5875,9 @@ def build_publication_diversity_report(
         "generated_at": current.isoformat(),
         "policy": {
             "minimum_discount_percent": MIN_DISCOUNT_FALLBACK_PERCENT,
-            "preferred_discount_floor_percent": MIN_DISCOUNT_PERCENT,
-            "discount_fallback_floors": list(DISCOUNT_FALLBACK_FLOORS),
-            "minimum_savings_toman": MIN_SAVINGS_TOMAN,
+            "preferred_discount_floor_percent": None,
+            "discount_fallback_floors": [],
+            "minimum_savings_toman": None,
             "category_repeat_cooldown_minutes": CATEGORY_REPEAT_COOLDOWN_MINUTES,
             "family_repeat_cooldown_hours": FAMILY_REPEAT_COOLDOWN_HOURS,
             "brand_repeat_cooldown_hours": BRAND_REPEAT_COOLDOWN_HOURS,
@@ -8678,9 +8677,9 @@ def run(publish=False, selection_only=False):
         print("PUBLISH_BLOCKED: no valid Affilio tracking parameters/template configured; no post attempted.")
     elif not eligible:
         print(
-            f"PUBLISH_BLOCKED: no fresh product met the {MIN_DISCOUNT_FALLBACK_PERCENT}% minimum "
-            f"(preferred {MIN_DISCOUNT_PERCENT}%; fallback floors {DISCOUNT_FALLBACK_FLOORS}) plus the stock, price, image, "
-            "affiliate-link, market-value, absolute-saving, product-repeat, family-diversity, and verified current-demand checks. "
+            "PUBLISH_BLOCKED: no fresh product passed live stock/price/image, affiliate-link, "
+            "eligible-title, expiry, market-value, and duplicate checks. "
+            "Any positive listed discount is eligible; recent review growth is only a ranking signal. "
             "Open-ended offers are accepted only after live stock/current-price validation."
         )
     elif not regular_window_open and not urgent_override_allowed and not FORCE_POST_COOLDOWN_BYPASS:
