@@ -291,10 +291,10 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b>⚡️ ۱۷٪ تخفیف</b>", caption)
         self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
         self.assertIn(
-            "\\n\\n────────────\\n\\n"
-            "<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>\\n\\n"
-            "<b>⚡️ ۱۷٪ تخفیف</b>\\n\\n"
-            "<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\\n────────────\\n\\n"
+            "\n\n────────────\n\n"
+            "<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>\n\n"
+            "<b>⚡️ ۱۷٪ تخفیف</b>\n\n"
+            "<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\n────────────\n\n"
             '<a href="https://t.me/OfferChin">➕ عضویت در کانال آفِرچین</a>',
             caption,
         )
@@ -309,7 +309,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("*⚡️ ۱۷٪ تخفیف*", bale_caption)
         self.assertIn("*💳 با امکان خرید اقساطی (دیجی پی)*", bale_caption)
         self.assertIn(
-            "\\n────────────\\n\\n[➕ عضویت در کانال آفِرچین](https://ble.ir/OfferChin)",
+            "\n────────────\n\n[➕ عضویت در کانال آفِرچین](https://ble.ir/OfferChin)",
             bale_caption,
         )
 
@@ -339,9 +339,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("دیجی‌کالا", caption)
         self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
         self.assertIn(
-            "\\n\\n────────────\\n\\n<b>💚 قیمت فعلی: ۱٬۰۶۵٬۰۰۰ تومان</b>"
-            "\\n\\n<b>⚡️ ۵۳٪ تخفیف</b>"
-            "\\n\\n<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\\n────────────",
+            "\n\n────────────\n\n<b>💚 قیمت فعلی: ۱٬۰۶۵٬۰۰۰ تومان</b>"
+            "\n\n<b>⚡️ ۵۳٪ تخفیف</b>"
+            "\n\n<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\n────────────",
             caption,
         )
 
