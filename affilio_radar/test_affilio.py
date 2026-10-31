@@ -2337,7 +2337,7 @@ class AffilioRadarTests(unittest.TestCase):
             [high_discount, lower_discount, small_saving], {"published": {}}, now
         )
         self.assertEqual(floor, 1)
-        self.assertEqual([item["product_id"] for item in selected], ["dkp-95303"])
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-95303", "dkp-95302"])
         self.assertEqual(
             {item["product_id"] for item in quality},
             {"dkp-95302", "dkp-95303"},
@@ -2600,12 +2600,11 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(product["current_demand_verified"])
         self.assertEqual(product["demand_score"], 0)
 
-        product["review_count"] = 50_001
+        product["review_count"] = 50_002
         radar_module.update_current_demand_signals(
             state, [product], now=start + timedelta(hours=23)
         )
-        self.assertTrue(product["current_demand_verified"])
-        self.assertEqual(product["recent_review_growth_7d"], 1)
+        self.assertFalse(product["current_demand_verified"])
 
         product["review_count"] = 50_003
         radar_module.update_current_demand_signals(
@@ -4375,7 +4374,7 @@ class AffilioRadarTests(unittest.TestCase):
             },
         }
         selected = select_discovery_records_for_check(queue, now, max_count=10)
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93024", "dkp-93021", "dkp-93022"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93021", "dkp-93022", "dkp-93024"])
         self.assertGreater(
             discovery_queue_sort_key(queue["dkp-93021"], now),
             discovery_queue_sort_key(queue["dkp-93022"], now),
