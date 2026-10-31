@@ -106,11 +106,11 @@ IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
 PREFERRED_POSTING_WINDOWS = (("morning", 9, 11), ("afternoon", 14, 17), ("evening", 20, 23))
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
 MCP_OFFER_PAGES_PER_SCAN = max(1, min(DEAL_LIST_PAGES, int(os.getenv("AFFILIO_MCP_PAGES_PER_SCAN", "2"))))
-# Hard publication floor: no fallback tier below 50% is permitted.
-# Keep the environment setting for compatibility, but never allow it to weaken this gate.
+# Keep 50% as the preferred band. Lower bands are considered only when no
+# fresh, fully-qualified candidate exists in every higher band.
 MIN_DISCOUNT_PERCENT = max(50, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "50"))))
-DISCOUNT_FALLBACK_FLOORS = (50,)
-MIN_DISCOUNT_FALLBACK_PERCENT = 50
+DISCOUNT_FALLBACK_FLOORS = (50, 45, 40, 35)
+MIN_DISCOUNT_FALLBACK_PERCENT = min(DISCOUNT_FALLBACK_FLOORS)
 MIN_SAVINGS_TOMAN = 100_000
 # "Current demand" is measured from recent retailer review/rating-count growth,
 # not from lifetime totals, channel clicks, or guessed sales volume.
@@ -2554,10 +2554,11 @@ def has_meaningful_discount(
     record: dict,
     minimum_discount_percent: int | None = None,
 ) -> bool:
-    """Validate a real listed reduction against the hard 50% floor.
+    """Validate a real listed reduction against the active staged discount floor.
 
-    There are no lower discount fallback bands. The minimum absolute saving
-    remains 100,000 toman.
+    The default remains the preferred 50% band. Explicit lower floors are only
+    supplied by the selector/publisher for the 45/40/35% fallback bands.
+    The minimum absolute saving remains 100,000 toman.
     """
     if not isinstance(record, dict):
         return False
@@ -4593,15 +4594,25 @@ def _has_pending_delivery(record: dict) -> bool:
 
 
 def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliate_url: str):
-    """Render and send only offers that still pass the hard publication gate."""
+    """Render and send only offers that pass their own selected discount tier."""
+    raw_floor = item.get("selection_discount_floor")
+    minimum_discount_percent = None
+    if raw_floor is not None:
+        try:
+            minimum_discount_percent = int(raw_floor)
+        except (TypeError, ValueError, OverflowError):
+            raise RuntimeError("Refusing to send an OfferChin post with an invalid discount tier")
+        if minimum_discount_percent not in DISCOUNT_FALLBACK_FLOORS:
+            raise RuntimeError("Refusing to send an OfferChin post with an unsupported discount tier")
     if not is_discount_publish_eligible(
         item,
-        minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT,
+        minimum_discount_percent=minimum_discount_percent,
         now=datetime.now(timezone.utc),
     ):
+        floor_label = minimum_discount_percent or DISCOUNT_FALLBACK_FLOORS[0]
         raise RuntimeError(
-            "Refusing to send an OfferChin post that fails the hard discount/current-demand gate "
-            f"({MIN_DISCOUNT_FALLBACK_PERCENT}% minimum plus verified recent activity)"
+            "Refusing to send an OfferChin post that fails its discount/current-demand gate "
+            f"({floor_label}% minimum plus verified recent activity)"
         )
     if platform == "telegram":
         photo = build_discount_image(
@@ -6241,12 +6252,12 @@ def select_publish_candidates(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> list[dict]:
-    """Rank by market demand, then favor multi-horizon variety and cooldowns among comparable eligible offers."""
+    """Rank demand/diversity within each discount tier; never let a weaker tier jump the queue."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    selected = []
+    selected_by_floor: dict[int, list[dict]] = {}
     deferred = 0
     for pid, record in (pending_queue.items() if isinstance(pending_queue, dict) else []):
         product = eligible_by_id.get(str(pid)) if isinstance(eligible_by_id, dict) else None
@@ -6256,12 +6267,29 @@ def select_publish_candidates(
         if retry_at and retry_at > current:
             deferred += 1
             continue
-        selected.append(product)
+        raw_floor = product.get("selection_discount_floor")
+        try:
+            floor = int(raw_floor) if raw_floor is not None else DISCOUNT_FALLBACK_FLOORS[0]
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if floor not in DISCOUNT_FALLBACK_FLOORS:
+            continue
+        selected_by_floor.setdefault(floor, []).append(product)
     if deferred:
-        print(f"PUBLISH_QUEUE_BACKOFF skipped_deferred={deferred} ready={len(selected)}")
-    return _order_candidates_by_primary_rank(
-        selected, published=published, recent_publications=recent_publications, now=current
-    )
+        print(f"PUBLISH_QUEUE_BACKOFF skipped_deferred={deferred} ready={sum(map(len, selected_by_floor.values()))}")
+
+    # Preserve the tier ladder. Current demand and multi-horizon diversity rank
+    # candidates inside a tier; they cannot promote a 45% offer above a valid 50% one.
+    ordered: list[dict] = []
+    for floor in sorted(selected_by_floor, reverse=True):
+        tier = _order_candidates_by_primary_rank(
+            selected_by_floor[floor],
+            published=published,
+            recent_publications=recent_publications,
+            now=current,
+        )
+        ordered.extend(tier)
+    return ordered
 
 
 MIN_REPEAT_PRODUCT_INTERVAL_HOURS = 24
@@ -6600,10 +6628,12 @@ def select_discount_fallback_candidates(
     now: datetime | None = None,
     include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Choose only products meeting the hard 50% discount floor.
+    """Select the best available discount band without relaxing demand or safety gates.
 
-    The scheduled hand-off may retain ranked backups, but every backup must
-    independently satisfy the same 50% floor and all other hard gates.
+    The 50% band is preferred. 45/40/35% bands are considered only when no
+    candidate exists in a higher band. Every primary and backup independently
+    passes current-demand, stock, price, affiliate, market-value, expiry, and
+    product-diversity checks.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -6662,6 +6692,14 @@ def select_discount_fallback_candidates(
                 f"DISCOUNT_FALLBACK_BAND_EXHAUSTED band={discount_fallback_band_label(floor, upper_exclusive)} "
                 "reason=recent_family_cooldown"
             )
+            # Do not use a weaker discount band to bypass a higher band whose
+            # otherwise-qualified products are temporarily excluded by diversity.
+            if first_floor is None:
+                print(
+                    f"DISCOUNT_FALLBACK_LOWER_BANDS_SUPPRESSED blocked_floor={floor}% "
+                    "reason=higher_band_blocked_by_diversity"
+                )
+                break
             continue
 
         label = discount_fallback_band_label(floor, upper_exclusive)
@@ -8153,10 +8191,11 @@ def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(
-        "Ranking mode=current-demand-first with a hard discount floor of "
-        f"{MIN_DISCOUNT_FALLBACK_PERCENT}% and at least {MIN_SAVINGS_TOMAN:,} toman saved. "
-        "No lower-discount fallback is permitted; if no candidate passes every gate, "
-        "the selection slot remains empty. Open-ended offers require live stock/current-price validation."
+        "Ranking mode=current-demand-first with preferred discount floor "
+        f"{MIN_DISCOUNT_PERCENT}% and fallback floors {DISCOUNT_FALLBACK_FLOORS}; "
+        f"every tier requires at least {MIN_SAVINGS_TOMAN:,} toman saved and the same verified demand, "
+        "stock, price, market-value, affiliate, expiry, and diversity gates. "
+        "If no tier passes every gate, the selection slot remains empty."
     )
     catalog = load_catalog()
     approved = link_map(catalog)
@@ -8383,8 +8422,14 @@ def run(publish=False, selection_only=False):
         for p in quality_eligible
     }
     # Retain the band metadata before ranking replaces this list with the
-    # original quality records. The publisher needs the exact per-product floor.
+    # original quality records. Restore it now so retries and final ranking both
+    # enforce the exact per-product floor.
     selection_tier_candidates = list(eligible)
+    restored_tiers = restore_selection_discount_tiers(
+        list(eligible_by_id.values()), selection_tier_candidates
+    )
+    if restored_tiers:
+        print(f"DISCOUNT_FALLBACK_TIERS_RESTORED count={restored_tiers}")
 
     # Retry a failed destination for a previously published product before posting another product.
     # This keeps each channel's delivery independent and avoids reposting to the channel that succeeded.
@@ -8465,11 +8510,6 @@ def run(publish=False, selection_only=False):
         pending_queue, eligible_by_id, queue_now, state.get("published"),
         state.get("recent_publications"),
     )
-    restored_tiers = restore_selection_discount_tiers(
-        eligible, selection_tier_candidates
-    )
-    if restored_tiers:
-        print(f"DISCOUNT_FALLBACK_TIERS_RESTORED count={restored_tiers}")
     record_publication_diversity_report(state, now=queue_now)
     save_json(STATE, state)
     market_verified = sum(p.get("market_status") == "verified" for p in products)
@@ -8493,7 +8533,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Products rank by measured recent growth in retailer review/rating counts; lifetime review totals, user ratings, and OfferChin clicks are not current-demand evidence. This is a recent customer-activity proxy, not a sales counter. Products without at least {CURRENT_DEMAND_MIN_REVIEW_GROWTH} additional reviews/ratings over a measured {CURRENT_DEMAND_MIN_OBSERVATION_HOURS}-hour to {CURRENT_DEMAND_WINDOW_DAYS}-day window are ineligible. Publication also requires a listed discount of at least 50%, at least {MIN_SAVINGS_TOMAN:,} toman saved, live stock/current price/image, an affiliate link, publishable title, no prohibited category, no verified market-price rejection, and no product/family repeat conflict. There are no lower-discount fallback bands. Category rotation uses rolling 24-hour, 7-day, 30-day, and 365-day publication history. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers with no verified timer remain eligible only as live open offers after stock/current-price validation.",
+        "ranking_note": f"Products rank by measured recent growth in retailer review/rating counts; lifetime review totals, user ratings, and OfferChin clicks are not current-demand evidence. This is a recent customer-activity proxy, not a sales counter. Products without at least {CURRENT_DEMAND_MIN_REVIEW_GROWTH} additional reviews/ratings over a measured {CURRENT_DEMAND_MIN_OBSERVATION_HOURS}-hour to {CURRENT_DEMAND_WINDOW_DAYS}-day window are ineligible. Publication also requires a listed discount of at least {MIN_DISCOUNT_FALLBACK_PERCENT}% (preferred {MIN_DISCOUNT_PERCENT}%; fallback floors {DISCOUNT_FALLBACK_FLOORS}), at least {MIN_SAVINGS_TOMAN:,} toman saved, live stock/current price/image, an affiliate link, publishable title, no prohibited category, no verified market-price rejection, and no product/family repeat conflict. Lower bands are activated only when no candidate survives every higher-band gate; recent retailer-demand verification is never relaxed. Category rotation uses rolling 24-hour, 7-day, 30-day, and 365-day publication history. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers with no verified timer remain eligible only as live open offers after stock/current-price validation.",
         "current_demand_policy": {
             "source": "rolling retailer review/rating-count observations",
             "window_days": CURRENT_DEMAND_WINDOW_DAYS,
@@ -8674,8 +8714,9 @@ def run(publish=False, selection_only=False):
         print("PUBLISH_BLOCKED: no valid Affilio tracking parameters/template configured; no post attempted.")
     elif not eligible:
         print(
-            "PUBLISH_BLOCKED: no fresh product met the hard 50% minimum discount plus the stock, price, image, affiliate-link, "
-            "market-value, absolute-saving, product-repeat, and family-diversity checks. "
+            f"PUBLISH_BLOCKED: no fresh product met the {MIN_DISCOUNT_FALLBACK_PERCENT}% minimum "
+            f"(preferred {MIN_DISCOUNT_PERCENT}%; fallback floors {DISCOUNT_FALLBACK_FLOORS}) plus the stock, price, image, "
+            "affiliate-link, market-value, absolute-saving, product-repeat, family-diversity, and verified current-demand checks. "
             "Open-ended offers are accepted only after live stock/current-price validation."
         )
     elif not regular_window_open and not urgent_override_allowed and not FORCE_POST_COOLDOWN_BYPASS:
