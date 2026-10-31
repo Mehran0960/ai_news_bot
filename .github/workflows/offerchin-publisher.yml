@@ -72,7 +72,7 @@ jobs:
           PY
 
       - name: Validate current-demand sampling calibration
-        run: PYTHONPATH=affilio_radar python -m unittest test_affilio.AffilioRadarTests.test_no_current_demand_gate_for_verified_discount test_affilio.AffilioRadarTests.test_digipay_credit_line_is_added_to_digikala_captions_only -v
+        run: python -m unittest affilio_radar.test_affilio.AffilioRadarTests.test_no_current_demand_gate_for_verified_discount affilio_radar.test_affilio.AffilioRadarTests.test_digipay_credit_line_is_added_to_digikala_captions_only -v
 
       # Discovery/selection is a distinct stage. It writes the neutral content queue only.
       # Any later publisher adapter can consume that same selected payload without changing discovery.
@@ -118,7 +118,6 @@ jobs:
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.3333333333333333"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "60"
           AFFILIO_MAX_DAILY_CHANNEL_POSTS: "90"
-          AFFILIO_MIN_POST_INTERVAL_HOURS: "0.3333333333333333"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "10"
           PYTHONUNBUFFERED: "1"
