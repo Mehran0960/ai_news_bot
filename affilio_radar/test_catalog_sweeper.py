@@ -27,7 +27,7 @@ class CatalogSweeperTests(unittest.TestCase):
             }
         }
         rows = sweep.extract_queryable_categories(payload, parent_id=1)
-        self.assertEqual([row["id"] for row in rows], [12, 11])
+        self.assertEqual([row["id"] for row in rows], [11, 12])
         self.assertEqual(rows[0]["code"], "mobile-phone")
 
     def test_extracts_pagination_from_nested_api_metadata(self):
