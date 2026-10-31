@@ -68,13 +68,12 @@ jobs:
           import json
           from pathlib import Path
           request = json.loads(Path(".github/offerchin-caption-repair-request.json").read_text(encoding="utf-8"))
-          assert request.get("action") == "repair_recent_digipay_posts"
-          assert float(request.get("lookback_hours", 0)) > 0
-          assert float(request.get("lookback_hours", 48)) <= 47
+          assert request.get("action") == "repair_all_active_product_posts"
+          assert int(request.get("image_layout_version", 0)) == 6
           source = Path("affilio_radar/affilio_radar.py").read_text(encoding="utf-8")
-          assert 'installment_line = bold("💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)")' in source
-          assert "--repair-recent-digipay-posts" in source
-          assert "def _recent_digipay_repair_records" in source
+          assert 'installment_line = bold("💳 با امکان خرید اقساطی (دیجی پی)")' in source
+          assert "--repair-all-active-product-posts" in source
+          assert "def _all_active_published_product_records" in source
           visuals = Path("affilio_radar/offerchin_visuals.py").read_text(encoding="utf-8")
           assert "def _digipay_brand_blue" in visuals
           assert "def _badge_corner_radius" in visuals
@@ -85,9 +84,9 @@ jobs:
       - name: Run caption and recent-selection regression tests
         run: |
           cd affilio_radar
-          python -m unittest -v test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit test_affilio.AffilioRadarTests.test_snappshop_caption_uses_correct_store_name test_affilio.AffilioRadarTests.test_recent_caption_repair_selects_only_newest_active_products test_affilio.AffilioRadarTests.test_recent_digipay_selector_includes_all_recent_active_retailer_posts test_affilio.AffilioRadarTests.test_digipay_blue_background_matches_retailer_tile_and_centers_untouched_icon test_affilio.AffilioRadarTests.test_retailer_badge_uses_soft_rounded_corners_without_recoloring_artwork test_affilio.AffilioRadarTests.test_edit_telegram_media_replaces_photo_and_preserves_verified_buy_button test_affilio.AffilioRadarTests.test_delete_bale_message_uses_documented_delete_method
+          python -m unittest -v test_affilio.AffilioRadarTests.test_digikala_caption_uses_exact_digipay_installment_sentence test_affilio.AffilioRadarTests.test_exact_digipay_installment_sentence_has_no_extra_qualifier test_affilio.AffilioRadarTests.test_snappshop_caption_uses_correct_store_name test_affilio.AffilioRadarTests.test_all_active_published_product_selector_includes_every_platform_post test_affilio.AffilioRadarTests.test_digipay_blue_background_matches_retailer_tile_and_centers_untouched_icon test_affilio.AffilioRadarTests.test_retailer_badge_uses_soft_rounded_corners_without_recoloring_artwork test_affilio.AffilioRadarTests.test_edit_telegram_media_replaces_photo_and_preserves_verified_buy_button test_affilio.AffilioRadarTests.test_delete_bale_message_uses_documented_delete_method
 
-      - name: Repair all recent active DigiPay product posts in place
+      - name: Repair every active Telegram/Bale product post in place
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
@@ -96,8 +95,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: |
           set -euo pipefail
-          lookback_hours="$(python -c 'import json; print(json.load(open(".github/offerchin-caption-repair-request.json", encoding="utf-8"))["lookback_hours"])')"
-          python affilio_radar/affilio_radar.py --repair-recent-digipay-posts --lookback-hours "$lookback_hours"
+          python affilio_radar/affilio_radar.py --repair-all-active-product-posts
 
       - name: Persist the edited-post state and repair report
         if: always()
