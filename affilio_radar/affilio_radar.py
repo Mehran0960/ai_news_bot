@@ -114,11 +114,13 @@ MIN_DISCOUNT_FALLBACK_PERCENT = min(DISCOUNT_FALLBACK_FLOORS)
 MIN_SAVINGS_TOMAN = 100_000
 # "Current demand" is measured from recent retailer review/rating-count growth,
 # not from lifetime totals, channel clicks, or guessed sales volume.
-CURRENT_DEMAND_WINDOW_DAYS = max(3, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "7"))))
-CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "3"))))
-CURRENT_DEMAND_MIN_OBSERVATION_HOURS = max(24, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS", "24"))))
-CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS", "6"))))
-CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS = max(12, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS", "30"))))
+# A single newly observed review within the last day is a real, recent
+# customer-activity signal. Lifetime review totals remain ranking context only.
+CURRENT_DEMAND_WINDOW_DAYS = max(1, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "1"))))
+CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "1"))))
+CURRENT_DEMAND_MIN_OBSERVATION_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS", "6"))))
+CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS", "2"))))
+CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS", "12"))))
 CURRENT_DEMAND_HISTORY_MAX_PRODUCTS = max(100, min(5000, int(os.getenv("AFFILIO_CURRENT_DEMAND_HISTORY_MAX_PRODUCTS", "2000"))))
 PRICE_HISTORY_CHECK_LIMIT = max(0, min(25, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "15"))))
 MIN_HISTORICAL_PRICE_DAYS = max(3, min(30, int(os.getenv("AFFILIO_MIN_HISTORICAL_PRICE_DAYS", "7"))))
@@ -2352,7 +2354,7 @@ def has_current_demand_signal(record: dict, now: datetime | None = None) -> bool
     if not isinstance(record, dict) or record.get("current_demand_verified") is not True:
         return False
     try:
-        growth = int(record.get("recent_review_growth_7d") or 0)
+        growth = int(record.get("recent_review_growth_window", record.get("recent_review_growth_7d")) or 0)
         window_hours = float(record.get("demand_window_hours") or 0)
     except (TypeError, ValueError, OverflowError):
         return False
@@ -2404,6 +2406,7 @@ def update_current_demand_signals(
                 "current_demand_verified": False,
                 "current_demand_score": 0,
                 "demand_score": 0,
+                "recent_review_growth_window": 0,
                 "recent_review_growth_7d": 0,
                 "demand_window_hours": 0,
                 "demand_observed_at": "",
@@ -2481,7 +2484,8 @@ def update_current_demand_signals(
             "current_demand_verified": demand_verified,
             "current_demand_score": current_score,
             "demand_score": current_score,
-            "recent_review_growth_7d": growth,
+            "recent_review_growth_window": growth,
+            "recent_review_growth_7d": growth,  # Backward-compatible field for older state/tests.
             "demand_window_hours": round(window_hours, 1),
             "demand_observed_at": current.isoformat() if demand_verified else "",
             "demand_signal_source": source if demand_verified else "",
@@ -2506,11 +2510,17 @@ def update_current_demand_signals(
         "verified": verified,
         "window_days": CURRENT_DEMAND_WINDOW_DAYS,
         "minimum_recent_review_growth": CURRENT_DEMAND_MIN_REVIEW_GROWTH,
+        "minimum_observation_hours": CURRENT_DEMAND_MIN_OBSERVATION_HOURS,
+        "sample_interval_hours": CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS,
+        "maximum_signal_age_hours": CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS,
     }
     print(
         f"CURRENT_DEMAND_ACTIVITY checked={checked} verified={verified} "
         f"window_days={CURRENT_DEMAND_WINDOW_DAYS} "
-        f"minimum_recent_growth={CURRENT_DEMAND_MIN_REVIEW_GROWTH}"
+        f"minimum_observation_hours={CURRENT_DEMAND_MIN_OBSERVATION_HOURS} "
+        f"sample_interval_hours={CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS} "
+        f"minimum_recent_growth={CURRENT_DEMAND_MIN_REVIEW_GROWTH} "
+        f"max_signal_age_hours={CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS}"
     )
     return summary
 
@@ -8539,6 +8549,7 @@ def run(publish=False, selection_only=False):
             "window_days": CURRENT_DEMAND_WINDOW_DAYS,
             "minimum_growth": CURRENT_DEMAND_MIN_REVIEW_GROWTH,
             "minimum_observation_hours": CURRENT_DEMAND_MIN_OBSERVATION_HOURS,
+            "sample_interval_hours": CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS,
             "maximum_signal_age_hours": CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS,
             "unverified_blocks_publication": True,
             "sales_volume_claimed": False,

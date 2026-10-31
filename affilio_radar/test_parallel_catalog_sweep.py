@@ -22,6 +22,29 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             [("2", 7), ("3", 1)],
         )
 
+    def test_persisted_page_queue_sweeps_leaf_page_one_before_parent_and_deeper_pages(self):
+        state = {
+            "categories": [
+                {"id": "1", "name": "root", "parent_id": "", "depth": 0},
+                {"id": "2", "name": "branch", "parent_id": "1", "depth": 1},
+                {"id": "3", "name": "leaf", "parent_id": "2", "depth": 2},
+            ],
+            "parallel_queue_initialized": True,
+            "parallel_known_category_ids": ["1", "2", "3"],
+            "parallel_pending_pages": [
+                {"category_id": "1", "page": 1, "attempts": 0},
+                {"category_id": "2", "page": 1, "attempts": 0},
+                {"category_id": "3", "page": 2, "attempts": 0},
+                {"category_id": "3", "page": 1, "attempts": 0},
+            ],
+        }
+        queued = sweep._ensure_parallel_state(state)
+        self.assertEqual(
+            [(row["category_id"], row["page"]) for row in queued],
+            [("3", 1), ("2", 1), ("1", 1), ("3", 2)],
+        )
+        self.assertEqual(state["parallel_leaf_category_count"], 1)
+
     def test_next_page_only_when_more_product_pages_exist(self):
         task = {"category_id": "12", "category_name": "x", "page": 2}
         self.assertEqual(sweep._next_page_task(task, total_pages=4, product_count=20)["page"], 3)
