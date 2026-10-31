@@ -4348,7 +4348,7 @@ def build_caption(
     if discount is not None and int(discount) > 0:
         discount_value = format_persian_number(discount) + "٪"
         offer_lines.append(bold(f"⚡️ {discount_value} تخفیف"))
-    installment_line = bold("💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)")
+    installment_line = bold("💳 با امکان خرید اقساطی (دیجی پی)")
     offer_lines.append(installment_line)
 
     # Keep one source-channel membership link for forwarded posts; the purchase button
@@ -4984,7 +4984,7 @@ def _recent_caption_repair_records(published: dict, limit: int) -> list[tuple[st
     return sorted(candidates, key=posted_at, reverse=True)[:limit]
 
 
-DIGIPAY_IMAGE_LAYOUT_VERSION = 5
+DIGIPAY_IMAGE_LAYOUT_VERSION = 6
 DIGIPAY_RECENT_POST_LOOKBACK_HOURS = 46.5
 
 
@@ -5037,6 +5037,40 @@ def _recent_digipay_repair_records(
         candidates,
         key=lambda item: float(item[1].get("ts") or 0),
         reverse=True,
+    )
+
+
+def _all_active_published_product_records(published: dict) -> list[tuple[str, dict]]:
+    """Select every tracked DigiKala/SnappShop post that still exists on Telegram or Bale."""
+    terminal_statuses = {"deleted", "already_absent"}
+    candidates = []
+    for product_key, record in (published or {}).items():
+        key = str(product_key)
+        if not (key.startswith("dkp-") or key.startswith("snp-")) or not isinstance(record, dict):
+            continue
+        has_active_destination = False
+        for id_field, status_field in (
+            ("telegram_message_id", "expiry_status"),
+            ("bale_message_id", "bale_expiry_status"),
+        ):
+            if record.get(status_field) in terminal_statuses:
+                continue
+            raw_id = record.get(id_field)
+            if raw_id in (None, "", 0, "0"):
+                continue
+            try:
+                if int(raw_id) > 0:
+                    has_active_destination = True
+                    break
+            except (TypeError, ValueError, OverflowError):
+                continue
+        if has_active_destination:
+            candidates.append((key, record))
+
+    # Oldest-first replacement preserves chronological order on Bale.
+    return sorted(
+        candidates,
+        key=lambda item: float(item[1].get("ts") or 0),
     )
 
 
@@ -5503,7 +5537,7 @@ def repair_recent_product_images(
         "selected_products": len(records),
         "targets": targets,
         **results,
-        "status": "success" if successful else ("partial_failure" if targets else "no_targets"),
+        "status": ("success" if results["bale_skipped"] == 0 else "partial_success") if successful else ("partial_failure" if targets else "no_targets"),
     }
     report_path = ROOT / "product_image_repair_report.json"
     try:
@@ -5551,6 +5585,54 @@ def repair_recent_digipay_posts(lookback_hours: float = DIGIPAY_RECENT_POST_LOOK
         f"status={'success' if success else 'partial_failure'}"
     )
     return 0 if success else 1
+
+
+def repair_all_active_product_posts() -> int:
+    """Apply the current caption and image branding to every active tracked product post."""
+    state = load_state()
+    published = state.get("published", {})
+    if not isinstance(published, dict):
+        raise RuntimeError("Published state is not an object")
+
+    records = _all_active_published_product_records(published)
+    product_ids = {product_key for product_key, _record in records}
+    print(f"ALL_ACTIVE_PRODUCT_POSTS_SELECTED products={len(product_ids)}")
+
+    if not product_ids:
+        print("ALL_ACTIVE_PRODUCT_POST_REPAIR_SUMMARY products=0 captions=0 images=0 status=no_targets")
+        return 0
+
+    # Captions can be edited in place on both platforms. Telegram media is also
+    # editable in place; Bale image replacement remains subject to its documented
+    # message-deletion time limit, which is surfaced as partial_success in the report.
+    caption_result = repair_all_published_captions(product_ids=product_ids)
+    image_result = repair_recent_product_images(product_ids=product_ids)
+
+    image_report = {}
+    try:
+        image_report = json.loads(
+            (ROOT / "product_image_repair_report.json").read_text(encoding="utf-8")
+        )
+    except Exception as exc:
+        print(f"ALL_ACTIVE_PRODUCT_IMAGE_REPORT_UNAVAILABLE error={type(exc).__name__}")
+
+    image_status = str(image_report.get("status") or "unknown")
+    try:
+        bale_skipped = int(image_report.get("bale_skipped") or 0)
+    except (TypeError, ValueError, OverflowError):
+        bale_skipped = 0
+    hard_success = caption_result == 0 and image_result == 0
+    overall_status = (
+        "partial_success" if hard_success and image_status == "partial_success"
+        else "success" if hard_success and image_status == "success"
+        else "partial_failure"
+    )
+    print(
+        f"ALL_ACTIVE_PRODUCT_POST_REPAIR_SUMMARY products={len(product_ids)} "
+        f"captions_exit={caption_result} images_exit={image_result} "
+        f"bale_images_skipped_over_limit={bale_skipped} status={overall_status}"
+    )
+    return 0 if hard_success else 1
 
 
 
@@ -9643,6 +9725,11 @@ def main():
         help="update the product photos of the newest N active Telegram/Bale posts with the current branded layout",
     )
     parser.add_argument(
+        "--repair-all-active-product-posts",
+        action="store_true",
+        help="apply the current OfferChin caption and branded product image to every active tracked Telegram/Bale product post",
+    )
+    parser.add_argument(
         "--repair-recent-digipay-posts",
         action="store_true",
         help="repair all recent active DigiKala captions and photos that mention DigiPay",
@@ -9707,6 +9794,12 @@ def main():
             sys.exit(repair_all_published_captions(max_products=args.repair_recent_captions))
         except Exception as exc:
             print(f"RECENT_CAPTION_REPAIR_FAILED error={type(exc).__name__}")
+            sys.exit(1)
+    if args.repair_all_active_product_posts:
+        try:
+            sys.exit(repair_all_active_product_posts())
+        except Exception as exc:
+            print(f"ALL_ACTIVE_PRODUCT_POST_REPAIR_FAILED error={type(exc).__name__}")
             sys.exit(1)
     if args.repair_recent_digipay_posts:
         try:
