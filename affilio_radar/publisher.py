@@ -47,7 +47,7 @@ def _utc(value: Any) -> datetime | None:
 
 
 def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
-    """Keep only backups that still pass their assigned tier and verified-demand gate."""
+    """Keep backups that still have a real live discount and pass delivery safety checks."""
     if not isinstance(candidates, list):
         return []
     eligible: list[dict] = []
@@ -62,8 +62,11 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
                 selected_floor = int(raw_floor)
             except (TypeError, ValueError, OverflowError):
                 continue
-        if selected_floor not in radar.DISCOUNT_FALLBACK_FLOORS:
-            continue
+        # Legacy queues may contain old 35–50% floors. Normalize them to the
+        # current any-real-markdown policy rather than silently dropping backups.
+        selected_floor = radar.MIN_DISCOUNT_FALLBACK_PERCENT
+        candidate = dict(candidate)
+        candidate["selection_discount_floor"] = selected_floor
         if radar.is_discount_publish_eligible(
             candidate,
             minimum_discount_percent=selected_floor,
@@ -225,20 +228,10 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     product_id = str(payload.get("product_id") or "").lower()
     if not product_url or radar.product_id(product_url) != product_id:
         return None, "invalid_product_identity"
-    # New selections carry the exact floor for their chosen band. Legacy queue
-    # items without tier metadata remain on the preferred 50% floor.
-    raw_discount_floor = payload.get("selection_discount_floor")
-    minimum_discount_percent = None
-    if raw_discount_floor is not None:
-        try:
-            minimum_discount_percent = int(raw_discount_floor)
-        except (TypeError, ValueError, OverflowError):
-            return None, "invalid_selection_discount_floor"
-        if minimum_discount_percent not in radar.DISCOUNT_FALLBACK_FLOORS:
-            return None, "invalid_selection_discount_floor"
-
-    if not radar.has_current_demand_signal(payload, now):
-        return None, "selected_item_lacks_fresh_current_demand_signal"
+    # Older persisted selections may carry the former 35–50% tiers and
+    # review-growth requirements. The current policy accepts every real markdown;
+    # the live product read below is authoritative for stock, price and contents.
+    minimum_discount_percent = radar.MIN_DISCOUNT_FALLBACK_PERCENT
 
     try:
         fresh = radar.fetch_product_record(product_url)
@@ -253,11 +246,7 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     fresh["product_id"] = product_id
     fresh["product_url"] = product_url
     fresh["merchant"] = "اسنپ‌شاپ" if product_id.startswith("snp-") else "دیجی‌کالا"
-    fresh["selection_discount_floor"] = (
-        minimum_discount_percent
-        if minimum_discount_percent is not None
-        else radar.DISCOUNT_FALLBACK_FLOORS[0]
-    )
+    fresh["selection_discount_floor"] = radar.MIN_DISCOUNT_FALLBACK_PERCENT
     selection_band = str(payload.get("selection_discount_band") or "").strip()
     if selection_band:
         fresh["selection_discount_band"] = selection_band
@@ -272,16 +261,7 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     if live_price != selected_price:
         return None, f"selected_price_stale_selected={selected_price}_live={live_price}"
 
-    # Keep the verified recent-activity signal and approved tracking link, but
-    # never reuse a stale listed price. The price/stock and image are freshly read.
-    try:
-        selected_review_count = int(payload.get("review_count") or 0)
-        live_review_count = int(fresh.get("review_count") or 0)
-    except (TypeError, ValueError, OverflowError):
-        return None, "live_review_count_unusable"
-    if live_review_count < selected_review_count:
-        return None, "live_review_count_decreased_since_selection"
-
+    # Never reuse stale listing values. The fresh product read below is authoritative.
     fresh["affiliate_url"] = str(payload.get("affiliate_url") or "").strip()
     if not fresh["affiliate_url"]:
         fresh["affiliate_url"] = radar.build_affilio_tracking_link(product_url)
@@ -579,26 +559,15 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
                 "live_stock_not_confirmed", "live_discount_no_longer_eligible",
                 "live_market_value_rejected", "live_offer_expired_or_unverified",
                 "insufficient_publication_runway",
-                "selected_item_lacks_fresh_current_demand_signal",
-                "live_review_count_decreased_since_selection",
-                "live_review_count_unusable",
             }:
-                # A stale price/stock/quality failure gets a short rejection cooldown.
-                # A missing current-demand signal is different: it may become valid
-                # after new retailer observations, so do not suppress that product.
-                if reason not in {
-                    "selected_item_lacks_fresh_current_demand_signal",
-                    "live_review_count_decreased_since_selection",
-                    "live_review_count_unusable",
-                }:
-                    radar.mark_selection_candidate_rejected(state, payload, reason, now=now)
+                radar.mark_selection_candidate_rejected(state, payload, reason, now=now)
                 raw_fallback_candidates = list(entry.get("fallback_candidates") or [])
                 fallback_candidates = _eligible_fallback_candidates(raw_fallback_candidates, now)
                 rejected_fallbacks = len(raw_fallback_candidates) - len(fallback_candidates)
                 if rejected_fallbacks:
                     print(
                         f"INLINE_FALLBACK_FILTERED rejected={rejected_fallbacks} "
-                        "reason=hard_discount_or_current_demand_gate"
+                        "reason=live_discount_or_product_safety_gate"
                     )
                 entry["status"] = "stale_selection"
                 entry["last_detail"] = reason
