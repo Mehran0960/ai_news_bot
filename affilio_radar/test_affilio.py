@@ -340,6 +340,10 @@ class AffilioRadarTests(unittest.TestCase):
             ["snp-201", "dkp-101", "dkp-102"],
         )
 
+    def test_recent_digipay_selector_includes_all_recent_active_digikala_posts(self):
+        # Compatibility name used by the already-queued workflow definition.
+        self.test_recent_digipay_selector_includes_all_recent_active_retailer_posts()
+
     def test_recent_caption_repair_selects_only_newest_active_products(self):
         published = {
             "old": {"ts": 10, "telegram_message_id": 100},
