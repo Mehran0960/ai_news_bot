@@ -388,8 +388,10 @@ def extract_product_rows(payload: Any) -> list[dict]:
             product.get("title_fa") or product.get("product_title")
             or product.get("title") or ""
         ).strip()[:180]
+        # Retain every identified product. The publisher fetches the canonical
+        # detail page and applies strict title/price/stock/discount checks later.
         if not is_publishable_product_title(title):
-            continue
+            title = f"محصول دیجی‌کالا {product_id}"
         current, original, discount, savings = _listing_prices(product)
         rating, review_count = _listing_rating(product)
         rows.append({
@@ -542,8 +544,10 @@ def load_catalog_candidates_for_handoff(
             continue
         if pid in seen or pid in already_queued:
             continue
-        if not url.endswith(f"/{pid}/") or not is_publishable_product_title(row.get("title", "")):
+        if not url.endswith(f"/{pid}/"):
             continue
+        if not is_publishable_product_title(row.get("title", "")):
+            row = {**row, "title": f"محصول دیجی‌کالا {pid}"}
         fresh.append(row)
     fresh.sort(key=catalog_candidate_sort_key, reverse=True)
     selected = fresh[:max(0, int(max_count))]
@@ -655,8 +659,8 @@ def run_sweep(
     stats = state["stats"]
     for key in (
         "pages_scanned_total", "product_rows_scanned_total",
-        "discounted_candidates_found_total", "api_failures_total",
-        "completed_cycles",
+        "discounted_candidates_found_total", "catalog_candidate_cards_found_total",
+        "api_failures_total", "completed_cycles",
     ):
         stats[key] = max(0, _normal_int(stats.get(key)))
 
@@ -722,15 +726,19 @@ def run_sweep(
             )
             return 1
 
+        discounted_on_page = 0
         for row in product_rows:
             pid = row["product_id"]
-            if row["discount_percent"] < MIN_CANDIDATE_DISCOUNT:
-                continue
+            # Every product card is handed to the bounded publisher detail queue.
+            # A missing/zero list-card discount is not evidence of no live discount.
             old = candidates.get(pid, {})
             first_seen = old.get("first_seen_at") or iso_now()
             candidate = {**old, **row, "first_seen_at": first_seen}
             candidates[pid] = candidate
-            stats["discounted_candidates_found_total"] += 1
+            stats["catalog_candidate_cards_found_total"] += 1
+            if row["discount_percent"] >= MIN_CANDIDATE_DISCOUNT:
+                discounted_on_page += 1
+                stats["discounted_candidates_found_total"] += 1
 
         stats["pages_scanned_total"] += 1
         stats["product_rows_scanned_total"] += len(product_rows)
@@ -762,8 +770,8 @@ def run_sweep(
         print(
             f"CATALOG_SWEEP_PAGE_OK category={category_id} name={category_name!r} "
             f"page={page} total_pages={total_pages if total_pages is not None else 'unknown'} "
-            f"product_rows={len(product_rows)} discounted_candidates={sum(1 for r in product_rows if r['discount_percent'] >= MIN_CANDIDATE_DISCOUNT)} "
-            f"candidate_backlog={len(ordered_candidates)}"
+            f"product_rows={len(product_rows)} catalog_cards_queued={len(product_rows)} "
+            f"listed_discounted={discounted_on_page} candidate_backlog={len(ordered_candidates)}"
         )
         if completed_pages < pages_limit:
             time.sleep(0.75)

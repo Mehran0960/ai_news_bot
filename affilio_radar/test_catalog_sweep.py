@@ -188,6 +188,18 @@ class CatalogSweepTests(unittest.TestCase):
                         "discount_percent": 30,
                     }},
                     "rating": {"rate": 4.5, "rate_count": 500},
+                }, {
+                    "id": 778, "url": "/product/dkp-778/",
+                    "title_fa": "تخفیف در کارت نمایش داده نشده",
+                    "default_variant": {"price": {
+                        "selling_price_toman": 900000,
+                        "rrp_price_toman": 900000,
+                        "discount_percent": 0,
+                    }},
+                    "rating": {"rate": 4.1, "rate_count": 40},
+                }, {
+                    "id": 779, "url": "/product/dkp-779/",
+                    "title_fa": "",
                 }]
             },
             "pager": {"total_pages": 1},
@@ -210,8 +222,14 @@ class CatalogSweepTests(unittest.TestCase):
             state = json.loads(state_path.read_text(encoding="utf-8"))
             candidates = json.loads(candidates_path.read_text(encoding="utf-8"))
             self.assertEqual(state["stats"]["pages_scanned_total"], 1)
-            self.assertEqual(state["stats"]["product_rows_scanned_total"], 1)
-            self.assertEqual(candidates["candidate_count"], 1)
+            self.assertEqual(state["stats"]["product_rows_scanned_total"], 3)
+            self.assertEqual(candidates["candidate_count"], 3)
+            self.assertEqual(state["stats"]["catalog_candidate_cards_found_total"], 3)
+            self.assertEqual(state["stats"]["discounted_candidates_found_total"], 1)
+            by_id = {row["product_id"]: row for row in candidates["candidates"]}
+            self.assertIn("dkp-778", by_id)
+            self.assertEqual(by_id["dkp-778"]["discount_percent"], 0)
+            self.assertEqual(by_id["dkp-779"]["title"], "محصول دیجی‌کالا dkp-779")
             self.assertEqual(state["completed_cycles"], 1)
 
 
