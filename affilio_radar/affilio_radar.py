@@ -112,6 +112,14 @@ MIN_DISCOUNT_PERCENT = max(50, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERC
 DISCOUNT_FALLBACK_FLOORS = (50,)
 MIN_DISCOUNT_FALLBACK_PERCENT = 50
 MIN_SAVINGS_TOMAN = 100_000
+# "Current demand" is measured from recent retailer review/rating-count growth,
+# not from lifetime totals, channel clicks, or guessed sales volume.
+CURRENT_DEMAND_WINDOW_DAYS = max(3, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "7"))))
+CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "3"))))
+CURRENT_DEMAND_MIN_OBSERVATION_HOURS = max(24, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS", "24"))))
+CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS", "6"))))
+CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS = max(12, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS", "30"))))
+CURRENT_DEMAND_HISTORY_MAX_PRODUCTS = max(100, min(5000, int(os.getenv("AFFILIO_CURRENT_DEMAND_HISTORY_MAX_PRODUCTS", "2000"))))
 PRICE_HISTORY_CHECK_LIMIT = max(0, min(25, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "15"))))
 MIN_HISTORICAL_PRICE_DAYS = max(3, min(30, int(os.getenv("AFFILIO_MIN_HISTORICAL_PRICE_DAYS", "7"))))
 MIN_HISTORICAL_DISCOUNT_PERCENT = max(1, min(50, int(os.getenv("AFFILIO_MIN_HISTORICAL_DISCOUNT_PERCENT", "10"))))
@@ -2339,31 +2347,183 @@ def select_queued_records_for_recheck(
     return selected
 
 
-def _candidate_demand_score(record: dict) -> int:
-    """Estimate demand before expensive product-page checks using available real signals."""
-    if not isinstance(record, dict):
-        return 0
-
-    def safe_int(value):
-        try:
-            return max(0, int(float(normalize_digits(str(value or "0")))))
-        except (TypeError, ValueError, OverflowError):
-            return 0
-
-    explicit = safe_int(record.get("demand_score"))
-    reviews = safe_int(record.get("review_count"))
+def has_current_demand_signal(record: dict, now: datetime | None = None) -> bool:
+    """Require fresh, measured review/rating growth; lifetime popularity is never sufficient."""
+    if not isinstance(record, dict) or record.get("current_demand_verified") is not True:
+        return False
     try:
-        rating = float(normalize_digits(str(record.get("rating") or record.get("rating_value") or "0")))
+        growth = int(record.get("recent_review_growth_7d") or 0)
+        window_hours = float(record.get("demand_window_hours") or 0)
     except (TypeError, ValueError, OverflowError):
-        rating = 0.0
+        return False
+    if growth < CURRENT_DEMAND_MIN_REVIEW_GROWTH:
+        return False
+    if not CURRENT_DEMAND_MIN_OBSERVATION_HOURS <= window_hours <= CURRENT_DEMAND_WINDOW_DAYS * 24:
+        return False
+    source = str(record.get("demand_signal_source") or "")
+    if source not in {"digikala_recent_review_growth", "snappshop_recent_review_growth"}:
+        return False
+    observed_at = _parse_utc_datetime(record.get("demand_observed_at"))
+    if observed_at is None:
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    age_hours = (current.astimezone(timezone.utc) - observed_at).total_seconds() / 3600
+    return -0.1 <= age_hours <= CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS
 
-    review_proxy = min(30, round(3.5 * math.log1p(reviews))) if reviews else 0
-    rating_proxy = max(0, min(10, round((rating - 3.0) * 5))) if rating else 0
-    # Market demand is estimated from retailer-side demand/review/rating signals.
-    # OfferChin click-through is kept as a later tie-breaker, not mistaken for
-    # demand across the Iranian market.
-    base = explicit if explicit > 0 else review_proxy + rating_proxy
-    return max(0, min(200, base))
+
+def update_current_demand_signals(
+    state: dict,
+    products: list[dict],
+    now: datetime | None = None,
+) -> dict:
+    """Track retailer review/rating-count movement; this is current interest, not sales volume."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    cutoff = current - timedelta(days=CURRENT_DEMAND_WINDOW_DAYS)
+    history = state.get("current_demand_observations")
+    if not isinstance(history, dict):
+        history = {}
+        state["current_demand_observations"] = history
+
+    checked = 0
+    verified = 0
+    for product in products or []:
+        if not isinstance(product, dict):
+            continue
+        pid = str(product.get("product_id") or product_id(product.get("product_url") or "")).strip()
+        try:
+            review_count = max(0, int(product.get("review_count") or 0))
+        except (TypeError, ValueError, OverflowError):
+            review_count = 0
+        if not pid or review_count <= 0:
+            product.update({
+                "current_demand_verified": False,
+                "current_demand_score": 0,
+                "demand_score": 0,
+                "recent_review_growth_7d": 0,
+                "demand_window_hours": 0,
+                "demand_observed_at": "",
+                "demand_signal_source": "",
+            })
+            continue
+
+        checked += 1
+        entry = history.get(pid)
+        if not isinstance(entry, dict):
+            entry = {"samples": []}
+        samples = []
+        for sample in entry.get("samples", []) if isinstance(entry.get("samples"), list) else []:
+            if not isinstance(sample, dict):
+                continue
+            observed = _parse_utc_datetime(sample.get("observed_at"))
+            try:
+                count = max(0, int(sample.get("review_count") or 0))
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if observed is not None and cutoff <= observed <= current and count > 0:
+                samples.append({"observed_at": observed.isoformat(), "review_count": count})
+        samples.sort(key=lambda item: item["observed_at"])
+        last = samples[-1] if samples else None
+        last_at = _parse_utc_datetime(last.get("observed_at")) if last else None
+        last_count = int(last.get("review_count") or 0) if last else 0
+
+        # An upstream count reset is not growth; start a new observation baseline.
+        if last and review_count < last_count:
+            samples = []
+            last_at = None
+            last_count = 0
+
+        sample_due = (
+            last_at is None
+            or review_count != last_count
+            or (current - last_at).total_seconds() >= CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS * 3600
+        )
+        if sample_due:
+            samples.append({
+                "observed_at": current.isoformat(),
+                "review_count": review_count,
+            })
+        samples = samples[-32:]
+        history[pid] = {"samples": samples, "last_observed_at": current.isoformat()}
+
+        baseline = next(
+            (
+                sample for sample in samples
+                if CURRENT_DEMAND_MIN_OBSERVATION_HOURS * 3600
+                <= (current - _parse_utc_datetime(sample["observed_at"])).total_seconds()
+                <= CURRENT_DEMAND_WINDOW_DAYS * 86400
+            ),
+            None,
+        )
+        growth = 0
+        window_hours = 0.0
+        current_score = 0
+        demand_verified = False
+        if baseline:
+            baseline_at = _parse_utc_datetime(baseline["observed_at"])
+            baseline_count = int(baseline["review_count"])
+            growth = max(0, review_count - baseline_count)
+            window_hours = max(0.0, (current - baseline_at).total_seconds() / 3600)
+            demand_verified = growth >= CURRENT_DEMAND_MIN_REVIEW_GROWTH
+            if demand_verified:
+                reviews_per_day = growth / max(window_hours / 24.0, 1.0)
+                current_score = max(1, min(100, 20 + round(20 * math.log1p(reviews_per_day))))
+
+        source = (
+            "digikala_recent_review_growth" if pid.startswith("dkp-")
+            else "snappshop_recent_review_growth"
+        )
+        product.update({
+            "current_demand_verified": demand_verified,
+            "current_demand_score": current_score,
+            "demand_score": current_score,
+            "recent_review_growth_7d": growth,
+            "demand_window_hours": round(window_hours, 1),
+            "demand_observed_at": current.isoformat() if demand_verified else "",
+            "demand_signal_source": source if demand_verified else "",
+        })
+        if demand_verified:
+            verified += 1
+
+    stale_before = current - timedelta(days=CURRENT_DEMAND_WINDOW_DAYS + 2)
+    for pid, entry in list(history.items()):
+        last_seen = _parse_utc_datetime((entry or {}).get("last_observed_at")) if isinstance(entry, dict) else None
+        if last_seen is None or last_seen < stale_before:
+            history.pop(pid, None)
+    if len(history) > CURRENT_DEMAND_HISTORY_MAX_PRODUCTS:
+        retained = sorted(
+            history.items(),
+            key=lambda pair: str((pair[1] or {}).get("last_observed_at") or ""),
+        )[-CURRENT_DEMAND_HISTORY_MAX_PRODUCTS:]
+        state["current_demand_observations"] = dict(retained)
+
+    summary = {
+        "checked": checked,
+        "verified": verified,
+        "window_days": CURRENT_DEMAND_WINDOW_DAYS,
+        "minimum_recent_review_growth": CURRENT_DEMAND_MIN_REVIEW_GROWTH,
+    }
+    print(
+        f"CURRENT_DEMAND_ACTIVITY checked={checked} verified={verified} "
+        f"window_days={CURRENT_DEMAND_WINDOW_DAYS} "
+        f"minimum_recent_growth={CURRENT_DEMAND_MIN_REVIEW_GROWTH}"
+    )
+    return summary
+
+
+def _candidate_demand_score(record: dict) -> int:
+    """Read the measured recent-activity score; never derive demand from lifetime totals."""
+    if not isinstance(record, dict) or record.get("current_demand_verified") is False:
+        return 0
+    try:
+        explicit = int(record.get("current_demand_score") or record.get("demand_score") or 0)
+    except (TypeError, ValueError, OverflowError):
+        explicit = 0
+    return max(0, min(100, explicit))
 
 
 def _candidate_promo_score(record: dict) -> int:
@@ -2582,10 +2742,6 @@ def _candidate_demand_comparable_for_diversity(candidate: dict, leader: dict) ->
     """Allow variety only when demand, recent clicks, and deal discount remain reasonably close."""
     candidate = candidate if isinstance(candidate, dict) else {}
     leader = leader if isinstance(leader, dict) else {}
-    leader_clicks = max(0, int(leader.get("click_count_30d") or 0))
-    candidate_clicks = max(0, int(candidate.get("click_count_30d") or 0))
-    if leader_clicks and candidate_clicks < leader_clicks * 0.55:
-        return False
     if _candidate_demand_score(candidate) < _candidate_demand_score(leader) - 18:
         return False
     leader_discount = max(0, int(leader.get("discount_percent") or 0))
@@ -3759,11 +3915,13 @@ def score_product(p: dict) -> dict:
     savings = int(p.get("savings_toman") or 0)
     savings_score = min(20, round(3.0 * math.log1p(savings / 100_000))) if savings else 0
     review_score = min(10, round(1.5 * math.log1p(reviews))) if reviews else 0
-    rating_score = max(0, min(5, round((float(rating) - 3.0) * 2))) if rating is not None else 0
-
     p["category"] = category
-    p["demand_score"] = max(0, min(100, int(score)))
-    p["promo_score"] = max(0, min(100, int(discount_pct * 0.65 + savings_score + review_score + rating_score)))
+    p["historical_popularity_score"] = max(0, min(100, int(score)))
+    p["current_demand_verified"] = has_current_demand_signal(p)
+    p["current_demand_score"] = _candidate_demand_score(p) if p["current_demand_verified"] else 0
+    p["demand_score"] = p["current_demand_score"]
+    # Offer quality is scored independently from lifetime reviews and ratings.
+    p["promo_score"] = max(0, min(100, int(discount_pct * 0.65 + savings_score)))
     p["qualifies_as_deal"] = has_meaningful_discount(p)
     return p
 
@@ -3786,8 +3944,8 @@ def deal_sort_key(p: dict) -> tuple:
     except (TypeError, ValueError, OverflowError):
         rating_score = 0
     return (
-        _candidate_demand_score(p), max(0, int(p.get("review_count") or 0)), rating_score,
-        max(0, int(p.get("discount_percent") or 0)), max(0, int(p.get("click_count_30d") or 0)),
+        _candidate_demand_score(p),
+        max(0, int(p.get("discount_percent") or 0)),
         market_known, market_advantage, int(has_meaningful_discount(p)),
         int(p.get("promo_score") or 0), max(0, int(p.get("savings_toman") or 0)),
     )
@@ -3913,12 +4071,14 @@ def is_publish_eligible(product: dict) -> bool:
 def is_discount_publish_eligible(
     product: dict,
     minimum_discount_percent: int | None = None,
+    now: datetime | None = None,
 ) -> bool:
-    """Require verified stock, a tracked link, a complete title, and a real price drop."""
+    """Require verified stock, a complete offer, and measured recent retailer activity."""
     return bool(
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
+        and has_current_demand_signal(product, now)
         and has_meaningful_discount(product, minimum_discount_percent)
     )
 
@@ -6452,7 +6612,7 @@ def select_discount_fallback_candidates(
         if not pid or pid in seen_ids or is_product_suppressed(state, pid):
             continue
         if not is_discount_publish_eligible(
-            product, minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT
+            product, minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT, now=current
         ):
             continue
         if not is_market_value_publish_eligible(product):
@@ -8105,6 +8265,8 @@ def run(publish=False, selection_only=False):
         except Exception as exc:
             print(f"PRODUCT_FETCH_FAILED url={url} error={type(exc).__name__}")
 
+    # Repeated retailer observations are required to distinguish recent interest from lifetime popularity.
+    update_current_demand_signals(state, products, now=datetime.now(timezone.utc))
     # Do not fetch click-worker statistics: they are not affiliate conversions and
     # new purchase buttons now go directly to Affilio to preserve attribution.
     products.sort(key=deal_sort_key, reverse=True)
@@ -8121,7 +8283,7 @@ def run(publish=False, selection_only=False):
         bool(
             p.get("has_affiliate_link")
             and is_discount_publish_eligible(
-                p, minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT
+                p, minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT, now=queue_now
             )
             and is_market_value_publish_eligible(p)
             and has_publishable_expiry_or_open_offer(p, queue_now)
@@ -8174,7 +8336,7 @@ def run(publish=False, selection_only=False):
             elif not checked.get("has_affiliate_link"):
                 mark_discovery_candidate_checked(discovery_queue, checked, "affiliate_link_missing", queue_now)
             elif not is_discount_publish_eligible(
-                checked, minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT
+                checked, minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT, now=queue_now
             ):
                 mark_discovery_candidate_checked(discovery_queue, checked, "discount_or_content_gate", queue_now)
             elif not is_market_value_publish_eligible(checked):
@@ -8306,6 +8468,7 @@ def run(publish=False, selection_only=False):
     market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
         f"ranked_products={len(products)} listed_discount_eligible={listed_eligible_count} "
+        f"current_demand_verified={sum(has_current_demand_signal(p, queue_now) for p in products)} "
         f"market_verified={market_verified} market_price_rejected={market_blocked_count} "
         f"publish_eligible={len(eligible)}"
     )
@@ -8323,7 +8486,16 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Retailer review-count/rating are historical popularity proxies, not proof of current market demand; OfferChin click counts are channel-specific and are only a secondary tie-breaker. Current sales velocity/bestseller rank is not exposed by the verified source data, so the report does not claim live demand verification. Publication requires a real listed discount of at least 50%, at least {MIN_SAVINGS_TOMAN:,} toman saved, live stock/current price/image, an affiliate link, publishable title, no prohibited category, no verified market-price rejection, and no product/family repeat conflict. There are no lower-discount fallback bands. Category rotation uses rolling 24-hour, 7-day, 30-day, and 365-day publication history. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers with no verified timer remain eligible only as live open offers after stock/current-price validation.",
+        "ranking_note": f"Products rank by measured recent growth in retailer review/rating counts; lifetime review totals, user ratings, and OfferChin clicks are not current-demand evidence. This is a recent customer-activity proxy, not a sales counter. Products without at least {CURRENT_DEMAND_MIN_REVIEW_GROWTH} additional reviews/ratings over a measured {CURRENT_DEMAND_MIN_OBSERVATION_HOURS}-hour to {CURRENT_DEMAND_WINDOW_DAYS}-day window are ineligible. Publication also requires a listed discount of at least 50%, at least {MIN_SAVINGS_TOMAN:,} toman saved, live stock/current price/image, an affiliate link, publishable title, no prohibited category, no verified market-price rejection, and no product/family repeat conflict. There are no lower-discount fallback bands. Category rotation uses rolling 24-hour, 7-day, 30-day, and 365-day publication history. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers with no verified timer remain eligible only as live open offers after stock/current-price validation.",
+        "current_demand_policy": {
+            "source": "rolling retailer review/rating-count observations",
+            "window_days": CURRENT_DEMAND_WINDOW_DAYS,
+            "minimum_growth": CURRENT_DEMAND_MIN_REVIEW_GROWTH,
+            "minimum_observation_hours": CURRENT_DEMAND_MIN_OBSERVATION_HOURS,
+            "maximum_signal_age_hours": CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS,
+            "unverified_blocks_publication": True,
+            "sales_volume_claimed": False,
+        },
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
