@@ -281,6 +281,8 @@ _LOCAL_LOGO_PATHS = {
     "digikala": _RETAILER_LOGO_DIR / "digikala-official.webp",
     "snappshop": _RETAILER_LOGO_DIR / "snappshop-official.webp",
 }
+_DIGIPAY_LOGO_URL = "https://www.mydigipay.com/bck-assets/images/logos/logo.svg"
+_DIGIPAY_LOGO_PATH = _RETAILER_LOGO_DIR / "digipay-official.svg"
 
 
 def adaptive_text_colors(image, region, threshold: int = 145):
@@ -354,6 +356,58 @@ def _load_retailer_logo(is_snappshop: bool):
         print(f"RETAILER_LOGO_LOCAL_READ_FAILED store={key} error={type(exc).__name__}")
     print(f"RETAILER_LOGO_LOCAL_ASSET_UNAVAILABLE store={key} path={path.name}")
     return None
+
+
+@lru_cache(maxsize=1)
+def _load_digipay_logo():
+    """Load the current official Digipay wordmark from its first-party website and cache it."""
+    try:
+        if _DIGIPAY_LOGO_PATH.is_file():
+            content = _DIGIPAY_LOGO_PATH.read_bytes()
+        else:
+            from urllib.request import Request, urlopen
+            request = Request(
+                _DIGIPAY_LOGO_URL,
+                headers={"User-Agent": "OfferChin/1.0 (+https://t.me/OfferChin)"},
+            )
+            with urlopen(request, timeout=8) as response:
+                content = response.read(2_000_001)
+            if not content or len(content) > 2_000_000:
+                raise ValueError("digipay_logo_size_invalid")
+            _DIGIPAY_LOGO_PATH.parent.mkdir(parents=True, exist_ok=True)
+            _DIGIPAY_LOGO_PATH.write_bytes(content)
+        logo = _decode_retailer_logo(content, False)
+        if logo is None:
+            raise ValueError("digipay_logo_decode_failed")
+        return logo
+    except Exception as exc:
+        print(f"DIGIPAY_LOGO_LOAD_FAILED error={type(exc).__name__}")
+        return None
+
+
+def draw_digipay_badge(image, left: int, top: int, width: int, height: int) -> None:
+    """Place the current official Digipay SVG wordmark in a same-size white tile."""
+    from PIL import Image, ImageOps
+
+    logo = _load_digipay_logo()
+    if logo is None:
+        return
+    target_width = max(1, int(width))
+    target_height = max(1, int(height))
+    tile = Image.new("RGBA", (target_width, target_height), (255, 255, 255, 245))
+    fitted = ImageOps.contain(
+        logo,
+        (max(1, target_width - 10), max(1, target_height - 10)),
+        method=Image.Resampling.LANCZOS,
+    )
+    x = max(0, (target_width - fitted.width) // 2)
+    y = max(0, (target_height - fitted.height) // 2)
+    tile.alpha_composite(fitted, (x, y))
+    position = (int(left), int(top))
+    if image.mode == "RGBA":
+        image.alpha_composite(tile, position)
+    else:
+        image.paste(tile, position, tile.getchannel("A"))
 
 
 def draw_retailer_badge(image, left: int, top: int, width: int, height: int, merchant: str) -> None:
