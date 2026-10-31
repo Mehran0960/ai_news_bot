@@ -2611,10 +2611,11 @@ class AffilioRadarTests(unittest.TestCase):
         radar_module.update_current_demand_signals(
             state, [product], now=start + timedelta(hours=25)
         )
-        self.assertTrue(product["current_demand_verified"])
-        self.assertEqual(product["recent_review_growth_7d"], 3)
-        self.assertGreater(product["demand_score"], 0)
-        self.assertTrue(
+        # The first sample has now fallen outside the rolling 24-hour window;
+        # the short-lived signal can reset, but it is not a publication requirement.
+        self.assertFalse(product["current_demand_verified"])
+        self.assertEqual(product["demand_score"], 0)
+        self.assertFalse(
             radar_module.has_current_demand_signal(
                 product, now=start + timedelta(hours=25)
             )
