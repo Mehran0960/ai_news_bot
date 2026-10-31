@@ -281,6 +281,7 @@ _LOCAL_LOGO_PATHS = {
     "digikala": _RETAILER_LOGO_DIR / "digikala-official.webp",
     "snappshop": _RETAILER_LOGO_DIR / "snappshop-official.webp",
 }
+_DIGIPAY_LOGO_PATH = _RETAILER_LOGO_DIR / "digipay-official.svg"
 
 
 def adaptive_text_colors(image, region, threshold: int = 145):
@@ -354,6 +355,40 @@ def _load_retailer_logo(is_snappshop: bool):
         print(f"RETAILER_LOGO_LOCAL_READ_FAILED store={key} error={type(exc).__name__}")
     print(f"RETAILER_LOGO_LOCAL_ASSET_UNAVAILABLE store={key} path={path.name}")
     return None
+
+
+
+@lru_cache(maxsize=1)
+def _load_digipay_logo():
+    """Load the official current DigiPay brand mark staged from MyDigiPay by CI."""
+    try:
+        if _DIGIPAY_LOGO_PATH.is_file():
+            return _decode_retailer_logo(_DIGIPAY_LOGO_PATH.read_bytes(), False)
+    except Exception as exc:
+        print(f"DIGIPAY_LOGO_LOCAL_READ_FAILED error={type(exc).__name__}")
+    print(f"DIGIPAY_LOGO_LOCAL_ASSET_UNAVAILABLE path={_DIGIPAY_LOGO_PATH.name}")
+    return None
+
+
+def draw_digipay_badge(image, left: int, top: int, width: int, height: int) -> None:
+    """Draw the official DigiPay logo, maintaining its aspect ratio and original colors."""
+    from PIL import ImageOps
+
+    logo = _load_digipay_logo()
+    if logo is None:
+        return
+    fitted = ImageOps.contain(
+        logo, (max(1, int(width)), max(1, int(height))),
+        method=Image.Resampling.LANCZOS,
+    )
+    if fitted.width < 1 or fitted.height < 1:
+        return
+    x = int(left)
+    y = int(top) + max(0, (int(height) - fitted.height) // 2)
+    if image.mode == "RGBA":
+        image.alpha_composite(fitted, (x, y))
+    else:
+        image.paste(fitted, (x, y), fitted.getchannel("A"))
 
 
 def draw_retailer_badge(image, left: int, top: int, width: int, height: int, merchant: str) -> None:
