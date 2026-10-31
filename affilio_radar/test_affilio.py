@@ -3654,8 +3654,8 @@ class AffilioRadarTests(unittest.TestCase):
         import offerchin_visuals as visuals
 
         for merchant, box, brand in (
-            ("دیجی‌کالا", (10, 10, 86, 58), "red"),
-            ("اسنپ‌شاپ", (10, 10, 58, 58), "purple"),
+            ("دیجی‌کالا", (10, 10, 190, 58), "red"),
+            ("اسنپ‌شاپ", (10, 10, 190, 58), "purple"),
         ):
             artwork = Image.new("RGB", (240, 90), (250, 250, 250))
             visuals.draw_retailer_badge(artwork, 10, 10, 180, 48, merchant)
@@ -3726,6 +3726,55 @@ class AffilioRadarTests(unittest.TestCase):
         blue_ratio = (blue[2] - blue[0]) / (blue[3] - blue[1])
         self.assertAlmostEqual(red_ratio, 2.0, delta=0.08)
         self.assertAlmostEqual(blue_ratio, 1.0, delta=0.08)
+
+    def test_edit_telegram_media_replaces_photo_and_preserves_verified_buy_button(self):
+        from unittest.mock import patch
+
+        product_url = "https://www.digikala.com/product/dkp-990001/"
+        affiliate = build_affilio_tracking_link(product_url)
+        response = SimpleNamespace(
+            json=lambda: {"ok": True, "result": {"message_id": 321}},
+            raise_for_status=lambda: None,
+        )
+        with (
+            patch("affilio_radar.BOT_TOKEN", "test-token"),
+            patch("affilio_radar.TARGET_CHAT", "@OfferChin"),
+            patch("affilio_radar.requests.post", return_value=response) as post,
+        ):
+            result = radar_module._edit_telegram_media(
+                321, b"new-jpeg-bytes", "<b>قیمت</b>", affiliate,
+            )
+
+        self.assertEqual(result["message_id"], 321)
+        endpoint, = post.call_args.args
+        kwargs = post.call_args.kwargs
+        self.assertTrue(endpoint.endswith("/editMessageMedia"))
+        media = json.loads(kwargs["data"]["media"])
+        self.assertEqual(media["type"], "photo")
+        self.assertEqual(media["media"], "attach://photo")
+        self.assertEqual(media["caption"], "<b>قیمت</b>")
+        keyboard = json.loads(kwargs["data"]["reply_markup"])["inline_keyboard"]
+        self.assertIn("url", keyboard[0][0])
+        self.assertEqual(kwargs["files"]["photo"][1], b"new-jpeg-bytes")
+
+    def test_delete_bale_message_uses_documented_delete_method(self):
+        from unittest.mock import patch
+
+        response = SimpleNamespace(
+            json=lambda: {"ok": True, "result": True},
+            raise_for_status=lambda: None,
+        )
+        with (
+            patch("affilio_radar.BALE_BOT_TOKEN", "test-bale-token"),
+            patch("affilio_radar.BALE_CHANNEL_ID", "@OfferChin"),
+            patch("affilio_radar.requests.post", return_value=response) as post,
+        ):
+            result = radar_module._delete_bale_message(654)
+
+        self.assertTrue(result)
+        endpoint, = post.call_args.args
+        self.assertTrue(endpoint.endswith("/deleteMessage"))
+        self.assertEqual(post.call_args.kwargs["data"]["message_id"], 654)
 
     def test_fetch_image_retries_transient_connect_timeout_once(self):
         import requests
