@@ -57,6 +57,7 @@ from affilio_radar import (
     _edit_bale_caption,
     _edit_telegram_caption,
     repair_all_published_captions,
+    _recent_caption_repair_records,
     _delivery_retry_platforms,
     unicode_strikethrough,
     _money_to_toman,
@@ -289,6 +290,17 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("💳 امکان خرید اقساطی با دیجی‌پی", caption)
         self.assertIn("در صورت نمایش گزینه و احراز شرایط", caption)
 
+    def test_recent_caption_repair_selects_only_newest_active_products(self):
+        published = {
+            "old": {"ts": 10, "telegram_message_id": 100},
+            "middle": {"ts": 20, "bale_message_id": 200},
+            "latest": {"ts": 30, "telegram_message_id": 300},
+            "deleted": {"ts": 40, "telegram_message_id": 400, "expiry_status": "deleted"},
+            "no_message": {"ts": 50},
+        }
+        selected = _recent_caption_repair_records(published, 2)
+        self.assertEqual([product_id for product_id, _record in selected], ["latest", "middle"])
+
     def test_snappshop_caption_uses_correct_store_name(self):
         product_url = "https://snappshop.ir/product/snp-2097083854"
         affiliate = build_affilio_tracking_link(product_url)
@@ -302,6 +314,8 @@ class AffilioRadarTests(unittest.TestCase):
         }, affiliate)
         self.assertIn("🔥 فروش ویژه اسنپ‌شاپ 🟣", caption)
         self.assertNotIn("دیجی‌کالا", caption)
+        self.assertIn("💳 امکان خرید اقساطی با دیجی‌پی", caption)
+        self.assertIn("در صورت نمایش گزینه و احراز شرایط", caption)
 
     def test_snappshop_without_confirmed_expiry_can_publish_when_live_deal_is_verified(self):
         now = datetime.now(timezone.utc)
