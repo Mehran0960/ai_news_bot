@@ -4353,7 +4353,7 @@ def build_caption(
 
     # Keep one source-channel membership link for forwarded posts; the purchase button
     # remains a separate inline button and its presence is validated by the sender.
-    parts += ["", "────────────", ""]
+    parts += ["", "────────────"]
     for index, line in enumerate(offer_lines):
         if index:
             parts.append("")
