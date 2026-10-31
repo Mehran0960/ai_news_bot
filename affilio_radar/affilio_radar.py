@@ -60,7 +60,7 @@ FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "fa
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
 BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(20, int(os.getenv("AFFILIO_MAX_PER_QUERY", "12"))))
-MAX_PRODUCT_CHECKS = max(1, min(90, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "90"))))
+MAX_PRODUCT_CHECKS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "100"))))
 # Expand live verification so a temporary thin 60-item feed does not starve the publisher.
 # Quality gates (50%+ listed discount, 100k toman saving, live stock/price) stay unchanged.
 SNAPPSHOP_RESERVED_CANDIDATES = max(4, min(12, MAX_PRODUCT_CHECKS // 7))
@@ -75,7 +75,7 @@ APARAT_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_APARAT_UPLO
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(10, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "8"))))
-MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.03333333333333333")))
+MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.3333333333333333")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
@@ -94,11 +94,11 @@ COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
 CAPTION_DEADLINE_FORMAT_VERSION = 14
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
-URGENT_MIN_POST_INTERVAL_MINUTES = 10
+URGENT_MIN_POST_INTERVAL_MINUTES = 20
 DEADLINE_CRITICAL_WINDOW_MINUTES = 120
 # Offers inside the hard 90-minute cutoff are rejected instead of being rushed out.
 ULTRA_URGENT_WINDOW_MINUTES = 0
-ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 5
+ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 20
 URGENT_MIN_DISCOUNT_PERCENT = 80
 URGENT_MIN_SAVINGS_TOMAN = 500_000
 URGENT_MIN_DEMAND_SCORE = 55
@@ -108,10 +108,11 @@ DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
 MCP_OFFER_PAGES_PER_SCAN = max(1, min(DEAL_LIST_PAGES, int(os.getenv("AFFILIO_MCP_PAGES_PER_SCAN", "2"))))
 # Keep 50% as the preferred band. Lower bands are considered only when no
 # fresh, fully-qualified candidate exists in every higher band.
-MIN_DISCOUNT_PERCENT = max(50, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "50"))))
-DISCOUNT_FALLBACK_FLOORS = (50, 45, 40, 35)
-MIN_DISCOUNT_FALLBACK_PERCENT = min(DISCOUNT_FALLBACK_FLOORS)
-MIN_SAVINGS_TOMAN = 100_000
+MIN_DISCOUNT_PERCENT = max(1, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "1"))))
+# Any positive listed discount can compete; popularity ranks first and discount strength breaks ties.
+DISCOUNT_FALLBACK_FLOORS = (1,)
+MIN_DISCOUNT_FALLBACK_PERCENT = 1
+MIN_SAVINGS_TOMAN = 1
 # "Current demand" is measured from recent retailer review/rating-count growth,
 # not from lifetime totals, channel clicks, or guessed sales volume.
 # A single newly observed review within the last day is a real, recent
@@ -2564,12 +2565,7 @@ def has_meaningful_discount(
     record: dict,
     minimum_discount_percent: int | None = None,
 ) -> bool:
-    """Validate a real listed reduction against the active staged discount floor.
-
-    The default remains the preferred 50% band. Explicit lower floors are only
-    supplied by the selector/publisher for the 45/40/35% fallback bands.
-    The minimum absolute saving remains 100,000 toman.
-    """
+    """Accept any positive listed discount; popularity and deal strength rank qualifying offers."""
     if not isinstance(record, dict):
         return False
     try:
@@ -3955,6 +3951,9 @@ def deal_sort_key(p: dict) -> tuple:
     except (TypeError, ValueError, OverflowError):
         rating_score = 0
     return (
+        max(0, min(100, int(p.get("historical_popularity_score") or 0))),
+        reviews,
+        rating_score,
         _candidate_demand_score(p),
         max(0, int(p.get("discount_percent") or 0)),
         market_known, market_advantage, int(has_meaningful_discount(p)),
@@ -4089,7 +4088,6 @@ def is_discount_publish_eligible(
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
-        and has_current_demand_signal(product, now)
         and has_meaningful_discount(product, minimum_discount_percent)
     )
 
@@ -4275,7 +4273,7 @@ def build_caption(
     channel_label: str = TELEGRAM_CHANNEL_URL,
     use_unicode_strikethrough: bool = False,
 ) -> str:
-    """Build a concise cross-platform caption with a clear price hierarchy and channel CTA."""
+    """Build a concise caption with price, DigiPay financing note for DigiKala, and channel CTA."""
     is_bale = use_unicode_strikethrough
 
     def bold(value: str) -> str:
@@ -4321,6 +4319,12 @@ def build_caption(
     if discount is not None and int(discount) > 0:
         discount_value = format_persian_number(discount) + "٪"
         parts.append(bold(f"⚡️ {discount_value} تخفیف"))
+
+    # DigiPay credit is a DigiKala-specific payment option, subject to its terms,
+    # eligible basket items, and the customer's approved credit. Never apply it to SnappShop.
+    merchant_text = str(merchant or "").strip().lower()
+    if "snapp" not in merchant_text and "اسنپ" not in merchant_text:
+        parts += ["", "💳 امکان خرید اقساطی با دیجی‌پی (طبق شرایط و کالاهای مشمول)"]
 
     # Keep one source-channel membership link for forwarded posts; the purchase button
     # remains a separate inline button and its presence is validated by the sender.
@@ -4431,6 +4435,17 @@ def build_discount_image(
 
     # Store identity sits opposite the discount tile; both target bounds are identical.
     draw_retailer_badge(image, brand_margin, brand_margin, store_badge_width, store_badge_height, merchant)
+    merchant_text = str(merchant or "").strip().lower()
+    if "snapp" not in merchant_text and "اسنپ" not in merchant_text:
+        # Keep DigiPay directly below the DigiKala badge, with matching bounds and alignment.
+        digipay_gap = max(4, int(store_badge_height * 0.08))
+        draw_digipay_badge(
+            image,
+            brand_margin,
+            brand_margin + store_badge_height + digipay_gap,
+            store_badge_width,
+            store_badge_height,
+        )
 
     # Keep the channel IDs at the lower-left without a card or solid panel.
     # Choose each text color from the pixels directly behind it; use a thin opposing
@@ -8201,11 +8216,9 @@ def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(
-        "Ranking mode=current-demand-first with preferred discount floor "
-        f"{MIN_DISCOUNT_PERCENT}% and fallback floors {DISCOUNT_FALLBACK_FLOORS}; "
-        f"every tier requires at least {MIN_SAVINGS_TOMAN:,} toman saved and the same verified demand, "
-        "stock, price, market-value, affiliate, expiry, and diversity gates. "
-        "If no tier passes every gate, the selection slot remains empty."
+        "Ranking mode=product-popularity-first (rating/review counts), then current activity and strongest live discount; "
+        "no minimum discount-percent or absolute-savings floor. "
+        "Stock, current price, image, affiliate, expiry, market-value, title, and duplicate checks remain."
     )
     catalog = load_catalog()
     approved = link_map(catalog)
@@ -8543,7 +8556,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Products rank by measured recent growth in retailer review/rating counts; lifetime review totals, user ratings, and OfferChin clicks are not current-demand evidence. This is a recent customer-activity proxy, not a sales counter. Products without at least {CURRENT_DEMAND_MIN_REVIEW_GROWTH} additional reviews/ratings over a measured {CURRENT_DEMAND_MIN_OBSERVATION_HOURS}-hour to {CURRENT_DEMAND_WINDOW_DAYS}-day window are ineligible. Publication also requires a listed discount of at least {MIN_DISCOUNT_FALLBACK_PERCENT}% (preferred {MIN_DISCOUNT_PERCENT}%; fallback floors {DISCOUNT_FALLBACK_FLOORS}), at least {MIN_SAVINGS_TOMAN:,} toman saved, live stock/current price/image, an affiliate link, publishable title, no prohibited category, no verified market-price rejection, and no product/family repeat conflict. Lower bands are activated only when no candidate survives every higher-band gate; recent retailer-demand verification is never relaxed. Category rotation uses rolling 24-hour, 7-day, 30-day, and 365-day publication history. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers with no verified timer remain eligible only as live open offers after stock/current-price validation.",
+        "ranking_note": "The catalog pool is ranked by product-popularity proxies (rating and total review count), with measured recent review growth as a secondary signal and live discount percentage as the next deal-strength signal. Recent growth is not a publication gate. Any positive listed discount can qualify; there is no percentage or minimum-savings floor. Publication still requires live stock, current price, image, affiliate link, a publishable title, a non-expired/open offer, and no verified market-price rejection or duplicate conflict. Confirmed deadlines require sufficient publication runway; offers with no verified timer remain eligible after live stock/current-price validation.",
         "current_demand_policy": {
             "source": "rolling retailer review/rating-count observations",
             "window_days": CURRENT_DEMAND_WINDOW_DAYS,
