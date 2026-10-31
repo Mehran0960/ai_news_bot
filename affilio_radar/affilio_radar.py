@@ -2587,8 +2587,25 @@ def has_meaningful_discount(
     return discount >= floor and savings > 0
 
 
+def _candidate_popularity_score(record: dict) -> int:
+    """Estimate broad product popularity from lifetime retailer reviews and rating."""
+    if not isinstance(record, dict):
+        return 0
+    try:
+        explicit = max(0, int(record.get("historical_popularity_score") or 0))
+        reviews = max(0, int(record.get("review_count") or 0))
+        rating = float(record.get("rating") or record.get("rating_value") or 0)
+    except (TypeError, ValueError, OverflowError):
+        return 0
+    if explicit:
+        return min(100, explicit)
+    review_proxy = min(30, round(3.5 * math.log1p(reviews))) if reviews else 0
+    rating_proxy = max(0, min(12, round((rating - 3.0) * 10))) if rating else 0
+    return min(100, review_proxy + rating_proxy)
+
+
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Rank retailer-side demand signals first, discount percentage second, then safety/value signals."""
+    """Rank broad product popularity first, recent activity second, then live discount."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -2626,7 +2643,8 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
     first_seen = _parse_utc_datetime(record.get("first_seen_at"))
     first_seen_ts = first_seen.timestamp() if first_seen else current.timestamp()
     return (
-        _candidate_demand_score(record), reviews, rating_score, discount,
+        _candidate_popularity_score(record), reviews, rating_score,
+        _candidate_demand_score(record), discount,
         clicks, market_verified, market_advantage, value_gate,
         _candidate_promo_score(record), savings, int(has_runway), urgency_tier,
         -remaining if active_deadline else float("-inf"), -first_seen_ts,
@@ -3945,7 +3963,7 @@ def score_product(p: dict) -> dict:
 
 
 def deal_sort_key(p: dict) -> tuple:
-    """Rank retailer-side demand signals first and discount percentage second."""
+    """Rank broad product popularity first, recent activity second, then the largest live markdown."""
     verified_median = (
         p.get("market_status") == "verified"
         and p.get("market_reference_kind") == "seller_median"
@@ -3957,10 +3975,15 @@ def deal_sort_key(p: dict) -> tuple:
     except (TypeError, ValueError, OverflowError):
         market_advantage = -101
     try:
-        rating_score = round(float(p.get("rating") or 0) * 10)
+        reviews = max(0, int(p.get("review_count") or 0))
+        rating_score = round(float(p.get("rating") or p.get("rating_value") or 0) * 10)
     except (TypeError, ValueError, OverflowError):
+        reviews = 0
         rating_score = 0
     return (
+        _candidate_popularity_score(p),
+        reviews,
+        rating_score,
         _candidate_demand_score(p),
         max(0, int(p.get("discount_percent") or 0)),
         market_known, market_advantage, int(has_meaningful_discount(p)),
@@ -4328,7 +4351,7 @@ def build_caption(
         parts.append(bold(f"⚡️ {discount_value} تخفیف"))
     is_digikala = "اسنپ" not in str(merchant) and "snapp" not in str(merchant).lower()
     if is_digikala:
-        parts.append("💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)")
+        parts.append("💳 امکان خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)")
 
     # Keep one source-channel membership link for forwarded posts; the purchase button
     # remains a separate inline button and its presence is validated by the sender.
