@@ -46,6 +46,31 @@ def _utc(value: Any) -> datetime | None:
         return None
 
 
+def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
+    """Keep only backups that still meet the same hard gate as a primary selection."""
+    if not isinstance(candidates, list):
+        return []
+    eligible: list[dict] = []
+    for candidate in candidates:
+        if not isinstance(candidate, dict):
+            continue
+        raw_floor = candidate.get("selection_discount_floor")
+        if raw_floor is not None:
+            try:
+                selected_floor = int(raw_floor)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if selected_floor != radar.MIN_DISCOUNT_FALLBACK_PERCENT:
+                continue
+        if radar.is_discount_publish_eligible(
+            candidate,
+            minimum_discount_percent=radar.MIN_DISCOUNT_FALLBACK_PERCENT,
+            now=now,
+        ):
+            eligible.append(candidate)
+    return eligible
+
+
 def _duplicate_guard_reason(existing: Any, delivery_id: str) -> str:
     """Prevent a new queue generation from reposting an already-active product."""
     if not isinstance(existing, dict) or not _active_publication(existing):
@@ -194,11 +219,8 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     product_id = str(payload.get("product_id") or "").lower()
     if not product_url or radar.product_id(product_url) != product_id:
         return None, "invalid_product_identity"
-    if not radar.has_current_demand_signal(payload, now):
-        return None, "selected_item_lacks_fresh_current_demand_signal"
-
-    # The 50% discount floor is fixed. Older queued selections with lower
-    # discount tiers are rejected rather than grandfathered into publication.
+    # The minimum is fixed at 50% or higher. Old queued selections with
+    # lower fallback tiers are rejected before any live product request.
     raw_discount_floor = payload.get("selection_discount_floor")
     minimum_discount_percent = None
     if raw_discount_floor is not None:
@@ -206,8 +228,11 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
             minimum_discount_percent = int(raw_discount_floor)
         except (TypeError, ValueError, OverflowError):
             return None, "invalid_selection_discount_floor"
-        if minimum_discount_percent not in radar.DISCOUNT_FALLBACK_FLOORS:
+        if minimum_discount_percent != radar.MIN_DISCOUNT_FALLBACK_PERCENT:
             return None, "invalid_selection_discount_floor"
+
+    if not radar.has_current_demand_signal(payload, now):
+        return None, "selected_item_lacks_fresh_current_demand_signal"
 
     try:
         fresh = radar.fetch_product_record(product_url)
@@ -553,7 +578,14 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
                     "live_review_count_unusable",
                 }:
                     radar.mark_selection_candidate_rejected(state, payload, reason, now=now)
-                fallback_candidates = list(entry.get("fallback_candidates") or [])
+                raw_fallback_candidates = list(entry.get("fallback_candidates") or [])
+                fallback_candidates = _eligible_fallback_candidates(raw_fallback_candidates, now)
+                rejected_fallbacks = len(raw_fallback_candidates) - len(fallback_candidates)
+                if rejected_fallbacks:
+                    print(
+                        f"INLINE_FALLBACK_FILTERED rejected={rejected_fallbacks} "
+                        "reason=hard_discount_or_current_demand_gate"
+                    )
                 entry["status"] = "stale_selection"
                 entry["last_detail"] = reason
                 finish_queue_item(state, product_id, "stale_selection", now=now, detail=reason)

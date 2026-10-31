@@ -768,23 +768,26 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(parsed["expiry_deadline_verified_directly"])
 
 
-    def test_audience_demand_outranks_an_extreme_listed_discount(self):
-        popular_gadget = score_product({
+    def test_verified_recent_demand_outranks_an_extreme_listed_discount(self):
+        now = datetime(2026, 10, 31, 17, 0, tzinfo=timezone.utc)
+        popular_gadget = _with_verified_current_demand(score_product({
             "title": "پاوربانک محبوب",
             "current_price": 8_000_000,
             "original_price": 10_000_000,
             "rating": 4.6,
             "review_count": 50000,
             "image_url": "https://example.com/popular.jpg",
-        })
-        weaker_demand_deal = score_product({
+        }), now=now, growth=15)
+        popular_gadget.update({"current_demand_score": 90, "demand_score": 90})
+        weaker_demand_deal = _with_verified_current_demand(score_product({
             "title": "گجت کم‌نظر با تخفیف درج‌شده بیشتر",
             "current_price": 1_000_000,
             "original_price": 3_000_000,
             "rating": 4.0,
             "review_count": 100,
             "image_url": "https://example.com/deal.jpg",
-        })
+        }), now=now, growth=3)
+        weaker_demand_deal.update({"current_demand_score": 20, "demand_score": 20})
         self.assertLess(popular_gadget["discount_percent"], weaker_demand_deal["discount_percent"])
         self.assertGreater(deal_sort_key(popular_gadget), deal_sort_key(weaker_demand_deal))
 
@@ -2585,8 +2588,8 @@ class AffilioRadarTests(unittest.TestCase):
             discovery_queue_sort_key({**common, "current_price": 40_000_000}, now=datetime(2026, 10, 20, tzinfo=timezone.utc)),
         )
 
-    def test_high_review_volume_can_outweigh_price_band_for_demand_ranking(self):
-        broad_demand = score_product({
+    def test_lifetime_review_volume_is_popularity_not_current_demand(self):
+        broad_popularity = score_product({
             "title": "پاوربانک 20000",
             "current_price": 3_300_000,
             "original_price": 4_700_000,
@@ -2602,7 +2605,37 @@ class AffilioRadarTests(unittest.TestCase):
             "review_count": 280,
             "image_url": "https://example.com/image.jpg",
         })
-        self.assertGreater(broad_demand["demand_score"], lower_volume["demand_score"])
+        self.assertGreater(
+            broad_popularity["historical_popularity_score"],
+            lower_volume["historical_popularity_score"],
+        )
+        self.assertFalse(broad_popularity["current_demand_verified"])
+        self.assertEqual(broad_popularity["demand_score"], 0)
+        self.assertEqual(lower_volume["demand_score"], 0)
+
+    def test_last_mile_photo_sender_rejects_a_49_percent_offer_even_with_recent_demand(self):
+        now = datetime.now(timezone.utc)
+        item = {
+            "title": "شارژر سریع دیواری مدل نمونه",
+            "availability": "in_stock",
+            "current_price": 550_000,
+            "original_price": 1_000_000,
+            "discount_percent": 49,
+            "savings_toman": 450_000,
+            "image_url": "https://example.com/charger.webp",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95045%2F",
+            "current_demand_verified": True,
+            "current_demand_score": 60,
+            "demand_score": 60,
+            "recent_review_growth_7d": 5,
+            "demand_window_hours": 48,
+            "demand_observed_at": now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth",
+        }
+        with patch("affilio_radar.build_discount_image") as build_image:
+            with self.assertRaisesRegex(RuntimeError, "hard discount/current-demand gate"):
+                radar_module._send_platform_photo("telegram", item, b"image", item["affiliate_url"])
+        build_image.assert_not_called()
 
     def test_publish_requires_stock_price_image_and_https_affiliate_link(self):
         base = {

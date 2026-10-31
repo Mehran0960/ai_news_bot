@@ -4593,7 +4593,16 @@ def _has_pending_delivery(record: dict) -> bool:
 
 
 def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliate_url: str):
-    """Render the correct channel watermark and send to one destination."""
+    """Render and send only offers that still pass the hard publication gate."""
+    if not is_discount_publish_eligible(
+        item,
+        minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT,
+        now=datetime.now(timezone.utc),
+    ):
+        raise RuntimeError(
+            "Refusing to send an OfferChin post that fails the hard discount/current-demand gate "
+            f"({MIN_DISCOUNT_FALLBACK_PERCENT}% minimum plus verified recent activity)"
+        )
     if platform == "telegram":
         photo = build_discount_image(
             image_bytes, item.get("discount_percent"),
@@ -8144,12 +8153,10 @@ def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(
-        "Ranking mode=demand-first within the highest available discount band; "
-        f"fallback bands={','.join(str(x) for x in DISCOUNT_FALLBACK_FLOORS)}%+ "
-        f"with at least {MIN_SAVINGS_TOMAN:,} toman saved; only when a higher band "
-        "has no fresh product passing stock, price, market, affiliate, repeat, and diversity checks "
-        "does selection step down five percentage points. Open-ended offers are allowed only "
-        "with live stock/current-price validation; confirmed deadlines retain the runway guard."
+        "Ranking mode=current-demand-first with a hard discount floor of "
+        f"{MIN_DISCOUNT_FALLBACK_PERCENT}% and at least {MIN_SAVINGS_TOMAN:,} toman saved. "
+        "No lower-discount fallback is permitted; if no candidate passes every gate, "
+        "the selection slot remains empty. Open-ended offers require live stock/current-price validation."
     )
     catalog = load_catalog()
     approved = link_map(catalog)
@@ -8562,9 +8569,9 @@ def run(publish=False, selection_only=False):
             )
             return 0
 
-        # Store one due primary plus a compact ranked cross-band fallback pool.
-        # Backups are not scheduled as extra posts; the publisher promotes one only
-        # when live validation proves the primary is no longer a valid deal.
+        # Store one due primary plus a compact ranked backup pool.
+        # Every backup has already passed the same hard discount and current-demand
+        # gates; backups are never used to relax quality when the primary goes stale.
         primary = eligible[:1]
         summary = enqueue_selected_content(
             state,
