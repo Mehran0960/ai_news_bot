@@ -4985,7 +4985,66 @@ def _recent_caption_repair_records(published: dict, limit: int) -> list[tuple[st
     return sorted(candidates, key=posted_at, reverse=True)[:limit]
 
 
-def repair_all_published_captions(max_products: int | None = None) -> int:
+DIGIPAY_IMAGE_LAYOUT_VERSION = 2
+DIGIPAY_RECENT_POST_LOOKBACK_HOURS = 46.5
+
+
+def _recent_digipay_repair_records(
+    published: dict,
+    lookback_hours: float = DIGIPAY_RECENT_POST_LOOKBACK_HOURS,
+    now_epoch: float | None = None,
+) -> list[tuple[str, dict]]:
+    """Select every active recent DigiKala post whose caption carries the DigiPay offer."""
+    try:
+        hours = float(lookback_hours)
+    except (TypeError, ValueError, OverflowError):
+        raise ValueError("DigiPay repair lookback must be a positive number of hours")
+    if not 0 < hours <= 47:
+        raise ValueError("DigiPay repair lookback must be greater than zero and at most 47 hours")
+
+    current = time.time() if now_epoch is None else float(now_epoch)
+    cutoff = current - hours * 3600
+    candidates = []
+    for product_key, record in published.items():
+        if not str(product_key).startswith("dkp-") or not isinstance(record, dict):
+            continue
+        try:
+            posted_at = float(record.get("ts") or 0)
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if posted_at < cutoff or posted_at > current + 300:
+            continue
+
+        active_targets = []
+        for id_field, status_field in (
+            ("telegram_message_id", "expiry_status"),
+            ("bale_message_id", "bale_expiry_status"),
+        ):
+            raw_id = record.get(id_field)
+            if raw_id in (None, "", 0, "0"):
+                continue
+            if record.get(status_field) in {"deleted", "already_absent"}:
+                continue
+            try:
+                if int(raw_id) > 0:
+                    active_targets.append(id_field)
+            except (TypeError, ValueError, OverflowError):
+                continue
+        if active_targets:
+            candidates.append((str(product_key), record))
+
+    # Newest first for selection and oldest-first replacement when a caller reverses it.
+    return sorted(
+        candidates,
+        key=lambda item: float(item[1].get("ts") or 0),
+        reverse=True,
+    )
+
+
+def repair_all_published_captions(
+    max_products: int | None = None,
+    product_ids: set[str] | None = None,
+) -> int:
     """Edit tracked Telegram/Bale captions in place; never creates or deletes posts."""
     state = load_state()
     published = state.get("published", {})
@@ -5006,9 +5065,19 @@ def repair_all_published_captions(max_products: int | None = None) -> int:
     state_changed = False
     now = datetime.now(timezone.utc)
 
-    # Full repair keeps oldest-first pacing; bounded repair selects the newest
-    # active product records and edits only their already-published channel posts.
-    if max_products is None:
+    # Product-scoped repair is used for the DigiPay migration; otherwise keep the
+    # existing full-history and bounded-latest behavior unchanged.
+    if product_ids is not None:
+        records_to_repair = sorted(
+            (
+                (str(product_key), published[product_key])
+                for product_key in product_ids
+                if product_key in published and isinstance(published[product_key], dict)
+            ),
+            key=lambda item: float(item[1].get("ts") or 0),
+        )
+        print(f"SCOPED_CAPTION_REPAIR_SELECTION selected_products={len(records_to_repair)}")
+    elif max_products is None:
         records_to_repair = sorted(
             published.items(),
             key=lambda item: float(item[1].get("ts", 0)) if isinstance(item[1], dict) else 0,
@@ -5197,7 +5266,10 @@ def repair_all_published_captions(max_products: int | None = None) -> int:
 
 
 
-def repair_recent_product_images(max_products: int = 2) -> int:
+def repair_recent_product_images(
+    max_products: int | None = 2,
+    product_ids: set[str] | None = None,
+) -> int:
     """Refresh the newest published product images using identical framed brand marks.
 
     Telegram media is edited in place. Bale's documented Bot API exposes sendPhoto
@@ -5208,7 +5280,22 @@ def repair_recent_product_images(max_products: int = 2) -> int:
     published = state.get("published", {})
     if not isinstance(published, dict):
         raise RuntimeError("Published state is not an object")
-    records = _recent_caption_repair_records(published, max_products)
+    if product_ids is not None:
+        records = sorted(
+            (
+                (str(product_key), published[product_key])
+                for product_key in product_ids
+                if product_key in published and isinstance(published[product_key], dict)
+            ),
+            key=lambda item: float(item[1].get("ts") or 0),
+            reverse=True,
+        )
+    elif max_products is None:
+        records = _recent_caption_repair_records(
+            published, max(1, len(published)),
+        )
+    else:
+        records = _recent_caption_repair_records(published, max_products)
     results = {
         "telegram_updated": 0, "telegram_missing": 0, "telegram_failed": 0,
         "bale_updated": 0, "bale_missing": 0, "bale_failed": 0,
@@ -5216,7 +5303,10 @@ def repair_recent_product_images(max_products: int = 2) -> int:
     }
     targets = 0
     state_changed = False
-    print(f"RECENT_IMAGE_REPAIR_SELECTION selected_products={len(records)} requested={max_products}")
+    print(
+        f"RECENT_IMAGE_REPAIR_SELECTION selected_products={len(records)} "
+        f"requested={max_products} scoped={product_ids is not None}"
+    )
 
     # Bale replacements are sent oldest-first so their final channel order remains chronological.
     for product_key, record in reversed(records):
@@ -5248,11 +5338,11 @@ def repair_recent_product_images(max_products: int = 2) -> int:
         bale_id = _int_value(record.get("bale_message_id")) or 0
         telegram_needed = bool(
             telegram_id > 0 and record.get("expiry_status") not in {"deleted", "already_absent"}
-            and int(record.get("telegram_image_layout_version") or 0) < 1
+            and int(record.get("telegram_image_layout_version") or 0) < DIGIPAY_IMAGE_LAYOUT_VERSION
         )
         bale_needed = bool(
             bale_id > 0 and record.get("bale_expiry_status") not in {"deleted", "already_absent"}
-            and int(record.get("bale_image_layout_version") or 0) < 1
+            and int(record.get("bale_image_layout_version") or 0) < DIGIPAY_IMAGE_LAYOUT_VERSION
         )
         if not telegram_needed and not bale_needed:
             results["skipped"] += 1
@@ -5338,7 +5428,7 @@ def repair_recent_product_images(max_products: int = 2) -> int:
                         record["expiry_status"] = "already_absent"
                     else:
                         results["telegram_updated"] += 1
-                        record["telegram_image_layout_version"] = 1
+                        record["telegram_image_layout_version"] = DIGIPAY_IMAGE_LAYOUT_VERSION
                         record["telegram_image_layout_updated_at"] = datetime.now(timezone.utc).isoformat()
                     state_changed = True
                     print(
@@ -5381,7 +5471,7 @@ def repair_recent_product_images(max_products: int = 2) -> int:
                                 _delete_bale_message(new_id)
                             except Exception:
                                 record["bale_message_id"] = new_id
-                                record["bale_image_layout_version"] = 1
+                                record["bale_image_layout_version"] = DIGIPAY_IMAGE_LAYOUT_VERSION
                                 record["bale_image_repair_old_message_id"] = bale_id
                                 record["bale_image_layout_updated_at"] = datetime.now(timezone.utc).isoformat()
                                 state_changed = True
@@ -5433,6 +5523,36 @@ def repair_recent_product_images(max_products: int = 2) -> int:
     )
     return 0 if successful else 1
 
+
+
+
+def repair_recent_digipay_posts(lookback_hours: float = DIGIPAY_RECENT_POST_LOOKBACK_HOURS) -> int:
+    """Repair every recent active DigiKala caption and image that mentions DigiPay."""
+    state = load_state()
+    published = state.get("published", {})
+    if not isinstance(published, dict):
+        raise RuntimeError("Published state is not an object")
+    selected = _recent_digipay_repair_records(published, lookback_hours=lookback_hours)
+    product_ids = {product_key for product_key, _record in selected}
+    print(
+        f"DIGIPAY_RECENT_POSTS_SELECTED products={len(product_ids)} "
+        f"lookback_hours={float(lookback_hours):g}"
+    )
+    if not product_ids:
+        print("DIGIPAY_RECENT_POST_REPAIR_SUMMARY captions=0 images=0 status=no_targets")
+        return 0
+
+    # Rebuild every selected caption first, then update the media while keeping each
+    # verified affiliate purchase button. Each step reloads the latest persisted state.
+    caption_result = repair_all_published_captions(product_ids=product_ids)
+    image_result = repair_recent_product_images(product_ids=product_ids)
+    success = caption_result == 0 and image_result == 0
+    print(
+        f"DIGIPAY_RECENT_POST_REPAIR_SUMMARY products={len(product_ids)} "
+        f"captions_exit={caption_result} images_exit={image_result} "
+        f"status={'success' if success else 'partial_failure'}"
+    )
+    return 0 if success else 1
 
 
 
@@ -9328,6 +9448,12 @@ def run(publish=False, selection_only=False):
                 "title": item["title"],
                 "product_url": item["product_url"],
                 "image_url": item.get("image_url", ""),
+                "telegram_image_layout_version": (
+                    DIGIPAY_IMAGE_LAYOUT_VERSION if str(pid).startswith("dkp-") and statuses.get("telegram") == "sent" else 1
+                ),
+                "bale_image_layout_version": (
+                    DIGIPAY_IMAGE_LAYOUT_VERSION if str(pid).startswith("dkp-") and statuses.get("bale") == "sent" else 1
+                ),
                 "video_generation_status": "pending",
                 "youtube_upload_status": "pending",
                 "click_tracking_url": "",
@@ -9519,6 +9645,17 @@ def main():
         help="update the product photos of the newest N active Telegram/Bale posts with the current branded layout",
     )
     parser.add_argument(
+        "--repair-recent-digipay-posts",
+        action="store_true",
+        help="repair all recent active DigiKala captions and photos that mention DigiPay",
+    )
+    parser.add_argument(
+        "--lookback-hours",
+        type=float,
+        default=DIGIPAY_RECENT_POST_LOOKBACK_HOURS,
+        help="maximum age in hours for the one-shot DigiPay post repair (up to 47)",
+    )
+    parser.add_argument(
         "--refresh-countdowns",
         action="store_true",
         help="refresh remaining-hours/minutes timers on active deadline-verified posts",
@@ -9572,6 +9709,12 @@ def main():
             sys.exit(repair_all_published_captions(max_products=args.repair_recent_captions))
         except Exception as exc:
             print(f"RECENT_CAPTION_REPAIR_FAILED error={type(exc).__name__}")
+            sys.exit(1)
+    if args.repair_recent_digipay_posts:
+        try:
+            sys.exit(repair_recent_digipay_posts(lookback_hours=args.lookback_hours))
+        except Exception as exc:
+            print(f"DIGIPAY_RECENT_POST_REPAIR_FAILED error={type(exc).__name__}")
             sys.exit(1)
     if args.repair_recent_product_images is not None:
         try:
