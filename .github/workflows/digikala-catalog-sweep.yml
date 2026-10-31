@@ -1,5 +1,6 @@
 name: DigiKala Full Catalog Sweep
 # [catalog-sweep-live-test] Guarded three-page API smoke test on feature branches.
+# [catalog-sweep-live-test] Retry against numeric category traversal and updated fixtures.
 
 on:
   push:
