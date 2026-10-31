@@ -106,12 +106,11 @@ IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
 PREFERRED_POSTING_WINDOWS = (("morning", 9, 11), ("afternoon", 14, 17), ("evening", 20, 23))
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
 MCP_OFFER_PAGES_PER_SCAN = max(1, min(DEAL_LIST_PAGES, int(os.getenv("AFFILIO_MCP_PAGES_PER_SCAN", "2"))))
-# One price- and category-neutral floor; real-value checks remain mandatory before publishing.
-# Start at 50%+, then step down in five-point bands only when the higher band
-# has no fresh, fully validated product. Do not drop below a real 5% discount.
+# Hard publication floor: no fallback tier below 50% is permitted.
+# Keep the environment setting for compatibility, but never allow it to weaken this gate.
 MIN_DISCOUNT_PERCENT = max(50, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "50"))))
-DISCOUNT_FALLBACK_FLOORS = tuple(range(50, 4, -5))
-MIN_DISCOUNT_FALLBACK_PERCENT = DISCOUNT_FALLBACK_FLOORS[-1]
+DISCOUNT_FALLBACK_FLOORS = (50,)
+MIN_DISCOUNT_FALLBACK_PERCENT = 50
 MIN_SAVINGS_TOMAN = 100_000
 PRICE_HISTORY_CHECK_LIMIT = max(0, min(25, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "15"))))
 MIN_HISTORICAL_PRICE_DAYS = max(3, min(30, int(os.getenv("AFFILIO_MIN_HISTORICAL_PRICE_DAYS", "7"))))
@@ -2395,11 +2394,10 @@ def has_meaningful_discount(
     record: dict,
     minimum_discount_percent: int | None = None,
 ) -> bool:
-    """Validate a real listed reduction with a selectable five-point fallback floor.
+    """Validate a real listed reduction against the hard 50% floor.
 
-    The default remains the preferred 50%+ band. The scheduled selector explicitly
-    walks lower bands only after every higher band is empty after the other hard gates.
-    The minimum absolute saving remains 100,000 toman at every band.
+    There are no lower discount fallback bands. The minimum absolute saving
+    remains 100,000 toman.
     """
     if not isinstance(record, dict):
         return False
@@ -6433,11 +6431,10 @@ def select_discount_fallback_candidates(
     now: datetime | None = None,
     include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Choose discount bands in strict order, optionally retaining lower-band backups.
+    """Choose only products meeting the hard 50% discount floor.
 
-    All hard gates remain mandatory. The normal selector returns only the first
-    available band; the scheduled hand-off can request a ranked cross-band backup
-    pool so the publisher can replace a stale primary within the same run.
+    The scheduled hand-off may retain ranked backups, but every backup must
+    independently satisfy the same 50% floor and all other hard gates.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -8326,7 +8323,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Market demand/clicks/reviews rank products first within the highest available discount band. The selector tries 50%+ first, then 45–49%, 40–44%, 35–39%, 30–34%, 25–29%, 20–24%, 15–19%, 10–14%, and 5–9%; it steps down only when the higher band has no fresh product passing every other hard gate. Every band still requires at least {MIN_SAVINGS_TOMAN:,} toman saved, live stock/current price/image, an affiliate link, publishable title, no prohibited category, no verified market-price rejection, and no product/family repeat conflict. Category rotation uses rolling 24-hour, 7-day, 30-day, and 365-day publication history. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers with no verified timer remain eligible only as live open offers after stock/current-price validation.",
+        "ranking_note": f"Retailer review-count/rating are historical popularity proxies, not proof of current market demand; OfferChin click counts are channel-specific and are only a secondary tie-breaker. Current sales velocity/bestseller rank is not exposed by the verified source data, so the report does not claim live demand verification. Publication requires a real listed discount of at least 50%, at least {MIN_SAVINGS_TOMAN:,} toman saved, live stock/current price/image, an affiliate link, publishable title, no prohibited category, no verified market-price rejection, and no product/family repeat conflict. There are no lower-discount fallback bands. Category rotation uses rolling 24-hour, 7-day, 30-day, and 365-day publication history. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers with no verified timer remain eligible only as live open offers after stock/current-price validation.",
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
             "unavailable_market_data_blocks_publication": False,
@@ -8498,8 +8495,7 @@ def run(publish=False, selection_only=False):
         print("PUBLISH_BLOCKED: no valid Affilio tracking parameters/template configured; no post attempted.")
     elif not eligible:
         print(
-            "PUBLISH_BLOCKED: no fresh product passed every discount fallback band "
-            "(50%+ down in five-point steps to 5%) plus the stock, price, image, affiliate-link, "
+            "PUBLISH_BLOCKED: no fresh product met the hard 50% minimum discount plus the stock, price, image, affiliate-link, "
             "market-value, absolute-saving, product-repeat, and family-diversity checks. "
             "Open-ended offers are accepted only after live stock/current-price validation."
         )
