@@ -59,4 +59,4 @@ jobs:
           PY
       - name: Run OfferChin regression suite
         working-directory: affilio_radar
-        run: python -m unittest -v test_affilio
+        run: python -m unittest -v test_affilio test_content_delivery
