@@ -2453,8 +2453,9 @@ class AffilioRadarTests(unittest.TestCase):
             enrich_click_statistics(products)
         self.assertEqual(products[0]["click_count_30d"], 0)
 
-    def test_clicks_break_ties_only_after_discount_saving_and_verified_market(self):
+    def test_channel_click_counts_do_not_masquerade_as_market_demand(self):
         low_clicks = {
+            "current_demand_verified": False,
             "discount_percent": 60,
             "savings_toman": 900_000,
             "market_status": "verified",
@@ -2463,7 +2464,7 @@ class AffilioRadarTests(unittest.TestCase):
             "click_count_30d": 2,
         }
         high_clicks = {**low_clicks, "click_count_30d": 11}
-        self.assertGreater(deal_sort_key(high_clicks), deal_sort_key(low_clicks))
+        self.assertEqual(deal_sort_key(high_clicks), deal_sort_key(low_clicks))
         weaker_discount = {**high_clicks, "discount_percent": 59}
         self.assertGreater(deal_sort_key(high_clicks), deal_sort_key(weaker_discount))
 
