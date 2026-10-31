@@ -38,10 +38,12 @@ jobs:
       - name: Install lightweight crawler dependency
         run: python -m pip install --disable-pip-version-check requests
 
-      - name: Validate crawler source and queue recovery
-        run: |
-          python -m py_compile affilio_radar/catalog_sweep.py affilio_radar/parallel_catalog_sweep.py affilio_radar/product_quality.py
-          python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_parallel_catalog_sweep -v
+      - name: Validate crawler syntax
+        run: python -m py_compile affilio_radar/catalog_sweep.py affilio_radar/parallel_catalog_sweep.py affilio_radar/product_quality.py
+
+      - name: Run crawler regressions outside routine scheduled sweeps
+        if: ${{ github.event_name != 'schedule' }}
+        run: python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_parallel_catalog_sweep -v
 
       - name: Sweep catalog pages concurrently
         env:
