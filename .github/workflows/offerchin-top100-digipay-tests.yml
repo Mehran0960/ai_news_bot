@@ -53,8 +53,10 @@ jobs:
               "current_price": 10_000_000, "original_price": 12_000_000,
               "discount_percent": 17,
           }, radar.build_affilio_tracking_link(url))
-          assert "خرید اقساطی با دیجی‌پی" in caption
-          assert "در صورت نمایش گزینه و احراز شرایط" in caption
+          assert "<b>💳 با امکان خرید اقساطی (دیجی پی)</b>" in caption
+          assert "در صورت نمایش گزینه" not in caption
+          assert "احراز شرایط" not in caption
+          assert "دیجی‌پی" not in caption
           print("DIGIPAY_IMAGE_AND_CAPTION_OK")
           PY
       - name: Run OfferChin regression suite
