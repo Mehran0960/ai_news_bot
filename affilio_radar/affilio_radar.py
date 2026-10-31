@@ -4984,7 +4984,7 @@ def _recent_caption_repair_records(published: dict, limit: int) -> list[tuple[st
     return sorted(candidates, key=posted_at, reverse=True)[:limit]
 
 
-DIGIPAY_IMAGE_LAYOUT_VERSION = 4
+DIGIPAY_IMAGE_LAYOUT_VERSION = 5
 DIGIPAY_RECENT_POST_LOOKBACK_HOURS = 46.5
 
 
