@@ -71,8 +71,12 @@ jobs:
           print("OFFERCHIN_STATE_PERSISTENCE_WORKTREE_RESET_VALIDATED")
           PY
 
-      - name: Validate current-demand sampling calibration
-        run: python -m unittest affilio_radar.test_affilio.AffilioRadarTests.test_no_current_demand_gate_for_verified_discount affilio_radar.test_affilio.AffilioRadarTests.test_digipay_credit_line_is_added_to_digikala_captions_only -v
+      - name: Validate popularity-first selection and DigiPay caption
+        run: |
+          cd affilio_radar
+          python -m unittest \
+            test_affilio.AffilioRadarTests.test_no_current_demand_gate_for_verified_discount \
+            test_affilio.AffilioRadarTests.test_digipay_credit_line_is_added_to_digikala_captions_only -v
 
       # Discovery/selection is a distinct stage. It writes the neutral content queue only.
       # Any later publisher adapter can consume that same selected payload without changing discovery.
