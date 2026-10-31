@@ -47,7 +47,7 @@ def _utc(value: Any) -> datetime | None:
 
 
 def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
-    """Keep only backups that still pass their assigned tier and verified-demand gate."""
+    """Keep only backups that pass live stock/price/title/discount checks; normalize legacy tiers."""
     if not isinstance(candidates, list):
         return []
     eligible: list[dict] = []
