@@ -314,6 +314,10 @@ class AffilioRadarTests(unittest.TestCase):
             bale_caption,
         )
 
+    def test_digikala_caption_mentions_conditional_digipay_credit(self):
+        # Backward-compatible test name used by the independent publisher workflow.
+        self.test_digikala_caption_uses_exact_digipay_installment_sentence()
+
     def test_recent_digipay_selector_includes_all_recent_active_retailer_posts(self):
         from affilio_radar import _recent_digipay_repair_records
 
