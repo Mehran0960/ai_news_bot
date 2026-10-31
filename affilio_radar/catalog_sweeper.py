@@ -343,7 +343,7 @@ def _default_state() -> dict:
         "category_order": [str(ROOT_CATEGORY_ID)],
         "pages_processed_total": 0,
         "products_seen_total": 0,
-        "unique_discounted_products_total": 0,
+        "discounted_candidate_cards_seen_total": 0,
         "last_error": None,
         "last_cycle_completed_at": None,
         "last_full_cycle_completed_at": None,
