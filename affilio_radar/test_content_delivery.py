@@ -482,17 +482,17 @@ class ContentDeliveryQueueTests(unittest.TestCase):
     def test_stale_primary_promotes_next_backup_as_immediately_due(self):
         state = {}
         enqueue_selected_content(
-            state, [self.item("dkp-primary")], now=self.now, interval_seconds=1200,
+            state, [self.item("dkp-99001")], now=self.now, interval_seconds=1200,
         )
-        primary = state["content_delivery_queue"]["dkp-primary"]
+        primary = state["content_delivery_queue"]["dkp-99001"]
         primary["fallback_candidates"] = [
-            self.item("dkp-backup", demand=45),
-            self.item("dkp-last", demand=40),
+            self.item("dkp-99002", demand=45),
+            self.item("dkp-99003", demand=40),
         ]
         fallback_candidates = list(primary["fallback_candidates"])
 
         finish_queue_item(
-            state, "dkp-primary", "stale_selection",
+            state, "dkp-99001", "stale_selection",
             now=self.now, detail="live_discount_no_longer_eligible",
         )
         promoted = promote_fallback_selection(
@@ -500,12 +500,12 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             reason="live_discount_no_longer_eligible",
         )
 
-        self.assertEqual(promoted, "dkp-backup")
+        self.assertEqual(promoted, "dkp-99002")
         due = due_content(state, now=self.now, limit=1)
-        self.assertEqual([pid for pid, _entry in due], ["dkp-backup"])
+        self.assertEqual([pid for pid, _entry in due], ["dkp-99002"])
         self.assertEqual(
             [item["product_id"] for item in due[0][1]["fallback_candidates"]],
-            ["dkp-last"],
+            ["dkp-99003"],
         )
         self.assertEqual(
             due[0][1]["fallback_promoted_after"],
@@ -516,13 +516,13 @@ class ContentDeliveryQueueTests(unittest.TestCase):
     def test_publisher_uses_backup_in_same_run_after_primary_fails_live_check(self):
         state = {}
         enqueue_selected_content(
-            state, [self.item("dkp-primary")], now=self.now, interval_seconds=1200,
+            state, [self.item("dkp-99001")], now=self.now, interval_seconds=1200,
         )
-        state["content_delivery_queue"]["dkp-primary"]["fallback_candidates"] = [
-            self.item("dkp-backup", demand=45)
+        state["content_delivery_queue"]["dkp-99001"]["fallback_candidates"] = [
+            self.item("dkp-99002", demand=45)
         ]
         backup = {
-            **self.item("dkp-backup", demand=45),
+            **self.item("dkp-99002", demand=45),
             "image_url": "https://example.com/backup.jpg",
             "merchant": "دیجی‌کالا",
         }
@@ -555,16 +555,16 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             self.assertEqual(publish_due_queue(), 0)
 
         self.assertEqual(revalidate.call_count, 2)
-        self.assertNotIn("dkp-primary", state["content_delivery_queue"])
-        self.assertNotIn("dkp-backup", state["content_delivery_queue"])
+        self.assertNotIn("dkp-99001", state["content_delivery_queue"])
+        self.assertNotIn("dkp-99002", state["content_delivery_queue"])
         self.assertEqual(
             [item["product_id"] for item in state["content_delivery_history"]],
-            ["dkp-primary", "dkp-backup"],
+            ["dkp-99001", "dkp-99002"],
         )
         self.assertEqual(state["content_delivery_history"][0]["status"], "stale_selection")
         self.assertEqual(state["content_delivery_history"][1]["status"], "published")
-        self.assertIn("dkp-primary", state["selection_rejections"])
-        self.assertIn("dkp-backup", state["published"])
+        self.assertIn("dkp-99001", state["selection_rejections"])
+        self.assertIn("dkp-99002", state["published"])
 
 
     def test_terminal_queue_item_moves_to_bounded_history(self):
