@@ -513,6 +513,60 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
 
 
+    def test_publisher_uses_backup_in_same_run_after_primary_fails_live_check(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-primary")], now=self.now, interval_seconds=1200,
+        )
+        state["content_delivery_queue"]["dkp-primary"]["fallback_candidates"] = [
+            self.item("dkp-backup", demand=45)
+        ]
+        backup = {
+            **self.item("dkp-backup", demand=45),
+            "image_url": "https://example.com/backup.jpg",
+            "merchant": "دیجی‌کالا",
+        }
+
+        def fake_photo(state_arg, entry, record, item, image_bytes, destination, now):
+            entry["platforms"][destination]["status"] = "sent"
+            entry["platforms"][destination]["updated_at"] = now.isoformat()
+            record.setdefault("delivery_status", {})[destination] = "sent"
+            record[f"{destination}_message_id"] = 100 + len(destination)
+
+        def fake_video(state_arg, entry, record, now):
+            for destination in ("youtube", "aparat"):
+                entry["platforms"][destination]["status"] = "not_connected"
+                record.setdefault("delivery_status", {})[destination] = "not_connected"
+
+        with (
+            patch("publisher.radar.load_state", return_value=state),
+            patch("publisher._save"),
+            patch(
+                "publisher._fresh_selected_item",
+                side_effect=[
+                    (None, "live_discount_no_longer_eligible"),
+                    (backup, ""),
+                ],
+            ) as revalidate,
+            patch("publisher.radar._fetch_image", return_value=b"image"),
+            patch("publisher._process_photo_destination", side_effect=fake_photo),
+            patch("publisher._process_video_destinations", side_effect=fake_video),
+        ):
+            self.assertEqual(publish_due_queue(), 0)
+
+        self.assertEqual(revalidate.call_count, 2)
+        self.assertNotIn("dkp-primary", state["content_delivery_queue"])
+        self.assertNotIn("dkp-backup", state["content_delivery_queue"])
+        self.assertEqual(
+            [item["product_id"] for item in state["content_delivery_history"]],
+            ["dkp-primary", "dkp-backup"],
+        )
+        self.assertEqual(state["content_delivery_history"][0]["status"], "stale_selection")
+        self.assertEqual(state["content_delivery_history"][1]["status"], "published")
+        self.assertIn("dkp-primary", state["selection_rejections"])
+        self.assertIn("dkp-backup", state["published"])
+
+
     def test_terminal_queue_item_moves_to_bounded_history(self):
         state = {}
         enqueue_selected_content(state, [self.item()], now=self.now)
