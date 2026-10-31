@@ -277,7 +277,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(get.call_args.kwargs["headers"]["Origin"], "https://snappshop.ir")
 
 
-    def test_digikala_caption_mentions_conditional_digipay_credit(self):
+    def test_digikala_caption_uses_exact_digipay_installment_sentence(self):
         product_url = "https://www.digikala.com/product/dkp-990001/"
         caption = build_caption({
             "title": "گوشی نمونه",
@@ -290,12 +290,12 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>", caption)
         self.assertNotIn("────────────\n\n<b>💚 قیمت فعلی:", caption)
         self.assertIn("<b>⚡️ ۱۷٪ تخفیف</b>", caption)
-        self.assertIn("<b>💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)</b>", caption)
+        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
         self.assertIn(
             "\n\n────────────\n"
             "<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>\n\n"
             "<b>⚡️ ۱۷٪ تخفیف</b>\n\n"
-            "<b>💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)</b>\n────────────\n\n"
+            "<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\n────────────\n\n"
             '<a href="https://t.me/OfferChin">➕ عضویت در کانال آفِرچین</a>',
             caption,
         )
@@ -308,7 +308,7 @@ class AffilioRadarTests(unittest.TestCase):
         }, build_affilio_tracking_link(product_url), "https://ble.ir/OfferChin", True)
         self.assertIn("*💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان*", bale_caption)
         self.assertIn("*⚡️ ۱۷٪ تخفیف*", bale_caption)
-        self.assertIn("*💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)*", bale_caption)
+        self.assertIn("*💳 با امکان خرید اقساطی (دیجی پی)*", bale_caption)
         self.assertIn(
             "\n────────────\n\n[➕ عضویت در کانال آفِرچین](https://ble.ir/OfferChin)",
             bale_caption,
@@ -340,6 +340,47 @@ class AffilioRadarTests(unittest.TestCase):
             ["snp-201", "dkp-101", "dkp-102"],
         )
 
+    def test_all_active_published_product_selector_includes_every_platform_post(self):
+        from affilio_radar import _all_active_published_product_records
+
+        now = 2_000_000_000.0
+        published = {
+            "dkp-old": {"ts": now - 100 * 86400, "telegram_message_id": 11},
+            "snp-middle": {"ts": now - 3 * 86400, "bale_message_id": 22},
+            "dkp-new": {
+                "ts": now - 60,
+                "telegram_message_id": 33,
+                "bale_message_id": 44,
+                "bale_expiry_status": "deleted",
+            },
+            "dkp-deleted": {
+                "ts": now - 10,
+                "telegram_message_id": 55,
+                "expiry_status": "deleted",
+                "bale_message_id": 66,
+                "bale_expiry_status": "already_absent",
+            },
+            "dkp-invalid": {"ts": now - 20, "telegram_message_id": "bad-id"},
+            "other-record": {"ts": now - 30, "telegram_message_id": 77},
+        }
+
+        selected = _all_active_published_product_records(published)
+        self.assertEqual(
+            [product_key for product_key, _record in selected],
+            ["dkp-old", "snp-middle", "dkp-new"],
+        )
+
+    def test_exact_digipay_installment_sentence_has_no_extra_qualifier(self):
+        product_url = "https://www.digikala.com/product/dkp-990002/"
+        caption = build_caption(
+            {"title": "نمونه", "product_url": product_url, "merchant": "دیجی‌کالا"},
+            build_affilio_tracking_link(product_url),
+        )
+        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
+        self.assertNotIn("در صورت نمایش گزینه", caption)
+        self.assertNotIn("احراز شرایط", caption)
+        self.assertNotIn("دیجی‌پی", caption)
+
     def test_recent_digipay_selector_includes_all_recent_active_digikala_posts(self):
         # Compatibility name used by the already-queued workflow definition.
         self.test_recent_digipay_selector_includes_all_recent_active_retailer_posts()
@@ -368,11 +409,11 @@ class AffilioRadarTests(unittest.TestCase):
         }, affiliate)
         self.assertIn("🔥 فروش ویژه اسنپ‌شاپ 🟣", caption)
         self.assertNotIn("دیجی‌کالا", caption)
-        self.assertIn("<b>💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)</b>", caption)
+        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
         self.assertIn(
             "\n\n────────────\n<b>💚 قیمت فعلی: ۱٬۰۶۵٬۰۰۰ تومان</b>"
             "\n\n<b>⚡️ ۵۳٪ تخفیف</b>"
-            "\n\n<b>💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)</b>\n────────────",
+            "\n\n<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\n────────────",
             caption,
         )
 
