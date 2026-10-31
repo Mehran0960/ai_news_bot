@@ -78462,9 +78462,9 @@
       "youtube_upload_status": "skipped_unverified_deadline"
     },
     "dkp-12841195": {
-      "aparat_expiry_attempts": 20,
+      "aparat_expiry_attempts": 21,
       "aparat_expiry_last_error": "RuntimeError",
-      "aparat_expiry_next_attempt_at": "2026-10-31T22:47:51.934714+00:00",
+      "aparat_expiry_next_attempt_at": "2026-10-31T22:52:57.332387+00:00",
       "aparat_expiry_status": "delete_retry",
       "aparat_upload_started_at": "2026-10-31T02:47:39.648225+00:00",
       "aparat_upload_status": "uploaded",
@@ -79854,9 +79854,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-15649116": {
-      "aparat_expiry_attempts": 19,
+      "aparat_expiry_attempts": 20,
       "aparat_expiry_last_error": "RuntimeError",
-      "aparat_expiry_next_attempt_at": "2026-10-31T22:47:51.934714+00:00",
+      "aparat_expiry_next_attempt_at": "2026-10-31T22:52:57.332387+00:00",
       "aparat_expiry_status": "delete_retry",
       "aparat_upload_started_at": "2026-10-31T10:44:01.209516+00:00",
       "aparat_upload_status": "uploaded",
@@ -88734,8 +88734,11 @@
     },
     "dkp-21641890": {
       "aparat_upload_status": "skipped_unverified_deadline",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 1158,
+      "caption_countdown_refreshed_at": "2026-10-31T22:50:26.592242+00:00",
       "caption_deadline_format_version": 14,
+      "caption_without_expiry_migrated_at": "2026-10-31T22:50:26.592266+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "current_demand_score": 27,
@@ -88763,6 +88766,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "historical_popularity_score": 27,
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/ca5b34c9e828b2f09f29c3623f4595f320e032c5_1775912786.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 3655000,
@@ -96312,7 +96316,9 @@
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1157,
+      "caption_countdown_refreshed_at": "2026-10-31T22:50:32.275241+00:00",
       "caption_deadline_format_version": 14,
+      "caption_without_expiry_migrated_at": "2026-10-31T22:50:32.275270+00:00",
       "click_count_30d": 0,
       "click_tracking_url": "",
       "current_demand_score": 22,
