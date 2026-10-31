@@ -2,6 +2,8 @@ name: OfferChin DigiKala Catalog Sweep
 
 on:
   push:
+    branches:
+      - "main"
     paths:
       - ".github/workflows/offerchin-digikala-catalog-sweep.yml"
       - "affilio_radar/catalog_sweep.py"
