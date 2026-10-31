@@ -39,6 +39,7 @@ CONFIG = ROOT / "config" / "products.json"
 STATE = ROOT / "state.json"
 REPORT = ROOT / "candidates.json"
 DIVERSITY_REPORT = ROOT / "diversity_report.json"
+CATALOG_CANDIDATES = ROOT / "catalog_candidates.json"
 TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@OfferChin").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
@@ -2936,6 +2937,83 @@ def _rotating_search_terms(slot: int, batch_size: int) -> list[str]:
     return SEARCH_TERMS[offset:] + SEARCH_TERMS[:offset]
 
 
+
+
+def load_catalog_sweep_candidates(max_age_hours: int = 72) -> list[dict]:
+    """Load fresh page-level DigiKala catalog candidates from the independent sweep.
+
+    The catalog worker never publishes. These rows are only discovery hints:
+    every candidate still passes the radar's own live price, stock, affiliate,
+    market-value, expiry, and publication eligibility checks.
+    """
+    try:
+        payload = json.loads(CATALOG_CANDIDATES.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    if not isinstance(payload, dict) or not isinstance(payload.get("products"), list):
+        return []
+    updated = _parse_utc_datetime(payload.get("updated_at"))
+    current = datetime.now(timezone.utc)
+    if updated is None or (current - updated).total_seconds() > max(1, int(max_age_hours)) * 3600:
+        print("CATALOG_SWEEP_CANDIDATES_IGNORED reason=missing_or_stale_snapshot")
+        return []
+    candidates = []
+    seen = set()
+    for raw in payload["products"]:
+        if not isinstance(raw, dict):
+            continue
+        url = safe_product_url(raw.get("product_url") or "")
+        pid = product_id(url) if url else ""
+        title = _clean_title(raw.get("title") or "")
+        if (
+            not pid
+            or pid in seen
+            or not is_publishable_product_title(title)
+            or is_prohibited_product_title(title)
+        ):
+            continue
+        try:
+            discount = max(0, min(100, int(raw.get("discount_percent") or 0)))
+            savings = max(0, int(raw.get("savings_toman") or 0))
+            reviews = max(0, int(raw.get("review_count") or 0))
+            rating = float(raw.get("rating") or 0)
+            demand = max(0, int(raw.get("demand_score") or 0))
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if discount <= 0:
+            continue
+        seen.add(pid)
+        row = dict(raw)
+        row.update({
+            "product_id": pid,
+            "product_url": url,
+            "title": title,
+            "discount_percent": discount,
+            "savings_toman": savings,
+            "review_count": reviews,
+            "rating": rating,
+            "demand_score": demand,
+            "source": "digikala_catalog_sweep",
+            "deal_expires_at": "",
+        })
+        candidates.append(row)
+    candidates.sort(
+        key=lambda item: (
+            _candidate_demand_score(item),
+            max(0, int(item.get("review_count") or 0)),
+            round(float(item.get("rating") or 0) * 10),
+            max(0, int(item.get("discount_percent") or 0)),
+            max(0, int(item.get("savings_toman") or 0)),
+        ),
+        reverse=True,
+    )
+    print(
+        f"CATALOG_SWEEP_CANDIDATES_LOADED count={len(candidates)} "
+        f"snapshot_updated_at={payload.get('updated_at')}"
+    )
+    return candidates
+
+
 def discover_product_urls(
     queued_records: dict[str, dict] | None = None,
     discovery_queue: dict[str, dict] | None = None,
@@ -3141,6 +3219,16 @@ def discover_product_urls(
         )
     except Exception as exc:
         print(f"EXPIRY_MCP_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
+
+    # The independent catalog sweep rotates through queryable DigiKala category pages.
+    # Its shortlist is a discovery source only; the normal live validators still decide eligibility.
+    catalog_candidates = load_catalog_sweep_candidates()
+    if catalog_candidates:
+        deals_found.extend(catalog_candidates)
+    print(
+        f"CATALOG_SWEEP_HANDOFF candidates={len(catalog_candidates)} "
+        "live_verification_required=true publisher_isolated=true"
+    )
 
     best_by_url = {}
     for row in deals_found:
