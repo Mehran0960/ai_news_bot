@@ -62,14 +62,13 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
                 selected_floor = int(raw_floor)
             except (TypeError, ValueError, OverflowError):
                 continue
-        if selected_floor not in radar.DISCOUNT_FALLBACK_FLOORS:
+        if not 1 <= selected_floor <= 100:
             continue
-        if radar.is_discount_publish_eligible(
-            candidate,
-            minimum_discount_percent=selected_floor,
-            now=now,
-        ):
-            eligible.append(candidate)
+        if radar.is_discount_publish_eligible(candidate, now=now):
+            normalized = dict(candidate)
+            normalized["selection_discount_floor"] = 1
+            normalized["selection_discount_band"] = "any_positive_discount"
+            eligible.append(normalized)
     return eligible
 
 
@@ -225,20 +224,17 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     product_id = str(payload.get("product_id") or "").lower()
     if not product_url or radar.product_id(product_url) != product_id:
         return None, "invalid_product_identity"
-    # New selections carry the exact floor for their chosen band. Legacy queue
-    # items without tier metadata remain on the preferred 50% floor.
+    # Ignore legacy tier metadata. Any positive, verified live discount can qualify;
+    # retailer review growth is only a popularity-ranking signal, never a hard gate.
     raw_discount_floor = payload.get("selection_discount_floor")
-    minimum_discount_percent = None
     if raw_discount_floor is not None:
         try:
-            minimum_discount_percent = int(raw_discount_floor)
+            legacy_floor = int(raw_discount_floor)
         except (TypeError, ValueError, OverflowError):
             return None, "invalid_selection_discount_floor"
-        if minimum_discount_percent not in radar.DISCOUNT_FALLBACK_FLOORS:
+        if not 1 <= legacy_floor <= 100:
             return None, "invalid_selection_discount_floor"
-
-    if not radar.has_current_demand_signal(payload, now):
-        return None, "selected_item_lacks_fresh_current_demand_signal"
+    minimum_discount_percent = None
 
     try:
         fresh = radar.fetch_product_record(product_url)
@@ -253,11 +249,8 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     fresh["product_id"] = product_id
     fresh["product_url"] = product_url
     fresh["merchant"] = "اسنپ‌شاپ" if product_id.startswith("snp-") else "دیجی‌کالا"
-    fresh["selection_discount_floor"] = (
-        minimum_discount_percent
-        if minimum_discount_percent is not None
-        else radar.DISCOUNT_FALLBACK_FLOORS[0]
-    )
+    fresh["selection_discount_floor"] = 1
+    fresh["selection_discount_band"] = "any_positive_discount"
     selection_band = str(payload.get("selection_discount_band") or "").strip()
     if selection_band:
         fresh["selection_discount_band"] = selection_band
@@ -272,16 +265,8 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     if live_price != selected_price:
         return None, f"selected_price_stale_selected={selected_price}_live={live_price}"
 
-    # Keep the verified recent-activity signal and approved tracking link, but
-    # never reuse a stale listed price. The price/stock and image are freshly read.
-    try:
-        selected_review_count = int(payload.get("review_count") or 0)
-        live_review_count = int(fresh.get("review_count") or 0)
-    except (TypeError, ValueError, OverflowError):
-        return None, "live_review_count_unusable"
-    if live_review_count < selected_review_count:
-        return None, "live_review_count_decreased_since_selection"
-
+    # Preserve ranking context for diagnostics, but do not require review growth
+    # or stable cumulative review counts to accept a live, in-stock product.
     fresh["affiliate_url"] = str(payload.get("affiliate_url") or "").strip()
     if not fresh["affiliate_url"]:
         fresh["affiliate_url"] = radar.build_affilio_tracking_link(product_url)
@@ -357,9 +342,7 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
 
     if fresh.get("availability") != "in_stock":
         return None, "live_stock_not_confirmed"
-    if not radar.is_discount_publish_eligible(
-        fresh, minimum_discount_percent=minimum_discount_percent, now=now
-    ):
+    if not radar.is_discount_publish_eligible(fresh, now=now):
         return None, "live_discount_no_longer_eligible"
     if not radar.is_market_value_publish_eligible(fresh):
         return None, "live_market_value_rejected"

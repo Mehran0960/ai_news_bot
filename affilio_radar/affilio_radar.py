@@ -31,8 +31,8 @@ except ImportError:
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from offerchin_visuals import (
-    draw_discount_burst, draw_retailer_badge, adaptive_text_colors,
-    discount_badge_dimensions_for_reference_bounds,
+    draw_discount_burst, draw_retailer_badge, draw_digipay_badge,
+    adaptive_text_colors, discount_badge_dimensions_for_reference_bounds,
 )
 from integrity_audit_state import apply_integrity_audit_ledger
 import arabic_reshaper
@@ -60,14 +60,13 @@ FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "fa
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
 BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(20, int(os.getenv("AFFILIO_MAX_PER_QUERY", "12"))))
-MAX_PRODUCT_CHECKS = max(1, min(90, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "90"))))
-# Expand live verification so a temporary thin 60-item feed does not starve the publisher.
-# Quality gates (50%+ listed discount, 100k toman saving, live stock/price) stay unchanged.
+MAX_PRODUCT_CHECKS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "100"))))
+# Inspect up to 100 demand-ranked catalog candidates per run; verify live stock and price before publication.
 SNAPPSHOP_RESERVED_CANDIDATES = max(4, min(12, MAX_PRODUCT_CHECKS // 7))
 SNAPPSHOP_QUERIES_PER_SCAN = max(1, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN", "4"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
 # Independent Telegram/Bale volume guard, counted by Iran's calendar day; never reserve or gate channel posts on YouTube API quota.
-MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "70"))))
+MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "90"))))
 # Current channel uploadLimitExceeded behavior is consistent with ~8/day; keep Shorts evenly spaced.
 YOUTUBE_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS", "3"))))
 # Aparat has an independent cadence and remains eligible during a YouTube quota pause.
@@ -75,7 +74,7 @@ APARAT_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_APARAT_UPLO
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(10, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "8"))))
-MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.03333333333333333")))
+MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.3333333333333333")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
@@ -94,11 +93,11 @@ COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
 CAPTION_DEADLINE_FORMAT_VERSION = 14
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
-URGENT_MIN_POST_INTERVAL_MINUTES = 10
+URGENT_MIN_POST_INTERVAL_MINUTES = 20
 DEADLINE_CRITICAL_WINDOW_MINUTES = 120
 # Offers inside the hard 90-minute cutoff are rejected instead of being rushed out.
 ULTRA_URGENT_WINDOW_MINUTES = 0
-ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 5
+ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 20
 URGENT_MIN_DISCOUNT_PERCENT = 80
 URGENT_MIN_SAVINGS_TOMAN = 500_000
 URGENT_MIN_DEMAND_SCORE = 55
@@ -106,12 +105,12 @@ IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
 PREFERRED_POSTING_WINDOWS = (("morning", 9, 11), ("afternoon", 14, 17), ("evening", 20, 23))
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
 MCP_OFFER_PAGES_PER_SCAN = max(1, min(DEAL_LIST_PAGES, int(os.getenv("AFFILIO_MCP_PAGES_PER_SCAN", "2"))))
-# Keep 50% as the preferred band. Lower bands are considered only when no
-# fresh, fully-qualified candidate exists in every higher band.
-MIN_DISCOUNT_PERCENT = max(50, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "50"))))
-DISCOUNT_FALLBACK_FLOORS = (50, 45, 40, 35)
-MIN_DISCOUNT_FALLBACK_PERCENT = min(DISCOUNT_FALLBACK_FLOORS)
-MIN_SAVINGS_TOMAN = 100_000
+# No arbitrary discount floor: a positive, currently listed discount can compete.
+MIN_DISCOUNT_PERCENT = max(1, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "1"))))
+# Any positive listed discount can compete; popularity ranks first and discount strength breaks ties.
+DISCOUNT_FALLBACK_FLOORS = (1,)
+MIN_DISCOUNT_FALLBACK_PERCENT = 1
+MIN_SAVINGS_TOMAN = 1
 # "Current demand" is measured from recent retailer review/rating-count growth,
 # not from lifetime totals, channel clicks, or guessed sales volume.
 # A single newly observed review within the last day is a real, recent
@@ -2564,24 +2563,16 @@ def has_meaningful_discount(
     record: dict,
     minimum_discount_percent: int | None = None,
 ) -> bool:
-    """Validate a real listed reduction against the active staged discount floor.
-
-    The default remains the preferred 50% band. Explicit lower floors are only
-    supplied by the selector/publisher for the 45/40/35% fallback bands.
-    The minimum absolute saving remains 100,000 toman.
-    """
+    """Accept any positive listed discount; popularity and deal strength rank qualifying offers."""
     if not isinstance(record, dict):
         return False
     try:
         discount = max(0, int(record.get("discount_percent") or 0))
         savings = max(0, int(record.get("savings_toman") or 0))
-        floor = MIN_DISCOUNT_PERCENT if minimum_discount_percent is None else max(
-            MIN_DISCOUNT_FALLBACK_PERCENT,
-            min(100, int(minimum_discount_percent)),
-        )
     except (TypeError, ValueError, OverflowError):
         return False
-    return discount >= floor and savings >= MIN_SAVINGS_TOMAN and savings > 0
+    # Old queued items can carry legacy floor metadata; it is no longer a gate.
+    return discount >= 1 and savings >= 1
 
 
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
@@ -2623,7 +2614,7 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
     first_seen = _parse_utc_datetime(record.get("first_seen_at"))
     first_seen_ts = first_seen.timestamp() if first_seen else current.timestamp()
     return (
-        _candidate_demand_score(record), reviews, rating_score, discount,
+        reviews, rating_score, _candidate_demand_score(record), discount,
         clicks, market_verified, market_advantage, value_gate,
         _candidate_promo_score(record), savings, int(has_runway), urgency_tier,
         -remaining if active_deadline else float("-inf"), -first_seen_ts,
@@ -3939,7 +3930,7 @@ def score_product(p: dict) -> dict:
 
 
 def deal_sort_key(p: dict) -> tuple:
-    """Rank retailer-side demand signals first and discount percentage second."""
+    """Rank product popularity proxies first, then recent activity, then live discount strength."""
     verified_median = (
         p.get("market_status") == "verified"
         and p.get("market_reference_kind") == "seller_median"
@@ -3952,9 +3943,14 @@ def deal_sort_key(p: dict) -> tuple:
         market_advantage = -101
     try:
         rating_score = round(float(p.get("rating") or 0) * 10)
+        reviews = max(0, int(p.get("review_count") or 0))
     except (TypeError, ValueError, OverflowError):
         rating_score = 0
+        reviews = 0
     return (
+        max(0, min(100, int(p.get("historical_popularity_score") or 0))),
+        reviews,
+        rating_score,
         _candidate_demand_score(p),
         max(0, int(p.get("discount_percent") or 0)),
         market_known, market_advantage, int(has_meaningful_discount(p)),
@@ -4084,12 +4080,11 @@ def is_discount_publish_eligible(
     minimum_discount_percent: int | None = None,
     now: datetime | None = None,
 ) -> bool:
-    """Require verified stock, a complete offer, and measured recent retailer activity."""
+    """Require verified stock, complete product data, and a positive currently listed discount."""
     return bool(
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
-        and has_current_demand_signal(product, now)
         and has_meaningful_discount(product, minimum_discount_percent)
     )
 
@@ -4275,7 +4270,7 @@ def build_caption(
     channel_label: str = TELEGRAM_CHANNEL_URL,
     use_unicode_strikethrough: bool = False,
 ) -> str:
-    """Build a concise cross-platform caption with a clear price hierarchy and channel CTA."""
+    """Build a concise caption with price, DigiPay financing note for DigiKala, and channel CTA."""
     is_bale = use_unicode_strikethrough
 
     def bold(value: str) -> str:
@@ -4321,6 +4316,12 @@ def build_caption(
     if discount is not None and int(discount) > 0:
         discount_value = format_persian_number(discount) + "٪"
         parts.append(bold(f"⚡️ {discount_value} تخفیف"))
+
+    # DigiPay credit is a DigiKala-specific payment option, subject to its terms,
+    # eligible basket items, and the customer's approved credit. Never apply it to SnappShop.
+    merchant_text = str(merchant or "").strip().lower()
+    if "snapp" not in merchant_text and "اسنپ" not in merchant_text:
+        parts += ["", "💳 امکان خرید اقساطی با دیجی‌پی (طبق شرایط و کالاهای مشمول)"]
 
     # Keep one source-channel membership link for forwarded posts; the purchase button
     # remains a separate inline button and its presence is validated by the sender.
@@ -4431,6 +4432,17 @@ def build_discount_image(
 
     # Store identity sits opposite the discount tile; both target bounds are identical.
     draw_retailer_badge(image, brand_margin, brand_margin, store_badge_width, store_badge_height, merchant)
+    merchant_text = str(merchant or "").strip().lower()
+    if "snapp" not in merchant_text and "اسنپ" not in merchant_text:
+        # Keep DigiPay directly below the DigiKala badge, with matching bounds and alignment.
+        digipay_gap = max(4, int(store_badge_height * 0.08))
+        draw_digipay_badge(
+            image,
+            brand_margin,
+            brand_margin + store_badge_height + digipay_gap,
+            store_badge_width,
+            store_badge_height,
+        )
 
     # Keep the channel IDs at the lower-left without a card or solid panel.
     # Choose each text color from the pixels directly behind it; use a thin opposing
@@ -4606,14 +4618,15 @@ def _has_pending_delivery(record: dict) -> bool:
 def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliate_url: str):
     """Render and send only offers that pass their own selected discount tier."""
     raw_floor = item.get("selection_discount_floor")
-    minimum_discount_percent = None
     if raw_floor is not None:
         try:
-            minimum_discount_percent = int(raw_floor)
+            legacy_floor = int(raw_floor)
         except (TypeError, ValueError, OverflowError):
-            raise RuntimeError("Refusing to send an OfferChin post with an invalid discount tier")
-        if minimum_discount_percent not in DISCOUNT_FALLBACK_FLOORS:
-            raise RuntimeError("Refusing to send an OfferChin post with an unsupported discount tier")
+            raise RuntimeError("Refusing to send an OfferChin post with invalid legacy selection metadata")
+        if not 1 <= legacy_floor <= 100:
+            raise RuntimeError("Refusing to send an OfferChin post with out-of-range legacy selection metadata")
+    # No arbitrary percentage floor remains; the live positive discount is checked below.
+    minimum_discount_percent = None
     if not is_discount_publish_eligible(
         item,
         minimum_discount_percent=minimum_discount_percent,
@@ -4621,8 +4634,7 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
     ):
         floor_label = minimum_discount_percent or DISCOUNT_FALLBACK_FLOORS[0]
         raise RuntimeError(
-            "Refusing to send an OfferChin post that fails the hard discount/current-demand gate "
-            f"({floor_label}% minimum plus verified recent activity)"
+            "Refusing to send an OfferChin post without a currently listed positive discount"
         )
     if platform == "telegram":
         photo = build_discount_image(
@@ -6262,7 +6274,7 @@ def select_publish_candidates(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> list[dict]:
-    """Rank demand/diversity within each discount tier; never let a weaker tier jump the queue."""
+    """Rank all qualifying offers in one pool: popularity, current activity, then discount."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -6277,29 +6289,28 @@ def select_publish_candidates(
         if retry_at and retry_at > current:
             deferred += 1
             continue
+        # Normalize persisted items from the retired 50/45/40/35% ladder.
         raw_floor = product.get("selection_discount_floor")
-        try:
-            floor = int(raw_floor) if raw_floor is not None else DISCOUNT_FALLBACK_FLOORS[0]
-        except (TypeError, ValueError, OverflowError):
-            continue
-        if floor not in DISCOUNT_FALLBACK_FLOORS:
-            continue
-        selected_by_floor.setdefault(floor, []).append(product)
+        if raw_floor is not None:
+            try:
+                legacy_floor = int(raw_floor)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if not 1 <= legacy_floor <= 100:
+                continue
+        product["selection_discount_floor"] = 1
+        selected_by_floor.setdefault(1, []).append(product)
     if deferred:
         print(f"PUBLISH_QUEUE_BACKOFF skipped_deferred={deferred} ready={sum(map(len, selected_by_floor.values()))}")
 
-    # Preserve the tier ladder. Current demand and multi-horizon diversity rank
-    # candidates inside a tier; they cannot promote a 45% offer above a valid 50% one.
-    ordered: list[dict] = []
-    for floor in sorted(selected_by_floor, reverse=True):
-        tier = _order_candidates_by_primary_rank(
-            selected_by_floor[floor],
-            published=published,
-            recent_publications=recent_publications,
-            now=current,
-        )
-        ordered.extend(tier)
-    return ordered
+    # All positive-discount offers now compete in the same pool. Popularity is
+    # the primary rank, then measured recent activity and live discount strength.
+    return _order_candidates_by_primary_rank(
+        selected_by_floor.get(1, []),
+        published=published,
+        recent_publications=recent_publications,
+        now=current,
+    )
 
 
 MIN_REPEAT_PRODUCT_INTERVAL_HOURS = 24
@@ -6638,12 +6649,10 @@ def select_discount_fallback_candidates(
     now: datetime | None = None,
     include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Select the best available discount band without relaxing demand or safety gates.
+    """Return one popularity-ranked pool of all positive live discounts.
 
-    The 50% band is preferred. 45/40/35% bands are considered only when no
-    candidate exists in a higher band. Every primary and backup independently
-    passes current-demand, stock, price, affiliate, market-value, expiry, and
-    product-diversity checks.
+    Review growth is only a secondary ranking signal. Essential checks for live
+    stock, price, affiliate link, market competitiveness, expiry and duplicates remain.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -6676,79 +6685,25 @@ def select_discount_fallback_candidates(
         ):
             fresh_candidates.append(product)
 
-    fallback_pool: list[dict] = []
-    first_floor: int | None = None
-    for index, floor in enumerate(DISCOUNT_FALLBACK_FLOORS):
-        upper_exclusive = DISCOUNT_FALLBACK_FLOORS[index - 1] if index > 0 else None
-        band = [
-            product for product in fresh_candidates
-            if int(product.get("discount_percent") or 0) >= floor
-            and (
-                upper_exclusive is None
-                or int(product.get("discount_percent") or 0) < upper_exclusive
-            )
-        ]
-        if not band:
-            continue
-        ranked = _order_candidates_by_primary_rank(
-            band,
-            published=state.get("published"),
-            recent_publications=state.get("recent_publications"),
-            now=current,
-            allow_family_repeat=False,
-        )
-        if not ranked:
-            print(
-                f"DISCOUNT_FALLBACK_BAND_EXHAUSTED band={discount_fallback_band_label(floor, upper_exclusive)} "
-                "reason=recent_family_cooldown"
-            )
-            # Do not use a weaker discount band to bypass a higher band whose
-            # otherwise-qualified products are temporarily excluded by diversity.
-            if first_floor is None:
-                print(
-                    f"DISCOUNT_FALLBACK_LOWER_BANDS_SUPPRESSED blocked_floor={floor}% "
-                    "reason=higher_band_blocked_by_diversity"
-                )
-                break
-            continue
-
-        label = discount_fallback_band_label(floor, upper_exclusive)
-        handoff_candidates = []
-        for product in ranked:
-            selected_product = dict(product)
-            selected_product["selection_discount_floor"] = int(floor)
-            selected_product["selection_discount_band"] = label
-            handoff_candidates.append(selected_product)
-
-        if first_floor is None:
-            first_floor = floor
-            print(
-                f"DISCOUNT_FALLBACK_SELECTED band={label} floor={floor}% "
-                f"quality_pool={len(quality_eligible)} fresh_pool={len(fresh_candidates)} "
-                f"band_candidates={len(band)}"
-            )
-        elif include_fallback_bands:
-            print(
-                f"DISCOUNT_FALLBACK_BACKUP_BAND band={label} "
-                f"floor={floor}% candidates={len(handoff_candidates)}"
-            )
-
-        if not include_fallback_bands:
-            return handoff_candidates, floor, quality_eligible
-        fallback_pool.extend(handoff_candidates)
-
-    if fallback_pool:
-        print(
-            f"DISCOUNT_FALLBACK_POOL_READY primary_floor={first_floor}% "
-            f"ranked_backups={max(0, len(fallback_pool) - 1)}"
-        )
-        return fallback_pool, first_floor, quality_eligible
+    ranked = _order_candidates_by_primary_rank(
+        fresh_candidates,
+        published=state.get("published"),
+        recent_publications=state.get("recent_publications"),
+        now=current,
+        allow_family_repeat=False,
+    )
+    handoff_candidates = []
+    for product in ranked:
+        selected_product = dict(product)
+        selected_product["selection_discount_floor"] = 1
+        selected_product["selection_discount_band"] = "any_positive_discount"
+        handoff_candidates.append(selected_product)
 
     print(
-        f"DISCOUNT_FALLBACK_EXHAUSTED floors={','.join(str(x) for x in DISCOUNT_FALLBACK_FLOORS)} "
-        f"quality_pool={len(quality_eligible)} fresh_pool={len(fresh_candidates)}"
+        f"POPULARITY_POOL_SELECTED quality_pool={len(quality_eligible)} "
+        f"fresh_pool={len(fresh_candidates)} selected={len(handoff_candidates)}"
     )
-    return [], None, quality_eligible
+    return handoff_candidates, (1 if handoff_candidates else None), quality_eligible
 
 
 def restore_selection_discount_tiers(
@@ -6771,15 +6726,15 @@ def restore_selection_discount_tiers(
             or product_id(candidate.get("product_url") or "")
         ).strip()
         try:
-            floor = int(candidate.get("selection_discount_floor"))
+            legacy_floor = int(candidate.get("selection_discount_floor") or 1)
         except (TypeError, ValueError, OverflowError):
             continue
-        if not pid or floor not in DISCOUNT_FALLBACK_FLOORS:
+        if not pid or not 1 <= legacy_floor <= 100:
             continue
-        tier = {"selection_discount_floor": floor}
-        band = str(candidate.get("selection_discount_band") or "").strip()
-        if band:
-            tier["selection_discount_band"] = band
+        tier = {
+            "selection_discount_floor": 1,
+            "selection_discount_band": "any_positive_discount",
+        }
         tiers_by_id[pid] = tier
 
     restored = 0
@@ -8201,11 +8156,9 @@ def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(
-        "Ranking mode=current-demand-first with preferred discount floor "
-        f"{MIN_DISCOUNT_PERCENT}% and fallback floors {DISCOUNT_FALLBACK_FLOORS}; "
-        f"every tier requires at least {MIN_SAVINGS_TOMAN:,} toman saved and the same verified demand, "
-        "stock, price, market-value, affiliate, expiry, and diversity gates. "
-        "If no tier passes every gate, the selection slot remains empty."
+        "Ranking mode=product-popularity-first (rating/review counts), then current activity and strongest live discount; "
+        "no minimum discount-percent or absolute-savings floor. "
+        "Stock, current price, image, affiliate, expiry, market-value, title, and duplicate checks remain."
     )
     catalog = load_catalog()
     approved = link_map(catalog)
@@ -8543,7 +8496,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": f"Products rank by measured recent growth in retailer review/rating counts; lifetime review totals, user ratings, and OfferChin clicks are not current-demand evidence. This is a recent customer-activity proxy, not a sales counter. Products without at least {CURRENT_DEMAND_MIN_REVIEW_GROWTH} additional reviews/ratings over a measured {CURRENT_DEMAND_MIN_OBSERVATION_HOURS}-hour to {CURRENT_DEMAND_WINDOW_DAYS}-day window are ineligible. Publication also requires a listed discount of at least {MIN_DISCOUNT_FALLBACK_PERCENT}% (preferred {MIN_DISCOUNT_PERCENT}%; fallback floors {DISCOUNT_FALLBACK_FLOORS}), at least {MIN_SAVINGS_TOMAN:,} toman saved, live stock/current price/image, an affiliate link, publishable title, no prohibited category, no verified market-price rejection, and no product/family repeat conflict. Lower bands are activated only when no candidate survives every higher-band gate; recent retailer-demand verification is never relaxed. Category rotation uses rolling 24-hour, 7-day, 30-day, and 365-day publication history. Confirmed deadlines require at least {MIN_PUBLICATION_RUNWAY_MINUTES} minutes remaining; offers with no verified timer remain eligible only as live open offers after stock/current-price validation.",
+        "ranking_note": "The catalog pool is ranked by product-popularity proxies (rating and total review count), with measured recent review growth as a secondary signal and live discount percentage as the next deal-strength signal. Recent growth is not a publication gate. Any positive listed discount can qualify; there is no percentage or minimum-savings floor. Publication still requires live stock, current price, image, affiliate link, a publishable title, a non-expired/open offer, and no verified market-price rejection or duplicate conflict. Confirmed deadlines require sufficient publication runway; offers with no verified timer remain eligible after live stock/current-price validation.",
         "current_demand_policy": {
             "source": "rolling retailer review/rating-count observations",
             "window_days": CURRENT_DEMAND_WINDOW_DAYS,
@@ -8551,7 +8504,7 @@ def run(publish=False, selection_only=False):
             "minimum_observation_hours": CURRENT_DEMAND_MIN_OBSERVATION_HOURS,
             "sample_interval_hours": CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS,
             "maximum_signal_age_hours": CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS,
-            "unverified_blocks_publication": True,
+            "unverified_blocks_publication": False,
             "sales_volume_claimed": False,
         },
         "price_market_policy": {

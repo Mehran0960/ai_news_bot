@@ -158,7 +158,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertIsNone(fresh)
         self.assertEqual(reason, "live_product_prohibited_title")
 
-    def test_publisher_uses_the_same_50_percent_floor_for_new_and_legacy_items(self):
+    def test_publisher_normalizes_new_and_legacy_items_to_open_discount_policy(self):
         from unittest.mock import patch
 
         product_id = "dkp-95045"
@@ -203,11 +203,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         }
 
         def discount_gate(record, minimum_discount_percent=None, now=None):
-            floor = 50 if minimum_discount_percent is None else minimum_discount_percent
-            return (
-                int(record.get("discount_percent") or 0) >= floor
-                and int(record.get("savings_toman") or 0) >= 100_000
-            )
+            return int(record.get("discount_percent") or 0) >= 1 and int(record.get("savings_toman") or 0) >= 1
 
         patches = (
             patch("publisher.radar.fetch_product_record", return_value=dict(fresh_record)),
@@ -229,11 +225,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             self.assertIsNotNone(fresh)
             self.assertEqual(reason, "")
             discount_check.assert_called_once()
-            self.assertEqual(
-                discount_check.call_args.kwargs["minimum_discount_percent"], 50
-            )
+            self.assertIsNone(discount_check.call_args.kwargs["minimum_discount_percent"])
+            self.assertEqual(fresh["selection_discount_floor"], 1)
 
-            # Older queued selections without a stored floor still default to 50%.
+            # Older queued selections without a stored floor use the same unified pool.
             discount_check.reset_mock()
             legacy_payload = dict(payload)
             legacy_payload.pop("selection_discount_floor")
@@ -242,11 +237,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             self.assertIsNotNone(fresh)
             self.assertEqual(reason, "")
             discount_check.assert_called_once()
-            self.assertIsNone(
-                discount_check.call_args.kwargs["minimum_discount_percent"]
-            )
+            self.assertIsNone(discount_check.call_args.kwargs["minimum_discount_percent"])
+            self.assertEqual(fresh["selection_discount_floor"], 1)
 
-    def test_publisher_accepts_45_percent_fallback_floor_with_fresh_demand(self):
+    def test_publisher_accepts_45_percent_offer_and_normalizes_legacy_floor(self):
         product_id = "dkp-95045"
         product_url = f"https://www.digikala.com/product/{product_id}/"
         affiliate_url = (
@@ -310,8 +304,8 @@ class ContentDeliveryQueueTests(unittest.TestCase):
 
         self.assertIsNotNone(fresh)
         self.assertEqual(reason, "")
-        self.assertEqual(fresh["selection_discount_floor"], 45)
-        self.assertEqual(fresh["selection_discount_band"], "45%–49%")
+        self.assertEqual(fresh["selection_discount_floor"], 1)
+        self.assertEqual(fresh["selection_discount_band"], "any_positive_discount")
 
     def test_publisher_rejects_invalid_selected_discount_floor(self):
         entry = {
@@ -319,7 +313,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "payload": {
                 "product_id": "dkp-95045",
                 "product_url": "https://www.digikala.com/product/dkp-95045/",
-                "selection_discount_floor": 44,
+                "selection_discount_floor": 101,
             },
         }
         fresh, reason = _fresh_selected_item(entry, self.now)
@@ -577,7 +571,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "active_publication_exists",
         )
 
-    def test_fallback_filter_accepts_configured_lower_tiers_but_rejects_unverified_demand(self):
+    def test_fallback_filter_accepts_all_positive_discount_candidates(self):
         low_discount = self.item("dkp-99008", demand=95)
         low_discount.update({"discount_percent": 45, "selection_discount_floor": 45})
         no_current_demand = self.item("dkp-99009", demand=95)
@@ -592,8 +586,9 @@ class ContentDeliveryQueueTests(unittest.TestCase):
 
         self.assertEqual(
             [item["product_id"] for item in filtered],
-            ["dkp-99008", "dkp-99010"],
+            ["dkp-99008", "dkp-99009", "dkp-99010", "dkp-99011"],
         )
+        self.assertTrue(all(item["selection_discount_floor"] == 1 for item in filtered))
 
     def test_stale_primary_promotes_next_backup_as_immediately_due(self):
         state = {}
