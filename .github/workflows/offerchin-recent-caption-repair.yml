@@ -50,7 +50,7 @@ jobs:
           assert request.get("action") == "repair_recent_captions"
           assert request.get("limit") == 2
           source = Path("affilio_radar/affilio_radar.py").read_text(encoding="utf-8")
-          assert 'parts.append("💳 امکان خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)")' in source
+          assert 'parts.append("💳 با امکان خرید اقساطی (دیجی پی)")' in source
           assert "--repair-recent-captions" in source
           print("OFFERCHIN_RECENT_CAPTION_REPAIR_REQUEST_VALIDATED")
           PY
