@@ -4611,7 +4611,7 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
     ):
         floor_label = minimum_discount_percent or DISCOUNT_FALLBACK_FLOORS[0]
         raise RuntimeError(
-            "Refusing to send an OfferChin post that fails its discount/current-demand gate "
+            "Refusing to send an OfferChin post that fails the hard discount/current-demand gate "
             f"({floor_label}% minimum plus verified recent activity)"
         )
     if platform == "telegram":
