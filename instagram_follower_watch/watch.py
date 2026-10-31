@@ -46,7 +46,7 @@ SERVICES = {
         "captcha_note": "Cloudflare security check / CAPTCHA انسانی لازم است",
         "amount_pattern": re.compile(r"15\s+followers?\s+(?:are\s+sent\s+to\s+it,\s*)?once\s+every\s+6\s+hours|15\s+followers?\s+every\s+6\s+hours", re.I),
         "no_password_pattern": re.compile(r"no\s+password", re.I),
-        "no_signup_pattern": re.compile(r"no\s+(?:account|sign.?up|registration)|nothing\s+to\s+install", re.I),
+        "no_signup_pattern": re.compile(r"(?:no\s+(?:account|sign.?up|registration)\s+(?:required|needed)|you\s+do\s+not\s+need\s+an\s+account)", re.I),
     },
 }
 
