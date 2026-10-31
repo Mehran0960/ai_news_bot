@@ -20,11 +20,14 @@ from typing import Any
 import requests
 
 try:
-    from product_quality import is_publishable_product_title
-except Exception:  # pragma: no cover - only used when run outside the package folder
-    def is_publishable_product_title(value: object) -> bool:
-        text = re.sub(r"\s+", " ", str(value or "")).strip()
-        return len(text) >= 5 and len(text.split()) >= 2
+    from .product_quality import is_publishable_product_title
+except ImportError:
+    try:
+        from product_quality import is_publishable_product_title
+    except ImportError:  # pragma: no cover - defensive standalone fallback
+        def is_publishable_product_title(value: object) -> bool:
+            text = re.sub(r"\s+", " ", str(value or "")).strip()
+            return len(text) >= 5 and len(text.split()) >= 2
 
 
 ROOT = Path(__file__).resolve().parent
@@ -572,9 +575,9 @@ def _load_candidates_by_id(path: Path) -> dict[str, dict]:
 def _advance_cursor(state: dict, category_count: int, total_pages: int | None, products_count: int) -> None:
     category_index = max(0, _normal_int(state.get("category_index")))
     page = max(1, _normal_int(state.get("page"), 1))
-    effective_total = total_pages if total_pages is not None else (
-        page if products_count == 0 else None
-    )
+    # An empty product page closes this category even if stale pagination
+    # metadata reports a larger total; never spend the cursor on empty pages.
+    effective_total = page if products_count == 0 else total_pages
     if effective_total is not None and page >= effective_total:
         category_index += 1
         page = 1
