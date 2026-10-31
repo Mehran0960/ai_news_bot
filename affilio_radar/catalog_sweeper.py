@@ -115,7 +115,7 @@ def extract_queryable_categories(payload: dict, parent_id: int | None = None) ->
             "title": title[:160],
             "code": code[:160],
         }
-    return sorted(found.values(), key=lambda row: (row["title"], row["id"]))
+    return sorted(found.values(), key=lambda row: (row["id"], row["title"]))
 
 
 def extract_total_pages(payload: dict) -> int | None:
