@@ -4465,12 +4465,11 @@ def build_discount_image(
 
     # Keep the retailer's original tile untouched. DigiPay gets a blue field
     # matching the retailer tile's actual rendered width and height, with its
-    # original square mark centered inside. This reproduces the prior layout.
+    # original square mark centered inside. This applies to both stores.
     retailer_bounds = draw_retailer_badge(
         image, brand_margin, brand_margin, store_badge_width, store_badge_height, merchant
     )
-    is_snappshop = "snapp" in str(merchant or "").lower() or "اسنپ" in str(merchant or "")
-    if not is_snappshop and retailer_bounds:
+    if retailer_bounds:
         retailer_left, retailer_top, retailer_width, retailer_height = retailer_bounds
         digipay_gap = max(4, int(retailer_height * 0.08))
         draw_digipay_badge(
@@ -4994,7 +4993,7 @@ def _recent_digipay_repair_records(
     lookback_hours: float = DIGIPAY_RECENT_POST_LOOKBACK_HOURS,
     now_epoch: float | None = None,
 ) -> list[tuple[str, dict]]:
-    """Select every active recent DigiKala post whose caption carries the DigiPay offer."""
+    """Select every active recent product post whose caption carries the DigiPay offer."""
     try:
         hours = float(lookback_hours)
     except (TypeError, ValueError, OverflowError):
@@ -5006,7 +5005,7 @@ def _recent_digipay_repair_records(
     cutoff = current - hours * 3600
     candidates = []
     for product_key, record in published.items():
-        if not str(product_key).startswith("dkp-") or not isinstance(record, dict):
+        if not (str(product_key).startswith("dkp-") or str(product_key).startswith("snp-")) or not isinstance(record, dict):
             continue
         try:
             posted_at = float(record.get("ts") or 0)
@@ -5396,15 +5395,14 @@ def repair_recent_product_images(
             continue
 
         merchant = "اسنپ‌شاپ" if str(product_key).startswith("snp-") else "دیجی‌کالا"
-        if merchant == "دیجی‌کالا":
-            from offerchin_visuals import _load_digipay_logo
-            if _load_digipay_logo() is None:
-                if telegram_needed:
-                    results["telegram_failed"] += 1
-                if bale_needed:
-                    results["bale_failed"] += 1
-                print(f"IMAGE_REPAIR_FAILED product_id={product_key} reason=official_digipay_logo_unavailable")
-                continue
+        from offerchin_visuals import _load_digipay_logo
+        if _load_digipay_logo() is None:
+            if telegram_needed:
+                results["telegram_failed"] += 1
+            if bale_needed:
+                results["bale_failed"] += 1
+            print(f"IMAGE_REPAIR_FAILED product_id={product_key} reason=official_digipay_logo_unavailable")
+            continue
         discount = record.get("posted_discount_percent")
         photo = build_discount_image(image_bytes, discount, merchant=merchant)
         product = {
@@ -9449,10 +9447,10 @@ def run(publish=False, selection_only=False):
                 "product_url": item["product_url"],
                 "image_url": item.get("image_url", ""),
                 "telegram_image_layout_version": (
-                    DIGIPAY_IMAGE_LAYOUT_VERSION if str(pid).startswith("dkp-") and statuses.get("telegram") == "sent" else 1
+                    DIGIPAY_IMAGE_LAYOUT_VERSION if statuses.get("telegram") == "sent" else 1
                 ),
                 "bale_image_layout_version": (
-                    DIGIPAY_IMAGE_LAYOUT_VERSION if str(pid).startswith("dkp-") and statuses.get("bale") == "sent" else 1
+                    DIGIPAY_IMAGE_LAYOUT_VERSION if statuses.get("bale") == "sent" else 1
                 ),
                 "video_generation_status": "pending",
                 "youtube_upload_status": "pending",
