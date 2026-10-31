@@ -246,21 +246,72 @@ class ContentDeliveryQueueTests(unittest.TestCase):
                 discount_check.call_args.kwargs["minimum_discount_percent"]
             )
 
-    def test_publisher_rejects_old_45_percent_fallback_floor_before_live_fetch(self):
-        entry = {
-            "product_id": "dkp-95045",
-            "payload": {
-                "product_id": "dkp-95045",
-                "product_url": "https://www.digikala.com/product/dkp-95045/",
-                "selection_discount_floor": 45,
-            },
+    def test_publisher_accepts_45_percent_fallback_floor_with_fresh_demand(self):
+        product_id = "dkp-95045"
+        product_url = f"https://www.digikala.com/product/{product_id}/"
+        affiliate_url = (
+            "https://aflo.ir/QekEYTRg?p="
+            "https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95045%2F"
+        )
+        demand = {
+            "current_demand_verified": True,
+            "current_demand_score": 55,
+            "demand_score": 55,
+            "recent_review_growth_7d": 5,
+            "demand_window_hours": 48,
+            "demand_observed_at": self.now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth",
         }
-        with patch("publisher.radar.fetch_product_record") as fetch:
-            fresh, reason = _fresh_selected_item(entry, self.now)
+        payload = {
+            "product_id": product_id,
+            "product_url": product_url,
+            "title": "شارژر سریع دیواری مدل تست",
+            "current_price": 500_000,
+            "original_price": 909_091,
+            "discount_percent": 45,
+            "savings_toman": 409_091,
+            "review_count": 1200,
+            "affiliate_url": affiliate_url,
+            "selection_discount_floor": 45,
+            "selection_discount_band": "45%–49%",
+            "deal_expires_at": "",
+            **demand,
+        }
+        fresh_record = {
+            "title": "شارژر سریع دیواری مدل تست",
+            "image_url": "https://example.com/product.webp",
+            "current_price": 500_000,
+            "original_price": 909_091,
+            "discount_percent": 45,
+            "savings_toman": 409_091,
+            "review_count": 1200,
+            "availability": "in_stock",
+            "deal_expires_at": "",
+        }
 
-        self.assertIsNone(fresh)
-        self.assertEqual(reason, "invalid_selection_discount_floor")
-        fetch.assert_not_called()
+        patches = (
+            patch("publisher.radar.fetch_product_record", return_value=dict(fresh_record)),
+            patch("publisher.radar.is_prohibited_product_title", return_value=False),
+            patch("publisher.radar.is_publishable_product_title", return_value=True),
+            patch("publisher.radar._is_valid_affilio_tracking_url", return_value=True),
+            patch("publisher.radar.score_product", side_effect=lambda item: item),
+            patch(
+                "publisher.radar.verify_live_page_price",
+                return_value={"ok": True, "page_price": 500_000},
+            ),
+            patch("publisher.radar.is_discount_publish_eligible", return_value=True),
+            patch("publisher.radar.is_market_value_publish_eligible", return_value=True),
+            patch("publisher.radar.has_publishable_expiry_or_open_offer", return_value=True),
+        )
+        with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+            fresh, reason = _fresh_selected_item(
+                {"product_id": product_id, "payload": payload}, self.now
+            )
+
+        self.assertIsNotNone(fresh)
+        self.assertEqual(reason, "")
+        self.assertEqual(fresh["selection_discount_floor"], 45)
+        self.assertEqual(fresh["selection_discount_band"], "45%–49%")
 
     def test_publisher_rejects_invalid_selected_discount_floor(self):
         entry = {
@@ -526,20 +577,22 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "active_publication_exists",
         )
 
-    def test_fallback_filter_discards_old_sub_50_and_unverified_demand_candidates(self):
+    def test_fallback_filter_accepts_configured_lower_tiers_but_rejects_unverified_demand(self):
         low_discount = self.item("dkp-99008", demand=95)
         low_discount.update({"discount_percent": 45, "selection_discount_floor": 45})
         no_current_demand = self.item("dkp-99009", demand=95)
         no_current_demand["current_demand_verified"] = False
         valid = self.item("dkp-99010", demand=45)
+        unsupported_floor = self.item("dkp-99011", demand=99)
+        unsupported_floor.update({"discount_percent": 34, "selection_discount_floor": 35})
 
         filtered = _eligible_fallback_candidates(
-            [low_discount, no_current_demand, valid], self.now
+            [low_discount, no_current_demand, valid, unsupported_floor], self.now
         )
 
         self.assertEqual(
             [item["product_id"] for item in filtered],
-            ["dkp-99010"],
+            ["dkp-99008", "dkp-99010"],
         )
 
     def test_stale_primary_promotes_next_backup_as_immediately_due(self):
@@ -549,8 +602,18 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         primary = state["content_delivery_queue"]["dkp-99001"]
         primary["fallback_candidates"] = [
-            self.item("dkp-99002", demand=45),
-            self.item("dkp-99003", demand=40),
+            {
+                **self.item("dkp-99002", demand=45),
+                "discount_percent": 45,
+                "selection_discount_floor": 45,
+                "selection_discount_band": "45%–49%",
+            },
+            {
+                **self.item("dkp-99003", demand=40),
+                "discount_percent": 40,
+                "selection_discount_floor": 40,
+                "selection_discount_band": "40%–44%",
+            },
         ]
         fallback_candidates = list(primary["fallback_candidates"])
 
@@ -581,11 +644,17 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         enqueue_selected_content(
             state, [self.item("dkp-99001")], now=self.now, interval_seconds=1200,
         )
+        fallback_candidate = {
+            **self.item("dkp-99002", demand=45),
+            "discount_percent": 45,
+            "selection_discount_floor": 45,
+            "selection_discount_band": "45%–49%",
+        }
         state["content_delivery_queue"]["dkp-99001"]["fallback_candidates"] = [
-            self.item("dkp-99002", demand=45)
+            fallback_candidate
         ]
         backup = {
-            **self.item("dkp-99002", demand=45),
+            **fallback_candidate,
             "image_url": "https://example.com/backup.jpg",
             "merchant": "دیجی‌کالا",
         }
