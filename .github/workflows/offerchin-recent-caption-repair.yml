@@ -77,6 +77,7 @@ jobs:
           assert "def _recent_digipay_repair_records" in source
           visuals = Path("affilio_radar/offerchin_visuals.py").read_text(encoding="utf-8")
           assert "def _digipay_brand_blue" in visuals
+          assert "def _badge_corner_radius" in visuals
           print("OFFERCHIN_RECENT_CAPTION_REPAIR_REQUEST_VALIDATED")
           PY
           python -m py_compile affilio_radar/affilio_radar.py
@@ -84,7 +85,7 @@ jobs:
       - name: Run caption and recent-selection regression tests
         run: |
           cd affilio_radar
-          python -m unittest             test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit             test_affilio.AffilioRadarTests.test_snappshop_caption_uses_correct_store_name             test_affilio.AffilioRadarTests.test_recent_caption_repair_selects_only_newest_active_products             test_affilio.AffilioRadarTests.test_recent_digipay_selector_includes_all_recent_active_retailer_posts             test_affilio.AffilioRadarTests.test_digipay_blue_background_matches_retailer_tile_and_centers_untouched_icon             test_affilio.AffilioRadarTests.test_edit_telegram_media_replaces_photo_and_preserves_verified_buy_button             test_affilio.AffilioRadarTests.test_delete_bale_message_uses_documented_delete_method -v
+          python -m unittest -v test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit test_affilio.AffilioRadarTests.test_snappshop_caption_uses_correct_store_name test_affilio.AffilioRadarTests.test_recent_caption_repair_selects_only_newest_active_products test_affilio.AffilioRadarTests.test_recent_digipay_selector_includes_all_recent_active_retailer_posts test_affilio.AffilioRadarTests.test_digipay_blue_background_matches_retailer_tile_and_centers_untouched_icon test_affilio.AffilioRadarTests.test_retailer_badge_uses_soft_rounded_corners_without_recoloring_artwork test_affilio.AffilioRadarTests.test_edit_telegram_media_replaces_photo_and_preserves_verified_buy_button test_affilio.AffilioRadarTests.test_delete_bale_message_uses_documented_delete_method
 
       - name: Repair all recent active DigiPay product posts in place
         env:
