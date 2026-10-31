@@ -72,7 +72,7 @@ jobs:
           assert float(request.get("lookback_hours", 0)) > 0
           assert float(request.get("lookback_hours", 48)) <= 47
           source = Path("affilio_radar/affilio_radar.py").read_text(encoding="utf-8")
-          assert 'installment_line = bold("💳 با امکان خرید اقساطی (دیجی پی)")' in source
+          assert 'installment_line = bold("💳 خرید اقساطی با دیجی‌پی (در صورت نمایش گزینه و احراز شرایط)")' in source
           assert "--repair-recent-digipay-posts" in source
           assert "def _recent_digipay_repair_records" in source
           visuals = Path("affilio_radar/offerchin_visuals.py").read_text(encoding="utf-8")
