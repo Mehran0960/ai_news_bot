@@ -4,7 +4,7 @@
   "aparat_next_upload_at": "2026-11-01T11:47:34.472824+00:00",
   "catalog_sweep_handoff": {
     "last_handoff_at": "2026-11-01T12:50:36.034219+00:00",
-    "last_handoff_count": 39,
+    "last_handoff_count": 0,
     "seen_ids": {
       "dkp-10000876": "2026-11-01T10:10:29.158875+00:00",
       "dkp-1000182": "2026-11-01T10:15:34.726427+00:00",
@@ -10756,132 +10756,6 @@
     }
   },
   "content_delivery_history": [
-    {
-      "attempt_count": 1,
-      "content_id": "dkp-22741821",
-      "fallback_candidates": [
-        {
-          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20564567%2F",
-          "availability": "in_stock",
-          "availability_source": "digikala_api",
-          "category": "personal_care",
-          "checked_at": "2026-10-31T13:51:57.484869+00:00",
-          "current_price": 332000,
-          "deal_expires_at": "",
-          "demand_score": 39,
-          "discount_percent": 41,
-          "expiry_deadline_verified_directly": false,
-          "expiry_deadline_verified_from_site_card": false,
-          "expiry_estimated": false,
-          "expiry_source": "unavailable",
-          "has_affiliate_link": true,
-          "image_url": "https://dkstatics-public.digikala.com/digikala-products/ac106cbd8419f935ed9374c945a0c53d2cee4117_1785337848.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-          "market_price_advantage_pct": null,
-          "market_publish_blocked": false,
-          "market_status": "not_checked",
-          "market_value_status": "unknown",
-          "merchant": "دیجی‌کالا",
-          "original_price": 558000,
-          "product_id": "dkp-20564567",
-          "product_url": "https://www.digikala.com/product/dkp-20564567/",
-          "promo_score": 42,
-          "qualifies_as_deal": false,
-          "rating": 4.25,
-          "review_count": 5837,
-          "savings_toman": 226000,
-          "title": "خمیر دندان ضد زردی میسویک مدل 01 حجم 75 میلی لیتر"
-        },
-        {
-          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-487319%2F",
-          "availability": "in_stock",
-          "availability_source": "digikala_api",
-          "category": "other",
-          "checked_at": "2026-10-31T13:52:00.084131+00:00",
-          "current_price": 290010,
-          "deal_expires_at": "",
-          "demand_score": 39,
-          "discount_percent": 30,
-          "expiry_deadline_verified_directly": false,
-          "expiry_deadline_verified_from_site_card": false,
-          "expiry_estimated": false,
-          "expiry_source": "unavailable",
-          "has_affiliate_link": true,
-          "image_url": "https://dkstatics-public.digikala.com/digikala-products/ea0328447bd2e9e5e9b6c5e58d58dea9a8bbe007_1790077302.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-          "market_price_advantage_pct": null,
-          "market_publish_blocked": false,
-          "market_status": "unavailable",
-          "market_value_status": "unknown",
-          "merchant": "دیجی‌کالا",
-          "original_price": 414300,
-          "product_id": "dkp-487319",
-          "product_url": "https://www.digikala.com/product/dkp-487319/",
-          "promo_score": 34,
-          "qualifies_as_deal": false,
-          "rating": 4.39,
-          "review_count": 11593,
-          "savings_toman": 124290,
-          "title": "شامپو بدن شون مدل Strawberry And Milk حجم 300 میلی لیتر"
-        }
-      ],
-      "fallback_promoted_after": "live_discount_no_longer_eligible",
-      "last_attempt_at": "2026-10-31T13:53:49.782652+00:00",
-      "last_detail": "live_discount_no_longer_eligible",
-      "next_attempt_at": "2026-10-31T13:53:35.138872+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22741821%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "category": "books_stationery",
-        "checked_at": "2026-10-31T13:52:03.666593+00:00",
-        "current_price": 4100000,
-        "deal_expires_at": "",
-        "demand_score": 35,
-        "discount_percent": 49,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/98426e70ed7d2282040c3692dfc0bb72f9a06467_1789911803.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "original_price": 8000000,
-        "product_id": "dkp-22741821",
-        "product_url": "https://www.digikala.com/product/dkp-22741821/",
-        "promo_score": 56,
-        "qualifies_as_deal": false,
-        "rating": 4.79,
-        "review_count": 813,
-        "savings_toman": 3900000,
-        "title": "کتاب دانش نامه مصور شاهنامه اثر یاسر مالی نسخه مشترک دیجی کالا و نشر سایان"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22741821",
-      "scheduled_at": "2026-10-31T13:53:35.138872+00:00",
-      "selected_at": "2026-10-31T13:53:35.138872+00:00",
-      "status": "stale_selection",
-      "updated_at": "2026-10-31T13:53:49.782652+00:00"
-    },
     {
       "attempt_count": 1,
       "content_id": "dkp-20564567",
@@ -43403,11 +43277,299 @@
       "selected_at": "2026-11-01T10:13:28.083478+00:00",
       "status": "cancelled",
       "updated_at": "2026-11-01T12:33:22.524744+00:00"
+    },
+    {
+      "attempt_count": 5,
+      "content_id": "dkp-3116893",
+      "fallback_candidates": [
+        {
+          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-2537509%2F",
+          "availability": "in_stock",
+          "availability_source": "digikala_api",
+          "category": "personal_care",
+          "checked_at": "2026-11-01T10:32:57.258937+00:00",
+          "current_demand_score": 0,
+          "current_demand_verified": false,
+          "current_price": 561100,
+          "deal_expires_at": "",
+          "demand_observed_at": "",
+          "demand_score": 0,
+          "demand_signal_source": "",
+          "demand_window_hours": 10.4,
+          "discount_percent": 25,
+          "expiry_deadline_verified_directly": false,
+          "expiry_deadline_verified_from_site_card": false,
+          "expiry_estimated": false,
+          "expiry_source": "unavailable",
+          "has_affiliate_link": true,
+          "historical_popularity_score": 30,
+          "image_url": "https://dkstatics-public.digikala.com/digikala-products/bf9ac56b18cf598fb4f008ac32f2fbdc30f2e380_1786372517.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+          "market_price_advantage_pct": null,
+          "market_publish_blocked": false,
+          "market_status": "not_checked",
+          "market_value_status": "unknown",
+          "merchant": "دیجی‌کالا",
+          "original_price": 748000,
+          "product_id": "dkp-2537509",
+          "product_url": "https://www.digikala.com/product/dkp-2537509/",
+          "promo_score": 19,
+          "qualifies_as_deal": true,
+          "rating": 4.38,
+          "recent_review_growth_7d": 0,
+          "recent_review_growth_window": 0,
+          "review_count": 408,
+          "savings_toman": 186900,
+          "selection_discount_band": "1%+",
+          "selection_discount_floor": 1,
+          "title": "ژل بهداشتی آردن آتوپیا مدل Dry Relief حجم 150 میلی لیتر"
+        },
+        {
+          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22331221%2F",
+          "availability": "in_stock",
+          "availability_source": "digikala_api",
+          "category": "sports_outdoor",
+          "checked_at": "2026-11-01T10:32:26.459704+00:00",
+          "current_demand_score": 34,
+          "current_demand_verified": true,
+          "current_price": 304200,
+          "deal_expires_at": "",
+          "demand_observed_at": "2026-11-01T10:33:28.258236+00:00",
+          "demand_score": 34,
+          "demand_signal_source": "digikala_recent_review_growth",
+          "demand_window_hours": 16.6,
+          "discount_percent": 22,
+          "expiry_deadline_verified_directly": false,
+          "expiry_deadline_verified_from_site_card": false,
+          "expiry_estimated": false,
+          "expiry_source": "unavailable",
+          "has_affiliate_link": true,
+          "historical_popularity_score": 27,
+          "image_url": "https://dkstatics-public.digikala.com/digikala-products/a0649f3d7d5968c45f038d0d33eacc20040204a5_1785495201.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+          "market_price_advantage_pct": null,
+          "market_publish_blocked": false,
+          "market_status": "not_checked",
+          "market_value_status": "unknown",
+          "merchant": "دیجی‌کالا",
+          "original_price": 390000,
+          "product_id": "dkp-22331221",
+          "product_url": "https://www.digikala.com/product/dkp-22331221/",
+          "promo_score": 16,
+          "qualifies_as_deal": true,
+          "rating": 4.0,
+          "recent_review_growth_7d": 1,
+          "recent_review_growth_window": 1,
+          "review_count": 149,
+          "savings_toman": 85800,
+          "selection_discount_band": "1%+",
+          "selection_discount_floor": 1,
+          "title": "نظم دهنده سفری مدل کمپینگ بسته 10 عددی",
+          "variant_label": "مشکی"
+        },
+        {
+          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-4170850%2F",
+          "availability": "in_stock",
+          "availability_source": "digikala_api",
+          "category": "power_backup",
+          "checked_at": "2026-11-01T10:32:26.983492+00:00",
+          "current_demand_score": 34,
+          "current_demand_verified": true,
+          "current_price": 5500000,
+          "deal_expires_at": "",
+          "demand_observed_at": "2026-11-01T10:33:28.258236+00:00",
+          "demand_score": 34,
+          "demand_signal_source": "digikala_recent_review_growth",
+          "demand_window_hours": 12.5,
+          "discount_percent": 21,
+          "expiry_deadline_verified_directly": false,
+          "expiry_deadline_verified_from_site_card": false,
+          "expiry_estimated": false,
+          "expiry_source": "unavailable",
+          "has_affiliate_link": true,
+          "historical_popularity_score": 39,
+          "image_url": "https://dkstatics-public.digikala.com/digikala-products/adacc0d39b3d9d54d03b047bf91b96109c9ab9b2_1754244116.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+          "market_price_advantage_pct": null,
+          "market_publish_blocked": false,
+          "market_status": "not_checked",
+          "market_value_status": "unknown",
+          "merchant": "دیجی‌کالا",
+          "original_price": 7000000,
+          "product_id": "dkp-4170850",
+          "product_url": "https://www.digikala.com/product/dkp-4170850/",
+          "promo_score": 21,
+          "qualifies_as_deal": true,
+          "rating": 4.33,
+          "recent_review_growth_7d": 1,
+          "recent_review_growth_window": 1,
+          "review_count": 4762,
+          "savings_toman": 1500000,
+          "selection_discount_band": "1%+",
+          "selection_discount_floor": 1,
+          "title": "پاوربانک ای دیتا مدل P20000QCD ظرفیت 20000 میلی آمپر ساعت",
+          "variant_label": "مشکی"
+        },
+        {
+          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-487319%2F",
+          "availability": "in_stock",
+          "availability_source": "digikala_api",
+          "category": "other",
+          "checked_at": "2026-11-01T10:32:26.182823+00:00",
+          "current_demand_score": 56,
+          "current_demand_verified": true,
+          "current_price": 332550,
+          "deal_expires_at": "",
+          "demand_observed_at": "2026-11-01T10:33:28.258236+00:00",
+          "demand_score": 56,
+          "demand_signal_source": "digikala_recent_review_growth",
+          "demand_window_hours": 16.7,
+          "discount_percent": 20,
+          "expiry_deadline_verified_directly": false,
+          "expiry_deadline_verified_from_site_card": false,
+          "expiry_estimated": false,
+          "expiry_source": "unavailable",
+          "has_affiliate_link": true,
+          "historical_popularity_score": 39,
+          "image_url": "https://dkstatics-public.digikala.com/digikala-products/ea0328447bd2e9e5e9b6c5e58d58dea9a8bbe007_1790077302.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+          "market_price_advantage_pct": null,
+          "market_publish_blocked": false,
+          "market_status": "unavailable",
+          "market_value_status": "unknown",
+          "merchant": "دیجی‌کالا",
+          "original_price": 414300,
+          "product_id": "dkp-487319",
+          "product_url": "https://www.digikala.com/product/dkp-487319/",
+          "promo_score": 15,
+          "qualifies_as_deal": true,
+          "rating": 4.39,
+          "recent_review_growth_7d": 5,
+          "recent_review_growth_window": 5,
+          "review_count": 11601,
+          "savings_toman": 81750,
+          "selection_discount_band": "1%+",
+          "selection_discount_floor": 1,
+          "title": "شامپو بدن شون مدل Strawberry And Milk حجم 300 میلی لیتر"
+        },
+        {
+          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-10908628%2F",
+          "availability": "in_stock",
+          "availability_source": "digikala_api",
+          "category": "automotive",
+          "checked_at": "2026-11-01T10:32:27.273734+00:00",
+          "current_demand_score": 34,
+          "current_demand_verified": true,
+          "current_price": 199900,
+          "deal_expires_at": "",
+          "demand_observed_at": "2026-11-01T10:33:28.258236+00:00",
+          "demand_score": 34,
+          "demand_signal_source": "digikala_recent_review_growth",
+          "demand_window_hours": 16.7,
+          "discount_percent": 20,
+          "expiry_deadline_verified_directly": false,
+          "expiry_deadline_verified_from_site_card": false,
+          "expiry_estimated": false,
+          "expiry_source": "unavailable",
+          "has_affiliate_link": true,
+          "historical_popularity_score": 29,
+          "image_url": "https://dkstatics-public.digikala.com/digikala-products/1ef89abd3a112cda7ea0f5afe48045968bc37cc5_1679064118.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+          "market_price_advantage_pct": null,
+          "market_publish_blocked": false,
+          "market_status": "not_checked",
+          "market_value_status": "unknown",
+          "merchant": "دیجی‌کالا",
+          "original_price": 250000,
+          "product_id": "dkp-10908628",
+          "product_url": "https://www.digikala.com/product/dkp-10908628/",
+          "promo_score": 14,
+          "qualifies_as_deal": true,
+          "rating": 3.98,
+          "recent_review_growth_7d": 1,
+          "recent_review_growth_window": 1,
+          "review_count": 886,
+          "savings_toman": 50100,
+          "selection_discount_band": "1%+",
+          "selection_discount_floor": 1,
+          "title": "کیف ابزار خودرو مدل L12",
+          "variant_label": "مشکی"
+        }
+      ],
+      "last_attempt_at": "2026-11-01T12:43:32.587035+00:00",
+      "last_detail": "bounded_retry_queue_eviction: oldest unresolved selection dropped to protect fresh slots",
+      "next_attempt_at": "2026-11-01T12:58:32.587035+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-3116893%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "category": "fashion",
+        "checked_at": "2026-11-01T10:33:14.785517+00:00",
+        "current_demand_score": 0,
+        "current_demand_verified": false,
+        "current_price": 1632000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_score": 0,
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_percent": 29,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_popularity_score": 30,
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/f7aec00fd6524dc58142d799675103ff73e74bdc_1788185491.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "original_price": 2300000,
+        "product_id": "dkp-3116893",
+        "product_url": "https://www.digikala.com/product/dkp-3116893/",
+        "promo_score": 24,
+        "qualifies_as_deal": true,
+        "rating": 4.19,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 361,
+        "savings_toman": 668000,
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "title": "تیشرت مردانه آریان نخ باف کد 1812",
+        "variant_label": "L زرشکی"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "last_error": "waiting_for_verified_deadline",
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-01T10:33:40.961712+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-01T10:33:48.897723+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-01T10:33:40.961712+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-01T10:33:46.291983+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "last_error": "waiting_for_verified_deadline",
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-3116893",
+      "scheduled_at": "2026-11-01T10:33:40.481766+00:00",
+      "selected_at": "2026-11-01T10:33:40.481766+00:00",
+      "status": "cancelled",
+      "updated_at": "2026-11-01T12:58:04.174845+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
     "added": 1,
-    "at": "2026-11-01T12:33:22.524744+00:00",
+    "at": "2026-11-01T12:58:04.174845+00:00",
     "queue_evicted": 1,
     "queue_size": 6,
     "skipped": 0
@@ -43988,6 +44150,284 @@
       "selected_at": "2026-11-01T10:58:26.272217+00:00",
       "status": "partial"
     },
+    "dkp-16553815": {
+      "attempt_count": 0,
+      "content_id": "dkp-16553815",
+      "fallback_candidates": [
+        {
+          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-2537509%2F",
+          "availability": "in_stock",
+          "availability_source": "digikala_api",
+          "category": "personal_care",
+          "checked_at": "2026-11-01T12:57:31.516429+00:00",
+          "current_demand_score": 0,
+          "current_demand_verified": false,
+          "current_price": 561060,
+          "deal_expires_at": "",
+          "demand_observed_at": "",
+          "demand_score": 0,
+          "demand_signal_source": "",
+          "demand_window_hours": 12.8,
+          "discount_percent": 25,
+          "expiry_deadline_verified_directly": false,
+          "expiry_deadline_verified_from_site_card": false,
+          "expiry_estimated": false,
+          "expiry_source": "unavailable",
+          "has_affiliate_link": true,
+          "historical_popularity_score": 30,
+          "image_url": "https://dkstatics-public.digikala.com/digikala-products/bf9ac56b18cf598fb4f008ac32f2fbdc30f2e380_1786372517.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+          "market_price_advantage_pct": null,
+          "market_publish_blocked": false,
+          "market_status": "not_checked",
+          "market_value_status": "unknown",
+          "merchant": "دیجی‌کالا",
+          "original_price": 748000,
+          "product_id": "dkp-2537509",
+          "product_url": "https://www.digikala.com/product/dkp-2537509/",
+          "promo_score": 19,
+          "qualifies_as_deal": true,
+          "rating": 4.38,
+          "recent_review_growth_7d": 0,
+          "recent_review_growth_window": 0,
+          "review_count": 408,
+          "savings_toman": 186940,
+          "selection_discount_band": "1%+",
+          "selection_discount_floor": 1,
+          "title": "ژل بهداشتی آردن آتوپیا مدل Dry Relief حجم 150 میلی لیتر"
+        },
+        {
+          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-826597%2F",
+          "availability": "in_stock",
+          "availability_source": "digikala_api",
+          "category": "kids_sports",
+          "checked_at": "2026-11-01T12:57:18.335663+00:00",
+          "current_demand_score": 0,
+          "current_demand_verified": false,
+          "current_price": 370000,
+          "deal_expires_at": "",
+          "demand_observed_at": "",
+          "demand_score": 0,
+          "demand_signal_source": "",
+          "demand_window_hours": 12.8,
+          "discount_percent": 24,
+          "expiry_deadline_verified_directly": false,
+          "expiry_deadline_verified_from_site_card": false,
+          "expiry_estimated": false,
+          "expiry_source": "unavailable",
+          "has_affiliate_link": true,
+          "historical_popularity_score": 39,
+          "image_url": "https://dkstatics-public.digikala.com/digikala-products/3796829.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+          "market_price_advantage_pct": null,
+          "market_publish_blocked": false,
+          "market_status": "unavailable",
+          "market_value_status": "unknown",
+          "merchant": "دیجی‌کالا",
+          "original_price": 485000,
+          "product_id": "dkp-826597",
+          "product_url": "https://www.digikala.com/product/dkp-826597/",
+          "promo_score": 17,
+          "qualifies_as_deal": true,
+          "rating": 4.01,
+          "recent_review_growth_7d": 0,
+          "recent_review_growth_window": 0,
+          "review_count": 13612,
+          "savings_toman": 115000,
+          "selection_discount_band": "1%+",
+          "selection_discount_floor": 1,
+          "title": "اسباب بازی قایق سوختی تندرو مدل Speed Boats",
+          "variant_label": "استیل"
+        },
+        {
+          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22331221%2F",
+          "availability": "in_stock",
+          "availability_source": "digikala_api",
+          "category": "sports_outdoor",
+          "checked_at": "2026-11-01T12:57:12.573361+00:00",
+          "current_demand_score": 34,
+          "current_demand_verified": true,
+          "current_price": 304200,
+          "deal_expires_at": "",
+          "demand_observed_at": "2026-11-01T12:57:54.176831+00:00",
+          "demand_score": 34,
+          "demand_signal_source": "digikala_recent_review_growth",
+          "demand_window_hours": 19.0,
+          "discount_percent": 22,
+          "expiry_deadline_verified_directly": false,
+          "expiry_deadline_verified_from_site_card": false,
+          "expiry_estimated": false,
+          "expiry_source": "unavailable",
+          "has_affiliate_link": true,
+          "historical_popularity_score": 27,
+          "image_url": "https://dkstatics-public.digikala.com/digikala-products/a0649f3d7d5968c45f038d0d33eacc20040204a5_1785495201.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+          "market_price_advantage_pct": null,
+          "market_publish_blocked": false,
+          "market_status": "not_checked",
+          "market_value_status": "unknown",
+          "merchant": "دیجی‌کالا",
+          "original_price": 390000,
+          "product_id": "dkp-22331221",
+          "product_url": "https://www.digikala.com/product/dkp-22331221/",
+          "promo_score": 16,
+          "qualifies_as_deal": true,
+          "rating": 4.0,
+          "recent_review_growth_7d": 1,
+          "recent_review_growth_window": 1,
+          "review_count": 149,
+          "savings_toman": 85800,
+          "selection_discount_band": "1%+",
+          "selection_discount_floor": 1,
+          "title": "نظم دهنده سفری مدل کمپینگ بسته 10 عددی",
+          "variant_label": "مشکی"
+        },
+        {
+          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-4170850%2F",
+          "availability": "in_stock",
+          "availability_source": "digikala_api",
+          "category": "power_backup",
+          "checked_at": "2026-11-01T12:57:13.537356+00:00",
+          "current_demand_score": 34,
+          "current_demand_verified": true,
+          "current_price": 5500000,
+          "deal_expires_at": "",
+          "demand_observed_at": "2026-11-01T12:57:54.176831+00:00",
+          "demand_score": 34,
+          "demand_signal_source": "digikala_recent_review_growth",
+          "demand_window_hours": 14.9,
+          "discount_percent": 21,
+          "expiry_deadline_verified_directly": false,
+          "expiry_deadline_verified_from_site_card": false,
+          "expiry_estimated": false,
+          "expiry_source": "unavailable",
+          "has_affiliate_link": true,
+          "historical_popularity_score": 39,
+          "image_url": "https://dkstatics-public.digikala.com/digikala-products/adacc0d39b3d9d54d03b047bf91b96109c9ab9b2_1754244116.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+          "market_price_advantage_pct": null,
+          "market_publish_blocked": false,
+          "market_status": "not_checked",
+          "market_value_status": "unknown",
+          "merchant": "دیجی‌کالا",
+          "original_price": 7000000,
+          "product_id": "dkp-4170850",
+          "product_url": "https://www.digikala.com/product/dkp-4170850/",
+          "promo_score": 21,
+          "qualifies_as_deal": true,
+          "rating": 4.33,
+          "recent_review_growth_7d": 1,
+          "recent_review_growth_window": 1,
+          "review_count": 4762,
+          "savings_toman": 1500000,
+          "selection_discount_band": "1%+",
+          "selection_discount_floor": 1,
+          "title": "پاوربانک ای دیتا مدل P20000QCD ظرفیت 20000 میلی آمپر ساعت",
+          "variant_label": "مشکی"
+        },
+        {
+          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-487319%2F",
+          "availability": "in_stock",
+          "availability_source": "digikala_api",
+          "category": "other",
+          "checked_at": "2026-11-01T12:57:11.727726+00:00",
+          "current_demand_score": 59,
+          "current_demand_verified": true,
+          "current_price": 332550,
+          "deal_expires_at": "",
+          "demand_observed_at": "2026-11-01T12:57:54.176831+00:00",
+          "demand_score": 59,
+          "demand_signal_source": "digikala_recent_review_growth",
+          "demand_window_hours": 19.1,
+          "discount_percent": 20,
+          "expiry_deadline_verified_directly": false,
+          "expiry_deadline_verified_from_site_card": false,
+          "expiry_estimated": false,
+          "expiry_source": "unavailable",
+          "has_affiliate_link": true,
+          "historical_popularity_score": 39,
+          "image_url": "https://dkstatics-public.digikala.com/digikala-products/ea0328447bd2e9e5e9b6c5e58d58dea9a8bbe007_1790077302.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+          "market_price_advantage_pct": null,
+          "market_publish_blocked": false,
+          "market_status": "unavailable",
+          "market_value_status": "unknown",
+          "merchant": "دیجی‌کالا",
+          "original_price": 414300,
+          "product_id": "dkp-487319",
+          "product_url": "https://www.digikala.com/product/dkp-487319/",
+          "promo_score": 15,
+          "qualifies_as_deal": true,
+          "rating": 4.39,
+          "recent_review_growth_7d": 6,
+          "recent_review_growth_window": 6,
+          "review_count": 11602,
+          "savings_toman": 81750,
+          "selection_discount_band": "1%+",
+          "selection_discount_floor": 1,
+          "title": "شامپو بدن شون مدل Strawberry And Milk حجم 300 میلی لیتر"
+        }
+      ],
+      "next_attempt_at": "2026-11-01T12:58:04.174845+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-16553815%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "category": "personal_care",
+        "checked_at": "2026-11-01T12:57:09.894698+00:00",
+        "current_demand_score": 68,
+        "current_demand_verified": true,
+        "current_price": 737800,
+        "deal_expires_at": "",
+        "demand_observed_at": "2026-11-01T12:57:54.176831+00:00",
+        "demand_score": 68,
+        "demand_signal_source": "digikala_recent_review_growth",
+        "demand_window_hours": 19.1,
+        "discount_percent": 35,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_popularity_score": 37,
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/c7474eef8c6124d4d964f2d7d7cf1aeb7636c544_1788945664.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "original_price": 1135000,
+        "product_id": "dkp-16553815",
+        "product_url": "https://www.digikala.com/product/dkp-16553815/",
+        "promo_score": 27,
+        "qualifies_as_deal": true,
+        "rating": 4.47,
+        "recent_review_growth_7d": 10,
+        "recent_review_growth_window": 10,
+        "review_count": 2952,
+        "savings_toman": 397200,
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "title": "ماسک مو ویتاپلکس مدل Bleach Care حجم 500 میلی لیتر"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-16553815",
+      "scheduled_at": "2026-11-01T12:58:04.174845+00:00",
+      "selected_at": "2026-11-01T12:58:04.174845+00:00",
+      "status": "queued"
+    },
     "dkp-17330975": {
       "attempt_count": 3,
       "content_id": "dkp-17330975",
@@ -44565,295 +45005,8 @@
       "selected_at": "2026-11-01T12:08:45.868355+00:00",
       "status": "partial"
     },
-    "dkp-3116893": {
-      "attempt_count": 5,
-      "content_id": "dkp-3116893",
-      "fallback_candidates": [
-        {
-          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-2537509%2F",
-          "availability": "in_stock",
-          "availability_source": "digikala_api",
-          "category": "personal_care",
-          "checked_at": "2026-11-01T10:32:57.258937+00:00",
-          "current_demand_score": 0,
-          "current_demand_verified": false,
-          "current_price": 561100,
-          "deal_expires_at": "",
-          "demand_observed_at": "",
-          "demand_score": 0,
-          "demand_signal_source": "",
-          "demand_window_hours": 10.4,
-          "discount_percent": 25,
-          "expiry_deadline_verified_directly": false,
-          "expiry_deadline_verified_from_site_card": false,
-          "expiry_estimated": false,
-          "expiry_source": "unavailable",
-          "has_affiliate_link": true,
-          "historical_popularity_score": 30,
-          "image_url": "https://dkstatics-public.digikala.com/digikala-products/bf9ac56b18cf598fb4f008ac32f2fbdc30f2e380_1786372517.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-          "market_price_advantage_pct": null,
-          "market_publish_blocked": false,
-          "market_status": "not_checked",
-          "market_value_status": "unknown",
-          "merchant": "دیجی‌کالا",
-          "original_price": 748000,
-          "product_id": "dkp-2537509",
-          "product_url": "https://www.digikala.com/product/dkp-2537509/",
-          "promo_score": 19,
-          "qualifies_as_deal": true,
-          "rating": 4.38,
-          "recent_review_growth_7d": 0,
-          "recent_review_growth_window": 0,
-          "review_count": 408,
-          "savings_toman": 186900,
-          "selection_discount_band": "1%+",
-          "selection_discount_floor": 1,
-          "title": "ژل بهداشتی آردن آتوپیا مدل Dry Relief حجم 150 میلی لیتر"
-        },
-        {
-          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22331221%2F",
-          "availability": "in_stock",
-          "availability_source": "digikala_api",
-          "category": "sports_outdoor",
-          "checked_at": "2026-11-01T10:32:26.459704+00:00",
-          "current_demand_score": 34,
-          "current_demand_verified": true,
-          "current_price": 304200,
-          "deal_expires_at": "",
-          "demand_observed_at": "2026-11-01T10:33:28.258236+00:00",
-          "demand_score": 34,
-          "demand_signal_source": "digikala_recent_review_growth",
-          "demand_window_hours": 16.6,
-          "discount_percent": 22,
-          "expiry_deadline_verified_directly": false,
-          "expiry_deadline_verified_from_site_card": false,
-          "expiry_estimated": false,
-          "expiry_source": "unavailable",
-          "has_affiliate_link": true,
-          "historical_popularity_score": 27,
-          "image_url": "https://dkstatics-public.digikala.com/digikala-products/a0649f3d7d5968c45f038d0d33eacc20040204a5_1785495201.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-          "market_price_advantage_pct": null,
-          "market_publish_blocked": false,
-          "market_status": "not_checked",
-          "market_value_status": "unknown",
-          "merchant": "دیجی‌کالا",
-          "original_price": 390000,
-          "product_id": "dkp-22331221",
-          "product_url": "https://www.digikala.com/product/dkp-22331221/",
-          "promo_score": 16,
-          "qualifies_as_deal": true,
-          "rating": 4.0,
-          "recent_review_growth_7d": 1,
-          "recent_review_growth_window": 1,
-          "review_count": 149,
-          "savings_toman": 85800,
-          "selection_discount_band": "1%+",
-          "selection_discount_floor": 1,
-          "title": "نظم دهنده سفری مدل کمپینگ بسته 10 عددی",
-          "variant_label": "مشکی"
-        },
-        {
-          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-4170850%2F",
-          "availability": "in_stock",
-          "availability_source": "digikala_api",
-          "category": "power_backup",
-          "checked_at": "2026-11-01T10:32:26.983492+00:00",
-          "current_demand_score": 34,
-          "current_demand_verified": true,
-          "current_price": 5500000,
-          "deal_expires_at": "",
-          "demand_observed_at": "2026-11-01T10:33:28.258236+00:00",
-          "demand_score": 34,
-          "demand_signal_source": "digikala_recent_review_growth",
-          "demand_window_hours": 12.5,
-          "discount_percent": 21,
-          "expiry_deadline_verified_directly": false,
-          "expiry_deadline_verified_from_site_card": false,
-          "expiry_estimated": false,
-          "expiry_source": "unavailable",
-          "has_affiliate_link": true,
-          "historical_popularity_score": 39,
-          "image_url": "https://dkstatics-public.digikala.com/digikala-products/adacc0d39b3d9d54d03b047bf91b96109c9ab9b2_1754244116.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-          "market_price_advantage_pct": null,
-          "market_publish_blocked": false,
-          "market_status": "not_checked",
-          "market_value_status": "unknown",
-          "merchant": "دیجی‌کالا",
-          "original_price": 7000000,
-          "product_id": "dkp-4170850",
-          "product_url": "https://www.digikala.com/product/dkp-4170850/",
-          "promo_score": 21,
-          "qualifies_as_deal": true,
-          "rating": 4.33,
-          "recent_review_growth_7d": 1,
-          "recent_review_growth_window": 1,
-          "review_count": 4762,
-          "savings_toman": 1500000,
-          "selection_discount_band": "1%+",
-          "selection_discount_floor": 1,
-          "title": "پاوربانک ای دیتا مدل P20000QCD ظرفیت 20000 میلی آمپر ساعت",
-          "variant_label": "مشکی"
-        },
-        {
-          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-487319%2F",
-          "availability": "in_stock",
-          "availability_source": "digikala_api",
-          "category": "other",
-          "checked_at": "2026-11-01T10:32:26.182823+00:00",
-          "current_demand_score": 56,
-          "current_demand_verified": true,
-          "current_price": 332550,
-          "deal_expires_at": "",
-          "demand_observed_at": "2026-11-01T10:33:28.258236+00:00",
-          "demand_score": 56,
-          "demand_signal_source": "digikala_recent_review_growth",
-          "demand_window_hours": 16.7,
-          "discount_percent": 20,
-          "expiry_deadline_verified_directly": false,
-          "expiry_deadline_verified_from_site_card": false,
-          "expiry_estimated": false,
-          "expiry_source": "unavailable",
-          "has_affiliate_link": true,
-          "historical_popularity_score": 39,
-          "image_url": "https://dkstatics-public.digikala.com/digikala-products/ea0328447bd2e9e5e9b6c5e58d58dea9a8bbe007_1790077302.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-          "market_price_advantage_pct": null,
-          "market_publish_blocked": false,
-          "market_status": "unavailable",
-          "market_value_status": "unknown",
-          "merchant": "دیجی‌کالا",
-          "original_price": 414300,
-          "product_id": "dkp-487319",
-          "product_url": "https://www.digikala.com/product/dkp-487319/",
-          "promo_score": 15,
-          "qualifies_as_deal": true,
-          "rating": 4.39,
-          "recent_review_growth_7d": 5,
-          "recent_review_growth_window": 5,
-          "review_count": 11601,
-          "savings_toman": 81750,
-          "selection_discount_band": "1%+",
-          "selection_discount_floor": 1,
-          "title": "شامپو بدن شون مدل Strawberry And Milk حجم 300 میلی لیتر"
-        },
-        {
-          "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-10908628%2F",
-          "availability": "in_stock",
-          "availability_source": "digikala_api",
-          "category": "automotive",
-          "checked_at": "2026-11-01T10:32:27.273734+00:00",
-          "current_demand_score": 34,
-          "current_demand_verified": true,
-          "current_price": 199900,
-          "deal_expires_at": "",
-          "demand_observed_at": "2026-11-01T10:33:28.258236+00:00",
-          "demand_score": 34,
-          "demand_signal_source": "digikala_recent_review_growth",
-          "demand_window_hours": 16.7,
-          "discount_percent": 20,
-          "expiry_deadline_verified_directly": false,
-          "expiry_deadline_verified_from_site_card": false,
-          "expiry_estimated": false,
-          "expiry_source": "unavailable",
-          "has_affiliate_link": true,
-          "historical_popularity_score": 29,
-          "image_url": "https://dkstatics-public.digikala.com/digikala-products/1ef89abd3a112cda7ea0f5afe48045968bc37cc5_1679064118.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-          "market_price_advantage_pct": null,
-          "market_publish_blocked": false,
-          "market_status": "not_checked",
-          "market_value_status": "unknown",
-          "merchant": "دیجی‌کالا",
-          "original_price": 250000,
-          "product_id": "dkp-10908628",
-          "product_url": "https://www.digikala.com/product/dkp-10908628/",
-          "promo_score": 14,
-          "qualifies_as_deal": true,
-          "rating": 3.98,
-          "recent_review_growth_7d": 1,
-          "recent_review_growth_window": 1,
-          "review_count": 886,
-          "savings_toman": 50100,
-          "selection_discount_band": "1%+",
-          "selection_discount_floor": 1,
-          "title": "کیف ابزار خودرو مدل L12",
-          "variant_label": "مشکی"
-        }
-      ],
-      "last_attempt_at": "2026-11-01T12:43:32.587035+00:00",
-      "last_detail": "unresolved=youtube,aparat",
-      "next_attempt_at": "2026-11-01T12:58:32.587035+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-3116893%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "category": "fashion",
-        "checked_at": "2026-11-01T10:33:14.785517+00:00",
-        "current_demand_score": 0,
-        "current_demand_verified": false,
-        "current_price": 1632000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_score": 0,
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_percent": 29,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_popularity_score": 30,
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/f7aec00fd6524dc58142d799675103ff73e74bdc_1788185491.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "original_price": 2300000,
-        "product_id": "dkp-3116893",
-        "product_url": "https://www.digikala.com/product/dkp-3116893/",
-        "promo_score": 24,
-        "qualifies_as_deal": true,
-        "rating": 4.19,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 361,
-        "savings_toman": 668000,
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "title": "تیشرت مردانه آریان نخ باف کد 1812",
-        "variant_label": "L زرشکی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "last_error": "waiting_for_verified_deadline",
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-01T10:33:40.961712+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-01T10:33:48.897723+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-01T10:33:40.961712+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-01T10:33:46.291983+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "last_error": "waiting_for_verified_deadline",
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-3116893",
-      "scheduled_at": "2026-11-01T10:33:40.481766+00:00",
-      "selected_at": "2026-11-01T10:33:40.481766+00:00",
-      "status": "partial"
-    },
     "dkp-82047": {
-      "attempt_count": 1,
+      "attempt_count": 2,
       "content_id": "dkp-82047",
       "fallback_candidates": [
         {
@@ -45066,9 +45219,9 @@
           "variant_label": "سفید"
         }
       ],
-      "last_attempt_at": "2026-11-01T11:43:52.331076+00:00",
+      "last_attempt_at": "2026-11-01T12:58:04.501056+00:00",
       "last_detail": "unresolved=youtube,aparat",
-      "next_attempt_at": "2026-11-01T11:58:52.331076+00:00",
+      "next_attempt_at": "2026-11-01T13:13:04.501056+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-82047%2F",
         "availability": "in_stock",
@@ -45920,7 +46073,7 @@
       ]
     },
     "dkp-10908628": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -45987,7 +46140,7 @@
       ]
     },
     "dkp-109365": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -46284,7 +46437,7 @@
       ]
     },
     "dkp-1121709": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T02:42:54.586075+00:00",
@@ -46370,7 +46523,7 @@
       ]
     },
     "dkp-11285949": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T18:03:42.113335+00:00",
@@ -46562,7 +46715,7 @@
       ]
     },
     "dkp-11475250": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T09:23:14.213865+00:00",
@@ -46715,7 +46868,7 @@
       ]
     },
     "dkp-11721028": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -46940,7 +47093,7 @@
       ]
     },
     "dkp-12110498": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T05:43:10.106374+00:00",
@@ -47236,7 +47389,7 @@
       ]
     },
     "dkp-12501167": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T19:38:06.401926+00:00",
@@ -47358,7 +47511,7 @@
       ]
     },
     "dkp-12550978": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -47391,6 +47544,10 @@
         {
           "observed_at": "2026-11-01T11:47:53.321743+00:00",
           "review_count": 5543
+        },
+        {
+          "observed_at": "2026-11-01T12:57:54.176831+00:00",
+          "review_count": 5544
         }
       ]
     },
@@ -47500,7 +47657,7 @@
       ]
     },
     "dkp-12638803": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -47908,7 +48065,7 @@
       ]
     },
     "dkp-13102138": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -48267,7 +48424,7 @@
       ]
     },
     "dkp-13538457": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T22:37:41.648646+00:00",
@@ -48317,7 +48474,7 @@
       ]
     },
     "dkp-13827014": {
-      "last_observed_at": "2026-11-01T12:13:17.361195+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T22:42:13.729632+00:00",
@@ -48554,7 +48711,7 @@
       ]
     },
     "dkp-14054361": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -48591,7 +48748,7 @@
       ]
     },
     "dkp-14081797": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -48735,7 +48892,7 @@
       ]
     },
     "dkp-14237267": {
-      "last_observed_at": "2026-11-01T12:43:21.942989+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -49011,7 +49168,7 @@
       ]
     },
     "dkp-1454290": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -49089,7 +49246,7 @@
       ]
     },
     "dkp-1455168": {
-      "last_observed_at": "2026-11-01T12:43:21.942989+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -49361,7 +49518,7 @@
       ]
     },
     "dkp-1483411": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -49390,7 +49547,7 @@
       ]
     },
     "dkp-14876965": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -49636,7 +49793,7 @@
       ]
     },
     "dkp-15113099": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T18:03:42.113335+00:00",
@@ -49677,7 +49834,7 @@
       ]
     },
     "dkp-15114329": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T19:31:50.808156+00:00",
@@ -49774,7 +49931,7 @@
       ]
     },
     "dkp-15233479": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T19:43:02.580513+00:00",
@@ -50094,7 +50251,7 @@
       ]
     },
     "dkp-1579456": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -50212,7 +50369,7 @@
       ]
     },
     "dkp-15879222": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T22:12:57.459256+00:00",
@@ -50245,7 +50402,7 @@
       ]
     },
     "dkp-15895231": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -50372,7 +50529,7 @@
       ]
     },
     "dkp-16024148": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T19:38:06.401926+00:00",
@@ -50445,7 +50602,7 @@
       ]
     },
     "dkp-1617886": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T06:33:05.107510+00:00",
@@ -50471,7 +50628,7 @@
       ]
     },
     "dkp-16222823": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T19:31:50.808156+00:00",
@@ -50601,7 +50758,7 @@
       ]
     },
     "dkp-16336322": {
-      "last_observed_at": "2026-11-01T12:43:21.942989+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:28:06.295419+00:00",
@@ -50666,7 +50823,7 @@
       ]
     },
     "dkp-16553815": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -50803,7 +50960,7 @@
       ]
     },
     "dkp-16653068": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -50889,7 +51046,7 @@
       ]
     },
     "dkp-16757481": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T18:03:42.113335+00:00",
@@ -51103,7 +51260,7 @@
       ]
     },
     "dkp-1713385": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -51264,7 +51421,7 @@
       ]
     },
     "dkp-17339315": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T18:03:42.113335+00:00",
@@ -51357,7 +51514,7 @@
       ]
     },
     "dkp-17464490": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T19:38:06.401926+00:00",
@@ -51454,7 +51611,7 @@
       ]
     },
     "dkp-1756128": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -51520,7 +51677,7 @@
       ]
     },
     "dkp-17608904": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -51570,7 +51727,7 @@
       ]
     },
     "dkp-1769453": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -52118,7 +52275,7 @@
       ]
     },
     "dkp-18484220": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T18:03:42.113335+00:00",
@@ -52297,7 +52454,7 @@
       ]
     },
     "dkp-188438": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -52590,7 +52747,7 @@
       ]
     },
     "dkp-1941764": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -52636,7 +52793,7 @@
       ]
     },
     "dkp-19461189": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -52860,7 +53017,7 @@
       ]
     },
     "dkp-19787230": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T19:38:06.401926+00:00",
@@ -53148,7 +53305,7 @@
       ]
     },
     "dkp-20334735": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T19:38:06.401926+00:00",
@@ -53496,7 +53653,7 @@
       ]
     },
     "dkp-20604589": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -53734,7 +53891,7 @@
       ]
     },
     "dkp-20988439": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -54260,7 +54417,7 @@
       ]
     },
     "dkp-21869693": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T04:33:04.026093+00:00",
@@ -54665,7 +54822,7 @@
       ]
     },
     "dkp-22331221": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:57:31.025624+00:00",
@@ -54929,7 +55086,7 @@
       ]
     },
     "dkp-2274413": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T20:53:08.606173+00:00",
@@ -54958,6 +55115,10 @@
         {
           "observed_at": "2026-11-01T10:37:19.208776+00:00",
           "review_count": 2962
+        },
+        {
+          "observed_at": "2026-11-01T12:57:54.176831+00:00",
+          "review_count": 2962
         }
       ]
     },
@@ -54984,7 +55145,7 @@
       ]
     },
     "dkp-22800507": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T04:33:04.026093+00:00",
@@ -55496,7 +55657,7 @@
       ]
     },
     "dkp-2537509": {
-      "last_observed_at": "2026-11-01T12:43:21.942989+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:12:06.109152+00:00",
@@ -55525,7 +55686,7 @@
       ]
     },
     "dkp-2540907": {
-      "last_observed_at": "2026-11-01T12:43:21.942989+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T09:52:27.442508+00:00",
@@ -55769,7 +55930,7 @@
       ]
     },
     "dkp-2761241": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -56038,7 +56199,7 @@
       ]
     },
     "dkp-2860707": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T19:38:06.401926+00:00",
@@ -56347,7 +56508,7 @@
       ]
     },
     "dkp-3015585": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -56754,7 +56915,7 @@
       ]
     },
     "dkp-326807": {
-      "last_observed_at": "2026-11-01T08:53:06.606111+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T18:52:26.538280+00:00",
@@ -56778,6 +56939,10 @@
         },
         {
           "observed_at": "2026-11-01T07:42:58.625642+00:00",
+          "review_count": 2
+        },
+        {
+          "observed_at": "2026-11-01T12:57:54.176831+00:00",
           "review_count": 2
         }
       ]
@@ -56899,7 +57064,7 @@
       ]
     },
     "dkp-3364307": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -57482,7 +57647,7 @@
       ]
     },
     "dkp-3627409": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -57663,7 +57828,7 @@
       ]
     },
     "dkp-3700633": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -58265,7 +58430,7 @@
       ]
     },
     "dkp-3986553": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T18:03:42.113335+00:00",
@@ -58302,7 +58467,7 @@
       ]
     },
     "dkp-4008857": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T18:03:42.113335+00:00",
@@ -58386,7 +58551,7 @@
       ]
     },
     "dkp-4143083": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T06:42:12.617718+00:00",
@@ -58425,7 +58590,7 @@
       ]
     },
     "dkp-4170850": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T22:03:21.276022+00:00",
@@ -58772,7 +58937,7 @@
       ]
     },
     "dkp-4492750": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -59129,7 +59294,7 @@
       ]
     },
     "dkp-487319": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -59174,6 +59339,10 @@
         {
           "observed_at": "2026-11-01T11:28:12.966512+00:00",
           "review_count": 11601
+        },
+        {
+          "observed_at": "2026-11-01T12:57:54.176831+00:00",
+          "review_count": 11602
         }
       ]
     },
@@ -59885,7 +60054,7 @@
       ]
     },
     "dkp-55267": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -59997,7 +60166,7 @@
       ]
     },
     "dkp-5549287": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T19:38:06.401926+00:00",
@@ -60152,7 +60321,7 @@
       ]
     },
     "dkp-5637989": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T19:31:50.808156+00:00",
@@ -61948,7 +62117,7 @@
       ]
     },
     "dkp-7439603": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -62172,7 +62341,7 @@
       ]
     },
     "dkp-7614783": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -62257,7 +62426,7 @@
       ]
     },
     "dkp-77086": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T22:12:57.459256+00:00",
@@ -62713,7 +62882,7 @@
       ]
     },
     "dkp-810398": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T22:12:57.459256+00:00",
@@ -62930,7 +63099,7 @@
       ]
     },
     "dkp-8256227": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T02:42:54.586075+00:00",
@@ -62985,7 +63154,7 @@
       ]
     },
     "dkp-826597": {
-      "last_observed_at": "2026-11-01T12:43:21.942989+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -63462,7 +63631,7 @@
       ]
     },
     "dkp-857341": {
-      "last_observed_at": "2026-11-01T12:53:17.955099+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -63499,7 +63668,7 @@
       ]
     },
     "dkp-8594877": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -63563,7 +63732,7 @@
       ]
     },
     "dkp-870282": {
-      "last_observed_at": "2026-11-01T12:38:05.169221+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T17:53:22.746614+00:00",
@@ -64042,7 +64211,7 @@
       ]
     },
     "dkp-914277": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:07:10.261670+00:00",
@@ -64102,7 +64271,7 @@
       ]
     },
     "dkp-92440": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T22:12:57.459256+00:00",
@@ -64465,7 +64634,7 @@
       ]
     },
     "dkp-9584550": {
-      "last_observed_at": "2026-11-01T12:13:17.361195+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T00:12:06.109152+00:00",
@@ -64485,6 +64654,10 @@
         },
         {
           "observed_at": "2026-11-01T10:42:15.002712+00:00",
+          "review_count": 690
+        },
+        {
+          "observed_at": "2026-11-01T12:57:54.176831+00:00",
           "review_count": 690
         }
       ]
@@ -64622,7 +64795,7 @@
       ]
     },
     "dkp-9624454": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-10-31T19:38:06.401926+00:00",
@@ -64659,7 +64832,7 @@
       ]
     },
     "dkp-964041": {
-      "last_observed_at": "2026-11-01T12:23:13.641053+00:00",
+      "last_observed_at": "2026-11-01T12:57:54.176831+00:00",
       "samples": [
         {
           "observed_at": "2026-11-01T02:42:54.586075+00:00",
@@ -66250,19 +66423,19 @@
       "title": "نوار بهداشتی مولپد مدل پنبه ای مجموعه 2 عددی"
     },
     "dkp-109365": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 13000000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 13000000,
       "listed_original_price": 13000000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-109365",
       "product_url": "https://www.digikala.com/product/dkp-109365/",
       "promo_score": 0,
@@ -66588,19 +66761,19 @@
       "title": "کنسرو ماهی تن در روغن طبیعت - 120 گرم"
     },
     "dkp-1121709": {
-      "check_count": 17,
+      "check_count": 18,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 34,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T02:40:31.328618+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 892300,
       "last_seen_at": "2026-11-01T02:40:31.328618+00:00",
       "listed_current_price": 892300,
       "listed_original_price": 892300,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-1121709",
       "product_url": "https://www.digikala.com/product/dkp-1121709/",
       "promo_score": 0,
@@ -67068,7 +67241,7 @@
       "last_checked_at": "2026-10-30T19:28:40.924182+00:00",
       "last_checked_original_price": 1670000,
       "last_checked_price": 1085500,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
       "next_check_at": "2026-10-30T19:38:40.924182+00:00",
@@ -67626,19 +67799,19 @@
       "title": "جوراب ساق بلند مردانه پالوته طرح راه‌راه مدل P3"
     },
     "dkp-12501167": {
-      "check_count": 29,
+      "check_count": 30,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 7250000,
       "last_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "listed_current_price": 7250000,
       "listed_original_price": 7250000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-12501167",
       "product_url": "https://www.digikala.com/product/dkp-12501167/",
       "promo_score": 0,
@@ -67671,25 +67844,25 @@
       "title": "کرم کنجد با مغز فندق لودویگ دراژه - 350 گرم"
     },
     "dkp-12550978": {
-      "check_count": 69,
+      "check_count": 70,
       "click_count_30d": 0,
       "deal_expires_at": "",
-      "demand_score": 42,
+      "demand_score": 48,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T16:00:33.449384+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 1950000,
       "last_checked_price": 1950000,
       "last_seen_at": "2026-10-31T19:26:12.208069+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-12550978",
       "product_url": "https://www.digikala.com/product/dkp-12550978/",
       "promo_score": 0,
       "rating": 83.71,
-      "review_count": 5543,
+      "review_count": 5544,
       "savings_toman": 0,
       "source": "digikala_live_deals_feed",
       "title": "اسپری ضد تعریق سورملینا مدل pks حجم 120 میلی لیتر بسته 2 عددی"
@@ -68448,7 +68621,7 @@
       "last_checked_at": "2026-11-01T01:42:16.165830+00:00",
       "last_checked_original_price": 558000,
       "last_checked_price": 320000,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
       "next_check_at": "2026-11-01T01:52:16.165830+00:00",
@@ -68462,18 +68635,18 @@
       "title": "خمیر دندان میسویک مدل کامپوزیت حجم 75 میلی لیتر"
     },
     "dkp-1415550": {
-      "check_count": 5,
+      "check_count": 6,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "listed_current_price": 2850000,
       "listed_original_price": 2850000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-1415550",
       "product_url": "https://www.digikala.com/product/dkp-1415550/",
       "promo_score": 0,
@@ -68876,19 +69049,19 @@
       "title": "آبپاش و سمپاش کانیون مدل CHS-3AN ساخت ژاپن"
     },
     "dkp-1483411": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 34,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 430000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 430000,
       "listed_original_price": 430000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-1483411",
       "product_url": "https://www.digikala.com/product/dkp-1483411/",
       "promo_score": 0,
@@ -69099,18 +69272,18 @@
       "title": "شیر کم چرب غنی شده ماجان - 200 میلی لیتر"
     },
     "dkp-1498597": {
-      "check_count": 5,
+      "check_count": 6,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "listed_current_price": 1229200,
       "listed_original_price": 1229200,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-1498597",
       "product_url": "https://www.digikala.com/product/dkp-1498597/",
       "promo_score": 0,
@@ -69144,20 +69317,20 @@
       "title": "قمقمه دوچرخه مدل آیریک گنجایش 0.700 لیتر"
     },
     "dkp-15113099": {
-      "check_count": 135,
+      "check_count": 136,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 20,
       "first_seen_at": "2026-10-31T19:30:34.066292+00:00",
       "last_check_status": "eligible",
-      "last_checked_at": "2026-11-01T12:53:28.776511+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 54985900,
       "last_checked_price": 43988000,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
-      "next_check_at": "2026-11-01T13:03:28.776511+00:00",
+      "next_check_at": "2026-11-01T13:08:03.423601+00:00",
       "product_id": "dkp-15113099",
       "product_url": "https://www.digikala.com/product/dkp-15113099/",
       "promo_score": 0,
@@ -69761,19 +69934,19 @@
       "title": "کیف کمری چاقو کد x44"
     },
     "dkp-15879222": {
-      "check_count": 25,
+      "check_count": 26,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T22:10:34.048323+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 27001860,
       "last_seen_at": "2026-10-31T22:10:34.048323+00:00",
       "listed_current_price": 27300000,
       "listed_original_price": 27300000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-15879222",
       "product_url": "https://www.digikala.com/product/dkp-15879222/",
       "promo_score": 0,
@@ -69806,19 +69979,19 @@
       "title": "کاور فریم دوچرخه ویوا مدل 100201"
     },
     "dkp-15895231": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 300000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 300000,
       "listed_original_price": 300000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-15895231",
       "product_url": "https://www.digikala.com/product/dkp-15895231/",
       "promo_score": 0,
@@ -69986,20 +70159,20 @@
       "title": "کرم ژل مرطوب کننده ویتالیر مدل هیدراویت حجم 50 میلی لیتر"
     },
     "dkp-16024148": {
-      "check_count": 30,
+      "check_count": 31,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 34,
       "discount_percent": 5,
       "first_seen_at": "2026-10-31T19:30:34.066292+00:00",
       "last_check_status": "eligible",
-      "last_checked_at": "2026-11-01T12:53:28.776511+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 8000000,
       "last_checked_price": 7599000,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
-      "next_check_at": "2026-11-01T13:03:28.776511+00:00",
+      "next_check_at": "2026-11-01T13:08:03.423601+00:00",
       "product_id": "dkp-16024148",
       "product_url": "https://www.digikala.com/product/dkp-16024148/",
       "promo_score": 0,
@@ -70143,20 +70316,20 @@
       "title": "لاک ناخن داتمه شماره 98"
     },
     "dkp-16222823": {
-      "check_count": 126,
+      "check_count": 127,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 66,
       "discount_percent": 4,
       "first_seen_at": "2026-10-31T19:30:34.066292+00:00",
       "last_check_status": "eligible",
-      "last_checked_at": "2026-11-01T12:53:28.776511+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 2934530,
       "last_checked_price": 2817140,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
-      "next_check_at": "2026-11-01T13:03:28.776511+00:00",
+      "next_check_at": "2026-11-01T13:08:03.423601+00:00",
       "product_id": "dkp-16222823",
       "product_url": "https://www.digikala.com/product/dkp-16222823/",
       "promo_score": 0,
@@ -70281,20 +70454,20 @@
       "title": "فشارسنج بازویی رزمکس مدل CF175F با اعلام صوتی فارسی، حافظه 90 نتیجه، تشخیص حرکت، آشکارساز ضربان نامنظم قلب، میانگین‌گیری 3 نتیجه آخر و درجه‌بندی ریسک فشار خون،به همراه آداپتور"
     },
     "dkp-16336322": {
-      "check_count": 29,
+      "check_count": 30,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 20,
       "first_seen_at": "2026-11-01T00:10:37.405299+00:00",
       "last_check_status": "eligible",
-      "last_checked_at": "2026-11-01T12:43:30.825975+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 4200000,
       "last_checked_price": 3370000,
       "last_seen_at": "2026-11-01T00:10:37.405299+00:00",
       "listed_current_price": 3370000,
       "listed_original_price": 4200000,
-      "next_check_at": "2026-11-01T12:53:30.825975+00:00",
+      "next_check_at": "2026-11-01T13:08:03.423601+00:00",
       "product_id": "dkp-16336322",
       "product_url": "https://www.digikala.com/product/dkp-16336322/",
       "promo_score": 0,
@@ -70441,20 +70614,20 @@
       "title": "پاستیل Rainforest شیبا - 90 گرم"
     },
     "dkp-16553815": {
-      "check_count": 447,
+      "check_count": 448,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 68,
       "discount_percent": 35,
       "first_seen_at": "2026-10-30T19:30:41.119739+00:00",
       "last_check_status": "eligible",
-      "last_checked_at": "2026-11-01T12:53:28.776511+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 1135000,
       "last_checked_price": 737800,
       "last_seen_at": "2026-10-31T20:27:03.746397+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
-      "next_check_at": "2026-11-01T13:03:28.776511+00:00",
+      "next_check_at": "2026-11-01T13:08:03.423601+00:00",
       "product_id": "dkp-16553815",
       "product_url": "https://www.digikala.com/product/dkp-16553815/",
       "promo_score": 0,
@@ -70488,19 +70661,19 @@
       "title": "فشارسنج بازویی دیجیتال ایزی لایف مدل KD-595 با قابلیت اندازه‌گیری فشار خون و ضربان قلب همزمان، سیستم سخنگوی فارسی و انگلیسی، حافظه 60 رکورد، تشخیص آریتمی و منبع تغذیه باتری و برق، "
     },
     "dkp-16653068": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 13690000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 13690000,
       "listed_original_price": 13690000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-16653068",
       "product_url": "https://www.digikala.com/product/dkp-16653068/",
       "promo_score": 0,
@@ -70648,18 +70821,18 @@
       "title": "پریز تیراژه مدل P52"
     },
     "dkp-16928353": {
-      "check_count": 5,
+      "check_count": 6,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "listed_current_price": 78500,
       "listed_original_price": 78500,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-16928353",
       "product_url": "https://www.digikala.com/product/dkp-16928353/",
       "promo_score": 0,
@@ -70717,19 +70890,19 @@
       "title": "پودر سفید کننده دندان وی وان مدل اکالیپتوس وزن 50 گرم"
     },
     "dkp-1713385": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 239000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 238500,
       "listed_original_price": 238500,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-1713385",
       "product_url": "https://www.digikala.com/product/dkp-1713385/",
       "promo_score": 0,
@@ -71058,19 +71231,19 @@
       "title": "ژل بهداشتی بانوان پنبه ریز مناسب برای پوست حساس 200 میلی لیتر"
     },
     "dkp-17464490": {
-      "check_count": 29,
+      "check_count": 30,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 73500000,
       "last_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "listed_current_price": 73500000,
       "listed_original_price": 73500000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-17464490",
       "product_url": "https://www.digikala.com/product/dkp-17464490/",
       "promo_score": 0,
@@ -71180,7 +71353,7 @@
       "last_checked_at": "2026-11-01T06:13:34.550052+00:00",
       "last_checked_original_price": 690610,
       "last_checked_price": 635310,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
       "next_check_at": "2026-11-01T06:23:34.550052+00:00",
@@ -71260,19 +71433,19 @@
       "title": "روغن موتورسیکلت کاسپین مدل SN-10W-30 حجم 1 لیتر"
     },
     "dkp-1756128": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 185000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 185000,
       "listed_original_price": 185000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-1756128",
       "product_url": "https://www.digikala.com/product/dkp-1756128/",
       "promo_score": 0,
@@ -71403,7 +71576,7 @@
       "last_checked_at": "2026-10-31T17:33:03.251202+00:00",
       "last_checked_original_price": 8802000,
       "last_checked_price": 6999900,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
       "next_check_at": "2026-10-31T17:43:03.251202+00:00",
@@ -71417,19 +71590,19 @@
       "title": "ساعت هوشمند 46 میلی‌متری شیائومی مدل Smart Band 9 Active، کنترل موسیقی، کنترل سطح اکسیژن خون، شمارش ضربان قلب، پایش وضعیت خواب، با بند پلاستیکی"
     },
     "dkp-1769453": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 275000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 275000,
       "listed_original_price": 275000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-1769453",
       "product_url": "https://www.digikala.com/product/dkp-1769453/",
       "promo_score": 0,
@@ -72433,7 +72606,7 @@
       "last_checked_at": "2026-11-01T03:13:18.111146+00:00",
       "last_checked_original_price": 598000,
       "last_checked_price": 360000,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
       "next_check_at": "2026-11-01T03:23:18.111146+00:00",
@@ -72470,18 +72643,18 @@
       "title": "تب سنج دیجیتال آیننک کنگ مدل ANK-M3"
     },
     "dkp-1915566": {
-      "check_count": 5,
+      "check_count": 6,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "listed_current_price": 372300,
       "listed_original_price": 372300,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-1915566",
       "product_url": "https://www.digikala.com/product/dkp-1915566/",
       "promo_score": 0,
@@ -72647,18 +72820,18 @@
       "title": "سالاد الویه کالباس فارسی - 200 گرم"
     },
     "dkp-1940018": {
-      "check_count": 5,
+      "check_count": 6,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T09:50:38.601124+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T09:50:38.601124+00:00",
       "listed_current_price": 190000,
       "listed_original_price": 190000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-1940018",
       "product_url": "https://www.digikala.com/product/dkp-1940018/",
       "promo_score": 0,
@@ -72669,19 +72842,19 @@
       "title": "نارنگی ژاپنی Fresh وزن 1 کیلوگرم"
     },
     "dkp-1941764": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 34,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 490000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 490000,
       "listed_original_price": 490000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-1941764",
       "product_url": "https://www.digikala.com/product/dkp-1941764/",
       "promo_score": 0,
@@ -72806,19 +72979,19 @@
       "title": "آسیاب فلر مدل EG151"
     },
     "dkp-19787230": {
-      "check_count": 29,
+      "check_count": 30,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 64999000,
       "last_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "listed_current_price": 64999000,
       "listed_original_price": 64999000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-19787230",
       "product_url": "https://www.digikala.com/product/dkp-19787230/",
       "promo_score": 0,
@@ -72906,7 +73079,7 @@
       "last_checked_at": "2026-10-31T17:03:20.610090+00:00",
       "last_checked_original_price": 3040000,
       "last_checked_price": 2679000,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
       "next_check_at": "2026-10-31T17:13:20.610090+00:00",
@@ -73012,19 +73185,19 @@
       "title": "متر 10 متری نووا مدل NTT3065"
     },
     "dkp-20334735": {
-      "check_count": 29,
+      "check_count": 30,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
-      "last_checked_price": 63000000,
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
+      "last_checked_price": 60090000,
       "last_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "listed_current_price": 63000000,
       "listed_original_price": 63000000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-20334735",
       "product_url": "https://www.digikala.com/product/dkp-20334735/",
       "promo_score": 0,
@@ -73126,18 +73299,18 @@
       "title": "گوشی موبایل شیائومی مدل Poco C85 4G دو سیم کارت ظرفیت 128 گیگابایت و رم 6 گیگابایت"
     },
     "dkp-2046782": {
-      "check_count": 5,
+      "check_count": 6,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "listed_current_price": 265000,
       "listed_original_price": 265000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-2046782",
       "product_url": "https://www.digikala.com/product/dkp-2046782/",
       "promo_score": 0,
@@ -73748,7 +73921,7 @@
       "last_checked_at": "2026-11-01T06:08:11.629693+00:00",
       "last_checked_original_price": 632000,
       "last_checked_price": 410800,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
       "next_check_at": "2026-11-01T06:18:11.629693+00:00",
@@ -73886,7 +74059,7 @@
       "last_checked_at": "2026-10-31T22:28:25.240908+00:00",
       "last_checked_original_price": 6900000,
       "last_checked_price": 3655000,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
       "next_check_at": "2026-10-31T22:38:25.240908+00:00",
@@ -74241,19 +74414,19 @@
       "title": "کتاب دانش نامه مصور شاهنامه اثر یاسر مالی نسخه مشترک دیجی کالا و نشر سایان"
     },
     "dkp-2274413": {
-      "check_count": 27,
+      "check_count": 28,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 53990000,
       "last_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "listed_current_price": 53990000,
       "listed_original_price": 53990000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-2274413",
       "product_url": "https://www.digikala.com/product/dkp-2274413/",
       "promo_score": 0,
@@ -74962,20 +75135,20 @@
       "title": "اسباب بازی قایق سوختی مدل LARAZ"
     },
     "dkp-2537509": {
-      "check_count": 55,
+      "check_count": 56,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 25,
       "first_seen_at": "2026-11-01T00:10:37.405299+00:00",
       "last_check_status": "eligible",
-      "last_checked_at": "2026-11-01T12:43:30.825975+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 748000,
       "last_checked_price": 561060,
       "last_seen_at": "2026-11-01T00:10:37.405299+00:00",
       "listed_current_price": 561100,
       "listed_original_price": 561100,
-      "next_check_at": "2026-11-01T12:53:30.825975+00:00",
+      "next_check_at": "2026-11-01T13:08:03.423601+00:00",
       "product_id": "dkp-2537509",
       "product_url": "https://www.digikala.com/product/dkp-2537509/",
       "promo_score": 0,
@@ -74986,20 +75159,20 @@
       "title": "ژل بهداشتی آردن آتوپیا مدل Dry Relief حجم 150 میلی لیتر"
     },
     "dkp-2540907": {
-      "check_count": 17,
+      "check_count": 18,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 19,
       "first_seen_at": "2026-11-01T09:45:34.696027+00:00",
       "last_check_status": "eligible",
-      "last_checked_at": "2026-11-01T12:43:30.825975+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 240000,
       "last_checked_price": 195000,
       "last_seen_at": "2026-11-01T09:45:34.696027+00:00",
       "listed_current_price": 195000,
       "listed_original_price": 240000,
-      "next_check_at": "2026-11-01T12:53:30.825975+00:00",
+      "next_check_at": "2026-11-01T13:08:03.423601+00:00",
       "product_id": "dkp-2540907",
       "product_url": "https://www.digikala.com/product/dkp-2540907/",
       "promo_score": 0,
@@ -75525,19 +75698,19 @@
       "title": "صلوات شمار سلین کالا مدل ce-c4"
     },
     "dkp-2761241": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 598260,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 598260,
       "listed_original_price": 598260,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-2761241",
       "product_url": "https://www.digikala.com/product/dkp-2761241/",
       "promo_score": 0,
@@ -75684,18 +75857,18 @@
       "title": "جک خودرو مدل HJ کد 10 ظرفیت 10 تن"
     },
     "dkp-2799409": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 131000,
       "listed_original_price": 131000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-2799409",
       "product_url": "https://www.digikala.com/product/dkp-2799409/",
       "promo_score": 0,
@@ -75863,19 +76036,19 @@
       "title": "محلول ضدرسوب وخوردگی رادیاتور پارس کیمیا مدل PL1-100 حجم 1000میلی لیتر"
     },
     "dkp-2860707": {
-      "check_count": 29,
+      "check_count": 30,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 2234100,
       "last_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "listed_current_price": 2234100,
       "listed_original_price": 2234100,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-2860707",
       "product_url": "https://www.digikala.com/product/dkp-2860707/",
       "promo_score": 0,
@@ -75886,18 +76059,18 @@
       "title": "پایه خنک کننده لپ تاپ تسکو مدل TCLP 3099"
     },
     "dkp-2865017": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 128000,
       "listed_original_price": 128000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-2865017",
       "product_url": "https://www.digikala.com/product/dkp-2865017/",
       "promo_score": 0,
@@ -76132,18 +76305,18 @@
       "title": "فوم پس از کاشت مو لافارر مدل Transplant مناسب انواع مو حجم 135 میلی لیتر"
     },
     "dkp-2926197": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 114000,
       "listed_original_price": 114000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-2926197",
       "product_url": "https://www.digikala.com/product/dkp-2926197/",
       "promo_score": 0,
@@ -76357,19 +76530,19 @@
       "title": "اسپاتولا کد SP25"
     },
     "dkp-3015585": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 590000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 590000,
       "listed_original_price": 590000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-3015585",
       "product_url": "https://www.digikala.com/product/dkp-3015585/",
       "promo_score": 0,
@@ -76881,20 +77054,20 @@
       "title": "هویه 20-200 وات سومو مدل SM120"
     },
     "dkp-3364307": {
-      "check_count": 372,
+      "check_count": 373,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 79,
       "discount_percent": 10,
       "first_seen_at": "2026-10-23T09:03:32.585411+00:00",
       "last_check_status": "eligible",
-      "last_checked_at": "2026-11-01T12:53:28.776511+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 696000,
       "last_checked_price": 629000,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
-      "next_check_at": "2026-11-01T13:03:28.776511+00:00",
+      "next_check_at": "2026-11-01T13:08:03.423601+00:00",
       "product_id": "dkp-3364307",
       "product_url": "https://www.digikala.com/product/dkp-3364307/",
       "promo_score": 0,
@@ -77613,18 +77786,18 @@
       "title": "تیر تفنگ کد 22 بسته 500 عددی"
     },
     "dkp-3693543": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 159000,
       "listed_original_price": 159000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-3693543",
       "product_url": "https://www.digikala.com/product/dkp-3693543/",
       "promo_score": 0,
@@ -77635,19 +77808,19 @@
       "title": "نوار بهداشتی نازک روزانه پنبه ریز مدل لایه رویی همیشه خشک (اولترادرای مشبک) با جذب خیلی زیاد سایز L بسته 10 عددی"
     },
     "dkp-3700633": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 290000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 290000,
       "listed_original_price": 290000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-3700633",
       "product_url": "https://www.digikala.com/product/dkp-3700633/",
       "promo_score": 0,
@@ -78897,20 +79070,20 @@
       "title": "دوغ پاک - 1 لیتر"
     },
     "dkp-4492750": {
-      "check_count": 425,
+      "check_count": 426,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 42,
       "discount_percent": 0,
       "first_seen_at": "2026-10-29T20:35:32.003061+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 6600000,
       "last_checked_price": 6610000,
       "last_seen_at": "2026-10-31T20:27:03.746397+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-4492750",
       "product_url": "https://www.digikala.com/product/dkp-4492750/",
       "promo_score": 0,
@@ -79367,25 +79540,25 @@
       "title": "ظرف پودر رختشویی لیمون مدل کشویی کد 660"
     },
     "dkp-487319": {
-      "check_count": 435,
+      "check_count": 436,
       "click_count_30d": 0,
       "deal_expires_at": "",
-      "demand_score": 56,
+      "demand_score": 59,
       "discount_percent": 20,
       "first_seen_at": "2026-10-30T20:35:29.685299+00:00",
       "last_check_status": "eligible",
-      "last_checked_at": "2026-11-01T12:53:28.776511+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 414300,
       "last_checked_price": 332550,
       "last_seen_at": "2026-10-31T19:26:12.208069+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
-      "next_check_at": "2026-11-01T13:03:28.776511+00:00",
+      "next_check_at": "2026-11-01T13:08:03.423601+00:00",
       "product_id": "dkp-487319",
       "product_url": "https://www.digikala.com/product/dkp-487319/",
       "promo_score": 0,
       "rating": 87.87,
-      "review_count": 11601,
+      "review_count": 11602,
       "savings_toman": 81750,
       "source": "digikala_live_deals_feed",
       "title": "شامپو بدن شون مدل Strawberry And Milk حجم 300 میلی لیتر"
@@ -80315,19 +80488,19 @@
       "title": "سنگ پا برقی شوسی مدل B1"
     },
     "dkp-55267": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 3040000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 3040000,
       "listed_original_price": 3040000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-55267",
       "product_url": "https://www.digikala.com/product/dkp-55267/",
       "promo_score": 0,
@@ -80384,19 +80557,19 @@
       "title": "بست قمقمه مدل AL2"
     },
     "dkp-5549287": {
-      "check_count": 29,
+      "check_count": 30,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 67900000,
       "last_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "listed_current_price": 62900000,
       "listed_original_price": 62900000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-5549287",
       "product_url": "https://www.digikala.com/product/dkp-5549287/",
       "promo_score": 0,
@@ -80541,20 +80714,20 @@
       "title": "کرم ضد تعریق جنتالین مدل Magic حجم 60 میلی لیتر"
     },
     "dkp-5637989": {
-      "check_count": 86,
+      "check_count": 87,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 62,
       "discount_percent": 8,
       "first_seen_at": "2026-10-31T19:30:34.066292+00:00",
       "last_check_status": "eligible",
-      "last_checked_at": "2026-11-01T12:53:28.776511+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 3085660,
       "last_checked_price": 2838800,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
-      "next_check_at": "2026-11-01T13:03:28.776511+00:00",
+      "next_check_at": "2026-11-01T13:08:03.423601+00:00",
       "product_id": "dkp-5637989",
       "product_url": "https://www.digikala.com/product/dkp-5637989/",
       "promo_score": 0,
@@ -80643,7 +80816,7 @@
       "last_checked_at": "2026-10-28T09:07:01.543296+00:00",
       "last_checked_original_price": 1468600,
       "last_checked_price": 734300,
-      "last_seen_at": "2026-11-01T12:51:43.266703+00:00",
+      "last_seen_at": "2026-11-01T12:56:37.951126+00:00",
       "listed_current_price": 0,
       "listed_original_price": 0,
       "next_check_at": "2026-10-28T09:17:01.543296+00:00",
@@ -80949,18 +81122,18 @@
       "title": "دستکش بوکس ونوم مدل ven2m"
     },
     "dkp-591030": {
-      "check_count": 5,
+      "check_count": 6,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T09:50:38.601124+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T09:50:38.601124+00:00",
       "listed_current_price": 82000,
       "listed_original_price": 82000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-591030",
       "product_url": "https://www.digikala.com/product/dkp-591030/",
       "promo_score": 0,
@@ -82913,18 +83086,18 @@
       "title": "دارت مغناطیسی 15 اینچی مدل 9697"
     },
     "dkp-741028": {
-      "check_count": 5,
+      "check_count": 6,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "listed_current_price": 449500,
       "listed_original_price": 449500,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-741028",
       "product_url": "https://www.digikala.com/product/dkp-741028/",
       "promo_score": 0,
@@ -83204,19 +83377,19 @@
       "title": "پارچ تصفیه آب یزدگل کد 121 - گنجایش 2.3 لیتر"
     },
     "dkp-77086": {
-      "check_count": 25,
+      "check_count": 26,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T22:10:34.048323+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 1879000,
       "last_seen_at": "2026-10-31T22:10:34.048323+00:00",
       "listed_current_price": 1879000,
       "listed_original_price": 1879000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-77086",
       "product_url": "https://www.digikala.com/product/dkp-77086/",
       "promo_score": 0,
@@ -84134,18 +84307,18 @@
       "title": "ران ممتاز گوساله داخلی مهیا پروتئین - 1 کیلوگرم"
     },
     "dkp-792384": {
-      "check_count": 5,
+      "check_count": 6,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T09:50:38.601124+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T09:50:38.601124+00:00",
       "listed_current_price": 2350000,
       "listed_original_price": 2350000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-792384",
       "product_url": "https://www.digikala.com/product/dkp-792384/",
       "promo_score": 0,
@@ -84625,19 +84798,19 @@
       "title": "کرم موبر صورت و بدن هیدرودرم مناسب پوست معمولی حجم 330 میلی لیتر"
     },
     "dkp-810398": {
-      "check_count": 25,
+      "check_count": 26,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T22:10:34.048323+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 200000,
       "last_seen_at": "2026-10-31T22:10:34.048323+00:00",
       "listed_current_price": 200000,
       "listed_original_price": 200000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-810398",
       "product_url": "https://www.digikala.com/product/dkp-810398/",
       "promo_score": 0,
@@ -84939,20 +85112,20 @@
       "title": "رول ضد تعریق مردانه پادینا مدل LIGHT BLUE MEN حجم 75 میلی لیتر"
     },
     "dkp-8256227": {
-      "check_count": 53,
+      "check_count": 54,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 34,
       "discount_percent": 20,
       "first_seen_at": "2026-11-01T02:40:31.328618+00:00",
       "last_check_status": "eligible",
-      "last_checked_at": "2026-11-01T12:53:28.776511+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 464000,
       "last_checked_price": 371200,
       "last_seen_at": "2026-11-01T02:40:31.328618+00:00",
       "listed_current_price": 371200,
       "listed_original_price": 464000,
-      "next_check_at": "2026-11-01T13:03:28.776511+00:00",
+      "next_check_at": "2026-11-01T13:08:03.423601+00:00",
       "product_id": "dkp-8256227",
       "product_url": "https://www.digikala.com/product/dkp-8256227/",
       "promo_score": 0,
@@ -84963,20 +85136,20 @@
       "title": "اسپری پاک‌کننده فرش و مبل استونیش مدل 3X Action حجم 750 میلی‌لیتر"
     },
     "dkp-826597": {
-      "check_count": 56,
+      "check_count": 57,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 24,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "eligible",
-      "last_checked_at": "2026-11-01T12:43:30.825975+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_original_price": 485000,
       "last_checked_price": 370000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 370000,
       "listed_original_price": 485000,
-      "next_check_at": "2026-11-01T12:53:30.825975+00:00",
+      "next_check_at": "2026-11-01T13:08:03.423601+00:00",
       "product_id": "dkp-826597",
       "product_url": "https://www.digikala.com/product/dkp-826597/",
       "promo_score": 0,
@@ -85458,18 +85631,18 @@
       "title": "کدو سبز Fresh مقدار 1 کیلوگرم"
     },
     "dkp-856925": {
-      "check_count": 5,
+      "check_count": 6,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T09:50:38.601124+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T09:50:38.601124+00:00",
       "listed_current_price": 330000,
       "listed_original_price": 330000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-856925",
       "product_url": "https://www.digikala.com/product/dkp-856925/",
       "promo_score": 0,
@@ -85590,18 +85763,18 @@
       "title": "گریپ فروت Fresh وزن 1 کیلوگرم"
     },
     "dkp-857131": {
-      "check_count": 5,
+      "check_count": 6,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T09:50:38.601124+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T09:50:38.601124+00:00",
       "listed_current_price": 275000,
       "listed_original_price": 275000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-857131",
       "product_url": "https://www.digikala.com/product/dkp-857131/",
       "promo_score": 0,
@@ -85900,19 +86073,19 @@
       "title": "پودر سیر گلها - 100 گرم"
     },
     "dkp-870282": {
-      "check_count": 65,
+      "check_count": 66,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:38:14.174614+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 104000000,
       "last_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "listed_current_price": 102990000,
       "listed_original_price": 102990000,
-      "next_check_at": "2026-11-01T13:08:14.174614+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-870282",
       "product_url": "https://www.digikala.com/product/dkp-870282/",
       "promo_score": 0,
@@ -86126,18 +86299,18 @@
       "title": "خامه صبحانه میهن مقدار 200 گرم"
     },
     "dkp-8925776": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 112000,
       "listed_original_price": 112000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-8925776",
       "product_url": "https://www.digikala.com/product/dkp-8925776/",
       "promo_score": 0,
@@ -86398,19 +86571,19 @@
       "title": "پردازنده مرکزی اینتل مدل Core i5 12400-Tray"
     },
     "dkp-914277": {
-      "check_count": 22,
+      "check_count": 23,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 3990000,
       "last_seen_at": "2026-11-01T00:04:52.095469+00:00",
       "listed_current_price": 3990000,
       "listed_original_price": 3990000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-914277",
       "product_url": "https://www.digikala.com/product/dkp-914277/",
       "promo_score": 0,
@@ -86597,19 +86770,19 @@
       "title": "شیر پاستوریزه کم چرب غنی شده دامداران - 946 میلی لیتر"
     },
     "dkp-92440": {
-      "check_count": 25,
+      "check_count": 26,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T22:10:34.048323+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 14900000,
       "last_seen_at": "2026-10-31T22:10:34.048323+00:00",
       "listed_current_price": 14900000,
       "listed_original_price": 14900000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-92440",
       "product_url": "https://www.digikala.com/product/dkp-92440/",
       "promo_score": 0,
@@ -86643,18 +86816,18 @@
       "title": "قطار بازی نیکو تویز مدل V114"
     },
     "dkp-9267554": {
-      "check_count": 5,
+      "check_count": 6,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "last_check_status": "fetch_failed",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_seen_at": "2026-11-01T09:55:28.172786+00:00",
       "listed_current_price": 250000,
       "listed_original_price": 250000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-9267554",
       "product_url": "https://www.digikala.com/product/dkp-9267554/",
       "promo_score": 0,
@@ -87229,19 +87402,19 @@
       "title": "هنگ درام آرشا مدل 2022 به همراه پایه"
     },
     "dkp-9624454": {
-      "check_count": 29,
+      "check_count": 30,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 450000,
       "last_seen_at": "2026-10-31T19:35:32.080838+00:00",
       "listed_current_price": 450000,
       "listed_original_price": 450000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-9624454",
       "product_url": "https://www.digikala.com/product/dkp-9624454/",
       "promo_score": 0,
@@ -87318,19 +87491,19 @@
       "title": "دستگاه تست قند خون دیابان مدل SMM 1000 به همراه نوار تست قند خون بسته 50 عددی"
     },
     "dkp-964041": {
-      "check_count": 17,
+      "check_count": 18,
       "click_count_30d": 0,
       "deal_expires_at": "",
       "demand_score": 0,
       "discount_percent": 0,
       "first_seen_at": "2026-11-01T02:40:31.328618+00:00",
       "last_check_status": "discount_or_content_gate",
-      "last_checked_at": "2026-11-01T12:23:27.796104+00:00",
+      "last_checked_at": "2026-11-01T12:58:03.423601+00:00",
       "last_checked_price": 360000,
       "last_seen_at": "2026-11-01T02:40:31.328618+00:00",
       "listed_current_price": 360000,
       "listed_original_price": 360000,
-      "next_check_at": "2026-11-01T12:53:27.796104+00:00",
+      "next_check_at": "2026-11-01T13:28:03.423601+00:00",
       "product_id": "dkp-964041",
       "product_url": "https://www.digikala.com/product/dkp-964041/",
       "promo_score": 0,
@@ -87810,46 +87983,10 @@
     }
   },
   "last_channel_published_at": "2026-11-01T12:33:31.485849+00:00",
-  "last_content_selection_at": "2026-11-01T12:33:22.524744+00:00",
+  "last_content_selection_at": "2026-11-01T12:58:04.174845+00:00",
   "last_published_at": "2026-11-01T12:33:31.485849+00:00",
   "mcp_offer_page_cursor": 5,
   "pending_queue": {
-    "dkp-10281273": {
-      "current_price": 25800000,
-      "deal_expires_at": "",
-      "demand_score": 0,
-      "discount_percent": 3,
-      "first_seen_at": "2026-11-01T12:43:30.825975+00:00",
-      "last_publish_failure": "",
-      "last_publish_failure_at": "",
-      "next_publish_attempt_at": "",
-      "original_price": 26500000,
-      "product_id": "dkp-10281273",
-      "product_url": "https://www.digikala.com/product/dkp-10281273/",
-      "promo_score": 7,
-      "publish_failure_count": 0,
-      "savings_toman": 700000,
-      "title": "تایر خودرو شاسی‌بلند سایز 235/60/18 بارز مدل SPORTECH S630، تیوبلس و رادیال، مناسب چهار فصل، چسبندگی و مصرف سوخت رده A، طراحی رویه مخصوص مسیر ناهموار، 2 حلقه",
-      "urgent": false
-    },
-    "dkp-10296252": {
-      "current_price": 29799000,
-      "deal_expires_at": "",
-      "demand_score": 0,
-      "discount_percent": 5,
-      "first_seen_at": "2026-11-01T12:28:19.338434+00:00",
-      "last_publish_failure": "",
-      "last_publish_failure_at": "",
-      "next_publish_attempt_at": "",
-      "original_price": 31495000,
-      "product_id": "dkp-10296252",
-      "product_url": "https://www.digikala.com/product/dkp-10296252/",
-      "promo_score": 12,
-      "publish_failure_count": 0,
-      "savings_toman": 1696000,
-      "title": "اس اس دی اینترنال PCIe Gen4 x4 ام اس آی مدل SPATIUM M450 ظرفیت 1 ترابایت",
-      "urgent": false
-    },
     "dkp-10908628": {
       "current_price": 199900,
       "deal_expires_at": "",
@@ -87904,24 +88041,6 @@
       "title": "طی زمین شوی لیمون مدل اسپری دار کد 2095",
       "urgent": false
     },
-    "dkp-12624245": {
-      "current_price": 244000000,
-      "deal_expires_at": "",
-      "demand_score": 0,
-      "discount_percent": 14,
-      "first_seen_at": "2026-11-01T12:53:28.776511+00:00",
-      "last_publish_failure": "",
-      "last_publish_failure_at": "",
-      "next_publish_attempt_at": "",
-      "original_price": 284000000,
-      "product_id": "dkp-12624245",
-      "product_url": "https://www.digikala.com/product/dkp-12624245/",
-      "promo_score": 27,
-      "publish_failure_count": 0,
-      "savings_toman": 40000000,
-      "title": "لپ تاپ 15.6 اینچی لنوو مدل IdeaPad Gaming 3 15IHU6-i7 11370H-GTX1650 4GB-8GB DDR4 3200MHz-512GB SSD-FHD 60Hz",
-      "urgent": false
-    },
     "dkp-13538457": {
       "current_price": 98800,
       "deal_expires_at": "",
@@ -87938,6 +88057,42 @@
       "publish_failure_count": 0,
       "savings_toman": 11200,
       "title": "آستین کنترل کننده انگشت مدل M",
+      "urgent": false
+    },
+    "dkp-13827014": {
+      "current_price": 148800,
+      "deal_expires_at": "",
+      "demand_score": 34,
+      "discount_percent": 10,
+      "first_seen_at": "2026-11-01T12:58:03.423601+00:00",
+      "last_publish_failure": "",
+      "last_publish_failure_at": "",
+      "next_publish_attempt_at": "",
+      "original_price": 165000,
+      "product_id": "dkp-13827014",
+      "product_url": "https://www.digikala.com/product/dkp-13827014/",
+      "promo_score": 6,
+      "publish_failure_count": 0,
+      "savings_toman": 16200,
+      "title": "آستین کنترل کننده انگشت مدل M بسته 4 عددی",
+      "urgent": false
+    },
+    "dkp-14876965": {
+      "current_price": 21600000,
+      "deal_expires_at": "",
+      "demand_score": 42,
+      "discount_percent": 4,
+      "first_seen_at": "2026-11-01T12:58:03.423601+00:00",
+      "last_publish_failure": "",
+      "last_publish_failure_at": "",
+      "next_publish_attempt_at": "",
+      "original_price": 22500000,
+      "product_id": "dkp-14876965",
+      "product_url": "https://www.digikala.com/product/dkp-14876965/",
+      "promo_score": 9,
+      "publish_failure_count": 0,
+      "savings_toman": 900000,
+      "title": "مودم 5G رومیزی ZLT X28 با پشتیبانی از همه سیم‌کارت‌های ایران، وای‌فای 6، سرعت دانلود 4 گیگابیت بر ثانیه، قابلیت تجمیع باند، پنل سوپر ادمین دائمی، اتصال USB Type-C و LAN",
       "urgent": false
     },
     "dkp-15113099": {
@@ -88030,40 +88185,22 @@
       "title": "ماشین ظرفشویی 14 نفره دوو مدل DW-200S",
       "urgent": false
     },
-    "dkp-20176433": {
-      "current_price": 86990000,
+    "dkp-188438": {
+      "current_price": 2859800,
       "deal_expires_at": "",
       "demand_score": 0,
-      "discount_percent": 3,
-      "first_seen_at": "2026-11-01T12:53:28.776511+00:00",
+      "discount_percent": 5,
+      "first_seen_at": "2026-11-01T12:58:03.423601+00:00",
       "last_publish_failure": "",
       "last_publish_failure_at": "",
       "next_publish_attempt_at": "",
-      "original_price": 90000000,
-      "product_id": "dkp-20176433",
-      "product_url": "https://www.digikala.com/product/dkp-20176433/",
-      "promo_score": 11,
+      "original_price": 3000000,
+      "product_id": "dkp-188438",
+      "product_url": "https://www.digikala.com/product/dkp-188438/",
+      "promo_score": 6,
       "publish_failure_count": 0,
-      "savings_toman": 3010000,
-      "title": "لپ‌تاپ 15.6 اینچی لنوو مدل V15 G2 IJL با پردازنده Celeron N4500، رم 8 گیگابایت DDR4، حافظه SSD با ظرفیت 256 گیگابایت، صفحه‌نمایش Full HD مات و وبکم HD با درپوش لنز",
-      "urgent": false
-    },
-    "dkp-20900243": {
-      "current_price": 82739260,
-      "deal_expires_at": "",
-      "demand_score": 0,
-      "discount_percent": 13,
-      "first_seen_at": "2026-11-01T12:53:28.776511+00:00",
-      "last_publish_failure": "",
-      "last_publish_failure_at": "",
-      "next_publish_attempt_at": "",
-      "original_price": 95317010,
-      "product_id": "dkp-20900243",
-      "product_url": "https://www.digikala.com/product/dkp-20900243/",
-      "promo_score": 23,
-      "publish_failure_count": 0,
-      "savings_toman": 12577750,
-      "title": "انگشتر طلا 18 عیار زنانه با طرح کارتیه طلای کامک مدل بافت",
+      "savings_toman": 140200,
+      "title": "محافظ تشک دو نفره رویا سایز 160 × 200 سانتی متر",
       "urgent": false
     },
     "dkp-21869693": {
@@ -88118,6 +88255,42 @@
       "publish_failure_count": 0,
       "savings_toman": 131880,
       "title": "خرما شکلاتی مغزدار با کرم نارگیل ورسادو - 350 گرم",
+      "urgent": false
+    },
+    "dkp-2537509": {
+      "current_price": 561060,
+      "deal_expires_at": "",
+      "demand_score": 0,
+      "discount_percent": 25,
+      "first_seen_at": "2026-11-01T12:58:03.423601+00:00",
+      "last_publish_failure": "",
+      "last_publish_failure_at": "",
+      "next_publish_attempt_at": "",
+      "original_price": 748000,
+      "product_id": "dkp-2537509",
+      "product_url": "https://www.digikala.com/product/dkp-2537509/",
+      "promo_score": 19,
+      "publish_failure_count": 0,
+      "savings_toman": 186940,
+      "title": "ژل بهداشتی آردن آتوپیا مدل Dry Relief حجم 150 میلی لیتر",
+      "urgent": false
+    },
+    "dkp-2540907": {
+      "current_price": 195000,
+      "deal_expires_at": "",
+      "demand_score": 0,
+      "discount_percent": 19,
+      "first_seen_at": "2026-11-01T12:58:03.423601+00:00",
+      "last_publish_failure": "",
+      "last_publish_failure_at": "",
+      "next_publish_attempt_at": "",
+      "original_price": 240000,
+      "product_id": "dkp-2540907",
+      "product_url": "https://www.digikala.com/product/dkp-2540907/",
+      "promo_score": 13,
+      "publish_failure_count": 0,
+      "savings_toman": 45000,
+      "title": "آب معدنی آکوا پرایم - 500 میلی لیتر بسته 12 عددی",
       "urgent": false
     },
     "dkp-3364307": {
@@ -88213,7 +88386,7 @@
     "dkp-487319": {
       "current_price": 332550,
       "deal_expires_at": "",
-      "demand_score": 56,
+      "demand_score": 59,
       "discount_percent": 20,
       "first_seen_at": "2026-10-31T23:32:47.945112+00:00",
       "last_publish_failure": "",
@@ -88264,22 +88437,40 @@
       "title": "اسپری پاک‌کننده فرش و مبل استونیش مدل 3X Action حجم 750 میلی‌لیتر",
       "urgent": false
     },
-    "dkp-8472338": {
-      "current_price": 4900000,
+    "dkp-826597": {
+      "current_price": 370000,
       "deal_expires_at": "",
       "demand_score": 0,
-      "discount_percent": 3,
-      "first_seen_at": "2026-11-01T12:48:46.799669+00:00",
+      "discount_percent": 24,
+      "first_seen_at": "2026-11-01T12:58:03.423601+00:00",
       "last_publish_failure": "",
       "last_publish_failure_at": "",
       "next_publish_attempt_at": "",
-      "original_price": 5050000,
-      "product_id": "dkp-8472338",
-      "product_url": "https://www.digikala.com/product/dkp-8472338/",
-      "promo_score": 4,
+      "original_price": 485000,
+      "product_id": "dkp-826597",
+      "product_url": "https://www.digikala.com/product/dkp-826597/",
+      "promo_score": 17,
       "publish_failure_count": 0,
-      "savings_toman": 150000,
-      "title": "مجموعه 110 عددی ابزار مدل HAND_TOOLS_SET",
+      "savings_toman": 115000,
+      "title": "اسباب بازی قایق سوختی تندرو مدل Speed Boats",
+      "urgent": false
+    },
+    "dkp-8594877": {
+      "current_price": 1195000,
+      "deal_expires_at": "",
+      "demand_score": 0,
+      "discount_percent": 10,
+      "first_seen_at": "2026-11-01T12:58:03.423601+00:00",
+      "last_publish_failure": "",
+      "last_publish_failure_at": "",
+      "next_publish_attempt_at": "",
+      "original_price": 1334000,
+      "product_id": "dkp-8594877",
+      "product_url": "https://www.digikala.com/product/dkp-8594877/",
+      "promo_score": 9,
+      "publish_failure_count": 0,
+      "savings_toman": 139000,
+      "title": "ست لوازم ترمز دوچرخه مدل ویبریک فلزی مجموعه 18 عددی",
       "urgent": false
     }
   },
@@ -88295,89 +88486,8 @@
     "remaining_due": 118,
     "unconfirmed": 30
   },
-  "publication_diversity_fallback_count": 2198,
+  "publication_diversity_fallback_count": 2207,
   "publication_diversity_fallback_events": [
-    {
-      "at": "2026-11-01T06:53:06.599298+00:00",
-      "brand": "",
-      "category": "other",
-      "family": "other",
-      "product_id": "dkp-153366",
-      "reason": "no_comparable_other_category_in_lookahead",
-      "selected_rank": 33
-    },
-    {
-      "at": "2026-11-01T06:53:06.599298+00:00",
-      "brand": "",
-      "category": "other",
-      "family": "other",
-      "product_id": "dkp-8472338",
-      "reason": "no_comparable_other_category_in_lookahead",
-      "selected_rank": 34
-    },
-    {
-      "at": "2026-11-01T06:58:22.984680+00:00",
-      "brand": "",
-      "category": "personal_care",
-      "family": "personal_care",
-      "product_id": "dkp-20564567",
-      "reason": "no_comparable_other_category_in_lookahead",
-      "selected_rank": 9
-    },
-    {
-      "at": "2026-11-01T06:58:22.984680+00:00",
-      "brand": "",
-      "category": "other",
-      "family": "other",
-      "product_id": "dkp-16222823",
-      "reason": "no_comparable_other_category_in_lookahead",
-      "selected_rank": 25
-    },
-    {
-      "at": "2026-11-01T06:58:22.984680+00:00",
-      "brand": "",
-      "category": "other",
-      "family": "other",
-      "product_id": "dkp-14081797",
-      "reason": "no_comparable_other_category_in_lookahead",
-      "selected_rank": 26
-    },
-    {
-      "at": "2026-11-01T06:58:22.984680+00:00",
-      "brand": "",
-      "category": "other",
-      "family": "other",
-      "product_id": "dkp-18087433",
-      "reason": "no_comparable_other_category_in_lookahead",
-      "selected_rank": 28
-    },
-    {
-      "at": "2026-11-01T06:58:22.984680+00:00",
-      "brand": "",
-      "category": "other",
-      "family": "other",
-      "product_id": "dkp-2703279",
-      "reason": "no_comparable_other_category_in_lookahead",
-      "selected_rank": 29
-    },
-    {
-      "at": "2026-11-01T06:58:22.984680+00:00",
-      "brand": "",
-      "category": "other",
-      "family": "other",
-      "product_id": "dkp-13538457",
-      "reason": "no_comparable_other_category_in_lookahead",
-      "selected_rank": 30
-    },
-    {
-      "at": "2026-11-01T06:58:22.984680+00:00",
-      "brand": "",
-      "category": "other",
-      "family": "other",
-      "product_id": "dkp-3596299",
-      "reason": "no_comparable_other_category_in_lookahead",
-      "selected_rank": 31
-    },
     {
       "at": "2026-11-01T06:58:22.984680+00:00",
       "brand": "",
@@ -92796,6 +92906,87 @@
       "product_id": "dkp-8472338",
       "reason": "no_comparable_other_category_in_lookahead",
       "selected_rank": 26
+    },
+    {
+      "at": "2026-11-01T12:58:03.423601+00:00",
+      "brand": "",
+      "category": "other",
+      "family": "other",
+      "product_id": "dkp-5637989",
+      "reason": "no_comparable_other_category_in_lookahead",
+      "selected_rank": 3
+    },
+    {
+      "at": "2026-11-01T12:58:03.423601+00:00",
+      "brand": "",
+      "category": "other",
+      "family": "other",
+      "product_id": "dkp-487319",
+      "reason": "no_comparable_other_category_in_lookahead",
+      "selected_rank": 11
+    },
+    {
+      "at": "2026-11-01T12:58:03.423601+00:00",
+      "brand": "",
+      "category": "other",
+      "family": "other",
+      "product_id": "dkp-3364307",
+      "reason": "no_comparable_other_category_in_lookahead",
+      "selected_rank": 12
+    },
+    {
+      "at": "2026-11-01T12:58:03.423601+00:00",
+      "brand": "",
+      "category": "other",
+      "family": "other",
+      "product_id": "dkp-8256227",
+      "reason": "no_comparable_other_category_in_lookahead",
+      "selected_rank": 21
+    },
+    {
+      "at": "2026-11-01T12:58:03.423601+00:00",
+      "brand": "",
+      "category": "other",
+      "family": "other",
+      "product_id": "dkp-188438",
+      "reason": "no_comparable_other_category_in_lookahead",
+      "selected_rank": 23
+    },
+    {
+      "at": "2026-11-01T12:58:03.423601+00:00",
+      "brand": "",
+      "category": "other",
+      "family": "other",
+      "product_id": "dkp-16222823",
+      "reason": "no_comparable_other_category_in_lookahead",
+      "selected_rank": 24
+    },
+    {
+      "at": "2026-11-01T12:58:03.423601+00:00",
+      "brand": "",
+      "category": "other",
+      "family": "other",
+      "product_id": "dkp-13538457",
+      "reason": "no_comparable_other_category_in_lookahead",
+      "selected_rank": 25
+    },
+    {
+      "at": "2026-11-01T12:58:03.423601+00:00",
+      "brand": "",
+      "category": "other",
+      "family": "other",
+      "product_id": "dkp-13827014",
+      "reason": "no_comparable_other_category_in_lookahead",
+      "selected_rank": 26
+    },
+    {
+      "at": "2026-11-01T12:58:03.423601+00:00",
+      "brand": "",
+      "category": "computer_network",
+      "family": "computer_network",
+      "product_id": "dkp-21869693",
+      "reason": "no_comparable_other_category_in_lookahead",
+      "selected_rank": 27
     }
   ],
   "publication_ledger": {
@@ -97891,7 +98082,7 @@
         "bale": "sent",
         "telegram": "sent"
       },
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -98570,7 +98761,7 @@
         "bale": "sent",
         "telegram": "sent"
       },
-      "expires_at": "2026-10-31T04:30:00.995042+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -99367,7 +99558,7 @@
         "telegram": "sent",
         "youtube": "pending"
       },
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -99708,7 +99899,7 @@
         "bale": "sent",
         "telegram": "sent"
       },
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -102580,7 +102771,7 @@
         "bale": "sent",
         "telegram": "sent"
       },
-      "expires_at": "2026-10-31T20:30:01.305902+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -102730,7 +102921,7 @@
         "telegram": "sent",
         "youtube": "sent"
       },
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -102799,7 +102990,7 @@
         "bale": "sent",
         "telegram": "sent"
       },
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -103208,7 +103399,7 @@
         "bale": "sent",
         "telegram": "sent"
       },
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
@@ -103289,7 +103480,7 @@
         "telegram": "sent",
         "youtube": "sent"
       },
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_estimated": false,
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "deleted",
@@ -105498,9 +105689,9 @@
       "youtube_upload_status": "skipped_unverified_deadline"
     },
     "dkp-12841195": {
-      "aparat_expiry_attempts": 129,
-      "aparat_expiry_last_error": "HTTPError",
-      "aparat_expiry_next_attempt_at": "2026-11-01T12:52:56.495433+00:00",
+      "aparat_expiry_attempts": 130,
+      "aparat_expiry_last_error": "RuntimeError",
+      "aparat_expiry_next_attempt_at": "2026-11-01T12:58:01.782828+00:00",
       "aparat_expiry_status": "delete_retry",
       "aparat_upload_started_at": "2026-10-31T02:47:39.648225+00:00",
       "aparat_upload_status": "uploaded",
@@ -107223,9 +107414,9 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-15649116": {
-      "aparat_expiry_attempts": 128,
+      "aparat_expiry_attempts": 129,
       "aparat_expiry_last_error": "HTTPError",
-      "aparat_expiry_next_attempt_at": "2026-11-01T12:52:56.495433+00:00",
+      "aparat_expiry_next_attempt_at": "2026-11-01T12:58:01.782828+00:00",
       "aparat_expiry_status": "delete_retry",
       "aparat_upload_started_at": "2026-10-31T10:44:01.209516+00:00",
       "aparat_upload_status": "uploaded",
@@ -107669,6 +107860,7 @@
     },
     "dkp-16499038": {
       "aparat_upload_status": "skipped_unverified_deadline",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 1232,
       "caption_deadline_format_version": 14,
       "click_count_30d": 0,
@@ -107698,6 +107890,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "historical_popularity_score": 31,
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/cbbeaddf3bb01a02c7912d5ed6be7f46b2ae7615_1730287299.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 1191000,
@@ -116870,7 +117063,7 @@
       },
       "delivery_version": 1,
       "demand_score": 40,
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -118561,7 +118754,7 @@
       },
       "delivery_version": 1,
       "demand_score": 48,
-      "expires_at": "2026-10-31T04:30:00.995042+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -120506,7 +120699,7 @@
       "delivery_version": 1,
       "demand_score": 39,
       "distribution_queue_id": "dkp-22278506:2026-10-26T18:07:34.001029+00:00",
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -121326,7 +121519,7 @@
       },
       "delivery_version": 1,
       "demand_score": 34,
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -128066,7 +128259,7 @@
       },
       "delivery_version": 1,
       "demand_score": 38,
-      "expires_at": "2026-10-31T20:30:01.305902+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -128413,7 +128606,7 @@
       "delivery_version": 1,
       "demand_score": 42,
       "distribution_queue_id": "dkp-22931093:2026-10-26T05:34:50.830574+00:00",
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -128573,7 +128766,7 @@
       },
       "delivery_version": 1,
       "demand_score": 37,
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -129560,7 +129753,7 @@
       },
       "delivery_version": 1,
       "demand_score": 36,
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -129770,7 +129963,7 @@
       "demand_score": 37,
       "distribution_queue_id": "dkp-23018149:2026-10-26T20:31:42.387476+00:00",
       "expired_deleted_at": "2026-10-27T21:37:54.475236+00:00",
-      "expires_at": "2026-11-01T12:04:59.439548+00:00",
+      "expires_at": "2026-11-01T16:00:01.590178+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -132091,7 +132284,6 @@
     },
     "dkp-82047": {
       "aparat_upload_status": "skipped_unverified_deadline",
-      "bale_expiry_status": "unknown",
       "bale_message_id": 1234,
       "caption_deadline_format_version": 14,
       "click_count_30d": 0,
@@ -132104,7 +132296,6 @@
         "telegram": 1,
         "youtube": 0
       },
-      "delivery_last_attempt_at": "2026-11-01T11:43:59.418273+00:00",
       "delivery_status": {
         "aparat": "pending",
         "bale": "sent",
@@ -132122,7 +132313,6 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
-      "expiry_status": "unknown",
       "historical_popularity_score": 39,
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/f37b2b16ddb3f408bd671fbc981d10aaf7718bdb_1786372580.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 315000,
