@@ -2642,11 +2642,10 @@ def has_attractive_discount_value(record: dict) -> bool:
     if savings <= 0:
         return False
 
-    if (
-        record.get("history_status") == "verified"
-        and record.get("historical_deal_eligible") is True
-    ):
-        return True
+    if record.get("history_status") == "verified":
+        # Verified history that fails the price test is evidence against the deal,
+        # not missing information that should fall back to the displayed RRP.
+        return record.get("historical_deal_eligible") is True
 
     if (
         record.get("market_status") == "verified"
