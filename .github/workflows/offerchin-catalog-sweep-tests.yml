@@ -44,4 +44,7 @@ jobs:
         env:
           AFFILIO_MIN_DEAL_VALUE_SCORE: "0"
           AFFILIO_REQUIRE_CURRENT_DEMAND: "false"
-        run: python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_parallel_catalog_sweep affilio_radar.test_affilio -v
+        run: |
+          python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_parallel_catalog_sweep -v
+          cd affilio_radar
+          python -m unittest -v test_affilio.py
