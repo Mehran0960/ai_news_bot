@@ -130,12 +130,12 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
                                   "page":1,"sort_mode":mode,"attempts":0})
                 known_ids.add(cid)
         if not state.get("parallel_exhaustive_pages_seeded"):
-            pending={str(t.get("category_id") or "") for t in queue
-                     if isinstance(t,dict) and str(t.get("sort_mode") or "best_selling")=="best_selling"}
+            # One-time migration from the former 3-page cap: every category
+            # must resume at page 4, including categories with no old pending task.
             for c in cats:
                 if not isinstance(c,dict): continue
                 cid=str(c.get("id") or "")
-                if cid.isdigit() and cid in pending:
+                if cid.isdigit():
                     queue.append({"category_id":cid,"category_name":str(c.get("name") or cid),
                                   "page":4,"sort_mode":"best_selling","attempts":0})
             state["parallel_exhaustive_pages_seeded"]=True
