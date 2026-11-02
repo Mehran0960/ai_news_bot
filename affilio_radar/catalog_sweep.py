@@ -42,6 +42,8 @@ REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
 CANDIDATE_TTL_HOURS = 72
 MIN_CANDIDATE_DISCOUNT = 1
+# DigiKala's public category search returns 20 cards per page by default.
+CATALOG_DEFAULT_PAGE_SIZE = 20
 MAX_PAGES_PER_CATEGORY = 5000
 MAX_RETAINED_CANDIDATES = 3000
 MAX_PUBLISHER_SEEN_IDS = 12000
@@ -914,7 +916,16 @@ def run_sweep(
             return 1
 
         discounted_on_page = 0
-        page_size = max(1, len(product_rows))
+        if page == 1:
+            # Remember the first page's full width for later pages; the final
+            # page may be shorter and must not shift every subsequent rank upward.
+            state["current_category_page_size"] = max(
+                CATALOG_DEFAULT_PAGE_SIZE, len(product_rows)
+            )
+        page_size = max(
+            len(product_rows),
+            _normal_int(state.get("current_category_page_size"), CATALOG_DEFAULT_PAGE_SIZE),
+        )
         for row_index, row in enumerate(product_rows, start=1):
             pid = row["product_id"]
             # Every product card is handed to the bounded publisher detail queue.
