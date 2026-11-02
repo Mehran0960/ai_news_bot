@@ -9,6 +9,8 @@ from unittest.mock import Mock
 
 from affilio_radar.catalog_sweep import (
     _advance_cursor,
+    _category_page_url,
+    BEST_SELLING_SORT,
     catalog_candidate_sort_key,
     retain_diverse_candidates,
     acknowledge_catalog_candidates_handoff,
@@ -177,6 +179,30 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(state["page"], 1)
         self.assertEqual(state["completed_cycles"], 1)
 
+    def test_category_page_requests_digikala_best_selling_order(self):
+        url, params = _category_page_url("14", 2)
+        self.assertTrue(url.endswith("/v1/search/"))
+        self.assertEqual(params["categories[]"], "14")
+        self.assertEqual(params["page"], 2)
+        self.assertEqual(params["sort"], BEST_SELLING_SORT)
+        self.assertEqual(BEST_SELLING_SORT, 5)
+
+    def test_catalog_candidate_sort_prioritizes_best_seller_rank_over_lifetime_reviews(self):
+        current_best_seller = {
+            "catalog_best_seller_score": 84,
+            "review_count": 40,
+            "rating": 4.2,
+        }
+        historic_review_leader = {
+            "catalog_best_seller_score": 0,
+            "review_count": 100000,
+            "rating": 4.9,
+        }
+        self.assertGreater(
+            catalog_candidate_sort_key(current_best_seller),
+            catalog_candidate_sort_key(historic_review_leader),
+        )
+
     def test_candidate_rank_prioritizes_demand_before_discount(self):
         popular = {"review_count": 30000, "rating": 4.7, "discount_percent": 20}
         extreme_discount = {"review_count": 30, "rating": 3.8, "discount_percent": 90}
@@ -340,6 +366,9 @@ class CatalogSweepTests(unittest.TestCase):
             self.assertEqual(state["stats"]["catalog_candidate_cards_found_total"], 3)
             self.assertEqual(state["stats"]["discounted_candidates_found_total"], 1)
             by_id = {row["product_id"]: row for row in candidates["candidates"]}
+            self.assertEqual(by_id["dkp-777"]["catalog_best_seller_rank"], 1)
+            self.assertEqual(by_id["dkp-777"]["catalog_best_seller_score"], 100)
+            self.assertEqual(by_id["dkp-777"]["catalog_best_seller_sort"], "digikala_best_selling")
             self.assertIn("dkp-778", by_id)
             self.assertEqual(by_id["dkp-778"]["discount_percent"], 0)
             self.assertEqual(by_id["dkp-779"]["title"], "محصول دیجی‌کالا dkp-779")

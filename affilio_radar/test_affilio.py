@@ -2255,7 +2255,7 @@ class AffilioRadarTests(unittest.TestCase):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
 
         def product(pid, title, discount):
-            current_price = 1_000_000
+            current_price = 20_000_000
             original_price = int(round(current_price / (1 - discount / 100)))
             return {
                 "product_id": pid,
@@ -2574,8 +2574,8 @@ class AffilioRadarTests(unittest.TestCase):
             discovery_queue_sort_key(low_demand_huge_discount, now),
         )
 
-    def test_lifetime_popularity_ranks_before_short_term_review_growth(self):
-        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+    def test_recent_review_growth_ranks_before_lifetime_review_volume(self):
+        now = datetime.now(timezone.utc)
         established_popularity = {
             "historical_popularity_score": 42,
             "review_count": 15_000,
@@ -2594,15 +2594,82 @@ class AffilioRadarTests(unittest.TestCase):
             "current_demand_verified": True,
             "current_demand_score": 100,
             "demand_score": 100,
+            "recent_review_growth_7d": 10,
+            "recent_review_growth_window": 10,
+            "demand_window_hours": 24,
+            "demand_observed_at": now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth",
             "discount_percent": 80,
             "savings_toman": 800_000,
             "first_seen_at": now.isoformat(),
         }
-        self.assertGreater(deal_sort_key(established_popularity), deal_sort_key(short_term_spike))
+        self.assertGreater(deal_sort_key(short_term_spike), deal_sort_key(established_popularity))
         self.assertGreater(
-            discovery_queue_sort_key(established_popularity, now),
             discovery_queue_sort_key(short_term_spike, now),
+            discovery_queue_sort_key(established_popularity, now),
         )
+
+    def test_best_seller_rank_outranks_lifetime_review_volume(self):
+        best_seller = {
+            "catalog_best_seller_score": 84,
+            "catalog_best_seller_rank": 9,
+            "review_count": 80,
+            "rating": 4.2,
+            "discount_percent": 25,
+            "savings_toman": 500_000,
+        }
+        historic_review_leader = {
+            "historical_popularity_score": 45,
+            "review_count": 150_000,
+            "rating": 4.9,
+            "discount_percent": 25,
+            "savings_toman": 500_000,
+        }
+        self.assertGreater(deal_sort_key(best_seller), deal_sort_key(historic_review_leader))
+        self.assertGreater(
+            discovery_queue_sort_key(best_seller),
+            discovery_queue_sort_key(historic_review_leader),
+        )
+
+    def test_publish_demand_gate_rejects_lifetime_reviews_without_current_or_sales_evidence(self):
+        base = {
+            "title": "پاوربانک مدل پرتقاضا",
+            "availability": "in_stock",
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "image_url": "https://example.com/image.jpg",
+            "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
+            "review_count": 200_000,
+            "rating": 4.9,
+        }
+        with patch.object(radar_module, "REQUIRE_VERIFIED_DEMAND_FOR_PUBLISH", True):
+            historic_only = score_product(dict(base))
+            self.assertFalse(is_discount_publish_eligible(historic_only))
+            observed_best_seller = score_product({
+                **base,
+                "catalog_best_seller_score": 84,
+                "catalog_best_seller_rank": 9,
+            })
+            self.assertTrue(is_discount_publish_eligible(observed_best_seller))
+
+    def test_dynamic_deal_value_gate_rejects_tiny_savings_but_allows_large_cash_saving(self):
+        base = {
+            "title": "چراغ مطالعه مدل اقتصادی",
+            "availability": "in_stock",
+            "image_url": "https://example.com/image.jpg",
+            "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
+        }
+        with patch.object(radar_module, "MIN_DEAL_VALUE_SCORE", 12):
+            immaterial = score_product({
+                **base, "current_price": 990_000, "original_price": 1_000_000,
+            })
+            material = score_product({
+                **base, "current_price": 100_000_000, "original_price": 101_000_000,
+            })
+            self.assertEqual(immaterial["discount_percent"], 1)
+            self.assertFalse(is_discount_publish_eligible(immaterial))
+            self.assertEqual(material["discount_percent"], 1)
+            self.assertTrue(is_discount_publish_eligible(material))
 
     def test_selection_uses_market_demand_first_and_discount_percentage_second(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)

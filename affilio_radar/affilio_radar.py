@@ -119,6 +119,10 @@ MIN_DISCOUNT_PERCENT = max(1, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCE
 DISCOUNT_FALLBACK_FLOORS = (1,)
 MIN_DISCOUNT_FALLBACK_PERCENT = 1
 MIN_SAVINGS_TOMAN = 1
+MIN_DEAL_VALUE_SCORE = max(0, min(100, int(os.getenv("AFFILIO_MIN_DEAL_VALUE_SCORE", "0"))))
+REQUIRE_VERIFIED_DEMAND_FOR_PUBLISH = os.getenv(
+    "AFFILIO_REQUIRE_CURRENT_DEMAND", "false"
+).strip().lower() in {"1", "true", "yes", "on"}
 # Recent review growth improves the demand rank when observable; lifetime review
 # count/rating are used as fallback public popularity proxies, never as sales claims.
 CURRENT_DEMAND_WINDOW_DAYS = max(1, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "1"))))
@@ -2827,8 +2831,67 @@ def _deal_value_evidence_key(record: dict) -> tuple[int, int]:
     return (0, -101)
 
 
+def _candidate_best_seller_score(record: dict) -> int:
+    """Return DigiKala's category-local best-selling signal, if present."""
+    if not isinstance(record, dict):
+        return 0
+    try:
+        score = max(0, int(record.get("catalog_best_seller_score") or 0))
+        rank = max(0, int(record.get("catalog_best_seller_rank") or 0))
+    except (TypeError, ValueError, OverflowError):
+        return 0
+    if score <= 0 and 0 < rank <= 50:
+        score = max(0, 100 - 2 * (rank - 1))
+    return min(100, score)
+
+
+def _candidate_demand_evidence_key(record: dict) -> tuple[int, int]:
+    """Separate direct best-selling rank/recent demand from lifetime popularity."""
+    best_seller_score = _candidate_best_seller_score(record)
+    if best_seller_score >= 40:
+        return (3, best_seller_score)
+    if has_current_demand_signal(record):
+        return (2, _candidate_demand_score(record))
+    if best_seller_score > 0:
+        return (2, best_seller_score)
+    return (1, _candidate_popularity_score(record))
+
+
+def _candidate_deal_value_score(record: dict) -> int:
+    """Score value from independent market/history evidence, markdown and real cash saving."""
+    if not isinstance(record, dict):
+        return 0
+    if (
+        record.get("market_status") == "verified"
+        and record.get("market_reference_kind") == "seller_median"
+    ):
+        try:
+            advantage = float(record.get("market_price_advantage_pct") or 0)
+        except (TypeError, ValueError, OverflowError):
+            advantage = 0.0
+        if advantage > 0:
+            return min(100, 45 + round(advantage * 5))
+    if record.get("history_status") == "verified":
+        try:
+            historical_advantage = float(record.get("discount_vs_30d_median_pct") or 0)
+        except (TypeError, ValueError, OverflowError):
+            historical_advantage = 0.0
+        if historical_advantage > 0:
+            return min(100, 40 + round(historical_advantage * 5))
+        if record.get("historical_deal_eligible") is True:
+            return 55
+    try:
+        discount = max(0, int(record.get("discount_percent") or 0))
+        savings = max(0, int(record.get("savings_toman") or 0))
+    except (TypeError, ValueError, OverflowError):
+        return 0
+    discount_component = min(35, round(discount * 0.7))
+    savings_component = min(45, round(9 * math.log1p(savings / 100_000))) if savings else 0
+    return min(80, discount_component + savings_component)
+
+
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Rank demand and recency before price-value evidence, then the listed markdown."""
+    """Rank observed best sellers and fresh demand before historical reviews and markdown size."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -2845,16 +2908,6 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
         rating_score = round(float(record.get("rating") or record.get("rating_value") or 0) * 10)
     except (TypeError, ValueError, OverflowError):
         rating_score = 0
-    value_gate = int(has_meaningful_discount(record))
-    market_verified = int(
-        record.get("market_status") == "verified"
-        and record.get("market_reference_kind") == "seller_median"
-        and record.get("market_price_advantage_pct") is not None
-    )
-    try:
-        market_advantage = int(record.get("market_price_advantage_pct") or 0) if market_verified else -101
-    except (TypeError, ValueError, OverflowError):
-        market_advantage = -101
     if not active_deadline:
         urgency_tier = -1
     elif remaining <= 120 * 60:
@@ -2865,12 +2918,15 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
         urgency_tier = 0
     first_seen = _parse_utc_datetime(record.get("first_seen_at"))
     first_seen_ts = first_seen.timestamp() if first_seen else current.timestamp()
+    demand_tier, demand_score = _candidate_demand_evidence_key(record)
     evidence_tier, evidence_strength = _deal_value_evidence_key(record)
     return (
-        _candidate_popularity_score(record), reviews, rating_score,
-        _candidate_demand_score(record), clicks,
-        evidence_tier, evidence_strength, discount, value_gate,
-        _candidate_promo_score(record), savings, int(has_runway), urgency_tier,
+        demand_tier, demand_score,
+        evidence_tier, evidence_strength, _candidate_deal_value_score(record),
+        int(has_meaningful_discount(record)), discount,
+        _candidate_promo_score(record), savings,
+        _candidate_popularity_score(record), reviews, rating_score, clicks,
+        int(has_runway), urgency_tier,
         -remaining if active_deadline else float("-inf"), -first_seen_ts,
     )
 
@@ -2914,6 +2970,9 @@ def merge_discovery_queue(
             expiry = old_expiry if old_expiry and old_expiry > current else None
 
         raw_source = str(row.get("source") or row.get("discovery_source") or "digikala_live_deals_feed")[:80]
+        old_best_seller_score = _candidate_best_seller_score(old)
+        row_best_seller_score = _candidate_best_seller_score(row)
+        best_seller_source = row if row_best_seller_score >= old_best_seller_score and row_best_seller_score > 0 else old
         record = {
             **old,
             "product_id": pid,
@@ -2932,6 +2991,12 @@ def merge_discovery_queue(
             "click_count_30d": max(0, int(row.get("click_count_30d") or old.get("click_count_30d") or 0)),
             "demand_score": max(0, int(row.get("demand_score") or old.get("demand_score") or 0)),
             "promo_score": max(0, int(row.get("promo_score") or old.get("promo_score") or 0)),
+            "catalog_best_seller_score": max(old_best_seller_score, row_best_seller_score),
+            "catalog_best_seller_rank": max(0, int(best_seller_source.get("catalog_best_seller_rank") or 0)),
+            "catalog_best_seller_category_id": str(best_seller_source.get("catalog_best_seller_category_id") or ""),
+            "catalog_best_seller_category_name": str(best_seller_source.get("catalog_best_seller_category_name") or ""),
+            "catalog_best_seller_sort": str(row.get("catalog_best_seller_sort") or old.get("catalog_best_seller_sort") or ""),
+            "catalog_best_seller_observed_at": str(best_seller_source.get("catalog_best_seller_observed_at") or ""),
         }
         # New candidates are immediately due for their first detailed validation.
         record.setdefault("last_check_status", "discovered")
@@ -4202,6 +4267,7 @@ def score_product(p: dict) -> dict:
     p["demand_score"] = p["current_demand_score"]
     # Offer quality is scored independently from lifetime reviews and ratings.
     p["promo_score"] = max(0, min(100, int(discount_pct * 0.65 + savings_score)))
+    p["deal_value_score"] = _candidate_deal_value_score(p)
     p["qualifies_as_deal"] = has_meaningful_discount(p)
     return p
 
@@ -4216,14 +4282,17 @@ def deal_sort_key(p: dict) -> tuple:
         savings = max(0, int(p.get("savings_toman") or 0))
     except (TypeError, ValueError, OverflowError):
         reviews = rating_score = discount = savings = 0
+    demand_tier, demand_score = _candidate_demand_evidence_key(p)
     evidence_tier, evidence_strength = _deal_value_evidence_key(p)
     return (
+        demand_tier,
+        demand_score,
+        evidence_tier,
+        evidence_strength,
+        _candidate_deal_value_score(p),
         _candidate_popularity_score(p),
         reviews,
         rating_score,
-        _candidate_demand_score(p),
-        evidence_tier,
-        evidence_strength,
         int(has_meaningful_discount(p)),
         discount,
         int(p.get("promo_score") or 0),
@@ -4353,12 +4422,19 @@ def is_discount_publish_eligible(
     minimum_discount_percent: int | None = None,
     now: datetime | None = None,
 ) -> bool:
-    """Require verified stock/price/image, a valid product, and a genuine markdown."""
+    """Require a worthwhile markdown and, in production, current demand evidence."""
+    demand_ok = (
+        not REQUIRE_VERIFIED_DEMAND_FOR_PUBLISH
+        or _candidate_demand_evidence_key(product)[0] >= 2
+    )
+    value_ok = _candidate_deal_value_score(product) >= MIN_DEAL_VALUE_SCORE
     return bool(
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
         and has_meaningful_discount(product, minimum_discount_percent)
+        and demand_ok
+        and value_ok
     )
 
 
@@ -9162,6 +9238,15 @@ def run(publish=False, selection_only=False):
             item = fetch_product_record(canonical)
             item["merchant"] = "اسنپ‌شاپ" if product_id(canonical).startswith("snp-") else "دیجی‌کالا"
             pid = item.get("product_id", "")
+            catalog_entry = discovery_queue.get(str(pid)) if isinstance(discovery_queue, dict) else None
+            if isinstance(catalog_entry, dict):
+                for field in (
+                    "catalog_best_seller_score", "catalog_best_seller_rank",
+                    "catalog_best_seller_category_id", "catalog_best_seller_category_name",
+                    "catalog_best_seller_sort", "catalog_best_seller_observed_at",
+                ):
+                    if field in catalog_entry:
+                        item[field] = catalog_entry[field]
             mcp_deadline_hint = deal_expiries.get(pid, "")
             direct_feed_deadline = direct_feed_expiries.get(pid, "")
             mcp_card_deadline = mcp_card_expiries.get(pid, "")

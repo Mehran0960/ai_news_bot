@@ -88,6 +88,15 @@ def _next_page_task(task: dict, total_pages: int | None, product_count: int) -> 
     }
 
 
+def _page_params(task: dict) -> dict:
+    """Build category-page parameters using DigiKala's best-selling order."""
+    return {
+        "categories[]": str(task.get("category_id") or ""),
+        "page": max(1, base._normal_int(task.get("page"), 1)),
+        "sort": base.BEST_SELLING_SORT,
+    }
+
+
 def _fetch_page(task: dict) -> dict:
     """Fetch one page. 400/404 close an unqueryable category/page; other
     failures are retryable and remain in the persisted queue.
@@ -97,7 +106,7 @@ def _fetch_page(task: dict) -> dict:
     try:
         response = _session().get(
             base.SEARCH_URL,
-            params={"categories[]": category_id, "page": page},
+            params=_page_params(task),
             timeout=base.REQUEST_TIMEOUT,
         )
         if response.status_code in (400, 404):
@@ -148,6 +157,7 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
         known_ids = {str(row.get("id")) for row in categories if isinstance(row, dict)}
         state["parallel_queue_initialized"] = True
         state["parallel_cycle_started_at"] = base.iso_now()
+        state["parallel_sort_version"] = base.BEST_SELLING_SORT
     else:
         # Category dictionary refreshes may introduce new categories. Append only
         # genuinely new IDs; do not reset progress for existing IDs.
@@ -163,6 +173,36 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
                     "attempts": 0,
                 })
                 known_ids.add(category_id)
+
+        # The old persisted queue may have been swept with relevance/default sort.
+        # When the sort contract changes, requeue page 1 for every category so
+        # the new best-selling shelf is actually observed without losing old work.
+        sort_version = base.BEST_SELLING_SORT
+        if base._normal_int(state.get("parallel_sort_version")) != sort_version:
+            existing_page_one = {
+                _task_key(task)
+                for task in queue
+                if isinstance(task, dict) and _task_key(task)[1] == 1
+            }
+            for category in categories:
+                if not isinstance(category, dict):
+                    continue
+                category_id = str(category.get("id") or "")
+                if not category_id.isdigit() or (category_id, 1) in existing_page_one:
+                    continue
+                queue.append({
+                    "category_id": category_id,
+                    "category_name": str(category.get("name") or category_id),
+                    "page": 1,
+                    "attempts": 0,
+                    "sort_version": sort_version,
+                })
+            state["parallel_sort_version"] = sort_version
+            state["parallel_sort_requeued_at"] = base.iso_now()
+            print(
+                f"PARALLEL_CATALOG_SORT_VERSION_REQUEUED sort={sort_version} "
+                f"new_page_one_tasks={len(categories) - len(existing_page_one)}"
+            )
 
     # De-duplicate persisted work without dropping retry attempt metadata.
     unique: list[dict] = []
@@ -326,23 +366,52 @@ def run_parallel_sweep(
 
         total_pages = result.get("total_pages")
         total_pages = max(1, int(total_pages)) if total_pages is not None else None
-        for row in rows:
+        for row_position, row in enumerate(rows, start=1):
             if not isinstance(row, dict):
                 continue
             pid = str(row.get("product_id") or "")
             if not pid:
                 continue
             old = candidates.get(pid, {})
+            if not isinstance(old, dict):
+                old = {}
             first_seen = old.get("first_seen_at") or base.iso_now()
             previous_categories = old.get("catalog_category_ids", [])
             category_ids = {str(v) for v in previous_categories if str(v).isdigit()} if isinstance(previous_categories, list) else set()
             category_ids.add(category_id)
-            candidates[pid] = {
+
+            # The API response order is DigiKala's best-selling order.
+            seller_rank = (page - 1) * base.BEST_SELLING_PAGE_SIZE + row_position
+            seller_score = (
+                max(0, 100 - 2 * (seller_rank - 1))
+                if seller_rank <= base.BEST_SELLING_SIGNAL_MAX_RANK else 0
+            )
+            old_score = max(0, base._normal_int(old.get("catalog_best_seller_score")))
+            keep_new_rank = seller_score > 0 and seller_score >= old_score
+            candidate = {
                 **old, **row, "first_seen_at": first_seen,
                 "catalog_category_id": category_id,
                 "catalog_category_name": str(task.get("category_name") or category_id),
                 "catalog_category_ids": sorted(category_ids, key=lambda value: int(value)),
+                "catalog_best_seller_sort": "digikala_best_selling",
+                "catalog_best_seller_score": max(old_score, seller_score),
             }
+            if keep_new_rank:
+                candidate.update({
+                    "catalog_best_seller_rank": seller_rank,
+                    "catalog_best_seller_category_id": category_id,
+                    "catalog_best_seller_category_name": str(task.get("category_name") or category_id),
+                    "catalog_best_seller_observed_at": base.iso_now(),
+                })
+            else:
+                # A weaker rank in another category must not erase stronger sales evidence.
+                for field in (
+                    "catalog_best_seller_rank", "catalog_best_seller_category_id",
+                    "catalog_best_seller_category_name", "catalog_best_seller_observed_at",
+                ):
+                    if field in old:
+                        candidate[field] = old[field]
+            candidates[pid] = candidate
             stats["catalog_candidate_cards_found_total"] += 1
             if base._normal_int(row.get("discount_percent")) >= base.MIN_CANDIDATE_DISCOUNT:
                 stats["discounted_candidates_found_total"] += 1

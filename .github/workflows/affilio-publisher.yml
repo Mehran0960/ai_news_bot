@@ -46,6 +46,9 @@ jobs:
           python -m py_compile affilio_radar/affilio_radar.py affilio_radar/content_delivery.py affilio_radar/publisher.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
 
       - name: Test durable queue rules
+        env:
+          AFFILIO_MIN_DEAL_VALUE_SCORE: "0"
+          AFFILIO_REQUIRE_CURRENT_DEMAND: "false"
         run: |
           cd affilio_radar
           python -m unittest -v test_content_delivery.py
@@ -61,6 +64,8 @@ jobs:
           YOUTUBE_PRIVACY_STATUS: "public"
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
           AFFILIO_APARAT_UPLOAD_ENABLED: "true"
+          AFFILIO_MIN_DEAL_VALUE_SCORE: "12"
+          AFFILIO_REQUIRE_CURRENT_DEMAND: "true"
           APARAT_SHORTS_ONLY: "false"
           AFFILIO_DEAL_LIST_PAGES: "5"
           AFFILIO_PRICE_AUDIT_BATCH_SIZE: "10"
