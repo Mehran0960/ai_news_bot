@@ -132,6 +132,8 @@ jobs:
           # Tests must be deterministic even if repository-level env overrides the
           # deployment toggle used by the discovery-only stage.
           AFFILIO_APARAT_UPLOAD_ENABLED: "true"
+          AFFILIO_MIN_DEAL_VALUE_SCORE: "0"
+          AFFILIO_REQUIRE_CURRENT_DEMAND: "false"
         run: |
           # These tests call persistence APIs; restore both live files even when a test fails.
           state_backup="$RUNNER_TEMP/offerchin-live-state-before-tests.json"
@@ -283,6 +285,8 @@ jobs:
           YOUTUBE_PRIVACY_STATUS: "public"
           AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
           AFFILIO_MIN_DISCOUNT_PERCENT: "50"
+          AFFILIO_MIN_DEAL_VALUE_SCORE: "12"
+          AFFILIO_REQUIRE_CURRENT_DEMAND: "true"
           AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "7"
           AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "3"
           AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS: "24"
