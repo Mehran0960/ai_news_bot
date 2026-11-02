@@ -185,6 +185,24 @@ class CatalogSweepTests(unittest.TestCase):
             catalog_candidate_sort_key(extreme_discount),
         )
 
+    def test_best_selling_rank_precedes_lifetime_review_volume(self):
+        current_best_seller = {
+            "catalog_sort_order": "best_selling",
+            "catalog_best_selling_rank": 2,
+            "review_count": 250,
+            "rating": 4.1,
+            "discount_percent": 10,
+        }
+        historically_popular = {
+            "review_count": 50_000,
+            "rating": 4.8,
+            "discount_percent": 50,
+        }
+        self.assertGreater(
+            catalog_candidate_sort_key(current_best_seller),
+            catalog_candidate_sort_key(historically_popular),
+        )
+
     def test_candidate_retention_reserves_capacity_for_underrepresented_categories(self):
         rows = [
             {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i, "discount_percent": 50}
@@ -336,12 +354,16 @@ class CatalogSweepTests(unittest.TestCase):
             candidates = json.loads(candidates_path.read_text(encoding="utf-8"))
             self.assertEqual(state["stats"]["pages_scanned_total"], 1)
             self.assertEqual(state["stats"]["product_rows_scanned_total"], 3)
+            self.assertEqual(session.calls[1][1]["sort"], 5)
             self.assertEqual(candidates["candidate_count"], 3)
             self.assertEqual(state["stats"]["catalog_candidate_cards_found_total"], 3)
             self.assertEqual(state["stats"]["discounted_candidates_found_total"], 1)
             by_id = {row["product_id"]: row for row in candidates["candidates"]}
             self.assertIn("dkp-778", by_id)
             self.assertEqual(by_id["dkp-778"]["discount_percent"], 0)
+            self.assertEqual(by_id["dkp-777"]["catalog_sort_order"], "best_selling")
+            self.assertEqual(by_id["dkp-777"]["catalog_best_selling_rank"], 1)
+            self.assertEqual(by_id["dkp-778"]["catalog_best_selling_rank"], 2)
             self.assertEqual(by_id["dkp-779"]["title"], "محصول دیجی‌کالا dkp-779")
             self.assertEqual(state["completed_cycles"], 1)
 
