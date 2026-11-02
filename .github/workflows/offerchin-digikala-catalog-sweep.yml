@@ -48,7 +48,7 @@ jobs:
       - name: Sweep catalog pages concurrently
         env:
           PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/parallel_catalog_sweep.py --pages-per-run 360 --workers 12
+        run: python affilio_radar/parallel_catalog_sweep.py --pages-per-run 300 --workers 12
 
       - name: Persist resumable page queue and unacknowledged product candidates
         if: always()
