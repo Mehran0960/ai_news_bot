@@ -126,7 +126,7 @@ MIN_ATTRACTIVE_SAVINGS_TOMAN = max(
     10_000, min(5_000_000, int(os.getenv("AFFILIO_MIN_ATTRACTIVE_SAVINGS_TOMAN", "50000")))
 )
 UNVERIFIED_SAVINGS_PRICE_RATIO = max(
-    0.005, min(0.10, float(os.getenv("AFFILIO_UNVERIFIED_SAVINGS_PRICE_RATIO", "0.02")))
+    0.005, min(0.10, float(os.getenv("AFFILIO_UNVERIFIED_SAVINGS_PRICE_RATIO", "0.03")))
 )
 VERIFIED_VALUE_ADVANTAGE_PERCENT = max(
     1, min(20, int(os.getenv("AFFILIO_VERIFIED_VALUE_ADVANTAGE_PERCENT", "5")))
@@ -2846,7 +2846,10 @@ def _catalog_best_selling_rank_score(record: dict, now: datetime | None = None) 
     """Score a fresh DigiKala within-category Best Selling position, not lifetime reviews."""
     if not isinstance(record, dict) or str(record.get("catalog_sort_order") or "") != "best_selling":
         return 0
-    rank = max(0, int(record.get("catalog_best_selling_rank") or 0))
+    try:
+        rank = max(0, int(record.get("catalog_best_selling_rank") or 0))
+    except (TypeError, ValueError, OverflowError):
+        return 0
     if rank <= 0:
         return 0
     observed = _parse_utc_datetime(record.get("catalog_best_selling_at"))
@@ -4480,7 +4483,7 @@ def is_attractive_value_offer(product: dict) -> bool:
         return True
 
     # Without a comparable-market or multi-day price-history confirmation, the
-    # displayed markdown must represent at least 2% of the current purchase price
+    # displayed markdown must represent at least 3% of the current purchase price
     # (and a material cash saving). This is a dynamic value test, not a fixed 50% floor.
     return savings >= max(
         MIN_ATTRACTIVE_SAVINGS_TOMAN,
