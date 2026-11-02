@@ -9303,6 +9303,14 @@ def run(publish=False, selection_only=False):
         for p in products
     )
     market_blocked_count = sum(is_market_price_uncompetitive(p) for p in products)
+    demand_blocked_count = sum(
+        has_meaningful_discount(p) and not has_publishable_demand(p, queue_now)
+        for p in products
+    )
+    value_unverified_count = sum(
+        has_meaningful_discount(p) and not has_verified_deal_value(p)
+        for p in products
+    )
     eligible, selected_discount_floor, quality_eligible = select_discount_fallback_candidates(
         products, state, now=queue_now, include_fallback_bands=selection_only
     )
@@ -9373,6 +9381,8 @@ def run(publish=False, selection_only=False):
         f"missing_deadline={missing_deadline_count} expired_deadline={expired_deadline_count} "
         f"deadline_too_close_for_publication={deadline_too_close_count} "
         f"medicine_or_supplement={prohibited_product_count} "
+        f"demand_blocked={demand_blocked_count} value_unverified={value_unverified_count} "
+        f"market_overpriced={market_blocked_count} "
         f"quality_eligible_all_bands={listed_eligible_count} "
         f"selected_discount_band={selected_discount_band} "
         f"fresh_selected_candidates={len(eligible)} "
