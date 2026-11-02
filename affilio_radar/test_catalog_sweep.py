@@ -201,7 +201,7 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertIn("/v1/search/", url)
         self.assertEqual(params["categories[]"], "123")
         self.assertEqual(params["page"], 2)
-        self.assertEqual(params["sort"], 7")
+        self.assertEqual(params["sort"], 7)
 
     def test_fresh_best_selling_rank_outweighs_lifetime_review_count(self):
         now = datetime(2026, 11, 2, 12, 0, tzinfo=timezone.utc)
