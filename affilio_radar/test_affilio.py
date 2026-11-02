@@ -279,36 +279,38 @@ class AffilioRadarTests(unittest.TestCase):
 
     def test_digikala_caption_uses_exact_digipay_installment_sentence(self):
         product_url = "https://www.digikala.com/product/dkp-990001/"
-        caption = build_caption({
+        product = {
             "title": "گوشی نمونه",
             "product_url": product_url,
             "merchant": "دیجی‌کالا",
             "current_price": 10_000_000,
             "original_price": 12_000_000,
             "discount_percent": 17,
-        }, build_affilio_tracking_link(product_url))
+        }
+        caption = build_caption(product, build_affilio_tracking_link(product_url))
         self.assertIn("<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>", caption)
         self.assertNotIn("────────────\n\n<b>💚 قیمت فعلی:", caption)
         self.assertIn("<b>⚡️ ۱۷٪ تخفیف</b>", caption)
-        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
-        self.assertIn(
-            "\n\n────────────\n"
-            "<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>\n\n"
-            "<b>⚡️ ۱۷٪ تخفیف</b>\n\n"
-            "<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\n────────────\n\n"
-            '<a href="https://t.me/OfferChin">➕ عضویت در کانال آفِرچین</a>',
-            caption,
+        self.assertNotIn("با امکان خرید اقساطی", caption)
+        verified_caption = build_caption({
+            **product,
+            "digipay_installment_verified": True,
+            "digipay_installment_available": True,
+        }, build_affilio_tracking_link(product_url))
+        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", verified_caption)
+        bale_caption = build_caption(
+            product, build_affilio_tracking_link(product_url),
+            "https://ble.ir/OfferChin", True,
         )
-        bale_caption = build_caption({
-            "title": "گوشی نمونه",
-            "product_url": product_url,
-            "merchant": "دیجی‌کالا",
-            "current_price": 10_000_000,
-            "discount_percent": 17,
-        }, build_affilio_tracking_link(product_url), "https://ble.ir/OfferChin", True)
         self.assertIn("*💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان*", bale_caption)
         self.assertIn("*⚡️ ۱۷٪ تخفیف*", bale_caption)
-        self.assertIn("*💳 با امکان خرید اقساطی (دیجی پی)*", bale_caption)
+        self.assertNotIn("با امکان خرید اقساطی", bale_caption)
+        verified_bale_caption = build_caption({
+            **product,
+            "digipay_installment_verified": True,
+            "digipay_installment_available": True,
+        }, build_affilio_tracking_link(product_url), "https://ble.ir/OfferChin", True)
+        self.assertIn("*💳 با امکان خرید اقساطی (دیجی پی)*", verified_bale_caption)
         self.assertIn(
             "\n────────────\n\n[➕ عضویت در کانال آفِرچین](https://ble.ir/OfferChin)",
             bale_caption,
@@ -2295,25 +2297,43 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(published_order[-1]["product_id"], "dkp-95006")
 
 
-    def test_publish_ranking_keeps_higher_discount_tier_ahead_of_stronger_lower_tier_demand(self):
+    def test_publish_ranking_keeps_market_demand_ahead_of_larger_listed_discount(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
-        preferred = {
+        lower_demand_larger_discount = {
             "product_id": "dkp-95110", "title": "هدفون بلوتوثی مدل اول",
-            "selection_discount_floor": 1, "discount_percent": 50, "demand_score": 55,
+            "selection_discount_floor": 1, "discount_percent": 50,
+            "review_count": 300, "rating": 4.2, "demand_score": 55,
         }
-        fallback = {
+        higher_demand_smaller_discount = {
             "product_id": "dkp-95111", "title": "شارژر سریع مدل دوم",
-            "selection_discount_floor": 1, "discount_percent": 45, "demand_score": 99,
+            "selection_discount_floor": 1, "discount_percent": 15,
+            "review_count": 12000, "rating": 4.7, "demand_score": 99,
         }
         ranked = radar_module.select_publish_candidates(
             {"dkp-95110": {}, "dkp-95111": {}},
-            {"dkp-95110": preferred, "dkp-95111": fallback},
+            {"dkp-95110": lower_demand_larger_discount, "dkp-95111": higher_demand_smaller_discount},
             now,
         )
         self.assertEqual(
             [item["product_id"] for item in ranked],
-            ["dkp-95110", "dkp-95111"],
+            ["dkp-95111", "dkp-95110"],
         )
+
+    def test_urgent_selection_does_not_replace_demand_rank_with_largest_discount(self):
+        lower_demand_larger_discount = {
+            "product_id": "dkp-95120", "title": "هندزفری مدل تخفیف بالا",
+            "discount_percent": 90, "review_count": 300, "rating": 4.0, "demand_score": 55,
+        }
+        higher_demand_smaller_discount = {
+            "product_id": "dkp-95121", "title": "گوشی پرفروش مدل تخفیف متوسط",
+            "discount_percent": 25, "review_count": 15000, "rating": 4.7, "demand_score": 99,
+        }
+        with patch.object(radar_module, "is_urgent_priority_deal", return_value=True), \
+             patch.object(radar_module, "is_deadline_critical_deal", return_value=True):
+            selected = select_urgent_publication_candidate([
+                lower_demand_larger_discount, higher_demand_smaller_discount,
+            ])
+        self.assertEqual(selected["product_id"], "dkp-95121")
 
     def test_49_percent_candidate_uses_45_percent_band_when_no_50_percent_offer_exists(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
@@ -2617,10 +2637,10 @@ class AffilioRadarTests(unittest.TestCase):
             "market_status": "verified",
             "market_reference_kind": "seller_median", "market_price_advantage_pct": 30,
         }
-        self.assertGreater(deal_sort_key(same_demand_higher_pct), deal_sort_key(same_demand_lower_pct))
+        self.assertGreater(deal_sort_key(same_demand_lower_pct), deal_sort_key(same_demand_higher_pct))
         self.assertGreater(
-            discovery_queue_sort_key(same_demand_higher_pct, now),
             discovery_queue_sort_key(same_demand_lower_pct, now),
+            discovery_queue_sort_key(same_demand_higher_pct, now),
         )
 
         candidates = [
@@ -2630,7 +2650,7 @@ class AffilioRadarTests(unittest.TestCase):
         queue = {item["product_id"]: {} for item in candidates}
         eligible = {item["product_id"]: item for item in candidates}
         selected = select_publish_candidates(queue, eligible, now)
-        self.assertEqual(selected[0]["product_id"], "dkp-less-popular")
+        self.assertEqual(selected[0]["product_id"], "dkp-popular")
 
     def test_irr_prices_are_converted_to_toman(self):
         self.assertEqual(_money_to_toman("12900000", "IRR"), 1_290_000)
@@ -4311,6 +4331,32 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(is_market_value_publish_eligible(candidate))
         candidate["market_price_advantage_pct"] = 8
         self.assertTrue(is_market_value_publish_eligible(candidate))
+
+    def test_price_history_checks_are_throttled_and_snapshots_remain_available(self):
+        product = {
+            "product_id": "dkp-990099",
+            "product_url": "https://www.digikala.com/product/dkp-990099/",
+            "title": "هدفون نمونه", "current_price": 900_000,
+            "original_price": 1_200_000, "discount_percent": 25, "savings_toman": 300_000,
+        }
+        state = {}
+        history = {
+            "history_status": "verified", "history_source": "digikala_price_chart",
+            "history_days": 7, "history_median_toman": 1_100_000,
+            "history_stable_low_toman": 1_000_000, "history_low_toman": 880_000,
+            "history_high_toman": 1_200_000, "history_start_day": "1405/07/01",
+            "history_end_day": "1405/07/07", "discount_vs_30d_median_pct": 18,
+            "historical_deal_eligible": True,
+        }
+        with patch.object(radar_module, "PRICE_HISTORY_CHECK_LIMIT", 1), \
+             patch.object(radar_module, "fetch_price_history_record", return_value=history) as fetch:
+            radar_module.enrich_price_history([product], state)
+            self.assertEqual(fetch.call_count, 1)
+            self.assertIn("dkp-990099", state["price_history_api_checks"])
+            radar_module.enrich_price_history([product], state)
+            self.assertEqual(fetch.call_count, 1)
+        self.assertIn("dkp-990099", state["price_history"])
+        self.assertEqual(product["history_status"], "verified")
 
     def test_price_history_uses_matching_variant_and_converts_rials_to_toman(self):
         toman_prices = [120_000, 110_000, 100_000, 88_000, 90_000, 130_000, 110_000]

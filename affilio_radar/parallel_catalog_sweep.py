@@ -334,7 +334,15 @@ def run_parallel_sweep(
                 continue
             old = candidates.get(pid, {})
             first_seen = old.get("first_seen_at") or base.iso_now()
-            candidates[pid] = {**old, **row, "first_seen_at": first_seen}
+            previous_categories = old.get("catalog_category_ids", [])
+            category_ids = {str(v) for v in previous_categories if str(v).isdigit()} if isinstance(previous_categories, list) else set()
+            category_ids.add(category_id)
+            candidates[pid] = {
+                **old, **row, "first_seen_at": first_seen,
+                "catalog_category_id": category_id,
+                "catalog_category_name": str(task.get("category_name") or category_id),
+                "catalog_category_ids": sorted(category_ids, key=lambda value: int(value)),
+            }
             stats["catalog_candidate_cards_found_total"] += 1
             if base._normal_int(row.get("discount_percent")) >= base.MIN_CANDIDATE_DISCOUNT:
                 stats["discounted_candidates_found_total"] += 1
@@ -361,9 +369,10 @@ def run_parallel_sweep(
     state["parallel_worker_limit"] = worker_limit
 
     candidates = base._clean_old_candidates(candidates, seen_ids, base.utc_now())
-    ordered_candidates = sorted(
-        candidates.values(), key=base.catalog_candidate_sort_key, reverse=True
-    )[:base.MAX_RETAINED_CANDIDATES]
+    ordered_candidates = base.retain_diverse_candidates(
+        list(candidates.values()), limit=base.MAX_RETAINED_CANDIDATES,
+        rotation=stats["pages_scanned_total"],
+    )
     base._write_json(candidates_path, {
         "updated_at": base.iso_now(),
         "candidate_count": len(ordered_candidates),

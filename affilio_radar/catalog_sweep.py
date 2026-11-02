@@ -41,11 +41,11 @@ SEARCH_URL = f"{API_ROOT}/v1/search/"
 REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
 CANDIDATE_TTL_HOURS = 72
-MIN_CANDIDATE_DISCOUNT = 5
+MIN_CANDIDATE_DISCOUNT = 1
 MAX_PAGES_PER_CATEGORY = 5000
 MAX_RETAINED_CANDIDATES = 3000
 MAX_PUBLISHER_SEEN_IDS = 12000
-PUBLISHER_SEEN_TTL_DAYS = 45
+PUBLISHER_SEEN_TTL_DAYS = 2
 
 PERSIAN_DIGITS = str.maketrans(
     "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩٬٫",
@@ -471,7 +471,7 @@ def _candidate_demand(row: dict) -> int:
 
 
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Keep market-demand signals primary and deal percentage immediately after."""
+    """Rank retailer demand first; listed markdown is a later tie-breaker."""
     return (
         _candidate_demand(row),
         max(0, _normal_int(row.get("review_count"))),
@@ -479,6 +479,55 @@ def catalog_candidate_sort_key(row: dict) -> tuple:
         max(0, _normal_int(row.get("discount_percent"))),
         max(0, _normal_int(row.get("savings_toman"))),
     )
+
+
+def retain_diverse_candidates(rows: list[dict], limit: int = MAX_RETAINED_CANDIDATES, rotation: int = 0) -> list[dict]:
+    """Keep the strongest demand core and rotate remaining capacity across catalog categories."""
+    cap = max(0, int(limit))
+    ranked = sorted(
+        (row for row in rows or [] if isinstance(row, dict) and row.get("product_id")),
+        key=catalog_candidate_sort_key, reverse=True,
+    )
+    if cap <= 0 or len(ranked) <= cap:
+        return ranked[:cap]
+    selected = ranked[:max(1, cap // 2)]
+    selected_ids = {str(row["product_id"]) for row in selected}
+    buckets: dict[str, list[dict]] = {}
+    for row in ranked[max(1, cap // 2):]:
+        categories = row.get("catalog_category_ids")
+        categories = [str(x) for x in categories if str(x).isdigit()] if isinstance(categories, list) else []
+        if not categories:
+            category = str(row.get("catalog_category_id") or "")
+            categories = [category] if category.isdigit() else ["unknown"]
+        for category in categories:
+            buckets.setdefault(category, []).append(row)
+    category_ids = sorted(buckets, key=lambda x: (not x.isdigit(), int(x) if x.isdigit() else x))
+    if category_ids:
+        offset = max(0, int(rotation)) % len(category_ids)
+        category_ids = category_ids[offset:] + category_ids[:offset]
+    while len(selected) < cap:
+        added = False
+        for category in category_ids:
+            for row in buckets.get(category, []):
+                pid = str(row.get("product_id") or "")
+                if pid and pid not in selected_ids:
+                    selected.append(row)
+                    selected_ids.add(pid)
+                    added = True
+                    break
+            if len(selected) >= cap:
+                break
+        if not added:
+            break
+    if len(selected) < cap:
+        for row in ranked:
+            pid = str(row.get("product_id") or "")
+            if pid and pid not in selected_ids:
+                selected.append(row)
+                selected_ids.add(pid)
+                if len(selected) >= cap:
+                    break
+    return sorted(selected, key=catalog_candidate_sort_key, reverse=True)
 
 
 def _category_page_url(category_id: str, page: int) -> tuple[str, dict]:
@@ -530,7 +579,7 @@ def load_catalog_candidates_for_handoff(
     max_count: int = 100,
     now: datetime | None = None,
 ) -> list[dict]:
-    """Return unseen cards and record acknowledgements in publisher state."""
+    """Select unseen cards without acknowledging them before the queue accepts them."""
     current = now or utc_now()
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -557,6 +606,21 @@ def load_catalog_candidates_for_handoff(
         if parsed < cutoff:
             seen.pop(pid, None)
 
+    deferred = handoff.setdefault("deferred_ids", {})
+    if not isinstance(deferred, dict):
+        deferred = {}
+        handoff["deferred_ids"] = deferred
+    for pid, raw_retry in list(deferred.items()):
+        try:
+            retry_after = datetime.fromisoformat(str(raw_retry).replace("Z", "+00:00"))
+            if retry_after.tzinfo is None:
+                retry_after = retry_after.replace(tzinfo=timezone.utc)
+        except (TypeError, ValueError):
+            deferred.pop(pid, None)
+            continue
+        if retry_after <= current:
+            deferred.pop(pid, None)
+
     already_queued = publisher_state.get("discovery_queue", {})
     already_queued = set(already_queued) if isinstance(already_queued, dict) else set()
     fresh = []
@@ -565,7 +629,7 @@ def load_catalog_candidates_for_handoff(
         url = str(row.get("product_url") or "")
         if not re.fullmatch(r"dkp-\d{1,12}", pid):
             continue
-        if pid in seen or pid in already_queued:
+        if pid in seen or pid in already_queued or pid in deferred:
             continue
         if not url.endswith(f"/{pid}/"):
             continue
@@ -574,15 +638,71 @@ def load_catalog_candidates_for_handoff(
         fresh.append(row)
     fresh.sort(key=catalog_candidate_sort_key, reverse=True)
     selected = fresh[:max(0, int(max_count))]
-    stamp = current.isoformat()
-    for row in selected:
-        seen[str(row["product_id"])] = stamp
+    handoff["last_selection_at"] = current.isoformat() if selected else handoff.get("last_selection_at", "")
+    handoff["last_selection_count"] = len(selected)
+    return selected
+
+
+def acknowledge_catalog_candidates_handoff(publisher_state: dict, product_ids: list[str] | set[str], now: datetime | None = None) -> int:
+    """Acknowledge only candidates confirmed to remain in the persisted discovery queue."""
+    if not isinstance(publisher_state, dict):
+        return 0
+    handoff = publisher_state.setdefault("catalog_sweep_handoff", {})
+    if not isinstance(handoff, dict):
+        handoff = {}
+        publisher_state["catalog_sweep_handoff"] = handoff
+    seen = handoff.setdefault("seen_ids", {})
+    if not isinstance(seen, dict):
+        seen = {}
+        handoff["seen_ids"] = seen
+    current = now or utc_now()
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    stamp = current.astimezone(timezone.utc).isoformat()
+    acknowledged = {str(pid) for pid in (product_ids or []) if re.fullmatch(r"dkp-\d{1,12}", str(pid))}
+    for pid in acknowledged:
+        seen[pid] = stamp
+    deferred = handoff.setdefault("deferred_ids", {})
+    if isinstance(deferred, dict):
+        for pid in acknowledged:
+            deferred.pop(pid, None)
     if len(seen) > MAX_PUBLISHER_SEEN_IDS:
         ordered = sorted(seen.items(), key=lambda pair: str(pair[1]), reverse=True)
         handoff["seen_ids"] = dict(ordered[:MAX_PUBLISHER_SEEN_IDS])
-    handoff["last_handoff_at"] = stamp if selected else handoff.get("last_handoff_at", "")
-    handoff["last_handoff_count"] = len(selected)
-    return selected
+    if acknowledged:
+        handoff["last_handoff_at"] = stamp
+        handoff["last_handoff_count"] = len(acknowledged)
+    return len(acknowledged)
+
+
+def defer_catalog_candidates_handoff(publisher_state: dict, product_ids: list[str] | set[str], now: datetime | None = None, retry_minutes: int = 15) -> int:
+    """Temporarily rotate queue-overflow candidates without acknowledging or dropping them."""
+    if not isinstance(publisher_state, dict):
+        return 0
+    handoff = publisher_state.setdefault("catalog_sweep_handoff", {})
+    if not isinstance(handoff, dict):
+        handoff = {}
+        publisher_state["catalog_sweep_handoff"] = handoff
+    deferred = handoff.setdefault("deferred_ids", {})
+    if not isinstance(deferred, dict):
+        deferred = {}
+        handoff["deferred_ids"] = deferred
+    current = now or utc_now()
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    try:
+        delay = max(1, min(240, int(retry_minutes)))
+    except (TypeError, ValueError, OverflowError):
+        delay = 15
+    retry_at = (current + timedelta(minutes=delay)).isoformat()
+    ids = {str(pid) for pid in (product_ids or []) if re.fullmatch(r"dkp-\d{1,12}", str(pid))}
+    for pid in ids:
+        deferred[pid] = retry_at
+    if len(deferred) > MAX_PUBLISHER_SEEN_IDS:
+        ordered = sorted(deferred.items(), key=lambda pair: str(pair[1]), reverse=True)
+        handoff["deferred_ids"] = dict(ordered[:MAX_PUBLISHER_SEEN_IDS])
+    return len(ids)
 
 
 def _load_candidates_by_id(path: Path) -> dict[str, dict]:
@@ -756,7 +876,15 @@ def run_sweep(
             # A missing/zero list-card discount is not evidence of no live discount.
             old = candidates.get(pid, {})
             first_seen = old.get("first_seen_at") or iso_now()
-            candidate = {**old, **row, "first_seen_at": first_seen}
+            previous_categories = old.get("catalog_category_ids", [])
+            category_ids = {str(v) for v in previous_categories if str(v).isdigit()} if isinstance(previous_categories, list) else set()
+            category_ids.add(category_id)
+            candidate = {
+                **old, **row, "first_seen_at": first_seen,
+                "catalog_category_id": category_id,
+                "catalog_category_name": category_name,
+                "catalog_category_ids": sorted(category_ids, key=lambda value: int(value)),
+            }
             candidates[pid] = candidate
             stats["catalog_candidate_cards_found_total"] += 1
             if row["discount_percent"] >= MIN_CANDIDATE_DISCOUNT:
@@ -779,9 +907,10 @@ def run_sweep(
         state["stats"] = stats
 
         candidates = _clean_old_candidates(candidates, seen_ids, utc_now())
-        ordered_candidates = sorted(
-            candidates.values(), key=catalog_candidate_sort_key, reverse=True
-        )[:MAX_RETAINED_CANDIDATES]
+        ordered_candidates = retain_diverse_candidates(
+            list(candidates.values()), limit=MAX_RETAINED_CANDIDATES,
+            rotation=stats["pages_scanned_total"],
+        )
         _write_json(candidates_path, {
             "updated_at": iso_now(),
             "candidate_count": len(ordered_candidates),

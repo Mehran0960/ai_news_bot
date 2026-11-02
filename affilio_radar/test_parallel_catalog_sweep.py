@@ -10,6 +10,18 @@ from . import parallel_catalog_sweep as sweep
 
 
 class ParallelCatalogSweepTests(unittest.TestCase):
+    def test_parallel_candidate_buffer_retains_category_spread(self):
+        rows = [
+            {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i}
+            for i in range(1, 6)
+        ] + [
+            {"product_id": "dkp-20", "catalog_category_id": "20", "catalog_category_ids": ["20"], "review_count": 100},
+            {"product_id": "dkp-30", "catalog_category_id": "30", "catalog_category_ids": ["30"], "review_count": 90},
+        ]
+        retained = sweep.base.retain_diverse_candidates(rows, limit=4)
+        self.assertEqual(len(retained), 4)
+        self.assertTrue({"20", "30"}.issubset({row["catalog_category_id"] for row in retained}))
+
     def test_initial_queue_covers_categories_and_preserves_legacy_cursor(self):
         categories = [
             {"id": "1", "name": "mobile"},

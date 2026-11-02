@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+from datetime import datetime, timedelta, timezone
 import unittest
 from pathlib import Path
 from unittest.mock import Mock
@@ -188,7 +189,7 @@ class CatalogSweepTests(unittest.TestCase):
                 {"product_id": "dkp-1", "product_url": "https://www.digikala.com/product/dkp-1/", "title": "هدفون بلوتوثی نمونه", "discount_percent": 50},
                 {"product_id": "dkp-2", "product_url": "https://www.digikala.com/product/dkp-2/", "title": "پاوربانک مدل نمونه", "discount_percent": 70},
             ]}, ensure_ascii=False), encoding="utf-8")
-            state = {"catalog_sweep_handoff": {"seen_ids": {"dkp-1": "2026-10-30T00:00:00+00:00"}}}
+            state = {"catalog_sweep_handoff": {"seen_ids": {"dkp-1": "2026-11-01T00:00:00+00:00"}}}
             selected = load_catalog_candidates_for_handoff(
                 path, state, max_count=10,
             )

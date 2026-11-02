@@ -100,6 +100,9 @@ jobs:
             test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit \
             test_affilio.AffilioRadarTests.test_discount_publishing_requires_a_valuable_deal \
             test_affilio.AffilioRadarTests.test_selection_uses_market_demand_first_and_discount_percentage_second \
+            test_affilio.AffilioRadarTests.test_publish_ranking_keeps_market_demand_ahead_of_larger_listed_discount \
+            test_affilio.AffilioRadarTests.test_urgent_selection_does_not_replace_demand_rank_with_largest_discount \
+            test_affilio.AffilioRadarTests.test_price_history_checks_are_throttled_and_snapshots_remain_available \
             test_affilio.AffilioRadarTests.test_all_real_discount_bands_compete_without_a_percentage_or_saving_floor \
             test_affilio.AffilioRadarTests.test_last_mile_photo_sender_accepts_a_49_percent_offer_with_real_markdown \
             test_affilio.AffilioRadarTests.test_preferred_posting_windows_use_iran_local_time \
@@ -126,6 +129,8 @@ jobs:
           YOUTUBE_PRIVACY_STATUS: "public"
           AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
           AFFILIO_MIN_DISCOUNT_PERCENT: "1"
+          AFFILIO_HISTORY_CHECK_LIMIT: "2"
+          AFFILIO_HISTORY_RECHECK_HOURS: "24"
           AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "1"
           AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "1"
           AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS: "6"

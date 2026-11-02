@@ -25,9 +25,17 @@ import requests
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from product_quality import is_publishable_product_title
 try:
-    from .catalog_sweep import load_catalog_candidates_for_handoff
+    from .catalog_sweep import (
+        load_catalog_candidates_for_handoff,
+        acknowledge_catalog_candidates_handoff,
+        defer_catalog_candidates_handoff,
+    )
 except ImportError:
-    from catalog_sweep import load_catalog_candidates_for_handoff
+    from catalog_sweep import (
+        load_catalog_candidates_for_handoff,
+        acknowledge_catalog_candidates_handoff,
+        defer_catalog_candidates_handoff,
+    )
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from offerchin_visuals import (
@@ -119,7 +127,9 @@ CURRENT_DEMAND_MIN_OBSERVATION_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CUR
 CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS", "2"))))
 CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS", "12"))))
 CURRENT_DEMAND_HISTORY_MAX_PRODUCTS = max(100, min(5000, int(os.getenv("AFFILIO_CURRENT_DEMAND_HISTORY_MAX_PRODUCTS", "2000"))))
-PRICE_HISTORY_CHECK_LIMIT = max(0, min(25, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "15"))))
+# Bounded history checks prevent repeated retailer API calls for the same product.
+PRICE_HISTORY_CHECK_LIMIT = max(0, min(5, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "2"))))
+PRICE_HISTORY_RECHECK_HOURS = max(12, min(72, int(os.getenv("AFFILIO_HISTORY_RECHECK_HOURS", "24"))))
 MIN_HISTORICAL_PRICE_DAYS = max(3, min(30, int(os.getenv("AFFILIO_MIN_HISTORICAL_PRICE_DAYS", "7"))))
 MIN_HISTORICAL_DISCOUNT_PERCENT = max(1, min(50, int(os.getenv("AFFILIO_MIN_HISTORICAL_DISCOUNT_PERCENT", "10"))))
 MIN_STABLE_LOW_GAP_PERCENT = max(5, min(30, int(os.getenv("AFFILIO_MIN_STABLE_LOW_GAP_PERCENT", "10"))))
@@ -1826,13 +1836,51 @@ def apply_snapshot_price_history(product: dict, state: dict) -> dict:
 
 
 def enrich_price_history(products: list[dict], state: dict) -> None:
-    """Validate top listed-discount candidates and persist snapshots for fallback verification."""
+    """Persist daily price observations and rotate bounded public history checks across candidates."""
     update_price_snapshots(state, products)
+    current = datetime.now(timezone.utc)
+    checks = state.setdefault("price_history_api_checks", {})
+    if not isinstance(checks, dict):
+        checks = {}
+        state["price_history_api_checks"] = checks
+    stale_cutoff = current - timedelta(days=60)
+    for pid, raw in list(checks.items()):
+        raw_checked = raw.get("checked_at") if isinstance(raw, dict) else raw
+        checked_at = _parse_utc_datetime(raw_checked)
+        if checked_at is None or checked_at < stale_cutoff:
+            checks.pop(pid, None)
+
+    pause_until = _parse_utc_datetime(state.get("price_history_api_pause_until"))
     ranked = sorted(products, key=deal_sort_key, reverse=True)
-    checked = {str(p.get("product_id") or product_id(p.get("product_url", ""))): p for p in ranked[:PRICE_HISTORY_CHECK_LIMIT]}
-    for index, (pid, product) in enumerate(checked.items()):
+    due = []
+    if PRICE_HISTORY_CHECK_LIMIT > 0 and not (pause_until and pause_until > current):
+        for product in ranked:
+            pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
+            if not re.fullmatch(r"dkp-\d{1,12}", pid):
+                continue
+            raw = checks.get(pid)
+            if isinstance(raw, dict):
+                checked_at = _parse_utc_datetime(raw.get("checked_at"))
+                retry_after = _parse_utc_datetime(raw.get("retry_after"))
+            else:
+                checked_at = _parse_utc_datetime(raw)
+                retry_after = None
+            if retry_after and retry_after > current:
+                continue
+            if checked_at and (current - checked_at).total_seconds() < PRICE_HISTORY_RECHECK_HOURS * 3600:
+                continue
+            due.append((pid, product))
+            if len(due) >= PRICE_HISTORY_CHECK_LIMIT:
+                break
+
+    print(
+        f"PRICE_HISTORY_PLAN products={len(products)} due_checks={len(due)} "
+        f"check_limit={PRICE_HISTORY_CHECK_LIMIT} recheck_hours={PRICE_HISTORY_RECHECK_HOURS} "
+        f"paused={bool(pause_until and pause_until > current)}"
+    )
+    for index, (pid, product) in enumerate(due):
         if index:
-            time.sleep(0.20)  # keep calls to the public endpoint modest
+            time.sleep(0.20)
         try:
             history = fetch_price_history_record(
                 product.get("product_url", ""),
@@ -1840,6 +1888,7 @@ def enrich_price_history(products: list[dict], state: dict) -> None:
                 product.get("variant_label", ""),
             )
             product.update(history)
+            checks[pid] = {"checked_at": current.isoformat(), "retry_after": ""}
             print(
                 f"PRICE_HISTORY id={pid} status={product.get('history_status')} "
                 f"days={product.get('history_days')} median={product.get('history_median_toman')} "
@@ -1849,10 +1898,16 @@ def enrich_price_history(products: list[dict], state: dict) -> None:
         except Exception as exc:
             product["history_api_error"] = type(exc).__name__
             status_code = getattr(getattr(exc, "response", None), "status_code", None)
+            retry_hours = 6 if status_code in {403, 429} else 12
+            checks[pid] = {
+                "checked_at": current.isoformat(),
+                "retry_after": (current + timedelta(hours=retry_hours)).isoformat(),
+            }
             if status_code in {403, 429}:
-                print("PRICE_HISTORY_PAUSE: endpoint rate-limited; remaining items use local snapshots.")
-                break
+                state["price_history_api_pause_until"] = (current + timedelta(hours=1)).isoformat()
+                print("PRICE_HISTORY_PAUSE: public endpoint rate-limited; future checks are temporarily paused.")
             print(f"PRICE_HISTORY_FAILED id={pid} error={type(exc).__name__} status={status_code or 'n/a'}")
+
     for product in products:
         if product.get("history_status") != "verified":
             apply_snapshot_price_history(product, state)
@@ -2604,8 +2659,35 @@ def _candidate_popularity_score(record: dict) -> int:
     return min(100, review_proxy + rating_proxy)
 
 
+def _deal_value_evidence_key(record: dict) -> tuple[int, int]:
+    """Prefer independent same-product market/history evidence without setting a discount floor."""
+    if not isinstance(record, dict):
+        return (0, -101)
+    if (
+        record.get("market_status") == "verified"
+        and record.get("market_reference_kind") == "seller_median"
+        and record.get("market_price_advantage_pct") is not None
+    ):
+        try:
+            advantage = int(record.get("market_price_advantage_pct"))
+        except (TypeError, ValueError, OverflowError):
+            advantage = -101
+        return (3, advantage) if advantage > 0 else (1, advantage)
+    if record.get("history_status") == "verified":
+        try:
+            advantage = int(record.get("discount_vs_30d_median_pct") or 0)
+        except (TypeError, ValueError, OverflowError):
+            advantage = 0
+        if advantage > 0:
+            return (2, advantage)
+        if record.get("historical_deal_eligible") is True:
+            return (2, 1)
+        return (1, advantage)
+    return (0, -101)
+
+
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Rank broad product popularity first, recent activity second, then live discount."""
+    """Rank demand and recency before price-value evidence, then the listed markdown."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -2642,10 +2724,11 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
         urgency_tier = 0
     first_seen = _parse_utc_datetime(record.get("first_seen_at"))
     first_seen_ts = first_seen.timestamp() if first_seen else current.timestamp()
+    evidence_tier, evidence_strength = _deal_value_evidence_key(record)
     return (
         _candidate_popularity_score(record), reviews, rating_score,
-        _candidate_demand_score(record), discount,
-        clicks, market_verified, market_advantage, value_gate,
+        _candidate_demand_score(record), clicks,
+        evidence_tier, evidence_strength, discount, value_gate,
         _candidate_promo_score(record), savings, int(has_runway), urgency_tier,
         -remaining if active_deadline else float("-inf"), -first_seen_ts,
     )
@@ -3200,12 +3283,33 @@ def discover_product_urls(
                 max_count=handoff_limit,
                 now=queue_now,
             )
+            retained_ids = set()
+            acknowledged = 0
+            deferred_count = 0
             if catalog_batch:
                 merge_discovery_queue(discovery_queue, catalog_batch, queue_now)
+                retained_ids = {
+                    str(row.get("product_id") or "")
+                    for row in catalog_batch
+                    if str(row.get("product_id") or "") in discovery_queue
+                }
+                acknowledged = acknowledge_catalog_candidates_handoff(
+                    state_to_persist, retained_ids, now=queue_now
+                )
+                deferred_ids = {
+                    str(row.get("product_id") or "")
+                    for row in catalog_batch
+                    if str(row.get("product_id") or "") not in retained_ids
+                }
+                deferred_count = defer_catalog_candidates_handoff(
+                    state_to_persist, deferred_ids, now=queue_now, retry_minutes=15
+                )
                 state_to_persist["discovery_queue"] = discovery_queue
             print(
-                f"CATALOG_SWEEP_HANDOFF candidates={len(catalog_batch)} "
-                f"limit={handoff_limit} backlog_source={CATALOG_SWEEP_CANDIDATES.name}"
+                f"CATALOG_SWEEP_HANDOFF selected={len(catalog_batch)} "
+                f"retained={len(retained_ids)} acknowledged={acknowledged} "
+                f"deferred={deferred_count} limit={handoff_limit} "
+                f"backlog_source={CATALOG_SWEEP_CANDIDATES.name}"
             )
         except Exception as exc:
             print(f"CATALOG_SWEEP_HANDOFF_FAILED error={type(exc).__name__}; normal_discovery_continues=true")
@@ -3963,31 +4067,26 @@ def score_product(p: dict) -> dict:
 
 
 def deal_sort_key(p: dict) -> tuple:
-    """Rank broad product popularity first, recent activity second, then the largest live markdown."""
-    verified_median = (
-        p.get("market_status") == "verified"
-        and p.get("market_reference_kind") == "seller_median"
-        and p.get("market_price_advantage_pct") is not None
-    )
-    market_known = 1 if verified_median else 0
-    try:
-        market_advantage = int(p.get("market_price_advantage_pct") or 0) if verified_median else -101
-    except (TypeError, ValueError, OverflowError):
-        market_advantage = -101
+    """Rank public demand first, independent price-value evidence second, and listed markdown third."""
     try:
         reviews = max(0, int(p.get("review_count") or 0))
         rating_score = round(float(p.get("rating") or p.get("rating_value") or 0) * 10)
+        discount = max(0, int(p.get("discount_percent") or 0))
+        savings = max(0, int(p.get("savings_toman") or 0))
     except (TypeError, ValueError, OverflowError):
-        reviews = 0
-        rating_score = 0
+        reviews = rating_score = discount = savings = 0
+    evidence_tier, evidence_strength = _deal_value_evidence_key(p)
     return (
         _candidate_popularity_score(p),
         reviews,
         rating_score,
         _candidate_demand_score(p),
-        max(0, int(p.get("discount_percent") or 0)),
-        market_known, market_advantage, int(has_meaningful_discount(p)),
-        int(p.get("promo_score") or 0), max(0, int(p.get("savings_toman") or 0)),
+        evidence_tier,
+        evidence_strength,
+        int(has_meaningful_discount(p)),
+        discount,
+        int(p.get("promo_score") or 0),
+        savings,
     )
 
 def _fetch_click_statistics_snapshot() -> dict:
@@ -4348,8 +4447,12 @@ def build_caption(
     if discount is not None and int(discount) > 0:
         discount_value = format_persian_number(discount) + "٪"
         offer_lines.append(bold(f"⚡️ {discount_value} تخفیف"))
-    installment_line = bold("💳 با امکان خرید اقساطی (دیجی پی)")
-    offer_lines.append(installment_line)
+    # Installment availability is product-specific; do not claim it without provider verification.
+    if (
+        p.get("digipay_installment_verified") is True
+        and p.get("digipay_installment_available") is True
+    ):
+        offer_lines.append(bold("💳 با امکان خرید اقساطی (دیجی پی)"))
 
     # Keep one source-channel membership link for forwarded posts; the purchase button
     # remains a separate inline button and its presence is validated by the sender.
@@ -6893,7 +6996,7 @@ def select_urgent_publication_candidate(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> dict | None:
-    """Choose the largest verified discount among urgent candidates in the popularity-ranked pool."""
+    """Choose the strongest demand/value candidate among urgent offers; expiry is only the urgency gate."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -6911,12 +7014,7 @@ def select_urgent_publication_candidate(
     if not ranked:
         print("URGENT_PUBLICATION_DEFERRED reason=recent_family_cooldown_or_no_diverse_candidate")
         return None
-    # Stable discount sort: maximum discount leads, existing demand/diversity order
-    # is preserved when discounts are equal.
-    ranked.sort(
-        key=lambda product: max(0, int(product.get("discount_percent") or 0)),
-        reverse=True,
-    )
+    # The primary rank already orders demand, value evidence, and then the listed markdown.
     return ranked[0]
 
 
@@ -6927,7 +7025,7 @@ def select_publish_candidates(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> list[dict]:
-    """Rank demand/diversity within each discount tier; never let a weaker tier jump the queue."""
+    """Preserve demand/value ranking; percentage size is a tie-breaker, not the primary rank."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -6953,8 +7051,8 @@ def select_publish_candidates(
     if deferred:
         print(f"PUBLISH_QUEUE_BACKOFF skipped_deferred={deferred} ready={sum(map(len, selected_by_floor.values()))}")
 
-    # Candidate discovery first builds a popularity-ranked pool. Final publication
-    # then selects the largest currently verified discount inside that pool.
+    # Discovery has already ranked demand, value confidence, then markdown size.
+    # Keep the exact order at final publication instead of re-sorting on percentage.
     ordered: list[dict] = []
     for floor in sorted(selected_by_floor, reverse=True):
         tier = _order_candidates_by_primary_rank(
@@ -6962,11 +7060,6 @@ def select_publish_candidates(
             published=published,
             recent_publications=recent_publications,
             now=current,
-        )
-        # Stable sort preserves the demand/diversity rank for equal discounts.
-        tier.sort(
-            key=lambda product: max(0, int(product.get("discount_percent") or 0)),
-            reverse=True,
         )
         ordered.extend(tier)
     return ordered
@@ -7308,12 +7401,12 @@ def select_discount_fallback_candidates(
     now: datetime | None = None,
     include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Select the best available discount band without relaxing demand or safety gates.
+    """Select every eligible positive markdown; no fixed displayed-discount target is imposed.
 
-    The 50% band is preferred. 45/40/35% bands are considered only when no
-    candidate exists in a higher band. Every primary and backup independently
-    passes current-demand, stock, price, affiliate, market-value, expiry, and
-    product-diversity checks.
+    Demand and product diversity rank the pool first. Independent market/history
+    evidence then helps identify stronger value; displayed percentage is a later
+    tie-breaker. All candidates still pass stock, live-price, affiliate, expiry,
+    title, and known-market-overpricing checks.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -8999,8 +9092,9 @@ def run(publish=False, selection_only=False):
     if publish and CLEAR_PREVIOUS_CHANNEL_POSTS and BATCH_OPERATION_KEY and state.get("completed_batch_operation") == BATCH_OPERATION_KEY:
         print(f"BATCH_ALREADY_COMPLETED key={BATCH_OPERATION_KEY}; duplicate workflow run will not send again.")
         publish = False
-    # Historical-price lookup is intentionally not used.
-    state.pop("price_history", None)
+    # Keep a rolling historical baseline; bounded checks provide evidence about real value.
+    # Historical proof affects ranking only, not a fixed displayed-discount threshold.
+    enrich_price_history(products, state)
     enrich_market_prices(products)
     products.sort(key=deal_sort_key, reverse=True)
     queue_now = datetime.now(timezone.utc)
