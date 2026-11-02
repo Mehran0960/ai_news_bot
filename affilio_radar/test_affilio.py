@@ -115,7 +115,7 @@ from affilio_radar import (
 )
 
 
-def _with_verified_current_demand(product, now=None, growth=5, window_hours=48):
+def _with_verified_current_demand(product, now=None, growth=5, window_hours=24):
     observed = now or datetime.now(timezone.utc)
     product.update({
         "current_demand_verified": True,
@@ -940,7 +940,7 @@ class AffilioRadarTests(unittest.TestCase):
 
 
     def test_verified_recent_demand_outranks_an_extreme_listed_discount(self):
-        now = datetime(2026, 10, 31, 17, 0, tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
         popular_gadget = _with_verified_current_demand(score_product({
             "title": "پاوربانک محبوب",
             "current_price": 8_000_000,
