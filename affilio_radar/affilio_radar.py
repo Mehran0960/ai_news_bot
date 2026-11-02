@@ -2871,7 +2871,7 @@ def _catalog_best_selling_rank_score(record: dict, now: datetime | None = None) 
         return 60
     if rank <= 160:
         return 45
-    return 25
+    return 0
 
 
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
