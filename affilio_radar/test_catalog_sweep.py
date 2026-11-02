@@ -17,6 +17,8 @@ from affilio_radar.catalog_sweep import (
     extract_categories,
     extract_product_rows,
     extract_total_pages,
+    _category_page_url,
+    _fresh_best_selling_rank,
     load_catalog_candidates_for_handoff,
     run_sweep,
 )
@@ -177,12 +179,37 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(state["page"], 1)
         self.assertEqual(state["completed_cycles"], 1)
 
-    def test_candidate_rank_prioritizes_demand_before_discount(self):
-        popular = {"review_count": 30000, "rating": 4.7, "discount_percent": 20}
-        extreme_discount = {"review_count": 30, "rating": 3.8, "discount_percent": 90}
+    def test_category_search_requests_best_selling_sort(self):
+        url, params = _category_page_url("123", 2)
+        self.assertIn("/v1/search/", url)
+        self.assertEqual(params["categories[]"], "123")
+        self.assertEqual(params["page"], 2)
+        self.assertEqual(params["sort"], 5)
+
+    def test_fresh_best_selling_rank_outweighs_lifetime_review_count(self):
+        now = datetime(2026, 11, 2, 12, 0, tzinfo=timezone.utc)
+        best_seller = {
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 12,
+            "catalog_rank_observed_at": now.isoformat(),
+            "review_count": 40,
+            "rating": 4.1,
+        }
+        stale_top_seller = {
+            **best_seller,
+            "catalog_best_selling_rank": 1,
+            "catalog_rank_observed_at": (now - timedelta(hours=25)).isoformat(),
+        }
+        lifetime_popular = {"review_count": 250_000, "rating": 4.9}
+        self.assertEqual(_fresh_best_selling_rank(best_seller, now), 12)
+        self.assertIsNone(_fresh_best_selling_rank(stale_top_seller, now))
         self.assertGreater(
-            catalog_candidate_sort_key(popular),
-            catalog_candidate_sort_key(extreme_discount),
+            catalog_candidate_sort_key(best_seller),
+            catalog_candidate_sort_key(lifetime_popular),
+        )
+        self.assertGreater(
+            catalog_candidate_sort_key(lifetime_popular),
+            catalog_candidate_sort_key(stale_top_seller),
         )
 
     def test_candidate_retention_reserves_capacity_for_underrepresented_categories(self):
@@ -339,9 +366,14 @@ class CatalogSweepTests(unittest.TestCase):
             self.assertEqual(candidates["candidate_count"], 3)
             self.assertEqual(state["stats"]["catalog_candidate_cards_found_total"], 3)
             self.assertEqual(state["stats"]["discounted_candidates_found_total"], 1)
+            self.assertEqual(dict(session.calls[1][1]).get("sort"), 5)
             by_id = {row["product_id"]: row for row in candidates["candidates"]}
             self.assertIn("dkp-778", by_id)
             self.assertEqual(by_id["dkp-778"]["discount_percent"], 0)
+            self.assertEqual(by_id["dkp-777"]["catalog_sort_mode"], "best_selling")
+            self.assertEqual(by_id["dkp-777"]["catalog_best_selling_rank"], 1)
+            self.assertEqual(by_id["dkp-778"]["catalog_best_selling_rank"], 2)
+            self.assertEqual(by_id["dkp-779"]["catalog_best_selling_rank"], 3)
             self.assertEqual(by_id["dkp-779"]["title"], "محصول دیجی‌کالا dkp-779")
             self.assertEqual(state["completed_cycles"], 1)
 
