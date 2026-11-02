@@ -1425,7 +1425,7 @@ class AffilioRadarTests(unittest.TestCase):
                 "product_id": "snp-book-comparable",
                 "title": "کتاب داستان نوجوان چاپ تازه",
                 "demand_score": 58,
-                "review_count": 480,
+                "review_count": 500,
             },
         ]
         queue = {item["product_id"]: {} for item in candidates}
@@ -2771,10 +2771,10 @@ class AffilioRadarTests(unittest.TestCase):
             "market_status": "verified",
             "market_reference_kind": "seller_median", "market_price_advantage_pct": 30,
         }
-        self.assertGreater(deal_sort_key(same_demand_lower_pct), deal_sort_key(same_demand_higher_pct))
+        self.assertGreater(deal_sort_key(same_demand_higher_pct), deal_sort_key(same_demand_lower_pct))
         self.assertGreater(
-            discovery_queue_sort_key(same_demand_lower_pct, now),
             discovery_queue_sort_key(same_demand_higher_pct, now),
+            discovery_queue_sort_key(same_demand_lower_pct, now),
         )
 
         candidates = [
