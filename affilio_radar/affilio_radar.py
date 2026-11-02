@@ -4313,8 +4313,8 @@ def score_product(p: dict) -> dict:
 
 
 
-def deal_sort_key(p: dict) -> tuple:
-    """Rank public demand first, independent price-value evidence second, and listed markdown third."""
+def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
+    """Rank fresh demand evidence first, then price value and listed markdown."""
     try:
         reviews = max(0, int(p.get("review_count") or 0))
         rating_score = round(float(p.get("rating") or p.get("rating_value") or 0) * 10)
@@ -4324,7 +4324,7 @@ def deal_sort_key(p: dict) -> tuple:
         reviews = rating_score = discount = savings = 0
     evidence_tier, evidence_strength = _deal_value_evidence_key(p)
     return (
-        *_demand_evidence_sort_key(p),
+        *_demand_evidence_sort_key(p, now=now),
         evidence_tier,
         evidence_strength,
         int(has_meaningful_discount(p)),
@@ -6976,7 +6976,11 @@ def _order_candidates_by_primary_rank(
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    remaining = sorted(list(candidates or []), key=deal_sort_key, reverse=True)
+    remaining = sorted(
+        list(candidates or []),
+        key=lambda record: deal_sort_key(record, now=current),
+        reverse=True,
+    )
     initial_candidate_count = len(remaining)
     fallback_events: list[dict] = []
     global _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
