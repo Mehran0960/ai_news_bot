@@ -157,6 +157,7 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
         known_ids = {str(row.get("id")) for row in categories if isinstance(row, dict)}
         state["parallel_queue_initialized"] = True
         state["parallel_cycle_started_at"] = base.iso_now()
+        state["parallel_sort_version"] = base.BEST_SELLING_SORT
     else:
         # Category dictionary refreshes may introduce new categories. Append only
         # genuinely new IDs; do not reset progress for existing IDs.
@@ -172,6 +173,36 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
                     "attempts": 0,
                 })
                 known_ids.add(category_id)
+
+        # The old persisted queue may have been swept with relevance/default sort.
+        # When the sort contract changes, requeue page 1 for every category so
+        # the new best-selling shelf is actually observed without losing old work.
+        sort_version = base.BEST_SELLING_SORT
+        if base._normal_int(state.get("parallel_sort_version")) != sort_version:
+            existing_page_one = {
+                _task_key(task)
+                for task in queue
+                if isinstance(task, dict) and _task_key(task)[1] == 1
+            }
+            for category in categories:
+                if not isinstance(category, dict):
+                    continue
+                category_id = str(category.get("id") or "")
+                if not category_id.isdigit() or (category_id, 1) in existing_page_one:
+                    continue
+                queue.append({
+                    "category_id": category_id,
+                    "category_name": str(category.get("name") or category_id),
+                    "page": 1,
+                    "attempts": 0,
+                    "sort_version": sort_version,
+                })
+            state["parallel_sort_version"] = sort_version
+            state["parallel_sort_requeued_at"] = base.iso_now()
+            print(
+                f"PARALLEL_CATALOG_SORT_VERSION_REQUEUED sort={sort_version} "
+                f"new_page_one_tasks={len(categories) - len(existing_page_one)}"
+            )
 
     # De-duplicate persisted work without dropping retry attempt metadata.
     unique: list[dict] = []
