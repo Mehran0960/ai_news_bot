@@ -229,6 +229,34 @@ class CatalogSweepTests(unittest.TestCase):
             catalog_candidate_sort_key(stale_top_seller),
         )
 
+    def test_normalized_bestseller_percentile_outranks_views_and_stale_ranks_expire(self):
+        now = datetime.now(timezone.utc)
+        strong_bestseller = {
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 12,
+            "catalog_best_selling_percentile": 90.0,
+            "catalog_rank_observed_at": now.isoformat(),
+        }
+        high_views_only = {
+            "catalog_most_viewed_rank": 1,
+            "catalog_most_viewed_percentile": 96.0,
+            "catalog_most_viewed_observed_at": now.isoformat(),
+        }
+        stale_bestseller = {
+            **strong_bestseller,
+            "catalog_best_selling_rank": 1,
+            "catalog_best_selling_percentile": 99.0,
+            "catalog_rank_observed_at": (now - timedelta(hours=25)).isoformat(),
+        }
+        self.assertGreater(
+            catalog_candidate_sort_key(strong_bestseller),
+            catalog_candidate_sort_key(high_views_only),
+        )
+        self.assertGreater(
+            catalog_candidate_sort_key(high_views_only),
+            catalog_candidate_sort_key(stale_bestseller),
+        )
+
     def test_candidate_retention_reserves_capacity_for_underrepresented_categories(self):
         rows = [
             {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i, "discount_percent": 50}
