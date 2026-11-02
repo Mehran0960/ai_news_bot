@@ -275,7 +275,10 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
         "demand_signal_source", "historical_popularity_score",
         "catalog_sort_order", "catalog_best_selling_rank",
         "catalog_best_selling_category_id", "catalog_best_selling_at",
-        "promo_score", "click_count_30d", "market_status", "market_reference_price_toman",
+        "promo_score", "click_count_30d",
+        "history_status", "history_days", "discount_vs_30d_median_pct",
+        "historical_deal_eligible", "history_source", "history_checked_at",
+        "market_status", "market_reference_price_toman",
         "market_price_advantage_pct", "market_match_score", "market_seller_count",
     ):
         if key in payload:
