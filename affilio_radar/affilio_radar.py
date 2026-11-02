@@ -1895,6 +1895,7 @@ def enrich_price_history(products: list[dict], state: dict) -> None:
                 product.get("variant_label", ""),
             )
             product.update(history)
+            product["history_checked_at"] = current.isoformat()
             checks[pid] = {"checked_at": current.isoformat(), "retry_after": ""}
             print(
                 f"PRICE_HISTORY id={pid} status={product.get('history_status')} "
@@ -2630,8 +2631,11 @@ def _demand_evidence_sort_key(
     )
 
 
-def has_attractive_discount_value(record: dict) -> bool:
-    """Demand a verified price advantage/history signal, or a conservative 15% fallback."""
+def has_attractive_discount_value(
+    record: dict,
+    now: datetime | None = None,
+) -> bool:
+    """Accept only fresh, independent price evidence or a conservative markdown fallback."""
     if not isinstance(record, dict):
         return False
     try:
@@ -2642,14 +2646,29 @@ def has_attractive_discount_value(record: dict) -> bool:
     if savings <= 0:
         return False
 
-    if record.get("history_status") == "verified":
-        # Verified history that fails the price test is evidence against the deal,
-        # not missing information that should fall back to the displayed RRP.
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
+    def evidence_is_fresh(field: str, max_age_hours: int) -> bool:
+        observed = _parse_utc_datetime(record.get(field))
+        if observed is None:
+            return False
+        age_hours = (current - observed.astimezone(timezone.utc)).total_seconds() / 3600
+        return -0.1 <= age_hours <= max(0, int(max_age_hours))
+
+    history_fresh = evidence_is_fresh("history_checked_at", PRICE_HISTORY_RECHECK_HOURS)
+    if record.get("history_status") == "verified" and history_fresh:
+        # Fresh verified history that fails the price test is evidence against the
+        # deal; it must not fall through to the displayed recommended retail price.
         return record.get("historical_deal_eligible") is True
 
+    market_fresh = evidence_is_fresh("market_price_checked_at", MARKET_PRICE_RECHECK_HOURS)
     if (
         record.get("market_status") == "verified"
         and record.get("market_reference_kind") == "seller_median"
+        and market_fresh
     ):
         try:
             advantage = int(record.get("market_price_advantage_pct"))
@@ -2657,8 +2676,8 @@ def has_attractive_discount_value(record: dict) -> bool:
             return False
         return advantage >= VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT
 
-    # Independent data may be unavailable or rate-limited. In that case a small
-    # listed markdown is not enough; retain only substantial, positive savings.
+    # Missing, stale, limited, or rate-limited independent data is unknown evidence.
+    # In that case require a material real markdown rather than trusting the site's RRP.
     return discount >= UNVERIFIED_MIN_DISCOUNT_PERCENT
 
 
@@ -7692,7 +7711,7 @@ def select_discount_fallback_candidates(
         retry_platforms = _delivery_retry_platforms(previous) if isinstance(previous, dict) else []
         retrying_previous_delivery = bool(retry_platforms)
         demand_ok = has_actionable_demand_signal(product, now=current)
-        value_ok = has_attractive_discount_value(product)
+        value_ok = has_attractive_discount_value(product, now=current)
         if not demand_ok and not retrying_previous_delivery:
             demand_blocked += 1
             continue
@@ -10104,157 +10123,3 @@ def run_aparat_uploads_only() -> int:
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--publish", action="store_true", help="publish at most one eligible item if all checks pass")
-    parser.add_argument("--select-only", action="store_true", help="discover, validate and queue selected content without publishing to any platform")
-    parser.add_argument(
-        "--aparat-upload-only",
-        action="store_true",
-        help="process pending vertical videos for Aparat only; do not discover products or upload to YouTube",
-    )
-    parser.add_argument("--dry-run", action="store_true", help="force discovery-only mode")
-    parser.add_argument("--setup-growth-invites", action="store_true", help="create source-specific Telegram invite links without running product discovery or publishing offers")
-    parser.add_argument(
-        "--repair-bale-message-id",
-        type=int,
-        default=None,
-        help="edit one already-published Bale photo caption without publishing a new product",
-    )
-    parser.add_argument(
-        "--repair-all-captions",
-        action="store_true",
-        help="edit all tracked Telegram and Bale captions in place; never publish new products",
-    )
-    parser.add_argument(
-        "--repair-recent-captions",
-        type=int,
-        default=None,
-        help="edit only the newest N active Telegram/Bale product posts in place; never publish new products",
-    )
-    parser.add_argument(
-        "--repair-recent-product-images",
-        type=int,
-        default=None,
-        help="update the product photos of the newest N active Telegram/Bale posts with the current branded layout",
-    )
-    parser.add_argument(
-        "--repair-all-active-product-captions",
-        action="store_true",
-        help="edit captions on every active tracked Telegram/Bale product post without changing images",
-    )
-    parser.add_argument(
-        "--repair-all-active-product-posts",
-        action="store_true",
-        help="apply the current OfferChin caption and branded product image to every active tracked Telegram/Bale product post",
-    )
-    parser.add_argument(
-        "--repair-recent-digipay-posts",
-        action="store_true",
-        help="repair all recent active DigiKala captions and photos that mention DigiPay",
-    )
-    parser.add_argument(
-        "--lookback-hours",
-        type=float,
-        default=DIGIPAY_RECENT_POST_LOOKBACK_HOURS,
-        help="maximum age in hours for the one-shot DigiPay post repair (up to 47)",
-    )
-    parser.add_argument(
-        "--refresh-countdowns",
-        action="store_true",
-        help="refresh remaining-hours/minutes timers on active deadline-verified posts",
-    )
-    parser.add_argument(
-        "--repair-persian-video-text",
-        action="store_true",
-        help="safely replace the two recent YouTube Shorts whose Persian text layout was broken",
-    )
-    args = parser.parse_args()
-    if args.aparat_upload_only:
-        try:
-            sys.exit(run_aparat_uploads_only())
-        except Exception as exc:
-            print(f"APARAT_ONLY_RUN_FAILED error={type(exc).__name__}")
-            sys.exit(1)
-    if args.setup_growth_invites:
-        state = load_state()
-        try:
-            changed = ensure_telegram_source_invites(state)
-            counts_changed = record_daily_member_count_snapshot(state)
-            if changed or counts_changed:
-                save_json(STATE, state)
-            links = state.get("growth_tracking", {}).get("telegram_invite_links", {})
-            ready = sum(
-                1 for value in links.values()
-                if isinstance(value, dict) and str(value.get("url") or "").startswith("https://t.me/")
-            ) if isinstance(links, dict) else 0
-            daily = state.get("growth_tracking", {}).get("daily_member_counts", {})
-            todays = daily.get(datetime.now(IRAN_TIMEZONE).date().isoformat(), {}) if isinstance(daily, dict) else {}
-            counts_ready = sum(1 for key in ("telegram", "bale") if isinstance(todays, dict) and key in todays)
-            print(f"GROWTH_INVITE_SETUP_SUMMARY ready={ready} required={len(GROWTH_TRACKING_INVITE_SOURCES)} changed={changed} member_counts_today={counts_ready}/2")
-            sys.exit(0 if ready == len(GROWTH_TRACKING_INVITE_SOURCES) else 1)
-        except Exception as exc:
-            print(f"GROWTH_INVITE_SETUP_ABORTED error={type(exc).__name__}")
-            sys.exit(1)
-    if args.refresh_countdowns:
-        try:
-            sys.exit(refresh_active_countdowns())
-        except Exception as exc:
-            print(f"COUNTDOWN_REFRESH_FAILED error={type(exc).__name__}")
-            sys.exit(1)
-    if args.repair_persian_video_text:
-        try:
-            sys.exit(repair_persian_text_video_uploads())
-        except Exception as exc:
-            print(f"PERSIAN_TEXT_VIDEO_REPAIR_ABORTED error={type(exc).__name__} detail={str(exc)[:240]!r}")
-            sys.exit(1)
-    if args.repair_recent_captions is not None:
-        try:
-            sys.exit(repair_all_published_captions(max_products=args.repair_recent_captions))
-        except Exception as exc:
-            print(f"RECENT_CAPTION_REPAIR_FAILED error={type(exc).__name__}")
-            sys.exit(1)
-    if args.repair_all_active_product_captions:
-        try:
-            sys.exit(repair_all_active_product_captions())
-        except Exception as exc:
-            print(f"ALL_ACTIVE_PRODUCT_CAPTION_REPAIR_FAILED error={type(exc).__name__}")
-            sys.exit(1)
-    if args.repair_all_active_product_posts:
-        try:
-            sys.exit(repair_all_active_product_posts())
-        except Exception as exc:
-            print(f"ALL_ACTIVE_PRODUCT_POST_REPAIR_FAILED error={type(exc).__name__}")
-            sys.exit(1)
-    if args.repair_recent_digipay_posts:
-        try:
-            sys.exit(repair_recent_digipay_posts(lookback_hours=args.lookback_hours))
-        except Exception as exc:
-            print(f"DIGIPAY_RECENT_POST_REPAIR_FAILED error={type(exc).__name__}")
-            sys.exit(1)
-    if args.repair_recent_product_images is not None:
-        try:
-            sys.exit(repair_recent_product_images(max_products=args.repair_recent_product_images))
-        except Exception as exc:
-            print(f"RECENT_IMAGE_REPAIR_FAILED error={type(exc).__name__}")
-            sys.exit(1)
-    if args.repair_all_captions:
-        try:
-            sys.exit(repair_all_published_captions())
-        except Exception as exc:
-            print(f"CAPTION_REPAIR_FAILED error={type(exc).__name__}")
-            sys.exit(1)
-    if args.repair_bale_message_id is not None:
-        try:
-            sys.exit(repair_bale_caption(args.repair_bale_message_id))
-        except Exception as exc:
-            # Do not print request URLs because they can contain the private Bale bot token.
-            print(f"BALE_CAPTION_REPAIR_FAILED message_id={args.repair_bale_message_id} error={type(exc).__name__}")
-            sys.exit(1)
-    publish = (AUTOPUBLISH or args.publish) and not args.dry_run
-    sys.exit(run(publish=publish, selection_only=args.select_only))
-
-
-if __name__ == "__main__":
-    main()
-
-# Live discovery verification trigger: [scan-now]
