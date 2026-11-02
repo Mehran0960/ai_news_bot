@@ -2701,7 +2701,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         stale_rank = dict(
             current_best_seller,
-            catalog_best_selling_at=(now - timedelta(hours=CATALOG_BEST_SELLING_SIGNAL_TTL_HOURS + 1)).isoformat(),
+            catalog_best_selling_at=(now - timedelta(hours=radar_module.CATALOG_BEST_SELLING_SIGNAL_TTL_HOURS + 1)).isoformat(),
         )
         self.assertFalse(radar_module.has_current_market_demand_evidence(stale_rank, now))
         self.assertFalse(is_discount_publish_eligible(stale_rank, now=now))
