@@ -34,7 +34,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "current_demand_verified": True,
             "current_demand_score": demand,
             "recent_review_growth_7d": 5,
-            "demand_window_hours": 48,
+            "demand_window_hours": 24,
             "demand_observed_at": self.now.isoformat(),
             "demand_signal_source": "digikala_recent_review_growth",
             "selection_discount_floor": 50,
@@ -144,7 +144,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
                 "current_demand_score": 55,
                 "demand_score": 55,
                 "recent_review_growth_7d": 5,
-                "demand_window_hours": 48,
+                "demand_window_hours": 24,
                 "demand_observed_at": self.now.isoformat(),
                 "demand_signal_source": "digikala_recent_review_growth",
             },
@@ -172,7 +172,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "current_demand_score": 55,
             "demand_score": 55,
             "recent_review_growth_7d": 5,
-            "demand_window_hours": 48,
+            "demand_window_hours": 24,
             "demand_observed_at": self.now.isoformat(),
             "demand_signal_source": "digikala_recent_review_growth",
         }
@@ -258,7 +258,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "current_demand_score": 55,
             "demand_score": 55,
             "recent_review_growth_7d": 5,
-            "demand_window_hours": 48,
+            "demand_window_hours": 24,
             "demand_observed_at": self.now.isoformat(),
             "demand_signal_source": "digikala_recent_review_growth",
         }
@@ -313,7 +313,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(fresh["selection_discount_floor"], 1)
         self.assertEqual(fresh["selection_discount_band"], "1%+")
 
-    def test_publisher_normalizes_old_unsupported_discount_floor(self):
+    def test_publisher_rejects_old_queue_item_without_new_demand_evidence(self):
         entry = {
             "product_id": "dkp-95045",
             "payload": {
@@ -344,15 +344,100 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             patch("publisher.radar.is_market_value_publish_eligible", return_value=True),
             patch("publisher.radar.has_publishable_expiry_or_open_offer", return_value=True),
         ):
-            # A formerly unsupported floor is now an obsolete preference, not a rejection.
             entry["payload"].update({
                 "current_price": 500_000,
                 "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95045%2F",
             })
             fresh, reason = _fresh_selected_item(entry, self.now)
+        self.assertIsNone(fresh)
+        self.assertEqual(reason, "live_demand_signal_missing")
+
+    def test_final_publisher_gate_blocks_new_posts_without_demand_or_value_but_preserves_partial_retry(self):
+        from unittest.mock import patch
+
+        base = self.item("dkp-final-gate")
+        product_url = base["product_url"]
+        affiliate_url = base["affiliate_url"]
+
+        def evaluate(payload, platforms=None):
+            fresh_record = {
+                "title": payload["title"],
+                "image_url": payload["image_url"],
+                "current_price": payload["current_price"],
+                "original_price": payload["original_price"],
+                "discount_percent": payload["discount_percent"],
+                "savings_toman": payload["savings_toman"],
+                "review_count": payload.get("review_count", 0),
+                "availability": "in_stock",
+                "deal_expires_at": "",
+            }
+            entry = {
+                "product_id": payload["product_id"],
+                "payload": payload,
+                "platforms": platforms or {},
+            }
+            with (
+                patch("publisher.radar.fetch_product_record", return_value=fresh_record),
+                patch("publisher.radar.is_prohibited_product_title", return_value=False),
+                patch("publisher.radar.is_publishable_product_title", return_value=True),
+                patch("publisher.radar._is_valid_affilio_tracking_url", return_value=True),
+                patch("publisher.radar.score_product", side_effect=lambda item: item),
+                patch("publisher.radar.verify_live_page_price", return_value={"ok": True, "page_price": payload["current_price"]}),
+                patch("publisher.radar.is_discount_publish_eligible", return_value=True),
+                patch("publisher.radar.is_market_value_publish_eligible", return_value=True),
+                patch("publisher.radar.has_publishable_expiry_or_open_offer", return_value=True),
+            ):
+                return _fresh_selected_item(entry, self.now)
+
+        no_demand = {
+            **base,
+            "product_id": "dkp-no-demand",
+            "product_url": "https://www.digikala.com/product/dkp-no-demand/",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-no-demand%2F",
+            "current_demand_verified": False,
+            "current_demand_score": 0,
+            "demand_score": 0,
+            "recent_review_growth_7d": 0,
+            "demand_window_hours": 0,
+            "demand_observed_at": "",
+            "demand_signal_source": "",
+        }
+        fresh, reason = evaluate(no_demand)
+        self.assertIsNone(fresh)
+        self.assertEqual(reason, "live_demand_signal_missing")
+
+        weak_value = {
+            **base,
+            "product_id": "dkp-weak-value",
+            "product_url": "https://www.digikala.com/product/dkp-weak-value/",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-weak-value%2F",
+            "discount_percent": 10,
+            "savings_toman": 10_000,
+        }
+        fresh, reason = evaluate(weak_value)
+        self.assertIsNone(fresh)
+        self.assertEqual(reason, "live_discount_value_not_verified")
+
+        # A partial delivery must be allowed to finish other destinations even
+        # after its original demand/value evidence has expired or become unavailable.
+        partial_retry = {
+            **weak_value,
+            "product_id": "dkp-partial-retry",
+            "product_url": "https://www.digikala.com/product/dkp-partial-retry/",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-partial-retry%2F",
+            "current_demand_verified": False,
+            "recent_review_growth_7d": 0,
+            "demand_window_hours": 0,
+            "demand_observed_at": "",
+            "demand_signal_source": "",
+            "discount_percent": 5,
+        }
+        fresh, reason = evaluate(
+            partial_retry,
+            {"telegram": {"status": "sent"}, "bale": {"status": "pending"}},
+        )
         self.assertIsNotNone(fresh)
         self.assertEqual(reason, "")
-        self.assertEqual(fresh["selection_discount_floor"], 1)
 
     def test_only_a_fresh_active_unpublished_selection_reserves_next_channel_slot(self):
         last_channel_send = self.now - timedelta(minutes=30)
@@ -605,7 +690,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "active_publication_exists",
         )
 
-    def test_fallback_filter_accepts_any_live_markdown_without_recent_demand_gate(self):
+    def test_fallback_filter_requires_current_demand_and_attractive_value(self):
         low_discount = self.item("dkp-99008", demand=95)
         low_discount.update({"discount_percent": 45, "selection_discount_floor": 45})
         no_current_demand = self.item("dkp-99009", demand=95)
@@ -620,7 +705,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
 
         self.assertEqual(
             {item["product_id"] for item in filtered},
-            {"dkp-99008", "dkp-99009", "dkp-99010", "dkp-99011"},
+            {"dkp-99008", "dkp-99010", "dkp-99011"},
         )
         self.assertTrue(all(item["selection_discount_floor"] == 1 for item in filtered))
 
