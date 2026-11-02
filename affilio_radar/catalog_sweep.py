@@ -479,8 +479,6 @@ def extract_total_pages(payload: Any, current_page: int, product_count: int) -> 
         )
         if total_items > 0 and page_size > 0:
             return max(1, math.ceil(total_items / page_size))
-    if product_count == 0:
-        return max(1, current_page)
     return None
 
 
