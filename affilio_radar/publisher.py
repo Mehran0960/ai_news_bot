@@ -68,10 +68,14 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
         candidate = dict(candidate)
         candidate["selection_discount_floor"] = selected_floor
         candidate["selection_discount_band"] = "1%+"
-        if radar.is_discount_publish_eligible(
-            candidate,
-            minimum_discount_percent=selected_floor,
-            now=now,
+        if (
+            radar.is_discount_publish_eligible(
+                candidate,
+                minimum_discount_percent=selected_floor,
+                now=now,
+            )
+            and radar.has_actionable_demand_signal(candidate, now=now)
+            and radar.has_attractive_discount_value(candidate)
         ):
             eligible.append(candidate)
     return eligible
