@@ -2218,13 +2218,14 @@ class AffilioRadarTests(unittest.TestCase):
 
         small_saving = score_product({**base, "current_price": 990_000})
         self.assertEqual(small_saving["discount_percent"], 1)
-        self.assertTrue(is_discount_publish_eligible(small_saving))
+        self.assertFalse(is_discount_publish_eligible(small_saving))
         self.assertFalse(radar_module.is_attractive_value_offer(small_saving))
         meaningful_low_percent_saving = score_product({
             **base, "current_price": 9_700_000, "original_price": 10_000_000,
         })
         self.assertEqual(meaningful_low_percent_saving["discount_percent"], 3)
         self.assertTrue(radar_module.is_attractive_value_offer(meaningful_low_percent_saving))
+        self.assertTrue(is_discount_publish_eligible(meaningful_low_percent_saving))
         market_supported_small_discount = score_product({
             **base,
             "current_price": 9_900_000,
@@ -2235,6 +2236,7 @@ class AffilioRadarTests(unittest.TestCase):
         })
         self.assertEqual(market_supported_small_discount["discount_percent"], 1)
         self.assertTrue(radar_module.is_attractive_value_offer(market_supported_small_discount))
+        self.assertTrue(is_discount_publish_eligible(market_supported_small_discount))
         no_real_drop = score_product({**base, "current_price": 1_000_000})
         self.assertFalse(is_discount_publish_eligible(no_real_drop))
         missing_stock = dict(strong_discount, availability="unknown")
