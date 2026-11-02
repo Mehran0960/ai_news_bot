@@ -2615,7 +2615,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(radar_module.has_attractive_discount_value(historical_value, now=now))
         self.assertFalse(radar_module.has_attractive_discount_value(verified_bad_history, now=now))
 
-    def test_new_selection_rejects_lifetime_only_demand_and_weak_unverified_discount(self):
+    def test_new_selection_uses_popularity_as_fallback_demand_and_keeps_live_markdowns(self):
         now = datetime.now(timezone.utc)
         base = {
             "product_id": "dkp-95501",
@@ -2656,8 +2656,14 @@ class AffilioRadarTests(unittest.TestCase):
             {"published": {}},
             now,
         )
-        self.assertEqual({row["product_id"] for row in selected}, {"dkp-95502"})
-        self.assertEqual({row["product_id"] for row in quality}, {"dkp-95502"})
+        self.assertEqual(
+            [row["product_id"] for row in selected],
+            ["dkp-95502", "dkp-95503", "dkp-95501"],
+        )
+        self.assertEqual(
+            {row["product_id"] for row in quality},
+            {"dkp-95501", "dkp-95502", "dkp-95503"},
+        )
 
     def test_diversity_comparison_uses_recent_activity_signal_and_not_a_discount_fallback(self):
         stronger = {
