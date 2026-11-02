@@ -6478,7 +6478,7 @@ def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
     # deal_sort_key prioritizes retailer-side demand signals, then discount percentage.
     # Channel clicks and deadline urgency cannot override those two ranking criteria.
     return (
-        *deal_sort_key(product),
+        *deal_sort_key(product, now=now),
         int(is_urgent_priority_deal(product, now)),
         deadline_priority,
         -remaining if math.isfinite(remaining) else float("-inf"),
