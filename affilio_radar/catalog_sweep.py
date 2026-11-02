@@ -42,7 +42,12 @@ REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
 CANDIDATE_TTL_HOURS = 72
 MIN_CANDIDATE_DISCOUNT = 1
-MAX_PAGES_PER_CATEGORY = 5000
+# DigiKala's category search supports sort=5 (best-selling). Three pages retain
+# the first 60 ranked products per category instead of crawling deep, low-signal tail pages.
+BEST_SELLING_SORT_VALUE = 5
+BEST_SELLING_PAGE_SIZE = 20
+BEST_SELLING_MAX_PAGES_PER_CATEGORY = 3
+MAX_PAGES_PER_CATEGORY = BEST_SELLING_MAX_PAGES_PER_CATEGORY
 MAX_RETAINED_CANDIDATES = 3000
 MAX_PUBLISHER_SEEN_IDS = 12000
 PUBLISHER_SEEN_TTL_DAYS = 2
@@ -443,7 +448,7 @@ def extract_total_pages(payload: Any, current_page: int, product_count: int) -> 
         for key in page_keys:
             value = _normal_int(node.get(key))
             if value > 0:
-                return min(MAX_PAGES_PER_CATEGORY, value)
+                return value
         total_items = _normal_int(
             node.get("total_items") or node.get("totalItems")
             or node.get("total_count") or node.get("totalCount")
@@ -453,7 +458,7 @@ def extract_total_pages(payload: Any, current_page: int, product_count: int) -> 
             or node.get("per_page") or node.get("perPage")
         )
         if total_items > 0 and page_size > 0:
-            return min(MAX_PAGES_PER_CATEGORY, max(1, math.ceil(total_items / page_size)))
+            return max(1, math.ceil(total_items / page_size))
     if product_count == 0:
         return max(1, current_page)
     return None
@@ -471,8 +476,18 @@ def _candidate_demand(row: dict) -> int:
 
 
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Rank retailer demand first; listed markdown is a later tie-breaker."""
+    """Prefer fresh DigiKala best-selling rank, then measured public popularity proxies."""
+    rank = max(0, _normal_int(row.get("catalog_best_selling_rank")))
+    observed = str(row.get("catalog_rank_observed_at") or "")
+    mode = str(row.get("catalog_sort_mode") or "")
+    fresh_rank = bool(
+        mode == "best_selling"
+        and 1 <= rank <= BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY
+        and observed
+    )
     return (
+        int(fresh_rank),
+        -rank if fresh_rank else -10_000,
         _candidate_demand(row),
         max(0, _normal_int(row.get("review_count"))),
         round(_normal_float(row.get("rating")) * 10),
@@ -543,7 +558,11 @@ def retain_diverse_candidates(rows: list[dict], limit: int = MAX_RETAINED_CANDID
 
 
 def _category_page_url(category_id: str, page: int) -> tuple[str, dict]:
-    return SEARCH_URL, {"categories[]": str(category_id), "page": int(page)}
+    return SEARCH_URL, {
+        "categories[]": str(category_id),
+        "page": int(page),
+        "sort": BEST_SELLING_SORT_VALUE,
+    }
 
 
 def _publisher_seen_ids(publisher_state_path: Path) -> set[str]:
@@ -887,20 +906,53 @@ def run_sweep(
             return 1
 
         discounted_on_page = 0
-        for row in product_rows:
+        page_observed_at = iso_now()
+        page_start_rank = (page - 1) * BEST_SELLING_PAGE_SIZE
+        for row_index, row in enumerate(product_rows):
             pid = row["product_id"]
             # Every product card is handed to the bounded publisher detail queue.
             # A missing/zero list-card discount is not evidence of no live discount.
             old = candidates.get(pid, {})
-            first_seen = old.get("first_seen_at") or iso_now()
+            first_seen = old.get("first_seen_at") or page_observed_at
             previous_categories = old.get("catalog_category_ids", [])
             category_ids = {str(v) for v in previous_categories if str(v).isdigit()} if isinstance(previous_categories, list) else set()
             category_ids.add(category_id)
+
+            # Preserve per-category ranks, then keep the strongest rank seen for this
+            # product. This records the source category so the publisher can diagnose it.
+            ranks_by_category = old.get("catalog_best_selling_ranks_by_category", {})
+            ranks_by_category = dict(ranks_by_category) if isinstance(ranks_by_category, dict) else {}
+            category_rank = page_start_rank + row_index + 1
+            ranks_by_category[category_id] = {
+                "rank": category_rank,
+                "observed_at": page_observed_at,
+                "category_name": category_name,
+            }
+            valid_ranks = [
+                (int(value.get("rank") or 0), str(key), value)
+                for key, value in ranks_by_category.items()
+                if str(key).isdigit() and isinstance(value, dict)
+                and 1 <= _normal_int(value.get("rank")) <= BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY
+            ]
+            best_rank, best_category_id, best_rank_record = (
+                min(valid_ranks, key=lambda item: item[0]) if valid_ranks
+                else (category_rank, category_id, {
+                    "observed_at": page_observed_at,
+                    "category_name": category_name,
+                })
+            )
             candidate = {
-                **old, **row, "first_seen_at": first_seen,
+                **old, **row,
+                "first_seen_at": first_seen,
                 "catalog_category_id": category_id,
                 "catalog_category_name": category_name,
                 "catalog_category_ids": sorted(category_ids, key=lambda value: int(value)),
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_ranks_by_category": ranks_by_category,
+                "catalog_best_selling_rank": best_rank,
+                "catalog_best_selling_category_id": best_category_id,
+                "catalog_best_selling_category_name": str(best_rank_record.get("category_name") or category_name),
+                "catalog_rank_observed_at": str(best_rank_record.get("observed_at") or page_observed_at),
             }
             candidates[pid] = candidate
             stats["catalog_candidate_cards_found_total"] += 1
@@ -940,7 +992,9 @@ def run_sweep(
             f"CATALOG_SWEEP_PAGE_OK category={category_id} name={category_name!r} "
             f"page={page} total_pages={total_pages if total_pages is not None else 'unknown'} "
             f"product_rows={len(product_rows)} catalog_cards_queued={len(product_rows)} "
-            f"listed_discounted={discounted_on_page} candidate_backlog={len(ordered_candidates)}"
+            f"listed_discounted={discounted_on_page} sort=best_selling "
+            f"rank_range={page_start_rank + 1}-{page_start_rank + len(product_rows)} "
+            f"candidate_backlog={len(ordered_candidates)}"
         )
         if completed_pages < pages_limit:
             time.sleep(0.75)
