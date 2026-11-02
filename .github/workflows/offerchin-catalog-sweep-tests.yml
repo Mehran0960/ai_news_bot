@@ -8,6 +8,8 @@ on:
       - "affilio_radar/test_catalog_sweep.py"
       - "affilio_radar/test_parallel_catalog_sweep.py"
       - "affilio_radar/affilio_radar.py"
+      - "affilio_radar/publisher.py"
+      - "affilio_radar/test_affilio.py"
       - ".github/workflows/offerchin-digikala-catalog-sweep.yml"
       - ".github/workflows/offerchin-catalog-sweep-tests.yml"
   push:
@@ -34,9 +36,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install --disable-pip-version-check requests beautifulsoup4
-      - name: Compile OfferChin discovery and crawler
+      - run: python -m pip install --disable-pip-version-check -r affilio_radar/requirements.txt
+      - name: Compile OfferChin discovery, ranking and crawler
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/catalog_sweep.py affilio_radar/parallel_catalog_sweep.py affilio_radar/product_quality.py
-      - name: Run catalog crawler regressions
-        run: python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_parallel_catalog_sweep -v
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/catalog_sweep.py affilio_radar/parallel_catalog_sweep.py affilio_radar/product_quality.py affilio_radar/publisher.py
+      - name: Run demand, value and catalog regressions
+        env:
+          AFFILIO_MIN_DEAL_VALUE_SCORE: "0"
+          AFFILIO_REQUIRE_CURRENT_DEMAND: "false"
+        run: python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_parallel_catalog_sweep affilio_radar.test_affilio -v
