@@ -75,7 +75,7 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
                 now=now,
             )
             and radar.has_actionable_demand_signal(candidate, now=now)
-            and radar.has_attractive_discount_value(candidate)
+            and radar.has_attractive_discount_value(candidate, now=now)
         ):
             eligible.append(candidate)
     return eligible
@@ -198,6 +198,8 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "historical_deal_eligible": item.get("historical_deal_eligible") is True,
         "discount_vs_30d_median_pct": item.get("discount_vs_30d_median_pct"),
         "history_days": int(item.get("history_days") or 0),
+        "history_checked_at": str(item.get("history_checked_at") or ""),
+        "market_price_checked_at": str(item.get("market_price_checked_at") or ""),
         "market_status": str(item.get("market_status") or ""),
         "market_reference_kind": str(item.get("market_reference_kind") or ""),
         "market_price_advantage_pct": item.get("market_price_advantage_pct"),
@@ -286,9 +288,9 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
         "recent_review_growth_7d", "recent_review_growth_window",
         "demand_window_hours", "demand_observed_at", "demand_signal_source",
         "historical_popularity_score", "history_status", "historical_deal_eligible",
-        "discount_vs_30d_median_pct", "history_days", "promo_score",
+        "discount_vs_30d_median_pct", "history_days", "history_checked_at", "promo_score",
         "click_count_30d", "market_status", "market_reference_kind",
-        "market_reference_price_toman", "market_price_advantage_pct",
+        "market_reference_price_toman", "market_price_advantage_pct", "market_price_checked_at",
         "market_match_score", "market_seller_count", "catalog_sort_mode",
         "catalog_best_selling_rank", "catalog_best_selling_category_id",
         "catalog_best_selling_category_name", "catalog_rank_observed_at",
@@ -373,7 +375,7 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     if not already_partially_delivered:
         if not radar.has_actionable_demand_signal(fresh, now=now):
             return None, "live_demand_signal_missing"
-        if not radar.has_attractive_discount_value(fresh):
+        if not radar.has_attractive_discount_value(fresh, now=now):
             return None, "live_discount_value_not_verified"
 
     if not radar.is_market_value_publish_eligible(fresh):
