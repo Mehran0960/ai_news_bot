@@ -962,7 +962,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertLess(popular_gadget["discount_percent"], weaker_demand_deal["discount_percent"])
         self.assertGreater(deal_sort_key(popular_gadget), deal_sort_key(weaker_demand_deal))
 
-    def test_one_recent_review_in_active_window_qualifies_current_demand(self):
+    def test_three_recent_reviews_in_active_window_qualify_current_demand(self):
         now = datetime(2026, 11, 1, 12, 0, tzinfo=timezone.utc)
         baseline = now - timedelta(hours=8)
 
@@ -979,14 +979,14 @@ class AffilioRadarTests(unittest.TestCase):
         }
         growing = {
             "product_id": "dkp-99001",
-            "review_count": 101,
+            "review_count": 103,
         }
         summary = radar_module.update_current_demand_signals(
             growing_state, [growing], now=now
         )
         self.assertEqual(summary["verified"], 1)
         self.assertTrue(radar_module.has_current_demand_signal(growing, now))
-        self.assertEqual(growing["recent_review_growth_window"], 1)
+        self.assertEqual(growing["recent_review_growth_window"], 3)
         self.assertEqual(growing["demand_window_hours"], 8.0)
 
         unchanged_state = {
