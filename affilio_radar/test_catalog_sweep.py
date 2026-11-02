@@ -17,6 +17,7 @@ try:
         discover_categories,
         extract_categories,
         extract_product_rows,
+        extract_total_items,
         extract_total_pages,
         _category_page_url,
         _fresh_best_selling_rank,
@@ -33,6 +34,7 @@ except ImportError:
         discover_categories,
         extract_categories,
         extract_product_rows,
+        extract_total_items,
         extract_total_pages,
         _category_page_url,
         _fresh_best_selling_rank,
@@ -228,6 +230,17 @@ class CatalogSweepTests(unittest.TestCase):
             catalog_candidate_sort_key(lifetime_popular),
             catalog_candidate_sort_key(stale_top_seller),
         )
+
+    def test_extract_total_items_reads_catalog_and_nested_pagination_totals(self):
+        self.assertEqual(
+            extract_total_items({"data": {"total_items": 1234}}),
+            1234,
+        )
+        self.assertEqual(
+            extract_total_items({"data": {"pagination": {"totalCount": "987"}}}),
+            987,
+        )
+        self.assertIsNone(extract_total_items({"data": {"products": []}}))
 
     def test_normalized_bestseller_percentile_outranks_views_and_stale_ranks_expire(self):
         now = datetime.now(timezone.utc)
