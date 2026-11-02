@@ -190,6 +190,18 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "demand_observed_at": str(item.get("demand_observed_at") or ""),
         "demand_signal_source": str(item.get("demand_signal_source") or ""),
         "historical_popularity_score": int(item.get("historical_popularity_score") or 0),
+        "history_status": str(item.get("history_status") or ""),
+        "historical_deal_eligible": item.get("historical_deal_eligible") is True,
+        "discount_vs_30d_median_pct": item.get("discount_vs_30d_median_pct"),
+        "history_days": int(item.get("history_days") or 0),
+        "market_status": str(item.get("market_status") or ""),
+        "market_reference_kind": str(item.get("market_reference_kind") or ""),
+        "market_price_advantage_pct": item.get("market_price_advantage_pct"),
+        "catalog_sort_mode": str(item.get("catalog_sort_mode") or ""),
+        "catalog_best_selling_rank": item.get("catalog_best_selling_rank"),
+        "catalog_best_selling_category_id": str(item.get("catalog_best_selling_category_id") or ""),
+        "catalog_best_selling_category_name": str(item.get("catalog_best_selling_category_name") or ""),
+        "catalog_rank_observed_at": str(item.get("catalog_rank_observed_at") or ""),
         "promo_score": int(item.get("promo_score") or 0),
         "click_count_30d": int(item.get("click_count_30d") or 0),
         "distribution_queue_id": str(item.get("product_id") or ""),
@@ -267,10 +279,15 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     fresh["has_affiliate_link"] = bool(fresh["affiliate_url"])
     for key in (
         "demand_score", "current_demand_verified", "current_demand_score",
-        "recent_review_growth_7d", "demand_window_hours", "demand_observed_at",
-        "demand_signal_source", "historical_popularity_score", "promo_score",
-        "click_count_30d", "market_status", "market_reference_price_toman",
-        "market_price_advantage_pct", "market_match_score", "market_seller_count",
+        "recent_review_growth_7d", "recent_review_growth_window",
+        "demand_window_hours", "demand_observed_at", "demand_signal_source",
+        "historical_popularity_score", "history_status", "historical_deal_eligible",
+        "discount_vs_30d_median_pct", "history_days", "promo_score",
+        "click_count_30d", "market_status", "market_reference_kind",
+        "market_reference_price_toman", "market_price_advantage_pct",
+        "market_match_score", "market_seller_count", "catalog_sort_mode",
+        "catalog_best_selling_rank", "catalog_best_selling_category_id",
+        "catalog_best_selling_category_name", "catalog_rank_observed_at",
     ):
         if key in payload:
             fresh[key] = payload[key]
@@ -340,6 +357,21 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
         fresh, minimum_discount_percent=minimum_discount_percent, now=now
     ):
         return None, "live_discount_no_longer_eligible"
+
+    # New selections must still pass demand/value evidence at the final send boundary.
+    # Once any destination has sent successfully, allow the other independent adapters
+    # to finish that same hand-off even if its discovery signal later ages out.
+    platform_states = entry.get("platforms")
+    already_partially_delivered = isinstance(platform_states, dict) and any(
+        isinstance(target, dict) and target.get("status") == "sent"
+        for target in platform_states.values()
+    )
+    if not already_partially_delivered:
+        if not radar.has_actionable_demand_signal(fresh, now=now):
+            return None, "live_demand_signal_missing"
+        if not radar.has_attractive_discount_value(fresh):
+            return None, "live_discount_value_not_verified"
+
     if not radar.is_market_value_publish_eligible(fresh):
         return None, "live_market_value_rejected"
     if not radar.has_publishable_expiry_or_open_offer(fresh, now):
