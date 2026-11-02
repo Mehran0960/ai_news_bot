@@ -287,7 +287,7 @@ jobs:
           # Keep all positive markdowns eligible for review; actual value is gated separately.
           AFFILIO_MIN_DISCOUNT_PERCENT: "1"
           AFFILIO_MIN_ATTRACTIVE_SAVINGS_TOMAN: "50000"
-          AFFILIO_UNVERIFIED_SAVINGS_PRICE_RATIO: "0.02"
+          AFFILIO_UNVERIFIED_SAVINGS_PRICE_RATIO: "0.03"
           AFFILIO_VERIFIED_VALUE_ADVANTAGE_PERCENT: "5"
           AFFILIO_CATALOG_BEST_SELLING_TTL_HOURS: "72"
           AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "7"
