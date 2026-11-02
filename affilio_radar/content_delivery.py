@@ -312,9 +312,9 @@ def enqueue_selected_content(
     items: list[dict],
     *,
     now: datetime | None = None,
-    interval_seconds: int = 1200,
+    interval_seconds: int = 1380,
     max_items: int = 1,
-    minimum_runway_minutes: int = 60,
+    minimum_runway_minutes: int = 0,
     max_active_items: int | None = None,
 ) -> dict:
     """Persist ranked selections for a separate publisher; never publish from here."""
