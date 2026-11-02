@@ -2591,7 +2591,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
 
     def test_fresh_current_demand_ranks_before_lifetime_popularity(self):
-        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
         established_popularity = {
             "historical_popularity_score": 42,
             "review_count": 15_000,
@@ -2627,7 +2627,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
 
     def test_fresh_category_best_seller_rank_beats_lifetime_review_volume(self):
-        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
         current_best_seller = {
             "catalog_sort_order": "best_selling",
             "catalog_best_selling_rank": 2,
