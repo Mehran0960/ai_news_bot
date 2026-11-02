@@ -101,6 +101,15 @@ def _fetch_page(task: dict) -> dict:
         rows=base.extract_product_rows(payload)
         total=base.extract_total_pages(payload,page,len(rows))
         total_items=base.extract_total_items(payload)
+        if not rows:
+            if total is None:
+                return {"kind":"end","rows":[],"inferred_boundary":True,
+                        "status_code":response.status_code}
+            if page < total:
+                return {"kind":"terminal","rows":[],"status_code":response.status_code,
+                        "error":"empty_page_before_reported_total_pages"}
+            return {"kind":"end","rows":[],"inferred_boundary":False,
+                    "status_code":response.status_code}
         return {"kind":"ok","rows":rows,"total_pages":total,"total_items":total_items,
                 "status_code":response.status_code}
     except Exception as exc:
