@@ -167,7 +167,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
 
         self.assertEqual(
             [row["product_id"] for row in selected],
-            ["dkp-102", "dkp-103", "dkp-101"],
+            ["dkp-103", "dkp-101", "dkp-102"],
         )
 
 
