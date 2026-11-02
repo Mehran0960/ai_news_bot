@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 from . import parallel_catalog_sweep as sweep
 
@@ -33,6 +34,24 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             [(row["category_id"], row["page"]) for row in tasks],
             [("2", 7), ("3", 1)],
         )
+
+    def test_fetch_page_requests_best_selling_order(self):
+        captured = {}
+
+        class Response:
+            status_code = 404
+        class Session:
+            def get(self, url, params, timeout):
+                captured.update({"url": url, "params": params, "timeout": timeout})
+                return Response()
+
+        with patch.object(sweep, "_session", return_value=Session()):
+            result = sweep._fetch_page({"category_id": "123", "page": 2})
+
+        self.assertEqual(result["kind"], "terminal")
+        self.assertEqual(captured["params"]["categories[]"], "123")
+        self.assertEqual(captured["params"]["page"], 2)
+        self.assertEqual(captured["params"]["sort"], 5)
 
     def test_persisted_page_queue_sweeps_leaf_page_one_before_parent_and_deeper_pages(self):
         state = {
@@ -125,6 +144,10 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             self.assertGreaterEqual(saved["parallel_last_batch_retries"], 1)
             candidate_data = json.loads(candidates_path.read_text(encoding="utf-8"))
             self.assertEqual(candidate_data["candidates"][0]["product_id"], "dkp-1")
+            candidate = candidate_data["candidates"][0]
+            self.assertEqual(candidate["catalog_sort_mode"], "best_selling")
+            self.assertEqual(candidate["catalog_best_selling_rank"], 1)
+            self.assertEqual(candidate["catalog_best_selling_category_id"], "10")
             self.assertEqual(saved["stats"]["pages_scanned_total"], 1)
 
 
