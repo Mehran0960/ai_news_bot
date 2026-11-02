@@ -119,8 +119,11 @@ MIN_DISCOUNT_PERCENT = max(1, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCE
 DISCOUNT_FALLBACK_FLOORS = (1,)
 MIN_DISCOUNT_FALLBACK_PERCENT = 1
 MIN_SAVINGS_TOMAN = 1
-# Recent review growth improves the demand rank when observable; lifetime review
-# count/rating are used as fallback public popularity proxies, never as sales claims.
+# Current demand and accumulated popularity are tracked separately. Lifetime reviews
+# remain an eligibility fallback, never a substitute for current-demand ranking.
+MIN_CURRENT_DEMAND_SCORE_FOR_PUBLISH = max(1, min(100, int(os.getenv("AFFILIO_MIN_CURRENT_DEMAND_SCORE_FOR_PUBLISH", "34"))))
+MIN_HISTORICAL_POPULARITY_SCORE_FOR_PUBLISH = max(1, min(100, int(os.getenv("AFFILIO_MIN_HISTORICAL_POPULARITY_SCORE_FOR_PUBLISH", "35"))))
+MIN_MARKET_VALUE_ADVANTAGE_PERCENT = max(1, min(30, int(os.getenv("AFFILIO_MIN_MARKET_VALUE_ADVANTAGE_PERCENT", "5"))))
 CURRENT_DEMAND_WINDOW_DAYS = max(1, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "1"))))
 CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "1"))))
 CURRENT_DEMAND_MIN_OBSERVATION_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS", "6"))))
@@ -2718,26 +2721,28 @@ def update_current_demand_signals(
     return summary
 
 
-def _candidate_demand_score(record: dict) -> int:
-    """Rank by measured recent review growth when available, then public popularity proxies."""
-    if not isinstance(record, dict):
+def _candidate_demand_score(record: dict, now: datetime | None = None) -> int:
+    """Return current demand only; lifetime review volume is scored separately."""
+    if not isinstance(record, dict) or not has_current_demand_signal(record, now):
         return 0
     try:
-        explicit = int(record.get("current_demand_score") or 0)
-        if explicit <= 0:
-            explicit = int(record.get("demand_score") or 0)
-        if explicit > 0:
-            return max(0, min(100, explicit))
-        historical = int(record.get("historical_popularity_score") or 0)
-        if historical > 0:
-            return max(0, min(100, historical))
-        reviews = max(0, int(record.get("review_count") or 0))
-        rating = float(record.get("rating") or record.get("rating_value") or 0)
+        explicit = int(record.get("current_demand_score") or record.get("demand_score") or 0)
     except (TypeError, ValueError, OverflowError):
         return 0
-    review_score = min(30, round(3.5 * math.log1p(reviews))) if reviews else 0
-    rating_score = max(0, min(12, round((rating - 3.0) * 10))) if rating else 0
-    return max(0, min(100, review_score + rating_score))
+    return max(0, min(100, explicit))
+
+
+def _candidate_current_demand_priority(record: dict, now: datetime | None = None) -> tuple[int, int, float]:
+    """Fresh retailer review growth outranks all lifetime popularity proxies."""
+    verified = int(has_current_demand_signal(record, now))
+    score = _candidate_demand_score(record, now) if verified else 0
+    try:
+        growth = max(0, int(record.get("recent_review_growth_window", record.get("recent_review_growth_7d")) or 0))
+        hours = max(1.0, float(record.get("demand_window_hours") or 0))
+    except (TypeError, ValueError, OverflowError):
+        growth, hours = 0, 1.0
+    velocity = round(growth * 24.0 / hours, 2) if verified else 0.0
+    return verified, score, velocity
 
 
 def _candidate_promo_score(record: dict) -> int:
@@ -2800,30 +2805,82 @@ def _candidate_popularity_score(record: dict) -> int:
     return min(100, review_proxy + rating_proxy)
 
 
-def _deal_value_evidence_key(record: dict) -> tuple[int, int]:
-    """Prefer independent same-product market/history evidence without setting a discount floor."""
+def _candidate_popularity_score(record: dict) -> int:
+    """Estimate broad product popularity from lifetime retailer reviews and rating."""
     if not isinstance(record, dict):
-        return (0, -101)
+        return 0
+    try:
+        explicit = max(0, int(record.get("historical_popularity_score") or 0))
+        reviews = max(0, int(record.get("review_count") or 0))
+        rating = float(record.get("rating") or record.get("rating_value") or 0)
+    except (TypeError, ValueError, OverflowError):
+        return 0
+    if explicit:
+        return min(100, explicit)
+    review_proxy = min(30, round(3.5 * math.log1p(reviews))) if reviews else 0
+    rating_proxy = max(0, min(12, round((rating - 3.0) * 10))) if rating else 0
+    return min(100, review_proxy + rating_proxy)
+
+
+def has_publishable_demand(record: dict, now: datetime | None = None) -> bool:
+    """Require strong current activity or established historical popularity."""
+    if not isinstance(record, dict):
+        return False
     if (
+        has_current_demand_signal(record, now)
+        and _candidate_demand_score(record, now) >= MIN_CURRENT_DEMAND_SCORE_FOR_PUBLISH
+    ):
+        return True
+    return _candidate_popularity_score(record) >= MIN_HISTORICAL_POPULARITY_SCORE_FOR_PUBLISH
+
+
+def has_verified_deal_value(record: dict) -> bool:
+    """Require a real price-history drop or a strong same-product market advantage."""
+    if not isinstance(record, dict):
+        return False
+
+    history_days = 0
+    try:
+        history_days = max(0, int(record.get("history_days") or 0))
+    except (TypeError, ValueError, OverflowError):
+        history_days = 0
+    if (
+        record.get("history_status") == "verified"
+        and history_days >= MIN_HISTORICAL_PRICE_DAYS
+        and int(record.get("history_median_toman") or 0) > 0
+        and (
+            record.get("historical_deal_eligible") is True
+            or is_historically_discount_eligible(record)
+        )
+    ):
+        return True
+
+    try:
+        market_advantage = int(record.get("market_price_advantage_pct"))
+        comparable_offers = int(record.get("market_available_offer_count") or 0)
+    except (TypeError, ValueError, OverflowError):
+        return False
+    return bool(
         record.get("market_status") == "verified"
         and record.get("market_reference_kind") == "seller_median"
-        and record.get("market_price_advantage_pct") is not None
-    ):
+        and comparable_offers >= 3
+        and market_advantage >= MIN_MARKET_VALUE_ADVANTAGE_PERCENT
+    )
+
+
+def _deal_value_evidence_key(record: dict) -> tuple[int, int]:
+    """Rank independently verified value evidence ahead of an unverified list-price markdown."""
+    if not isinstance(record, dict):
+        return (0, -101)
+    if has_verified_deal_value(record):
         try:
-            advantage = int(record.get("market_price_advantage_pct"))
+            if record.get("market_status") == "verified":
+                return (3, int(record.get("market_price_advantage_pct") or 0))
+            return (2, int(record.get("discount_vs_30d_median_pct") or 0))
         except (TypeError, ValueError, OverflowError):
-            advantage = -101
-        return (3, advantage) if advantage > 0 else (1, advantage)
-    if record.get("history_status") == "verified":
-        try:
-            advantage = int(record.get("discount_vs_30d_median_pct") or 0)
-        except (TypeError, ValueError, OverflowError):
-            advantage = 0
-        if advantage > 0:
-            return (2, advantage)
-        if record.get("historical_deal_eligible") is True:
-            return (2, 1)
-        return (1, advantage)
+            return (1, 0)
+    if record.get("history_status") == "verified" or record.get("market_status") == "verified":
+        return (1, -101)
     return (0, -101)
 
 
@@ -2867,8 +2924,8 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
     first_seen_ts = first_seen.timestamp() if first_seen else current.timestamp()
     evidence_tier, evidence_strength = _deal_value_evidence_key(record)
     return (
-        _candidate_popularity_score(record), reviews, rating_score,
-        _candidate_demand_score(record), clicks,
+        *_candidate_current_demand_priority(record, current),
+        clicks, _candidate_popularity_score(record), reviews, rating_score,
         evidence_tier, evidence_strength, discount, value_gate,
         _candidate_promo_score(record), savings, int(has_runway), urgency_tier,
         -remaining if active_deadline else float("-inf"), -first_seen_ts,
@@ -4196,9 +4253,10 @@ def score_product(p: dict) -> dict:
     p["historical_popularity_score"] = max(0, min(100, int(score)))
     p["current_demand_verified"] = has_current_demand_signal(p)
     p["current_demand_score"] = (
-        _candidate_demand_score(p) if p["current_demand_verified"]
-        else p["historical_popularity_score"]
+        _candidate_demand_score(p) if p["current_demand_verified"] else 0
     )
+    # Keep the current-demand field honest; lifetime review volume is stored only
+    # in historical_popularity_score and never copied into demand_score.
     p["demand_score"] = p["current_demand_score"]
     # Offer quality is scored independently from lifetime reviews and ratings.
     p["promo_score"] = max(0, min(100, int(discount_pct * 0.65 + savings_score)))
@@ -4217,11 +4275,13 @@ def deal_sort_key(p: dict) -> tuple:
     except (TypeError, ValueError, OverflowError):
         reviews = rating_score = discount = savings = 0
     evidence_tier, evidence_strength = _deal_value_evidence_key(p)
+    clicks = max(0, int(p.get("click_count_30d") or 0))
     return (
+        *_candidate_current_demand_priority(p),
+        clicks,
         _candidate_popularity_score(p),
         reviews,
         rating_score,
-        _candidate_demand_score(p),
         evidence_tier,
         evidence_strength,
         int(has_meaningful_discount(p)),
@@ -4353,12 +4413,14 @@ def is_discount_publish_eligible(
     minimum_discount_percent: int | None = None,
     now: datetime | None = None,
 ) -> bool:
-    """Require verified stock/price/image, a valid product, and a genuine markdown."""
+    """Require stock, demand, a genuine markdown, and independent price-value proof."""
     return bool(
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
         and has_meaningful_discount(product, minimum_discount_percent)
+        and has_publishable_demand(product, now)
+        and has_verified_deal_value(product)
     )
 
 
@@ -9447,7 +9509,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "Builds a popularity-ranked pool from public retailer review counts and ratings (a demand proxy, not sales volume), checks up to 100 candidates, then selects the largest verified live discount. No minimum discount percentage or saving amount is imposed. Publication still requires verified current price and stock, a genuine markdown, image, affiliate link, a valid title, no prohibited category, no verified market-price rejection, and no duplicate conflict. Confirmed deadlines require the configured publication runway; open-ended offers remain eligible after live stock/current-price validation.",
+        "ranking_note": "Ranks fresh retailer review growth before lifetime review popularity; lifetime popularity is only a separately labelled fallback. Publication requires verified stock/current price, a genuine markdown, image, affiliate link, valid title, no prohibited category, and independent value proof: either a verified multi-day DigiKala price-history deal or a same-product Torob seller median at least 5% above DigiKala price from three or more available offers. Listed RRP markdown alone is never sufficient. No arbitrary minimum discount percentage or saving amount is imposed.",
         "current_demand_policy": {
             "source": "rolling retailer review/rating-count observations",
             "window_days": CURRENT_DEMAND_WINDOW_DAYS,
