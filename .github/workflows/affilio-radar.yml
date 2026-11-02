@@ -7,6 +7,7 @@ on:
       - "affilio_radar/catalog_sweep.py"
       - "affilio_radar/parallel_catalog_sweep.py"
       - "affilio_radar/test_parallel_catalog_sweep.py"
+      - "affilio_radar/test_selection_evidence.py"
       - "affilio_radar/test_catalog_sweep.py"
       - "affilio_radar/product_quality.py"
       - "affilio_radar/affiliate-deal-radar-worker.js"
