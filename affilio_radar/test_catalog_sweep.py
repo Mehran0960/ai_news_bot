@@ -224,6 +224,70 @@ class CatalogSweepTests(unittest.TestCase):
             ), 1)
             self.assertIn("dkp-2", state["catalog_sweep_handoff"]["seen_ids"])
 
+    def test_handoff_batch_keeps_demand_core_and_rotates_missing_categories(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "candidates.json"
+            rows = [
+                {
+                    "product_id": f"dkp-{index}",
+                    "product_url": f"https://www.digikala.com/product/dkp-{index}/",
+                    "title": f"هدفون بلوتوثی مدل {index}",
+                    "catalog_category_id": "10",
+                    "catalog_category_ids": ["10"],
+                    "review_count": 10000 - index,
+                    "rating": 4.7,
+                    "discount_percent": 25,
+                }
+                for index in range(1, 6)
+            ]
+            rows.extend([
+                {
+                    "product_id": "dkp-20",
+                    "product_url": "https://www.digikala.com/product/dkp-20/",
+                    "title": "چراغ اضطراری نمونه",
+                    "catalog_category_id": "20",
+                    "catalog_category_ids": ["20"],
+                    "review_count": 100,
+                    "rating": 4.5,
+                    "discount_percent": 20,
+                },
+                {
+                    "product_id": "dkp-30",
+                    "product_url": "https://www.digikala.com/product/dkp-30/",
+                    "title": "کفش روزمره نمونه",
+                    "catalog_category_id": "30",
+                    "catalog_category_ids": ["30"],
+                    "review_count": 90,
+                    "rating": 4.4,
+                    "discount_percent": 30,
+                },
+                {
+                    "product_id": "dkp-40",
+                    "product_url": "https://www.digikala.com/product/dkp-40/",
+                    "title": "عطر روزمره نمونه",
+                    "catalog_category_id": "40",
+                    "catalog_category_ids": ["40"],
+                    "review_count": 80,
+                    "rating": 4.3,
+                    "discount_percent": 40,
+                },
+            ])
+            path.write_text(
+                json.dumps({"candidates": rows}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            selected = load_catalog_candidates_for_handoff(
+                path,
+                {},
+                max_count=4,
+                now=datetime(2026, 11, 2, 0, 0, tzinfo=timezone.utc),
+            )
+            self.assertEqual(len(selected), 4)
+            selected_ids = {row["product_id"] for row in selected}
+            self.assertTrue({"dkp-1", "dkp-2"}.issubset(selected_ids))
+            selected_categories = {row["catalog_category_id"] for row in selected}
+            self.assertGreaterEqual(len(selected_categories), 3)
+
     def test_run_sweep_checkpoints_page_and_candidates(self):
         category_payload = {"data": {"category_tree": [{"id": 7, "title": "کالای دیجیتال"}]}}
         page_payload = {

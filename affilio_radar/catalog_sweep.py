@@ -648,8 +648,13 @@ def load_catalog_candidates_for_handoff(
         if not is_publishable_product_title(row.get("title", "")):
             row = {**row, "title": f"محصول دیجی‌کالا {pid}"}
         fresh.append(row)
-    fresh.sort(key=catalog_candidate_sort_key, reverse=True)
-    selected = fresh[:max(0, int(max_count))]
+    # Preserve the best-demand core while distributing the rest of this handoff
+    # across categories not already represented in that core.
+    selected = retain_diverse_candidates(
+        fresh,
+        limit=max(0, int(max_count)),
+        rotation=int(current.timestamp() // 300),
+    )
     handoff["last_selection_at"] = current.isoformat() if selected else handoff.get("last_selection_at", "")
     handoff["last_selection_count"] = len(selected)
     return selected
