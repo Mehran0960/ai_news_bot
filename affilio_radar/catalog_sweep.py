@@ -470,9 +470,34 @@ def _candidate_demand(row: dict) -> int:
     return review_proxy + rating_proxy
 
 
+def _catalog_best_selling_rank_tier(row: dict) -> tuple[int, int]:
+    """Translate DigiKala's within-category best-selling position into a demand signal."""
+    if str(row.get("catalog_sort_order") or "") != "best_selling":
+        return (0, 0)
+    rank = max(0, _normal_int(row.get("catalog_best_selling_rank")))
+    if rank <= 0:
+        return (0, 0)
+    if rank <= 3:
+        return (7, -rank)
+    if rank <= 10:
+        return (6, -rank)
+    if rank <= 20:
+        return (5, -rank)
+    if rank <= 40:
+        return (4, -rank)
+    if rank <= 80:
+        return (3, -rank)
+    if rank <= 160:
+        return (2, -rank)
+    return (1, -rank)
+
+
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Rank retailer demand first; listed markdown is a later tie-breaker."""
+    """Prefer current retailer sales rank; lifetime reviews are only a secondary proxy."""
+    sales_tier, sales_rank = _catalog_best_selling_rank_tier(row)
     return (
+        sales_tier,
+        sales_rank,
         _candidate_demand(row),
         max(0, _normal_int(row.get("review_count"))),
         round(_normal_float(row.get("rating")) * 10),
@@ -543,7 +568,9 @@ def retain_diverse_candidates(rows: list[dict], limit: int = MAX_RETAINED_CANDID
 
 
 def _category_page_url(category_id: str, page: int) -> tuple[str, dict]:
-    return SEARCH_URL, {"categories[]": str(category_id), "page": int(page)}
+    # DigiKala Search API sort=5 is its Best Selling order.
+    # The scan is category-scoped, so the captured rank is a within-category sales signal.
+    return SEARCH_URL, {"categories[]": str(category_id), "page": int(page), "sort": 5}
 
 
 def _publisher_seen_ids(publisher_state_path: Path) -> set[str]:
@@ -887,7 +914,8 @@ def run_sweep(
             return 1
 
         discounted_on_page = 0
-        for row in product_rows:
+        page_size = max(1, len(product_rows))
+        for row_index, row in enumerate(product_rows, start=1):
             pid = row["product_id"]
             # Every product card is handed to the bounded publisher detail queue.
             # A missing/zero list-card discount is not evidence of no live discount.
@@ -896,11 +924,30 @@ def run_sweep(
             previous_categories = old.get("catalog_category_ids", [])
             category_ids = {str(v) for v in previous_categories if str(v).isdigit()} if isinstance(previous_categories, list) else set()
             category_ids.add(category_id)
+
+            # The API response is sorted by best-selling within this category.
+            # Keep the best observed position when a product belongs to several categories.
+            category_rank = max(1, (page - 1) * page_size + row_index)
+            rank_by_category = old.get("catalog_best_selling_ranks", {})
+            rank_by_category = dict(rank_by_category) if isinstance(rank_by_category, dict) else {}
+            rank_by_category[category_id] = min(
+                category_rank,
+                max(1, _normal_int(rank_by_category.get(category_id), category_rank)),
+            )
+            best_category_id, best_rank = min(
+                rank_by_category.items(),
+                key=lambda pair: _normal_int(pair[1], 10**9),
+            )
             candidate = {
                 **old, **row, "first_seen_at": first_seen,
                 "catalog_category_id": category_id,
                 "catalog_category_name": category_name,
                 "catalog_category_ids": sorted(category_ids, key=lambda value: int(value)),
+                "catalog_sort_order": "best_selling",
+                "catalog_best_selling_rank": _normal_int(best_rank),
+                "catalog_best_selling_ranks": rank_by_category,
+                "catalog_best_selling_category_id": str(best_category_id),
+                "catalog_best_selling_at": iso_now(),
             }
             candidates[pid] = candidate
             stats["catalog_candidate_cards_found_total"] += 1
