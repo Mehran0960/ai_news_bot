@@ -109,7 +109,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_all_real_discount_bands_compete_without_a_percentage_or_saving_floor \
             test_affilio.AffilioRadarTests.test_last_mile_photo_sender_accepts_a_49_percent_offer_with_real_markdown \
             test_affilio.AffilioRadarTests.test_preferred_posting_windows_use_iran_local_time \
-            test_affilio.AffilioRadarTests.test_publication_cooldown_leaves_room_for_five_minute_scan_cadence -v
+            test_affilio.AffilioRadarTests.test_publication_interval_is_23_minutes -v
 
       # Discovery/selection is a distinct stage. It writes the neutral content queue only.
       # Any later publisher adapter can consume that same selected payload without changing discovery.
