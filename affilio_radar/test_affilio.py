@@ -2201,11 +2201,13 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://example.com/image.jpg",
             "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
         }
-        ten_percent = score_product(dict(base))
+        ten_percent = _with_verified_current_demand(score_product(dict(base)))
         self.assertEqual(ten_percent["discount_percent"], 10)
         self.assertTrue(is_discount_publish_eligible(ten_percent))
 
-        just_below_floor = score_product({**base, "current_price": 510_000})
+        just_below_floor = _with_verified_current_demand(
+            score_product({**base, "current_price": 510_000})
+        )
         self.assertEqual(just_below_floor["discount_percent"], 49)
         self.assertTrue(is_discount_publish_eligible(just_below_floor))
 
@@ -2220,20 +2222,20 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(small_saving["discount_percent"], 1)
         self.assertFalse(is_discount_publish_eligible(small_saving))
         self.assertFalse(radar_module.is_attractive_value_offer(small_saving))
-        meaningful_low_percent_saving = score_product({
+        meaningful_low_percent_saving = _with_verified_current_demand(score_product({
             **base, "current_price": 9_700_000, "original_price": 10_000_000,
-        })
+        }))
         self.assertEqual(meaningful_low_percent_saving["discount_percent"], 3)
         self.assertTrue(radar_module.is_attractive_value_offer(meaningful_low_percent_saving))
         self.assertTrue(is_discount_publish_eligible(meaningful_low_percent_saving))
-        market_supported_small_discount = score_product({
+        market_supported_small_discount = _with_verified_current_demand(score_product({
             **base,
             "current_price": 9_900_000,
             "original_price": 10_000_000,
             "market_status": "verified",
             "market_reference_kind": "seller_median",
             "market_price_advantage_pct": 6,
-        })
+        }))
         self.assertEqual(market_supported_small_discount["discount_percent"], 1)
         self.assertTrue(radar_module.is_attractive_value_offer(market_supported_small_discount))
         self.assertTrue(is_discount_publish_eligible(market_supported_small_discount))
@@ -2244,7 +2246,7 @@ class AffilioRadarTests(unittest.TestCase):
 
 
     def test_high_ticket_products_have_no_discount_floor_exception(self):
-        high_ticket_11_percent = score_product({
+        high_ticket_11_percent = _with_verified_current_demand(score_product({
             "title": "گوشی موبایل پرتقاضا مدل آزمایشی",
             "availability": "in_stock",
             "current_price": 16_000_000,
@@ -2253,7 +2255,7 @@ class AffilioRadarTests(unittest.TestCase):
             "review_count": 20_000,
             "image_url": "https://example.com/phone.jpg",
             "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
-        })
+        }))
         self.assertEqual(high_ticket_11_percent["discount_percent"], 11)
         self.assertEqual(high_ticket_11_percent["savings_toman"], 2_000_000)
         self.assertTrue(is_discount_publish_eligible(high_ticket_11_percent))
@@ -2270,7 +2272,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(is_discount_publish_eligible(high_ticket_50_percent))
 
     def test_all_real_discount_bands_compete_without_a_percentage_or_saving_floor(self):
-        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
 
         def product(pid, title, discount):
             current_price = 10_000_000
@@ -2302,6 +2304,7 @@ class AffilioRadarTests(unittest.TestCase):
             product("dkp-95005", "اسپیکر بلوتوثی مدل کوچک", 35),
             product("dkp-95006", "چراغ مطالعه شارژی مدل جدید", 3),
         ]
+        candidates = [_with_verified_current_demand(item, now=now) for item in candidates]
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             candidates, {"published": {}}, now
         )
@@ -2567,7 +2570,7 @@ class AffilioRadarTests(unittest.TestCase):
             "review_count": 100,
             "rating": 4.5,
         }
-        scored = score_product(product)
+        scored = _with_verified_current_demand(score_product(product))
         self.assertEqual(scored["discount_percent"], 15)
         self.assertEqual(scored["savings_toman"], 150_000)
         self.assertTrue(is_discount_publish_eligible(scored))
