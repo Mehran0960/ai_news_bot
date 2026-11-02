@@ -2805,23 +2805,6 @@ def _candidate_popularity_score(record: dict) -> int:
     return min(100, review_proxy + rating_proxy)
 
 
-def _candidate_popularity_score(record: dict) -> int:
-    """Estimate broad product popularity from lifetime retailer reviews and rating."""
-    if not isinstance(record, dict):
-        return 0
-    try:
-        explicit = max(0, int(record.get("historical_popularity_score") or 0))
-        reviews = max(0, int(record.get("review_count") or 0))
-        rating = float(record.get("rating") or record.get("rating_value") or 0)
-    except (TypeError, ValueError, OverflowError):
-        return 0
-    if explicit:
-        return min(100, explicit)
-    review_proxy = min(30, round(3.5 * math.log1p(reviews))) if reviews else 0
-    rating_proxy = max(0, min(12, round((rating - 3.0) * 10))) if rating else 0
-    return min(100, review_proxy + rating_proxy)
-
-
 def has_publishable_demand(record: dict, now: datetime | None = None) -> bool:
     """Require strong current activity or established historical popularity."""
     if not isinstance(record, dict):
@@ -2840,14 +2823,16 @@ def has_verified_deal_value(record: dict) -> bool:
         return False
 
     history_days = 0
+    history_median = 0
     try:
         history_days = max(0, int(record.get("history_days") or 0))
+        history_median = max(0, int(record.get("history_median_toman") or 0))
     except (TypeError, ValueError, OverflowError):
-        history_days = 0
+        history_days = history_median = 0
     if (
         record.get("history_status") == "verified"
         and history_days >= MIN_HISTORICAL_PRICE_DAYS
-        and int(record.get("history_median_toman") or 0) > 0
+        and history_median > 0
         and (
             record.get("historical_deal_eligible") is True
             or is_historically_discount_eligible(record)
