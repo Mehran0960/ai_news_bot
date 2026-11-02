@@ -942,12 +942,26 @@ def run_sweep(
                 "observed_at": page_observed_at,
                 "category_name": category_name,
             }
-            valid_ranks = [
-                (int(value.get("rank") or 0), str(key), value)
-                for key, value in ranks_by_category.items()
-                if str(key).isdigit() and isinstance(value, dict)
-                and 1 <= _normal_int(value.get("rank")) <= BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY
-            ]
+            valid_ranks = []
+            for rank_category_id, rank_record in ranks_by_category.items():
+                if not str(rank_category_id).isdigit() or not isinstance(rank_record, dict):
+                    continue
+                saved_rank = _normal_int(rank_record.get("rank"))
+                if not 1 <= saved_rank <= BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY:
+                    continue
+                try:
+                    rank_observed = datetime.fromisoformat(
+                        str(rank_record.get("observed_at") or "").replace("Z", "+00:00")
+                    )
+                    if rank_observed.tzinfo is None:
+                        rank_observed = rank_observed.replace(tzinfo=timezone.utc)
+                    rank_age_hours = (
+                        now.astimezone(timezone.utc) - rank_observed.astimezone(timezone.utc)
+                    ).total_seconds() / 3600
+                except (TypeError, ValueError, OverflowError):
+                    continue
+                if 0 <= rank_age_hours <= BEST_SELLING_MAX_AGE_HOURS:
+                    valid_ranks.append((saved_rank, str(rank_category_id), rank_record))
             best_rank, best_category_id, best_rank_record = (
                 min(valid_ranks, key=lambda item: item[0]) if valid_ranks
                 else (category_rank, category_id, {
