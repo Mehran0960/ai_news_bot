@@ -355,7 +355,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
     def test_final_publisher_gate_blocks_new_posts_without_demand_or_value_but_preserves_partial_retry(self):
         from unittest.mock import patch
 
-        base = self.item("dkp-final-gate")
+        base = self.item("dkp-990101")
         product_url = base["product_url"]
         affiliate_url = base["affiliate_url"]
 
@@ -391,9 +391,9 @@ class ContentDeliveryQueueTests(unittest.TestCase):
 
         no_demand = {
             **base,
-            "product_id": "dkp-no-demand",
-            "product_url": "https://www.digikala.com/product/dkp-no-demand/",
-            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-no-demand%2F",
+            "product_id": "dkp-990102",
+            "product_url": "https://www.digikala.com/product/dkp-990102/",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-990102%2F",
             "current_demand_verified": False,
             "current_demand_score": 0,
             "demand_score": 0,
@@ -408,9 +408,9 @@ class ContentDeliveryQueueTests(unittest.TestCase):
 
         weak_value = {
             **base,
-            "product_id": "dkp-weak-value",
-            "product_url": "https://www.digikala.com/product/dkp-weak-value/",
-            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-weak-value%2F",
+            "product_id": "dkp-990103",
+            "product_url": "https://www.digikala.com/product/dkp-990103/",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-990103%2F",
             "discount_percent": 10,
             "savings_toman": 10_000,
         }
@@ -422,9 +422,9 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         # after its original demand/value evidence has expired or become unavailable.
         partial_retry = {
             **weak_value,
-            "product_id": "dkp-partial-retry",
-            "product_url": "https://www.digikala.com/product/dkp-partial-retry/",
-            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-partial-retry%2F",
+            "product_id": "dkp-990104",
+            "product_url": "https://www.digikala.com/product/dkp-990104/",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-990104%2F",
             "current_demand_verified": False,
             "recent_review_growth_7d": 0,
             "demand_window_hours": 0,
