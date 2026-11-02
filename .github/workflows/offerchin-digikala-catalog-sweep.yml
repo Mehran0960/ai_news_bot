@@ -10,8 +10,6 @@ on:
       - "affilio_radar/parallel_catalog_sweep.py"
       - "affilio_radar/test_catalog_sweep.py"
       - "affilio_radar/test_parallel_catalog_sweep.py"
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -43,14 +41,14 @@ jobs:
       - name: Validate crawler syntax
         run: python -m py_compile affilio_radar/catalog_sweep.py affilio_radar/parallel_catalog_sweep.py affilio_radar/product_quality.py
 
-      - name: Run crawler regressions outside routine scheduled sweeps
-        if: ${{ github.event_name != 'schedule' }}
+      - name: Run crawler regressions on code pushes only
+        if: ${{ github.event_name == 'push' }}
         run: python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_parallel_catalog_sweep -v
 
       - name: Sweep catalog pages concurrently
         env:
           PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/parallel_catalog_sweep.py --pages-per-run 480 --workers 12
+        run: python affilio_radar/parallel_catalog_sweep.py --pages-per-run 360 --workers 12
 
       - name: Persist resumable page queue and unacknowledged product candidates
         if: always()
