@@ -81,8 +81,8 @@ YOUTUBE_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_YOUTUBE_UP
 APARAT_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS", "3"))))
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
-MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(10, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "8"))))
-MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.3333333333333333")))
+MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "100"))))
+MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.3833333333333333")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
@@ -91,7 +91,7 @@ DISCOVERY_QUEUE_LIMIT = max(100, min(1000, int(os.getenv("AFFILIO_DISCOVERY_QUEU
 DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_TTL_HOURS", "24"))))
 MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(64, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "48"))))
 # Never publish an offer that gives the audience less than this much time to act.
-MIN_PUBLICATION_RUNWAY_MINUTES = max(30, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "60"))))
+MIN_PUBLICATION_RUNWAY_MINUTES = max(0, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "0"))))
 # The same ten-minute safety buffer gates publication and removal; captions remain static.
 COUNTDOWN_SAFETY_BUFFER_MINUTES = max(0, min(30, int(os.getenv("AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES", "10"))))
 # Site-side deadlines are retained for eligibility and cleanup; public captions never show timers.
@@ -101,11 +101,11 @@ COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
 CAPTION_DEADLINE_FORMAT_VERSION = 14
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
-URGENT_MIN_POST_INTERVAL_MINUTES = 10
+URGENT_MIN_POST_INTERVAL_MINUTES = 23
 DEADLINE_CRITICAL_WINDOW_MINUTES = 120
 # Offers inside the hard 90-minute cutoff are rejected instead of being rushed out.
 ULTRA_URGENT_WINDOW_MINUTES = 0
-ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 5
+ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 23
 URGENT_MIN_DISCOUNT_PERCENT = 80
 URGENT_MIN_SAVINGS_TOMAN = 500_000
 URGENT_MIN_DEMAND_SCORE = 55
@@ -2913,9 +2913,12 @@ def _candidate_popularity_score(record: dict) -> int:
 
 
 def _deal_demand_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Use only verified recent demand and fresh bestseller rank as primary demand."""
+    """Rank recent activity, fresh best-seller position, then public popularity proxies."""
     candidate = record if isinstance(record, dict) else {}
-    return _demand_evidence_sort_key(candidate, now=now)
+    return (
+        *_demand_evidence_sort_key(candidate, now=now),
+        _candidate_popularity_score(candidate),
+    )
 
 
 def _discount_percentage_sort_value(record: dict) -> int:
@@ -7326,6 +7329,21 @@ def select_publish_candidates(
             recent_publications=recent_publications,
             now=current,
         )
+        if not tier:
+            tier = _order_candidates_by_primary_rank(
+                selected_by_floor[floor],
+                published=published,
+                recent_publications=recent_publications,
+                now=current,
+                allow_family_repeat=True,
+            )
+        if not tier:
+            tier = sorted(
+                selected_by_floor[floor],
+                key=lambda record: deal_sort_key(record, now=current),
+                reverse=True,
+            )
+            print("PUBLISH_DIVERSITY_RELAXED reason=no_remaining_diverse_candidate")
         ordered.extend(tier)
     return ordered
 
@@ -7666,27 +7684,28 @@ def select_discount_fallback_candidates(
     now: datetime | None = None,
     include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Select every eligible positive markdown; no fixed displayed-discount target is imposed.
+    """Rank all valid live markdowns by demand first and displayed discount second.
 
-    Demand and product diversity rank the pool first. Independent market/history
-    evidence then helps identify stronger value; displayed percentage is a later
-    tie-breaker. All candidates still pass stock, live-price, affiliate, expiry,
-    title, and known-market-overpricing checks.
+    Recent review growth and fresh bestseller position are strongest demand signals.
+    When unavailable, public popularity proxies provide a fallback. External price
+    verification is informational, not a publication gate.
+    Hard checks remain: current stock and price, a genuine positive retailer markdown,
+    a valid product and affiliate URL, an allowed product title, and an unexpired or
+    open-ended live offer.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
     state = state if isinstance(state, dict) else {}
-
     quality_eligible: list[dict] = []
     fresh_candidates: list[dict] = []
     seen_ids: set[str] = set()
-    demand_blocked = 0
-    value_blocked = 0
-    retry_bypass = 0
+    demand_unverified = 0
+    value_unverified = 0
     published_records = state.get("published", {})
     published_records = published_records if isinstance(published_records, dict) else {}
+
     for product in products or []:
         if not isinstance(product, dict):
             continue
@@ -7697,26 +7716,13 @@ def select_discount_fallback_candidates(
             product, minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT, now=current
         ):
             continue
-        if not is_market_value_publish_eligible(product):
-            continue
         if not has_publishable_expiry_or_open_offer(product, current):
             continue
-
-        previous = published_records.get(pid, {})
-        retry_platforms = _delivery_retry_platforms(previous) if isinstance(previous, dict) else []
-        retrying_previous_delivery = bool(retry_platforms)
-        demand_ok = has_actionable_demand_signal(product, now=current)
-        value_ok = has_attractive_discount_value(product, now=current)
-        if not demand_ok and not retrying_previous_delivery:
-            demand_blocked += 1
-            continue
-        if not value_ok and not retrying_previous_delivery:
-            value_blocked += 1
-            continue
-        if retrying_previous_delivery and (not demand_ok or not value_ok):
-            retry_bypass += 1
-
         seen_ids.add(pid)
+        if not has_actionable_demand_signal(product, now=current):
+            demand_unverified += 1
+        if not has_attractive_discount_value(product, now=current):
+            value_unverified += 1
         quality_eligible.append(product)
         if (
             not is_selection_candidate_rejected(state, pid, product, current)
@@ -7724,23 +7730,36 @@ def select_discount_fallback_candidates(
         ):
             fresh_candidates.append(product)
 
+    fallback_mode = "normal"
+    if not fresh_candidates:
+        # Reuse a product only after every prior Telegram/Bale post is confirmed
+        # removed and no active publication or delivery record remains.
+        reusable = []
+        for product in quality_eligible:
+            pid = str(product.get("product_id") or product_id(product.get("product_url") or "")).strip()
+            if not pid or _has_active_publication_or_delivery(state, pid):
+                continue
+            if not previous_publication_posts_removed(published_records.get(pid)):
+                continue
+            reusable.append(product)
+        if reusable:
+            fresh_candidates = reusable
+            fallback_mode = "cooldown_relaxed"
+
     print(
-        f"SELECTION_EVIDENCE_FILTER demand_blocked={demand_blocked} "
-        f"value_blocked={value_blocked} retry_bypass={retry_bypass} "
-        f"eligible={len(quality_eligible)}"
+        f"SELECTION_POLICY demand_unverified={demand_unverified} "
+        f"value_unverified={value_unverified} hard_eligible={len(quality_eligible)} "
+        f"fresh={len(fresh_candidates)} fallback_mode={fallback_mode}"
     )
 
-    fallback_pool: list[dict] = []
     first_floor: int | None = None
+    fallback_pool: list[dict] = []
     for index, floor in enumerate(DISCOUNT_FALLBACK_FLOORS):
-        upper_exclusive = DISCOUNT_FALLBACK_FLOORS[index - 1] if index > 0 else None
+        upper = DISCOUNT_FALLBACK_FLOORS[index - 1] if index > 0 else None
         band = [
             product for product in fresh_candidates
             if int(product.get("discount_percent") or 0) >= floor
-            and (
-                upper_exclusive is None
-                or int(product.get("discount_percent") or 0) < upper_exclusive
-            )
+            and (upper is None or int(product.get("discount_percent") or 0) < upper)
         ]
         if not band:
             continue
@@ -7752,57 +7771,56 @@ def select_discount_fallback_candidates(
             allow_family_repeat=False,
         )
         if not ranked:
-            print(
-                f"DISCOUNT_FALLBACK_BAND_EXHAUSTED band={discount_fallback_band_label(floor, upper_exclusive)} "
-                "reason=recent_family_cooldown"
+            ranked = _order_candidates_by_primary_rank(
+                band,
+                published=state.get("published"),
+                recent_publications=state.get("recent_publications"),
+                now=current,
+                allow_family_repeat=True,
             )
-            # Do not use a weaker discount band to bypass a higher band whose
-            # otherwise-qualified products are temporarily excluded by diversity.
-            if first_floor is None:
-                print(
-                    f"DISCOUNT_FALLBACK_LOWER_BANDS_SUPPRESSED blocked_floor={floor}% "
-                    "reason=higher_band_blocked_by_diversity"
-                )
-                break
+            if ranked:
+                fallback_mode = "diversity_relaxed"
+        if not ranked:
             continue
 
-        label = discount_fallback_band_label(floor, upper_exclusive)
-        handoff_candidates = []
+        label = discount_fallback_band_label(floor, upper)
+        handoff = []
         for product in ranked:
-            selected_product = dict(product)
-            selected_product["selection_discount_floor"] = int(floor)
-            selected_product["selection_discount_band"] = label
-            handoff_candidates.append(selected_product)
+            selected = dict(product)
+            selected["selection_discount_floor"] = int(floor)
+            selected["selection_discount_band"] = label
+            selected["publication_policy"] = "demand_then_discount_v1"
+            selected["selection_demand_evidence"] = (
+                "recent_activity" if has_current_demand_signal(product, current)
+                else "fresh_best_seller" if _fresh_catalog_best_selling_rank(product, current) is not None
+                else "public_popularity_proxy"
+            )
+            selected["selection_value_evidence"] = (
+                "independently_verified" if has_attractive_discount_value(product, current)
+                else "retailer_listed_markdown"
+            )
+            selected["selection_fallback_mode"] = fallback_mode
+            handoff.append(selected)
 
         if first_floor is None:
             first_floor = floor
             print(
-                f"DISCOUNT_FALLBACK_SELECTED band={label} floor={floor}% "
-                f"quality_pool={len(quality_eligible)} fresh_pool={len(fresh_candidates)} "
-                f"band_candidates={len(band)}"
+                f"PUBLICATION_CANDIDATES_READY band={label} hard_eligible={len(quality_eligible)} "
+                f"ranked={len(handoff)} fallback_mode={fallback_mode}"
             )
-        elif include_fallback_bands:
-            print(
-                f"DISCOUNT_FALLBACK_BACKUP_BAND band={label} "
-                f"floor={floor}% candidates={len(handoff_candidates)}"
-            )
-
         if not include_fallback_bands:
-            return handoff_candidates, floor, quality_eligible
-        fallback_pool.extend(handoff_candidates)
+            return handoff, floor, quality_eligible
+        fallback_pool.extend(handoff)
 
     if fallback_pool:
-        print(
-            f"DISCOUNT_FALLBACK_POOL_READY primary_floor={first_floor}% "
-            f"ranked_backups={max(0, len(fallback_pool) - 1)}"
-        )
         return fallback_pool, first_floor, quality_eligible
-
     print(
-        f"DISCOUNT_FALLBACK_EXHAUSTED floors={','.join(str(x) for x in DISCOUNT_FALLBACK_FLOORS)} "
-        f"quality_pool={len(quality_eligible)} fresh_pool={len(fresh_candidates)}"
+        "PUBLICATION_CANDIDATES_EXHAUSTED "
+        f"products_seen={len(products or [])} hard_eligible={len(quality_eligible)} "
+        "reason=no_live_positive_markdown_with_stock_price_and_valid_affiliate"
     )
     return [], None, quality_eligible
+
 
 
 def restore_selection_discount_tiers(
@@ -7831,9 +7849,14 @@ def restore_selection_discount_tiers(
         if not pid or floor not in DISCOUNT_FALLBACK_FLOORS:
             continue
         tier = {"selection_discount_floor": floor}
-        band = str(candidate.get("selection_discount_band") or "").strip()
-        if band:
-            tier["selection_discount_band"] = band
+        for field in (
+            "selection_discount_band", "publication_policy",
+            "selection_demand_evidence", "selection_value_evidence",
+            "selection_fallback_mode",
+        ):
+            value = str(candidate.get(field) or "").strip()
+            if value:
+                tier[field] = value
         tiers_by_id[pid] = tier
 
     restored = 0
@@ -9698,8 +9721,8 @@ def run(publish=False, selection_only=False):
             return 0
 
         # Store one due primary plus a compact ranked backup pool.
-        # Every backup has already passed the same hard discount and current-demand
-        # gates; backups are never used to relax quality when the primary goes stale.
+        # Backups follow demand-first/discount-second ranking. The publisher
+        # repeats live stock, price, identity, title, and affiliate checks.
         primary = eligible[:1]
         summary = enqueue_selected_content(
             state,
@@ -9715,7 +9738,7 @@ def run(publish=False, selection_only=False):
             primary_entry = state.get("content_delivery_queue", {}).get(primary_id)
             if isinstance(primary_entry, dict):
                 primary_entry["fallback_candidates"] = [
-                    dict(candidate) for candidate in eligible[1:6]
+                    dict(candidate) for candidate in eligible[1:51]
                     if isinstance(candidate, dict)
                 ]
                 fallback_count = len(primary_entry["fallback_candidates"])
