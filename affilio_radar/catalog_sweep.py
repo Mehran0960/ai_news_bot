@@ -520,14 +520,42 @@ def _fresh_most_viewed_rank(row: dict, now: datetime | None = None) -> int | Non
     return rank if 0 <= age <= MOST_VIEWED_MAX_AGE_HOURS else None
 
 
+def _fresh_catalog_percentile(
+    row: dict,
+    percentile_field: str,
+    observed_field: str,
+    max_age_hours: int,
+) -> float:
+    if not isinstance(row, dict):
+        return 0.0
+    percentile = _normal_float(row.get(percentile_field))
+    if not 0.0 <= percentile <= 100.0:
+        return 0.0
+    raw = str(row.get(observed_field) or "").strip()
+    try:
+        observed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        if observed.tzinfo is None:
+            observed = observed.replace(tzinfo=timezone.utc)
+        age = (utc_now() - observed.astimezone(timezone.utc)).total_seconds() / 3600
+    except (TypeError, ValueError, OverflowError):
+        return 0.0
+    return percentile if 0 <= age <= max_age_hours else 0.0
+
+
 def _candidate_demand(row: dict) -> int:
     explicit = max(0, _normal_int(row.get("demand_score")))
     reviews = max(0, _normal_int(row.get("review_count")))
     rating = _normal_float(row.get("rating"))
     review_proxy = min(30, round(3.5 * math.log1p(reviews))) if reviews else 0
     rating_proxy = max(0, min(10, round((rating - 3.0) * 5))) if rating else 0
-    best_seller_percentile = _normal_float(row.get("catalog_best_selling_percentile"))
-    most_viewed_percentile = _normal_float(row.get("catalog_most_viewed_percentile"))
+    best_seller_percentile = _fresh_catalog_percentile(
+        row, "catalog_best_selling_percentile", "catalog_rank_observed_at",
+        BEST_SELLING_MAX_AGE_HOURS,
+    )
+    most_viewed_percentile = _fresh_catalog_percentile(
+        row, "catalog_most_viewed_percentile", "catalog_most_viewed_observed_at",
+        MOST_VIEWED_MAX_AGE_HOURS,
+    )
     normalized_catalog_signal = max(
         0, round(best_seller_percentile),
         round(most_viewed_percentile * 0.85),
@@ -539,8 +567,14 @@ def catalog_candidate_sort_key(row: dict) -> tuple:
     """Rank demand across categories using normalized bestseller, view and public signals."""
     best_rank = _fresh_best_selling_rank(row)
     viewed_rank = _fresh_most_viewed_rank(row)
-    best_percentile = _normal_float(row.get("catalog_best_selling_percentile"))
-    viewed_percentile = _normal_float(row.get("catalog_most_viewed_percentile"))
+    best_percentile = _fresh_catalog_percentile(
+        row, "catalog_best_selling_percentile", "catalog_rank_observed_at",
+        BEST_SELLING_MAX_AGE_HOURS,
+    )
+    viewed_percentile = _fresh_catalog_percentile(
+        row, "catalog_most_viewed_percentile", "catalog_most_viewed_observed_at",
+        MOST_VIEWED_MAX_AGE_HOURS,
+    )
     # Legacy candidates without pagination totals retain a top-60 fallback.
     if not best_percentile and best_rank is not None and best_rank <= 60:
         best_percentile = max(0.0, 100.0 * (61 - best_rank) / 60)
