@@ -90,56 +90,124 @@ async function dispatchWorkflowIfIdle(api, token, label, runningLimitMinutes, qu
   console.log("CHANNEL_DISPATCH_ACCEPTED workflow=" + label);
 }
 
+const PUBLISHER_INTERVAL_MS = 23 * 60 * 1000;
+const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
+
+async function readLastChannelPublicationAt(token) {
+  try {
+    const data = await githubRequest(
+      `https://api.github.com/repos/${OWNER}/${REPO}/contents/affilio_radar/state.json?ref=main`,
+      token
+    );
+    const encoded = String(data.content || "").replace(/\s/g, "");
+    if (!encoded) return null;
+    const binary = atob(encoded);
+    const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+    const state = JSON.parse(new TextDecoder().decode(bytes));
+    const explicit = Date.parse(String(state.last_channel_published_at || ""));
+    if (Number.isFinite(explicit)) return explicit;
+
+    let latest = 0;
+    const published = state.published && typeof state.published === "object" ? state.published : {};
+    for (const record of Object.values(published)) {
+      if (!record || typeof record !== "object") continue;
+      const hasMessage =
+        /^\d+$/.test(String(record.telegram_message_id || "")) ||
+        /^\d+$/.test(String(record.bale_message_id || ""));
+      const seconds = Number(record.ts || 0);
+      if (hasMessage && Number.isFinite(seconds)) latest = Math.max(latest, seconds * 1000);
+    }
+    return latest > 0 ? latest : null;
+  } catch (error) {
+    console.error("OFFERCHIN_CHANNEL_CLOCK_READ_FAILED", String(error).slice(0, 500));
+    return null;
+  }
+}
+
+async function readLatestPublisherAttempt(token) {
+  try {
+    const query = new URLSearchParams({ branch: "main", per_page: "10" });
+    const data = await githubRequest(`${PUBLISHER_API}/runs?${query}`, token);
+    const rows = Array.isArray(data.workflow_runs) ? data.workflow_runs : [];
+    return rows.find(run => run && run.event === "workflow_dispatch" && run.head_branch === "main") || null;
+  } catch (error) {
+    console.error("OFFERCHIN_PUBLISHER_ATTEMPT_READ_FAILED", String(error).slice(0, 500));
+    return null;
+  }
+}
+
+async function dispatchPublisherWhenDue(env, tick) {
+  const active = await recoverStaleWorkflow(
+    PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 28, 6
+  );
+  if (active) {
+    console.log("OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=active_workflow_" + active.status);
+    return;
+  }
+
+  const [lastPublishedAt, latestAttempt] = await Promise.all([
+    readLastChannelPublicationAt(env.GITHUB_TOKEN),
+    readLatestPublisherAttempt(env.GITHUB_TOKEN),
+  ]);
+  const now = tick.getTime();
+  if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
+    console.log("OFFERCHIN_PUBLISHER_NOT_DUE seconds_remaining=" +
+      Math.ceil((PUBLISHER_INTERVAL_MS - (now - lastPublishedAt)) / 1000));
+    return;
+  }
+
+  const attemptAt = Date.parse(String(
+    latestAttempt && (latestAttempt.updated_at || latestAttempt.run_started_at || latestAttempt.created_at) || ""
+  ));
+  if (Number.isFinite(attemptAt) && now - attemptAt < PUBLISHER_RETRY_GAP_MS) {
+    console.log("OFFERCHIN_PUBLISHER_RETRY_WINDOW seconds_remaining=" +
+      Math.ceil((PUBLISHER_RETRY_GAP_MS - (now - attemptAt)) / 1000));
+    return;
+  }
+
+  await dispatchWorkflowIfIdle(
+    PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 28, 6
+  );
+}
+
 async function runScheduledCheck(env, scheduledTime) {
   if (!env.GITHUB_TOKEN) {
     console.error("CHANNEL_DISPATCH_BLOCKED: GITHUB_TOKEN Worker secret is not configured.");
     return;
   }
   const tick = Number.isFinite(Number(scheduledTime)) ? new Date(Number(scheduledTime)) : new Date();
-  const minute = tick.getUTCMinutes();
-  const offset = minute % 5;
+  const offset = tick.getUTCMinutes() % 5;
 
-  // The crawler, publisher, and integrity auditor have separate workflow locks.
-  // Dispatch them in fixed minute offsets within each five-minute window.
+  // Discovery, audit and Filo remain independent from the actual channel cadence.
   if (offset === 1) {
     try {
       await dispatchWorkflowIfIdle(CATALOG_API, env.GITHUB_TOKEN, CATALOG_WORKFLOW, 18, 8);
     } catch (error) {
       console.error("OFFERCHIN_CATALOG_SWEEP_DISPATCH_FAILED", String(error).slice(0, 900));
     }
-    return;
   }
-
-  // Retailer validation traffic stays separate from the publication slot.
   if (offset === 2) {
     try {
       await dispatchWorkflowIfIdle(AUDIT_API, env.GITHUB_TOKEN, AUDIT_WORKFLOW, 8, 4);
     } catch (error) {
       console.error("OFFERCHIN_INTEGRITY_AUDIT_DISPATCH_FAILED", String(error).slice(0, 900));
     }
-    return;
   }
-
   if (offset === 3) {
     try {
       await dispatchWorkflowIfIdle(FILO_API, env.GITHUB_TOKEN, FILO_WORKFLOW, 27, 8);
     } catch (error) {
       console.error("GOUSHIBAAZ_FILO_DISPATCH_FAILED", String(error).slice(0, 900));
     }
-    return;
-  }
-
-  if (minute % 20 !== 0) {
-    console.log("CHANNEL_DISPATCH_SKIPPED: UTC minute " + minute + " reserved; OfferChin publisher runs at :00, :20, and :40 UTC; catalog sweep at :01, audit at :02, and Goushibaaz Filo at :03 in each five-minute window.");
-    return;
   }
 
   try {
-    await dispatchWorkflowIfIdle(PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 28, 6);
+    await dispatchPublisherWhenDue(env, tick);
   } catch (error) {
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 }
+
 export default {
   async scheduled(controller, env, ctx) {
     await runScheduledCheck(env, controller.scheduledTime);
