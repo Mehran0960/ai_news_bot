@@ -69,7 +69,7 @@ CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS",
 BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(20, int(os.getenv("AFFILIO_MAX_PER_QUERY", "12"))))
 MAX_PRODUCT_CHECKS = max(1, min(200, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "200"))))
-# Inspect up to the 100 strongest public demand candidates before choosing the best live discount.
+# Inspect a wider candidate pool so high-demand catalog offers are not missed.
 SNAPPSHOP_RESERVED_CANDIDATES = max(4, min(12, MAX_PRODUCT_CHECKS // 7))
 SNAPPSHOP_QUERIES_PER_SCAN = max(1, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN", "4"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
@@ -246,7 +246,7 @@ SEARCH_TERMS = [
     "گیاه آپارتمانی و گلدان",
 ]
 MAX_INCREDIBLE_OFFER_CANDIDATES = max(
-    1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "90")))
+    1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "200")))
 )
 EXCLUDED_HEALTH_PRODUCT_RE = re.compile(
     r"(?:قرص|کپسول|دارو(?:یی)?|مکمل|ویتامین|زینک|منیزیم|"
@@ -3645,7 +3645,7 @@ def discover_product_urls(
     if isinstance(discovery_queue, dict) and isinstance(state_to_persist, dict):
         try:
             handoff_limit = max(
-                1, min(80, int(os.getenv("AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN", "40")))
+                1, min(200, int(os.getenv("AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN", "200")))
             )
             catalog_batch = load_catalog_candidates_for_handoff(
                 CATALOG_SWEEP_CANDIDATES,
