@@ -158,6 +158,85 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertIsNone(fresh)
         self.assertEqual(reason, "live_product_prohibited_title")
 
+    def test_publisher_requires_and_preserves_independent_price_value_evidence(self):
+        from unittest.mock import patch
+
+        product_id = "dkp-95046"
+        product_url = f"https://www.digikala.com/product/{product_id}/"
+        affiliate_url = (
+            "https://aflo.ir/QekEYTRg?p="
+            "https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95046%2F"
+        )
+        demand = {
+            "current_demand_verified": True,
+            "current_demand_score": 55,
+            "demand_score": 55,
+            "recent_review_growth_7d": 5,
+            "recent_review_growth_window": 5,
+            "demand_window_hours": 12,
+            "demand_observed_at": self.now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth",
+            "historical_popularity_score": 42,
+            "review_count": 2000,
+            "rating": 4.6,
+        }
+        market_value = {
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_reference_price_toman": 537_634,
+            "market_price_advantage_pct": 7,
+            "market_available_offer_count": 4,
+        }
+        payload = {
+            "product_id": product_id,
+            "product_url": product_url,
+            "title": "شارژر سریع دیواری مدل آزمایشی",
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+            "affiliate_url": affiliate_url,
+            "selection_discount_floor": 1,
+            **demand,
+            **market_value,
+        }
+        fresh_record = {
+            "title": "شارژر سریع دیواری مدل آزمایشی",
+            "image_url": "https://example.com/product.webp",
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "availability": "in_stock",
+            **demand,
+        }
+        patches = (
+            patch("publisher.radar.fetch_product_record", return_value=dict(fresh_record)),
+            patch("publisher.radar._is_valid_affilio_tracking_url", return_value=True),
+            patch(
+                "publisher.radar.verify_live_page_price",
+                return_value={"ok": True, "page_price": 500_000},
+            ),
+            patch("publisher.radar.has_publishable_expiry_or_open_offer", return_value=True),
+        )
+        with patches[0], patches[1], patches[2], patches[3]:
+            accepted, reason = _fresh_selected_item(
+                {"product_id": product_id, "payload": dict(payload)}, self.now
+            )
+            self.assertIsNotNone(accepted, reason)
+            self.assertEqual(accepted["market_status"], "verified")
+            self.assertEqual(accepted["market_available_offer_count"], 4)
+            self.assertTrue(radar.has_verified_deal_value(accepted))
+
+            # The same 50% list-price markdown must be rejected when the independent
+            # seller comparison is missing; a previously selected queue item cannot bypass it.
+            unverified_payload = dict(payload)
+            for key in market_value:
+                unverified_payload.pop(key, None)
+            rejected, reject_reason = _fresh_selected_item(
+                {"product_id": product_id, "payload": unverified_payload}, self.now
+            )
+            self.assertIsNone(rejected)
+            self.assertEqual(reject_reason, "live_discount_no_longer_eligible")
+
     def test_publisher_normalizes_legacy_discount_floors_to_any_real_markdown(self):
         from unittest.mock import patch
 
