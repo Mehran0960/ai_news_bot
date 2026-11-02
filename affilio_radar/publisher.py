@@ -384,6 +384,10 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     if not already_partially_delivered and not ranked_delivery_policy:
         # Legacy queue records retain the older evidence gate. New selections
         # already have a demand-first/discount-second ranking.
+        if not radar.has_actionable_demand_signal(fresh, now=now):
+            return None, "live_demand_signal_missing"
+        if not radar.has_attractive_discount_value(fresh, now=now):
+            return None, "live_discount_value_not_verified"
 
     if not ranked_delivery_policy and not radar.is_market_value_publish_eligible(fresh):
         return None, "live_market_value_rejected"
