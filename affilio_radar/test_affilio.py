@@ -2548,6 +2548,9 @@ class AffilioRadarTests(unittest.TestCase):
             "product_id": "dkp-95303",
             "discount_percent": 60,
             "savings_toman": 50_000,
+            "market_status": "not_checked",
+            "market_reference_kind": "",
+            "market_price_checked_at": "",
         }, now)
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             [high_discount, lower_discount, small_saving], {"published": {}}, now
@@ -2555,11 +2558,11 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(floor, 1)
         self.assertEqual(
             {item["product_id"] for item in selected},
-            {"dkp-95301", "dkp-95302", "dkp-95303"},
+            {"dkp-95302"},
         )
         self.assertEqual(
             {item["product_id"] for item in quality},
-            {"dkp-95301", "dkp-95302", "dkp-95303"},
+            {"dkp-95302"},
         )
 
     def test_actionable_demand_requires_recent_growth_or_fresh_best_selling_rank(self):
@@ -2593,6 +2596,44 @@ class AffilioRadarTests(unittest.TestCase):
             "catalog_rank_observed_at": (now - timedelta(hours=25)).isoformat(),
         }
         self.assertFalse(radar_module.has_actionable_demand_signal(stale_rank, now))
+
+    def test_normalized_category_percentiles_and_most_viewed_are_actionable(self):
+        now = datetime.now(timezone.utc)
+        bestseller_top_thirty_percent = {
+            "catalog_best_selling_percentile": 75.0,
+            "catalog_rank_observed_at": now.isoformat(),
+        }
+        bestseller_below_threshold = {
+            **bestseller_top_thirty_percent,
+            "catalog_best_selling_percentile": 69.9,
+        }
+        most_viewed_top_ten_percent = {
+            "catalog_most_viewed_percentile": 95.0,
+            "catalog_most_viewed_observed_at": now.isoformat(),
+        }
+        stale_view_rank = {
+            **most_viewed_top_ten_percent,
+            "catalog_most_viewed_observed_at": (now - timedelta(hours=25)).isoformat(),
+        }
+        self.assertTrue(radar_module.has_actionable_demand_signal(bestseller_top_thirty_percent, now))
+        self.assertFalse(radar_module.has_actionable_demand_signal(bestseller_below_threshold, now))
+        self.assertTrue(radar_module.has_actionable_demand_signal(most_viewed_top_ten_percent, now))
+        self.assertFalse(radar_module.has_actionable_demand_signal(stale_view_rank, now))
+
+    def test_global_demand_sort_prefers_normalized_bestseller_percentile_over_views(self):
+        now = datetime.now(timezone.utc)
+        strong_buyer_demand = {
+            "catalog_best_selling_percentile": 92.0,
+            "catalog_rank_observed_at": now.isoformat(),
+        }
+        high_views_only = {
+            "catalog_most_viewed_percentile": 96.0,
+            "catalog_most_viewed_observed_at": now.isoformat(),
+        }
+        self.assertGreater(
+            radar_module._demand_evidence_sort_key(strong_buyer_demand, now),
+            radar_module._demand_evidence_sort_key(high_views_only, now),
+        )
 
     def test_discount_value_gate_rejects_unverified_markdowns_and_accepts_fresh_evidence(self):
         now = datetime.now(timezone.utc)
@@ -2637,7 +2678,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(radar_module.has_attractive_discount_value(historical_value, now=now))
         self.assertFalse(radar_module.has_attractive_discount_value(verified_bad_history, now=now))
 
-    def test_new_selection_uses_popularity_as_fallback_demand_and_keeps_live_markdowns(self):
+    def test_selection_rejects_lifetime_only_demand_and_unverified_markdowns(self):
         now = datetime.now(timezone.utc)
         base = {
             "product_id": "dkp-95501",
@@ -2680,11 +2721,11 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(
             [row["product_id"] for row in selected],
-            ["dkp-95502", "dkp-95503", "dkp-95501"],
+            ["dkp-95502"],
         )
         self.assertEqual(
             {row["product_id"] for row in quality},
-            {"dkp-95501", "dkp-95502", "dkp-95503"},
+            {"dkp-95502"},
         )
 
     def test_diversity_comparison_uses_recent_activity_signal_and_not_a_discount_fallback(self):
