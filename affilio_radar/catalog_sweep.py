@@ -441,6 +441,23 @@ def extract_product_rows(payload: Any) -> list[dict]:
     return rows
 
 
+def extract_total_items(payload: Any) -> int | None:
+    """Read a total product count when the search response exposes one."""
+    item_keys = ("total_items", "totalItems", "total_count", "totalCount", "total_products", "totalProducts")
+    for node in _walk_dicts(payload):
+        for key in item_keys:
+            value = _normal_int(node.get(key))
+            if value > 0:
+                return value
+        pagination = node.get("pagination")
+        if isinstance(pagination, dict):
+            for key in item_keys:
+                value = _normal_int(pagination.get(key))
+                if value > 0:
+                    return value
+    return None
+
+
 def extract_total_pages(payload: Any, current_page: int, product_count: int) -> int | None:
     """Read pagination across known DigiKala response variants."""
     page_keys = (
@@ -467,18 +484,24 @@ def extract_total_pages(payload: Any, current_page: int, product_count: int) -> 
     return None
 
 
-def _rank_percentile(rank: int, total_pages: int | None, page_size: int = BEST_SELLING_PAGE_SIZE) -> float | None:
-    """Normalize an in-category rank to a comparable 0..100 percentile."""
+def _rank_percentile(
+    rank: int,
+    total_pages: int | None,
+    page_size: int = BEST_SELLING_PAGE_SIZE,
+    total_items: int | None = None,
+) -> float | None:
+    """Normalize an in-category rank; prefer exact total products when available."""
     try:
         rank_value = max(0, int(rank))
         pages_value = max(0, int(total_pages or 0))
         size_value = max(1, int(page_size))
+        item_count = max(0, int(total_items or 0))
     except (TypeError, ValueError, OverflowError):
         return None
-    total_slots = pages_value * size_value
-    if rank_value <= 0 or total_slots <= 0:
+    total_count = item_count or pages_value * size_value
+    if rank_value <= 0 or total_count <= 0:
         return None
-    return round(max(0.0, min(100.0, 100.0 * (total_slots - rank_value + 1) / total_slots)), 2)
+    return round(max(0.0, min(100.0, 100.0 * (total_count - rank_value + 1) / total_count)), 2)
 
 
 def _fresh_best_selling_rank(row: dict, now: datetime | None = None) -> int | None:
