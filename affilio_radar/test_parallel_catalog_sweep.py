@@ -99,9 +99,16 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         }
         queued = sweep._ensure_parallel_state(state)
         self.assertEqual(
-            [(row["category_id"], row["page"]) for row in queued],
-            [("3", 1), ("2", 1), ("1", 1), ("3", 2)],
+            [(row["category_id"], row["page"], row["sort_mode"]) for row in queued[:3]],
+            [("3", 1, "best_selling"), ("2", 1, "best_selling"), ("1", 1, "best_selling")],
         )
+        self.assertEqual(
+            [(row["category_id"], row["page"], row["sort_mode"]) for row in queued[3:6]],
+            [("3", 1, "most_viewed"), ("2", 1, "most_viewed"), ("1", 1, "most_viewed")],
+        )
+        self.assertIn(("3", 2, "best_selling"), {
+            (row["category_id"], row["page"], row["sort_mode"]) for row in queued
+        })
         self.assertEqual(state["parallel_leaf_category_count"], 1)
 
     def test_next_page_only_when_more_product_pages_exist(self):
