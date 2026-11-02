@@ -48,178 +48,172 @@ def _session() -> requests.Session:
     return session
 
 
-def build_initial_page_queue(
-    categories: list[dict], legacy_category_index: int = 0, legacy_page: int = 1
-) -> list[dict]:
-    """Seed one page per category, preserving the old sequential cursor."""
-    start_index = max(0, min(len(categories), int(legacy_category_index or 0)))
-    page = max(1, int(legacy_page or 1))
-    tasks: list[dict] = []
-    for index, category in enumerate(categories):
-        if index < start_index or not isinstance(category, dict):
-            continue
-        category_id = str(category.get("id") or "")
-        if not category_id.isdigit():
-            continue
-        tasks.append({
-            "category_id": category_id,
-            "category_name": str(category.get("name") or category_id),
-            "page": page if index == start_index else 1,
-            "attempts": 0,
-        })
+def build_initial_page_queue(categories: list[dict], legacy_category_index: int = 0, legacy_page: int = 1) -> list[dict]:
+    """Start each cycle at page one for both demand sort orders."""
+    tasks = []
+    for sort_mode in ("best_selling", "most_viewed"):
+        for category in categories:
+            if not isinstance(category, dict): continue
+            cid = str(category.get("id") or "")
+            if cid.isdigit():
+                tasks.append({"category_id":cid,"category_name":str(category.get("name") or cid),
+                              "page":1,"sort_mode":sort_mode,"attempts":0})
     return tasks
 
 
-def _task_key(task: dict) -> tuple[str, int]:
-    return str(task.get("category_id") or ""), max(1, base._normal_int(task.get("page"), 1))
+def _task_key(task: dict) -> tuple[str, int, str]:
+    mode = str(task.get("sort_mode") or "best_selling")
+    return (str(task.get("category_id") or ""), max(1, base._normal_int(task.get("page"),1)),
+            mode if mode in {"best_selling","most_viewed"} else "best_selling")
 
 
 def _next_page_task(task: dict, total_pages: int | None, product_count: int) -> dict | None:
-    page = max(1, base._normal_int(task.get("page"), 1))
-    if product_count <= 0 or page >= base.MAX_PAGES_PER_CATEGORY:
-        return None
-    if total_pages is not None and page >= total_pages:
-        return None
-    return {
-        "category_id": str(task.get("category_id") or ""),
-        "category_name": str(task.get("category_name") or task.get("category_id") or ""),
-        "page": page + 1,
-        "attempts": 0,
-    }
+    page=max(1,base._normal_int(task.get("page"),1)); mode=str(task.get("sort_mode") or "best_selling")
+    if product_count<=0: return None
+    if mode=="most_viewed" and page>=base.MOST_VIEWED_MAX_PAGES_PER_CATEGORY: return None
+    if total_pages is not None and page>=total_pages: return None
+    nxt={"category_id":str(task.get("category_id") or ""),
+         "category_name":str(task.get("category_name") or task.get("category_id") or ""),
+         "page":page+1,"sort_mode":mode,"attempts":0}
+    if total_pages is not None: nxt["known_total_pages"]=int(total_pages)
+    return nxt
 
 
 def _fetch_page(task: dict) -> dict:
-    """Fetch one page. 400/404 close an unqueryable category/page; other
-    failures are retryable and remain in the persisted queue.
-    """
-    category_id = str(task.get("category_id") or "")
-    page = max(1, base._normal_int(task.get("page"), 1))
+    """Fetch one page; label inferred pagination boundaries explicitly."""
+    cid=str(task.get("category_id") or ""); page=max(1,base._normal_int(task.get("page"),1))
+    mode=str(task.get("sort_mode") or "best_selling")
+    sort_value=base.MOST_VIEWED_SORT_VALUE if mode=="most_viewed" else base.BEST_SELLING_SORT_VALUE
     try:
-        response = _session().get(
-            base.SEARCH_URL,
-            params={
-                "categories[]": category_id,
-                "page": page,
-                "sort": base.BEST_SELLING_SORT_VALUE,
-            },
-            timeout=base.REQUEST_TIMEOUT,
-        )
-        if response.status_code in (400, 404):
-            return {"kind": "terminal", "status_code": response.status_code, "rows": []}
-        if response.status_code == 429:
-            return {"kind": "retry", "status_code": 429, "rows": []}
+        response=_session().get(base.SEARCH_URL,params={"categories[]":cid,"page":page,"sort":sort_value},
+                                timeout=base.REQUEST_TIMEOUT)
+        if response.status_code==404 and page>1:
+            known=base._normal_int(task.get("known_total_pages"))
+            return {"kind":"end" if not known or page>known else "terminal","status_code":404,
+                    "rows":[],"inferred_boundary":not bool(known)}
+        if response.status_code in (400,404): return {"kind":"terminal","status_code":response.status_code,"rows":[]}
+        if response.status_code==429: return {"kind":"retry","status_code":429,"rows":[]}
         response.raise_for_status()
-        if len(response.content) > 8_000_000:
-            raise base.CatalogSweepError("api_response_exceeded_8mb")
-        try:
-            payload = response.json()
-        except ValueError as exc:
-            raise base.CatalogSweepError("api_returned_non_json") from exc
-        if not isinstance(payload, dict):
-            raise base.CatalogSweepError("api_payload_not_object")
-        rows = base.extract_product_rows(payload)
-        total_pages = base.extract_total_pages(payload, page, len(rows))
-        return {
-            "kind": "ok", "rows": rows, "total_pages": total_pages,
-            "status_code": response.status_code,
-        }
-    except Exception as exc:  # keep the cursor safe on all transient/schema failures
-        return {
-            "kind": "retry", "rows": [],
-            "error": f"{type(exc).__name__}:{str(exc)[:140]}",
-            "status_code": getattr(getattr(exc, "response", None), "status_code", None),
-        }
+        if len(response.content)>8_000_000: raise base.CatalogSweepError("api_response_exceeded_8mb")
+        try: payload=response.json()
+        except ValueError as exc: raise base.CatalogSweepError("api_returned_non_json") from exc
+        if not isinstance(payload,dict): raise base.CatalogSweepError("api_payload_not_object")
+        rows=base.extract_product_rows(payload)
+        total=base.extract_total_pages(payload,page,len(rows))
+        return {"kind":"ok","rows":rows,"total_pages":total,"status_code":response.status_code}
+    except Exception as exc:
+        return {"kind":"retry","rows":[],"error":f"{type(exc).__name__}:{str(exc)[:140]}",
+                "status_code":getattr(getattr(exc,"response",None),"status_code",None)}
 
 
 def _ensure_parallel_state(state: dict) -> list[dict]:
-    categories = state.get("categories", [])
-    if not isinstance(categories, list):
-        categories = []
-    queue = state.get("parallel_pending_pages")
-    if not isinstance(queue, list):
-        queue = []
-    known = state.get("parallel_known_category_ids")
-    if not isinstance(known, list):
-        known = []
-    known_ids = {str(value) for value in known}
-
+    cats=state.get("categories",[]); cats=cats if isinstance(cats,list) else []
+    raw=state.get("parallel_pending_pages",[]); queue=raw if isinstance(raw,list) else []
+    known=state.get("parallel_known_category_ids",[]); known_ids={str(x) for x in known} if isinstance(known,list) else set()
     if not state.get("parallel_queue_initialized"):
-        queue = build_initial_page_queue(
-            categories,
-            legacy_category_index=state.get("category_index", 0),
-            legacy_page=state.get("page", 1),
-        )
-        known_ids = {str(row.get("id")) for row in categories if isinstance(row, dict)}
-        state["parallel_queue_initialized"] = True
-        state["parallel_cycle_started_at"] = base.iso_now()
+        queue=build_initial_page_queue(cats)
+        known_ids={str(row.get("id")) for row in cats if isinstance(row,dict)}
+        state["parallel_queue_initialized"]=True
+        state["parallel_most_viewed_seeded"]=True
+        state["parallel_exhaustive_pages_seeded"]=True
+        state["parallel_cycle_started_at"]=base.iso_now()
+        state["parallel_cycle_pages_succeeded"]=0
+        state["parallel_cycle_unqueryable_tasks"]=[]
+        state["parallel_cycle_inferred_end_pages"]=0
     else:
-        # Category dictionary refreshes may introduce new categories. Append only
-        # genuinely new IDs; do not reset progress for existing IDs.
-        for category in categories:
-            if not isinstance(category, dict):
-                continue
-            category_id = str(category.get("id") or "")
-            if category_id.isdigit() and category_id not in known_ids:
-                queue.append({
-                    "category_id": category_id,
-                    "category_name": str(category.get("name") or category_id),
-                    "page": 1,
-                    "attempts": 0,
-                })
-                known_ids.add(category_id)
-
-    # De-duplicate persisted work without dropping retry attempt metadata.
-    unique: list[dict] = []
-    seen: set[tuple[str, int]] = set()
-    pruned_deep_pages = 0
-    for task in queue:
-        if not isinstance(task, dict):
-            continue
-        key = _task_key(task)
-        if not key[0].isdigit() or key in seen:
-            continue
-        # Old persisted queues may still contain thousands of deep-tail pages
-        # created before the best-selling top-60 policy. Drop them on migration.
-        if key[1] > base.MAX_PAGES_PER_CATEGORY:
-            pruned_deep_pages += 1
-            continue
-        seen.add(key)
-        unique.append(task)
-    if pruned_deep_pages:
-        state["parallel_deep_pages_pruned"] = (
-            max(0, base._normal_int(state.get("parallel_deep_pages_pruned")))
-            + pruned_deep_pages
-        )
-    state["parallel_known_category_ids"] = sorted(
-        known_ids, key=lambda value: int(value) if value.isdigit() else 0
-    )
-    ordered_categories = base.sort_categories_for_sweep(categories)
-    category_rank = {
-        str(row.get("id") or ""): index
-        for index, row in enumerate(ordered_categories)
-        if isinstance(row, dict)
-    }
-    # Sweep every leaf category's first page before spending capacity on deeper
-    # pages or parent nodes. This prevents parent-only pages from monopolizing
-    # the crawler's early batches.
-    unique.sort(
-        key=lambda task: (
-            max(1, base._normal_int(task.get("page"), 1)),
-            category_rank.get(str(task.get("category_id") or ""), len(category_rank)),
-            base._normal_int(task.get("attempts")),
-        )
-    )
-    parent_ids = {
-        str(row.get("parent_id") or "")
-        for row in ordered_categories
-        if str(row.get("parent_id") or "").isdigit()
-    }
-    state["parallel_pending_pages"] = unique
-    state["parallel_leaf_category_count"] = sum(
-        str(row.get("id") or "") not in parent_ids
-        for row in ordered_categories
-    )
+        for c in cats:
+            if not isinstance(c,dict): continue
+            cid=str(c.get("id") or "")
+            if cid.isdigit() and cid not in known_ids:
+                for mode in ("best_selling","most_viewed"):
+                    queue.append({"category_id":cid,"category_name":str(c.get("name") or cid),
+                                  "page":1,"sort_mode":mode,"attempts":0})
+                known_ids.add(cid)
+        if not state.get("parallel_exhaustive_pages_seeded"):
+            pending={str(t.get("category_id") or "") for t in queue
+                     if isinstance(t,dict) and str(t.get("sort_mode") or "best_selling")=="best_selling"}
+            for c in cats:
+                if not isinstance(c,dict): continue
+                cid=str(c.get("id") or "")
+                if cid.isdigit() and cid in pending:
+                    queue.append({"category_id":cid,"category_name":str(c.get("name") or cid),
+                                  "page":4,"sort_mode":"best_selling","attempts":0})
+            state["parallel_exhaustive_pages_seeded"]=True
+        if not state.get("parallel_most_viewed_seeded"):
+            for c in cats:
+                if isinstance(c,dict) and str(c.get("id") or "").isdigit():
+                    cid=str(c["id"])
+                    queue.append({"category_id":cid,"category_name":str(c.get("name") or cid),
+                                  "page":1,"sort_mode":"most_viewed","attempts":0})
+            state["parallel_most_viewed_seeded"]=True
+    unique=[]; seen=set()
+    for raw_task in queue:
+        if not isinstance(raw_task,dict): continue
+        task=dict(raw_task)
+        if task.get("sort_mode") not in {"best_selling","most_viewed"}: task["sort_mode"]="best_selling"
+        key=_task_key(task)
+        if not key[0].isdigit() or key in seen: continue
+        seen.add(key); unique.append(task)
+    state["parallel_known_category_ids"]=sorted(known_ids,key=lambda x:int(x) if x.isdigit() else 0)
+    ordered=base.sort_categories_for_sweep(cats)
+    ranks={str(row.get("id") or ""):i for i,row in enumerate(ordered) if isinstance(row,dict)}
+    unique.sort(key=lambda t:(max(1,base._normal_int(t.get("page"),1)),
+                              0 if t.get("sort_mode")=="best_selling" else 1,
+                              ranks.get(str(t.get("category_id") or ""),len(ranks)),
+                              base._normal_int(t.get("attempts"))))
+    parent_ids={str(row.get("parent_id") or "") for row in ordered
+                if str(row.get("parent_id") or "").isdigit()}
+    state["parallel_pending_pages"]=unique
+    state["parallel_leaf_category_count"]=sum(str(row.get("id") or "") not in parent_ids for row in ordered)
+    state["parallel_sort_modes"]=["best_selling","most_viewed"]
     return unique
+
+
+def _merge_ranked_candidate(old: dict, row: dict, task: dict, rank: int,
+                            total_pages: int | None, observed_at: str,
+                            first_seen_at: str) -> dict:
+    cid=str(task.get("category_id") or ""); name=str(task.get("category_name") or cid)
+    mode=str(task.get("sort_mode") or "best_selling")
+    category_ids={str(x) for x in old.get("catalog_category_ids",[]) if str(x).isdigit()}
+    category_ids.add(cid)
+    key="catalog_best_selling_ranks_by_category" if mode=="best_selling" else "catalog_most_viewed_ranks_by_category"
+    records=old.get(key,{}); records=dict(records) if isinstance(records,dict) else {}
+    percentile=base._rank_percentile(rank,total_pages,base.BEST_SELLING_PAGE_SIZE)
+    current={"rank":rank,"observed_at":observed_at,"category_name":name,"total_pages":total_pages}
+    if percentile is not None: current["percentile"]=percentile
+    records[cid]=current
+    valid=[]
+    for saved_id,rec in records.items():
+        if not str(saved_id).isdigit() or not isinstance(rec,dict): continue
+        saved_rank=base._normal_int(rec.get("rank"))
+        try:
+            stamp=base.datetime.fromisoformat(str(rec.get("observed_at") or "").replace("Z","+00:00"))
+            if stamp.tzinfo is None: stamp=stamp.replace(tzinfo=base.timezone.utc)
+            age=(base.utc_now()-stamp.astimezone(base.timezone.utc)).total_seconds()/3600
+        except (TypeError,ValueError,OverflowError): continue
+        max_age=base.BEST_SELLING_MAX_AGE_HOURS if mode=="best_selling" else base.MOST_VIEWED_MAX_AGE_HOURS
+        if saved_rank>0 and 0<=age<=max_age: valid.append((rec.get("percentile"),saved_rank,saved_id,rec))
+    def quality(item):
+        pct,r,_,_=item
+        return (1,float(pct),-r) if pct is not None else (0,0.0,-r)
+    best=max(valid,key=quality) if valid else (percentile,rank,cid,current)
+    result={**old,**row,"first_seen_at":first_seen_at,"catalog_category_id":cid,
+            "catalog_category_name":name,"catalog_category_ids":sorted(category_ids,key=int),
+            "catalog_category_page_counts":{**(old.get("catalog_category_page_counts") or {}),f"{mode}:{cid}":total_pages}}
+    if mode=="best_selling":
+        result.update({"catalog_sort_mode":"best_selling","catalog_best_selling_ranks_by_category":records,
+                       "catalog_best_selling_rank":best[1],"catalog_best_selling_percentile":best[0] or 0,
+                       "catalog_best_selling_category_id":best[2],
+                       "catalog_best_selling_category_name":str(best[3].get("category_name") or name),
+                       "catalog_rank_observed_at":str(best[3].get("observed_at") or observed_at)})
+    else:
+        result.update({"catalog_most_viewed_ranks_by_category":records,"catalog_most_viewed_rank":best[1],
+                       "catalog_most_viewed_percentile":best[0] or 0,
+                       "catalog_most_viewed_category_id":best[2],
+                       "catalog_most_viewed_category_name":str(best[3].get("category_name") or name),
+                       "catalog_most_viewed_observed_at":str(best[3].get("observed_at") or observed_at)})
+        if old.get("catalog_sort_mode")!="best_selling": result["catalog_sort_mode"]="most_viewed"
+    return result
 
 
 def run_parallel_sweep(
@@ -266,15 +260,27 @@ def run_parallel_sweep(
 
     queue = _ensure_parallel_state(state)
     if not queue:
-        # A cycle is complete only after every known page has been either read
-        # successfully or explicitly shown to be an invalid/empty terminal page.
-        stats["completed_cycles"] += 1
+        unavailable = state.get("parallel_cycle_unqueryable_tasks", [])
+        unavailable = unavailable if isinstance(unavailable, list) else []
+        inferred = max(0, base._normal_int(state.get("parallel_cycle_inferred_end_pages")))
+        status = "partial_unqueryable_categories" if unavailable else "complete_with_inferred_boundaries" if inferred else "complete"
+        state["last_cycle_coverage"] = {
+            "status": status, "finished_at": base.iso_now(),
+            "pages_succeeded": max(0, base._normal_int(state.get("parallel_cycle_pages_succeeded"))),
+            "unqueryable_category_sort_tasks": unavailable, "inferred_pagination_boundaries": inferred,
+            "category_count": len(categories), "sort_modes": ["best_selling", "most_viewed"],
+        }
+        if status == "complete": stats["completed_cycles"] += 1
+        else: stats["partial_cycles"] = max(0, base._normal_int(stats.get("partial_cycles"))) + 1
         state["completed_cycles"] = stats["completed_cycles"]
         state["last_cycle_completed_at"] = base.iso_now()
-        queue = build_initial_page_queue(categories, 0, 1)
+        queue = build_initial_page_queue(categories)
         state["parallel_pending_pages"] = queue
         state["parallel_cycle_started_at"] = base.iso_now()
-        print("PARALLEL_CATALOG_CYCLE_COMPLETED")
+        state["parallel_cycle_pages_succeeded"] = 0
+        state["parallel_cycle_unqueryable_tasks"] = []
+        state["parallel_cycle_inferred_end_pages"] = 0
+        print(f"PARALLEL_CATALOG_CYCLE_COMPLETED coverage={status}")
 
     batch_limit = max(1, min(2000, int(pages_per_run)))
     requested_workers = max(1, min(32, int(workers)))
@@ -301,6 +307,10 @@ def run_parallel_sweep(
     empty_product_pages = 0
     nonempty_product_pages = 0
     pending_keys = {_task_key(task) for task in remaining if isinstance(task, dict)}
+    end_count = inferred_end_count = 0
+    unqueryable_tasks = state.get("parallel_cycle_unqueryable_tasks", [])
+    if not isinstance(unqueryable_tasks, list): unqueryable_tasks = []
+    unavailable_set = set(str(x) for x in unqueryable_tasks)
 
     for task, result in zip(batch, results):
         if not isinstance(result, dict):
@@ -326,96 +336,46 @@ def run_parallel_sweep(
                 pending_keys.add(_task_key(retry_task))
             continue
 
-        processed_count += 1
-        if rows:
-            nonempty_product_pages += 1
-            stats["nonempty_product_pages_total"] += 1
-        else:
-            empty_product_pages += 1
-            stats["empty_product_pages_total"] += 1
+        if kind == "end":
+            end_count += 1
+            terminal_count += 1
+            if result.get("inferred_boundary"):
+                inferred_end_count += 1
+                state["parallel_cycle_inferred_end_pages"] = base._normal_int(state.get("parallel_cycle_inferred_end_pages")) + 1
+            continue
         if kind == "terminal":
             terminal_count += 1
-            if page == 1:
-                stats["unqueryable_categories_total"] += 1
+            marker=f"{category_id}:{task.get('sort_mode') or 'best_selling'}"
+            if marker not in unavailable_set:
+                unqueryable_tasks.append(marker); unavailable_set.add(marker)
+            stats["unqueryable_categories_total"] += 1
             continue
-
-        total_pages = result.get("total_pages")
-        total_pages = max(1, int(total_pages)) if total_pages is not None else None
-        page_observed_at = base.iso_now()
-        page_start_rank = (page - 1) * base.BEST_SELLING_PAGE_SIZE
-        category_name = str(task.get("category_name") or category_id)
-        for row_index, row in enumerate(rows):
-            if not isinstance(row, dict):
-                continue
-            pid = str(row.get("product_id") or "")
-            if not pid:
-                continue
-            old = candidates.get(pid, {})
-            old = old if isinstance(old, dict) else {}
-            first_seen = old.get("first_seen_at") or page_observed_at
-            previous_categories = old.get("catalog_category_ids", [])
-            category_ids = {str(v) for v in previous_categories if str(v).isdigit()} if isinstance(previous_categories, list) else set()
-            category_ids.add(category_id)
-
-            ranks_by_category = old.get("catalog_best_selling_ranks_by_category", {})
-            ranks_by_category = dict(ranks_by_category) if isinstance(ranks_by_category, dict) else {}
-            category_rank = page_start_rank + row_index + 1
-            ranks_by_category[category_id] = {
-                "rank": category_rank,
-                "observed_at": page_observed_at,
-                "category_name": category_name,
-            }
-            valid_ranks = []
-            for rank_category_id, rank_record in ranks_by_category.items():
-                if not str(rank_category_id).isdigit() or not isinstance(rank_record, dict):
-                    continue
-                saved_rank = base._normal_int(rank_record.get("rank"))
-                if not 1 <= saved_rank <= base.BEST_SELLING_PAGE_SIZE * base.BEST_SELLING_MAX_PAGES_PER_CATEGORY:
-                    continue
-                try:
-                    rank_observed = base.datetime.fromisoformat(
-                        str(rank_record.get("observed_at") or "").replace("Z", "+00:00")
-                    )
-                    if rank_observed.tzinfo is None:
-                        rank_observed = rank_observed.replace(tzinfo=base.timezone.utc)
-                    rank_age_hours = (
-                        now.astimezone(base.timezone.utc) - rank_observed.astimezone(base.timezone.utc)
-                    ).total_seconds() / 3600
-                except (TypeError, ValueError, OverflowError):
-                    continue
-                if 0 <= rank_age_hours <= base.BEST_SELLING_MAX_AGE_HOURS:
-                    valid_ranks.append((saved_rank, str(rank_category_id), rank_record))
-            best_rank, best_category_id, best_rank_record = (
-                min(valid_ranks, key=lambda item: item[0]) if valid_ranks
-                else (category_rank, category_id, {
-                    "observed_at": page_observed_at,
-                    "category_name": category_name,
-                })
-            )
-            candidates[pid] = {
-                **old, **row,
-                "first_seen_at": first_seen,
-                "catalog_category_id": category_id,
-                "catalog_category_name": category_name,
-                "catalog_category_ids": sorted(category_ids, key=lambda value: int(value)),
-                "catalog_sort_mode": "best_selling",
-                "catalog_best_selling_ranks_by_category": ranks_by_category,
-                "catalog_best_selling_rank": best_rank,
-                "catalog_best_selling_category_id": best_category_id,
-                "catalog_best_selling_category_name": str(best_rank_record.get("category_name") or category_name),
-                "catalog_rank_observed_at": str(best_rank_record.get("observed_at") or page_observed_at),
-            }
+        processed_count += 1
+        state["parallel_cycle_pages_succeeded"] = base._normal_int(state.get("parallel_cycle_pages_succeeded")) + 1
+        if rows:
+            nonempty_product_pages += 1; stats["nonempty_product_pages_total"] += 1
+        else:
+            empty_product_pages += 1; stats["empty_product_pages_total"] += 1
+        total_pages=result.get("total_pages")
+        total_pages=max(1,int(total_pages)) if total_pages is not None else None
+        observed=base.iso_now(); start_rank=(page-1)*base.BEST_SELLING_PAGE_SIZE
+        for idx,row in enumerate(rows):
+            if not isinstance(row,dict): continue
+            pid=str(row.get("product_id") or "")
+            if not pid: continue
+            old=candidates.get(pid,{})
+            old=old if isinstance(old,dict) else {}
+            candidates[pid]=_merge_ranked_candidate(old,row,task,start_rank+idx+1,total_pages,observed,
+                                                    old.get("first_seen_at") or observed)
             stats["catalog_candidate_cards_found_total"] += 1
-            if base._normal_int(row.get("discount_percent")) >= base.MIN_CANDIDATE_DISCOUNT:
+            if base._normal_int(row.get("discount_percent"))>=base.MIN_CANDIDATE_DISCOUNT:
                 stats["discounted_candidates_found_total"] += 1
         page_row_count += len(rows)
         stats["pages_scanned_total"] += 1
         stats["product_rows_scanned_total"] += len(rows)
-        next_task = _next_page_task(task, total_pages, len(rows))
+        next_task=_next_page_task(task,total_pages,len(rows))
         if next_task and _task_key(next_task) not in pending_keys:
-            remaining.append(next_task)
-            pending_keys.add(_task_key(next_task))
-
+            remaining.append(next_task); pending_keys.add(_task_key(next_task))
         state["last_successful_category_id"] = category_id
         state["last_successful_category_name"] = str(task.get("category_name") or category_id)
         state["last_successful_page"] = page
@@ -443,6 +403,7 @@ def run_parallel_sweep(
 
     state["parallel_pending_pages"] = remaining
     state["pending_page_count"] = len(remaining)
+    state["parallel_cycle_unqueryable_tasks"] = unqueryable_tasks
     state["parallel_last_batch_at"] = base.iso_now()
     state["parallel_last_batch_pages"] = len(batch)
     state["parallel_last_batch_successes"] = processed_count
@@ -452,6 +413,15 @@ def run_parallel_sweep(
     state["parallel_last_batch_product_rows"] = page_row_count
     state["parallel_last_batch_empty_product_pages"] = empty_product_pages
     state["parallel_last_batch_nonempty_product_pages"] = nonempty_product_pages
+    state["parallel_last_batch_end_pages"] = end_count
+    state["parallel_last_batch_inferred_boundaries"] = inferred_end_count
+    state["parallel_last_batch_unqueryable_tasks"] = len(unavailable_set)
+    state["parallel_coverage_status"] = (
+        "in_progress" if remaining else
+        "partial_unqueryable_categories" if unavailable_set else
+        "complete_with_inferred_boundaries" if base._normal_int(state.get("parallel_cycle_inferred_end_pages")) else
+        "complete"
+    )
     state["unacknowledged_candidate_count"] = len(ordered_candidates)
     state["stats"] = stats
     state["category_count"] = len(categories)
@@ -469,9 +439,10 @@ def run_parallel_sweep(
         f"rate_limited={rate_limited_count} workers={state['parallel_workers_used']} "
         f"products={page_row_count} categories={len(categories)} leaf_categories={state.get('parallel_leaf_category_count', 0)} "
         f"pending_pages={len(remaining)} candidates={len(ordered_candidates)} "
-        f"pages_total={stats['pages_scanned_total']} "
-        f"sort=best_selling rank_top={base.BEST_SELLING_PAGE_SIZE * base.BEST_SELLING_MAX_PAGES_PER_CATEGORY} "
-        f"completed_cycles={stats['completed_cycles']}"
+        f"pages_total={stats['pages_scanned_total']} end_pages={end_count} "
+        f"unqueryable_tasks={len(unavailable_set)} sort=best_selling+most_viewed bestseller_pages=uncapped "
+        f"coverage={state['parallel_coverage_status']} completed_cycles={stats['completed_cycles']} "
+        f"partial_cycles={stats.get('partial_cycles', 0)}"
     )
     return 0
 
