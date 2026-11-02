@@ -100,7 +100,9 @@ def _fetch_page(task: dict) -> dict:
         if not isinstance(payload,dict): raise base.CatalogSweepError("api_payload_not_object")
         rows=base.extract_product_rows(payload)
         total=base.extract_total_pages(payload,page,len(rows))
-        return {"kind":"ok","rows":rows,"total_pages":total,"status_code":response.status_code}
+        total_items=base.extract_total_items(payload)
+        return {"kind":"ok","rows":rows,"total_pages":total,"total_items":total_items,
+                "status_code":response.status_code}
     except Exception as exc:
         return {"kind":"retry","rows":[],"error":f"{type(exc).__name__}:{str(exc)[:140]}",
                 "status_code":getattr(getattr(exc,"response",None),"status_code",None)}
@@ -170,16 +172,19 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
 
 
 def _merge_ranked_candidate(old: dict, row: dict, task: dict, rank: int,
-                            total_pages: int | None, observed_at: str,
-                            first_seen_at: str) -> dict:
+                            total_pages: int | None, total_items: int | None,
+                            observed_at: str, first_seen_at: str) -> dict:
     cid=str(task.get("category_id") or ""); name=str(task.get("category_name") or cid)
     mode=str(task.get("sort_mode") or "best_selling")
     category_ids={str(x) for x in old.get("catalog_category_ids",[]) if str(x).isdigit()}
     category_ids.add(cid)
     key="catalog_best_selling_ranks_by_category" if mode=="best_selling" else "catalog_most_viewed_ranks_by_category"
     records=old.get(key,{}); records=dict(records) if isinstance(records,dict) else {}
-    percentile=base._rank_percentile(rank,total_pages,base.BEST_SELLING_PAGE_SIZE)
-    current={"rank":rank,"observed_at":observed_at,"category_name":name,"total_pages":total_pages}
+    percentile=base._rank_percentile(
+        rank,total_pages,base.BEST_SELLING_PAGE_SIZE,total_items=total_items
+    )
+    current={"rank":rank,"observed_at":observed_at,"category_name":name,
+             "total_pages":total_pages,"total_items":total_items}
     if percentile is not None: current["percentile"]=percentile
     records[cid]=current
     valid=[]
@@ -199,7 +204,8 @@ def _merge_ranked_candidate(old: dict, row: dict, task: dict, rank: int,
     best=max(valid,key=quality) if valid else (percentile,rank,cid,current)
     result={**old,**row,"first_seen_at":first_seen_at,"catalog_category_id":cid,
             "catalog_category_name":name,"catalog_category_ids":sorted(category_ids,key=int),
-            "catalog_category_page_counts":{**(old.get("catalog_category_page_counts") or {}),f"{mode}:{cid}":total_pages}}
+            "catalog_category_page_counts":{**(old.get("catalog_category_page_counts") or {}),f"{mode}:{cid}":total_pages},
+            "catalog_category_product_counts":{**(old.get("catalog_category_product_counts") or {}),f"{mode}:{cid}":total_items}}
     if mode=="best_selling":
         result.update({"catalog_sort_mode":"best_selling","catalog_best_selling_ranks_by_category":records,
                        "catalog_best_selling_rank":best[1],"catalog_best_selling_percentile":best[0] or 0,
@@ -358,6 +364,8 @@ def run_parallel_sweep(
             empty_product_pages += 1; stats["empty_product_pages_total"] += 1
         total_pages=result.get("total_pages")
         total_pages=max(1,int(total_pages)) if total_pages is not None else None
+        total_items=result.get("total_items")
+        total_items=max(1,int(total_items)) if total_items is not None else None
         observed=base.iso_now(); start_rank=(page-1)*base.BEST_SELLING_PAGE_SIZE
         for idx,row in enumerate(rows):
             if not isinstance(row,dict): continue
@@ -365,8 +373,10 @@ def run_parallel_sweep(
             if not pid: continue
             old=candidates.get(pid,{})
             old=old if isinstance(old,dict) else {}
-            candidates[pid]=_merge_ranked_candidate(old,row,task,start_rank+idx+1,total_pages,observed,
-                                                    old.get("first_seen_at") or observed)
+            candidates[pid]=_merge_ranked_candidate(
+                old,row,task,start_rank+idx+1,total_pages,total_items,observed,
+                old.get("first_seen_at") or observed
+            )
             stats["catalog_candidate_cards_found_total"] += 1
             if base._normal_int(row.get("discount_percent"))>=base.MIN_CANDIDATE_DISCOUNT:
                 stats["discounted_candidates_found_total"] += 1
