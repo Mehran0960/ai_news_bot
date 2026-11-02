@@ -45,6 +45,23 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "deal_expires_at": deadline.isoformat() if deadline else "",
         }
 
+    def test_default_interval_is_23_minutes_from_last_channel_publication(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-first")], now=self.now, minimum_runway_minutes=0
+        )
+        state["last_channel_published_at"] = self.now.isoformat()
+        enqueue_selected_content(
+            state, [self.item("dkp-second")],
+            now=self.now + timedelta(minutes=22),
+            minimum_runway_minutes=0,
+        )
+        scheduled = datetime.fromisoformat(
+            state["content_delivery_queue"]["dkp-second"]["scheduled_at"]
+        )
+        self.assertEqual(scheduled, self.now + timedelta(minutes=23))
+
+
     def test_enqueue_persists_platform_neutral_payload_without_delivery(self):
         state = {}
         summary = enqueue_selected_content(
@@ -364,7 +381,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertIsNone(fresh)
         self.assertEqual(reason, "live_demand_signal_missing")
 
-    def test_final_publisher_gate_blocks_new_posts_without_demand_or_value_but_preserves_partial_retry(self):
+    def test_final_publisher_gate_accepts_ranked_offers_and_protects_legacy_and_partial_retry(self):
         from unittest.mock import patch
 
         base = self.item("dkp-990101")
@@ -417,10 +434,14 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "demand_window_hours": 0,
             "demand_observed_at": "",
             "demand_signal_source": "",
+            "publication_policy": "demand_then_discount_v1",
+            "market_status": "not_checked",
+            "market_reference_kind": "",
+            "market_price_checked_at": "",
         }
         fresh, reason = evaluate(no_demand)
-        self.assertIsNone(fresh)
-        self.assertEqual(reason, "live_demand_signal_missing")
+        self.assertIsNotNone(fresh)
+        self.assertEqual(reason, "")
 
         weak_value = {
             **base,
