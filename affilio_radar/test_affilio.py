@@ -4334,6 +4334,72 @@ class AffilioRadarTests(unittest.TestCase):
         candidate["market_price_advantage_pct"] = 8
         self.assertTrue(is_market_value_publish_eligible(candidate))
 
+    def test_market_price_enrichment_rotates_after_torob_challenge(self):
+        now = datetime(2026, 11, 2, 4, 0, tzinfo=timezone.utc)
+        products = [
+            {
+                "product_id": "dkp-990901",
+                "title": "گوشی هوشمند نمونه",
+                "current_price": 8_000_000,
+                "review_count": 2000,
+                "rating": 4.6,
+            },
+            {
+                "product_id": "dkp-990902",
+                "title": "هدفون بلوتوثی نمونه",
+                "current_price": 900_000,
+                "review_count": 1200,
+                "rating": 4.5,
+            },
+        ]
+        state = {}
+        with (
+            patch.object(radar_module, "MARKET_PRICE_CHECK_LIMIT", 1),
+            patch.object(radar_module, "_prepare_torob_mcp"),
+            patch.object(radar_module, "_torob_tool", side_effect=RuntimeError("HTTP 490 bot challenge")) as torob,
+            patch.object(radar_module, "market_query_variants", return_value=["نمونه محصول"]),
+        ):
+            radar_module.enrich_market_prices(products, state, now=now)
+        self.assertEqual(torob.call_count, 1)
+        checks = state["market_price_api_checks"]
+        self.assertIn("dkp-990901", checks)
+        self.assertEqual(checks["dkp-990901"]["outcome"], "error")
+        self.assertGreater(
+            datetime.fromisoformat(state["market_price_api_pause_until"]),
+            now,
+        )
+
+        retry_time = now + timedelta(hours=2)
+        next_products = [dict(row) for row in products]
+        with (
+            patch.object(radar_module, "MARKET_PRICE_CHECK_LIMIT", 1),
+            patch.object(radar_module, "_prepare_torob_mcp"),
+            patch.object(radar_module, "_torob_tool") as torob,
+            patch.object(radar_module, "market_query_variants", return_value=[]),
+        ):
+            radar_module.enrich_market_prices(next_products, state, now=retry_time)
+        self.assertEqual(torob.call_count, 0)
+        self.assertEqual(next_products[1]["market_status"], "no_confident_match")
+        self.assertIn("dkp-990902", state["market_price_api_checks"])
+
+        cooldown_elapsed = now + timedelta(hours=7)
+        last_attempt_products = [dict(row) for row in products]
+        with (
+            patch.object(radar_module, "MARKET_PRICE_CHECK_LIMIT", 1),
+            patch.object(radar_module, "_prepare_torob_mcp"),
+            patch.object(radar_module, "_torob_tool") as torob,
+            patch.object(radar_module, "market_query_variants", return_value=[]),
+        ):
+            radar_module.enrich_market_prices(
+                last_attempt_products, state, now=cooldown_elapsed,
+            )
+        self.assertEqual(torob.call_count, 0)
+        self.assertEqual(last_attempt_products[0]["market_status"], "no_confident_match")
+        self.assertEqual(
+            state["market_price_api_checks"]["dkp-990901"]["outcome"],
+            "no_match",
+        )
+
     def test_price_history_checks_are_throttled_and_snapshots_remain_available(self):
         product = {
             "product_id": "dkp-990099",

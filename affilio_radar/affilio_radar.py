@@ -137,7 +137,10 @@ MAX_STABLE_LOW_DISTANCE_PERCENT = max(0, min(10, int(os.getenv("AFFILIO_MAX_STAB
 HTTP_TIMEOUT = int(os.getenv("AFFILIO_HTTP_TIMEOUT", "18"))
 HISTORY_TIMEOUT = max(4, min(HTTP_TIMEOUT, int(os.getenv("AFFILIO_HISTORY_TIMEOUT", "8"))))
 TOROB_MCP_URL = os.getenv("TOROB_MCP_URL", "https://torob-mcp.mmdju3.workers.dev/mcp").strip()
-MARKET_PRICE_CHECK_LIMIT = max(0, min(6, int(os.getenv("AFFILIO_MARKET_CHECK_LIMIT", "6"))))
+MARKET_PRICE_CHECK_LIMIT = max(0, min(4, int(os.getenv("AFFILIO_MARKET_CHECK_LIMIT", "2"))))
+MARKET_PRICE_RECHECK_HOURS = max(6, min(72, int(os.getenv("AFFILIO_MARKET_RECHECK_HOURS", "24"))))
+MARKET_PRICE_CHALLENGE_COOLDOWN_HOURS = max(1, min(24, int(os.getenv("AFFILIO_MARKET_CHALLENGE_COOLDOWN_HOURS", "6"))))
+MARKET_PRICE_GLOBAL_PAUSE_MINUTES = max(5, min(120, int(os.getenv("AFFILIO_MARKET_GLOBAL_PAUSE_MINUTES", "20"))))
 TOROB_MCP_GAP_SECONDS = max(1.5, min(5.0, float(os.getenv("TOROB_MCP_GAP_SECONDS", "2"))))
 MIN_MARKET_MATCH_SCORE = max(40, min(95, int(os.getenv("AFFILIO_MIN_MARKET_MATCH_SCORE", "85"))))
 MARKET_UNDERCUT_BLOCK_PERCENT = max(1, min(30, int(os.getenv("AFFILIO_MARKET_UNDERCUT_BLOCK_PERCENT", "5"))))
@@ -2211,38 +2214,160 @@ def apply_market_price_comparison(product: dict, card: dict, details: dict, matc
     return product
 
 
-def enrich_market_prices(products: list[dict]) -> None:
-    """Compare the top listed-discount candidates to current prices on Torob."""
+def enrich_market_prices(
+    products: list[dict],
+    state: dict | None = None,
+    now: datetime | None = None,
+) -> None:
+    """Rotate bounded Torob comparisons and cool down products after upstream challenges."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    stamp = current.isoformat()
+    state = state if isinstance(state, dict) else {}
+    checks = state.setdefault("market_price_api_checks", {})
+    if not isinstance(checks, dict):
+        checks = {}
+        state["market_price_api_checks"] = checks
+
+    cache_fields = (
+        "market_status",
+        "market_publish_blocked",
+        "market_price_advantage_pct",
+        "market_value_status",
+        "market_reference_price_toman",
+        "market_reference_kind",
+        "market_lowest_price_toman",
+        "market_highest_price_toman",
+        "market_available_offer_count",
+        "market_reported_seller_count",
+        "market_price_spread_toman",
+        "market_price_checked_at",
+        "market_price_difference_toman",
+        "market_match_score",
+        "market_error",
+        "market_detail_error",
+        "market_query",
+    )
+    stale_cutoff = current - timedelta(days=60)
+    for pid, record in list(checks.items()):
+        raw_checked = record.get("checked_at") if isinstance(record, dict) else record
+        checked_at = _parse_utc_datetime(raw_checked)
+        if checked_at is None or checked_at < stale_cutoff:
+            checks.pop(pid, None)
+
     for product in products:
         product.setdefault("market_status", "not_checked")
         product.setdefault("market_publish_blocked", False)
         product.setdefault("market_price_advantage_pct", None)
         product.setdefault("market_value_status", "unknown")
+
+    pause_until = _parse_utc_datetime(state.get("market_price_api_pause_until"))
     ranked = sorted(products, key=deal_sort_key, reverse=True)
-    targets = ranked[:MARKET_PRICE_CHECK_LIMIT]
-    if not targets:
+    due: list[dict] = []
+    skipped_retry = 0
+    cached_count = 0
+    if MARKET_PRICE_CHECK_LIMIT > 0 and not (pause_until and pause_until > current):
+        for product in ranked:
+            pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
+            record = checks.get(pid)
+            if not isinstance(record, dict):
+                record = {}
+            checked_at = _parse_utc_datetime(record.get("checked_at"))
+            retry_after = _parse_utc_datetime(record.get("retry_after"))
+            same_price = str(record.get("current_price_toman") or "") == str(product.get("current_price") or "")
+            result = record.get("result")
+            fresh = bool(
+                same_price
+                and checked_at
+                and (current - checked_at).total_seconds() < MARKET_PRICE_RECHECK_HOURS * 3600
+            )
+            outcome = str(record.get("outcome") or "")
+            retry_active = bool(
+                retry_after and retry_after > current
+                and (outcome == "error" or same_price)
+            )
+            if isinstance(result, dict) and (
+                (outcome == "checked" and fresh) or retry_active
+            ):
+                product.update(result)
+                product["market_check_cached"] = True
+                cached_count += 1
+            if retry_active:
+                skipped_retry += 1
+                continue
+            if outcome == "checked" and fresh:
+                continue
+            due.append(product)
+            if len(due) >= MARKET_PRICE_CHECK_LIMIT:
+                break
+
+    print(
+        f"MARKET_PRICE_PLAN products={len(products)} due_checks={len(due)} "
+        f"check_limit={MARKET_PRICE_CHECK_LIMIT} cached={cached_count} "
+        f"retry_skipped={skipped_retry} paused={bool(pause_until and pause_until > current)}"
+    )
+    if not due:
         return
+
+    def remember_result(product: dict, outcome: str, retry_hours: int) -> None:
+        pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
+        result = {key: product[key] for key in cache_fields if key in product}
+        checks[pid] = {
+            "checked_at": stamp,
+            "retry_after": (current + timedelta(hours=retry_hours)).isoformat(),
+            "current_price_toman": str(product.get("current_price") or ""),
+            "outcome": outcome,
+            "result": result,
+        }
+        if len(checks) > 5000:
+            ordered = sorted(
+                checks.items(),
+                key=lambda pair: str(pair[1].get("checked_at", "")) if isinstance(pair[1], dict) else "",
+                reverse=True,
+            )
+            state["market_price_api_checks"] = dict(ordered[:5000])
+
     request_id = 10
     try:
         _prepare_torob_mcp()
         print(
-            f"MARKET_SOURCE=torob_mcp candidates={len(targets)} "
+            f"MARKET_SOURCE=torob_mcp candidates={len(due)} "
             f"match_threshold={MIN_MARKET_MATCH_SCORE}%"
         )
     except Exception as exc:
-        print(f"MARKET_SOURCE_UNAVAILABLE error={type(exc).__name__} detail={str(exc)[:180]!r}")
-        for item in targets:
-            item["market_status"] = "unavailable"
-            item["market_error"] = type(exc).__name__
+        product = due[0]
+        product["market_status"] = "unavailable"
+        product["market_error"] = type(exc).__name__
+        message = str(exc).lower()
+        challenge = any(
+            token in message
+            for token in ("490", "429", "challenge", "rate limit", "temporarily paused", "blocked")
+        )
+        remember_result(
+            product,
+            "error",
+            MARKET_PRICE_CHALLENGE_COOLDOWN_HOURS if challenge else 2,
+        )
+        state["market_price_api_pause_until"] = (
+            current + timedelta(minutes=MARKET_PRICE_GLOBAL_PAUSE_MINUTES)
+        ).isoformat()
+        print(
+            f"MARKET_SOURCE_UNAVAILABLE error={type(exc).__name__} "
+            f"challenge={challenge} detail={str(exc)[:180]!r}"
+        )
         return
 
-    for product in targets:
+    for product in due:
         title = str(product.get("title") or "")
         query = market_query_from_title(title)
         product["market_query"] = query
         variants = market_query_variants(title)
         if not variants:
             product["market_status"] = "no_confident_match"
+            product["market_error"] = "no_confident_market_query"
+            remember_result(product, "no_match", 12)
             continue
         try:
             best_score, card, used_query = 0, {}, query
@@ -2293,6 +2418,7 @@ def enrich_market_prices(products: list[dict]) -> None:
                 product["market_status"] = "no_confident_match"
                 product["market_match_score"] = best_score
                 product["market_error"] = "no_sufficiently_similar_in_stock_product"
+                remember_result(product, "no_match", 12)
                 print(
                     f"MARKET_PRICE id={product.get('product_id')} status=no_confident_match "
                     f"match={best_score}% query={query!r}"
@@ -2313,9 +2439,14 @@ def enrich_market_prices(products: list[dict]) -> None:
                     if any(token in msg for token in ("490", "429", "challenge", "rate limit", "temporarily paused", "blocked")):
                         product["market_status"] = "unavailable"
                         product["market_error"] = type(exc).__name__
+                        remember_result(product, "error", MARKET_PRICE_CHALLENGE_COOLDOWN_HOURS)
+                        state["market_price_api_pause_until"] = (
+                            current + timedelta(minutes=MARKET_PRICE_GLOBAL_PAUSE_MINUTES)
+                        ).isoformat()
                         print(f"MARKET_PRICE_PAUSE id={product.get('product_id')} detail_error={type(exc).__name__}")
                         break
             apply_market_price_comparison(product, card, details, best_score, query)
+            remember_result(product, "checked", MARKET_PRICE_RECHECK_HOURS)
             print(
                 f"MARKET_PRICE id={product.get('product_id')} status={product.get('market_status')} "
                 f"match={best_score}% market_price={product.get('market_reference_price_toman')} "
@@ -2326,19 +2457,29 @@ def enrich_market_prices(products: list[dict]) -> None:
             product["market_status"] = "unavailable"
             product["market_error"] = type(exc).__name__
             message = str(exc).lower()
+            challenge = any(
+                token in message
+                for token in ("490", "429", "challenge", "rate limit", "temporarily paused", "blocked")
+            )
+            remember_result(
+                product,
+                "error",
+                MARKET_PRICE_CHALLENGE_COOLDOWN_HOURS if challenge else 2,
+            )
             print(
                 f"MARKET_PRICE_FAILED id={product.get('product_id')} error={type(exc).__name__} "
-                f"detail={str(exc)[:160]!r}"
+                f"challenge={challenge} detail={str(exc)[:160]!r}"
             )
-            # Stop after an upstream challenge/failure rather than causing a burst of retries.
-            if any(token in message for token in ("490", "429", "challenge", "rate limit", "temporarily paused", "blocked")):
-                print("MARKET_PRICE_PAUSE: remaining candidates stay unverified for this run.")
+            if challenge:
+                state["market_price_api_pause_until"] = (
+                    current + timedelta(minutes=MARKET_PRICE_GLOBAL_PAUSE_MINUTES)
+                ).isoformat()
+                print("MARKET_PRICE_PAUSE: remaining candidates rotate to later runs.")
                 break
 
-    for item in targets:
+    for item in due:
         if item.get("market_status") == "not_checked":
             item["market_status"] = "unavailable"
-
 
 def select_queued_records_for_recheck(
     queued_records: dict[str, dict],
@@ -9095,7 +9236,7 @@ def run(publish=False, selection_only=False):
     # Keep a rolling historical baseline; bounded checks provide evidence about real value.
     # Historical proof affects ranking only, not a fixed displayed-discount threshold.
     enrich_price_history(products, state)
-    enrich_market_prices(products)
+    enrich_market_prices(products, state)
     products.sort(key=deal_sort_key, reverse=True)
     queue_now = datetime.now(timezone.utc)
     listed_eligible_count = sum(
