@@ -51,6 +51,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
                 {"id": "3", "name": "leaf", "parent_id": "2", "depth": 2},
             ],
             "parallel_queue_initialized": True,
+            "parallel_sort_version": sweep.base.BEST_SELLING_SORT,
             "parallel_known_category_ids": ["1", "2", "3"],
             "parallel_pending_pages": [
                 {"category_id": "1", "page": 1, "attempts": 0},
@@ -65,6 +66,29 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             [("3", 1), ("2", 1), ("1", 1), ("3", 2)],
         )
         self.assertEqual(state["parallel_leaf_category_count"], 1)
+
+    def test_sort_version_requeues_page_one_without_discarding_old_pending_pages(self):
+        state = {
+            "categories": [
+                {"id": "10", "name": "mobile"},
+                {"id": "20", "name": "home"},
+            ],
+            "parallel_queue_initialized": True,
+            "parallel_known_category_ids": ["10", "20"],
+            "parallel_pending_pages": [
+                {"category_id": "10", "page": 21, "attempts": 1},
+                {"category_id": "20", "page": 18, "attempts": 0},
+            ],
+            "parallel_sort_version": 0,
+        }
+        queued = sweep._ensure_parallel_state(state)
+        keys = {(row["category_id"], row["page"]) for row in queued}
+        self.assertIn(("10", 1), keys)
+        self.assertIn(("20", 1), keys)
+        self.assertIn(("10", 21), keys)
+        self.assertIn(("20", 18), keys)
+        self.assertEqual(state["parallel_sort_version"], sweep.base.BEST_SELLING_SORT)
+        self.assertEqual(queued[0]["page"], 1)
 
     def test_next_page_only_when_more_product_pages_exist(self):
         task = {"category_id": "12", "category_name": "x", "page": 2}
