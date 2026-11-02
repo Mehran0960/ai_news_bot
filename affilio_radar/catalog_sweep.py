@@ -44,7 +44,7 @@ CANDIDATE_TTL_HOURS = 72
 MIN_CANDIDATE_DISCOUNT = 1
 # DigiKala's category search supports sort=5 (best-selling). Three pages retain
 # the first 60 ranked products per category instead of crawling deep, low-signal tail pages.
-BEST_SELLING_SORT_VALUE = 5
+BEST_SELLING_SORT_VALUE = 7
 BEST_SELLING_PAGE_SIZE = 20
 BEST_SELLING_MAX_PAGES_PER_CATEGORY = 3
 BEST_SELLING_MAX_AGE_HOURS = 24
