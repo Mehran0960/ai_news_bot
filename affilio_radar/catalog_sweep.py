@@ -42,13 +42,15 @@ REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
 CANDIDATE_TTL_HOURS = 72
 MIN_CANDIDATE_DISCOUNT = 1
-# DigiKala's live data.sort_options maps id=7 to پرفروش‌ترین and id=4 to پربازدیدترین.
-# Three pages retain the first 60 best-selling products per category, not the low-signal tail.
+# DigiKala's live data.sort_options maps id=7 to best-selling and id=4 to most-viewed.
+# Best-selling pagination is intentionally uncapped; most-viewed adds a top-60 demand signal.
 BEST_SELLING_SORT_VALUE = 7
+MOST_VIEWED_SORT_VALUE = 4
 BEST_SELLING_PAGE_SIZE = 20
-BEST_SELLING_MAX_PAGES_PER_CATEGORY = 3
+MOST_VIEWED_MAX_PAGES_PER_CATEGORY = 3
 BEST_SELLING_MAX_AGE_HOURS = 24
-MAX_PAGES_PER_CATEGORY = BEST_SELLING_MAX_PAGES_PER_CATEGORY
+MOST_VIEWED_MAX_AGE_HOURS = 24
+MAX_PAGES_PER_CATEGORY = None  # retained only for backwards-compatible imports
 MAX_RETAINED_CANDIDATES = 3000
 MAX_PUBLISHER_SEEN_IDS = 12000
 PUBLISHER_SEEN_TTL_DAYS = 2
@@ -465,11 +467,26 @@ def extract_total_pages(payload: Any, current_page: int, product_count: int) -> 
     return None
 
 
+def _rank_percentile(rank: int, total_pages: int | None, page_size: int = BEST_SELLING_PAGE_SIZE) -> float | None:
+    """Normalize an in-category rank to a comparable 0..100 percentile."""
+    try:
+        rank_value = max(0, int(rank))
+        pages_value = max(0, int(total_pages or 0))
+        size_value = max(1, int(page_size))
+    except (TypeError, ValueError, OverflowError):
+        return None
+    total_slots = pages_value * size_value
+    if rank_value <= 0 or total_slots <= 0:
+        return None
+    return round(max(0.0, min(100.0, 100.0 * (total_slots - rank_value + 1) / total_slots)), 2)
+
+
 def _fresh_best_selling_rank(row: dict, now: datetime | None = None) -> int | None:
+    """Return any fresh rank observed in the uncapped best-selling pagination."""
     if not isinstance(row, dict) or row.get("catalog_sort_mode") != "best_selling":
         return None
     rank = _normal_int(row.get("catalog_best_selling_rank"))
-    if not 1 <= rank <= BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY:
+    if rank <= 0:
         return None
     raw = str(row.get("catalog_rank_observed_at") or "").strip()
     try:
@@ -484,24 +501,55 @@ def _fresh_best_selling_rank(row: dict, now: datetime | None = None) -> int | No
     return rank if 0 <= age <= BEST_SELLING_MAX_AGE_HOURS else None
 
 
+def _fresh_most_viewed_rank(row: dict, now: datetime | None = None) -> int | None:
+    if not isinstance(row, dict):
+        return None
+    rank = _normal_int(row.get("catalog_most_viewed_rank"))
+    if rank <= 0:
+        return None
+    raw = str(row.get("catalog_most_viewed_observed_at") or "").strip()
+    try:
+        observed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        if observed.tzinfo is None:
+            observed = observed.replace(tzinfo=timezone.utc)
+        observed = observed.astimezone(timezone.utc)
+    except (TypeError, ValueError):
+        return None
+    current = now or utc_now()
+    age = (current.astimezone(timezone.utc) - observed).total_seconds() / 3600
+    return rank if 0 <= age <= MOST_VIEWED_MAX_AGE_HOURS else None
+
+
 def _candidate_demand(row: dict) -> int:
     explicit = max(0, _normal_int(row.get("demand_score")))
-    if explicit:
-        return min(200, explicit)
     reviews = max(0, _normal_int(row.get("review_count")))
     rating = _normal_float(row.get("rating"))
     review_proxy = min(30, round(3.5 * math.log1p(reviews))) if reviews else 0
     rating_proxy = max(0, min(10, round((rating - 3.0) * 5))) if rating else 0
-    return review_proxy + rating_proxy
+    best_seller_percentile = _normal_float(row.get("catalog_best_selling_percentile"))
+    most_viewed_percentile = _normal_float(row.get("catalog_most_viewed_percentile"))
+    normalized_catalog_signal = max(
+        0, round(best_seller_percentile),
+        round(most_viewed_percentile * 0.85),
+    )
+    return max(min(200, explicit), review_proxy + rating_proxy, normalized_catalog_signal)
 
 
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Prefer a fresh DigiKala best-selling rank, then public popularity proxies."""
-    rank = _fresh_best_selling_rank(row)
-    fresh_rank = rank is not None
+    """Rank using normalized cross-category demand evidence, not incomparable raw ranks."""
+    best_rank = _fresh_best_selling_rank(row)
+    viewed_rank = _fresh_most_viewed_rank(row)
+    best_percentile = _normal_float(row.get("catalog_best_selling_percentile"))
+    viewed_percentile = _normal_float(row.get("catalog_most_viewed_percentile"))
+    # Legacy candidates without pagination totals retain a conservative top-60 fallback.
+    if not best_percentile and best_rank is not None and best_rank <= 60:
+        best_percentile = max(0, 61 - best_rank)
+    if not viewed_percentile and viewed_rank is not None and viewed_rank <= 60:
+        viewed_percentile = max(0, 61 - viewed_rank)
     return (
-        int(fresh_rank),
-        -rank if fresh_rank else -10_000,
+        int(best_rank is not None),
+        round(best_percentile, 2),
+        round(viewed_percentile, 2),
         _candidate_demand(row),
         max(0, _normal_int(row.get("review_count"))),
         round(_normal_float(row.get("rating")) * 10),
@@ -896,7 +944,7 @@ def run_sweep(
         category_id = str(category.get("id") or "")
         category_name = str(category.get("name") or category_id)
         page = max(1, _normal_int(state.get("page"), 1))
-        if not category_id.isdigit() or page > MAX_PAGES_PER_CATEGORY:
+        if not category_id.isdigit():
             state["category_index"] = category_index + 1
             state["page"] = 1
             _write_json(state_path, state)
@@ -947,7 +995,7 @@ def run_sweep(
                 if not str(rank_category_id).isdigit() or not isinstance(rank_record, dict):
                     continue
                 saved_rank = _normal_int(rank_record.get("rank"))
-                if not 1 <= saved_rank <= BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY:
+                if saved_rank <= 0:
                     continue
                 try:
                     rank_observed = datetime.fromisoformat(
