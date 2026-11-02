@@ -7264,7 +7264,7 @@ def select_urgent_publication_candidate(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> dict | None:
-    """Choose the strongest demand/value candidate among urgent offers; expiry is only the urgency gate."""
+    """Choose by current demand first, then displayed discount among urgent offers."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -7275,15 +7275,12 @@ def select_urgent_publication_candidate(
     ]
     if not urgent:
         return None
-    ranked = _order_candidates_by_primary_rank(
-        urgent, published=published, recent_publications=recent_publications,
-        now=current, allow_family_repeat=False,
-    )
-    if not ranked:
-        print("URGENT_PUBLICATION_DEFERRED reason=recent_family_cooldown_or_no_diverse_candidate")
-        return None
-    # The primary rank already orders demand, value evidence, and then the listed markdown.
-    return ranked[0]
+    return sorted(
+        urgent,
+        key=lambda record: deal_sort_key(record, now=current),
+        reverse=True,
+    )[0]
+
 
 
 def select_publish_candidates(
@@ -7323,27 +7320,11 @@ def select_publish_candidates(
     # Keep the exact order at final publication instead of re-sorting on percentage.
     ordered: list[dict] = []
     for floor in sorted(selected_by_floor, reverse=True):
-        tier = _order_candidates_by_primary_rank(
+        tier = sorted(
             selected_by_floor[floor],
-            published=published,
-            recent_publications=recent_publications,
-            now=current,
+            key=lambda record: deal_sort_key(record, now=current),
+            reverse=True,
         )
-        if not tier:
-            tier = _order_candidates_by_primary_rank(
-                selected_by_floor[floor],
-                published=published,
-                recent_publications=recent_publications,
-                now=current,
-                allow_family_repeat=True,
-            )
-        if not tier:
-            tier = sorted(
-                selected_by_floor[floor],
-                key=lambda record: deal_sort_key(record, now=current),
-                reverse=True,
-            )
-            print("PUBLISH_DIVERSITY_RELAXED reason=no_remaining_diverse_candidate")
         ordered.extend(tier)
     return ordered
 
@@ -7763,23 +7744,11 @@ def select_discount_fallback_candidates(
         ]
         if not band:
             continue
-        ranked = _order_candidates_by_primary_rank(
+        ranked = sorted(
             band,
-            published=state.get("published"),
-            recent_publications=state.get("recent_publications"),
-            now=current,
-            allow_family_repeat=False,
+            key=lambda record: deal_sort_key(record, now=current),
+            reverse=True,
         )
-        if not ranked:
-            ranked = _order_candidates_by_primary_rank(
-                band,
-                published=state.get("published"),
-                recent_publications=state.get("recent_publications"),
-                now=current,
-                allow_family_repeat=True,
-            )
-            if ranked:
-                fallback_mode = "diversity_relaxed"
         if not ranked:
             continue
 
