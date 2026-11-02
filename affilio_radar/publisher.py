@@ -189,9 +189,28 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "demand_window_hours": float(item.get("demand_window_hours") or 0),
         "demand_observed_at": str(item.get("demand_observed_at") or ""),
         "demand_signal_source": str(item.get("demand_signal_source") or ""),
+        "recent_review_growth_window": int(item.get("recent_review_growth_window") or 0),
+        "review_count": int(item.get("review_count") or 0),
+        "rating": float(item.get("rating") or item.get("rating_value") or 0),
         "historical_popularity_score": int(item.get("historical_popularity_score") or 0),
         "promo_score": int(item.get("promo_score") or 0),
         "click_count_30d": int(item.get("click_count_30d") or 0),
+        # Persist independent price-value evidence with the public delivery record.
+        "history_status": str(item.get("history_status") or ""),
+        "history_source": str(item.get("history_source") or ""),
+        "history_days": int(item.get("history_days") or 0),
+        "history_median_toman": int(item.get("history_median_toman") or 0),
+        "history_stable_low_toman": int(item.get("history_stable_low_toman") or 0),
+        "discount_vs_30d_median_pct": item.get("discount_vs_30d_median_pct"),
+        "historical_deal_eligible": item.get("historical_deal_eligible") is True,
+        "historical_discount_savings_toman": int(item.get("historical_discount_savings_toman") or 0),
+        "market_status": str(item.get("market_status") or ""),
+        "market_reference_kind": str(item.get("market_reference_kind") or ""),
+        "market_reference_price_toman": int(item.get("market_reference_price_toman") or 0),
+        "market_price_advantage_pct": item.get("market_price_advantage_pct"),
+        "market_available_offer_count": int(item.get("market_available_offer_count") or 0),
+        "market_value_status": str(item.get("market_value_status") or ""),
+        "market_price_checked_at": str(item.get("market_price_checked_at") or ""),
         "distribution_queue_id": str(item.get("product_id") or ""),
     }
     old_history = list(old.get("post_history") or []) if isinstance(old, dict) and isinstance(old.get("post_history"), list) else []
@@ -267,10 +286,15 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     fresh["has_affiliate_link"] = bool(fresh["affiliate_url"])
     for key in (
         "demand_score", "current_demand_verified", "current_demand_score",
-        "recent_review_growth_7d", "demand_window_hours", "demand_observed_at",
-        "demand_signal_source", "historical_popularity_score", "promo_score",
-        "click_count_30d", "market_status", "market_reference_price_toman",
-        "market_price_advantage_pct", "market_match_score", "market_seller_count",
+        "recent_review_growth_7d", "recent_review_growth_window", "demand_window_hours",
+        "demand_observed_at", "demand_signal_source", "historical_popularity_score",
+        "promo_score", "click_count_30d", "market_status", "market_reference_kind",
+        "market_reference_price_toman", "market_price_advantage_pct",
+        "market_available_offer_count", "market_value_status", "market_price_checked_at",
+        "market_match_score", "market_seller_count", "history_status", "history_source",
+        "history_days", "history_median_toman", "history_stable_low_toman",
+        "discount_vs_30d_median_pct", "historical_deal_eligible",
+        "historical_discount_savings_toman",
     ):
         if key in payload:
             fresh[key] = payload[key]
