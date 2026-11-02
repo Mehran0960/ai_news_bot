@@ -10,6 +10,15 @@ from . import parallel_catalog_sweep as sweep
 
 
 class ParallelCatalogSweepTests(unittest.TestCase):
+    def test_parallel_page_params_use_best_selling_order(self):
+        params = sweep._page_params({"category_id": "14", "page": 3})
+        self.assertEqual(params, {
+            "categories[]": "14",
+            "page": 3,
+            "sort": sweep.base.BEST_SELLING_SORT,
+        })
+        self.assertEqual(params["sort"], 5)
+
     def test_parallel_candidate_buffer_retains_category_spread(self):
         rows = [
             {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i}
@@ -125,6 +134,9 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             self.assertGreaterEqual(saved["parallel_last_batch_retries"], 1)
             candidate_data = json.loads(candidates_path.read_text(encoding="utf-8"))
             self.assertEqual(candidate_data["candidates"][0]["product_id"], "dkp-1")
+            self.assertEqual(candidate_data["candidates"][0]["catalog_best_seller_rank"], 1)
+            self.assertEqual(candidate_data["candidates"][0]["catalog_best_seller_score"], 100)
+            self.assertEqual(candidate_data["candidates"][0]["catalog_best_seller_sort"], "digikala_best_selling")
             self.assertEqual(saved["stats"]["pages_scanned_total"], 1)
 
 
