@@ -129,18 +129,26 @@ jobs:
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
           YOUTUBE_PRIVACY_STATUS: "public"
           AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
+          # No fixed sticker-discount floor: 1% is only the arithmetic eligibility floor.
+          # The separate material-value gate rejects uncorroborated, negligible markdowns.
           AFFILIO_MIN_DISCOUNT_PERCENT: "1"
+          AFFILIO_MIN_ATTRACTIVE_SAVINGS_TOMAN: "50000"
+          AFFILIO_UNVERIFIED_SAVINGS_PRICE_RATIO: "0.02"
+          AFFILIO_VERIFIED_VALUE_ADVANTAGE_PERCENT: "5"
+          AFFILIO_CATALOG_BEST_SELLING_TTL_HOURS: "72"
           AFFILIO_HISTORY_CHECK_LIMIT: "2"
           AFFILIO_HISTORY_RECHECK_HOURS: "24"
           AFFILIO_MARKET_CHECK_LIMIT: "2"
           AFFILIO_MARKET_RECHECK_HOURS: "24"
           AFFILIO_MARKET_CHALLENGE_COOLDOWN_HOURS: "6"
           AFFILIO_MARKET_GLOBAL_PAUSE_MINUTES: "20"
-          AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "1"
-          AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "1"
-          AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS: "6"
-          AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS: "2"
-          AFFILIO_CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS: "12"
+          # A fresh rise of at least 3 reviews over a 24-hour observation window is
+          # stronger evidence than lifetime review volume alone.
+          AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "7"
+          AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "3"
+          AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS: "24"
+          AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS: "6"
+          AFFILIO_CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS: "30"
           AFFILIO_DEAL_LIST_PAGES: "5"
           AFFILIO_MAX_PER_QUERY: "12"
           AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN: "4"
