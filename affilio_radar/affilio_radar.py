@@ -4440,7 +4440,7 @@ def is_discount_publish_eligible(
     minimum_discount_percent: int | None = None,
     now: datetime | None = None,
 ) -> bool:
-    """Central publication gate for stock, affiliate, a genuine markdown, and material value."""
+    """Require stock, affiliate, a genuine markdown, current demand evidence, and material value."""
     return bool(
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
@@ -5055,8 +5055,9 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
     ):
         floor_label = minimum_discount_percent or DISCOUNT_FALLBACK_FLOORS[0]
         raise RuntimeError(
-            "Refusing to send an OfferChin post that fails the hard discount/current-demand gate "
-            f"({floor_label}% minimum plus verified recent activity)"
+            "Refusing to send an OfferChin post without fresh market-demand evidence, "
+            "a genuine markdown, and material price value "
+            f"(arithmetic markdown floor: {floor_label}%)"
         )
     if platform == "telegram":
         photo = build_discount_image(
@@ -7684,12 +7685,13 @@ def select_discount_fallback_candidates(
     now: datetime | None = None,
     include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Select every eligible positive markdown; no fixed displayed-discount target is imposed.
+    """Select demanded, valuable offers without a fixed displayed-discount percentage.
 
-    Demand and product diversity rank the pool first. Independent market/history
-    evidence then helps identify stronger value; displayed percentage is a later
-    tie-breaker. All candidates still pass stock, live-price, affiliate, expiry,
-    title, and known-market-overpricing checks.
+    Demand evidence must be either a fresh DigiKala category Best Selling rank
+    (top 160, observed within the configured TTL) or measured recent review growth.
+    Candidates also pass a dynamic value gate: absent independent market/history
+    confirmation, savings must be material relative to the purchase price.
+    The same gates run again on the publisher's live recheck.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
