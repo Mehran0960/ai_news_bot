@@ -10,7 +10,7 @@ The publication policy is ordered: (1) current market demand, (2) genuine purcha
 - Best-selling pagination has no application-level three-page cap. It follows the API's reported page count; when page totals are absent, it continues until the endpoint returns an empty terminal page or a 404 boundary.
 - The first three pages (up to 60 items) of the most-viewed order are also scanned for a second demand signal.
 - Each category/sort-mode page is queued independently. Transient failures are retried; inaccessible category/sort tasks are retained in the cycle coverage record.
-- Per-category ranks are normalized to a 0–100 percentile using that category's reported page count, so raw ranks from differently sized categories are not directly compared.
+- Per-category ranks are normalized to a 0–100 percentile using the API's exact total product count when exposed; otherwise the crawler estimates the category size from reported pages × page size. This makes ranks from differently sized categories comparable, while the estimate is explicitly less precise when DigiKala omits totals.
 - The one-time migration from the former top-60 bestseller scanner explicitly seeds page 4 for every known category and adds the most-viewed pages.
 
 ## Coverage is reported honestly
