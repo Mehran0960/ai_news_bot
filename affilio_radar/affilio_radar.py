@@ -125,7 +125,6 @@ CURRENT_DEMAND_WINDOW_DAYS = max(1, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAN
 CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "3"))))
 BEST_SELLING_MAX_RANK = 60
 BEST_SELLING_MAX_AGE_HOURS = 24
-UNVERIFIED_MIN_DISCOUNT_PERCENT = 15
 VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT = 5
 CURRENT_DEMAND_MIN_OBSERVATION_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS", "6"))))
 CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS", "2"))))
@@ -2635,7 +2634,7 @@ def has_attractive_discount_value(
     record: dict,
     now: datetime | None = None,
 ) -> bool:
-    """Accept only fresh, independent price evidence or a conservative markdown fallback."""
+    """Require fresh, independent price evidence; a displayed markdown alone is not proof."""
     if not isinstance(record, dict):
         return False
     try:
@@ -2643,7 +2642,7 @@ def has_attractive_discount_value(
         savings = max(0, int(record.get("savings_toman") or 0))
     except (TypeError, ValueError, OverflowError):
         return False
-    if savings <= 0:
+    if discount <= 0 or savings <= 0:
         return False
 
     current = now or datetime.now(timezone.utc)
@@ -2661,7 +2660,7 @@ def has_attractive_discount_value(
     history_fresh = evidence_is_fresh("history_checked_at", PRICE_HISTORY_RECHECK_HOURS)
     if record.get("history_status") == "verified" and history_fresh:
         # Fresh verified history that fails the price test is evidence against the
-        # deal; it must not fall through to the displayed recommended retail price.
+        # deal; it must not fall through to another weaker signal.
         return record.get("historical_deal_eligible") is True
 
     market_fresh = evidence_is_fresh("market_price_checked_at", MARKET_PRICE_RECHECK_HOURS)
@@ -2676,9 +2675,9 @@ def has_attractive_discount_value(
             return False
         return advantage >= VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT
 
-    # Missing, stale, limited, or rate-limited independent data is unknown evidence.
-    # In that case require a material real markdown rather than trusting the site's RRP.
-    return discount >= UNVERIFIED_MIN_DISCOUNT_PERCENT
+    # No percentage-only fallback: without fresh 30-day history or a comparable-market
+    # proof, the markdown remains unverified and is not eligible for OfferChin.
+    return False
 
 
 def update_current_demand_signals(
@@ -9613,7 +9612,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "Builds a popularity-ranked pool from public retailer review counts and ratings (a demand proxy, not sales volume), checks up to 100 candidates, then selects the largest verified live discount. No minimum discount percentage or saving amount is imposed. Publication still requires verified current price and stock, a genuine markdown, image, affiliate link, a valid title, no prohibited category, no verified market-price rejection, and no duplicate conflict. Confirmed deadlines require the configured publication runway; open-ended offers remain eligible after live stock/current-price validation.",
+        "ranking_note": "Builds a demand-ranked pool using fresh retailer review growth or a fresh DigiKala category best-selling rank, with lifetime review counts/ratings only as secondary popularity proxies (not sales volume). It checks up to 100 candidates and requires a fresh verified 30-day price-history advantage or a fresh comparable-market price advantage before publication. No fixed discount percentage or saving amount is imposed; a displayed markdown alone is never treated as proof of value. Publication also requires verified current price and stock, image, affiliate link, a valid title, no prohibited category, no verified market-price rejection, and no duplicate conflict. Confirmed deadlines require the configured publication runway; open-ended offers remain eligible after live stock/current-price validation.",
         "current_demand_policy": {
             "source": "rolling retailer review-count growth or DigiKala category best-selling rank",
             "window_days": CURRENT_DEMAND_WINDOW_DAYS,
@@ -9628,18 +9627,22 @@ def run(publish=False, selection_only=False):
         },
         "discount_value_policy": {
             "market_advantage_min_percent": VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT,
-            "unverified_fallback_min_discount_percent": UNVERIFIED_MIN_DISCOUNT_PERCENT,
+            "requires_fresh_verified_history_or_market_comparison": True,
+            "history_max_age_hours": PRICE_HISTORY_RECHECK_HOURS,
+            "market_max_age_hours": MARKET_PRICE_RECHECK_HOURS,
+            "percentage_only_fallback": False,
             "savings_amount_floor": 0,
             "requires_live_stock_price_and_affiliate_link": True,
         },
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
-            "unavailable_market_data_blocks_publication": False,
+            "unavailable_market_data_blocks_publication": True,
             "checked_candidates_per_run": MARKET_PRICE_CHECK_LIMIT,
             "minimum_name_match_score": MIN_MARKET_MATCH_SCORE,
             "minimum_sellers_for_verified_median": 3,
             "minimum_discount_vs_current_market_median_percent": 5,
-            "unknown_or_limited_comparison_blocks": False,
+            "unknown_or_limited_comparison_can_use_fresh_historical_proof": True,
+            "no_percentage_only_fallback": True,
             "endpoint": TOROB_MCP_URL,
         },
         "search_diagnostics": search_diagnostics,
