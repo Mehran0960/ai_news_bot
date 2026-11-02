@@ -7,7 +7,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
-from . import parallel_catalog_sweep as sweep
+try:
+    from . import parallel_catalog_sweep as sweep
+except ImportError:  # unittest discovery from the workflow's affilio_radar working directory
+    import parallel_catalog_sweep as sweep
 
 
 class ParallelCatalogSweepTests(unittest.TestCase):
