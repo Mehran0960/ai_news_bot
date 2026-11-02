@@ -4,6 +4,8 @@ const WORKFLOW = "affilio-radar.yml";
 const API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}`;
 const PUBLISHER_WORKFLOW = "offerchin-publisher.yml";
 const PUBLISHER_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${PUBLISHER_WORKFLOW}`;
+const CATALOG_WORKFLOW = "offerchin-digikala-catalog-sweep.yml";
+const CATALOG_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${CATALOG_WORKFLOW}`;
 const AUDIT_WORKFLOW = "offerchin-integrity-audit.yml";
 const AUDIT_API = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/actions/workflows/" + AUDIT_WORKFLOW;
 const RUNS_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
@@ -93,8 +95,18 @@ async function runScheduledCheck(env, scheduledTime) {
   const minute = tick.getUTCMinutes();
   const offset = minute % 5;
 
-  // Keep retailer validation traffic away from the publication slot. The
-  // independent audit runs two minutes later and never shares the publisher lock.
+  // The crawler, publisher, and integrity auditor have separate workflow locks.
+  // Dispatch them in fixed minute offsets within each five-minute window.
+  if (offset === 1) {
+    try {
+      await dispatchWorkflowIfIdle(CATALOG_API, env.GITHUB_TOKEN, CATALOG_WORKFLOW, 18, 8);
+    } catch (error) {
+      console.error("OFFERCHIN_CATALOG_SWEEP_DISPATCH_FAILED", String(error).slice(0, 900));
+    }
+    return;
+  }
+
+  // Retailer validation traffic stays separate from the publication slot.
   if (offset === 2) {
     try {
       await dispatchWorkflowIfIdle(AUDIT_API, env.GITHUB_TOKEN, AUDIT_WORKFLOW, 8, 4);
@@ -105,7 +117,7 @@ async function runScheduledCheck(env, scheduledTime) {
   }
 
   if (offset !== 0) {
-    console.log("CHANNEL_DISPATCH_SKIPPED: UTC minute " + minute + " reserved; publisher runs at :00/:05 and audit at :02/:07.");
+    console.log("CHANNEL_DISPATCH_SKIPPED: UTC minute " + minute + " reserved; publisher runs at :00, catalog sweep at :01, and audit at :02 in each five-minute window.");
     return;
   }
 
