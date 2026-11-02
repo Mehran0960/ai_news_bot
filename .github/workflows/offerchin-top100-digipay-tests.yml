@@ -52,6 +52,8 @@ jobs:
               "title": "گوشی نمونه", "product_url": url, "merchant": "دیجی‌کالا",
               "current_price": 10_000_000, "original_price": 12_000_000,
               "discount_percent": 17,
+              "digipay_installment_verified": True,
+              "digipay_installment_available": True,
           }, radar.build_affilio_tracking_link(url))
           assert "<b>💳 با امکان خرید اقساطی (دیجی پی)</b>" in caption
           assert "در صورت نمایش گزینه" not in caption
