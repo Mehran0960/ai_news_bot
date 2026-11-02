@@ -2764,7 +2764,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual([pid for pid, _ in queued_rechecks], ["dkp-95401"])
 
 
-    def test_fifteen_percent_discount_is_rejected_by_fifty_percent_floor(self):
+    def test_fifteen_percent_discount_remains_eligible_without_arbitrary_floor(self):
         product = {
             "title": "چراغ مطالعه مدل تست",
             "current_price": 850_000,
