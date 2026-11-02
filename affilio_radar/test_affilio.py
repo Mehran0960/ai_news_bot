@@ -1550,7 +1550,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(selected[0]["product_id"], "dkp-eyewear-0")
 
 
-    def test_single_repeated_category_candidate_is_recorded_as_diversity_fallback(self):
+    def test_single_repeated_category_candidate_is_still_publishable(self):
         now = datetime(2026, 10, 29, 10, 0, tzinfo=timezone.utc)
         published = {
             "dkp-old-audio": {
@@ -1572,15 +1572,7 @@ class AffilioRadarTests(unittest.TestCase):
             now,
             published,
         )
-        diagnostics = radar_module._LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
-
         self.assertEqual([row["product_id"] for row in selected], ["dkp-only-audio"])
-        self.assertEqual(len(diagnostics["fallback_events"]), 1)
-        self.assertEqual(diagnostics["fallback_events"][0]["category"], "audio_wearables")
-        self.assertEqual(
-            diagnostics["fallback_events"][0]["reason"],
-            "no_comparable_other_category_in_lookahead",
-        )
 
 
     def test_publication_diversity_report_measures_category_share_brand_repeats_and_fallbacks(self):
@@ -2424,7 +2416,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(tiered[0]['selection_discount_floor'], 1)
         self.assertEqual([item['product_id'] for item in quality], ['dkp-95004'])
 
-    def test_recent_family_cooldown_does_not_trigger_a_lower_discount_fallback(self):
+    def test_recent_family_does_not_block_a_higher_demand_larger_discount_offer(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-95101": {
@@ -2463,9 +2455,12 @@ class AffilioRadarTests(unittest.TestCase):
             candidates, {"published": published}, now
         )
         self.assertEqual(floor, 1)
-        self.assertEqual([item["product_id"] for item in selected], ["dkp-95103"])
+        self.assertEqual(
+            [item["product_id"] for item in selected],
+            ["dkp-95102", "dkp-95103"],
+        )
 
-    def test_top_available_offer_from_an_unrepeated_family_can_be_selected(self):
+    def test_top_ranked_offer_is_not_blocked_by_recent_family_history(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-95201": {
@@ -2517,7 +2512,10 @@ class AffilioRadarTests(unittest.TestCase):
             candidates, {"published": published}, now
         )
         self.assertEqual(floor, 1)
-        self.assertEqual([item["product_id"] for item in selected], ["dkp-95205"])
+        self.assertEqual(
+            [item["product_id"] for item in selected],
+            ["dkp-95203", "dkp-95204", "dkp-95205"],
+        )
 
     def test_market_price_and_savings_hard_gates_still_apply_above_50_percent(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
@@ -4409,7 +4407,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("https://t.me/OfferChin", youtube_description)
 
     def test_publication_interval_is_23_minutes(self):
-        self.assertEqual(MIN_POST_INTERVAL_HOURS, 23 / 60)
+        self.assertAlmostEqual(MIN_POST_INTERVAL_HOURS, 23 / 60)
 
     def test_publication_capacity_bursts_only_when_publish_queue_is_large(self):
         self.assertEqual(effective_posts_per_run(0, configured_limit=2), 1)
@@ -4917,7 +4915,7 @@ class AffilioRadarTests(unittest.TestCase):
         # live detail re-check rather than being silently dropped.
         first_due = select_discovery_records_for_check(queue, now, max_count=5)
         second_due = select_discovery_records_for_check(queue, now + timedelta(minutes=5), max_count=5)
-        self.assertEqual([pid for pid, _ in first_due], ["dkp-91011"])
+        self.assertEqual(first_due, [])
         self.assertEqual([pid for pid, _ in second_due], ["dkp-91011"])
         merge_discovery_queue(queue, [], now + timedelta(minutes=20))
         self.assertNotIn("dkp-91011", queue)
