@@ -4429,12 +4429,13 @@ def is_discount_publish_eligible(
     minimum_discount_percent: int | None = None,
     now: datetime | None = None,
 ) -> bool:
-    """Require verified stock/price/image, a valid product, and a genuine markdown."""
+    """Central publication gate for stock, affiliate, a genuine markdown, and material value."""
     return bool(
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
         and has_meaningful_discount(product, minimum_discount_percent)
+        and is_attractive_value_offer(product)
     )
 
 
@@ -7698,8 +7699,6 @@ def select_discount_fallback_candidates(
         ):
             continue
         if not is_market_value_publish_eligible(product):
-            continue
-        if not is_attractive_value_offer(product):
             continue
         if not has_publishable_expiry_or_open_offer(product, current):
             continue
