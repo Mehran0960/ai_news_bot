@@ -42,8 +42,8 @@ REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
 CANDIDATE_TTL_HOURS = 72
 MIN_CANDIDATE_DISCOUNT = 1
-# DigiKala's category search supports sort=5 (best-selling). Three pages retain
-# the first 60 ranked products per category instead of crawling deep, low-signal tail pages.
+# DigiKala's live data.sort_options maps id=7 to پرفروش‌ترین and id=4 to پربازدیدترین.
+# Three pages retain the first 60 best-selling products per category, not the low-signal tail.
 BEST_SELLING_SORT_VALUE = 7
 BEST_SELLING_PAGE_SIZE = 20
 BEST_SELLING_MAX_PAGES_PER_CATEGORY = 3
