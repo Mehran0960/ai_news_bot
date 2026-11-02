@@ -116,7 +116,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         )
         self.assertFalse(radar.has_attractive_discount_value(stale_market, now=self.now))
 
-    def test_selector_blocks_weak_demand_and_unattractive_markdowns(self):
+    def test_selector_hands_off_live_discounts_in_demand_first_order(self):
         def candidate(pid, discount, rank, market_verified=False):
             row = {
                 "product_id": pid,
@@ -165,7 +165,10 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
                 now=self.now,
             )
 
-        self.assertEqual([row["product_id"] for row in selected], ["dkp-101"])
+        self.assertEqual(
+            [row["product_id"] for row in selected],
+            ["dkp-102", "dkp-103", "dkp-101"],
+        )
 
 
 if __name__ == "__main__":
