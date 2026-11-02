@@ -2874,6 +2874,17 @@ def _catalog_best_selling_rank_score(record: dict, now: datetime | None = None) 
     return 0
 
 
+def has_current_market_demand_evidence(
+    record: dict,
+    now: datetime | None = None,
+) -> bool:
+    """Require either a fresh category Best Selling position or measured recent review growth."""
+    return bool(
+        _catalog_best_selling_rank_score(record, now)
+        or has_current_demand_signal(record, now)
+    )
+
+
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
     """Rank current category sales position and fresh demand before lifetime reviews."""
     current = now or datetime.now(timezone.utc)
@@ -4435,6 +4446,7 @@ def is_discount_publish_eligible(
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
         and has_meaningful_discount(product, minimum_discount_percent)
+        and has_current_market_demand_evidence(product, now)
         and is_attractive_value_offer(product)
     )
 
