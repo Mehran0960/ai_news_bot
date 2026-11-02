@@ -35,6 +35,25 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             [("2", 7), ("3", 1)],
         )
 
+    def test_parallel_queue_prunes_legacy_deep_pages_outside_top_sixty(self):
+        state = {
+            "categories": [{"id": "10", "name": "mobile"}],
+            "parallel_queue_initialized": True,
+            "parallel_known_category_ids": ["10"],
+            "parallel_pending_pages": [
+                {"category_id": "10", "page": 1, "attempts": 0},
+                {"category_id": "10", "page": 3, "attempts": 0},
+                {"category_id": "10", "page": 4, "attempts": 0},
+                {"category_id": "10", "page": 500, "attempts": 2},
+            ],
+        }
+        queued = sweep._ensure_parallel_state(state)
+        self.assertEqual(
+            [(row["category_id"], row["page"]) for row in queued],
+            [("10", 1), ("10", 3)],
+        )
+        self.assertEqual(state["parallel_deep_pages_pruned"], 2)
+
     def test_fetch_page_requests_best_selling_order(self):
         captured = {}
 
