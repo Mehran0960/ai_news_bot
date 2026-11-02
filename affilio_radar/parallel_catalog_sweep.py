@@ -171,14 +171,25 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
     # De-duplicate persisted work without dropping retry attempt metadata.
     unique: list[dict] = []
     seen: set[tuple[str, int]] = set()
+    pruned_deep_pages = 0
     for task in queue:
         if not isinstance(task, dict):
             continue
         key = _task_key(task)
         if not key[0].isdigit() or key in seen:
             continue
+        # Old persisted queues may still contain thousands of deep-tail pages
+        # created before the best-selling top-60 policy. Drop them on migration.
+        if key[1] > base.MAX_PAGES_PER_CATEGORY:
+            pruned_deep_pages += 1
+            continue
         seen.add(key)
         unique.append(task)
+    if pruned_deep_pages:
+        state["parallel_deep_pages_pruned"] = (
+            max(0, base._normal_int(state.get("parallel_deep_pages_pruned")))
+            + pruned_deep_pages
+        )
     state["parallel_known_category_ids"] = sorted(
         known_ids, key=lambda value: int(value) if value.isdigit() else 0
     )
