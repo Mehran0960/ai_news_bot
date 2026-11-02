@@ -9636,7 +9636,7 @@ def run(publish=False, selection_only=False):
         },
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
-            "unavailable_market_data_blocks_publication": True,
+            "market_data_required_when_history_unverified": True,
             "checked_candidates_per_run": MARKET_PRICE_CHECK_LIMIT,
             "minimum_name_match_score": MIN_MARKET_MATCH_SCORE,
             "minimum_sellers_for_verified_median": 3,
@@ -10276,6 +10276,3 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-
-# Live discovery verification trigger: [scan-now]
