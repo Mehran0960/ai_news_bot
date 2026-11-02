@@ -282,7 +282,12 @@ jobs:
           # Publish generated vertical videos publicly; YouTube classifies vertical videos up to 3 minutes as Shorts.
           YOUTUBE_PRIVACY_STATUS: "public"
           AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
-          AFFILIO_MIN_DISCOUNT_PERCENT: "50"
+          # Keep all positive markdowns eligible for review; actual value is gated separately.
+          AFFILIO_MIN_DISCOUNT_PERCENT: "1"
+          AFFILIO_MIN_ATTRACTIVE_SAVINGS_TOMAN: "50000"
+          AFFILIO_UNVERIFIED_SAVINGS_PRICE_RATIO: "0.02"
+          AFFILIO_VERIFIED_VALUE_ADVANTAGE_PERCENT: "5"
+          AFFILIO_CATALOG_BEST_SELLING_TTL_HOURS: "72"
           AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "7"
           AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "3"
           AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS: "24"
