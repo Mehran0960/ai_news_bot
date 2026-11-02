@@ -119,6 +119,21 @@ MIN_DISCOUNT_PERCENT = max(1, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCE
 DISCOUNT_FALLBACK_FLOORS = (1,)
 MIN_DISCOUNT_FALLBACK_PERCENT = 1
 MIN_SAVINGS_TOMAN = 1
+# Do not impose a fixed sticker-discount target. Without independent price evidence,
+# require a material saving relative to the product's current price; corroborated
+# market/history discounts can qualify at a smaller displayed markdown.
+MIN_ATTRACTIVE_SAVINGS_TOMAN = max(
+    10_000, min(5_000_000, int(os.getenv("AFFILIO_MIN_ATTRACTIVE_SAVINGS_TOMAN", "50000")))
+)
+UNVERIFIED_SAVINGS_PRICE_RATIO = max(
+    0.005, min(0.10, float(os.getenv("AFFILIO_UNVERIFIED_SAVINGS_PRICE_RATIO", "0.02")))
+)
+VERIFIED_VALUE_ADVANTAGE_PERCENT = max(
+    1, min(20, int(os.getenv("AFFILIO_VERIFIED_VALUE_ADVANTAGE_PERCENT", "5")))
+)
+CATALOG_BEST_SELLING_SIGNAL_TTL_HOURS = max(
+    24, min(168, int(os.getenv("AFFILIO_CATALOG_BEST_SELLING_TTL_HOURS", "72")))
+)
 # Recent review growth improves the demand rank when observable; lifetime review
 # count/rating are used as fallback public popularity proxies, never as sales claims.
 CURRENT_DEMAND_WINDOW_DAYS = max(1, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "1"))))
@@ -2827,8 +2842,37 @@ def _deal_value_evidence_key(record: dict) -> tuple[int, int]:
     return (0, -101)
 
 
+def _catalog_best_selling_rank_score(record: dict, now: datetime | None = None) -> int:
+    """Score a fresh DigiKala within-category Best Selling position, not lifetime reviews."""
+    if not isinstance(record, dict) or str(record.get("catalog_sort_order") or "") != "best_selling":
+        return 0
+    rank = max(0, int(record.get("catalog_best_selling_rank") or 0))
+    if rank <= 0:
+        return 0
+    observed = _parse_utc_datetime(record.get("catalog_best_selling_at"))
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    if observed is None or (current - observed).total_seconds() > CATALOG_BEST_SELLING_SIGNAL_TTL_HOURS * 3600:
+        return 0
+    if rank <= 3:
+        return 100
+    if rank <= 10:
+        return 90
+    if rank <= 20:
+        return 80
+    if rank <= 40:
+        return 70
+    if rank <= 80:
+        return 60
+    if rank <= 160:
+        return 45
+    return 25
+
+
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Rank demand and recency before price-value evidence, then the listed markdown."""
+    """Rank current category sales position and fresh demand before lifetime reviews."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -2866,9 +2910,17 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
     first_seen = _parse_utc_datetime(record.get("first_seen_at"))
     first_seen_ts = first_seen.timestamp() if first_seen else current.timestamp()
     evidence_tier, evidence_strength = _deal_value_evidence_key(record)
+    current_signal_verified = int(has_current_demand_signal(record, current))
+    current_signal_score = int(record.get("current_demand_score") or 0) if current_signal_verified else 0
     return (
-        _candidate_popularity_score(record), reviews, rating_score,
-        _candidate_demand_score(record), clicks,
+        _catalog_best_selling_rank_score(record, current),
+        current_signal_verified,
+        current_signal_score,
+        _candidate_popularity_score(record),
+        reviews,
+        rating_score,
+        _candidate_demand_score(record),
+        clicks,
         evidence_tier, evidence_strength, discount, value_gate,
         _candidate_promo_score(record), savings, int(has_runway), urgency_tier,
         -remaining if active_deadline else float("-inf"), -first_seen_ts,
@@ -2933,6 +2985,20 @@ def merge_discovery_queue(
             "demand_score": max(0, int(row.get("demand_score") or old.get("demand_score") or 0)),
             "promo_score": max(0, int(row.get("promo_score") or old.get("promo_score") or 0)),
         }
+        # Preserve the retailer's within-category Best Selling evidence through the
+        # detail-check queue; direct-deal-feed updates must not erase catalog signals.
+        for key in (
+            "catalog_sort_order",
+            "catalog_best_selling_rank",
+            "catalog_best_selling_ranks",
+            "catalog_best_selling_category_id",
+            "catalog_best_selling_at",
+            "catalog_category_id",
+            "catalog_category_name",
+            "catalog_category_ids",
+        ):
+            if row.get(key) not in (None, ""):
+                record[key] = row[key]
         # New candidates are immediately due for their first detailed validation.
         record.setdefault("last_check_status", "discovered")
         record.setdefault("check_count", 0)
@@ -4208,7 +4274,7 @@ def score_product(p: dict) -> dict:
 
 
 def deal_sort_key(p: dict) -> tuple:
-    """Rank public demand first, independent price-value evidence second, and listed markdown third."""
+    """Prioritize current sales/review movement over accumulated lifetime popularity."""
     try:
         reviews = max(0, int(p.get("review_count") or 0))
         rating_score = round(float(p.get("rating") or p.get("rating_value") or 0) * 10)
@@ -4216,8 +4282,15 @@ def deal_sort_key(p: dict) -> tuple:
         savings = max(0, int(p.get("savings_toman") or 0))
     except (TypeError, ValueError, OverflowError):
         reviews = rating_score = discount = savings = 0
+    now = datetime.now(timezone.utc)
+    sales_rank_score = _catalog_best_selling_rank_score(p, now)
+    current_signal_verified = int(has_current_demand_signal(p, now))
+    current_signal_score = int(p.get("current_demand_score") or 0) if current_signal_verified else 0
     evidence_tier, evidence_strength = _deal_value_evidence_key(p)
     return (
+        sales_rank_score,
+        current_signal_verified,
+        current_signal_score,
         _candidate_popularity_score(p),
         reviews,
         rating_score,
@@ -4359,6 +4432,59 @@ def is_discount_publish_eligible(
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
         and has_meaningful_discount(product, minimum_discount_percent)
+    )
+
+
+def is_attractive_value_offer(product: dict) -> bool:
+    """Reject negligible uncorroborated markdowns without imposing a fixed discount-percent target."""
+    if not isinstance(product, dict):
+        return False
+    try:
+        current_price = max(0, int(product.get("current_price") or 0))
+        savings = max(0, int(product.get("savings_toman") or 0))
+        discount = max(0, int(product.get("discount_percent") or 0))
+    except (TypeError, ValueError, OverflowError):
+        return False
+    if current_price <= 0 or savings <= 0 or discount <= 0:
+        return False
+
+    market_verified = (
+        product.get("market_status") == "verified"
+        and product.get("market_reference_kind") == "seller_median"
+    )
+    try:
+        market_advantage = int(product.get("market_price_advantage_pct") or 0)
+    except (TypeError, ValueError, OverflowError):
+        market_advantage = 0
+    history_verified = product.get("history_status") == "verified"
+    try:
+        history_advantage = int(product.get("discount_vs_30d_median_pct") or 0)
+    except (TypeError, ValueError, OverflowError):
+        history_advantage = 0
+    independently_supported = (
+        market_verified and market_advantage >= VERIFIED_VALUE_ADVANTAGE_PERCENT
+    ) or (
+        history_verified and (
+            history_advantage >= VERIFIED_VALUE_ADVANTAGE_PERCENT
+            or product.get("historical_deal_eligible") is True
+        )
+    )
+
+    minimum_saving = max(
+        MIN_ATTRACTIVE_SAVINGS_TOMAN,
+        int(round(current_price * (0.005 if independently_supported else UNVERIFIED_SAVINGS_PRICE_RATIO))),
+    )
+    if savings < minimum_saving:
+        return False
+    if independently_supported:
+        return True
+
+    # Without a comparable-market or multi-day price-history confirmation, the
+    # displayed markdown must represent at least 2% of the current purchase price
+    # (and a material cash saving). This is a dynamic value test, not a fixed 50% floor.
+    return savings >= max(
+        MIN_ATTRACTIVE_SAVINGS_TOMAN,
+        int(round(current_price * UNVERIFIED_SAVINGS_PRICE_RATIO)),
     )
 
 
@@ -7570,6 +7696,8 @@ def select_discount_fallback_candidates(
             continue
         if not is_market_value_publish_eligible(product):
             continue
+        if not is_attractive_value_offer(product):
+            continue
         if not has_publishable_expiry_or_open_offer(product, current):
             continue
         seen_ids.add(pid)
@@ -9162,6 +9290,20 @@ def run(publish=False, selection_only=False):
             item = fetch_product_record(canonical)
             item["merchant"] = "اسنپ‌شاپ" if product_id(canonical).startswith("snp-") else "دیجی‌کالا"
             pid = item.get("product_id", "")
+            catalog_signal = discovery_queue.get(str(pid), {}) if isinstance(discovery_queue, dict) else {}
+            if isinstance(catalog_signal, dict):
+                for signal_key in (
+                    "catalog_sort_order",
+                    "catalog_best_selling_rank",
+                    "catalog_best_selling_ranks",
+                    "catalog_best_selling_category_id",
+                    "catalog_best_selling_at",
+                    "catalog_category_id",
+                    "catalog_category_name",
+                    "catalog_category_ids",
+                ):
+                    if catalog_signal.get(signal_key) not in (None, ""):
+                        item[signal_key] = catalog_signal[signal_key]
             mcp_deadline_hint = deal_expiries.get(pid, "")
             direct_feed_deadline = direct_feed_expiries.get(pid, "")
             mcp_card_deadline = mcp_card_expiries.get(pid, "")
