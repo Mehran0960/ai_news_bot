@@ -7,19 +7,35 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock
 
-from affilio_radar.catalog_sweep import (
-    _advance_cursor,
-    catalog_candidate_sort_key,
-    retain_diverse_candidates,
-    acknowledge_catalog_candidates_handoff,
-    defer_catalog_candidates_handoff,
-    discover_categories,
-    extract_categories,
-    extract_product_rows,
-    extract_total_pages,
-    load_catalog_candidates_for_handoff,
-    run_sweep,
-)
+try:
+    from .catalog_sweep import (
+        _advance_cursor,
+        catalog_candidate_sort_key,
+        retain_diverse_candidates,
+        acknowledge_catalog_candidates_handoff,
+        defer_catalog_candidates_handoff,
+        discover_categories,
+        extract_categories,
+        extract_product_rows,
+        extract_total_pages,
+        load_catalog_candidates_for_handoff,
+        run_sweep,
+    )
+except ImportError:
+    # Also support the workflow's "cd affilio_radar; unittest test_catalog_sweep.py" invocation.
+    from catalog_sweep import (
+        _advance_cursor,
+        catalog_candidate_sort_key,
+        retain_diverse_candidates,
+        acknowledge_catalog_candidates_handoff,
+        defer_catalog_candidates_handoff,
+        discover_categories,
+        extract_categories,
+        extract_product_rows,
+        extract_total_pages,
+        load_catalog_candidates_for_handoff,
+        run_sweep,
+    )
 
 
 class FakeResponse:
