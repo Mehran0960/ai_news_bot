@@ -81,6 +81,38 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual(captured["params"]["page"], 2)
         self.assertEqual(captured["params"]["sort"], 7)
 
+    def test_empty_unknown_total_marks_inferred_pagination_boundary(self):
+        class Response:
+            status_code = 200
+            content = b'{"data":{"products":[]}}'
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return {"data": {"products": []}}
+        class Session:
+            def get(self, url, params, timeout):
+                return Response()
+        with patch.object(sweep, "_session", return_value=Session()):
+            result = sweep._fetch_page({"category_id": "10", "page": 7, "sort_mode": "best_selling"})
+        self.assertEqual(result["kind"], "end")
+        self.assertTrue(result["inferred_boundary"])
+
+    def test_empty_page_before_reported_total_is_not_marked_complete(self):
+        class Response:
+            status_code = 200
+            content = b'{"data":{"products":[],"pagination":{"total_pages":9}}}'
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return {"data": {"products": [], "pagination": {"total_pages": 9}}}
+        class Session:
+            def get(self, url, params, timeout):
+                return Response()
+        with patch.object(sweep, "_session", return_value=Session()):
+            result = sweep._fetch_page({"category_id": "10", "page": 3, "sort_mode": "best_selling"})
+        self.assertEqual(result["kind"], "terminal")
+        self.assertEqual(result["error"], "empty_page_before_reported_total_pages")
+
     def test_persisted_page_queue_sweeps_leaf_page_one_before_parent_and_deeper_pages(self):
         state = {
             "categories": [
