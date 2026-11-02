@@ -10,6 +10,9 @@ from unittest.mock import Mock
 from affilio_radar.catalog_sweep import (
     _advance_cursor,
     catalog_candidate_sort_key,
+    retain_diverse_candidates,
+    acknowledge_catalog_candidates_handoff,
+    defer_catalog_candidates_handoff,
     discover_categories,
     extract_categories,
     extract_product_rows,
@@ -182,7 +185,21 @@ class CatalogSweepTests(unittest.TestCase):
             catalog_candidate_sort_key(extreme_discount),
         )
 
-    def test_handoff_marks_only_new_candidates_and_skips_seen(self):
+    def test_candidate_retention_reserves_capacity_for_underrepresented_categories(self):
+        rows = [
+            {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i, "discount_percent": 50}
+            for i in range(1, 6)
+        ] + [
+            {"product_id": "dkp-20", "catalog_category_id": "20", "catalog_category_ids": ["20"], "review_count": 100},
+            {"product_id": "dkp-30", "catalog_category_id": "30", "catalog_category_ids": ["30"], "review_count": 90},
+            {"product_id": "dkp-40", "catalog_category_id": "40", "catalog_category_ids": ["40"], "review_count": 80},
+        ]
+        retained = retain_diverse_candidates(rows, limit=4, rotation=0)
+        self.assertEqual(len(retained), 4)
+        categories = {row["catalog_category_id"] for row in retained}
+        self.assertTrue({"10", "20", "30"}.issubset(categories))
+
+    def test_handoff_acknowledges_only_after_queue_retention_and_rotates_overflow(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "candidates.json"
             path.write_text(json.dumps({"candidates": [
@@ -190,10 +207,21 @@ class CatalogSweepTests(unittest.TestCase):
                 {"product_id": "dkp-2", "product_url": "https://www.digikala.com/product/dkp-2/", "title": "پاوربانک مدل نمونه", "discount_percent": 70},
             ]}, ensure_ascii=False), encoding="utf-8")
             state = {"catalog_sweep_handoff": {"seen_ids": {"dkp-1": "2026-11-01T00:00:00+00:00"}}}
-            selected = load_catalog_candidates_for_handoff(
-                path, state, max_count=10,
-            )
+            fixed_now = datetime(2026, 11, 2, 0, 0, tzinfo=timezone.utc)
+            selected = load_catalog_candidates_for_handoff(path, state, max_count=10, now=fixed_now)
             self.assertEqual([row["product_id"] for row in selected], ["dkp-2"])
+            self.assertNotIn("dkp-2", state["catalog_sweep_handoff"]["seen_ids"])
+            self.assertEqual(defer_catalog_candidates_handoff(
+                state, ["dkp-2"], now=fixed_now, retry_minutes=15,
+            ), 1)
+            self.assertEqual(load_catalog_candidates_for_handoff(path, state, now=fixed_now), [])
+            selected_again = load_catalog_candidates_for_handoff(
+                path, state, now=fixed_now + timedelta(minutes=16),
+            )
+            self.assertEqual([row["product_id"] for row in selected_again], ["dkp-2"])
+            self.assertEqual(acknowledge_catalog_candidates_handoff(
+                state, ["dkp-2"], now=fixed_now + timedelta(minutes=16),
+            ), 1)
             self.assertIn("dkp-2", state["catalog_sweep_handoff"]["seen_ids"])
 
     def test_run_sweep_checkpoints_page_and_candidates(self):

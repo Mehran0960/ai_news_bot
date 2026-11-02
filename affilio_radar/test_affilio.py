@@ -411,16 +411,19 @@ class AffilioRadarTests(unittest.TestCase):
             ["dkp-old", "snp-middle", "dkp-new"],
         )
 
-    def test_exact_digipay_installment_sentence_has_no_extra_qualifier(self):
+    def test_exact_digipay_installment_sentence_is_only_shown_after_product_verification(self):
         product_url = "https://www.digikala.com/product/dkp-990002/"
-        caption = build_caption(
-            {"title": "نمونه", "product_url": product_url, "merchant": "دیجی‌کالا"},
-            build_affilio_tracking_link(product_url),
-        )
-        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
-        self.assertNotIn("در صورت نمایش گزینه", caption)
-        self.assertNotIn("احراز شرایط", caption)
-        self.assertNotIn("دیجی‌پی", caption)
+        product = {
+            "title": "نمونه", "product_url": product_url, "merchant": "دیجی‌کالا",
+        }
+        caption = build_caption(product, build_affilio_tracking_link(product_url))
+        self.assertNotIn("با امکان خرید اقساطی", caption)
+        verified_caption = build_caption({
+            **product,
+            "digipay_installment_verified": True,
+            "digipay_installment_available": True,
+        }, build_affilio_tracking_link(product_url))
+        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", verified_caption)
 
     def test_recent_digipay_selector_includes_all_recent_active_digikala_posts(self):
         # Compatibility name used by the already-queued workflow definition.
@@ -450,11 +453,10 @@ class AffilioRadarTests(unittest.TestCase):
         }, affiliate)
         self.assertIn("🔥 فروش ویژه اسنپ‌شاپ 🟣", caption)
         self.assertNotIn("دیجی‌کالا", caption)
-        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
+        self.assertNotIn("با امکان خرید اقساطی", caption)
         self.assertIn(
             "\n\n────────────\n<b>💚 قیمت فعلی: ۱٬۰۶۵٬۰۰۰ تومان</b>"
-            "\n\n<b>⚡️ ۵۳٪ تخفیف</b>"
-            "\n\n<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\n────────────",
+            "\n\n<b>⚡️ ۵۳٪ تخفیف</b>\n────────────",
             caption,
         )
 
@@ -1504,7 +1506,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
 
         self.assertTrue(selected)
-        self.assertEqual(selected[0]["product_id"], "dkp-eyewear-0")
+        self.assertEqual(selected[0]["product_id"], "dkp-late-fragrance")
 
 
     def test_single_repeated_category_candidate_is_recorded_as_diversity_fallback(self):

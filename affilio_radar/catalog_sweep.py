@@ -502,9 +502,21 @@ def retain_diverse_candidates(rows: list[dict], limit: int = MAX_RETAINED_CANDID
         for category in categories:
             buckets.setdefault(category, []).append(row)
     category_ids = sorted(buckets, key=lambda x: (not x.isdigit(), int(x) if x.isdigit() else x))
-    if category_ids:
-        offset = max(0, int(rotation)) % len(category_ids)
-        category_ids = category_ids[offset:] + category_ids[:offset]
+    represented = set()
+    for row in selected:
+        raw = row.get("catalog_category_ids")
+        values = [str(x) for x in raw if str(x).isdigit()] if isinstance(raw, list) else []
+        if not values:
+            single = str(row.get("catalog_category_id") or "")
+            values = [single] if single.isdigit() else []
+        represented.update(values)
+    # First fill categories not yet represented in the high-demand core.
+    unrepresented = [value for value in category_ids if value not in represented]
+    represented_ids = [value for value in category_ids if value in represented]
+    if unrepresented:
+        offset = max(0, int(rotation)) % len(unrepresented)
+        unrepresented = unrepresented[offset:] + unrepresented[:offset]
+    category_ids = unrepresented + represented_ids
     while len(selected) < cap:
         added = False
         for category in category_ids:
