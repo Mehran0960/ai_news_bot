@@ -2313,17 +2313,17 @@ class AffilioRadarTests(unittest.TestCase):
 
 
     def test_publish_ranking_keeps_market_demand_ahead_of_larger_listed_discount(self):
-        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
         lower_demand_larger_discount = {
             "product_id": "dkp-95110", "title": "هدفون بلوتوثی مدل اول",
             "selection_discount_floor": 1, "discount_percent": 50,
             "review_count": 300, "rating": 4.2, "demand_score": 55,
         }
-        higher_demand_smaller_discount = {
+        higher_demand_smaller_discount = _with_verified_current_demand({
             "product_id": "dkp-95111", "title": "شارژر سریع مدل دوم",
             "selection_discount_floor": 1, "discount_percent": 15,
             "review_count": 12000, "rating": 4.7, "demand_score": 99,
-        }
+        }, now, growth=8, window_hours=24)
         ranked = radar_module.select_publish_candidates(
             {"dkp-95110": {}, "dkp-95111": {}},
             {"dkp-95110": lower_demand_larger_discount, "dkp-95111": higher_demand_smaller_discount},
