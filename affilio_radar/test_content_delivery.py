@@ -37,6 +37,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "demand_window_hours": 24,
             "demand_observed_at": self.now.isoformat(),
             "demand_signal_source": "digikala_recent_review_growth",
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": 6,
+            "market_price_checked_at": self.now.isoformat(),
             "selection_discount_floor": 50,
             "deal_expires_at": deadline.isoformat() if deadline else "",
         }
@@ -200,6 +204,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "review_count": 1200,
             "availability": "in_stock",
             "deal_expires_at": "",
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": 6,
+            "market_price_checked_at": self.now.isoformat(),
         }
 
         def discount_gate(record, minimum_discount_percent=None, now=None):
@@ -287,6 +295,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "review_count": 1200,
             "availability": "in_stock",
             "deal_expires_at": "",
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": 6,
+            "market_price_checked_at": self.now.isoformat(),
         }
 
         patches = (
@@ -370,6 +382,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
                 "review_count": payload.get("review_count", 0),
                 "availability": "in_stock",
                 "deal_expires_at": "",
+                "market_status": payload.get("market_status", ""),
+                "market_reference_kind": payload.get("market_reference_kind", ""),
+                "market_price_advantage_pct": payload.get("market_price_advantage_pct"),
+                "market_price_checked_at": payload.get("market_price_checked_at", ""),
             }
             entry = {
                 "product_id": payload["product_id"],
@@ -413,6 +429,9 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-990103%2F",
             "discount_percent": 10,
             "savings_toman": 10_000,
+            "market_status": "not_checked",
+            "market_reference_kind": "",
+            "market_price_checked_at": "",
         }
         fresh, reason = evaluate(weak_value)
         self.assertIsNone(fresh)
