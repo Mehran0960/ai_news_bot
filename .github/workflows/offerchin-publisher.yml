@@ -97,7 +97,7 @@ jobs:
         run: |
           cd affilio_radar
           python -m unittest \
-            test_affilio.AffilioRadarTests.test_one_recent_review_in_active_window_qualifies_current_demand \
+            test_affilio.AffilioRadarTests.test_three_recent_reviews_in_active_window_qualify_current_demand \
             test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit \
             test_affilio.AffilioRadarTests.test_discount_publishing_requires_a_valuable_deal \
             test_affilio.AffilioRadarTests.test_selection_uses_market_demand_first_and_discount_percentage_second \
