@@ -122,7 +122,11 @@ MIN_SAVINGS_TOMAN = 1
 # Recent review growth improves the demand rank when observable; lifetime review
 # count/rating are used as fallback public popularity proxies, never as sales claims.
 CURRENT_DEMAND_WINDOW_DAYS = max(1, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "1"))))
-CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "1"))))
+CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "3"))))
+BEST_SELLING_MAX_RANK = 60
+BEST_SELLING_MAX_AGE_HOURS = 24
+UNVERIFIED_MIN_DISCOUNT_PERCENT = 15
+VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT = 5
 CURRENT_DEMAND_MIN_OBSERVATION_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS", "6"))))
 CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS", "2"))))
 CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS", "12"))))
@@ -2568,6 +2572,97 @@ def has_current_demand_signal(record: dict, now: datetime | None = None) -> bool
     return -0.1 <= age_hours <= CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS
 
 
+def _fresh_catalog_best_selling_rank(
+    record: dict,
+    now: datetime | None = None,
+) -> int | None:
+    """Return a fresh DigiKala category best-selling rank, never a stale cached rank."""
+    if not isinstance(record, dict) or record.get("catalog_sort_mode") != "best_selling":
+        return None
+    try:
+        rank = int(record.get("catalog_best_selling_rank") or 0)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not 1 <= rank <= BEST_SELLING_MAX_RANK:
+        return None
+    observed_at = _parse_utc_datetime(record.get("catalog_rank_observed_at"))
+    if observed_at is None:
+        return None
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    age_hours = (
+        current.astimezone(timezone.utc) - observed_at.astimezone(timezone.utc)
+    ).total_seconds() / 3600
+    return rank if 0 <= age_hours <= BEST_SELLING_MAX_AGE_HOURS else None
+
+
+def has_actionable_demand_signal(
+    record: dict,
+    now: datetime | None = None,
+) -> bool:
+    """Require recent review growth or a fresh top-60 DigiKala best-selling rank."""
+    return bool(
+        has_current_demand_signal(record, now=now)
+        or _fresh_catalog_best_selling_rank(record, now=now) is not None
+    )
+
+
+def _demand_evidence_sort_key(
+    record: dict,
+    now: datetime | None = None,
+) -> tuple:
+    """Sort measured recent interest first, then DigiKala's fresh best-selling rank."""
+    current_signal = has_current_demand_signal(record, now=now)
+    try:
+        current_score = (
+            max(0, min(100, int(record.get("current_demand_score") or record.get("demand_score") or 0)))
+            if current_signal else 0
+        )
+    except (TypeError, ValueError, OverflowError):
+        current_score = 0
+    best_selling_rank = _fresh_catalog_best_selling_rank(record, now=now)
+    return (
+        int(current_signal),
+        current_score,
+        int(best_selling_rank is not None),
+        -best_selling_rank if best_selling_rank is not None else -10_000,
+    )
+
+
+def has_attractive_discount_value(record: dict) -> bool:
+    """Demand a verified price advantage/history signal, or a conservative 15% fallback."""
+    if not isinstance(record, dict):
+        return False
+    try:
+        discount = max(0, int(record.get("discount_percent") or 0))
+        savings = max(0, int(record.get("savings_toman") or 0))
+    except (TypeError, ValueError, OverflowError):
+        return False
+    if savings <= 0:
+        return False
+
+    if (
+        record.get("history_status") == "verified"
+        and record.get("historical_deal_eligible") is True
+    ):
+        return True
+
+    if (
+        record.get("market_status") == "verified"
+        and record.get("market_reference_kind") == "seller_median"
+    ):
+        try:
+            advantage = int(record.get("market_price_advantage_pct"))
+        except (TypeError, ValueError, OverflowError):
+            return False
+        return advantage >= VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT
+
+    # Independent data may be unavailable or rate-limited. In that case a small
+    # listed markdown is not enough; retain only substantial, positive savings.
+    return discount >= UNVERIFIED_MIN_DISCOUNT_PERCENT
+
+
 def update_current_demand_signals(
     state: dict,
     products: list[dict],
@@ -2813,7 +2908,7 @@ def _deal_value_evidence_key(record: dict) -> tuple[int, int]:
             advantage = int(record.get("market_price_advantage_pct"))
         except (TypeError, ValueError, OverflowError):
             advantage = -101
-        return (3, advantage) if advantage > 0 else (1, advantage)
+        return (3, advantage) if advantage >= VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT else (1, advantage)
     if record.get("history_status") == "verified":
         try:
             advantage = int(record.get("discount_vs_30d_median_pct") or 0)
@@ -2867,10 +2962,12 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
     first_seen_ts = first_seen.timestamp() if first_seen else current.timestamp()
     evidence_tier, evidence_strength = _deal_value_evidence_key(record)
     return (
-        _candidate_popularity_score(record), reviews, rating_score,
-        _candidate_demand_score(record), clicks,
+        *_demand_evidence_sort_key(record, current),
+        clicks,
         evidence_tier, evidence_strength, discount, value_gate,
-        _candidate_promo_score(record), savings, int(has_runway), urgency_tier,
+        _candidate_promo_score(record), savings,
+        _candidate_popularity_score(record), reviews, rating_score,
+        int(has_runway), urgency_tier,
         -remaining if active_deadline else float("-inf"), -first_seen_ts,
     )
 
@@ -2933,6 +3030,16 @@ def merge_discovery_queue(
             "demand_score": max(0, int(row.get("demand_score") or old.get("demand_score") or 0)),
             "promo_score": max(0, int(row.get("promo_score") or old.get("promo_score") or 0)),
         }
+        for field in (
+            "catalog_sort_mode",
+            "catalog_best_selling_rank",
+            "catalog_best_selling_category_id",
+            "catalog_best_selling_category_name",
+            "catalog_rank_observed_at",
+            "catalog_best_selling_ranks_by_category",
+        ):
+            if row.get(field) not in (None, ""):
+                record[field] = row[field]
         # New candidates are immediately due for their first detailed validation.
         record.setdefault("last_check_status", "discovered")
         record.setdefault("check_count", 0)
@@ -4218,16 +4325,16 @@ def deal_sort_key(p: dict) -> tuple:
         reviews = rating_score = discount = savings = 0
     evidence_tier, evidence_strength = _deal_value_evidence_key(p)
     return (
-        _candidate_popularity_score(p),
-        reviews,
-        rating_score,
-        _candidate_demand_score(p),
+        *_demand_evidence_sort_key(p),
         evidence_tier,
         evidence_strength,
         int(has_meaningful_discount(p)),
         discount,
         int(p.get("promo_score") or 0),
         savings,
+        _candidate_popularity_score(p),
+        reviews,
+        rating_score,
     )
 
 def _fetch_click_statistics_snapshot() -> dict:
@@ -7558,6 +7665,11 @@ def select_discount_fallback_candidates(
     quality_eligible: list[dict] = []
     fresh_candidates: list[dict] = []
     seen_ids: set[str] = set()
+    demand_blocked = 0
+    value_blocked = 0
+    retry_bypass = 0
+    published_records = state.get("published", {})
+    published_records = published_records if isinstance(published_records, dict) else {}
     for product in products or []:
         if not isinstance(product, dict):
             continue
@@ -7572,6 +7684,21 @@ def select_discount_fallback_candidates(
             continue
         if not has_publishable_expiry_or_open_offer(product, current):
             continue
+
+        previous = published_records.get(pid, {})
+        retry_platforms = _delivery_retry_platforms(previous) if isinstance(previous, dict) else []
+        retrying_previous_delivery = bool(retry_platforms)
+        demand_ok = has_actionable_demand_signal(product, now=current)
+        value_ok = has_attractive_discount_value(product)
+        if not demand_ok and not retrying_previous_delivery:
+            demand_blocked += 1
+            continue
+        if not value_ok and not retrying_previous_delivery:
+            value_blocked += 1
+            continue
+        if retrying_previous_delivery and (not demand_ok or not value_ok):
+            retry_bypass += 1
+
         seen_ids.add(pid)
         quality_eligible.append(product)
         if (
@@ -7579,6 +7706,12 @@ def select_discount_fallback_candidates(
             and is_fresh_selection_candidate(state, pid, product, current)
         ):
             fresh_candidates.append(product)
+
+    print(
+        f"SELECTION_EVIDENCE_FILTER demand_blocked={demand_blocked} "
+        f"value_blocked={value_blocked} retry_bypass={retry_bypass} "
+        f"eligible={len(quality_eligible)}"
+    )
 
     fallback_pool: list[dict] = []
     first_floor: int | None = None
@@ -9160,8 +9293,19 @@ def run(publish=False, selection_only=False):
                 print("PRODUCT_SKIP invalid_product_url")
                 continue
             item = fetch_product_record(canonical)
+            pid = item.get("product_id", "") or product_id(canonical)
+            catalog_record = discovery_queue.get(str(pid), {}) if isinstance(discovery_queue, dict) else {}
+            if isinstance(catalog_record, dict):
+                for field in (
+                    "catalog_sort_mode",
+                    "catalog_best_selling_rank",
+                    "catalog_best_selling_category_id",
+                    "catalog_best_selling_category_name",
+                    "catalog_rank_observed_at",
+                ):
+                    if catalog_record.get(field) not in (None, ""):
+                        item[field] = catalog_record[field]
             item["merchant"] = "اسنپ‌شاپ" if product_id(canonical).startswith("snp-") else "دیجی‌کالا"
-            pid = item.get("product_id", "")
             mcp_deadline_hint = deal_expiries.get(pid, "")
             direct_feed_deadline = direct_feed_expiries.get(pid, "")
             mcp_card_deadline = mcp_card_expiries.get(pid, "")
@@ -9449,14 +9593,22 @@ def run(publish=False, selection_only=False):
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "ranking_note": "Builds a popularity-ranked pool from public retailer review counts and ratings (a demand proxy, not sales volume), checks up to 100 candidates, then selects the largest verified live discount. No minimum discount percentage or saving amount is imposed. Publication still requires verified current price and stock, a genuine markdown, image, affiliate link, a valid title, no prohibited category, no verified market-price rejection, and no duplicate conflict. Confirmed deadlines require the configured publication runway; open-ended offers remain eligible after live stock/current-price validation.",
         "current_demand_policy": {
-            "source": "rolling retailer review/rating-count observations",
+            "source": "rolling retailer review-count growth or DigiKala category best-selling rank",
             "window_days": CURRENT_DEMAND_WINDOW_DAYS,
             "minimum_growth": CURRENT_DEMAND_MIN_REVIEW_GROWTH,
             "minimum_observation_hours": CURRENT_DEMAND_MIN_OBSERVATION_HOURS,
             "sample_interval_hours": CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS,
             "maximum_signal_age_hours": CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS,
-            "unverified_blocks_publication": False,
+            "best_selling_max_rank": BEST_SELLING_MAX_RANK,
+            "best_selling_max_age_hours": BEST_SELLING_MAX_AGE_HOURS,
+            "unverified_blocks_new_publication": True,
             "sales_volume_claimed": False,
+        },
+        "discount_value_policy": {
+            "market_advantage_min_percent": VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT,
+            "unverified_fallback_min_discount_percent": UNVERIFIED_MIN_DISCOUNT_PERCENT,
+            "savings_amount_floor": 0,
+            "requires_live_stock_price_and_affiliate_link": True,
         },
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
