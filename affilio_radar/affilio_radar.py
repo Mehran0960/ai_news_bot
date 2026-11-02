@@ -2675,9 +2675,10 @@ def has_attractive_discount_value(
             return False
         return advantage >= VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT
 
-    # No percentage-only fallback: without fresh 30-day history or a comparable-market
-    # proof, the markdown remains unverified and is not eligible for OfferChin.
-    return False
+    # When independent market/history data is unavailable, retain the conservative
+    # 15% fallback. A known failed history or over-priced market comparison above
+    # remains a hard rejection; this is not a displayed-RRP-only quality bypass.
+    return discount >= UNVERIFIED_MIN_DISCOUNT_PERCENT
 
 
 def update_current_demand_signals(
@@ -2913,21 +2914,9 @@ def _candidate_popularity_score(record: dict) -> int:
 
 
 def _deal_demand_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Rank verified current demand, clicks, and broad popularity before discount size."""
+    """Use only verified recent demand and fresh bestseller rank as primary demand."""
     candidate = record if isinstance(record, dict) else {}
-    try:
-        clicks = max(0, int(candidate.get("click_count_30d") or 0))
-        reviews = max(0, int(candidate.get("review_count") or 0))
-        rating_score = round(float(candidate.get("rating") or candidate.get("rating_value") or 0) * 10)
-    except (TypeError, ValueError, OverflowError):
-        clicks = reviews = rating_score = 0
-    return (
-        *_demand_evidence_sort_key(candidate, now=now),
-        clicks,
-        _candidate_popularity_score(candidate),
-        reviews,
-        rating_score,
-    )
+    return _demand_evidence_sort_key(candidate, now=now)
 
 
 def _discount_percentage_sort_value(record: dict) -> int:
@@ -3008,6 +2997,9 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
         urgency_tier,
         -remaining if active_deadline else float("-inf"),
         -first_seen_ts,
+        _candidate_popularity_score(candidate),
+        reviews,
+        rating_score,
     )
 
 def merge_discovery_queue(
@@ -4358,8 +4350,10 @@ def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
     candidate = p if isinstance(p, dict) else {}
     try:
         savings = max(0, int(candidate.get("savings_toman") or 0))
+        reviews = max(0, int(candidate.get("review_count") or 0))
+        rating_score = round(float(candidate.get("rating") or candidate.get("rating_value") or 0) * 10)
     except (TypeError, ValueError, OverflowError):
-        savings = 0
+        savings = reviews = rating_score = 0
     evidence_tier, evidence_strength = _deal_value_evidence_key(candidate)
     return (
         *_deal_primary_sort_key(candidate, now=now),
@@ -4368,6 +4362,9 @@ def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
         int(has_meaningful_discount(candidate)),
         int(candidate.get("promo_score") or 0),
         savings,
+        _candidate_popularity_score(candidate),
+        reviews,
+        rating_score,
     )
 
 def _fetch_click_statistics_snapshot() -> dict:
