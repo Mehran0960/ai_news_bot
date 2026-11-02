@@ -115,7 +115,7 @@ from affilio_radar import (
 )
 
 
-def _with_verified_current_demand(product, now=None, growth=5, window_hours=48):
+def _with_verified_current_demand(product, now=None, growth=5, window_hours=24):
     observed = now or datetime.now(timezone.utc)
     product.update({
         "current_demand_verified": True,
@@ -940,7 +940,7 @@ class AffilioRadarTests(unittest.TestCase):
 
 
     def test_verified_recent_demand_outranks_an_extreme_listed_discount(self):
-        now = datetime(2026, 10, 31, 17, 0, tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
         popular_gadget = _with_verified_current_demand(score_product({
             "title": "پاوربانک محبوب",
             "current_price": 8_000_000,
@@ -962,9 +962,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertLess(popular_gadget["discount_percent"], weaker_demand_deal["discount_percent"])
         self.assertGreater(deal_sort_key(popular_gadget), deal_sort_key(weaker_demand_deal))
 
-    def test_one_recent_review_in_active_window_qualifies_current_demand(self):
-        now = datetime(2026, 11, 1, 12, 0, tzinfo=timezone.utc)
-        baseline = now - timedelta(hours=8)
+    def test_current_demand_requires_three_recent_reviews_over_24_hours(self):
+        now = datetime.now(timezone.utc)
+        baseline = now - timedelta(hours=24)
 
         growing_state = {
             "current_demand_observations": {
@@ -981,13 +981,22 @@ class AffilioRadarTests(unittest.TestCase):
             "product_id": "dkp-99001",
             "review_count": 101,
         }
+        first_summary = radar_module.update_current_demand_signals(
+            growing_state, [growing], now=now
+        )
+        self.assertEqual(first_summary["verified"], 0)
+        self.assertFalse(radar_module.has_current_demand_signal(growing, now))
+        self.assertEqual(growing["recent_review_growth_window"], 1)
+        self.assertEqual(growing["demand_window_hours"], 24.0)
+
+        growing["review_count"] = 103
         summary = radar_module.update_current_demand_signals(
             growing_state, [growing], now=now
         )
         self.assertEqual(summary["verified"], 1)
         self.assertTrue(radar_module.has_current_demand_signal(growing, now))
-        self.assertEqual(growing["recent_review_growth_window"], 1)
-        self.assertEqual(growing["demand_window_hours"], 8.0)
+        self.assertEqual(growing["recent_review_growth_window"], 3)
+        self.assertEqual(growing["demand_window_hours"], 24.0)
 
         unchanged_state = {
             "current_demand_observations": {
@@ -2201,11 +2210,13 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://example.com/image.jpg",
             "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
         }
-        ten_percent = score_product(dict(base))
+        ten_percent = _with_verified_current_demand(score_product(dict(base)))
         self.assertEqual(ten_percent["discount_percent"], 10)
         self.assertTrue(is_discount_publish_eligible(ten_percent))
 
-        just_below_floor = score_product({**base, "current_price": 510_000})
+        just_below_floor = _with_verified_current_demand(
+            score_product({**base, "current_price": 510_000})
+        )
         self.assertEqual(just_below_floor["discount_percent"], 49)
         self.assertTrue(is_discount_publish_eligible(just_below_floor))
 
@@ -2218,7 +2229,25 @@ class AffilioRadarTests(unittest.TestCase):
 
         small_saving = score_product({**base, "current_price": 990_000})
         self.assertEqual(small_saving["discount_percent"], 1)
-        self.assertTrue(is_discount_publish_eligible(small_saving))
+        self.assertFalse(is_discount_publish_eligible(small_saving))
+        self.assertFalse(radar_module.is_attractive_value_offer(small_saving))
+        meaningful_low_percent_saving = _with_verified_current_demand(score_product({
+            **base, "current_price": 9_700_000, "original_price": 10_000_000,
+        }))
+        self.assertEqual(meaningful_low_percent_saving["discount_percent"], 3)
+        self.assertTrue(radar_module.is_attractive_value_offer(meaningful_low_percent_saving))
+        self.assertTrue(is_discount_publish_eligible(meaningful_low_percent_saving))
+        market_supported_small_discount = _with_verified_current_demand(score_product({
+            **base,
+            "current_price": 9_900_000,
+            "original_price": 10_000_000,
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": 6,
+        }))
+        self.assertEqual(market_supported_small_discount["discount_percent"], 1)
+        self.assertTrue(radar_module.is_attractive_value_offer(market_supported_small_discount))
+        self.assertTrue(is_discount_publish_eligible(market_supported_small_discount))
         no_real_drop = score_product({**base, "current_price": 1_000_000})
         self.assertFalse(is_discount_publish_eligible(no_real_drop))
         missing_stock = dict(strong_discount, availability="unknown")
@@ -2226,7 +2255,7 @@ class AffilioRadarTests(unittest.TestCase):
 
 
     def test_high_ticket_products_have_no_discount_floor_exception(self):
-        high_ticket_11_percent = score_product({
+        high_ticket_11_percent = _with_verified_current_demand(score_product({
             "title": "گوشی موبایل پرتقاضا مدل آزمایشی",
             "availability": "in_stock",
             "current_price": 16_000_000,
@@ -2235,7 +2264,7 @@ class AffilioRadarTests(unittest.TestCase):
             "review_count": 20_000,
             "image_url": "https://example.com/phone.jpg",
             "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
-        })
+        }))
         self.assertEqual(high_ticket_11_percent["discount_percent"], 11)
         self.assertEqual(high_ticket_11_percent["savings_toman"], 2_000_000)
         self.assertTrue(is_discount_publish_eligible(high_ticket_11_percent))
@@ -2252,10 +2281,10 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(is_discount_publish_eligible(high_ticket_50_percent))
 
     def test_all_real_discount_bands_compete_without_a_percentage_or_saving_floor(self):
-        now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
 
         def product(pid, title, discount):
-            current_price = 1_000_000
+            current_price = 10_000_000
             original_price = int(round(current_price / (1 - discount / 100)))
             return {
                 "product_id": pid,
@@ -2284,6 +2313,7 @@ class AffilioRadarTests(unittest.TestCase):
             product("dkp-95005", "اسپیکر بلوتوثی مدل کوچک", 35),
             product("dkp-95006", "چراغ مطالعه شارژی مدل جدید", 3),
         ]
+        candidates = [_with_verified_current_demand(item, now=now) for item in candidates]
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             candidates, {"published": {}}, now
         )
@@ -2549,7 +2579,7 @@ class AffilioRadarTests(unittest.TestCase):
             "review_count": 100,
             "rating": 4.5,
         }
-        scored = score_product(product)
+        scored = _with_verified_current_demand(score_product(product))
         self.assertEqual(scored["discount_percent"], 15)
         self.assertEqual(scored["savings_toman"], 150_000)
         self.assertTrue(is_discount_publish_eligible(scored))
@@ -2574,8 +2604,8 @@ class AffilioRadarTests(unittest.TestCase):
             discovery_queue_sort_key(low_demand_huge_discount, now),
         )
 
-    def test_lifetime_popularity_ranks_before_short_term_review_growth(self):
-        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+    def test_fresh_current_demand_ranks_before_lifetime_popularity(self):
+        now = datetime.now(timezone.utc)
         established_popularity = {
             "historical_popularity_score": 42,
             "review_count": 15_000,
@@ -2594,15 +2624,89 @@ class AffilioRadarTests(unittest.TestCase):
             "current_demand_verified": True,
             "current_demand_score": 100,
             "demand_score": 100,
-            "discount_percent": 80,
+            "recent_review_growth_window": 5,
+            "recent_review_growth_7d": 5,
+            "demand_window_hours": 24,
+            "demand_observed_at": now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth",
+            "discount_percent": 35,
             "savings_toman": 800_000,
             "first_seen_at": now.isoformat(),
         }
-        self.assertGreater(deal_sort_key(established_popularity), deal_sort_key(short_term_spike))
+        self.assertTrue(radar_module.has_current_demand_signal(short_term_spike, now))
+        self.assertGreater(deal_sort_key(short_term_spike), deal_sort_key(established_popularity))
         self.assertGreater(
-            discovery_queue_sort_key(established_popularity, now),
             discovery_queue_sort_key(short_term_spike, now),
+            discovery_queue_sort_key(established_popularity, now),
         )
+
+    def test_fresh_category_best_seller_rank_beats_lifetime_review_volume(self):
+        now = datetime.now(timezone.utc)
+        current_best_seller = {
+            "catalog_sort_order": "best_selling",
+            "catalog_best_selling_rank": 2,
+            "catalog_best_selling_at": now.isoformat(),
+            "review_count": 250,
+            "rating": 4.1,
+            "discount_percent": 12,
+            "savings_toman": 120_000,
+            "first_seen_at": now.isoformat(),
+        }
+        historically_popular = {
+            "historical_popularity_score": 42,
+            "review_count": 50_000,
+            "rating": 4.8,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+            "first_seen_at": now.isoformat(),
+        }
+        self.assertGreater(deal_sort_key(current_best_seller), deal_sort_key(historically_popular))
+        self.assertGreater(
+            discovery_queue_sort_key(current_best_seller, now),
+            discovery_queue_sort_key(historically_popular, now),
+        )
+
+    def test_publish_requires_fresh_sales_or_review_demand_evidence(self):
+        now = datetime.now(timezone.utc)
+        lifetime_only = score_product({
+            "title": "پاوربانک محبوب با سابقه نظر زیاد",
+            "availability": "in_stock",
+            "current_price": 900_000,
+            "original_price": 1_000_000,
+            "rating": 4.7,
+            "review_count": 50_000,
+            "image_url": "https://example.com/lifetime.webp",
+            "affiliate_url": "https://www.digikala.com/product/dkp-99010/",
+        })
+        self.assertGreater(lifetime_only["historical_popularity_score"], 0)
+        self.assertFalse(radar_module.has_current_market_demand_evidence(lifetime_only, now))
+        self.assertFalse(is_discount_publish_eligible(lifetime_only, now=now))
+
+        current_best_seller = score_product({
+            "title": "پاوربانک پرفروش با تخفیف واقعی",
+            "availability": "in_stock",
+            "current_price": 9_700_000,
+            "original_price": 10_000_000,
+            "rating": 4.4,
+            "review_count": 250,
+            "image_url": "https://example.com/bestseller.webp",
+            "affiliate_url": "https://www.digikala.com/product/dkp-99011/",
+            "catalog_sort_order": "best_selling",
+            "catalog_best_selling_rank": 5,
+            "catalog_best_selling_at": now.isoformat(),
+        })
+        self.assertFalse(current_best_seller["current_demand_verified"])
+        self.assertTrue(radar_module.has_current_market_demand_evidence(current_best_seller, now))
+        self.assertTrue(is_discount_publish_eligible(current_best_seller, now=now))
+
+        stale_rank = dict(
+            current_best_seller,
+            catalog_best_selling_at=(now - timedelta(hours=radar_module.CATALOG_BEST_SELLING_SIGNAL_TTL_HOURS + 1)).isoformat(),
+        )
+        self.assertFalse(radar_module.has_current_market_demand_evidence(stale_rank, now))
+        self.assertFalse(is_discount_publish_eligible(stale_rank, now=now))
+
+
 
     def test_selection_uses_market_demand_first_and_discount_percentage_second(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
@@ -2791,21 +2895,21 @@ class AffilioRadarTests(unittest.TestCase):
 
         product["review_count"] = 50_003
         radar_module.update_current_demand_signals(
-            state, [product], now=start + timedelta(hours=23)
+            state, [product], now=start + timedelta(hours=24)
         )
         self.assertTrue(product["current_demand_verified"])
         self.assertEqual(product["recent_review_growth_7d"], 3)
         self.assertGreater(product["demand_score"], 0)
         self.assertTrue(
             radar_module.has_current_demand_signal(
-                product, now=start + timedelta(hours=25)
+                product, now=start + timedelta(hours=26)
             )
         )
 
         stale = dict(product)
         self.assertFalse(
             radar_module.has_current_demand_signal(
-                stale, now=start + timedelta(hours=25 + radar_module.CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS + 1)
+                stale, now=start + timedelta(hours=26 + radar_module.CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS + 1)
             )
         )
 
