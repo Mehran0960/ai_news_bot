@@ -56,9 +56,11 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
     def test_stale_or_missing_price_evidence_cannot_qualify_as_verified_value(self):
         base = {"discount_percent": 14, "savings_toman": 140_000}
         self.assertFalse(radar.has_attractive_discount_value(base, now=self.now))
-        self.assertTrue(
+        # Even a very large displayed markdown is not proof when its reference price
+        # has not been independently verified.
+        self.assertFalse(
             radar.has_attractive_discount_value(
-                dict(base, discount_percent=15, savings_toman=150_000),
+                dict(base, discount_percent=85, savings_toman=850_000),
                 now=self.now,
             )
         )
@@ -115,8 +117,8 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         self.assertFalse(radar.has_attractive_discount_value(stale_market, now=self.now))
 
     def test_selector_blocks_weak_demand_and_unattractive_markdowns(self):
-        def candidate(pid, discount, rank):
-            return {
+        def candidate(pid, discount, rank, market_verified=False):
+            row = {
                 "product_id": pid,
                 "product_url": f"https://www.digikala.com/product/{pid}/",
                 "title": f"محصول آزمایشی {pid}",
@@ -132,10 +134,18 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
                 "catalog_best_selling_rank": rank,
                 "catalog_rank_observed_at": self.now.isoformat(),
             }
+            if market_verified:
+                row.update({
+                    "market_status": "verified",
+                    "market_reference_kind": "seller_median",
+                    "market_price_advantage_pct": radar.VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT,
+                    "market_price_checked_at": self.now.isoformat(),
+                })
+            return row
 
-        good = candidate("dkp-101", 20, 12)
-        weak_demand = candidate("dkp-102", 80, 61)
-        weak_value = candidate("dkp-103", 14, 8)
+        good = candidate("dkp-101", 20, 12, market_verified=True)
+        weak_demand = candidate("dkp-102", 80, 61, market_verified=True)
+        weak_value = candidate("dkp-103", 85, 8)
 
         with (
             patch.object(radar, "is_discount_publish_eligible", return_value=True),
