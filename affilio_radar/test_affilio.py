@@ -2230,30 +2230,45 @@ class AffilioRadarTests(unittest.TestCase):
             "availability": "in_stock",
             "current_price": 900_000,
             "original_price": 1_000_000,
+            "rating": 4.7,
+            "review_count": 20_000,
             "image_url": "https://example.com/image.jpg",
             "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
         }
         ten_percent = score_product(dict(base))
         self.assertEqual(ten_percent["discount_percent"], 10)
-        self.assertTrue(is_discount_publish_eligible(ten_percent))
+        self.assertFalse(is_discount_publish_eligible(ten_percent))
 
         just_below_floor = score_product({**base, "current_price": 510_000})
         self.assertEqual(just_below_floor["discount_percent"], 49)
-        self.assertTrue(is_discount_publish_eligible(just_below_floor))
+        self.assertFalse(is_discount_publish_eligible(just_below_floor))
 
+        # A 50% listed markdown is still not enough without price-history or market proof.
         strong_discount = _with_verified_current_demand(
             score_product({**base, "current_price": 500_000})
         )
         self.assertEqual(strong_discount["discount_percent"], 50)
         self.assertGreaterEqual(strong_discount["savings_toman"], 100_000)
-        self.assertTrue(is_discount_publish_eligible(strong_discount))
+        self.assertFalse(is_discount_publish_eligible(strong_discount))
 
-        small_saving = score_product({**base, "current_price": 990_000})
+        verified_market_deal = _with_verified_market_value(dict(strong_discount))
+        self.assertTrue(is_discount_publish_eligible(verified_market_deal))
+
+        # Even a 1% listed reduction may qualify when the current price is independently
+        # at least 5% below three comparable available sellers.
+        small_saving = _with_verified_market_value(
+            score_product({**base, "current_price": 990_000})
+        )
         self.assertEqual(small_saving["discount_percent"], 1)
         self.assertTrue(is_discount_publish_eligible(small_saving))
+
         no_real_drop = score_product({**base, "current_price": 1_000_000})
         self.assertFalse(is_discount_publish_eligible(no_real_drop))
-        missing_stock = dict(strong_discount, availability="unknown")
+        insufficient_sellers = dict(verified_market_deal, market_available_offer_count=2)
+        self.assertFalse(is_discount_publish_eligible(insufficient_sellers))
+        no_market_advantage = dict(verified_market_deal, market_price_advantage_pct=2)
+        self.assertFalse(is_discount_publish_eligible(no_market_advantage))
+        missing_stock = dict(verified_market_deal, availability="unknown")
         self.assertFalse(is_discount_publish_eligible(missing_stock))
 
 
@@ -2270,15 +2285,17 @@ class AffilioRadarTests(unittest.TestCase):
         })
         self.assertEqual(high_ticket_11_percent["discount_percent"], 11)
         self.assertEqual(high_ticket_11_percent["savings_toman"], 2_000_000)
+        self.assertFalse(is_discount_publish_eligible(high_ticket_11_percent))
+        high_ticket_11_percent = _with_verified_market_value(high_ticket_11_percent)
         self.assertTrue(is_discount_publish_eligible(high_ticket_11_percent))
 
-        high_ticket_50_percent = _with_verified_current_demand(
+        high_ticket_50_percent = _with_verified_market_value(_with_verified_current_demand(
             score_product({
                 **high_ticket_11_percent,
                 "current_price": 9_000_000,
                 "original_price": 18_000_000,
             })
-        )
+        ))
         self.assertEqual(high_ticket_50_percent["discount_percent"], 50)
         self.assertGreaterEqual(high_ticket_50_percent["savings_toman"], 100_000)
         self.assertTrue(is_discount_publish_eligible(high_ticket_50_percent))
@@ -2306,6 +2323,10 @@ class AffilioRadarTests(unittest.TestCase):
                 "rating": 4.5,
                 "deal_expires_at": "",
                 "expiry_source": "unavailable",
+                "market_status": "verified",
+                "market_reference_kind": "seller_median",
+                "market_price_advantage_pct": 8,
+                "market_available_offer_count": 4,
             }
 
         candidates = [
@@ -2391,6 +2412,7 @@ class AffilioRadarTests(unittest.TestCase):
             "deal_expires_at": "",
             "expiry_source": "unavailable",
         }, now)
+        candidate = _with_verified_market_value(candidate)
 
         tiered, floor, quality = radar_module.select_discount_fallback_candidates(
             [candidate], {"published": {}}, now, include_fallback_bands=True
@@ -2433,6 +2455,7 @@ class AffilioRadarTests(unittest.TestCase):
                 "rating": 4.6, "deal_expires_at": "",
             }, now),
         ]
+        candidates = [_with_verified_market_value(item) for item in candidates]
         selected, floor, _ = radar_module.select_discount_fallback_candidates(
             candidates, {"published": published}, now
         )
@@ -2485,6 +2508,7 @@ class AffilioRadarTests(unittest.TestCase):
                 "has_affiliate_link": True, "deal_expires_at": "",
             }, now),
         ]
+        candidates = [_with_verified_market_value(item) for item in candidates]
         selected, floor, _ = radar_module.select_discount_fallback_candidates(
             candidates, {"published": published}, now
         )
@@ -2505,7 +2529,7 @@ class AffilioRadarTests(unittest.TestCase):
             "market_status": "verified", "market_reference_kind": "seller_median",
             "market_price_advantage_pct": -8,
         }, now)
-        lower_discount = _with_verified_current_demand({
+        lower_discount = _with_verified_market_value(_with_verified_current_demand({
             "product_id": "dkp-95302",
             "title": "ادوپرفیوم زنانه مدل تازه",
             "availability": "in_stock", "availability_source": "digikala_api",
@@ -2514,13 +2538,13 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://example.com/b.webp",
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fb",
             "has_affiliate_link": True, "deal_expires_at": "",
-        }, now)
-        small_saving = _with_verified_current_demand({
+        }, now))
+        small_saving = _with_verified_market_value(_with_verified_current_demand({
             **lower_discount,
             "product_id": "dkp-95303",
             "discount_percent": 60,
             "savings_toman": 50_000,
-        }, now)
+        }, now))
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             [high_discount, lower_discount, small_saving], {"published": {}}, now
         )
@@ -2578,10 +2602,10 @@ class AffilioRadarTests(unittest.TestCase):
             "availability": "in_stock",
             "image_url": "https://example.com/product.webp",
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12345%2F",
-            "review_count": 100,
-            "rating": 4.5,
+            "review_count": 20_000,
+            "rating": 4.7,
         }
-        scored = score_product(product)
+        scored = _with_verified_market_value(score_product(product))
         self.assertEqual(scored["discount_percent"], 15)
         self.assertEqual(scored["savings_toman"], 150_000)
         self.assertTrue(is_discount_publish_eligible(scored))
@@ -2946,9 +2970,14 @@ class AffilioRadarTests(unittest.TestCase):
             "current_demand_score": 60,
             "demand_score": 60,
             "recent_review_growth_7d": 5,
-            "demand_window_hours": 48,
+            "demand_window_hours": 12,
+            "recent_review_growth_window": 5,
             "demand_observed_at": now.isoformat(),
             "demand_signal_source": "digikala_recent_review_growth",
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": 7,
+            "market_available_offer_count": 3,
         }
         with (
             patch("affilio_radar.build_discount_image", return_value=b"rendered") as build_image,
