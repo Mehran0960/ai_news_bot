@@ -133,6 +133,20 @@ def _with_verified_current_demand(product, now=None, growth=5, window_hours=24):
     return product
 
 
+def _with_verified_market_value(product, now=None, advantage=None):
+    observed = now or datetime.now(timezone.utc)
+    product.update({
+        "market_status": "verified",
+        "market_reference_kind": "seller_median",
+        "market_price_advantage_pct": (
+            radar_module.VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT
+            if advantage is None else advantage
+        ),
+        "market_price_checked_at": observed.isoformat(),
+    })
+    return product
+
+
 IN_STOCK_HTML = """
 <html><head>
 <meta property="og:title" content="پاوربانک کاربردی مدل تست">
@@ -2298,13 +2312,8 @@ class AffilioRadarTests(unittest.TestCase):
                 "catalog_best_selling_rank": rank,
                 "catalog_rank_observed_at": now.isoformat(),
             })
-        # The final low-discount candidate is eligible only because independent
-        # same-product market comparison confirms a genuine price advantage.
-        candidates[-1].update({
-            "market_status": "verified",
-            "market_reference_kind": "seller_median",
-            "market_price_advantage_pct": 6,
-        })
+            _with_verified_market_value(candidate, now, advantage=6)
+        # Every discount band is backed by a fresh same-product market comparison.
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             candidates, {"published": {}}, now
         )
@@ -2382,6 +2391,7 @@ class AffilioRadarTests(unittest.TestCase):
             "expiry_source": "unavailable",
         }, now)
 
+        _with_verified_market_value(candidate, now)
         tiered, floor, quality = radar_module.select_discount_fallback_candidates(
             [candidate], {"published": {}}, now, include_fallback_bands=True
         )
@@ -2423,6 +2433,8 @@ class AffilioRadarTests(unittest.TestCase):
                 "rating": 4.6, "deal_expires_at": "",
             }, now),
         ]
+        for candidate in candidates:
+            _with_verified_market_value(candidate, now)
         selected, floor, _ = radar_module.select_discount_fallback_candidates(
             candidates, {"published": published}, now
         )
@@ -2475,6 +2487,8 @@ class AffilioRadarTests(unittest.TestCase):
                 "has_affiliate_link": True, "deal_expires_at": "",
             }, now),
         ]
+        for candidate in candidates:
+            _with_verified_market_value(candidate, now)
         selected, floor, _ = radar_module.select_discount_fallback_candidates(
             candidates, {"published": published}, now
         )
@@ -2494,6 +2508,7 @@ class AffilioRadarTests(unittest.TestCase):
             "has_affiliate_link": True, "deal_expires_at": "",
             "market_status": "verified", "market_reference_kind": "seller_median",
             "market_price_advantage_pct": -8,
+            "market_price_checked_at": now.isoformat(),
         }, now)
         lower_discount = _with_verified_current_demand({
             "product_id": "dkp-95302",
@@ -2505,6 +2520,7 @@ class AffilioRadarTests(unittest.TestCase):
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fb",
             "has_affiliate_link": True, "deal_expires_at": "",
         }, now)
+        _with_verified_market_value(lower_discount, now, advantage=6)
         small_saving = _with_verified_current_demand({
             **lower_discount,
             "product_id": "dkp-95303",
@@ -2556,7 +2572,7 @@ class AffilioRadarTests(unittest.TestCase):
         }
         self.assertFalse(radar_module.has_actionable_demand_signal(stale_rank, now))
 
-    def test_discount_value_gate_requires_evidence_or_conservative_fallback(self):
+    def test_discount_value_gate_rejects_unverified_markdowns_and_accepts_fresh_evidence(self):
         now = datetime.now(timezone.utc)
         unverified_10_percent = {
             "discount_percent": 10,
@@ -2593,7 +2609,7 @@ class AffilioRadarTests(unittest.TestCase):
             "history_checked_at": now.isoformat(),
         }
         self.assertFalse(radar_module.has_attractive_discount_value(unverified_10_percent, now=now))
-        self.assertTrue(radar_module.has_attractive_discount_value(unverified_15_percent, now=now))
+        self.assertFalse(radar_module.has_attractive_discount_value(unverified_15_percent, now=now))
         self.assertTrue(radar_module.has_attractive_discount_value(verified_market_5_percent, now=now))
         self.assertFalse(radar_module.has_attractive_discount_value(market_parity, now=now))
         self.assertTrue(radar_module.has_attractive_discount_value(historical_value, now=now))
@@ -2625,11 +2641,15 @@ class AffilioRadarTests(unittest.TestCase):
             "catalog_best_selling_rank": 12,
             "catalog_rank_observed_at": now.isoformat(),
         }
+        _with_verified_market_value(recent_ranked, now)
         weak_discount = {
             **recent_ranked,
             "product_id": "dkp-95503",
             "discount_percent": 10,
             "savings_toman": 100_000,
+            "market_status": "not_checked",
+            "market_reference_kind": "",
+            "market_price_checked_at": "",
         }
         selected, _, quality = radar_module.select_discount_fallback_candidates(
             [base, recent_ranked, weak_discount],
