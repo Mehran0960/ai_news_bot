@@ -42,6 +42,10 @@ REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
 CANDIDATE_TTL_HOURS = 72
 MIN_CANDIDATE_DISCOUNT = 1
+# DigiKala Search API sort=5 is its best-selling order; ranks are category-local.
+BEST_SELLING_SORT = 5
+BEST_SELLING_PAGE_SIZE = 20
+BEST_SELLING_SIGNAL_MAX_RANK = 50
 MAX_PAGES_PER_CATEGORY = 5000
 MAX_RETAINED_CANDIDATES = 3000
 MAX_PUBLISHER_SEEN_IDS = 12000
@@ -471,8 +475,9 @@ def _candidate_demand(row: dict) -> int:
 
 
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Rank retailer demand first; listed markdown is a later tie-breaker."""
+    """Rank DigiKala's best-selling shelf before lifetime review-count proxies."""
     return (
+        max(0, _normal_int(row.get("catalog_best_seller_score"))),
         _candidate_demand(row),
         max(0, _normal_int(row.get("review_count"))),
         round(_normal_float(row.get("rating")) * 10),
@@ -543,7 +548,11 @@ def retain_diverse_candidates(rows: list[dict], limit: int = MAX_RETAINED_CANDID
 
 
 def _category_page_url(category_id: str, page: int) -> tuple[str, dict]:
-    return SEARCH_URL, {"categories[]": str(category_id), "page": int(page)}
+    return SEARCH_URL, {
+        "categories[]": str(category_id),
+        "page": int(page),
+        "sort": BEST_SELLING_SORT,
+    }
 
 
 def _publisher_seen_ids(publisher_state_path: Path) -> set[str]:
@@ -887,21 +896,46 @@ def run_sweep(
             return 1
 
         discounted_on_page = 0
-        for row in product_rows:
+        for row_position, row in enumerate(product_rows, start=1):
             pid = row["product_id"]
             # Every product card is handed to the bounded publisher detail queue.
             # A missing/zero list-card discount is not evidence of no live discount.
             old = candidates.get(pid, {})
+            if not isinstance(old, dict):
+                old = {}
             first_seen = old.get("first_seen_at") or iso_now()
             previous_categories = old.get("catalog_category_ids", [])
             category_ids = {str(v) for v in previous_categories if str(v).isdigit()} if isinstance(previous_categories, list) else set()
             category_ids.add(category_id)
+            seller_rank = (page - 1) * BEST_SELLING_PAGE_SIZE + row_position
+            seller_score = (
+                max(0, 100 - 2 * (seller_rank - 1))
+                if seller_rank <= BEST_SELLING_SIGNAL_MAX_RANK else 0
+            )
+            old_score = max(0, _normal_int(old.get("catalog_best_seller_score")))
+            keep_new_rank = seller_score > 0 and seller_score >= old_score
             candidate = {
                 **old, **row, "first_seen_at": first_seen,
                 "catalog_category_id": category_id,
                 "catalog_category_name": category_name,
                 "catalog_category_ids": sorted(category_ids, key=lambda value: int(value)),
+                "catalog_best_seller_sort": "digikala_best_selling",
+                "catalog_best_seller_score": max(old_score, seller_score),
             }
+            if keep_new_rank:
+                candidate.update({
+                    "catalog_best_seller_rank": seller_rank,
+                    "catalog_best_seller_category_id": category_id,
+                    "catalog_best_seller_category_name": category_name,
+                    "catalog_best_seller_observed_at": iso_now(),
+                })
+            else:
+                for field in (
+                    "catalog_best_seller_rank", "catalog_best_seller_category_id",
+                    "catalog_best_seller_category_name", "catalog_best_seller_observed_at",
+                ):
+                    if field in old:
+                        candidate[field] = old[field]
             candidates[pid] = candidate
             stats["catalog_candidate_cards_found_total"] += 1
             if row["discount_percent"] >= MIN_CANDIDATE_DISCOUNT:
