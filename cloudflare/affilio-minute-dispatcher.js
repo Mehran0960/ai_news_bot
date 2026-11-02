@@ -9,6 +9,9 @@ const CATALOG_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workf
 const AUDIT_WORKFLOW = "offerchin-integrity-audit.yml";
 const AUDIT_API = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/actions/workflows/" + AUDIT_WORKFLOW;
 const RUNS_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
+const FILO_REPO = "Goushibaaz";
+const FILO_WORKFLOW = "filo-native-republish.yml";
+const FILO_API = `https://api.github.com/repos/${OWNER}/${FILO_REPO}/actions/workflows/${FILO_WORKFLOW}`;
 
 function response(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -60,7 +63,8 @@ async function recoverStaleWorkflow(api, token, label, runningLimitMinutes, queu
 
   // A stuck run owns the shared channel-mutation concurrency lock. Cancel it so
   // a future tick can recover; never let an old worker block publishing forever.
-  await githubRequest(`${RUNS_API}/${run.id}/cancel`, token, { method: "POST" });
+  const runsApi = api.replace(/\/workflows\/[^/]+$/, "/runs");
+  await githubRequest(`${runsApi}/${run.id}/cancel`, token, { method: "POST" });
   console.log(
     `CHANNEL_DISPATCH_STALE_CANCEL_REQUESTED workflow=${label} run_id=${run.id} ` +
     `status=${active.status} age_minutes=${Math.floor(ageMinutes)} threshold_minutes=${limit}`
@@ -116,13 +120,22 @@ async function runScheduledCheck(env, scheduledTime) {
     return;
   }
 
-  if (offset !== 0) {
-    console.log("CHANNEL_DISPATCH_SKIPPED: UTC minute " + minute + " reserved; publisher runs at :00, catalog sweep at :01, and audit at :02 in each five-minute window.");
+  if (offset === 3) {
+    try {
+      await dispatchWorkflowIfIdle(FILO_API, env.GITHUB_TOKEN, FILO_WORKFLOW, 27, 8);
+    } catch (error) {
+      console.error("GOUSHIBAAZ_FILO_DISPATCH_FAILED", String(error).slice(0, 900));
+    }
+    return;
+  }
+
+  if (minute % 20 !== 0) {
+    console.log("CHANNEL_DISPATCH_SKIPPED: UTC minute " + minute + " reserved; OfferChin publisher runs at :00, :20, and :40 UTC; catalog sweep at :01, audit at :02, and Goushibaaz Filo at :03 in each five-minute window.");
     return;
   }
 
   try {
-    await dispatchWorkflowIfIdle(PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 20, 6);
+    await dispatchWorkflowIfIdle(PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 28, 6);
   } catch (error) {
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
