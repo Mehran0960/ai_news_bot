@@ -674,7 +674,7 @@ def load_catalog_candidates(path: Path = CANDIDATES_PATH) -> list[dict]:
 def load_catalog_candidates_for_handoff(
     candidates_path: Path,
     publisher_state: dict,
-    max_count: int = 100,
+    max_count: int = 200,
     now: datetime | None = None,
 ) -> list[dict]:
     """Select unseen cards without acknowledging them before the queue accepts them."""
