@@ -960,7 +960,7 @@ class AffilioRadarTests(unittest.TestCase):
         }), now=now, growth=3)
         weaker_demand_deal.update({"current_demand_score": 20, "demand_score": 20})
         self.assertLess(popular_gadget["discount_percent"], weaker_demand_deal["discount_percent"])
-        self.assertGreater(deal_sort_key(popular_gadget), deal_sort_key(weaker_demand_deal))
+        self.assertGreater(deal_sort_key(popular_gadget, now=now), deal_sort_key(weaker_demand_deal, now=now))
 
     def test_three_recent_reviews_in_active_window_qualify_current_demand(self):
         now = datetime(2026, 11, 1, 12, 0, tzinfo=timezone.utc)
@@ -2102,6 +2102,9 @@ class AffilioRadarTests(unittest.TestCase):
             "discount_percent": 82,
             "savings_toman": 600_000,
             "demand_score": 58,
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 2,
+            "catalog_rank_observed_at": now.isoformat(),
             "deal_expires_at": (now + timedelta(minutes=90)).isoformat(),
         }
         popular_and_valid = {
@@ -2109,6 +2112,9 @@ class AffilioRadarTests(unittest.TestCase):
             "discount_percent": 50,
             "savings_toman": 300_000,
             "demand_score": 80,
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 1,
+            "catalog_rank_observed_at": now.isoformat(),
             "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
         }
         self.assertTrue(is_urgent_priority_deal(urgent_but_less_popular, now))
@@ -4904,6 +4910,9 @@ class AffilioRadarTests(unittest.TestCase):
                 "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
                 "demand_score": 88,
                 "review_count": 2400,
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 1,
+                "catalog_rank_observed_at": now.isoformat(),
                 "discount_percent": 45,
                 "savings_toman": 300_000,
             },
@@ -4914,6 +4923,9 @@ class AffilioRadarTests(unittest.TestCase):
                 "deal_expires_at": (now + timedelta(hours=2)).isoformat(),
                 "demand_score": 28,
                 "review_count": 35,
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 2,
+                "catalog_rank_observed_at": now.isoformat(),
                 "discount_percent": 65,
                 "savings_toman": 500_000,
             },
