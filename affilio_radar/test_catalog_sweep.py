@@ -383,7 +383,7 @@ class CatalogSweepTests(unittest.TestCase):
             self.assertEqual(candidates["candidate_count"], 3)
             self.assertEqual(state["stats"]["catalog_candidate_cards_found_total"], 3)
             self.assertEqual(state["stats"]["discounted_candidates_found_total"], 1)
-            self.assertEqual(dict(session.calls[1][1]).get("sort"), 5)
+            self.assertEqual(dict(session.calls[1][1]).get("sort"), 7)
             by_id = {row["product_id"]: row for row in candidates["candidates"]}
             self.assertIn("dkp-778", by_id)
             self.assertEqual(by_id["dkp-778"]["discount_percent"], 0)
