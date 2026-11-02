@@ -2555,6 +2555,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(radar_module.has_actionable_demand_signal(stale_rank, now))
 
     def test_discount_value_gate_requires_evidence_or_conservative_fallback(self):
+        now = datetime.now(timezone.utc)
         unverified_10_percent = {
             "discount_percent": 10,
             "savings_toman": 500_000,
@@ -2569,6 +2570,7 @@ class AffilioRadarTests(unittest.TestCase):
             "market_status": "verified",
             "market_reference_kind": "seller_median",
             "market_price_advantage_pct": 5,
+            "market_price_checked_at": now.isoformat(),
         }
         market_parity = {
             **verified_market_5_percent,
@@ -2579,19 +2581,21 @@ class AffilioRadarTests(unittest.TestCase):
             "savings_toman": 500_000,
             "history_status": "verified",
             "historical_deal_eligible": True,
+            "history_checked_at": now.isoformat(),
         }
         verified_bad_history = {
             "discount_percent": 30,
             "savings_toman": 500_000,
             "history_status": "verified",
             "historical_deal_eligible": False,
+            "history_checked_at": now.isoformat(),
         }
-        self.assertFalse(radar_module.has_attractive_discount_value(unverified_10_percent))
-        self.assertTrue(radar_module.has_attractive_discount_value(unverified_15_percent))
-        self.assertTrue(radar_module.has_attractive_discount_value(verified_market_5_percent))
-        self.assertFalse(radar_module.has_attractive_discount_value(market_parity))
-        self.assertTrue(radar_module.has_attractive_discount_value(historical_value))
-        self.assertFalse(radar_module.has_attractive_discount_value(verified_bad_history))
+        self.assertFalse(radar_module.has_attractive_discount_value(unverified_10_percent, now=now))
+        self.assertTrue(radar_module.has_attractive_discount_value(unverified_15_percent, now=now))
+        self.assertTrue(radar_module.has_attractive_discount_value(verified_market_5_percent, now=now))
+        self.assertFalse(radar_module.has_attractive_discount_value(market_parity, now=now))
+        self.assertTrue(radar_module.has_attractive_discount_value(historical_value, now=now))
+        self.assertFalse(radar_module.has_attractive_discount_value(verified_bad_history, now=now))
 
     def test_new_selection_rejects_lifetime_only_demand_and_weak_unverified_discount(self):
         now = datetime.now(timezone.utc)
