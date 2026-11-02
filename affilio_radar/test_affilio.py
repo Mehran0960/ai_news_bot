@@ -1506,7 +1506,9 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
 
         self.assertTrue(selected)
-        self.assertEqual(selected[0]["product_id"], "dkp-late-fragrance")
+        # Strict demand/discount priority outranks category variety and the
+        # 60% eyewear offer wins when current demand evidence is tied.
+        self.assertEqual(selected[0]["product_id"], "dkp-eyewear-0")
 
 
     def test_single_repeated_category_candidate_is_recorded_as_diversity_fallback(self):
