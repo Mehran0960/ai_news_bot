@@ -1,5 +1,5 @@
 name: OfferChin Selected Content Publisher
-# Tiered discount selection lives in affilio_radar.py: 50% preferred, then 45/40/35% only when higher bands have no eligible offer.
+# New posts require fresh demand evidence plus verified market/history value or a 15% unverified-value fallback.
 # [publisher-run-now] Verify preserved discount floors after merge.
 # [publisher-run-now] Controlled live verification after ranked inline fallback rollout.
 # [publisher-run-now] One-time live validation after staged discount fallback implementation.
@@ -137,7 +137,7 @@ jobs:
           AFFILIO_MARKET_CHALLENGE_COOLDOWN_HOURS: "6"
           AFFILIO_MARKET_GLOBAL_PAUSE_MINUTES: "20"
           AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "1"
-          AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "1"
+          AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "3"
           AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS: "6"
           AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS: "2"
           AFFILIO_CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS: "12"
