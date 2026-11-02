@@ -22,7 +22,7 @@ from integrity_audit_state import apply_integrity_audit_ledger
 
 RETRY_BASE_SECONDS = max(60, int(os.getenv("AFFILIO_PUBLISH_RETRY_BASE_SECONDS", "300")))
 MAX_ITEMS_PER_RUN = max(1, min(3, int(os.getenv("AFFILIO_PUBLISHER_BATCH_SIZE", "1"))))
-MAX_INLINE_FALLBACK_ATTEMPTS = 5
+MAX_INLINE_FALLBACK_ATTEMPTS = 50
 TERMINAL_PLATFORM = {"sent", "not_connected", "manual_review"}
 
 
@@ -47,7 +47,7 @@ def _utc(value: Any) -> datetime | None:
 
 
 def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
-    """Keep backups that still have a real live discount and pass delivery safety checks."""
+    """Keep backups with a genuine current markdown; ranked backups share the primary policy."""
     if not isinstance(candidates, list):
         return []
     eligible: list[dict] = []
@@ -62,23 +62,27 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
                 selected_floor = int(raw_floor)
             except (TypeError, ValueError, OverflowError):
                 continue
-        # Legacy queues may contain old 35–50% floors. Normalize them to the
-        # current any-real-markdown policy rather than silently dropping backups.
         selected_floor = radar.MIN_DISCOUNT_FALLBACK_PERCENT
         candidate = dict(candidate)
         candidate["selection_discount_floor"] = selected_floor
         candidate["selection_discount_band"] = "1%+"
+        ranked_policy = str(candidate.get("publication_policy") or "") == "demand_then_discount_v1"
         if (
             radar.is_discount_publish_eligible(
-                candidate,
-                minimum_discount_percent=selected_floor,
-                now=now,
+                candidate, minimum_discount_percent=selected_floor, now=now
             )
-            and radar.has_actionable_demand_signal(candidate, now=now)
-            and radar.has_attractive_discount_value(candidate, now=now)
+            and (
+                ranked_policy
+                or (
+                    radar.is_market_value_publish_eligible(candidate)
+                    and radar.has_actionable_demand_signal(candidate, now=now)
+                    and radar.has_attractive_discount_value(candidate, now=now)
+                )
+            )
         ):
             eligible.append(candidate)
     return eligible
+
 
 
 def _duplicate_guard_reason(existing: Any, delivery_id: str) -> str:
@@ -294,6 +298,8 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
         "market_match_score", "market_seller_count", "catalog_sort_mode",
         "catalog_best_selling_rank", "catalog_best_selling_category_id",
         "catalog_best_selling_category_name", "catalog_rank_observed_at",
+        "publication_policy", "selection_demand_evidence", "selection_value_evidence",
+        "selection_fallback_mode",
     ):
         if key in payload:
             fresh[key] = payload[key]
@@ -372,13 +378,14 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
         isinstance(target, dict) and target.get("status") == "sent"
         for target in platform_states.values()
     )
-    if not already_partially_delivered:
-        if not radar.has_actionable_demand_signal(fresh, now=now):
-            return None, "live_demand_signal_missing"
-        if not radar.has_attractive_discount_value(fresh, now=now):
-            return None, "live_discount_value_not_verified"
+    ranked_delivery_policy = (
+        str(payload.get("publication_policy") or "") == "demand_then_discount_v1"
+    )
+    if not already_partially_delivered and not ranked_delivery_policy:
+        # Legacy queue records retain the older evidence gate. New selections
+        # already have a demand-first/discount-second ranking.
 
-    if not radar.is_market_value_publish_eligible(fresh):
+    if not ranked_delivery_policy and not radar.is_market_value_publish_eligible(fresh):
         return None, "live_market_value_rejected"
     if not radar.has_publishable_expiry_or_open_offer(fresh, now):
         return None, "live_offer_expired_or_unverified"
