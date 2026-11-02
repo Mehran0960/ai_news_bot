@@ -962,9 +962,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertLess(popular_gadget["discount_percent"], weaker_demand_deal["discount_percent"])
         self.assertGreater(deal_sort_key(popular_gadget), deal_sort_key(weaker_demand_deal))
 
-    def test_one_recent_review_in_active_window_qualifies_current_demand(self):
-        now = datetime(2026, 11, 1, 12, 0, tzinfo=timezone.utc)
-        baseline = now - timedelta(hours=8)
+    def test_current_demand_requires_three_recent_reviews_over_24_hours(self):
+        now = datetime.now(timezone.utc)
+        baseline = now - timedelta(hours=24)
 
         growing_state = {
             "current_demand_observations": {
@@ -981,13 +981,22 @@ class AffilioRadarTests(unittest.TestCase):
             "product_id": "dkp-99001",
             "review_count": 101,
         }
+        first_summary = radar_module.update_current_demand_signals(
+            growing_state, [growing], now=now
+        )
+        self.assertEqual(first_summary["verified"], 0)
+        self.assertFalse(radar_module.has_current_demand_signal(growing, now))
+        self.assertEqual(growing["recent_review_growth_window"], 1)
+        self.assertEqual(growing["demand_window_hours"], 24.0)
+
+        growing["review_count"] = 103
         summary = radar_module.update_current_demand_signals(
             growing_state, [growing], now=now
         )
         self.assertEqual(summary["verified"], 1)
         self.assertTrue(radar_module.has_current_demand_signal(growing, now))
-        self.assertEqual(growing["recent_review_growth_window"], 1)
-        self.assertEqual(growing["demand_window_hours"], 8.0)
+        self.assertEqual(growing["recent_review_growth_window"], 3)
+        self.assertEqual(growing["demand_window_hours"], 24.0)
 
         unchanged_state = {
             "current_demand_observations": {
@@ -2844,21 +2853,21 @@ class AffilioRadarTests(unittest.TestCase):
 
         product["review_count"] = 50_003
         radar_module.update_current_demand_signals(
-            state, [product], now=start + timedelta(hours=23)
+            state, [product], now=start + timedelta(hours=24)
         )
         self.assertTrue(product["current_demand_verified"])
         self.assertEqual(product["recent_review_growth_7d"], 3)
         self.assertGreater(product["demand_score"], 0)
         self.assertTrue(
             radar_module.has_current_demand_signal(
-                product, now=start + timedelta(hours=25)
+                product, now=start + timedelta(hours=26)
             )
         )
 
         stale = dict(product)
         self.assertFalse(
             radar_module.has_current_demand_signal(
-                stale, now=start + timedelta(hours=25 + radar_module.CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS + 1)
+                stale, now=start + timedelta(hours=26 + radar_module.CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS + 1)
             )
         )
 
