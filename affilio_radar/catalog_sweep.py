@@ -583,7 +583,7 @@ def _candidate_demand(row: dict) -> int:
         0, round(best_seller_percentile),
         round(most_viewed_percentile * 0.85),
     )
-    return max(min(200, explicit), review_proxy + rating_proxy, normalized_catalog_signal)
+    return max(min(100, explicit), review_proxy + rating_proxy, normalized_catalog_signal)
 
 
 def catalog_candidate_sort_key(row: dict) -> tuple:
