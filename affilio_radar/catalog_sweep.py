@@ -491,7 +491,7 @@ def _catalog_best_selling_rank_tier(row: dict) -> tuple[int, int]:
         return (3, -rank)
     if rank <= 160:
         return (2, -rank)
-    return (1, -rank)
+    return (0, 0)
 
 
 def catalog_candidate_sort_key(row: dict) -> tuple:
