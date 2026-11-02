@@ -97,7 +97,11 @@ def _fetch_page(task: dict) -> dict:
     try:
         response = _session().get(
             base.SEARCH_URL,
-            params={"categories[]": category_id, "page": page},
+            params={
+                "categories[]": category_id,
+                "page": page,
+                "sort": base.BEST_SELLING_SORT_VALUE,
+            },
             timeout=base.REQUEST_TIMEOUT,
         )
         if response.status_code in (400, 404):
@@ -326,22 +330,69 @@ def run_parallel_sweep(
 
         total_pages = result.get("total_pages")
         total_pages = max(1, int(total_pages)) if total_pages is not None else None
-        for row in rows:
+        page_observed_at = base.iso_now()
+        page_start_rank = (page - 1) * base.BEST_SELLING_PAGE_SIZE
+        category_name = str(task.get("category_name") or category_id)
+        for row_index, row in enumerate(rows):
             if not isinstance(row, dict):
                 continue
             pid = str(row.get("product_id") or "")
             if not pid:
                 continue
             old = candidates.get(pid, {})
-            first_seen = old.get("first_seen_at") or base.iso_now()
+            old = old if isinstance(old, dict) else {}
+            first_seen = old.get("first_seen_at") or page_observed_at
             previous_categories = old.get("catalog_category_ids", [])
             category_ids = {str(v) for v in previous_categories if str(v).isdigit()} if isinstance(previous_categories, list) else set()
             category_ids.add(category_id)
+
+            ranks_by_category = old.get("catalog_best_selling_ranks_by_category", {})
+            ranks_by_category = dict(ranks_by_category) if isinstance(ranks_by_category, dict) else {}
+            category_rank = page_start_rank + row_index + 1
+            ranks_by_category[category_id] = {
+                "rank": category_rank,
+                "observed_at": page_observed_at,
+                "category_name": category_name,
+            }
+            valid_ranks = []
+            for rank_category_id, rank_record in ranks_by_category.items():
+                if not str(rank_category_id).isdigit() or not isinstance(rank_record, dict):
+                    continue
+                saved_rank = base._normal_int(rank_record.get("rank"))
+                if not 1 <= saved_rank <= base.BEST_SELLING_PAGE_SIZE * base.BEST_SELLING_MAX_PAGES_PER_CATEGORY:
+                    continue
+                try:
+                    rank_observed = base.datetime.fromisoformat(
+                        str(rank_record.get("observed_at") or "").replace("Z", "+00:00")
+                    )
+                    if rank_observed.tzinfo is None:
+                        rank_observed = rank_observed.replace(tzinfo=base.timezone.utc)
+                    rank_age_hours = (
+                        now.astimezone(base.timezone.utc) - rank_observed.astimezone(base.timezone.utc)
+                    ).total_seconds() / 3600
+                except (TypeError, ValueError, OverflowError):
+                    continue
+                if 0 <= rank_age_hours <= base.BEST_SELLING_MAX_AGE_HOURS:
+                    valid_ranks.append((saved_rank, str(rank_category_id), rank_record))
+            best_rank, best_category_id, best_rank_record = (
+                min(valid_ranks, key=lambda item: item[0]) if valid_ranks
+                else (category_rank, category_id, {
+                    "observed_at": page_observed_at,
+                    "category_name": category_name,
+                })
+            )
             candidates[pid] = {
-                **old, **row, "first_seen_at": first_seen,
+                **old, **row,
+                "first_seen_at": first_seen,
                 "catalog_category_id": category_id,
-                "catalog_category_name": str(task.get("category_name") or category_id),
+                "catalog_category_name": category_name,
                 "catalog_category_ids": sorted(category_ids, key=lambda value: int(value)),
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_ranks_by_category": ranks_by_category,
+                "catalog_best_selling_rank": best_rank,
+                "catalog_best_selling_category_id": best_category_id,
+                "catalog_best_selling_category_name": str(best_rank_record.get("category_name") or category_name),
+                "catalog_rank_observed_at": str(best_rank_record.get("observed_at") or page_observed_at),
             }
             stats["catalog_candidate_cards_found_total"] += 1
             if base._normal_int(row.get("discount_percent")) >= base.MIN_CANDIDATE_DISCOUNT:
@@ -408,6 +459,7 @@ def run_parallel_sweep(
         f"products={page_row_count} categories={len(categories)} leaf_categories={state.get('parallel_leaf_category_count', 0)} "
         f"pending_pages={len(remaining)} candidates={len(ordered_candidates)} "
         f"pages_total={stats['pages_scanned_total']} "
+        f"sort=best_selling rank_top={base.BEST_SELLING_PAGE_SIZE * base.BEST_SELLING_MAX_PAGES_PER_CATEGORY} "
         f"completed_cycles={stats['completed_cycles']}"
     )
     return 0
