@@ -2219,6 +2219,22 @@ class AffilioRadarTests(unittest.TestCase):
         small_saving = score_product({**base, "current_price": 990_000})
         self.assertEqual(small_saving["discount_percent"], 1)
         self.assertTrue(is_discount_publish_eligible(small_saving))
+        self.assertFalse(radar_module.is_attractive_value_offer(small_saving))
+        meaningful_low_percent_saving = score_product({
+            **base, "current_price": 9_700_000, "original_price": 10_000_000,
+        })
+        self.assertEqual(meaningful_low_percent_saving["discount_percent"], 3)
+        self.assertTrue(radar_module.is_attractive_value_offer(meaningful_low_percent_saving))
+        market_supported_small_discount = score_product({
+            **base,
+            "current_price": 9_900_000,
+            "original_price": 10_000_000,
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": 6,
+        })
+        self.assertEqual(market_supported_small_discount["discount_percent"], 1)
+        self.assertTrue(radar_module.is_attractive_value_offer(market_supported_small_discount))
         no_real_drop = score_product({**base, "current_price": 1_000_000})
         self.assertFalse(is_discount_publish_eligible(no_real_drop))
         missing_stock = dict(strong_discount, availability="unknown")
@@ -2255,7 +2271,7 @@ class AffilioRadarTests(unittest.TestCase):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
 
         def product(pid, title, discount):
-            current_price = 1_000_000
+            current_price = 10_000_000
             original_price = int(round(current_price / (1 - discount / 100)))
             return {
                 "product_id": pid,
@@ -2574,7 +2590,7 @@ class AffilioRadarTests(unittest.TestCase):
             discovery_queue_sort_key(low_demand_huge_discount, now),
         )
 
-    def test_lifetime_popularity_ranks_before_short_term_review_growth(self):
+    def test_fresh_current_demand_ranks_before_lifetime_popularity(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
         established_popularity = {
             "historical_popularity_score": 42,
@@ -2594,14 +2610,46 @@ class AffilioRadarTests(unittest.TestCase):
             "current_demand_verified": True,
             "current_demand_score": 100,
             "demand_score": 100,
-            "discount_percent": 80,
+            "recent_review_growth_window": 5,
+            "recent_review_growth_7d": 5,
+            "demand_window_hours": 24,
+            "demand_observed_at": now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth",
+            "discount_percent": 35,
             "savings_toman": 800_000,
             "first_seen_at": now.isoformat(),
         }
-        self.assertGreater(deal_sort_key(established_popularity), deal_sort_key(short_term_spike))
+        self.assertTrue(radar_module.has_current_demand_signal(short_term_spike, now))
+        self.assertGreater(deal_sort_key(short_term_spike), deal_sort_key(established_popularity))
         self.assertGreater(
-            discovery_queue_sort_key(established_popularity, now),
             discovery_queue_sort_key(short_term_spike, now),
+            discovery_queue_sort_key(established_popularity, now),
+        )
+
+    def test_fresh_category_best_seller_rank_beats_lifetime_review_volume(self):
+        now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+        current_best_seller = {
+            "catalog_sort_order": "best_selling",
+            "catalog_best_selling_rank": 2,
+            "catalog_best_selling_at": now.isoformat(),
+            "review_count": 250,
+            "rating": 4.1,
+            "discount_percent": 12,
+            "savings_toman": 120_000,
+            "first_seen_at": now.isoformat(),
+        }
+        historically_popular = {
+            "historical_popularity_score": 42,
+            "review_count": 50_000,
+            "rating": 4.8,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+            "first_seen_at": now.isoformat(),
+        }
+        self.assertGreater(deal_sort_key(current_best_seller), deal_sort_key(historically_popular))
+        self.assertGreater(
+            discovery_queue_sort_key(current_best_seller, now),
+            discovery_queue_sort_key(historically_popular, now),
         )
 
     def test_selection_uses_market_demand_first_and_discount_percentage_second(self):
