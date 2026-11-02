@@ -26,36 +26,41 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual(len(retained), 4)
         self.assertTrue({"20", "30"}.issubset({row["catalog_category_id"] for row in retained}))
 
-    def test_initial_queue_covers_categories_and_preserves_legacy_cursor(self):
+    def test_initial_queue_covers_all_categories_and_both_demand_orders(self):
         categories = [
             {"id": "1", "name": "mobile"},
             {"id": "2", "name": "home"},
             {"id": "3", "name": "fashion"},
         ]
-        tasks = sweep.build_initial_page_queue(categories, legacy_category_index=1, legacy_page=7)
+        tasks = sweep.build_initial_page_queue(categories)
+        self.assertEqual(len(tasks), 6)
         self.assertEqual(
-            [(row["category_id"], row["page"]) for row in tasks],
-            [("2", 7), ("3", 1)],
+            [(row["category_id"], row["page"], row["sort_mode"]) for row in tasks],
+            [
+                ("1", 1, "best_selling"), ("2", 1, "best_selling"), ("3", 1, "best_selling"),
+                ("1", 1, "most_viewed"), ("2", 1, "most_viewed"), ("3", 1, "most_viewed"),
+            ],
         )
 
-    def test_parallel_queue_prunes_legacy_deep_pages_outside_top_sixty(self):
+    def test_parallel_queue_preserves_deep_pages_and_migrates_old_categories(self):
         state = {
-            "categories": [{"id": "10", "name": "mobile"}],
+            "categories": [{"id": "10", "name": "mobile"}, {"id": "20", "name": "home"}],
             "parallel_queue_initialized": True,
-            "parallel_known_category_ids": ["10"],
+            "parallel_known_category_ids": ["10", "20"],
             "parallel_pending_pages": [
                 {"category_id": "10", "page": 1, "attempts": 0},
                 {"category_id": "10", "page": 3, "attempts": 0},
-                {"category_id": "10", "page": 4, "attempts": 0},
                 {"category_id": "10", "page": 500, "attempts": 2},
             ],
         }
         queued = sweep._ensure_parallel_state(state)
-        self.assertEqual(
-            [(row["category_id"], row["page"]) for row in queued],
-            [("10", 1), ("10", 3)],
-        )
-        self.assertEqual(state["parallel_deep_pages_pruned"], 2)
+        keys = {(row["category_id"], row["page"], row["sort_mode"]) for row in queued}
+        self.assertIn(("10", 500, "best_selling"), keys)
+        self.assertIn(("10", 4, "best_selling"), keys)
+        self.assertIn(("20", 4, "best_selling"), keys)
+        self.assertIn(("10", 1, "most_viewed"), keys)
+        self.assertIn(("20", 1, "most_viewed"), keys)
+        self.assertNotIn("parallel_deep_pages_pruned", state)
 
     def test_fetch_page_requests_best_selling_order(self):
         captured = {}
@@ -70,7 +75,8 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         with patch.object(sweep, "_session", return_value=Session()):
             result = sweep._fetch_page({"category_id": "123", "page": 2})
 
-        self.assertEqual(result["kind"], "terminal")
+        self.assertEqual(result["kind"], "end")
+        self.assertTrue(result["inferred_boundary"])
         self.assertEqual(captured["params"]["categories[]"], "123")
         self.assertEqual(captured["params"]["page"], 2)
         self.assertEqual(captured["params"]["sort"], 7)
@@ -103,8 +109,15 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual(sweep._next_page_task(task, total_pages=4, product_count=20)["page"], 3)
         self.assertIsNone(sweep._next_page_task(task, total_pages=2, product_count=20))
         self.assertIsNone(sweep._next_page_task(task, total_pages=4, product_count=0))
+        self.assertEqual(
+            sweep._next_page_task({"category_id": "12", "page": 5000}, None, 20)["page"],
+            5001,
+        )
         self.assertIsNone(
-            sweep._next_page_task({"category_id": "12", "page": 5000}, None, 20)
+            sweep._next_page_task(
+                {"category_id": "12", "page": 3, "sort_mode": "most_viewed"},
+                total_pages=10, product_count=20,
+            )
         )
 
     def test_parallel_run_persists_follow_up_and_retries_failed_pages(self):
@@ -158,11 +171,12 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             self.assertEqual(result, 0)
             saved = json.loads(state_path.read_text(encoding="utf-8"))
             pending = {
-                (row["category_id"], row["page"])
+                (row["category_id"], row["page"], row["sort_mode"])
                 for row in saved["parallel_pending_pages"]
             }
-            self.assertIn(("10", 2), pending)
-            self.assertIn(("20", 1), pending)
+            self.assertIn(("10", 2, "best_selling"), pending)
+            self.assertIn(("20", 1, "best_selling"), pending)
+            self.assertIn(("10", 1, "most_viewed"), pending)
             self.assertGreaterEqual(saved["parallel_last_batch_retries"], 1)
             candidate_data = json.loads(candidates_path.read_text(encoding="utf-8"))
             self.assertEqual(candidate_data["candidates"][0]["product_id"], "dkp-1")
@@ -170,6 +184,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             self.assertEqual(candidate["catalog_sort_mode"], "best_selling")
             self.assertEqual(candidate["catalog_best_selling_rank"], 1)
             self.assertEqual(candidate["catalog_best_selling_category_id"], "10")
+            self.assertEqual(candidate["catalog_best_selling_percentile"], 100.0)
             self.assertEqual(saved["stats"]["pages_scanned_total"], 1)
 
 
