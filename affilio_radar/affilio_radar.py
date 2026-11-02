@@ -136,11 +136,11 @@ CATALOG_BEST_SELLING_SIGNAL_TTL_HOURS = max(
 )
 # Recent review growth improves the demand rank when observable; lifetime review
 # count/rating are used as fallback public popularity proxies, never as sales claims.
-CURRENT_DEMAND_WINDOW_DAYS = max(1, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "1"))))
-CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "1"))))
-CURRENT_DEMAND_MIN_OBSERVATION_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS", "6"))))
-CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS", "2"))))
-CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS", "12"))))
+CURRENT_DEMAND_WINDOW_DAYS = max(1, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "7"))))
+CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "3"))))
+CURRENT_DEMAND_MIN_OBSERVATION_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS", "24"))))
+CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS", "6"))))
+CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS", "30"))))
 CURRENT_DEMAND_HISTORY_MAX_PRODUCTS = max(100, min(5000, int(os.getenv("AFFILIO_CURRENT_DEMAND_HISTORY_MAX_PRODUCTS", "2000"))))
 # Bounded history checks prevent repeated retailer API calls for the same product.
 PRICE_HISTORY_CHECK_LIMIT = max(0, min(5, int(os.getenv("AFFILIO_HISTORY_CHECK_LIMIT", "2"))))
