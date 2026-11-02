@@ -2666,6 +2666,48 @@ class AffilioRadarTests(unittest.TestCase):
             discovery_queue_sort_key(historically_popular, now),
         )
 
+    def test_publish_requires_fresh_sales_or_review_demand_evidence(self):
+        now = datetime.now(timezone.utc)
+        lifetime_only = score_product({
+            "title": "پاوربانک محبوب با سابقه نظر زیاد",
+            "availability": "in_stock",
+            "current_price": 900_000,
+            "original_price": 1_000_000,
+            "rating": 4.7,
+            "review_count": 50_000,
+            "image_url": "https://example.com/lifetime.webp",
+            "affiliate_url": "https://www.digikala.com/product/dkp-99010/",
+        })
+        self.assertGreater(lifetime_only["historical_popularity_score"], 0)
+        self.assertFalse(radar_module.has_current_market_demand_evidence(lifetime_only, now))
+        self.assertFalse(is_discount_publish_eligible(lifetime_only, now=now))
+
+        current_best_seller = score_product({
+            "title": "پاوربانک پرفروش با تخفیف واقعی",
+            "availability": "in_stock",
+            "current_price": 9_700_000,
+            "original_price": 10_000_000,
+            "rating": 4.4,
+            "review_count": 250,
+            "image_url": "https://example.com/bestseller.webp",
+            "affiliate_url": "https://www.digikala.com/product/dkp-99011/",
+            "catalog_sort_order": "best_selling",
+            "catalog_best_selling_rank": 5,
+            "catalog_best_selling_at": now.isoformat(),
+        })
+        self.assertFalse(current_best_seller["current_demand_verified"])
+        self.assertTrue(radar_module.has_current_market_demand_evidence(current_best_seller, now))
+        self.assertTrue(is_discount_publish_eligible(current_best_seller, now=now))
+
+        stale_rank = dict(
+            current_best_seller,
+            catalog_best_selling_at=(now - timedelta(hours=CATALOG_BEST_SELLING_SIGNAL_TTL_HOURS + 1)).isoformat(),
+        )
+        self.assertFalse(radar_module.has_current_market_demand_evidence(stale_rank, now))
+        self.assertFalse(is_discount_publish_eligible(stale_rank, now=now))
+
+
+
     def test_selection_uses_market_demand_first_and_discount_percentage_second(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
         popular_lower_discount = {
