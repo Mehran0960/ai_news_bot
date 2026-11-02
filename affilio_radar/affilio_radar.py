@@ -2912,6 +2912,40 @@ def _candidate_popularity_score(record: dict) -> int:
     return min(100, review_proxy + rating_proxy)
 
 
+def _deal_demand_sort_key(record: dict, now: datetime | None = None) -> tuple:
+    """Rank verified current demand, clicks, and broad popularity before discount size."""
+    candidate = record if isinstance(record, dict) else {}
+    try:
+        clicks = max(0, int(candidate.get("click_count_30d") or 0))
+        reviews = max(0, int(candidate.get("review_count") or 0))
+        rating_score = round(float(candidate.get("rating") or candidate.get("rating_value") or 0) * 10)
+    except (TypeError, ValueError, OverflowError):
+        clicks = reviews = rating_score = 0
+    return (
+        *_demand_evidence_sort_key(candidate, now=now),
+        clicks,
+        _candidate_popularity_score(candidate),
+        reviews,
+        rating_score,
+    )
+
+
+def _discount_percentage_sort_value(record: dict) -> int:
+    try:
+        return max(0, int(record.get("discount_percent") or 0))
+    except (TypeError, ValueError, OverflowError):
+        return 0
+
+
+def _deal_primary_sort_key(record: dict, now: datetime | None = None) -> tuple:
+    """The first two strict priorities: market demand, then discount percentage."""
+    candidate = record if isinstance(record, dict) else {}
+    return (
+        *_deal_demand_sort_key(candidate, now=now),
+        _discount_percentage_sort_value(candidate),
+    )
+
+
 def _deal_value_evidence_key(record: dict) -> tuple[int, int]:
     """Prefer independent same-product market/history evidence without setting a discount floor."""
     if not isinstance(record, dict):
@@ -2940,33 +2974,18 @@ def _deal_value_evidence_key(record: dict) -> tuple[int, int]:
 
 
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Rank demand and recency before price-value evidence, then the listed markdown."""
+    """Rank demand first and markdown percentage second; deal evidence follows both."""
+    candidate = record if isinstance(record, dict) else {}
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("deal_expires_at")))
+    expiry = _parse_utc_datetime(_parse_deal_expiry_value(candidate.get("deal_expires_at")))
     active_deadline = bool(expiry and expiry > current)
     remaining = max(0.0, (expiry - current).total_seconds()) if active_deadline else 0.0
     has_runway = bool(active_deadline and remaining >= MIN_PUBLICATION_RUNWAY_MINUTES * 60)
-    discount = max(0, int(record.get("discount_percent") or 0))
-    savings = max(0, int(record.get("savings_toman") or 0))
-    clicks = max(0, int(record.get("click_count_30d") or 0))
-    reviews = max(0, int(record.get("review_count") or 0))
-    try:
-        rating_score = round(float(record.get("rating") or record.get("rating_value") or 0) * 10)
-    except (TypeError, ValueError, OverflowError):
-        rating_score = 0
-    value_gate = int(has_meaningful_discount(record))
-    market_verified = int(
-        record.get("market_status") == "verified"
-        and record.get("market_reference_kind") == "seller_median"
-        and record.get("market_price_advantage_pct") is not None
-    )
-    try:
-        market_advantage = int(record.get("market_price_advantage_pct") or 0) if market_verified else -101
-    except (TypeError, ValueError, OverflowError):
-        market_advantage = -101
+    savings = max(0, int(candidate.get("savings_toman") or 0))
+    value_gate = int(has_meaningful_discount(candidate))
     if not active_deadline:
         urgency_tier = -1
     elif remaining <= 120 * 60:
@@ -2975,17 +2994,20 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
         urgency_tier = 1
     else:
         urgency_tier = 0
-    first_seen = _parse_utc_datetime(record.get("first_seen_at"))
+    first_seen = _parse_utc_datetime(candidate.get("first_seen_at"))
     first_seen_ts = first_seen.timestamp() if first_seen else current.timestamp()
-    evidence_tier, evidence_strength = _deal_value_evidence_key(record)
+    evidence_tier, evidence_strength = _deal_value_evidence_key(candidate)
     return (
-        *_demand_evidence_sort_key(record, current),
-        clicks,
-        evidence_tier, evidence_strength, discount, value_gate,
-        _candidate_promo_score(record), savings,
-        _candidate_popularity_score(record), reviews, rating_score,
-        int(has_runway), urgency_tier,
-        -remaining if active_deadline else float("-inf"), -first_seen_ts,
+        *_deal_primary_sort_key(candidate, now=current),
+        evidence_tier,
+        evidence_strength,
+        value_gate,
+        _candidate_promo_score(candidate),
+        savings,
+        int(has_runway),
+        urgency_tier,
+        -remaining if active_deadline else float("-inf"),
+        -first_seen_ts,
     )
 
 def merge_discovery_queue(
@@ -4332,26 +4354,20 @@ def score_product(p: dict) -> dict:
 
 
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank fresh demand evidence first, then price value and listed markdown."""
+    """Rank the strongest demand first, then the largest listed markdown."""
+    candidate = p if isinstance(p, dict) else {}
     try:
-        reviews = max(0, int(p.get("review_count") or 0))
-        rating_score = round(float(p.get("rating") or p.get("rating_value") or 0) * 10)
-        discount = max(0, int(p.get("discount_percent") or 0))
-        savings = max(0, int(p.get("savings_toman") or 0))
+        savings = max(0, int(candidate.get("savings_toman") or 0))
     except (TypeError, ValueError, OverflowError):
-        reviews = rating_score = discount = savings = 0
-    evidence_tier, evidence_strength = _deal_value_evidence_key(p)
+        savings = 0
+    evidence_tier, evidence_strength = _deal_value_evidence_key(candidate)
     return (
-        *_demand_evidence_sort_key(p, now=now),
+        *_deal_primary_sort_key(candidate, now=now),
         evidence_tier,
         evidence_strength,
-        int(has_meaningful_discount(p)),
-        discount,
-        int(p.get("promo_score") or 0),
+        int(has_meaningful_discount(candidate)),
+        int(candidate.get("promo_score") or 0),
         savings,
-        _candidate_popularity_score(p),
-        reviews,
-        rating_score,
     )
 
 def _fetch_click_statistics_snapshot() -> dict:
@@ -7098,33 +7114,12 @@ def _order_candidates_by_primary_rank(
                 break
         leader = remaining[0]
         lookahead = remaining[:DIVERSITY_LOOKAHEAD_CANDIDATES]
-        def has_explicit_demand_advantage(candidate: dict, top_candidate: dict) -> bool:
-            """Do not let variety override a stronger explicit retailer demand score."""
-            try:
-                top_score = int(top_candidate.get("demand_score") or 0)
-                candidate_score = int(candidate.get("demand_score") or 0)
-            except (TypeError, ValueError, OverflowError):
-                return False
-            if top_score <= 0:
-                return False
-            if candidate_score <= 0:
-                return True
-            minimum_comparable_score = max(
-                top_score - DIVERSITY_DEMAND_SCORE_GAP,
-                round(top_score * DIVERSITY_DEMAND_SCORE_RATIO),
-            )
-            return candidate_score < minimum_comparable_score
-
+        # Category/retailer diversity may only resolve exact ties on demand and discount.
+        leader_priority_key = _deal_primary_sort_key(leader, now=current)
         comparable = [
             (position, item) for position, item in enumerate(lookahead)
-            if position == 0 or (
-                _candidate_demand_comparable_for_diversity(item, leader)
-                and not has_explicit_demand_advantage(item, leader)
-            )
+            if position == 0 or _deal_primary_sort_key(item, now=current) == leader_priority_key
         ]
-        if not comparable:
-            comparable = [(0, leader)]
-
         fresh_category_and_family = [
             row for row in comparable
             if group(row[1])[0] not in recent_categories
@@ -10276,3 +10271,4 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
