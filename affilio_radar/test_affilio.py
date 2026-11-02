@@ -115,7 +115,7 @@ from affilio_radar import (
 )
 
 
-def _with_verified_current_demand(product, now=None, growth=5, window_hours=48):
+def _with_verified_current_demand(product, now=None, growth=5, window_hours=12):
     observed = now or datetime.now(timezone.utc)
     product.update({
         "current_demand_verified": True,
@@ -129,6 +129,38 @@ def _with_verified_current_demand(product, now=None, growth=5, window_hours=48):
             if str(product.get("product_id", "")).startswith("snp-")
             else "digikala_recent_review_growth"
         ),
+    })
+    return product
+
+
+def _with_verified_market_value(product, advantage=7, available_offers=3):
+    """Attach a valid same-product seller-median comparison for value-gate tests."""
+    current_price = max(1, int(product.get("current_price") or 1_000_000))
+    reference_price = int(round(current_price / (1 - advantage / 100)))
+    product.update({
+        "market_status": "verified",
+        "market_reference_kind": "seller_median",
+        "market_reference_price_toman": reference_price,
+        "market_price_advantage_pct": advantage,
+        "market_available_offer_count": available_offers,
+        "market_value_status": "cheaper_than_market" if advantage >= 5 else "near_market",
+    })
+    return product
+
+
+def _with_verified_historical_value(product, discount_vs_median=12):
+    """Attach a verified multi-day same-product price-history comparison."""
+    current_price = max(1, int(product.get("current_price") or 1_000_000))
+    median = int(round(current_price / (1 - discount_vs_median / 100)))
+    product.update({
+        "history_status": "verified",
+        "history_source": "digikala_price_chart",
+        "history_days": 7,
+        "history_median_toman": median,
+        "history_stable_low_toman": int(round(current_price * 1.02)),
+        "discount_vs_30d_median_pct": discount_vs_median,
+        "historical_deal_eligible": True,
+        "historical_discount_savings_toman": median - current_price,
     })
     return product
 
@@ -2574,7 +2606,7 @@ class AffilioRadarTests(unittest.TestCase):
             discovery_queue_sort_key(low_demand_huge_discount, now),
         )
 
-    def test_lifetime_popularity_ranks_before_short_term_review_growth(self):
+    def test_recent_review_growth_ranks_before_lifetime_popularity(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
         established_popularity = {
             "historical_popularity_score": 42,
@@ -2598,10 +2630,10 @@ class AffilioRadarTests(unittest.TestCase):
             "savings_toman": 800_000,
             "first_seen_at": now.isoformat(),
         }
-        self.assertGreater(deal_sort_key(established_popularity), deal_sort_key(short_term_spike))
+        self.assertGreater(deal_sort_key(short_term_spike), deal_sort_key(established_popularity))
         self.assertGreater(
-            discovery_queue_sort_key(established_popularity, now),
             discovery_queue_sort_key(short_term_spike, now),
+            discovery_queue_sort_key(established_popularity, now),
         )
 
     def test_selection_uses_market_demand_first_and_discount_percentage_second(self):
@@ -2772,8 +2804,9 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "",
         })
         self.assertGreater(high["historical_popularity_score"], low["historical_popularity_score"])
-        self.assertGreater(high["demand_score"], 0)
+        self.assertEqual(high["demand_score"], 0)
         self.assertFalse(high["current_demand_verified"])
+        self.assertGreater(high["historical_popularity_score"], 0)
         self.assertEqual(high["discount_percent"], 20)
 
     def test_current_demand_requires_measurable_recent_review_growth(self):
@@ -2819,7 +2852,8 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(product["recent_review_growth_7d"], 0)
         self.assertFalse(product["current_demand_verified"])
-        self.assertGreater(radar_module._candidate_demand_score(product), 0)
+        self.assertEqual(radar_module._candidate_demand_score(product), 0)
+        self.assertGreater(product.get("historical_popularity_score", 0), 0)
 
     def test_same_offer_signals_get_same_score_across_categories(self):
         shared = {
@@ -2832,8 +2866,9 @@ class AffilioRadarTests(unittest.TestCase):
         digital = score_product({**shared, "title": "پاوربانک سریع"})
         unrelated = score_product({**shared, "title": "مکمل غذایی"})
         self.assertEqual(digital["historical_popularity_score"], unrelated["historical_popularity_score"])
-        self.assertGreater(digital["demand_score"], 0)
-        self.assertEqual(digital["demand_score"], unrelated["demand_score"])
+        self.assertEqual(digital["demand_score"], 0)
+        self.assertEqual(unrelated["demand_score"], 0)
+        self.assertEqual(digital["historical_popularity_score"], unrelated["historical_popularity_score"])
         self.assertEqual(digital["promo_score"], unrelated["promo_score"])
 
     def test_price_band_does_not_change_demand_score(self):
@@ -2854,8 +2889,9 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://example.com/image.jpg",
         })
         self.assertEqual(low_price["historical_popularity_score"], high_price["historical_popularity_score"])
-        self.assertGreater(low_price["demand_score"], 0)
-        self.assertEqual(low_price["demand_score"], high_price["demand_score"])
+        self.assertEqual(low_price["demand_score"], 0)
+        self.assertEqual(high_price["demand_score"], 0)
+        self.assertEqual(low_price["historical_popularity_score"], high_price["historical_popularity_score"])
         common = {
             "discount_percent": 25, "savings_toman": 100_000,
             "demand_score": 35, "review_count": 280,
@@ -2888,9 +2924,12 @@ class AffilioRadarTests(unittest.TestCase):
             lower_volume["historical_popularity_score"],
         )
         self.assertFalse(broad_popularity["current_demand_verified"])
-        self.assertGreater(broad_popularity["demand_score"], 0)
-        self.assertGreater(lower_volume["demand_score"], 0)
-        self.assertGreater(broad_popularity["demand_score"], lower_volume["demand_score"])
+        self.assertEqual(broad_popularity["demand_score"], 0)
+        self.assertEqual(lower_volume["demand_score"], 0)
+        self.assertGreater(
+            radar_module._candidate_popularity_score(broad_popularity),
+            radar_module._candidate_popularity_score(lower_volume),
+        )
 
     def test_last_mile_photo_sender_accepts_a_49_percent_offer_with_real_markdown(self):
         now = datetime.now(timezone.utc)
