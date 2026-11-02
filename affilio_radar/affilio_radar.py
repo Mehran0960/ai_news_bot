@@ -68,7 +68,7 @@ FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "fa
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
 BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(20, int(os.getenv("AFFILIO_MAX_PER_QUERY", "12"))))
-MAX_PRODUCT_CHECKS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "100"))))
+MAX_PRODUCT_CHECKS = max(1, min(200, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "200"))))
 # Inspect up to the 100 strongest public demand candidates before choosing the best live discount.
 SNAPPSHOP_RESERVED_CANDIDATES = max(4, min(12, MAX_PRODUCT_CHECKS // 7))
 SNAPPSHOP_QUERIES_PER_SCAN = max(1, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN", "4"))))
@@ -123,8 +123,11 @@ MIN_SAVINGS_TOMAN = 1
 # count/rating are used as fallback public popularity proxies, never as sales claims.
 CURRENT_DEMAND_WINDOW_DAYS = max(1, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "1"))))
 CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "3"))))
-BEST_SELLING_MAX_RANK = 60
+BEST_SELLING_MAX_RANK = 60  # legacy rank-only records without pagination metadata
 BEST_SELLING_MAX_AGE_HOURS = 24
+MOST_VIEWED_MAX_AGE_HOURS = 24
+ACTIONABLE_BESTSELLER_PERCENTILE = 70.0  # top 30% inside a category, normalized by category size
+ACTIONABLE_MOST_VIEWED_PERCENTILE = 90.0  # top 10% view interest when a percentile is available
 VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT = 5
 CURRENT_DEMAND_MIN_OBSERVATION_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS", "6"))))
 CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS", "2"))))
@@ -2572,18 +2575,46 @@ def has_current_demand_signal(record: dict, now: datetime | None = None) -> bool
     return -0.1 <= age_hours <= CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS
 
 
+def _fresh_catalog_percentile(
+    record: dict,
+    percentile_field: str,
+    observed_field: str,
+    max_age_hours: int,
+    now: datetime | None = None,
+) -> float | None:
+    """Return a normalized 0..100 category percentile only while its rank is fresh."""
+    if not isinstance(record, dict):
+        return None
+    try:
+        percentile = float(record.get(percentile_field))
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not 0.0 <= percentile <= 100.0:
+        return None
+    observed_at = _parse_utc_datetime(record.get(observed_field))
+    if observed_at is None:
+        return None
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    age_hours = (
+        current.astimezone(timezone.utc) - observed_at.astimezone(timezone.utc)
+    ).total_seconds() / 3600
+    return percentile if 0 <= age_hours <= max(0, int(max_age_hours)) else None
+
+
 def _fresh_catalog_best_selling_rank(
     record: dict,
     now: datetime | None = None,
 ) -> int | None:
-    """Return a fresh DigiKala category best-selling rank, never a stale cached rank."""
+    """Return a fresh bestseller rank for legacy candidates lacking page totals."""
     if not isinstance(record, dict) or record.get("catalog_sort_mode") != "best_selling":
         return None
     try:
         rank = int(record.get("catalog_best_selling_rank") or 0)
     except (TypeError, ValueError, OverflowError):
         return None
-    if not 1 <= rank <= BEST_SELLING_MAX_RANK:
+    if rank < 1:
         return None
     observed_at = _parse_utc_datetime(record.get("catalog_rank_observed_at"))
     if observed_at is None:
@@ -2597,14 +2628,49 @@ def _fresh_catalog_best_selling_rank(
     return rank if 0 <= age_hours <= BEST_SELLING_MAX_AGE_HOURS else None
 
 
+def _fresh_catalog_most_viewed_rank(
+    record: dict,
+    now: datetime | None = None,
+) -> int | None:
+    if not isinstance(record, dict):
+        return None
+    try:
+        rank = int(record.get("catalog_most_viewed_rank") or 0)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not 1 <= rank <= 60:
+        return None
+    observed_at = _parse_utc_datetime(record.get("catalog_most_viewed_observed_at"))
+    if observed_at is None:
+        return None
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    age_hours = (
+        current.astimezone(timezone.utc) - observed_at.astimezone(timezone.utc)
+    ).total_seconds() / 3600
+    return rank if 0 <= age_hours <= MOST_VIEWED_MAX_AGE_HOURS else None
+
+
 def has_actionable_demand_signal(
     record: dict,
     now: datetime | None = None,
 ) -> bool:
-    """Require recent review growth or a fresh top-60 DigiKala best-selling rank."""
+    """Require recent review growth or a strong normalized category demand/view signal."""
+    best_percentile = _fresh_catalog_percentile(
+        record, "catalog_best_selling_percentile", "catalog_rank_observed_at",
+        BEST_SELLING_MAX_AGE_HOURS, now,
+    )
+    viewed_percentile = _fresh_catalog_percentile(
+        record, "catalog_most_viewed_percentile", "catalog_most_viewed_observed_at",
+        MOST_VIEWED_MAX_AGE_HOURS, now,
+    )
     return bool(
         has_current_demand_signal(record, now=now)
+        or (best_percentile is not None and best_percentile >= ACTIONABLE_BESTSELLER_PERCENTILE)
+        or (viewed_percentile is not None and viewed_percentile >= ACTIONABLE_MOST_VIEWED_PERCENTILE)
         or _fresh_catalog_best_selling_rank(record, now=now) is not None
+        or _fresh_catalog_most_viewed_rank(record, now=now) is not None
     )
 
 
@@ -2612,7 +2678,7 @@ def _demand_evidence_sort_key(
     record: dict,
     now: datetime | None = None,
 ) -> tuple:
-    """Sort measured recent interest first, then DigiKala's fresh best-selling rank."""
+    """Prioritize broad buyer demand, reinforced by fresh activity and view interest."""
     current_signal = has_current_demand_signal(record, now=now)
     try:
         current_score = (
@@ -2621,12 +2687,27 @@ def _demand_evidence_sort_key(
         )
     except (TypeError, ValueError, OverflowError):
         current_score = 0
-    best_selling_rank = _fresh_catalog_best_selling_rank(record, now=now)
+    best_percentile = _fresh_catalog_percentile(
+        record, "catalog_best_selling_percentile", "catalog_rank_observed_at",
+        BEST_SELLING_MAX_AGE_HOURS, now,
+    ) or 0.0
+    viewed_percentile = _fresh_catalog_percentile(
+        record, "catalog_most_viewed_percentile", "catalog_most_viewed_observed_at",
+        MOST_VIEWED_MAX_AGE_HOURS, now,
+    ) or 0.0
+    legacy_best_rank = _fresh_catalog_best_selling_rank(record, now=now)
+    legacy_view_rank = _fresh_catalog_most_viewed_rank(record, now=now)
+    if not best_percentile and legacy_best_rank is not None:
+        best_percentile = max(0.0, 100.0 * (BEST_SELLING_MAX_RANK + 1 - legacy_best_rank) / BEST_SELLING_MAX_RANK)
+    if not viewed_percentile and legacy_view_rank is not None:
+        viewed_percentile = max(0.0, 100.0 * (61 - legacy_view_rank) / 60)
+    composite = (best_percentile * 0.65) + (current_score * 0.25) + (viewed_percentile * 0.10)
     return (
+        round(composite, 3),
+        round(best_percentile, 3),
         int(current_signal),
         current_score,
-        int(best_selling_rank is not None),
-        -best_selling_rank if best_selling_rank is not None else -10_000,
+        round(viewed_percentile, 3),
     )
 
 
@@ -7665,14 +7746,11 @@ def select_discount_fallback_candidates(
     now: datetime | None = None,
     include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Rank all valid live markdowns by demand first and displayed discount second.
+    """Select only live deals with independently proven value and actionable demand.
 
-    Recent review growth and fresh bestseller position are strongest demand signals.
-    When unavailable, public popularity proxies provide a fallback. External price
-    verification is informational, not a publication gate.
-    Hard checks remain: current stock and price, a genuine positive retailer markdown,
-    a valid product and affiliate URL, an allowed product title, and an unexpired or
-    open-ended live offer.
+    Demand proof is recent review growth or a strong normalized bestseller/view rank.
+    Value proof is fresh 30-day price history or a comparable-market seller median.
+    Displayed retailer markdown percentages alone are never enough to publish.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -7684,6 +7762,7 @@ def select_discount_fallback_candidates(
     seen_ids: set[str] = set()
     demand_unverified = 0
     value_unverified = 0
+    live_hard_eligible = 0
     published_records = state.get("published", {})
     published_records = published_records if isinstance(published_records, dict) else {}
 
@@ -7700,10 +7779,18 @@ def select_discount_fallback_candidates(
         if not has_publishable_expiry_or_open_offer(product, current):
             continue
         seen_ids.add(pid)
-        if not has_actionable_demand_signal(product, now=current):
+        live_hard_eligible += 1
+
+        demand_ok = has_actionable_demand_signal(product, now=current)
+        value_ok = has_attractive_discount_value(product, now=current)
+        if not demand_ok:
             demand_unverified += 1
-        if not has_attractive_discount_value(product, now=current):
+        if not value_ok:
             value_unverified += 1
+        # These are publication gates, not informational diagnostics.
+        if not demand_ok or not value_ok:
+            continue
+
         quality_eligible.append(product)
         if (
             not is_selection_candidate_rejected(state, pid, product, current)
@@ -7713,8 +7800,8 @@ def select_discount_fallback_candidates(
 
     fallback_mode = "normal"
     if not fresh_candidates:
-        # Reuse a product only after every prior Telegram/Bale post is confirmed
-        # removed and no active publication or delivery record remains.
+        # Reuse a product only after proof gates pass, prior posts are confirmed removed,
+        # and no active publication or delivery record remains.
         reusable = []
         for product in quality_eligible:
             pid = str(product.get("product_id") or product_id(product.get("product_url") or "")).strip()
@@ -7728,9 +7815,10 @@ def select_discount_fallback_candidates(
             fallback_mode = "cooldown_relaxed"
 
     print(
-        f"SELECTION_POLICY demand_unverified={demand_unverified} "
-        f"value_unverified={value_unverified} hard_eligible={len(quality_eligible)} "
-        f"fresh={len(fresh_candidates)} fallback_mode={fallback_mode}"
+        f"SELECTION_POLICY live_hard_eligible={live_hard_eligible} "
+        f"demand_unverified={demand_unverified} value_unverified={value_unverified} "
+        f"proof_eligible={len(quality_eligible)} fresh={len(fresh_candidates)} "
+        f"fallback_mode={fallback_mode}"
     )
 
     first_floor: int | None = None
@@ -7758,24 +7846,31 @@ def select_discount_fallback_candidates(
             selected = dict(product)
             selected["selection_discount_floor"] = int(floor)
             selected["selection_discount_band"] = label
-            selected["publication_policy"] = "demand_then_discount_v1"
+            selected["publication_policy"] = "verified_demand_and_value_v2"
+            best_pct = _fresh_catalog_percentile(
+                product, "catalog_best_selling_percentile", "catalog_rank_observed_at",
+                BEST_SELLING_MAX_AGE_HOURS, current,
+            )
+            viewed_pct = _fresh_catalog_percentile(
+                product, "catalog_most_viewed_percentile", "catalog_most_viewed_observed_at",
+                MOST_VIEWED_MAX_AGE_HOURS, current,
+            )
             selected["selection_demand_evidence"] = (
                 "recent_activity" if has_current_demand_signal(product, current)
-                else "fresh_best_seller" if _fresh_catalog_best_selling_rank(product, current) is not None
-                else "public_popularity_proxy"
+                else "best_seller_percentile" if best_pct is not None
+                else "most_viewed_percentile" if viewed_pct is not None
+                else "fresh_catalog_rank"
             )
-            selected["selection_value_evidence"] = (
-                "independently_verified" if has_attractive_discount_value(product, current)
-                else "retailer_listed_markdown"
-            )
+            selected["selection_value_evidence"] = "independently_verified"
             selected["selection_fallback_mode"] = fallback_mode
             handoff.append(selected)
 
         if first_floor is None:
             first_floor = floor
             print(
-                f"PUBLICATION_CANDIDATES_READY band={label} hard_eligible={len(quality_eligible)} "
-                f"ranked={len(handoff)} fallback_mode={fallback_mode}"
+                f"PUBLICATION_CANDIDATES_READY band={label} "
+                f"proof_eligible={len(quality_eligible)} ranked={len(handoff)} "
+                f"fallback_mode={fallback_mode}"
             )
         if not include_fallback_bands:
             return handoff, floor, quality_eligible
@@ -7784,11 +7879,12 @@ def select_discount_fallback_candidates(
     if fallback_pool:
         return fallback_pool, first_floor, quality_eligible
     print(
-        "PUBLICATION_CANDIDATES_EXHAUSTED "
-        f"products_seen={len(products or [])} hard_eligible={len(quality_eligible)} "
-        "reason=no_live_positive_markdown_with_stock_price_and_valid_affiliate"
+        f"PUBLICATION_CANDIDATES_EXHAUSTED products_seen={len(products or [])} "
+        f"live_hard_eligible={live_hard_eligible} proof_eligible={len(quality_eligible)} "
+        "reason=no_live_offer_with_verified_demand_and_independent_discount_value"
     )
     return [], None, quality_eligible
+
 
 
 
