@@ -19,7 +19,8 @@ The crawler stores `parallel_coverage_status` and `last_cycle_coverage`:
 
 - `in_progress`: pages remain in the durable queue.
 - `complete`: all known category/sort tasks were traversed using explicit pagination boundaries and no category was inaccessible.
-- `complete_with_inferred_boundaries`: all queued work ended, but at least one page boundary had to be inferred because the API did not provide a total-page count.
+- `complete_with_inferred_boundaries`: all queued work ended, but at least one boundary was inferred from an empty page or a 404 because the API did not provide a reliable total-page count.
+- An empty page before the API-reported final page is treated as an unqueryable/inconsistent category task, not as proof of complete coverage.
 - `partial_unqueryable_categories`: at least one category/sort task could not be queried.
 
 This is the most complete inventory obtainable from the public endpoint at the time of each crawl, not a guarantee that DigiKala exposed every active product. The endpoint does not provide a frozen catalogue snapshot, and categories can change while pagination is running. A new category, a rate limit, an access restriction, or a moving result set can make a cycle partial or temporarily stale. The system must not call a cycle fully complete when its coverage record says otherwise.
