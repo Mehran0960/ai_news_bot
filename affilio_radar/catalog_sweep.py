@@ -536,18 +536,23 @@ def _candidate_demand(row: dict) -> int:
 
 
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Rank using normalized cross-category demand evidence, not incomparable raw ranks."""
+    """Rank demand across categories using normalized bestseller, view and public signals."""
     best_rank = _fresh_best_selling_rank(row)
     viewed_rank = _fresh_most_viewed_rank(row)
     best_percentile = _normal_float(row.get("catalog_best_selling_percentile"))
     viewed_percentile = _normal_float(row.get("catalog_most_viewed_percentile"))
-    # Legacy candidates without pagination totals retain a conservative top-60 fallback.
+    # Legacy candidates without pagination totals retain a top-60 fallback.
     if not best_percentile and best_rank is not None and best_rank <= 60:
-        best_percentile = max(0, 61 - best_rank)
+        best_percentile = max(0.0, 100.0 * (61 - best_rank) / 60)
     if not viewed_percentile and viewed_rank is not None and viewed_rank <= 60:
-        viewed_percentile = max(0, 61 - viewed_rank)
+        viewed_percentile = max(0.0, 100.0 * (61 - viewed_rank) / 60)
+    demand = (
+        best_percentile * 0.65
+        + _candidate_demand(row) * 0.25
+        + viewed_percentile * 0.10
+    )
     return (
-        int(best_rank is not None),
+        round(demand, 2),
         round(best_percentile, 2),
         round(viewed_percentile, 2),
         _candidate_demand(row),
