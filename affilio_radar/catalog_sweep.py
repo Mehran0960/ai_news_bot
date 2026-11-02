@@ -47,6 +47,7 @@ MIN_CANDIDATE_DISCOUNT = 1
 BEST_SELLING_SORT_VALUE = 5
 BEST_SELLING_PAGE_SIZE = 20
 BEST_SELLING_MAX_PAGES_PER_CATEGORY = 3
+BEST_SELLING_MAX_AGE_HOURS = 24
 MAX_PAGES_PER_CATEGORY = BEST_SELLING_MAX_PAGES_PER_CATEGORY
 MAX_RETAINED_CANDIDATES = 3000
 MAX_PUBLISHER_SEEN_IDS = 12000
@@ -464,6 +465,25 @@ def extract_total_pages(payload: Any, current_page: int, product_count: int) -> 
     return None
 
 
+def _fresh_best_selling_rank(row: dict, now: datetime | None = None) -> int | None:
+    if not isinstance(row, dict) or row.get("catalog_sort_mode") != "best_selling":
+        return None
+    rank = _normal_int(row.get("catalog_best_selling_rank"))
+    if not 1 <= rank <= BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY:
+        return None
+    raw = str(row.get("catalog_rank_observed_at") or "").strip()
+    try:
+        observed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        if observed.tzinfo is None:
+            observed = observed.replace(tzinfo=timezone.utc)
+        observed = observed.astimezone(timezone.utc)
+    except (TypeError, ValueError):
+        return None
+    current = now or utc_now()
+    age = (current.astimezone(timezone.utc) - observed).total_seconds() / 3600
+    return rank if 0 <= age <= BEST_SELLING_MAX_AGE_HOURS else None
+
+
 def _candidate_demand(row: dict) -> int:
     explicit = max(0, _normal_int(row.get("demand_score")))
     if explicit:
@@ -476,15 +496,9 @@ def _candidate_demand(row: dict) -> int:
 
 
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Prefer fresh DigiKala best-selling rank, then measured public popularity proxies."""
-    rank = max(0, _normal_int(row.get("catalog_best_selling_rank")))
-    observed = str(row.get("catalog_rank_observed_at") or "")
-    mode = str(row.get("catalog_sort_mode") or "")
-    fresh_rank = bool(
-        mode == "best_selling"
-        and 1 <= rank <= BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY
-        and observed
-    )
+    """Prefer a fresh DigiKala best-selling rank, then public popularity proxies."""
+    rank = _fresh_best_selling_rank(row)
+    fresh_rank = rank is not None
     return (
         int(fresh_rank),
         -rank if fresh_rank else -10_000,
