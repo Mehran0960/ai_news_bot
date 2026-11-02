@@ -2669,7 +2669,10 @@ def has_actionable_demand_signal(
         has_current_demand_signal(record, now=now)
         or (best_percentile is not None and best_percentile >= ACTIONABLE_BESTSELLER_PERCENTILE)
         or (viewed_percentile is not None and viewed_percentile >= ACTIONABLE_MOST_VIEWED_PERCENTILE)
-        or _fresh_catalog_best_selling_rank(record, now=now) is not None
+        or (
+            (legacy_best_rank := _fresh_catalog_best_selling_rank(record, now=now)) is not None
+            and legacy_best_rank <= BEST_SELLING_MAX_RANK
+        )
         or _fresh_catalog_most_viewed_rank(record, now=now) is not None
     )
 
