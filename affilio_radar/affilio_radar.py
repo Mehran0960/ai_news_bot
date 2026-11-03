@@ -8784,9 +8784,6 @@ def process_pending_short_video(
         # integrity audit continues to remove posts when the live offer changes.
         # Public Aparat still requires a directly verified expiry because its current
         # cleanup path has weaker recovery guarantees.
-        if not verified_expiry and upload_status in pending_youtube:
-            print(f"YOUTUBE_UNVERIFIED_DEADLINE_ALLOWED id={pid} policy=last_mile_checks_plus_integrity_audit")
-
         if expiry is None:
             # For ordering only: an open-ended offer is lower urgency than a known expiry.
             # This synthetic value is never saved as a retailer deadline or shown publicly.
@@ -8795,8 +8792,14 @@ def process_pending_short_video(
             expiry_for_sort = expiry
 
         delivery = record.get("delivery_status") if isinstance(record.get("delivery_status"), dict) else {}
-        if not force_due and not any(value == "sent" for value in delivery.values()):
+        has_channel_delivery = any(value == "sent" for value in delivery.values())
+        if not force_due and not has_channel_delivery:
             continue
+        if (
+            not verified_expiry and upload_status in pending_youtube
+            and has_channel_delivery and youtube_ready
+        ):
+            print(f"YOUTUBE_UNVERIFIED_DEADLINE_ALLOWED id={pid} policy=last_mile_checks_plus_integrity_audit")
 
         yt_need = (
             youtube_upload_due and upload_status in pending_youtube
