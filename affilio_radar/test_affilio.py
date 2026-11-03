@@ -4397,7 +4397,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(record["youtube_video_renderer_version"], PERSIAN_TEXT_RENDERER_VERSION)
         self.assertEqual(record["youtube_previous_video_retained_at"], now.isoformat())
 
-    def test_failed_old_video_deletion_keeps_id_for_retry_without_losing_new_video(self):
+    @unittest.skip("legacy destructive behavior conflicts with permanent YouTube retention")
+    def test_legacy_old_video_cleanup_retry_is_disabled(self):
         now = datetime(2026, 10, 23, 18, 0, tzinfo=timezone.utc)
         record = {
             "youtube_previous_video_id": "oldBrokenShort",
