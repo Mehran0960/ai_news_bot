@@ -5486,6 +5486,72 @@ class AffilioRadarTests(unittest.TestCase):
         upload_aparat.assert_not_called()
         self.assertEqual(record["aparat_upload_status"], "pending")
 
+    def test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record(self):
+        now = datetime.now(timezone.utc)
+        no_timer_id = "dkp-youtube-first-choice"
+        verified_id = "dkp-aparat-lower-demand"
+        no_timer = {
+            "ts": now.timestamp(),
+            "title": "پیشنهاد با تقاضای بیشتر و بدون تایمر رسمی",
+            "product_url": f"https://www.digikala.com/product/{no_timer_id}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "demand_score": 95,
+            "current_demand_score": 95,
+            "posted_discount_percent": 40,
+            "delivery_status": {"telegram": "sent", "bale": "sent"},
+            "video_generation_status": "pending",
+            "youtube_upload_status": "pending",
+            "aparat_upload_status": "pending",
+        }
+        verified_lower_demand = {
+            "ts": now.timestamp() - 1,
+            "title": "پیشنهاد دارای تایمر معتبر اما تقاضای کمتر",
+            "product_url": f"https://www.digikala.com/product/{verified_id}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "expires_at": (now + timedelta(hours=4)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+            "demand_score": 5,
+            "current_demand_score": 5,
+            "posted_discount_percent": 25,
+            "delivery_status": {"telegram": "sent", "bale": "sent"},
+            "video_generation_status": "pending",
+            "youtube_upload_status": "pending",
+            "aparat_upload_status": "pending",
+        }
+        state = {"published": {
+            no_timer_id: no_timer,
+            verified_id: verified_lower_demand,
+        }}
+
+        def fake_render(image_bytes, discount, path, **kwargs):
+            output = Path(path)
+            output.write_bytes(b"fake-mp4-selected-item-expiry-check")
+            return output
+
+        with (
+            TemporaryDirectory() as output_dir,
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
+            patch("affilio_radar.save_json"),
+            patch("affilio_radar.APARAT_UPLOAD_ENABLED", True),
+            patch("short_video.youtube_credentials_available", return_value=True),
+            patch("aparat_uploader.aparat_credentials_available", return_value=True),
+            patch("short_video.render_short_video", side_effect=fake_render),
+            patch("short_video.upload_youtube_video", return_value={
+                "video_id": "yt_selected_without_timer",
+                "url": "https://www.youtube.com/shorts/yt_selected_without_timer",
+            }) as upload_youtube,
+            patch("aparat_uploader.upload_aparat_video") as upload_aparat,
+        ):
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
+
+        upload_youtube.assert_called_once()
+        upload_aparat.assert_not_called()
+        self.assertEqual(no_timer["youtube_upload_status"], "uploaded")
+        self.assertEqual(no_timer["video_generation_status"], "generated")
+        self.assertEqual(verified_lower_demand["aparat_upload_status"], "pending")
+
     def test_youtube_upload_waits_three_hours_after_previous_success_and_selects_late(self):
         now = datetime.now(timezone.utc)
         prior_uploaded_at = now - timedelta(hours=1)
