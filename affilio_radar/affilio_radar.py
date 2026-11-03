@@ -2572,29 +2572,69 @@ def has_current_demand_signal(record: dict, now: datetime | None = None) -> bool
     return -0.1 <= age_hours <= CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS
 
 
+def _fresh_catalog_best_selling_rank_evidence(
+    record: dict,
+    now: datetime | None = None,
+) -> list[tuple[int, str]]:
+    """Return fresh top-60 ranks across every observed DigiKala category."""
+    if not isinstance(record, dict) or record.get("catalog_sort_mode") != "best_selling":
+        return []
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    evidence: dict[str, int] = {}
+    by_category = record.get("catalog_best_selling_ranks_by_category")
+    if isinstance(by_category, dict):
+        for category_id, item in by_category.items():
+            category = str(category_id or "").strip()
+            if not category.isdigit() or not isinstance(item, dict):
+                continue
+            try:
+                rank = int(item.get("rank") or 0)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if not 1 <= rank <= BEST_SELLING_MAX_RANK:
+                continue
+            observed_at = _parse_utc_datetime(item.get("observed_at"))
+            if observed_at is None:
+                continue
+            age_hours = (current - observed_at.astimezone(timezone.utc)).total_seconds() / 3600
+            if 0 <= age_hours <= BEST_SELLING_MAX_AGE_HOURS:
+                evidence[category] = rank
+
+    # Compatibility with candidate cards created before per-category evidence existed.
+    try:
+        legacy_rank = int(record.get("catalog_best_selling_rank") or 0)
+    except (TypeError, ValueError, OverflowError):
+        legacy_rank = 0
+    legacy_category = str(
+        record.get("catalog_best_selling_category_id")
+        or record.get("catalog_category_id")
+        or "legacy"
+    )
+    legacy_observed = _parse_utc_datetime(record.get("catalog_rank_observed_at"))
+    if (
+        1 <= legacy_rank <= BEST_SELLING_MAX_RANK
+        and legacy_observed is not None
+        and 0 <= (current - legacy_observed.astimezone(timezone.utc)).total_seconds() / 3600
+        <= BEST_SELLING_MAX_AGE_HOURS
+        and legacy_category not in evidence
+    ):
+        evidence[legacy_category] = legacy_rank
+    return sorted(
+        ((rank, category) for category, rank in evidence.items()),
+        key=lambda pair: (pair[0], pair[1]),
+    )
+
+
 def _fresh_catalog_best_selling_rank(
     record: dict,
     now: datetime | None = None,
 ) -> int | None:
-    """Return a fresh DigiKala category best-selling rank, never a stale cached rank."""
-    if not isinstance(record, dict) or record.get("catalog_sort_mode") != "best_selling":
-        return None
-    try:
-        rank = int(record.get("catalog_best_selling_rank") or 0)
-    except (TypeError, ValueError, OverflowError):
-        return None
-    if not 1 <= rank <= BEST_SELLING_MAX_RANK:
-        return None
-    observed_at = _parse_utc_datetime(record.get("catalog_rank_observed_at"))
-    if observed_at is None:
-        return None
-    current = now or datetime.now(timezone.utc)
-    if current.tzinfo is None:
-        current = current.replace(tzinfo=timezone.utc)
-    age_hours = (
-        current.astimezone(timezone.utc) - observed_at.astimezone(timezone.utc)
-    ).total_seconds() / 3600
-    return rank if 0 <= age_hours <= BEST_SELLING_MAX_AGE_HOURS else None
+    """Return the strongest fresh category best-selling rank, never a stale cached rank."""
+    evidence = _fresh_catalog_best_selling_rank_evidence(record, now=now)
+    return evidence[0][0] if evidence else None
 
 
 def has_actionable_demand_signal(
@@ -2621,12 +2661,14 @@ def _demand_evidence_sort_key(
         )
     except (TypeError, ValueError, OverflowError):
         current_score = 0
-    best_selling_rank = _fresh_catalog_best_selling_rank(record, now=now)
+    rank_evidence = _fresh_catalog_best_selling_rank_evidence(record, now=now)
+    best_selling_rank = rank_evidence[0][0] if rank_evidence else None
     return (
         int(current_signal),
         current_score,
         int(best_selling_rank is not None),
         -best_selling_rank if best_selling_rank is not None else -10_000,
+        len(rank_evidence),
     )
 
 
@@ -2912,11 +2954,23 @@ def _candidate_popularity_score(record: dict) -> int:
     return min(100, review_proxy + rating_proxy)
 
 
+def _offerchin_click_interest_score(record: dict) -> int:
+    """Use first-party product clicks as a secondary audience-interest signal, not market sales."""
+    if not isinstance(record, dict):
+        return 0
+    try:
+        clicks = max(0, int(record.get("click_count_30d") or 0))
+    except (TypeError, ValueError, OverflowError):
+        return 0
+    return min(100, round(20 * math.log1p(clicks))) if clicks else 0
+
+
 def _deal_demand_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Rank recent activity, fresh best-seller position, then public popularity proxies."""
+    """Rank recent review growth, cross-category bestseller evidence, OfferChin clicks, then history."""
     candidate = record if isinstance(record, dict) else {}
     return (
         *_demand_evidence_sort_key(candidate, now=now),
+        _offerchin_click_interest_score(candidate),
         _candidate_popularity_score(candidate),
     )
 
@@ -8611,6 +8665,18 @@ def process_pending_short_video(
                 print(f"SHORT_VIDEO_REGENERATE id={pid} old_style={style_version} new_style={VIDEO_STYLE_VERSION}")
         upload_status = str(record.get("youtube_upload_status") or "pending_credentials")
         aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
+        # Earlier code incorrectly marked YouTube itself ineligible whenever the retailer
+        # did not expose a verifiable expiry timer. A channel item has already passed the
+        # live price/stock gate; YouTube can rely on the independent 5-minute integrity audit.
+        if generation_status == "skipped_unverified_deadline":
+            generation_status = "pending"
+            record["video_generation_status"] = "pending"
+            state_changed = True
+            print(f"SHORT_VIDEO_REQUEUED id={pid} reason=youtube_no_longer_requires_expiry_timer")
+        if upload_status == "skipped_unverified_deadline":
+            upload_status = "pending"
+            record["youtube_upload_status"] = "pending"
+            state_changed = True
         # Requeue deals previously held for manual Shorts publication. They still must
         # pass the live-deadline checks below before a public upload can occur.
         if not APARAT_SHORTS_ONLY and aparat_status == "waiting_shorts_uploader":
@@ -8678,34 +8744,27 @@ def process_pending_short_video(
             continue
 
         expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("expires_at")))
-        if not force_due and (
-            expiry is None
-            or record.get("expiry_source") not in {"digikala_live_deals_feed", "digikala_product_detail_api", "digikala_mcp_offer_card", "snappshop_recheck_window"}
-            or record.get("expiry_estimated") is True
-            or (
-                record.get("expiry_source") in {"digikala_live_deals_feed", "digikala_product_detail_api"}
-                and record.get("expiry_deadline_verified_directly") is not True
+        expiry_source = str(record.get("expiry_source") or "")
+        verified_expiry = bool(
+            expiry is not None
+            and record.get("expiry_estimated") is not True
+            and (
+                (
+                    expiry_source in {"digikala_live_deals_feed", "digikala_product_detail_api"}
+                    and record.get("expiry_deadline_verified_directly") is True
+                )
+                or (
+                    expiry_source == "digikala_mcp_offer_card"
+                    and record.get("expiry_deadline_verified_from_site_card") is True
+                )
             )
-            or (
-                record.get("expiry_source") == "digikala_mcp_offer_card"
-                and record.get("expiry_deadline_verified_from_site_card") is not True
-            )
-        ):
-            record["video_generation_status"] = "skipped_unverified_deadline"
-            if upload_status in pending_youtube:
-                record["youtube_upload_status"] = "skipped_unverified_deadline"
-            if aparat_status in PENDING_APARAT_STATUSES:
-                record["aparat_upload_status"] = "skipped_unverified_deadline"
-            state_changed = True
-            print(f"SHORT_VIDEO_SKIP id={pid} reason=unverified_deadline")
-            continue
-        if expiry is None and force_due:
-            # The publisher has just revalidated current price and stock. The
-            # hourly audit is the expiry safety net for products without a site timer.
-            expiry = current + timedelta(days=3650)
-        # Use the same ten-minute removal buffer as the channel posts. Do not
-        # impose a separate 20-minute video eligibility rule on an already-published deal.
-        if expiry <= current + timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES):
+        )
+        expiry_blocked = bool(
+            expiry is not None
+            and expiry <= current + timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES)
+        )
+        # A known near-expiry item remains blocked on every public destination.
+        if expiry_blocked:
             record["video_generation_status"] = "skipped_expiring_soon"
             if upload_status in pending_youtube:
                 record["youtube_upload_status"] = "skipped_expiring_soon"
@@ -8714,6 +8773,36 @@ def process_pending_short_video(
             state_changed = True
             print(f"SHORT_VIDEO_SKIP id={pid} reason=inside_expiry_removal_buffer")
             continue
+
+        # Re-enable Youtube items that were previously held only for lacking an expiry
+        # timer. Aparat remains stricter: public Aparat uploads require a verified timer.
+        if generation_status == "skipped_expiring_soon":
+            generation_status = "pending"
+            record["video_generation_status"] = "pending"
+            state_changed = True
+        if upload_status == "skipped_expiring_soon":
+            upload_status = "pending"
+            record["youtube_upload_status"] = "pending"
+            state_changed = True
+        if verified_expiry and aparat_status in {"skipped_unverified_deadline", "skipped_expiring_soon"}:
+            aparat_status = "pending"
+            record["aparat_upload_status"] = "pending"
+            state_changed = True
+
+        # Youtube may proceed without an official retailer timer after a successful
+        # Telegram/Bale delivery and last-mile price/stock validation. The independent
+        # integrity audit continues to remove posts when the live offer changes.
+        # Public Aparat still requires a directly verified expiry because its current
+        # cleanup path has weaker recovery guarantees.
+        if not verified_expiry and upload_status in pending_youtube:
+            print(f"YOUTUBE_UNVERIFIED_DEADLINE_ALLOWED id={pid} policy=last_mile_checks_plus_integrity_audit")
+
+        if expiry is None:
+            # For ordering only: an open-ended offer is lower urgency than a known expiry.
+            # This synthetic value is never saved as a retailer deadline or shown publicly.
+            expiry_for_sort = current + timedelta(days=3650)
+        else:
+            expiry_for_sort = expiry
 
         delivery = record.get("delivery_status") if isinstance(record.get("delivery_status"), dict) else {}
         if not force_due and not any(value == "sent" for value in delivery.values()):
@@ -8724,7 +8813,9 @@ def process_pending_short_video(
             and not youtube_in_flight
         )
         aparat_pending = aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not aparat_in_flight
-        aparat_need = aparat_pending and (APARAT_SHORTS_ONLY or aparat_upload_due)
+        aparat_need = aparat_pending and (
+            APARAT_SHORTS_ONLY or (aparat_upload_due and (force_due or verified_expiry))
+        )
         public_aparat_need = aparat_need and not APARAT_SHORTS_ONLY
         shorts_queue_need = aparat_pending and APARAT_SHORTS_ONLY
         manual_artifact_need = (
@@ -8766,7 +8857,7 @@ def process_pending_short_video(
             record["video_generation_next_attempt_at"] = (current + timedelta(minutes=30)).isoformat()
             state_changed = True
             continue
-        candidates.append((float(record.get("ts") or 0), str(pid), record, expiry))
+        candidates.append((float(record.get("ts") or 0), str(pid), record, expiry_for_sort))
 
     if state_changed:
         save_json(STATE, state)
@@ -8851,7 +8942,12 @@ def process_pending_short_video(
     # Aparat public uploads use their own slot and status fields; all errors are caught
     # locally so they cannot interrupt the YouTube publication attempt below.
     aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
-    if aparat_ready and aparat_upload_due and aparat_status in PENDING_APARAT_STATUSES and not APARAT_SHORTS_ONLY:
+    if (
+        aparat_ready and aparat_upload_due
+        and aparat_status in PENDING_APARAT_STATUSES
+        and not APARAT_SHORTS_ONLY
+        and (force_due or verified_expiry)
+    ):
         aparat_started_at = datetime.now(timezone.utc)
         record["aparat_upload_status"] = "uploading"
         record["aparat_upload_started_at"] = aparat_started_at.isoformat()
