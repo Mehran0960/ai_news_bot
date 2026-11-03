@@ -102,7 +102,7 @@ from affilio_radar import (
     is_fresh_selection_candidate,
     delete_previous_channel_posts,
     process_pending_short_video,
-    _delete_superseded_youtube_video,
+    _retain_superseded_youtube_video,
     VIDEO_STYLE_VERSION,
     YOUTUBE_UPLOAD_INTERVAL_HOURS,
     MIN_POST_INTERVAL_HOURS,
