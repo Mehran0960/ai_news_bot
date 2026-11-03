@@ -1743,72 +1743,46 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertFalse(state["discovery_queue"].get("dkp-20917779"))
         self.assertEqual(write_state.call_count, 1)
 
-    def test_youtube_expired_short_is_deleted(self):
+    def test_expired_youtube_short_is_retained_without_delete_or_privacy_change(self):
         now = datetime.now(timezone.utc)
         record = {
             "youtube_video_id": "yt_expired",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
-                        "expiry_deadline_verified_directly": True,
+            "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
+            "youtube_expiry_status": "tracked",
         }
-        with patch("short_video.youtube_credentials_available", return_value=True), patch(
-            "short_video.delete_youtube_video", return_value="deleted"
-        ) as delete_video:
+        with patch("short_video.delete_youtube_video") as deletion, patch(
+            "short_video.set_youtube_video_private"
+        ) as privatize:
             changed = monitor._delete_expired_youtube_videos({"dkp-expired": record}, now)
-        self.assertTrue(changed)
-        delete_video.assert_called_once_with("yt_expired")
-        self.assertEqual(record["youtube_expiry_status"], "deleted")
 
-    def test_youtube_estimated_deadline_does_not_delete_video(self):
+        self.assertFalse(changed)
+        deletion.assert_not_called()
+        privatize.assert_not_called()
+        self.assertEqual(record["youtube_expiry_status"], "tracked")
+        self.assertNotIn("youtube_expiry_next_attempt_at", record)
+
+    def test_youtube_retention_does_not_require_expiry_or_oauth_credentials(self):
         now = datetime.now(timezone.utc)
         record = {
-            "youtube_video_id": "yt_estimated",
-            "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            "youtube_video_id": "yt_no_deadline",
+            "youtube_expiry_status": "tracked",
+            "expires_at": "",
             "expiry_estimated": True,
         }
-        with patch("short_video.youtube_credentials_available", return_value=True), patch(
+        with patch("short_video.youtube_credentials_available") as credentials, patch(
             "short_video.delete_youtube_video"
-        ) as delete_video:
-            changed = monitor._delete_expired_youtube_videos({"dkp-estimated": record}, now)
+        ) as deletion, patch("short_video.set_youtube_video_private") as privatize:
+            changed = monitor._delete_expired_youtube_videos({"dkp-no-deadline": record}, now)
+
         self.assertFalse(changed)
-        delete_video.assert_not_called()
-        self.assertNotIn("youtube_expiry_status", record)
+        credentials.assert_not_called()
+        deletion.assert_not_called()
+        privatize.assert_not_called()
+        self.assertEqual(record["youtube_expiry_status"], "tracked")
 
-    def test_youtube_delete_failure_privatises_as_fallback_and_retries(self):
-        now = datetime.now(timezone.utc)
-        record = {
-            "youtube_video_id": "yt_retry",
-            "expires_at": (now - timedelta(minutes=1)).isoformat(),
-            "expiry_source": "digikala_live_deals_feed",
-                        "expiry_deadline_verified_directly": True,
-            "expiry_estimated": False,
-        }
-        with patch("short_video.youtube_credentials_available", return_value=True), patch(
-            "short_video.delete_youtube_video", side_effect=RuntimeError("delete failed")
-        ), patch("short_video.set_youtube_video_private", return_value=True) as fallback:
-            changed = monitor._delete_expired_youtube_videos({"dkp-retry": record}, now)
-        self.assertTrue(changed)
-        fallback.assert_called_once_with("yt_retry")
-        self.assertEqual(record["youtube_expiry_status"], "delete_retry")
-        self.assertIn("youtube_expiry_next_attempt_at", record)
-
-    def test_expired_youtube_video_waits_for_credentials(self):
-        now = datetime.now(timezone.utc)
-        record = {
-            "youtube_video_id": "yt_pending",
-            "expires_at": (now - timedelta(minutes=1)).isoformat(),
-            "expiry_source": "digikala_live_deals_feed",
-                        "expiry_deadline_verified_directly": True,
-            "expiry_estimated": False,
-        }
-        with patch("short_video.youtube_credentials_available", return_value=False), patch(
-            "short_video.delete_youtube_video"
-        ) as delete_video:
-            changed = monitor._delete_expired_youtube_videos({"dkp-pending": record}, now)
-        self.assertTrue(changed)
-        delete_video.assert_not_called()
-        self.assertEqual(record["youtube_expiry_status"], "pending_credentials")
 
     def test_aparat_expired_video_is_deleted(self):
         now = datetime.now(timezone.utc)
