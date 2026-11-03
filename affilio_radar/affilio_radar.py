@@ -421,35 +421,12 @@ def build_click_tracking_link(
     base_url: str | None = None,
     source: str = "unknown",
 ) -> str:
-    """Wrap a verified Affilio link for privacy-preserving product/source click counts."""
-    canonical = safe_product_url(product_url)
+    """Return the official Affilio URL unchanged; never insert an OfferChin redirect."""
     original = str(affiliate_url or "").strip()
-    pid = product_id(canonical) if canonical else ""
-    if not canonical or not original or not re.fullmatch(r"(?:dkp-\d{1,12}|snp-\d{1,20})", pid):
+    canonical = safe_product_url(product_url)
+    if canonical and _affiliate_destination_matches_product(original, canonical):
         return original
-    if not _affiliate_destination_matches_product(original, canonical):
-        return original
-
-    base = (base_url if base_url is not None else AFFILIO_CLICK_TRACKER_BASE_URL).strip().rstrip("/")
-    try:
-        parsed_base = urlsplit(base)
-    except Exception:
-        return original
-    if (
-        parsed_base.scheme != "https"
-        or not parsed_base.netloc
-        or parsed_base.query
-        or parsed_base.fragment
-        or parsed_base.username
-        or parsed_base.password
-    ):
-        return original
-
-    allowed_sources = {"telegram", "bale", "youtube", "aparat"}
-    source_value = str(source or "unknown").strip().lower()
-    if source_value not in allowed_sources:
-        source_value = "unknown"
-    return f"{base}/p/{pid}?u={quote(original, safe='')}&src={quote(source_value, safe='')}"
+    return original
 
 
 def _click_tracker_is_healthy() -> bool:
@@ -8123,13 +8100,12 @@ APARAT_UPLOAD_ENABLED = str(os.getenv("AFFILIO_APARAT_UPLOAD_ENABLED", "true")).
 MAX_SHORT_VIDEOS_PER_RUN = max(1, min(4, int(os.getenv("AFFILIO_MAX_SHORT_VIDEOS_PER_RUN", "2"))))
 
 
-def _delete_superseded_youtube_video(
+def _retain_superseded_youtube_video(
     record: dict,
     product_id_value: str,
-    delete_fn,
     now: datetime | None = None,
 ) -> bool:
-    """Delete a replaced Short only after its corrected replacement is confirmed uploaded."""
+    """Archive the old Short ID after replacement; never remove the old video."""
     old_video_id = str(record.get("youtube_previous_video_id") or "").strip()
     new_video_id = str(record.get("youtube_video_id") or "").strip()
     if (
@@ -8144,42 +8120,24 @@ def _delete_superseded_youtube_video(
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    retry_at = _parse_utc_datetime(
-        record.get("youtube_previous_video_delete_next_attempt_at")
-    )
-    if retry_at and current < retry_at:
-        return False
 
-    try:
-        outcome = delete_fn(old_video_id)
-        if outcome not in {"deleted", "already_absent"}:
-            raise RuntimeError("YouTube did not confirm deletion of the replaced Short")
-        record["youtube_previous_video_deleted_at"] = current.isoformat()
-        record["youtube_video_renderer_version"] = PERSIAN_TEXT_RENDERER_VERSION
-        record.pop("youtube_previous_video_id", None)
-        record.pop("youtube_previous_video_delete_next_attempt_at", None)
-        record.pop("youtube_previous_video_delete_attempts", None)
-        record.pop("youtube_previous_video_delete_last_error", None)
-        record.pop("video_repair_priority", None)
-        print(
-            f"YOUTUBE_REPLACED_VIDEO_DELETE_OK product_id={product_id_value} "
-            f"old_video_id={old_video_id} outcome={outcome}"
-        )
-    except Exception as exc:
-        try:
-            attempts = int(record.get("youtube_previous_video_delete_attempts", 0) or 0) + 1
-        except (TypeError, ValueError, OverflowError):
-            attempts = 1
-        record["youtube_previous_video_delete_attempts"] = attempts
-        delay = min(3600, 300 * (2 ** min(attempts - 1, 4)))
-        record["youtube_previous_video_delete_next_attempt_at"] = (
-            current + timedelta(seconds=delay)
-        ).isoformat()
-        record["youtube_previous_video_delete_last_error"] = type(exc).__name__
-        print(
-            f"YOUTUBE_REPLACED_VIDEO_DELETE_FAILED product_id={product_id_value} "
-            f"old_video_id={old_video_id} error={type(exc).__name__} retry_attempt={attempts}"
-        )
+    retained_ids = record.get("youtube_retained_video_ids")
+    if not isinstance(retained_ids, list):
+        retained_ids = []
+    if old_video_id not in retained_ids:
+        retained_ids.append(old_video_id)
+    record["youtube_retained_video_ids"] = retained_ids[-100:]
+    record["youtube_previous_video_retained_at"] = current.isoformat()
+    record["youtube_video_renderer_version"] = PERSIAN_TEXT_RENDERER_VERSION
+    record.pop("youtube_previous_video_id", None)
+    record.pop("youtube_previous_video_delete_next_attempt_at", None)
+    record.pop("youtube_previous_video_delete_attempts", None)
+    record.pop("youtube_previous_video_delete_last_error", None)
+    record.pop("video_repair_priority", None)
+    print(
+        f"YOUTUBE_REPLACED_VIDEO_RETAINED product_id={product_id_value} "
+        f"old_video_id={old_video_id} deletion_disabled=true"
+    )
     return True
 
 
@@ -8386,7 +8344,6 @@ def process_pending_short_video(
             render_short_video,
             upload_youtube_video,
             update_youtube_video_description,
-            delete_youtube_video,
             youtube_credentials_available,
             send_telegram_video_review,
             telegram_video_review_available,
@@ -8515,8 +8472,8 @@ def process_pending_short_video(
 
     if youtube_ready:
         for existing_pid, existing_record in published.items():
-            if isinstance(existing_record, dict) and _delete_superseded_youtube_video(
-                existing_record, str(existing_pid), delete_youtube_video, current
+            if isinstance(existing_record, dict) and _retain_superseded_youtube_video(
+                existing_record, str(existing_pid), current
             ):
                 state_changed = True
 
@@ -9052,8 +9009,8 @@ def process_pending_short_video(
             record.pop("youtube_next_attempt_at", None)
             record.pop("youtube_last_error", None)
             print(f"YOUTUBE_UPLOAD_OK id={pid} video_id={result['video_id']} url={result['url']}")
-            _delete_superseded_youtube_video(
-                record, pid, delete_youtube_video, datetime.now(timezone.utc)
+            _retain_superseded_youtube_video(
+                record, pid, datetime.now(timezone.utc)
             )
         except Exception as exc:
             if isinstance(exc, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)):
