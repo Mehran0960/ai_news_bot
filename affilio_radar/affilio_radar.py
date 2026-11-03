@@ -8847,7 +8847,14 @@ def process_pending_short_video(
             record["video_generation_next_attempt_at"] = (current + timedelta(minutes=30)).isoformat()
             state_changed = True
             continue
-        candidates.append((float(record.get("ts") or 0), str(pid), record, expiry_for_sort))
+        candidates.append((
+            float(record.get("ts") or 0),
+            str(pid),
+            record,
+            expiry_for_sort,
+            expiry,
+            verified_expiry,
+        ))
 
     if state_changed:
         save_json(STATE, state)
@@ -8864,7 +8871,7 @@ def process_pending_short_video(
             row[0],
         )
     )
-    _, pid, record, expiry = candidates[0]
+    _, pid, record, _expiry_for_sort, expiry, verified_expiry = candidates[0]
     output_folder = Path(output_dir)
     output_folder.mkdir(parents=True, exist_ok=True)
     output_path = output_folder / f"offerchin-{pid}.mp4"
@@ -8886,10 +8893,12 @@ def process_pending_short_video(
         record["video_file_name"] = output_path.name
         record.pop("video_generation_next_attempt_at", None)
         record.pop("video_generation_last_error", None)
+        expiry_label = expiry.isoformat() if expiry is not None else "unverified_or_missing"
         print(
             f"SHORT_VIDEO_GENERATED id={pid} file={output_path.name} "
             f"youtube_credentials={youtube_ready} aparat_credentials={aparat_ready} "
-            f"telegram_review={review_ready} expiry={expiry.isoformat()}"
+            f"telegram_review={review_ready} expiry={expiry_label} "
+            f"expiry_verified={verified_expiry}"
         )
         save_json(STATE, state)
     except Exception as exc:
