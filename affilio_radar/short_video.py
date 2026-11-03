@@ -793,54 +793,10 @@ def update_youtube_video_description(
 
 
 def delete_youtube_video(video_id: str, *, session=None, env: Mapping[str, str] | None = None) -> str:
-    """Permanently delete a tracked YouTube video; return deleted/already_absent."""
-    source = env if env is not None else os.environ
-    safe_id = str(video_id or "").strip()
-    if not safe_id or not safe_id.replace("-", "").replace("_", "").isalnum():
-        raise ValueError("invalid YouTube video ID")
-
-    http = session or requests.Session()
-    token = _youtube_access_token(http, source)
-    response = http.delete(
-        YOUTUBE_API_URL,
-        params={"id": safe_id},
-        headers={"Authorization": f"Bearer {token}"},
-        timeout=(10, 45),
-    )
-    if response.status_code == 204:
-        return "deleted"
-    if response.status_code == 404:
-        try:
-            payload = response.json()
-        except (ValueError, TypeError, AttributeError):
-            payload = {}
-        error_value = payload.get("error") if isinstance(payload, dict) else {}
-        error = error_value if isinstance(error_value, dict) else {}
-        errors = error.get("errors", [])
-        reasons = {
-            str(item.get("reason") or "")
-            for item in errors if isinstance(item, dict)
-        }
-        if "videoNotFound" in reasons or str(error.get("status") or "") == "NOT_FOUND":
-            return "already_absent"
-    _raise_for_youtube_http_error(response, "video deletion")
-    raise RuntimeError(f"YouTube delete returned unexpected HTTP {response.status_code}")
+    """Refuse removal: published YouTube videos are retained permanently by policy."""
+    raise RuntimeError("YouTube deletion is disabled by permanent-retention policy")
 
 
 def set_youtube_video_private(video_id: str, *, session=None, env: Mapping[str, str] | None = None) -> bool:
-    """Make a tracked YouTube video private once its associated time-limited deal expires."""
-    source = env if env is not None else os.environ
-    safe_id = str(video_id or "").strip()
-    if not safe_id or not safe_id.replace("-", "").replace("_", "").isalnum():
-        raise ValueError("invalid YouTube video ID")
-    http = session or requests.Session()
-    token = _youtube_access_token(http, source)
-    response = http.put(
-        YOUTUBE_API_URL,
-        params={"part": "status"},
-        json={"id": safe_id, "status": {"privacyStatus": "private"}},
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-        timeout=(10, 45),
-    )
-    _raise_for_youtube_http_error(response, "privacy update")
-    return True
+    """Refuse privacy changes: published YouTube videos must remain published."""
+    raise RuntimeError("YouTube privacy changes are disabled by permanent-retention policy")
