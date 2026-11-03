@@ -2594,7 +2594,7 @@ class AffilioRadarTests(unittest.TestCase):
         }
         self.assertFalse(radar_module.has_actionable_demand_signal(stale_rank, now))
 
-    def test_cross_category_bestseller_and_first_party_clicks_strengthen_secondary_demand_evidence(self):
+    def test_cross_category_bestseller_strengthens_market_demand_but_clicks_stay_analytics_only(self):
         now = datetime.now(timezone.utc)
         multi_category = {
             "catalog_sort_mode": "best_selling",
@@ -2624,11 +2624,9 @@ class AffilioRadarTests(unittest.TestCase):
             radar_module._demand_evidence_sort_key(multi_category, now),
             radar_module._demand_evidence_sort_key(single_category, now),
         )
-
-        clicked = {**multi_category, "click_count_30d": 50}
-        self.assertGreater(
-            radar_module._deal_demand_sort_key(clicked, now),
-            radar_module._deal_demand_sort_key(multi_category, now),
+        self.assertEqual(
+            deal_sort_key({**multi_category, "click_count_30d": 50}),
+            deal_sort_key(multi_category),
         )
 
     def test_discount_value_gate_rejects_unverified_markdowns_and_accepts_fresh_evidence(self):
