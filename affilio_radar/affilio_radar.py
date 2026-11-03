@@ -2954,23 +2954,13 @@ def _candidate_popularity_score(record: dict) -> int:
     return min(100, review_proxy + rating_proxy)
 
 
-def _offerchin_click_interest_score(record: dict) -> int:
-    """Use first-party product clicks as a secondary audience-interest signal, not market sales."""
-    if not isinstance(record, dict):
-        return 0
-    try:
-        clicks = max(0, int(record.get("click_count_30d") or 0))
-    except (TypeError, ValueError, OverflowError):
-        return 0
-    return min(100, round(20 * math.log1p(clicks))) if clicks else 0
-
-
 def _deal_demand_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Rank recent review growth, cross-category bestseller evidence, OfferChin clicks, then history."""
+    """Rank market review growth, cross-category bestseller evidence, then public popularity."""
     candidate = record if isinstance(record, dict) else {}
+    # First-party OfferChin clicks remain analytics only. They must not be mistaken
+    # for Iranian-market demand or override retailer-side evidence and markdown rank.
     return (
         *_demand_evidence_sort_key(candidate, now=now),
-        _offerchin_click_interest_score(candidate),
         _candidate_popularity_score(candidate),
     )
 
