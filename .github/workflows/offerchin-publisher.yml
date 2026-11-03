@@ -82,7 +82,7 @@ jobs:
 
       - name: Validate the delivery-only path
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
           python - <<'PY'
           from pathlib import Path
           source = Path("affilio_radar/publisher.py").read_text(encoding="utf-8")
@@ -111,9 +111,20 @@ jobs:
             test_affilio.AffilioRadarTests.test_preferred_posting_windows_use_iran_local_time \
             test_affilio.AffilioRadarTests.test_publication_interval_is_23_minutes \
             test_affilio.AffilioRadarTests.test_cross_category_bestseller_strengthens_market_demand_but_clicks_stay_analytics_only \
+            test_affilio.AffilioRadarTests.test_click_tracker_wraps_only_same_product_affiliate_destinations \
+            test_affilio.AffilioRadarTests.test_click_tracker_preserves_supported_affilio_template \
+            test_affilio.AffilioRadarTests.test_click_tracker_supports_channel_attribution_and_rejects_unknown_source_names \
+            test_affilio.AffilioRadarTests.test_superseded_youtube_short_is_retained_after_replacement_upload \
             test_affilio.AffilioRadarTests.test_youtube_upload_allows_published_product_without_official_expiry_timer \
             test_affilio.AffilioRadarTests.test_public_aparat_upload_stays_blocked_without_verified_expiry \
             test_affilio.AffilioRadarTests.test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record -v
+
+      - name: Validate permanent YouTube retention policy
+        run: |
+          cd affilio_radar
+          python -m unittest \
+            test_expiration_monitor.ExpirationMonitorTests.test_expired_youtube_short_is_retained_without_delete_or_privacy_change \
+            test_expiration_monitor.ExpirationMonitorTests.test_youtube_retention_does_not_require_expiry_or_oauth_credentials -v
 
       # Discovery/selection is a distinct stage. It writes the neutral content queue only.
       # Any later publisher adapter can consume that same selected payload without changing discovery.
