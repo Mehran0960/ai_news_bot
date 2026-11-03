@@ -8371,11 +8371,11 @@ def process_pending_short_video(
 ) -> bool:
     """Generate and publish a vertical artifact for a selected product.
 
-    Normal queue scans respect each platform's upload schedule. The external publisher
-    may pass force_due=True and product_id to process one selected item immediately;
-    this bypasses only cross-item spacing, never daily quotas, credentials or platform
-    failure handling. Missing expiry can be allowed in this path because the independent
-    live price/stock audit removes stale posts when the offer is no longer valid.
+    Normal queue scans respect each platform's upload schedule. force_due=True bypasses
+    cross-item spacing only; it never bypasses quotas, credentials, destination isolation,
+    or expiry safety. YouTube may use the last-mile channel price/stock checks plus the
+    independent integrity audit when no retailer expiry timer exists. Public Aparat uploads
+    continue to require a directly verified expiry deadline.
     """
     selected_destinations = (
         {"youtube", "aparat"} if destinations is None
@@ -8804,7 +8804,7 @@ def process_pending_short_video(
         )
         aparat_pending = aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not aparat_in_flight
         aparat_need = aparat_pending and (
-            APARAT_SHORTS_ONLY or (aparat_upload_due and (force_due or verified_expiry))
+            APARAT_SHORTS_ONLY or (aparat_upload_due and verified_expiry)
         )
         public_aparat_need = aparat_need and not APARAT_SHORTS_ONLY
         shorts_queue_need = aparat_pending and APARAT_SHORTS_ONLY
@@ -8945,7 +8945,7 @@ def process_pending_short_video(
         aparat_ready and aparat_upload_due
         and aparat_status in PENDING_APARAT_STATUSES
         and not APARAT_SHORTS_ONLY
-        and (force_due or verified_expiry)
+        and verified_expiry
     ):
         aparat_started_at = datetime.now(timezone.utc)
         record["aparat_upload_status"] = "uploading"
