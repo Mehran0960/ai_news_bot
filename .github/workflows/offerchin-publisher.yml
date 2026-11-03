@@ -112,7 +112,8 @@ jobs:
             test_affilio.AffilioRadarTests.test_publication_interval_is_23_minutes \
             test_affilio.AffilioRadarTests.test_cross_category_bestseller_strengthens_market_demand_but_clicks_stay_analytics_only \
             test_affilio.AffilioRadarTests.test_youtube_upload_allows_published_product_without_official_expiry_timer \
-            test_affilio.AffilioRadarTests.test_public_aparat_upload_stays_blocked_without_verified_expiry -v
+            test_affilio.AffilioRadarTests.test_public_aparat_upload_stays_blocked_without_verified_expiry \
+            test_affilio.AffilioRadarTests.test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record -v
 
       # Discovery/selection is a distinct stage. It writes the neutral content queue only.
       # Any later publisher adapter can consume that same selected payload without changing discovery.
