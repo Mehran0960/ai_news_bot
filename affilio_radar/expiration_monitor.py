@@ -3281,122 +3281,17 @@ def _delete_expired_aparat_videos(
 def _delete_expired_youtube_videos(
     published, now, direct_confirm=None, max_delete_attempts=None
 ):
-    """Permanently delete a bounded batch of expired YouTube Shorts."""
-    changed = False
-    delete_attempts = 0
-    if max_delete_attempts is not None:
-        max_delete_attempts = max(1, int(max_delete_attempts))
-    try:
-        from short_video import (
-            delete_youtube_video,
-            set_youtube_video_private,
-            youtube_credentials_available,
+    """Permanent retention policy: never delete or privatize a published YouTube video."""
+    retained = sum(
+        1 for _pid, record in _iter_post_records(published)
+        if isinstance(record, dict) and str(record.get("youtube_video_id") or "").strip()
+    )
+    if retained:
+        print(
+            f"YOUTUBE_RETENTION_POLICY videos={retained} "
+            "cleanup_disabled=true deletion_disabled=true privacy_change_disabled=true"
         )
-        credentials_ready = youtube_credentials_available()
-    except Exception as exc:
-        delete_youtube_video = None
-        set_youtube_video_private = None
-        credentials_ready = False
-        print(f"YOUTUBE_EXPIRY_SETUP_UNAVAILABLE error={type(exc).__name__}")
-
-    terminal = {"deleted", "already_absent", "delete_unavailable"}
-    for pid, rec in _iter_post_records(published):
-        if not isinstance(rec, dict):
-            continue
-        if max_delete_attempts is not None and delete_attempts >= max_delete_attempts:
-            print(f"YOUTUBE_EXPIRY_DELETE_BUDGET_EXHAUSTED max_attempts={max_delete_attempts} attempted={delete_attempts}; remaining_items_deferred=true")
-            return changed
-        if not _has_verified_deadline(rec):
-            continue
-        video_id = str(rec.get("youtube_video_id") or "").strip()
-        expiry_status = str(rec.get("youtube_expiry_status") or "")
-        if not video_id or expiry_status in terminal:
-            continue
-        # Estimated deadlines do not prove expiry; only verified deadlines
-        # may trigger permanent removal of published videos.
-        if rec.get("expiry_estimated") is True:
-            continue
-        expires = parse_expiry(rec.get("expires_at"))
-        if not expires:
-            continue
-        try:
-            deadline = datetime.fromisoformat(expires)
-        except ValueError:
-            continue
-        if deadline.tzinfo is None:
-            deadline = deadline.replace(tzinfo=timezone.utc)
-        removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
-        if removal_deadline > now:
-            continue
-        if direct_confirm is not None:
-            decision, confirmation_changed = direct_confirm(pid, rec, now)
-            changed = changed or confirmation_changed
-            if decision != "confirmed":
-                continue
-            expires = parse_expiry(rec.get("expires_at"))
-            if not expires:
-                continue
-            deadline = datetime.fromisoformat(expires)
-            if deadline.tzinfo is None:
-                deadline = deadline.replace(tzinfo=timezone.utc)
-            removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
-            if removal_deadline > now:
-                continue
-
-        retry_raw = parse_expiry(rec.get("youtube_expiry_next_attempt_at"))
-        if retry_raw:
-            try:
-                retry_at = datetime.fromisoformat(retry_raw)
-                if retry_at.tzinfo is None:
-                    retry_at = retry_at.replace(tzinfo=timezone.utc)
-                if now < retry_at and not (
-                    expiry_status == "pending_credentials" and credentials_ready
-                ):
-                    continue
-            except ValueError:
-                pass
-
-        if not credentials_ready or delete_youtube_video is None:
-            rec["youtube_expiry_status"] = "pending_credentials"
-            rec["youtube_expiry_next_attempt_at"] = (now + timedelta(minutes=5)).isoformat()
-            rec["youtube_expiry_last_error"] = "youtube_oauth_secrets_missing"
-            changed = True
-            continue
-
-        delete_attempts += 1
-        try:
-            outcome = delete_youtube_video(video_id)
-            if outcome not in terminal:
-                raise RuntimeError("YouTube deletion was not confirmed")
-            rec["youtube_expiry_status"] = outcome
-            rec["youtube_deleted_at" if outcome == "deleted" else "youtube_already_absent_at"] = now.isoformat()
-            rec.pop("youtube_expiry_next_attempt_at", None)
-            rec.pop("youtube_expiry_last_error", None)
-            changed = True
-            print(f"YOUTUBE_EXPIRY_DELETE_OK product_id={pid} video_id={video_id} outcome={outcome}")
-        except Exception as exc:
-            # Deletion remains the goal; best-effort privacy is only a guardrail if
-            # a delete request fails, and the permanent delete will be retried.
-            fallback = "not_attempted"
-            if set_youtube_video_private is not None:
-                try:
-                    set_youtube_video_private(video_id)
-                    rec["youtube_visibility"] = "private_waiting_for_delete"
-                    fallback = "private"
-                except Exception as private_exc:
-                    fallback = f"failed:{type(private_exc).__name__}"
-            attempts = int(rec.get("youtube_expiry_attempts", 0) or 0) + 1
-            rec["youtube_expiry_attempts"] = attempts
-            rec["youtube_expiry_status"] = "delete_retry"
-            rec["youtube_expiry_next_attempt_at"] = (now + timedelta(minutes=5)).isoformat()
-            rec["youtube_expiry_last_error"] = type(exc).__name__
-            changed = True
-            print(
-                f"YOUTUBE_EXPIRY_DELETE_FAILED product_id={pid} error={type(exc).__name__} "
-                f"fallback={fallback} retry_attempt={attempts}"
-            )
-
-    return changed
+    return False
 
 
 def _sync_live_deadline_feed(state, published, now, force=False):
