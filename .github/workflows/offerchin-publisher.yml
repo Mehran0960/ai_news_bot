@@ -115,6 +115,8 @@ jobs:
             test_affilio.AffilioRadarTests.test_click_tracker_preserves_supported_affilio_template \
             test_affilio.AffilioRadarTests.test_click_tracker_supports_channel_attribution_and_rejects_unknown_source_names \
             test_affilio.AffilioRadarTests.test_superseded_youtube_short_is_retained_after_replacement_upload \
+            test_affilio.AffilioRadarTests.test_replaced_youtube_video_is_retained_after_new_upload_is_confirmed \
+            test_short_video.ShortVideoTests.test_youtube_video_removal_is_refused_without_network_access \
             test_affilio.AffilioRadarTests.test_youtube_upload_allows_published_product_without_official_expiry_timer \
             test_affilio.AffilioRadarTests.test_public_aparat_upload_stays_blocked_without_verified_expiry \
             test_affilio.AffilioRadarTests.test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record -v
