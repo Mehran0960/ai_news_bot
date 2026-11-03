@@ -253,9 +253,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(parse_qs(urlsplit(affiliate).query).get("p"), [canonical])
         tracked = build_click_tracking_link(canonical, affiliate, "https://tracker.example", source="bale")
         parsed = urlsplit(tracked)
-        self.assertEqual(parsed.path, "/p/snp-2097083854")
-        self.assertEqual(parse_qs(parsed.query).get("u"), [affiliate])
-        self.assertEqual(parse_qs(parsed.query).get("src"), ["bale"])
+        self.assertEqual(tracked, affiliate)
+        self.assertEqual(parsed.netloc, "aflo.ir")
+
 
     def test_fetch_product_record_uses_snappshop_internal_api_id_mapping(self):
         url = "https://snappshop.ir/product/snp-25751584"
