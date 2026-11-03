@@ -239,23 +239,21 @@ class ShortVideoTests(unittest.TestCase):
             "AFFILIO_VIDEO_REVIEW_CHAT_ID": "12345",
         }))
 
-    def test_delete_youtube_video_uses_authorized_permanent_delete_endpoint(self):
-        http = FakeYouTubeHTTP()
-        result = delete_youtube_video(
-            "testVideo123",
-            session=http,
-            env={
-                "YOUTUBE_CLIENT_ID": "test-client",
-                "YOUTUBE_CLIENT_SECRET": "test-secret",
-                "YOUTUBE_REFRESH_TOKEN": "test-refresh",
-            },
-        )
-        self.assertEqual(result, "deleted")
-        url, request = http.deletes[0]
-        self.assertEqual(url, YOUTUBE_API_URL)
-        self.assertEqual(request["params"], {"id": "testVideo123"})
-        self.assertEqual(request["headers"]["Authorization"], "Bearer test-token")
-        self.assertNotIn("json", request)
+    def test_youtube_video_removal_is_refused_without_network_access(self):
+        class MustNotBeCalledHTTP:
+            def __getattr__(self, name):
+                raise AssertionError(f"unexpected network call: {name}")
+
+        with self.assertRaisesRegex(RuntimeError, "permanent-retention policy"):
+            delete_youtube_video(
+                "testVideo123",
+                session=MustNotBeCalledHTTP(),
+                env={
+                    "YOUTUBE_CLIENT_ID": "test-client",
+                    "YOUTUBE_CLIENT_SECRET": "test-secret",
+                    "YOUTUBE_REFRESH_TOKEN": "test-refresh",
+                },
+            )
 
     def test_youtube_http_errors_include_google_reason_and_message_without_url(self):
         response = FakeResponse({
