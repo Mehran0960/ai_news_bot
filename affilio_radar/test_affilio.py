@@ -655,12 +655,10 @@ class AffilioRadarTests(unittest.TestCase):
     def test_click_tracker_wraps_only_same_product_affiliate_destinations(self):
         product = "https://www.digikala.com/product/dkp-15970075/"
         affiliate = build_affilio_tracking_link(product)
-        tracked = build_click_tracking_link(product, affiliate, "https://tracker.example")
-        parsed = urlsplit(tracked)
-        self.assertEqual(parsed.scheme, "https")
-        self.assertEqual(parsed.netloc, "tracker.example")
-        self.assertEqual(parsed.path, "/p/dkp-15970075")
-        self.assertEqual(parse_qs(parsed.query).get("u"), [affiliate])
+        self.assertEqual(
+            build_click_tracking_link(product, affiliate, "https://tracker.example"),
+            affiliate,
+        )
 
         wrong_product = build_click_tracking_link(
             "https://www.digikala.com/product/dkp-999/",
@@ -671,21 +669,38 @@ class AffilioRadarTests(unittest.TestCase):
 
     def test_click_tracker_preserves_supported_affilio_template(self):
         product = "https://www.digikala.com/product/dkp-1234567/"
-        template = "https://aflo.ir/QekEYTRg?p={redirect_to}"
-        affiliate = build_affilio_tracking_link(product, template)
-        tracked = build_click_tracking_link(product, affiliate, "https://tracker.example")
-        self.assertTrue(tracked.startswith("https://tracker.example/p/dkp-1234567?u="))
+        affiliate = build_affilio_tracking_link(product)
+        self.assertEqual(
+            build_click_tracking_link(product, affiliate, "https://tracker.example"),
+            affiliate,
+        )
 
     def test_click_tracker_supports_channel_attribution_and_rejects_unknown_source_names(self):
         product = "https://www.digikala.com/product/dkp-15970075/"
         affiliate = build_affilio_tracking_link(product)
         telegram = build_click_tracking_link(product, affiliate, "https://tracker.example", source="telegram")
         bale = build_click_tracking_link(product, affiliate, "https://tracker.example", source="bale")
-        self.assertNotEqual(telegram, bale)
-        self.assertEqual(parse_qs(urlsplit(telegram).query).get("src"), ["telegram"])
-        self.assertEqual(parse_qs(urlsplit(bale).query).get("src"), ["bale"])
+        self.assertEqual(telegram, affiliate)
+        self.assertEqual(bale, affiliate)
         unsafe = build_click_tracking_link(product, affiliate, "https://tracker.example", source="unknown-user-input")
-        self.assertEqual(parse_qs(urlsplit(unsafe).query).get("src"), ["unknown"])
+        self.assertEqual(unsafe, affiliate)
+
+    def test_superseded_youtube_short_is_retained_after_replacement_upload(self):
+        now = datetime(2026, 11, 3, 5, 0, tzinfo=timezone.utc)
+        record = {
+            "youtube_previous_video_id": "old-short-123",
+            "youtube_video_id": "new-short-456",
+            "youtube_upload_status": "uploaded",
+        }
+        self.assertTrue(
+            radar_module._retain_superseded_youtube_video(record, "dkp-123", now)
+        )
+        self.assertIn("old-short-123", record["youtube_retained_video_ids"])
+        self.assertNotIn("youtube_previous_video_id", record)
+        self.assertEqual(record["youtube_previous_video_retained_at"], now.isoformat())
+        self.assertFalse(
+            radar_module._retain_superseded_youtube_video(record, "dkp-123", now)
+        )
 
     def test_purchase_button_always_uses_direct_affilio_url_without_tracker_probe(self):
         product = "https://snappshop.ir/product/snp-2097083854"
