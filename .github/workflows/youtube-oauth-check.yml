@@ -2,6 +2,10 @@ name: YouTube OAuth Connection Check
 
 on:
   workflow_dispatch:
+  # Read-only daily check: refresh the OAuth token and verify the connected YouTube channel.
+  # This never uploads, edits, or publishes a video.
+  schedule:
+    - cron: "17 4 * * *"
   push:
     branches:
       - main
