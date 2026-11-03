@@ -4379,7 +4379,7 @@ class AffilioRadarTests(unittest.TestCase):
         ))
         self.assertEqual(len(session.calls), calls_before)
 
-    def test_replaced_youtube_video_is_deleted_only_after_new_upload_is_confirmed(self):
+    def test_replaced_youtube_video_is_retained_after_new_upload_is_confirmed(self):
         from affilio_radar import PERSIAN_TEXT_RENDERER_VERSION
 
         now = datetime(2026, 10, 23, 18, 0, tzinfo=timezone.utc)
@@ -4389,16 +4389,13 @@ class AffilioRadarTests(unittest.TestCase):
             "youtube_upload_status": "uploaded",
             "video_repair_priority": True,
         }
-        with patch("affilio_radar.delete_youtube_video", return_value="deleted", create=True) as delete:
-            changed = _delete_superseded_youtube_video(
-                record, "dkp-19336870", delete, now
-            )
+        changed = _retain_superseded_youtube_video(record, "dkp-19336870", now)
         self.assertTrue(changed)
-        delete.assert_called_once_with("oldBrokenShort")
+        self.assertIn("oldBrokenShort", record["youtube_retained_video_ids"])
         self.assertNotIn("youtube_previous_video_id", record)
         self.assertNotIn("video_repair_priority", record)
         self.assertEqual(record["youtube_video_renderer_version"], PERSIAN_TEXT_RENDERER_VERSION)
-        self.assertEqual(record["youtube_previous_video_deleted_at"], now.isoformat())
+        self.assertEqual(record["youtube_previous_video_retained_at"], now.isoformat())
 
     def test_failed_old_video_deletion_keeps_id_for_retry_without_losing_new_video(self):
         now = datetime(2026, 10, 23, 18, 0, tzinfo=timezone.utc)
