@@ -5544,7 +5544,9 @@ class AffilioRadarTests(unittest.TestCase):
             }) as upload_youtube,
             patch("aparat_uploader.upload_aparat_video") as upload_aparat,
         ):
-            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
+            self.assertTrue(process_pending_short_video(
+                state, now=now, output_dir=output_dir, force_due=True
+            ))
 
         upload_youtube.assert_called_once()
         upload_aparat.assert_not_called()
