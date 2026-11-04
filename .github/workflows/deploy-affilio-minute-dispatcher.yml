@@ -28,7 +28,7 @@ jobs:
 
       - name: Validate the versioned dispatcher source
         run: |
-          node --check affilio_radar/workers/affilio-minute-dispatcher.js
+          node --input-type=module --check < affilio_radar/workers/affilio-minute-dispatcher.js
           grep -F 'const PUBLISHER_INTERVAL_MS = 6 * 60 * 60 * 1000;' affilio_radar/workers/affilio-minute-dispatcher.js
 
       - name: Check Cloudflare deployment credentials
