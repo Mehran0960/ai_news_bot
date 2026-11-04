@@ -39,7 +39,7 @@ except ImportError:
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from offerchin_visuals import (
-    draw_discount_burst, draw_retailer_badge, draw_digipay_badge, adaptive_text_colors,
+    draw_discount_burst, draw_discount_flame, draw_retailer_badge, draw_digipay_badge, adaptive_text_colors,
     discount_badge_dimensions_for_reference_bounds,
 )
 from integrity_audit_state import apply_integrity_audit_ledger
@@ -4823,15 +4823,27 @@ def build_discount_image(
         except (TypeError, ValueError, OverflowError):
             discount_value = 0
         if 0 < discount_value <= 100:
+            actual_badge_width = min(badge_width, width - badge_left)
+            actual_badge_height = min(badge_height, height - badge_top)
             draw_discount_burst(
                 draw,
                 badge_left,
                 badge_top,
-                min(badge_width, width - badge_left),
-                min(badge_height, height - badge_top),
+                actual_badge_width,
+                actual_badge_height,
                 discount_value,
                 merchant=merchant,
             )
+            # Large photo badges reserve a small leading gutter for the same
+            # committed flame artwork used by vertical videos. Compact badges stay text-only.
+            if actual_badge_width >= 240 and actual_badge_height >= 55:
+                flame_size = max(14, min(20, int(actual_badge_height * 0.25)))
+                draw_discount_flame(
+                    image,
+                    badge_left + max(12, flame_size // 2 + 3),
+                    badge_top + actual_badge_height // 2,
+                    flame_size,
+                )
 
     # Keep the retailer's original tile untouched. DigiPay gets a blue field
     # matching the retailer tile's actual rendered width and height, with its
