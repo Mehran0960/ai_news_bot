@@ -1784,23 +1784,27 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(record["youtube_expiry_status"], "tracked")
 
 
-    def test_aparat_expired_video_is_deleted(self):
+    def test_aparat_expired_video_is_retained_without_delete_or_privacy_change(self):
         now = datetime.now(timezone.utc)
         record = {
             "aparat_video_hash": "aparat_expired",
             "aparat_visibility": "public",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
-                        "expiry_deadline_verified_directly": True,
+            "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
         }
-        with patch("aparat_uploader.aparat_credentials_available", return_value=True), patch(
-            "aparat_uploader.delete_aparat_video", return_value="deleted"
-        ) as delete_video:
+        with patch("aparat_uploader.aparat_credentials_available") as credentials, patch(
+            "aparat_uploader.delete_aparat_video"
+        ) as delete_video, patch("aparat_uploader.set_aparat_video_private") as privatize:
             changed = monitor._delete_expired_aparat_videos({"dkp-aparat": record}, now)
-        self.assertTrue(changed)
-        delete_video.assert_called_once_with("aparat_expired")
-        self.assertEqual(record["aparat_expiry_status"], "deleted")
+
+        self.assertFalse(changed)
+        credentials.assert_not_called()
+        delete_video.assert_not_called()
+        privatize.assert_not_called()
+        self.assertEqual(record["aparat_visibility"], "public")
+        self.assertNotIn("aparat_expiry_status", record)
 
     def test_aparat_estimated_deadline_does_not_delete_video(self):
         now = datetime.now(timezone.utc)
@@ -1818,43 +1822,157 @@ class ExpirationMonitorTests(unittest.TestCase):
         delete_video.assert_not_called()
         self.assertNotIn("aparat_expiry_status", record)
 
-    def test_aparat_delete_failure_privatises_as_fallback_and_retries(self):
+    def test_aparat_expiry_cleanup_never_privatises_or_retries_video_deletion(self):
         now = datetime.now(timezone.utc)
         record = {
             "aparat_video_hash": "aparat_retry",
             "aparat_visibility": "public",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
-                        "expiry_deadline_verified_directly": True,
+            "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
         }
-        with patch("aparat_uploader.aparat_credentials_available", return_value=True), patch(
+        with patch("aparat_uploader.aparat_credentials_available") as credentials, patch(
             "aparat_uploader.delete_aparat_video", side_effect=RuntimeError("delete failed")
-        ), patch("aparat_uploader.set_aparat_video_private", return_value=True) as fallback:
+        ) as delete_video, patch(
+            "aparat_uploader.set_aparat_video_private"
+        ) as fallback:
             changed = monitor._delete_expired_aparat_videos({"dkp-aparat-retry": record}, now)
-        self.assertTrue(changed)
-        fallback.assert_called_once_with("aparat_retry")
-        self.assertEqual(record["aparat_expiry_status"], "delete_retry")
-        self.assertIn("aparat_expiry_next_attempt_at", record)
 
-    def test_expired_video_deletion_waits_for_aparat_credentials(self):
+        self.assertFalse(changed)
+        credentials.assert_not_called()
+        delete_video.assert_not_called()
+        fallback.assert_not_called()
+        self.assertEqual(record["aparat_visibility"], "public")
+        self.assertNotIn("aparat_expiry_status", record)
+        self.assertNotIn("aparat_expiry_next_attempt_at", record)
+
+    def test_aparat_video_retention_does_not_depend_on_delete_credentials(self):
         now = datetime.now(timezone.utc)
         record = {
             "aparat_video_hash": "aparat_pending",
             "aparat_visibility": "public",
             "expires_at": (now - timedelta(minutes=1)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
-                        "expiry_deadline_verified_directly": True,
+            "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
         }
-        with patch("aparat_uploader.aparat_credentials_available", return_value=False), patch(
+        with patch("aparat_uploader.aparat_credentials_available", return_value=False) as credentials, patch(
             "aparat_uploader.delete_aparat_video"
         ) as delete_video:
             changed = monitor._delete_expired_aparat_videos({"dkp-aparat-pending": record}, now)
-        self.assertTrue(changed)
-        delete_video.assert_not_called()
-        self.assertEqual(record["aparat_expiry_status"], "pending_credentials")
 
+        self.assertFalse(changed)
+        credentials.assert_not_called()
+        delete_video.assert_not_called()
+        self.assertEqual(record["aparat_visibility"], "public")
+        self.assertNotIn("aparat_expiry_status", record)
+
+
+    def test_seven_day_retention_deletes_oldest_telegram_and_bale_posts_but_keeps_videos(self):
+        now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-tg-oldest": {
+                "title": "پست تلگرام قدیمی‌تر",
+                "ts": (now - timedelta(days=10)).timestamp(),
+                "telegram_message_id": 101,
+            },
+            "dkp-tg-next": {
+                "title": "پست تلگرام بعدی",
+                "ts": (now - timedelta(days=8)).timestamp(),
+                "telegram_message_id": 102,
+            },
+            "dkp-tg-new": {
+                "title": "پست تلگرام جدید",
+                "ts": (now - timedelta(days=6)).timestamp(),
+                "telegram_message_id": 103,
+            },
+            "dkp-bale-oldest": {
+                "title": "پست بله قدیمی‌تر",
+                "ts": (now - timedelta(days=9)).timestamp(),
+                "bale_message_id": 201,
+            },
+            "dkp-bale-next": {
+                "title": "پست بله بعدی",
+                "ts": (now - timedelta(days=8)).timestamp(),
+                "bale_message_id": 202,
+            },
+            "dkp-video-only": {
+                "youtube_video_id": "youtube-permanent",
+                "aparat_video_hash": "aparat-permanent",
+                "youtube_upload_status": "uploaded",
+                "aparat_upload_status": "uploaded",
+                "ts": (now - timedelta(days=30)).timestamp(),
+            },
+        }
+        env = {
+            "TELEGRAM_API_ID": "12345",
+            "TELEGRAM_API_HASH": "a" * 32,
+            "AFFILIO_CHANNEL_POST_RETENTION_DAYS": "7",
+            "AFFILIO_CHANNEL_POST_RETENTION_BUFFER_MINUTES": "0",
+            "AFFILIO_CHANNEL_RETENTION_MAX_DELETES": "120",
+        }
+        with patch.dict("os.environ", env, clear=False), patch.object(
+            monitor, "BOT_TOKEN", "bot-token"
+        ), patch.object(
+            monitor, "_telegram_delete_mtproto_many",
+            return_value={101: "deleted", 102: "deleted"},
+        ) as telegram_delete, patch.object(
+            monitor, "_bale_delete", side_effect=["deleted", "deleted"]
+        ) as bale_delete:
+            changed, summary = monitor._delete_channel_posts_older_than_retention(
+                published, now, max_delete_attempts=120
+            )
+
+        self.assertTrue(changed)
+        self.assertEqual(
+            telegram_delete.call_args.args[0],
+            [101, 102],
+            "Telegram deletion must process the oldest post first",
+        )
+        self.assertEqual([call.args[0] for call in bale_delete.call_args_list], [201, 202])
+        self.assertEqual(summary["telegram_deleted"], 2)
+        self.assertEqual(summary["bale_deleted"], 2)
+        self.assertEqual(published["dkp-tg-oldest"]["telegram_retention_status"], "deleted")
+        self.assertEqual(published["dkp-bale-oldest"]["bale_retention_status"], "deleted")
+        self.assertNotIn("telegram_retention_status", published["dkp-tg-new"])
+        self.assertEqual(published["dkp-video-only"]["youtube_video_id"], "youtube-permanent")
+        self.assertEqual(published["dkp-video-only"]["aparat_video_hash"], "aparat-permanent")
+
+    def test_telegram_retention_requires_mtproto_credentials_but_bale_cleanup_continues(self):
+        now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-tg-old": {
+                "ts": (now - timedelta(days=9)).timestamp(),
+                "telegram_message_id": 301,
+            },
+            "dkp-bale-old": {
+                "ts": (now - timedelta(days=9)).timestamp(),
+                "bale_message_id": 401,
+            },
+        }
+        with patch.dict(
+            "os.environ",
+            {"TELEGRAM_API_ID": "", "TELEGRAM_API_HASH": "", "AFFILIO_CHANNEL_POST_RETENTION_BUFFER_MINUTES": "0"},
+            clear=False,
+        ), patch.object(
+            monitor, "BOT_TOKEN", "bot-token"
+        ), patch.object(
+            monitor, "_telegram_delete_mtproto_many"
+        ) as telegram_delete, patch.object(
+            monitor, "_bale_delete", return_value="deleted"
+        ) as bale_delete:
+            changed, summary = monitor._delete_channel_posts_older_than_retention(published, now)
+
+        self.assertTrue(changed)
+        telegram_delete.assert_not_called()
+        bale_delete.assert_called_once_with(401)
+        self.assertEqual(
+            published["dkp-tg-old"]["telegram_retention_status"],
+            "blocked_missing_mtproto_credentials",
+        )
+        self.assertEqual(published["dkp-bale-old"]["bale_retention_status"], "deleted")
+        self.assertEqual(summary["blocked_missing_mtproto_credentials"], 1)
 
     def test_live_price_audit_invalidates_exact_price_mismatch(self):
         now = datetime(2026, 10, 25, 16, 0, tzinfo=timezone.utc)
