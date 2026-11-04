@@ -7076,7 +7076,8 @@ _PUBLICATION_SIMILARITY_STOPWORDS = {
     "برای", "با", "در", "روی", "و", "یا", "این", "آن", "یک", "نوع",
     "محصول", "کالا", "دستگاه", "لوازم", "تجهیزات", "کاربردی", "حرفه",
     "اقتصادی", "کوچک", "بزرگ", "جدید", "ارسال", "خرید", "کیفیت",
-    "بی", "سیم", "بلوتوث", "بلوتوثی", "وایرلس", "شارژی", "برقی",
+    "بی", "سیم", "بیسیم", "بلوتوث", "بلوتوثی", "وایرلس", "شارژی", "برقی",
+    "کتاب", "داستان", "نوجوان", "چاپ", "تازه",
     "وات", "آمپر", "میلی", "ساعت", "گرم", "کیلوگرم", "سانتی", "اینچ",
     "mah", "gb", "tb", "cm", "mm", "inch", "wireless", "bluetooth",
     "new", "original", "genuine", "black", "white", "red", "blue",
@@ -7112,7 +7113,7 @@ def _publication_similarity_tokens(product_or_title) -> set[str]:
         title = str(product_or_title or "")
 
     normalized = title.lower().replace("ي", "ی").replace("ك", "ک")
-    normalized = re.sub(r"[\u200b-\u200f\ufeff\u064b-\u065f]", "", normalized)
+    normalized = re.sub(r"[\u200b\u200d\u200f\ufeff\u064b-\u065f]", "", normalized)
     normalized = normalized.replace("\u200c", " ")
     normalized = re.sub(r"[۰-۹٠-٩]", lambda match: str("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩".index(match.group(0)) % 10), normalized)
     if explicit_brand:
