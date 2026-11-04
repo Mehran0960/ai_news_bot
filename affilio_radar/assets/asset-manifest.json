@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "project": "OfferChin",
+  "description": "Versioned local artwork shared by photo and vertical-video renderers; production rendering never downloads brand assets.",
+  "assets": {
+    "digikala-logo": {
+      "path": "retailer-logos/digikala-official.webp",
+      "format": "webp",
+      "required": true,
+      "used_by": [
+        "image",
+        "video"
+      ]
+    },
+    "snappshop-logo": {
+      "path": "retailer-logos/snappshop-official.webp",
+      "format": "webp",
+      "required": true,
+      "used_by": [
+        "image",
+        "video"
+      ]
+    },
+    "digipay-logo": {
+      "path": "retailer-logos/digipay-official.svg",
+      "format": "svg",
+      "required": true,
+      "source": "https://www.mydigipay.com/bck-assets/images/logos/dp-logo.svg",
+      "used_by": [
+        "image",
+        "video"
+      ]
+    },
+    "discount-flame": {
+      "path": "discount/discount-flame.svg",
+      "format": "svg",
+      "required": true,
+      "used_by": [
+        "image",
+        "video"
+      ]
+    },
+    "persian-bold-font": {
+      "path": "fonts/Vazirmatn-ExtraBold.ttf",
+      "format": "ttf",
+      "required": true,
+      "used_by": [
+        "image",
+        "video"
+      ]
+    }
+  },
+  "components": {
+    "discount-badge": {
+      "renderer": "offerchin_visuals.draw_discount_burst",
+      "type": "programmatic",
+      "used_by": [
+        "image",
+        "video"
+      ]
+    },
+    "discount-flame": {
+      "renderer": "offerchin_visuals.draw_discount_flame",
+      "type": "local-svg",
+      "used_by": [
+        "image",
+        "video"
+      ]
+    },
+    "retailer-logo": {
+      "renderer": "offerchin_visuals.draw_retailer_badge",
+      "type": "local-image",
+      "used_by": [
+        "image",
+        "video"
+      ]
+    },
+    "digipay-logo": {
+      "renderer": "offerchin_visuals.draw_digipay_badge",
+      "type": "local-svg",
+      "used_by": [
+        "image",
+        "video"
+      ]
+    }
+  }
+}
