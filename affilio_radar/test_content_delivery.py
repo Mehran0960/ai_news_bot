@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from content_delivery import (
     due_content, due_unpublished_selection, enqueue_selected_content,
     finish_queue_item, get_last_channel_published_at, has_fresh_unpublished_selection,
-    promote_fallback_selection,
+    promote_fallback_selection, reconcile_video_delivery_targets,
     refresh_unpublished_selections, selection_cadence_anchor,
 )
 from platform_registry import PLATFORM_NAMES
@@ -45,7 +45,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "deal_expires_at": deadline.isoformat() if deadline else "",
         }
 
-    def test_default_interval_is_23_minutes_from_last_channel_publication(self):
+    def test_default_interval_is_six_hours_from_last_channel_publication(self):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-first")], now=self.now, minimum_runway_minutes=0
@@ -53,15 +53,48 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state["last_channel_published_at"] = self.now.isoformat()
         enqueue_selected_content(
             state, [self.item("dkp-second")],
-            now=self.now + timedelta(minutes=22),
+            now=self.now + timedelta(hours=5, minutes=59),
             minimum_runway_minutes=0,
         )
         scheduled = datetime.fromisoformat(
             state["content_delivery_queue"]["dkp-second"]["scheduled_at"]
         )
-        self.assertEqual(scheduled, self.now + timedelta(minutes=23))
+        self.assertEqual(scheduled, self.now + timedelta(hours=6))
 
-
+    def test_video_only_completion_is_reconciled_and_removed_from_delivery_queue(self):
+        product_id = "dkp-video-mirrored"
+        uploaded_at = self.now.isoformat()
+        entry = {
+            "product_id": product_id,
+            "status": "partial",
+            "platforms": {
+                "telegram": {"status": "sent", "updated_at": uploaded_at},
+                "bale": {"status": "sent", "updated_at": uploaded_at},
+                "youtube": {"status": "pending"},
+                "aparat": {"status": "pending"},
+            },
+        }
+        state = {
+            "content_delivery_queue": {product_id: entry},
+            "pending_queue": {product_id: {"status": "queued"}},
+            "content_delivery_history": [],
+            "published": {
+                product_id: {
+                    "delivery_status": {"telegram": "sent", "bale": "sent"},
+                    "youtube_upload_status": "uploaded",
+                    "youtube_uploaded_at": uploaded_at,
+                    "aparat_upload_status": "uploaded",
+                    "aparat_uploaded_at": uploaded_at,
+                }
+            },
+        }
+        reconciled = reconcile_video_delivery_targets(state, now=self.now)
+        self.assertEqual(reconciled, 1)
+        self.assertNotIn(product_id, state["content_delivery_queue"])
+        self.assertNotIn(product_id, state["pending_queue"])
+        self.assertEqual(state["content_delivery_history"][-1]["status"], "published")
+        self.assertEqual(entry["platforms"]["youtube"]["status"], "sent")
+        self.assertEqual(entry["platforms"]["aparat"]["status"], "sent")
     def test_enqueue_persists_platform_neutral_payload_without_delivery(self):
         state = {}
         summary = enqueue_selected_content(
