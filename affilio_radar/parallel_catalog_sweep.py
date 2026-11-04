@@ -74,11 +74,13 @@ def _task_key(task: dict) -> tuple[str, int]:
     return str(task.get("category_id") or ""), max(1, base._normal_int(task.get("page"), 1))
 
 
+
 def _next_page_task(task: dict, total_pages: int | None, product_count: int) -> dict | None:
+    """Follow all reported pages; if pagination is unknown, stop only at an empty page."""
     page = max(1, base._normal_int(task.get("page"), 1))
-    if product_count <= 0 or page >= base.MAX_PAGES_PER_CATEGORY:
+    if product_count <= 0:
         return None
-    if total_pages is not None and page >= total_pages:
+    if total_pages is not None and page >= max(1, int(total_pages)):
         return None
     return {
         "category_id": str(task.get("category_id") or ""),
@@ -86,7 +88,6 @@ def _next_page_task(task: dict, total_pages: int | None, product_count: int) -> 
         "page": page + 1,
         "attempts": 0,
     }
-
 
 def _fetch_page(task: dict) -> dict:
     """Fetch one page. 400/404 close an unqueryable category/page; other
@@ -144,14 +145,16 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
     known_ids = {str(value) for value in known}
 
     if not state.get("parallel_queue_initialized"):
-        queue = build_initial_page_queue(
-            categories,
-            legacy_category_index=state.get("category_index", 0),
-            legacy_page=state.get("page", 1),
-        )
+        # Legacy cursors may point mid-catalog; seed every category from page 1.
+        queue = build_initial_page_queue(categories, legacy_category_index=0, legacy_page=1)
         known_ids = {str(row.get("id")) for row in categories if isinstance(row, dict)}
         state["parallel_queue_initialized"] = True
         state["parallel_cycle_started_at"] = base.iso_now()
+        state["parallel_cycle_completed_category_ids"] = []
+        state["parallel_cycle_unqueryable_category_ids"] = []
+        state["parallel_cycle_pages_success"] = 0
+        state["parallel_cycle_product_rows_success"] = 0
+        state["parallel_full_catalog_mode"] = "all_categories_all_pages"
     else:
         # Category dictionary refreshes may introduce new categories. Append only
         # genuinely new IDs; do not reset progress for existing IDs.
@@ -168,28 +171,22 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
                 })
                 known_ids.add(category_id)
 
-    # De-duplicate persisted work without dropping retry attempt metadata.
+    # De-duplicate persisted work without pruning any page depth or retry record.
     unique: list[dict] = []
     seen: set[tuple[str, int]] = set()
-    pruned_deep_pages = 0
     for task in queue:
         if not isinstance(task, dict):
             continue
         key = _task_key(task)
         if not key[0].isdigit() or key in seen:
             continue
-        # Old persisted queues may still contain thousands of deep-tail pages
-        # created before the best-selling top-60 policy. Drop them on migration.
-        if key[1] > base.MAX_PAGES_PER_CATEGORY:
-            pruned_deep_pages += 1
-            continue
         seen.add(key)
         unique.append(task)
-    if pruned_deep_pages:
-        state["parallel_deep_pages_pruned"] = (
-            max(0, base._normal_int(state.get("parallel_deep_pages_pruned")))
-            + pruned_deep_pages
-        )
+    state.setdefault("parallel_cycle_completed_category_ids", [])
+    state.setdefault("parallel_cycle_unqueryable_category_ids", [])
+    state.setdefault("parallel_cycle_pages_success", 0)
+    state.setdefault("parallel_cycle_product_rows_success", 0)
+    state["parallel_full_catalog_mode"] = "all_categories_all_pages"
     state["parallel_known_category_ids"] = sorted(
         known_ids, key=lambda value: int(value) if value.isdigit() else 0
     )
@@ -266,15 +263,32 @@ def run_parallel_sweep(
 
     queue = _ensure_parallel_state(state)
     if not queue:
-        # A cycle is complete only after every known page has been either read
-        # successfully or explicitly shown to be an invalid/empty terminal page.
+        completed_ids = {str(v) for v in state.get("parallel_cycle_completed_category_ids", []) if str(v).isdigit()}
+        unqueryable_ids = {str(v) for v in state.get("parallel_cycle_unqueryable_category_ids", []) if str(v).isdigit()}
+        accounted_ids = completed_ids | unqueryable_ids
+        state["last_cycle_completed_at"] = base.iso_now()
+        state["last_cycle_categories_complete"] = len(completed_ids)
+        state["last_cycle_categories_unqueryable"] = len(unqueryable_ids)
+        state["last_cycle_categories_total"] = len(categories)
+        state["last_cycle_categories_accounted"] = len(accounted_ids)
+        state["last_cycle_category_coverage_percent"] = round(100 * len(accounted_ids) / max(1, len(categories)), 2)
+        state["last_cycle_pages_success"] = max(0, base._normal_int(state.get("parallel_cycle_pages_success")))
+        state["last_cycle_product_rows_success"] = max(0, base._normal_int(state.get("parallel_cycle_product_rows_success")))
         stats["completed_cycles"] += 1
         state["completed_cycles"] = stats["completed_cycles"]
-        state["last_cycle_completed_at"] = base.iso_now()
         queue = build_initial_page_queue(categories, 0, 1)
         state["parallel_pending_pages"] = queue
         state["parallel_cycle_started_at"] = base.iso_now()
-        print("PARALLEL_CATALOG_CYCLE_COMPLETED")
+        state["parallel_cycle_completed_category_ids"] = []
+        state["parallel_cycle_unqueryable_category_ids"] = []
+        state["parallel_cycle_pages_success"] = 0
+        state["parallel_cycle_product_rows_success"] = 0
+        print(
+            "PARALLEL_CATALOG_CYCLE_COMPLETED "
+            f"categories={len(accounted_ids)}/{len(categories)} "
+            f"coverage_pct={state['last_cycle_category_coverage_percent']} "
+            f"pages={state['last_cycle_pages_success']} products={state['last_cycle_product_rows_success']}"
+        )
 
     batch_limit = max(1, min(2000, int(pages_per_run)))
     requested_workers = max(1, min(32, int(workers)))
@@ -335,12 +349,18 @@ def run_parallel_sweep(
             stats["empty_product_pages_total"] += 1
         if kind == "terminal":
             terminal_count += 1
+            key_name = "parallel_cycle_unqueryable_category_ids" if page == 1 else "parallel_cycle_completed_category_ids"
+            bucket = {str(v) for v in state.get(key_name, []) if str(v).isdigit()}
+            bucket.add(category_id)
+            state[key_name] = sorted(bucket, key=lambda value: int(value))
             if page == 1:
                 stats["unqueryable_categories_total"] += 1
             continue
 
         total_pages = result.get("total_pages")
         total_pages = max(1, int(total_pages)) if total_pages is not None else None
+        state["parallel_cycle_pages_success"] = max(0, base._normal_int(state.get("parallel_cycle_pages_success"))) + 1
+        state["parallel_cycle_product_rows_success"] = max(0, base._normal_int(state.get("parallel_cycle_product_rows_success"))) + len(rows)
         page_observed_at = base.iso_now()
         page_start_rank = (page - 1) * base.BEST_SELLING_PAGE_SIZE
         category_name = str(task.get("category_name") or category_id)
@@ -415,6 +435,10 @@ def run_parallel_sweep(
         if next_task and _task_key(next_task) not in pending_keys:
             remaining.append(next_task)
             pending_keys.add(_task_key(next_task))
+        elif next_task is None:
+            completed = {str(v) for v in state.get("parallel_cycle_completed_category_ids", []) if str(v).isdigit()}
+            completed.add(category_id)
+            state["parallel_cycle_completed_category_ids"] = sorted(completed, key=lambda value: int(value))
 
         state["last_successful_category_id"] = category_id
         state["last_successful_category_name"] = str(task.get("category_name") or category_id)
@@ -470,7 +494,10 @@ def run_parallel_sweep(
         f"products={page_row_count} categories={len(categories)} leaf_categories={state.get('parallel_leaf_category_count', 0)} "
         f"pending_pages={len(remaining)} candidates={len(ordered_candidates)} "
         f"pages_total={stats['pages_scanned_total']} "
-        f"sort=best_selling rank_top={base.BEST_SELLING_PAGE_SIZE * base.BEST_SELLING_MAX_PAGES_PER_CATEGORY} "
+        f"cycle_categories_complete={len(state.get('parallel_cycle_completed_category_ids', []))} "
+        f"cycle_categories_unqueryable={len(state.get('parallel_cycle_unqueryable_category_ids', []))} "
+        f"cycle_pages={state.get('parallel_cycle_pages_success', 0)} "
+        f"sort=discount_percent_desc,savings_toman_desc full_pages=true "
         f"completed_cycles={stats['completed_cycles']}"
     )
     return 0

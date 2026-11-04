@@ -66,7 +66,10 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
         candidate = dict(candidate)
         candidate["selection_discount_floor"] = selected_floor
         candidate["selection_discount_band"] = "1%+"
-        ranked_policy = str(candidate.get("publication_policy") or "") == "demand_then_discount_v1"
+        ranked_policy = str(candidate.get("publication_policy") or "") in {
+            "demand_then_discount_v1",
+            "discount_first_catalog_v2",
+        }
         if (
             radar.is_discount_publish_eligible(
                 candidate, minimum_discount_percent=selected_floor, now=now
@@ -378,19 +381,19 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
         isinstance(target, dict) and target.get("status") == "sent"
         for target in platform_states.values()
     )
-    ranked_delivery_policy = (
-        str(payload.get("publication_policy") or "") == "demand_then_discount_v1"
-    )
+    ranked_delivery_policy = str(payload.get("publication_policy") or "") in {
+        "demand_then_discount_v1",  # legacy ranked selections
+        "discount_first_catalog_v2",
+    }
     if not already_partially_delivered and not ranked_delivery_policy:
-        # Legacy queue records retain the older evidence gate. New selections
-        # already have a demand-first/discount-second ranking.
+        # Only legacy queue records without a selection policy retain old proxy gates.
         if not radar.has_actionable_demand_signal(fresh, now=now):
-            return None, "live_demand_signal_missing"
+            return None, "legacy_live_demand_signal_missing"
         if not radar.has_attractive_discount_value(fresh, now=now):
-            return None, "live_discount_value_not_verified"
+            return None, "legacy_live_discount_value_not_verified"
 
     if not ranked_delivery_policy and not radar.is_market_value_publish_eligible(fresh):
-        return None, "live_market_value_rejected"
+        return None, "legacy_live_market_value_rejected"
     if not radar.has_publishable_expiry_or_open_offer(fresh, now):
         return None, "live_offer_expired_or_unverified"
     expiry = _utc(fresh.get("deal_expires_at"))

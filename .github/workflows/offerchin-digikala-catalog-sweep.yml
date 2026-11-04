@@ -45,7 +45,7 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_parallel_catalog_sweep -v
 
-      - name: Sweep catalog pages concurrently
+      - name: Sweep all queryable catalog pages concurrently (no page-depth cap)
         env:
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/parallel_catalog_sweep.py --pages-per-run 300 --workers 12

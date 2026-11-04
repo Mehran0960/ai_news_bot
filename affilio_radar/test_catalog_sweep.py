@@ -203,45 +203,35 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(params["page"], 2)
         self.assertEqual(params["sort"], 7)
 
-    def test_fresh_best_selling_rank_outweighs_lifetime_review_count(self):
+    def test_discount_rank_ignores_bestseller_and_review_popularity(self):
         now = datetime(2026, 11, 2, 12, 0, tzinfo=timezone.utc)
-        best_seller = {
-            "catalog_sort_mode": "best_selling",
-            "catalog_best_selling_rank": 12,
-            "catalog_rank_observed_at": now.isoformat(),
-            "review_count": 40,
-            "rating": 4.1,
+        popular_low_discount = {
+            "catalog_sort_mode": "best_selling", "catalog_best_selling_rank": 1,
+            "catalog_rank_observed_at": now.isoformat(), "review_count": 250_000,
+            "rating": 4.9, "discount_percent": 15, "savings_toman": 150_000,
         }
-        stale_top_seller = {
-            **best_seller,
-            "catalog_best_selling_rank": 1,
-            "catalog_rank_observed_at": (now - timedelta(hours=25)).isoformat(),
+        obscure_high_discount = {
+            "catalog_sort_mode": "best_selling", "catalog_best_selling_rank": 200,
+            "catalog_rank_observed_at": now.isoformat(), "review_count": 1,
+            "rating": 3.1, "discount_percent": 85, "savings_toman": 850_000,
         }
-        lifetime_popular = {"review_count": 250_000, "rating": 4.9}
-        self.assertEqual(_fresh_best_selling_rank(best_seller, now), 12)
-        self.assertIsNone(_fresh_best_selling_rank(stale_top_seller, now))
+        self.assertEqual(_fresh_best_selling_rank(popular_low_discount, now), 1)
         self.assertGreater(
-            catalog_candidate_sort_key(best_seller),
-            catalog_candidate_sort_key(lifetime_popular),
-        )
-        self.assertGreater(
-            catalog_candidate_sort_key(lifetime_popular),
-            catalog_candidate_sort_key(stale_top_seller),
+            catalog_candidate_sort_key(obscure_high_discount),
+            catalog_candidate_sort_key(popular_low_discount),
         )
 
-    def test_candidate_retention_reserves_capacity_for_underrepresented_categories(self):
+    def test_candidate_retention_keeps_global_top_discounts_without_category_balancing(self):
         rows = [
-            {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i, "discount_percent": 50}
+            {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i, "discount_percent": 50, "savings_toman": 500_000}
             for i in range(1, 6)
         ] + [
-            {"product_id": "dkp-20", "catalog_category_id": "20", "catalog_category_ids": ["20"], "review_count": 100},
-            {"product_id": "dkp-30", "catalog_category_id": "30", "catalog_category_ids": ["30"], "review_count": 90},
-            {"product_id": "dkp-40", "catalog_category_id": "40", "catalog_category_ids": ["40"], "review_count": 80},
+            {"product_id": "dkp-20", "catalog_category_id": "20", "catalog_category_ids": ["20"], "review_count": 1, "discount_percent": 95, "savings_toman": 950_000},
+            {"product_id": "dkp-30", "catalog_category_id": "30", "catalog_category_ids": ["30"], "review_count": 1, "discount_percent": 90, "savings_toman": 900_000},
+            {"product_id": "dkp-40", "catalog_category_id": "40", "catalog_category_ids": ["40"], "review_count": 1, "discount_percent": 85, "savings_toman": 850_000},
         ]
         retained = retain_diverse_candidates(rows, limit=4, rotation=0)
-        self.assertEqual(len(retained), 4)
-        categories = {row["catalog_category_id"] for row in retained}
-        self.assertTrue({"10", "20", "30"}.issubset(categories))
+        self.assertEqual([row["product_id"] for row in retained], ["dkp-20", "dkp-30", "dkp-40", "dkp-1"])
 
     def test_handoff_acknowledges_only_after_queue_retention_and_rotates_overflow(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -268,7 +258,7 @@ class CatalogSweepTests(unittest.TestCase):
             ), 1)
             self.assertIn("dkp-2", state["catalog_sweep_handoff"]["seen_ids"])
 
-    def test_handoff_batch_keeps_demand_core_and_rotates_missing_categories(self):
+    def test_handoff_batch_is_global_discount_order_without_category_rotation(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "candidates.json"
             rows = [
@@ -326,11 +316,7 @@ class CatalogSweepTests(unittest.TestCase):
                 max_count=4,
                 now=datetime(2026, 11, 2, 0, 0, tzinfo=timezone.utc),
             )
-            self.assertEqual(len(selected), 4)
-            selected_ids = {row["product_id"] for row in selected}
-            self.assertTrue({"dkp-1", "dkp-2"}.issubset(selected_ids))
-            selected_categories = {row["catalog_category_id"] for row in selected}
-            self.assertGreaterEqual(len(selected_categories), 3)
+            self.assertEqual([row["product_id"] for row in selected], ["dkp-40", "dkp-30", "dkp-1", "dkp-2"])
 
     def test_run_sweep_checkpoints_page_and_candidates(self):
         category_payload = {"data": {"category_tree": [{"id": 7, "title": "کالای دیجیتال"}]}}

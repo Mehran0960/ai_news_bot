@@ -381,7 +381,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertIsNone(fresh)
         self.assertEqual(reason, "live_demand_signal_missing")
 
-    def test_final_publisher_gate_accepts_ranked_offers_and_protects_legacy_and_partial_retry(self):
+    def test_final_publisher_gate_accepts_discount_first_offers_and_protects_legacy_and_partial_retry(self):
         from unittest.mock import patch
 
         base = self.item("dkp-990101")
@@ -434,7 +434,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "demand_window_hours": 0,
             "demand_observed_at": "",
             "demand_signal_source": "",
-            "publication_policy": "demand_then_discount_v1",
+            "publication_policy": "discount_first_catalog_v2",
             "market_status": "not_checked",
             "market_reference_kind": "",
             "market_price_checked_at": "",
@@ -454,9 +454,9 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "market_reference_kind": "",
             "market_price_checked_at": "",
         }
-        fresh, reason = evaluate(weak_value)
-        self.assertIsNone(fresh)
-        self.assertEqual(reason, "live_discount_value_not_verified")
+        fresh, reason = evaluate({**weak_value, "publication_policy": "discount_first_catalog_v2"})
+        self.assertIsNotNone(fresh)
+        self.assertEqual(reason, "")
 
         # A partial delivery must be allowed to finish other destinations even
         # after its original demand/value evidence has expired or become unavailable.

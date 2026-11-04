@@ -2949,14 +2949,15 @@ def _discount_percentage_sort_value(record: dict) -> int:
         return 0
 
 
-def _deal_primary_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """The first two strict priorities: market demand, then discount percentage."""
-    candidate = record if isinstance(record, dict) else {}
-    return (
-        *_deal_demand_sort_key(candidate, now=now),
-        _discount_percentage_sort_value(candidate),
-    )
 
+def _deal_primary_sort_key(record: dict, now: datetime | None = None) -> tuple:
+    """Strict order: markdown percentage descending, then absolute savings."""
+    candidate = record if isinstance(record, dict) else {}
+    try:
+        savings = max(0, int(candidate.get("savings_toman") or 0))
+    except (TypeError, ValueError, OverflowError):
+        savings = 0
+    return (_discount_percentage_sort_value(candidate), savings)
 
 def _deal_value_evidence_key(record: dict) -> tuple[int, int]:
     """Prefer independent same-product market/history evidence without setting a discount floor."""
@@ -2985,8 +2986,9 @@ def _deal_value_evidence_key(record: dict) -> tuple[int, int]:
     return (0, -101)
 
 
+
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Rank demand first and markdown percentage second; deal evidence follows both."""
+    """Prioritize percentage markdown and saving; deadlines only break downstream ties."""
     candidate = record if isinstance(record, dict) else {}
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -2996,38 +2998,20 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
     active_deadline = bool(expiry and expiry > current)
     remaining = max(0.0, (expiry - current).total_seconds()) if active_deadline else 0.0
     has_runway = bool(active_deadline and remaining >= MIN_PUBLICATION_RUNWAY_MINUTES * 60)
-    savings = max(0, int(candidate.get("savings_toman") or 0))
-    reviews = max(0, int(candidate.get("review_count") or 0))
-    try:
-        rating_score = round(float(candidate.get("rating") or candidate.get("rating_value") or 0) * 10)
-    except (TypeError, ValueError, OverflowError):
-        rating_score = 0
-    value_gate = int(has_meaningful_discount(candidate))
-    if not active_deadline:
-        urgency_tier = -1
-    elif remaining <= 120 * 60:
-        urgency_tier = 2
-    elif remaining <= 180 * 60:
-        urgency_tier = 1
-    else:
-        urgency_tier = 0
+    urgency = (
+        2 if active_deadline and remaining <= 120 * 60
+        else 1 if active_deadline and remaining <= 180 * 60
+        else 0 if active_deadline else -1
+    )
     first_seen = _parse_utc_datetime(candidate.get("first_seen_at"))
     first_seen_ts = first_seen.timestamp() if first_seen else current.timestamp()
-    evidence_tier, evidence_strength = _deal_value_evidence_key(candidate)
     return (
         *_deal_primary_sort_key(candidate, now=current),
-        evidence_tier,
-        evidence_strength,
-        value_gate,
-        _candidate_promo_score(candidate),
-        savings,
+        int(has_meaningful_discount(candidate)),
         int(has_runway),
-        urgency_tier,
+        urgency,
         -remaining if active_deadline else float("-inf"),
         -first_seen_ts,
-        _candidate_popularity_score(candidate),
-        reviews,
-        rating_score,
     )
 
 def merge_discovery_queue(
@@ -4373,27 +4357,11 @@ def score_product(p: dict) -> dict:
 
 
 
+
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank the strongest demand first, then the largest listed markdown."""
+    """Rank by markdown percentage then saving; demand and popularity are not rank inputs."""
     candidate = p if isinstance(p, dict) else {}
-    try:
-        savings = max(0, int(candidate.get("savings_toman") or 0))
-        reviews = max(0, int(candidate.get("review_count") or 0))
-        rating_score = round(float(candidate.get("rating") or candidate.get("rating_value") or 0) * 10)
-    except (TypeError, ValueError, OverflowError):
-        savings = reviews = rating_score = 0
-    evidence_tier, evidence_strength = _deal_value_evidence_key(candidate)
-    return (
-        *_deal_primary_sort_key(candidate, now=now),
-        evidence_tier,
-        evidence_strength,
-        int(has_meaningful_discount(candidate)),
-        int(candidate.get("promo_score") or 0),
-        savings,
-        _candidate_popularity_score(candidate),
-        reviews,
-        rating_score,
-    )
+    return (*_deal_primary_sort_key(candidate, now=now), int(has_meaningful_discount(candidate)))
 
 def _fetch_click_statistics_snapshot() -> dict:
     """Fetch a complete aggregate 30-day click snapshot; analytics outages never block publication."""
@@ -7023,6 +6991,7 @@ def _publication_rank_diagnostics(ordered: list[dict], fallback_events: list[dic
     }
 
 
+
 def _order_candidates_by_primary_rank(
     candidates: list[dict],
     published: dict | None = None,
@@ -7030,252 +6999,19 @@ def _order_candidates_by_primary_rank(
     now: datetime | None = None,
     allow_family_repeat: bool = False,
 ) -> list[dict]:
-    """Rank by demand, enforce specific-family cooldowns, and softly balance categories."""
+    """Return strict global discount order; do not reorder by category/brand/family."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    remaining = sorted(
-        list(candidates or []),
-        key=lambda record: deal_sort_key(record, now=current),
+    ordered = sorted(
+        (row for row in (candidates or []) if isinstance(row, dict)),
+        key=lambda row: deal_sort_key(row, now=current),
         reverse=True,
     )
-    initial_candidate_count = len(remaining)
-    fallback_events: list[dict] = []
     global _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
-    if not remaining or not (published or recent_publications):
-        _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = _publication_rank_diagnostics(
-            remaining, fallback_events, initial_candidate_count
-        )
-        return remaining
-
-    # Rolling day/week/month/year concentration scores.
-    horizons = (
-        (24.0, 4.0),        # day
-        (24.0 * 7, 2.5),    # week
-        (24.0 * 30, 1.5),   # month
-        (24.0 * 365, 0.75), # year
-    )
-    horizon_counts: list[tuple[dict[str, int], dict[str, int], dict[str, int], dict[str, int], float, int]] = []
-    for hours, weight in horizons:
-        records = _recent_publication_diversity(
-            published, limit=RECENT_PUBLICATION_HISTORY_LIMIT,
-            durable_history=recent_publications, now=current, window_hours=hours,
-        )
-        category_counts: dict[str, int] = {}
-        family_counts: dict[str, int] = {}
-        brand_counts: dict[str, int] = {}
-        retailer_counts: dict[str, int] = {}
-        for post in records:
-            category = str(post.get("category") or "other")
-            family = str(post.get("family") or category)
-            brand = str(post.get("brand") or "")
-            retailer = str(post.get("retailer") or _publication_retailer_group(post))
-            category_counts[category] = category_counts.get(category, 0) + 1
-            family_counts[family] = family_counts.get(family, 0) + 1
-            if brand:
-                brand_counts[brand] = brand_counts.get(brand, 0) + 1
-            if retailer:
-                retailer_counts[retailer] = retailer_counts.get(retailer, 0) + 1
-        horizon_counts.append((category_counts, family_counts, brand_counts, retailer_counts, weight, max(1, len(records))))
-    if not any(categories or families or brands or retailers for categories, families, brands, retailers, _, _ in horizon_counts):
-        _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = _publication_rank_diagnostics(
-            remaining, fallback_events, initial_candidate_count
-        )
-        return remaining
-
-    # Apply cooldowns at the final selection point too. The old 4-point-only
-    # lookahead could let repeated apparel offers beat comparable alternatives.
-    cooldown_hours = max(
-        CATEGORY_REPEAT_COOLDOWN_MINUTES / 60.0,
-        FAMILY_REPEAT_COOLDOWN_HOURS,
-        BRAND_REPEAT_COOLDOWN_HOURS,
-        RETAILER_REPEAT_COOLDOWN_MINUTES / 60.0,
-    )
-    cooldown_records = _recent_publication_diversity(
-        published, limit=RECENT_PUBLICATION_HISTORY_LIMIT,
-        durable_history=recent_publications, now=current, window_hours=cooldown_hours,
-    )
-    now_ts = current.timestamp()
-    recent_categories = [
-        str(post.get("category") or "other") for post in cooldown_records
-        if float(post.get("order") or post.get("ts") or 0)
-        >= now_ts - CATEGORY_REPEAT_COOLDOWN_MINUTES * 60
-    ]
-    recent_families = [
-        str(post.get("family") or post.get("category") or "other") for post in cooldown_records
-        if float(post.get("order") or post.get("ts") or 0)
-        >= now_ts - FAMILY_REPEAT_COOLDOWN_HOURS * 3600
-    ]
-    recent_brands = [
-        str(post.get("brand") or "") for post in cooldown_records
-        if post.get("brand") and float(post.get("order") or post.get("ts") or 0)
-        >= now_ts - BRAND_REPEAT_COOLDOWN_HOURS * 3600
-    ]
-    recent_retailers = [
-        str(post.get("retailer") or _publication_retailer_group(post)) for post in cooldown_records
-        if (post.get("retailer") or _publication_retailer_group(post))
-        and float(post.get("order") or post.get("ts") or 0)
-        >= now_ts - RETAILER_REPEAT_COOLDOWN_MINUTES * 60
-    ]
-
-    def group(item: dict) -> tuple[str, str, str]:
-        return _publication_diversity_group(item)
-
-    ordered: list[dict] = []
-    family_cooldown_skips = 0
-    while remaining:
-        if not allow_family_repeat:
-            family_fresh_remaining = [
-                item for item in remaining
-                if not (
-                    _is_specific_product_family(group(item)[0], group(item)[1])
-                    and group(item)[1] in recent_families
-                )
-            ]
-            family_cooldown_skips += len(remaining) - len(family_fresh_remaining)
-            remaining = family_fresh_remaining
-            if not remaining:
-                break
-        leader = remaining[0]
-        lookahead = remaining[:DIVERSITY_LOOKAHEAD_CANDIDATES]
-        # Category/retailer diversity may only resolve exact ties on demand and discount.
-        leader_priority_key = _deal_primary_sort_key(leader, now=current)
-        comparable = [
-            (position, item) for position, item in enumerate(lookahead)
-            if position == 0 or _deal_primary_sort_key(item, now=current) == leader_priority_key
-        ]
-        fresh_category_and_family = [
-            row for row in comparable
-            if group(row[1])[0] not in recent_categories
-            and group(row[1])[1] not in recent_families
-        ]
-        fresh_category = [
-            row for row in comparable if group(row[1])[0] not in recent_categories
-        ]
-        fresh_category_family_retailer = [
-            row for row in comparable
-            if group(row[1])[0] not in recent_categories
-            and group(row[1])[1] not in recent_families
-            and (
-                not _publication_retailer_group(row[1])
-                or _publication_retailer_group(row[1]) not in recent_retailers
-            )
-        ]
-        fresh_family = [
-            row for row in comparable if group(row[1])[1] not in recent_families
-        ]
-        fresh_retailer = [
-            row for row in comparable
-            if _publication_retailer_group(row[1])
-            and _publication_retailer_group(row[1]) not in recent_retailers
-        ]
-        if fresh_category_family_retailer:
-            pool = fresh_category_family_retailer
-        elif fresh_category_and_family:
-            pool = fresh_category_and_family
-        elif fresh_category:
-            pool = fresh_category
-        elif fresh_family:
-            pool = fresh_family
-        elif fresh_retailer:
-            pool = fresh_retailer
-        else:
-            pool = comparable
-
-        def diversity_key(row: tuple[int, dict]):
-            position, item = row
-            category, family, brand = group(item)
-            weighted_category = sum(
-                weight * categories.get(category, 0) / total
-                for categories, _, _, _, weight, total in horizon_counts
-            )
-            weighted_family = sum(
-                weight * families.get(family, 0) / total
-                for _, families, _, _, weight, total in horizon_counts
-            )
-            weighted_brand = sum(
-                weight * brands.get(brand, 0) / total
-                for _, _, brands, _, weight, total in horizon_counts
-            ) if brand else 0.0
-            retailer = _publication_retailer_group(item)
-            weighted_retailer = sum(
-                weight * retailers.get(retailer, 0) / total
-                for _, _, _, retailers, weight, total in horizon_counts
-            ) if retailer else 0.0
-            cooldown_penalty = (
-                (10_000 if category in recent_categories else 0)
-                + (5_000 if family in recent_families else 0)
-                + (2_000 if brand and brand in recent_brands else 0)
-                + (1_000 if retailer and retailer in recent_retailers else 0)
-            )
-            return (cooldown_penalty, weighted_category, weighted_family, weighted_brand, weighted_retailer, position)
-
-        chosen_position, chosen = min(pool, key=diversity_key)
-        remaining.pop(chosen_position)
-        ordered.append(chosen)
-        category, family, brand = group(chosen)
-
-        # Simulate earlier ranked choices so one returned batch isn't concentrated
-        # in one category if alternatives of comparable quality exist.
-        retailer = _publication_retailer_group(chosen)
-        for categories, families, brands, retailers, _, _ in horizon_counts:
-            categories[category] = categories.get(category, 0) + 1
-            families[family] = families.get(family, 0) + 1
-            if brand:
-                brands[brand] = brands.get(brand, 0) + 1
-            if retailer:
-                retailers[retailer] = retailers.get(retailer, 0) + 1
-        repeated_category = category in recent_categories
-        recent_categories.append(category)
-        recent_categories = recent_categories[-24:]
-        recent_families.append(family)
-        recent_families = recent_families[-36:]
-        if brand:
-            recent_brands.append(brand)
-            recent_brands = recent_brands[-24:]
-        if retailer:
-            recent_retailers.append(retailer)
-            recent_retailers = recent_retailers[-12:]
-
-        if repeated_category:
-            has_comparable_other_category = any(
-                group(item)[0] != category
-                and _candidate_demand_comparable_for_diversity(item, chosen)
-                for _, item in comparable
-            )
-            if not has_comparable_other_category:
-                fallback_event = {
-                    "selected_rank": len(ordered),
-                    "product_id": str(chosen.get("product_id") or chosen.get("id") or ""),
-                    "category": category,
-                    "family": family,
-                    "brand": brand,
-                    "reason": "no_comparable_other_category_in_lookahead",
-                }
-                fallback_events.append(fallback_event)
-                print(
-                    "PUBLISH_DIVERSITY_COOLDOWN_FALLBACK "
-                    f"category={category} family={family} product_id={fallback_event['product_id'] or 'unknown'} "
-                    "reason=no_comparable_alternative_in_lookahead"
-                )
     _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = _publication_rank_diagnostics(
-        ordered, fallback_events, initial_candidate_count
-    )
-    if family_cooldown_skips:
-        print(
-            f"PUBLISH_DIVERSITY_FAMILY_COOLDOWN_SKIP count={family_cooldown_skips} "
-            f"remaining_candidates={len(remaining)}"
-        )
-    print(
-        "PUBLISH_DIVERSITY_RANKING "
-        + json.dumps({
-            "candidates": initial_candidate_count,
-            "selected": len(ordered),
-            "family_cooldown_skips": family_cooldown_skips,
-            "top10_categories": _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS["top10_category_counts"],
-            "fallbacks_without_comparable_category": len(fallback_events),
-        }, ensure_ascii=False, sort_keys=True)
+        ordered, [], len(ordered)
     )
     return ordered
 
@@ -7285,7 +7021,7 @@ def select_urgent_publication_candidate(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> dict | None:
-    """Choose by current demand first, then displayed discount among urgent offers."""
+    """Choose the highest-discount product among urgent, still-live offers."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -7311,7 +7047,7 @@ def select_publish_candidates(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> list[dict]:
-    """Preserve demand/value ranking; percentage size is a tie-breaker, not the primary rank."""
+    """Return ready publication candidates in strict percentage-then-saving order."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -7527,14 +7263,9 @@ def _publication_cooldown_record(state: dict, pid: str) -> dict:
     return current
 
 
-def is_product_repeat_blocked(previous: dict, product: dict,
-                              now: datetime | None = None) -> bool:
-    """Block same-product repeats for at least 24 hours, even after confirmed deletion.
 
-    After that safety window, the existing 30-day cooldown still applies unless a
-    verified current price is at least 10% below the last posted price. Delivery retries
-    remain eligible and are handled independently per platform.
-    """
+def is_product_repeat_blocked(previous: dict, product: dict, now: datetime | None = None) -> bool:
+    """Block unchanged repeats but permit genuinely improved live offers to compete again."""
     if not isinstance(previous, dict) or not isinstance(product, dict):
         return False
     if _has_pending_delivery(previous):
@@ -7542,25 +7273,34 @@ def is_product_repeat_blocked(previous: dict, product: dict,
     posted_at = _publication_record_ts(previous)
     if posted_at <= 0:
         return False
-    now = now or datetime.now(timezone.utc)
-    if now.tzinfo is None:
-        now = now.replace(tzinfo=timezone.utc)
-    elapsed = now.timestamp() - posted_at
-    if elapsed < MIN_REPEAT_PRODUCT_INTERVAL_HOURS * 3600:
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    improved = is_materially_improved_offer(previous, product, current)
+    elapsed = current.timestamp() - posted_at
+    if elapsed < MIN_REPEAT_PRODUCT_INTERVAL_HOURS * 3600 and not improved:
         return True
-    return bool(
-        elapsed < PRODUCT_COOLDOWN_DAYS * 86400
-        and not is_materially_improved_offer(previous, product, now)
-    )
+    return bool(elapsed < PRODUCT_COOLDOWN_DAYS * 86400 and not improved)
 
-def _has_active_publication_or_delivery(state: dict, pid: str) -> bool:
-    """Whether this product already has an active public post or hand-off record."""
+
+def _has_active_publication_or_delivery(
+    state: dict,
+    pid: str,
+    product: dict | None = None,
+    now: datetime | None = None,
+) -> bool:
+    """Block active duplicate hand-offs, but allow a materially improved new offer."""
     from content_delivery import TERMINAL_QUEUE_STATUSES, _active_publication
 
     state = state if isinstance(state, dict) else {}
     published = state.get("published", {})
     record = published.get(str(pid)) if isinstance(published, dict) else None
-    if _active_publication(record):
+    improved = bool(
+        isinstance(product, dict)
+        and isinstance(record, dict)
+        and is_materially_improved_offer(_publication_cooldown_record(state, str(pid)), product, now)
+    )
+    if _active_publication(record) and not improved:
         return True
     queue = state.get("content_delivery_queue", {})
     entry = queue.get(str(pid)) if isinstance(queue, dict) else None
@@ -7573,15 +7313,14 @@ def is_fresh_selection_candidate(
     product: dict,
     now: datetime | None = None,
 ) -> bool:
-    """True only when the product can create a new post without duplicating live work."""
+    """Allow an improved deal to compete without duplicating an in-flight destination retry."""
     key = str(pid or "").strip().lower()
     if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", key):
         return False
-    if _has_active_publication_or_delivery(state, key):
+    if _has_active_publication_or_delivery(state, key, product=product, now=now):
         return False
     previous = _publication_cooldown_record(state, key)
     return not is_product_repeat_blocked(previous, product, now)
-
 
 def discount_fallback_band_label(floor: int, upper_exclusive: int | None) -> str:
     """Human-readable discount band used in logs and operational reports."""
@@ -7749,9 +7488,11 @@ def select_discount_fallback_candidates(
             fallback_mode = "cooldown_relaxed"
 
     print(
-        f"SELECTION_POLICY demand_unverified={demand_unverified} "
-        f"value_unverified={value_unverified} hard_eligible={len(quality_eligible)} "
-        f"fresh={len(fresh_candidates)} fallback_mode={fallback_mode}"
+        f"SELECTION_POLICY rank=discount_percent_desc,savings_toman_desc "
+        f"demand_unverified_telemetry={demand_unverified} value_unverified_telemetry={value_unverified} "
+        f"hard_eligible={len(quality_eligible)} fresh={len(fresh_candidates)} "
+        "demand_filter=false category_filter=false brand_filter=false "
+        f"fallback_mode={fallback_mode}"
     )
 
     first_floor: int | None = None
@@ -7779,12 +7520,8 @@ def select_discount_fallback_candidates(
             selected = dict(product)
             selected["selection_discount_floor"] = int(floor)
             selected["selection_discount_band"] = label
-            selected["publication_policy"] = "demand_then_discount_v1"
-            selected["selection_demand_evidence"] = (
-                "recent_activity" if has_current_demand_signal(product, current)
-                else "fresh_best_seller" if _fresh_catalog_best_selling_rank(product, current) is not None
-                else "public_popularity_proxy"
-            )
+            selected["publication_policy"] = "discount_first_catalog_v2"
+            selected["selection_demand_evidence"] = "diagnostic_only"
             selected["selection_value_evidence"] = (
                 "independently_verified" if has_attractive_discount_value(product, current)
                 else "retailer_listed_markdown"
@@ -7939,7 +7676,7 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
         # Delivery retries are handled independently below. A product with an
         # already-active public post (or a video still awaiting its own quota slot)
         # must not re-enter the fresh-selection queue.
-        if _has_active_publication_or_delivery(state, pid):
+        if _has_active_publication_or_delivery(state, pid, product=product, now=now):
             continue
         if is_product_repeat_blocked(previous_publication, product, now):
             continue
@@ -8824,10 +8561,9 @@ def process_pending_short_video(
     candidates.sort(
         key=lambda row: (
             0 if row[2].get("video_repair_priority") else 1,
-            -_candidate_demand_score(row[2]),
-            -_candidate_promo_score(row[2]),
-            -(_int_value(row[2].get("click_count_30d")) or 0),
-            row[3],  # among similarly attractive deals, upload the one expiring sooner first
+            -max(0, _int_value(row[2].get("posted_discount_percent") or row[2].get("discount_percent")) or 0),
+            -max(0, (_int_value(row[2].get("posted_original_price")) or 0) - (_int_value(row[2].get("posted_current_price")) or 0)),
+            row[3],  # among equal markdowns, upload the one expiring sooner first
             row[0],
         )
     )

@@ -968,7 +968,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(parsed["expiry_deadline_verified_directly"])
 
 
-    def test_verified_recent_demand_outranks_an_extreme_listed_discount(self):
+    def test_largest_discount_outranks_verified_recent_demand(self):
         now = datetime(2026, 10, 31, 17, 0, tzinfo=timezone.utc)
         popular_gadget = _with_verified_current_demand(score_product({
             "title": "پاوربانک محبوب",
@@ -989,7 +989,7 @@ class AffilioRadarTests(unittest.TestCase):
         }), now=now, growth=3)
         weaker_demand_deal.update({"current_demand_score": 20, "demand_score": 20})
         self.assertLess(popular_gadget["discount_percent"], weaker_demand_deal["discount_percent"])
-        self.assertGreater(deal_sort_key(popular_gadget, now=now), deal_sort_key(weaker_demand_deal, now=now))
+        self.assertGreater(deal_sort_key(weaker_demand_deal, now=now), deal_sort_key(popular_gadget, now=now))
 
     def test_three_recent_reviews_in_active_window_qualify_current_demand(self):
         now = datetime(2026, 11, 1, 12, 0, tzinfo=timezone.utc)
@@ -1860,9 +1860,8 @@ class AffilioRadarTests(unittest.TestCase):
             },
         }
 
-        # Even a 20% better price must not create a duplicate while the previous
-        # Telegram/Bale post is still live. A queued video retry is not new content.
-        self.assertFalse(is_fresh_selection_candidate(state, "dkp-1001", active, now))
+        # A materially improved price can compete again; unfinished destination delivery cannot duplicate.
+        self.assertTrue(is_fresh_selection_candidate(state, "dkp-1001", active, now))
         self.assertFalse(is_fresh_selection_candidate(state, "dkp-1002", queue_retry, now))
         self.assertTrue(is_fresh_selection_candidate(state, "dkp-1003", fresh, now))
 
@@ -1872,10 +1871,10 @@ class AffilioRadarTests(unittest.TestCase):
             now,
             observed_product_ids={"dkp-1001", "dkp-1002", "dkp-1003"},
         )
-        self.assertEqual(set(pending), {"dkp-1003"})
+        self.assertEqual(set(pending), {"dkp-1001", "dkp-1003"})
 
 
-    def test_same_product_is_blocked_for_24_hours_even_when_price_improves(self):
+    def test_materially_improved_offer_can_repeat_before_24_hours(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
         previous = {
             "ts": now.timestamp() - 300,
@@ -1883,7 +1882,7 @@ class AffilioRadarTests(unittest.TestCase):
             "posted_current_price": 1_000_000,
         }
         cheaper = {"current_price": 800_000}
-        self.assertTrue(is_product_repeat_blocked(previous, cheaper, now))
+        self.assertFalse(is_product_repeat_blocked(previous, cheaper, now))
 
         older = {**previous, "ts": now.timestamp() - 25 * 3600}
         self.assertFalse(is_product_repeat_blocked(older, cheaper, now))
@@ -2360,7 +2359,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(published_order[-1]["product_id"], "dkp-95006")
 
 
-    def test_publish_ranking_keeps_market_demand_ahead_of_larger_listed_discount(self):
+    def test_publish_ranking_uses_larger_discount_before_market_demand(self):
         now = datetime.now(timezone.utc)
         lower_demand_larger_discount = {
             "product_id": "dkp-95110", "title": "هدفون بلوتوثی مدل اول",
@@ -2377,12 +2376,9 @@ class AffilioRadarTests(unittest.TestCase):
             {"dkp-95110": lower_demand_larger_discount, "dkp-95111": higher_demand_smaller_discount},
             now,
         )
-        self.assertEqual(
-            [item["product_id"] for item in ranked],
-            ["dkp-95111", "dkp-95110"],
-        )
+        self.assertEqual([item["product_id"] for item in ranked], ["dkp-95110", "dkp-95111"])
 
-    def test_urgent_selection_does_not_replace_demand_rank_with_largest_discount(self):
+    def test_urgent_selection_uses_largest_discount_before_demand(self):
         now = datetime.now(timezone.utc)
         lower_demand_larger_discount = {
             "product_id": "dkp-95120", "title": "هندزفری مدل تخفیف بالا",
@@ -2397,7 +2393,7 @@ class AffilioRadarTests(unittest.TestCase):
             selected = select_urgent_publication_candidate([
                 lower_demand_larger_discount, higher_demand_smaller_discount,
             ], now=now)
-        self.assertEqual(selected["product_id"], "dkp-95121")
+        self.assertEqual(selected["product_id"], "dkp-95120")
 
     def test_49_percent_candidate_uses_45_percent_band_when_no_50_percent_offer_exists(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
@@ -2609,7 +2605,7 @@ class AffilioRadarTests(unittest.TestCase):
         }
         self.assertFalse(radar_module.has_actionable_demand_signal(stale_rank, now))
 
-    def test_cross_category_bestseller_strengthens_market_demand_but_clicks_stay_analytics_only(self):
+    def test_cross_category_bestseller_is_telemetry_only_and_clicks_stay_analytics_only(self):
         now = datetime.now(timezone.utc)
         multi_category = {
             "catalog_sort_mode": "best_selling",
@@ -2809,7 +2805,7 @@ class AffilioRadarTests(unittest.TestCase):
             discovery_queue_sort_key(low_demand_huge_discount, now),
         )
 
-    def test_recent_demand_outweighs_lifetime_review_totals(self):
+    def test_larger_markdown_outweighs_lifetime_review_totals(self):
         now = datetime.now(timezone.utc)
         established_popularity = {
             "historical_popularity_score": 42,
@@ -2836,7 +2832,7 @@ class AffilioRadarTests(unittest.TestCase):
             discovery_queue_sort_key(established_popularity, now),
         )
 
-    def test_selection_uses_market_demand_first_and_discount_percentage_second(self):
+    def test_selection_uses_discount_percentage_then_cash_savings_not_demand(self):
         now = datetime.now(timezone.utc)
         popular_lower_discount = _with_verified_current_demand({
             "demand_score": 82, "review_count": 12_000, "rating": 4.7,
@@ -2853,10 +2849,10 @@ class AffilioRadarTests(unittest.TestCase):
             "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
             "first_seen_at": now.isoformat(),
         }
-        self.assertGreater(deal_sort_key(popular_lower_discount), deal_sort_key(weak_demand_higher_discount))
+        self.assertGreater(deal_sort_key(weak_demand_higher_discount), deal_sort_key(popular_lower_discount))
         self.assertGreater(
-            discovery_queue_sort_key(popular_lower_discount, now),
             discovery_queue_sort_key(weak_demand_higher_discount, now),
+            discovery_queue_sort_key(popular_lower_discount, now),
         )
 
         same_demand_higher_pct = {
@@ -2884,7 +2880,7 @@ class AffilioRadarTests(unittest.TestCase):
         queue = {item["product_id"]: {} for item in candidates}
         eligible = {item["product_id"]: item for item in candidates}
         selected = select_publish_candidates(queue, eligible, now)
-        self.assertEqual(selected[0]["product_id"], "dkp-popular")
+        self.assertEqual(selected[0]["product_id"], "dkp-less-popular")
 
     def test_irr_prices_are_converted_to_toman(self):
         self.assertEqual(_money_to_toman("12900000", "IRR"), 1_290_000)

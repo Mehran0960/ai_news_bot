@@ -43,7 +43,7 @@ CATEGORY_REFRESH_HOURS = 24
 CANDIDATE_TTL_HOURS = 72
 MIN_CANDIDATE_DISCOUNT = 1
 # DigiKala's live data.sort_options maps id=7 to پرفروش‌ترین and id=4 to پربازدیدترین.
-# Three pages retain the first 60 best-selling products per category, not the low-signal tail.
+# This controls only upstream page order; it is not a page-depth or product eligibility limit.
 BEST_SELLING_SORT_VALUE = 7
 BEST_SELLING_PAGE_SIZE = 20
 BEST_SELLING_MAX_PAGES_PER_CATEGORY = 3
@@ -495,81 +495,28 @@ def _candidate_demand(row: dict) -> int:
     return review_proxy + rating_proxy
 
 
+
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Prefer a fresh DigiKala best-selling rank, then public popularity proxies."""
-    rank = _fresh_best_selling_rank(row)
-    fresh_rank = rank is not None
+    """Rank by discount percentage, then saving; demand and category are diagnostics only."""
     return (
-        int(fresh_rank),
-        -rank if fresh_rank else -10_000,
-        _candidate_demand(row),
-        max(0, _normal_int(row.get("review_count"))),
-        round(_normal_float(row.get("rating")) * 10),
-        max(0, _normal_int(row.get("discount_percent"))),
+        max(0, min(100, _normal_int(row.get("discount_percent")))),
         max(0, _normal_int(row.get("savings_toman"))),
     )
 
 
-def retain_diverse_candidates(rows: list[dict], limit: int = MAX_RETAINED_CANDIDATES, rotation: int = 0) -> list[dict]:
-    """Keep the strongest demand core and rotate remaining capacity across catalog categories."""
+def retain_diverse_candidates(
+    rows: list[dict],
+    limit: int = MAX_RETAINED_CANDIDATES,
+    rotation: int = 0,
+) -> list[dict]:
+    """Compatibility wrapper: retain global top markdowns without category balancing."""
     cap = max(0, int(limit))
     ranked = sorted(
         (row for row in rows or [] if isinstance(row, dict) and row.get("product_id")),
-        key=catalog_candidate_sort_key, reverse=True,
+        key=catalog_candidate_sort_key,
+        reverse=True,
     )
-    if cap <= 0 or len(ranked) <= cap:
-        return ranked[:cap]
-    selected = ranked[:max(1, cap // 2)]
-    selected_ids = {str(row["product_id"]) for row in selected}
-    buckets: dict[str, list[dict]] = {}
-    for row in ranked[max(1, cap // 2):]:
-        categories = row.get("catalog_category_ids")
-        categories = [str(x) for x in categories if str(x).isdigit()] if isinstance(categories, list) else []
-        if not categories:
-            category = str(row.get("catalog_category_id") or "")
-            categories = [category] if category.isdigit() else ["unknown"]
-        for category in categories:
-            buckets.setdefault(category, []).append(row)
-    category_ids = sorted(buckets, key=lambda x: (not x.isdigit(), int(x) if x.isdigit() else x))
-    represented = set()
-    for row in selected:
-        raw = row.get("catalog_category_ids")
-        values = [str(x) for x in raw if str(x).isdigit()] if isinstance(raw, list) else []
-        if not values:
-            single = str(row.get("catalog_category_id") or "")
-            values = [single] if single.isdigit() else []
-        represented.update(values)
-    # First fill categories not yet represented in the high-demand core.
-    unrepresented = [value for value in category_ids if value not in represented]
-    represented_ids = [value for value in category_ids if value in represented]
-    if unrepresented:
-        offset = max(0, int(rotation)) % len(unrepresented)
-        unrepresented = unrepresented[offset:] + unrepresented[:offset]
-    category_ids = unrepresented + represented_ids
-    while len(selected) < cap:
-        added = False
-        for category in category_ids:
-            for row in buckets.get(category, []):
-                pid = str(row.get("product_id") or "")
-                if pid and pid not in selected_ids:
-                    selected.append(row)
-                    selected_ids.add(pid)
-                    added = True
-                    break
-            if len(selected) >= cap:
-                break
-        if not added:
-            break
-    if len(selected) < cap:
-        for row in ranked:
-            pid = str(row.get("product_id") or "")
-            if pid and pid not in selected_ids:
-                selected.append(row)
-                selected_ids.add(pid)
-                if len(selected) >= cap:
-                    break
-    return sorted(selected, key=catalog_candidate_sort_key, reverse=True)
-
+    return ranked[:cap]
 
 def _category_page_url(category_id: str, page: int) -> tuple[str, dict]:
     return SEARCH_URL, {

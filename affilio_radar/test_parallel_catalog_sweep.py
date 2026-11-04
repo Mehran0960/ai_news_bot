@@ -14,31 +14,28 @@ except ImportError:  # unittest discovery from the workflow's affilio_radar work
 
 
 class ParallelCatalogSweepTests(unittest.TestCase):
-    def test_parallel_candidate_buffer_retains_category_spread(self):
+    def test_parallel_candidate_buffer_keeps_global_highest_discounts(self):
         rows = [
-            {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i}
+            {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i, "discount_percent": 20, "savings_toman": 200_000}
             for i in range(1, 6)
         ] + [
-            {"product_id": "dkp-20", "catalog_category_id": "20", "catalog_category_ids": ["20"], "review_count": 100},
-            {"product_id": "dkp-30", "catalog_category_id": "30", "catalog_category_ids": ["30"], "review_count": 90},
+            {"product_id": "dkp-20", "catalog_category_id": "20", "catalog_category_ids": ["20"], "review_count": 1, "discount_percent": 99, "savings_toman": 990_000},
+            {"product_id": "dkp-30", "catalog_category_id": "30", "catalog_category_ids": ["30"], "review_count": 1, "discount_percent": 95, "savings_toman": 950_000},
         ]
         retained = sweep.base.retain_diverse_candidates(rows, limit=4)
-        self.assertEqual(len(retained), 4)
-        self.assertTrue({"20", "30"}.issubset({row["catalog_category_id"] for row in retained}))
+        self.assertEqual([row["product_id"] for row in retained], ["dkp-20", "dkp-30", "dkp-1", "dkp-2"])
 
-    def test_initial_queue_covers_categories_and_preserves_legacy_cursor(self):
+    def test_initial_queue_starts_every_category_at_page_one_even_with_old_cursor(self):
         categories = [
             {"id": "1", "name": "mobile"},
             {"id": "2", "name": "home"},
             {"id": "3", "name": "fashion"},
         ]
-        tasks = sweep.build_initial_page_queue(categories, legacy_category_index=1, legacy_page=7)
-        self.assertEqual(
-            [(row["category_id"], row["page"]) for row in tasks],
-            [("2", 7), ("3", 1)],
-        )
+        state = {"categories": categories, "category_index": 2, "page": 7}
+        tasks = sweep._ensure_parallel_state(state)
+        self.assertEqual({(row["category_id"], row["page"]) for row in tasks}, {("1", 1), ("2", 1), ("3", 1)})
 
-    def test_parallel_queue_prunes_legacy_deep_pages_outside_top_sixty(self):
+    def test_parallel_queue_preserves_deep_pages_without_an_arbitrary_cap(self):
         state = {
             "categories": [{"id": "10", "name": "mobile"}],
             "parallel_queue_initialized": True,
@@ -51,11 +48,8 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             ],
         }
         queued = sweep._ensure_parallel_state(state)
-        self.assertEqual(
-            [(row["category_id"], row["page"]) for row in queued],
-            [("10", 1), ("10", 3)],
-        )
-        self.assertEqual(state["parallel_deep_pages_pruned"], 2)
+        self.assertEqual([(row["category_id"], row["page"]) for row in queued], [("10", 1), ("10", 3), ("10", 4), ("10", 500)])
+        self.assertEqual(state["parallel_deep_pages_pruned"], 0)
 
     def test_fetch_page_requests_best_selling_order(self):
         captured = {}
@@ -103,9 +97,8 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual(sweep._next_page_task(task, total_pages=4, product_count=20)["page"], 3)
         self.assertIsNone(sweep._next_page_task(task, total_pages=2, product_count=20))
         self.assertIsNone(sweep._next_page_task(task, total_pages=4, product_count=0))
-        self.assertIsNone(
-            sweep._next_page_task({"category_id": "12", "page": 5000}, None, 20)
-        )
+        self.assertEqual(sweep._next_page_task({"category_id": "12", "page": 5000}, None, 20)["page"], 5001)
+        self.assertEqual(sweep._next_page_task({"category_id": "12", "page": 3}, 200, 20)["page"], 4)
 
     def test_parallel_run_persists_follow_up_and_retries_failed_pages(self):
         with tempfile.TemporaryDirectory() as temp:
