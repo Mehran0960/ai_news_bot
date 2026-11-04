@@ -411,6 +411,52 @@ class CatalogSweepTests(unittest.TestCase):
             )
             self.assertEqual([row["product_id"] for row in selected], ["dkp-40", "dkp-30", "dkp-1", "dkp-2"])
 
+    def test_legacy_serial_sweep_does_not_skip_page_four_or_later(self):
+        page_payload = {
+            "data": {
+                "products": [{
+                    "id": 8804,
+                    "url": "/product/dkp-8804/page-four/",
+                    "title_fa": "کالای تستی صفحه چهارم",
+                    "default_variant": {"price": {
+                        "selling_price_toman": 700_000,
+                        "rrp_price_toman": 1_000_000,
+                        "discount_percent": 30,
+                    }},
+                }]
+            },
+            "pager": {"total_pages": 5},
+        }
+        session = FakeSession([page_payload])
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            state_path = base / "state.json"
+            candidates_path = base / "candidates.json"
+            publisher_state_path = base / "publisher.json"
+            state_path.write_text(json.dumps({
+                "categories": [{"id": "7", "name": "کالای دیجیتال"}],
+                "categories_refreshed_at": datetime.now(timezone.utc).isoformat(),
+                "category_index": 0,
+                "page": 4,
+                "stats": {},
+            }), encoding="utf-8")
+            publisher_state_path.write_text("{}", encoding="utf-8")
+
+            result = run_sweep(
+                pages_per_run=1,
+                session=session,
+                state_path=state_path,
+                candidates_path=candidates_path,
+                publisher_state_path=publisher_state_path,
+            )
+
+            self.assertEqual(result, 0)
+            self.assertEqual(dict(session.calls[0][1])["page"], 4)
+            saved = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["page"], 5)
+            self.assertEqual(saved["stats"]["pages_scanned_total"], 1)
+
+
     def test_run_sweep_checkpoints_page_and_candidates(self):
         category_payload = {"data": {"category_tree": [{"id": 7, "title": "کالای دیجیتال"}]}}
         page_payload = {

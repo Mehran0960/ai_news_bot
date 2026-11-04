@@ -48,7 +48,6 @@ BEST_SELLING_SORT_VALUE = 7
 BEST_SELLING_PAGE_SIZE = 20
 BEST_SELLING_MAX_PAGES_PER_CATEGORY = 3
 BEST_SELLING_MAX_AGE_HOURS = 24
-MAX_PAGES_PER_CATEGORY = BEST_SELLING_MAX_PAGES_PER_CATEGORY
 MAX_RETAINED_CANDIDATES = 3000
 MAX_PUBLISHER_SEEN_IDS = 12000
 PUBLISHER_SEEN_TTL_DAYS = 2
@@ -881,7 +880,7 @@ def run_sweep(
     publisher_state_path: Path = PUBLISHER_STATE_PATH,
     force_refresh: bool = False,
 ) -> int:
-    """Scan a small page batch, checkpoint every page, and retain deal candidates."""
+    """Scan a bounded page batch, checkpoint every page, and follow pagination without a depth cap."""
     http = session or SESSION
     state = _read_json(state_path, {})
     if not isinstance(state, dict):
@@ -935,7 +934,7 @@ def run_sweep(
         category_id = str(category.get("id") or "")
         category_name = str(category.get("name") or category_id)
         page = max(1, _normal_int(state.get("page"), 1))
-        if not category_id.isdigit() or page > MAX_PAGES_PER_CATEGORY:
+        if not category_id.isdigit():
             state["category_index"] = category_index + 1
             state["page"] = 1
             _write_json(state_path, state)
