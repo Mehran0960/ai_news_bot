@@ -1132,6 +1132,74 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(is_deadline_critical_deal(too_soon, now))
         self.assertFalse(is_deadline_critical_deal({**close_but_safe, "deal_expires_at": ""}, now))
 
+    def test_semantic_similarity_normalizes_variant_details_without_merging_unrelated_products(self):
+        self.assertTrue(radar_module._publication_products_are_similar(
+            {"title": "پانچ کاغذ اداری مدل A4 رنگ مشکی"},
+            {"title": "پانچ کاغذ اداری مدل B2 رنگ سفید"},
+        ))
+        self.assertTrue(radar_module._publication_products_are_similar(
+            {"title": "لپ‌تاپ ایسوس مدل VivoBook"},
+            {"title": "لپ تاپ لنوو مدل IdeaPad"},
+        ))
+        self.assertFalse(radar_module._publication_products_are_similar(
+            {"title": "ماوس بی‌سیم لاجیتک"},
+            {"title": "کیبورد بی‌سیم لاجیتک"},
+        ))
+
+    def test_recent_semantically_similar_product_is_blocked_but_other_category_passes(self):
+        now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-recent-punch": {
+                "title": "پانچ کاغذ اداری مدل A4 رنگ مشکی",
+                "telegram_message_id": 1901,
+                "ts": (now - timedelta(minutes=25)).timestamp(),
+            }
+        }
+        candidates = [
+            {
+                "product_id": "dkp-punch-variant",
+                "title": "پانچ کاغذ اداری مدل B2 رنگ سفید",
+                "discount_percent": 70,
+                "savings_toman": 500_000,
+            },
+            {
+                "product_id": "dkp-powerbank-alternative",
+                "title": "پاوربانک ۲۰۰۰۰ میلی‌آمپر مدل تازه",
+                "discount_percent": 65,
+                "savings_toman": 450_000,
+            },
+        ]
+        queue = {item["product_id"]: {} for item in candidates}
+        eligible = {item["product_id"]: item for item in candidates}
+        selected = select_publish_candidates(queue, eligible, now, published)
+        self.assertEqual(
+            [row["product_id"] for row in selected],
+            ["dkp-powerbank-alternative"],
+        )
+
+    def test_similar_product_cooldown_expires_after_four_hours(self):
+        now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-old-laptop": {
+                "title": "لپ‌تاپ ایسوس مدل VivoBook",
+                "telegram_message_id": 1902,
+                "ts": (now - timedelta(hours=4, minutes=5)).timestamp(),
+            }
+        }
+        candidate = {
+            "product_id": "dkp-new-laptop",
+            "title": "لپ تاپ لنوو مدل IdeaPad",
+            "discount_percent": 50,
+            "savings_toman": 300_000,
+        }
+        selected = select_publish_candidates(
+            {candidate["product_id"]: {}},
+            {candidate["product_id"]: candidate},
+            now,
+            published,
+        )
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-new-laptop"])
+
     def test_regular_and_sport_eyewear_share_one_global_family(self):
         regular_category, regular_family, _ = radar_module._publication_diversity_group(
             "عینک آفتابی زنانه مدل معمولی"
