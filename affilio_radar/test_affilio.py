@@ -4546,8 +4546,55 @@ class AffilioRadarTests(unittest.TestCase):
             "YouTube channel links should appear before product details",
         )
 
-    def test_publication_interval_is_23_minutes(self):
-        self.assertAlmostEqual(MIN_POST_INTERVAL_HOURS, 23 / 60)
+    def test_publication_interval_is_six_hours_for_video_mirroring_capacity(self):
+        self.assertEqual(MIN_POST_INTERVAL_HOURS, 6)
+        self.assertEqual(radar_module.MAX_DAILY_CHANNEL_POSTS, 4)
+        self.assertEqual(radar_module.YOUTUBE_UPLOAD_INTERVAL_HOURS, 4)
+        self.assertEqual(radar_module.APARAT_UPLOAD_INTERVAL_HOURS, 4)
+
+    def test_video_upload_policy_migration_rebases_both_slots_to_new_interval(self):
+        now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
+        youtube_uploaded = now - timedelta(hours=2)
+        aparat_uploaded = now - timedelta(hours=1)
+        state = {
+            "video_upload_policy_version": 1,
+            "youtube_next_upload_at": (now + timedelta(hours=1)).isoformat(),
+            "aparat_next_upload_at": (now + timedelta(hours=2)).isoformat(),
+            "published": {
+                "dkp-youtube-prior": {
+                    "youtube_upload_status": "uploaded",
+                    "youtube_uploaded_at": youtube_uploaded.isoformat(),
+                },
+                "dkp-aparat-prior": {
+                    "aparat_upload_status": "uploaded",
+                    "aparat_uploaded_at": aparat_uploaded.isoformat(),
+                },
+            },
+        }
+        self.assertTrue(radar_module.migrate_video_upload_policy(state, now))
+        self.assertEqual(
+            state["youtube_next_upload_at"],
+            (youtube_uploaded + timedelta(hours=4)).isoformat(),
+        )
+        self.assertEqual(
+            state["aparat_next_upload_at"],
+            (aparat_uploaded + timedelta(hours=4)).isoformat(),
+        )
+        self.assertEqual(state["video_upload_policy_version"], radar_module.VIDEO_UPLOAD_POLICY_VERSION)
+        self.assertFalse(radar_module.migrate_video_upload_policy(state, now))
+
+    def test_shared_brand_asset_manifest_is_complete_and_discount_flame_is_reusable(self):
+        import offerchin_visuals as visuals
+
+        result = visuals.validate_brand_assets()
+        self.assertIn("digikala-logo", result["validated_assets"])
+        self.assertIn("snappshop-logo", result["validated_assets"])
+        self.assertIn("digipay-logo", result["validated_assets"])
+        self.assertIn("discount-flame", result["validated_assets"])
+        image = Image.new("RGB", (96, 96), (255, 255, 255))
+        bounds = visuals.draw_discount_flame(image, 48, 48, 32)
+        self.assertEqual(bounds, (32, 32, 32, 32))
+        self.assertGreater(len(set(image.getdata())), 1)
 
     def test_publication_capacity_bursts_only_when_publish_queue_is_large(self):
         self.assertEqual(effective_posts_per_run(0, configured_limit=2), 1)
@@ -5656,7 +5703,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(no_timer["video_generation_status"], "generated")
         self.assertEqual(verified_lower_demand["aparat_upload_status"], "pending")
 
-    def test_youtube_upload_waits_three_hours_after_previous_success_and_selects_late(self):
+    def test_youtube_upload_waits_four_hours_after_previous_success_and_selects_late(self):
         now = datetime.now(timezone.utc)
         prior_uploaded_at = now - timedelta(hours=1)
         prior_id = "dkp-previous-youtube-success"
