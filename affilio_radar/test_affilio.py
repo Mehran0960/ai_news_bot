@@ -4964,7 +4964,7 @@ class AffilioRadarTests(unittest.TestCase):
         merge_discovery_queue(queue, [], now + timedelta(minutes=20))
         self.assertNotIn("dkp-91011", queue)
 
-    def test_discovery_check_budget_ranks_demand_before_category_diversity(self):
+    def test_discovery_check_budget_is_discount_first_and_ignores_category_history(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
         recent = [
             {"product_id": f"dkp-recent-audio-{i}", "title": f"هدفون بلوتوثی نمونه {i}",
@@ -4972,10 +4972,10 @@ class AffilioRadarTests(unittest.TestCase):
             for i in range(6)
         ]
         queue = {}
-        for pid, title, demand in [
-            ("dkp-93031", "هدفون بلوتوثی مدل برتر", 95),
-            ("dkp-93032", "اسپیکر بلوتوثی مدل جدید", 80),
-            ("dkp-93033", "تیشرت یقه گرد مردانه مدل جدید", 25),
+        for pid, title, demand, discount, savings in [
+            ("dkp-93031", "هدفون بلوتوثی مدل برتر", 5, 95, 950_000),
+            ("dkp-93032", "اسپیکر بلوتوثی مدل جدید", 99, 80, 800_000),
+            ("dkp-93033", "تیشرت یقه گرد مردانه مدل جدید", 25, 60, 600_000),
         ]:
             queue[pid] = {
                 "product_id": pid,
@@ -4983,8 +4983,8 @@ class AffilioRadarTests(unittest.TestCase):
                 "title": title,
                 "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
                 "demand_score": demand,
-                "discount_percent": 55,
-                "savings_toman": 400_000,
+                "discount_percent": discount,
+                "savings_toman": savings,
                 "first_seen_at": now.isoformat(),
                 "last_seen_at": now.isoformat(),
                 "next_check_at": "",
@@ -4992,10 +4992,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_discovery_records_for_check(
             queue, now, max_count=2, published={}, recent_publications=recent
         )
-        # The recently published headphone family is skipped. The speaker stays
-        # first by demand; the lower-demand fashion candidate fills the remaining
-        # bounded detail-check slot instead of starving the discovery pipeline.
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93032", "dkp-93033"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93031", "dkp-93032"])
 
     def test_discovery_checks_prioritize_discount_over_deadline_urgency(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)

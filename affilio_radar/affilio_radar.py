@@ -2467,7 +2467,7 @@ def select_queued_records_for_recheck(
     now: datetime | None = None,
     max_count: int | None = None,
 ) -> list[tuple[str, dict]]:
-    """Select a fair batch by demand and deal quality, rotating the remainder."""
+    """Select queued offers by discount/savings priority, rotating the remainder for coverage."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -2494,7 +2494,7 @@ def select_queued_records_for_recheck(
             continue
         eligible.append((pid, record))
 
-    # Re-establish demand/deal-value priority before slicing, independent of JSON key order.
+    # Re-establish discount/savings priority before slicing, independent of JSON key order.
     eligible.sort(
         key=lambda pair: pending_queue_sort_key(pair[1], pair[1], current),
         reverse=True,
@@ -3170,7 +3170,7 @@ def _diversify_ranked_records(
     label: str = "DISCOVERY",
     now: datetime | None = None,
 ):
-    """Balance categories over 24 hours while keeping demand as the primary rank."""
+    """Legacy utility; active catalog discovery no longer calls this category re-ranker."""
     source = list(records or [])
     cap = len(source) if limit is None else max(0, int(limit))
     if cap <= 0 or not source:
@@ -3320,7 +3320,7 @@ def select_discovery_records_for_check(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> list[tuple[str, dict]]:
-    """Select due, purchase-ready candidates by demand and deal value."""
+    """Select due candidates in strict discount-percentage, then savings order."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -3346,10 +3346,9 @@ def select_discovery_records_for_check(
             continue
         due.append((pid, record))
     due.sort(key=lambda pair: discovery_queue_sort_key(pair[1], current), reverse=True)
-    selected = _diversify_ranked_records(
-        due, limit=limit, published=published,
-        recent_publications=recent_publications, label="DISCOVERY_QUEUE", now=current,
-    )
+    # The detail-check budget must preserve the global discount/savings order.
+    # Category/family/brand history and demand telemetry never remove or reorder candidates.
+    selected = due[:limit]
     print(f"DISCOVERY_QUEUE_CHECK_BATCH due={len(due)} selected={len(selected)} limit={limit}")
     return selected
 
@@ -3856,13 +3855,10 @@ def discover_product_urls(
         eligible_discovery_deals.append(row)
 
     sorted_deals = sorted(eligible_discovery_deals, key=discovery_key, reverse=True)
-    selected_deals = _diversify_ranked_records(
-        sorted_deals, limit=MAX_INCREDIBLE_OFFER_CANDIDATES,
-        published=publish_history, recent_publications=recent_history,
-        label="INCREDIBLE_FEED",
-    )
+    # Keep the globally sorted deal order; publication history and categories do not affect ranking.
+    selected_deals = sorted_deals[:MAX_INCREDIBLE_OFFER_CANDIDATES]
     print(
-        f"DEAL_DEMAND_ORDER pool={len(best_by_url)} eligible={len(eligible_discovery_deals)} "
+        f"DEAL_DISCOUNT_ORDER pool={len(best_by_url)} eligible={len(eligible_discovery_deals)} "
         f"selected={len(selected_deals)} skipped_expired_or_short={skipped_short_or_expired} "
         f"skipped_repeat_or_active={skipped_repeat_or_active}"
     )
@@ -6488,7 +6484,7 @@ def is_materially_improved_offer(previous: dict, product: dict, now: datetime | 
 
 def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
                            now: datetime | None = None) -> tuple:
-    """Prioritize market-demand signals, then discount percentage; urgency only follows those signals."""
+    """Rank by discount percentage then cash savings; deadline urgency is a later tie-breaker."""
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
@@ -6505,8 +6501,8 @@ def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
         deadline_priority = 1
     else:
         deadline_priority = 0
-    # deal_sort_key prioritizes retailer-side demand signals, then discount percentage.
-    # Channel clicks and deadline urgency cannot override those two ranking criteria.
+    # deal_sort_key is strictly discount percentage then cash saving.
+    # Deadline urgency only breaks ties after both discount fields.
     return (
         *deal_sort_key(product, now=now),
         int(is_urgent_priority_deal(product, now)),
@@ -7428,14 +7424,12 @@ def select_discount_fallback_candidates(
     now: datetime | None = None,
     include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Rank all valid live markdowns by demand first and displayed discount second.
+    """Select all fresh, hard-valid live markdowns by percentage, then cash savings.
 
-    Recent review growth and fresh bestseller position are strongest demand signals.
-    When unavailable, public popularity proxies provide a fallback. External price
-    verification is informational, not a publication gate.
+    Demand, reviews, bestseller rank, category, brand, price-history/market evidence,
+    trends, and clicks are diagnostics only, never eligibility or ranking gates.
     Hard checks remain: current stock and price, a genuine positive retailer markdown,
-    a valid product and affiliate URL, an allowed product title, and an unexpired or
-    open-ended live offer.
+    a valid product and affiliate URL, a publishable/safe title, and a live offer.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -9041,10 +9035,10 @@ def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(
-        "Ranking mode=top-public-demand-pool then highest live discount; "
-        "no minimum discount percentage or minimum saving amount. "
-        "Live stock, current price, genuine markdown, image, affiliate link, "
-        "expiry safety, market-value and duplicate checks remain active."
+        "Ranking mode=full-catalog discount_percent_desc then savings_toman_desc; "
+        "demand, popularity, category, brand, market evidence and clicks are diagnostics only. "
+        "Every genuine markdown from 1% competes; live stock, price, title, image, "
+        "affiliate link, expiry, duplicate and safety checks remain active."
     )
     catalog = load_catalog()
     approved = link_map(catalog)
@@ -9186,13 +9180,13 @@ def run(publish=False, selection_only=False):
     enrich_market_prices(products, state)
     products.sort(key=deal_sort_key, reverse=True)
     queue_now = datetime.now(timezone.utc)
+    # Independent market/history evidence is diagnostic; it cannot filter a live markdown.
     listed_eligible_count = sum(
         bool(
             p.get("has_affiliate_link")
             and is_discount_publish_eligible(
                 p, minimum_discount_percent=MIN_DISCOUNT_FALLBACK_PERCENT, now=queue_now
             )
-            and is_market_value_publish_eligible(p)
             and has_publishable_expiry_or_open_offer(p, queue_now)
         )
         for p in products
@@ -9247,7 +9241,7 @@ def run(publish=False, selection_only=False):
             ):
                 mark_discovery_candidate_checked(discovery_queue, checked, "discount_or_content_gate", queue_now)
             elif not is_market_value_publish_eligible(checked):
-                mark_discovery_candidate_checked(discovery_queue, checked, "market_price_rejected", queue_now)
+                mark_discovery_candidate_checked(discovery_queue, checked, "market_price_diagnostic_only", queue_now)
             else:
                 mark_discovery_candidate_checked(discovery_queue, checked, "selection_tier_deferred", queue_now)
         save_json(STATE, state)
@@ -9273,7 +9267,7 @@ def run(publish=False, selection_only=False):
         f"missing_deadline={missing_deadline_count} expired_deadline={expired_deadline_count} "
         f"deadline_too_close_for_publication={deadline_too_close_count} "
         f"medicine_or_supplement={prohibited_product_count} "
-        f"quality_eligible_all_bands={listed_eligible_count} "
+        f"hard_eligible_all_bands={listed_eligible_count} "
         f"selected_discount_band={selected_discount_band} "
         f"fresh_selected_candidates={len(eligible)} "
         f"fresh_after_duplicate_cooldown={len(pending_queue)}"
@@ -9394,8 +9388,11 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "Builds a demand-ranked pool using fresh retailer review growth or a fresh DigiKala category best-selling rank, with lifetime review counts/ratings only as secondary popularity proxies (not sales volume). It checks up to 100 candidates and requires a fresh verified 30-day price-history advantage or a fresh comparable-market price advantage before publication. No fixed discount percentage or saving amount is imposed; a displayed markdown alone is never treated as proof of value. Publication also requires verified current price and stock, image, affiliate link, a valid title, no prohibited category, no verified market-price rejection, and no duplicate conflict. Confirmed deadlines require the configured publication runway; open-ended offers remain eligible after live stock/current-price validation.",
+        "ranking_note": "The scanner traverses every queryable DigiKala category page and retains the globally highest observed markdown cards. Live candidates are ranked strictly by discount percentage descending, then cash savings descending. Demand, reviews, bestseller rank, category, brand, trends, clicks, market comparisons, and price-history evidence are diagnostics only; none filters or reorders the candidate pool. Detail checks are batched each run and continue across cycles. Publication requires verified product identity, in-stock status, current price, genuine positive markdown (at least 1%), usable title/image, valid Affilio tracking link, live/non-expired offer, duplicate protection, and safety checks.",
         "current_demand_policy": {
+            "use": "diagnostics_only",
+            "ranking_effect": "none",
+            "unverified_blocks_new_publication": False,
             "source": "rolling retailer review-count growth or DigiKala category best-selling rank",
             "window_days": CURRENT_DEMAND_WINDOW_DAYS,
             "minimum_growth": CURRENT_DEMAND_MIN_REVIEW_GROWTH,
@@ -9404,27 +9401,28 @@ def run(publish=False, selection_only=False):
             "maximum_signal_age_hours": CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS,
             "best_selling_max_rank": BEST_SELLING_MAX_RANK,
             "best_selling_max_age_hours": BEST_SELLING_MAX_AGE_HOURS,
-            "unverified_blocks_new_publication": True,
             "sales_volume_claimed": False,
         },
         "discount_value_policy": {
+            "use": "diagnostics_only",
+            "independent_price_evidence_required_for_publication": False,
+            "retailer_markdown_accepted_after_live_price_check": True,
             "market_advantage_min_percent": VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT,
-            "requires_fresh_verified_history_or_market_comparison": True,
             "history_max_age_hours": PRICE_HISTORY_RECHECK_HOURS,
             "market_max_age_hours": MARKET_PRICE_RECHECK_HOURS,
-            "percentage_only_fallback": False,
-            "savings_amount_floor": 0,
+            "minimum_discount_percent": MIN_DISCOUNT_FALLBACK_PERCENT,
+            "minimum_savings_toman": MIN_SAVINGS_TOMAN,
             "requires_live_stock_price_and_affiliate_link": True,
         },
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
-            "market_data_required_when_history_unverified": True,
+            "use": "optional_diagnostics_only",
+            "market_data_required_when_history_unverified": False,
+            "blocks_publication": False,
             "checked_candidates_per_run": MARKET_PRICE_CHECK_LIMIT,
             "minimum_name_match_score": MIN_MARKET_MATCH_SCORE,
             "minimum_sellers_for_verified_median": 3,
             "minimum_discount_vs_current_market_median_percent": 5,
-            "unknown_or_limited_comparison_can_use_fresh_historical_proof": True,
-            "no_percentage_only_fallback": True,
             "endpoint": TOROB_MCP_URL,
         },
         "search_diagnostics": search_diagnostics,
@@ -9484,7 +9482,7 @@ def run(publish=False, selection_only=False):
             return 0
 
         # Store one due primary plus a compact ranked backup pool.
-        # Backups follow demand-first/discount-second ranking. The publisher
+        # Backups preserve global discount/savings order. The publisher
         # repeats live stock, price, identity, title, and affiliate checks.
         primary = eligible[:1]
         summary = enqueue_selected_content(
@@ -9589,7 +9587,7 @@ def run(publish=False, selection_only=False):
     elif not eligible:
         print(
             "PUBLISH_BLOCKED: no fresh candidate has a genuine price reduction plus confirmed stock, "
-            "current price/image, affiliate link, market-value and duplicate/expiry checks. "
+            "current price/image, affiliate link, title, expiry and duplicate checks. "
             "Open-ended offers are accepted only after live stock/current-price validation."
         )
     elif not regular_window_open and not urgent_override_allowed and not FORCE_POST_COOLDOWN_BYPASS:

@@ -94,7 +94,7 @@ jobs:
           print("OFFERCHIN_STATE_PERSISTENCE_WORKTREE_RESET_VALIDATED")
           PY
 
-      - name: Validate current-demand signal and OfferChin selection behavior
+      - name: Validate discount-first selection and demand telemetry behavior
         run: |
           cd affilio_radar
           python -m unittest \
@@ -102,6 +102,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit \
             test_affilio.AffilioRadarTests.test_discount_publishing_requires_a_valuable_deal \
             test_affilio.AffilioRadarTests.test_selection_uses_discount_percentage_then_cash_savings_not_demand \
+            test_affilio.AffilioRadarTests.test_discovery_check_budget_is_discount_first_and_ignores_category_history \
             test_affilio.AffilioRadarTests.test_publish_ranking_uses_larger_discount_before_market_demand \
             test_affilio.AffilioRadarTests.test_urgent_selection_uses_largest_discount_before_demand \
             test_affilio.AffilioRadarTests.test_price_history_checks_are_throttled_and_snapshots_remain_available \
