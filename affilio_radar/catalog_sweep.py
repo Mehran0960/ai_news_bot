@@ -565,13 +565,39 @@ def load_catalog_candidates(path: Path = CANDIDATES_PATH) -> list[dict]:
     return [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
 
 
+def _catalog_handoff_seen_at(value: object) -> str:
+    """Read timestamps from both legacy string entries and current records."""
+    if isinstance(value, dict):
+        return str(value.get("seen_at") or "")
+    return str(value or "")
+
+
+def catalog_handoff_fingerprint(row: dict) -> str:
+    """Fingerprint listing price/discount/stock fields to detect material card changes."""
+    row = row if isinstance(row, dict) else {}
+    fields = (
+        "current_price", "selling_price", "selling_price_toman",
+        "original_price", "rrp_price", "rrp_price_toman",
+        "discount_percent", "availability", "in_stock", "is_in_stock",
+        "stock", "stock_status", "is_available",
+    )
+    payload = {}
+    for field in fields:
+        value = row.get(field)
+        if value is None or isinstance(value, (str, int, float, bool)):
+            payload[field] = value
+        else:
+            payload[field] = str(value)
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
 def load_catalog_candidates_for_handoff(
     candidates_path: Path,
     publisher_state: dict,
     max_count: int = 100,
     now: datetime | None = None,
 ) -> list[dict]:
-    """Select unseen cards without acknowledging them before the queue accepts them."""
+    """Select new or materially changed cards; unchanged fingerprints wait for TTL."""
     current = now or utc_now()
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -581,15 +607,15 @@ def load_catalog_candidates_for_handoff(
     if not isinstance(handoff, dict):
         handoff = {}
         publisher_state["catalog_sweep_handoff"] = handoff
+
     seen = handoff.setdefault("seen_ids", {})
     if not isinstance(seen, dict):
         seen = {}
         handoff["seen_ids"] = seen
-
     cutoff = current - timedelta(days=PUBLISHER_SEEN_TTL_DAYS)
-    for pid, stamp in list(seen.items()):
+    for pid, record in list(seen.items()):
         try:
-            parsed = datetime.fromisoformat(str(stamp).replace("Z", "+00:00"))
+            parsed = datetime.fromisoformat(_catalog_handoff_seen_at(record).replace("Z", "+00:00"))
             if parsed.tzinfo is None:
                 parsed = parsed.replace(tzinfo=timezone.utc)
         except (TypeError, ValueError):
@@ -619,17 +645,26 @@ def load_catalog_candidates_for_handoff(
     for row in rows:
         pid = str(row.get("product_id") or "")
         url = str(row.get("product_url") or "")
-        if not re.fullmatch(r"dkp-\d{1,12}", pid):
+        if not re.fullmatch(r"dkp-\\d{1,12}", pid):
             continue
-        if pid in seen or pid in already_queued or pid in deferred:
+        previous = seen.get(pid)
+        previous_fingerprint = (
+            str(previous.get("fingerprint") or "") if isinstance(previous, dict) else ""
+        )
+        # Legacy timestamp-only records have no baseline; pass them once so the
+        # next acknowledgement establishes a complete fingerprint.
+        unchanged_recently_seen = bool(
+            previous_fingerprint
+            and previous_fingerprint == catalog_handoff_fingerprint(row)
+        )
+        if unchanged_recently_seen or pid in already_queued or pid in deferred:
             continue
         if not url.endswith(f"/{pid}/"):
             continue
         if not is_publishable_product_title(row.get("title", "")):
             row = {**row, "title": f"محصول دیجی‌کالا {pid}"}
         fresh.append(row)
-    # Preserve the best-demand core while distributing the rest of this handoff
-    # across categories not already represented in that core.
+
     selected = retain_diverse_candidates(
         fresh,
         limit=max(0, int(max_count)),
@@ -640,8 +675,13 @@ def load_catalog_candidates_for_handoff(
     return selected
 
 
-def acknowledge_catalog_candidates_handoff(publisher_state: dict, product_ids: list[str] | set[str], now: datetime | None = None) -> int:
-    """Acknowledge only candidates confirmed to remain in the persisted discovery queue."""
+def acknowledge_catalog_candidates_handoff(
+    publisher_state: dict,
+    product_ids: list[str] | set[str],
+    now: datetime | None = None,
+    candidates: list[dict] | None = None,
+) -> int:
+    """Acknowledge retained IDs with their observed price/stock fingerprints."""
     if not isinstance(publisher_state, dict):
         return 0
     handoff = publisher_state.setdefault("catalog_sweep_handoff", {})
@@ -656,15 +696,30 @@ def acknowledge_catalog_candidates_handoff(publisher_state: dict, product_ids: l
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     stamp = current.astimezone(timezone.utc).isoformat()
-    acknowledged = {str(pid) for pid in (product_ids or []) if re.fullmatch(r"dkp-\d{1,12}", str(pid))}
+    candidate_map = {
+        str(row.get("product_id") or ""): row
+        for row in (candidates or []) if isinstance(row, dict)
+    }
+    acknowledged = {
+        str(pid) for pid in (product_ids or [])
+        if re.fullmatch(r"dkp-\\d{1,12}", str(pid))
+    }
     for pid in acknowledged:
-        seen[pid] = stamp
+        candidate = candidate_map.get(pid)
+        seen[pid] = {
+            "seen_at": stamp,
+            "fingerprint": catalog_handoff_fingerprint(candidate) if candidate else "",
+        }
     deferred = handoff.setdefault("deferred_ids", {})
     if isinstance(deferred, dict):
         for pid in acknowledged:
             deferred.pop(pid, None)
     if len(seen) > MAX_PUBLISHER_SEEN_IDS:
-        ordered = sorted(seen.items(), key=lambda pair: str(pair[1]), reverse=True)
+        ordered = sorted(
+            seen.items(),
+            key=lambda pair: _catalog_handoff_seen_at(pair[1]),
+            reverse=True,
+        )
         handoff["seen_ids"] = dict(ordered[:MAX_PUBLISHER_SEEN_IDS])
     if acknowledged:
         handoff["last_handoff_at"] = stamp

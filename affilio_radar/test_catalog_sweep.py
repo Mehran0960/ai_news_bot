@@ -240,8 +240,20 @@ class CatalogSweepTests(unittest.TestCase):
                 {"product_id": "dkp-1", "product_url": "https://www.digikala.com/product/dkp-1/", "title": "هدفون بلوتوثی نمونه", "current_price": 250_000, "original_price": 500_000, "discount_percent": 50, "availability": "in_stock"},
                 {"product_id": "dkp-2", "product_url": "https://www.digikala.com/product/dkp-2/", "title": "پاوربانک مدل نمونه", "discount_percent": 70},
             ]}, ensure_ascii=False), encoding="utf-8")
-            state = {"catalog_sweep_handoff": {"seen_ids": {"dkp-1": "2026-11-01T00:00:00+00:00"}}}
+            state = {}
             fixed_now = datetime(2026, 11, 2, 0, 0, tzinfo=timezone.utc)
+            acknowledge_catalog_candidates_handoff(
+                state,
+                ["dkp-1"],
+                now=fixed_now - timedelta(days=1),
+                candidates=[{
+                    "product_id": "dkp-1",
+                    "current_price": 250_000,
+                    "original_price": 500_000,
+                    "discount_percent": 50,
+                    "availability": "in_stock",
+                }],
+            )
             selected = load_catalog_candidates_for_handoff(path, state, max_count=10, now=fixed_now)
             self.assertEqual([row["product_id"] for row in selected], ["dkp-2"])
             self.assertNotIn("dkp-2", state["catalog_sweep_handoff"]["seen_ids"])
@@ -254,9 +266,49 @@ class CatalogSweepTests(unittest.TestCase):
             )
             self.assertEqual([row["product_id"] for row in selected_again], ["dkp-2"])
             self.assertEqual(acknowledge_catalog_candidates_handoff(
-                state, ["dkp-2"], now=fixed_now + timedelta(minutes=16),
+                state,
+                ["dkp-2"],
+                now=fixed_now + timedelta(minutes=16),
+                candidates=[{
+                    "product_id": "dkp-2",
+                    "current_price": 300_000,
+                    "original_price": 1_000_000,
+                    "discount_percent": 70,
+                    "availability": "in_stock",
+                }],
             ), 1)
             self.assertIn("dkp-2", state["catalog_sweep_handoff"]["seen_ids"])
+
+
+    def test_handoff_rechecks_price_or_stock_changes_before_seen_ttl(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "candidates.json"
+            original = {
+                "product_id": "dkp-55",
+                "product_url": "https://www.digikala.com/product/dkp-55/",
+                "title": "هدفون بلوتوثی نمونه",
+                "current_price": 500_000,
+                "original_price": 1_000_000,
+                "discount_percent": 50,
+                "availability": "in_stock",
+            }
+            state = {}
+            now = datetime(2026, 11, 4, 0, 0, tzinfo=timezone.utc)
+            path.write_text(json.dumps({"candidates": [original]}, ensure_ascii=False), encoding="utf-8")
+            acknowledge_catalog_candidates_handoff(
+                state, ["dkp-55"], now=now, candidates=[original]
+            )
+            # An unchanged catalog card should not consume another deep-check.
+            self.assertEqual(
+                load_catalog_candidates_for_handoff(path, state, now=now + timedelta(hours=1)),
+                [],
+            )
+            changed = dict(original, current_price=400_000, discount_percent=60)
+            path.write_text(json.dumps({"candidates": [changed]}, ensure_ascii=False), encoding="utf-8")
+            selected = load_catalog_candidates_for_handoff(
+                path, state, now=now + timedelta(hours=1)
+            )
+            self.assertEqual([row["product_id"] for row in selected], ["dkp-55"])
 
     def test_handoff_batch_is_global_discount_order_without_category_rotation(self):
         with tempfile.TemporaryDirectory() as temp:

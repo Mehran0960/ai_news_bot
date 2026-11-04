@@ -3585,7 +3585,10 @@ def discover_product_urls(
                     if str(row.get("product_id") or "") in discovery_queue
                 }
                 acknowledged = acknowledge_catalog_candidates_handoff(
-                    state_to_persist, retained_ids, now=queue_now
+                    state_to_persist,
+                    retained_ids,
+                    now=queue_now,
+                    candidates=catalog_batch,
                 )
                 deferred_ids = {
                     str(row.get("product_id") or "")
