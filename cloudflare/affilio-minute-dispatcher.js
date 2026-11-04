@@ -311,10 +311,14 @@ async function runScheduledCheck(env, scheduledTime) {
     }
   }
   if (offset === 3) {
-    try {
-      await dispatchWorkflowIfIdle(FILO_API, env.GITHUB_TOKEN, FILO_WORKFLOW, 27, 8);
-    } catch (error) {
-      console.error("GOUSHIBAAZ_FILO_DISPATCH_FAILED", String(error).slice(0, 900));
+    if (!env.FILO_GITHUB_TOKEN) {
+      console.error("GOUSHIBAAZ_FILO_DISPATCH_BLOCKED: FILO_GITHUB_TOKEN is not configured.");
+    } else {
+      try {
+        await dispatchWorkflowIfIdle(FILO_API, env.FILO_GITHUB_TOKEN, FILO_WORKFLOW, 27, 8);
+      } catch (error) {
+        console.error("GOUSHIBAAZ_FILO_DISPATCH_FAILED", String(error).slice(0, 900));
+      }
     }
   }
 
