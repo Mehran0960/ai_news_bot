@@ -23,11 +23,11 @@ PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
 
 def _configured_queue_limit(value: Any = None) -> int:
     """Return a defensive upper bound for live content hand-off/retry records."""
-    raw = value if value is not None else os.getenv("AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT", "6")
+    raw = value if value is not None else os.getenv("AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT", "20")
     try:
         parsed = int(raw)
     except (TypeError, ValueError, OverflowError):
-        parsed = 6
+        parsed = 20
     return max(1, min(20, parsed))
 
 
@@ -483,6 +483,115 @@ def finish_queue_item(state: dict, product_id: str, status: str, *, now: datetim
         state["content_delivery_history"] = history[-200:]
         queue.pop(product_id, None)
 
+
+
+def reconcile_video_delivery_targets(
+    state: dict,
+    *,
+    now: datetime | None = None,
+) -> int:
+    """Reflect standalone video uploads into the shared delivery queue without sending photos."""
+    if not isinstance(state, dict):
+        return 0
+    queue = state.get("content_delivery_queue")
+    published = state.get("published")
+    if not isinstance(queue, dict) or not isinstance(published, dict):
+        return 0
+
+    current = _utc(now or datetime.now(timezone.utc))
+    if current is None:
+        current = datetime.now(timezone.utc)
+    reconciled = 0
+
+    for product_id, entry in list(queue.items()):
+        if not isinstance(entry, dict) or entry.get("status") in TERMINAL_QUEUE_STATUSES:
+            continue
+        record = published.get(str(product_id))
+        if not isinstance(record, dict):
+            continue
+        platforms = entry.setdefault("platforms", {})
+        if not isinstance(platforms, dict):
+            platforms = {}
+            entry["platforms"] = platforms
+        delivery_status = record.setdefault("delivery_status", {})
+        if not isinstance(delivery_status, dict):
+            delivery_status = {}
+            record["delivery_status"] = delivery_status
+
+        for platform in ("youtube", "aparat"):
+            status = str(record.get(f"{platform}_upload_status") or "pending").lower()
+            target = platforms.setdefault(platform, {"status": "pending"})
+            if not isinstance(target, dict):
+                target = {"status": "pending"}
+                platforms[platform] = target
+
+            if status == "uploaded":
+                uploaded_at = (
+                    record.get("youtube_uploaded_at")
+                    if platform == "youtube"
+                    else record.get("aparat_uploaded_at")
+                )
+                target.update({"status": "sent", "updated_at": str(uploaded_at or current.isoformat())})
+                target.pop("last_error", None)
+                target.pop("next_attempt_at", None)
+                delivery_status[platform] = "sent"
+            elif status == "upload_result_unknown":
+                target["status"] = "manual_review"
+                target["last_error"] = str(record.get(f"{platform}_last_error") or "upload_result_unknown")
+                delivery_status[platform] = "manual_review"
+            elif status == "skipped_unverified_deadline" and target.get("status") not in {"sent", "manual_review", "not_connected"}:
+                target["status"] = "pending"
+                target["last_error"] = "waiting_for_verified_deadline"
+                delivery_status[platform] = "pending"
+            elif status == "retry" and target.get("status") not in {"sent", "manual_review", "not_connected"}:
+                target["status"] = "failed"
+                target["last_error"] = str(record.get(f"{platform}_last_error") or "video_upload_retry")
+                retry_at = _utc(record.get(f"{platform}_next_attempt_at"))
+                if retry_at:
+                    target["next_attempt_at"] = retry_at.isoformat()
+                delivery_status[platform] = "failed"
+
+        statuses = {
+            name: str((platforms.get(name) or {}).get("status") or "pending")
+            for name in PLATFORM_NAMES
+            if isinstance(platforms.get(name) or {}, dict)
+        }
+        unresolved = [name for name, status in statuses.items() if status not in TERMINAL_PLATFORM_STATUSES]
+        any_success = any(status == "sent" for status in statuses.values())
+
+        if not unresolved and len(statuses) == len(PLATFORM_NAMES):
+            terminal_status = "published" if any_success else "cancelled"
+            finish_queue_item(
+                state,
+                str(product_id),
+                terminal_status,
+                now=current,
+                detail="video_queue_reconciled:" + ",".join(f"{key}={value}" for key, value in statuses.items()),
+            )
+            pending = state.get("pending_queue")
+            if isinstance(pending, dict):
+                pending.pop(str(product_id), None)
+        else:
+            entry["status"] = "partial"
+            retry_times = []
+            for platform in unresolved:
+                if platform in {"youtube", "aparat"}:
+                    target = platforms.get(platform, {})
+                    retry = _utc(target.get("next_attempt_at")) if isinstance(target, dict) else None
+                    if retry is None:
+                        state_key = "youtube_uploads_paused_until" if platform == "youtube" else f"{platform}_next_upload_at"
+                        retry = _utc(state.get(state_key))
+                    if retry:
+                        retry_times.append(retry)
+            entry["next_attempt_at"] = (
+                min(retry_times).isoformat()
+                if retry_times else (current + timedelta(hours=4)).isoformat()
+            )
+            entry["last_detail"] = "unresolved=" + ",".join(unresolved)
+        entry["updated_at"] = current.isoformat()
+        reconciled += 1
+
+    return reconciled
 
 
 def promote_fallback_selection(
