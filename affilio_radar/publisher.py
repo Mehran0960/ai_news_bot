@@ -709,16 +709,17 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         }
         for destination in PHOTO_PLATFORMS:
             _process_photo_destination(state, entry, record, fresh, image_bytes, destination, now)
-        # Refresh mutable status after each adapter. This same record is the hand-off
-        # to the public video publishers, not a second independent content selection.
+        # Persist the channel post record, then leave YouTube and Aparat to their
+        # own independently scheduled upload workflows. A video quota or slow upload
+        # must never hold the Telegram/Bale publication queue open.
         state.setdefault("published", {})[product_id] = record
         _save(state)
-        _process_video_destinations(state, entry, record, now)
 
         platforms = {name: str(_target(entry, name).get("status") or "pending") for name in PLATFORM_NAMES}
-        completed = all(status in TERMINAL_PLATFORM for status in platforms.values())
-        any_success = any(status == "sent" for status in platforms.values())
-        unresolved = [name for name, status in platforms.items() if status not in TERMINAL_PLATFORM]
+        photo_platforms = {name: platforms.get(name, "pending") for name in PHOTO_PLATFORMS}
+        completed = all(status in TERMINAL_PLATFORM for status in photo_platforms.values())
+        any_success = any(status == "sent" for status in photo_platforms.values())
+        unresolved = [name for name, status in photo_platforms.items() if status not in TERMINAL_PLATFORM]
         new_public_delivery = any(
             prior_public_status.get(name) != "sent" and platforms.get(name) == "sent"
             for name in PHOTO_PLATFORMS
@@ -728,8 +729,8 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             state["last_channel_published_at"] = public_posted_at
             state["last_published_at"] = public_posted_at
 
-        # Preserve the original post timestamp when retrying pending video platforms.
-        # Destination updated_at is written only when that platform actually sends.
+        # Preserve the original post timestamp when retrying pending channel platforms.
+        # Video destination timestamps are maintained by their own upload workflows.
         existing_same_delivery = (
             isinstance(old, dict)
             and str(old.get("distribution_queue_id") or "") == delivery_id
@@ -755,15 +756,15 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             if any_success:
                 record["delivery_status"] = {
                     name: ("sent" if status == "sent" else status)
-                    for name, status in platforms.items()
+                    for name, status in photo_platforms.items()
                 }
                 state.get("pending_queue", {}).pop(product_id, None)
-                finish_queue_item(state, product_id, "published", now=_now(), detail=",".join(f"{k}={v}" for k, v in platforms.items()))
+                finish_queue_item(state, product_id, "published", now=_now(), detail=",".join(f"{k}={v}" for k, v in photo_platforms.items()))
                 sent_content += 1
-                print(f"CONTENT_DELIVERY_COMPLETE product_id={product_id} platforms={platforms}")
+                print(f"CONTENT_CHANNEL_DELIVERY_COMPLETE product_id={product_id} photo_platforms={photo_platforms} video_uploads=independent_workflows")
             else:
                 finish_queue_item(state, product_id, "cancelled", now=_now(), detail="no_connected_platform_delivered")
-                print(f"CONTENT_DELIVERY_CANCELLED product_id={product_id} platforms={platforms}")
+                print(f"CONTENT_CHANNEL_DELIVERY_CANCELLED product_id={product_id} photo_platforms={photo_platforms}")
         else:
             entry["status"] = "partial"
             retry_times = []
@@ -778,7 +779,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             entry["last_detail"] = "unresolved=" + ",".join(unresolved)
             if any_success:
                 state.get("pending_queue", {}).pop(product_id, None)
-            print(f"CONTENT_DELIVERY_PARTIAL product_id={product_id} platforms={platforms} retry_at={entry['next_attempt_at']}")
+            print(f"CONTENT_CHANNEL_DELIVERY_PARTIAL product_id={product_id} photo_platforms={photo_platforms} retry_at={entry['next_attempt_at']}")
         _save(state)
 
     if fallback_promoted:

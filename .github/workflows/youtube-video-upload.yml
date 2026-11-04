@@ -1,0 +1,116 @@
+name: OfferChin YouTube Video Upload
+
+on:
+  # The Cloudflare minute dispatcher triggers this workflow only when the saved
+  # YouTube upload slot is due and an eligible published product is waiting.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  # YouTube and Aparat have separate schedules but share one state.json writer lock.
+  group: offerchin-content-publisher
+  cancel-in-progress: false
+
+jobs:
+  upload-youtube:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out current published-product and upload state
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: affilio_radar/requirements.txt
+
+      - name: Install dependencies with transient-failure retries
+        run: |
+          for attempt in 1 2 3; do
+            python -m pip install -r affilio_radar/requirements.txt && exit 0
+            if [[ "$attempt" -lt 3 ]]; then
+              echo "Dependency install attempt $attempt failed; retrying."
+              sleep $((attempt * 3))
+            fi
+          done
+          exit 1
+
+      - name: Stage official DigiPay logo for video cards
+        continue-on-error: true
+        run: |
+          mkdir -p affilio_radar/assets/retailer-logos
+          curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 \
+            "https://www.mydigipay.com/bck-assets/images/logos/dp-logo.svg" \
+            -o affilio_radar/assets/retailer-logos/digipay-official.svg
+          test -s affilio_radar/assets/retailer-logos/digipay-official.svg
+          PYTHONPATH=affilio_radar python - <<'PY'
+          import offerchin_visuals
+          logo = offerchin_visuals._load_digipay_logo()
+          assert logo is not None and logo.width > 0 and logo.height > 0
+          print("DIGIPAY_OFFICIAL_LOGO_READY_FOR_YOUTUBE_VIDEO_RENDER")
+          PY
+
+      - name: Validate the isolated YouTube upload path
+        run: |
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py
+          python - <<'PY'
+          from pathlib import Path
+          source = Path("affilio_radar/affilio_radar.py").read_text(encoding="utf-8")
+          assert "--youtube-upload-only" in source
+          assert 'destinations={"youtube"}' in source
+          print("YOUTUBE_ONLY_UPLOAD_PATH_VALIDATED")
+          PY
+
+      - name: Process only the YouTube video queue
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_PRIVACY_STATUS: "public"
+          AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
+          AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT: "6"
+          AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS: "24"
+          # Aparat is intentionally disabled in this workflow.
+          AFFILIO_APARAT_UPLOAD_ENABLED: "false"
+          APARAT_COOKIE_HEADER: ""
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/affilio_radar.py --youtube-upload-only
+
+      - name: Preserve generated MP4 artifacts for short-term diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offerchin-youtube-video-${{ github.run_id }}
+          path: video_artifacts/*.mp4
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Persist YouTube upload status and next slot
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [[ -f affilio_radar/state.json ]] && ! git diff --quiet -- affilio_radar/state.json; then
+            git add affilio_radar/state.json
+            git commit -m "chore: persist independent YouTube upload state [skip ci]"
+            for attempt in 1 2 3; do
+              if git pull --rebase origin main && git push; then
+                echo "YOUTUBE_STATE_PERSISTED attempt=$attempt"
+                exit 0
+              fi
+              git rebase --abort 2>/dev/null || true
+              echo "YouTube state persistence attempt $attempt failed; retrying."
+              sleep $((attempt * 2))
+            done
+            echo "YOUTUBE_STATE_PERSIST_FAILED; next dispatcher run will reconcile the saved upload slot."
+            exit 1
+          else
+            echo "No YouTube upload-state changes to persist."
+          fi
