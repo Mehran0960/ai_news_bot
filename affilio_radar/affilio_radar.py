@@ -9089,9 +9089,12 @@ def build_video_channel_description(state: dict, source: str, record: dict | Non
         lines.extend([
             "",
             "📢 عضویت در کانال‌ها:",
-            "تلگرام: https://t.me/OfferChin",
-            "بله: https://ble.ir/OfferChin",
-            "آپارات: https://www.aparat.com/OfferChin",
+            "کانال تلگرام:",
+            "https://t.me/OfferChin",
+            "کانال بله:",
+            "https://ble.ir/OfferChin",
+            "آپارات:",
+            "https://www.aparat.com/OfferChin",
         ])
     else:
         lines.append("قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در فروشگاه مربوط بررسی کنید.")
