@@ -4540,6 +4540,11 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn(expected_affiliate, youtube_description)
         self.assertIn("https://t.me/+from_aparat", aparat_description)
         self.assertIn("https://t.me/OfferChin", youtube_description)
+        self.assertLess(
+            youtube_description.index("کانال تلگرام:"),
+            youtube_description.index("لینک خرید محصول:"),
+            "YouTube channel links should appear before product details",
+        )
 
     def test_publication_interval_is_23_minutes(self):
         self.assertAlmostEqual(MIN_POST_INTERVAL_HOURS, 23 / 60)
