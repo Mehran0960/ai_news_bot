@@ -289,12 +289,12 @@ jobs:
           AFFILIO_APARAT_UPLOAD_ENABLED: "false"
           APARAT_SHORTS_ONLY: "false"
           APARAT_VIDEO_PASS: "0"
-          AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS: "3"
+          AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS: "4"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
           AFFILIO_VIDEO_REVIEW_CHAT_ID: ${{ secrets.AFFILIO_VIDEO_REVIEW_CHAT_ID }}
           # Publish generated vertical videos publicly; YouTube classifies vertical videos up to 3 minutes as Shorts.
           YOUTUBE_PRIVACY_STATUS: "public"
-          AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
+          AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "4"
           AFFILIO_MIN_DISCOUNT_PERCENT: "1"
           AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "1"
           AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "3"
@@ -319,7 +319,8 @@ jobs:
           AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "64"
           AFFILIO_MCP_PAGES_PER_SCAN: "5"
           AFFILIO_AUTOPUBLISH: "false"
-          AFFILIO_MIN_POST_INTERVAL_HOURS: "0.3333333333333333"
+          AFFILIO_MIN_POST_INTERVAL_HOURS: "6"
+          AFFILIO_MAX_DAILY_CHANNEL_POSTS: "4"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "60"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_FORCE_DEADLINE_SYNC: ${{ contains(github.event.head_commit.message, '[repair-all-captions]') && 'true' || 'false' }}
