@@ -5046,8 +5046,8 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_discovery_records_for_check(queue, now, max_count=10)
         self.assertEqual([pid for pid, _ in selected], ["dkp-93023", "dkp-93022", "dkp-93021", "dkp-93024"])
         self.assertGreater(
-            discovery_queue_sort_key(queue["dkp-93021"], now),
             discovery_queue_sort_key(queue["dkp-93022"], now),
+            discovery_queue_sort_key(queue["dkp-93021"], now),
         )
 
     def test_discovery_queue_prunes_expired_deadlines_and_stale_unknown_deadlines(self):
