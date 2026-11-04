@@ -161,6 +161,7 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
     record = {
         "ts": now.timestamp(),
         "title": str(item.get("title") or "پیشنهاد منتخب آفرچین"),
+        "brand": str(item.get("brand") or item.get("brand_name") or ""),
         "product_url": str(item.get("product_url") or ""),
         "image_url": str(item.get("image_url") or ""),
         "video_generation_status": "pending",
@@ -448,8 +449,10 @@ def _process_photo_destination(
         message_id = result.get("message_id")
         if not message_id:
             raise RuntimeError("platform did not return a message id")
-        _set_target(entry, destination, "sent", _now())
+        sent_at = _now()
+        _set_target(entry, destination, "sent", sent_at)
         record_status[destination] = "sent"
+        record[f"{destination}_posted_at"] = sent_at.isoformat()
         if destination == "telegram":
             record["telegram_message_id"] = message_id
         elif destination == "bale":
