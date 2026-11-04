@@ -10069,6 +10069,28 @@ def run(publish=False, selection_only=False):
     return 0 if products or any(d.get("ok") for d in search_diagnostics) else 2
 
 
+def run_video_uploads_only() -> int:
+    """Process due YouTube and Aparat videos only; never discover or publish channel photos."""
+    state = load_state()
+    processed = 0
+    while processed < MAX_SHORT_VIDEOS_PER_RUN:
+        if not process_pending_short_video(
+            state,
+            output_dir="video_artifacts",
+            destinations={"youtube", "aparat"},
+            force_due=False,
+        ):
+            break
+        processed += 1
+        state = load_state()
+    save_json(STATE, state)
+    print(
+        f"VIDEO_QUEUE_ONLY_SUMMARY processed={processed} "
+        f"max_per_run={MAX_SHORT_VIDEOS_PER_RUN} channel_publishing=false"
+    )
+    return 0
+
+
 def run_aparat_uploads_only() -> int:
     """Process the persisted video queue for Aparat only; never run product/channel discovery."""
     state = load_state()
@@ -10091,6 +10113,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--publish", action="store_true", help="publish at most one eligible item if all checks pass")
     parser.add_argument("--select-only", action="store_true", help="discover, validate and queue selected content without publishing to any platform")
+    parser.add_argument(
+        "--video-upload-only",
+        action="store_true",
+        help="process due YouTube and Aparat videos from already-published channel posts; do not discover or publish photos",
+    )
     parser.add_argument(
         "--aparat-upload-only",
         action="store_true",
@@ -10153,6 +10180,12 @@ def main():
         help="safely replace the two recent YouTube Shorts whose Persian text layout was broken",
     )
     args = parser.parse_args()
+    if args.video_upload_only:
+        try:
+            sys.exit(run_video_uploads_only())
+        except Exception as exc:
+            print(f"VIDEO_QUEUE_ONLY_FAILED error={type(exc).__name__}")
+            sys.exit(1)
     if args.aparat_upload_only:
         try:
             sys.exit(run_aparat_uploads_only())
