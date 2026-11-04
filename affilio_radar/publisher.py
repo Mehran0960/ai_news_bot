@@ -729,8 +729,8 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             state["last_channel_published_at"] = public_posted_at
             state["last_published_at"] = public_posted_at
 
-        # Preserve the original post timestamp when retrying pending video platforms.
-        # Destination updated_at is written only when that platform actually sends.
+        # Preserve the original post timestamp when retrying pending channel platforms.
+        # Video destination timestamps are maintained by their own upload workflows.
         existing_same_delivery = (
             isinstance(old, dict)
             and str(old.get("distribution_queue_id") or "") == delivery_id
