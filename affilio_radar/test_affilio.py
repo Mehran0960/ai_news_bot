@@ -1145,6 +1145,11 @@ class AffilioRadarTests(unittest.TestCase):
             {"title": "ماوس بی‌سیم لاجیتک"},
             {"title": "کیبورد بی‌سیم لاجیتک"},
         ))
+        # Generic category words alone do not make two distinct book listings duplicates.
+        self.assertFalse(radar_module._publication_products_are_similar(
+            {"title": "کتاب داستان نوجوان چاپ جدید"},
+            {"title": "کتاب داستان نوجوان چاپ تازه"},
+        ))
 
     def test_recent_semantically_similar_product_is_blocked_but_other_category_passes(self):
         now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
