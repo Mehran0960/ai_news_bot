@@ -53,11 +53,12 @@ jobs:
               "current_price": 10_000_000, "original_price": 12_000_000,
               "discount_percent": 17,
           }, radar.build_affilio_tracking_link(url))
-          assert "<b>💳 با امکان خرید اقساطی (دیجی پی)</b>" in caption
+          # A product without explicit eligibility evidence must not receive a generic installment claim.
+          assert "با امکان خرید اقساطی" not in caption
           assert "در صورت نمایش گزینه" not in caption
           assert "احراز شرایط" not in caption
           assert "دیجی‌پی" not in caption
-          print("DIGIPAY_IMAGE_AND_CAPTION_OK")
+          print("DIGIPAY_IMAGE_AND_VALIDATED_CAPTION_OK")
           PY
       - name: Run OfferChin regression suite
         working-directory: affilio_radar
