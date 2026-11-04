@@ -756,10 +756,10 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             if any_success:
                 record["delivery_status"] = {
                     name: ("sent" if status == "sent" else status)
-                    for name, status in platforms.items()
+                    for name, status in photo_platforms.items()
                 }
                 state.get("pending_queue", {}).pop(product_id, None)
-                finish_queue_item(state, product_id, "published", now=_now(), detail=",".join(f"{k}={v}" for k, v in platforms.items()))
+                finish_queue_item(state, product_id, "published", now=_now(), detail=",".join(f"{k}={v}" for k, v in photo_platforms.items()))
                 sent_content += 1
                 print(f"CONTENT_CHANNEL_DELIVERY_COMPLETE product_id={product_id} photo_platforms={photo_platforms} video_uploads=independent_workflows")
             else:
