@@ -470,7 +470,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
         self.assertIn(
             "\n\n────────────\n<b>💚 قیمت فعلی: ۱٬۰۶۵٬۰۰۰ تومان</b>"
-            "\n\n<b>⚡️ ۵۳٪ تخفیف</b>\n────────────",
+            "\n\n<b>⚡️ ۵۳٪ تخفیف</b>"
+            "\n\n<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\n────────────",
             caption,
         )
 
