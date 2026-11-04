@@ -3157,125 +3157,285 @@ def _delete_expired_posts(
 
 
 
+def _channel_posted_at(record, platform):
+    """Return the immutable per-platform send time, falling back to the original post ts."""
+    if not isinstance(record, dict):
+        return None
+    raw = (
+        record.get(f"{platform}_posted_at")
+        or record.get(f"{platform}_sent_at")
+        or record.get("channel_posted_at")
+        or record.get("ts")
+    )
+    if raw in (None, ""):
+        return None
+    try:
+        numeric = float(raw)
+        if numeric > 1_000_000_000:
+            return datetime.fromtimestamp(numeric, tz=timezone.utc)
+    except (TypeError, ValueError, OverflowError):
+        pass
+    parsed = parse_expiry(raw)
+    if not parsed:
+        return None
+    try:
+        return datetime.fromisoformat(parsed).astimezone(timezone.utc)
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def _telegram_delete_mtproto_many(message_ids):
+    """Delete channel messages of any age through MTProto using the existing bot account."""
+    api_id = str(os.getenv("TELEGRAM_API_ID") or "").strip()
+    api_hash = str(os.getenv("TELEGRAM_API_HASH") or "").strip()
+    if not BOT_TOKEN or not api_id.isdigit() or not api_hash:
+        raise RuntimeError("telegram_mtproto_credentials_missing")
+    try:
+        import asyncio
+        from telethon import TelegramClient
+        from telethon.sessions import StringSession
+    except Exception as exc:
+        raise RuntimeError(f"telethon_unavailable:{type(exc).__name__}") from exc
+
+    ids = [int(value) for value in message_ids if str(value).isdigit() and int(value) > 0]
+    if not ids:
+        return {}
+
+    async def delete_with_mtproto():
+        client = TelegramClient(StringSession(), int(api_id), api_hash)
+        outcomes = {}
+        await client.start(bot_token=BOT_TOKEN)
+        try:
+            channel = await client.get_input_entity(CHAT_ID)
+            for message_id in ids:
+                try:
+                    await client.delete_messages(channel, [message_id], revoke=True)
+                    outcomes[message_id] = "deleted"
+                except Exception as exc:
+                    description = str(exc)
+                    if _is_message_absent(description) or "MessageIdInvalidError" in type(exc).__name__:
+                        outcomes[message_id] = "already_absent"
+                    else:
+                        outcomes[message_id] = f"delete_failed:{type(exc).__name__}:{description[:140]}"
+                await asyncio.sleep(0.08)
+        finally:
+            await client.disconnect()
+        return outcomes
+
+    return asyncio.run(delete_with_mtproto())
+
+
+def _delete_channel_posts_older_than_retention(
+    published,
+    now,
+    persist_callback=None,
+    max_delete_attempts=None,
+):
+    """Delete tracked Telegram/Bale channel posts oldest-first after a one-week retention window.
+
+    YouTube and Aparat are intentionally excluded. Telegram uses MTProto because the
+    HTTP Bot API cannot delete messages after 48 hours.
+    """
+    retention_days = max(
+        1, min(30, int(os.getenv("AFFILIO_CHANNEL_POST_RETENTION_DAYS", "7")))
+    )
+    safety_buffer_minutes = max(
+        0, min(60, int(os.getenv("AFFILIO_CHANNEL_POST_RETENTION_BUFFER_MINUTES", "30")))
+    )
+    cutoff = now - timedelta(days=retention_days) + timedelta(minutes=safety_buffer_minutes)
+    if max_delete_attempts is None:
+        max_delete_attempts = max(
+            1, min(500, int(os.getenv("AFFILIO_CHANNEL_RETENTION_MAX_DELETES", "120")))
+        )
+    else:
+        max_delete_attempts = max(1, int(max_delete_attempts))
+
+    candidates = {"telegram": [], "bale": []}
+    missing_timestamps = 0
+    seen = set()
+    for product_id, record in _iter_post_records(published):
+        if not isinstance(record, dict):
+            continue
+        for platform in ("telegram", "bale"):
+            raw_id = record.get(f"{platform}_message_id")
+            if not str(raw_id or "").isdigit() or int(raw_id) <= 0:
+                continue
+            message_id = int(raw_id)
+            key = (platform, message_id)
+            if key in seen:
+                continue
+            seen.add(key)
+            retention_status = str(record.get(f"{platform}_retention_status") or "")
+            expiry_status = str(
+                record.get("expiry_status" if platform == "telegram" else "bale_expiry_status") or ""
+            )
+            if retention_status in {"deleted", "already_absent"}:
+                continue
+            if expiry_status in {"deleted", "already_absent"}:
+                continue
+            posted_at = _channel_posted_at(record, platform)
+            if posted_at is None:
+                missing_timestamps += 1
+                continue
+            if posted_at > cutoff:
+                continue
+            retry_at = parse_expiry(record.get(f"{platform}_retention_next_attempt_at"))
+            if retry_at and datetime.fromisoformat(retry_at) > now:
+                continue
+            candidates[platform].append({
+                "product_id": str(product_id),
+                "message_id": message_id,
+                "posted_at": posted_at,
+                "record": record,
+            })
+
+    for platform in candidates:
+        candidates[platform].sort(key=lambda item: (item["posted_at"], item["message_id"]))
+
+    changed = False
+    attempts = 0
+    summary = {
+        "retention_days": retention_days,
+        "cutoff": cutoff.isoformat(),
+        "telegram_due": len(candidates["telegram"]),
+        "bale_due": len(candidates["bale"]),
+        "telegram_deleted": 0,
+        "bale_deleted": 0,
+        "already_absent": 0,
+        "failed": 0,
+        "blocked_missing_mtproto_credentials": 0,
+        "missing_timestamps": missing_timestamps,
+    }
+
+    def persist(reason):
+        if persist_callback is None:
+            return
+        try:
+            persist_callback()
+            print(f"CHANNEL_RETENTION_CHECKPOINT_OK reason={reason}")
+        except Exception as exc:
+            print(
+                f"CHANNEL_RETENTION_CHECKPOINT_FAILED reason={reason} "
+                f"error={type(exc).__name__}:{str(exc)[:120]}"
+            )
+
+    telegram_due = candidates["telegram"][:max_delete_attempts]
+    telegram_ready = bool(
+        BOT_TOKEN
+        and str(os.getenv("TELEGRAM_API_ID") or "").strip().isdigit()
+        and str(os.getenv("TELEGRAM_API_HASH") or "").strip()
+    )
+    if telegram_due and not telegram_ready:
+        summary["blocked_missing_mtproto_credentials"] = len(telegram_due)
+        print(
+            "TELEGRAM_RETENTION_BLOCKED "
+            f"posts={len(telegram_due)} reason=missing_TELEGRAM_API_ID_or_TELEGRAM_API_HASH "
+            "bot_api_48h_limit=true"
+        )
+        for item in telegram_due:
+            record = item["record"]
+            field = "telegram_retention_status"
+            if record.get(field) != "blocked_missing_mtproto_credentials":
+                record[field] = "blocked_missing_mtproto_credentials"
+                record["telegram_retention_last_checked_at"] = now.isoformat()
+                changed = True
+        persist("telegram_mtproto_credentials_missing")
+    elif telegram_due:
+        for item in telegram_due:
+            item["record"]["telegram_retention_status"] = "deleting"
+            item["record"]["telegram_retention_started_at"] = now.isoformat()
+            changed = True
+        persist("telegram_delete_started")
+        attempts += len(telegram_due)
+        try:
+            outcomes = _telegram_delete_mtproto_many(
+                [item["message_id"] for item in telegram_due]
+            )
+        except Exception as exc:
+            outcomes = {
+                item["message_id"]: f"delete_failed:{type(exc).__name__}:{str(exc)[:140]}"
+                for item in telegram_due
+            }
+        for item in telegram_due:
+            record = item["record"]
+            outcome = str(outcomes.get(item["message_id"]) or "delete_failed:no_result")
+            record["telegram_retention_status"] = (
+                outcome if outcome in {"deleted", "already_absent"} else "delete_failed"
+            )
+            record["telegram_retention_last_attempt_at"] = now.isoformat()
+            if outcome in {"deleted", "already_absent"}:
+                record["expiry_status"] = outcome
+                record["telegram_retention_deleted_at"] = now.isoformat()
+                record.pop("telegram_retention_next_attempt_at", None)
+                record.pop("telegram_retention_last_error", None)
+                summary["telegram_deleted"] += int(outcome == "deleted")
+                summary["already_absent"] += int(outcome == "already_absent")
+            else:
+                record["telegram_retention_last_error"] = outcome[:220]
+                record["telegram_retention_next_attempt_at"] = (
+                    now + timedelta(hours=6)
+                ).isoformat()
+                summary["failed"] += 1
+            changed = True
+            persist(f"telegram_{outcome.split(':', 1)[0]}:{item['message_id']}")
+
+    remaining_budget = max(0, max_delete_attempts - attempts)
+    bale_due = candidates["bale"][:remaining_budget]
+    for item in bale_due:
+        record = item["record"]
+        record["bale_retention_status"] = "deleting"
+        record["bale_retention_started_at"] = now.isoformat()
+        changed = True
+        persist(f"bale_delete_started:{item['message_id']}")
+        attempts += 1
+        try:
+            outcome = _bale_delete(item["message_id"])
+            if outcome not in {"deleted", "already_absent"}:
+                raise RuntimeError(f"unexpected_bale_delete_result:{outcome}")
+            record["bale_retention_status"] = outcome
+            record["bale_expiry_status"] = outcome
+            record["bale_retention_deleted_at"] = now.isoformat()
+            record.pop("bale_retention_next_attempt_at", None)
+            record.pop("bale_retention_last_error", None)
+            summary["bale_deleted"] += int(outcome == "deleted")
+            summary["already_absent"] += int(outcome == "already_absent")
+        except Exception as exc:
+            record["bale_retention_status"] = "delete_failed"
+            record["bale_retention_last_error"] = f"{type(exc).__name__}:{str(exc)[:160]}"
+            record["bale_retention_next_attempt_at"] = (
+                now + timedelta(hours=6)
+            ).isoformat()
+            summary["failed"] += 1
+        record["bale_retention_last_attempt_at"] = now.isoformat()
+        changed = True
+        persist(f"bale_delete_result:{item['message_id']}")
+
+    if attempts < len(candidates["telegram"]) + len(candidates["bale"]):
+        summary["deferred_by_attempt_limit"] = (
+            len(candidates["telegram"]) + len(candidates["bale"]) - attempts
+        )
+    else:
+        summary["deferred_by_attempt_limit"] = 0
+    print("CHANNEL_RETENTION_SUMMARY " + " ".join(
+        f"{key}={value}" for key, value in summary.items()
+    ))
+    return changed, summary
+
+
 def _delete_expired_aparat_videos(
     published, now, direct_confirm=None, max_delete_attempts=None
 ):
-    """Permanently delete a bounded batch of expired Aparat videos."""
-    changed = False
-    delete_attempts = 0
-    if max_delete_attempts is not None:
-        max_delete_attempts = max(1, int(max_delete_attempts))
-    try:
-        from aparat_uploader import (
-            delete_aparat_video,
-            set_aparat_video_private,
-            aparat_credentials_available,
+    """Permanent retention policy: never delete or privatize a published Aparat video."""
+    retained = sum(
+        1 for _pid, record in _iter_post_records(published)
+        if isinstance(record, dict) and str(record.get("aparat_video_hash") or "").strip()
+    )
+    if retained:
+        print(
+            f"APARAT_RETENTION_POLICY videos={retained} "
+            "cleanup_disabled=true deletion_disabled=true privacy_change_disabled=true"
         )
-        credentials_ready = aparat_credentials_available()
-    except Exception as exc:
-        delete_aparat_video = None
-        set_aparat_video_private = None
-        credentials_ready = False
-        print(f"APARAT_EXPIRY_SETUP_UNAVAILABLE error={type(exc).__name__}")
-
-    terminal = {"deleted", "already_absent", "delete_unavailable"}
-    for pid, rec in _iter_post_records(published):
-        if not isinstance(rec, dict):
-            continue
-        if max_delete_attempts is not None and delete_attempts >= max_delete_attempts:
-            print(f"APARAT_EXPIRY_DELETE_BUDGET_EXHAUSTED max_attempts={max_delete_attempts} attempted={delete_attempts}; remaining_items_deferred=true")
-            return changed
-        if not _has_verified_deadline(rec):
-            continue
-        video_hash = str(rec.get("aparat_video_hash") or "").strip()
-        expiry_status = str(rec.get("aparat_expiry_status") or "")
-        if not video_hash or expiry_status in terminal:
-            continue
-        # Estimated deadlines are not sufficient evidence for deleting a video.
-        if rec.get("expiry_estimated") is True:
-            continue
-        expires = parse_expiry(rec.get("expires_at"))
-        if not expires:
-            continue
-        try:
-            deadline = datetime.fromisoformat(expires)
-        except ValueError:
-            continue
-        if deadline.tzinfo is None:
-            deadline = deadline.replace(tzinfo=timezone.utc)
-        removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
-        if removal_deadline > now:
-            continue
-        if direct_confirm is not None:
-            decision, confirmation_changed = direct_confirm(pid, rec, now)
-            changed = changed or confirmation_changed
-            if decision != "confirmed":
-                continue
-            expires = parse_expiry(rec.get("expires_at"))
-            if not expires:
-                continue
-            deadline = datetime.fromisoformat(expires)
-            if deadline.tzinfo is None:
-                deadline = deadline.replace(tzinfo=timezone.utc)
-            removal_deadline = deadline - timedelta(minutes=POST_REMOVAL_BUFFER_MINUTES)
-            if removal_deadline > now:
-                continue
-
-        retry_raw = parse_expiry(rec.get("aparat_expiry_next_attempt_at"))
-        if retry_raw:
-            try:
-                retry_at = datetime.fromisoformat(retry_raw)
-                if retry_at.tzinfo is None:
-                    retry_at = retry_at.replace(tzinfo=timezone.utc)
-                if now < retry_at and not (
-                    expiry_status == "pending_credentials" and credentials_ready
-                ):
-                    continue
-            except ValueError:
-                pass
-
-        if not credentials_ready or delete_aparat_video is None:
-            rec["aparat_expiry_status"] = "pending_credentials"
-            rec["aparat_expiry_next_attempt_at"] = (now + timedelta(minutes=5)).isoformat()
-            rec["aparat_expiry_last_error"] = "aparat_cookie_secret_missing"
-            changed = True
-            continue
-
-        delete_attempts += 1
-        try:
-            outcome = delete_aparat_video(video_hash)
-            if outcome not in terminal:
-                raise RuntimeError("Aparat deletion was not confirmed")
-            rec["aparat_expiry_status"] = outcome
-            rec["aparat_visibility"] = outcome
-            rec["aparat_deleted_at" if outcome == "deleted" else "aparat_already_absent_at"] = now.isoformat()
-            rec.pop("aparat_expiry_next_attempt_at", None)
-            rec.pop("aparat_expiry_last_error", None)
-            changed = True
-            print(f"APARAT_EXPIRY_DELETE_OK product_id={pid} video_hash={video_hash} outcome={outcome}")
-        except Exception as exc:
-            # Primary action is permanent deletion. If Aparat's unsupported web
-            # delete endpoint fails, make a best-effort privacy change while retrying deletion.
-            fallback = "not_attempted"
-            if set_aparat_video_private is not None:
-                try:
-                    set_aparat_video_private(video_hash)
-                    rec["aparat_visibility"] = "private_waiting_for_delete"
-                    fallback = "private"
-                except Exception as private_exc:
-                    fallback = f"failed:{type(private_exc).__name__}"
-            attempts = int(rec.get("aparat_expiry_attempts", 0) or 0) + 1
-            rec["aparat_expiry_attempts"] = attempts
-            rec["aparat_expiry_status"] = "delete_retry"
-            rec["aparat_expiry_next_attempt_at"] = (now + timedelta(minutes=5)).isoformat()
-            rec["aparat_expiry_last_error"] = type(exc).__name__
-            changed = True
-            print(
-                f"APARAT_EXPIRY_DELETE_FAILED product_id={pid} error={type(exc).__name__} "
-                f"fallback={fallback} retry_attempt={attempts}"
-            )
-
-    return changed
+    return False
 
 
 def _delete_expired_youtube_videos(
@@ -3369,6 +3529,11 @@ def run_bounded_maintenance():
     now = datetime.now(timezone.utc)
     changed = False
     deleted = 0
+
+    retention_changed, retention_summary = _delete_channel_posts_older_than_retention(
+        published, now, persist_callback=lambda: _write_state(state)
+    )
+    changed = changed or retention_changed
 
     deadline_sync_changed = _sync_live_deadline_feed(state, published, now)
     if deadline_sync_changed:
@@ -3682,8 +3847,26 @@ def run():
     return 0
 
 
+def run_channel_retention_only():
+    """Scheduled retention-only path; does not run price audits or expiry invalidation."""
+    state = _read_state()
+    published = state.get("published", {})
+    if not isinstance(published, dict):
+        raise ValueError("state.json published must be an object")
+    changed, _summary = _delete_channel_posts_older_than_retention(
+        published,
+        datetime.now(timezone.utc),
+        persist_callback=lambda: _write_state(state),
+    )
+    if changed:
+        _write_state(state)
+    return 0
+
+
 if __name__ == "__main__":
     import sys
+    if "--channel-retention-only" in sys.argv[1:]:
+        raise SystemExit(run_channel_retention_only())
     if "--repair-known-duplicate" in sys.argv[1:]:
         raise SystemExit(_repair_known_duplicate_from_environment(_read_state()))
     if "--bounded-maintenance" in sys.argv[1:]:
