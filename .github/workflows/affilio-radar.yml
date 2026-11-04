@@ -127,19 +127,12 @@ jobs:
           done
           exit 1
 
-      - name: Stage official DigiPay logo for video cards
-        continue-on-error: true
+      - name: Validate committed offline artwork and font library
         run: |
-          mkdir -p affilio_radar/assets/retailer-logos
-          curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 \
-            "https://www.mydigipay.com/bck-assets/images/logos/dp-logo.svg" \
-            -o affilio_radar/assets/retailer-logos/digipay-official.svg
-          test -s affilio_radar/assets/retailer-logos/digipay-official.svg
           PYTHONPATH=affilio_radar python - <<'PY'
           import offerchin_visuals
-          logo = offerchin_visuals._load_digipay_logo()
-          assert logo is not None and logo.width > 0 and logo.height > 0
-          print("DIGIPAY_OFFICIAL_LOGO_READY_FOR_VIDEO_RENDER")
+          result = offerchin_visuals.validate_brand_assets()
+          print("OFFERCHIN_OFFLINE_ASSET_LIBRARY_OK " + ",".join(result["validated_assets"]))
           PY
 
       - name: Validate Python syntax (required for safe publishing)
