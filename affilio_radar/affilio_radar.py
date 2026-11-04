@@ -7915,8 +7915,8 @@ def effective_posts_per_run(backlog_count, configured_limit=None, force_full_bat
 
 
 
-VIDEO_STYLE_VERSION = 5  # Vazirmatn ExtraBold Persian discount badge with larger type
-YOUTUBE_DESCRIPTION_VERSION = 3  # public channel links plus product-specific checked purchase link
+VIDEO_STYLE_VERSION = 6  # DigiPay co-branding, clean discount line, and top-safe-area channel CTAs
+YOUTUBE_DESCRIPTION_VERSION = 4  # surface public channel links before the product-specific purchase link
 PERSIAN_TEXT_RENDERER_VERSION = 2  # single RTL/bidi pass via Pillow RAQM when available
 PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
 # The generic web uploader can publish vertical 9:16 videos to Aparat's regular feed, but cannot guarantee
@@ -9077,12 +9077,26 @@ def record_daily_member_count_snapshot(
 
 
 def build_video_channel_description(state: dict, source: str, record: dict | None = None) -> str:
-    """Build platform descriptions with the video's product-specific Affilio buying link."""
+    """Build platform descriptions with high-visibility channel links and a tracked product link."""
     source_value = str(source or "").strip().lower()
     lines = [
         "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا و اسنپ‌شاپ را در آفِرچین دنبال کنید.",
     ]
-    if source_value != "youtube":
+
+    # On YouTube, channel links are placed immediately after the opening sentence.
+    # This keeps the public community CTA above product details in the collapsed preview.
+    if source_value == "youtube":
+        lines.extend([
+            "",
+            "📢 عضویت در کانال‌ها:",
+            "کانال تلگرام:",
+            "https://t.me/OfferChin",
+            "کانال بله:",
+            "https://ble.ir/OfferChin",
+            "آپارات:",
+            "https://www.aparat.com/OfferChin",
+        ])
+    else:
         lines.append("قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در فروشگاه مربوط بررسی کنید.")
 
     product_url = safe_product_url((record or {}).get("product_url", "")) if isinstance(record, dict) else ""
@@ -9096,15 +9110,6 @@ def build_video_channel_description(state: dict, source: str, record: dict | Non
             lines.extend(["", "لینک خرید محصول:", purchase_url])
 
     if source_value == "youtube":
-        lines.extend([
-            "",
-            "کانال تلگرام:",
-            "https://t.me/OfferChin",
-            "کانال بله:",
-            "https://ble.ir/OfferChin",
-            "آپارات:",
-            "https://www.aparat.com/OfferChin",
-        ])
         return "\n".join(lines)
 
     tracking = state.get("growth_tracking", {}) if isinstance(state, dict) else {}

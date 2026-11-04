@@ -127,6 +127,21 @@ jobs:
           done
           exit 1
 
+      - name: Stage official DigiPay logo for video cards
+        continue-on-error: true
+        run: |
+          mkdir -p affilio_radar/assets/retailer-logos
+          curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 \
+            "https://www.mydigipay.com/bck-assets/images/logos/dp-logo.svg" \
+            -o affilio_radar/assets/retailer-logos/digipay-official.svg
+          test -s affilio_radar/assets/retailer-logos/digipay-official.svg
+          PYTHONPATH=affilio_radar python - <<'PY'
+          import offerchin_visuals
+          logo = offerchin_visuals._load_digipay_logo()
+          assert logo is not None and logo.width > 0 and logo.height > 0
+          print("DIGIPAY_OFFICIAL_LOGO_READY_FOR_VIDEO_RENDER")
+          PY
+
       - name: Validate Python syntax (required for safe publishing)
         run: |
           python -m py_compile affilio_radar/affilio_radar.py affilio_radar/catalog_sweep.py affilio_radar/parallel_catalog_sweep.py affilio_radar/test_parallel_catalog_sweep.py affilio_radar/test_selection_evidence.py affilio_radar/product_quality.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py affilio_radar/expiration_monitor.py affilio_radar/content_delivery.py affilio_radar/publisher.py affilio_radar/platform_registry.py affilio_radar/integrity_audit.py affilio_radar/integrity_audit_state.py affilio_radar/test_integrity_audit.py affilio_radar/test_aparat_upload_schedule.py

@@ -5,7 +5,7 @@ import requests
 from unittest import mock
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 from offerchin_audio import write_original_soundtrack
 
 from short_video import (
@@ -14,6 +14,7 @@ from short_video import (
     YOUTUBE_UPLOAD_URL,
     build_vertical_poster,
     format_persian_price,
+    format_persian_discount,
     _font,
     _rtl_layout_kwargs,
     _shape_rtl,
@@ -84,6 +85,25 @@ class FakeYouTubeHTTP:
 
 
 class ShortVideoTests(unittest.TestCase):
+    def setUp(self):
+        # Unit tests run without network-fetched workflow assets; production staging
+        # validates the real DigiPay SVG before any video adapter is called.
+        fake_logo = Image.new("RGBA", (64, 64), (255, 255, 255, 255))
+        self.digipay_logo_patch = mock.patch(
+            "offerchin_visuals._load_digipay_logo",
+            return_value=fake_logo,
+        )
+        self.digipay_logo_patch.start()
+        self.addCleanup(self.digipay_logo_patch.stop)
+
+    def test_video_poster_fails_closed_when_digipay_logo_is_missing(self):
+        image = Image.new("RGB", (400, 500), (255, 255, 255))
+        stream = io.BytesIO()
+        image.save(stream, format="PNG")
+        with mock.patch("offerchin_visuals._load_digipay_logo", return_value=None):
+            with self.assertRaisesRegex(RuntimeError, "official DigiPay logo unavailable"):
+                build_vertical_poster(stream.getvalue(), 50)
+
     def test_original_soundtrack_is_stereo_and_non_silent(self):
         import wave
 
@@ -98,15 +118,15 @@ class ShortVideoTests(unittest.TestCase):
                 self.assertGreater(wav.getnframes(), 100_000)
             self.assertGreater(path.stat().st_size, 100_000)
 
-    def test_watermark_places_platform_marks_before_each_channel_id(self):
+    def test_watermark_places_platform_marks_in_visible_top_safe_area(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
         image.save(stream, format="PNG")
         poster = Image.open(io.BytesIO(build_vertical_poster(stream.getvalue(), 50))).convert("RGB")
 
-        # Both platform marks now sit in the lower CTA panel, immediately before each channel ID.
-        self.assertEqual(poster.getpixel((61, 1038)), (36, 161, 222))
-        self.assertEqual(poster.getpixel((60, 1096)), (0, 184, 148))
+        # Both platform marks now sit in the dedicated strip directly below the title.
+        self.assertEqual(poster.getpixel((132, 191)), (36, 161, 222))
+        self.assertEqual(poster.getpixel((386, 191)), (0, 184, 148))
 
     def test_retailer_badge_appears_on_video_poster_for_each_store(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
@@ -118,46 +138,65 @@ class ShortVideoTests(unittest.TestCase):
         snappshop = Image.open(io.BytesIO(build_vertical_poster(
             stream.getvalue(), 50, merchant="اسنپ‌شاپ",
         ))).convert("RGB")
-        digikala_crop = digikala.crop((35, 165, 250, 235))
-        snappshop_crop = snappshop.crop((35, 165, 250, 235))
+        digikala_crop = digikala.crop((35, 235, 250, 305))
+        snappshop_crop = snappshop.crop((35, 235, 250, 305))
         red_pixels = sum(1 for red, green, blue in digikala_crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
         purple_pixels = sum(1 for red, green, blue in snappshop_crop.getdata() if blue > 90 and red > green * 1.6 and blue > green * 1.6)
         self.assertGreater(red_pixels, 1500, "video poster must show the official DigiKala tile at readable size")
         self.assertGreater(purple_pixels, 1500, "video poster must show the official SnappShop tile at readable size")
 
-    def test_discount_badge_matches_retailer_bounds_on_vertical_poster(self):
+    def test_digipay_badge_appears_on_video_with_same_bounds_as_retailer_badge(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
+        fake_logo = Image.new("RGBA", (64, 64), (255, 255, 255, 255))
         stream = io.BytesIO()
         image.save(stream, format="PNG")
-        poster = Image.open(io.BytesIO(build_vertical_poster(stream.getvalue(), 76))).convert("RGB")
+        with mock.patch("offerchin_visuals._load_digipay_logo", return_value=fake_logo):
+            poster = Image.open(io.BytesIO(
+                build_vertical_poster(stream.getvalue(), 76)
+            )).convert("RGB")
 
-        # The upper-right region should contain the clean DigiKala-red rounded tile.
-        crop = poster.crop((448, 150, 710, 330))
-        red_pixels = sum(
-            1
-            for red, green, blue in crop.getdata()
-            if red > 120 and red > green * 1.6 and red > blue * 1.5
-        )
-        self.assertGreater(red_pixels, 1500)
-        # Red pixels should span nearly the same 280x88 target bounds as the retailer tile.
-        red_points = [
+        # DigiPay's blue co-brand tile occupies the same 280x88 row as the retailer logo.
+        blue_points = [
             (x, y)
-            for y in range(150, 300)
-            for x in range(380, 690)
-            if (lambda p: p[0] > 120 and p[0] > p[1] * 1.6 and p[0] > p[2] * 1.5)(
+            for y in range(244, 332)
+            for x in range(392, 672)
+            if (lambda p: p[2] > 150 and p[2] > p[0] * 1.8 and p[2] > p[1] * 1.2)(
                 poster.getpixel((x, y))
             )
         ]
-        self.assertTrue(red_points)
-        xs = [point[0] for point in red_points]
-        ys = [point[1] for point in red_points]
-        self.assertLessEqual(max(xs) - min(xs) + 1, 280)
-        self.assertGreaterEqual(max(xs) - min(xs) + 1, 270)
-        self.assertLessEqual(max(ys) - min(ys) + 1, 88)
-        self.assertGreaterEqual(max(ys) - min(ys) + 1, 82)
-        self.assertGreaterEqual(min(ys), 178)
-        self.assertLessEqual(min(ys), 182)
+        self.assertGreater(len(blue_points), 10_000)
         self.assertEqual(poster.size, (720, 1280))
+
+    def test_discount_value_replaces_original_price_line(self):
+        image = Image.new("RGB", (400, 500), (255, 255, 255))
+        stream = io.BytesIO()
+        image.save(stream, format="PNG")
+        drawn_text = []
+        original_text = ImageDraw.ImageDraw.text
+
+        def capture_text(draw, xy, value, *args, **kwargs):
+            drawn_text.append(str(value))
+            return original_text(draw, xy, value, *args, **kwargs)
+
+        with mock.patch.object(ImageDraw.ImageDraw, "text", capture_text):
+            build_vertical_poster(
+                stream.getvalue(),
+                76,
+                current_price=1_234_000,
+                original_price=5_000_000,
+            )
+
+        self.assertTrue(any("تخفیف" in value or "فیفخت" in value for value in drawn_text))
+        self.assertFalse(any("قیمت اصلی" in value or "یلصا تمیق" in value for value in drawn_text))
+        self.assertEqual(format_persian_discount(76), "🔥 ۷۶٪ تخفیف")
+        self.assertEqual(format_persian_discount(0), "")
+        self.assertEqual(format_persian_discount(101), "")
+
+    def test_format_persian_discount_rejects_invalid_values(self):
+        self.assertEqual(format_persian_discount(79), "🔥 ۷۹٪ تخفیف")
+        self.assertEqual(format_persian_discount("45"), "🔥 ۴۵٪ تخفیف")
+        self.assertEqual(format_persian_discount(None), "")
+        self.assertEqual(format_persian_discount(-2), "")
 
     def test_compact_badge_dimensions_legacy_helper_retains_compatibility(self):
         from offerchin_visuals import discount_badge_dimensions_for_reference_height
@@ -173,20 +212,20 @@ class ShortVideoTests(unittest.TestCase):
         self.assertEqual(discount_badge_dimensions_for_reference_bounds(280, 88), (280, 88))
         self.assertEqual(discount_badge_dimensions_for_reference_bounds(124, 48), (124, 48))
 
-    def test_vertical_discount_badge_uses_snappshop_purple(self):
+    def test_snappshop_video_keeps_store_tile_and_uses_digipay_blue_co_brand_tile(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
         image.save(stream, format="PNG")
         poster = Image.open(io.BytesIO(build_vertical_poster(
             stream.getvalue(), 42, merchant="اسنپ‌شاپ",
         ))).convert("RGB")
-        crop = poster.crop((448, 150, 710, 330))
-        purple_pixels = sum(
+        digipay_crop = poster.crop((392, 244, 672, 332))
+        blue_pixels = sum(
             1
-            for red, green, blue in crop.getdata()
-            if red > 100 and blue > 100 and red > green * 1.6 and blue > green * 1.6
+            for red, green, blue in digipay_crop.getdata()
+            if blue > 150 and blue > red * 1.8 and blue > green * 1.2
         )
-        self.assertGreater(purple_pixels, 1500)
+        self.assertGreater(blue_pixels, 15_000)
 
     def test_persian_text_uses_one_bidi_engine_without_double_reordering(self):
         from PIL import ImageFont
@@ -215,7 +254,7 @@ class ShortVideoTests(unittest.TestCase):
         ))).convert("RGB")
 
         self.assertEqual(format_persian_price(1_999_000), "۱٬۹۹۹٬۰۰۰")
-        # Channel IDs now sit directly on the image; there is no opaque backing panel.
+        # Top channel links are placed in their own compact strip, away from platform UI overlays.
         background_sample = poster.getpixel((680, 1150))
         self.assertGreater(min(background_sample), 45)
         self.assertNotEqual(background_sample, (14, 28, 22))
