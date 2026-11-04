@@ -388,12 +388,12 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
     if not already_partially_delivered and not ranked_delivery_policy:
         # Only legacy queue records without a selection policy retain old proxy gates.
         if not radar.has_actionable_demand_signal(fresh, now=now):
-            return None, "legacy_live_demand_signal_missing"
+            return None, "live_demand_signal_missing"
         if not radar.has_attractive_discount_value(fresh, now=now):
-            return None, "legacy_live_discount_value_not_verified"
+            return None, "live_discount_value_not_verified"
 
     if not ranked_delivery_policy and not radar.is_market_value_publish_eligible(fresh):
-        return None, "legacy_live_market_value_rejected"
+        return None, "live_market_value_rejected"
     if not radar.has_publishable_expiry_or_open_offer(fresh, now):
         return None, "live_offer_expired_or_unverified"
     expiry = _utc(fresh.get("deal_expires_at"))

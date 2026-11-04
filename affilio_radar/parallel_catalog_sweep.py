@@ -187,6 +187,7 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
             continue
         seen.add(key)
         unique.append(task)
+    state.setdefault("parallel_deep_pages_pruned", 0)  # Legacy telemetry; no pruning occurs in full-catalog mode.
     state.setdefault("parallel_cycle_completed_category_ids", [])
     state.setdefault("parallel_cycle_unqueryable_category_ids", [])
     state.setdefault("parallel_cycle_pages_success", 0)

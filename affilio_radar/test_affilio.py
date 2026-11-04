@@ -2141,7 +2141,7 @@ class AffilioRadarTests(unittest.TestCase):
             pending_queue_sort_key(near_but_lower_demand, {"first_seen_at": now.isoformat()}, now),
         )
 
-    def test_deadline_urgency_is_only_a_tiebreaker_after_demand_and_deal_value(self):
+    def test_deadline_urgency_never_outweighs_a_higher_discount(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
         urgent_but_less_popular = {
             "product_id": "dkp-123",
@@ -2165,8 +2165,8 @@ class AffilioRadarTests(unittest.TestCase):
         }
         self.assertTrue(is_urgent_priority_deal(urgent_but_less_popular, now))
         self.assertGreater(
-            pending_queue_sort_key(popular_and_valid, {"first_seen_at": now.isoformat()}, now),
             pending_queue_sort_key(urgent_but_less_popular, {"first_seen_at": now.isoformat()}, now),
+            pending_queue_sort_key(popular_and_valid, {"first_seen_at": now.isoformat()}, now),
         )
 
     def test_queued_offer_rechecks_rotate_after_a_fixed_priority_head(self):
@@ -2683,7 +2683,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(radar_module.has_attractive_discount_value(historical_value, now=now))
         self.assertFalse(radar_module.has_attractive_discount_value(verified_bad_history, now=now))
 
-    def test_new_selection_uses_popularity_as_fallback_demand_and_keeps_live_markdowns(self):
+    def test_new_selection_ignores_popularity_and_keeps_live_markdowns(self):
         now = datetime.now(timezone.utc)
         base = {
             "product_id": "dkp-95501",
@@ -2726,7 +2726,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(
             [row["product_id"] for row in selected],
-            ["dkp-95502", "dkp-95503", "dkp-95501"],
+            ["dkp-95501", "dkp-95502", "dkp-95503"],
         )
         self.assertEqual(
             {row["product_id"] for row in quality},
@@ -2786,7 +2786,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(is_discount_publish_eligible(scored))
 
 
-    def test_discovery_ranks_demand_before_discount_size(self):
+    def test_discovery_ranks_higher_discount_before_demand(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
         popular_regular_discount = _with_verified_current_demand({
             "click_count_30d": 900, "demand_score": 78, "review_count": 2_000,
@@ -2801,8 +2801,8 @@ class AffilioRadarTests(unittest.TestCase):
             "first_seen_at": (now - timedelta(minutes=1)).isoformat(),
         }
         self.assertGreater(
-            discovery_queue_sort_key(popular_regular_discount, now),
             discovery_queue_sort_key(low_demand_huge_discount, now),
+            discovery_queue_sort_key(popular_regular_discount, now),
         )
 
     def test_larger_markdown_outweighs_lifetime_review_totals(self):
@@ -4997,7 +4997,7 @@ class AffilioRadarTests(unittest.TestCase):
         # bounded detail-check slot instead of starving the discovery pipeline.
         self.assertEqual([pid for pid, _ in selected], ["dkp-93032", "dkp-93033"])
 
-    def test_discovery_checks_prioritize_demand_over_deadline_urgency(self):
+    def test_discovery_checks_prioritize_discount_over_deadline_urgency(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
         queue = {
             "dkp-93021": {
@@ -5044,7 +5044,7 @@ class AffilioRadarTests(unittest.TestCase):
             },
         }
         selected = select_discovery_records_for_check(queue, now, max_count=10)
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93021", "dkp-93022", "dkp-93023", "dkp-93024"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93023", "dkp-93022", "dkp-93021", "dkp-93024"])
         self.assertGreater(
             discovery_queue_sort_key(queue["dkp-93021"], now),
             discovery_queue_sort_key(queue["dkp-93022"], now),
