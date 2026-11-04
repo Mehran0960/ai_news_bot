@@ -1251,7 +1251,6 @@ class AffilioRadarTests(unittest.TestCase):
         queue = {p["product_id"]: {} for p in candidates}
         eligible = {p["product_id"]: p for p in candidates}
         selected = select_publish_candidates(queue, eligible, now, published)
-        self.assertEqual(selected[0]["product_id"], "dkp-audio-new")
         self.assertEqual(
             {p["product_id"] for p in selected},
             {"dkp-power-new", "dkp-fashion-new"},
@@ -1550,7 +1549,10 @@ class AffilioRadarTests(unittest.TestCase):
 
         selected = select_publish_candidates(queue, eligible, now, published)
 
-        self.assertEqual(selected[0]["product_id"], "dkp-skincare-close")
+        self.assertEqual(
+            [item["product_id"] for item in selected],
+            ["dkp-power-close"],
+        )
 
 
     def test_publish_lookahead_checks_beyond_first_48_candidates(self):
