@@ -310,6 +310,44 @@ class CatalogSweepTests(unittest.TestCase):
             )
             self.assertEqual([row["product_id"] for row in selected], ["dkp-55"])
 
+    def test_handoff_rechecks_price_or_stock_changes_before_seen_ttl(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "candidates.json"
+            original = {
+                "product_id": "dkp-55",
+                "product_url": "https://www.digikala.com/product/dkp-55/",
+                "title": "هدفون بلوتوثی نمونه",
+                "current_price": 500_000,
+                "original_price": 1_000_000,
+                "discount_percent": 50,
+                "availability": "in_stock",
+            }
+            state = {}
+            now = datetime(2026, 11, 4, 0, 0, tzinfo=timezone.utc)
+            path.write_text(json.dumps({"candidates": [original]}, ensure_ascii=False), encoding="utf-8")
+            acknowledge_catalog_candidates_handoff(
+                state, ["dkp-55"], now=now, candidates=[original]
+            )
+            self.assertEqual(
+                load_catalog_candidates_for_handoff(path, state, now=now + timedelta(hours=1)),
+                [],
+            )
+            changed_price = dict(original, current_price=400_000, discount_percent=60)
+            path.write_text(json.dumps({"candidates": [changed_price]}, ensure_ascii=False), encoding="utf-8")
+            selected = load_catalog_candidates_for_handoff(
+                path, state, now=now + timedelta(hours=1)
+            )
+            self.assertEqual([row["product_id"] for row in selected], ["dkp-55"])
+            acknowledge_catalog_candidates_handoff(
+                state, ["dkp-55"], now=now + timedelta(hours=1), candidates=[changed_price]
+            )
+            changed_stock = dict(changed_price, availability="out_of_stock")
+            path.write_text(json.dumps({"candidates": [changed_stock]}, ensure_ascii=False), encoding="utf-8")
+            selected_stock = load_catalog_candidates_for_handoff(
+                path, state, now=now + timedelta(hours=2)
+            )
+            self.assertEqual([row["product_id"] for row in selected_stock], ["dkp-55"])
+
     def test_handoff_batch_is_global_discount_order_without_category_rotation(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "candidates.json"

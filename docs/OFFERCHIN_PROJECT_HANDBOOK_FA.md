@@ -159,3 +159,9 @@ python -m unittest affilio_radar.test_affilio affilio_radar.test_selection_evide
 7. YouTube توسط کد خود OfferChin حذف/private نشود.
 8. Secretها را در سند/کد عمومی/log ننویس.
 9. هر تغییر را همراه تست، commit SHA، Actions run ID و نتیجهٔ دقیق در همین handbook ثبت کن.
+
+
+### ۴ نوامبر ۲۰۲۶ — اصلاح ممیزی hand-off و شمارندهٔ چرخه
+- fingerprint hand-off اکنون در کد اجرایی ذخیره می‌شود؛ قیمت جاری/اصلی، درصد تخفیف و وضعیت موجودی در صورت ارائهٔ صریح از API کارت، مبنای تشخیص تغییر هستند.
+- تغییر fingerprint باعث recheck فوری می‌شود؛ کارت بدون تغییر تا TTL دو روزه از deep-check تکراری معاف می‌ماند. legacy record بدون fingerprint یک بار برای ایجاد baseline دوباره hand-off می‌شود.
+- مقدار `completed_cycles` از سیاست top-60 قبلی به شمارندهٔ full-catalog تبدیل می‌شود؛ شمارندهٔ قدیمی حفظ و برچسب‌گذاری می‌شود، اما صف جاری و پیشرفت صفحات reset نمی‌شود.

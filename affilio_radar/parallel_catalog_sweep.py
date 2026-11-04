@@ -176,6 +176,22 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
                 })
                 known_ids.add(category_id)
 
+    # Older completed_cycles values describe top-60 partial sweeps, not full
+    # catalog cycles. Reset the counter once while preserving the active page queue.
+    if not state.get("parallel_full_cycle_counter_initialized"):
+        stats = state.get("stats", {})
+        if not isinstance(stats, dict):
+            stats = {}
+            state["stats"] = stats
+        legacy_count = max(0, base._normal_int(stats.get("completed_cycles")))
+        if legacy_count:
+            state["legacy_completed_partial_sweeps_before_full_catalog"] = legacy_count
+        stats["completed_cycles"] = 0
+        state["completed_cycles"] = 0
+        if state.get("last_cycle_completed_at"):
+            state["legacy_last_partial_sweep_at"] = state.pop("last_cycle_completed_at")
+        state["parallel_full_cycle_counter_initialized"] = True
+
     # De-duplicate persisted work without pruning any page depth or retry record.
     unique: list[dict] = []
     seen: set[tuple[str, int]] = set()

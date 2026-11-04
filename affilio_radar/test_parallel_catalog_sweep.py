@@ -43,6 +43,26 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual({(row["category_id"], row["page"]) for row in tasks}, {("1", 1), ("2", 1), ("3", 1)})
         self.assertEqual(state["parallel_scan_policy_version"], "all_categories_all_pages_v2")
 
+    def test_full_catalog_counter_resets_legacy_partial_cycles_without_resetting_page_queue(self):
+        state = {
+            "categories": [{"id": "10", "name": "mobile"}],
+            "parallel_queue_initialized": True,
+            "parallel_scan_policy_version": "all_categories_all_pages_v2",
+            "parallel_known_category_ids": ["10"],
+            "parallel_pending_pages": [{"category_id": "10", "page": 7, "attempts": 2}],
+            "parallel_cycle_pages_success": 41,
+            "stats": {"completed_cycles": 9},
+            "completed_cycles": 9,
+            "last_cycle_completed_at": "2026-11-03T00:00:00+00:00",
+        }
+        queued = sweep._ensure_parallel_state(state)
+        self.assertEqual([(row["category_id"], row["page"], row["attempts"]) for row in queued], [("10", 7, 2)])
+        self.assertEqual(state["stats"]["completed_cycles"], 0)
+        self.assertEqual(state["completed_cycles"], 0)
+        self.assertEqual(state["legacy_completed_partial_sweeps_before_full_catalog"], 9)
+        self.assertNotIn("last_cycle_completed_at", state)
+        self.assertEqual(state["parallel_cycle_pages_success"], 41)
+
     def test_parallel_queue_preserves_deep_pages_without_an_arbitrary_cap(self):
         state = {
             "categories": [{"id": "10", "name": "mobile"}],

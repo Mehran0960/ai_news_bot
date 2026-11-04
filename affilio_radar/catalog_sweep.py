@@ -360,6 +360,40 @@ def _listing_prices(product: dict) -> tuple[int, int, int, int]:
     return current, original, discount, savings
 
 
+def _listing_availability(product: dict) -> str:
+    """Return a stock state only when DigiKala exposes an explicit availability field."""
+    in_stock_words = {
+        "in_stock", "instock", "available", "available_now", "in stock",
+        "موجود", "موجود است", "موجود در انبار",
+    }
+    out_of_stock_words = {
+        "out_of_stock", "out of stock", "outofstock", "unavailable", "sold_out",
+        "ناموجود", "اتمام موجودی", "ناموجود است",
+    }
+    for source in _price_source_rows(product):
+        for key in ("is_in_stock", "in_stock", "is_available", "available", "can_buy"):
+            value = source.get(key)
+            if isinstance(value, bool):
+                return "in_stock" if value else "out_of_stock"
+            if isinstance(value, (int, float)) and value in (0, 1):
+                return "in_stock" if bool(value) else "out_of_stock"
+        for key in ("availability", "stock_status", "availability_status"):
+            value = source.get(key)
+            if isinstance(value, dict):
+                value = value.get("title") or value.get("status") or value.get("label")
+            if isinstance(value, str):
+                normalized = re.sub(r"\\s+", "_", value.strip().lower().replace("-", "_"))
+                if normalized in in_stock_words:
+                    return "in_stock"
+                if normalized in out_of_stock_words:
+                    return "out_of_stock"
+        for key in ("stock_quantity", "available_quantity", "stock_count", "stock"):
+            value = source.get(key)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                return "in_stock" if value > 0 else "out_of_stock"
+    return "unknown"
+
+
 def _listing_rating(product: dict) -> tuple[float, int]:
     rating = product.get("rating") if isinstance(product.get("rating"), dict) else {}
     stats = product.get("statistics") if isinstance(product.get("statistics"), dict) else {}
@@ -422,6 +456,7 @@ def extract_product_rows(payload: Any) -> list[dict]:
         if not is_publishable_product_title(title):
             title = f"محصول دیجی‌کالا {product_id}"
         current, original, discount, savings = _listing_prices(product)
+        availability = _listing_availability(product)
         rating, review_count = _listing_rating(product)
         rows.append({
             "product_id": product_id,
@@ -431,6 +466,7 @@ def extract_product_rows(payload: Any) -> list[dict]:
             "original_price": original,
             "discount_percent": discount,
             "savings_toman": savings,
+            "availability": availability,
             "rating": rating,
             "review_count": review_count,
             "source": "digikala_catalog_sweep",
@@ -579,7 +615,8 @@ def catalog_handoff_fingerprint(row: dict) -> str:
         "current_price", "selling_price", "selling_price_toman",
         "original_price", "rrp_price", "rrp_price_toman",
         "discount_percent", "availability", "in_stock", "is_in_stock",
-        "stock", "stock_status", "is_available",
+        "stock", "stock_status", "stock_quantity", "available_quantity",
+        "stock_count", "is_available",
     )
     payload = {}
     for field in fields:
