@@ -31,9 +31,17 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             {"id": "2", "name": "home"},
             {"id": "3", "name": "fashion"},
         ]
-        state = {"categories": categories, "category_index": 2, "page": 7}
+        state = {
+            "categories": categories,
+            "category_index": 2,
+            "page": 7,
+            "parallel_queue_initialized": True,
+            "parallel_pending_pages": [{"category_id": "3", "page": 3, "attempts": 2}],
+            "parallel_known_category_ids": ["1", "2", "3"],
+        }
         tasks = sweep._ensure_parallel_state(state)
         self.assertEqual({(row["category_id"], row["page"]) for row in tasks}, {("1", 1), ("2", 1), ("3", 1)})
+        self.assertEqual(state["parallel_scan_policy_version"], "all_categories_all_pages_v2")
 
     def test_parallel_queue_preserves_deep_pages_without_an_arbitrary_cap(self):
         state = {

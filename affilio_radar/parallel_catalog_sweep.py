@@ -144,8 +144,12 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
         known = []
     known_ids = {str(value) for value in known}
 
-    if not state.get("parallel_queue_initialized"):
-        # Legacy cursors may point mid-catalog; seed every category from page 1.
+    if (
+        not state.get("parallel_queue_initialized")
+        or state.get("parallel_scan_policy_version") != "all_categories_all_pages_v2"
+    ):
+        # Legacy cursors AND previously initialized top-60 queues may have skipped
+        # already-processed categories/tail pages. Force one exhaustive restart.
         queue = build_initial_page_queue(categories, legacy_category_index=0, legacy_page=1)
         known_ids = {str(row.get("id")) for row in categories if isinstance(row, dict)}
         state["parallel_queue_initialized"] = True
@@ -155,6 +159,7 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
         state["parallel_cycle_pages_success"] = 0
         state["parallel_cycle_product_rows_success"] = 0
         state["parallel_full_catalog_mode"] = "all_categories_all_pages"
+        state["parallel_scan_policy_version"] = "all_categories_all_pages_v2"
     else:
         # Category dictionary refreshes may introduce new categories. Append only
         # genuinely new IDs; do not reset progress for existing IDs.
