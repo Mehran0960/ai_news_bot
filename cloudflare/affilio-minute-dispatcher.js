@@ -287,15 +287,32 @@ async function dispatchVideoUploadsWhenDue(env, tick, state) {
 }
 
 async function runScheduledCheck(env, scheduledTime) {
-  if (!env.GITHUB_TOKEN) {
-    console.error("CHANNEL_DISPATCH_BLOCKED: GITHUB_TOKEN Worker secret is not configured.");
+  const hasOfferChinToken = Boolean(env.GITHUB_TOKEN);
+  const hasFiloToken = Boolean(env.FILO_GITHUB_TOKEN);
+  if (!hasOfferChinToken && !hasFiloToken) {
+    console.error("SCHEDULED_DISPATCH_BLOCKED: neither GITHUB_TOKEN nor FILO_GITHUB_TOKEN Worker secret is configured.");
     return;
   }
+
   const tick = Number.isFinite(Number(scheduledTime)) ? new Date(Number(scheduledTime)) : new Date();
   const offset = tick.getUTCMinutes() % 5;
+
+  // Keep Filo independent: its dedicated credential must work even if OfferChin
+  // credentials are absent or restricted. OfferChin uses only GITHUB_TOKEN.
+  if (hasFiloToken && offset === 3) {
+    try {
+      await dispatchWorkflowIfIdle(FILO_API, env.FILO_GITHUB_TOKEN, FILO_WORKFLOW, 27, 8);
+    } catch (error) {
+      console.error("GOUSHIBAAZ_FILO_DISPATCH_FAILED", String(error).slice(0, 900));
+    }
+  } else if (offset === 3) {
+    console.error("GOUSHIBAAZ_FILO_DISPATCH_BLOCKED: FILO_GITHUB_TOKEN is not configured.");
+  }
+
+  if (!hasOfferChinToken) return;
   const state = await readOfferChinState(env.GITHUB_TOKEN);
 
-  // Discovery, audit and Filo remain independent from the actual channel cadence.
+  // Discovery and audit remain independent from the actual channel cadence.
   if (offset === 1) {
     try {
       await dispatchWorkflowIfIdle(CATALOG_API, env.GITHUB_TOKEN, CATALOG_WORKFLOW, 18, 8);
@@ -308,17 +325,6 @@ async function runScheduledCheck(env, scheduledTime) {
       await dispatchWorkflowIfIdle(AUDIT_API, env.GITHUB_TOKEN, AUDIT_WORKFLOW, 8, 4);
     } catch (error) {
       console.error("OFFERCHIN_INTEGRITY_AUDIT_DISPATCH_FAILED", String(error).slice(0, 900));
-    }
-  }
-  if (offset === 3) {
-    if (!env.FILO_GITHUB_TOKEN) {
-      console.error("GOUSHIBAAZ_FILO_DISPATCH_BLOCKED: FILO_GITHUB_TOKEN is not configured.");
-    } else {
-      try {
-        await dispatchWorkflowIfIdle(FILO_API, env.FILO_GITHUB_TOKEN, FILO_WORKFLOW, 27, 8);
-      } catch (error) {
-        console.error("GOUSHIBAAZ_FILO_DISPATCH_FAILED", String(error).slice(0, 900));
-      }
     }
   }
 
@@ -340,7 +346,13 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/health") {
-      return response({ ok: true, service: "affilio-minute-dispatcher" });
+      return response({
+        ok: true,
+        service: "affilio-minute-dispatcher",
+        scheduledFiloDispatcher: true,
+        filoCredentialConfigured: Boolean(env.FILO_GITHUB_TOKEN),
+        offerChinCredentialConfigured: Boolean(env.GITHUB_TOKEN)
+      });
     }
     return response({ ok: false, error: "not_found" }, 404);
   }
