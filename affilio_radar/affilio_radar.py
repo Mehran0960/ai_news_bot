@@ -69,7 +69,7 @@ CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS",
 BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(20, int(os.getenv("AFFILIO_MAX_PER_QUERY", "12"))))
 MAX_PRODUCT_CHECKS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "100"))))
-# Inspect up to the 100 strongest public demand candidates before choosing the best live discount.
+# The live detail-check budget is bounded per run; unprocessed catalog candidates remain queued for later cycles.
 SNAPPSHOP_RESERVED_CANDIDATES = max(4, min(12, MAX_PRODUCT_CHECKS // 7))
 SNAPPSHOP_QUERIES_PER_SCAN = max(1, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN", "4"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
@@ -108,13 +108,12 @@ ULTRA_URGENT_WINDOW_MINUTES = 0
 ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 23
 URGENT_MIN_DISCOUNT_PERCENT = 80
 URGENT_MIN_SAVINGS_TOMAN = 500_000
-URGENT_MIN_DEMAND_SCORE = 55
 IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
 PREFERRED_POSTING_WINDOWS = (("all_day", 0, 24),)
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "5"))))
 MCP_OFFER_PAGES_PER_SCAN = max(1, min(DEAL_LIST_PAGES, int(os.getenv("AFFILIO_MCP_PAGES_PER_SCAN", "2"))))
-# Every genuine, measurable price reduction is eligible; the 100-product pool is
-# ranked by public demand proxies first, then live discount percentage.
+# Every genuine, measurable price reduction is eligible; the per-run detail-check
+# budget is bounded, and all selected candidates rank by discount then cash savings.
 MIN_DISCOUNT_PERCENT = max(1, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCENT", "1"))))
 DISCOUNT_FALLBACK_FLOORS = (1,)
 MIN_DISCOUNT_FALLBACK_PERCENT = 1
@@ -6412,7 +6411,6 @@ def is_urgent_priority_deal(product: dict, now: datetime | None = None) -> bool:
         0 < remaining_seconds <= URGENT_EXPIRY_WINDOW_MINUTES * 60
         and int(product.get("discount_percent") or 0) >= URGENT_MIN_DISCOUNT_PERCENT
         and int(product.get("savings_toman") or 0) >= URGENT_MIN_SAVINGS_TOMAN
-        and int(product.get("demand_score") or 0) >= URGENT_MIN_DEMAND_SCORE
     )
 
 
@@ -7020,22 +7018,24 @@ def select_urgent_publication_candidate(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> dict | None:
-    """Choose the highest-discount product among urgent, still-live offers."""
+    """Allow only the globally highest-ranked live offer to use an urgent cadence bypass."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    urgent = [
-        product for product in eligible
-        if is_urgent_priority_deal(product, current) or is_deadline_critical_deal(product, current)
-    ]
-    if not urgent:
-        return None
-    return sorted(
-        urgent,
+    ranked = sorted(
+        (product for product in (eligible or []) if isinstance(product, dict)),
         key=lambda record: deal_sort_key(record, now=current),
         reverse=True,
-    )[0]
+    )
+    if not ranked:
+        return None
+    leader = ranked[0]
+    # A lower-discount offer must never jump the global queue just because its
+    # deadline is sooner or its popularity signal is stronger.
+    if is_urgent_priority_deal(leader, current) or is_deadline_critical_deal(leader, current):
+        return leader
+    return None
 
 
 
@@ -7072,8 +7072,8 @@ def select_publish_candidates(
     if deferred:
         print(f"PUBLISH_QUEUE_BACKOFF skipped_deferred={deferred} ready={sum(map(len, selected_by_floor.values()))}")
 
-    # Discovery has already ranked demand, value confidence, then markdown size.
-    # Keep the exact order at final publication instead of re-sorting on percentage.
+    # Discovery has already ranked by discount percentage, then cash savings.
+    # Keep that exact order at final publication instead of applying proxy-based re-ranking.
     ordered: list[dict] = []
     for floor in sorted(selected_by_floor, reverse=True):
         tier = sorted(
@@ -8053,6 +8053,25 @@ def _aparat_upload_slot_due(
     return next_slot is None or current >= next_slot
 
 
+def _video_upload_candidate_sort_key(row: tuple) -> tuple:
+    """Order public video work by markdown first; repair is only a tie-breaker."""
+    record = row[2] if isinstance(row, tuple) and len(row) > 2 and isinstance(row[2], dict) else {}
+    discount = max(
+        0,
+        _int_value(record.get("posted_discount_percent") or record.get("discount_percent")) or 0,
+    )
+    original = _int_value(record.get("posted_original_price")) or 0
+    current_price = _int_value(record.get("posted_current_price")) or 0
+    savings = max(0, original - current_price)
+    return (
+        -discount,
+        -savings,
+        0 if record.get("video_repair_priority") else 1,
+        row[3],
+        row[0],
+    )
+
+
 def process_pending_short_video(
     state: dict,
     now: datetime | None = None,
@@ -8555,15 +8574,7 @@ def process_pending_short_video(
     if not candidates:
         return False
 
-    candidates.sort(
-        key=lambda row: (
-            0 if row[2].get("video_repair_priority") else 1,
-            -max(0, _int_value(row[2].get("posted_discount_percent") or row[2].get("discount_percent")) or 0),
-            -max(0, (_int_value(row[2].get("posted_original_price")) or 0) - (_int_value(row[2].get("posted_current_price")) or 0)),
-            row[3],  # among equal markdowns, upload the one expiring sooner first
-            row[0],
-        )
-    )
+    candidates.sort(key=_video_upload_candidate_sort_key)
     _, pid, record, _expiry_for_sort, expiry, verified_expiry = candidates[0]
     output_folder = Path(output_dir)
     output_folder.mkdir(parents=True, exist_ok=True)

@@ -1099,7 +1099,7 @@ class AffilioRadarTests(unittest.TestCase):
             "product_id": "dkp-123",
             "discount_percent": 82,
             "savings_toman": 600_000,
-            "demand_score": 58,
+            "demand_score": 0,  # demand is deliberately irrelevant to the urgent cadence.
             "deal_expires_at": (now + timedelta(minutes=150)).isoformat(),
         }
         self.assertTrue(is_urgent_priority_deal(item, now))
@@ -2394,6 +2394,66 @@ class AffilioRadarTests(unittest.TestCase):
                 lower_demand_larger_discount, higher_demand_smaller_discount,
             ], now=now)
         self.assertEqual(selected["product_id"], "dkp-95120")
+
+    def test_urgent_cooldown_bypass_does_not_promote_a_lower_discount_offer(self):
+        now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
+        global_leader = {
+            "product_id": "dkp-global-leader",
+            "discount_percent": 78,
+            "savings_toman": 700_000,
+            "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+        }
+        lower_discount_but_urgent = {
+            "product_id": "dkp-lower-urgent",
+            "discount_percent": 40,
+            "savings_toman": 500_000,
+            "deal_expires_at": (now + timedelta(minutes=90)).isoformat(),
+            "demand_score": 100,
+        }
+
+        self.assertTrue(is_deadline_critical_deal(lower_discount_but_urgent, now))
+        self.assertIsNone(select_urgent_publication_candidate(
+            [lower_discount_but_urgent, global_leader], now=now
+        ))
+
+
+    def test_video_upload_queue_uses_global_discount_before_repair_priority(self):
+        now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
+        lower_discount_repair = (
+            now.timestamp(),
+            "dkp-video-repair",
+            {
+                "video_repair_priority": True,
+                "posted_discount_percent": 50,
+                "posted_original_price": 1_000_000,
+                "posted_current_price": 500_000,
+            },
+            now + timedelta(hours=1),
+            now + timedelta(hours=1),
+            True,
+        )
+        higher_discount = (
+            now.timestamp() + 1,
+            "dkp-video-best-deal",
+            {
+                "video_repair_priority": False,
+                "posted_discount_percent": 90,
+                "posted_original_price": 3_000_000,
+                "posted_current_price": 300_000,
+            },
+            now + timedelta(hours=2),
+            now + timedelta(hours=2),
+            True,
+        )
+        ranked = sorted(
+            [lower_discount_repair, higher_discount],
+            key=radar_module._video_upload_candidate_sort_key,
+        )
+        self.assertEqual(
+            [row[1] for row in ranked],
+            ["dkp-video-best-deal", "dkp-video-repair"],
+        )
+
 
     def test_49_percent_candidate_uses_45_percent_band_when_no_50_percent_offer_exists(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
