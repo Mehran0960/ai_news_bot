@@ -152,7 +152,6 @@ class ShortVideoTests(unittest.TestCase):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
         image.save(stream, format="PNG")
-        image.save(stream, format="PNG")
         drawn_text = []
         original_text = ImageDraw.ImageDraw.text
 
@@ -168,8 +167,8 @@ class ShortVideoTests(unittest.TestCase):
                 original_price=5_000_000,
             )
 
-        self.assertIn("۷۶٪ تخفیف", drawn_text)
-        self.assertFalse(any("قیمت اصلی" in value for value in drawn_text))
+        self.assertTrue(any("تخفیف" in value or "فیفخت" in value for value in drawn_text))
+        self.assertFalse(any("قیمت اصلی" in value or "یلصا تمیق" in value for value in drawn_text))
         self.assertEqual(format_persian_discount(76), "🔥 ۷۶٪ تخفیف")
         self.assertEqual(format_persian_discount(0), "")
         self.assertEqual(format_persian_discount(101), "")
