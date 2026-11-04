@@ -73,16 +73,15 @@ MAX_PRODUCT_CHECKS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS",
 SNAPPSHOP_RESERVED_CANDIDATES = max(4, min(12, MAX_PRODUCT_CHECKS // 7))
 SNAPPSHOP_QUERIES_PER_SCAN = max(1, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN", "4"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
-# Independent Telegram/Bale volume guard, counted by Iran's calendar day; never reserve or gate channel posts on YouTube API quota.
-MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "72"))))
-# Current channel uploadLimitExceeded behavior is consistent with ~8/day; keep Shorts evenly spaced.
-YOUTUBE_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS", "3"))))
-# Aparat has an independent cadence and remains eligible during a YouTube quota pause.
-APARAT_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS", "3"))))
+# Conservative channel volume: four daily offers, each mirrored to the video destinations.
+MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "4"))))
+# YouTube and Aparat use independent 4-hour upload clocks (up to six videos/day per destination).
+YOUTUBE_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS", "4"))))
+APARAT_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS", "4"))))
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "100"))))
-MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.3833333333333333")))
+MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "6")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
@@ -7916,6 +7915,7 @@ def effective_posts_per_run(backlog_count, configured_limit=None, force_full_bat
 
 
 VIDEO_STYLE_VERSION = 6  # DigiPay co-branding, clean discount line, and top-safe-area channel CTAs
+VIDEO_UPLOAD_POLICY_VERSION = 2  # 4-hour independent video slots; channel cadence is managed separately
 YOUTUBE_DESCRIPTION_VERSION = 4  # surface public channel links before the product-specific purchase link
 PERSIAN_TEXT_RENDERER_VERSION = 2  # single RTL/bidi pass via Pillow RAQM when available
 PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
@@ -8100,6 +8100,79 @@ def _next_youtube_daily_upload_retry_at(now: datetime | None = None) -> datetime
     return current.astimezone(timezone.utc) + timedelta(hours=24, minutes=15)
 
 
+def migrate_video_upload_policy(state: dict, now: datetime | None = None) -> bool:
+    """Rebase persisted platform slots once so the new cadence cannot inherit an earlier slot."""
+    try:
+        previous_version = int(state.get("video_upload_policy_version") or 0)
+    except (TypeError, ValueError, OverflowError):
+        previous_version = 0
+    if previous_version >= VIDEO_UPLOAD_POLICY_VERSION:
+        return False
+
+    published = state.get("published", {})
+    published = published if isinstance(published, dict) else {}
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+
+    def latest_outcome(platform: str, state_keys: tuple[str, ...]) -> datetime | None:
+        values = [
+            value for key in state_keys
+            if (value := _parse_utc_datetime(state.get(key))) is not None
+        ]
+        status_key = f"{platform}_upload_status"
+        timestamp_keys = (
+            (f"{platform}_uploaded_at", f"{platform}_upload_started_at")
+            if platform == "youtube"
+            else ("aparat_uploaded_at", "aparat_upload_started_at")
+        )
+        for record in published.values():
+            if not isinstance(record, dict):
+                continue
+            status = str(record.get(status_key) or "")
+            if status == "uploaded":
+                timestamp = _parse_utc_datetime(record.get(timestamp_keys[0]))
+            elif status in {"uploading", "upload_result_unknown"}:
+                timestamp = _parse_utc_datetime(record.get(timestamp_keys[1]))
+            else:
+                timestamp = None
+            if timestamp is not None:
+                values.append(timestamp)
+        return max(values) if values else None
+
+    for platform, interval, next_key, state_keys in (
+        (
+            "youtube", YOUTUBE_UPLOAD_INTERVAL_HOURS, "youtube_next_upload_at",
+            ("youtube_last_upload_success_at", "youtube_last_upload_outcome_unknown_at"),
+        ),
+        (
+            "aparat", APARAT_UPLOAD_INTERVAL_HOURS, "aparat_next_upload_at",
+            ("aparat_last_upload_success_at", "aparat_last_upload_outcome_unknown_at"),
+        ),
+    ):
+        last_outcome = latest_outcome(platform, state_keys)
+        existing_slot = _parse_utc_datetime(state.get(next_key))
+        if last_outcome is not None:
+            policy_slot = last_outcome + timedelta(hours=interval)
+            rebased_slot = max(existing_slot, policy_slot) if existing_slot else policy_slot
+            state[next_key] = rebased_slot.isoformat()
+            print(
+                f"VIDEO_UPLOAD_POLICY_REBASED platform={platform} "
+                f"interval_hours={interval} next_at={rebased_slot.isoformat()}"
+            )
+        elif existing_slot is not None:
+            # No outcome timestamp is available; preserve the existing reservation rather
+            # than advancing or releasing an unknown in-flight upload.
+            print(
+                f"VIDEO_UPLOAD_POLICY_SLOT_PRESERVED platform={platform} "
+                f"next_at={existing_slot.isoformat()}"
+            )
+
+    state["video_upload_policy_version"] = VIDEO_UPLOAD_POLICY_VERSION
+    state["video_upload_policy_updated_at"] = current.astimezone(timezone.utc).isoformat()
+    return True
+
+
 def _initialize_aparat_upload_slot(state: dict) -> datetime | None:
     """Load Aparat's next-upload slot or migrate it from Aparat upload history."""
     next_slot = _parse_utc_datetime(state.get("aparat_next_upload_at"))
@@ -8238,7 +8311,7 @@ def process_pending_short_video(
     review_ready = destinations is None and telegram_video_review_available()
     pending_youtube = {"pending", "pending_credentials", "retry"}
     candidates = []
-    state_changed = False
+    state_changed = migrate_video_upload_policy(state, current)
 
     youtube_pause_until = _parse_utc_datetime(state.get("youtube_uploads_paused_until"))
 
@@ -8274,9 +8347,9 @@ def process_pending_short_video(
         youtube_pause_until = None
         state_changed = True
 
-    # Migrate existing uploads into a durable three-hour spacing schedule. The radar
-    # still refreshes candidates every five minutes, but only chooses/renders a public
-    # YouTube Short when a publication slot is due.
+    # Keep persisted video slots on the versioned 4-hour policy. The independent
+    # video-only workflow checks this queue every four hours; the channel publisher
+    # remains on its slower six-hour schedule.
     youtube_next_upload_at = _parse_utc_datetime(state.get("youtube_next_upload_at"))
     if youtube_next_upload_at is None:
         last_successful_uploads = []
