@@ -7924,8 +7924,10 @@ PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
 APARAT_SHORTS_ONLY = str(os.getenv("APARAT_SHORTS_ONLY", "false")).strip().lower() in {"1", "true", "yes", "on"}
 # The main radar and the dedicated Aparat workflow can independently enable this destination.
 APARAT_UPLOAD_ENABLED = str(os.getenv("AFFILIO_APARAT_UPLOAD_ENABLED", "true")).strip().lower() in {"1", "true", "yes", "on"}
-# Match video throughput to channel publication bursts so the video queue does not lag behind.
+# Each video slot selects from a small, fresh hand-off window rather than building a long backlog.
 MAX_SHORT_VIDEOS_PER_RUN = max(1, min(4, int(os.getenv("AFFILIO_MAX_SHORT_VIDEOS_PER_RUN", "2"))))
+VIDEO_UPLOAD_CANDIDATE_LIMIT = max(1, min(50, int(os.getenv("AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT", "6"))))
+VIDEO_UPLOAD_MAX_AGE_HOURS = max(1, min(72, int(os.getenv("AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS", "24"))))
 
 
 def _retain_superseded_youtube_video(
@@ -8173,6 +8175,8 @@ def process_pending_short_video(
     destinations: set[str] | None = None,
     force_due: bool = False,
     only_product_id: str | None = None,
+    candidate_limit: int | None = None,
+    max_age_hours: int | None = None,
 ) -> bool:
     """Generate and publish a vertical artifact for a selected product.
 
@@ -8440,11 +8444,27 @@ def process_pending_short_video(
                 print(f"APARAT_VIDEO_RECONCILE_FAILED id={pid} error={type(exc).__name__}")
             break  # One lookup per scan; other posting and video tasks remain independent.
 
-    for pid, record in published.items():
+    candidate_records = list(published.items())
+    if candidate_limit is not None and only_product_id is None:
+        limit = max(1, min(100, int(candidate_limit)))
+        candidate_records.sort(
+            key=lambda item: _int_value(item[1].get("ts")) or 0,
+            reverse=True,
+        )
+        candidate_records = candidate_records[:limit]
+
+    for pid, record in candidate_records:
         if not isinstance(record, dict):
             continue
         if only_product_id is not None and str(pid) != str(only_product_id):
             continue
+        if max_age_hours is not None:
+            try:
+                record_ts = float(record.get("ts") or 0)
+            except (TypeError, ValueError, OverflowError):
+                record_ts = 0
+            if record_ts <= 0 or current.timestamp() - record_ts > max(1, int(max_age_hours)) * 3600:
+                continue
         generation_status = str(record.get("video_generation_status") or "")
         if generation_status == "generated":
             try:
@@ -9994,6 +10014,8 @@ def run_youtube_uploads_only() -> int:
             state,
             output_dir="video_artifacts",
             destinations={"youtube"},
+            candidate_limit=VIDEO_UPLOAD_CANDIDATE_LIMIT,
+            max_age_hours=VIDEO_UPLOAD_MAX_AGE_HOURS,
         ):
             break
         processed += 1
@@ -10012,6 +10034,8 @@ def run_aparat_uploads_only() -> int:
             state,
             output_dir="video_artifacts",
             destinations={"aparat"},
+            candidate_limit=VIDEO_UPLOAD_CANDIDATE_LIMIT,
+            max_age_hours=VIDEO_UPLOAD_MAX_AGE_HOURS,
         ):
             break
         processed += 1
