@@ -151,7 +151,8 @@ class CatalogSweepTests(unittest.TestCase):
                                 "selling_price_toman": 800000,
                                 "rrp_price_toman": 1200000,
                                 "discount_percent": 33,
-                            }
+                            },
+                            "is_in_stock": False,
                         },
                         "rating": {"rate": 4.6, "rate_count": 1200},
                     },
@@ -170,8 +171,10 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(rows[0]["product_id"], "dkp-1234")
         self.assertEqual(rows[0]["discount_percent"], 33)
         self.assertEqual(rows[0]["savings_toman"], 400000)
+        self.assertEqual(rows[0]["availability"], "out_of_stock")
         self.assertEqual(rows[0]["review_count"], 1200)
         self.assertEqual(rows[1]["discount_percent"], 29)
+        self.assertEqual(rows[1]["availability"], "unknown")
         self.assertEqual(extract_total_pages(payload, 1, len(rows)), 17)
 
     def test_missing_product_array_raises_instead_of_advancing_cursor(self):
@@ -280,7 +283,7 @@ class CatalogSweepTests(unittest.TestCase):
             self.assertIn("dkp-2", state["catalog_sweep_handoff"]["seen_ids"])
 
 
-    def test_handoff_rechecks_price_or_stock_changes_before_seen_ttl(self):
+    def test_handoff_rechecks_price_change_before_seen_ttl(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "candidates.json"
             original = {
