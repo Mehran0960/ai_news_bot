@@ -1,6 +1,7 @@
 """Shared OfferChin artwork primitives for image posts and animated shorts."""
 from __future__ import annotations
 
+import json
 import math
 from pathlib import Path
 from functools import lru_cache
@@ -32,7 +33,7 @@ def _badge_font(size: int):
     except Exception:
         use_raqm = False
     layout = ImageFont.Layout.RAQM if use_raqm else ImageFont.Layout.BASIC
-    bundled_font = Path(__file__).resolve().parent / "assets" / "fonts" / "Vazirmatn-ExtraBold.ttf"
+    bundled_font = _PERSIAN_BOLD_FONT_PATH
     candidates = (
         str(bundled_font),
         "/usr/share/fonts/truetype/noto/NotoSansArabic-Bold.ttf",
@@ -297,14 +298,18 @@ def draw_discount_burst(
 
 
 
-# Official first-party retailer assets are stored in the repository. Normal rendering
-# reads these local files only: a temporary CDN outage can never remove a logo.
-_RETAILER_LOGO_DIR = Path(__file__).resolve().parent / "assets" / "retailer-logos"
+# All first-party visual assets are versioned in one manifest and committed locally.
+# Rendering must never download a logo/font/icon during publication.
+_ASSET_ROOT = Path(__file__).resolve().parent / "assets"
+_ASSET_MANIFEST_PATH = _ASSET_ROOT / "asset-manifest.json"
+_RETAILER_LOGO_DIR = _ASSET_ROOT / "retailer-logos"
 _LOCAL_LOGO_PATHS = {
     "digikala": _RETAILER_LOGO_DIR / "digikala-official.webp",
     "snappshop": _RETAILER_LOGO_DIR / "snappshop-official.webp",
 }
 _DIGIPAY_LOGO_PATH = _RETAILER_LOGO_DIR / "digipay-official.svg"
+_DISCOUNT_FLAME_PATH = _ASSET_ROOT / "discount" / "discount-flame.svg"
+_PERSIAN_BOLD_FONT_PATH = _ASSET_ROOT / "fonts" / "Vazirmatn-ExtraBold.ttf"
 
 
 def adaptive_text_colors(image, region, threshold: int = 145):
@@ -366,31 +371,138 @@ def _decode_retailer_logo(content: bytes, is_snappshop: bool):
     return logo.copy()
 
 
-@lru_cache(maxsize=2)
-def _load_retailer_logo(is_snappshop: bool):
-    """Read only the committed retailer files; never fetch assets during publishing."""
-    key = "snappshop" if is_snappshop else "digikala"
-    path = _LOCAL_LOGO_PATHS[key]
+@lru_cache(maxsize=1)
+def _read_asset_manifest() -> dict:
+    """Read the committed visual asset registry; missing/invalid manifests are fatal."""
+    if not _ASSET_MANIFEST_PATH.is_file():
+        raise RuntimeError("OfferChin local asset manifest is missing")
     try:
-        if path.is_file():
-            return _decode_retailer_logo(path.read_bytes(), is_snappshop)
+        manifest = json.loads(_ASSET_MANIFEST_PATH.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError("OfferChin local asset manifest is invalid") from exc
+    if not isinstance(manifest, dict) or int(manifest.get("schema_version") or 0) != 1:
+        raise RuntimeError("Unsupported OfferChin asset manifest schema")
+    if not isinstance(manifest.get("assets"), dict):
+        raise RuntimeError("OfferChin asset manifest has no assets table")
+    return manifest
+
+
+@lru_cache(maxsize=12)
+def _load_manifest_image(asset_name: str):
+    """Load a committed raster/SVG asset once; no HTTP or CDN fallback is permitted."""
+    manifest = _read_asset_manifest()
+    entry = manifest["assets"].get(str(asset_name))
+    if not isinstance(entry, dict):
+        raise KeyError(f"Unknown OfferChin visual asset: {asset_name}")
+    relative = str(entry.get("path") or "").strip()
+    path = (_ASSET_ROOT / relative).resolve()
+    try:
+        path.relative_to(_ASSET_ROOT.resolve())
+    except ValueError as exc:
+        raise RuntimeError(f"Asset path escapes the local asset directory: {asset_name}") from exc
+    if not path.is_file():
+        raise FileNotFoundError(f"Required OfferChin asset is missing: {asset_name} ({relative})")
+    content = path.read_bytes()
+    decoded = _decode_retailer_logo(content, False)
+    if decoded is None:
+        raise RuntimeError(f"OfferChin visual asset could not be decoded: {asset_name}")
+    return decoded
+
+
+def load_brand_asset(asset_name: str):
+    """Return a fresh copy of an image asset or the local path of a font asset."""
+    manifest = _read_asset_manifest()
+    entry = manifest["assets"].get(str(asset_name))
+    if not isinstance(entry, dict):
+        raise KeyError(f"Unknown OfferChin visual asset: {asset_name}")
+    relative = str(entry.get("path") or "").strip()
+    path = (_ASSET_ROOT / relative).resolve()
+    try:
+        path.relative_to(_ASSET_ROOT.resolve())
+    except ValueError as exc:
+        raise RuntimeError(f"Asset path escapes the local asset directory: {asset_name}") from exc
+    if not path.is_file():
+        raise FileNotFoundError(f"Required OfferChin asset is missing: {asset_name} ({relative})")
+    if str(entry.get("format") or "").lower() == "ttf":
+        return path
+    return _load_manifest_image(str(asset_name)).copy()
+
+
+def _load_retailer_logo(is_snappshop: bool):
+    """Read the official retailer logo from the shared local asset registry."""
+    key = "snappshop-logo" if is_snappshop else "digikala-logo"
+    try:
+        return load_brand_asset(key)
     except Exception as exc:
         print(f"RETAILER_LOGO_LOCAL_READ_FAILED store={key} error={type(exc).__name__}")
-    print(f"RETAILER_LOGO_LOCAL_ASSET_UNAVAILABLE store={key} path={path.name}")
-    return None
+        return None
 
 
-
-@lru_cache(maxsize=1)
 def _load_digipay_logo():
-    """Load the official current DigiPay brand mark staged from MyDigiPay by CI."""
+    """Load the official DigiPay mark from the committed offline asset library."""
     try:
-        if _DIGIPAY_LOGO_PATH.is_file():
-            return _decode_retailer_logo(_DIGIPAY_LOGO_PATH.read_bytes(), False)
+        return load_brand_asset("digipay-logo")
     except Exception as exc:
         print(f"DIGIPAY_LOGO_LOCAL_READ_FAILED error={type(exc).__name__}")
-    print(f"DIGIPAY_LOGO_LOCAL_ASSET_UNAVAILABLE path={_DIGIPAY_LOGO_PATH.name}")
-    return None
+        return None
+
+
+def _load_discount_flame():
+    """Load the shared local discount flame used by both image and video outputs."""
+    try:
+        return load_brand_asset("discount-flame")
+    except Exception as exc:
+        print(f"DISCOUNT_FLAME_LOCAL_READ_FAILED error={type(exc).__name__}")
+        return None
+
+
+def draw_discount_flame(image, center_x: int, center_y: int, size: int = 30) -> tuple[int, int, int, int]:
+    """Composite the committed discount flame SVG at a centered position on any PIL image."""
+    from PIL import Image, ImageOps
+
+    flame = _load_discount_flame()
+    if flame is None:
+        raise RuntimeError("Required local discount-flame asset is unavailable")
+    side = max(8, int(size))
+    fitted = ImageOps.contain(flame, (side, side), method=Image.Resampling.LANCZOS)
+    if fitted.width < 1 or fitted.height < 1:
+        raise RuntimeError("Required local discount-flame asset rendered empty")
+    left = int(round(int(center_x) - fitted.width / 2))
+    top = int(round(int(center_y) - fitted.height / 2))
+    overlay = Image.new("RGBA", (image.width, image.height), (0, 0, 0, 0))
+    overlay.alpha_composite(fitted, (left, top))
+    if image.mode == "RGBA":
+        image.alpha_composite(overlay)
+    else:
+        image.paste(overlay.convert("RGB"), (0, 0), overlay.getchannel("A"))
+    return (left, top, fitted.width, fitted.height)
+
+
+def validate_brand_assets() -> dict:
+    """Fail a build before publishing if any required shared visual asset is missing."""
+    manifest = _read_asset_manifest()
+    required = [
+        name for name, entry in manifest["assets"].items()
+        if isinstance(entry, dict) and entry.get("required") is True
+    ]
+    checked = []
+    for name in required:
+        asset = load_brand_asset(name)
+        if str(manifest["assets"][name].get("format") or "").lower() == "ttf":
+            if not Path(asset).is_file():
+                raise RuntimeError(f"Required OfferChin font is missing: {name}")
+        else:
+            if asset.width < 2 or asset.height < 2:
+                raise RuntimeError(f"Required OfferChin artwork is empty: {name}")
+        checked.append(name)
+    for name, is_snappshop in (("digikala-logo", False), ("snappshop-logo", True)):
+        if _load_retailer_logo(is_snappshop) is None:
+            raise RuntimeError(f"Required retailer logo cannot be loaded: {name}")
+    if _load_digipay_logo() is None:
+        raise RuntimeError("Required official DigiPay logo cannot be loaded")
+    if _load_discount_flame() is None:
+        raise RuntimeError("Required discount flame asset cannot be loaded")
+    return {"schema_version":manifest["schema_version"],"validated_assets":checked}
 
 
 def _digipay_brand_blue(logo):
