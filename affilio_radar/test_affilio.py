@@ -4546,8 +4546,8 @@ class AffilioRadarTests(unittest.TestCase):
             "YouTube channel links should appear before product details",
         )
 
-    def test_publication_interval_is_23_minutes(self):
-        self.assertAlmostEqual(MIN_POST_INTERVAL_HOURS, 23 / 60)
+    def test_publication_interval_is_20_minutes(self):
+        self.assertAlmostEqual(MIN_POST_INTERVAL_HOURS, 20 / 60)
 
     def test_publication_capacity_bursts_only_when_publish_queue_is_large(self):
         self.assertEqual(effective_posts_per_run(0, configured_limit=2), 1)
