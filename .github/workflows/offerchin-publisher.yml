@@ -60,6 +60,7 @@ jobs:
           exit 1
 
       - name: Fetch official DigiPay logo
+        continue-on-error: true
         run: |
           mkdir -p affilio_radar/assets/retailer-logos
           curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 \
