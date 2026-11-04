@@ -197,5 +197,93 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             self.assertEqual(saved["stats"]["pages_scanned_total"], 1)
 
 
+    def test_unqueryable_category_prevents_full_cycle_claim_and_is_retried_next_cycle(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            state_path = root / "state.json"
+            candidates_path = root / "candidates.json"
+            publisher_state_path = root / "publisher.json"
+            now = datetime.now(timezone.utc).isoformat()
+            state_path.write_text(json.dumps({
+                "categories": [{"id": "10", "name": "mobile"}, {"id": "20", "name": "home"}],
+                "categories_refreshed_at": now,
+                "parallel_queue_initialized": True,
+                "parallel_scan_policy_version": "all_categories_all_pages_v2",
+                "parallel_known_category_ids": ["10", "20"],
+                "parallel_pending_pages": [],
+                "parallel_cycle_completed_category_ids": ["10"],
+                "parallel_cycle_unqueryable_category_ids": ["20"],
+                "parallel_cycle_pages_success": 3,
+                "parallel_cycle_product_rows_success": 60,
+                "parallel_full_cycle_counter_initialized": True,
+                "stats": {"completed_cycles": 0},
+            }), encoding="utf-8")
+            candidates_path.write_text(json.dumps({"candidates": []}), encoding="utf-8")
+            publisher_state_path.write_text("{}", encoding="utf-8")
+
+            result = sweep.run_parallel_sweep(
+                pages_per_run=2,
+                workers=1,
+                state_path=state_path,
+                candidates_path=candidates_path,
+                publisher_state_path=publisher_state_path,
+                fetcher=lambda _task: {"kind": "retry", "rows": [], "error": "test_retry"},
+            )
+
+            self.assertEqual(result, 0)
+            saved = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["last_cycle_status"], "complete_with_gaps")
+            self.assertEqual(saved["last_cycle_categories_unqueryable"], 1)
+            self.assertEqual(saved["last_cycle_unqueryable_category_ids"], ["20"])
+            self.assertEqual(saved["last_cycle_category_accounted_percent"], 100.0)
+            self.assertEqual(saved["last_cycle_category_coverage_percent"], 50.0)
+            self.assertEqual(saved["stats"]["completed_cycles"], 0)
+            self.assertEqual(saved["stats"]["cycles_with_gaps_total"], 1)
+            # The next cycle probes every category again, including the unqueryable one.
+            self.assertEqual(
+                {(row["category_id"], row["page"]) for row in saved["parallel_pending_pages"]},
+                {("10", 1), ("20", 1)},
+            )
+
+    def test_empty_queue_reseeds_unaccounted_categories_instead_of_finishing_cycle(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            state_path = root / "state.json"
+            candidates_path = root / "candidates.json"
+            publisher_state_path = root / "publisher.json"
+            now = datetime.now(timezone.utc).isoformat()
+            state_path.write_text(json.dumps({
+                "categories": [{"id": "10", "name": "mobile"}, {"id": "20", "name": "home"}],
+                "categories_refreshed_at": now,
+                "parallel_queue_initialized": True,
+                "parallel_scan_policy_version": "all_categories_all_pages_v2",
+                "parallel_known_category_ids": ["10", "20"],
+                "parallel_pending_pages": [],
+                "parallel_cycle_completed_category_ids": ["10"],
+                "parallel_cycle_unqueryable_category_ids": [],
+                "parallel_full_cycle_counter_initialized": True,
+                "stats": {"completed_cycles": 0},
+            }), encoding="utf-8")
+            candidates_path.write_text(json.dumps({"candidates": []}), encoding="utf-8")
+            publisher_state_path.write_text("{}", encoding="utf-8")
+
+            result = sweep.run_parallel_sweep(
+                pages_per_run=1,
+                workers=1,
+                state_path=state_path,
+                candidates_path=candidates_path,
+                publisher_state_path=publisher_state_path,
+                fetcher=lambda _task: {"kind": "retry", "rows": [], "error": "test_retry"},
+            )
+
+            self.assertEqual(result, 0)
+            saved = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertNotIn("last_cycle_status", saved)
+            self.assertEqual(saved["stats"]["completed_cycles"], 0)
+            self.assertEqual(
+                {(row["category_id"], row["page"]) for row in saved["parallel_pending_pages"]},
+                {("20", 1)},
+            )
+
 if __name__ == "__main__":
     unittest.main()
