@@ -9,9 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  # Shares the live-state lock with the main radar so independent workflows cannot
-  # overwrite each other's state.json changes.
-  # Share the state-writer lock with channel and YouTube workers; they update the same state.json.
+  # YouTube, Aparat and channel jobs all update state.json; serialize only these writers.
   group: offerchin-content-publisher
   cancel-in-progress: false
 
