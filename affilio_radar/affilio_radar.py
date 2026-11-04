@@ -4287,7 +4287,7 @@ def classify_category(title: str) -> str:
         ("computer_network", r"لپ\s*تاپ|لپتاپ|کامپیوتر|مینی\s*پی\s*سی|کارت گرافیک|پردازنده|\bcpu\b|\bgpu\b|حافظه\s*(?:اس\s*اس\s*دی|ssd|رم)|\bram\b|\bssd\b|مودم|روتر|مانیتور|پرینتر|کیبورد|ماوس"),
         # Put children before sport terms so «کفش ورزشی کودک» remains a kids product.
         ("kids_sports", r"نوزاد|نوزادی|کودک|اسباب\s*بازی|بازی فکری|بازی آموزشی"),
-        ("sports_outdoor", r"ورزشی|کمپینگ|کوهنوردی|سفر و طبیعت|دوچرخه|اسکی|شنا|بدنسازی|دمبل|تردمیل|توپ فوتبال|چادر مسافرتی|اور\s*گریپ|آور\s*گریپ|over\s*grip|overgrip|over-grip"),
+        ("sports_outdoor", r"ورزشی|کمپینگ|کوهنوردی|سفر و طبیعت|دوچرخه|اسکی|شنا|بدنسازی|دمبل|تردمیل|توپ فوتبال|چادر مسافرتی|اور\s*گریپ|آور\s*گریپ|over\s*grip|overgrip|over-grip|aver\s*grip|avergrip"),
         ("gaming", r"گیم|بازی ویدیویی|بازی رایانه.?ای|بازی کامپیوتری|کنسول|پلی\s*استیشن|xbox"),
         ("jewelry", r"زیورآلات|بدلیجات|گوشواره|انگشتر|دستبند|گردنبند|نقره زنانه|نقره مردانه|پرسته"),
         ("books_stationery", r"کتاب|دفتر|خودکار|مداد|لوازم التحریر|لوازم‌التحریر|نوشت افزار"),
@@ -6580,7 +6580,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             ("laser_pointer", r"لیزر پوینتر|پوینتر ارائه"),
         ],
         "sports_outdoor": [
-            ("racket_grips", r"اور\s*گریپ|آور\s*گریپ|over\s*grip|overgrip|over-grip"),
+            ("racket_grips", r"اور\s*گریپ|آور\s*گریپ|over\s*grip|overgrip|over-grip|aver\s*grip|avergrip"),
             ("camping", r"کمپینگ|کوهنوردی|چادر مسافرتی|سفر و طبیعت"),
             ("fitness", r"بدنسازی|دمبل|تردمیل"),
             ("cycling_and_sports", r"دوچرخه|توپ فوتبال|شنا|اسکی"),
@@ -6630,7 +6630,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
                 family = f"{category}:{subfamily}"
                 break
     brand_hints = [
-        ("avergrip", r"آور\s*گریپ|اور\s*گریپ|over\s*grip|overgrip|over-grip"),
+        ("avergrip", r"آور\s*گریپ|اور\s*گریپ|over\s*grip|overgrip|over-grip|aver\s*grip|avergrip"),
         ("muzik_apollo", r"موزیک\s*آپولو"),
         ("vonk", r"وونک"),
         ("reolink", r"ریولینک"),
