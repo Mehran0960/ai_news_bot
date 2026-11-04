@@ -22,7 +22,7 @@ concurrency:
 jobs:
   catalog-sweep:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - name: Check out catalog cursor and candidate queue
         uses: actions/checkout@v4
@@ -48,7 +48,7 @@ jobs:
       - name: Sweep all queryable catalog pages concurrently (no page-depth cap)
         env:
           PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/parallel_catalog_sweep.py --pages-per-run 300 --workers 12
+        run: python affilio_radar/parallel_catalog_sweep.py --pages-per-run 400 --workers 12
 
       - name: Persist resumable page queue and unacknowledged product candidates
         if: always()
