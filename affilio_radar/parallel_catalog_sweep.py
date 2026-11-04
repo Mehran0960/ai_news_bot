@@ -263,6 +263,7 @@ def run_parallel_sweep(
         "discounted_candidates_found_total", "catalog_candidate_cards_found_total",
         "api_failures_total", "completed_cycles", "unqueryable_categories_total",
         "empty_product_pages_total", "nonempty_product_pages_total",
+        "cycles_with_gaps_total",
     ):
         stats[key] = max(0, base._normal_int(stats.get(key)))
 
@@ -285,32 +286,96 @@ def run_parallel_sweep(
 
     queue = _ensure_parallel_state(state)
     if not queue:
-        completed_ids = {str(v) for v in state.get("parallel_cycle_completed_category_ids", []) if str(v).isdigit()}
-        unqueryable_ids = {str(v) for v in state.get("parallel_cycle_unqueryable_category_ids", []) if str(v).isdigit()}
+        valid_categories = [
+            row for row in categories
+            if isinstance(row, dict) and str(row.get("id") or "").isdigit()
+        ]
+        category_ids = {str(row.get("id")) for row in valid_categories}
+        if not category_ids:
+            print("PARALLEL_CATALOG_ABORTED reason=no_valid_category_ids")
+            return 1
+
+        completed_ids = {
+            str(value) for value in state.get("parallel_cycle_completed_category_ids", [])
+            if str(value).isdigit()
+        } & category_ids
+        unqueryable_ids = {
+            str(value) for value in state.get("parallel_cycle_unqueryable_category_ids", [])
+            if str(value).isdigit()
+        } & category_ids
         accounted_ids = completed_ids | unqueryable_ids
-        state["last_cycle_completed_at"] = base.iso_now()
-        state["last_cycle_categories_complete"] = len(completed_ids)
-        state["last_cycle_categories_unqueryable"] = len(unqueryable_ids)
-        state["last_cycle_categories_total"] = len(categories)
-        state["last_cycle_categories_accounted"] = len(accounted_ids)
-        state["last_cycle_category_coverage_percent"] = round(100 * len(accounted_ids) / max(1, len(categories)), 2)
-        state["last_cycle_pages_success"] = max(0, base._normal_int(state.get("parallel_cycle_pages_success")))
-        state["last_cycle_product_rows_success"] = max(0, base._normal_int(state.get("parallel_cycle_product_rows_success")))
-        stats["completed_cycles"] += 1
-        state["completed_cycles"] = stats["completed_cycles"]
-        queue = build_initial_page_queue(categories, 0, 1)
-        state["parallel_pending_pages"] = queue
-        state["parallel_cycle_started_at"] = base.iso_now()
-        state["parallel_cycle_completed_category_ids"] = []
-        state["parallel_cycle_unqueryable_category_ids"] = []
-        state["parallel_cycle_pages_success"] = 0
-        state["parallel_cycle_product_rows_success"] = 0
-        print(
-            "PARALLEL_CATALOG_CYCLE_COMPLETED "
-            f"categories={len(accounted_ids)}/{len(categories)} "
-            f"coverage_pct={state['last_cycle_category_coverage_percent']} "
-            f"pages={state['last_cycle_pages_success']} products={state['last_cycle_product_rows_success']}"
-        )
+        missing_ids = category_ids - accounted_ids
+
+        if missing_ids:
+            # Never call a cycle complete merely because its queue was accidentally
+            # emptied. Re-seed only categories that have not been accounted for.
+            missing_categories = [
+                row for row in valid_categories if str(row.get("id")) in missing_ids
+            ]
+            queue = build_initial_page_queue(missing_categories, 0, 1)
+            state["parallel_pending_pages"] = queue
+            state["parallel_unaccounted_categories_requeued"] = len(queue)
+            print(
+                "PARALLEL_CATALOG_CYCLE_REPAIRED "
+                f"unaccounted_categories={len(missing_ids)} "
+                f"requeued={len(queue)}"
+            )
+        else:
+            finished_at = base.iso_now()
+            clean_full_cycle = (
+                len(completed_ids) == len(category_ids)
+                and not unqueryable_ids
+            )
+            state["last_cycle_finished_at"] = finished_at
+            state["last_cycle_status"] = (
+                "complete" if clean_full_cycle else "complete_with_gaps"
+            )
+            state["last_cycle_categories_complete"] = len(completed_ids)
+            state["last_cycle_categories_unqueryable"] = len(unqueryable_ids)
+            state["last_cycle_unqueryable_category_ids"] = sorted(
+                unqueryable_ids, key=lambda value: int(value)
+            )
+            state["last_cycle_categories_total"] = len(category_ids)
+            state["last_cycle_categories_accounted"] = len(accounted_ids)
+            state["last_cycle_category_accounted_percent"] = round(
+                100 * len(accounted_ids) / max(1, len(category_ids)), 2
+            )
+            # "Coverage" is strict: an unqueryable category is a gap, not a success.
+            state["last_cycle_category_coverage_percent"] = round(
+                100 * len(completed_ids) / max(1, len(category_ids)), 2
+            )
+            state["last_cycle_pages_success"] = max(
+                0, base._normal_int(state.get("parallel_cycle_pages_success"))
+            )
+            state["last_cycle_product_rows_success"] = max(
+                0, base._normal_int(state.get("parallel_cycle_product_rows_success"))
+            )
+            if clean_full_cycle:
+                state["last_cycle_completed_at"] = finished_at
+                stats["completed_cycles"] += 1
+            else:
+                stats["cycles_with_gaps_total"] += 1
+            state["completed_cycles"] = stats["completed_cycles"]
+
+            queue = build_initial_page_queue(valid_categories, 0, 1)
+            state["parallel_pending_pages"] = queue
+            state["parallel_cycle_started_at"] = base.iso_now()
+            state["parallel_cycle_completed_category_ids"] = []
+            state["parallel_cycle_unqueryable_category_ids"] = []
+            state["parallel_cycle_pages_success"] = 0
+            state["parallel_cycle_product_rows_success"] = 0
+            print(
+                "PARALLEL_CATALOG_CYCLE_FINISHED "
+                f"status={state['last_cycle_status']} "
+                f"categories_complete={len(completed_ids)}/{len(category_ids)} "
+                f"unqueryable={len(unqueryable_ids)} "
+                f"accounted_pct={state['last_cycle_category_accounted_percent']} "
+                f"strict_coverage_pct={state['last_cycle_category_coverage_percent']} "
+                f"pages={state['last_cycle_pages_success']} "
+                f"products={state['last_cycle_product_rows_success']} "
+                f"clean_full_cycles={stats['completed_cycles']} "
+                f"cycles_with_gaps={stats['cycles_with_gaps_total']}"
+            )
 
     batch_limit = max(1, min(2000, int(pages_per_run)))
     requested_workers = max(1, min(32, int(workers)))
