@@ -305,7 +305,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("<b>💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان</b>", caption)
         self.assertNotIn("────────────\n\n<b>💚 قیمت فعلی:", caption)
         self.assertIn("<b>⚡️ ۱۷٪ تخفیف</b>", caption)
-        self.assertNotIn("با امکان خرید اقساطی", caption)
+        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
         verified_caption = build_caption({
             **product,
             "digipay_installment_verified": True,
@@ -318,7 +318,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertIn("*💚 قیمت فعلی: ۱۰٬۰۰۰٬۰۰۰ تومان*", bale_caption)
         self.assertIn("*⚡️ ۱۷٪ تخفیف*", bale_caption)
-        self.assertNotIn("با امکان خرید اقساطی", bale_caption)
+        self.assertIn("*💳 با امکان خرید اقساطی (دیجی پی)*", bale_caption)
         verified_bale_caption = build_caption({
             **product,
             "digipay_installment_verified": True,
@@ -425,13 +425,13 @@ class AffilioRadarTests(unittest.TestCase):
             ["dkp-old", "snp-middle", "dkp-new"],
         )
 
-    def test_exact_digipay_installment_sentence_is_only_shown_after_product_verification(self):
+    def test_exact_digipay_installment_sentence_is_always_shown_without_product_flags(self):
         product_url = "https://www.digikala.com/product/dkp-990002/"
         product = {
             "title": "نمونه", "product_url": product_url, "merchant": "دیجی‌کالا",
         }
         caption = build_caption(product, build_affilio_tracking_link(product_url))
-        self.assertNotIn("با امکان خرید اقساطی", caption)
+        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
         verified_caption = build_caption({
             **product,
             "digipay_installment_verified": True,
@@ -467,10 +467,11 @@ class AffilioRadarTests(unittest.TestCase):
         }, affiliate)
         self.assertIn("🔥 فروش ویژه اسنپ‌شاپ 🟣", caption)
         self.assertNotIn("دیجی‌کالا", caption)
-        self.assertNotIn("با امکان خرید اقساطی", caption)
+        self.assertIn("<b>💳 با امکان خرید اقساطی (دیجی پی)</b>", caption)
         self.assertIn(
             "\n\n────────────\n<b>💚 قیمت فعلی: ۱٬۰۶۵٬۰۰۰ تومان</b>"
-            "\n\n<b>⚡️ ۵۳٪ تخفیف</b>\n────────────",
+            "\n\n<b>⚡️ ۵۳٪ تخفیف</b>"
+            "\n\n<b>💳 با امکان خرید اقساطی (دیجی پی)</b>\n────────────",
             caption,
         )
 
