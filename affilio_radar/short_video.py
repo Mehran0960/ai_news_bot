@@ -19,7 +19,8 @@ import requests
 import offerchin_visuals
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps, features
 from offerchin_visuals import (
-    draw_digipay_badge, draw_retailer_badge, adaptive_text_colors,
+    draw_digipay_badge, draw_retailer_badge, draw_discount_flame,
+    adaptive_text_colors,
 )
 from offerchin_audio import write_original_soundtrack
 
@@ -254,35 +255,6 @@ def format_persian_discount(value: object) -> str:
     return f"🔥 {persian}٪ تخفیف"
 
 
-def _draw_discount_flame(draw: ImageDraw.ImageDraw, center_x: int, center_y: int, size: int = 30) -> None:
-    """Draw a small, crisp fire-emoji mark without depending on emoji font coverage."""
-    cx, cy, radius = int(center_x), int(center_y), max(8, int(size)) // 2
-    outer = [
-        (cx, cy - radius),
-        (cx + radius // 2, cy - radius // 4),
-        (cx + radius, cy + radius // 3),
-        (cx + radius // 2, cy + radius),
-        (cx - radius // 4, cy + radius),
-        (cx - radius, cy + radius // 3),
-        (cx - radius // 2, cy - radius // 5),
-    ]
-    draw.polygon(outer, fill=(239, 78, 35, 255))
-    inner = [
-        (cx + 1, cy - radius // 4),
-        (cx + radius // 3, cy + radius // 5),
-        (cx + radius // 4, cy + radius * 3 // 4),
-        (cx - radius // 4, cy + radius * 3 // 4),
-        (cx - radius // 3, cy + radius // 4),
-    ]
-    draw.polygon(inner, fill=(255, 190, 53, 255))
-    core = [
-        (cx, cy + radius // 5),
-        (cx + radius // 6, cy + radius // 2),
-        (cx - radius // 5, cy + radius // 2),
-    ]
-    draw.polygon(core, fill=(255, 239, 165, 255))
-
-
 def build_vertical_poster(
     image_bytes: bytes,
     discount_percent: object = None,
@@ -464,7 +436,7 @@ def build_vertical_poster(
         # The emoji is drawn as a tiny vector flame so it renders consistently on
         # GitHub runners even when their installed font set lacks color emoji glyphs.
         flame_x = min(WIDTH - 54, discount_bbox[2] + 22)
-        _draw_discount_flame(draw, flame_x, 886, 30)
+        draw_discount_flame(background, flame_x, 886, 30)
 
     tagline = _shape_rtl("آفِرچین | شکار تخفیف‌های واقعی")
     tagline_font = _font(19)
