@@ -382,7 +382,7 @@ def _listing_availability(product: dict) -> str:
             if isinstance(value, dict):
                 value = value.get("title") or value.get("status") or value.get("label")
             if isinstance(value, str):
-                normalized = re.sub(r"\\s+", "_", value.strip().lower().replace("-", "_"))
+                normalized = re.sub(r"\s+", "_", value.strip().lower().replace("-", "_"))
                 if normalized in in_stock_words:
                     return "in_stock"
                 if normalized in out_of_stock_words:
@@ -682,7 +682,7 @@ def load_catalog_candidates_for_handoff(
     for row in rows:
         pid = str(row.get("product_id") or "")
         url = str(row.get("product_url") or "")
-        if not re.fullmatch(r"dkp-\\d{1,12}", pid):
+        if not re.fullmatch(r"dkp-\d{1,12}", pid):
             continue
         previous = seen.get(pid)
         previous_fingerprint = (
@@ -739,7 +739,7 @@ def acknowledge_catalog_candidates_handoff(
     }
     acknowledged = {
         str(pid) for pid in (product_ids or [])
-        if re.fullmatch(r"dkp-\\d{1,12}", str(pid))
+        if re.fullmatch(r"dkp-\d{1,12}", str(pid))
     }
     for pid in acknowledged:
         candidate = candidate_map.get(pid)
