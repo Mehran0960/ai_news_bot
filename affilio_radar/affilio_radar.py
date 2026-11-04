@@ -4287,7 +4287,7 @@ def classify_category(title: str) -> str:
         ("computer_network", r"لپ\s*تاپ|لپتاپ|کامپیوتر|مینی\s*پی\s*سی|کارت گرافیک|پردازنده|\bcpu\b|\bgpu\b|حافظه\s*(?:اس\s*اس\s*دی|ssd|رم)|\bram\b|\bssd\b|مودم|روتر|مانیتور|پرینتر|کیبورد|ماوس"),
         # Put children before sport terms so «کفش ورزشی کودک» remains a kids product.
         ("kids_sports", r"نوزاد|نوزادی|کودک|اسباب\s*بازی|بازی فکری|بازی آموزشی"),
-        ("sports_outdoor", r"ورزشی|کمپینگ|کوهنوردی|سفر و طبیعت|دوچرخه|اسکی|شنا|بدنسازی|دمبل|تردمیل|توپ فوتبال|چادر مسافرتی"),
+        ("sports_outdoor", r"ورزشی|کمپینگ|کوهنوردی|سفر و طبیعت|دوچرخه|اسکی|شنا|بدنسازی|دمبل|تردمیل|توپ فوتبال|چادر مسافرتی|اور\s*گریپ|آور\s*گریپ|over\s*grip|overgrip|over-grip"),
         ("gaming", r"گیم|بازی ویدیویی|بازی رایانه.?ای|بازی کامپیوتری|کنسول|پلی\s*استیشن|xbox"),
         ("jewelry", r"زیورآلات|بدلیجات|گوشواره|انگشتر|دستبند|گردنبند|نقره زنانه|نقره مردانه|پرسته"),
         ("books_stationery", r"کتاب|دفتر|خودکار|مداد|لوازم التحریر|لوازم‌التحریر|نوشت افزار"),
@@ -6580,6 +6580,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             ("laser_pointer", r"لیزر پوینتر|پوینتر ارائه"),
         ],
         "sports_outdoor": [
+            ("racket_grips", r"اور\s*گریپ|آور\s*گریپ|over\s*grip|overgrip|over-grip"),
             ("camping", r"کمپینگ|کوهنوردی|چادر مسافرتی|سفر و طبیعت"),
             ("fitness", r"بدنسازی|دمبل|تردمیل"),
             ("cycling_and_sports", r"دوچرخه|توپ فوتبال|شنا|اسکی"),
@@ -6629,6 +6630,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
                 family = f"{category}:{subfamily}"
                 break
     brand_hints = [
+        ("avergrip", r"آور\s*گریپ|اور\s*گریپ|over\s*grip|overgrip|over-grip"),
         ("muzik_apollo", r"موزیک\s*آپولو"),
         ("vonk", r"وونک"),
         ("reolink", r"ریولینک"),
@@ -7012,13 +7014,102 @@ def _order_candidates_by_primary_rank(
     )
     return ordered
 
+def _filter_recent_publication_repeats(
+    candidates: list[dict],
+    published: dict | None,
+    recent_publications: list | None,
+    now: datetime,
+    *,
+    limit: int | None = None,
+    label: str = "PUBLISH",
+) -> list[dict]:
+    """Apply hard family/brand cooldowns to every new publication hand-off.
+
+    Rank order remains unchanged among eligible products. A repeat is deferred when
+    a different family or brand is available; if every candidate repeats, nothing is
+    queued and the next discovery cycle can re-evaluate the market.
+    """
+    current = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    family_cooldown_seconds = max(0.0, float(FAMILY_REPEAT_COOLDOWN_HOURS)) * 3600
+    brand_cooldown_seconds = max(0.0, float(BRAND_REPEAT_COOLDOWN_HOURS)) * 3600
+    history_window_hours = max(
+        float(FAMILY_REPEAT_COOLDOWN_HOURS),
+        float(BRAND_REPEAT_COOLDOWN_HOURS),
+    )
+    history = _recent_publication_diversity(
+        published,
+        limit=PUBLICATION_LEDGER_LIMIT,
+        durable_history=recent_publications,
+        now=current,
+        window_hours=history_window_hours,
+    )
+    now_ts = current.timestamp()
+    blocked_families: set[str] = set()
+    blocked_brands: set[str] = set()
+    for previous in history:
+        try:
+            age_seconds = now_ts - float(previous.get("order") or previous.get("ts") or 0)
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if age_seconds < 0:
+            continue
+        family = str(previous.get("family") or "")
+        brand = str(previous.get("brand") or "")
+        if family and _is_specific_product_family(
+            str(previous.get("category") or ""),
+            family,
+        ) and age_seconds < family_cooldown_seconds:
+            blocked_families.add(family)
+        if brand and age_seconds < brand_cooldown_seconds:
+            blocked_brands.add(brand)
+
+    selected: list[dict] = []
+    skipped_family = 0
+    skipped_brand = 0
+    selected_families: set[str] = set()
+    selected_brands: set[str] = set()
+    for candidate in candidates or []:
+        if not isinstance(candidate, dict):
+            continue
+        category, family, brand = _publication_diversity_group(candidate)
+        specific_family = _is_specific_product_family(category, family)
+        if specific_family and family in blocked_families:
+            skipped_family += 1
+            continue
+        if brand and brand in blocked_brands:
+            skipped_brand += 1
+            continue
+        selected.append(candidate)
+        # A fallback pool is part of the same publication hand-off. Do not let a
+        # stale primary promote another variant of the same family or brand.
+        if specific_family:
+            blocked_families.add(family)
+            selected_families.add(family)
+        if brand:
+            blocked_brands.add(brand)
+            selected_brands.add(brand)
+        if limit is not None and len(selected) >= max(1, int(limit)):
+            break
+
+    if skipped_family or skipped_brand:
+        print(
+            f"{label}_DIVERSITY_GUARD candidates={len(candidates or [])} "
+            f"selected={len(selected)} family_deferred={skipped_family} "
+            f"brand_deferred={skipped_brand} "
+            f"family_cooldown_hours={FAMILY_REPEAT_COOLDOWN_HOURS} "
+            f"brand_cooldown_hours={BRAND_REPEAT_COOLDOWN_HOURS}"
+        )
+    return selected
+
+
 def select_urgent_publication_candidate(
     eligible: list[dict],
     now: datetime | None = None,
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> dict | None:
-    """Allow only the globally highest-ranked live offer to use an urgent cadence bypass."""
+    """Allow only the highest-ranked urgent offer that passes repeat-family/brand guards."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -7027,6 +7118,10 @@ def select_urgent_publication_candidate(
         (product for product in (eligible or []) if isinstance(product, dict)),
         key=lambda record: deal_sort_key(record, now=current),
         reverse=True,
+    )
+    ranked = _filter_recent_publication_repeats(
+        ranked, published, recent_publications, current, limit=1,
+        label="URGENT_PUBLICATION",
     )
     if not ranked:
         return None
@@ -7082,7 +7177,10 @@ def select_publish_candidates(
             reverse=True,
         )
         ordered.extend(tier)
-    return ordered
+    return _filter_recent_publication_repeats(
+        ordered, published, recent_publications, current,
+        label="PUBLISH_SELECTION",
+    )
 
 
 MIN_REPEAT_PRODUCT_INTERVAL_HOURS = 24
