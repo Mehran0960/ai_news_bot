@@ -4719,12 +4719,8 @@ def build_caption(
     if discount is not None and int(discount) > 0:
         discount_value = format_persian_number(discount) + "٪"
         offer_lines.append(bold(f"⚡️ {discount_value} تخفیف"))
-    # Installment availability is product-specific; do not claim it without provider verification.
-    if (
-        p.get("digipay_installment_verified") is True
-        and p.get("digipay_installment_available") is True
-    ):
-        offer_lines.append(bold("💳 با امکان خرید اقساطی (دیجی پی)"))
+    # User-requested standard caption line: include on every retailer post.
+    offer_lines.append(bold("💳 با امکان خرید اقساطی (دیجی پی)"))
 
     # Keep one source-channel membership link for forwarded posts; the purchase button
     # remains a separate inline button and its presence is validated by the sender.
