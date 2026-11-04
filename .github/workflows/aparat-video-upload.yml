@@ -69,7 +69,7 @@ jobs:
         env:
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
           AFFILIO_APARAT_UPLOAD_ENABLED: "true"
-          AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS: "3"
+          AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS: "4"
           APARAT_SHORTS_ONLY: "false"
           APARAT_VIDEO_PASS: "0"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
