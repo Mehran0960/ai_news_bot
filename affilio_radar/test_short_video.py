@@ -85,6 +85,25 @@ class FakeYouTubeHTTP:
 
 
 class ShortVideoTests(unittest.TestCase):
+    def setUp(self):
+        # Unit tests run without network-fetched workflow assets; production staging
+        # validates the real DigiPay SVG before any video adapter is called.
+        fake_logo = Image.new("RGBA", (64, 64), (255, 255, 255, 255))
+        self.digipay_logo_patch = mock.patch(
+            "offerchin_visuals._load_digipay_logo",
+            return_value=fake_logo,
+        )
+        self.digipay_logo_patch.start()
+        self.addCleanup(self.digipay_logo_patch.stop)
+
+    def test_video_poster_fails_closed_when_digipay_logo_is_missing(self):
+        image = Image.new("RGB", (400, 500), (255, 255, 255))
+        stream = io.BytesIO()
+        image.save(stream, format="PNG")
+        with mock.patch("offerchin_visuals._load_digipay_logo", return_value=None):
+            with self.assertRaisesRegex(RuntimeError, "official DigiPay logo unavailable"):
+                build_vertical_poster(stream.getvalue(), 50)
+
     def test_original_soundtrack_is_stereo_and_non_silent(self):
         import wave
 
@@ -193,20 +212,20 @@ class ShortVideoTests(unittest.TestCase):
         self.assertEqual(discount_badge_dimensions_for_reference_bounds(280, 88), (280, 88))
         self.assertEqual(discount_badge_dimensions_for_reference_bounds(124, 48), (124, 48))
 
-    def test_vertical_discount_badge_uses_snappshop_purple(self):
+    def test_snappshop_video_keeps_store_tile_and_uses_digipay_blue_co_brand_tile(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
         image.save(stream, format="PNG")
         poster = Image.open(io.BytesIO(build_vertical_poster(
             stream.getvalue(), 42, merchant="اسنپ‌شاپ",
         ))).convert("RGB")
-        crop = poster.crop((448, 150, 710, 330))
-        purple_pixels = sum(
+        digipay_crop = poster.crop((392, 244, 672, 332))
+        blue_pixels = sum(
             1
-            for red, green, blue in crop.getdata()
-            if red > 100 and blue > 100 and red > green * 1.6 and blue > green * 1.6
+            for red, green, blue in digipay_crop.getdata()
+            if blue > 150 and blue > red * 1.8 and blue > green * 1.2
         )
-        self.assertGreater(purple_pixels, 1500)
+        self.assertGreater(blue_pixels, 15_000)
 
     def test_persian_text_uses_one_bidi_engine_without_double_reordering(self):
         from PIL import ImageFont
