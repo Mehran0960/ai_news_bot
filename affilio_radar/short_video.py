@@ -2,7 +2,7 @@
 # [repair-all-captions] Trigger button restoration without also queueing the cleanup workflow.
 """Generate short vertical OfferChin product videos for configured video destinations.
 
-The overlay contains the discount badge and two platform-marked channel IDs only.
+The overlay contains retailer and DigiPay brand tiles, current price, discount, and top-safe-area channel links.
 A verified deadline is required; expired platform videos are permanently deleted, with privacy as a failure fallback.
 """
 from __future__ import annotations
@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Mapping
 
 import requests
+import offerchin_visuals
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps, features
 from offerchin_visuals import (
     draw_digipay_badge, draw_retailer_badge, adaptive_text_colors,
@@ -304,6 +305,11 @@ def build_vertical_poster(
     )
     draw = ImageDraw.Draw(background)
 
+    # Never publish a video that silently omits the requested official DigiPay logo.
+    # The caller records this as a video-only retry; channel photo publication is separate.
+    if offerchin_visuals._load_digipay_logo() is None:
+        raise RuntimeError("official DigiPay logo unavailable; defer only the video render")
+
     # Keep the top clear of channel IDs; the product title leads the frame.
     # Product name is readable without opening the caption.
     title_panel = (34, 34, WIDTH - 34, 150)
@@ -427,7 +433,7 @@ def build_vertical_poster(
         )
     else:
         draw.text(
-            (WIDTH // 2, 883),
+            (WIDTH // 2, 818),
             _shape_rtl(f"مشاهده قیمت روز در {merchant}"),
             font=_font(28),
             fill=(10, 79, 40, 255),
