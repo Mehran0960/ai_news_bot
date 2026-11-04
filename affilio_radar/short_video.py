@@ -18,8 +18,7 @@ from typing import Mapping
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps, features
 from offerchin_visuals import (
-    draw_discount_burst, draw_retailer_badge, adaptive_text_colors,
-    discount_badge_dimensions_for_reference_bounds,
+    draw_digipay_badge, draw_retailer_badge, adaptive_text_colors,
 )
 from offerchin_audio import write_original_soundtrack
 
@@ -242,6 +241,47 @@ def format_persian_price(value: object) -> str:
     return latin.translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
 
 
+def format_persian_discount(value: object) -> str:
+    """Return a compact Persian discount label with a matching fire emoji."""
+    try:
+        discount = int(str(value).replace("٪", "").replace("%", "").strip())
+    except (TypeError, ValueError, OverflowError):
+        return ""
+    if not 0 < discount <= 100:
+        return ""
+    persian = str(discount).translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
+    return f"🔥 {persian}٪ تخفیف"
+
+
+def _draw_discount_flame(draw: ImageDraw.ImageDraw, center_x: int, center_y: int, size: int = 30) -> None:
+    """Draw a small, crisp fire-emoji mark without depending on emoji font coverage."""
+    cx, cy, radius = int(center_x), int(center_y), max(8, int(size)) // 2
+    outer = [
+        (cx, cy - radius),
+        (cx + radius // 2, cy - radius // 4),
+        (cx + radius, cy + radius // 3),
+        (cx + radius // 2, cy + radius),
+        (cx - radius // 4, cy + radius),
+        (cx - radius, cy + radius // 3),
+        (cx - radius // 2, cy - radius // 5),
+    ]
+    draw.polygon(outer, fill=(239, 78, 35, 255))
+    inner = [
+        (cx + 1, cy - radius // 4),
+        (cx + radius // 3, cy + radius // 5),
+        (cx + radius // 4, cy + radius * 3 // 4),
+        (cx - radius // 4, cy + radius * 3 // 4),
+        (cx - radius // 3, cy + radius // 4),
+    ]
+    draw.polygon(inner, fill=(255, 190, 53, 255))
+    core = [
+        (cx, cy + radius // 5),
+        (cx + radius // 6, cy + radius // 2),
+        (cx - radius // 5, cy + radius // 2),
+    ]
+    draw.polygon(core, fill=(255, 239, 165, 255))
+
+
 def build_vertical_poster(
     image_bytes: bytes,
     discount_percent: object = None,
@@ -299,8 +339,31 @@ def build_vertical_poster(
         )
         line_y += 47
 
-    # Product photo gets its own clean card; all critical selling copy sits outside it.
-    card = (34, 164, WIDTH - 34, 678)
+    # Place public channel links directly below the title, above the media safe-area
+    # where YouTube's lower caption/description controls cannot bury them.
+    cta_panel = (34, 162, WIDTH - 34, 218)
+    draw.rounded_rectangle(
+        cta_panel,
+        radius=19,
+        fill=(246, 255, 247, 248),
+        outline=(78, 177, 105, 245),
+        width=2,
+    )
+    channel_font = _font(18)
+    channel_color = (17, 77, 43, 255)
+    _draw_telegram_logo(draw, 128, 175, 32)
+    draw.text(
+        (170, 191), "T.me/OfferChin", font=channel_font,
+        fill=channel_color, anchor="lm",
+    )
+    _draw_bale_logo(draw, 382, 175, 32)
+    draw.text(
+        (424, 191), "ble.ir/OfferChin", font=channel_font,
+        fill=channel_color, anchor="lm",
+    )
+
+    # Product photo gets its own clean card; the CTA strip above remains outside it.
+    card = (34, 230, WIDTH - 34, 678)
     draw.rounded_rectangle(
         (card[0] + 5, card[1] + 9, card[2] + 5, card[3] + 9),
         radius=30,
@@ -314,25 +377,23 @@ def build_vertical_poster(
     background.alpha_composite(fitted.convert("RGBA"), (x, y))
     draw = ImageDraw.Draw(background)
 
-    try:
-        discount = int(discount_percent)
-    except (TypeError, ValueError, OverflowError):
-        discount = 0
-    retailer_left, retailer_top = 48, 178
+    # Use the same visual footprint for retailer and DigiPay marks; do not repeat
+    # the discount badge here because the numeric discount is shown beside the price.
+    retailer_left, retailer_top = 48, 244
     retailer_width, retailer_height = 280, 88
-    if 0 < discount <= 100:
-        badge_width, badge_height = discount_badge_dimensions_for_reference_bounds(retailer_width, retailer_height)
-        left = WIDTH - retailer_left - badge_width
-        draw_discount_burst(
-            draw, left, retailer_top, badge_width, badge_height, discount, merchant=merchant
-        )
-
-    # Give the discount and retailer elements identical target width and height.
     draw_retailer_badge(
         background, retailer_left, retailer_top, retailer_width, retailer_height, merchant
     )
+    draw_digipay_badge(
+        background,
+        WIDTH - retailer_left - retailer_width,
+        retailer_top,
+        retailer_width,
+        retailer_height,
+    )
 
-    # Large current price and a crossed-out former price communicate the deal instantly.
+    # The current price remains the primary amount; the original price is intentionally
+    # omitted and its former line is used for one clear discount statement.
     price_panel = (34, 695, WIDTH - 34, 948)
     draw.rounded_rectangle(
         (price_panel[0] + 4, price_panel[1] + 7, price_panel[2] + 4, price_panel[3] + 7),
@@ -374,61 +435,30 @@ def build_vertical_poster(
             **_rtl_layout_kwargs(),
         )
 
-    old_amount = format_persian_price(original_price)
-    try:
-        is_old_price_valid = bool(current_text and old_amount and int(str(original_price).replace(",", "").replace("٬", "")) > int(str(current_price).replace(",", "").replace("٬", "")))
-    except (TypeError, ValueError, OverflowError):
-        is_old_price_valid = False
-    if is_old_price_valid:
-        old_line = f"قیمت اصلی: {old_amount} تومان"
-        old_font = _font(21)
-        old_visual = _shape_rtl(old_line)
-        old_bbox = draw.textbbox((WIDTH // 2, 886), old_visual, font=old_font, anchor="mm", **_rtl_layout_kwargs())
-        draw.text(
+    discount_label = format_persian_discount(discount_percent)
+    if discount_label:
+        discount_text = discount_label.removeprefix("🔥 ").strip()
+        discount_font = _font(30)
+        discount_visual = _shape_rtl(discount_text)
+        discount_bbox = draw.textbbox(
             (WIDTH // 2, 886),
-            old_visual,
-            font=old_font,
-            fill=(92, 102, 95, 255),
+            discount_visual,
+            font=discount_font,
             anchor="mm",
             **_rtl_layout_kwargs(),
         )
-        draw.line(
-            (old_bbox[0] - 2, 886, old_bbox[2] + 2, 886),
-            fill=(200, 48, 48, 255),
-            width=3,
-        )
-
-    # Channel IDs remain at the lower-left, directly over the video background.
-    # Per-label sampling selects dark or light lettering and a contrasting outline;
-    # no opaque card/panel is drawn behind the text.
-    cta_text = _shape_rtl("لینک خرید: کانال بله و تلگرام")
-    cta_font = _font(23)
-    cta_pos = (WIDTH // 2, 1000)
-    cta_bbox = draw.textbbox(cta_pos, cta_text, font=cta_font, anchor="mm", **_rtl_layout_kwargs())
-    cta_fill, cta_stroke = adaptive_text_colors(
-        background, (cta_bbox[0] - 5, cta_bbox[1] - 4, cta_bbox[2] + 5, cta_bbox[3] + 4)
-    )
-    draw.text(
-        cta_pos, cta_text, font=cta_font, fill=cta_fill, anchor="mm",
-        stroke_width=2, stroke_fill=cta_stroke, **_rtl_layout_kwargs(),
-    )
-
-    watermark_font = _font(23)
-    channel_labels = (
-        (_draw_telegram_logo, 1020, "T.me/OfferChin", (103, 1038)),
-        (_draw_bale_logo, 1078, "ble.ir/OfferChin", (103, 1096)),
-    )
-    for draw_icon, icon_y, label, text_pos in channel_labels:
-        draw_icon(draw, 56, icon_y, 36)
-        label_bbox = draw.textbbox(text_pos, label, font=watermark_font, anchor="lm")
-        label_fill, label_stroke = adaptive_text_colors(
-            background,
-            (label_bbox[0] - 4, label_bbox[1] - 3, label_bbox[2] + 4, label_bbox[3] + 3),
-        )
         draw.text(
-            text_pos, label, font=watermark_font, fill=label_fill, anchor="lm",
-            stroke_width=2, stroke_fill=label_stroke,
+            (WIDTH // 2, 886),
+            discount_visual,
+            font=discount_font,
+            fill=(195, 63, 35, 255),
+            anchor="mm",
+            **_rtl_layout_kwargs(),
         )
+        # The emoji is drawn as a tiny vector flame so it renders consistently on
+        # GitHub runners even when their installed font set lacks color emoji glyphs.
+        flame_x = min(WIDTH - 54, discount_bbox[2] + 22)
+        _draw_discount_flame(draw, flame_x, 886, 30)
 
     tagline = _shape_rtl("آفِرچین | شکار تخفیف‌های واقعی")
     tagline_font = _font(19)
