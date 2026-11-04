@@ -94,7 +94,7 @@ async function dispatchWorkflowIfIdle(api, token, label, runningLimitMinutes, qu
   console.log("CHANNEL_DISPATCH_ACCEPTED workflow=" + label);
 }
 
-const PUBLISHER_INTERVAL_MS = 23 * 60 * 1000;
+const PUBLISHER_INTERVAL_MS = 20 * 60 * 1000;
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
 
 async function readOfferChinState(token) {
