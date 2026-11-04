@@ -501,7 +501,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(has_publishable_expiry_or_open_offer({**base, "availability": "in_stock", "original_price": 3_398_000}))
         self.assertTrue(has_publishable_expiry_or_open_offer({**base, "availability": "in_stock"}))
 
-    def test_urgent_selection_does_not_let_family_repeat_block_top_offer(self):
+    def test_urgent_selection_blocks_recent_family_when_no_other_urgent_offer_exists(self):
         now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
         published = {
             "dkp-previous-eyewear": {
@@ -533,7 +533,7 @@ class AffilioRadarTests(unittest.TestCase):
             published=published,
         )
 
-        self.assertEqual(chosen["product_id"], "dkp-eyewear-urgent")
+        self.assertIsNone(chosen)
 
     def test_urgent_selection_prefers_available_candidate_from_different_family(self):
         now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
@@ -568,7 +568,7 @@ class AffilioRadarTests(unittest.TestCase):
             published=published,
         )
 
-        self.assertEqual(chosen["product_id"], "dkp-eyewear-urgent")
+        self.assertEqual(chosen["product_id"], "dkp-skincare-urgent")
 
     def test_urgent_selection_keeps_only_unexpired_candidate_despite_family_repeat(self):
         now = datetime(2026, 10, 24, 19, 0, tzinfo=timezone.utc)
@@ -594,7 +594,7 @@ class AffilioRadarTests(unittest.TestCase):
             published=published,
         )
 
-        self.assertEqual(chosen["product_id"], "dkp-eyewear-only")
+        self.assertIsNone(chosen)
 
     def test_parse_snappshop_product_api_uses_live_vendor_stock_and_rial_prices(self):
         url = "https://snappshop.ir/product/snp-25751584"
