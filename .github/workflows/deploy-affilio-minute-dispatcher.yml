@@ -1,0 +1,66 @@
+name: Deploy OfferChin Minute Dispatcher
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "affilio_radar/workers/affilio-minute-dispatcher.js"
+      - ".github/workflows/deploy-affilio-minute-dispatcher.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offerchin-cloudflare-minute-dispatcher
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out versioned dispatcher source
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Validate the versioned dispatcher source
+        run: |
+          node --check affilio_radar/workers/affilio-minute-dispatcher.js
+          grep -F 'const PUBLISHER_INTERVAL_MS = 6 * 60 * 60 * 1000;' affilio_radar/workers/affilio-minute-dispatcher.js
+
+      - name: Check Cloudflare deployment credentials
+        id: cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [[ -n "$CLOUDFLARE_API_TOKEN" && -n "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID must be configured with Workers Scripts Write access."
+            exit 1
+          fi
+
+      - name: Deploy script content only (preserve bindings and cron schedule)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          url="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/affilio-minute-dispatcher/content"
+          curl --fail-with-body --silent --show-error --retry 2 \
+            -X PUT "$url" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "CF-WORKER-MAIN-MODULE-PART: worker.js" \
+            -F "worker.js=@affilio_radar/workers/affilio-minute-dispatcher.js;type=application/javascript+module" \
+            -o "$RUNNER_TEMP/cloudflare-worker-deploy.json"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path(__import__("os").environ["RUNNER_TEMP"], "cloudflare-worker-deploy.json").read_text())
+          if result.get("success") is not True:
+              raise SystemExit(f"Cloudflare worker deploy failed: {result.get('errors')}")
+          print("OFFERCHIN_MINUTE_DISPATCHER_DEPLOYED_CONTENT_ONLY")
+          PY
