@@ -131,7 +131,7 @@ jobs:
             test_expiration_monitor.ExpirationMonitorTests.test_youtube_retention_does_not_require_expiry_or_oauth_credentials -v
 
       # Discovery/selection is a distinct stage. It writes the neutral content queue only.
-      # Any later publisher adapter can consume that same selected payload without changing discovery.
+      # Independent video workflows consume the persisted published-product records after channel delivery.
       - name: Discover and queue the next verified selection
         continue-on-error: true
         env:
@@ -139,17 +139,10 @@ jobs:
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
           AFFILIO_APARAT_UPLOAD_ENABLED: "false"
           APARAT_SHORTS_ONLY: "false"
           APARAT_VIDEO_PASS: "0"
-          AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS: "3"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
-          YOUTUBE_PRIVACY_STATUS: "public"
-          AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
           AFFILIO_MIN_DISCOUNT_PERCENT: "1"
           AFFILIO_HISTORY_CHECK_LIMIT: "2"
           AFFILIO_HISTORY_RECHECK_HOURS: "24"
@@ -184,23 +177,17 @@ jobs:
           AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "100"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --select-only
-      - name: Publish due selections to all registered destinations
+      - name: Publish due selections to Telegram and Bale only
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
-          AFFILIO_APARAT_UPLOAD_ENABLED: "true"
-          AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS: "3"
+          # Video publication is deliberately excluded from the channel worker.
+          AFFILIO_APARAT_UPLOAD_ENABLED: "false"
           APARAT_SHORTS_ONLY: "false"
           APARAT_VIDEO_PASS: "0"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
-          YOUTUBE_PRIVACY_STATUS: "public"
-          AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
           AFFILIO_PUBLISHER_BATCH_SIZE: "1"
           AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "6"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
