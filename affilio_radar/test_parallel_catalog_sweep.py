@@ -87,6 +87,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
                 {"id": "3", "name": "leaf", "parent_id": "2", "depth": 2},
             ],
             "parallel_queue_initialized": True,
+            "parallel_scan_policy_version": "all_categories_all_pages_v2",
             "parallel_known_category_ids": ["1", "2", "3"],
             "parallel_pending_pages": [
                 {"category_id": "1", "page": 1, "attempts": 0},
