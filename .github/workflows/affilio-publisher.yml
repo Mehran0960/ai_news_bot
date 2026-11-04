@@ -64,18 +64,14 @@ jobs:
         run: |
           cd affilio_radar
           python -m unittest -v test_content_delivery.py
-      - name: Deliver due selected content independently to connected platforms
+      - name: Deliver due selected content to Telegram and Bale
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-          YOUTUBE_PRIVACY_STATUS: "public"
-          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
-          AFFILIO_APARAT_UPLOAD_ENABLED: "true"
+          # Video uploads are handled by destination-specific workers.
+          AFFILIO_APARAT_UPLOAD_ENABLED: "false"
           APARAT_SHORTS_ONLY: "false"
           AFFILIO_DEAL_LIST_PAGES: "5"
           AFFILIO_PRICE_AUDIT_BATCH_SIZE: "10"
