@@ -1,18 +1,16 @@
 name: OfferChin Aparat Video Upload
 
 on:
-  # New selected-content deliveries are owned by offerchin-publisher.yml so
-  # Aparat receives the same selected item in the same delivery cycle as other targets.
-  # Keep manual dispatch only for deliberate legacy-queue recovery.
+  # The Cloudflare minute dispatcher starts this worker when Aparat's own saved slot is due.
+  # Manual dispatch remains available for controlled recovery.
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  # Shares the live-state lock with the main radar so independent workflows cannot
-  # overwrite each other's state.json changes.
-  group: affilio-channel-updates
+  # YouTube, Aparat and channel jobs all update state.json; serialize only these writers.
+  group: offerchin-content-publisher
   cancel-in-progress: false
 
 jobs:
@@ -77,6 +75,8 @@ jobs:
           APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
           AFFILIO_APARAT_UPLOAD_ENABLED: "true"
           AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS: "3"
+          AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT: "6"
+          AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS: "24"
           APARAT_SHORTS_ONLY: "false"
           APARAT_VIDEO_PASS: "0"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}

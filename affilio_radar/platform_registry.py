@@ -9,8 +9,9 @@ or ranking in affilio_radar.py.
 from __future__ import annotations
 
 # Keep one authoritative list of destinations understood by the publisher.
-# "photo" destinations receive the selected offer card; "video" destinations
-# receive a vertical promo for that same selected product in the same delivery run.
+# "photo" destinations receive the selected offer card through the channel publisher.
+# "video" destinations consume the same persisted product records through their own
+# independently scheduled upload workflows.
 PLATFORM_REGISTRY = {
     "telegram": {"media": "photo"},
     "bale": {"media": "photo"},

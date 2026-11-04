@@ -82,7 +82,7 @@ APARAT_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_APARAT_UPLO
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "100"))))
-MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.3833333333333333")))
+MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.2833333333333333")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
@@ -101,11 +101,11 @@ COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
 CAPTION_DEADLINE_FORMAT_VERSION = 14
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
-URGENT_MIN_POST_INTERVAL_MINUTES = 23
+URGENT_MIN_POST_INTERVAL_MINUTES = 17
 DEADLINE_CRITICAL_WINDOW_MINUTES = 120
 # Offers inside the hard 90-minute cutoff are rejected instead of being rushed out.
 ULTRA_URGENT_WINDOW_MINUTES = 0
-ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 23
+ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 17
 URGENT_MIN_DISCOUNT_PERCENT = 80
 URGENT_MIN_SAVINGS_TOMAN = 500_000
 IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
@@ -7924,8 +7924,10 @@ PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
 APARAT_SHORTS_ONLY = str(os.getenv("APARAT_SHORTS_ONLY", "false")).strip().lower() in {"1", "true", "yes", "on"}
 # The main radar and the dedicated Aparat workflow can independently enable this destination.
 APARAT_UPLOAD_ENABLED = str(os.getenv("AFFILIO_APARAT_UPLOAD_ENABLED", "true")).strip().lower() in {"1", "true", "yes", "on"}
-# Match video throughput to channel publication bursts so the video queue does not lag behind.
+# Each video slot selects from a small, fresh hand-off window rather than building a long backlog.
 MAX_SHORT_VIDEOS_PER_RUN = max(1, min(4, int(os.getenv("AFFILIO_MAX_SHORT_VIDEOS_PER_RUN", "2"))))
+VIDEO_UPLOAD_CANDIDATE_LIMIT = max(1, min(50, int(os.getenv("AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT", "6"))))
+VIDEO_UPLOAD_MAX_AGE_HOURS = max(1, min(72, int(os.getenv("AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS", "24"))))
 
 
 def _retain_superseded_youtube_video(
@@ -8173,6 +8175,8 @@ def process_pending_short_video(
     destinations: set[str] | None = None,
     force_due: bool = False,
     only_product_id: str | None = None,
+    candidate_limit: int | None = None,
+    max_age_hours: int | None = None,
 ) -> bool:
     """Generate and publish a vertical artifact for a selected product.
 
@@ -8440,11 +8444,27 @@ def process_pending_short_video(
                 print(f"APARAT_VIDEO_RECONCILE_FAILED id={pid} error={type(exc).__name__}")
             break  # One lookup per scan; other posting and video tasks remain independent.
 
-    for pid, record in published.items():
+    candidate_records = list(published.items())
+    if candidate_limit is not None and only_product_id is None:
+        limit = max(1, min(100, int(candidate_limit)))
+        candidate_records.sort(
+            key=lambda item: _int_value(item[1].get("ts")) or 0,
+            reverse=True,
+        )
+        candidate_records = candidate_records[:limit]
+
+    for pid, record in candidate_records:
         if not isinstance(record, dict):
             continue
         if only_product_id is not None and str(pid) != str(only_product_id):
             continue
+        if max_age_hours is not None:
+            try:
+                record_ts = float(record.get("ts") or 0)
+            except (TypeError, ValueError, OverflowError):
+                record_ts = 0
+            if record_ts <= 0 or current.timestamp() - record_ts > max(1, int(max_age_hours)) * 3600:
+                continue
         generation_status = str(record.get("video_generation_status") or "")
         if generation_status == "generated":
             try:
@@ -9975,25 +9995,34 @@ def run(publish=False, selection_only=False):
             save_json(STATE, state)
             print(f"BATCH_MARKED_COMPLETED key={BATCH_OPERATION_KEY} posts_sent={sent}")
 
-    # Use the same posted-product records for video destinations, and allow enough
-    # throughput to keep pace with the channel's two-post backlog bursts. Each destination
-    # remains failure-isolated; a failed item is deferred while later candidates can proceed.
-    video_items_processed = 0
-    while video_items_processed < MAX_SHORT_VIDEOS_PER_RUN:
-        if not process_pending_short_video(state):
-            break
-        video_items_processed += 1
-    if video_items_processed:
-        print(
-            f"SHORT_VIDEO_QUEUE_PROCESSED items={video_items_processed} "
-            f"limit={MAX_SHORT_VIDEOS_PER_RUN}"
-        )
+    # Public video uploads are intentionally excluded from the discovery/channel path.
+    # YouTube and Aparat use their own --youtube-upload-only / --aparat-upload-only workers.
 
     # Limit retained product history while preserving most recent entries.
     if isinstance(state.get("published"), dict) and len(state["published"]) > 2000:
         state["published"] = dict(sorted(state["published"].items(), key=lambda kv: float(kv[1].get("ts", 0)))[-2000:])
     save_json(STATE, state)
     return 0 if products or any(d.get("ok") for d in search_diagnostics) else 2
+
+
+def run_youtube_uploads_only() -> int:
+    """Process the persisted video queue for YouTube only; never discover or publish channel posts."""
+    state = load_state()
+    processed = 0
+    while processed < MAX_SHORT_VIDEOS_PER_RUN:
+        if not process_pending_short_video(
+            state,
+            output_dir="video_artifacts",
+            destinations={"youtube"},
+            candidate_limit=VIDEO_UPLOAD_CANDIDATE_LIMIT,
+            max_age_hours=VIDEO_UPLOAD_MAX_AGE_HOURS,
+        ):
+            break
+        processed += 1
+        # Each attempt persists state. Reload before selecting another item.
+        state = load_state()
+    print(f"YOUTUBE_ONLY_RUN_SUMMARY processed={processed} max_per_run={MAX_SHORT_VIDEOS_PER_RUN}")
+    return 0
 
 
 def run_aparat_uploads_only() -> int:
@@ -10005,6 +10034,8 @@ def run_aparat_uploads_only() -> int:
             state,
             output_dir="video_artifacts",
             destinations={"aparat"},
+            candidate_limit=VIDEO_UPLOAD_CANDIDATE_LIMIT,
+            max_age_hours=VIDEO_UPLOAD_MAX_AGE_HOURS,
         ):
             break
         processed += 1
@@ -10018,6 +10049,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--publish", action="store_true", help="publish at most one eligible item if all checks pass")
     parser.add_argument("--select-only", action="store_true", help="discover, validate and queue selected content without publishing to any platform")
+    parser.add_argument(
+        "--youtube-upload-only",
+        action="store_true",
+        help="process pending vertical videos for YouTube only; do not discover products or upload to Aparat",
+    )
     parser.add_argument(
         "--aparat-upload-only",
         action="store_true",
@@ -10080,6 +10116,12 @@ def main():
         help="safely replace the two recent YouTube Shorts whose Persian text layout was broken",
     )
     args = parser.parse_args()
+    if args.youtube_upload_only:
+        try:
+            sys.exit(run_youtube_uploads_only())
+        except Exception as exc:
+            print(f"YOUTUBE_ONLY_RUN_FAILED error={type(exc).__name__}")
+            sys.exit(1)
     if args.aparat_upload_only:
         try:
             sys.exit(run_aparat_uploads_only())
