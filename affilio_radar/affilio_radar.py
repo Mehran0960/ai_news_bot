@@ -9996,6 +9996,24 @@ def run(publish=False, selection_only=False):
     return 0 if products or any(d.get("ok") for d in search_diagnostics) else 2
 
 
+def run_youtube_uploads_only() -> int:
+    """Process the persisted video queue for YouTube only; never discover or publish channel posts."""
+    state = load_state()
+    processed = 0
+    while processed < MAX_SHORT_VIDEOS_PER_RUN:
+        if not process_pending_short_video(
+            state,
+            output_dir="video_artifacts",
+            destinations={"youtube"},
+        ):
+            break
+        processed += 1
+        # Each attempt persists state. Reload before selecting another item.
+        state = load_state()
+    print(f"YOUTUBE_ONLY_RUN_SUMMARY processed={processed} max_per_run={MAX_SHORT_VIDEOS_PER_RUN}")
+    return 0
+
+
 def run_aparat_uploads_only() -> int:
     """Process the persisted video queue for Aparat only; never run product/channel discovery."""
     state = load_state()
@@ -10018,6 +10036,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--publish", action="store_true", help="publish at most one eligible item if all checks pass")
     parser.add_argument("--select-only", action="store_true", help="discover, validate and queue selected content without publishing to any platform")
+    parser.add_argument(
+        "--youtube-upload-only",
+        action="store_true",
+        help="process pending vertical videos for YouTube only; do not discover products or upload to Aparat",
+    )
     parser.add_argument(
         "--aparat-upload-only",
         action="store_true",
@@ -10080,6 +10103,12 @@ def main():
         help="safely replace the two recent YouTube Shorts whose Persian text layout was broken",
     )
     args = parser.parse_args()
+    if args.youtube_upload_only:
+        try:
+            sys.exit(run_youtube_uploads_only())
+        except Exception as exc:
+            print(f"YOUTUBE_ONLY_RUN_FAILED error={type(exc).__name__}")
+            sys.exit(1)
     if args.aparat_upload_only:
         try:
             sys.exit(run_aparat_uploads_only())
