@@ -10095,9 +10095,11 @@ def run_video_uploads_only() -> int:
             break
         processed += 1
         state = load_state()
+    from content_delivery import reconcile_video_delivery_targets
+    reconciled = reconcile_video_delivery_targets(state, now=datetime.now(timezone.utc))
     save_json(STATE, state)
     print(
-        f"VIDEO_QUEUE_ONLY_SUMMARY processed={processed} "
+        f"VIDEO_QUEUE_ONLY_SUMMARY processed={processed} reconciled={reconciled} "
         f"max_per_run={MAX_SHORT_VIDEOS_PER_RUN} channel_publishing=false"
     )
     return 0
