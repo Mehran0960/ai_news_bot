@@ -179,6 +179,8 @@ async function dispatchPublisherWhenDue(env, tick, state) {
 }
 
 const VIDEO_WORKFLOW_RETRY_GAP_MS = 5 * 60 * 1000;
+const VIDEO_UPLOAD_CANDIDATE_LIMIT = 6;
+const VIDEO_UPLOAD_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const VIDEO_PENDING_STATUSES = new Set([
   "pending", "pending_credentials", "retry", "skipped_unverified_deadline"
 ]);
@@ -198,6 +200,8 @@ function hasChannelDelivery(record) {
 
 function videoRecordDue(record, platform, now) {
   if (!record || typeof record !== "object" || !hasChannelDelivery(record)) return false;
+  const publishedAt = Number(record.ts || 0) * 1000;
+  if (!Number.isFinite(publishedAt) || publishedAt <= 0 || now - publishedAt > VIDEO_UPLOAD_MAX_AGE_MS) return false;
   const status = String(record[platform + "_upload_status"] || "pending");
   if (!VIDEO_PENDING_STATUSES.has(status)) return false;
   const generation = String(record.video_generation_status || "pending");
@@ -224,7 +228,14 @@ function videoRecordDue(record, platform, now) {
 function hasDueVideoRecord(state, platform, now) {
   const published = state && state.published && typeof state.published === "object"
     ? state.published : {};
-  return Object.values(published).some(record => videoRecordDue(record, platform, now));
+  const recent = Object.values(published)
+    .sort((left, right) => {
+      const leftTs = Number(left && left.ts || 0);
+      const rightTs = Number(right && right.ts || 0);
+      return (Number.isFinite(rightTs) ? rightTs : 0) - (Number.isFinite(leftTs) ? leftTs : 0);
+    })
+    .slice(0, VIDEO_UPLOAD_CANDIDATE_LIMIT);
+  return recent.some(record => videoRecordDue(record, platform, now));
 }
 
 async function readLatestWorkflowAttempt(api, token) {
