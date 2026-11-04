@@ -9975,19 +9975,8 @@ def run(publish=False, selection_only=False):
             save_json(STATE, state)
             print(f"BATCH_MARKED_COMPLETED key={BATCH_OPERATION_KEY} posts_sent={sent}")
 
-    # Use the same posted-product records for video destinations, and allow enough
-    # throughput to keep pace with the channel's two-post backlog bursts. Each destination
-    # remains failure-isolated; a failed item is deferred while later candidates can proceed.
-    video_items_processed = 0
-    while video_items_processed < MAX_SHORT_VIDEOS_PER_RUN:
-        if not process_pending_short_video(state):
-            break
-        video_items_processed += 1
-    if video_items_processed:
-        print(
-            f"SHORT_VIDEO_QUEUE_PROCESSED items={video_items_processed} "
-            f"limit={MAX_SHORT_VIDEOS_PER_RUN}"
-        )
+    # Public video uploads are intentionally excluded from the discovery/channel path.
+    # YouTube and Aparat use their own --youtube-upload-only / --aparat-upload-only workers.
 
     # Limit retained product history while preserving most recent entries.
     if isinstance(state.get("published"), dict) and len(state["published"]) > 2000:
