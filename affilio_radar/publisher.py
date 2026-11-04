@@ -596,6 +596,45 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             _save(state)
             print(f"CONTENT_DUPLICATE_BLOCKED product_id={product_id} reason={duplicate_reason}")
             continue
+        delivery_targets = entry.get("platforms")
+        already_partially_delivered = isinstance(delivery_targets, dict) and any(
+            isinstance(target, dict) and target.get("status") == "sent"
+            for target in delivery_targets.values()
+        )
+        if not already_partially_delivered:
+            allowed = radar._filter_recent_publication_repeats(
+                [payload],
+                state.get("published"),
+                state.get("recent_publications"),
+                now,
+                limit=1,
+                label="PUBLISHER_LAST_MILE",
+            )
+            if not allowed:
+                raw_fallbacks = list(entry.get("fallback_candidates") or [])
+                safe_fallbacks = radar._filter_recent_publication_repeats(
+                    raw_fallbacks,
+                    state.get("published"),
+                    state.get("recent_publications"),
+                    now,
+                    label="PUBLISHER_FALLBACK",
+                )
+                reason = "recent_product_family_or_brand_cooldown"
+                entry["status"] = "stale_selection"
+                entry["last_detail"] = reason
+                finish_queue_item(state, product_id, "stale_selection", now=now, detail=reason)
+                state.get("pending_queue", {}).pop(product_id, None)
+                promoted_id = promote_fallback_selection(
+                    state, safe_fallbacks, now=now, reason=reason
+                ) if safe_fallbacks else None
+                if promoted_id:
+                    fallback_promoted = True
+                _save(state)
+                print(
+                    f"CONTENT_DIVERSITY_BLOCKED product_id={product_id} "
+                    f"fallback_promoted={bool(promoted_id)}"
+                )
+                continue
         entry["status"] = "publishing"
         entry["last_attempt_at"] = now.isoformat()
         try:
