@@ -237,7 +237,7 @@ class CatalogSweepTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "candidates.json"
             path.write_text(json.dumps({"candidates": [
-                {"product_id": "dkp-1", "product_url": "https://www.digikala.com/product/dkp-1/", "title": "هدفون بلوتوثی نمونه", "discount_percent": 50},
+                {"product_id": "dkp-1", "product_url": "https://www.digikala.com/product/dkp-1/", "title": "هدفون بلوتوثی نمونه", "current_price": 250_000, "original_price": 500_000, "discount_percent": 50, "availability": "in_stock"},
                 {"product_id": "dkp-2", "product_url": "https://www.digikala.com/product/dkp-2/", "title": "پاوربانک مدل نمونه", "discount_percent": 70},
             ]}, ensure_ascii=False), encoding="utf-8")
             state = {"catalog_sweep_handoff": {"seen_ids": {"dkp-1": "2026-11-01T00:00:00+00:00"}}}

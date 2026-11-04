@@ -54,7 +54,7 @@
 - لینک همکاری در فروش معتبر و قابل‌انتساب.
 - آفر منقضی‌شده یا کالای ناموجود منتشر نمی‌شود.
 - اقلام صراحتاً ممنوع/غیرمجاز یا ناقض محدودیت‌های ایمنی/حقوقی منتشر نمی‌شوند.
-- ارسال تکراری همان پیشنهاد بدون تغییر مهار می‌شود. پیشنهاد دارای بهبود واقعی قیمت/تخفیف می‌تواند حتی داخل cooldown دوباره رقابت کند. تحویل مقصدهای نیمه‌تمام همچنان duplicate نمی‌شود.
+- ارسال تکراری همان پیشنهاد بدون تغییر مهار می‌شود. hand-off آخرین قیمت/قیمت اصلی/درصد تخفیف/موجودی را به‌صورت fingerprint ثبت می‌کند؛ اگر یکی از این مقادیر تغییر کند، محصول حتی پیش از پایان TTL دوباره برای deep-check وارد می‌شود. کارتِ بدون تغییر تا TTL دو روزه از deep-check تکراری مصون است و پس از TTL دوباره بررسی می‌شود. پیشنهاد دارای بهبود واقعی قیمت/تخفیف می‌تواند حتی داخل cooldown انتشار دوباره رقابت کند. تحویل مقصدهای نیمه‌تمام همچنان duplicate نمی‌شود.
 
 بنابراین: **فیلتر تقاضا/محبوبیت/دسته صفر؛ کنترل صحت قیمت، موجودی، لینک و ایمنی برقرار.**
 
@@ -104,7 +104,7 @@ Registry مرکزی: `affilio_radar/platform_registry.py`. مقصدهای فعل
 | `affilio_radar/catalog_sweep_state.json` | دسته‌ها، صف صفحه‌های مانده و آمار چرخه |
 | `affilio_radar/catalog_sweep_candidates.json` | shortlist ۳٬۰۰۰ کارت اخیر برتر از نظر تخفیف |
 | `affilio_radar/affilio_radar.py` | کشف، اعتبارسنجی و انتخاب discount-first |
-| `affilio_radar/state.json` | صف کشف/انتشار و وضعیت مقصدها |
+| `affilio_radar/state.json` | صف کشف/انتشار و وضعیت مقصدها؛ `catalog_sweep_handoff.seen_ids` اثر انگشت قیمت/موجودی آخرین hand-off را نگه می‌دارد |
 | `affilio_radar/content_delivery.py` | صف تحویل و وضعیت per-platform |
 | `affilio_radar/platform_registry.py` | فهرست مرکزی مقصدها |
 | `affilio_radar/publisher.py` | اعتبارسنجی نهایی و آداپترها |
@@ -139,6 +139,7 @@ python -m unittest affilio_radar.test_affilio affilio_radar.test_selection_evide
 - حذف تقدم demand/popularity و category/brand/family diversity cooldown از ranking.
 - سیاست جدید `discount_first_catalog_v2` تا آخرین مرحلهٔ ناشر، demand یا price-comparison proxy را شرط انتشار نکند.
 - پیشنهاد دارای بهبود واقعی می‌تواند با وجود پست قبلی دوباره رقابت کند؛ hand-off نیمه‌تمام دوباره ایجاد نمی‌شود.
+- hand-off با fingerprint قیمت/موجودی تغییرها را فوری recheck می‌کند؛ کالاهای بدون تغییر دو روز از deep-check تکراری معاف می‌مانند.
 - تغییر رتبه‌بندی ویدئو به تخفیف و saving؛ حذف demand/click از ranking.
 
 ### کارهای باقی‌مانده
