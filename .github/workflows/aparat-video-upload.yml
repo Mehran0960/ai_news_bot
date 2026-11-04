@@ -45,6 +45,7 @@ jobs:
           exit 1
 
       - name: Stage official DigiPay logo for video cards
+        continue-on-error: true
         run: |
           mkdir -p affilio_radar/assets/retailer-logos
           curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 \
