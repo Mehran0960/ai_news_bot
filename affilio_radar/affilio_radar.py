@@ -6583,18 +6583,66 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ],
         "power_backup": [
             ("battery", r"باتری|قلمی|نیم\s*قلمی"),
-            ("charger", r"شارژر"),
+            ("charger", r"شارژر|آداپتور"),
             ("emergency_light", r"چراغ اضطراری|برق اضطراری"),
+            ("flashlights", r"چراغ\s*قوه|چراغ\s*دستی|چراغ\s*پلیسی"),
             ("power_bank", r"پاور\s*بانک|پاوربانک"),
         ],
         "audio_wearables": [
-            ("headphones", r"هدفون|هندزفری|ایرپاد"),
+            ("headphones", r"هدفون|هندزفری|ایرپاد|هدست"),
             ("speaker", r"اسپیکر"),
-            ("smartwatch", r"ساعت\s*هوشمند|اسمارت\s*واچ"),
+            ("smartwatch", r"ساعت\s*هوشمند|اسمارت\s*واچ|مچ\s*بند\s*هوشمند"),
+        ],
+        "mobile_devices": [
+            ("smartphones", r"گوشی\s*(?:موبایل|هوشمند)?|آیفون|iphone|smartphone|mobile\s*phone"),
+            ("tablets", r"تبلت|آیپد|ipad|tablet"),
+        ],
+        "digital_accessories": [
+            ("screen_protection", r"گلس|محافظ\s*صفحه|محافظ\s*نمایشگر"),
+            ("phone_cases", r"قاب\s*(?:گوشی|موبایل)|کاور\s*(?:گوشی|موبایل)"),
+            ("cables", r"کابل|سیم\s*شارژ"),
+            ("chargers", r"شارژر|آداپتور"),
+            ("holders", r"پایه\s*نگهدارنده|هولدر|نگهدارنده\s*گوشی"),
+        ],
+        "computer_network": [
+            ("laptops", r"لپ\s*تاپ|لپتاپ|نوت\s*بوک|notebook|laptop"),
+            ("keyboards", r"کیبورد|صفحه\s*کلید|keyboard"),
+            ("mice", r"ماوس|موس|mouse"),
+            ("monitors", r"مانیتور|نمایشگر|monitor"),
+            ("storage", r"هارد|حافظه|فلش\s*مموری|ssd|\bram\b|\bsolid\s*state\b"),
+            ("network_equipment", r"مودم|روتر|اکسس\s*پوینت|router|modem"),
+            ("printers", r"پرینتر|چاپگر|printer"),
+            ("computer_components", r"کارت\s*گرافیک|پردازنده|\bcpu\b|\bgpu\b"),
+        ],
+        "tv_audio_video": [
+            ("televisions", r"تلویزیون|smart\s*tv|android\s*tv"),
+            ("projectors", r"پروژکتور|projector"),
+            ("cameras", r"دوربین\s*عکاسی|لنز\s*دوربین|camcorder"),
+        ],
+        "gaming": [
+            ("consoles", r"کنسول|پلی\s*استیشن|playstation|xbox"),
+            ("controllers", r"دسته\s*بازی|کنترلر|gamepad|controller"),
+            ("video_games", r"بازی\s*ویدیویی|بازی\s*رایانه|بازی\s*کامپیوتری|\bgame\b"),
+            ("gaming_accessories", r"لوازم\s*جانبی\s*گیمینگ|هدست\s*گیمینگ|ماوس\s*گیمینگ|کیبورد\s*گیمینگ"),
+        ],
+        "large_appliances": [
+            ("refrigerators", r"یخچال|فریزر"),
+            ("washing_machines", r"ماشین\s*لباسشویی|لباسشویی"),
+            ("dishwashers", r"ماشین\s*ظرفشویی|ظرفشویی"),
+            ("cooling_heating", r"کولر\s*گازی|اسپلیت|بخاری\s*برقی|هیتر"),
+            ("cooking_appliances", r"مایکروویو|آون\s*توستر|سرخ\s*کن|فر\s*توکار|اجاق\s*گاز"),
+        ],
+        "automotive": [
+            ("tires", r"لاستیک\s*خودرو|تایر"),
+            ("car_electronics", r"شارژر\s*فندکی|دوربین\s*خودرو|مانیتور\s*خودرو|کمپرسور\s*باد"),
+            ("car_care", r"مراقبت\s*خودرو|واکس\s*بدنه|تمیزکننده\s*خودرو"),
+            ("car_accessories", r"روکش\s*صندلی|کفپوش\s*خودرو|داشبورد|لوازم\s*یدکی"),
         ],
         "personal_care": [
             ("skincare", r"پوست|کرم|سرم|آبرسان|تونر|ضدآفتاب"),
             ("haircare", r"مو|سشوار|برس حرارتی|اتو مو"),
+            ("oral_care", r"مسواک|دندان|دهان\s*شویه|واتر\s*جت"),
+            ("shaving", r"ریش.?تراش|موزن|اپیلاتور|ماشین\s*اصلاح"),
             ("massage", r"ماساژ"),
         ],
         "fashion": [
@@ -6609,7 +6657,10 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         "beauty_fragrance": [("fragrance", r"عطر|ادکلن|پرفیوم|تویلت|بادی\s*اسپلش")],
         "home": [
             ("kitchen", r"آشپزخانه|ظرف|قهوه ساز|فلاسک|ماگ"),
+            ("cookware", r"قابلمه|تابه|سرویس\s*پخت|زودپز|پلوپز"),
+            ("coffee_appliances", r"قهوه\s*ساز|اسپرسو\s*ساز|آسیاب\s*قهوه"),
             ("organization", r"نظم دهنده|ارگانایزر"),
+            ("study_desks", r"میز\s*(?:تحریر|مطالعه)|کتابخانه"),
             ("lighting", r"چراغ|لامپ"),
         ],
         "kids_sports": [
@@ -6901,6 +6952,8 @@ def build_publication_diversity_report(
             "category_repeat_cooldown_minutes": CATEGORY_REPEAT_COOLDOWN_MINUTES,
             "family_repeat_cooldown_hours": FAMILY_REPEAT_COOLDOWN_HOURS,
             "brand_repeat_cooldown_hours": BRAND_REPEAT_COOLDOWN_HOURS,
+            "similar_product_repeat_cooldown_hours": PUBLICATION_SIMILARITY_COOLDOWN_HOURS,
+            "similarity_jaccard_threshold": PUBLICATION_SIMILARITY_JACCARD_THRESHOLD,
             "retailer_repeat_cooldown_minutes": RETAILER_REPEAT_COOLDOWN_MINUTES,
             "diversity_demand_score_ratio": DIVERSITY_DEMAND_SCORE_RATIO,
             "diversity_lookahead_candidates": DIVERSITY_LOOKAHEAD_CANDIDATES,
@@ -7010,6 +7063,105 @@ def _order_candidates_by_primary_rank(
     )
     return ordered
 
+PUBLICATION_SIMILARITY_COOLDOWN_HOURS = 4.0
+PUBLICATION_SIMILARITY_JACCARD_THRESHOLD = 0.50
+PUBLICATION_SIMILARITY_MIN_SHARED_TOKENS = 2
+
+_PUBLICATION_SIMILARITY_STOPWORDS = {
+    "مدل", "model", "سری", "اصل", "اصلی", "اورجینال", "جدید", "جدیدترین",
+    "زنانه", "مردانه", "دخترانه", "پسرانه", "بچگانه", "کودک", "نوزاد",
+    "رنگ", "مشکی", "سفید", "قرمز", "آبی", "سبز", "صورتی", "طلایی", "نقره",
+    "سایز", "اندازه", "ظرفیت", "وزن", "ابعاد", "مجموعه", "عدد", "عددی",
+    "بسته", "پک", "مناسب", "قابل", "دارای", "بدون", "همراه", "به", "از",
+    "برای", "با", "در", "روی", "و", "یا", "این", "آن", "یک", "نوع",
+    "محصول", "کالا", "دستگاه", "لوازم", "تجهیزات", "کاربردی", "حرفه",
+    "اقتصادی", "کوچک", "بزرگ", "جدید", "ارسال", "خرید", "کیفیت",
+    "بی", "سیم", "بیسیم", "بلوتوث", "بلوتوثی", "وایرلس", "شارژی", "برقی",
+    "کتاب", "داستان", "نوجوان", "چاپ", "تازه",
+    "وات", "آمپر", "میلی", "ساعت", "گرم", "کیلوگرم", "سانتی", "اینچ",
+    "mah", "gb", "tb", "cm", "mm", "inch", "wireless", "bluetooth",
+    "new", "original", "genuine", "black", "white", "red", "blue",
+}
+
+_PUBLICATION_SIMILARITY_ALIASES = (
+    (r"هدفون|هندزفری|ایرپاد|هدست|earbuds?|headphones?|headsets?", "هدفون"),
+    (r"لپ\s*تاپ|لپتاپ|نوت\s*بوک|notebooks?|laptops?", "لپتاپ"),
+    (r"پاور\s*بانک|پاوربانک|power\s*bank", "پاوربانک"),
+    (r"ماوس|موس|mice?|mouse", "ماوس"),
+    (r"کیبورد|صفحه\s*کلید|keyboards?", "کیبورد"),
+    (r"جارو\s*(?:برقی|شارژی)|vacuum(?:\s*cleaner)?", "جارو"),
+    (r"گلس|محافظ\s*(?:صفحه|نمایشگر)", "محافظ_صفحه"),
+    (r"قاب\s*(?:گوشی|موبایل)|کاور\s*(?:گوشی|موبایل)", "قاب_گوشی"),
+)
+
+
+def _publication_similarity_tokens(product_or_title) -> set[str]:
+    """Normalize Persian product titles and discard variant-only words.
+
+    Brand, model, size, color, gender, connectivity and marketing descriptors
+    should not make two otherwise similar products look unrelated.
+    """
+    title = ""
+    explicit_brand = ""
+    if isinstance(product_or_title, dict):
+        title = str(product_or_title.get("title") or "")
+        raw_brand = product_or_title.get("brand") or product_or_title.get("brand_name") or ""
+        if isinstance(raw_brand, dict):
+            raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
+        explicit_brand = str(raw_brand or "").strip()
+    else:
+        title = str(product_or_title or "")
+
+    normalized = title.lower().replace("ي", "ی").replace("ك", "ک")
+    normalized = re.sub(r"[\u200b\u200d\u200f\ufeff\u064b-\u065f]", "", normalized)
+    normalized = normalized.replace("\u200c", " ")
+    normalized = re.sub(r"[۰-۹٠-٩]", lambda match: str("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩".index(match.group(0)) % 10), normalized)
+    if explicit_brand:
+        normalized = re.sub(re.escape(explicit_brand.lower()), " ", normalized, flags=re.I)
+
+    for pattern, replacement in _PUBLICATION_SIMILARITY_ALIASES:
+        normalized = re.sub(pattern, replacement, normalized, flags=re.I)
+    normalized = re.sub(r"\d+(?:[.,]\d+)?", " ", normalized)
+    normalized = re.sub(r"[^a-z\u0600-\u06ff]+", " ", normalized)
+    tokens = {
+        token for token in normalized.split()
+        if len(token) > 1 and token not in _PUBLICATION_SIMILARITY_STOPWORDS
+    }
+    return tokens
+
+
+def _publication_products_are_similar(left, right) -> bool:
+    """Conservatively detect the same functional product despite model/variant wording."""
+    left_title = left.get("title") if isinstance(left, dict) else str(left or "")
+    right_title = right.get("title") if isinstance(right, dict) else str(right or "")
+    if not str(left_title or "").strip() or not str(right_title or "").strip():
+        return False
+
+    left_category, left_family, _ = _publication_diversity_group(left)
+    right_category, right_family, _ = _publication_diversity_group(right)
+    if (
+        _is_specific_product_family(left_category, left_family)
+        and left_family == right_family
+    ):
+        return True
+
+    left_tokens = _publication_similarity_tokens(left)
+    right_tokens = _publication_similarity_tokens(right)
+    if not left_tokens or not right_tokens:
+        return False
+    shared = left_tokens & right_tokens
+    if len(shared) < PUBLICATION_SIMILARITY_MIN_SHARED_TOKENS:
+        return False
+
+    union_size = len(left_tokens | right_tokens)
+    jaccard = len(shared) / union_size if union_size else 0.0
+    containment = len(shared) / min(len(left_tokens), len(right_tokens))
+    return (
+        jaccard >= PUBLICATION_SIMILARITY_JACCARD_THRESHOLD
+        or (containment >= 0.80 and jaccard >= 0.30)
+    )
+
+
 def _filter_recent_publication_repeats(
     candidates: list[dict],
     published: dict | None,
@@ -7029,9 +7181,11 @@ def _filter_recent_publication_repeats(
     current = current.astimezone(timezone.utc)
     family_cooldown_seconds = max(0.0, float(FAMILY_REPEAT_COOLDOWN_HOURS)) * 3600
     brand_cooldown_seconds = max(0.0, float(BRAND_REPEAT_COOLDOWN_HOURS)) * 3600
+    similarity_cooldown_seconds = max(0.0, float(PUBLICATION_SIMILARITY_COOLDOWN_HOURS)) * 3600
     history_window_hours = max(
         float(FAMILY_REPEAT_COOLDOWN_HOURS),
         float(BRAND_REPEAT_COOLDOWN_HOURS),
+        float(PUBLICATION_SIMILARITY_COOLDOWN_HOURS),
     )
     history = _recent_publication_diversity(
         published,
@@ -7043,6 +7197,7 @@ def _filter_recent_publication_repeats(
     now_ts = current.timestamp()
     blocked_families: set[str] = set()
     blocked_brands: set[str] = set()
+    blocked_similar_products: list[dict] = []
     for previous in history:
         try:
             age_seconds = now_ts - float(previous.get("order") or previous.get("ts") or 0)
@@ -7059,10 +7214,13 @@ def _filter_recent_publication_repeats(
             blocked_families.add(family)
         if brand and age_seconds < brand_cooldown_seconds:
             blocked_brands.add(brand)
+        if age_seconds < similarity_cooldown_seconds and str(previous.get("title") or "").strip():
+            blocked_similar_products.append(previous)
 
     selected: list[dict] = []
     skipped_family = 0
     skipped_brand = 0
+    skipped_similarity = 0
     selected_families: set[str] = set()
     selected_brands: set[str] = set()
     for candidate in candidates or []:
@@ -7076,25 +7234,30 @@ def _filter_recent_publication_repeats(
         if brand and brand in blocked_brands:
             skipped_brand += 1
             continue
+        if any(_publication_products_are_similar(candidate, previous) for previous in blocked_similar_products):
+            skipped_similarity += 1
+            continue
         selected.append(candidate)
-        # A fallback pool is part of the same publication hand-off. Do not let a
-        # stale primary promote another variant of the same family or brand.
+        # Keep the complete hand-off/fallback pool diverse as well as the live history.
+        # This prevents a stale primary from promoting a near-identical sibling offer.
         if specific_family:
             blocked_families.add(family)
             selected_families.add(family)
         if brand:
             blocked_brands.add(brand)
             selected_brands.add(brand)
+        blocked_similar_products.append(candidate)
         if limit is not None and len(selected) >= max(1, int(limit)):
             break
 
-    if skipped_family or skipped_brand:
+    if skipped_family or skipped_brand or skipped_similarity:
         print(
             f"{label}_DIVERSITY_GUARD candidates={len(candidates or [])} "
             f"selected={len(selected)} family_deferred={skipped_family} "
-            f"brand_deferred={skipped_brand} "
+            f"brand_deferred={skipped_brand} similarity_deferred={skipped_similarity} "
             f"family_cooldown_hours={FAMILY_REPEAT_COOLDOWN_HOURS} "
-            f"brand_cooldown_hours={BRAND_REPEAT_COOLDOWN_HOURS}"
+            f"brand_cooldown_hours={BRAND_REPEAT_COOLDOWN_HOURS} "
+            f"similarity_cooldown_hours={PUBLICATION_SIMILARITY_COOLDOWN_HOURS}"
         )
     return selected
 
