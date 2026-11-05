@@ -1182,13 +1182,13 @@ class AffilioRadarTests(unittest.TestCase):
             ["dkp-powerbank-alternative"],
         )
 
-    def test_similar_product_cooldown_expires_after_four_hours(self):
+    def test_similar_product_cooldown_expires_after_24_hours(self):
         now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-old-laptop": {
                 "title": "لپ‌تاپ ایسوس مدل VivoBook",
                 "telegram_message_id": 1902,
-                "ts": (now - timedelta(hours=4, minutes=5)).timestamp(),
+                "ts": (now - timedelta(hours=23, minutes=50)).timestamp(),
             }
         }
         candidate = {
@@ -1203,7 +1203,103 @@ class AffilioRadarTests(unittest.TestCase):
             now,
             published,
         )
+        self.assertEqual(selected, [])
+
+        published["dkp-old-laptop"]["ts"] = (now - timedelta(hours=24, minutes=5)).timestamp()
+        selected = select_publish_candidates(
+            {candidate["product_id"]: {}},
+            {candidate["product_id"]: candidate},
+            now,
+            published,
+        )
         self.assertEqual([row["product_id"] for row in selected], ["dkp-new-laptop"])
+
+    def test_recent_high_repeat_product_families_are_classified_precisely(self):
+        expected = (
+            ("تی‌شرت ورزشی آستین کوتاه مردانه یو اف سی مدل TS532341", "sports_outdoor", "sports_outdoor:sports_tshirts"),
+            ("کش مو زنانه آی جواهر مدل R12 مجموعه 12 عددی", "personal_care", "personal_care:hair_accessories"),
+            ("دستمال نظافت صندلی خودرو سانگبو کلایمی مدل NanoMAX سایز 30x30", "home_cleaning", "home_cleaning:car_cleaning_cloths"),
+            ("اسکاچ سانگبو کلایمی مدل High Clean", "home_cleaning", "home_cleaning:kitchen_scrubbers"),
+            ("جوراب مردانه کد 1402051 مجموعه 4 عددی", "fashion", "fashion:socks"),
+        )
+        for title, expected_category, expected_family in expected:
+            category, family, _ = radar_module._publication_diversity_group(title)
+            self.assertEqual(category, expected_category, title)
+            self.assertEqual(family, expected_family, title)
+
+    def test_variants_of_recent_high_repeat_family_are_deferred_for_24_hours(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        previous = {
+            "dkp-ufc-shirt-1": {
+                "title": "تی‌شرت ورزشی آستین کوتاه مردانه یو اف سی مدل TS532341",
+                "telegram_message_id": 1903,
+                "ts": (now - timedelta(hours=2)).timestamp(),
+            }
+        }
+        candidate = {
+            "product_id": "dkp-ufc-shirt-2",
+            "title": "تی‌شرت ورزشی آستین کوتاه مردانه یو اف سی مدل TS071663",
+            "discount_percent": 70,
+            "savings_toman": 400_000,
+        }
+        selected = select_publish_candidates(
+            {candidate["product_id"]: {}},
+            {candidate["product_id"]: candidate},
+            now,
+            previous,
+        )
+        self.assertEqual(selected, [])
+
+    def test_video_dispatch_state_is_compact_and_keeps_due_delivery_signals(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        state = {
+            "youtube_next_upload_at": "2026-11-05T11:00:00+00:00",
+            "youtube_uploads_paused_until": None,
+            "aparat_next_upload_at": "2026-11-05T10:00:00+00:00",
+            "published": {
+                "dkp-video-ready": {
+                    "ts": now.timestamp(),
+                    "title": "عنوان کامل و غیرلازم برای زمان‌بند",
+                    "image_url": "https://example.invalid/large-image.jpg",
+                    "telegram_message_id": 2001,
+                    "bale_message_id": 3001,
+                    "delivery_status": {"telegram": "sent", "bale": "sent"},
+                    "youtube_upload_status": "pending",
+                    "aparat_upload_status": "pending",
+                    "video_generation_status": "pending",
+                    "expires_at": "",
+                    "expiry_source": "unavailable",
+                    "expiry_estimated": False,
+                },
+                "dkp-not-delivered": {
+                    "ts": now.timestamp() - 1,
+                    "youtube_upload_status": "pending",
+                    "video_generation_status": "pending",
+                },
+            },
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(compact["youtube_next_upload_at"], state["youtube_next_upload_at"])
+        self.assertEqual(compact["aparat_next_upload_at"], state["aparat_next_upload_at"])
+        self.assertIn("dkp-video-ready", compact["published"])
+        self.assertNotIn("dkp-not-delivered", compact["published"])
+        item = compact["published"]["dkp-video-ready"]
+        self.assertEqual(item["telegram_message_id"], 2001)
+        self.assertEqual(item["youtube_upload_status"], "pending")
+        self.assertNotIn("title", item)
+        self.assertNotIn("image_url", item)
+
+        with TemporaryDirectory() as temp_dir:
+            state_path = Path(temp_dir) / "state.json"
+            dispatch_path = Path(temp_dir) / "video_upload_dispatch_state.json"
+            with (
+                patch.object(radar_module, "STATE", state_path),
+                patch.object(radar_module, "VIDEO_DISPATCH_STATE", dispatch_path),
+            ):
+                radar_module.save_json(state_path, state)
+            saved = json.loads(dispatch_path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["schema_version"], 1)
+            self.assertIn("dkp-video-ready", saved["published"])
 
     def test_regular_and_sport_eyewear_share_one_global_family(self):
         regular_category, regular_family, _ = radar_module._publication_diversity_group(

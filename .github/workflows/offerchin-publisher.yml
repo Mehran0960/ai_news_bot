@@ -205,6 +205,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [[ -f affilio_radar/state.json ]] && ! git diff --quiet -- affilio_radar/state.json; then
             git add affilio_radar/state.json
+            if [[ -f affilio_radar/video_upload_dispatch_state.json ]]; then
+              git add affilio_radar/video_upload_dispatch_state.json
+            fi
             git commit -m "chore: persist OfferChin delivery results [skip ci]"
             # Keep this state commit, but discard transient artifacts left modified by discovery.
             # Without this reset, rebase aborts on unstaged candidates.json and sent IDs are lost.

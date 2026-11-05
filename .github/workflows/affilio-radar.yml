@@ -425,7 +425,7 @@ jobs:
           # state as well as the diversity report. Persist all three atomically so
           # the publisher can consume the fresh selection on its next run.
           if [[ "${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}" == "true" ]]; then
-            for path in affilio_radar/candidates.json affilio_radar/state.json; do
+            for path in affilio_radar/candidates.json affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json; do
               if [[ -f "$path" ]] && ! git diff --quiet -- "$path"; then
                 git add "$path"
               fi
