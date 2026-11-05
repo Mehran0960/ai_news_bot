@@ -36,24 +36,10 @@ def is_dated_heading(line: str) -> bool:
 
 
 def is_offerchin_implementation_file(path: str) -> bool:
-    """Return True for OfferChin source/config/workflow files, not generated ledgers."""
-    normalized = path.replace("\\", "/").lstrip("./")
-    name = PurePosixPath(normalized).name
-    if (
-        name in {
-            "state.json",
-            "catalog_sweep_state.json",
-            "catalog_sweep_candidates.json",
-            "candidates.json",
-            "diversity_report.json",
-            "integrity_audit_state.json",
-            "video_upload_dispatch_state.json",
-            "campaign_publication_state.json",
-        }
-        or name.endswith("_state.json")
-        or name.endswith("_report.json")
-    ):
-        return False
+    """Return True for any OfferChin implementation or manually changed runtime file."""
+    normalized = path.replace("\\\\", "/")
+    if normalized.startswith("./"):
+        normalized = normalized[2:]
 
     if normalized.startswith("affilio_radar/"):
         return True
