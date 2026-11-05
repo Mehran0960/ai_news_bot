@@ -41,6 +41,10 @@ def is_offerchin_implementation_file(path: str) -> bool:
     if normalized.startswith("./"):
         normalized = normalized[2:]
 
+    if normalized.startswith("docs/") and PurePosixPath(normalized).name != "CHANGELOG_FA.md":
+        return True
+    if normalized in {"README.md", ".github/PULL_REQUEST_TEMPLATE.md"}:
+        return True
     if normalized.startswith("affilio_radar/"):
         return True
     if normalized == "cloudflare/affilio-minute-dispatcher.js":
@@ -103,10 +107,20 @@ def validate_change(
     implementation_changes = [
         path for path in changed_paths if is_offerchin_implementation_file(path)
     ]
-    if not implementation_changes:
-        return []
-
     errors: list[str] = []
+
+    # The changelog is append-only even for documentation-only pull requests.
+    if (
+        changelog_changed
+        and previous_changelog
+        and not current_changelog.startswith(previous_changelog)
+    ):
+        errors.append(
+            "CHANGELOG_FA.md is append-only; existing entries must not be edited or removed."
+        )
+
+    if not implementation_changes:
+        return errors
     if not handbook_changed:
         errors.append(f"Implementation changes require updating {HANDBOOK}.")
     if not changelog_changed:
@@ -157,7 +171,7 @@ def run(base: str, head: str) -> int:
     changed = [
         line.strip()
         for line in git_text(
-            "diff", "--name-only", "--diff-filter=ACMR", f"{base}...{head}"
+            "diff", "--name-only", "--diff-filter=ACDMR", f"{base}...{head}"
         ).splitlines()
         if line.strip()
     ]

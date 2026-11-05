@@ -23,6 +23,9 @@ class OfferChinDocumentationGateTests(unittest.TestCase):
         self.assertTrue(is_offerchin_implementation_file(".github/workflows/offerchin-publisher.yml"))
         self.assertTrue(is_offerchin_implementation_file("offerchin-site/src/app.js"))
         self.assertTrue(is_offerchin_implementation_file("scripts/new_tool.py"))
+        self.assertTrue(is_offerchin_implementation_file("docs/PROJECT_CHARTER_FA.md"))
+        self.assertTrue(is_offerchin_implementation_file("README.md"))
+        self.assertTrue(is_offerchin_implementation_file(".github/PULL_REQUEST_TEMPLATE.md"))
         self.assertFalse(is_offerchin_implementation_file(".github/workflows/dayan-archive-best-post.yml"))
 
     def test_dated_headings_accept_latin_and_persian_digits(self):
@@ -38,6 +41,22 @@ class OfferChinDocumentationGateTests(unittest.TestCase):
             added_changelog_entries(old, new),
             ["## ۲۰۲۶-۱۱-۰۵ — new"],
         )
+
+    def test_changelog_history_is_append_only_even_without_code_changes(self):
+        previous = "## ۲۰۲۶-۱۱-۰۴ — old\nold entry\n"
+        appended = previous + "\n## ۲۰۲۶-۱۱-۰۵ — new\nnew entry\n"
+        self.assertEqual(
+            validate_change(
+                ["docs/CHANGELOG_FA.md"], False, True, previous, appended
+            ),
+            [],
+        )
+
+        rewritten = "## ۲۰۲۶-۱۱-۰۴ — old\nrewritten entry\n" + appended[len(previous):]
+        errors = validate_change(
+            ["docs/CHANGELOG_FA.md"], False, True, previous, rewritten
+        )
+        self.assertTrue(any("append-only" in error for error in errors))
 
     def test_code_change_without_docs_fails(self):
         errors = validate_change(
