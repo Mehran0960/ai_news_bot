@@ -436,8 +436,8 @@ def build_vertical_poster(
             retailer_height,
         )
 
-    # The current price remains the primary amount; the original price is intentionally
-    # omitted and its former line is used for one clear discount statement.
+    # Keep the current price as the primary amount. The discount is shown once,
+    # in the upper-right badge that matches the channel-image layout.
     price_panel = (34, 695, WIDTH - 34, 948)
     draw.rounded_rectangle(
         (price_panel[0] + 4, price_panel[1] + 7, price_panel[2] + 4, price_panel[3] + 7),
