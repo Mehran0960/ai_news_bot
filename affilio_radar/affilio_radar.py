@@ -4278,7 +4278,7 @@ def classify_category(title: str) -> str:
         ("large_appliances", r"یخچال|فریزر|ماشین لباسشویی|لباسشویی|ماشین ظرفشویی|ظرفشویی|کولر گازی|اسپلیت|بخاری برقی|آبگرمکن|اجاق گاز|فر توکار|مایکروویو|آون توستر"),
         ("power_backup", r"پاور\s*بانک|شارژر|باتری|چراغ اضطراری|برق اضطراری|چراغ قوه|چراغ دستی"),
         ("lighting", r"چراغ پیشانی|هدلامپ|چراغ مطالعه|چراغ خواب|چراغ روشنایی|چراغ کار|لامپ|نورافکن|چراغ کمپینگ|ریسه روشنایی"),
-        ("home_cleaning", r"جارو(?:برقی| شارژی)?|تی زمین شوی|تی چرخشی|زمین شوی|بخارشوی|مواد شوینده|شوینده سطوح|تمیزکننده سطوح|دستمال نظافت|نظافت خانه"),
+        ("home_cleaning", r"اسکاچ|سیم\s*ظرفشویی|اسفنج\s*ظرفشویی|جارو(?:برقی| شارژی)?|تی زمین شوی|تی چرخشی|زمین شوی|بخارشوی|مواد شوینده|شوینده سطوح|تمیزکننده سطوح|دستمال نظافت|نظافت خانه"),
         ("pet_supplies", r"حیوانات خانگی|حیوان خانگی|غذای سگ|غذای گربه|تشویقی سگ|تشویقی گربه|قلاده|خاک گربه|اسکرچر|پد بهداشتی سگ"),
         ("arts_crafts", r"بوم نقاشی|لوازم نقاشی|لوازم هنری|قلم طراحی|رنگ اکریلیک|رنگ روغن|لوازم خیاطی|چرخ خیاطی|کاموا|قلاب بافی|بافتنی"),
         ("presentation_tools", r"لیزر پوینتر|پوینتر ارائه|ریموت ارائه|کنترل ارائه"),
@@ -6559,6 +6559,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             ("bulbs_and_strips", r"لامپ|ریسه روشنایی"),
         ],
         "home_cleaning": [
+            ("dish_scouring", r"اسکاچ|سیم\s*ظرفشویی|اسفنج\s*ظرفشویی|ابر\s*ظرفشویی"),
             ("floor_cleaning", r"تی زمین شوی|تی چرخشی|زمین شوی|بخارشوی"),
             ("vacuum_cleaning", r"جارو(?:برقی| شارژی)?"),
             ("surface_cleaning", r"مواد شوینده|شوینده سطوح|تمیزکننده سطوح|دستمال نظافت"),
@@ -6670,8 +6671,16 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     }
     # Eyewear is one global product family, even when a sport descriptor
     # causes the broad category classifier to label the listing as sports.
-    family = "fashion:eyewear" if re.search(r"عینک", normalized, re.I) else category
-    if family == category:
+    # These product lines appeared repeatedly under near-identical variants in the live
+    # channel. Keep them in stable, explicit families even if category wording changes.
+    if re.search(r"دستمال.{0,24}(?:صندلی\s*خودرو|خودرو)|میکروفایبر\s*خودرو", normalized, re.I):
+        family = "automotive:car_cleaning_cloths"
+    elif re.search(r"کش\s*مو|کش\s*سر|گیره\s*مو|کلیپس\s*مو", normalized, re.I):
+        family = "personal_care:hair_accessories"
+    elif re.search(r"عینک", normalized, re.I):
+        family = "fashion:eyewear"
+    else:
+        family = category
         for subfamily, pattern in family_patterns.get(category, []):
             if re.search(pattern, normalized, re.I):
                 family = f"{category}:{subfamily}"
@@ -6679,6 +6688,8 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     brand_hints = [
         ("avergrip", r"آور\s*گریپ|اور\s*گریپ|over\s*grip|overgrip|over-grip|aver\s*grip|avergrip"),
         ("muzik_apollo", r"موزیک\s*آپولو"),
+        ("sangbo_klaimi", r"سانگبو|سنگبو|sangbo|songboo"),
+        ("i_javaher", r"آی\s*جواهر|ای\s*جواهر|i\s*javaher"),
         ("vonk", r"وونک"),
         ("reolink", r"ریولینک"),
         ("tilsim", r"تیلسیم"),
@@ -7063,7 +7074,7 @@ def _order_candidates_by_primary_rank(
     )
     return ordered
 
-PUBLICATION_SIMILARITY_COOLDOWN_HOURS = 4.0
+PUBLICATION_SIMILARITY_COOLDOWN_HOURS = 24.0
 PUBLICATION_SIMILARITY_JACCARD_THRESHOLD = 0.50
 PUBLICATION_SIMILARITY_MIN_SHARED_TOKENS = 2
 
@@ -7092,6 +7103,9 @@ _PUBLICATION_SIMILARITY_ALIASES = (
     (r"جارو\s*(?:برقی|شارژی)|vacuum(?:\s*cleaner)?", "جارو"),
     (r"گلس|محافظ\s*(?:صفحه|نمایشگر)", "محافظ_صفحه"),
     (r"قاب\s*(?:گوشی|موبایل)|کاور\s*(?:گوشی|موبایل)", "قاب_گوشی"),
+    (r"اسکاچ|سیم\s*ظرفشویی|اسفنج\s*ظرفشویی", "اسکاچ_ظرفشویی"),
+    (r"دستمال.{0,24}(?:صندلی\s*خودرو|خودرو)|میکروفایبر\s*خودرو", "دستمال_نظافت_خودرو"),
+    (r"کش\s*مو|کش\s*سر|گیره\s*مو|کلیپس\s*مو", "اکسسوری_مو"),
 )
 
 
@@ -7344,9 +7358,10 @@ def select_publish_candidates(
 
 MIN_REPEAT_PRODUCT_INTERVAL_HOURS = 24
 PUBLICATION_LEDGER_LIMIT = 2000
-# Repeat-gap preferences; diversity can reorder within a bounded demand gap to avoid category saturation.
-FAMILY_REPEAT_COOLDOWN_HOURS = 4
-BRAND_REPEAT_COOLDOWN_HOURS = 3
+# Strong rolling diversity policy: do not repeat a narrow product family within one day,
+# and leave a substantial gap before another item from the same recognized brand.
+FAMILY_REPEAT_COOLDOWN_HOURS = 24
+BRAND_REPEAT_COOLDOWN_HOURS = 12
 CATEGORY_REPEAT_COOLDOWN_MINUTES = 180
 RETAILER_REPEAT_COOLDOWN_MINUTES = 60
 DIVERSITY_LOOKAHEAD_CANDIDATES = 128
