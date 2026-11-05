@@ -17,16 +17,17 @@ class OfferChinDocumentationGateTests(unittest.TestCase):
         self.assertTrue(is_offerchin_implementation_file("affilio_radar/weekly_report.json"))
         self.assertTrue(is_offerchin_implementation_file("affilio_radar/config/products.json"))
 
-    def test_offerchin_code_and_workflows_are_scoped(self):
+    def test_all_repository_changes_are_governed_except_append_only_changelog(self):
         self.assertTrue(is_offerchin_implementation_file("affilio_radar/publisher.py"))
         self.assertTrue(is_offerchin_implementation_file("cloudflare/affilio-minute-dispatcher.js"))
         self.assertTrue(is_offerchin_implementation_file(".github/workflows/offerchin-publisher.yml"))
+        self.assertTrue(is_offerchin_implementation_file(".github/workflows/dayan-archive-best-post.yml"))
         self.assertTrue(is_offerchin_implementation_file("offerchin-site/src/app.js"))
         self.assertTrue(is_offerchin_implementation_file("scripts/new_tool.py"))
+        self.assertTrue(is_offerchin_implementation_file("future_component/new_module.py"))
+        self.assertTrue(is_offerchin_implementation_file("affilio_radar/state.json"))
         self.assertTrue(is_offerchin_implementation_file("docs/PROJECT_CHARTER_FA.md"))
-        self.assertTrue(is_offerchin_implementation_file("README.md"))
-        self.assertTrue(is_offerchin_implementation_file(".github/PULL_REQUEST_TEMPLATE.md"))
-        self.assertFalse(is_offerchin_implementation_file(".github/workflows/dayan-archive-best-post.yml"))
+        self.assertFalse(is_offerchin_implementation_file("docs/CHANGELOG_FA.md"))
 
     def test_dated_headings_accept_latin_and_persian_digits(self):
         self.assertTrue(is_dated_heading("## 2026-11-05 — Latin date"))
