@@ -7,25 +7,24 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "affilio_radar/*.py"
-      - "affilio_radar/**/*.py"
-      - "affilio_radar/*.js"
-      - "affilio_radar/**/*.js"
-      - "affilio_radar/config/**"
-      - "affilio_radar/assets/**"
-      - "affilio_radar/*.md"
-      - "affilio_radar/**/*.md"
-      - "affilio_radar/*.txt"
-      - "affilio_radar/**/*.txt"
-      - "cloudflare/affilio-minute-dispatcher.js"
-      - "offerchin-site/**"
-      - "scripts/**"
-      - ".github/workflows/offerchin-*.yml"
-      - ".github/workflows/affilio-*.yml"
-      - "docs/**"
-      - "README.md"
-      - ".github/PULL_REQUEST_TEMPLATE.md"
+    # Run for every repository change except scheduled runtime ledgers.
+    # A code + state commit still runs because paths-ignore excludes a push only
+    # when every changed file matches one of these generated-state patterns.
+    paths-ignore:
+      - "affilio_radar/state.json"
+      - "affilio_radar/catalog_sweep_state.json"
+      - "affilio_radar/catalog_sweep_candidates.json"
+      - "affilio_radar/candidates.json"
+      - "affilio_radar/diversity_report.json"
+      - "affilio_radar/integrity_audit_state.json"
+      - "affilio_radar/video_upload_dispatch_state.json"
+      - "affilio_radar/campaign_publication_state.json"
+      - "affilio_radar/*_state.json"
+      - "affilio_radar/**/*_state.json"
+      - "affilio_radar/*_report.json"
+      - "affilio_radar/**/*_report.json"
+      - "affilio_radar/*_candidates.json"
+      - "affilio_radar/**/*_candidates.json"
   workflow_dispatch:
 
 permissions:
