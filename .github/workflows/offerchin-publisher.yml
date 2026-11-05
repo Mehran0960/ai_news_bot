@@ -83,7 +83,10 @@ jobs:
 
       - name: Validate the delivery-only path
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py affilio_radar/export_video_dispatch_state.py
+          cd affilio_radar
+          python -m unittest -v test_video_dispatch_state.py
+          cd ..
           python - <<'PY'
           from pathlib import Path
           source = Path("affilio_radar/publisher.py").read_text(encoding="utf-8")
@@ -198,30 +201,35 @@ jobs:
 
       # Cleanup has its own scheduled workflow and audit ledger; it never
       # occupies this publisher's execution window or competes for state.json.
-      - name: Persist independent per-platform results
+      - name: Persist independent per-platform results and compact video state
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [[ -f affilio_radar/state.json ]] && ! git diff --quiet -- affilio_radar/state.json; then
             git add affilio_radar/state.json
-            git commit -m "chore: persist OfferChin delivery results [skip ci]"
-            # Keep this state commit, but discard transient artifacts left modified by discovery.
-            # Without this reset, rebase aborts on unstaged candidates.json and sent IDs are lost.
-            git reset --hard HEAD
-            # The independent trust auditor commits a different sidecar file. Retry a transient
-            # concurrent push/rebase so a successful public send's message IDs are not lost.
-            for attempt in 1 2 3; do
-              if git pull --rebase origin main && git push; then
-                echo "PUBLISHER_STATE_PERSISTED attempt=$attempt"
-                exit 0
-              fi
-              git rebase --abort 2>/dev/null || true
-              echo "Publisher state persistence attempt $attempt failed; retrying."
-              sleep $((attempt * 2))
-            done
-            echo "PUBLISHER_STATE_PERSIST_FAILED; public sends already attempted, next run will reconcile status."
-            exit 1
-          else
-            echo "No delivery-state changes to persist."
           fi
+          # This small derived snapshot is what Cloudflare reads; never send the 26 MB state.json to the Worker.
+          if python affilio_radar/export_video_dispatch_state.py; then
+            git add affilio_radar/video_dispatch_state.json
+          else
+            echo "VIDEO_DISPATCH_SNAPSHOT_EXPORT_FAILED; full delivery state remains staged and safe."
+          fi
+          if git diff --cached --quiet; then
+            echo "No delivery-state or video-dispatch snapshot changes."
+            exit 0
+          fi
+          git commit -m "chore: persist OfferChin delivery and video dispatch state [skip ci]"
+          # Keep this commit, but discard transient artifacts left modified by discovery.
+          git reset --hard HEAD
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push; then
+              echo "PUBLISHER_STATE_PERSISTED attempt=$attempt"
+              exit 0
+            fi
+            git rebase --abort 2>/dev/null || true
+            echo "Publisher state persistence attempt $attempt failed; retrying."
+            sleep $((attempt * 2))
+          done
+          echo "PUBLISHER_STATE_PERSIST_FAILED; public sends already attempted, next run will reconcile status."
+          exit 1

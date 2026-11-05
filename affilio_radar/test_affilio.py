@@ -1182,13 +1182,13 @@ class AffilioRadarTests(unittest.TestCase):
             ["dkp-powerbank-alternative"],
         )
 
-    def test_similar_product_cooldown_expires_after_four_hours(self):
-        now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
+    def test_similar_product_cooldown_expires_after_24_hours(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-old-laptop": {
                 "title": "لپ‌تاپ ایسوس مدل VivoBook",
                 "telegram_message_id": 1902,
-                "ts": (now - timedelta(hours=4, minutes=5)).timestamp(),
+                "ts": (now - timedelta(hours=24, minutes=5)).timestamp(),
             }
         }
         candidate = {
@@ -1204,6 +1204,89 @@ class AffilioRadarTests(unittest.TestCase):
             published,
         )
         self.assertEqual([row["product_id"] for row in selected], ["dkp-new-laptop"])
+
+    def test_repeated_channel_product_families_are_classified_consistently(self):
+        scouring_a = radar_module._publication_diversity_group(
+            "اسکاچ سانگبو کلایمی مدل High Clean کد ۱۰۱۰"
+        )
+        scouring_b = radar_module._publication_diversity_group(
+            "اسکاچ سانگبو کلایمی مدل High Clean کد ۲۵۲۵"
+        )
+        car_cloth_a = radar_module._publication_diversity_group(
+            "دستمال نظافت صندلی خودرو سانگبو کلایمی مدل NanoMAX سایز ۳۰x۳۰"
+        )
+        car_cloth_b = radar_module._publication_diversity_group(
+            "دستمال نظافت صندلی خودرو سانگبو کلایمی مدل NanoMAX سایز ۲۵x۲۵"
+        )
+        hair_tie_a = radar_module._publication_diversity_group(
+            "کش مو دخترانه آی جواهر کد C101 مجموعه ۱۰۰ عددی"
+        )
+        hair_tie_b = radar_module._publication_diversity_group(
+            "کش مو زنانه آی جواهر کد B100 مجموعه ۱۰۰ عددی"
+        )
+        self.assertEqual(scouring_a[1], "home_cleaning:dish_scouring")
+        self.assertEqual(scouring_a[1], scouring_b[1])
+        self.assertEqual(scouring_a[2], "sangbo_klaimi")
+        self.assertEqual(car_cloth_a[1], "automotive:car_cleaning_cloths")
+        self.assertEqual(car_cloth_a[1], car_cloth_b[1])
+        self.assertEqual(car_cloth_a[2], "sangbo_klaimi")
+        self.assertEqual(hair_tie_a[1], "personal_care:hair_accessories")
+        self.assertEqual(hair_tie_a[1], hair_tie_b[1])
+        self.assertEqual(hair_tie_a[2], "i_javaher")
+
+    def test_recent_sibling_scouring_pad_is_blocked_but_distinct_family_passes(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-recent-scouring-pad": {
+                "title": "اسکاچ سانگبو کلایمی مدل High Clean کد ۱۰۱۰",
+                "telegram_message_id": 1903,
+                "ts": (now - timedelta(hours=2)).timestamp(),
+            }
+        }
+        candidates = [
+            {
+                "product_id": "dkp-scouring-pad-sibling",
+                "title": "اسکاچ سانگبو کلایمی مدل High Clean کد ۲۵۲۵",
+                "discount_percent": 90,
+                "savings_toman": 500_000,
+            },
+            {
+                "product_id": "dkp-distinct-tool",
+                "title": "آچار یکسر تخت و یکسر رینگی تانوس مدل YP-08",
+                "discount_percent": 80,
+                "savings_toman": 450_000,
+            },
+        ]
+        selected = select_publish_candidates(
+            {item["product_id"]: {} for item in candidates},
+            {item["product_id"]: item for item in candidates},
+            now,
+            published,
+        )
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-distinct-tool"])
+
+    def test_same_recognized_brand_is_cooled_down_for_12_hours_across_families(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        published = {
+            "dkp-recent-sangbo": {
+                "title": "اسکاچ سانگبو کلایمی مدل High Clean کد ۱۰۱۰",
+                "telegram_message_id": 1904,
+                "ts": (now - timedelta(hours=10)).timestamp(),
+            }
+        }
+        candidate = {
+            "product_id": "dkp-sangbo-car-cloth",
+            "title": "دستمال نظافت صندلی خودرو سانگبو کلایمی مدل NanoMAX",
+            "discount_percent": 80,
+            "savings_toman": 450_000,
+        }
+        selected = select_publish_candidates(
+            {candidate["product_id"]: {}},
+            {candidate["product_id"]: candidate},
+            now,
+            published,
+        )
+        self.assertEqual(selected, [])
 
     def test_regular_and_sport_eyewear_share_one_global_family(self):
         regular_category, regular_family, _ = radar_module._publication_diversity_group(

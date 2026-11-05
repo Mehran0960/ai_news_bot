@@ -193,6 +193,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if python affilio_radar/export_video_dispatch_state.py; then
+            git add affilio_radar/video_dispatch_state.json
+          else
+            echo "VIDEO_DISPATCH_SNAPSHOT_EXPORT_FAILED; preserving cleanup state."
+          fi
           git add affilio_radar/state.json
           if [[ -f affilio_radar/affiliate_link_repair_report.json ]]; then
             git add affilio_radar/affiliate_link_repair_report.json

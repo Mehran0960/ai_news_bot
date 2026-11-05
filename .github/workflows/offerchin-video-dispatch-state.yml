@@ -1,0 +1,64 @@
+name: OfferChin Compact Video Dispatch State
+
+on:
+  # Keep the dispatch snapshot fresh without asking Cloudflare to download state.json.
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: offerchin-content-publisher
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out the current OfferChin state
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate and export the compact video dispatch snapshot
+        run: |
+          python -m py_compile affilio_radar/export_video_dispatch_state.py
+          cd affilio_radar
+          python -m unittest -v test_video_dispatch_state.py
+          cd ..
+          python affilio_radar/export_video_dispatch_state.py
+          test -s affilio_radar/video_dispatch_state.json
+          test "$(wc -c < affilio_radar/video_dispatch_state.json)" -lt 20000
+
+      - name: Persist only the compact snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python affilio_radar/export_video_dispatch_state.py
+            git add affilio_radar/video_dispatch_state.json
+            if git diff --cached --quiet; then
+              echo "VIDEO_DISPATCH_SNAPSHOT_UNCHANGED"
+              exit 0
+            fi
+            git commit -m "chore: refresh compact OfferChin video dispatch state [skip ci]"
+            if git push origin HEAD:main; then
+              echo "VIDEO_DISPATCH_SNAPSHOT_PERSISTED attempt=$attempt"
+              exit 0
+            fi
+            echo "Video dispatch snapshot push attempt $attempt failed; retrying from latest main."
+            sleep $((attempt * 2))
+          done
+          echo "VIDEO_DISPATCH_SNAPSHOT_PERSIST_FAILED"
+          exit 1

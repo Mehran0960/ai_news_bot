@@ -100,7 +100,7 @@ const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
 async function readOfferChinState(token) {
   try {
     const data = await githubRequest(
-      `https://api.github.com/repos/${OWNER}/${REPO}/contents/affilio_radar/state.json?ref=main`,
+      `https://api.github.com/repos/${OWNER}/${REPO}/contents/affilio_radar/video_dispatch_state.json?ref=main`,
       token
     );
     const encoded = String(data.content || "").replace(/\s/g, "");
@@ -109,7 +109,7 @@ async function readOfferChinState(token) {
     const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
     return JSON.parse(new TextDecoder().decode(bytes));
   } catch (error) {
-    console.error("OFFERCHIN_STATE_READ_FAILED", String(error).slice(0, 500));
+    console.error("OFFERCHIN_VIDEO_DISPATCH_STATE_READ_FAILED", String(error).slice(0, 500));
     return null;
   }
 }
@@ -334,7 +334,8 @@ async function runScheduledCheck(env, scheduledTime) {
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 
-  // Video destinations are dispatched from their own saved upload clocks.
+  // Video destinations are dispatched from their own saved upload clocks and a compact sidecar,
+  // never from the multi-megabyte discovery/publication state file.
   // Neither media schedule reads or reserves the Telegram/Bale posting interval.
   await dispatchVideoUploadsWhenDue(env, tick, state);
 }

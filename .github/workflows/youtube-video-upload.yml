@@ -92,25 +92,32 @@ jobs:
           if-no-files-found: ignore
           retention-days: 3
 
-      - name: Persist YouTube upload status and next slot
+      - name: Persist YouTube upload status and compact video dispatch state
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [[ -f affilio_radar/state.json ]] && ! git diff --quiet -- affilio_radar/state.json; then
             git add affilio_radar/state.json
-            git commit -m "chore: persist independent YouTube upload state [skip ci]"
-            for attempt in 1 2 3; do
-              if git pull --rebase origin main && git push; then
-                echo "YOUTUBE_STATE_PERSISTED attempt=$attempt"
-                exit 0
-              fi
-              git rebase --abort 2>/dev/null || true
-              echo "YouTube state persistence attempt $attempt failed; retrying."
-              sleep $((attempt * 2))
-            done
-            echo "YOUTUBE_STATE_PERSIST_FAILED; next dispatcher run will reconcile the saved upload slot."
-            exit 1
-          else
-            echo "No YouTube upload-state changes to persist."
           fi
+          if python affilio_radar/export_video_dispatch_state.py; then
+            git add affilio_radar/video_dispatch_state.json
+          else
+            echo "VIDEO_DISPATCH_SNAPSHOT_EXPORT_FAILED; preserving the full YouTube upload state."
+          fi
+          if git diff --cached --quiet; then
+            echo "No YouTube upload-state or sidecar changes."
+            exit 0
+          fi
+          git commit -m "chore: persist independent YouTube upload and video dispatch state [skip ci]"
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push; then
+              echo "YOUTUBE_STATE_PERSISTED attempt=$attempt"
+              exit 0
+            fi
+            git rebase --abort 2>/dev/null || true
+            echo "YouTube state persistence attempt $attempt failed; retrying."
+            sleep $((attempt * 2))
+          done
+          echo "YOUTUBE_STATE_PERSIST_FAILED; next dispatcher run will reconcile the saved upload slot."
+          exit 1

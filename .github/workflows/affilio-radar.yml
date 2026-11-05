@@ -22,6 +22,9 @@ on:
       - "affilio_radar/aparat_shorts_migration.py"
       - "affilio_radar/test_aparat_shorts_migration.py"
       - "affilio_radar/state.json"
+      - "affilio_radar/video_dispatch_state.json"
+      - "affilio_radar/export_video_dispatch_state.py"
+      - "affilio_radar/test_video_dispatch_state.py"
       - "affilio_radar/test_affilio.py"
       - "affilio_radar/test_expiration_monitor.py"
       - "affilio_radar/test_short_video.py"
@@ -145,7 +148,7 @@ jobs:
 
       - name: Validate Python syntax (required for safe publishing)
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/catalog_sweep.py affilio_radar/parallel_catalog_sweep.py affilio_radar/test_parallel_catalog_sweep.py affilio_radar/test_selection_evidence.py affilio_radar/product_quality.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py affilio_radar/expiration_monitor.py affilio_radar/content_delivery.py affilio_radar/publisher.py affilio_radar/platform_registry.py affilio_radar/integrity_audit.py affilio_radar/integrity_audit_state.py affilio_radar/test_integrity_audit.py affilio_radar/test_aparat_upload_schedule.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/catalog_sweep.py affilio_radar/parallel_catalog_sweep.py affilio_radar/test_parallel_catalog_sweep.py affilio_radar/test_selection_evidence.py affilio_radar/product_quality.py affilio_radar/short_video.py affilio_radar/offerchin_visuals.py affilio_radar/offerchin_audio.py affilio_radar/aparat_uploader.py affilio_radar/aparat_shorts_migration.py affilio_radar/expiration_monitor.py affilio_radar/content_delivery.py affilio_radar/publisher.py affilio_radar/platform_registry.py affilio_radar/integrity_audit.py affilio_radar/integrity_audit_state.py affilio_radar/test_integrity_audit.py affilio_radar/test_aparat_upload_schedule.py affilio_radar/export_video_dispatch_state.py
 
       - name: Validate Cloudflare minute dispatcher JavaScript syntax
         run: node --check cloudflare/affilio-minute-dispatcher.js
@@ -168,7 +171,7 @@ jobs:
           }
           trap restore_live_files EXIT
           cd affilio_radar
-          python -m unittest -v test_affilio.py test_selection_evidence.py test_catalog_sweep.py test_parallel_catalog_sweep.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py test_aparat_upload_schedule.py test_content_delivery.py test_integrity_audit.py
+          python -m unittest -v test_affilio.py test_selection_evidence.py test_catalog_sweep.py test_parallel_catalog_sweep.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py test_aparat_upload_schedule.py test_content_delivery.py test_integrity_audit.py test_video_dispatch_state.py
 
       - name: Smoke-test the deployed click tracker (diagnostic only)
         if: ${{ github.event_name == 'push' }}
@@ -425,6 +428,11 @@ jobs:
           # state as well as the diversity report. Persist all three atomically so
           # the publisher can consume the fresh selection on its next run.
           if [[ "${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-now]') || contains(github.event.head_commit.message, '[scan-now]') }}" == "true" ]]; then
+            if python affilio_radar/export_video_dispatch_state.py; then
+              git add affilio_radar/video_dispatch_state.json
+            else
+              echo "VIDEO_DISPATCH_SNAPSHOT_EXPORT_FAILED; continuing with the main discovery handoff."
+            fi
             for path in affilio_radar/candidates.json affilio_radar/state.json; do
               if [[ -f "$path" ]] && ! git diff --quiet -- "$path"; then
                 git add "$path"
