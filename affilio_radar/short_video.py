@@ -19,7 +19,8 @@ import requests
 import offerchin_visuals
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps, features
 from offerchin_visuals import (
-    draw_digipay_badge, draw_retailer_badge, adaptive_text_colors,
+    draw_discount_burst, draw_digipay_badge, draw_retailer_badge,
+    adaptive_text_colors, discount_badge_dimensions_for_reference_bounds,
 )
 from offerchin_audio import write_original_soundtrack
 
@@ -383,23 +384,60 @@ def build_vertical_poster(
     background.alpha_composite(fitted.convert("RGBA"), (x, y))
     draw = ImageDraw.Draw(background)
 
-    # Use the same visual footprint for retailer and DigiPay marks; do not repeat
-    # the discount badge here because the numeric discount is shown beside the price.
-    retailer_left, retailer_top = 48, 244
-    retailer_width, retailer_height = 280, 88
-    draw_retailer_badge(
-        background, retailer_left, retailer_top, retailer_width, retailer_height, merchant
+    # Match the channel-image hierarchy inside the actual product-photo bounds:
+    # retailer logo upper-left, discount tile upper-right, and DigiPay directly
+    # below the retailer logo. Derive all bounds from the fitted photo so portrait,
+    # landscape, and square product images keep the same relative placement.
+    min_dim = min(fitted.width, fitted.height)
+    brand_margin = max(10, int(min_dim * 0.025))
+    max_badge_width = max(1, (fitted.width - 2 * brand_margin) // 2)
+    retailer_badge_width = min(
+        max_badge_width, max(124, min(320, int(min_dim * 0.38)))
     )
-    draw_digipay_badge(
+    retailer_badge_height = max(48, min(88, int(min_dim * 0.14)))
+
+    retailer_bounds = draw_retailer_badge(
         background,
-        WIDTH - retailer_left - retailer_width,
-        retailer_top,
-        retailer_width,
-        retailer_height,
+        x + brand_margin,
+        y + brand_margin,
+        retailer_badge_width,
+        retailer_badge_height,
+        merchant,
     )
 
-    # The current price remains the primary amount; the original price is intentionally
-    # omitted and its former line is used for one clear discount statement.
+    try:
+        discount_value = int(str(discount_percent).replace("٪", "").replace("%", "").strip())
+    except (TypeError, ValueError, OverflowError):
+        discount_value = 0
+    if 0 < discount_value <= 100:
+        discount_width, discount_height = discount_badge_dimensions_for_reference_bounds(
+            retailer_badge_width, retailer_badge_height
+        )
+        discount_left = x + fitted.width - brand_margin - discount_width
+        discount_top = y + brand_margin
+        draw_discount_burst(
+            draw,
+            discount_left,
+            discount_top,
+            min(discount_width, x + fitted.width - discount_left),
+            min(discount_height, y + fitted.height - discount_top),
+            discount_value,
+            merchant=merchant,
+        )
+
+    if retailer_bounds:
+        retailer_left, retailer_top, retailer_width, retailer_height = retailer_bounds
+        digipay_gap = max(4, int(retailer_height * 0.08))
+        draw_digipay_badge(
+            background,
+            retailer_left,
+            retailer_top + retailer_height + digipay_gap,
+            retailer_width,
+            retailer_height,
+        )
+
+    # Keep the current price as the primary amount. The discount is shown once,
+    # in the upper-right badge that matches the channel-image layout.
     price_panel = (34, 695, WIDTH - 34, 948)
     draw.rounded_rectangle(
         (price_panel[0] + 4, price_panel[1] + 7, price_panel[2] + 4, price_panel[3] + 7),
@@ -440,31 +478,6 @@ def build_vertical_poster(
             anchor="mm",
             **_rtl_layout_kwargs(),
         )
-
-    discount_label = format_persian_discount(discount_percent)
-    if discount_label:
-        discount_text = discount_label.removeprefix("🔥 ").strip()
-        discount_font = _font(30)
-        discount_visual = _shape_rtl(discount_text)
-        discount_bbox = draw.textbbox(
-            (WIDTH // 2, 886),
-            discount_visual,
-            font=discount_font,
-            anchor="mm",
-            **_rtl_layout_kwargs(),
-        )
-        draw.text(
-            (WIDTH // 2, 886),
-            discount_visual,
-            font=discount_font,
-            fill=(195, 63, 35, 255),
-            anchor="mm",
-            **_rtl_layout_kwargs(),
-        )
-        # The emoji is drawn as a tiny vector flame so it renders consistently on
-        # GitHub runners even when their installed font set lacks color emoji glyphs.
-        flame_x = min(WIDTH - 54, discount_bbox[2] + 22)
-        _draw_discount_flame(draw, flame_x, 886, 30)
 
     tagline = _shape_rtl("آفِرچین | شکار تخفیف‌های واقعی")
     tagline_font = _font(19)
