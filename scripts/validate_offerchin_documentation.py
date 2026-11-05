@@ -97,15 +97,28 @@ def validate_change(
     ]
     errors: list[str] = []
 
-    # The changelog is append-only even for documentation-only pull requests.
-    if (
-        changelog_changed
-        and previous_changelog
-        and not current_changelog.startswith(previous_changelog)
-    ):
-        errors.append(
-            "CHANGELOG_FA.md is append-only; existing entries must not be edited or removed."
-        )
+    entries: list[str] = []
+    if changelog_changed:
+        # Existing entries are immutable, even in documentation-only PRs.
+        if previous_changelog and not current_changelog.startswith(previous_changelog):
+            errors.append(
+                "CHANGELOG_FA.md is append-only; existing entries must not be edited or removed."
+            )
+        entries = added_changelog_entries(previous_changelog, current_changelog)
+        if current_changelog != previous_changelog and not entries:
+            errors.append(
+                "CHANGELOG_FA.md changes must append a new dated section (## YYYY-MM-DD — ...)."
+            )
+        for heading in entries:
+            section = _section_for_heading(current_changelog, heading)
+            missing = [
+                field for field in REQUIRED_CHANGELOG_FIELDS if field not in section
+            ]
+            if missing:
+                errors.append(
+                    f"Changelog entry {heading!r} is missing required fields: "
+                    + ", ".join(missing)
+                )
 
     if not implementation_changes:
         return errors
@@ -114,22 +127,9 @@ def validate_change(
     if not changelog_changed:
         errors.append(f"Implementation changes require updating {CHANGELOG}.")
         return errors
-
-    entries = added_changelog_entries(previous_changelog, current_changelog)
     if not entries:
         errors.append(
-            "CHANGELOG_FA.md must append a new dated section (## YYYY-MM-DD — ...)."
-        )
-        return errors
-
-    latest_entry = _section_for_heading(current_changelog, entries[-1])
-    missing = [
-        field for field in REQUIRED_CHANGELOG_FIELDS if field not in latest_entry
-    ]
-    if missing:
-        errors.append(
-            "Newest changelog entry is missing required fields: "
-            + ", ".join(missing)
+            "Implementation changes require a new dated changelog entry."
         )
     return errors
 
