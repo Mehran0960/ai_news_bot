@@ -173,3 +173,20 @@
 **ریسک/بازگشت:** workflow اکنون در PR و push اجرا می‌شود، اما اجرای workflow به‌تنهایی push مستقیم را مسدود نمی‌کند؛ هنوز باید `enforce-docs` به‌عنوان Required status check در Branch Protection تنظیم و bypass/direct push محدود شود. اتصال فعلی مجوز مدیریتی برای اعمال آن تنظیم را ندارد. بازگشت با revert PR #72 ممکن است.
 
 **وضعیت:** ادغام‌شده؛ ۹ تست validator و هر دو اجرای Gate موفق.
+
+
+## ۲۰۲۶-۱۱-۰۵ — ثبت نخستین شواهد واقعی shadow و ممیزی گارد تنوع
+
+**هدف:** تبدیل اولین مقایسهٔ واقعی demand/value با روش زنده و شواهد تکرار برند/خانواده به تصمیم‌های مستند.
+
+**تغییر/اقدام:** log اجرای واقعی `42073608036` بررسی شد. ۷۴ کاندیدا در shadow بودند؛ ۶ مورد سیگنال تقاضای جاری و صفر مورد شواهد مستقل ارزش تخفیف داشتند. ۵ گزینهٔ اول live و shadow متفاوت بود و گزینهٔ اول تغییر می‌کرد. گارد تنوع ۴۳ مورد خانواده و ۴ مورد شباهت معنایی را defer کرد؛ brand-deferred صفر بود. در گزارش همان اجرا، ۱۸ برند در بازهٔ ۲۴ساعته و ۴۷ برند در بازهٔ هفت‌روزه تکرار شده بودند. یک درخواست مقایسهٔ بازار HTTP 490 bot challenge گرفت.
+
+**فایل‌ها/سامانه‌ها:** `docs/PROJECT_CHARTER_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`. کد live در این اقدام تغییر نکرد.
+
+**آزمون و نتیجه:** منبع شواهد log workflow اجراشده است؛ `CONTENT_SELECTION_HANDOFF queued=0`، `publisher_invoked=false` و `PUBLISHER_QUEUE_EMPTY` ثبت شده، پس این run انتشار جدیدی را ثابت نمی‌کند. آمار ۷۴/۶/۰ از pool واقعی است، نه fixture تست.
+
+**شواهد/شناسه:** [OfferChin Selected Content Publisher run 42073608036](https://github.com/Mehran0960/ai_news_bot/actions/runs/42073608036)، commit `5e4bb1d3c73d1ec8402e6fd56655da0fc252ea58`.
+
+**ریسک/بازگشت:** صفر بودن value evidence به معنی جعلی بودن markdown نیست؛ فقط عدم توان اثبات مستقل در آن run است. HTTP 490 یک challenge ضدربات است، نه rate limit. تغییر ranking live تا جمع‌آوری چند اجرای واقعی و رفع محدودیت evidence متوقف می‌ماند. بازگشت این مستندسازی با revert PR ممکن است.
+
+**وضعیت:** نمونهٔ واقعی ثبت‌شده؛ تصمیم live discount-first بدون تغییر؛ ارزیابی چند اجرای shadow بعدی باز است.
