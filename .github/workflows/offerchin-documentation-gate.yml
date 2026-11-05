@@ -1,0 +1,73 @@
+name: OfferChin Documentation Gate
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+    paths:
+      - "affilio_radar/*.py"
+      - "affilio_radar/**/*.py"
+      - "affilio_radar/*.js"
+      - "affilio_radar/**/*.js"
+      - "affilio_radar/config/**"
+      - "affilio_radar/assets/**"
+      - "affilio_radar/*.md"
+      - "affilio_radar/**/*.md"
+      - "affilio_radar/*.txt"
+      - "affilio_radar/**/*.txt"
+      - "cloudflare/affilio-minute-dispatcher.js"
+      - "offerchin-site/**"
+      - "scripts/**"
+      - ".github/workflows/offerchin-*.yml"
+      - ".github/workflows/affilio-*.yml"
+      - "docs/**"
+      - "README.md"
+      - ".github/PULL_REQUEST_TEMPLATE.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  enforce-docs:
+    name: enforce-docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out both sides of the change
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test the documentation policy validator
+        run: |
+          cd scripts
+          python -m unittest -v test_validate_offerchin_documentation.py
+
+      - name: Enforce handbook and changelog updates
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            BASE="$PR_BASE_SHA"
+            HEAD="$PR_HEAD_SHA"
+          else
+            BASE="$PUSH_BEFORE"
+            HEAD="$CURRENT_SHA"
+            if [[ -z "$BASE" || "$BASE" =~ ^0+$ ]]; then
+              BASE="$(git rev-parse "$HEAD^")"
+            fi
+          fi
+          python scripts/validate_offerchin_documentation.py --base "$BASE" --head "$HEAD"
