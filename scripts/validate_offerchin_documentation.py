@@ -41,6 +41,10 @@ def is_offerchin_implementation_file(path: str) -> bool:
     if normalized.startswith("./"):
         normalized = normalized[2:]
 
+    if normalized.startswith("docs/") and PurePosixPath(normalized).name != "CHANGELOG_FA.md":
+        return True
+    if normalized in {"README.md", ".github/PULL_REQUEST_TEMPLATE.md"}:
+        return True
     if normalized.startswith("affilio_radar/"):
         return True
     if normalized == "cloudflare/affilio-minute-dispatcher.js":
