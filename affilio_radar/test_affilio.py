@@ -1289,6 +1289,18 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("title", item)
         self.assertNotIn("image_url", item)
 
+        with TemporaryDirectory() as temp_dir:
+            state_path = Path(temp_dir) / "state.json"
+            dispatch_path = Path(temp_dir) / "video_upload_dispatch_state.json"
+            with (
+                patch.object(radar_module, "STATE", state_path),
+                patch.object(radar_module, "VIDEO_DISPATCH_STATE", dispatch_path),
+            ):
+                radar_module.save_json(state_path, state)
+            saved = json.loads(dispatch_path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["schema_version"], 1)
+            self.assertIn("dkp-video-ready", saved["published"])
+
     def test_regular_and_sport_eyewear_share_one_global_family(self):
         regular_category, regular_family, _ = radar_module._publication_diversity_group(
             "عینک آفتابی زنانه مدل معمولی"
