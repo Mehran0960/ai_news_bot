@@ -116,6 +116,67 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         )
         self.assertFalse(radar.has_attractive_discount_value(stale_market, now=self.now))
 
+    def test_shadow_rank_prefers_fresh_demand_while_live_sort_stays_discount_first(self):
+        fresh_demand = {
+            "product_id": "dkp-fresh-demand",
+            "current_demand_verified": True,
+            "current_demand_score": 72,
+            "recent_review_growth_7d": radar.CURRENT_DEMAND_MIN_REVIEW_GROWTH,
+            "demand_window_hours": radar.CURRENT_DEMAND_MIN_OBSERVATION_HOURS,
+            "demand_observed_at": self.now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth",
+            "discount_percent": 18,
+            "savings_toman": 180_000,
+        }
+        high_discount_no_demand = {
+            "product_id": "dkp-high-discount",
+            "discount_percent": 85,
+            "savings_toman": 8_500_000,
+        }
+
+        self.assertGreater(
+            radar.selection_policy_shadow_sort_key(fresh_demand, now=self.now),
+            radar.selection_policy_shadow_sort_key(high_discount_no_demand, now=self.now),
+        )
+        # The active production comparator is deliberately unchanged in shadow mode.
+        self.assertGreater(
+            radar.deal_sort_key(high_discount_no_demand, now=self.now),
+            radar.deal_sort_key(fresh_demand, now=self.now),
+        )
+
+    def test_shadow_rank_prefers_fresh_independent_value_with_equal_demand(self):
+        verified_value = {
+            "product_id": "dkp-verified-value",
+            "discount_percent": 8,
+            "savings_toman": 80_000,
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": radar.VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT,
+            "market_price_checked_at": self.now.isoformat(),
+        }
+        retailer_only_markdown = {
+            "product_id": "dkp-retailer-only",
+            "discount_percent": 75,
+            "savings_toman": 750_000,
+        }
+
+        self.assertTrue(radar.has_attractive_discount_value(verified_value, now=self.now))
+        self.assertFalse(radar.has_attractive_discount_value(retailer_only_markdown, now=self.now))
+        self.assertGreater(
+            radar.selection_policy_shadow_sort_key(verified_value, now=self.now),
+            radar.selection_policy_shadow_sort_key(retailer_only_markdown, now=self.now),
+        )
+
+    def test_shadow_telemetry_does_not_mutate_candidate_list_or_records(self):
+        rows = [
+            {"product_id": "dkp-shadow-a", "discount_percent": 20, "savings_toman": 100_000},
+            {"product_id": "dkp-shadow-b", "discount_percent": 60, "savings_toman": 900_000},
+        ]
+        snapshot = [dict(row) for row in rows]
+        with patch("builtins.print"):
+            radar.log_selection_policy_shadow(rows, now=self.now)
+        self.assertEqual(rows, snapshot)
+
     def test_selector_hands_off_live_discounts_by_percentage_then_savings(self):
         def candidate(pid, discount, rank, market_verified=False):
             row = {
