@@ -516213,7 +516213,7 @@
     },
     "dkp-21479852": {
       "aparat_upload_status": "pending",
-      "bale_expiry_status": "tracked",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 1020,
       "caption_countdown_refreshed_at": "2026-10-31T23:47:55.488465+00:00",
       "caption_deadline_format_version": 14,
@@ -516254,7 +516254,13 @@
       "title": "بنگل نقره زنانه پرسته مدل فنری WBS115",
       "ts": 1793238455.693074,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_upload_status": "pending",
+      "telegram_retention_status": "blocked_missing_mtproto_credentials",
+      "telegram_retention_last_checked_at": "2026-11-05T06:27:21.387349+00:00",
+      "bale_retention_status": "deleted",
+      "bale_retention_started_at": "2026-11-05T06:27:21.387349+00:00",
+      "bale_retention_deleted_at": "2026-11-05T06:27:21.387349+00:00",
+      "bale_retention_last_attempt_at": "2026-11-05T06:27:21.387349+00:00"
     },
     "dkp-21486997": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
