@@ -229,3 +229,11 @@ NaN
 - اگر shadow logger خطا دهد، فقط پیام `SELECTION_POLICY_SHADOW_UNAVAILABLE` ثبت می‌شود؛ مسیر اصلی ادامه می‌یابد.
 - برای دیدن آن، log اجرای workflow اسکن/انتخاب را جست‌وجو کن: `SELECTION_POLICY_SHADOW_ONLY`.
 - این صرفاً مرحلهٔ مقایسه است؛ از وجود این پیام نتیجه نگیر که رتبه‌بندی demand-first در انتشار زنده فعال شده است.
+
+
+### مشاهدهٔ واقعی نخستین اجرای shadow
+- workflow: `OfferChin Selected Content Publisher`، run `42073608036`، commit بررسی‌شده `5e4bb1d3c73d1ec8402e6fd56655da0fc252ea58`.
+- ۷۴ کاندیدا؛ ۶ سیگنال تقاضای تازه؛ صفر شواهد مستقل و تازهٔ ارزش؛ پنج گزینهٔ برتر shadow با live متفاوت؛ گزینهٔ اول تغییر می‌کرد.
+- گارد تنوع: ۴۳ مورد family-deferred و ۴ مورد similarity-deferred؛ brand-deferred صفر. گزارش تاریخچه همان run: ۶۹ پست/۲۴h، ۱۵ دسته، ۲۷ خانواده و ۱۸ برند تکرارشده.
+- یک مقایسهٔ قیمت با HTTP 490 bot challenge مواجه شد؛ `market_verified=0` را باید «نبود شاهد قابل‌استفاده در این run» فهمید، نه اثبات تخفیف غیرواقعی.
+- نتیجهٔ انتشار: `queued=0`، `publisher_invoked=false` و `PUBLISHER_QUEUE_EMPTY`؛ هیچ انتشار جدیدی از این run اثبات نشده است.
