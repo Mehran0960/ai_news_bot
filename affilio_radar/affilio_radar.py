@@ -8894,7 +8894,12 @@ def process_pending_short_video(
         public_aparat_need = aparat_need and not APARAT_SHORTS_ONLY
         shorts_queue_need = aparat_pending and APARAT_SHORTS_ONLY
         manual_artifact_need = (
-            not youtube_ready and upload_status in pending_youtube
+            # A manual MP4 artifact is a YouTube fallback, not an Aparat destination.
+            # In an Aparat-only run, treating it as work would let unverified-expiry
+            # YouTube items consume the batch before eligible public Aparat candidates.
+            "youtube" in selected_destinations
+            and not youtube_ready
+            and upload_status in pending_youtube
             and generation_status == "pending"
         )
         review_next = _parse_utc_datetime(record.get("video_review_next_attempt_at"))
