@@ -139,7 +139,7 @@ class ShortVideoTests(unittest.TestCase):
             stream.getvalue(), 50, merchant="اسنپ‌شاپ",
         ))).convert("RGB")
 
-        # For a 400x500 source, the fitted product photo is 332x416 at (194,246).
+        # For a 400x500 source, the fitted product photo is 333x416 at (193,246).
         # The retailer tile is upper-left and the equal-sized discount tile upper-right.
         retailer_crop = digikala.crop((202, 254, 334, 306))
         digikala_discount_crop = digikala.crop((388, 254, 520, 306))
@@ -218,20 +218,37 @@ class ShortVideoTests(unittest.TestCase):
         self.assertEqual(discount_badge_dimensions_for_reference_bounds(280, 88), (280, 88))
         self.assertEqual(discount_badge_dimensions_for_reference_bounds(124, 48), (124, 48))
 
-    def test_snappshop_video_keeps_store_tile_and_uses_digipay_blue_co_brand_tile(self):
+    def test_snappshop_video_keeps_store_tile_and_places_digipay_below_it(self):
+        import short_video
+
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
         image.save(stream, format="PNG")
-        poster = Image.open(io.BytesIO(build_vertical_poster(
-            stream.getvalue(), 42, merchant="اسنپ‌شاپ",
-        ))).convert("RGB")
-        digipay_crop = poster.crop((198, 300, 340, 375))
-        blue_pixels = sum(
-            1
-            for red, green, blue in digipay_crop.getdata()
-            if blue > 150 and blue > red * 1.8 and blue > green * 1.2
+        with (
+            mock.patch(
+                "short_video.draw_retailer_badge",
+                wraps=short_video.draw_retailer_badge,
+            ) as retailer_draw,
+            mock.patch(
+                "short_video.draw_digipay_badge",
+                wraps=short_video.draw_digipay_badge,
+            ) as digipay_draw,
+        ):
+            poster = Image.open(io.BytesIO(build_vertical_poster(
+                stream.getvalue(), 42, merchant="اسنپ‌شاپ",
+            ))).convert("RGB")
+
+        retailer_bounds = retailer_draw.return_value
+        self.assertIsNotNone(retailer_bounds, "SnappShop retailer mark must be present")
+        left, top, width, height = retailer_bounds
+        expected_gap = max(4, int(height * 0.08))
+        self.assertEqual(digipay_draw.call_count, 1)
+        self.assertEqual(
+            digipay_draw.call_args.args[1:5],
+            (left, top + height + expected_gap, width, height),
+            "DigiPay must sit directly below the visible SnappShop logo bounds",
         )
-        self.assertGreater(blue_pixels, 500)
+        self.assertEqual(poster.size, (720, 1280))
 
     def test_persian_text_uses_one_bidi_engine_without_double_reordering(self):
         from PIL import ImageFont
