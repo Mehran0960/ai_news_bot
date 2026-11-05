@@ -49,6 +49,8 @@ from bidi.algorithm import get_display
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config" / "products.json"
 STATE = ROOT / "state.json"
+VIDEO_DISPATCH_STATE = ROOT / "video_upload_dispatch_state.json"
+VIDEO_DISPATCH_STATE_RECORD_LIMIT = 250
 REPORT = ROOT / "candidates.json"
 DIVERSITY_REPORT = ROOT / "diversity_report.json"
 CATALOG_SWEEP_CANDIDATES = ROOT / "catalog_sweep_candidates.json"
@@ -4278,7 +4280,7 @@ def classify_category(title: str) -> str:
         ("large_appliances", r"یخچال|فریزر|ماشین لباسشویی|لباسشویی|ماشین ظرفشویی|ظرفشویی|کولر گازی|اسپلیت|بخاری برقی|آبگرمکن|اجاق گاز|فر توکار|مایکروویو|آون توستر"),
         ("power_backup", r"پاور\s*بانک|شارژر|باتری|چراغ اضطراری|برق اضطراری|چراغ قوه|چراغ دستی"),
         ("lighting", r"چراغ پیشانی|هدلامپ|چراغ مطالعه|چراغ خواب|چراغ روشنایی|چراغ کار|لامپ|نورافکن|چراغ کمپینگ|ریسه روشنایی"),
-        ("home_cleaning", r"جارو(?:برقی| شارژی)?|تی زمین شوی|تی چرخشی|زمین شوی|بخارشوی|مواد شوینده|شوینده سطوح|تمیزکننده سطوح|دستمال نظافت|نظافت خانه"),
+        ("home_cleaning", r"جارو(?:برقی| شارژی)?|تی زمین شوی|تی چرخشی|زمین شوی|بخارشوی|مواد شوینده|شوینده سطوح|تمیزکننده سطوح|دستمال نظافت|نظافت خانه|اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی"),
         ("pet_supplies", r"حیوانات خانگی|حیوان خانگی|غذای سگ|غذای گربه|تشویقی سگ|تشویقی گربه|قلاده|خاک گربه|اسکرچر|پد بهداشتی سگ"),
         ("arts_crafts", r"بوم نقاشی|لوازم نقاشی|لوازم هنری|قلم طراحی|رنگ اکریلیک|رنگ روغن|لوازم خیاطی|چرخ خیاطی|کاموا|قلاب بافی|بافتنی"),
         ("presentation_tools", r"لیزر پوینتر|پوینتر ارائه|ریموت ارائه|کنترل ارائه"),
@@ -4460,9 +4462,90 @@ def load_state(*, apply_integrity_ledger: bool = True) -> dict:
     return state
 
 
+def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) -> dict:
+    """Project only the small fields needed by the Cloudflare video dispatcher.
+
+    The full operational state has grown beyond GitHub Contents API's inline
+    response limit. This sidecar keeps dispatch independent of the full history.
+    """
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    published = state.get("published") if isinstance(state, dict) else {}
+    candidates = []
+    if isinstance(published, dict):
+        for product_id_value, raw in published.items():
+            if not isinstance(raw, dict):
+                continue
+            delivery = raw.get("delivery_status") if isinstance(raw.get("delivery_status"), dict) else {}
+            has_channel_delivery = (
+                delivery.get("telegram") == "sent"
+                or delivery.get("bale") == "sent"
+                or str(raw.get("telegram_message_id") or "").isdigit()
+                or str(raw.get("bale_message_id") or "").isdigit()
+            )
+            if not has_channel_delivery:
+                continue
+            try:
+                ts = float(raw.get("ts") or 0)
+            except (TypeError, ValueError, OverflowError):
+                ts = 0.0
+            if ts <= 0:
+                continue
+            candidates.append((ts, str(product_id_value), raw, delivery))
+    candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+
+    fields = (
+        "youtube_upload_status", "aparat_upload_status", "video_generation_status",
+        "video_generation_next_attempt_at", "youtube_next_attempt_at",
+        "aparat_next_attempt_at", "expires_at", "expiry_source", "expiry_estimated",
+        "expiry_deadline_verified_directly", "expiry_deadline_verified_from_site_card",
+    )
+    compact_published = {}
+    for ts, product_id_value, raw, delivery in candidates[:VIDEO_DISPATCH_STATE_RECORD_LIMIT]:
+        item = {
+            "ts": ts,
+            "delivery_status": {
+                key: value for key, value in delivery.items()
+                if key in {"telegram", "bale"}
+            },
+        }
+        for key in ("telegram_message_id", "bale_message_id", *fields):
+            value = raw.get(key)
+            if value is not None and value != "":
+                item[key] = value
+        compact_published[product_id_value] = item
+
+    def value(key):
+        raw = state.get(key) if isinstance(state, dict) else None
+        return raw if isinstance(raw, (str, int, float, bool)) or raw is None else None
+
+    return {
+        "schema_version": 1,
+        "generated_at": current.isoformat(),
+        "youtube_next_upload_at": value("youtube_next_upload_at"),
+        "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
+        "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
+        "aparat_next_upload_at": value("aparat_next_upload_at"),
+        "published": compact_published,
+    }
+
+
 def save_json(path: Path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    # Keep the dispatch sidecar fresh without allowing its failure to block channel
+    # publication or the main state write.
+    try:
+        if Path(path).resolve() == STATE.resolve() and isinstance(data, dict):
+            compact = build_video_upload_dispatch_state(data)
+            VIDEO_DISPATCH_STATE.write_text(
+                json.dumps(compact, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+    except Exception as exc:
+        print(f"VIDEO_DISPATCH_STATE_WRITE_FAILED error={type(exc).__name__}")
 
 
 def link_map(catalog: list[dict]) -> dict:
@@ -6559,6 +6642,8 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             ("bulbs_and_strips", r"لامپ|ریسه روشنایی"),
         ],
         "home_cleaning": [
+            ("car_cleaning_cloths", r"(?:دستمال|پارچه|پد).*(?:صندلی\s*خودرو|خودرو|ماشین)|(?:صندلی\s*خودرو|خودرو|ماشین).*(?:دستمال|پارچه|پد)"),
+            ("kitchen_scrubbers", r"اسکاچ|سیم\s*ظرفشویی|اسفنج\s*ظرفشویی"),
             ("floor_cleaning", r"تی زمین شوی|تی چرخشی|زمین شوی|بخارشوی"),
             ("vacuum_cleaning", r"جارو(?:برقی| شارژی)?"),
             ("surface_cleaning", r"مواد شوینده|شوینده سطوح|تمیزکننده سطوح|دستمال نظافت"),
@@ -6576,6 +6661,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             ("laser_pointer", r"لیزر پوینتر|پوینتر ارائه"),
         ],
         "sports_outdoor": [
+            ("sports_tshirts", r"(?:تی\s*شرت|تیشرت|پولو\s*شرت).{0,32}ورزشی|ورزشی.{0,32}(?:تی\s*شرت|تیشرت|پولو\s*شرت)"),
             ("racket_grips", r"اور\s*گریپ|آور\s*گریپ|over\s*grip|overgrip|over-grip|aver\s*grip|avergrip"),
             ("camping", r"کمپینگ|کوهنوردی|چادر مسافرتی|سفر و طبیعت"),
             ("fitness", r"بدنسازی|دمبل|تردمیل"),
@@ -6639,6 +6725,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             ("car_accessories", r"روکش\s*صندلی|کفپوش\s*خودرو|داشبورد|لوازم\s*یدکی"),
         ],
         "personal_care": [
+            ("hair_accessories", r"کش\s*مو|گیره\s*مو|تل\s*مو|کلیپس\s*مو|سنجاق\s*مو"),
             ("skincare", r"پوست|کرم|سرم|آبرسان|تونر|ضدآفتاب"),
             ("haircare", r"مو|سشوار|برس حرارتی|اتو مو"),
             ("oral_care", r"مسواک|دندان|دهان\s*شویه|واتر\s*جت"),
@@ -6646,8 +6733,12 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             ("massage", r"ماساژ"),
         ],
         "fashion": [
-            ("apparel", r"تی\s*شرت|تیشرت|پولو\s*شرت|پولوشرت|سویشرت|سوییشرت|هودی|شلوار|بلوز|شومیز|تاپ|پیراهن|مانتو|لباس"),
+            ("socks", r"جوراب|جورابچه"),
             ("footwear", r"کفش|صندل|بوت"),
+            ("apparel_tops", r"تی\s*شرت|تیشرت|پولو\s*شرت|پولوشرت|بلوز|شومیز|تاپ|پیراهن"),
+            ("apparel_bottoms", r"شلوارک|شلوار|دامن"),
+            ("apparel_outerwear", r"سویشرت|سوییشرت|هودی|کاپشن|پالتو|مانتو|بارانی|کت زمستانه"),
+            ("apparel", r"لباس|پوشاک"),
             ("wallets", r"کیف پول|جاکارتی"),
             ("bags", r"کیف|کوله"),
             ("eyewear", r"عینک"),
@@ -6677,6 +6768,11 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
                 family = f"{category}:{subfamily}"
                 break
     brand_hints = [
+        ("ufc", r"\bUFC\b|یو\s*اف\s*سی"),
+        ("ai_javaher", r"آی\s*جواهر"),
+        ("sangboo_climy", r"سانگبو\s*کلایمی"),
+        ("hoye_sazan", r"صنایع\s*هویه\s*سازان"),
+        ("muzik_apollo", r"موزیک\s*آپولو"),
         ("avergrip", r"آور\s*گریپ|اور\s*گریپ|over\s*grip|overgrip|over-grip|aver\s*grip|avergrip"),
         ("muzik_apollo", r"موزیک\s*آپولو"),
         ("vonk", r"وونک"),
@@ -7063,7 +7159,7 @@ def _order_candidates_by_primary_rank(
     )
     return ordered
 
-PUBLICATION_SIMILARITY_COOLDOWN_HOURS = 4.0
+PUBLICATION_SIMILARITY_COOLDOWN_HOURS = 24.0
 PUBLICATION_SIMILARITY_JACCARD_THRESHOLD = 0.50
 PUBLICATION_SIMILARITY_MIN_SHARED_TOKENS = 2
 
@@ -7345,8 +7441,8 @@ def select_publish_candidates(
 MIN_REPEAT_PRODUCT_INTERVAL_HOURS = 24
 PUBLICATION_LEDGER_LIMIT = 2000
 # Repeat-gap preferences; diversity can reorder within a bounded demand gap to avoid category saturation.
-FAMILY_REPEAT_COOLDOWN_HOURS = 4
-BRAND_REPEAT_COOLDOWN_HOURS = 3
+FAMILY_REPEAT_COOLDOWN_HOURS = 24
+BRAND_REPEAT_COOLDOWN_HOURS = 12
 CATEGORY_REPEAT_COOLDOWN_MINUTES = 180
 RETAILER_REPEAT_COOLDOWN_MINUTES = 60
 DIVERSITY_LOOKAHEAD_CANDIDATES = 128
