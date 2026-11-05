@@ -36,27 +36,15 @@ def is_dated_heading(line: str) -> bool:
 
 
 def is_offerchin_implementation_file(path: str) -> bool:
-    """Return True for any OfferChin implementation or manually changed runtime file."""
+    """Treat every tracked repository change as governed except the append-only changelog.
+
+    Generated runtime state commits are excluded by the workflow's push paths-ignore
+    filters. A manual state-file edit in a pull request remains governed.
+    """
     normalized = path.replace(chr(92), "/")
     if normalized.startswith("./"):
         normalized = normalized[2:]
-
-    if normalized.startswith("docs/") and PurePosixPath(normalized).name != "CHANGELOG_FA.md":
-        return True
-    if normalized in {"README.md", ".github/PULL_REQUEST_TEMPLATE.md"}:
-        return True
-    if normalized.startswith("affilio_radar/"):
-        return True
-    if normalized == "cloudflare/affilio-minute-dispatcher.js":
-        return True
-    if normalized.startswith("offerchin-site/"):
-        return True
-    if normalized.startswith("scripts/"):
-        return True
-    if normalized.startswith(".github/workflows/"):
-        workflow = PurePosixPath(normalized).name.lower()
-        return workflow.startswith(("offerchin-", "affilio-"))
-    return False
+    return normalized != CHANGELOG
 
 
 def added_changelog_entries(previous: str, current: str) -> list[str]:
