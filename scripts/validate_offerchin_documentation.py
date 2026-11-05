@@ -36,27 +36,15 @@ def is_dated_heading(line: str) -> bool:
 
 
 def is_offerchin_implementation_file(path: str) -> bool:
-    """Return True for any OfferChin implementation or manually changed runtime file."""
+    """Treat every tracked repository change as governed except the append-only changelog.
+
+    Generated runtime state commits are excluded by the workflow's push paths-ignore
+    filters. A manual state-file edit in a pull request remains governed.
+    """
     normalized = path.replace(chr(92), "/")
     if normalized.startswith("./"):
         normalized = normalized[2:]
-
-    if normalized.startswith("docs/") and PurePosixPath(normalized).name != "CHANGELOG_FA.md":
-        return True
-    if normalized in {"README.md", ".github/PULL_REQUEST_TEMPLATE.md"}:
-        return True
-    if normalized.startswith("affilio_radar/"):
-        return True
-    if normalized == "cloudflare/affilio-minute-dispatcher.js":
-        return True
-    if normalized.startswith("offerchin-site/"):
-        return True
-    if normalized.startswith("scripts/"):
-        return True
-    if normalized.startswith(".github/workflows/"):
-        workflow = PurePosixPath(normalized).name.lower()
-        return workflow.startswith(("offerchin-", "affilio-"))
-    return False
+    return normalized != CHANGELOG
 
 
 def added_changelog_entries(previous: str, current: str) -> list[str]:
@@ -109,15 +97,28 @@ def validate_change(
     ]
     errors: list[str] = []
 
-    # The changelog is append-only even for documentation-only pull requests.
-    if (
-        changelog_changed
-        and previous_changelog
-        and not current_changelog.startswith(previous_changelog)
-    ):
-        errors.append(
-            "CHANGELOG_FA.md is append-only; existing entries must not be edited or removed."
-        )
+    entries: list[str] = []
+    if changelog_changed:
+        # Existing entries are immutable, even in documentation-only PRs.
+        if previous_changelog and not current_changelog.startswith(previous_changelog):
+            errors.append(
+                "CHANGELOG_FA.md is append-only; existing entries must not be edited or removed."
+            )
+        entries = added_changelog_entries(previous_changelog, current_changelog)
+        if current_changelog != previous_changelog and not entries:
+            errors.append(
+                "CHANGELOG_FA.md changes must append a new dated section (## YYYY-MM-DD — ...)."
+            )
+        for heading in entries:
+            section = _section_for_heading(current_changelog, heading)
+            missing = [
+                field for field in REQUIRED_CHANGELOG_FIELDS if field not in section
+            ]
+            if missing:
+                errors.append(
+                    f"Changelog entry {heading!r} is missing required fields: "
+                    + ", ".join(missing)
+                )
 
     if not implementation_changes:
         return errors
@@ -126,22 +127,9 @@ def validate_change(
     if not changelog_changed:
         errors.append(f"Implementation changes require updating {CHANGELOG}.")
         return errors
-
-    entries = added_changelog_entries(previous_changelog, current_changelog)
     if not entries:
         errors.append(
-            "CHANGELOG_FA.md must append a new dated section (## YYYY-MM-DD — ...)."
-        )
-        return errors
-
-    latest_entry = _section_for_heading(current_changelog, entries[-1])
-    missing = [
-        field for field in REQUIRED_CHANGELOG_FIELDS if field not in latest_entry
-    ]
-    if missing:
-        errors.append(
-            "Newest changelog entry is missing required fields: "
-            + ", ".join(missing)
+            "Implementation changes require a new dated changelog entry."
         )
     return errors
 
