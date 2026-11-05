@@ -6774,7 +6774,6 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ("hoye_sazan", r"صنایع\s*هویه\s*سازان"),
         ("muzik_apollo", r"موزیک\s*آپولو"),
         ("avergrip", r"آور\s*گریپ|اور\s*گریپ|over\s*grip|overgrip|over-grip|aver\s*grip|avergrip"),
-        ("muzik_apollo", r"موزیک\s*آپولو"),
         ("vonk", r"وونک"),
         ("reolink", r"ریولینک"),
         ("tilsim", r"تیلسیم"),
