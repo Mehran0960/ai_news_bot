@@ -37,7 +37,7 @@ def is_dated_heading(line: str) -> bool:
 
 def is_offerchin_implementation_file(path: str) -> bool:
     """Return True for any OfferChin implementation or manually changed runtime file."""
-    normalized = path.replace("\\\\", "/")
+    normalized = path.replace(chr(92), "/")
     if normalized.startswith("./"):
         normalized = normalized[2:]
 
