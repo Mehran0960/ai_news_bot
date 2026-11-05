@@ -43,9 +43,18 @@ class OfferChinDocumentationGateTests(unittest.TestCase):
             ["## ۲۰۲۶-۱۱-۰۵ — new"],
         )
 
-    def test_changelog_history_is_append_only_even_without_code_changes(self):
-        previous = "## ۲۰۲۶-۱۱-۰۴ — old\nold entry\n"
-        appended = previous + "\n## ۲۰۲۶-۱۱-۰۵ — new\nnew entry\n"
+    def test_changelog_history_is_append_only_and_new_entries_are_structured(self):
+        previous = "## ۲۰۲۶-۱۱-۰۴ — old\\nold entry\\n"
+        entry = """## ۲۰۲۶-۱۱-۰۵ — new
+**هدف:** هدف
+**تغییر/اقدام:** اقدام
+**فایل‌ها/سامانه‌ها:** مسیر
+**آزمون و نتیجه:** OK
+**شواهد/شناسه:** SHA
+**ریسک/بازگشت:** rollback
+**وضعیت:** انجام‌شده
+"""
+        appended = previous + "\\n" + entry
         self.assertEqual(
             validate_change(
                 ["docs/CHANGELOG_FA.md"], False, True, previous, appended
@@ -53,11 +62,19 @@ class OfferChinDocumentationGateTests(unittest.TestCase):
             [],
         )
 
-        rewritten = "## ۲۰۲۶-۱۱-۰۴ — old\nrewritten entry\n" + appended[len(previous):]
+        rewritten = previous.replace("old entry", "rewritten entry") + "\\n" + entry
         errors = validate_change(
             ["docs/CHANGELOG_FA.md"], False, True, previous, rewritten
         )
         self.assertTrue(any("append-only" in error for error in errors))
+
+    def test_changelog_only_append_still_requires_all_fields(self):
+        previous = "## ۲۰۲۶-۱۱-۰۴ — old\\nold entry\\n"
+        incomplete = previous + "\\n## ۲۰۲۶-۱۱-۰۵ — incomplete\\n**هدف:** هدف\\n"
+        errors = validate_change(
+            ["docs/CHANGELOG_FA.md"], False, True, previous, incomplete
+        )
+        self.assertTrue(any("missing required fields" in error for error in errors))
 
     def test_code_change_without_docs_fails(self):
         errors = validate_change(
