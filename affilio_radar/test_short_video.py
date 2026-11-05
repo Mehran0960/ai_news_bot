@@ -224,10 +224,18 @@ class ShortVideoTests(unittest.TestCase):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
         image.save(stream, format="PNG")
+        original_retailer_draw = short_video.draw_retailer_badge
+        retailer_bounds_seen = []
+
+        def capture_retailer_bounds(*args, **kwargs):
+            bounds = original_retailer_draw(*args, **kwargs)
+            retailer_bounds_seen.append(bounds)
+            return bounds
+
         with (
             mock.patch(
                 "short_video.draw_retailer_badge",
-                wraps=short_video.draw_retailer_badge,
+                side_effect=capture_retailer_bounds,
             ) as retailer_draw,
             mock.patch(
                 "short_video.draw_digipay_badge",
@@ -238,7 +246,7 @@ class ShortVideoTests(unittest.TestCase):
                 stream.getvalue(), 42, merchant="اسنپ‌شاپ",
             ))).convert("RGB")
 
-        retailer_bounds = retailer_draw.return_value
+        retailer_bounds = retailer_bounds_seen[0] if retailer_bounds_seen else None
         self.assertIsNotNone(retailer_bounds, "SnappShop retailer mark must be present")
         left, top, width, height = retailer_bounds
         expected_gap = max(4, int(height * 0.08))
