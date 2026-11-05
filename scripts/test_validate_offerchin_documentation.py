@@ -9,12 +9,12 @@ from validate_offerchin_documentation import (
 
 
 class OfferChinDocumentationGateTests(unittest.TestCase):
-    def test_runtime_state_files_are_excluded_from_scheduled_noise(self):
-        # These files are written by scheduled automation; a manual edit must still
-        # be documented as an operational change in the handbook and changelog.
-        self.assertFalse(is_offerchin_implementation_file("affilio_radar/state.json"))
-        self.assertFalse(is_offerchin_implementation_file("affilio_radar/integrity_audit_state.json"))
-        self.assertFalse(is_offerchin_implementation_file("affilio_radar/weekly_report.json"))
+    def test_manual_runtime_file_changes_in_a_pull_request_are_documented(self):
+        # Scheduled state writes on main do not match the workflow path filters.
+        # Manual edits submitted in a pull request must still pass the documentation gate.
+        self.assertTrue(is_offerchin_implementation_file("affilio_radar/state.json"))
+        self.assertTrue(is_offerchin_implementation_file("affilio_radar/integrity_audit_state.json"))
+        self.assertTrue(is_offerchin_implementation_file("affilio_radar/weekly_report.json"))
         self.assertTrue(is_offerchin_implementation_file("affilio_radar/config/products.json"))
 
     def test_offerchin_code_and_workflows_are_scoped(self):
