@@ -2988,6 +2988,81 @@ def _deal_value_evidence_key(record: dict) -> tuple[int, int]:
 
 
 
+def selection_policy_shadow_sort_key(
+    record: dict,
+    now: datetime | None = None,
+) -> tuple:
+    """Telemetry-only target ranking: fresh demand, verified deal value, then markdown.
+
+    This key is deliberately not used by the live selector or publisher yet. It lets
+    us compare the current discount-first policy against the product's stated goal
+    using the same freshly observed candidate evidence, without changing publication.
+    """
+    candidate = record if isinstance(record, dict) else {}
+    demand_key = _demand_evidence_sort_key(candidate, now=now)
+    value_verified = has_attractive_discount_value(candidate, now=now)
+    return (
+        *demand_key,
+        int(value_verified),
+        *_deal_primary_sort_key(candidate, now=now),
+        int(has_meaningful_discount(candidate)),
+    )
+
+
+def log_selection_policy_shadow(
+    candidates: list[dict],
+    now: datetime | None = None,
+) -> None:
+    """Log the top candidates under target policy beside the unchanged live order."""
+    rows = [row for row in (candidates or []) if isinstance(row, dict)]
+    if not rows:
+        return
+
+    current = now or datetime.now(timezone.utc)
+    try:
+        live_order = sorted(
+            rows,
+            key=lambda row: deal_sort_key(row, now=current),
+            reverse=True,
+        )
+        shadow_order = sorted(
+            rows,
+            key=lambda row: selection_policy_shadow_sort_key(row, now=current),
+            reverse=True,
+        )
+
+        def ids(items: list[dict]) -> str:
+            values = []
+            for item in items[:5]:
+                pid = str(
+                    item.get("product_id")
+                    or product_id(item.get("product_url") or "")
+                    or "unknown"
+                )
+                values.append(pid)
+            return ",".join(values)
+
+        demand_verified = sum(
+            1 for row in rows if has_actionable_demand_signal(row, now=current)
+        )
+        value_verified = sum(
+            1 for row in rows if has_attractive_discount_value(row, now=current)
+        )
+        live_top = ids(live_order)
+        shadow_top = ids(shadow_order)
+        print(
+            "SELECTION_POLICY_SHADOW_ONLY "
+            f"candidates={len(rows)} demand_verified={demand_verified} "
+            f"value_verified={value_verified} "
+            f"live_top5={live_top} shadow_top5={shadow_top} "
+            f"top1_would_change={bool(live_order and shadow_order and live_order[0] is not shadow_order[0])} "
+            "live_selection_unchanged=true"
+        )
+    except Exception as exc:
+        # Shadow diagnostics must never block discovery or publication.
+        print(f"SELECTION_POLICY_SHADOW_UNAVAILABLE error={type(exc).__name__}")
+
+
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
     """Prioritize percentage markdown and saving; deadlines only break downstream ties."""
     candidate = record if isinstance(record, dict) else {}
@@ -7835,6 +7910,10 @@ def select_discount_fallback_candidates(
         if reusable:
             fresh_candidates = reusable
             fallback_mode = "cooldown_relaxed"
+
+    # Compare the intended demand/value-first policy in telemetry only.
+    # This deliberately does not reorder, filter, or annotate the live hand-off.
+    log_selection_policy_shadow(fresh_candidates, now=current)
 
     print(
         f"SELECTION_POLICY rank=discount_percent_desc,savings_toman_desc "
