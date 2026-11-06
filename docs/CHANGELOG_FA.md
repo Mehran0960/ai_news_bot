@@ -499,3 +499,20 @@
 **ریسک/بازگشت:** افزایش concurrency می‌تواند نرخ 429 را بالا ببرد؛ backoff با هر 429 فعال می‌شود و برای burstهای سه‌تایی یا بیشتر ظرفیت را نصف می‌کند. در صورت افت نرخ موفقیت یا افزایش retry، سقف workflow را به ۱۲ یا مقدار پایین‌تر برمی‌گردانیم. هیچ دست‌کاری در محدودیت‌های سمت دیجی‌کالا انجام نمی‌شود.
 
 **وضعیت:** تغییرات روی شاخهٔ `perf/offerchin-catalog-throughput-20261106` ثبت می‌شوند؛ ادغام، تست نهایی CI و اثبات بهبود سرعت در اجرای زنده هنوز انجام نشده‌اند.
+
+
+## ۲۰۲۶-۱۱-۰۶ — اثبات عملی سرعت اسکن و تشخیص مانع dispatcher
+
+**هدف:** اعتبارسنجی throughput پس از بهینه‌سازی اسکنر، تعیین وضعیت واقعی چرخهٔ کامل و رفع تداوم dispatch کاتالوگ بدون ریسک‌کردن credentialها.
+
+**تغییر/اقدام:** PR شمارهٔ 86 ادغام شد. اسکنر run شمارهٔ 1096 را با ۲۵۵/۲۵۵ صفحهٔ موفق، صفر retry، صفر HTTP 429، ۹ worker واقعی و `fetch_s=25.324` به پایان رساند؛ run قبلی #1095 برای batch تقریباً هم‌اندازه `fetch_s=256.836` داشت. checkpoint با موفقیت ثبت شد. بررسی مستقیم Cloudflare نشان داد Worker نسخهٔ 31 هنوز Cron یک‌دقیقه‌ای دارد، اما به علت تلاش برای cancel کردن یک run که GitHub هنوز queue نکرده، در مسیر اسکن کاتالوگ HTTP 409 می‌گیرد. سورس main حاوی guard اصلاحی است ولی deploy واقعی به علت `No access to the specified service` رد شد. راهنمای deploy در این تغییر به نقش مستندشدهٔ Workers Editor اصلاح شد.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/deploy-affilio-minute-dispatcher.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`؛ GitHub Actions و Cloudflare Worker.
+
+**آزمون و نتیجه:** run #1096 موفق بود؛ هر ۳۱ تست scanner در workflow اجرا شدند. publisher run #2875 و Integrity Audit run #3121 نیز پس از dispatch زمان‌بندی‌شده با موفقیت تکمیل شدند. بااین‌حال، اسکن چرخه هنوز ۲۵۵ صفحهٔ pending و `completed_cycles=0` دارد. deploy Worker هنوز ناموفق است و باید پس از اصلاح مجوز Token دوباره اجرا شود.
+
+**شواهد/شناسه:** PR #86 و merge commit `049cc45f2fed0fc89f25979d6a738200495aff85`؛ scan run `42246038180`؛ checkpoint commit `92d861a187e7b507509080f134e0ec66386d5404`؛ state: ۴٬۹۱۷ دسته، ۴٬۶۷۱ برگ، ۱۸۶٬۵۶۵ صفحهٔ موفق در چرخه، ۲۵۵ صفحهٔ pending؛ deploy run `42244812744`؛ Cloudflare version 31.
+
+**ریسک/بازگشت:** افزایش concurrency بدون نظارت می‌تواند نرخ 429 را افزایش دهد؛ backoff تطبیقی برقرار است. deploy مستقیم نسخهٔ ۳۴ انجام نشد، چون صرفاً annotation و binding metadata برای اثبات صحت کد کافی نیست. Worker نسخهٔ ۳۱ و secret bindingهای آن تا زمان مجوز deploy صحیح دست‌نخورده می‌مانند.
+
+**وضعیت:** اسکنر جدید روی main فعال و یک اجرای واقعی موفق دارد؛ رفع باگ زمان‌بند در سورس main است اما deployment production به‌علت نبود Workers Editor در Token فعلی مسدود است. اقدام نهایی نیازمند جایگزینی Secret `CLOUDFLARE_API_TOKEN` با Account-owned Token دارای Workers Editor برای همین Worker و اجرای مجدد workflow است.
