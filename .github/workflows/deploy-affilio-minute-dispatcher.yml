@@ -43,6 +43,9 @@ jobs:
       - name: Check Worker JavaScript syntax
         run: node --check cloudflare/affilio-minute-dispatcher.mjs
 
+      - name: Test full-catalog publication gate
+        run: node --test cloudflare/affilio-minute-dispatcher.test.mjs
+
       - name: Dry-run Worker bundle without production credentials
         run: npx --yes wrangler@4 deploy --config cloudflare/wrangler.toml --dry-run
 
