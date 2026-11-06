@@ -55,7 +55,9 @@ async function findActiveWorkflow(api, token) {
   return null;
 }
 
-async function recoverStaleWorkflow(api, token, label, runningLimitMinutes, queuedLimitMinutes) {
+async function recoverStaleWorkflow(
+  api, token, label, runningLimitMinutes, queuedLimitMinutes, options = {}
+) {
   const active = await findActiveWorkflow(api, token);
   if (!active) return null;
   const run = active.run || {};
@@ -65,35 +67,55 @@ async function recoverStaleWorkflow(api, token, label, runningLimitMinutes, queu
   const limit = active.status === "in_progress" ? runningLimitMinutes : queuedLimitMinutes;
   if (ageMinutes < limit) return active;
 
-  // A stuck run owns the shared channel-mutation concurrency lock. Cancel it so
-  // a future tick can recover; never let an old worker block publishing forever.
-  const runsApi = api.replace(/\/workflows\/[^/]+$/, "/runs");
-  await githubRequest(`${runsApi}/${run.id}/cancel`, token, { method: "POST" });
+  const runsApi = api.replace(/\\/workflows\\/[^/]+$/, "/runs");
+
+  // GitHub can expose a run as queued even when its jobs collection is empty.
+  // Such orphaned runs may reject cancellation with HTTP 409 ("has not been queued yet").
+  // Only the read-only catalog scanner may bypass this stale record after verifying
+  // that no job ever started. Publishing workflows retain their strict concurrency lock.
+  if (options.ignoreOrphanedNoJobs === true && active.status !== "in_progress") {
+    const jobsData = await githubRequest(runsApi + "/" + run.id + "/jobs?per_page=100", token);
+    const jobs = Array.isArray(jobsData.jobs) ? jobsData.jobs : [];
+    if (jobs.length === 0) {
+      console.error(
+        "CHANNEL_DISPATCH_ORPHANED_ZERO_JOB_RUN workflow=" + label +
+        " run_id=" + run.id + " status=" + active.status +
+        " age_minutes=" + Math.floor(ageMinutes) + "; bypassing stale catalog lock"
+      );
+      return { status: "orphaned_no_jobs", run };
+    }
+  }
+
+  // For genuine running or queued jobs, retain the existing stale-run cancellation guard.
+  await githubRequest(runsApi + "/" + run.id + "/cancel", token, { method: "POST" });
   console.log(
-    `CHANNEL_DISPATCH_STALE_CANCEL_REQUESTED workflow=${label} run_id=${run.id} ` +
-    `status=${active.status} age_minutes=${Math.floor(ageMinutes)} threshold_minutes=${limit}`
+    "CHANNEL_DISPATCH_STALE_CANCEL_REQUESTED workflow=" + label + " run_id=" + run.id +
+    " status=" + active.status + " age_minutes=" + Math.floor(ageMinutes) +
+    " threshold_minutes=" + limit
   );
   return { status: "stale_cancelling", run };
 }
 
-async function dispatchWorkflowIfIdle(api, token, label, runningLimitMinutes, queuedLimitMinutes) {
-  const active = await recoverStaleWorkflow(api, token, label, runningLimitMinutes, queuedLimitMinutes);
+async function dispatchWorkflowIfIdle(
+  api, token, label, runningLimitMinutes, queuedLimitMinutes, options = {}
+) {
+  const active = await recoverStaleWorkflow(
+    api, token, label, runningLimitMinutes, queuedLimitMinutes, options
+  );
   if (active && active.status === "stale_cancelling") {
     console.log("CHANNEL_DISPATCH_SKIPPED workflow=" + label + " reason=stale_run_cancellation_requested");
     return;
   }
-  if (active) {
+  if (active && active.status !== "orphaned_no_jobs") {
     console.log("CHANNEL_DISPATCH_SKIPPED workflow=" + label + " reason=already_" + active.status + "; independent workflow remains unaffected");
     return;
   }
-  await githubRequest(api + "/dispatches", token, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ref: "main" })
-  });
-  console.log("CHANNEL_DISPATCH_ACCEPTED workflow=" + label);
-}
-
+  if (active && active.status === "orphaned_no_jobs") {
+    console.warn(
+      "CHANNEL_DISPATCH_ORPHAN_BYPASS workflow=" + label +
+      " run_id=" + active.run.id + " reason=zero_jobs_and_stale"
+    );
+  }
 const PUBLISHER_INTERVAL_MS = 17 * 60 * 1000;
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
 
@@ -316,7 +338,14 @@ async function runScheduledCheck(env, scheduledTime) {
   // guard below prevents overlap; dispatching only at offset 1 used to leave
   // several minutes of avoidable idle time after a short successful batch.
   try {
-    await dispatchWorkflowIfIdle(CATALOG_API, env.GITHUB_TOKEN, CATALOG_WORKFLOW, 18, 8);
+    await dispatchWorkflowIfIdle(
+      CATALOG_API,
+      env.GITHUB_TOKEN,
+      CATALOG_WORKFLOW,
+      18,
+      8,
+      { ignoreOrphanedNoJobs: true }
+    );
   } catch (error) {
     console.error("OFFERCHIN_CATALOG_SWEEP_DISPATCH_FAILED", String(error).slice(0, 900));
   }

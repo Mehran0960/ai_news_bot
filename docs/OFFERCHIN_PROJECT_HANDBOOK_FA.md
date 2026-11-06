@@ -290,3 +290,31 @@ NaN
 - commits تکمیلی پیش از merge: source `19405ca12bf2510f72ffa9bd16fa54877ec7e533`، tests `e43ad9c33f1f6bc90aa29cda4743ab751c3d167f`.
 
 - Regression fixture مربوط به حفظ brand metadata با شناسهٔ معتبر DigiKala (`dkp-123456`) اصلاح شد؛ شناسهٔ قبلی خارج از الگوی SKU بود و به‌درستی توسط ledger رد می‌شد. این اصلاح فقط fixture آزمون را تصحیح می‌کند. آخرین آزمون کامل: ۴۲۱ تست، ۲ skip، OK.
+
+## 15. بازیابی اسکن کاتالوگ پس از اجرای یتیم GitHub Actions — ۶ نوامبر ۲۰۲۶
+
+### تشخیص مستندشده
+- Cloudflare Worker با Cron یک‌دقیقه‌ای فعال بود؛ telemetry نشان می‌داد invocationهای affilio-minute-dispatcher هر دقیقه اجرا می‌شوند.
+- آخرین اجرای سالم مشاهده‌شدهٔ اسکن، run 42196432894، با موفقیت و مدت ۶۷ ثانیه تمام شده بود.
+- اجرای بعدی، run 42196544516 (شمارهٔ workflow run برابر ۱۰۹۳، ساخته‌شده در 09:38 UTC)، در GitHub با وضعیت queued باقی ماند؛ endpoint مربوط به jobs برای آن آرایهٔ خالی برگرداند.
+- تلاش Worker برای لغو آن به‌صورت مکرر با HTTP 409 و پیام Cannot cancel a workflow run that has not been queued yet شکست خورد. در نتیجه، guard بازیابی به‌جای dispatch بعدی روی رکورد یتیم متوقف می‌شد. این خطا مربوط به مدیریت وضعیت GitHub Actions است، نه خطای درخواست DigiKala یا پاسخ 429.
+- اجرای یک‌دقیقه‌ای Cloudflare همچنان سالم بود؛ بنابراین نباید Cron، publisher یا زمان‌بندی مقصدها را برای رفع این مشکل دست‌کاری کرد.
+
+### اصلاح کنترل‌شده روی شاخهٔ کاری
+- گروه concurrency اسکن کاتالوگ به offerchin-digikala-catalog-sweep-v2 تغییر می‌کند تا run یتیم قدیمی، حتی در صورت باقی‌ماندن در GitHub، اسکن تازه را مسدود نکند.
+- dispatcher فقط برای workflow اسکن کاتالوگ، پس از عبور از آستانهٔ stale، endpoint jobs را بررسی می‌کند. فقط اگر هیچ jobی برای run وجود نداشته باشد، رکورد به‌عنوان orphaned_no_jobs شناخته و از قفل dispatch کنار گذاشته می‌شود.
+- برای publisher، integrity audit، YouTube، Aparat و Filo، سیاست قفل و بازیابی قبلی بدون تغییر باقی می‌ماند؛ رکوردهای قدیمی بدون بررسی job هیچ‌گاه مجوز عبور از قفل انتشار نمی‌گیرند.
+- اجرای یتیم حذف نمی‌شود و ممکن است همچنان در صفحهٔ Actions دیده شود. تغییر concurrency group صرفاً مانع اثر آن بر اسکن جدید می‌شود؛ پاک‌سازی رکورد قدیمی، در صورت نیاز، موضوع جداگانهٔ پشتیبانی GitHub است.
+- اسکنر اکنون زمان fetch موازی، پردازش/مرتب‌سازی محلی، نوشتن shortlist، نوشتن state، نرخ صفحه بر ثانیه و نرخ ردیف محصول بر ثانیه را در summary هر batch ثبت می‌کند. هیچ تغییری در all-categories/all-pages، retry، backoff، سقف عمق صفحه یا ترتیب تخفیف‌اول ایجاد نشده است.
+
+### آزمون و rollout
+- شاخهٔ کاری: fix/offerchin-orphaned-catalog-dispatch-2026-11-06.
+- فایل‌های تغییرکرده: cloudflare/affilio-minute-dispatcher.js، .github/workflows/offerchin-digikala-catalog-sweep.yml، affilio_radar/parallel_catalog_sweep.py و affilio_radar/test_parallel_catalog_sweep.py.
+- نتیجهٔ regression، syntax check، Documentation Gate، merge و استقرار Worker باید پس از اجرای PR ثبت شود؛ تا پیش از آن، اصلاح عملیاتی‌شده محسوب نمی‌شود.
+- پس از merge، نسخهٔ جدید Worker باید با حفظ Cron یک‌دقیقه‌ای، secret bindingهای موجود، compatibility date، observability و logging منتشر شود. بعد از deploy، باید dispatch یک اجرای تازه، ایجاد حداقل یک job، persistence موفق cursor و کاهش خطاهای 409 تأیید شود.
+
+### معیار موفقیت
+- اجرای تازهٔ scanner بدون وابستگی به run 42196544516 آغاز شود و فقط یک batch اسکن فعال باشد.
+- checkpoint جدید در catalog_sweep_state.json و catalog_sweep_candidates.json ثبت و push شود.
+- full-cycle فقط با خالی‌شدن صف و ثبت timestamp تکمیل اعلام شود؛ عبور از اجرای یتیم به‌تنهایی به‌معنای تکمیل چرخه نیست.
+- سرعت اسکن با سنجه‌های fetch/process/checkpoint مقایسه شود؛ افزایش سرعت بدون دادهٔ اندازه‌گیری‌شده ادعا نشود.

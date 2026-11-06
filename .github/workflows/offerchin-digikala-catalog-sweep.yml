@@ -16,7 +16,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: offerchin-digikala-catalog-sweep
+  group: offerchin-digikala-catalog-sweep-v2
   cancel-in-progress: false
 
 jobs:
