@@ -14,6 +14,7 @@ STATE_PATH = ROOT / "catalog_sweep_state.json"
 STATUS_PATH = ROOT / "catalog_sweep_status.json"
 COMPLETED_CANDIDATES_PATH = ROOT / "catalog_sweep_completed_candidates.json"
 SCAN_POLICY_VERSION = "all_categories_all_pages_v3_cycle_snapshot"
+MAX_CATALOG_SNAPSHOT_AGE_HOURS = 96
 
 
 def _integer(value: Any, default: int = 0) -> int:
@@ -45,12 +46,44 @@ def _sorted_ids(value: Any) -> list[str]:
     return sorted(ids, key=int)
 
 
-def _valid_timestamp(value: str) -> bool:
+def _parse_timestamp(value: Any) -> datetime | None:
     try:
-        datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-        return True
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
     except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def _valid_timestamp(value: str) -> bool:
+    return _parse_timestamp(value) is not None
+
+
+def _snapshot_is_fresh(completed_at: Any, now: datetime | None = None) -> bool:
+    completed = _parse_timestamp(completed_at)
+    if completed is None:
         return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    age_hours = (current.astimezone(timezone.utc) - completed).total_seconds() / 3600
+    return -0.25 <= age_hours <= MAX_CATALOG_SNAPSHOT_AGE_HOURS
+
+
+def is_initial_catalog_warmup(status: Any) -> bool:
+    """Permit live discovery only before the first valid full-catalog snapshot exists."""
+    if not isinstance(status, dict) or _integer(status.get("schema_version")) != 2:
+        return False
+    return bool(
+        status.get("full_catalog_mode") == "all_categories_all_pages"
+        and status.get("scan_policy_version") == SCAN_POLICY_VERSION
+        and status.get("completed_candidates_snapshot_present") is False
+        and status.get("completed_candidates_snapshot_valid") is False
+        and status.get("last_clean_cycle_status") == "unavailable"
+        and not status.get("last_clean_cycle_completed_at")
+        and _integer(status.get("completed_cycles")) == 0
+    )
 
 
 def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
@@ -181,11 +214,13 @@ def build_status_snapshot(
         state.get("parallel_full_catalog_mode") == "all_categories_all_pages"
         and state.get("parallel_scan_policy_version") == SCAN_POLICY_VERSION
     )
+    status_time = _parse_timestamp(generated_at) if generated_at else datetime.now(timezone.utc)
     snapshot_valid = bool(
         policy_ok
         and current_ids_unique
         and snapshot["valid"]
         and snapshot["category_ids"] == current_ids
+        and _snapshot_is_fresh(snapshot["cycle_completed_at"], status_time)
     )
     cycles = _integer(stats.get("completed_cycles", state.get("completed_cycles")))
     latest_cycle_status = str(state.get("last_cycle_status") or "in_progress")
@@ -270,7 +305,7 @@ def load_completed_candidates_snapshot(
         return None
 
     details = _candidate_snapshot_details(candidates_payload)
-    if not details["valid"]:
+    if not details["valid"] or not _snapshot_is_fresh(details["cycle_completed_at"]):
         return None
     if details["cycle_completed_at"] != str(status.get("last_clean_cycle_completed_at") or ""):
         return None
@@ -300,6 +335,42 @@ def load_completed_candidates_snapshot(
         "candidate_count": details["candidate_count"],
         "status": status,
     }
+
+
+
+def load_publication_catalog_context(
+    status_path: Path = STATUS_PATH,
+    candidates_path: Path = COMPLETED_CANDIDATES_PATH,
+) -> dict[str, Any]:
+    """Resolve the current publication gate: verified snapshot, first warm-up, or blocked."""
+    snapshot = load_completed_candidates_snapshot(status_path, candidates_path)
+    if snapshot is not None:
+        return {"mode": "full_catalog", "snapshot": snapshot}
+    try:
+        status = json.loads(status_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        status = None
+    if is_initial_catalog_warmup(status):
+        return {"mode": "initial_warmup", "snapshot": None}
+    return {"mode": "blocked", "snapshot": None}
+
+
+def candidate_allowed_by_publication_context(
+    candidate: Any,
+    context: dict[str, Any] | None,
+) -> bool:
+    """Only current snapshot members may enter normal publication; SnapShop remains live-verified."""
+    if not isinstance(candidate, dict) or not isinstance(context, dict):
+        return False
+    mode = str(context.get("mode") or "")
+    if mode == "initial_warmup":
+        return True
+    if mode != "full_catalog":
+        return False
+    product_id = str(candidate.get("product_id") or "").lower()
+    if product_id.startswith("snp-"):
+        return True
+    return candidate_matches_completed_snapshot(candidate, context.get("snapshot"))
 
 
 def candidate_matches_completed_snapshot(
