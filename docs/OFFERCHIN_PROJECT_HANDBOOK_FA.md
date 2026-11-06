@@ -270,3 +270,9 @@ NaN
 - اصلاحیه در شاخهٔ fix/restore-24h-family-brand-similarity-guards-2026-11-06: تابع _filter_recent_publication_repeats هر سه گارد را enforce می‌کند؛ BRAND_REPEAT_COOLDOWN_HOURS از ۱۲ به ۲۴ افزایش یافته است؛ family و similarity قبلاً ۲۴ بودند.
 - آزمون‌ها پوشش می‌دهند: block شدن کاندیدای تکراری در هر یک از سه guard، آزادشدن پس از گذشت ۲۴ ساعت، انتخاب بهترین رتبهٔ بعدی، و جلوگیری از تکرار در یک batch.
 - وضعیت main: این اصلاحیه تا CI و merge، هنوز تغییر زندهٔ main محسوب نمی‌شود.
+
+### تکمیل اصلاحیهٔ برند و آزمون‌های رگرسیون
+- نرمال‌سازی brand در _publication_diversity_group اکنون idempotent است؛ brand slug ذخیره‌شده در publication history دوباره prefix نمی‌گیرد و با brand همان کاندیدا قابل مقایسه می‌ماند.
+- expectationهای قدیمی که family/brand repeat را مجاز می‌شمردند به رفتار درست تغییر کردند: candidate تکراری رد و گزینهٔ بعدی انتخاب می‌شود. نام تست‌ها نیز با قرارداد guard ۲۴ساعته هم‌راستا شد.
+- آخرین commits کد/تست در شاخه: source `2c492dadf4a0e98d398cb595ac274e970e3aae6c`، tests `e8b1a047199fdd2b9d0920198680164bfeeddd84`.
+- اجرای نخست پس از بازگرداندن guardها، ۱۲ failure در expectationهای قدیمی/تطبیق brand نشان داد؛ پس از اصلاح کد و آزمون‌ها، rerunهای جدید هنوز در انتظار نتیجه‌اند.
