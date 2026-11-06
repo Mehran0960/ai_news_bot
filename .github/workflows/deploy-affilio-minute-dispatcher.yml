@@ -40,6 +40,9 @@ jobs:
       - name: Prepare an ES module entrypoint from the canonical Worker source
         run: cp cloudflare/affilio-minute-dispatcher.js cloudflare/affilio-minute-dispatcher.mjs
 
+      - name: Check Worker JavaScript syntax
+        run: node --check cloudflare/affilio-minute-dispatcher.mjs
+
       - name: Dry-run Worker bundle without production credentials
         run: npx --yes wrangler@4 deploy --config cloudflare/wrangler.toml --dry-run
 
@@ -78,6 +81,9 @@ jobs:
 
       - name: Prepare an ES module entrypoint from the canonical Worker source
         run: cp cloudflare/affilio-minute-dispatcher.js cloudflare/affilio-minute-dispatcher.mjs
+
+      - name: Check Worker JavaScript syntax
+        run: node --check cloudflare/affilio-minute-dispatcher.mjs
 
       - name: Validate Worker syntax and Wrangler configuration without deploying
         env:
