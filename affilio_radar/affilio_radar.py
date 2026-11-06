@@ -55,7 +55,8 @@ VIDEO_DISPATCH_STATE = ROOT / "video_upload_dispatch_state.json"
 VIDEO_DISPATCH_STATE_RECORD_LIMIT = 250
 REPORT = ROOT / "candidates.json"
 DIVERSITY_REPORT = ROOT / "diversity_report.json"
-CATALOG_SWEEP_CANDIDATES = ROOT / "catalog_sweep_candidates.json"
+CATALOG_SWEEP_CANDIDATES = ROOT / "catalog_sweep_completed_candidates.json"
+CATALOG_SWEEP_STATUS = ROOT / "catalog_sweep_status.json"
 TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@OfferChin").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
@@ -3182,6 +3183,8 @@ def merge_discovery_queue(
             "catalog_best_selling_category_name",
             "catalog_rank_observed_at",
             "catalog_best_selling_ranks_by_category",
+            "catalog_cycle_completed_at",
+            "catalog_cycle_snapshot_rank",
         ):
             if row.get(field) not in (None, ""):
                 record[field] = row[field]
@@ -9612,6 +9615,8 @@ def run(publish=False, selection_only=False):
                     "catalog_best_selling_category_id",
                     "catalog_best_selling_category_name",
                     "catalog_rank_observed_at",
+                    "catalog_cycle_completed_at",
+                    "catalog_cycle_snapshot_rank",
                 ):
                     if catalog_record.get(field) not in (None, ""):
                         item[field] = catalog_record[field]
