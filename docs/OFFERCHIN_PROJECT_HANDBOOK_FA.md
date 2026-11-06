@@ -104,6 +104,8 @@ Registry مرکزی: `affilio_radar/platform_registry.py`. مقصدهای فعل
 - Worker هر دقیقه بررسی می‌شود؛ scanner در هر tick، اگر اجرای قبلی آزاد باشد، dispatch می‌شود. Integrity Audit همچنان در offset مستقل پنج‌دقیقه‌ای اجرا می‌شود؛ Filo و publisher نیز زمان‌بندی مستقل دارند.
 - Workflow اسکن: `.github/workflows/offerchin-digikala-catalog-sweep.yml`.
 - ظرفیت scanner: ۴۸۰ صفحه/اجرا، سقف درخواستی ۱۲ worker با افزایش تدریجی پس از batchهای تمیز و نصف‌شدن concurrency پس از حداقل ۳ پاسخ 429؛ timeout فعلی ۱۲ دقیقه.
+- **Rollout واقعی Cloudflare در ۶ نوامبر ۲۰۲۶، ساعت ۰۸:۲۲:۲۱ UTC:** Worker `affilio-minute-dispatcher` با deployment ID `a20fdab9edea4cbaab00c2eecc9a0cba` به نسخهٔ dispatch یک‌دقیقه‌ایِ idle-only ارتقا یافت. cron همچنان `* * * * *` است؛ secret bindingهای `GITHUB_TOKEN` و `FILO_GITHUB_TOKEN` حفظ شدند و observability/logging روشن باقی ماند. slot پنج‌دقیقه‌ای Integrity Audit، Filo، publisher و ویدئوها تغییر نکرد. این Rollout هیچ اسکن هم‌زمانی ایجاد نمی‌کند؛ dispatch فقط پس از آزادشدن workflow و با قفل concurrency انجام می‌شود.
+- **اندازه‌گیری آغازین پس از rollout هنوز کامل نیست:** اجرای workflow با run ID `42187132905` از push پس از merge آغاز شده و هنگام ثبت این یادداشت هنوز در حال اجرا بود؛ تا ثبت summary آن، هیچ عددی برای سرعت نهایی ادعا نمی‌شود.
 - ناشر: `.github/workflows/offerchin-publisher.yml`; کشف با `--select-only` پست عمومی نمی‌فرستد؛ `publisher.py` صف تحویل را جدا پردازش می‌کند.
 - حداقل فاصلهٔ Telegram/Bale حدود ۲۳ دقیقه و سقف فعلی ۷۲ پست در روز است. این cadence محدودیت مقصد است، نه فیلتر تخفیف.
 - cadence فعلی YouTube/Aparat حدود ۳ ساعت و مسیر مستقل دارد. Aparat عمومی هنوز شرط deadline تأییدشدهٔ مخصوص خود را دارد.
