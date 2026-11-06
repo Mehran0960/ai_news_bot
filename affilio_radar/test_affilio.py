@@ -2076,7 +2076,7 @@ class AffilioRadarTests(unittest.TestCase):
         first_at = datetime(2026, 11, 6, 8, 0, tzinfo=timezone.utc)
         state = {
             "published": {
-                "dkp-brand-only-metadata": {
+                "dkp-123456": {
                     "title": "هدفون بی‌سیم مدل تست",
                     "brand": "Sony",
                     "ts": first_at.timestamp(),
@@ -2089,11 +2089,11 @@ class AffilioRadarTests(unittest.TestCase):
         }
 
         self.assertTrue(ensure_publication_ledger(state))
-        ledger = state["publication_ledger"]["dkp-brand-only-metadata"]
+        ledger = state["publication_ledger"]["dkp-123456"]
         self.assertEqual(ledger["brand"], "Sony")
 
         history = state["recent_publications"]
-        entry = next(item for item in history if item["product_id"] == "dkp-brand-only-metadata")
+        entry = next(item for item in history if item["product_id"] == "dkp-123456")
         self.assertEqual(entry["brand"], "brand:sony")
 
         now = first_at + timedelta(hours=2)
