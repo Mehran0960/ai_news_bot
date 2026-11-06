@@ -65,7 +65,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "${CLOUDFLARE_API_TOKEN:-}" || {
-            echo "::error::Missing repository secret CLOUDFLARE_API_TOKEN (must include Workers Scripts Write)."
+            echo "::error::Missing repository secret CLOUDFLARE_API_TOKEN. Use an account-owned API token with Workers Editor access scoped to affilio-minute-dispatcher (or account-level Workers Editor); a generic Scripts Write grant may not authorize Wrangler deploy."
             exit 1
           }
 
