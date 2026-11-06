@@ -7341,12 +7341,13 @@ def _filter_recent_publication_repeats(
     limit: int | None = None,
     label: str = "PUBLISH",
 ) -> list[dict]:
-    """Preserve discount rank; report family/brand/similarity repeats as telemetry only.
+    """Keep global discount order while enforcing 24-hour family, brand and similarity guards.
 
-    The former family/brand/similarity cooldown could suppress the globally highest
-    discount and promote a lower-discount product. That conflicts with the active
-    discount-first product contract. Exact-SKU repeat protection and delivery
-    idempotency remain enforced by their dedicated selection/delivery guards.
+    Candidates are expected in descending discount_percent / savings_toman order.
+    A candidate published within any of the repeat windows is skipped, then the
+    next highest-ranked candidate is considered. Already-selected candidates are
+    also added to the rolling guard history so one batch cannot violate the same
+    24-hour rules internally.
     """
     current = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
@@ -7366,6 +7367,7 @@ def _filter_recent_publication_repeats(
         now=current,
         window_hours=history_window_hours,
     )
+
     recent_families: set[str] = set()
     recent_brands: set[str] = set()
     for previous in history:
@@ -7375,40 +7377,56 @@ def _filter_recent_publication_repeats(
         if brand:
             recent_brands.add(brand)
 
-    family_repeat_observed = 0
-    brand_repeat_observed = 0
-    similarity_repeat_observed = 0
-    seen_families: set[str] = set()
-    seen_brands: set[str] = set()
-    seen_titles: list[dict] = list(history)
+    selected: list[dict] = []
+    selected_families: set[str] = set()
+    selected_brands: set[str] = set()
+    comparison_history = list(history)
+    family_blocked = 0
+    brand_blocked = 0
+    similarity_blocked = 0
+
     for candidate in source:
         category, family, brand = _publication_diversity_group(candidate)
-        if _is_specific_product_family(category, family):
-            if family in recent_families or family in seen_families:
-                family_repeat_observed += 1
-            seen_families.add(family)
-        if brand:
-            if brand in recent_brands or brand in seen_brands:
-                brand_repeat_observed += 1
-            seen_brands.add(brand)
-        if any(_publication_products_are_similar(candidate, previous) for previous in seen_titles):
-            similarity_repeat_observed += 1
-        seen_titles.append(candidate)
-
-    if family_repeat_observed or brand_repeat_observed or similarity_repeat_observed:
-        print(
-            f"{label}_REPEAT_DIAGNOSTICS candidates={len(source)} "
-            f"family_repeat_observed={family_repeat_observed} "
-            f"brand_repeat_observed={brand_repeat_observed} "
-            f"similarity_repeat_observed={similarity_repeat_observed} "
-            f"deferred=0 rank_order_preserved=true"
+        family_repeat = bool(
+            _is_specific_product_family(category, family)
+            and (family in recent_families or family in selected_families)
+        )
+        brand_repeat = bool(
+            brand and (brand in recent_brands or brand in selected_brands)
+        )
+        similarity_repeat = any(
+            _publication_products_are_similar(candidate, previous)
+            for previous in comparison_history
         )
 
-    # Do not sort, skip, or replace candidates here. The caller has already supplied
-    # the global percentage-descending / savings-descending order.
+        if family_repeat or brand_repeat or similarity_repeat:
+            family_blocked += int(family_repeat)
+            brand_blocked += int(brand_repeat)
+            similarity_blocked += int(similarity_repeat)
+            continue
+
+        selected.append(candidate)
+        if _is_specific_product_family(category, family):
+            selected_families.add(family)
+        if brand:
+            selected_brands.add(brand)
+        comparison_history.append(candidate)
+
+    skipped = len(source) - len(selected)
+    if skipped:
+        print(
+            f"{label}_REPEAT_GUARD candidates={len(source)} selected={len(selected)} "
+            f"deferred={skipped} family_blocked={family_blocked} "
+            f"brand_blocked={brand_blocked} similarity_blocked={similarity_blocked} "
+            f"family_cooldown_hours={FAMILY_REPEAT_COOLDOWN_HOURS} "
+            f"brand_cooldown_hours={BRAND_REPEAT_COOLDOWN_HOURS} "
+            f"similarity_cooldown_hours={PUBLICATION_SIMILARITY_COOLDOWN_HOURS} "
+            f"rank_order_preserved=true"
+        )
+
     if limit is not None:
-        return source[:max(1, int(limit))]
-    return source
+        return selected[:max(1, int(limit))]
+    return selected
 
 def select_urgent_publication_candidate(
     eligible: list[dict],
@@ -7494,7 +7512,7 @@ MIN_REPEAT_PRODUCT_INTERVAL_HOURS = 24
 PUBLICATION_LEDGER_LIMIT = 2000
 # Repeat-gap preferences; diversity can reorder within a bounded demand gap to avoid category saturation.
 FAMILY_REPEAT_COOLDOWN_HOURS = 24
-BRAND_REPEAT_COOLDOWN_HOURS = 12
+BRAND_REPEAT_COOLDOWN_HOURS = 24
 CATEGORY_REPEAT_COOLDOWN_MINUTES = 180
 RETAILER_REPEAT_COOLDOWN_MINUTES = 60
 DIVERSITY_LOOKAHEAD_CANDIDATES = 128
