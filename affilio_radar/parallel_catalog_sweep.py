@@ -395,6 +395,16 @@ def run_parallel_sweep(
                     "cycle_started_at": completed_cycle_started_at,
                     "cycle_completed_at": finished_at,
                     "category_ids": sorted(category_ids, key=lambda value: int(value)),
+                    "completed_category_ids": sorted(completed_ids, key=lambda value: int(value)),
+                    "unqueryable_category_ids": sorted(unqueryable_ids, key=lambda value: int(value)),
+                    "categories_total": len(category_ids),
+                    "categories_complete": len(completed_ids),
+                    "categories_unqueryable": len(unqueryable_ids),
+                    "category_coverage_percent": round(
+                        100 * len(completed_ids) / max(1, len(category_ids)), 2
+                    ),
+                    "pages_success": max(0, base._normal_int(state.get("parallel_cycle_pages_success"))),
+                    "product_rows_success": max(0, base._normal_int(state.get("parallel_cycle_product_rows_success"))),
                     "candidate_count": len(snapshot_rows),
                     "candidates": snapshot_rows,
                 })
