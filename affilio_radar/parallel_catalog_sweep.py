@@ -325,6 +325,12 @@ def run_parallel_sweep(
             clean_full_cycle = len(completed_ids) == len(category_ids) and not unqueryable_ids
             state["last_cycle_finished_at"] = finished_at
             state["last_cycle_status"] = "complete" if clean_full_cycle else "complete_with_gaps"
+            state["last_cycle_category_ids"] = sorted(
+                category_ids, key=lambda value: int(value)
+            )
+            state["last_cycle_completed_category_ids"] = sorted(
+                completed_ids, key=lambda value: int(value)
+            )
             state["last_cycle_categories_complete"] = len(completed_ids)
             state["last_cycle_categories_unqueryable"] = len(unqueryable_ids)
             state["last_cycle_unqueryable_category_ids"] = sorted(
