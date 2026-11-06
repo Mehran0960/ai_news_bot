@@ -15,6 +15,9 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
             "parallel_scan_policy_version": "all_categories_all_pages_v2",
             "last_cycle_status": "complete",
             "last_cycle_completed_at": "2026-11-06T16:00:00+00:00",
+            "last_cycle_category_ids": ["1", "2", "3"],
+            "last_cycle_completed_category_ids": ["1", "2", "3"],
+            "last_cycle_unqueryable_category_ids": [],
             "last_cycle_categories_total": 3,
             "last_cycle_categories_complete": 3,
             "last_cycle_categories_unqueryable": 0,
@@ -36,6 +39,15 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         self.assertTrue(status["last_cycle_clean"])
         self.assertEqual(status["last_cycle_categories_complete"], 3)
         self.assertEqual(status["pending_page_count"], 1)
+
+    def test_category_set_must_match_the_completed_cycle(self):
+        changed = {
+            **self.state,
+            "last_cycle_category_ids": ["1", "2", "3"],
+            "last_cycle_completed_category_ids": ["1", "2", "3"],
+            "categories": [{"id": "1"}, {"id": "2"}, {"id": "4"}],
+        }
+        self.assertFalse(build_status_snapshot(changed)["last_cycle_clean"])
 
     def test_any_gap_prevents_clean_full_cycle(self):
         for key, value in (
