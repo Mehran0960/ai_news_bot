@@ -516,3 +516,20 @@
 **ریسک/بازگشت:** افزایش concurrency بدون نظارت می‌تواند نرخ 429 را افزایش دهد؛ backoff تطبیقی برقرار است. deploy مستقیم نسخهٔ ۳۴ انجام نشد، چون صرفاً annotation و binding metadata برای اثبات صحت کد کافی نیست. Worker نسخهٔ ۳۱ و secret bindingهای آن تا زمان مجوز deploy صحیح دست‌نخورده می‌مانند.
 
 **وضعیت:** اسکنر جدید روی main فعال و یک اجرای واقعی موفق دارد؛ رفع باگ زمان‌بند در سورس main است اما deployment production به‌علت نبود Workers Editor در Token فعلی مسدود است. اقدام نهایی نیازمند جایگزینی Secret `CLOUDFLARE_API_TOKEN` با Account-owned Token دارای Workers Editor برای همین Worker و اجرای مجدد workflow است.
+
+
+## ۲۰۲۶-۱۱-۰۶ — قفل انتشار تا تکمیل چرخهٔ کامل کاتالوگ
+
+**هدف:** جلوگیری از انتشار محصول بر اساس اسکن ناقص؛ اطمینان از اینکه بین هر دو پست تازهٔ Telegram/Bale، یک چرخهٔ کامل و بدون شکاف از تمام دسته‌ها و تمام صفحه‌های قابل‌دسترسی دیجی‌کالا ثبت شده باشد، بدون تضعیف گاردهای خانواده، برند و شباهت.
+
+**تغییر/اقدام:** در PR شمارهٔ 88، زمان‌بند Cloudflare به نشانگر compact کاتالوگ وابسته شد. هر انتشار جدید فقط وقتی dispatch می‌شود که آخرین چرخه با سیاست `all_categories_all_pages_v2` و وضعیت `complete` پایان یافته، پوشش ۱۰۰٪ داشته، هیچ دستهٔ غیرقابل‌دسترسی نداشته باشد و زمان پایان آن از آخرین انتشار تأییدشده جدیدتر باشد. شناسه‌های دسته‌های فعلی با شناسه‌های همان چرخه و شناسه‌های دسته‌های کامل‌شده مقایسه می‌شوند؛ بنابراین حتی تغییر مجموعهٔ دسته‌ها با تعداد برابر نیز چرخهٔ قبلی را نامعتبر می‌کند. فاصلهٔ ۱۷ دقیقه فقط حداقل فاصله می‌ماند؛ در صورت طولانی‌شدن اسکن، انتشار عقب می‌افتد. پاسخ terminal از نوع 400/404 در صفحات عمیق نیز از این پس شکاف پوشش است، نه تکمیل موفق دسته. نشانگر کوچک `catalog_sweep_status.json` در هر اجرای اسکن از state ساخته و همراه checkpoint ذخیره می‌شود تا Worker مجبور به خواندن فایل بزرگ state نباشد.
+
+**فایل‌ها/سامانه‌ها:** `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `affilio_radar/parallel_catalog_sweep.py`، `affilio_radar/catalog_status_snapshot.py`، `affilio_radar/test_parallel_catalog_sweep.py`، `affilio_radar/test_catalog_status_snapshot.py`، `.github/workflows/offerchin-digikala-catalog-sweep.yml`، `.github/workflows/deploy-affilio-minute-dispatcher.yml`، این handbook؛ GitHub Actions و Cloudflare Worker `affilio-minute-dispatcher`.
+
+**آزمون و نتیجه:** تست‌های Python اسکنر و نشانگر وضعیت در PR run `42257097151` با موفقیت گذشتند؛ تست‌های رگرسیون کاتالوگ run `42257096942` موفق شدند؛ syntax check، تست‌های Node قفل انتشار و Wrangler dry-run در run `42257097035` موفق شدند. یک اجرای اولیهٔ Node test مورد تغییر مجموعهٔ دسته‌ها را درست رد کرد و تست اصلاح شد؛ run بعدی با ۶ تست Node سبز ثبت شد. Documentation Gate در زمان این ثبت هنوز در حال اجراست. PR هنوز merge نشده و rollout production یا اثبات چرخهٔ کامل بعد از تغییر انجام نشده است.
+
+**شواهد/شناسه:** PR شمارهٔ `88`: https://github.com/Mehran0960/ai_news_bot/pull/88 ؛ head فعلی پس از اصلاحات قبل از مستندسازی: `45bd6bc0bf97438b2bd5e92055d1226cc0b55b20`؛ Catalog Sweep PR validation run `42257097151`؛ Catalog Sweep Regression run `42257096942`؛ Worker validation run `42257097035`.
+
+**ریسک/بازگشت:** رفتار عمداً fail-closed است؛ نشانگر گم‌شده، خراب، ناقص، دارای شکاف یا ناسازگار با دسته‌بندی جاری انتشار را متوقف می‌کند و ممکن است باعث تأخیر شود، اما نباید به fallback روی اسکن ناقص منجر شود. اگر قفل باعث توقف طولانی شد، ابتدا صف pending، 400/404، retry، وضعیت API و ثبت checkpoint بررسی شود؛ guard موقتاً خاموش نشود. بازگشت با revert کردن PR/commit و بازگرداندن نسخهٔ پیشین Worker انجام می‌شود؛ در آن صورت تضمین «یک چرخهٔ کامل بین هر انتشار» نیز لغو می‌شود.
+
+**وضعیت:** تغییرات در PR شمارهٔ 88 ثبت شده‌اند؛ تست‌های Python، Node و Wrangler موفق‌اند؛ Documentation Gate، merge، deployment و تأیید نخستین چرخهٔ کامل production هنوز در انتظارند.
