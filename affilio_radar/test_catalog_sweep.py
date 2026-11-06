@@ -12,8 +12,6 @@ try:
         _advance_cursor,
         _clean_old_candidates,
         catalog_handoff_fingerprint,
-        _clean_old_candidates,
-        catalog_handoff_fingerprint,
         catalog_candidate_sort_key,
         retain_diverse_candidates,
         acknowledge_catalog_candidates_handoff,
@@ -30,6 +28,8 @@ try:
 except ImportError:
     from catalog_sweep import (
         _advance_cursor,
+        _clean_old_candidates,
+        catalog_handoff_fingerprint,
         catalog_candidate_sort_key,
         retain_diverse_candidates,
         acknowledge_catalog_candidates_handoff,
@@ -343,6 +343,37 @@ class CatalogSweepTests(unittest.TestCase):
             seen_records={"dkp-56": {"seen_at": now.isoformat()}},
         )
         self.assertIn("dkp-56", cleaned)
+
+    def test_changed_catalog_card_bypasses_queue_deferral_and_refreshes_existing_queue_entry(self):
+        now = datetime(2026, 11, 6, 8, 0, tzinfo=timezone.utc)
+        original = {
+            "product_id": "dkp-57",
+            "product_url": "https://www.digikala.com/product/dkp-57/",
+            "title": "هدفون بی‌سیم نمونه",
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "discount_percent": 50,
+            "availability": "in_stock",
+            "last_seen_at": now.isoformat(),
+        }
+        changed = {
+            **original,
+            "current_price": 350_000,
+            "discount_percent": 65,
+            "availability": "in_stock",
+            "last_seen_at": (now + timedelta(minutes=1)).isoformat(),
+        }
+        state = {"catalog_sweep_handoff": {"seen_ids": {}, "deferred_ids": {}}}
+        defer_catalog_candidates_handoff(
+            state, {"dkp-57"}, now=now, retry_minutes=60, candidates=[original]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "candidates.json"
+            path.write_text(json.dumps({"candidates": [changed]}, ensure_ascii=False), encoding="utf-8")
+            selected = load_catalog_candidates_for_handoff(
+                path, state, max_count=10, now=now + timedelta(minutes=2)
+            )
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-57"])
 
     def test_handoff_rechecks_price_change_before_seen_ttl(self):
         with tempfile.TemporaryDirectory() as temp:
