@@ -123,6 +123,32 @@ async function dispatchWorkflowIfIdle(
   });
   console.log("CHANNEL_DISPATCH_ACCEPTED workflow=" + label);
 }
+export function isFreshCleanCatalogCycle(status, lastPublicationAt) {
+  if (!status || typeof status !== "object" || Number(status.schema_version) !== 1) return false;
+  if (status.full_catalog_mode !== "all_categories_all_pages") return false;
+  if (status.scan_policy_version !== "all_categories_all_pages_v2") return false;
+  if (status.last_cycle_status !== "complete") return false;
+
+  const total = Number(status.last_cycle_categories_total);
+  const completed = Number(status.last_cycle_categories_complete);
+  const unqueryable = Number(status.last_cycle_categories_unqueryable);
+  const coverage = Number(status.last_cycle_category_coverage_percent);
+  const pages = Number(status.last_cycle_pages_success);
+  const cycles = Number(status.completed_cycles);
+  const completedAt = Date.parse(String(status.last_cycle_completed_at || ""));
+
+  if (!Number.isFinite(total) || total < 1 || completed !== total) return false;
+  if (unqueryable !== 0 || !Number.isFinite(coverage) || coverage < 100) return false;
+  if (!Number.isFinite(pages) || pages < 1 || !Number.isFinite(cycles) || cycles < 1) return false;
+  if (!Number.isFinite(completedAt)) return false;
+
+  const previousPublication = Number(lastPublicationAt);
+  if (lastPublicationAt !== null && Number.isFinite(previousPublication) && completedAt <= previousPublication) {
+    return false;
+  }
+  return true;
+}
+
 const PUBLISHER_INTERVAL_MS = 17 * 60 * 1000;
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
 
@@ -139,6 +165,24 @@ async function readOfferChinState(token) {
     return JSON.parse(new TextDecoder().decode(bytes));
   } catch (error) {
     console.error("OFFERCHIN_VIDEO_DISPATCH_STATE_READ_FAILED", String(error).slice(0, 500));
+    return null;
+  }
+}
+
+async function readCatalogSweepStatus(token) {
+  try {
+    const data = await githubRequest(
+      `https://api.github.com/repos/${OWNER}/${REPO}/contents/affilio_radar/catalog_sweep_status.json?ref=main`,
+      token
+    );
+    const encoded = String(data.content || "").replace(/\\s/g, "");
+    if (!encoded || data.encoding !== "base64") throw new Error("catalog_status_content_missing");
+    const binary = atob(encoded);
+    const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+    const status = JSON.parse(new TextDecoder().decode(bytes));
+    return status && typeof status === "object" ? status : null;
+  } catch (error) {
+    console.error("OFFERCHIN_CATALOG_STATUS_READ_FAILED", String(error).slice(0, 500));
     return null;
   }
 }
@@ -182,10 +226,24 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     return;
   }
 
-  const [latestAttempt] = await Promise.all([
+  if (!state) {
+    console.warn("OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=publication_state_unavailable");
+    return;
+  }
+
+  const [latestAttempt, catalogStatus] = await Promise.all([
     readLatestPublisherAttempt(env.GITHUB_TOKEN),
+    readCatalogSweepStatus(env.GITHUB_TOKEN),
   ]);
   const lastPublishedAt = readLastChannelPublicationAt(state);
+  if (!isFreshCleanCatalogCycle(catalogStatus, lastPublishedAt)) {
+    console.log(
+      "OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=no_new_clean_full_catalog_cycle" +
+      " last_cycle_status=" + String(catalogStatus && catalogStatus.last_cycle_status || "unknown") +
+      " last_cycle_completed_at=" + String(catalogStatus && catalogStatus.last_cycle_completed_at || "unknown")
+    );
+    return;
+  }
   const now = tick.getTime();
   if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
     console.log("OFFERCHIN_PUBLISHER_NOT_DUE seconds_remaining=" +
