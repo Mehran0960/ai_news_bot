@@ -276,3 +276,9 @@ NaN
 - expectationهای قدیمی که family/brand repeat را مجاز می‌شمردند به رفتار درست تغییر کردند: candidate تکراری رد و گزینهٔ بعدی انتخاب می‌شود. نام تست‌ها نیز با قرارداد guard ۲۴ساعته هم‌راستا شد.
 - آخرین commits کد/تست در شاخه: source `2c492dadf4a0e98d398cb595ac274e970e3aae6c`، tests `e8b1a047199fdd2b9d0920198680164bfeeddd84`.
 - اجرای نخست پس از بازگرداندن guardها، ۱۲ failure در expectationهای قدیمی/تطبیق brand نشان داد؛ پس از اصلاح کد و آزمون‌ها، rerunهای جدید هنوز در انتظار نتیجه‌اند.
+
+### حفظ برند صریح در تاریخچهٔ پایدار
+- `ensure_publication_ledger` اکنون `brand` و `brand_name` را از رکورد انتشار در ledger نگه می‌دارد.
+- `ensure_recent_publications` برای ساخت رکورد history، نام برند صریح را همراه عنوان به `_publication_diversity_group` می‌دهد؛ بنابراین برندهایی که در متن عنوان نیامده‌اند نیز پس از بازسازی state برای guard ۲۴ساعته باقی می‌مانند.
+- تست regression جدید ثابت می‌کند برند metadata-only پس از ledger/history rebuild هنوز candidate هم‌برند را block می‌کند و گزینهٔ بعدی با برند دیگر را انتخاب می‌کند.
+- commits تکمیلی: source `19405ca12bf2510f72ffa9bd16fa54877ec7e533`، tests `e43ad9c33f1f6bc90aa29cda4743ab751c3d167f`.
