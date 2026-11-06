@@ -175,7 +175,7 @@ async function readCatalogSweepStatus(token) {
       `https://api.github.com/repos/${OWNER}/${REPO}/contents/affilio_radar/catalog_sweep_status.json?ref=main`,
       token
     );
-    const encoded = String(data.content || "").replace(/\\s/g, "");
+    const encoded = String(data.content || "").replace(/\s/g, "");
     if (!encoded || data.encoding !== "base64") throw new Error("catalog_status_content_missing");
     const binary = atob(encoded);
     const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
