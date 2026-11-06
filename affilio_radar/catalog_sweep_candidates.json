@@ -3639,27 +3639,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6272",
-      "catalog_best_selling_category_name": "قاشق، چنگال و کارد",
-      "catalog_best_selling_rank": 546,
+      "catalog_best_selling_category_id": "10646",
+      "catalog_best_selling_category_name": "ابزار سرو و پذیرایی",
+      "catalog_best_selling_rank": 671,
       "catalog_best_selling_ranks_by_category": {
+        "10646": {
+          "category_name": "ابزار سرو و پذیرایی",
+          "observed_at": "2026-11-06T23:52:00.912994+00:00",
+          "rank": 671
+        },
         "6272": {
           "category_name": "قاشق، چنگال و کارد",
           "observed_at": "2026-11-06T23:26:59.579063+00:00",
           "rank": 546
         }
       },
-      "catalog_category_id": "6272",
+      "catalog_category_id": "10646",
       "catalog_category_ids": [
-        "6272"
+        "6272",
+        "10646"
       ],
-      "catalog_category_name": "قاشق، چنگال و کارد",
-      "catalog_rank_observed_at": "2026-11-06T23:26:59.579063+00:00",
+      "catalog_category_name": "ابزار سرو و پذیرایی",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.912994+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 680000,
       "discount_percent": 86,
       "first_seen_at": "2026-11-06T23:26:59.579063+00:00",
-      "last_seen_at": "2026-11-06T23:26:28.153356+00:00",
+      "last_seen_at": "2026-11-06T23:51:44.208779+00:00",
       "original_price": 5000000,
       "product_id": "dkp-23013556",
       "product_url": "https://www.digikala.com/product/dkp-23013556/",
@@ -4295,6 +4301,11 @@
       "catalog_best_selling_category_name": "بلوز دخترانه",
       "catalog_best_selling_rank": 9,
       "catalog_best_selling_ranks_by_category": {
+        "9626": {
+          "category_name": "لباس دخترانه",
+          "observed_at": "2026-11-06T23:52:00.890131+00:00",
+          "rank": 674
+        },
         "9646": {
           "category_name": "بلوز و شومیز دخترانه",
           "observed_at": "2026-11-06T19:19:16.977265+00:00",
@@ -4306,18 +4317,19 @@
           "rank": 9
         }
       },
-      "catalog_category_id": "9647",
+      "catalog_category_id": "9626",
       "catalog_category_ids": [
+        "9626",
         "9646",
         "9647"
       ],
-      "catalog_category_name": "بلوز دخترانه",
+      "catalog_category_name": "لباس دخترانه",
       "catalog_rank_observed_at": "2026-11-06T19:19:16.977459+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 510000,
       "discount_percent": 85,
       "first_seen_at": "2026-11-06T19:19:16.977265+00:00",
-      "last_seen_at": "2026-11-06T19:16:45.996848+00:00",
+      "last_seen_at": "2026-11-06T23:51:34.573833+00:00",
       "original_price": 3416000,
       "product_id": "dkp-21152350",
       "product_url": "https://www.digikala.com/product/dkp-21152350/",
@@ -6795,14 +6807,19 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "11208",
-      "catalog_best_selling_category_name": "مکمل کمک درمانی",
-      "catalog_best_selling_rank": 650,
+      "catalog_best_selling_category_id": "11196",
+      "catalog_best_selling_category_name": "مکمل غذایی",
+      "catalog_best_selling_rank": 677,
       "catalog_best_selling_ranks_by_category": {
         "10121": {
           "category_name": "ویتامین‌ها و مواد معدنی",
           "observed_at": "2026-11-06T22:03:14.744939+00:00",
           "rank": 327
+        },
+        "11196": {
+          "category_name": "مکمل غذایی",
+          "observed_at": "2026-11-06T23:52:00.933573+00:00",
+          "rank": 677
         },
         "11208": {
           "category_name": "مکمل کمک درمانی",
@@ -6810,18 +6827,19 @@
           "rank": 650
         }
       },
-      "catalog_category_id": "11208",
+      "catalog_category_id": "11196",
       "catalog_category_ids": [
         "10121",
+        "11196",
         "11208"
       ],
-      "catalog_category_name": "مکمل کمک درمانی",
-      "catalog_rank_observed_at": "2026-11-06T23:49:11.654787+00:00",
+      "catalog_category_name": "مکمل غذایی",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.933573+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 95000,
       "discount_percent": 82,
       "first_seen_at": "2026-11-06T22:03:14.744939+00:00",
-      "last_seen_at": "2026-11-06T23:48:46.756000+00:00",
+      "last_seen_at": "2026-11-06T23:51:51.671151+00:00",
       "original_price": 528000,
       "product_id": "dkp-15452076",
       "product_url": "https://www.digikala.com/product/dkp-15452076/",
@@ -13109,6 +13127,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "11121",
+      "catalog_best_selling_category_name": "فریم عینک طبی زنانه",
+      "catalog_best_selling_rank": 675,
+      "catalog_best_selling_ranks_by_category": {
+        "11121": {
+          "category_name": "فریم عینک طبی زنانه",
+          "observed_at": "2026-11-06T23:52:00.931698+00:00",
+          "rank": 675
+        }
+      },
+      "catalog_category_id": "11121",
+      "catalog_category_ids": [
+        "11121"
+      ],
+      "catalog_category_name": "فریم عینک طبی زنانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.931698+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 3900000,
+      "discount_percent": 77,
+      "first_seen_at": "2026-11-06T23:52:00.931698+00:00",
+      "last_seen_at": "2026-11-06T23:51:50.711752+00:00",
+      "original_price": 17000000,
+      "product_id": "dkp-22895145",
+      "product_url": "https://www.digikala.com/product/dkp-22895145/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 13100000,
+      "source": "digikala_catalog_sweep",
+      "title": "فریم عینک طبی زنانه گربه‌ای سیلوستر مدل SV 2023"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "11350",
       "catalog_best_selling_category_name": "شیرآلات",
       "catalog_best_selling_rank": 578,
@@ -18351,6 +18401,11 @@
           "observed_at": "2026-11-06T21:36:43.215903+00:00",
           "rank": 258
         },
+        "5824": {
+          "category_name": "لوازم بهداشتی",
+          "observed_at": "2026-11-06T23:52:00.862212+00:00",
+          "rank": 664
+        },
         "6486": {
           "category_name": "مراقبت پوست",
           "observed_at": "2026-11-06T22:19:19.915395+00:00",
@@ -18367,26 +18422,27 @@
           "rank": 325
         }
       },
-      "catalog_category_id": "6486",
+      "catalog_category_id": "5824",
       "catalog_category_ids": [
+        "5824",
         "6486",
         "6654",
         "8895",
         "10050",
         "10284"
       ],
-      "catalog_category_name": "مراقبت پوست",
+      "catalog_category_name": "لوازم بهداشتی",
       "catalog_rank_observed_at": "2026-11-06T19:46:18.663488+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 339000,
       "discount_percent": 75,
       "first_seen_at": "2026-11-06T19:46:18.663488+00:00",
-      "last_seen_at": "2026-11-06T22:10:38.052964+00:00",
+      "last_seen_at": "2026-11-06T23:51:23.592260+00:00",
       "original_price": 1350000,
       "product_id": "dkp-20072945",
       "product_url": "https://www.digikala.com/product/dkp-20072945/",
       "rating": 4.04,
-      "review_count": 1813,
+      "review_count": 1814,
       "savings_toman": 1011000,
       "source": "digikala_catalog_sweep",
       "title": "سرم روشن کننده پوست تیلسیم مدل کافئین و آلفا آربوتین مناسب برای انواع پوست حجم 30 میلی‌لیتر"
@@ -21091,6 +21147,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "9347",
+      "catalog_best_selling_category_name": "تی شرت زنانه",
+      "catalog_best_selling_rank": 665,
+      "catalog_best_selling_ranks_by_category": {
+        "9347": {
+          "category_name": "تی شرت زنانه",
+          "observed_at": "2026-11-06T23:52:00.872723+00:00",
+          "rank": 665
+        }
+      },
+      "catalog_category_id": "9347",
+      "catalog_category_ids": [
+        "9347"
+      ],
+      "catalog_category_name": "تی شرت زنانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.872723+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-06T23:52:00.872723+00:00",
+      "last_seen_at": "2026-11-06T23:51:27.311464+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-16588715",
+      "product_url": "https://www.digikala.com/product/dkp-16588715/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه زنانه مدل لوگو‌ کد ۲۰"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "9303",
       "catalog_best_selling_category_name": "شلوار جین زنانه",
       "catalog_best_selling_rank": 84,
@@ -21190,6 +21278,38 @@
       "savings_toman": 3090000,
       "source": "digikala_catalog_sweep",
       "title": "کرم روشن کننده تالوپین مدل Skin Renewal حجم 30 میلی لیتر"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9004",
+      "catalog_best_selling_category_name": "تجهیزات تعمیرگاهی",
+      "catalog_best_selling_rank": 678,
+      "catalog_best_selling_ranks_by_category": {
+        "9004": {
+          "category_name": "تجهیزات تعمیرگاهی",
+          "observed_at": "2026-11-06T23:52:00.864778+00:00",
+          "rank": 678
+        }
+      },
+      "catalog_category_id": "9004",
+      "catalog_category_ids": [
+        "9004"
+      ],
+      "catalog_category_name": "تجهیزات تعمیرگاهی",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.864778+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1050000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-06T23:52:00.864778+00:00",
+      "last_seen_at": "2026-11-06T23:51:24.354893+00:00",
+      "original_price": 3990000,
+      "product_id": "dkp-22388093",
+      "product_url": "https://www.digikala.com/product/dkp-22388093/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 2940000,
+      "source": "digikala_catalog_sweep",
+      "title": "کیت کالیپر ترمز رولمان صنعت  مدل RK_7P مجموعه 7 عددی"
     },
     {
       "availability": "unknown",
@@ -21329,6 +21449,11 @@
       "catalog_best_selling_category_name": "کیف پول زنانه و مردانه",
       "catalog_best_selling_rank": 24,
       "catalog_best_selling_ranks_by_category": {
+        "9380": {
+          "category_name": "اکسسوری زنانه",
+          "observed_at": "2026-11-06T23:52:00.874021+00:00",
+          "rank": 671
+        },
         "9431": {
           "category_name": "کیف پول و کیف لوازم آرایش زنانه",
           "observed_at": "2026-11-06T20:11:39.572902+00:00",
@@ -21355,21 +21480,22 @@
           "rank": 24
         }
       },
-      "catalog_category_id": "9487",
+      "catalog_category_id": "9380",
       "catalog_category_ids": [
+        "9380",
         "9431",
         "9487",
         "9527",
         "9534",
         "9556"
       ],
-      "catalog_category_name": "اکسسوری مردانه",
+      "catalog_category_name": "اکسسوری زنانه",
       "catalog_rank_observed_at": "2026-11-06T19:50:31.578263+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 999000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-06T19:50:31.574561+00:00",
-      "last_seen_at": "2026-11-06T22:54:42.047625+00:00",
+      "last_seen_at": "2026-11-06T23:51:27.604526+00:00",
       "original_price": 3800000,
       "product_id": "dkp-20936242",
       "product_url": "https://www.digikala.com/product/dkp-20936242/",
@@ -28143,14 +28269,19 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "11208",
-      "catalog_best_selling_category_name": "مکمل کمک درمانی",
-      "catalog_best_selling_rank": 653,
+      "catalog_best_selling_category_id": "11196",
+      "catalog_best_selling_category_name": "مکمل غذایی",
+      "catalog_best_selling_rank": 680,
       "catalog_best_selling_ranks_by_category": {
         "10121": {
           "category_name": "ویتامین‌ها و مواد معدنی",
           "observed_at": "2026-11-06T22:03:14.744939+00:00",
           "rank": 328
+        },
+        "11196": {
+          "category_name": "مکمل غذایی",
+          "observed_at": "2026-11-06T23:52:00.933573+00:00",
+          "rank": 680
         },
         "11208": {
           "category_name": "مکمل کمک درمانی",
@@ -28158,18 +28289,19 @@
           "rank": 653
         }
       },
-      "catalog_category_id": "11208",
+      "catalog_category_id": "11196",
       "catalog_category_ids": [
         "10121",
+        "11196",
         "11208"
       ],
-      "catalog_category_name": "مکمل کمک درمانی",
-      "catalog_rank_observed_at": "2026-11-06T23:49:11.654787+00:00",
+      "catalog_category_name": "مکمل غذایی",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.933573+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 298630,
       "discount_percent": 72,
       "first_seen_at": "2026-11-06T22:03:14.744939+00:00",
-      "last_seen_at": "2026-11-06T23:48:46.756135+00:00",
+      "last_seen_at": "2026-11-06T23:51:51.671242+00:00",
       "original_price": 1056000,
       "product_id": "dkp-21842665",
       "product_url": "https://www.digikala.com/product/dkp-21842665/",
@@ -30915,27 +31047,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6472",
-      "catalog_best_selling_category_name": "رژ لب مایع و لیپ گلاس",
-      "catalog_best_selling_rank": 283,
+      "catalog_best_selling_category_id": "11332",
+      "catalog_best_selling_category_name": "رژ لب",
+      "catalog_best_selling_rank": 665,
       "catalog_best_selling_ranks_by_category": {
+        "11332": {
+          "category_name": "رژ لب",
+          "observed_at": "2026-11-06T23:52:00.935643+00:00",
+          "rank": 665
+        },
         "6472": {
           "category_name": "رژ لب مایع و لیپ گلاس",
           "observed_at": "2026-11-06T21:48:28.712189+00:00",
           "rank": 283
         }
       },
-      "catalog_category_id": "6472",
+      "catalog_category_id": "11332",
       "catalog_category_ids": [
-        "6472"
+        "6472",
+        "11332"
       ],
-      "catalog_category_name": "رژ لب مایع و لیپ گلاس",
-      "catalog_rank_observed_at": "2026-11-06T21:48:28.712189+00:00",
+      "catalog_category_name": "رژ لب",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.935643+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 246500,
       "discount_percent": 71,
       "first_seen_at": "2026-11-06T21:48:28.712189+00:00",
-      "last_seen_at": "2026-11-06T21:48:21.018434+00:00",
+      "last_seen_at": "2026-11-06T23:51:52.913973+00:00",
       "original_price": 850000,
       "product_id": "dkp-6679053",
       "product_url": "https://www.digikala.com/product/dkp-6679053/",
@@ -36532,24 +36670,30 @@
           "observed_at": "2026-11-06T21:46:29.299926+00:00",
           "rank": 269
         },
+        "10284": {
+          "category_name": "بهداشت شخصی",
+          "observed_at": "2026-11-06T23:52:00.902293+00:00",
+          "rank": 669
+        },
         "6588": {
           "category_name": "کرم سفت کننده پوست",
           "observed_at": "2026-11-06T19:02:50.687454+00:00",
           "rank": 4
         }
       },
-      "catalog_category_id": "10050",
+      "catalog_category_id": "10284",
       "catalog_category_ids": [
         "6588",
-        "10050"
+        "10050",
+        "10284"
       ],
-      "catalog_category_name": "مراقبت از پوست و مو",
+      "catalog_category_name": "بهداشت شخصی",
       "catalog_rank_observed_at": "2026-11-06T19:02:50.687454+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 449000,
       "discount_percent": 70,
       "first_seen_at": "2026-11-06T19:02:50.687454+00:00",
-      "last_seen_at": "2026-11-06T21:45:27.633561+00:00",
+      "last_seen_at": "2026-11-06T23:51:39.930041+00:00",
       "original_price": 1500000,
       "product_id": "dkp-22742431",
       "product_url": "https://www.digikala.com/product/dkp-22742431/",
@@ -37366,6 +37510,38 @@
       "savings_toman": 875000,
       "source": "digikala_catalog_sweep",
       "title": "شمعدان مدل کلاسیک مناسب برای شمع وارمر"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9654",
+      "catalog_best_selling_category_name": "جوراب دخترانه",
+      "catalog_best_selling_rank": 671,
+      "catalog_best_selling_ranks_by_category": {
+        "9654": {
+          "category_name": "جوراب دخترانه",
+          "observed_at": "2026-11-06T23:52:00.891096+00:00",
+          "rank": 671
+        }
+      },
+      "catalog_category_id": "9654",
+      "catalog_category_ids": [
+        "9654"
+      ],
+      "catalog_category_name": "جوراب دخترانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.891096+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 363000,
+      "discount_percent": 70,
+      "first_seen_at": "2026-11-06T23:52:00.891096+00:00",
+      "last_seen_at": "2026-11-06T23:51:35.075049+00:00",
+      "original_price": 1210000,
+      "product_id": "dkp-3592675",
+      "product_url": "https://www.digikala.com/product/dkp-3592675/",
+      "rating": 3.17,
+      "review_count": 6,
+      "savings_toman": 847000,
+      "source": "digikala_catalog_sweep",
+      "title": "جوراب ال سون مدل مادر و کودک طرح کفشدوزک کد PH432"
     },
     {
       "availability": "unknown",
@@ -43263,6 +43439,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "9004",
+      "catalog_best_selling_category_name": "تجهیزات تعمیرگاهی",
+      "catalog_best_selling_rank": 670,
+      "catalog_best_selling_ranks_by_category": {
+        "9004": {
+          "category_name": "تجهیزات تعمیرگاهی",
+          "observed_at": "2026-11-06T23:52:00.864778+00:00",
+          "rank": 670
+        }
+      },
+      "catalog_category_id": "9004",
+      "catalog_category_ids": [
+        "9004"
+      ],
+      "catalog_category_name": "تجهیزات تعمیرگاهی",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.864778+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 490000,
+      "discount_percent": 69,
+      "first_seen_at": "2026-11-06T23:52:00.864778+00:00",
+      "last_seen_at": "2026-11-06T23:51:24.354583+00:00",
+      "original_price": 1599000,
+      "product_id": "dkp-8717890",
+      "product_url": "https://www.digikala.com/product/dkp-8717890/",
+      "rating": 3.75,
+      "review_count": 16,
+      "savings_toman": 1109000,
+      "source": "digikala_catalog_sweep",
+      "title": "آچار فیلتر روغن مدل AFR04"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "11144",
       "catalog_best_selling_category_name": "لباس ورزشی مردانه",
       "catalog_best_selling_rank": 368,
@@ -43620,6 +43828,38 @@
       "savings_toman": 1000000,
       "source": "digikala_catalog_sweep",
       "title": "ست پاپیون و دستمال جیب مدل TYO"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "10557",
+      "catalog_best_selling_category_name": "کتاب روانشناسی",
+      "catalog_best_selling_rank": 666,
+      "catalog_best_selling_ranks_by_category": {
+        "10557": {
+          "category_name": "کتاب روانشناسی",
+          "observed_at": "2026-11-06T23:52:00.908521+00:00",
+          "rank": 666
+        }
+      },
+      "catalog_category_id": "10557",
+      "catalog_category_ids": [
+        "10557"
+      ],
+      "catalog_category_name": "کتاب روانشناسی",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.908521+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 449000,
+      "discount_percent": 69,
+      "first_seen_at": "2026-11-06T23:52:00.908521+00:00",
+      "last_seen_at": "2026-11-06T23:51:42.697599+00:00",
+      "original_price": 1428000,
+      "product_id": "dkp-21777386",
+      "product_url": "https://www.digikala.com/product/dkp-21777386/",
+      "rating": 3.67,
+      "review_count": 3,
+      "savings_toman": 979000,
+      "source": "digikala_catalog_sweep",
+      "title": "کتاب چگونه با هرکسی صحبت کنیم؟ اثر لیل لاوندز ترجمه مژگان بهرامی فرد انتشارات هیتا"
     },
     {
       "availability": "unknown",
@@ -45235,23 +45475,29 @@
       "catalog_best_selling_category_name": "مکمل قلب و عروق",
       "catalog_best_selling_rank": 40,
       "catalog_best_selling_ranks_by_category": {
+        "11208": {
+          "category_name": "مکمل کمک درمانی",
+          "observed_at": "2026-11-06T23:52:00.933728+00:00",
+          "rank": 673
+        },
         "11218": {
           "category_name": "مکمل قلب و عروق",
           "observed_at": "2026-11-06T19:53:30.027109+00:00",
           "rank": 40
         }
       },
-      "catalog_category_id": "11218",
+      "catalog_category_id": "11208",
       "catalog_category_ids": [
+        "11208",
         "11218"
       ],
-      "catalog_category_name": "مکمل قلب و عروق",
+      "catalog_category_name": "مکمل کمک درمانی",
       "catalog_rank_observed_at": "2026-11-06T19:53:30.027109+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 85000,
       "discount_percent": 69,
       "first_seen_at": "2026-11-06T19:53:30.027109+00:00",
-      "last_seen_at": "2026-11-06T19:52:30.801369+00:00",
+      "last_seen_at": "2026-11-06T23:51:51.725389+00:00",
       "original_price": 275000,
       "product_id": "dkp-18811480",
       "product_url": "https://www.digikala.com/product/dkp-18811480/",
@@ -45263,14 +45509,19 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9970",
-      "catalog_best_selling_category_name": "جاکلیدی مردانه",
-      "catalog_best_selling_rank": 151,
+      "catalog_best_selling_category_id": "9540",
+      "catalog_best_selling_category_name": "زیورآلات زنانه و مردانه",
+      "catalog_best_selling_rank": 676,
       "catalog_best_selling_ranks_by_category": {
         "9408": {
           "category_name": "جاکلیدی زنانه",
           "observed_at": "2026-11-06T20:58:02.291700+00:00",
           "rank": 160
+        },
+        "9540": {
+          "category_name": "زیورآلات زنانه و مردانه",
+          "observed_at": "2026-11-06T23:52:00.887617+00:00",
+          "rank": 676
         },
         "9543": {
           "category_name": "جاکلیدی زنانه و مردانه",
@@ -45283,19 +45534,20 @@
           "rank": 151
         }
       },
-      "catalog_category_id": "9970",
+      "catalog_category_id": "9540",
       "catalog_category_ids": [
         "9408",
+        "9540",
         "9543",
         "9970"
       ],
-      "catalog_category_name": "جاکلیدی مردانه",
-      "catalog_rank_observed_at": "2026-11-06T20:58:02.320973+00:00",
+      "catalog_category_name": "زیورآلات زنانه و مردانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.887617+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 84000,
       "discount_percent": 69,
       "first_seen_at": "2026-11-06T20:58:02.291700+00:00",
-      "last_seen_at": "2026-11-06T20:57:45.223256+00:00",
+      "last_seen_at": "2026-11-06T23:51:33.329845+00:00",
       "original_price": 273200,
       "product_id": "dkp-6523212",
       "product_url": "https://www.digikala.com/product/dkp-6523212/",
@@ -45491,27 +45743,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "8413",
-      "catalog_best_selling_category_name": "گلیم دستبافت",
-      "catalog_best_selling_rank": 196,
+      "catalog_best_selling_category_id": "10634",
+      "catalog_best_selling_category_name": "گلیم و گبه",
+      "catalog_best_selling_rank": 670,
       "catalog_best_selling_ranks_by_category": {
+        "10634": {
+          "category_name": "گلیم و گبه",
+          "observed_at": "2026-11-06T23:52:00.911423+00:00",
+          "rank": 670
+        },
         "8413": {
           "category_name": "گلیم دستبافت",
           "observed_at": "2026-11-06T21:21:36.425065+00:00",
           "rank": 196
         }
       },
-      "catalog_category_id": "8413",
+      "catalog_category_id": "10634",
       "catalog_category_ids": [
-        "8413"
+        "8413",
+        "10634"
       ],
-      "catalog_category_name": "گلیم دستبافت",
-      "catalog_rank_observed_at": "2026-11-06T21:21:36.425065+00:00",
+      "catalog_category_name": "گلیم و گبه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.911423+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 11000000,
       "discount_percent": 68,
       "first_seen_at": "2026-11-06T20:56:08.464290+00:00",
-      "last_seen_at": "2026-11-06T21:18:30.659187+00:00",
+      "last_seen_at": "2026-11-06T23:51:43.740198+00:00",
       "original_price": 34000000,
       "product_id": "dkp-22771239",
       "product_url": "https://www.digikala.com/product/dkp-22771239/",
@@ -56101,6 +56359,102 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "9347",
+      "catalog_best_selling_category_name": "تی شرت زنانه",
+      "catalog_best_selling_rank": 667,
+      "catalog_best_selling_ranks_by_category": {
+        "9347": {
+          "category_name": "تی شرت زنانه",
+          "observed_at": "2026-11-06T23:52:00.872723+00:00",
+          "rank": 667
+        }
+      },
+      "catalog_category_id": "9347",
+      "catalog_category_ids": [
+        "9347"
+      ],
+      "catalog_category_name": "تی شرت زنانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.872723+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1192000,
+      "discount_percent": 67,
+      "first_seen_at": "2026-11-06T23:52:00.872723+00:00",
+      "last_seen_at": "2026-11-06T23:51:27.311556+00:00",
+      "original_price": 3580000,
+      "product_id": "dkp-16184943",
+      "product_url": "https://www.digikala.com/product/dkp-16184943/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 2388000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه زنانه مدل گارفیلد کد ۴"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9347",
+      "catalog_best_selling_category_name": "تی شرت زنانه",
+      "catalog_best_selling_rank": 670,
+      "catalog_best_selling_ranks_by_category": {
+        "9347": {
+          "category_name": "تی شرت زنانه",
+          "observed_at": "2026-11-06T23:52:00.872723+00:00",
+          "rank": 670
+        }
+      },
+      "catalog_category_id": "9347",
+      "catalog_category_ids": [
+        "9347"
+      ],
+      "catalog_category_name": "تی شرت زنانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.872723+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1192000,
+      "discount_percent": 67,
+      "first_seen_at": "2026-11-06T23:52:00.872723+00:00",
+      "last_seen_at": "2026-11-06T23:51:27.311693+00:00",
+      "original_price": 3580000,
+      "product_id": "dkp-15075232",
+      "product_url": "https://www.digikala.com/product/dkp-15075232/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 2388000,
+      "source": "digikala_catalog_sweep",
+      "title": "کراپ‌تی شرت آستین کوتاه زنانه مدل یونیکورن کد 5"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9347",
+      "catalog_best_selling_category_name": "تی شرت زنانه",
+      "catalog_best_selling_rank": 674,
+      "catalog_best_selling_ranks_by_category": {
+        "9347": {
+          "category_name": "تی شرت زنانه",
+          "observed_at": "2026-11-06T23:52:00.872723+00:00",
+          "rank": 674
+        }
+      },
+      "catalog_category_id": "9347",
+      "catalog_category_ids": [
+        "9347"
+      ],
+      "catalog_category_name": "تی شرت زنانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.872723+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1192000,
+      "discount_percent": 67,
+      "first_seen_at": "2026-11-06T23:52:00.872723+00:00",
+      "last_seen_at": "2026-11-06T23:51:27.311876+00:00",
+      "original_price": 3580000,
+      "product_id": "dkp-16773448",
+      "product_url": "https://www.digikala.com/product/dkp-16773448/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 2388000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه زنانه مدل ماریو کد ۳"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "9346",
       "catalog_best_selling_category_name": "شلوار زنانه",
       "catalog_best_selling_rank": 81,
@@ -56407,27 +56761,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9383",
-      "catalog_best_selling_category_name": "عینک آفتابی زنانه",
-      "catalog_best_selling_rank": 344,
+      "catalog_best_selling_category_id": "11122",
+      "catalog_best_selling_category_name": "عینک زنانه و مردانه",
+      "catalog_best_selling_rank": 666,
       "catalog_best_selling_ranks_by_category": {
+        "11122": {
+          "category_name": "عینک زنانه و مردانه",
+          "observed_at": "2026-11-06T23:52:00.931838+00:00",
+          "rank": 666
+        },
         "9383": {
           "category_name": "عینک آفتابی زنانه",
           "observed_at": "2026-11-06T22:24:35.884607+00:00",
           "rank": 344
         }
       },
-      "catalog_category_id": "9383",
+      "catalog_category_id": "11122",
       "catalog_category_ids": [
-        "9383"
+        "9383",
+        "11122"
       ],
-      "catalog_category_name": "عینک آفتابی زنانه",
-      "catalog_rank_observed_at": "2026-11-06T22:24:35.884607+00:00",
+      "catalog_category_name": "عینک زنانه و مردانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.931838+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 999000,
       "discount_percent": 67,
       "first_seen_at": "2026-11-06T22:24:35.884607+00:00",
-      "last_seen_at": "2026-11-06T22:21:17.400040+00:00",
+      "last_seen_at": "2026-11-06T23:51:51.055385+00:00",
       "original_price": 3000000,
       "product_id": "dkp-19785194",
       "product_url": "https://www.digikala.com/product/dkp-19785194/",
@@ -57864,6 +58224,38 @@
       "savings_toman": 665000,
       "source": "digikala_catalog_sweep",
       "title": "کتاب کیمیاگر اثر پائولو کوئیلو نشر آذرگون"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "10557",
+      "catalog_best_selling_category_name": "کتاب روانشناسی",
+      "catalog_best_selling_rank": 665,
+      "catalog_best_selling_ranks_by_category": {
+        "10557": {
+          "category_name": "کتاب روانشناسی",
+          "observed_at": "2026-11-06T23:52:00.908521+00:00",
+          "rank": 665
+        }
+      },
+      "catalog_category_id": "10557",
+      "catalog_category_ids": [
+        "10557"
+      ],
+      "catalog_category_name": "کتاب روانشناسی",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.908521+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 325000,
+      "discount_percent": 67,
+      "first_seen_at": "2026-11-06T23:52:00.908521+00:00",
+      "last_seen_at": "2026-11-06T23:51:42.697566+00:00",
+      "original_price": 990000,
+      "product_id": "dkp-19065136",
+      "product_url": "https://www.digikala.com/product/dkp-19065136/",
+      "rating": 4.6,
+      "review_count": 539,
+      "savings_toman": 665000,
+      "source": "digikala_catalog_sweep",
+      "title": "کتاب معجزۀ شکرگزاری اثر راندا برن ترجمۀ الهام قدوسی نشر آذرگون"
     },
     {
       "availability": "unknown",
@@ -60111,6 +60503,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "10941",
+      "catalog_best_selling_category_name": "عطر و ادکلن زنانه",
+      "catalog_best_selling_rank": 672,
+      "catalog_best_selling_ranks_by_category": {
+        "10941": {
+          "category_name": "عطر و ادکلن زنانه",
+          "observed_at": "2026-11-06T23:52:00.923262+00:00",
+          "rank": 672
+        }
+      },
+      "catalog_category_id": "10941",
+      "catalog_category_ids": [
+        "10941"
+      ],
+      "catalog_category_name": "عطر و ادکلن زنانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.923262+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 4600000,
+      "discount_percent": 66,
+      "first_seen_at": "2026-11-06T23:52:00.923262+00:00",
+      "last_seen_at": "2026-11-06T23:51:48.188165+00:00",
+      "original_price": 13500000,
+      "product_id": "dkp-22417446",
+      "product_url": "https://www.digikala.com/product/dkp-22417446/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 8900000,
+      "source": "digikala_catalog_sweep",
+      "title": "ادو پرفیوم زنانه تام فورد مدل Black Orchid با رایحه گرم و شیرین حجم 100 میلی لیتر"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "10690",
       "catalog_best_selling_category_name": "لوازم و مصالح ساختمانی",
       "catalog_best_selling_rank": 539,
@@ -61547,10 +61971,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9491",
-      "catalog_best_selling_category_name": "عینک آفتابی مردانه",
-      "catalog_best_selling_rank": 349,
+      "catalog_best_selling_category_id": "11122",
+      "catalog_best_selling_category_name": "عینک زنانه و مردانه",
+      "catalog_best_selling_rank": 676,
       "catalog_best_selling_ranks_by_category": {
+        "11122": {
+          "category_name": "عینک زنانه و مردانه",
+          "observed_at": "2026-11-06T23:52:00.931838+00:00",
+          "rank": 676
+        },
         "9383": {
           "category_name": "عینک آفتابی زنانه",
           "observed_at": "2026-11-06T22:24:35.884607+00:00",
@@ -61562,18 +61991,19 @@
           "rank": 349
         }
       },
-      "catalog_category_id": "9491",
+      "catalog_category_id": "11122",
       "catalog_category_ids": [
         "9383",
-        "9491"
+        "9491",
+        "11122"
       ],
-      "catalog_category_name": "عینک آفتابی مردانه",
-      "catalog_rank_observed_at": "2026-11-06T22:24:35.894656+00:00",
+      "catalog_category_name": "عینک زنانه و مردانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.931838+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1099000,
       "discount_percent": 66,
       "first_seen_at": "2026-11-06T21:55:42.626883+00:00",
-      "last_seen_at": "2026-11-06T22:22:32.095806+00:00",
+      "last_seen_at": "2026-11-06T23:51:51.055721+00:00",
       "original_price": 3200000,
       "product_id": "dkp-21472809",
       "product_url": "https://www.digikala.com/product/dkp-21472809/",
@@ -66361,19 +66791,25 @@
           "category_name": "مانتو کتی زنانه",
           "observed_at": "2026-11-06T20:13:54.545334+00:00",
           "rank": 57
+        },
+        "9283": {
+          "category_name": "پوشش اسلامی",
+          "observed_at": "2026-11-06T23:52:00.869952+00:00",
+          "rank": 678
         }
       },
-      "catalog_category_id": "10995",
+      "catalog_category_id": "9283",
       "catalog_category_ids": [
+        "9283",
         "10995"
       ],
-      "catalog_category_name": "مانتو کتی زنانه",
+      "catalog_category_name": "پوشش اسلامی",
       "catalog_rank_observed_at": "2026-11-06T20:13:54.545334+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 6300000,
       "discount_percent": 65,
       "first_seen_at": "2026-11-06T20:13:54.545334+00:00",
-      "last_seen_at": "2026-11-06T20:13:32.122679+00:00",
+      "last_seen_at": "2026-11-06T23:51:25.328320+00:00",
       "original_price": 18000000,
       "product_id": "dkp-22840332",
       "product_url": "https://www.digikala.com/product/dkp-22840332/",
@@ -67623,9 +68059,9 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "11115",
-      "catalog_best_selling_category_name": "ورزشی دخترانه",
-      "catalog_best_selling_rank": 505,
+      "catalog_best_selling_category_id": "9790",
+      "catalog_best_selling_category_name": "کفش پسرانه",
+      "catalog_best_selling_rank": 666,
       "catalog_best_selling_ranks_by_category": {
         "11022": {
           "category_name": "کفش دخترانه و پسرانه",
@@ -67637,25 +68073,31 @@
           "observed_at": "2026-11-06T23:12:38.878453+00:00",
           "rank": 505
         },
+        "9790": {
+          "category_name": "کفش پسرانه",
+          "observed_at": "2026-11-06T23:52:00.893761+00:00",
+          "rank": 666
+        },
         "9799": {
           "category_name": "کفش ورزشی پسرانه",
           "observed_at": "2026-11-06T23:12:38.831094+00:00",
           "rank": 514
         }
       },
-      "catalog_category_id": "11115",
+      "catalog_category_id": "9790",
       "catalog_category_ids": [
+        "9790",
         "9799",
         "11022",
         "11115"
       ],
-      "catalog_category_name": "ورزشی دخترانه",
-      "catalog_rank_observed_at": "2026-11-06T23:12:38.878453+00:00",
+      "catalog_category_name": "کفش پسرانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.893761+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 2975000,
       "discount_percent": 65,
       "first_seen_at": "2026-11-06T22:34:22.174031+00:00",
-      "last_seen_at": "2026-11-06T23:12:36.822371+00:00",
+      "last_seen_at": "2026-11-06T23:51:36.262002+00:00",
       "original_price": 8500000,
       "product_id": "dkp-20831929",
       "product_url": "https://www.digikala.com/product/dkp-20831929/",
@@ -69906,6 +70348,38 @@
       "savings_toman": 2800000,
       "source": "digikala_catalog_sweep",
       "title": "موزن گوش و بینی و خط زن پروکمی مدل PK470"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9469",
+      "catalog_best_selling_category_name": "لباس زیر مردانه",
+      "catalog_best_selling_rank": 669,
+      "catalog_best_selling_ranks_by_category": {
+        "9469": {
+          "category_name": "لباس زیر مردانه",
+          "observed_at": "2026-11-06T23:52:00.881383+00:00",
+          "rank": 669
+        }
+      },
+      "catalog_category_id": "9469",
+      "catalog_category_ids": [
+        "9469"
+      ],
+      "catalog_category_name": "لباس زیر مردانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.881383+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1447000,
+      "discount_percent": 65,
+      "first_seen_at": "2026-11-06T23:52:00.881383+00:00",
+      "last_seen_at": "2026-11-06T23:51:30.861297+00:00",
+      "original_price": 4176000,
+      "product_id": "dkp-17126631",
+      "product_url": "https://www.digikala.com/product/dkp-17126631/",
+      "rating": 3.36,
+      "review_count": 11,
+      "savings_toman": 2729000,
+      "source": "digikala_catalog_sweep",
+      "title": "شورت نیم پا مردانه پنبینه مدل نخ پنبه لاکرا صادراتی مجموعه 2 عددی"
     },
     {
       "availability": "unknown",
@@ -72199,6 +72673,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "11122",
+      "catalog_best_selling_category_name": "عینک زنانه و مردانه",
+      "catalog_best_selling_rank": 675,
+      "catalog_best_selling_ranks_by_category": {
+        "11122": {
+          "category_name": "عینک زنانه و مردانه",
+          "observed_at": "2026-11-06T23:52:00.931838+00:00",
+          "rank": 675
+        }
+      },
+      "catalog_category_id": "11122",
+      "catalog_category_ids": [
+        "11122"
+      ],
+      "catalog_category_name": "عینک زنانه و مردانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.931838+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 699000,
+      "discount_percent": 65,
+      "first_seen_at": "2026-11-06T23:52:00.931838+00:00",
+      "last_seen_at": "2026-11-06T23:51:51.055694+00:00",
+      "original_price": 2000000,
+      "product_id": "dkp-22046717",
+      "product_url": "https://www.digikala.com/product/dkp-22046717/",
+      "rating": 4.0,
+      "review_count": 2,
+      "savings_toman": 1301000,
+      "source": "digikala_catalog_sweep",
+      "title": "فریم عینک طبی مستطیلی مدل 2015C2 مناسب برای صورت مستطیل، مربع، مثلث، گرد، قلب، بیضی، لوزی"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "6169",
       "catalog_best_selling_category_name": "چکش",
       "catalog_best_selling_rank": 50,
@@ -72467,10 +72973,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6486",
-      "catalog_best_selling_category_name": "مراقبت پوست",
-      "catalog_best_selling_rank": 355,
+      "catalog_best_selling_category_id": "5824",
+      "catalog_best_selling_category_name": "لوازم بهداشتی",
+      "catalog_best_selling_rank": 661,
       "catalog_best_selling_ranks_by_category": {
+        "5824": {
+          "category_name": "لوازم بهداشتی",
+          "observed_at": "2026-11-06T23:52:00.862212+00:00",
+          "rank": 661
+        },
         "6486": {
           "category_name": "مراقبت پوست",
           "observed_at": "2026-11-06T22:19:19.915395+00:00",
@@ -72482,18 +72993,19 @@
           "rank": 71
         }
       },
-      "catalog_category_id": "6486",
+      "catalog_category_id": "5824",
       "catalog_category_ids": [
+        "5824",
         "6486",
         "6487"
       ],
-      "catalog_category_name": "مراقبت پوست",
-      "catalog_rank_observed_at": "2026-11-06T22:19:19.915395+00:00",
+      "catalog_category_name": "لوازم بهداشتی",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.862212+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 682150,
       "discount_percent": 65,
       "first_seen_at": "2026-11-06T20:16:52.716509+00:00",
-      "last_seen_at": "2026-11-06T22:10:38.052867+00:00",
+      "last_seen_at": "2026-11-06T23:51:23.592101+00:00",
       "original_price": 1949000,
       "product_id": "dkp-18126989",
       "product_url": "https://www.digikala.com/product/dkp-18126989/",
@@ -76367,27 +76879,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "11221",
-      "catalog_best_selling_category_name": "مکمل مفاصل و استخوان",
-      "catalog_best_selling_rank": 68,
+      "catalog_best_selling_category_id": "11208",
+      "catalog_best_selling_category_name": "مکمل کمک درمانی",
+      "catalog_best_selling_rank": 666,
       "catalog_best_selling_ranks_by_category": {
+        "11208": {
+          "category_name": "مکمل کمک درمانی",
+          "observed_at": "2026-11-06T23:52:00.933728+00:00",
+          "rank": 666
+        },
         "11221": {
           "category_name": "مکمل مفاصل و استخوان",
           "observed_at": "2026-11-06T20:27:55.456646+00:00",
           "rank": 68
         }
       },
-      "catalog_category_id": "11221",
+      "catalog_category_id": "11208",
       "catalog_category_ids": [
+        "11208",
         "11221"
       ],
-      "catalog_category_name": "مکمل مفاصل و استخوان",
-      "catalog_rank_observed_at": "2026-11-06T20:27:55.456646+00:00",
+      "catalog_category_name": "مکمل کمک درمانی",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.933728+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 145000,
       "discount_percent": 65,
       "first_seen_at": "2026-11-06T20:27:55.456646+00:00",
-      "last_seen_at": "2026-11-06T20:27:31.488168+00:00",
+      "last_seen_at": "2026-11-06T23:51:51.725173+00:00",
       "original_price": 412500,
       "product_id": "dkp-11314254",
       "product_url": "https://www.digikala.com/product/dkp-11314254/",
@@ -78861,27 +79379,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6961",
-      "catalog_best_selling_category_name": "لوستر و دیوارکوب",
-      "catalog_best_selling_rank": 210,
+      "catalog_best_selling_category_id": "10658",
+      "catalog_best_selling_category_name": "نور و روشنایی",
+      "catalog_best_selling_rank": 666,
       "catalog_best_selling_ranks_by_category": {
+        "10658": {
+          "category_name": "نور و روشنایی",
+          "observed_at": "2026-11-06T23:52:00.914601+00:00",
+          "rank": 666
+        },
         "6961": {
           "category_name": "لوستر و دیوارکوب",
           "observed_at": "2026-11-06T21:24:51.098430+00:00",
           "rank": 210
         }
       },
-      "catalog_category_id": "6961",
+      "catalog_category_id": "10658",
       "catalog_category_ids": [
-        "6961"
+        "6961",
+        "10658"
       ],
-      "catalog_category_name": "لوستر و دیوارکوب",
-      "catalog_rank_observed_at": "2026-11-06T21:24:51.098430+00:00",
+      "catalog_category_name": "نور و روشنایی",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.914601+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1294900,
       "discount_percent": 64,
       "first_seen_at": "2026-11-06T21:24:51.098430+00:00",
-      "last_seen_at": "2026-11-06T21:24:37.133235+00:00",
+      "last_seen_at": "2026-11-06T23:51:44.818707+00:00",
       "original_price": 3600000,
       "product_id": "dkp-13991469",
       "product_url": "https://www.digikala.com/product/dkp-13991469/",
@@ -84953,27 +85477,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9536",
-      "catalog_best_selling_category_name": "کیف زنانه و مردانه",
-      "catalog_best_selling_rank": 298,
+      "catalog_best_selling_category_id": "9489",
+      "catalog_best_selling_category_name": "کیف مردانه",
+      "catalog_best_selling_rank": 667,
       "catalog_best_selling_ranks_by_category": {
+        "9489": {
+          "category_name": "کیف مردانه",
+          "observed_at": "2026-11-06T23:52:00.883987+00:00",
+          "rank": 667
+        },
         "9536": {
           "category_name": "کیف زنانه و مردانه",
           "observed_at": "2026-11-06T21:51:59.251142+00:00",
           "rank": 298
         }
       },
-      "catalog_category_id": "9536",
+      "catalog_category_id": "9489",
       "catalog_category_ids": [
+        "9489",
         "9536"
       ],
-      "catalog_category_name": "کیف زنانه و مردانه",
-      "catalog_rank_observed_at": "2026-11-06T21:51:59.251142+00:00",
+      "catalog_category_name": "کیف مردانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.883987+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 2258000,
       "discount_percent": 63,
       "first_seen_at": "2026-11-06T21:51:59.251142+00:00",
-      "last_seen_at": "2026-11-06T21:51:22.665576+00:00",
+      "last_seen_at": "2026-11-06T23:51:31.489345+00:00",
       "original_price": 6100000,
       "product_id": "dkp-20241027",
       "product_url": "https://www.digikala.com/product/dkp-20241027/",
@@ -92381,6 +92911,11 @@
       "catalog_best_selling_category_name": "لگینگ ورزشی زنانه",
       "catalog_best_selling_rank": 34,
       "catalog_best_selling_ranks_by_category": {
+        "10169": {
+          "category_name": "ورزشی زنانه",
+          "observed_at": "2026-11-06T23:52:00.901232+00:00",
+          "rank": 662
+        },
         "11145": {
           "category_name": "لباس ورزشی زنانه",
           "observed_at": "2026-11-06T21:33:04.481124+00:00",
@@ -92397,19 +92932,20 @@
           "rank": 236
         }
       },
-      "catalog_category_id": "11145",
+      "catalog_category_id": "10169",
       "catalog_category_ids": [
         "9334",
+        "10169",
         "11145",
         "11150"
       ],
-      "catalog_category_name": "لباس ورزشی زنانه",
+      "catalog_category_name": "ورزشی زنانه",
       "catalog_rank_observed_at": "2026-11-06T19:53:30.020236+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 2291140,
       "discount_percent": 62,
       "first_seen_at": "2026-11-06T19:53:30.020236+00:00",
-      "last_seen_at": "2026-11-06T21:33:03.375734+00:00",
+      "last_seen_at": "2026-11-06T23:51:39.338339+00:00",
       "original_price": 6000000,
       "product_id": "dkp-21878454",
       "product_url": "https://www.digikala.com/product/dkp-21878454/",
@@ -93635,6 +94171,70 @@
       "product_url": "https://www.digikala.com/product/dkp-20909488/",
       "rating": 4.0,
       "review_count": 1,
+      "savings_toman": 2071000,
+      "source": "digikala_catalog_sweep",
+      "title": "شورت زنانه پنبینه مدل نخ پنبه بسته 3 عددی"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9345",
+      "catalog_best_selling_category_name": "شورت زنانه",
+      "catalog_best_selling_rank": 675,
+      "catalog_best_selling_ranks_by_category": {
+        "9345": {
+          "category_name": "شورت زنانه",
+          "observed_at": "2026-11-06T23:52:00.872477+00:00",
+          "rank": 675
+        }
+      },
+      "catalog_category_id": "9345",
+      "catalog_category_ids": [
+        "9345"
+      ],
+      "catalog_category_name": "شورت زنانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.872477+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1253000,
+      "discount_percent": 62,
+      "first_seen_at": "2026-11-06T23:52:00.872477+00:00",
+      "last_seen_at": "2026-11-06T23:51:26.534050+00:00",
+      "original_price": 3324000,
+      "product_id": "dkp-20916652",
+      "product_url": "https://www.digikala.com/product/dkp-20916652/",
+      "rating": 4.8,
+      "review_count": 5,
+      "savings_toman": 2071000,
+      "source": "digikala_catalog_sweep",
+      "title": "شورت زنانه پنبینه مدل نخ پنبه خالص بسته 3 عددی"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9345",
+      "catalog_best_selling_category_name": "شورت زنانه",
+      "catalog_best_selling_rank": 676,
+      "catalog_best_selling_ranks_by_category": {
+        "9345": {
+          "category_name": "شورت زنانه",
+          "observed_at": "2026-11-06T23:52:00.872477+00:00",
+          "rank": 676
+        }
+      },
+      "catalog_category_id": "9345",
+      "catalog_category_ids": [
+        "9345"
+      ],
+      "catalog_category_name": "شورت زنانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.872477+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1253000,
+      "discount_percent": 62,
+      "first_seen_at": "2026-11-06T23:52:00.872477+00:00",
+      "last_seen_at": "2026-11-06T23:51:26.534079+00:00",
+      "original_price": 3324000,
+      "product_id": "dkp-21064590",
+      "product_url": "https://www.digikala.com/product/dkp-21064590/",
+      "rating": 5.0,
+      "review_count": 2,
       "savings_toman": 2071000,
       "source": "digikala_catalog_sweep",
       "title": "شورت زنانه پنبینه مدل نخ پنبه بسته 3 عددی"
@@ -96295,27 +96895,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "10121",
-      "catalog_best_selling_category_name": "ویتامین‌ها و مواد معدنی",
-      "catalog_best_selling_rank": 337,
+      "catalog_best_selling_category_id": "11208",
+      "catalog_best_selling_category_name": "مکمل کمک درمانی",
+      "catalog_best_selling_rank": 669,
       "catalog_best_selling_ranks_by_category": {
         "10121": {
           "category_name": "ویتامین‌ها و مواد معدنی",
           "observed_at": "2026-11-06T22:03:14.744939+00:00",
           "rank": 337
+        },
+        "11208": {
+          "category_name": "مکمل کمک درمانی",
+          "observed_at": "2026-11-06T23:52:00.933728+00:00",
+          "rank": 669
         }
       },
-      "catalog_category_id": "10121",
+      "catalog_category_id": "11208",
       "catalog_category_ids": [
-        "10121"
+        "10121",
+        "11208"
       ],
-      "catalog_category_name": "ویتامین‌ها و مواد معدنی",
-      "catalog_rank_observed_at": "2026-11-06T22:03:14.744939+00:00",
+      "catalog_category_name": "مکمل کمک درمانی",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.933728+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 350000,
       "discount_percent": 62,
       "first_seen_at": "2026-11-06T22:03:14.744939+00:00",
-      "last_seen_at": "2026-11-06T22:02:56.032373+00:00",
+      "last_seen_at": "2026-11-06T23:51:51.725264+00:00",
       "original_price": 924000,
       "product_id": "dkp-14597827",
       "product_url": "https://www.digikala.com/product/dkp-14597827/",
@@ -98885,6 +99491,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "9537",
+      "catalog_best_selling_category_name": "عینک آفتابی زنانه و مردانه",
+      "catalog_best_selling_rank": 673,
+      "catalog_best_selling_ranks_by_category": {
+        "9537": {
+          "category_name": "عینک آفتابی زنانه و مردانه",
+          "observed_at": "2026-11-06T23:52:00.887215+00:00",
+          "rank": 673
+        }
+      },
+      "catalog_category_id": "9537",
+      "catalog_category_ids": [
+        "9537"
+      ],
+      "catalog_category_name": "عینک آفتابی زنانه و مردانه",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.887215+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 5800000,
+      "discount_percent": 61,
+      "first_seen_at": "2026-11-06T23:52:00.887215+00:00",
+      "last_seen_at": "2026-11-06T23:51:33.192143+00:00",
+      "original_price": 15000000,
+      "product_id": "dkp-23093060",
+      "product_url": "https://www.digikala.com/product/dkp-23093060/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 9200000,
+      "source": "digikala_catalog_sweep",
+      "title": "عینک آفتابی زنانه و مردانه خلبانی UV 400 پادرا مدل 8168 CE C3"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "6021",
       "catalog_best_selling_category_name": "چمدان",
       "catalog_best_selling_rank": 20,
@@ -100529,12 +101167,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "11091",
       "catalog_best_selling_category_name": "غذای مرطوب، کنسرو و پوچ گربه",
-      "catalog_best_selling_rank": 657,
+      "catalog_best_selling_rank": 663,
       "catalog_best_selling_ranks_by_category": {
         "11091": {
           "category_name": "غذای مرطوب، کنسرو و پوچ گربه",
-          "observed_at": "2026-11-06T23:49:11.649830+00:00",
-          "rank": 657
+          "observed_at": "2026-11-06T23:52:00.930254+00:00",
+          "rank": 663
         }
       },
       "catalog_category_id": "11091",
@@ -100542,12 +101180,12 @@
         "11091"
       ],
       "catalog_category_name": "غذای مرطوب، کنسرو و پوچ گربه",
-      "catalog_rank_observed_at": "2026-11-06T23:49:11.649830+00:00",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.930254+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1416980,
       "discount_percent": 61,
       "first_seen_at": "2026-11-06T23:49:11.649830+00:00",
-      "last_seen_at": "2026-11-06T23:48:45.338154+00:00",
+      "last_seen_at": "2026-11-06T23:51:50.108670+00:00",
       "original_price": 3600000,
       "product_id": "dkp-22211445",
       "product_url": "https://www.digikala.com/product/dkp-22211445/",
@@ -107161,10 +107799,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "11208",
-      "catalog_best_selling_category_name": "مکمل کمک درمانی",
-      "catalog_best_selling_rank": 652,
+      "catalog_best_selling_category_id": "11196",
+      "catalog_best_selling_category_name": "مکمل غذایی",
+      "catalog_best_selling_rank": 679,
       "catalog_best_selling_ranks_by_category": {
+        "11196": {
+          "category_name": "مکمل غذایی",
+          "observed_at": "2026-11-06T23:52:00.933573+00:00",
+          "rank": 679
+        },
         "11208": {
           "category_name": "مکمل کمک درمانی",
           "observed_at": "2026-11-06T23:49:11.654787+00:00",
@@ -107176,18 +107819,19 @@
           "rank": 65
         }
       },
-      "catalog_category_id": "11208",
+      "catalog_category_id": "11196",
       "catalog_category_ids": [
+        "11196",
         "11208",
         "11221"
       ],
-      "catalog_category_name": "مکمل کمک درمانی",
-      "catalog_rank_observed_at": "2026-11-06T23:49:11.654787+00:00",
+      "catalog_category_name": "مکمل غذایی",
+      "catalog_rank_observed_at": "2026-11-06T23:52:00.933573+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 194670,
       "discount_percent": 61,
       "first_seen_at": "2026-11-06T20:27:55.456646+00:00",
-      "last_seen_at": "2026-11-06T23:48:46.756091+00:00",
+      "last_seen_at": "2026-11-06T23:51:51.671210+00:00",
       "original_price": 495000,
       "product_id": "dkp-20764012",
       "product_url": "https://www.digikala.com/product/dkp-20764012/",
@@ -108886,557 +109530,9 @@
       "savings_toman": 38100000,
       "source": "digikala_catalog_sweep",
       "title": "نیم بوت مردانه چرم طبیعی گامارو مدل Ga-524"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9477",
-      "catalog_best_selling_category_name": "نیم بوت مردانه",
-      "catalog_best_selling_rank": 632,
-      "catalog_best_selling_ranks_by_category": {
-        "9477": {
-          "category_name": "نیم بوت مردانه",
-          "observed_at": "2026-11-06T23:43:00.560716+00:00",
-          "rank": 632
-        }
-      },
-      "catalog_category_id": "9477",
-      "catalog_category_ids": [
-        "9477"
-      ],
-      "catalog_category_name": "نیم بوت مردانه",
-      "catalog_rank_observed_at": "2026-11-06T23:43:00.560716+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 25400000,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T23:43:00.560716+00:00",
-      "last_seen_at": "2026-11-06T23:42:50.161636+00:00",
-      "original_price": 63500000,
-      "product_id": "dkp-23068298",
-      "product_url": "https://www.digikala.com/product/dkp-23068298/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 38100000,
-      "source": "digikala_catalog_sweep",
-      "title": "نیم بوت مردانه گامارو مدل Ga-124"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9379",
-      "catalog_best_selling_category_name": "کوله پشتی زنانه",
-      "catalog_best_selling_rank": 291,
-      "catalog_best_selling_ranks_by_category": {
-        "9379": {
-          "category_name": "کوله پشتی زنانه",
-          "observed_at": "2026-11-06T21:50:11.295200+00:00",
-          "rank": 291
-        }
-      },
-      "catalog_category_id": "9379",
-      "catalog_category_ids": [
-        "9379"
-      ],
-      "catalog_category_name": "کوله پشتی زنانه",
-      "catalog_rank_observed_at": "2026-11-06T21:50:11.295200+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 23316000,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T21:50:11.295200+00:00",
-      "last_seen_at": "2026-11-06T21:50:02.427414+00:00",
-      "original_price": 58290000,
-      "product_id": "dkp-21633947",
-      "product_url": "https://www.digikala.com/product/dkp-21633947/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 34974000,
-      "source": "digikala_catalog_sweep",
-      "title": "کوله پشتی زنانه چرم کروکو مدل ARMAND NW"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9954",
-      "catalog_best_selling_category_name": "کفش ورزشی زنانه و مردانه",
-      "catalog_best_selling_rank": 322,
-      "catalog_best_selling_ranks_by_category": {
-        "9954": {
-          "category_name": "کفش ورزشی زنانه و مردانه",
-          "observed_at": "2026-11-06T22:03:14.738982+00:00",
-          "rank": 322
-        }
-      },
-      "catalog_category_id": "9954",
-      "catalog_category_ids": [
-        "9954"
-      ],
-      "catalog_category_name": "کفش ورزشی زنانه و مردانه",
-      "catalog_rank_observed_at": "2026-11-06T22:03:14.738982+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 21600000,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T21:57:11.695548+00:00",
-      "last_seen_at": "2026-11-06T22:02:53.616678+00:00",
-      "original_price": 54000000,
-      "product_id": "dkp-21298005",
-      "product_url": "https://www.digikala.com/product/dkp-21298005/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 32400000,
-      "source": "digikala_catalog_sweep",
-      "title": "کفش رانینگ آدیداس مدل HP6414"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9438",
-      "catalog_best_selling_category_name": "کت تک رسمی مردانه",
-      "catalog_best_selling_rank": 53,
-      "catalog_best_selling_ranks_by_category": {
-        "9436": {
-          "category_name": "کت، جلیقه و ست رسمی مردانه",
-          "observed_at": "2026-11-06T20:32:08.008534+00:00",
-          "rank": 86
-        },
-        "9438": {
-          "category_name": "کت تک رسمی مردانه",
-          "observed_at": "2026-11-06T20:11:39.573856+00:00",
-          "rank": 53
-        }
-      },
-      "catalog_category_id": "9436",
-      "catalog_category_ids": [
-        "9436",
-        "9438"
-      ],
-      "catalog_category_name": "کت، جلیقه و ست رسمی مردانه",
-      "catalog_rank_observed_at": "2026-11-06T20:11:39.573856+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 21155600,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T20:11:39.573856+00:00",
-      "last_seen_at": "2026-11-06T20:31:38.662598+00:00",
-      "original_price": 52889000,
-      "product_id": "dkp-20615431",
-      "product_url": "https://www.digikala.com/product/dkp-20615431/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 31733400,
-      "source": "digikala_catalog_sweep",
-      "title": "کت تک رسمی مردانه کروم مدل دبل برست 2520252"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9436",
-      "catalog_best_selling_category_name": "کت، جلیقه و ست رسمی مردانه",
-      "catalog_best_selling_rank": 105,
-      "catalog_best_selling_ranks_by_category": {
-        "9436": {
-          "category_name": "کت، جلیقه و ست رسمی مردانه",
-          "observed_at": "2026-11-06T20:44:00.896558+00:00",
-          "rank": 105
-        },
-        "9438": {
-          "category_name": "کت تک رسمی مردانه",
-          "observed_at": "2026-11-06T20:21:26.346893+00:00",
-          "rank": 68
-        }
-      },
-      "catalog_category_id": "9436",
-      "catalog_category_ids": [
-        "9436",
-        "9438"
-      ],
-      "catalog_category_name": "کت، جلیقه و ست رسمی مردانه",
-      "catalog_rank_observed_at": "2026-11-06T20:44:00.896558+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 21155600,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T20:21:26.346893+00:00",
-      "last_seen_at": "2026-11-06T20:43:53.335635+00:00",
-      "original_price": 52889000,
-      "product_id": "dkp-18830974",
-      "product_url": "https://www.digikala.com/product/dkp-18830974/",
-      "rating": 3.33,
-      "review_count": 3,
-      "savings_toman": 31733400,
-      "source": "digikala_catalog_sweep",
-      "title": "کت تک مردانه کروم مدل 2510203"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9436",
-      "catalog_best_selling_category_name": "کت، جلیقه و ست رسمی مردانه",
-      "catalog_best_selling_rank": 127,
-      "catalog_best_selling_ranks_by_category": {
-        "9436": {
-          "category_name": "کت، جلیقه و ست رسمی مردانه",
-          "observed_at": "2026-11-06T20:51:54.810876+00:00",
-          "rank": 127
-        },
-        "9438": {
-          "category_name": "کت تک رسمی مردانه",
-          "observed_at": "2026-11-06T20:32:08.008713+00:00",
-          "rank": 86
-        }
-      },
-      "catalog_category_id": "9436",
-      "catalog_category_ids": [
-        "9436",
-        "9438"
-      ],
-      "catalog_category_name": "کت، جلیقه و ست رسمی مردانه",
-      "catalog_rank_observed_at": "2026-11-06T20:51:54.810876+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 21155600,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T20:32:08.008713+00:00",
-      "last_seen_at": "2026-11-06T20:51:23.396622+00:00",
-      "original_price": 52889000,
-      "product_id": "dkp-18609435",
-      "product_url": "https://www.digikala.com/product/dkp-18609435/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 31733400,
-      "source": "digikala_catalog_sweep",
-      "title": "کت تک مردانه کروم مدل 2510251"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9436",
-      "catalog_best_selling_category_name": "کت، جلیقه و ست رسمی مردانه",
-      "catalog_best_selling_rank": 129,
-      "catalog_best_selling_ranks_by_category": {
-        "9436": {
-          "category_name": "کت، جلیقه و ست رسمی مردانه",
-          "observed_at": "2026-11-06T20:51:54.810876+00:00",
-          "rank": 129
-        },
-        "9438": {
-          "category_name": "کت تک رسمی مردانه",
-          "observed_at": "2026-11-06T20:32:08.008713+00:00",
-          "rank": 88
-        }
-      },
-      "catalog_category_id": "9436",
-      "catalog_category_ids": [
-        "9436",
-        "9438"
-      ],
-      "catalog_category_name": "کت، جلیقه و ست رسمی مردانه",
-      "catalog_rank_observed_at": "2026-11-06T20:51:54.810876+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 21155600,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T20:32:08.008713+00:00",
-      "last_seen_at": "2026-11-06T20:51:23.396673+00:00",
-      "original_price": 52889000,
-      "product_id": "dkp-18585608",
-      "product_url": "https://www.digikala.com/product/dkp-18585608/",
-      "rating": 4.67,
-      "review_count": 3,
-      "savings_toman": 31733400,
-      "source": "digikala_catalog_sweep",
-      "title": "کت تک مردانه کروم مدل  Double Pocket 2510202"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9447",
-      "catalog_best_selling_category_name": "شلوار جین مردانه",
-      "catalog_best_selling_rank": 225,
-      "catalog_best_selling_ranks_by_category": {
-        "9447": {
-          "category_name": "شلوار جین مردانه",
-          "observed_at": "2026-11-06T21:32:01.892466+00:00",
-          "rank": 225
-        }
-      },
-      "catalog_category_id": "9447",
-      "catalog_category_ids": [
-        "9447"
-      ],
-      "catalog_category_name": "شلوار جین مردانه",
-      "catalog_rank_observed_at": "2026-11-06T21:32:01.892466+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 20800000,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T21:32:01.892466+00:00",
-      "last_seen_at": "2026-11-06T21:31:56.042350+00:00",
-      "original_price": 52000000,
-      "product_id": "dkp-23056742",
-      "product_url": "https://www.digikala.com/product/dkp-23056742/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 31200000,
-      "source": "digikala_catalog_sweep",
-      "title": "شلوار جین راسته مردانه دی ال 1961 مدل DLSCG538"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9447",
-      "catalog_best_selling_category_name": "شلوار جین مردانه",
-      "catalog_best_selling_rank": 279,
-      "catalog_best_selling_ranks_by_category": {
-        "9447": {
-          "category_name": "شلوار جین مردانه",
-          "observed_at": "2026-11-06T21:45:03.095061+00:00",
-          "rank": 279
-        }
-      },
-      "catalog_category_id": "9447",
-      "catalog_category_ids": [
-        "9447"
-      ],
-      "catalog_category_name": "شلوار جین مردانه",
-      "catalog_rank_observed_at": "2026-11-06T21:45:03.095061+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 20800000,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T21:45:03.095061+00:00",
-      "last_seen_at": "2026-11-06T21:44:48.477245+00:00",
-      "original_price": 52000000,
-      "product_id": "dkp-23056739",
-      "product_url": "https://www.digikala.com/product/dkp-23056739/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 31200000,
-      "source": "digikala_catalog_sweep",
-      "title": "شلوار جین راسته مردانه دی ال 1961 مدل DLSCBR138"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9954",
-      "catalog_best_selling_category_name": "کفش ورزشی زنانه و مردانه",
-      "catalog_best_selling_rank": 414,
-      "catalog_best_selling_ranks_by_category": {
-        "9954": {
-          "category_name": "کفش ورزشی زنانه و مردانه",
-          "observed_at": "2026-11-06T22:45:08.640303+00:00",
-          "rank": 414
-        }
-      },
-      "catalog_category_id": "9954",
-      "catalog_category_ids": [
-        "9954"
-      ],
-      "catalog_category_name": "کفش ورزشی زنانه و مردانه",
-      "catalog_rank_observed_at": "2026-11-06T22:45:08.640303+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 20097000,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T22:45:08.640303+00:00",
-      "last_seen_at": "2026-11-06T22:41:34.044715+00:00",
-      "original_price": 50242000,
-      "product_id": "dkp-20931096",
-      "product_url": "https://www.digikala.com/product/dkp-20931096/",
-      "rating": 2.75,
-      "review_count": 4,
-      "savings_toman": 30145000,
-      "source": "digikala_catalog_sweep",
-      "title": "کفش بسکتبال نایکی مدل CZ4100-102"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9436",
-      "catalog_best_selling_category_name": "کت، جلیقه و ست رسمی مردانه",
-      "catalog_best_selling_rank": 128,
-      "catalog_best_selling_ranks_by_category": {
-        "9436": {
-          "category_name": "کت، جلیقه و ست رسمی مردانه",
-          "observed_at": "2026-11-06T20:51:54.810876+00:00",
-          "rank": 128
-        },
-        "9438": {
-          "category_name": "کت تک رسمی مردانه",
-          "observed_at": "2026-11-06T20:32:08.008713+00:00",
-          "rank": 87
-        }
-      },
-      "catalog_category_id": "9436",
-      "catalog_category_ids": [
-        "9436",
-        "9438"
-      ],
-      "catalog_category_name": "کت، جلیقه و ست رسمی مردانه",
-      "catalog_rank_observed_at": "2026-11-06T20:51:54.810876+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 19555600,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T20:32:08.008713+00:00",
-      "last_seen_at": "2026-11-06T20:51:23.396649+00:00",
-      "original_price": 48889000,
-      "product_id": "dkp-18364937",
-      "product_url": "https://www.digikala.com/product/dkp-18364937/",
-      "rating": 3.67,
-      "review_count": 3,
-      "savings_toman": 29333400,
-      "source": "digikala_catalog_sweep",
-      "title": "کت تک مردانه کروم مدل 2510250"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9436",
-      "catalog_best_selling_category_name": "کت، جلیقه و ست رسمی مردانه",
-      "catalog_best_selling_rank": 167,
-      "catalog_best_selling_ranks_by_category": {
-        "9436": {
-          "category_name": "کت، جلیقه و ست رسمی مردانه",
-          "observed_at": "2026-11-06T21:13:18.132385+00:00",
-          "rank": 167
-        }
-      },
-      "catalog_category_id": "9436",
-      "catalog_category_ids": [
-        "9436"
-      ],
-      "catalog_category_name": "کت، جلیقه و ست رسمی مردانه",
-      "catalog_rank_observed_at": "2026-11-06T21:13:18.132385+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 19555600,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T21:13:18.132385+00:00",
-      "last_seen_at": "2026-11-06T21:13:15.947159+00:00",
-      "original_price": 48889000,
-      "product_id": "dkp-20242190",
-      "product_url": "https://www.digikala.com/product/dkp-20242190/",
-      "rating": 4.33,
-      "review_count": 3,
-      "savings_toman": 29333400,
-      "source": "digikala_catalog_sweep",
-      "title": "کت تک رسمی مردانه کروم مدل 2320216"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9514",
-      "catalog_best_selling_category_name": "کیف سفری و چمدان مردانه",
-      "catalog_best_selling_rank": 12,
-      "catalog_best_selling_ranks_by_category": {
-        "9514": {
-          "category_name": "کیف سفری و چمدان مردانه",
-          "observed_at": "2026-11-06T19:19:16.936560+00:00",
-          "rank": 12
-        }
-      },
-      "catalog_category_id": "9514",
-      "catalog_category_ids": [
-        "9514"
-      ],
-      "catalog_category_name": "کیف سفری و چمدان مردانه",
-      "catalog_rank_observed_at": "2026-11-06T19:19:16.936560+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 18516000,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T19:19:16.936560+00:00",
-      "last_seen_at": "2026-11-06T19:14:51.986528+00:00",
-      "original_price": 46290000,
-      "product_id": "dkp-22018760",
-      "product_url": "https://www.digikala.com/product/dkp-22018760/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 27774000,
-      "source": "digikala_catalog_sweep",
-      "title": "ساک مسافرتی مردانه 46 لیتری چرم کروکو مدل YB1006"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "11106",
-      "catalog_best_selling_category_name": "لوازم سفر",
-      "catalog_best_selling_rank": 305,
-      "catalog_best_selling_ranks_by_category": {
-        "11106": {
-          "category_name": "لوازم سفر",
-          "observed_at": "2026-11-06T21:59:06.523114+00:00",
-          "rank": 305
-        },
-        "6021": {
-          "category_name": "چمدان",
-          "observed_at": "2026-11-06T20:15:03.567323+00:00",
-          "rank": 65
-        }
-      },
-      "catalog_category_id": "11106",
-      "catalog_category_ids": [
-        "6021",
-        "11106"
-      ],
-      "catalog_category_name": "لوازم سفر",
-      "catalog_rank_observed_at": "2026-11-06T21:59:06.523114+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 17993000,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T20:15:03.567323+00:00",
-      "last_seen_at": "2026-11-06T21:58:33.405557+00:00",
-      "original_price": 44800000,
-      "product_id": "dkp-22142025",
-      "product_url": "https://www.digikala.com/product/dkp-22142025/",
-      "rating": 4.0,
-      "review_count": 10,
-      "savings_toman": 26807000,
-      "source": "digikala_catalog_sweep",
-      "title": "ست سه عددی چمدان لویزکینگ مدل KING TRAVEL 313"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9366",
-      "catalog_best_selling_category_name": "نیم بوت زنانه",
-      "catalog_best_selling_rank": 65,
-      "catalog_best_selling_ranks_by_category": {
-        "9366": {
-          "category_name": "نیم بوت زنانه",
-          "observed_at": "2026-11-06T20:21:26.334289+00:00",
-          "rank": 65
-        }
-      },
-      "catalog_category_id": "9366",
-      "catalog_category_ids": [
-        "9366"
-      ],
-      "catalog_category_name": "نیم بوت زنانه",
-      "catalog_rank_observed_at": "2026-11-06T20:21:26.334289+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 17509000,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T20:21:26.334289+00:00",
-      "last_seen_at": "2026-11-06T20:18:17.309845+00:00",
-      "original_price": 43798000,
-      "product_id": "dkp-13187861",
-      "product_url": "https://www.digikala.com/product/dkp-13187861/",
-      "rating": 3.88,
-      "review_count": 17,
-      "savings_toman": 26289000,
-      "source": "digikala_catalog_sweep",
-      "title": "نیم بوت زنانه چرم مشهد مدل J2636"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9366",
-      "catalog_best_selling_category_name": "نیم بوت زنانه",
-      "catalog_best_selling_rank": 69,
-      "catalog_best_selling_ranks_by_category": {
-        "9366": {
-          "category_name": "نیم بوت زنانه",
-          "observed_at": "2026-11-06T20:21:26.334289+00:00",
-          "rank": 69
-        }
-      },
-      "catalog_category_id": "9366",
-      "catalog_category_ids": [
-        "9366"
-      ],
-      "catalog_category_name": "نیم بوت زنانه",
-      "catalog_rank_observed_at": "2026-11-06T20:21:26.334289+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 17509000,
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-06T20:21:26.334289+00:00",
-      "last_seen_at": "2026-11-06T20:18:17.310029+00:00",
-      "original_price": 43798000,
-      "product_id": "dkp-13187888",
-      "product_url": "https://www.digikala.com/product/dkp-13187888/",
-      "rating": 3.75,
-      "review_count": 8,
-      "savings_toman": 26289000,
-      "source": "digikala_catalog_sweep",
-      "title": "نیم بوت زنانه چرم مشهد مدل J2636"
     }
   ],
   "cycle_started_at": "2026-11-06T18:22:56.776413+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-06T23:50:51.841258+00:00"
+  "updated_at": "2026-11-06T23:52:00.972232+00:00"
 }
