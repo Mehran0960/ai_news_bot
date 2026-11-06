@@ -16,7 +16,9 @@ permissions:
   contents: write
 
 concurrency:
-  group: offerchin-digikala-catalog-sweep-v2
+  # v3 isolates the confirmed orphaned v2 queued run with zero jobs.
+  # No live scanner job was found when this group was rotated.
+  group: offerchin-digikala-catalog-sweep-v3
   cancel-in-progress: false
 
 jobs:
