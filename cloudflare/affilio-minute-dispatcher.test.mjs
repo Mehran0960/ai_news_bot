@@ -36,6 +36,18 @@ test("allows the first publication when a clean full-catalog snapshot exists", (
   assert.equal(isUsableCleanCatalogSnapshot(cleanStatus), true);
 });
 
+test("rejects a clean snapshot after its 96-hour freshness window", () => {
+  const completedAt = new Date(Date.now() - 97 * 60 * 60 * 1000).toISOString();
+  assert.equal(
+    isUsableCleanCatalogSnapshot({
+      ...cleanStatus,
+      last_clean_cycle_completed_at: completedAt,
+      completed_candidates_cycle_at: completedAt,
+    }),
+    false
+  );
+});
+
 test("reuses the same clean snapshot after a publication while the next scan is running", () => {
   const status = {
     ...cleanStatus,
