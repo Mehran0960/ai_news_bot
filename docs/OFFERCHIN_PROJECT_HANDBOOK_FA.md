@@ -327,3 +327,32 @@ NaN
 - عبارت route replacement در شاخهٔ اصلاحی به escaped slash استاندارد JavaScript تبدیل شده است. این اصلاح فقط نحوی است و رفتار مسیر API یا سیاست bypass فقط برای catalog workflowهای یتیمِ بدون job را تغییر نمی‌دهد.
 - Worker فعال باید تا پس از گذر از Node syntax check و upload موفق، همان نسخهٔ قبلی با deployment ID a20fdab9-edea-4cba-ab00-c2eecc9a0cba باقی بماند. Cron، secret bindingها و observability نباید تغییر کنند.
 - نتیجهٔ Node syntax check، Documentation Gate، upload و deployment جدید پس از اجرای PR ثبت خواهد شد.
+
+
+## 17. ایزوله‌سازی قفل یتیم کاتالوگ و استقرار قابل‌تکرار Worker — ۶ نوامبر ۲۰۲۶
+
+### تشخیص و تصمیم
+- اجرای GitHub Actions شمارهٔ 1093، با run ID برابر `42196544516`، از ساعت 09:38 UTC در وضعیت `queued` مانده بود؛ endpoint مربوط به jobs برای آن هیچ jobی برنگرداند. اجرای زندهٔ scanner وجود نداشت.
+- dispatcher فعال Cloudflare نسخهٔ 31 بود و در حالت قدیمی برای این run تلاش به cancel می‌کرد؛ GitHub پاسخ HTTP 409 با پیام `Cannot cancel a workflow run that has not been queued yet` می‌داد.
+- برای اینکه این run یتیم نتواند دوباره چرخهٔ اسکن را قفل کند، concurrency group اسکن از `offerchin-digikala-catalog-sweep-v2` به `offerchin-digikala-catalog-sweep-v3` منتقل می‌شود. این تغییر فقط پس از تأیید نبود job فعال انجام می‌شود؛ اجرای یتیم قبلی را حذف نمی‌کند.
+- کد موجود در main برای Worker، گزینهٔ `ignoreOrphanedNoJobs` را فقط برای workflow اسکن کاتالوگ فعال می‌کند. publisher، audit، YouTube، Aparat و Filo همچنان قفل محافظه‌کارانهٔ خود را دارند؛ این guard مجوز عبور از اجرای انتشار فعال نیست.
+
+### مسیر استقرار Worker
+- فایل `cloudflare/wrangler.toml` به‌عنوان تنظیمات نسخه‌پذیر Worker اضافه می‌شود: main module همان فایل dispatcher، compatibility date برابر 2026-10-17، Cron یک‌دقیقه‌ای، subdomain غیرفعال و observability/logging روشن.
+- `keep_vars = true` از بازنویسی متغیرهای تعریف‌شده در Dashboard جلوگیری می‌کند. طبق مستندات Cloudflare، deployment با Wrangler Secretهای رمزنگاری‌شدهٔ موجود را حذف نمی‌کند؛ هیچ مقدار Secret در مخزن یا log قرار نمی‌گیرد.
+- workflow جدید `.github/workflows/deploy-affilio-minute-dispatcher.yml` ابتدا dry-run و سپس deploy را از روی همین config انجام می‌دهد. به `CLOUDFLARE_API_TOKEN` با مجوز Workers Scripts Write و `CLOUDFLARE_ACCOUNT_ID` در GitHub Actions Secrets نیاز دارد.
+- نسخهٔ Cloudflare شمارهٔ 34 با شناسهٔ `306990f4-1918-41b3-a476-8a817f54c352` فقط به‌عنوان نسخهٔ آماده‌سازی‌شده ایجاد شد؛ دو binding محرمانهٔ `GITHUB_TOKEN` و `FILO_GITHUB_TOKEN` را از نسخهٔ فعال 31 به ارث برده و **deploy نشده است**. نسخهٔ فعال در زمان ثبت این بند همچنان 31 است.
+- تلاش‌های مستقیم API برای upload کد جدید با خطای validation 10021 و پیام `Unexpected token 'export'` در `worker.js:373` رد شدند؛ هیچ‌یک deployment تولید را تغییر ندادند. مسیر رسمی Wrangler در CI جایگزین این تلاش مستقیم شده است.
+
+### وضعیت قبل از تأیید PR و rollout
+- شاخهٔ کاری: `fix/offerchin-dispatcher-production-recovery-2026-11-06`.
+- فایل‌های تغییرکرده در این مرحله: `.github/workflows/offerchin-digikala-catalog-sweep.yml`، `.github/workflows/deploy-affilio-minute-dispatcher.yml`، `cloudflare/wrangler.toml`، این handbook و `docs/CHANGELOG_FA.md`.
+- تا زمانی که PR، Documentation Gate، dry-run، deployment Wrangler، حفظ Secret bindingها و Cron، dispatch یک run جدید و persistence موفق checkpoint تأیید نشده‌اند، اصلاح production را «مستقرشده» اعلام نکن.
+- batch size برابر 480، سقف concurrency درخواستی 12، backoff تطبیقی، retry، پوشش تمام دسته‌ها/صفحات و رتبه‌بندی discount-first در این تغییر دست‌نخورده‌اند. اعداد throughput باید از اجرای واقعی بعد از rollout خوانده شوند؛ افزایش کورکورانهٔ workerها مجاز نیست.
+
+### معیار موفقیت
+1. run جدید در concurrency group v3 یک job واقعی ایجاد کند و شروع اسکن آن در GitHub Actions قابل مشاهده باشد.
+2. deploy Wrangler نسخه‌ای از source فعلی Worker را با دو Secret binding و Cron یک‌دقیقه‌ای حفظ‌شده فعال کند.
+3. Worker پس از پایان batch بعدی، بدون HTTP 409 اسکن بعدی را dispatch کند.
+4. state و shortlist با موفقیت commit/push شوند؛ full-cycle فقط پس از خالی‌شدن صف و ثبت timestamp تکمیل اعلام شود.
+5. با توجه به baseline آخر: 256 صفحه در 293.59 ثانیه، 8 worker واقعی، صفر retry/429، زمان fetch برابر 293.275 ثانیه، پردازش محلی 0.214 ثانیه و checkpoint حدود 0.089 ثانیه. گلوگاه فعلی درخواست شبکه است؛ tuning بعدی فقط بر مبنای چند batch کامل و نرخ واقعی 429 انجام شود.
