@@ -7341,17 +7341,19 @@ def _filter_recent_publication_repeats(
     limit: int | None = None,
     label: str = "PUBLISH",
 ) -> list[dict]:
-    """Apply hard family/brand cooldowns to every new publication hand-off.
+    """Preserve discount rank; report family/brand/similarity repeats as telemetry only.
 
-    Rank order remains unchanged among eligible products. A repeat is deferred when
-    a different family or brand is available; if every candidate repeats, nothing is
-    queued and the next discovery cycle can re-evaluate the market.
+    The former family/brand/similarity cooldown could suppress the globally highest
+    discount and promote a lower-discount product. That conflicts with the active
+    discount-first product contract. Exact-SKU repeat protection and delivery
+    idempotency remain enforced by their dedicated selection/delivery guards.
     """
     current = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    family_cooldown_seconds = max(0.0, float(FAMILY_REPEAT_COOLDOWN_HOURS)) * 3600
-    brand_cooldown_seconds = max(0.0, float(BRAND_REPEAT_COOLDOWN_HOURS)) * 3600
-    similarity_cooldown_seconds = max(0.0, float(PUBLICATION_SIMILARITY_COOLDOWN_HOURS)) * 3600
+    source = [item for item in (candidates or []) if isinstance(item, dict)]
+    if not source:
+        return []
+
     history_window_hours = max(
         float(FAMILY_REPEAT_COOLDOWN_HOURS),
         float(BRAND_REPEAT_COOLDOWN_HOURS),
@@ -7364,73 +7366,49 @@ def _filter_recent_publication_repeats(
         now=current,
         window_hours=history_window_hours,
     )
-    now_ts = current.timestamp()
-    blocked_families: set[str] = set()
-    blocked_brands: set[str] = set()
-    blocked_similar_products: list[dict] = []
+    recent_families: set[str] = set()
+    recent_brands: set[str] = set()
     for previous in history:
-        try:
-            age_seconds = now_ts - float(previous.get("order") or previous.get("ts") or 0)
-        except (TypeError, ValueError, OverflowError):
-            continue
-        if age_seconds < 0:
-            continue
-        family = str(previous.get("family") or "")
-        brand = str(previous.get("brand") or "")
-        if family and _is_specific_product_family(
-            str(previous.get("category") or ""),
-            family,
-        ) and age_seconds < family_cooldown_seconds:
-            blocked_families.add(family)
-        if brand and age_seconds < brand_cooldown_seconds:
-            blocked_brands.add(brand)
-        if age_seconds < similarity_cooldown_seconds and str(previous.get("title") or "").strip():
-            blocked_similar_products.append(previous)
-
-    selected: list[dict] = []
-    skipped_family = 0
-    skipped_brand = 0
-    skipped_similarity = 0
-    selected_families: set[str] = set()
-    selected_brands: set[str] = set()
-    for candidate in candidates or []:
-        if not isinstance(candidate, dict):
-            continue
-        category, family, brand = _publication_diversity_group(candidate)
-        specific_family = _is_specific_product_family(category, family)
-        if specific_family and family in blocked_families:
-            skipped_family += 1
-            continue
-        if brand and brand in blocked_brands:
-            skipped_brand += 1
-            continue
-        if any(_publication_products_are_similar(candidate, previous) for previous in blocked_similar_products):
-            skipped_similarity += 1
-            continue
-        selected.append(candidate)
-        # Keep the complete hand-off/fallback pool diverse as well as the live history.
-        # This prevents a stale primary from promoting a near-identical sibling offer.
-        if specific_family:
-            blocked_families.add(family)
-            selected_families.add(family)
+        category, family, brand = _publication_diversity_group(previous)
+        if _is_specific_product_family(category, family):
+            recent_families.add(family)
         if brand:
-            blocked_brands.add(brand)
-            selected_brands.add(brand)
-        blocked_similar_products.append(candidate)
-        if limit is not None and len(selected) >= max(1, int(limit)):
-            break
+            recent_brands.add(brand)
 
-    if skipped_family or skipped_brand or skipped_similarity:
+    family_repeat_observed = 0
+    brand_repeat_observed = 0
+    similarity_repeat_observed = 0
+    seen_families: set[str] = set()
+    seen_brands: set[str] = set()
+    seen_titles: list[dict] = list(history)
+    for candidate in source:
+        category, family, brand = _publication_diversity_group(candidate)
+        if _is_specific_product_family(category, family):
+            if family in recent_families or family in seen_families:
+                family_repeat_observed += 1
+            seen_families.add(family)
+        if brand:
+            if brand in recent_brands or brand in seen_brands:
+                brand_repeat_observed += 1
+            seen_brands.add(brand)
+        if any(_publication_products_are_similar(candidate, previous) for previous in seen_titles):
+            similarity_repeat_observed += 1
+        seen_titles.append(candidate)
+
+    if family_repeat_observed or brand_repeat_observed or similarity_repeat_observed:
         print(
-            f"{label}_DIVERSITY_GUARD candidates={len(candidates or [])} "
-            f"selected={len(selected)} family_deferred={skipped_family} "
-            f"brand_deferred={skipped_brand} similarity_deferred={skipped_similarity} "
-            f"family_cooldown_hours={FAMILY_REPEAT_COOLDOWN_HOURS} "
-            f"brand_cooldown_hours={BRAND_REPEAT_COOLDOWN_HOURS} "
-            f"similarity_cooldown_hours={PUBLICATION_SIMILARITY_COOLDOWN_HOURS}"
+            f"{label}_REPEAT_DIAGNOSTICS candidates={len(source)} "
+            f"family_repeat_observed={family_repeat_observed} "
+            f"brand_repeat_observed={brand_repeat_observed} "
+            f"similarity_repeat_observed={similarity_repeat_observed} "
+            f"deferred=0 rank_order_preserved=true"
         )
-    return selected
 
+    # Do not sort, skip, or replace candidates here. The caller has already supplied
+    # the global percentage-descending / savings-descending order.
+    if limit is not None:
+        return source[:max(1, int(limit))]
+    return source
 
 def select_urgent_publication_candidate(
     eligible: list[dict],
