@@ -416,3 +416,28 @@ NaN
 ### وضعیت تأیید
 - کد و تست‌های رگرسیون در شاخهٔ `perf/offerchin-catalog-throughput-20261106` آمادهٔ بررسی هستند.
 - موفقیت تست‌های PR، ادغام در `main` و اندازه‌گیری سرعت batchهای بعدی هنوز باید از runهای واقعی GitHub Actions تأیید شود؛ افزایش سرعت تا زمان مشاهدهٔ دادهٔ جدید ادعا نمی‌شود.
+
+
+## 24. تشخیص نهایی خطای dispatch کاتالوگ و مجوز استقرار Worker — ۶ نوامبر ۲۰۲۶
+
+### وضعیت واقعی پس از تغییر اسکنر
+- PR شمارهٔ 86 با commit ادغام `049cc45f2fed0fc89f25979d6a738200495aff85` در `main` ادغام شد؛ گیت regression و Documentation Gate هر دو موفق شدند.
+- اجرای واقعی catalog sweep شمارهٔ 1096 (`42246038180`) با موفقیت خاتمه یافت. ۲۵۵ از ۲۵۵ صفحه موفق، صفر retry، صفر HTTP 429 و ۹ worker واقعی ثبت شد. زمان شبکه `25.324s`، سرعت `10.07 pages/s` و زمان کل `25.811s` بود؛ در run قبلی شمارهٔ 1095 زمان شبکه `256.836s` ثبت شده بود. این مقایسه یک بهبود مشاهده‌شده در دو batch متوالی است، نه هنوز benchmark طولانی‌مدت.
+- checkpoint در اولین تلاش روی main ثبت شد؛ commit آن `92d861a187e7b507509080f134e0ec66386d5404` است.
+- state پس از run 1096: تعداد دسته‌ها ۴٬۹۱۷، دسته‌های برگ ۴٬۶۷۱، صفحات موفق چرخهٔ جاری ۱۸۶٬۵۶۵، صفحات در صف ۲۵۵، دسته‌های کامل‌شده در چرخه ۴٬۶۶۳، دستهٔ غیرقابل‌پرس‌وجو ۰، shortlist برابر ۳٬۰۰۰ و `completed_cycles=0`. تا ثبت صف خالی و timestamp تکمیل، ادعای پایان چرخه یا کشف قطعی بیشترین تخفیف کل کاتالوگ مجاز نیست.
+
+### تشخیص زمان‌بند Cloudflare
+- مشاهدهٔ مستقیم Cloudflare تأیید کرد Cron برابر `* * * * *` است و Worker نسخهٔ ۳۱ هنوز ۱۰۰٪ ترافیک را دریافت می‌کند؛ بنابراین سرویس خاموش نیست.
+- telemetry نسخهٔ فعال ۳۱ (`a20fdab9-edea-4cba-ab00-c2eecc9a0cba`) نشان داد مسیر اسکن کاتالوگ در هر دقیقه به خطای GitHub API `409` می‌رسد: نسخهٔ قدیمی می‌خواهد run یتیمی را cancel کند، درحالی‌که GitHub هنوز آن را queue نکرده است. در همان invocationها dispatchهای publisher و Integrity Audit موفق بوده‌اند.
+- guard اصلاحی `ignoreOrphanedNoJobs` در سورس `main` موجود است، اما هنوز در Worker فعال نشده؛ بنابراین موفقیت run شمارهٔ 1096 که با رویداد push آغاز شد، اثبات سلامت dispatch زمان‌بندی‌شدهٔ کاتالوگ نیست.
+- نسخهٔ بارگذاری‌شدهٔ ۳۴ دو secret binding لازم را دارد، اما فقط metadata آن خوانده شد و script etag گزارش‌شده با نسخهٔ ۳۱ یکسان است؛ annotation به‌تنهایی اثبات نمی‌کند که کد اصلاح‌شده را دارد. برای جلوگیری از انتشار کد تأییدنشده، نسخهٔ ۳۴ deploy نشد.
+
+### مانع استقرار و اقدام لازم
+- deploy run شمارهٔ 14 با شناسهٔ `42244812744`، بررسی وجود Token، syntax و Wrangler dry-run را گذراند، اما فراخوانی API مسیر `/workers/services/affilio-minute-dispatcher` با پیام `No access to the specified service` رد شد. هیچ secret value خوانده یا در log ثبت نشد.
+- **اصلاح راهنمای مجوز:** راهنمای جاری Cloudflare برای `wrangler deploy` روی Worker موجود، نقش **Workers Editor** را لازم می‌داند. این نقش باید برای Worker مشخص `affilio-minute-dispatcher` یا در سطح محصول Workers در همان حساب اعطا شده باشد. اشارهٔ قبلی به `Workers Scripts Write` به‌تنهایی برای این مسیر deploy کافی نیست و باید با این راهنمای جدید جایگزین شود.
+- تنها اقدام خارج از دسترسی این بررسی: صاحب حساب باید GitHub Actions secret موجود با نام `CLOUDFLARE_API_TOKEN` را با یک Account-owned API Token دارای Workers Editor برای همین Worker جایگزین کند؛ مقدار Token نباید در chat یا مخزن ارسال شود. سپس workflow استقرار از مسیر `.github/workflows/deploy-affilio-minute-dispatcher.yml` دوباره اجرا شود.
+- پس از deploy باید version فعال با ۱۰۰٪ ترافیک بررسی شود و telemetry نشان دهد `CHANNEL_DISPATCH_ORPHANED_ZERO_JOB_RUN` و سپس `CHANNEL_DISPATCH_ACCEPTED workflow=offerchin-digikala-catalog-sweep.yml` ثبت شده و خطای 409 تکرار نمی‌شود.
+
+### تصمیم ایمنی
+- Cron یک‌دقیقه‌ای، secret bindingها، publisher، زمان‌بندی کانال‌ها و گردش‌کار Filo دست‌کاری نشده‌اند.
+- تغییر سطح دسترسی یا تعویض Token از طرف این بررسی انجام نشده است؛ هیچ credentialای درخواست یا نمایش داده نشده است.
