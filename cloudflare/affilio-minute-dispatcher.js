@@ -67,7 +67,7 @@ async function recoverStaleWorkflow(
   const limit = active.status === "in_progress" ? runningLimitMinutes : queuedLimitMinutes;
   if (ageMinutes < limit) return active;
 
-  const runsApi = api.replace(/\\/workflows\\/[^/]+$/, "/runs");
+  const runsApi = api.replace(/\/workflows\/[^/]+$/, "/runs");
 
   // GitHub can expose a run as queued even when its jobs collection is empty.
   // Such orphaned runs may reject cancellation with HTTP 409 ("has not been queued yet").
