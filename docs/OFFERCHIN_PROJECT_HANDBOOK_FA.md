@@ -372,3 +372,10 @@ NaN
 - راه‌حل قطعی بدون تکثیر source در Git: فایل canonical همچنان `cloudflare/affilio-minute-dispatcher.js` است؛ CI قبل از هر dry-run و deploy آن را به فایل موقت `cloudflare/affilio-minute-dispatcher.mjs` کپی می‌کند. `cloudflare/wrangler.toml` اکنون main را روی همین `.mjs` قرار می‌دهد؛ فایل موقت فقط در runner ساخته می‌شود و به مخزن commit نمی‌شود.
 - این راه، نام و مسیر منبع فعلی Worker را برای سایر referenceها حفظ می‌کند، از دو نسخهٔ مستقل کد جلوگیری می‌کند و Wrangler را با پسوند صریح ES Module اجرا می‌کند.
 - نتیجهٔ dry-run پس از این اصلاح باید از run جدید PR خوانده شود. هیچ deployment تولیدی در دو تلاش قبلی انجام نشد؛ تا زمان تأیید اجرای جدید، نسخهٔ 31 production معتبر است.
+
+
+## 20. استقرار مستقیم Worker مستقل بدون bundling — ۶ نوامبر ۲۰۲۶
+
+- حتی پس از ساخت ورودی موقت `.mjs`، Wrangler 4.158.0 در bundling همچنان `Unexpected export` را گزارش کرد. پسوند mjs نیز به‌تنهایی برای این پروژه کافی نبود.
+- سورس Worker بررسی شد: هیچ `import`، `require()` یا وابستگی npm ندارد و یک فایل JavaScript مستقل است. بنابراین config به `no_bundle = true` تغییر کرد تا Wrangler کد را بدون esbuild bundling مستقیماً بارگذاری کند؛ این قابلیت فقط برای Worker ساده و بدون وابستگی مناسب است.
+- `.mjs` موقت و کپی از منبع canonical باقی می‌ماند تا نوع ES Module روشن باشد. نتیجهٔ dry-run بعد از این تغییر تنها معیار ادامه به deploy است؛ تا قبل از آن نسخهٔ production 31 پابرجاست.
