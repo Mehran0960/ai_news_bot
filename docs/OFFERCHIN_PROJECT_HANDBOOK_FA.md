@@ -327,3 +327,66 @@ NaN
 - عبارت route replacement در شاخهٔ اصلاحی به escaped slash استاندارد JavaScript تبدیل شده است. این اصلاح فقط نحوی است و رفتار مسیر API یا سیاست bypass فقط برای catalog workflowهای یتیمِ بدون job را تغییر نمی‌دهد.
 - Worker فعال باید تا پس از گذر از Node syntax check و upload موفق، همان نسخهٔ قبلی با deployment ID a20fdab9-edea-4cba-ab00-c2eecc9a0cba باقی بماند. Cron، secret bindingها و observability نباید تغییر کنند.
 - نتیجهٔ Node syntax check، Documentation Gate، upload و deployment جدید پس از اجرای PR ثبت خواهد شد.
+
+
+## 17. ایزوله‌سازی قفل یتیم کاتالوگ و استقرار قابل‌تکرار Worker — ۶ نوامبر ۲۰۲۶
+
+### تشخیص و تصمیم
+- اجرای GitHub Actions شمارهٔ 1093، با run ID برابر `42196544516`، از ساعت 09:38 UTC در وضعیت `queued` مانده بود؛ endpoint مربوط به jobs برای آن هیچ jobی برنگرداند. اجرای زندهٔ scanner وجود نداشت.
+- dispatcher فعال Cloudflare نسخهٔ 31 بود و در حالت قدیمی برای این run تلاش به cancel می‌کرد؛ GitHub پاسخ HTTP 409 با پیام `Cannot cancel a workflow run that has not been queued yet` می‌داد.
+- برای اینکه این run یتیم نتواند دوباره چرخهٔ اسکن را قفل کند، concurrency group اسکن از `offerchin-digikala-catalog-sweep-v2` به `offerchin-digikala-catalog-sweep-v3` منتقل می‌شود. این تغییر فقط پس از تأیید نبود job فعال انجام می‌شود؛ اجرای یتیم قبلی را حذف نمی‌کند.
+- کد موجود در main برای Worker، گزینهٔ `ignoreOrphanedNoJobs` را فقط برای workflow اسکن کاتالوگ فعال می‌کند. publisher، audit، YouTube، Aparat و Filo همچنان قفل محافظه‌کارانهٔ خود را دارند؛ این guard مجوز عبور از اجرای انتشار فعال نیست.
+
+### مسیر استقرار Worker
+- فایل `cloudflare/wrangler.toml` به‌عنوان تنظیمات نسخه‌پذیر Worker اضافه می‌شود: main module همان فایل dispatcher، compatibility date برابر 2026-10-17، Cron یک‌دقیقه‌ای، subdomain غیرفعال و observability/logging روشن.
+- `keep_vars = true` از بازنویسی متغیرهای تعریف‌شده در Dashboard جلوگیری می‌کند. طبق مستندات Cloudflare، deployment با Wrangler Secretهای رمزنگاری‌شدهٔ موجود را حذف نمی‌کند؛ هیچ مقدار Secret در مخزن یا log قرار نمی‌گیرد.
+- workflow جدید `.github/workflows/deploy-affilio-minute-dispatcher.yml` ابتدا dry-run و سپس deploy را از روی همین config انجام می‌دهد. به `CLOUDFLARE_API_TOKEN` با مجوز Workers Scripts Write و `CLOUDFLARE_ACCOUNT_ID` در GitHub Actions Secrets نیاز دارد.
+- نسخهٔ Cloudflare شمارهٔ 34 با شناسهٔ `306990f4-1918-41b3-a476-8a817f54c352` فقط به‌عنوان نسخهٔ آماده‌سازی‌شده ایجاد شد؛ دو binding محرمانهٔ `GITHUB_TOKEN` و `FILO_GITHUB_TOKEN` را از نسخهٔ فعال 31 به ارث برده و **deploy نشده است**. نسخهٔ فعال در زمان ثبت این بند همچنان 31 است.
+- تلاش‌های مستقیم API برای upload کد جدید با خطای validation 10021 و پیام `Unexpected token 'export'` در `worker.js:373` رد شدند؛ هیچ‌یک deployment تولید را تغییر ندادند. مسیر رسمی Wrangler در CI جایگزین این تلاش مستقیم شده است.
+
+### وضعیت قبل از تأیید PR و rollout
+- شاخهٔ کاری: `fix/offerchin-dispatcher-production-recovery-2026-11-06`.
+- فایل‌های تغییرکرده در این مرحله: `.github/workflows/offerchin-digikala-catalog-sweep.yml`، `.github/workflows/deploy-affilio-minute-dispatcher.yml`، `cloudflare/wrangler.toml`، این handbook و `docs/CHANGELOG_FA.md`.
+- تا زمانی که PR، Documentation Gate، dry-run، deployment Wrangler، حفظ Secret bindingها و Cron، dispatch یک run جدید و persistence موفق checkpoint تأیید نشده‌اند، اصلاح production را «مستقرشده» اعلام نکن.
+- batch size برابر 480، سقف concurrency درخواستی 12، backoff تطبیقی، retry، پوشش تمام دسته‌ها/صفحات و رتبه‌بندی discount-first در این تغییر دست‌نخورده‌اند. اعداد throughput باید از اجرای واقعی بعد از rollout خوانده شوند؛ افزایش کورکورانهٔ workerها مجاز نیست.
+
+### معیار موفقیت
+1. run جدید در concurrency group v3 یک job واقعی ایجاد کند و شروع اسکن آن در GitHub Actions قابل مشاهده باشد.
+2. deploy Wrangler نسخه‌ای از source فعلی Worker را با دو Secret binding و Cron یک‌دقیقه‌ای حفظ‌شده فعال کند.
+3. Worker پس از پایان batch بعدی، بدون HTTP 409 اسکن بعدی را dispatch کند.
+4. state و shortlist با موفقیت commit/push شوند؛ full-cycle فقط پس از خالی‌شدن صف و ثبت timestamp تکمیل اعلام شود.
+5. با توجه به baseline آخر: 256 صفحه در 293.59 ثانیه، 8 worker واقعی، صفر retry/429، زمان fetch برابر 293.275 ثانیه، پردازش محلی 0.214 ثانیه و checkpoint حدود 0.089 ثانیه. گلوگاه فعلی درخواست شبکه است؛ tuning بعدی فقط بر مبنای چند batch کامل و نرخ واقعی 429 انجام شود.
+
+
+## 18. رفع خطای dry-run مربوط به نوع ماژول Wrangler — ۶ نوامبر ۲۰۲۶
+
+- اجرای PR validation شمارهٔ `42242605846` در مرحلهٔ dry-run شکست خورد؛ خطای واقعی Wrangler 4.158.0 برابر `Unexpected export` در `affilio-minute-dispatcher.js:373` بود. این بار خطا از API Cloudflare نبود؛ Wrangler فایل دارای `export default` را به‌علت پسوند `.js`، CommonJS فرض کرده بود.
+- مطابق مستندات جاری Wrangler، برای تفسیر فایل `.js` به‌عنوان ES Module باید در config از rule صریح `ESModule` استفاده شود. به `cloudflare/wrangler.toml` یک rule با glob `**/*.js` افزوده شد؛ نام فایل canonical و همهٔ references موجود حفظ شدند و نیازی به کپی/تکثیر فایل سورس نیست.
+- فایل تنظیمات اصلاح شده است؛ نتیجهٔ dry-run بعدی هنوز باید در PR جدید/به‌روزشده تأیید شود. تا آن زمان هیچ deployment تولید انجام نشده و Worker نسخهٔ 31 فعال باقی می‌ماند.
+- آزمون مستقل catalog regression روی همان PR قبلاً موفق بود؛ Documentation Gate در حال اجرا بود. این خطای dry-run یک مشکل build/config است و هیچ ارتباطی با scanner، API دیجی‌کالا یا HTTP 429 ندارد.
+
+
+## 19. راه‌حل نهایی entrypoint ماژول در Wrangler — ۶ نوامبر ۲۰۲۶
+
+- اجرای بعدی PR validation، با وجود rule صریح `[[rules]] type = "ESModule"`، همچنان خطای `Unexpected export` در entrypoint دارای پسوند `.js` داد. بنابراین rule به‌تنهایی در build واقعی Wrangler 4.158.0 مشکل entrypoint این پروژه را حل نکرد.
+- راه‌حل قطعی بدون تکثیر source در Git: فایل canonical همچنان `cloudflare/affilio-minute-dispatcher.js` است؛ CI قبل از هر dry-run و deploy آن را به فایل موقت `cloudflare/affilio-minute-dispatcher.mjs` کپی می‌کند. `cloudflare/wrangler.toml` اکنون main را روی همین `.mjs` قرار می‌دهد؛ فایل موقت فقط در runner ساخته می‌شود و به مخزن commit نمی‌شود.
+- این راه، نام و مسیر منبع فعلی Worker را برای سایر referenceها حفظ می‌کند، از دو نسخهٔ مستقل کد جلوگیری می‌کند و Wrangler را با پسوند صریح ES Module اجرا می‌کند.
+- نتیجهٔ dry-run پس از این اصلاح باید از run جدید PR خوانده شود. هیچ deployment تولیدی در دو تلاش قبلی انجام نشد؛ تا زمان تأیید اجرای جدید، نسخهٔ 31 production معتبر است.
+
+
+## 20. استقرار مستقیم Worker مستقل بدون bundling — ۶ نوامبر ۲۰۲۶
+
+- حتی پس از ساخت ورودی موقت `.mjs`، Wrangler 4.158.0 در bundling همچنان `Unexpected export` را گزارش کرد. پسوند mjs نیز به‌تنهایی برای این پروژه کافی نبود.
+- سورس Worker بررسی شد: هیچ `import`، `require()` یا وابستگی npm ندارد و یک فایل JavaScript مستقل است. بنابراین config به `no_bundle = true` تغییر کرد تا Wrangler کد را بدون esbuild bundling مستقیماً بارگذاری کند؛ این قابلیت فقط برای Worker ساده و بدون وابستگی مناسب است.
+- `.mjs` موقت و کپی از منبع canonical باقی می‌ماند تا نوع ES Module روشن باشد. نتیجهٔ dry-run بعد از این تغییر تنها معیار ادامه به deploy است؛ تا قبل از آن نسخهٔ production 31 پابرجاست.
+
+
+## 21. علت ریشه‌ای واقعی خطای Syntax و بازیابی dispatch — ۶ نوامبر ۲۰۲۶
+
+**اصلاح تشخیص قبلی:** توضیحات بخش‌های 18 تا 20 دربارهٔ پسوند فایل و bundling، فرضیه‌های آزموده‌شده بودند و علت اصلی را نشان نمی‌دادند. مقایسهٔ سورس main با کد واقعی نسخهٔ سالم Cloudflare #31 ثابت کرد که تابع `dispatchWorkflowIfIdle` در main پس از بلوک `orphaned_no_jobs` قطع شده بود: فراخوانی `POST /actions/workflows/{workflow}/dispatches` و آکولاد پایانی تابع حذف شده بود. به همین دلیل `export default` درون scope ناتمام قرار می‌گرفت و Wrangler خطای گمراه‌کنندهٔ `Unexpected export` می‌داد.
+
+**اصلاح کد:** همان dispatch call و log پذیرش از نسخهٔ فعال #31 بازیابی شد؛ guard تازهٔ مخصوص run یتیمِ بدون job حفظ شد. برای وضعیت عادی و runهای واقعی، قفل strict برقرار است؛ فقط scanner پس از بررسی stale + صفر بودن jobها از رکورد یتیم عبور می‌کند. این guard در publisher، audit، YouTube، Aparat یا Filo فعال نیست.
+
+**کنترل کیفیت:** سورس پس از درج اصلاح، در parser JavaScript (تبدیل export default به return در wrapper برای آزمون parse) معتبر شد. workflow CI اکنون علاوه بر Wrangler dry-run، اجرای `node --check` روی entrypoint موقت `.mjs` را قبل از dry-run و deploy دارد. نتیجهٔ authoritative همچنان باید از GitHub Actions PR جدید خوانده شود.
+
+**وضعیت تولید:** تا زمان تأیید PR و اجرای deploy workflow، نسخهٔ فعال Cloudflare همان #31 است. این اصلاح هنوز مستقرشده اعلام نمی‌شود.
