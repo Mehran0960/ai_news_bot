@@ -46,13 +46,15 @@ def _utc(value: Any) -> datetime | None:
         return None
 
 
-def _eligible_fallback_candidates(candidates: Any, now: datetime) -> list[dict]:
+def _eligible_fallback_candidates(candidates: Any, now: datetime, catalog_context: dict | None = None) -> list[dict]:
     """Keep backups with a genuine current markdown; ranked backups share the primary policy."""
     if not isinstance(candidates, list):
         return []
     eligible: list[dict] = []
     for candidate in candidates:
         if not isinstance(candidate, dict):
+            continue
+        if not radar.catalog_candidate_is_publishable(candidate, catalog_context):
             continue
         raw_floor = candidate.get("selection_discount_floor")
         if raw_floor is None:
@@ -216,6 +218,8 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "catalog_best_selling_category_id": str(item.get("catalog_best_selling_category_id") or ""),
         "catalog_best_selling_category_name": str(item.get("catalog_best_selling_category_name") or ""),
         "catalog_rank_observed_at": str(item.get("catalog_rank_observed_at") or ""),
+        "catalog_cycle_completed_at": str(item.get("catalog_cycle_completed_at") or ""),
+        "catalog_cycle_snapshot_rank": item.get("catalog_cycle_snapshot_rank"),
         "promo_score": int(item.get("promo_score") or 0),
         "click_count_30d": int(item.get("click_count_30d") or 0),
         "distribution_queue_id": str(item.get("product_id") or ""),
@@ -247,10 +251,18 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
     return record
 
 
-def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
+def _fresh_selected_item(
+    entry: dict,
+    now: datetime,
+    catalog_context: dict | None = None,
+    *,
+    require_catalog_membership: bool = True,
+) -> tuple[dict | None, str]:
     payload = entry.get("payload")
     if not isinstance(payload, dict):
         return None, "missing_selection_payload"
+    if require_catalog_membership and not radar.catalog_candidate_is_publishable(payload, catalog_context):
+        return None, "catalog_snapshot_candidate_stale"
     product_url = radar.safe_product_url(str(payload.get("product_url") or ""))
     product_id = str(payload.get("product_id") or "").lower()
     if not product_url or radar.product_id(product_url) != product_id:
@@ -302,6 +314,7 @@ def _fresh_selected_item(entry: dict, now: datetime) -> tuple[dict | None, str]:
         "market_match_score", "market_seller_count", "catalog_sort_mode",
         "catalog_best_selling_rank", "catalog_best_selling_category_id",
         "catalog_best_selling_category_name", "catalog_rank_observed_at",
+        "catalog_cycle_completed_at", "catalog_cycle_snapshot_rank",
         "publication_policy", "selection_demand_evidence", "selection_value_evidence",
         "selection_fallback_mode",
     ):
@@ -563,6 +576,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         _save(state)
         print("PUBLISHER_INTEGRITY_LEDGER_APPLIED")
     now = _now()
+    catalog_context = radar.publication_catalog_context()
     evicted = enforce_queue_limit(state, now=now)
     if evicted:
         _save(state)
@@ -601,6 +615,16 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             isinstance(target, dict) and target.get("status") == "sent"
             for target in delivery_targets.values()
         )
+        if not already_partially_delivered and catalog_context.get("mode") == "blocked":
+            entry["status"] = "queued"
+            entry["last_detail"] = "verified_full_catalog_snapshot_unavailable"
+            entry["next_attempt_at"] = (now + timedelta(minutes=5)).isoformat()
+            _save(state)
+            print(
+                f"PUBLISHER_CATALOG_GATE_BLOCKED product_id={product_id} "
+                "reason=verified_full_catalog_snapshot_unavailable"
+            )
+            continue
         if not already_partially_delivered:
             allowed = radar._filter_recent_publication_repeats(
                 [payload],
@@ -643,19 +667,25 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             entry["attempt_count"] = 1
         _save(state)
 
-        fresh, reason = _fresh_selected_item(entry, now)
+        fresh, reason = _fresh_selected_item(
+            entry,
+            now,
+            catalog_context,
+            require_catalog_membership=not already_partially_delivered,
+        )
         if fresh is None:
             # A selected item that no longer matches its live price is removed
             # from the delivery queue and will re-enter only after fresh selection.
             if reason.startswith("selected_price_stale") or reason in {
                 "invalid_product_identity", "live_product_details_incomplete",
+                "catalog_snapshot_candidate_stale",
                 "live_stock_not_confirmed", "live_discount_no_longer_eligible",
                 "live_market_value_rejected", "live_offer_expired_or_unverified",
                 "insufficient_publication_runway",
             }:
                 radar.mark_selection_candidate_rejected(state, payload, reason, now=now)
                 raw_fallback_candidates = list(entry.get("fallback_candidates") or [])
-                fallback_candidates = _eligible_fallback_candidates(raw_fallback_candidates, now)
+                fallback_candidates = _eligible_fallback_candidates(raw_fallback_candidates, now, catalog_context)
                 rejected_fallbacks = len(raw_fallback_candidates) - len(fallback_candidates)
                 if rejected_fallbacks:
                     print(
