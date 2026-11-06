@@ -94,6 +94,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add affilio_radar/catalog_sweep_state.json affilio_radar/catalog_sweep_candidates.json
+          if [[ -f affilio_radar/catalog_sweep_completed_candidates.json ]]; then git add affilio_radar/catalog_sweep_completed_candidates.json; fi
           if [[ -f affilio_radar/catalog_sweep_status.json ]]; then git add affilio_radar/catalog_sweep_status.json; fi
           if git diff --cached --quiet; then
             echo "CATALOG_SWEEP_STATE_UNCHANGED"
