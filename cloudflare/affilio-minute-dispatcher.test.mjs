@@ -3,10 +3,14 @@ import assert from "node:assert/strict";
 import { isFreshCleanCatalogCycle } from "./affilio-minute-dispatcher.mjs";
 
 const cleanStatus = {
-  schema_version: 1,
+  schema_version: 2,
   full_catalog_mode: "all_categories_all_pages",
-  scan_policy_version: "all_categories_all_pages_v2",
+  scan_policy_version: "all_categories_all_pages_v3_cycle_snapshot",
   last_cycle_status: "complete",
+  completed_candidates_snapshot_valid: true,
+  completed_candidates_cycle_at: "2026-11-06T16:00:00Z",
+  completed_candidates_count: 3000,
+  completed_candidates_sha256: "a".repeat(64),
   last_cycle_categories_total: 4917,
   catalog_category_count: 4917,
   catalog_category_ids: Array.from({ length: 4917 }, (_, index) => String(index + 1)),
@@ -48,8 +52,15 @@ test("blocks incomplete cycles and any unqueryable category", () => {
   assert.equal(isFreshCleanCatalogCycle({ ...cleanStatus, last_cycle_category_coverage_percent: 99.98 }, null), false);
 });
 
+test("requires the immutable candidate snapshot to match the clean cycle", () => {
+  assert.equal(isFreshCleanCatalogCycle({ ...cleanStatus, completed_candidates_snapshot_valid: false }, null), false);
+  assert.equal(isFreshCleanCatalogCycle({ ...cleanStatus, completed_candidates_cycle_at: "2026-11-06T15:00:00Z" }, null), false);
+  assert.equal(isFreshCleanCatalogCycle({ ...cleanStatus, completed_candidates_count: 0 }, null), false);
+  assert.equal(isFreshCleanCatalogCycle({ ...cleanStatus, completed_candidates_sha256: "invalid" }, null), false);
+});
+
 test("fails closed on missing, stale-schema, or partial-scan status", () => {
   assert.equal(isFreshCleanCatalogCycle(null, null), false);
-  assert.equal(isFreshCleanCatalogCycle({ ...cleanStatus, schema_version: 2 }, null), false);
+  assert.equal(isFreshCleanCatalogCycle({ ...cleanStatus, schema_version: 1 }, null), false);
   assert.equal(isFreshCleanCatalogCycle({ ...cleanStatus, scan_policy_version: "top_60_only" }, null), false);
 });
