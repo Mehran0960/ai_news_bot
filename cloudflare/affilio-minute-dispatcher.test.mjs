@@ -9,6 +9,10 @@ const cleanStatus = {
   last_cycle_status: "complete",
   last_cycle_categories_total: 4917,
   catalog_category_count: 4917,
+  catalog_category_ids: Array.from({ length: 4917 }, (_, index) => String(index + 1)),
+  last_cycle_category_ids: Array.from({ length: 4917 }, (_, index) => String(index + 1)),
+  last_cycle_completed_category_ids: Array.from({ length: 4917 }, (_, index) => String(index + 1)),
+  last_cycle_unqueryable_category_ids: [],
   last_cycle_categories_complete: 4917,
   last_cycle_categories_unqueryable: 0,
   last_cycle_category_coverage_percent: 100,
@@ -25,6 +29,12 @@ test("allows publication only when a clean cycle is newer than the previous post
   assert.equal(isFreshCleanCatalogCycle(cleanStatus, Date.parse("2026-11-06T15:59:59Z")), true);
   assert.equal(isFreshCleanCatalogCycle(cleanStatus, Date.parse("2026-11-06T16:00:00Z")), false);
   assert.equal(isFreshCleanCatalogCycle(cleanStatus, Date.parse("2026-11-06T16:00:01Z")), false);
+});
+
+test("blocks a category-set replacement even when the category count is unchanged", () => {
+  const changedIds = [...cleanStatus.catalog_category_ids];
+  changedIds[0] = "new-category-id";
+  assert.equal(isFreshCleanCatalogCycle({ ...cleanStatus, catalog_category_ids: changedIds }, null), false);
 });
 
 test("blocks a previously clean cycle when new catalog categories appear", () => {
