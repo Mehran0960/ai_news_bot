@@ -561,19 +561,50 @@ def _category_page_url(category_id: str, page: int) -> tuple[str, dict]:
     }
 
 
-def _publisher_seen_ids(publisher_state_path: Path) -> set[str]:
+def _publisher_seen_records(publisher_state_path: Path) -> dict[str, object]:
+    """Read durable handoff fingerprints, retaining legacy timestamp-only records."""
     state = _read_json(publisher_state_path, {})
     handoff = state.get("catalog_sweep_handoff", {}) if isinstance(state, dict) else {}
     seen = handoff.get("seen_ids", {}) if isinstance(handoff, dict) else {}
-    return {str(pid) for pid in seen} if isinstance(seen, dict) else set()
+    return {str(pid): record for pid, record in seen.items()} if isinstance(seen, dict) else {}
 
 
-def _clean_old_candidates(candidates: dict[str, dict], seen_ids: set[str], now: datetime) -> dict[str, dict]:
+def _publisher_seen_ids(publisher_state_path: Path) -> set[str]:
+    """Compatibility helper for callers that only need the acknowledged IDs."""
+    return set(_publisher_seen_records(publisher_state_path))
+
+
+def _clean_old_candidates(
+    candidates: dict[str, dict],
+    seen_ids: set[str],
+    now: datetime,
+    *,
+    seen_records: dict[str, object] | None = None,
+) -> dict[str, dict]:
+    """Keep changed handoff cards eligible; discard only unchanged acknowledged cards.
+
+    A price/discount/stock fingerprint change must survive catalog cleanup so
+    the publisher can perform its deep live check immediately. Legacy
+    timestamp-only acknowledgements have no fingerprint baseline and are
+    allowed through once to establish one.
+    """
     cleaned = {}
     cutoff = now - timedelta(hours=CANDIDATE_TTL_HOURS)
     for pid, row in candidates.items():
-        if pid in seen_ids or not isinstance(row, dict):
+        if not isinstance(row, dict):
             continue
+        if pid in seen_ids:
+            record = (seen_records or {}).get(str(pid))
+            previous_fingerprint = (
+                str(record.get("fingerprint") or "")
+                if isinstance(record, dict) else ""
+            )
+            # Preserve old conservative behavior for callers without records.
+            # In production, a missing legacy fingerprint is allowed through once.
+            if seen_records is None or str(pid) not in seen_records:
+                continue
+            if previous_fingerprint and previous_fingerprint == catalog_handoff_fingerprint(row):
+                continue
         last_seen = row.get("last_seen_at") or row.get("first_seen_at") or ""
         try:
             stamp = datetime.fromisoformat(str(last_seen).replace("Z", "+00:00"))
@@ -911,8 +942,11 @@ def run_sweep(
 
     candidates = _load_candidates_by_id(candidates_path)
     now = utc_now()
-    seen_ids = _publisher_seen_ids(publisher_state_path)
-    candidates = _clean_old_candidates(candidates, seen_ids, now)
+    seen_records = _publisher_seen_records(publisher_state_path)
+    seen_ids = set(seen_records)
+    candidates = _clean_old_candidates(
+        candidates, seen_ids, now, seen_records=seen_records
+    )
 
     pages_limit = max(1, min(20, int(pages_per_run)))
     completed_pages = 0
@@ -1041,7 +1075,9 @@ def run_sweep(
         stats["completed_cycles"] = max(0, _normal_int(state.get("completed_cycles")))
         state["stats"] = stats
 
-        candidates = _clean_old_candidates(candidates, seen_ids, utc_now())
+        candidates = _clean_old_candidates(
+            candidates, seen_ids, utc_now(), seen_records=seen_records
+        )
         ordered_candidates = retain_diverse_candidates(
             list(candidates.values()), limit=MAX_RETAINED_CANDIDATES,
             rotation=stats["pages_scanned_total"],
