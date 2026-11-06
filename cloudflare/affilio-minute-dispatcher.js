@@ -137,7 +137,9 @@ export function isFreshCleanCatalogCycle(status, lastPublicationAt) {
   const cycles = Number(status.completed_cycles);
   const completedAt = Date.parse(String(status.last_cycle_completed_at || ""));
 
+  const currentCategories = Number(status.catalog_category_count);
   if (!Number.isFinite(total) || total < 1 || completed !== total) return false;
+  if (!Number.isFinite(currentCategories) || currentCategories > total) return false;
   if (unqueryable !== 0 || !Number.isFinite(coverage) || coverage < 100) return false;
   if (!Number.isFinite(pages) || pages < 1 || !Number.isFinite(cycles) || cycles < 1) return false;
   if (!Number.isFinite(completedAt)) return false;
