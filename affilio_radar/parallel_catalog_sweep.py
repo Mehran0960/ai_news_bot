@@ -440,12 +440,27 @@ def run_parallel_sweep(
             stats["empty_product_pages_total"] += 1
         if kind == "terminal":
             terminal_count += 1
-            key_name = "parallel_cycle_unqueryable_category_ids" if page == 1 else "parallel_cycle_completed_category_ids"
-            bucket = {str(v) for v in state.get(key_name, []) if str(v).isdigit()}
-            bucket.add(category_id)
-            state[key_name] = sorted(bucket, key=lambda value: int(value))
-            if page == 1:
+            unqueryable = {
+                str(v) for v in state.get("parallel_cycle_unqueryable_category_ids", [])
+                if str(v).isdigit()
+            }
+            if category_id not in unqueryable:
                 stats["unqueryable_categories_total"] += 1
+            unqueryable.add(category_id)
+            state["parallel_cycle_unqueryable_category_ids"] = sorted(
+                unqueryable, key=lambda value: int(value)
+            )
+            completed = {
+                str(v) for v in state.get("parallel_cycle_completed_category_ids", [])
+                if str(v).isdigit() and str(v) != category_id
+            }
+            state["parallel_cycle_completed_category_ids"] = sorted(
+                completed, key=lambda value: int(value)
+            )
+            print(
+                "PARALLEL_CATALOG_PAGE_UNQUERYABLE "
+                f"category={category_id} page={page} status={result.get('status_code', 'unknown')}"
+            )
             continue
 
         total_pages = result.get("total_pages")
