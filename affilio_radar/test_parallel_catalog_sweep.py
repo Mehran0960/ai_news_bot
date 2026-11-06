@@ -282,5 +282,99 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             self.assertGreater(saved["parallel_last_batch_candidate_file_bytes"], 0)
 
 
+    def test_clean_batch_records_actual_workers_and_increases_next_limit(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            now = datetime.now(timezone.utc).isoformat()
+            categories = [{"id": str(value), "name": f"category-{value}"} for value in (10, 20, 30)]
+            state_path = root / "state.json"
+            candidates_path = root / "candidates.json"
+            publisher_state_path = root / "publisher.json"
+            state_path.write_text(json.dumps({
+                "categories": categories,
+                "categories_refreshed_at": now,
+                "parallel_queue_initialized": True,
+                "parallel_scan_policy_version": "all_categories_all_pages_v2",
+                "parallel_known_category_ids": ["10", "20", "30"],
+                "parallel_pending_pages": [
+                    {"category_id": str(value), "category_name": f"category-{value}", "page": 1, "attempts": 0}
+                    for value in (10, 20, 30)
+                ],
+                "parallel_cycle_completed_category_ids": [],
+                "parallel_cycle_unqueryable_category_ids": [],
+                "parallel_cycle_pages_success": 0,
+                "parallel_cycle_product_rows_success": 0,
+                "parallel_worker_limit": 2,
+                "stats": {},
+            }), encoding="utf-8")
+            candidates_path.write_text(json.dumps({"candidates": []}), encoding="utf-8")
+            publisher_state_path.write_text("{}", encoding="utf-8")
+
+            with patch.object(sweep.base, "refresh_categories", return_value=None):
+                result = sweep.run_parallel_sweep(
+                    pages_per_run=3,
+                    workers=5,
+                    state_path=state_path,
+                    candidates_path=candidates_path,
+                    publisher_state_path=publisher_state_path,
+                    fetcher=lambda task: {"kind": "ok", "rows": [], "total_pages": 1},
+                )
+
+            self.assertEqual(result, 0)
+            saved = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["parallel_workers_used"], 2)
+            self.assertEqual(saved["parallel_worker_limit"], 3)
+
+    def test_single_429_reduces_next_limit_but_keeps_actual_batch_workers(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            now = datetime.now(timezone.utc).isoformat()
+            category_ids = (10, 20, 30, 40)
+            categories = [{"id": str(value), "name": f"category-{value}"} for value in category_ids]
+            state_path = root / "state.json"
+            candidates_path = root / "candidates.json"
+            publisher_state_path = root / "publisher.json"
+            state_path.write_text(json.dumps({
+                "categories": categories,
+                "categories_refreshed_at": now,
+                "parallel_queue_initialized": True,
+                "parallel_scan_policy_version": "all_categories_all_pages_v2",
+                "parallel_known_category_ids": [str(value) for value in category_ids],
+                "parallel_pending_pages": [
+                    {"category_id": str(value), "category_name": f"category-{value}", "page": 1, "attempts": 0}
+                    for value in category_ids
+                ],
+                "parallel_cycle_completed_category_ids": [],
+                "parallel_cycle_unqueryable_category_ids": [],
+                "parallel_cycle_pages_success": 0,
+                "parallel_cycle_product_rows_success": 0,
+                "parallel_worker_limit": 4,
+                "stats": {},
+            }), encoding="utf-8")
+            candidates_path.write_text(json.dumps({"candidates": []}), encoding="utf-8")
+            publisher_state_path.write_text("{}", encoding="utf-8")
+
+            def fake_fetch(task):
+                if task["category_id"] == "40":
+                    return {"kind": "retry", "rows": [], "status_code": 429, "error": "rate_limited"}
+                return {"kind": "ok", "rows": [], "total_pages": 1}
+
+            with patch.object(sweep.base, "refresh_categories", return_value=None):
+                result = sweep.run_parallel_sweep(
+                    pages_per_run=4,
+                    workers=8,
+                    state_path=state_path,
+                    candidates_path=candidates_path,
+                    publisher_state_path=publisher_state_path,
+                    fetcher=fake_fetch,
+                )
+
+            self.assertEqual(result, 0)
+            saved = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["parallel_last_batch_rate_limited"], 1)
+            self.assertEqual(saved["parallel_workers_used"], 4)
+            self.assertEqual(saved["parallel_worker_limit"], 3)
+
+
 if __name__ == "__main__":
     unittest.main()
