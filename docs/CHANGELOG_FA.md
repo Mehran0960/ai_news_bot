@@ -498,3 +498,12 @@
 **تغییر:** گزینهٔ `no_bundle = true` به `cloudflare/wrangler.toml` افزوده شد تا Wrangler فایل مستقل ES Module را بدون bundling/esbuild بارگذاری کند؛ entrypoint همچنان از کپی موقت `.mjs` ساخته‌شده از source canonical استفاده می‌کند.
 
 **نتیجه:** هنوز موفقیت dry-run، deploy، Cron و Secret bindings تأیید نشده است. این اصلاح باید از اجرای PR بعدی عبور کند و Worker فعال تا آن زمان نسخهٔ 31 می‌ماند.
+
+
+## ۲۰۲۶-۱۱-۰۶ — بازیابی بدنهٔ حذف‌شدهٔ dispatch در Worker
+
+**علت ریشه‌ای واقعی:** مقایسهٔ سورس main با نسخهٔ فعال Cloudflare #31 نشان داد تابع `dispatchWorkflowIfIdle` در سورس مخزن پس از بلوک bypass اجرای یتیم ناقص بود. درخواست POST به GitHub workflow dispatch و آکولاد پایانی حذف شده بود؛ در نتیجه `export default` خارج از سطح بالای ماژول قرار می‌گرفت و Wrangler خطای `Unexpected export` می‌داد. فرضیه‌های قبلی مربوط به CommonJS / پسوند فایل به‌تنهایی علت نبودند.
+
+**تغییر:** منطق dispatch و log `CHANNEL_DISPATCH_ACCEPTED` از نسخهٔ سالم #31 بازیابی شد؛ گارد تازهٔ صفر-job orphan فقط برای catalog حفظ شد. pipeline CI یک `node --check` قبل از Wrangler dry-run/deploy اضافه می‌کند.
+
+**آزمون:** parser محلی ابزار روی سورس اصلاح‌شده معتبر بودن syntax را تأیید کرد. آزمون‌های CI جدید، dry-run، Documentation Gate و deploy هنوز باید نتیجه دهند. نسخهٔ production Worker همچنان #31 است؛ هنوز deployment جدیدی انجام نشده است.
