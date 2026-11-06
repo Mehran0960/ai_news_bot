@@ -356,3 +356,11 @@ NaN
 3. Worker پس از پایان batch بعدی، بدون HTTP 409 اسکن بعدی را dispatch کند.
 4. state و shortlist با موفقیت commit/push شوند؛ full-cycle فقط پس از خالی‌شدن صف و ثبت timestamp تکمیل اعلام شود.
 5. با توجه به baseline آخر: 256 صفحه در 293.59 ثانیه، 8 worker واقعی، صفر retry/429، زمان fetch برابر 293.275 ثانیه، پردازش محلی 0.214 ثانیه و checkpoint حدود 0.089 ثانیه. گلوگاه فعلی درخواست شبکه است؛ tuning بعدی فقط بر مبنای چند batch کامل و نرخ واقعی 429 انجام شود.
+
+
+## 18. رفع خطای dry-run مربوط به نوع ماژول Wrangler — ۶ نوامبر ۲۰۲۶
+
+- اجرای PR validation شمارهٔ `42242605846` در مرحلهٔ dry-run شکست خورد؛ خطای واقعی Wrangler 4.158.0 برابر `Unexpected export` در `affilio-minute-dispatcher.js:373` بود. این بار خطا از API Cloudflare نبود؛ Wrangler فایل دارای `export default` را به‌علت پسوند `.js`، CommonJS فرض کرده بود.
+- مطابق مستندات جاری Wrangler، برای تفسیر فایل `.js` به‌عنوان ES Module باید در config از rule صریح `ESModule` استفاده شود. به `cloudflare/wrangler.toml` یک rule با glob `**/*.js` افزوده شد؛ نام فایل canonical و همهٔ references موجود حفظ شدند و نیازی به کپی/تکثیر فایل سورس نیست.
+- فایل تنظیمات اصلاح شده است؛ نتیجهٔ dry-run بعدی هنوز باید در PR جدید/به‌روزشده تأیید شود. تا آن زمان هیچ deployment تولید انجام نشده و Worker نسخهٔ 31 فعال باقی می‌ماند.
+- آزمون مستقل catalog regression روی همان PR قبلاً موفق بود؛ Documentation Gate در حال اجرا بود. این خطای dry-run یک مشکل build/config است و هیچ ارتباطی با scanner، API دیجی‌کالا یا HTTP 429 ندارد.
