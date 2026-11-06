@@ -6871,9 +6871,15 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     ]
     brand = next((key for key, pattern in brand_hints if re.search(pattern, brand_search_text, re.I)), "")
     if not brand and explicit_brand:
-        brand_slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", explicit_brand.lower()).strip("_")
-        if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
-            brand = f"brand:{brand_slug}"
+        normalized_explicit_brand = explicit_brand.strip().lower()
+        if normalized_explicit_brand.startswith("brand:"):
+            # Publication-history records already store normalized brand slugs.
+            # Keep normalization idempotent when history is read back as a record.
+            brand = normalized_explicit_brand
+        else:
+            brand_slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", normalized_explicit_brand).strip("_")
+            if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
+                brand = f"brand:{brand_slug}"
     return category, family, brand
 
 
