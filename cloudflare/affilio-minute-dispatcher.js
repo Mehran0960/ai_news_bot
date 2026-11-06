@@ -312,14 +312,16 @@ async function runScheduledCheck(env, scheduledTime) {
   if (!hasOfferChinToken) return;
   const state = await readOfferChinState(env.GITHUB_TOKEN);
 
-  // Discovery and audit remain independent from the actual channel cadence.
-  if (offset === 1) {
-    try {
-      await dispatchWorkflowIfIdle(CATALOG_API, env.GITHUB_TOKEN, CATALOG_WORKFLOW, 18, 8);
-    } catch (error) {
-      console.error("OFFERCHIN_CATALOG_SWEEP_DISPATCH_FAILED", String(error).slice(0, 900));
-    }
+  // Check the catalog workflow on every one-minute tick. The idle/stale-run
+  // guard below prevents overlap; dispatching only at offset 1 used to leave
+  // several minutes of avoidable idle time after a short successful batch.
+  try {
+    await dispatchWorkflowIfIdle(CATALOG_API, env.GITHUB_TOKEN, CATALOG_WORKFLOW, 18, 8);
+  } catch (error) {
+    console.error("OFFERCHIN_CATALOG_SWEEP_DISPATCH_FAILED", String(error).slice(0, 900));
   }
+
+  // Integrity audit retains its independent five-minute slot.
   if (offset === 2) {
     try {
       await dispatchWorkflowIfIdle(AUDIT_API, env.GITHUB_TOKEN, AUDIT_WORKFLOW, 8, 4);
