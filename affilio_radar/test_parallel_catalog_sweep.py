@@ -325,6 +325,50 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             self.assertEqual(saved["parallel_workers_used"], 2)
             self.assertEqual(saved["parallel_worker_limit"], 3)
 
+    def test_terminal_deep_page_is_a_catalog_gap_not_a_clean_completion(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            now = datetime.now(timezone.utc).isoformat()
+            state_path = root / "state.json"
+            candidates_path = root / "candidates.json"
+            publisher_state_path = root / "publisher.json"
+            state_path.write_text(json.dumps({
+                "categories": [{"id": "10", "name": "mobile"}],
+                "categories_refreshed_at": now,
+                "parallel_queue_initialized": True,
+                "parallel_scan_policy_version": "all_categories_all_pages_v2",
+                "parallel_full_catalog_mode": "all_categories_all_pages",
+                "parallel_known_category_ids": ["10"],
+                "parallel_pending_pages": [
+                    {"category_id": "10", "category_name": "mobile", "page": 2, "attempts": 0}
+                ],
+                "parallel_cycle_completed_category_ids": [],
+                "parallel_cycle_unqueryable_category_ids": [],
+                "parallel_cycle_pages_success": 1,
+                "parallel_cycle_product_rows_success": 20,
+                "stats": {},
+            }), encoding="utf-8")
+            candidates_path.write_text(json.dumps({"candidates": []}), encoding="utf-8")
+            publisher_state_path.write_text("{}", encoding="utf-8")
+
+            with patch.object(sweep.base, "refresh_categories", return_value=None):
+                result = sweep.run_parallel_sweep(
+                    pages_per_run=1,
+                    workers=1,
+                    state_path=state_path,
+                    candidates_path=candidates_path,
+                    publisher_state_path=publisher_state_path,
+                    fetcher=lambda task: {
+                        "kind": "terminal", "status_code": 404, "rows": []
+                    },
+                )
+
+            self.assertEqual(result, 0)
+            saved = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["parallel_cycle_unqueryable_category_ids"], ["10"])
+            self.assertEqual(saved["parallel_cycle_completed_category_ids"], [])
+            self.assertEqual(saved["stats"]["unqueryable_categories_total"], 1)
+
     def test_single_429_reduces_next_limit_but_keeps_actual_batch_workers(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
