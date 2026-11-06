@@ -236,7 +236,7 @@ NaN
 ### تغییر اجرایی در شاخهٔ کاری
 - شاخه: docs/discount-first-charter-and-operating-rules-2026-11-06.
 - منطق _filter_recent_publication_repeats در affilio_radar.py به‌روزرسانی شد: family/brand/similarity cooldown دیگر candidate را حذف یا عقب نمی‌اندازد؛ تعداد تکرارها فقط با برچسب REPEAT_DIAGNOSTICS گزارش می‌شود و rank_order_preserved=true می‌ماند.
-- آزمون‌های affilio_radar/test_affilio.py به‌روز شدند تا تکرار خانواده، برند یا عنوان مشابه رتبهٔ تخفیف را تغییر ندهد؛ آزمون صریحِ درصد نزولی و saving نزولی نیز افزوده شد.
+- آزمون‌های affilio_radar/test_affilio.py به‌روز شدند تا تکرار خانواده، برند یا عنوان مشابه رتبهٔ تخفیف را تغییر ندهد؛ آزمون صریحِ درصد نزولی و saving نزولی نیز افزوده شد. دو آزمون قدیمی مسیر urgent که هنوز انتظار مسدودشدن تنها گزینه به‌علت تکرار خانواده را داشتند نیز به انتظار جدید تغییر کردند؛ failure اولیهٔ ۲ آزمون در runهای PR پس از اصلاح ثبت و پیگیری شد.
 - کنترل تکرار همان SKUِ بدون بهبود، hand-off فعال، ارسال تکراری مقصد، قیمت/موجودی، لینک، deadline و ایمنی دست‌نخورده‌اند.
 - SHA commit منطق: da2d162bb293bdcc68c3fc605abdcad95eb17c5f؛ SHA commit تست‌ها: d4827632c817db2f2ec6dd868b1a71f9b310b0e2.
 
