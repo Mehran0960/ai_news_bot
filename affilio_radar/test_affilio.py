@@ -2072,6 +2072,55 @@ class AffilioRadarTests(unittest.TestCase):
         same_post = next(item for item in history if item["product_id"] == "dkp-same-post")
         self.assertEqual(same_post["ts"], first_at)
 
+    def test_publication_ledger_preserves_explicit_brand_for_repeat_guard_history(self):
+        first_at = datetime(2026, 11, 6, 8, 0, tzinfo=timezone.utc)
+        state = {
+            "published": {
+                "dkp-brand-only-metadata": {
+                    "title": "هدفون بی‌سیم مدل تست",
+                    "brand": "Sony",
+                    "ts": first_at.timestamp(),
+                    "telegram_message_id": 755,
+                    "bale_message_id": 955,
+                }
+            },
+            "publication_ledger": {},
+            "recent_publications": [],
+        }
+
+        self.assertTrue(ensure_publication_ledger(state))
+        ledger = state["publication_ledger"]["dkp-brand-only-metadata"]
+        self.assertEqual(ledger["brand"], "Sony")
+
+        history = state["recent_publications"]
+        entry = next(item for item in history if item["product_id"] == "dkp-brand-only-metadata")
+        self.assertEqual(entry["brand"], "brand:sony")
+
+        now = first_at + timedelta(hours=2)
+        candidate = {
+            "product_id": "dkp-sony-speaker",
+            "title": "اسپیکر قابل حمل مدل تازه",
+            "brand": "Sony",
+            "discount_percent": 90,
+            "savings_toman": 1_000_000,
+        }
+        another_brand = {
+            "product_id": "dkp-other-speaker",
+            "title": "اسپیکر قابل حمل برند دیگر",
+            "brand": "Anker",
+            "discount_percent": 80,
+            "savings_toman": 800_000,
+        }
+        queue = {item["product_id"]: {} for item in (candidate, another_brand)}
+        eligible = {item["product_id"]: item for item in (candidate, another_brand)}
+
+        selected = select_publish_candidates(
+            queue, eligible, now, published={}, recent_publications=history
+        )
+
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-other-speaker"])
+
+
     def test_repeat_product_requires_real_price_drop_to_bypass_product_cooldown(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
         previous = {
