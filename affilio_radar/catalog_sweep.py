@@ -653,7 +653,7 @@ def catalog_handoff_fingerprint(row: dict) -> str:
         "original_price", "rrp_price", "rrp_price_toman",
         "discount_percent", "availability", "in_stock", "is_in_stock",
         "stock", "stock_status", "stock_quantity", "available_quantity",
-        "stock_count", "is_available",
+        "stock_count", "is_available", "catalog_cycle_completed_at",
     )
     payload = {}
     for field in fields:
