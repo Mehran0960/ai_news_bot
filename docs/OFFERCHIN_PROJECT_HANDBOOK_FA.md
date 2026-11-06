@@ -390,3 +390,11 @@ NaN
 **کنترل کیفیت:** سورس پس از درج اصلاح، در parser JavaScript (تبدیل export default به return در wrapper برای آزمون parse) معتبر شد. workflow CI اکنون علاوه بر Wrangler dry-run، اجرای `node --check` روی entrypoint موقت `.mjs` را قبل از dry-run و deploy دارد. نتیجهٔ authoritative همچنان باید از GitHub Actions PR جدید خوانده شود.
 
 **وضعیت تولید:** تا زمان تأیید PR و اجرای deploy workflow، نسخهٔ فعال Cloudflare همان #31 است. این اصلاح هنوز مستقرشده اعلام نمی‌شود.
+
+
+## 22. تثبیت شناسهٔ حساب Cloudflare در استقرار CI — ۶ نوامبر ۲۰۲۶
+
+- پس از ادغام PR شمارهٔ 84، workflow استقرار روی main، بررسی وجود `CLOUDFLARE_API_TOKEN`، بررسی syntax و Wrangler dry-run را با موفقیت گذراند؛ اما مرحلهٔ deploy از API مسیر `/workers/services/affilio-minute-dispatcher` پاسخ `No access to the specified service` گرفت. بنابراین نسخهٔ production Worker تغییر نکرد و نسخهٔ 31 فعال ماند.
+- اتصال مستقیم Cloudflare، حساب حاوی Worker را با شناسهٔ عمومی `10dc992b8d84b77f509975e21ce5499d` تأیید می‌کند. مقدار Secret با نام `CLOUDFLARE_ACCOUNT_ID` در GitHub قابل خواندن نیست؛ برای حذف احتمال عدم تطبیق آن، شناسهٔ عمومی و تأییدشده در `cloudflare/wrangler.toml` ثبت شد و ورودی accountId از Wrangler Action حذف شد تا config مرجع واحد باشد.
+- فقط مقدار `CLOUDFLARE_API_TOKEN` به‌صورت Secret باقی می‌ماند. اگر deployment با حساب صحیح همچنان رد شود، محتمل‌ترین مانع بعدی permission توکن است؛ آن باید حداقل اجازهٔ ویرایش/انتشار Cloudflare Workers Scripts در همین حساب را داشته باشد. مقدار توکن هرگز در مخزن یا log چاپ نمی‌شود.
+- تغییر روی شاخهٔ `fix/cloudflare-account-target-for-offerchin-dispatcher` و در PR جداگانه ثبت می‌شود. تا زمان عبور CI و مشاهدهٔ deployment با 100% ترافیک روی version جدید، Worker نسخهٔ 31 مرجع production باقی می‌ماند.
