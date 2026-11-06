@@ -8,6 +8,13 @@ on:
       - "cloudflare/affilio-minute-dispatcher.js"
       - "cloudflare/wrangler.toml"
       - ".github/workflows/deploy-affilio-minute-dispatcher.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "cloudflare/affilio-minute-dispatcher.js"
+      - "cloudflare/wrangler.toml"
+      - ".github/workflows/deploy-affilio-minute-dispatcher.yml"
   workflow_dispatch:
 
 permissions:
@@ -18,7 +25,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate-pr:
+    if: ${{ github.event_name == 'pull_request' }}
+    name: Validate Worker module and Wrangler config
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out the pull request source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Dry-run Worker bundle without production credentials
+        run: npx --yes wrangler@4 deploy --config cloudflare/wrangler.toml --dry-run
+
   deploy:
+    if: ${{ github.event_name != 'pull_request' }}
     name: Validate and deploy Cloudflare dispatcher
     runs-on: ubuntu-latest
     timeout-minutes: 12
