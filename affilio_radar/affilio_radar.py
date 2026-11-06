@@ -7557,10 +7557,10 @@ def ensure_publication_ledger(state: dict) -> bool:
         changed = True
 
     fields = (
-        "title", "product_url", "posted_current_price", "posted_original_price",
-        "posted_discount_percent", "telegram_message_id", "bale_message_id",
-        "expiry_status", "bale_expiry_status", "delivery_status", "delivery_attempts",
-        "expires_at", "expiry_source", "expiry_estimated",
+        "title", "product_url", "brand", "brand_name",
+        "posted_current_price", "posted_original_price", "posted_discount_percent",
+        "telegram_message_id", "bale_message_id", "expiry_status", "bale_expiry_status",
+        "delivery_status", "delivery_attempts", "expires_at", "expiry_source", "expiry_estimated",
     )
     for pid, record in published.items():
         if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", str(pid)) or not isinstance(record, dict):
@@ -7644,7 +7644,10 @@ def ensure_recent_publications(state: dict) -> bool:
         ts = _publication_record_ts(record)
         if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", pid) or not title or ts <= 0:
             continue
-        category, family, brand = _publication_diversity_group(title)
+        category, family, brand = _publication_diversity_group({
+            "title": title,
+            "brand": record.get("brand") or record.get("brand_name") or "",
+        })
         retailer = _publication_retailer_group({"product_id": pid, "merchant": record.get("merchant") or ""})
         entry = {
             "ts": ts,
