@@ -29,12 +29,14 @@ try:
         load_catalog_candidates_for_handoff,
         acknowledge_catalog_candidates_handoff,
         defer_catalog_candidates_handoff,
+        catalog_handoff_fingerprint,
     )
 except ImportError:
     from catalog_sweep import (
         load_catalog_candidates_for_handoff,
         acknowledge_catalog_candidates_handoff,
         defer_catalog_candidates_handoff,
+        catalog_handoff_fingerprint,
     )
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -3130,6 +3132,23 @@ def merge_discovery_queue(
             expiry = old_expiry if old_expiry and old_expiry > current else None
 
         raw_source = str(row.get("source") or row.get("discovery_source") or "digikala_live_deals_feed")[:80]
+        is_catalog_listing = raw_source == "digikala_catalog_sweep"
+        catalog_fingerprint = catalog_handoff_fingerprint(row) if is_catalog_listing else ""
+        catalog_listing_changed = bool(
+            catalog_fingerprint
+            and catalog_fingerprint != str(old.get("catalog_handoff_fingerprint") or "")
+        )
+
+        def listed_int(field: str, old_field: str) -> int:
+            raw = row.get(field, old.get(old_field, 0))
+            try:
+                return int(raw or 0)
+            except (TypeError, ValueError, OverflowError):
+                try:
+                    return int(old.get(old_field, 0) or 0)
+                except (TypeError, ValueError, OverflowError):
+                    return 0
+
         record = {
             **old,
             "product_id": pid,
@@ -3139,10 +3158,17 @@ def merge_discovery_queue(
             "first_seen_at": first_seen.isoformat(),
             "last_seen_at": current_iso,
             "deal_expires_at": expiry.isoformat() if expiry else "",
-            "listed_current_price": int(row.get("current_price") or old.get("listed_current_price") or 0),
-            "listed_original_price": int(row.get("original_price") or old.get("listed_original_price") or 0),
-            "discount_percent": int(row.get("discount_percent") or old.get("discount_percent") or 0),
-            "savings_toman": int(row.get("savings_toman") or old.get("savings_toman") or 0),
+            "listed_current_price": listed_int("current_price", "listed_current_price"),
+            "listed_original_price": listed_int("original_price", "listed_original_price"),
+            "discount_percent": listed_int("discount_percent", "discount_percent"),
+            "savings_toman": listed_int("savings_toman", "savings_toman"),
+            "listed_availability": (
+                str(row.get("availability") or "") if is_catalog_listing
+                else str(old.get("listed_availability") or "")
+            ),
+            "catalog_handoff_fingerprint": (
+                catalog_fingerprint or old.get("catalog_handoff_fingerprint") or ""
+            ),
             "review_count": max(0, int(row.get("review_count") or old.get("review_count") or 0)),
             "rating": row.get("rating") or row.get("rating_value") or old.get("rating") or 0,
             "click_count_30d": max(0, int(row.get("click_count_30d") or old.get("click_count_30d") or 0)),
@@ -3159,6 +3185,12 @@ def merge_discovery_queue(
         ):
             if row.get(field) not in (None, ""):
                 record[field] = row[field]
+        # A changed catalog card is an explicit recheck signal, even when the
+        # product already exists in discovery_queue with a future retry time.
+        if catalog_listing_changed:
+            record["last_check_status"] = "catalog_listing_changed"
+            record["next_check_at"] = ""
+            record["catalog_listing_changed_at"] = current_iso
         # New candidates are immediately due for their first detailed validation.
         record.setdefault("last_check_status", "discovered")
         record.setdefault("check_count", 0)
@@ -3671,7 +3703,11 @@ def discover_product_urls(
                     if str(row.get("product_id") or "") not in retained_ids
                 }
                 deferred_count = defer_catalog_candidates_handoff(
-                    state_to_persist, deferred_ids, now=queue_now, retry_minutes=15
+                    state_to_persist,
+                    deferred_ids,
+                    now=queue_now,
+                    retry_minutes=15,
+                    candidates=catalog_batch,
                 )
                 state_to_persist["discovery_queue"] = discovery_queue
             print(

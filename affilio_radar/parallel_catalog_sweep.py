@@ -385,8 +385,11 @@ def run_parallel_sweep(
 
     candidates = base._load_candidates_by_id(candidates_path)
     now = base.utc_now()
-    seen_ids = base._publisher_seen_ids(publisher_state_path)
-    candidates = base._clean_old_candidates(candidates, seen_ids, now)
+    seen_records = base._publisher_seen_records(publisher_state_path)
+    seen_ids = set(seen_records)
+    candidates = base._clean_old_candidates(
+        candidates, seen_ids, now, seen_records=seen_records
+    )
     retry_count = 0
     rate_limited_count = 0
     processed_count = 0
@@ -534,7 +537,9 @@ def run_parallel_sweep(
         worker_limit += 1
     state["parallel_worker_limit"] = worker_limit
 
-    candidates = base._clean_old_candidates(candidates, seen_ids, base.utc_now())
+    candidates = base._clean_old_candidates(
+        candidates, seen_ids, base.utc_now(), seen_records=seen_records
+    )
     ordered_candidates = base.retain_diverse_candidates(
         list(candidates.values()), limit=base.MAX_RETAINED_CANDIDATES,
         rotation=stats["pages_scanned_total"],

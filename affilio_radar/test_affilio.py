@@ -5379,6 +5379,55 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_discovery_records_for_check(queue, now, max_count=2)
         self.assertEqual([pid for pid, _ in selected], ["dkp-91003", "dkp-91001"])
 
+    def test_catalog_listing_change_makes_existing_discovery_queue_item_due_now(self):
+        now = datetime(2026, 11, 6, 8, 0, tzinfo=timezone.utc)
+        original = {
+            "product_id": "dkp-91004",
+            "product_url": "https://www.digikala.com/product/dkp-91004/",
+            "title": "هدفون بلوتوثی آزمایشی",
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "discount_percent": 50,
+            "availability": "in_stock",
+            "source": "digikala_catalog_sweep",
+        }
+        changed = {
+            **original,
+            "current_price": 350_000,
+            "discount_percent": 65,
+            "availability": "out_of_stock",
+        }
+        queue = {
+            "dkp-91004": {
+                "product_id": "dkp-91004",
+                "product_url": original["product_url"],
+                "title": original["title"],
+                "first_seen_at": now.isoformat(),
+                "last_seen_at": now.isoformat(),
+                "last_check_status": "eligible",
+                "check_count": 3,
+                "last_checked_at": now.isoformat(),
+                "next_check_at": (now + timedelta(hours=3)).isoformat(),
+                "listed_current_price": 500_000,
+                "listed_original_price": 1_000_000,
+                "discount_percent": 50,
+                "catalog_handoff_fingerprint": radar_module.catalog_handoff_fingerprint(original),
+            }
+        }
+
+        merge_discovery_queue(queue, [changed], now + timedelta(minutes=1))
+
+        refreshed = queue["dkp-91004"]
+        self.assertEqual(refreshed["listed_current_price"], 350_000)
+        self.assertEqual(refreshed["discount_percent"], 65)
+        self.assertEqual(refreshed["listed_availability"], "out_of_stock")
+        self.assertEqual(refreshed["last_check_status"], "catalog_listing_changed")
+        self.assertEqual(refreshed["next_check_at"], "")
+        self.assertEqual(
+            refreshed["catalog_handoff_fingerprint"],
+            radar_module.catalog_handoff_fingerprint(changed),
+        )
+
     def test_mcp_scan_always_reads_page_one_and_rotates_supplemental_pages(self):
         self.assertEqual(mcp_scan_pages_for_cursor(5, 1, 2), ([1, 2], 3))
         self.assertEqual(mcp_scan_pages_for_cursor(5, 3, 2), ([1, 3], 4))

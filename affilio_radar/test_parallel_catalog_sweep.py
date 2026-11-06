@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -130,6 +130,78 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertIsNone(sweep._next_page_task(task, total_pages=4, product_count=0))
         self.assertEqual(sweep._next_page_task({"category_id": "12", "page": 5000}, None, 20)["page"], 5001)
         self.assertEqual(sweep._next_page_task({"category_id": "12", "page": 3}, 200, 20)["page"], 4)
+
+    def test_parallel_sweep_preserves_seen_candidate_after_live_card_fingerprint_changes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            state_path = root / "state.json"
+            candidates_path = root / "candidates.json"
+            publisher_state_path = root / "publisher.json"
+            now = datetime.now(timezone.utc)
+            original = {
+                "product_id": "dkp-55",
+                "product_url": "https://www.digikala.com/product/dkp-55/",
+                "title": "هدفون بلوتوثی نمونه",
+                "current_price": 500_000,
+                "original_price": 1_000_000,
+                "discount_percent": 50,
+                "availability": "in_stock",
+                "last_seen_at": now.isoformat(),
+            }
+            changed = {
+                **original,
+                "current_price": 400_000,
+                "discount_percent": 60,
+                "last_seen_at": now.isoformat(),
+            }
+            state_path.write_text(json.dumps({
+                "categories": [{"id": "10", "name": "mobile"}],
+                "categories_refreshed_at": now.isoformat(),
+                "parallel_queue_initialized": True,
+                "parallel_scan_policy_version": "all_categories_all_pages_v2",
+                "parallel_known_category_ids": ["10"],
+                "parallel_pending_pages": [
+                    {"category_id": "10", "category_name": "mobile", "page": 1, "attempts": 0}
+                ],
+                "parallel_cycle_completed_category_ids": [],
+                "parallel_cycle_unqueryable_category_ids": [],
+                "parallel_cycle_pages_success": 0,
+                "parallel_cycle_product_rows_success": 0,
+                "stats": {},
+            }), encoding="utf-8")
+            candidates_path.write_text(
+                json.dumps({"candidates": [original]}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            publisher_state_path.write_text(json.dumps({
+                "catalog_sweep_handoff": {
+                    "seen_ids": {
+                        "dkp-55": {
+                            "seen_at": (now - timedelta(hours=1)).isoformat(),
+                            "fingerprint": sweep.base.catalog_handoff_fingerprint(original),
+                        }
+                    }
+                }
+            }), encoding="utf-8")
+
+            def fake_fetch(task):
+                return {"kind": "ok", "rows": [changed], "total_pages": 1}
+
+            with patch.object(sweep.base, "refresh_categories", return_value=None):
+                result = sweep.run_parallel_sweep(
+                    pages_per_run=1,
+                    workers=1,
+                    state_path=state_path,
+                    candidates_path=candidates_path,
+                    publisher_state_path=publisher_state_path,
+                    fetcher=fake_fetch,
+                )
+
+            self.assertEqual(result, 0)
+            saved = json.loads(candidates_path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["candidate_count"], 1)
+            self.assertEqual(saved["candidates"][0]["product_id"], "dkp-55")
+            self.assertEqual(saved["candidates"][0]["current_price"], 400_000)
 
     def test_parallel_run_persists_follow_up_and_retries_failed_pages(self):
         with tempfile.TemporaryDirectory() as temp:
