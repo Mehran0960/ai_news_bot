@@ -379,3 +379,14 @@ NaN
 - حتی پس از ساخت ورودی موقت `.mjs`، Wrangler 4.158.0 در bundling همچنان `Unexpected export` را گزارش کرد. پسوند mjs نیز به‌تنهایی برای این پروژه کافی نبود.
 - سورس Worker بررسی شد: هیچ `import`، `require()` یا وابستگی npm ندارد و یک فایل JavaScript مستقل است. بنابراین config به `no_bundle = true` تغییر کرد تا Wrangler کد را بدون esbuild bundling مستقیماً بارگذاری کند؛ این قابلیت فقط برای Worker ساده و بدون وابستگی مناسب است.
 - `.mjs` موقت و کپی از منبع canonical باقی می‌ماند تا نوع ES Module روشن باشد. نتیجهٔ dry-run بعد از این تغییر تنها معیار ادامه به deploy است؛ تا قبل از آن نسخهٔ production 31 پابرجاست.
+
+
+## 21. علت ریشه‌ای واقعی خطای Syntax و بازیابی dispatch — ۶ نوامبر ۲۰۲۶
+
+**اصلاح تشخیص قبلی:** توضیحات بخش‌های 18 تا 20 دربارهٔ پسوند فایل و bundling، فرضیه‌های آزموده‌شده بودند و علت اصلی را نشان نمی‌دادند. مقایسهٔ سورس main با کد واقعی نسخهٔ سالم Cloudflare #31 ثابت کرد که تابع `dispatchWorkflowIfIdle` در main پس از بلوک `orphaned_no_jobs` قطع شده بود: فراخوانی `POST /actions/workflows/{workflow}/dispatches` و آکولاد پایانی تابع حذف شده بود. به همین دلیل `export default` درون scope ناتمام قرار می‌گرفت و Wrangler خطای گمراه‌کنندهٔ `Unexpected export` می‌داد.
+
+**اصلاح کد:** همان dispatch call و log پذیرش از نسخهٔ فعال #31 بازیابی شد؛ guard تازهٔ مخصوص run یتیمِ بدون job حفظ شد. برای وضعیت عادی و runهای واقعی، قفل strict برقرار است؛ فقط scanner پس از بررسی stale + صفر بودن jobها از رکورد یتیم عبور می‌کند. این guard در publisher، audit، YouTube، Aparat یا Filo فعال نیست.
+
+**کنترل کیفیت:** سورس پس از درج اصلاح، در parser JavaScript (تبدیل export default به return در wrapper برای آزمون parse) معتبر شد. workflow CI اکنون علاوه بر Wrangler dry-run، اجرای `node --check` روی entrypoint موقت `.mjs` را قبل از dry-run و deploy دارد. نتیجهٔ authoritative همچنان باید از GitHub Actions PR جدید خوانده شود.
+
+**وضعیت تولید:** تا زمان تأیید PR و اجرای deploy workflow، نسخهٔ فعال Cloudflare همان #31 است. این اصلاح هنوز مستقرشده اعلام نمی‌شود.
