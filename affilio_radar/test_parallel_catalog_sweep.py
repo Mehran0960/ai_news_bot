@@ -267,6 +267,19 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             self.assertEqual(candidate["catalog_best_selling_rank"], 1)
             self.assertEqual(candidate["catalog_best_selling_category_id"], "10")
             self.assertEqual(saved["stats"]["pages_scanned_total"], 1)
+            for metric in (
+                "parallel_last_batch_fetch_seconds",
+                "parallel_last_batch_processing_seconds",
+                "parallel_last_batch_candidate_write_seconds",
+                "parallel_last_batch_pages_per_second",
+                "parallel_last_batch_rows_per_second",
+                "parallel_last_batch_candidate_file_bytes",
+            ):
+                self.assertIn(metric, saved)
+                self.assertGreaterEqual(saved[metric], 0)
+            self.assertGreater(saved["parallel_last_batch_pages_per_second"], 0)
+            self.assertGreater(saved["parallel_last_batch_rows_per_second"], 0)
+            self.assertGreater(saved["parallel_last_batch_candidate_file_bytes"], 0)
 
 
 if __name__ == "__main__":
