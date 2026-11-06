@@ -123,59 +123,64 @@ async function dispatchWorkflowIfIdle(
   });
   console.log("CHANNEL_DISPATCH_ACCEPTED workflow=" + label);
 }
-export function isFreshCleanCatalogCycle(status, lastPublicationAt) {
+export function isUsableCleanCatalogSnapshot(status) {
   if (!status || typeof status !== "object" || Number(status.schema_version) !== 2) return false;
   if (status.full_catalog_mode !== "all_categories_all_pages") return false;
   if (status.scan_policy_version !== "all_categories_all_pages_v3_cycle_snapshot") return false;
-  if (status.last_cycle_status !== "complete") return false;
+  if (status.last_clean_cycle_status !== "complete") return false;
+  if (status.completed_candidates_snapshot_present !== true) return false;
+  if (status.completed_candidates_snapshot_valid !== true) return false;
 
-  const total = Number(status.last_cycle_categories_total);
-  const completed = Number(status.last_cycle_categories_complete);
-  const unqueryable = Number(status.last_cycle_categories_unqueryable);
-  const coverage = Number(status.last_cycle_category_coverage_percent);
-  const pages = Number(status.last_cycle_pages_success);
-  const cycles = Number(status.completed_cycles);
-  const completedAt = Date.parse(String(status.last_cycle_completed_at || ""));
-
-  const currentIds = Array.isArray(status.catalog_category_ids)
-    ? status.catalog_category_ids.map(value => String(value)) : [];
-  const scannedIds = Array.isArray(status.last_cycle_category_ids)
-    ? status.last_cycle_category_ids.map(value => String(value)) : [];
-  const completedIds = Array.isArray(status.last_cycle_completed_category_ids)
-    ? status.last_cycle_completed_category_ids.map(value => String(value)) : [];
-  const unqueryableIds = Array.isArray(status.last_cycle_unqueryable_category_ids)
-    ? status.last_cycle_unqueryable_category_ids.map(value => String(value)) : [];
-  const scannedSet = new Set(scannedIds);
-  const completedSet = new Set(completedIds);
-  const currentCategoryCount = Number(status.catalog_category_count);
-  if (!Number.isFinite(total) || total < 1 || completed !== total) return false;
-  if (!Number.isFinite(currentCategoryCount) || currentIds.length !== currentCategoryCount) return false;
-  if (new Set(currentIds).size !== currentIds.length) return false;
-  if (
-    currentIds.length < 1 ||
-    scannedIds.length !== total || scannedSet.size !== total ||
-    completedIds.length !== total || completedSet.size !== total
-  ) return false;
-  if (scannedIds.some(id => !completedSet.has(id))) return false;
-  if (currentIds.some(id => !scannedSet.has(id) || !completedSet.has(id))) return false;
-  if (scannedIds.some(id => !new Set(currentIds).has(id))) return false;
-  if (unqueryableIds.length !== 0 || unqueryable !== 0) return false;
-  if (!Number.isFinite(coverage) || coverage < 100) return false;
-  if (!Number.isFinite(pages) || pages < 1 || !Number.isFinite(cycles) || cycles < 1) return false;
-  if (!Number.isFinite(completedAt)) return false;
+  const total = Number(status.last_clean_cycle_categories_total);
+  const completed = Number(status.last_clean_cycle_categories_complete);
+  const unqueryable = Number(status.last_clean_cycle_categories_unqueryable);
+  const coverage = Number(status.last_clean_cycle_category_coverage_percent);
+  const pages = Number(status.last_clean_cycle_pages_success);
+  const completedAt = Date.parse(String(status.last_clean_cycle_completed_at || ""));
   const candidateCycleAt = Date.parse(String(status.completed_candidates_cycle_at || ""));
   const candidateCount = Number(status.completed_candidates_count);
   const candidateHash = String(status.completed_candidates_sha256 || "");
-  if (status.completed_candidates_snapshot_valid !== true) return false;
-  if (!Number.isFinite(candidateCycleAt) || candidateCycleAt !== completedAt) return false;
+
+  const currentIds = Array.isArray(status.catalog_category_ids)
+    ? status.catalog_category_ids.map(value => String(value)) : [];
+  const cleanIds = Array.isArray(status.last_clean_cycle_category_ids)
+    ? status.last_clean_cycle_category_ids.map(value => String(value)) : [];
+  const completedIds = Array.isArray(status.last_clean_cycle_completed_category_ids)
+    ? status.last_clean_cycle_completed_category_ids.map(value => String(value)) : [];
+  const unqueryableIds = Array.isArray(status.last_clean_cycle_unqueryable_category_ids)
+    ? status.last_clean_cycle_unqueryable_category_ids.map(value => String(value)) : [];
+  const currentCategoryCount = Number(status.catalog_category_count);
+  const sameIds = (left, right) => {
+    if (left.length !== right.length) return false;
+    const a = [...left].sort();
+    const b = [...right].sort();
+    return a.every((value, index) => value === b[index]);
+  };
+
+  if (!Number.isFinite(total) || total < 1 || completed !== total) return false;
+  if (!Number.isFinite(currentCategoryCount) || currentIds.length !== currentCategoryCount) return false;
+  if (new Set(currentIds).size !== currentIds.length) return false;
+  if (cleanIds.length !== total || new Set(cleanIds).size !== total) return false;
+  if (completedIds.length !== total || new Set(completedIds).size !== total) return false;
+  if (!sameIds(currentIds, cleanIds) || !sameIds(cleanIds, completedIds)) return false;
+  if (unqueryableIds.length !== 0 || unqueryable !== 0) return false;
+  if (!Number.isFinite(coverage) || coverage < 100) return false;
+  if (!Number.isFinite(pages) || pages < 1) return false;
+  if (!Number.isFinite(completedAt) || !Number.isFinite(candidateCycleAt) || candidateCycleAt !== completedAt) return false;
   if (!Number.isFinite(candidateCount) || candidateCount < 1) return false;
   if (!/^[a-f0-9]{64}$/i.test(candidateHash)) return false;
-
-  const previousPublication = Number(lastPublicationAt);
-  if (lastPublicationAt !== null && Number.isFinite(previousPublication) && completedAt <= previousPublication) {
-    return false;
-  }
   return true;
+}
+
+export function isInitialCatalogWarmup(status) {
+  if (!status || typeof status !== "object" || Number(status.schema_version) !== 2) return false;
+  if (status.full_catalog_mode !== "all_categories_all_pages") return false;
+  if (status.scan_policy_version !== "all_categories_all_pages_v3_cycle_snapshot") return false;
+  if (status.completed_candidates_snapshot_present === true) return false;
+  if (status.completed_candidates_snapshot_valid === true) return false;
+  if (status.last_clean_cycle_status !== "unavailable") return false;
+  if (status.last_clean_cycle_completed_at) return false;
+  return Number(status.completed_cycles) === 0;
 }
 
 const PUBLISHER_INTERVAL_MS = 17 * 60 * 1000;
@@ -265,13 +270,26 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     readCatalogSweepStatus(env.GITHUB_TOKEN),
   ]);
   const lastPublishedAt = readLastChannelPublicationAt(state);
-  if (!isFreshCleanCatalogCycle(catalogStatus, lastPublishedAt)) {
+  if (!isUsableCleanCatalogSnapshot(catalogStatus)) {
+    if (!isInitialCatalogWarmup(catalogStatus)) {
+      console.log(
+        "OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=no_valid_clean_catalog_snapshot" +
+        " latest_attempt_status=" + String(catalogStatus && catalogStatus.last_cycle_status || "unknown") +
+        " last_clean_cycle_at=" + String(catalogStatus && catalogStatus.last_clean_cycle_completed_at || "unknown")
+      );
+      return;
+    }
+    // Initial bootstrap only: retain the existing live-offer/search discovery path
+    // until the first complete full-catalog snapshot has been produced.
+    console.log("OFFERCHIN_PUBLISHER_WARMUP_FALLBACK reason=no_clean_snapshot_yet");
+  } else {
+    // Reuse the last immutable clean snapshot while the next full scan runs.
+    // A new full scan is not required between two 17-minute publication slots.
     console.log(
-      "OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=no_new_clean_full_catalog_cycle" +
-      " last_cycle_status=" + String(catalogStatus && catalogStatus.last_cycle_status || "unknown") +
-      " last_cycle_completed_at=" + String(catalogStatus && catalogStatus.last_cycle_completed_at || "unknown")
+      "OFFERCHIN_PUBLISHER_USING_CLEAN_SNAPSHOT cycle=" +
+      String(catalogStatus.last_clean_cycle_completed_at) +
+      " candidates=" + String(catalogStatus.completed_candidates_count)
     );
-    return;
   }
   const now = tick.getTime();
   if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
