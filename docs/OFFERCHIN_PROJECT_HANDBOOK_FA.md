@@ -318,3 +318,12 @@ NaN
 - checkpoint جدید در catalog_sweep_state.json و catalog_sweep_candidates.json ثبت و push شود.
 - full-cycle فقط با خالی‌شدن صف و ثبت timestamp تکمیل اعلام شود؛ عبور از اجرای یتیم به‌تنهایی به‌معنای تکمیل چرخه نیست.
 - سرعت اسکن با سنجه‌های fetch/process/checkpoint مقایسه شود؛ افزایش سرعت بدون دادهٔ اندازه‌گیری‌شده ادعا نشود.
+
+
+## 16. اصلاح نحوی Worker پس از validation Cloudflare — ۶ نوامبر ۲۰۲۶
+
+- PR #82 با موفقیت در main ادغام شد و Regression Tests و Documentation Gate آن هر دو موفق بودند.
+- تلاش نخست برای upload Worker در Cloudflare با HTTP 400 و validation error 10021 رد شد؛ خطا مشخصاً به عبارت regular expression در تبدیل مسیر workflow مربوط بود (Invalid regular expression flags). Cloudflare نسخهٔ جدید را نپذیرفت؛ بنابراین نباید ادعا کرد deployment جدید فعال شده است.
+- عبارت route replacement در شاخهٔ اصلاحی به escaped slash استاندارد JavaScript تبدیل شده است. این اصلاح فقط نحوی است و رفتار مسیر API یا سیاست bypass فقط برای catalog workflowهای یتیمِ بدون job را تغییر نمی‌دهد.
+- Worker فعال باید تا پس از گذر از Node syntax check و upload موفق، همان نسخهٔ قبلی با deployment ID a20fdab9-edea-4cba-ab00-c2eecc9a0cba باقی بماند. Cron، secret bindingها و observability نباید تغییر کنند.
+- نتیجهٔ Node syntax check، Documentation Gate، upload و deployment جدید پس از اجرای PR ثبت خواهد شد.
