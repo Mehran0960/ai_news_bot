@@ -137,10 +137,21 @@ export function isFreshCleanCatalogCycle(status, lastPublicationAt) {
   const cycles = Number(status.completed_cycles);
   const completedAt = Date.parse(String(status.last_cycle_completed_at || ""));
 
-  const currentCategories = Number(status.catalog_category_count);
+  const currentIds = Array.isArray(status.catalog_category_ids)
+    ? status.catalog_category_ids.map(value => String(value)) : [];
+  const scannedIds = Array.isArray(status.last_cycle_category_ids)
+    ? status.last_cycle_category_ids.map(value => String(value)) : [];
+  const completedIds = Array.isArray(status.last_cycle_completed_category_ids)
+    ? status.last_cycle_completed_category_ids.map(value => String(value)) : [];
+  const unqueryableIds = Array.isArray(status.last_cycle_unqueryable_category_ids)
+    ? status.last_cycle_unqueryable_category_ids.map(value => String(value)) : [];
+  const scannedSet = new Set(scannedIds);
+  const completedSet = new Set(completedIds);
   if (!Number.isFinite(total) || total < 1 || completed !== total) return false;
-  if (!Number.isFinite(currentCategories) || currentCategories > total) return false;
-  if (unqueryable !== 0 || !Number.isFinite(coverage) || coverage < 100) return false;
+  if (currentIds.length < 1 || scannedIds.length !== total || completedIds.length !== total) return false;
+  if (currentIds.some(id => !scannedSet.has(id) || !completedSet.has(id))) return false;
+  if (unqueryableIds.length !== 0 || unqueryable !== 0) return false;
+  if (!Number.isFinite(coverage) || coverage < 100) return false;
   if (!Number.isFinite(pages) || pages < 1 || !Number.isFinite(cycles) || cycles < 1) return false;
   if (!Number.isFinite(completedAt)) return false;
 
