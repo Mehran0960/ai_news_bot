@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -177,7 +177,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
                 "catalog_sweep_handoff": {
                     "seen_ids": {
                         "dkp-55": {
-                            "seen_at": (now - sweep.base.timedelta(hours=1)).isoformat(),
+                            "seen_at": (now - timedelta(hours=1)).isoformat(),
                             "fingerprint": sweep.base.catalog_handoff_fingerprint(original),
                         }
                     }
