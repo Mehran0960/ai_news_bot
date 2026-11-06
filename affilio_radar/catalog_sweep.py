@@ -638,6 +638,13 @@ def _catalog_handoff_seen_at(value: object) -> str:
     return str(value or "")
 
 
+def _catalog_handoff_deferred_at(value: object) -> str:
+    """Read retry timestamps from legacy strings and fingerprint-aware records."""
+    if isinstance(value, dict):
+        return str(value.get("retry_after") or "")
+    return str(value or "")
+
+
 def catalog_handoff_fingerprint(row: dict) -> str:
     """Fingerprint listing price/discount/stock fields to detect material card changes."""
     row = row if isinstance(row, dict) else {}
@@ -697,7 +704,9 @@ def load_catalog_candidates_for_handoff(
         handoff["deferred_ids"] = deferred
     for pid, raw_retry in list(deferred.items()):
         try:
-            retry_after = datetime.fromisoformat(str(raw_retry).replace("Z", "+00:00"))
+            retry_after = datetime.fromisoformat(
+                _catalog_handoff_deferred_at(raw_retry).replace("Z", "+00:00")
+            )
             if retry_after.tzinfo is None:
                 retry_after = retry_after.replace(tzinfo=timezone.utc)
         except (TypeError, ValueError):
@@ -706,14 +715,13 @@ def load_catalog_candidates_for_handoff(
         if retry_after <= current:
             deferred.pop(pid, None)
 
-    already_queued = publisher_state.get("discovery_queue", {})
-    already_queued = set(already_queued) if isinstance(already_queued, dict) else set()
     fresh = []
     for row in rows:
         pid = str(row.get("product_id") or "")
         url = str(row.get("product_url") or "")
         if not re.fullmatch(r"dkp-\d{1,12}", pid):
             continue
+        fingerprint = catalog_handoff_fingerprint(row)
         previous = seen.get(pid)
         previous_fingerprint = (
             str(previous.get("fingerprint") or "") if isinstance(previous, dict) else ""
@@ -721,10 +729,29 @@ def load_catalog_candidates_for_handoff(
         # Legacy timestamp-only records have no baseline; pass them once so the
         # next acknowledgement establishes a complete fingerprint.
         unchanged_recently_seen = bool(
-            previous_fingerprint
-            and previous_fingerprint == catalog_handoff_fingerprint(row)
+            previous_fingerprint and previous_fingerprint == fingerprint
         )
-        if unchanged_recently_seen or pid in already_queued or pid in deferred:
+        deferred_record = deferred.get(pid)
+        deferred_fingerprint = (
+            str(deferred_record.get("fingerprint") or "")
+            if isinstance(deferred_record, dict) else ""
+        )
+        deferred_retry_at = _catalog_handoff_deferred_at(deferred_record)
+        try:
+            deferred_retry = datetime.fromisoformat(deferred_retry_at.replace("Z", "+00:00"))
+            if deferred_retry.tzinfo is None:
+                deferred_retry = deferred_retry.replace(tzinfo=timezone.utc)
+            deferred_active = deferred_retry > current
+        except (TypeError, ValueError):
+            deferred_active = False
+        changed_since_deferred = bool(
+            deferred_fingerprint and deferred_fingerprint != fingerprint
+        )
+        # Existing discovery-queue entries must be refreshed when a listing
+        # fingerprint changes; merge_discovery_queue updates them in place and
+        # makes them due for live validation. A deferral only suppresses the
+        # same unchanged card, never a materially changed listing.
+        if unchanged_recently_seen or (deferred_active and not changed_since_deferred):
             continue
         if not url.endswith(f"/{pid}/"):
             continue
@@ -794,7 +821,13 @@ def acknowledge_catalog_candidates_handoff(
     return len(acknowledged)
 
 
-def defer_catalog_candidates_handoff(publisher_state: dict, product_ids: list[str] | set[str], now: datetime | None = None, retry_minutes: int = 15) -> int:
+def defer_catalog_candidates_handoff(
+    publisher_state: dict,
+    product_ids: list[str] | set[str],
+    now: datetime | None = None,
+    retry_minutes: int = 15,
+    candidates: list[dict] | None = None,
+) -> int:
     """Temporarily rotate queue-overflow candidates without acknowledging or dropping them."""
     if not isinstance(publisher_state, dict):
         return 0
@@ -816,8 +849,16 @@ def defer_catalog_candidates_handoff(publisher_state: dict, product_ids: list[st
         delay = 15
     retry_at = (current + timedelta(minutes=delay)).isoformat()
     ids = {str(pid) for pid in (product_ids or []) if re.fullmatch(r"dkp-\d{1,12}", str(pid))}
+    candidate_map = {
+        str(row.get("product_id") or ""): row
+        for row in (candidates or []) if isinstance(row, dict)
+    }
     for pid in ids:
-        deferred[pid] = retry_at
+        candidate = candidate_map.get(pid)
+        deferred[pid] = {
+            "retry_after": retry_at,
+            "fingerprint": catalog_handoff_fingerprint(candidate) if candidate else "",
+        }
     if len(deferred) > MAX_PUBLISHER_SEEN_IDS:
         ordered = sorted(deferred.items(), key=lambda pair: str(pair[1]), reverse=True)
         handoff["deferred_ids"] = dict(ordered[:MAX_PUBLISHER_SEEN_IDS])
