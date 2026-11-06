@@ -489,3 +489,12 @@
 **تغییر:** config اکنون `main = "affilio-minute-dispatcher.mjs"` دارد. در هر دو مسیر PR dry-run و production deploy، workflow یک فایل موقت `.mjs` را از فایل canonical `affilio-minute-dispatcher.js` می‌سازد. سورس canonical تکثیر یا rename نمی‌شود و فایل موقت به مخزن commit نمی‌شود؛ بنابراین خطر drift بین دو نسخهٔ مستقل کد ایجاد نمی‌شود.
 
 **نتیجه و وضعیت:** PR run قبلی با rule ساده ناموفق بود. اصلاح جدید روی شاخه انجام شده؛ dry-run تازه، Documentation Gate، deploy و آزمون‌های زنده هنوز pending هستند. نسخهٔ production Worker همچنان 31 است؛ deployment تازه‌ای ثبت نشده است.
+
+
+## ۲۰۲۶-۱۱-۰۶ — غیرفعال‌کردن bundling برای Worker مستقل
+
+**تشخیص:** PR run `42242962387` باز هم در Wrangler 4.158.0 و پس از تولید entrypoint موقت `.mjs` با `Unexpected export` شکست خورد. سورس Worker بررسی شد و هیچ import یا require و وابستگی npm در آن وجود ندارد.
+
+**تغییر:** گزینهٔ `no_bundle = true` به `cloudflare/wrangler.toml` افزوده شد تا Wrangler فایل مستقل ES Module را بدون bundling/esbuild بارگذاری کند؛ entrypoint همچنان از کپی موقت `.mjs` ساخته‌شده از source canonical استفاده می‌کند.
+
+**نتیجه:** هنوز موفقیت dry-run، deploy، Cron و Secret bindings تأیید نشده است. این اصلاح باید از اجرای PR بعدی عبور کند و Worker فعال تا آن زمان نسخهٔ 31 می‌ماند.
