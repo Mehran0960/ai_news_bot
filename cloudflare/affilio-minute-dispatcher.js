@@ -140,6 +140,9 @@ export function isUsableCleanCatalogSnapshot(status) {
   const candidateCycleAt = Date.parse(String(status.completed_candidates_cycle_at || ""));
   const candidateCount = Number(status.completed_candidates_count);
   const candidateHash = String(status.completed_candidates_sha256 || "");
+  const snapshotAgeMs = Date.now() - completedAt;
+  const maximumSnapshotAgeMs = 96 * 60 * 60 * 1000;
+  if (snapshotAgeMs < -15 * 60 * 1000 || snapshotAgeMs > maximumSnapshotAgeMs) return false;
 
   const currentIds = Array.isArray(status.catalog_category_ids)
     ? status.catalog_category_ids.map(value => String(value)) : [];
