@@ -68,7 +68,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             "categories": [{"id": "10", "name": "mobile"}],
             "parallel_queue_initialized": True,
             "parallel_known_category_ids": ["10"],
-            "parallel_scan_policy_version": "all_categories_all_pages_v2",
+            "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
             "parallel_deep_pages_pruned": 0,
             "parallel_pending_pages": [
                 {"category_id": "10", "page": 1, "attempts": 0},
