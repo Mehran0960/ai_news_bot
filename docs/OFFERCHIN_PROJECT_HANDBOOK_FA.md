@@ -233,8 +233,8 @@ NaN
 
 ## 13. وضعیت و تصمیم نهایی — ۶ نوامبر ۲۰۲۶
 
-### تغییر اجرایی در شاخهٔ کاری
-- شاخه: docs/discount-first-charter-and-operating-rules-2026-11-06.
+### تغییر اجرایی ادغام‌شده در main
+- PR #75 ادغام‌شده در `main`؛ merge commit: `36367fe4df27b33ab01ed155adc0d03b557c7fb9`. شاخهٔ کاری: `docs/discount-first-charter-and-operating-rules-2026-11-06`.
 - منطق _filter_recent_publication_repeats در affilio_radar.py به‌روزرسانی شد: family/brand/similarity cooldown دیگر candidate را حذف یا عقب نمی‌اندازد؛ تعداد تکرارها فقط با برچسب REPEAT_DIAGNOSTICS گزارش می‌شود و rank_order_preserved=true می‌ماند.
 - آزمون‌های affilio_radar/test_affilio.py به‌روز شدند تا تکرار خانواده، برند یا عنوان مشابه رتبهٔ تخفیف را تغییر ندهد؛ آزمون صریحِ درصد نزولی و saving نزولی نیز افزوده شد. دو آزمون قدیمی مسیر urgent که هنوز انتظار مسدودشدن تنها گزینه به‌علت تکرار خانواده را داشتند نیز به انتظار جدید تغییر کردند؛ failure اولیهٔ ۲ آزمون در runهای PR پس از اصلاح ثبت و پیگیری شد.
 - کنترل تکرار همان SKUِ بدون بهبود، hand-off فعال، ارسال تکراری مقصد، قیمت/موجودی، لینک، deadline و ایمنی دست‌نخورده‌اند.
@@ -249,4 +249,4 @@ NaN
 ### مستندسازی و ادامهٔ کار
 - منشور محصول، handbook فنی و changelog به تصمیم discount-first تغییر می‌کنند؛ سابقهٔ Shadow در بخش ۱۲ فقط برای traceability باقی است.
 - اولویت باز: full-cycle، بررسی ۳٬۰۰۰ کاندیدا/TTL ۷۲ ساعت و اطمینان از hand-off نشدنِ نامزدهای برتر.
-- این تغییرات در شاخهٔ کاری هستند؛ تا CI موفق و merge، آن‌ها را رفتار live روی main اعلام نکنید.
+- تغییر در `main` فعال است. آخرین CI مربوط به PR: Catalog Sweep Regression Tests run `42170452852`، Top-100 and DigiPay Regression Tests run `42170452832`، Documentation Gate run `42170452952`؛ هر سه success. Product Radar روی `main` پس از merge جداگانه run `42170588349` را اجرا می‌کند و نتیجه‌اش باید مستقل بررسی شود. تکمیل full-cycle همچنان اثبات نشده است.
