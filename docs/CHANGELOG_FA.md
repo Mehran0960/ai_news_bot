@@ -480,3 +480,12 @@
 **آزمون و نتیجه:** پیش از این اصلاح، Catalog Sweep Regression run `42242605827` موفق بود. dry-run Worker در run `42242605846` شکست خورد. نتیجهٔ dry-run مجدد، Documentation Gate، deploy و بررسی Cron/Secretها هنوز pending است؛ Worker production همچنان نسخهٔ 31 است و deploy جدیدی انجام نشده است.
 
 **وضعیت:** اصلاح config و ثبت مستندات روی شاخهٔ PR انجام شد؛ موفقیت فقط پس از اجرای مجدد CI اعلام می‌شود.
+
+
+## ۲۰۲۶-۱۱-۰۶ — جایگزینی entrypoint موقت MJS برای عبور از Wrangler bundling
+
+**تشخیص تکمیلی:** run `42242809494` پس از اضافه‌کردن `[[rules]] type = "ESModule"` همچنان در Wrangler 4.158.0 با `Unexpected export` در `affilio-minute-dispatcher.js:373` شکست خورد؛ پس rule روی این entrypoint به‌تنهایی کافی نبود.
+
+**تغییر:** config اکنون `main = "affilio-minute-dispatcher.mjs"` دارد. در هر دو مسیر PR dry-run و production deploy، workflow یک فایل موقت `.mjs` را از فایل canonical `affilio-minute-dispatcher.js` می‌سازد. سورس canonical تکثیر یا rename نمی‌شود و فایل موقت به مخزن commit نمی‌شود؛ بنابراین خطر drift بین دو نسخهٔ مستقل کد ایجاد نمی‌شود.
+
+**نتیجه و وضعیت:** PR run قبلی با rule ساده ناموفق بود. اصلاح جدید روی شاخه انجام شده؛ dry-run تازه، Documentation Gate، deploy و آزمون‌های زنده هنوز pending هستند. نسخهٔ production Worker همچنان 31 است؛ deployment تازه‌ای ثبت نشده است.
