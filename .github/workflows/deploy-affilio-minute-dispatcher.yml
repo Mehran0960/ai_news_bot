@@ -13,6 +13,7 @@ on:
       - main
     paths:
       - "cloudflare/affilio-minute-dispatcher.js"
+      - "cloudflare/affilio-minute-dispatcher.test.mjs"
       - "cloudflare/wrangler.toml"
       - ".github/workflows/deploy-affilio-minute-dispatcher.yml"
   workflow_dispatch:
