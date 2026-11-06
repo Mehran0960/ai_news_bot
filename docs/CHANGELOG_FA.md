@@ -448,3 +448,22 @@
 **ریسک/بازگشت:** تا پایان syntax validation و upload تأییدشده، Worker فعال قبلی حفظ می‌شود. اگر upload اصلاح‌شده رد شود، از deploy اجباری یا حذف binding استفاده نشود؛ محتوای Worker و settings فعال دوباره fetch و بررسی شوند. rollback با حفظ نسخهٔ 100 درصدی قبلی در deployment history ممکن است.
 
 **وضعیت:** regex در شاخهٔ اصلاحی تغییر کرده و مستندات ثبت شده‌اند؛ PR، CI، upload و deployment هنوز انجام نشده‌اند.
+
+
+## ۲۰۲۶-۱۱-۰۶ — ایزوله‌سازی قفل یتیم کاتالوگ و مسیر استقرار Wrangler برای dispatcher
+
+**هدف:** بازگرداندن چرخهٔ اسکن تمام‌کاتالوگ پس از گیرکردن یک run قدیمیِ queued و ایجاد مسیر استقرار تکرارپذیر برای Worker؛ بدون حذف Secretهای موجود یا تغییر زمان‌بندی انتشار.
+
+**تشخیص:** Cloudflare Cron با الگوی `* * * * *` هر دقیقه اجرا می‌شد، اما نسخهٔ فعال 31 Worker در برخورد با run شمارهٔ 1093 / ID `42196544516` تلاش به cancel می‌کرد. run از 09:38 UTC در وضعیت queued باقی مانده بود و فهرست jobs آن خالی بود. GitHub برای cancel معمولی HTTP 409 با پیام `Cannot cancel a workflow run that has not been queued yet` برمی‌گرداند. اجرای سالم آخر در این بررسی، run `42212336045` بود: 256/256 صفحه در 293.59 ثانیه، 8 worker واقعی، صفر retry و صفر 429؛ fetch شبکه 293.275 ثانیه و پردازش محلی 0.214 ثانیه بود.
+
+**تغییر/اقدام روی شاخهٔ کاری:** concurrency group اسکن از `offerchin-digikala-catalog-sweep-v2` به `offerchin-digikala-catalog-sweep-v3` تغییر می‌کند تا run یتیم قبلیِ بدون job نتواند batch جدید را مسدود کند. فایل `cloudflare/wrangler.toml` اضافه می‌شود تا source، Cron یک‌دقیقه‌ای، compatibility date، subdomain غیرفعال و observability به‌صورت نسخه‌پذیر تعریف شوند. workflow جدید `.github/workflows/deploy-affilio-minute-dispatcher.yml` dry-run و deploy Wrangler را با GitHub Actions Secrets اجرا می‌کند؛ `keep_vars = true` متغیرهای Dashboard را حفظ می‌کند و Cloudflare تأیید می‌کند که deployment، Secretهای رمزنگاری‌شده را حذف نمی‌کند. مقدار محرمانه‌ای در مخزن ثبت نمی‌شود.
+
+**تغییر Cloudflare خارج از مخزن:** نسخهٔ غیرمنتشرشدهٔ شمارهٔ 34 با ID `306990f4-1918-41b3-a476-8a817f54c352` ساخته شد تا دو Secret binding با نام‌های `GITHUB_TOKEN` و `FILO_GITHUB_TOKEN` از نسخهٔ فعال 31 به ارث برده شوند. این نسخه deploy نشده است و Worker فعال را تغییر نداده است. نسخه‌های 32 و 33 نیز در زمان بررسی غیرمنتشرشده بودند. تلاش‌های مستقیم upload با HTTP 400 / validation error 10021 و پیام `Unexpected token 'export'` در `worker.js:373` رد شدند؛ به همین علت مسیر مستقیم API کنار گذاشته شد و deploy رسمی Wrangler به CI اضافه شد.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-digikala-catalog-sweep.yml`، `.github/workflows/deploy-affilio-minute-dispatcher.yml`، `cloudflare/wrangler.toml`، `cloudflare/affilio-minute-dispatcher.js`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`؛ GitHub Actions و Cloudflare Worker `affilio-minute-dispatcher`.
+
+**آزمون و نتیجه:** در این نقطه، تغییرات روی شاخهٔ `fix/offerchin-dispatcher-production-recovery-2026-11-06` ثبت شده‌اند؛ PR، Documentation Gate، dry-run Wrangler، deploy، حفظ bindingها/Cron و اجرای تازهٔ scanner هنوز باید تأیید شوند. هیچ full-cycle یا افزایش throughput ادعا نشده است. batch limit=480 و سقف درخواستی 12 worker، backoff/retry، پوشش تمام دسته‌ها و صفحات و رتبه‌بندی discount-first تغییر نکرده‌اند.
+
+**ریسک/بازگشت:** run یتیم قدیمی در گروه concurrency قبلی باقی می‌ماند و ممکن است در GitHub همچنان queued دیده شود؛ گروه v3 تنها اثر آن بر scanner جدید را ایزوله می‌کند. اگر deploy Wrangler به‌علت نبود Secret یا مجوز Workers Scripts Write شکست خورد، نسخهٔ 31 و Cron/Secretهای آن حفظ می‌شوند؛ از upload اجباری یا تغییر Secretها استفاده نشود. بازگشت گروه concurrency به v2 فقط در صورت رفع قطعی run یتیم و پس از اطمینان از نبود اجرای فعال انجام شود.
+
+**وضعیت:** تغییرات روی شاخهٔ کاری ثبت و مستند شده‌اند؛ نتیجهٔ نهایی تنها پس از CI، merge، deployment Wrangler و مشاهدهٔ run تازهٔ scanner ثبت خواهد شد.
