@@ -147,7 +147,7 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
 
     if (
         not state.get("parallel_queue_initialized")
-        or state.get("parallel_scan_policy_version") != "all_categories_all_pages_v2"
+        or state.get("parallel_scan_policy_version") != "all_categories_all_pages_v3_cycle_snapshot"
     ):
         # Legacy cursors AND previously initialized top-60 queues may have skipped
         # already-processed categories/tail pages. Force one exhaustive restart.
@@ -160,7 +160,7 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
         state["parallel_cycle_pages_success"] = 0
         state["parallel_cycle_product_rows_success"] = 0
         state["parallel_full_catalog_mode"] = "all_categories_all_pages"
-        state["parallel_scan_policy_version"] = "all_categories_all_pages_v2"
+        state["parallel_scan_policy_version"] = "all_categories_all_pages_v3_cycle_snapshot"
     else:
         # Category dictionary refreshes may introduce new categories. Append only
         # genuinely new IDs; do not reset progress for existing IDs.
@@ -247,6 +247,7 @@ def run_parallel_sweep(
     workers: int = DEFAULT_WORKERS,
     state_path: Path = STATE_PATH,
     candidates_path: Path = CANDIDATES_PATH,
+    completed_candidates_path: Path = ROOT / "catalog_sweep_completed_candidates.json",
     publisher_state_path: Path = PUBLISHER_STATE_PATH,
     force_refresh: bool = False,
     fetcher: Callable[[dict], dict] | None = None,
@@ -287,6 +288,18 @@ def run_parallel_sweep(
         return 1
 
     queue = _ensure_parallel_state(state)
+    active_cycle_started_at = str(state.get("parallel_cycle_started_at") or "")
+    candidate_payload = base._read_json(candidates_path, {})
+    candidate_capture_matches = bool(
+        isinstance(candidate_payload, dict)
+        and candidate_payload.get("cycle_started_at") == active_cycle_started_at
+        and candidate_payload.get("scan_policy_version") == "all_categories_all_pages_v3_cycle_snapshot"
+    )
+    candidates = (
+        base._load_candidates_by_id(candidates_path)
+        if candidate_capture_matches else {}
+    )
+
     if not queue:
         valid_categories = [
             row for row in categories
@@ -322,9 +335,22 @@ def run_parallel_sweep(
             )
         else:
             finished_at = base.iso_now()
-            clean_full_cycle = len(completed_ids) == len(category_ids) and not unqueryable_ids
+            completed_cycle_started_at = str(state.get("parallel_cycle_started_at") or "")
+            clean_full_cycle = bool(
+                len(completed_ids) == len(category_ids)
+                and not unqueryable_ids
+                and candidate_capture_matches
+            )
+            state["last_cycle_started_at"] = completed_cycle_started_at
             state["last_cycle_finished_at"] = finished_at
+            state["last_cycle_candidate_snapshot_valid"] = clean_full_cycle
             state["last_cycle_status"] = "complete" if clean_full_cycle else "complete_with_gaps"
+            state["last_cycle_category_ids"] = sorted(
+                category_ids, key=lambda value: int(value)
+            )
+            state["last_cycle_completed_category_ids"] = sorted(
+                completed_ids, key=lambda value: int(value)
+            )
             state["last_cycle_categories_complete"] = len(completed_ids)
             state["last_cycle_categories_unqueryable"] = len(unqueryable_ids)
             state["last_cycle_unqueryable_category_ids"] = sorted(
@@ -346,15 +372,54 @@ def run_parallel_sweep(
                 0, base._normal_int(state.get("parallel_cycle_product_rows_success"))
             )
             if clean_full_cycle:
+                cycle_ranked = base.retain_diverse_candidates(
+                    [
+                        row for row in candidates.values()
+                        if isinstance(row, dict)
+                        and base._normal_int(row.get("discount_percent")) >= base.MIN_CANDIDATE_DISCOUNT
+                    ],
+                    limit=base.MAX_RETAINED_CANDIDATES,
+                    rotation=0,
+                )
+                snapshot_rows = []
+                for rank, candidate in enumerate(cycle_ranked, start=1):
+                    snapshot_rows.append({
+                        **candidate,
+                        "catalog_cycle_completed_at": finished_at,
+                        "catalog_cycle_snapshot_rank": rank,
+                    })
+                base._write_json(completed_candidates_path, {
+                    "schema_version": 1,
+                    "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
+                    "cycle_status": "complete",
+                    "cycle_started_at": completed_cycle_started_at,
+                    "cycle_completed_at": finished_at,
+                    "category_ids": sorted(category_ids, key=lambda value: int(value)),
+                    "completed_category_ids": sorted(completed_ids, key=lambda value: int(value)),
+                    "unqueryable_category_ids": sorted(unqueryable_ids, key=lambda value: int(value)),
+                    "categories_total": len(category_ids),
+                    "categories_complete": len(completed_ids),
+                    "categories_unqueryable": len(unqueryable_ids),
+                    "category_coverage_percent": round(
+                        100 * len(completed_ids) / max(1, len(category_ids)), 2
+                    ),
+                    "pages_success": max(0, base._normal_int(state.get("parallel_cycle_pages_success"))),
+                    "product_rows_success": max(0, base._normal_int(state.get("parallel_cycle_product_rows_success"))),
+                    "candidate_count": len(snapshot_rows),
+                    "candidates": snapshot_rows,
+                })
                 state["last_cycle_completed_at"] = finished_at
+                state["last_cycle_candidate_count"] = len(snapshot_rows)
                 stats["completed_cycles"] += 1
             else:
+                state["last_cycle_candidate_count"] = 0
                 stats["cycles_with_gaps_total"] += 1
             state["completed_cycles"] = stats["completed_cycles"]
 
             queue = build_initial_page_queue(valid_categories, 0, 1)
             state["parallel_pending_pages"] = queue
             state["parallel_cycle_started_at"] = base.iso_now()
+            candidates = {}
             state["parallel_cycle_completed_category_ids"] = []
             state["parallel_cycle_unqueryable_category_ids"] = []
             state["parallel_cycle_pages_success"] = 0
@@ -391,13 +456,7 @@ def run_parallel_sweep(
     fetch_seconds = time.monotonic() - fetch_started
     processing_started = time.monotonic()
 
-    candidates = base._load_candidates_by_id(candidates_path)
     now = base.utc_now()
-    seen_records = base._publisher_seen_records(publisher_state_path)
-    seen_ids = set(seen_records)
-    candidates = base._clean_old_candidates(
-        candidates, seen_ids, now, seen_records=seen_records
-    )
     retry_count = 0
     rate_limited_count = 0
     processed_count = 0
@@ -440,12 +499,27 @@ def run_parallel_sweep(
             stats["empty_product_pages_total"] += 1
         if kind == "terminal":
             terminal_count += 1
-            key_name = "parallel_cycle_unqueryable_category_ids" if page == 1 else "parallel_cycle_completed_category_ids"
-            bucket = {str(v) for v in state.get(key_name, []) if str(v).isdigit()}
-            bucket.add(category_id)
-            state[key_name] = sorted(bucket, key=lambda value: int(value))
-            if page == 1:
+            unqueryable = {
+                str(v) for v in state.get("parallel_cycle_unqueryable_category_ids", [])
+                if str(v).isdigit()
+            }
+            if category_id not in unqueryable:
                 stats["unqueryable_categories_total"] += 1
+            unqueryable.add(category_id)
+            state["parallel_cycle_unqueryable_category_ids"] = sorted(
+                unqueryable, key=lambda value: int(value)
+            )
+            completed = {
+                str(v) for v in state.get("parallel_cycle_completed_category_ids", [])
+                if str(v).isdigit() and str(v) != category_id
+            }
+            state["parallel_cycle_completed_category_ids"] = sorted(
+                completed, key=lambda value: int(value)
+            )
+            print(
+                "PARALLEL_CATALOG_PAGE_UNQUERYABLE "
+                f"category={category_id} page={page} status={result.get('status_code', 'unknown')}"
+            )
             continue
 
         total_pages = result.get("total_pages")
@@ -549,17 +623,17 @@ def run_parallel_sweep(
     worker_limit = min(requested_workers, max(1, worker_limit))
     state["parallel_worker_limit"] = worker_limit
 
-    candidates = base._clean_old_candidates(
-        candidates, seen_ids, base.utc_now(), seen_records=seen_records
-    )
     ordered_candidates = base.retain_diverse_candidates(
-        list(candidates.values()), limit=base.MAX_RETAINED_CANDIDATES,
-        rotation=stats["pages_scanned_total"],
+        list(candidates.values()),
+        limit=base.MAX_RETAINED_CANDIDATES,
+        rotation=0,
     )
     processing_seconds = time.monotonic() - processing_started
     candidate_write_started = time.monotonic()
     base._write_json(candidates_path, {
         "updated_at": base.iso_now(),
+        "cycle_started_at": str(state.get("parallel_cycle_started_at") or ""),
+        "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
         "candidate_count": len(ordered_candidates),
         "candidates": ordered_candidates,
     })

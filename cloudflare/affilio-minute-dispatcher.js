@@ -123,6 +123,69 @@ async function dispatchWorkflowIfIdle(
   });
   console.log("CHANNEL_DISPATCH_ACCEPTED workflow=" + label);
 }
+export function isUsableCleanCatalogSnapshot(status) {
+  if (!status || typeof status !== "object" || Number(status.schema_version) !== 2) return false;
+  if (status.full_catalog_mode !== "all_categories_all_pages") return false;
+  if (status.scan_policy_version !== "all_categories_all_pages_v3_cycle_snapshot") return false;
+  if (status.last_clean_cycle_status !== "complete") return false;
+  if (status.completed_candidates_snapshot_present !== true) return false;
+  if (status.completed_candidates_snapshot_valid !== true) return false;
+
+  const total = Number(status.last_clean_cycle_categories_total);
+  const completed = Number(status.last_clean_cycle_categories_complete);
+  const unqueryable = Number(status.last_clean_cycle_categories_unqueryable);
+  const coverage = Number(status.last_clean_cycle_category_coverage_percent);
+  const pages = Number(status.last_clean_cycle_pages_success);
+  const completedAt = Date.parse(String(status.last_clean_cycle_completed_at || ""));
+  const candidateCycleAt = Date.parse(String(status.completed_candidates_cycle_at || ""));
+  const candidateCount = Number(status.completed_candidates_count);
+  const candidateHash = String(status.completed_candidates_sha256 || "");
+  const snapshotAgeMs = Date.now() - completedAt;
+  const maximumSnapshotAgeMs = 96 * 60 * 60 * 1000;
+  if (snapshotAgeMs < -15 * 60 * 1000 || snapshotAgeMs > maximumSnapshotAgeMs) return false;
+
+  const currentIds = Array.isArray(status.catalog_category_ids)
+    ? status.catalog_category_ids.map(value => String(value)) : [];
+  const cleanIds = Array.isArray(status.last_clean_cycle_category_ids)
+    ? status.last_clean_cycle_category_ids.map(value => String(value)) : [];
+  const completedIds = Array.isArray(status.last_clean_cycle_completed_category_ids)
+    ? status.last_clean_cycle_completed_category_ids.map(value => String(value)) : [];
+  const unqueryableIds = Array.isArray(status.last_clean_cycle_unqueryable_category_ids)
+    ? status.last_clean_cycle_unqueryable_category_ids.map(value => String(value)) : [];
+  const currentCategoryCount = Number(status.catalog_category_count);
+  const sameIds = (left, right) => {
+    if (left.length !== right.length) return false;
+    const a = [...left].sort();
+    const b = [...right].sort();
+    return a.every((value, index) => value === b[index]);
+  };
+
+  if (!Number.isFinite(total) || total < 1 || completed !== total) return false;
+  if (!Number.isFinite(currentCategoryCount) || currentIds.length !== currentCategoryCount) return false;
+  if (new Set(currentIds).size !== currentIds.length) return false;
+  if (cleanIds.length !== total || new Set(cleanIds).size !== total) return false;
+  if (completedIds.length !== total || new Set(completedIds).size !== total) return false;
+  if (!sameIds(currentIds, cleanIds) || !sameIds(cleanIds, completedIds)) return false;
+  if (unqueryableIds.length !== 0 || unqueryable !== 0) return false;
+  if (!Number.isFinite(coverage) || coverage < 100) return false;
+  if (!Number.isFinite(pages) || pages < 1) return false;
+  if (!Number.isFinite(completedAt) || !Number.isFinite(candidateCycleAt) || candidateCycleAt !== completedAt) return false;
+  if (!Number.isFinite(candidateCount) || candidateCount < 1) return false;
+  if (!/^[a-f0-9]{64}$/i.test(candidateHash)) return false;
+  return true;
+}
+
+export function isInitialCatalogWarmup(status) {
+  if (!status || typeof status !== "object" || Number(status.schema_version) !== 2) return false;
+  if (status.full_catalog_mode !== "all_categories_all_pages") return false;
+  if (status.scan_policy_version !== "all_categories_all_pages_v3_cycle_snapshot") return false;
+  if (status.completed_candidates_snapshot_present === true) return false;
+  if (status.completed_candidates_snapshot_valid === true) return false;
+  if (status.last_clean_cycle_status !== "unavailable") return false;
+  if (status.last_clean_cycle_completed_at) return false;
+  return Number(status.completed_cycles) === 0;
+}
+
 const PUBLISHER_INTERVAL_MS = 17 * 60 * 1000;
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
 
@@ -139,6 +202,24 @@ async function readOfferChinState(token) {
     return JSON.parse(new TextDecoder().decode(bytes));
   } catch (error) {
     console.error("OFFERCHIN_VIDEO_DISPATCH_STATE_READ_FAILED", String(error).slice(0, 500));
+    return null;
+  }
+}
+
+async function readCatalogSweepStatus(token) {
+  try {
+    const data = await githubRequest(
+      `https://api.github.com/repos/${OWNER}/${REPO}/contents/affilio_radar/catalog_sweep_status.json?ref=main`,
+      token
+    );
+    const encoded = String(data.content || "").replace(/\s/g, "");
+    if (!encoded || data.encoding !== "base64") throw new Error("catalog_status_content_missing");
+    const binary = atob(encoded);
+    const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+    const status = JSON.parse(new TextDecoder().decode(bytes));
+    return status && typeof status === "object" ? status : null;
+  } catch (error) {
+    console.error("OFFERCHIN_CATALOG_STATUS_READ_FAILED", String(error).slice(0, 500));
     return null;
   }
 }
@@ -182,10 +263,37 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     return;
   }
 
-  const [latestAttempt] = await Promise.all([
+  if (!state) {
+    console.warn("OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=publication_state_unavailable");
+    return;
+  }
+
+  const [latestAttempt, catalogStatus] = await Promise.all([
     readLatestPublisherAttempt(env.GITHUB_TOKEN),
+    readCatalogSweepStatus(env.GITHUB_TOKEN),
   ]);
   const lastPublishedAt = readLastChannelPublicationAt(state);
+  if (!isUsableCleanCatalogSnapshot(catalogStatus)) {
+    if (!isInitialCatalogWarmup(catalogStatus)) {
+      console.log(
+        "OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=no_valid_clean_catalog_snapshot" +
+        " latest_attempt_status=" + String(catalogStatus && catalogStatus.last_cycle_status || "unknown") +
+        " last_clean_cycle_at=" + String(catalogStatus && catalogStatus.last_clean_cycle_completed_at || "unknown")
+      );
+      return;
+    }
+    // Initial bootstrap only: retain the existing live-offer/search discovery path
+    // until the first complete full-catalog snapshot has been produced.
+    console.log("OFFERCHIN_PUBLISHER_WARMUP_FALLBACK reason=no_clean_snapshot_yet");
+  } else {
+    // Reuse the last immutable clean snapshot while the next full scan runs.
+    // A new full scan is not required between two 17-minute publication slots.
+    console.log(
+      "OFFERCHIN_PUBLISHER_USING_CLEAN_SNAPSHOT cycle=" +
+      String(catalogStatus.last_clean_cycle_completed_at) +
+      " candidates=" + String(catalogStatus.completed_candidates_count)
+    );
+  }
   const now = tick.getTime();
   if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
     console.log("OFFERCHIN_PUBLISHER_NOT_DUE seconds_remaining=" +

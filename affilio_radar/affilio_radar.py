@@ -38,6 +38,17 @@ except ImportError:
         defer_catalog_candidates_handoff,
         catalog_handoff_fingerprint,
     )
+
+try:
+    from .catalog_status_snapshot import (
+        load_publication_catalog_context,
+        candidate_allowed_by_publication_context,
+    )
+except ImportError:
+    from catalog_status_snapshot import (
+        load_publication_catalog_context,
+        candidate_allowed_by_publication_context,
+    )
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from offerchin_visuals import (
@@ -55,7 +66,19 @@ VIDEO_DISPATCH_STATE = ROOT / "video_upload_dispatch_state.json"
 VIDEO_DISPATCH_STATE_RECORD_LIMIT = 250
 REPORT = ROOT / "candidates.json"
 DIVERSITY_REPORT = ROOT / "diversity_report.json"
-CATALOG_SWEEP_CANDIDATES = ROOT / "catalog_sweep_candidates.json"
+CATALOG_SWEEP_CANDIDATES = ROOT / "catalog_sweep_completed_candidates.json"
+CATALOG_SWEEP_STATUS = ROOT / "catalog_sweep_status.json"
+
+def publication_catalog_context() -> dict:
+    """Load the hash-verified full-catalog ranking snapshot or the explicit first-run warm-up."""
+    return load_publication_catalog_context(CATALOG_SWEEP_STATUS, CATALOG_SWEEP_CANDIDATES)
+
+
+def catalog_candidate_is_publishable(candidate: dict, context: dict | None = None) -> bool:
+    """Enforce current full-catalog membership; non-DigiKala partners remain live-verified."""
+    active_context = context if isinstance(context, dict) else publication_catalog_context()
+    return candidate_allowed_by_publication_context(candidate, active_context)
+
 TARGET_CHAT = os.getenv("AFFILIO_TELEGRAM_CHAT_ID", "@OfferChin").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
@@ -3182,6 +3205,8 @@ def merge_discovery_queue(
             "catalog_best_selling_category_name",
             "catalog_rank_observed_at",
             "catalog_best_selling_ranks_by_category",
+            "catalog_cycle_completed_at",
+            "catalog_cycle_snapshot_rank",
         ):
             if row.get(field) not in (None, ""):
                 record[field] = row[field]
@@ -3665,22 +3690,28 @@ def discover_product_urls(
     publish_history = state_to_persist.get("published", {}) if isinstance(state_to_persist, dict) else {}
     recent_history = state_to_persist.get("recent_publications", []) if isinstance(state_to_persist, dict) else []
 
-    # The catalog crawler runs on its own schedule and writes an acknowledged
-    # candidate sidecar. Import its fresh listing-card candidates into the same
-    # bounded discovery queue used by the existing deep price/stock verification.
-    # This path is deliberately best-effort: a crawler/schema problem must never
-    # stop the normal live-offer feed or the publishing cycle.
+    # Only import cards from a hash-verified, gap-free, current full-catalog snapshot.
+    # The first-run live-feed fallback is separate and is allowed only before any snapshot exists.
     if isinstance(discovery_queue, dict) and isinstance(state_to_persist, dict):
         try:
+            catalog_context = publication_catalog_context()
             handoff_limit = max(
                 1, min(80, int(os.getenv("AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN", "40")))
             )
-            catalog_batch = load_catalog_candidates_for_handoff(
-                CATALOG_SWEEP_CANDIDATES,
-                state_to_persist,
-                max_count=handoff_limit,
-                now=queue_now,
+            catalog_batch = (
+                load_catalog_candidates_for_handoff(
+                    CATALOG_SWEEP_CANDIDATES,
+                    state_to_persist,
+                    max_count=handoff_limit,
+                    now=queue_now,
+                )
+                if catalog_context.get("mode") == "full_catalog" else []
             )
+            if catalog_context.get("mode") != "full_catalog":
+                print(
+                    "CATALOG_SWEEP_HANDOFF_BLOCKED "
+                    f"mode={catalog_context.get('mode') or 'unknown'}"
+                )
             retained_ids = set()
             acknowledged = 0
             deferred_count = 0
@@ -3717,7 +3748,7 @@ def discover_product_urls(
                 f"backlog_source={CATALOG_SWEEP_CANDIDATES.name}"
             )
         except Exception as exc:
-            print(f"CATALOG_SWEEP_HANDOFF_FAILED error={type(exc).__name__}; normal_discovery_continues=true")
+            print(f"CATALOG_SWEEP_HANDOFF_FAILED error={type(exc).__name__}; fresh-selection gate remains active")
 
     # The live Incredible Offers feed is the primary discovery source.
     deals_found = []
@@ -9566,6 +9597,10 @@ def run(publish=False, selection_only=False):
     # [scan-now] Read the persistent queue before discovery so offers temporarily missing from one
     # page remain eligible for a live recheck on the next scan.
     state = load_state()
+    catalog_context = publication_catalog_context()
+    if selection_only and catalog_context.get("mode") == "blocked":
+        print("CONTENT_SELECTION_BLOCKED reason=no_verified_fresh_full_catalog_snapshot")
+        return 0
     if prune_suppressed_product_queues(state):
         save_json(STATE, state)
     if ensure_publication_ledger(state):
@@ -9612,6 +9647,8 @@ def run(publish=False, selection_only=False):
                     "catalog_best_selling_category_id",
                     "catalog_best_selling_category_name",
                     "catalog_rank_observed_at",
+                    "catalog_cycle_completed_at",
+                    "catalog_cycle_snapshot_rank",
                 ):
                     if catalog_record.get(field) not in (None, ""):
                         item[field] = catalog_record[field]
@@ -9713,6 +9750,28 @@ def run(publish=False, selection_only=False):
     eligible, selected_discount_floor, quality_eligible = select_discount_fallback_candidates(
         products, state, now=queue_now, include_fallback_bands=selection_only
     )
+    if catalog_context.get("mode") == "full_catalog":
+        before_catalog_gate = len(eligible)
+        eligible = [
+            item for item in eligible
+            if catalog_candidate_is_publishable(item, catalog_context)
+        ]
+        quality_eligible = [
+            item for item in quality_eligible
+            if catalog_candidate_is_publishable(item, catalog_context)
+        ]
+        print(
+            "CATALOG_PUBLICATION_FILTER "
+            f"before={before_catalog_gate} after={len(eligible)} "
+            f"snapshot_candidates={catalog_context['snapshot']['candidate_count']} "
+            "ranking_source=verified_full_catalog_snapshot"
+        )
+    elif catalog_context.get("mode") == "blocked":
+        eligible = []
+        quality_eligible = []
+        print("CATALOG_PUBLICATION_FILTER blocked=true reason=no_verified_full_catalog_snapshot")
+    else:
+        print("CATALOG_PUBLICATION_FILTER mode=initial_warmup live_discovery_fallback=true")
     observed_product_ids = {
         str(p.get("product_id") or product_id(p.get("product_url", "")))
         for p in products
