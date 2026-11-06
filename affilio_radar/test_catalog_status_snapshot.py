@@ -10,12 +10,18 @@ try:
         build_status_snapshot,
         candidate_matches_completed_snapshot,
         load_completed_candidates_snapshot,
+        load_publication_catalog_context,
+        is_initial_catalog_warmup,
+        candidate_allowed_by_publication_context,
     )
 except ImportError:
     from catalog_status_snapshot import (
         build_status_snapshot,
         candidate_matches_completed_snapshot,
         load_completed_candidates_snapshot,
+        load_publication_catalog_context,
+        is_initial_catalog_warmup,
+        candidate_allowed_by_publication_context,
     )
 
 
@@ -224,6 +230,78 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         )
         self.assertTrue(status["completed_candidates_snapshot_present"])
         self.assertFalse(status["completed_candidates_snapshot_valid"])
+
+    
+    def test_initial_warmup_is_the_only_live_discovery_fallback(self):
+        status = {
+            "schema_version": 2,
+            "full_catalog_mode": "all_categories_all_pages",
+            "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
+            "completed_candidates_snapshot_present": False,
+            "completed_candidates_snapshot_valid": False,
+            "last_clean_cycle_status": "unavailable",
+            "last_clean_cycle_completed_at": None,
+            "completed_cycles": 0,
+        }
+        self.assertTrue(is_initial_catalog_warmup(status))
+        self.assertFalse(is_initial_catalog_warmup({**status, "completed_cycles": 1}))
+        self.assertFalse(is_initial_catalog_warmup({**status, "completed_candidates_snapshot_present": True}))
+        self.assertFalse(is_initial_catalog_warmup(None))
+
+    def test_publication_context_requires_the_hash_verified_current_snapshot_after_warmup(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            status_path = root / "status.json"
+            candidates_path = root / "completed.json"
+            status = build_status_snapshot(self.state, completed_candidates=self.candidates)
+            status_path.write_text(json.dumps(status), encoding="utf-8")
+            candidates_path.write_text(json.dumps(self.candidates), encoding="utf-8")
+
+            context = load_publication_catalog_context(status_path, candidates_path)
+            self.assertEqual(context["mode"], "full_catalog")
+            self.assertTrue(candidate_allowed_by_publication_context(
+                self.candidates["candidates"][0], context
+            ))
+            outside = {
+                "product_id": "dkp-999",
+                "catalog_cycle_completed_at": self.completed_at,
+                "catalog_cycle_snapshot_rank": 999,
+            }
+            self.assertFalse(candidate_allowed_by_publication_context(outside, context))
+            self.assertTrue(candidate_allowed_by_publication_context(
+                {"product_id": "snp-123", "discount_percent": 80},
+                context,
+            ))
+
+            tampered = {**self.candidates, "candidates": [
+                {**self.candidates["candidates"][0], "discount_percent": 97},
+                self.candidates["candidates"][1],
+            ]}
+            candidates_path.write_text(json.dumps(tampered), encoding="utf-8")
+            blocked = load_publication_catalog_context(status_path, candidates_path)
+            self.assertEqual(blocked["mode"], "blocked")
+            self.assertFalse(candidate_allowed_by_publication_context(outside, blocked))
+
+    def test_catalog_snapshot_expires_after_96_hours(self):
+        status = build_status_snapshot(
+            self.state,
+            generated_at="2026-11-10T17:00:00+00:00",
+            completed_candidates=self.candidates,
+        )
+        self.assertFalse(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["last_clean_cycle_status"], "unavailable")
+
+    def test_sweep_workflow_persists_the_immutable_candidate_snapshot(self):
+        workflow_path = (
+            Path(__file__).resolve().parents[1]
+            / ".github" / "workflows" / "offerchin-digikala-catalog-sweep.yml"
+        )
+        workflow = workflow_path.read_text(encoding="utf-8")
+        self.assertIn(
+            "if [[ -f affilio_radar/catalog_sweep_completed_candidates.json ]]; then "
+            "git add affilio_radar/catalog_sweep_completed_candidates.json; fi",
+            workflow,
+        )
 
 
 if __name__ == "__main__":
