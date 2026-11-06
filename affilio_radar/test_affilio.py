@@ -1489,7 +1489,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(is_prohibited_product_title("شربت ال آرژنین پلاس فیشر کیندر"))
         self.assertTrue(is_prohibited_product_title("مکمل کلسیم کودکان"))
 
-    def test_publish_selection_keeps_equal_rank_offers_without_category_filtering(self):
+    def test_publish_selection_blocks_recently_repeated_audio_families(self):
         now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
         published = {}
         for index in range(6):
@@ -1515,11 +1515,11 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
         self.assertEqual(
             [p["product_id"] for p in selected],
-            ["dkp-audio-new", "dkp-audio-2", "dkp-power-new", "dkp-fashion-new"],
+            ["dkp-power-new", "dkp-fashion-new"],
         )
 
 
-    def test_overgrip_variants_keep_discount_order_across_persian_and_latin_titles(self):
+    def test_overgrip_variants_are_blocked_by_24h_family_and_similarity_guards(self):
         now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-old-overgrip": {
@@ -1541,7 +1541,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-overgrip-fa", "dkp-overgrip-en", "dkp-charger", "dkp-bag"],
+            ["dkp-charger", "dkp-bag"],
         )
 
 
@@ -1580,7 +1580,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual([row["product_id"] for row in selected], ["dkp-new-charger"])
 
-    def test_publish_selection_keeps_higher_discount_despite_recent_family(self):
+    def test_publish_selection_uses_next_highest_after_24h_family_guard(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-old-eyewear": {
@@ -1608,11 +1608,11 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-eyewear-repeat", "dkp-new-charger"],
+            ["dkp-new-charger"],
         )
 
 
-    def test_publish_selection_keeps_all_offers_despite_family_repeat(self):
+    def test_publish_selection_blocks_recent_family_and_keeps_other_category(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-recent-headphones": {
@@ -1638,11 +1638,11 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
         self.assertEqual(
             [row["product_id"] for row in selected],
-            ["dkp-headphones-new", "dkp-desk-light"],
+            ["dkp-desk-light"],
         )
 
 
-    def test_publish_selection_keeps_offers_from_recent_categories(self):
+    def test_publish_selection_blocks_recent_audio_family_not_category(self):
         now = datetime(2026, 10, 23, 12, 0, tzinfo=timezone.utc)
         recent_posts = [
             ("dkp-recent-fashion", "تیشرت مردانه مدل نمونه", 4),
@@ -1669,11 +1669,11 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-audio-new", "dkp-fragrance-new"],
+            ["dkp-fragrance-new"],
         )
 
 
-    def test_publish_selection_keeps_all_discount_ranked_items_despite_family_repeats(self):
+    def test_publish_selection_blocks_all_recent_skincare_family_candidates(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-recent-skincare": {
@@ -1706,11 +1706,11 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual(
             [item["product_id"] for item in selected],
-            [f"dkp-skincare-{index}" for index in range(1, 7)] + ["dkp-diverse-charger"],
+            ["dkp-diverse-charger"],
         )
 
 
-    def test_publish_selection_does_not_apply_category_diversity_as_a_rank_gate(self):
+    def test_publish_selection_blocks_recent_family_without_category_guard(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-recent-skincare": {
@@ -1740,7 +1740,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-skincare-top", "dkp-power-comparable"],
+            ["dkp-power-comparable"],
         )
 
 
@@ -1778,7 +1778,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
 
 
-    def test_publish_selection_prioritizes_higher_discount_over_category_rotation(self):
+    def test_publish_selection_blocks_recent_skincare_before_rank_selection(self):
         now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-recent-skincare": {
@@ -1812,7 +1812,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-skincare-close", "dkp-power-close"],
+            ["dkp-power-close"],
         )
 
 
@@ -1931,7 +1931,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(report["fallbacks"]["last_7_days_count"], 1)
 
 
-    def test_publish_selection_keeps_highest_rank_despite_recent_brand(self):
+    def test_publish_selection_blocks_recent_brand_and_uses_next_candidate(self):
         now = datetime(2026, 10, 23, 12, 0, tzinfo=timezone.utc)
         recent_titles = [
             "باتری قلمی قابل شارژ موزیک آپولو مدل قدیمی",
@@ -1966,11 +1966,11 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-muzik-audio-repeat", "dkp-speaker-new-family"],
+            ["dkp-speaker-new-family"],
         )
 
 
-    def test_publish_selection_keeps_discount_order_with_durable_repeat_history(self):
+    def test_publish_selection_blocks_durable_recent_audio_family(self):
         now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
         recent_publications = [
             {
@@ -1992,10 +1992,10 @@ class AffilioRadarTests(unittest.TestCase):
             queue, eligible, now, published={}, recent_publications=recent_publications
         )
 
-        # Durable history is telemetry only; it cannot replace the sorted candidates.
+        # Durable history enforces the 24-hour family, brand and similarity guards before selection.
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-audio-new", "dkp-power-new", "dkp-fashion-new"],
+            ["dkp-power-new", "dkp-fashion-new"],
         )
 
 
@@ -2650,7 +2650,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(published_order[-1]["product_id"], "dkp-95006")
 
 
-    def test_global_discount_then_savings_order_ignores_recent_family_and_brand(self):
+    def test_global_discount_then_savings_order_applies_24h_repeat_guards(self):
         now = datetime(2026, 11, 6, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-old-headphones": {
@@ -2687,9 +2687,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(
             [item["product_id"] for item in selected],
             [
-                "dkp-high-discount-repeat-family",
-                "dkp-equal-discount-lower-saving",
-                "dkp-lower-discount-higher-saving",
+                "dkp-equal-discount-lower-saving", "dkp-lower-discount-higher-saving",
             ],
         )
 
