@@ -34,8 +34,16 @@ def build_status_snapshot(state: dict[str, Any], generated_at: str | None = None
         str(row.get("id")) for row in categories
         if isinstance(row, dict) and str(row.get("id") or "").isdigit()
     }
-    completed = {
-        str(value) for value in state.get("last_cycle_categories_complete_ids", [])
+    last_cycle_category_ids = {
+        str(value) for value in state.get("last_cycle_category_ids", [])
+        if str(value).isdigit()
+    }
+    last_cycle_completed_ids = {
+        str(value) for value in state.get("last_cycle_completed_category_ids", [])
+        if str(value).isdigit()
+    }
+    last_cycle_unqueryable_ids = {
+        str(value) for value in state.get("last_cycle_unqueryable_category_ids", [])
         if str(value).isdigit()
     }
     total = _integer(state.get("last_cycle_categories_total"))
@@ -58,6 +66,11 @@ def build_status_snapshot(state: dict[str, Any], generated_at: str | None = None
         and pages > 0
         and cycles > 0
         and completed_at
+        and len(last_cycle_category_ids) == total
+        and len(last_cycle_completed_ids) == total
+        and not last_cycle_unqueryable_ids
+        and category_ids.issubset(last_cycle_category_ids)
+        and category_ids.issubset(last_cycle_completed_ids)
     )
     retries = sum(
         1 for item in queue
@@ -73,6 +86,10 @@ def build_status_snapshot(state: dict[str, Any], generated_at: str | None = None
         "last_cycle_status": cycle_status,
         "last_cycle_clean": clean,
         "last_cycle_completed_at": completed_at or None,
+        "catalog_category_ids": sorted(category_ids, key=lambda value: int(value)),
+        "last_cycle_category_ids": sorted(last_cycle_category_ids, key=lambda value: int(value)),
+        "last_cycle_completed_category_ids": sorted(last_cycle_completed_ids, key=lambda value: int(value)),
+        "last_cycle_unqueryable_category_ids": sorted(last_cycle_unqueryable_ids, key=lambda value: int(value)),
         "last_cycle_categories_total": total,
         "last_cycle_categories_complete": completed_count,
         "last_cycle_categories_unqueryable": unqueryable_count,
