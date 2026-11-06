@@ -16,3 +16,9 @@ enabled = true
 head_sampling_rate = 1.0
 invocation_logs = true
 persist = true
+
+# The canonical source file uses ESM syntax but retains its .js name for compatibility.
+# Explicitly classify JavaScript entrypoints as ES modules (Wrangler defaults .js to CommonJS).
+[[rules]]
+type = "ESModule"
+globs = ["**/*.js"]
