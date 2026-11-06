@@ -467,3 +467,16 @@
 **ریسک/بازگشت:** run یتیم قدیمی در گروه concurrency قبلی باقی می‌ماند و ممکن است در GitHub همچنان queued دیده شود؛ گروه v3 تنها اثر آن بر scanner جدید را ایزوله می‌کند. اگر deploy Wrangler به‌علت نبود Secret یا مجوز Workers Scripts Write شکست خورد، نسخهٔ 31 و Cron/Secretهای آن حفظ می‌شوند؛ از upload اجباری یا تغییر Secretها استفاده نشود. بازگشت گروه concurrency به v2 فقط در صورت رفع قطعی run یتیم و پس از اطمینان از نبود اجرای فعال انجام شود.
 
 **وضعیت:** تغییرات روی شاخهٔ کاری ثبت و مستند شده‌اند؛ نتیجهٔ نهایی تنها پس از CI، merge، deployment Wrangler و مشاهدهٔ run تازهٔ scanner ثبت خواهد شد.
+
+
+## ۲۰۲۶-۱۱-۰۶ — اصلاح تشخیص ES Module در dry-run Wrangler
+
+**هدف:** رفع خطای build مشاهده‌شده در PR validation بدون تغییر منطق Worker یا نام فایل اصلی.
+
+**تشخیص:** run `42242605846` در Wrangler 4.158.0، مرحلهٔ `wrangler deploy --dry-run` را با `Unexpected export` در `affilio-minute-dispatcher.js:373` رد کرد. فایل Worker از `export default` استفاده می‌کند، اما Wrangler پسوند `.js` را به‌طور پیش‌فرض CommonJS تشخیص می‌داد.
+
+**تغییر:** به `cloudflare/wrangler.toml` یک rule صریح `type = "ESModule"` با glob `**/*.js` اضافه شد. نام فایل canonical حفظ شد و هیچ نسخهٔ تکراری از سورس ایجاد نشد.
+
+**آزمون و نتیجه:** پیش از این اصلاح، Catalog Sweep Regression run `42242605827` موفق بود. dry-run Worker در run `42242605846` شکست خورد. نتیجهٔ dry-run مجدد، Documentation Gate، deploy و بررسی Cron/Secretها هنوز pending است؛ Worker production همچنان نسخهٔ 31 است و deploy جدیدی انجام نشده است.
+
+**وضعیت:** اصلاح config و ثبت مستندات روی شاخهٔ PR انجام شد؛ موفقیت فقط پس از اجرای مجدد CI اعلام می‌شود.
