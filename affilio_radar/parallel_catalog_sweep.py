@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import sys
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Callable
@@ -251,6 +252,7 @@ def run_parallel_sweep(
     fetcher: Callable[[dict], dict] | None = None,
 ) -> int:
     """Process a bounded page batch concurrently and checkpoint atomically."""
+    run_started = time.monotonic()
     state = base._read_json(state_path, {})
     if not isinstance(state, dict):
         state = {}
@@ -380,8 +382,11 @@ def run_parallel_sweep(
     if saved_limit > 0:
         worker_limit = max(1, min(requested_workers, saved_limit))
 
+    fetch_started = time.monotonic()
     with ThreadPoolExecutor(max_workers=min(worker_limit, len(batch) or 1)) as pool:
         results = list(pool.map(worker_fn, batch))
+    fetch_seconds = time.monotonic() - fetch_started
+    processing_started = time.monotonic()
 
     candidates = base._load_candidates_by_id(candidates_path)
     now = base.utc_now()
@@ -544,11 +549,18 @@ def run_parallel_sweep(
         list(candidates.values()), limit=base.MAX_RETAINED_CANDIDATES,
         rotation=stats["pages_scanned_total"],
     )
+    processing_seconds = time.monotonic() - processing_started
+    candidate_write_started = time.monotonic()
     base._write_json(candidates_path, {
         "updated_at": base.iso_now(),
         "candidate_count": len(ordered_candidates),
         "candidates": ordered_candidates,
     })
+    candidate_write_seconds = time.monotonic() - candidate_write_started
+    try:
+        candidate_file_bytes = candidates_path.stat().st_size
+    except OSError:
+        candidate_file_bytes = 0
 
     state["parallel_pending_pages"] = remaining
     state["pending_page_count"] = len(remaining)
@@ -561,6 +573,16 @@ def run_parallel_sweep(
     state["parallel_last_batch_product_rows"] = page_row_count
     state["parallel_last_batch_empty_product_pages"] = empty_product_pages
     state["parallel_last_batch_nonempty_product_pages"] = nonempty_product_pages
+    state["parallel_last_batch_fetch_seconds"] = round(fetch_seconds, 3)
+    state["parallel_last_batch_processing_seconds"] = round(processing_seconds, 3)
+    state["parallel_last_batch_candidate_write_seconds"] = round(candidate_write_seconds, 3)
+    state["parallel_last_batch_pages_per_second"] = round(
+        len(batch) / max(fetch_seconds, 0.001), 2
+    )
+    state["parallel_last_batch_rows_per_second"] = round(
+        page_row_count / max(fetch_seconds + processing_seconds + candidate_write_seconds, 0.001), 2
+    )
+    state["parallel_last_batch_candidate_file_bytes"] = candidate_file_bytes
     state["unacknowledged_candidate_count"] = len(ordered_candidates)
     state["stats"] = stats
     state["category_count"] = len(categories)
@@ -568,7 +590,10 @@ def run_parallel_sweep(
     if remaining:
         state["category_index"] = 0
         state["page"] = base._normal_int(remaining[0].get("page"), 1)
+    state_write_started = time.monotonic()
     base._write_json(state_path, state)
+    state_write_seconds = time.monotonic() - state_write_started
+    total_run_seconds = time.monotonic() - run_started
 
     print(
         "PARALLEL_CATALOG_SWEEP_SUMMARY "
@@ -582,6 +607,11 @@ def run_parallel_sweep(
         f"cycle_categories_complete={len(state.get('parallel_cycle_completed_category_ids', []))} "
         f"cycle_categories_unqueryable={len(state.get('parallel_cycle_unqueryable_category_ids', []))} "
         f"cycle_pages={state.get('parallel_cycle_pages_success', 0)} "
+        f"fetch_s={fetch_seconds:.3f} process_s={processing_seconds:.3f} "
+        f"candidate_write_s={candidate_write_seconds:.3f} state_write_s={state_write_seconds:.3f} "
+        f"total_s={total_run_seconds:.3f} fetch_pages_per_s={state['parallel_last_batch_pages_per_second']:.2f} "
+        f"rows_per_s={state['parallel_last_batch_rows_per_second']:.2f} "
+        f"candidate_bytes={candidate_file_bytes} "
         f"sort=discount_percent_desc,savings_toman_desc full_pages=true "
         f"completed_cycles={stats['completed_cycles']}"
     )
