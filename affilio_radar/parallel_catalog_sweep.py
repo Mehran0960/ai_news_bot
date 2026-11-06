@@ -27,7 +27,7 @@ STATE_PATH = ROOT / "catalog_sweep_state.json"
 CANDIDATES_PATH = ROOT / "catalog_sweep_candidates.json"
 PUBLISHER_STATE_PATH = ROOT / "state.json"
 DEFAULT_PAGES_PER_RUN = 480
-DEFAULT_WORKERS = 12
+DEFAULT_WORKERS = 16
 _thread_local = threading.local()
 
 
@@ -381,9 +381,12 @@ def run_parallel_sweep(
     saved_limit = base._normal_int(state.get("parallel_worker_limit"), requested_workers)
     if saved_limit > 0:
         worker_limit = max(1, min(requested_workers, saved_limit))
+    # Persist the capacity actually assigned to this batch separately from the
+    # next batch's adaptive limit; otherwise telemetry reports the future limit.
+    workers_used = min(worker_limit, len(batch) or 1)
 
     fetch_started = time.monotonic()
-    with ThreadPoolExecutor(max_workers=min(worker_limit, len(batch) or 1)) as pool:
+    with ThreadPoolExecutor(max_workers=workers_used) as pool:
         results = list(pool.map(worker_fn, batch))
     fetch_seconds = time.monotonic() - fetch_started
     processing_started = time.monotonic()
@@ -534,12 +537,16 @@ def run_parallel_sweep(
         state["last_successful_page_at"] = base.iso_now()
         state["last_error"] = ""
 
-    # Sustained 429s automatically back concurrency down. A clean batch restores
-    # one worker per run, never exceeding the configured ceiling.
+    # Treat every HTTP 429 as a rate-limit signal. Isolated events reduce
+    # concurrency by one; a cluster of three or more halves it. Clean batches
+    # add one worker per run, never exceeding the configured ceiling.
     if rate_limited_count >= 3:
         worker_limit = max(2, worker_limit // 2)
+    elif rate_limited_count:
+        worker_limit = max(2, worker_limit - 1)
     elif retry_count == 0 and worker_limit < requested_workers:
         worker_limit += 1
+    worker_limit = min(requested_workers, max(1, worker_limit))
     state["parallel_worker_limit"] = worker_limit
 
     candidates = base._clean_old_candidates(
@@ -586,7 +593,7 @@ def run_parallel_sweep(
     state["unacknowledged_candidate_count"] = len(ordered_candidates)
     state["stats"] = stats
     state["category_count"] = len(categories)
-    state["parallel_workers_used"] = min(worker_limit, len(batch) or 1)
+    state["parallel_workers_used"] = workers_used
     if remaining:
         state["category_index"] = 0
         state["page"] = base._normal_int(remaining[0].get("page"), 1)
