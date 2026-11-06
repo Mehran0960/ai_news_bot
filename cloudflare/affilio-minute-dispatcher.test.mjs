@@ -8,6 +8,7 @@ const cleanStatus = {
   scan_policy_version: "all_categories_all_pages_v2",
   last_cycle_status: "complete",
   last_cycle_categories_total: 4917,
+  catalog_category_count: 4917,
   last_cycle_categories_complete: 4917,
   last_cycle_categories_unqueryable: 0,
   last_cycle_category_coverage_percent: 100,
@@ -24,6 +25,10 @@ test("allows publication only when a clean cycle is newer than the previous post
   assert.equal(isFreshCleanCatalogCycle(cleanStatus, Date.parse("2026-11-06T15:59:59Z")), true);
   assert.equal(isFreshCleanCatalogCycle(cleanStatus, Date.parse("2026-11-06T16:00:00Z")), false);
   assert.equal(isFreshCleanCatalogCycle(cleanStatus, Date.parse("2026-11-06T16:00:01Z")), false);
+});
+
+test("blocks a previously clean cycle when new catalog categories appear", () => {
+  assert.equal(isFreshCleanCatalogCycle({ ...cleanStatus, catalog_category_count: 4918 }, null), false);
 });
 
 test("blocks incomplete cycles and any unqueryable category", () => {
