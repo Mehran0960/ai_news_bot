@@ -124,9 +124,9 @@ async function dispatchWorkflowIfIdle(
   console.log("CHANNEL_DISPATCH_ACCEPTED workflow=" + label);
 }
 export function isFreshCleanCatalogCycle(status, lastPublicationAt) {
-  if (!status || typeof status !== "object" || Number(status.schema_version) !== 1) return false;
+  if (!status || typeof status !== "object" || Number(status.schema_version) !== 2) return false;
   if (status.full_catalog_mode !== "all_categories_all_pages") return false;
-  if (status.scan_policy_version !== "all_categories_all_pages_v2") return false;
+  if (status.scan_policy_version !== "all_categories_all_pages_v3_cycle_snapshot") return false;
   if (status.last_cycle_status !== "complete") return false;
 
   const total = Number(status.last_cycle_categories_total);
@@ -158,10 +158,18 @@ export function isFreshCleanCatalogCycle(status, lastPublicationAt) {
   ) return false;
   if (scannedIds.some(id => !completedSet.has(id))) return false;
   if (currentIds.some(id => !scannedSet.has(id) || !completedSet.has(id))) return false;
+  if (scannedIds.some(id => !new Set(currentIds).has(id))) return false;
   if (unqueryableIds.length !== 0 || unqueryable !== 0) return false;
   if (!Number.isFinite(coverage) || coverage < 100) return false;
   if (!Number.isFinite(pages) || pages < 1 || !Number.isFinite(cycles) || cycles < 1) return false;
   if (!Number.isFinite(completedAt)) return false;
+  const candidateCycleAt = Date.parse(String(status.completed_candidates_cycle_at || ""));
+  const candidateCount = Number(status.completed_candidates_count);
+  const candidateHash = String(status.completed_candidates_sha256 || "");
+  if (status.completed_candidates_snapshot_valid !== true) return false;
+  if (!Number.isFinite(candidateCycleAt) || candidateCycleAt !== completedAt) return false;
+  if (!Number.isFinite(candidateCount) || candidateCount < 1) return false;
+  if (!/^[a-f0-9]{64}$/i.test(candidateHash)) return false;
 
   const previousPublication = Number(lastPublicationAt);
   if (lastPublicationAt !== null && Number.isFinite(previousPublication) && completedAt <= previousPublication) {
