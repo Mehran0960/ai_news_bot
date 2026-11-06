@@ -364,3 +364,11 @@ NaN
 - مطابق مستندات جاری Wrangler، برای تفسیر فایل `.js` به‌عنوان ES Module باید در config از rule صریح `ESModule` استفاده شود. به `cloudflare/wrangler.toml` یک rule با glob `**/*.js` افزوده شد؛ نام فایل canonical و همهٔ references موجود حفظ شدند و نیازی به کپی/تکثیر فایل سورس نیست.
 - فایل تنظیمات اصلاح شده است؛ نتیجهٔ dry-run بعدی هنوز باید در PR جدید/به‌روزشده تأیید شود. تا آن زمان هیچ deployment تولید انجام نشده و Worker نسخهٔ 31 فعال باقی می‌ماند.
 - آزمون مستقل catalog regression روی همان PR قبلاً موفق بود؛ Documentation Gate در حال اجرا بود. این خطای dry-run یک مشکل build/config است و هیچ ارتباطی با scanner، API دیجی‌کالا یا HTTP 429 ندارد.
+
+
+## 19. راه‌حل نهایی entrypoint ماژول در Wrangler — ۶ نوامبر ۲۰۲۶
+
+- اجرای بعدی PR validation، با وجود rule صریح `[[rules]] type = "ESModule"`، همچنان خطای `Unexpected export` در entrypoint دارای پسوند `.js` داد. بنابراین rule به‌تنهایی در build واقعی Wrangler 4.158.0 مشکل entrypoint این پروژه را حل نکرد.
+- راه‌حل قطعی بدون تکثیر source در Git: فایل canonical همچنان `cloudflare/affilio-minute-dispatcher.js` است؛ CI قبل از هر dry-run و deploy آن را به فایل موقت `cloudflare/affilio-minute-dispatcher.mjs` کپی می‌کند. `cloudflare/wrangler.toml` اکنون main را روی همین `.mjs` قرار می‌دهد؛ فایل موقت فقط در runner ساخته می‌شود و به مخزن commit نمی‌شود.
+- این راه، نام و مسیر منبع فعلی Worker را برای سایر referenceها حفظ می‌کند، از دو نسخهٔ مستقل کد جلوگیری می‌کند و Wrangler را با پسوند صریح ES Module اجرا می‌کند.
+- نتیجهٔ dry-run پس از این اصلاح باید از run جدید PR خوانده شود. هیچ deployment تولیدی در دو تلاش قبلی انجام نشد؛ تا زمان تأیید اجرای جدید، نسخهٔ 31 production معتبر است.
