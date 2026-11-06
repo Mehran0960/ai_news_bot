@@ -827,6 +827,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         with (
             patch("publisher._now", return_value=self.now),
             patch("publisher.radar.load_state", return_value=state),
+            patch("publisher.radar.publication_catalog_context", return_value={"mode": "initial_warmup", "snapshot": None}),
             patch("publisher._save"),
             patch(
                 "publisher._fresh_selected_item",
@@ -852,6 +853,29 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(state["content_delivery_history"][1]["status"], "published")
         self.assertIn("dkp-99001", state["selection_rejections"])
         self.assertIn("dkp-99002", state["published"])
+
+    
+    def test_publisher_blocks_new_delivery_when_catalog_snapshot_is_unavailable(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-99004")], now=self.now, interval_seconds=1200,
+        )
+        with (
+            patch("publisher._now", return_value=self.now),
+            patch("publisher.radar.load_state", return_value=state),
+            patch("publisher.radar.publication_catalog_context", return_value={"mode": "blocked", "snapshot": None}),
+            patch("publisher._save"),
+            patch("publisher._fresh_selected_item") as revalidate,
+            patch("publisher._process_photo_destination") as send_photo,
+        ):
+            self.assertEqual(publish_due_queue(), 0)
+
+        revalidate.assert_not_called()
+        send_photo.assert_not_called()
+        entry = state["content_delivery_queue"]["dkp-99004"]
+        self.assertEqual(entry["status"], "queued")
+        self.assertEqual(entry["last_detail"], "verified_full_catalog_snapshot_unavailable")
+        self.assertEqual(entry["next_attempt_at"], (self.now + timedelta(minutes=5)).isoformat())
 
 
     def test_terminal_queue_item_moves_to_bounded_history(self):
