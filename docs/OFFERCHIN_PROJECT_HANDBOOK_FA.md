@@ -282,3 +282,5 @@ NaN
 - `ensure_recent_publications` برای ساخت رکورد history، نام برند صریح را همراه عنوان به `_publication_diversity_group` می‌دهد؛ بنابراین برندهایی که در متن عنوان نیامده‌اند نیز پس از بازسازی state برای guard ۲۴ساعته باقی می‌مانند.
 - تست regression جدید ثابت می‌کند برند metadata-only پس از ledger/history rebuild هنوز candidate هم‌برند را block می‌کند و گزینهٔ بعدی با برند دیگر را انتخاب می‌کند.
 - commits تکمیلی: source `19405ca12bf2510f72ffa9bd16fa54877ec7e533`، tests `e43ad9c33f1f6bc90aa29cda4743ab751c3d167f`.
+
+- Regression fixture مربوط به حفظ brand metadata با شناسهٔ معتبر DigiKala (`dkp-123456`) اصلاح شد؛ شناسهٔ قبلی خارج از الگوی SKU بود و به‌درستی توسط ledger رد می‌شد. این اصلاح فقط fixture آزمون را تصحیح می‌کند.
