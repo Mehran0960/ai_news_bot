@@ -11,7 +11,7 @@ try:
         candidate_matches_completed_snapshot,
         load_completed_candidates_snapshot,
     )
-except ImportError:  # unittest discovery from the workflow's affilio_radar working directory
+except ImportError:
     from catalog_status_snapshot import (
         build_status_snapshot,
         candidate_matches_completed_snapshot,
@@ -54,6 +54,14 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
             "cycle_started_at": self.started_at,
             "cycle_completed_at": self.completed_at,
             "category_ids": ["1", "2", "3"],
+            "completed_category_ids": ["1", "2", "3"],
+            "unqueryable_category_ids": [],
+            "categories_total": 3,
+            "categories_complete": 3,
+            "categories_unqueryable": 0,
+            "category_coverage_percent": 100,
+            "pages_success": 120,
+            "product_rows_success": 2400,
             "candidate_count": 2,
             "candidates": [
                 {
@@ -73,42 +81,70 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
             ],
         }
 
-    def test_clean_full_cycle_and_matching_candidate_snapshot_are_eligible(self):
+    def test_clean_snapshot_is_usable_while_next_sweep_is_running(self):
+        state = {
+            **self.state,
+            "last_cycle_status": "in_progress",
+            "last_cycle_completed_at": None,
+            "last_cycle_categories_total": 3,
+            "last_cycle_categories_complete": 1,
+            "last_cycle_categories_unqueryable": 0,
+            "parallel_cycle_started_at": "2026-11-06T16:00:00+00:00",
+            "parallel_cycle_pages_success": 2,
+            "parallel_cycle_completed_category_ids": ["1"],
+            "parallel_pending_pages": [{"category_id": "1", "page": 3, "attempts": 0}],
+            "stats": {"completed_cycles": 1},
+        }
         status = build_status_snapshot(
-            self.state,
+            state,
             "2026-11-06T16:01:00+00:00",
             completed_candidates=self.candidates,
         )
-        self.assertTrue(status["last_cycle_clean"])
         self.assertTrue(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["last_clean_cycle_completed_at"], self.completed_at)
         self.assertEqual(status["completed_candidates_count"], 2)
-        self.assertEqual(status["last_cycle_categories_complete"], 3)
+        self.assertEqual(status["last_cycle_status"], "in_progress")
         self.assertEqual(status["pending_page_count"], 1)
 
-    def test_category_set_must_match_the_completed_cycle(self):
+    def test_failed_new_cycle_does_not_erase_last_known_good_snapshot(self):
+        failed = {
+            **self.state,
+            "last_cycle_status": "complete_with_gaps",
+            "last_cycle_categories_complete": 2,
+            "last_cycle_categories_unqueryable": 1,
+            "last_cycle_category_coverage_percent": 66.67,
+        }
+        status = build_status_snapshot(failed, completed_candidates=self.candidates)
+        self.assertTrue(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["last_clean_cycle_completed_at"], self.completed_at)
+        self.assertEqual(status["last_cycle_status"], "complete_with_gaps")
+
+    def test_category_set_must_still_match_the_snapshot(self):
         changed = {
             **self.state,
             "categories": [{"id": "1"}, {"id": "2"}, {"id": "4"}],
         }
         status = build_status_snapshot(changed, completed_candidates=self.candidates)
-        self.assertFalse(status["last_cycle_clean"])
         self.assertFalse(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["last_clean_cycle_status"], "unavailable")
 
-    def test_any_gap_prevents_clean_full_cycle(self):
+    def test_candidate_snapshot_metadata_must_prove_full_coverage(self):
         for key, value in (
-            ("last_cycle_status", "complete_with_gaps"),
-            ("last_cycle_categories_unqueryable", 1),
-            ("last_cycle_categories_complete", 2),
-            ("last_cycle_category_coverage_percent", 99.9),
-            ("last_cycle_pages_success", 0),
+            ("cycle_status", "complete_with_gaps"),
+            ("categories_unqueryable", 1),
+            ("categories_complete", 2),
+            ("category_coverage_percent", 99.9),
+            ("pages_success", 0),
+            ("completed_category_ids", ["1", "2"]),
         ):
             with self.subTest(key=key):
-                state = {**self.state, key: value}
-                status = build_status_snapshot(state, completed_candidates=self.candidates)
-                self.assertFalse(status["last_cycle_clean"])
+                changed = {**self.candidates, key: value}
+                status = build_status_snapshot(
+                    self.state, completed_candidates=changed
+                )
                 self.assertFalse(status["completed_candidates_snapshot_valid"])
 
-    def test_candidate_snapshot_must_match_exact_cycle_and_all_categories(self):
+    def test_candidate_snapshot_must_have_matching_ids_timestamps_and_rank_order(self):
         stale = {**self.candidates, "cycle_completed_at": "2026-11-06T15:00:00+00:00"}
         self.assertFalse(
             build_status_snapshot(self.state, completed_candidates=stale)[
@@ -130,6 +166,15 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         }
         self.assertFalse(
             build_status_snapshot(self.state, completed_candidates=wrong_rank)[
+                "completed_candidates_snapshot_valid"
+            ]
+        )
+        wrong_order = {
+            **self.candidates,
+            "candidates": list(reversed(self.candidates["candidates"])),
+        }
+        self.assertFalse(
+            build_status_snapshot(self.state, completed_candidates=wrong_order)[
                 "completed_candidates_snapshot_valid"
             ]
         )
@@ -160,14 +205,24 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
                 )
             )
 
-            tampered = {**self.candidates, "candidates": [self.candidates["candidates"][1]]}
+            tampered = {
+                **self.candidates,
+                "candidates": [
+                    {**self.candidates["candidates"][0], "discount_percent": 97},
+                    self.candidates["candidates"][1],
+                ],
+            }
             candidates_path.write_text(json.dumps(tampered), encoding="utf-8")
-            self.assertIsNone(load_completed_candidates_snapshot(status_path, candidates_path))
+            self.assertIsNone(
+                load_completed_candidates_snapshot(status_path, candidates_path)
+            )
 
-    def test_partial_legacy_cycle_is_not_eligible(self):
-        state = {**self.state, "parallel_scan_policy_version": "top_60_partial"}
-        status = build_status_snapshot(state, completed_candidates=self.candidates)
-        self.assertFalse(status["last_cycle_clean"])
+    def test_invalid_snapshot_file_does_not_enable_warmup_semantics(self):
+        status = build_status_snapshot(
+            self.state,
+            completed_candidates={**self.candidates, "candidates": []},
+        )
+        self.assertTrue(status["completed_candidates_snapshot_present"])
         self.assertFalse(status["completed_candidates_snapshot_valid"])
 
 
