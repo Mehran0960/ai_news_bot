@@ -2,6 +2,7 @@ name = "affilio-minute-dispatcher"
 main = "affilio-minute-dispatcher.mjs"
 compatibility_date = "2026-10-17"
 workers_dev = false
+no_bundle = true
 keep_vars = true
 
 [triggers]
