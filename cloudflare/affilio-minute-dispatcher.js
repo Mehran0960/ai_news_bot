@@ -116,6 +116,13 @@ async function dispatchWorkflowIfIdle(
       " run_id=" + active.run.id + " reason=zero_jobs_and_stale"
     );
   }
+  await githubRequest(api + "/dispatches", token, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ref: "main" })
+  });
+  console.log("CHANNEL_DISPATCH_ACCEPTED workflow=" + label);
+}
 const PUBLISHER_INTERVAL_MS = 17 * 60 * 1000;
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
 
