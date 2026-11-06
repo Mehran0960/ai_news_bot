@@ -239,10 +239,10 @@ NaN
 
 ### تغییر اجرایی ادغام‌شده در main
 - PR #75 ادغام‌شده در `main`؛ merge commit: `36367fe4df27b33ab01ed155adc0d03b557c7fb9`. شاخهٔ کاری: `docs/discount-first-charter-and-operating-rules-2026-11-06`.
-- منطق _filter_recent_publication_repeats در PR #75 به telemetry-only تغییر کرده بود؛ اصلاحیهٔ PR #76 آن را به guard واقعی rolling 24h برای خانواده/برند/شباهت برمی‌گرداند. گارد، کاندیدای تکراری را رد و رتبهٔ بعدیِ مجاز را انتخاب می‌کند.
+- PR #75 به‌طور موقت guardها را telemetry-only کرده بود؛ PR #76 با merge commit `49b13f486d6412806c0c35d74c039c3b7d7cb9bc` آن را supersede کرد و guard واقعی rolling 24h برای خانواده/برند/شباهت را به main برگرداند. کاندیدای تکراری رد و رتبهٔ بعدیِ مجاز انتخاب می‌شود.
 - آزمون‌های affilio_radar/test_affilio.py در PR #75 موقتاً انتظار telemetry-only را تثبیت کردند؛ اصلاحیهٔ PR #76 این دو انتظار را معکوس و تست‌های جدید ۲۴ساعته برای family/brand/similarity، آزادشدن پس از ۲۴ ساعت و batch داخلی اضافه می‌کند.
 - کنترل تکرار همان SKUِ بدون بهبود، hand-off فعال، ارسال تکراری مقصد، قیمت/موجودی، لینک، deadline و ایمنی دست‌نخورده‌اند.
-- SHA commit منطق: da2d162bb293bdcc68c3fc605abdcad95eb17c5f؛ SHA commit تست‌ها: d4827632c817db2f2ec6dd868b1a71f9b310b0e2.
+- merge commit نهایی: `49b13f486d6412806c0c35d74c039c3b7d7cb9bc`; source commit قبل از merge: `19405ca12bf2510f72ffa9bd16fa54877ec7e533`; test fixture commit: `5642211d8c5cabace63ab31d60e4f242268363a2`.
 
 ### شواهد اجرایی
 - Catalog Sweep run 42167917939: pages_attempted=300، pages_ok=300، products=5986، workers=9، retries=0، rate_limited=0، pending_pages=321، candidates=3000.
@@ -253,7 +253,7 @@ NaN
 ### مستندسازی و ادامهٔ کار
 - منشور محصول، handbook فنی و changelog به تصمیم discount-first تغییر می‌کنند؛ سابقهٔ Shadow در بخش ۱۲ فقط برای traceability باقی است.
 - اولویت باز: full-cycle، بررسی ۳٬۰۰۰ کاندیدا/TTL ۷۲ ساعت و اطمینان از hand-off نشدنِ نامزدهای برتر.
-- تغییر در `main` فعال است. آخرین CI مربوط به PR: Catalog Sweep Regression Tests run `42170452852`، Top-100 and DigiPay Regression Tests run `42170452832`، Documentation Gate run `42170452952`؛ هر سه success. Product Radar روی `main` پس از merge جداگانه run `42170588349` را اجرا می‌کند و نتیجه‌اش باید مستقل بررسی شود. تکمیل full-cycle همچنان اثبات نشده است.
+- PR #76 ادغام‌شده و guardهای ۲۴ساعته روی main فعال‌اند. CI مربوط به PR: Catalog Sweep run `42180472166`، Top-100/DigiPay run `42180472274` و Documentation Gate run `42180472333` همگی success؛ suite کامل Affilio Product Radar run `42180439592` نیز ۴۲۱ تست و ۲ skip را با نتیجه OK گذراند. full-cycle کاتالوگ همچنان اثبات نشده است.
 
 ## 14. تصمیم نهایی کاربر و اصلاح گاردها — ۶ نوامبر ۲۰۲۶
 
@@ -267,20 +267,20 @@ NaN
 
 ### اصلاح فنی
 - PR #75 در ۶ نوامبر family/brand/similarity را موقتاً به telemetry-only تبدیل کرده بود؛ کاربر با توضیح تکمیلی خواستار حفظ صریح هر سه guard ۲۴ساعته شد.
-- اصلاحیه در شاخهٔ fix/restore-24h-family-brand-similarity-guards-2026-11-06: تابع _filter_recent_publication_repeats هر سه گارد را enforce می‌کند؛ BRAND_REPEAT_COOLDOWN_HOURS از ۱۲ به ۲۴ افزایش یافته است؛ family و similarity قبلاً ۲۴ بودند.
+- در main پس از PR #76، تابع _filter_recent_publication_repeats هر سه گارد را enforce می‌کند؛ BRAND_REPEAT_COOLDOWN_HOURS از ۱۲ به ۲۴ افزایش یافته است؛ family و similarity نیز ۲۴ ساعت‌اند.
 - آزمون‌ها پوشش می‌دهند: block شدن کاندیدای تکراری در هر یک از سه guard، آزادشدن پس از گذشت ۲۴ ساعت، انتخاب بهترین رتبهٔ بعدی، و جلوگیری از تکرار در یک batch.
-- وضعیت main: این اصلاحیه تا CI و merge، هنوز تغییر زندهٔ main محسوب نمی‌شود.
+- وضعیت main: PR #76 ادغام‌شده با commit `49b13f486d6412806c0c35d74c039c3b7d7cb9bc`. سه check اصلی PR موفق‌اند؛ Affilio Product Radar run `42180439592` نیز ۴۲۱ تست و ۲ skip را با موفقیت گذراند.
 
 ### تکمیل اصلاحیهٔ برند و آزمون‌های رگرسیون
 - نرمال‌سازی brand در _publication_diversity_group اکنون idempotent است؛ brand slug ذخیره‌شده در publication history دوباره prefix نمی‌گیرد و با brand همان کاندیدا قابل مقایسه می‌ماند.
 - expectationهای قدیمی که family/brand repeat را مجاز می‌شمردند به رفتار درست تغییر کردند: candidate تکراری رد و گزینهٔ بعدی انتخاب می‌شود. نام تست‌ها نیز با قرارداد guard ۲۴ساعته هم‌راستا شد.
-- آخرین commits کد/تست در شاخه: source `2c492dadf4a0e98d398cb595ac274e970e3aae6c`، tests `e8b1a047199fdd2b9d0920198680164bfeeddd84`.
-- اجرای نخست پس از بازگرداندن guardها، ۱۲ failure در expectationهای قدیمی/تطبیق brand نشان داد؛ پس از اصلاح کد و آزمون‌ها، rerunهای جدید هنوز در انتظار نتیجه‌اند.
+- commits اصلاحی پیش از merge: source `19405ca12bf2510f72ffa9bd16fa54877ec7e533`، test fixture `5642211d8c5cabace63ab31d60e4f242268363a2`؛ merge commit نهایی `49b13f486d6412806c0c35d74c039c3b7d7cb9bc`.
+- اجرای نخست پس از بازگرداندن guardها، ۱۲ failure در expectationهای قدیمی/تطبیق brand نشان داد؛ پس از اصلاح normalization برند و expectationها، suite نهایی ۴۲۱ تست و ۲ skip را با موفقیت گذراند.
 
 ### حفظ برند صریح در تاریخچهٔ پایدار
 - `ensure_publication_ledger` اکنون `brand` و `brand_name` را از رکورد انتشار در ledger نگه می‌دارد.
 - `ensure_recent_publications` برای ساخت رکورد history، نام برند صریح را همراه عنوان به `_publication_diversity_group` می‌دهد؛ بنابراین برندهایی که در متن عنوان نیامده‌اند نیز پس از بازسازی state برای guard ۲۴ساعته باقی می‌مانند.
 - تست regression جدید ثابت می‌کند برند metadata-only پس از ledger/history rebuild هنوز candidate هم‌برند را block می‌کند و گزینهٔ بعدی با برند دیگر را انتخاب می‌کند.
-- commits تکمیلی: source `19405ca12bf2510f72ffa9bd16fa54877ec7e533`، tests `e43ad9c33f1f6bc90aa29cda4743ab751c3d167f`.
+- commits تکمیلی پیش از merge: source `19405ca12bf2510f72ffa9bd16fa54877ec7e533`، tests `e43ad9c33f1f6bc90aa29cda4743ab751c3d167f`.
 
-- Regression fixture مربوط به حفظ brand metadata با شناسهٔ معتبر DigiKala (`dkp-123456`) اصلاح شد؛ شناسهٔ قبلی خارج از الگوی SKU بود و به‌درستی توسط ledger رد می‌شد. این اصلاح فقط fixture آزمون را تصحیح می‌کند.
+- Regression fixture مربوط به حفظ brand metadata با شناسهٔ معتبر DigiKala (`dkp-123456`) اصلاح شد؛ شناسهٔ قبلی خارج از الگوی SKU بود و به‌درستی توسط ledger رد می‌شد. این اصلاح فقط fixture آزمون را تصحیح می‌کند. آخرین آزمون کامل: ۴۲۱ تست، ۲ skip، OK.
