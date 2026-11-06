@@ -54,7 +54,7 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime, catalog_contex
     for candidate in candidates:
         if not isinstance(candidate, dict):
             continue
-        if not radar.catalog_candidate_is_publishable(candidate, catalog_context):
+        if catalog_context is not None and not radar.catalog_candidate_is_publishable(candidate, catalog_context):
             continue
         raw_floor = candidate.get("selection_discount_floor")
         if raw_floor is None:
@@ -261,7 +261,7 @@ def _fresh_selected_item(
     payload = entry.get("payload")
     if not isinstance(payload, dict):
         return None, "missing_selection_payload"
-    if require_catalog_membership and not radar.catalog_candidate_is_publishable(payload, catalog_context):
+    if require_catalog_membership and catalog_context is not None and not radar.catalog_candidate_is_publishable(payload, catalog_context):
         return None, "catalog_snapshot_candidate_stale"
     product_url = radar.safe_product_url(str(payload.get("product_url") or ""))
     product_id = str(payload.get("product_id") or "").lower()
