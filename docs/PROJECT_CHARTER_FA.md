@@ -306,4 +306,4 @@ OfferChin یک سامانهٔ خودکارِ پایش کاتالوگ و توزی
 ### تغییرات فنی و وضعیت
 - شاخهٔ کاری: docs/discount-first-charter-and-operating-rules-2026-11-06.
 - منطق _filter_recent_publication_repeats و تست‌های رگرسیون در این شاخه تغییر کرده‌اند؛ منطق اصلی درصد/صرفه‌جویی همچنان مبنای رتبه است.
-- این snapshot روی شاخه است؛ تا اجرای موفق CI و merge به main، آن را رفتار live اعلام نکنید.
+- PR #75 با موفقیت در ۶ نوامبر ۲۰۲۶ ادغام شد؛ merge commit برابر `36367fe4df27b33ab01ed155adc0d03b557c7fb9` است. آزمون‌های Catalog Sweep، Top-100/DigiPay و Documentation Gate روی آخرین commit PR موفق شدند. تغییر منطق اکنون در `main` است؛ اما full-cycle کاتالوگ همچنان تکمیل نشده و ادعای رتبهٔ جهانیِ تمام SKUها مجاز نیست.
