@@ -4724,15 +4724,16 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertLessEqual(max(ys) - min(ys) + 1, expected_height)
             self.assertGreaterEqual(max(ys) - min(ys) + 1, expected_height - 4)
 
-    def test_channel_watermarks_exclude_the_destination_and_show_other_three_platforms(self):
+    def test_channel_watermarks_exclude_the_destination_and_show_other_four_platforms(self):
         image_bytes = BytesIO()
         Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")
         source = image_bytes.getvalue()
         expected = {
-            "telegram": ["bale", "rubika", "youtube"],
-            "bale": ["telegram", "rubika", "youtube"],
-            "rubika": ["telegram", "bale", "youtube"],
-            "youtube": ["telegram", "bale", "rubika"],
+            "telegram": ["bale", "rubika", "youtube", "aparat"],
+            "bale": ["telegram", "rubika", "youtube", "aparat"],
+            "rubika": ["telegram", "bale", "youtube", "aparat"],
+            "youtube": ["telegram", "bale", "rubika", "aparat"],
+            "aparat": ["telegram", "bale", "rubika", "youtube"],
         }
         rendered = []
 
@@ -4758,7 +4759,7 @@ class AffilioRadarTests(unittest.TestCase):
             build_discount_image(source, None)
         self.assertEqual(
             [call.args[1] for call in draw_icon.call_args_list],
-            ["telegram", "bale", "rubika", "youtube"],
+            ["telegram", "bale", "rubika", "youtube", "aparat"],
         )
 
     def test_telegram_growth_invites_are_created_once_per_source_and_reused(self):
