@@ -714,10 +714,10 @@ def upload_youtube_video(
         pass
     video_title = (title_clean + suffix)[:100]
     description_text = str(description or "").strip() or (
-        "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\\n\\n"
-        "t.me/OfferChin\\n"
-        "ble.ir/OfferChin\\n"
-        "rubika.ir/offerchin\\n"
+        "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\n\n"
+        "t.me/OfferChin\n"
+        "ble.ir/OfferChin\n"
+        "rubika.ir/offerchin\n"
         "aparat.com/OfferChin"
     )
     video = {
