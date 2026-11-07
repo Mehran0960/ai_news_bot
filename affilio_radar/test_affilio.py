@@ -4728,15 +4728,24 @@ class AffilioRadarTests(unittest.TestCase):
         Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")
         source = image_bytes.getvalue()
 
-        default_telegram = build_discount_image(source, None)
+        drawn_platforms = []
+        with patch(
+            "affilio_radar._draw_platform_watermark_icon",
+            side_effect=lambda _draw, platform, *_args: drawn_platforms.append(platform),
+        ):
+            default_telegram = build_discount_image(source, None)
+
         canonical_telegram = build_discount_image(source, None, watermark="T.me/OfferChin")
         legacy_telegram = build_discount_image(source, None, watermark="Telegram.me/OfferChin")
         bale = build_discount_image(source, None, watermark="ble.ir/OfferChin")
+        rubika = build_discount_image(source, None, watermark="rubika.ir/offerchin")
 
+        self.assertEqual(drawn_platforms, ["telegram", "bale", "rubika"])
         self.assertEqual(default_telegram, canonical_telegram)
         self.assertEqual(legacy_telegram, canonical_telegram)
-        # Both channel photos intentionally include both platform IDs, so artwork is identical.
+        # Every channel's product card carries the same three cross-channel links and icons.
         self.assertEqual(bale, canonical_telegram)
+        self.assertEqual(rubika, canonical_telegram)
 
     def test_telegram_growth_invites_are_created_once_per_source_and_reused(self):
         class FakeResponse:
