@@ -4881,7 +4881,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(record["youtube_video_id"], "newReadableShort")
         self.assertIn("youtube_previous_video_delete_next_attempt_at", record)
 
-    def test_youtube_description_uses_clean_public_channel_links(self):
+    def test_video_descriptions_list_every_other_public_channel_as_bare_ids(self):
         state = {
             "growth_tracking": {
                 "telegram_invite_links": {
@@ -4892,14 +4892,18 @@ class AffilioRadarTests(unittest.TestCase):
         }
         aparat_description = build_video_channel_description(state, "aparat")
         youtube_description = build_video_channel_description(state, "youtube")
-        # Aparat retains its own attribution link, while YouTube uses the requested public handle.
-        self.assertIn("https://t.me/+from_aparat", aparat_description)
+        for channel_id in ("t.me/OfferChin", "ble.ir/OfferChin", "rubika.ir/offerchin", "youtube.com/@offerchin"):
+            self.assertIn(channel_id, aparat_description)
+        for channel_id in ("t.me/OfferChin", "ble.ir/OfferChin", "rubika.ir/offerchin", "aparat.com/OfferChin"):
+            self.assertIn(channel_id, youtube_description)
+        self.assertNotIn("aparat.com/OfferChin", aparat_description)
+        self.assertNotIn("youtube.com/@offerchin", youtube_description)
+        self.assertNotIn("https://t.me/+from_aparat", aparat_description)
         self.assertNotIn("https://t.me/+from_youtube", youtube_description)
-        self.assertIn("کانال تلگرام:\nhttps://t.me/OfferChin", youtube_description)
-        self.assertIn("کانال بله:\nhttps://ble.ir/OfferChin", youtube_description)
-        self.assertIn("آپارات:\nhttps://www.aparat.com/OfferChin", youtube_description)
+        self.assertNotRegex(aparat_description, r"(?i)https?://|www\\.")
+        self.assertNotRegex(youtube_description, r"(?i)https?://|www\\.")
+        self.assertNotIn("کانال تلگرام", youtube_description)
         self.assertNotIn("قیمت، موجودی و شرایط تخفیف", youtube_description)
-        self.assertIn("https://ble.ir/OfferChin", aparat_description)
         self.assertEqual(tracked_telegram_invite_url(state, "bale"), "https://t.me/OfferChin")
 
     def test_video_descriptions_include_verified_product_purchase_link_when_record_is_available(self):
@@ -4912,12 +4916,12 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("لینک خرید محصول:", aparat_description)
         self.assertIn(expected_affiliate, aparat_description)
         self.assertIn(expected_affiliate, youtube_description)
-        self.assertIn("https://t.me/+from_aparat", aparat_description)
-        self.assertIn("https://t.me/OfferChin", youtube_description)
+        self.assertIn("t.me/OfferChin", aparat_description)
+        self.assertIn("t.me/OfferChin", youtube_description)
         self.assertLess(
-            youtube_description.index("کانال تلگرام:"),
+            youtube_description.index("t.me/OfferChin"),
             youtube_description.index("لینک خرید محصول:"),
-            "YouTube channel links should appear before product details",
+            "YouTube channel IDs should appear before product details",
         )
 
     def test_publication_interval_is_17_minutes(self):
@@ -5937,6 +5941,73 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(state["youtube_last_upload_success_at"], record["youtube_uploaded_at"])
 
 
+
+    def test_simultaneous_youtube_and_aparat_uploads_render_separate_destination_posters(self):
+        now = datetime.now(timezone.utc)
+        pid = "dkp-destination-specific-video-render"
+        record = {
+            "ts": now.timestamp(),
+            "title": "محصول با پوستر مختص هر رسانه",
+            "product_url": f"https://www.digikala.com/product/{pid}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "expires_at": (now + timedelta(hours=3)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+            "posted_discount_percent": 55,
+            "delivery_status": {"telegram": "sent", "bale": "sent"},
+            "video_generation_status": "pending",
+            "youtube_upload_status": "pending",
+            "aparat_upload_status": "pending",
+        }
+        state = {"published": {pid: record}}
+        rendered = []
+        youtube_paths = []
+        aparat_paths = []
+
+        def fake_render(image_bytes, discount, path, **kwargs):
+            output = Path(path)
+            output.write_bytes(b"destination-specific-mp4")
+            rendered.append((kwargs.get("destination_platform"), output.name))
+            return output
+
+        aparat_result = {
+            "video_id": "73819999",
+            "video_hash": "aparatdestinationuid",
+            "url": "https://www.aparat.com/v/aparatdestinationuid",
+            "visibility": "public",
+        }
+        def fake_youtube_upload(path, *args, **kwargs):
+            youtube_paths.append(Path(path).name)
+            return {"video_id": "yt_destination_123", "url": "https://www.youtube.com/shorts/yt_destination_123"}
+
+        def fake_aparat_upload(path, *args, **kwargs):
+            aparat_paths.append(Path(path).name)
+            return aparat_result
+
+        with (
+            TemporaryDirectory() as output_dir,
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
+            patch("affilio_radar.save_json"),
+            patch("affilio_radar.APARAT_SHORTS_ONLY", False),
+            patch("affilio_radar._aparat_upload_slot_due", return_value=True),
+            patch("short_video.youtube_credentials_available", return_value=True),
+            patch("short_video.render_short_video", side_effect=fake_render),
+            patch("short_video.upload_youtube_video", side_effect=fake_youtube_upload),
+            patch("aparat_uploader.aparat_credentials_available", return_value=True),
+            patch("aparat_uploader.upload_aparat_video", side_effect=fake_aparat_upload),
+        ):
+            self.assertTrue(process_pending_short_video(
+                state, now=now, output_dir=output_dir, destinations={"youtube", "aparat"},
+            ))
+
+        self.assertEqual(rendered, [("youtube", f"offerchin-{pid}.mp4"), ("aparat", f"offerchin-{pid}-aparat.mp4")])
+        self.assertEqual(youtube_paths, [f"offerchin-{pid}.mp4"])
+        self.assertEqual(aparat_paths, [f"offerchin-{pid}-aparat.mp4"])
+        self.assertEqual(record["youtube_upload_status"], "uploaded")
+        self.assertEqual(record["aparat_upload_status"], "uploaded")
+        self.assertEqual(record["video_file_names"]["youtube"], f"offerchin-{pid}.mp4")
+        self.assertEqual(record["video_file_names"]["aparat"], f"offerchin-{pid}-aparat.mp4")
 
     def test_youtube_upload_allows_published_product_without_official_expiry_timer(self):
         now = datetime.now(timezone.utc)
