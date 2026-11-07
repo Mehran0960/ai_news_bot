@@ -404,11 +404,11 @@ def upload_aparat_video(
     desc = str(
         description
         or (
-            "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا در آفِرچین.\\n"
-            "قیمت و موجودی ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در دیجی‌کالا بررسی کنید.\\n\\n"
-            "t.me/OfferChin\\n"
-            "ble.ir/OfferChin\\n"
-            "rubika.ir/offerchin\\n"
+            "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا در آفِرچین.\n"
+            "قیمت و موجودی ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در دیجی‌کالا بررسی کنید.\n\n"
+            "t.me/OfferChin\n"
+            "ble.ir/OfferChin\n"
+            "rubika.ir/offerchin\n"
             "youtube.com/@offerchin"
         )
     ).strip()[:3000]
