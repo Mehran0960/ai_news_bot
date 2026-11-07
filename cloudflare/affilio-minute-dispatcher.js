@@ -235,9 +235,12 @@ function readLastChannelPublicationAt(state) {
   const published = state.published && typeof state.published === "object" ? state.published : {};
   for (const record of Object.values(published)) {
     if (!record || typeof record !== "object") continue;
+    const delivery = record.delivery_status && typeof record.delivery_status === "object"
+      ? record.delivery_status : {};
     const hasMessage =
-      /^\d+$/.test(String(record.telegram_message_id || "")) ||
-      /^\d+$/.test(String(record.bale_message_id || ""));
+      ["telegram", "bale", "rubika", "eitaa"].some(platform => delivery[platform] === "sent") ||
+      ["telegram_message_id", "bale_message_id", "rubika_message_id", "eitaa_message_id"]
+        .some(field => /^\d+$/.test(String(record[field] || "")));
     const seconds = Number(record.ts || 0);
     if (hasMessage && Number.isFinite(seconds)) latest = Math.max(latest, seconds * 1000);
   }
