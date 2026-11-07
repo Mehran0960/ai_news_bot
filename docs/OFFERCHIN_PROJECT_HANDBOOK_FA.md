@@ -763,3 +763,6 @@ RUBIKA_CHANNEL_ID می‌تواند آن را override کند. Secret توکن R
 
 
 - پس از verify-login، تابع ثبت نتیجه علاوه بر `state.json`، فایل `video_upload_dispatch_state.json` را نیز از state به‌روز می‌سازد و ذخیره می‌کند؛ Worker وضعیت تأیید/رد ورود را از همین sidecar می‌خواند. شکست login نیز در sidecar ثبت می‌شود تا dispatch اشتباهی انجام نشود.
+
+
+- در رویداد verify-only، مرحلهٔ دانلود لوگوی DigiPay نیز skip می‌شود؛ بررسی دسترسی فیلو نباید به در دسترس بودن سایت لوگوی یک فروشگاه ثالث وابسته باشد. دانلود لوگو فقط در اجرای واقعی upload انجام می‌شود.
