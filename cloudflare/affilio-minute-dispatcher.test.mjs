@@ -4,6 +4,7 @@ import {
   isUsableCleanCatalogSnapshot,
   isInitialCatalogWarmup,
   hasDueVideoRecord,
+  isFiloLoginVerified,
   PUBLISHER_INTERVAL_MS,
 } from "./affilio-minute-dispatcher.mjs";
 
