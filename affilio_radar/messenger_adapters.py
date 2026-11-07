@@ -63,9 +63,9 @@ def _safe_rubika_error_detail(payload: dict) -> str:
             details.append(value.strip())
 
     detail = " | ".join(details)
-    detail = re.sub(r"(?i)https?://\\S+", "[redacted-url]", detail)
-    detail = re.sub(r"(?i)\\b(token|authorization|secret)\\b\\s*[:=]\\s*\\S+", r"\\1=[redacted]", detail)
-    detail = re.sub(r"\\s+", " ", detail).strip()
+    detail = re.sub(r"(?i)https?://\S+", "[redacted-url]", detail)
+    detail = re.sub(r"(?i)\b(token|authorization|secret)\b\s*[:=]\s*\S+", r"\1=[redacted]", detail)
+    detail = re.sub(r"\s+", " ", detail).strip()
     return detail[:150]
 
 
