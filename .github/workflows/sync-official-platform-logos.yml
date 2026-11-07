@@ -38,6 +38,7 @@ jobs:
           python - <<'PY'
           from io import BytesIO
           from pathlib import Path
+          import re
           from urllib.request import Request, urlopen
           from xml.etree import ElementTree
           from zipfile import ZipFile
@@ -99,18 +100,37 @@ jobs:
                   raise RuntimeError("YouTube source wordmark is not high-resolution enough")
           (OUT / "youtube-wordmark-almostblack.png").write_bytes(youtube_png)
 
+          # Extract the exact inline wordmark displayed in Aparat's own live header.
+          aparat_home = download("https://www.aparat.com/home").decode("utf-8", errors="strict")
+          aparat_matches = re.findall(
+              r'(<svg\\b(?=[^>]*\\bclass="[^"]*\\bicon-aparatfa\\b[^"]*")[^>]*>.*?</svg>)',
+              aparat_home,
+              flags=re.IGNORECASE | re.DOTALL,
+          )
+          if len(aparat_matches) != 1:
+              raise RuntimeError(f"Expected one official Aparat header wordmark; found {len(aparat_matches)}")
+          aparat_svg = aparat_matches[0].encode("utf-8")
+          validate_svg(aparat_svg, "Aparat")
+          aparat_root = ElementTree.fromstring(aparat_svg)
+          view_box = [float(value) for value in re.split(r"[ ,]+", aparat_root.attrib["viewBox"].strip())]
+          if len(view_box) != 4 or not 3.0 <= view_box[2] / view_box[3] <= 3.4:
+              raise RuntimeError(f"Aparat wordmark geometry is not the expected horizontal mark: {view_box}")
+          (OUT / "aparat-official.svg").write_bytes(aparat_svg)
+
           (OUT / "SOURCES.md").write_text(
               "# Official platform logo sources\n\n"
               "- Telegram: https://telegram.org/tour/screenshots (official press ZIP; Logo.svg)\n"
               "- Bale: https://bale.ai/logo/bale_logo.svg\n"
               "- Rubika: https://rubika.ir/logo and https://rubika.ir/static/images/logo.svg\n"
-              "- YouTube: https://brand.youtube/youtube-icon/ (official YouTube Logo ZIP; full-color horizontal digital wordmark)\n\n"
+              "- YouTube: https://brand.youtube/youtube-icon/ (official YouTube Logo ZIP; full-color horizontal digital wordmark)\\n"
+              "- Aparat: https://www.aparat.com/home (first-party header wordmark SVG; icon-aparatfa; 80x25 viewBox)\\n\\n"
               "Files in this directory are pinned local copies for deterministic rendering. "
               "Renderers must not fetch logo files from the network.\n",
               encoding="utf-8",
           )
           print("OFFICIAL_PLATFORM_LOGOS_VALIDATED")
           print("YOUTUBE_WORDMARK_ASPECT_RATIO=" + str(round(logo.width / logo.height, 3)))
+          print("APARAT_WORDMARK_ASPECT_RATIO=" + str(round(view_box[2] / view_box[3], 3)))
           PY
 
       - name: Commit the validated local logo files
