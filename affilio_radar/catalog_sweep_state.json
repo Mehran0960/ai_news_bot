@@ -34423,11 +34423,11 @@
   "last_error": "",
   "last_successful_category_id": "6075",
   "last_successful_category_name": "باغبانی و کشاورزی",
-  "last_successful_page": 498,
-  "last_successful_page_at": "2026-11-07T11:37:25.830070+00:00",
+  "last_successful_page": 499,
+  "last_successful_page_at": "2026-11-07T11:38:24.774583+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 497,
+  "page": 498,
   "parallel_cycle_completed_category_ids": [
     "1",
     "2",
@@ -39344,8 +39344,8 @@
     "11796",
     "214158"
   ],
-  "parallel_cycle_pages_success": 227000,
-  "parallel_cycle_product_rows_success": 4473867,
+  "parallel_cycle_pages_success": 227003,
+  "parallel_cycle_product_rows_success": 4473927,
   "parallel_cycle_started_at": "2026-11-06T18:22:56.776413+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -44270,19 +44270,19 @@
     "11796",
     "214158"
   ],
-  "parallel_last_batch_at": "2026-11-07T11:37:25.960931+00:00",
+  "parallel_last_batch_at": "2026-11-07T11:38:24.865727+00:00",
   "parallel_last_batch_candidate_file_bytes": 4318013,
-  "parallel_last_batch_candidate_write_seconds": 0.117,
+  "parallel_last_batch_candidate_write_seconds": 0.081,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 1.763,
+  "parallel_last_batch_fetch_seconds": 1.778,
   "parallel_last_batch_nonempty_product_pages": 3,
   "parallel_last_batch_pages": 3,
-  "parallel_last_batch_pages_per_second": 1.7,
-  "parallel_last_batch_processing_seconds": 0.014,
+  "parallel_last_batch_pages_per_second": 1.69,
+  "parallel_last_batch_processing_seconds": 0.01,
   "parallel_last_batch_product_rows": 60,
   "parallel_last_batch_rate_limited": 0,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 31.67,
+  "parallel_last_batch_rows_per_second": 32.09,
   "parallel_last_batch_successes": 3,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4670,
@@ -44291,19 +44291,19 @@
       "attempts": 0,
       "category_id": "6038",
       "category_name": "عروسک، فیگور و ربات",
-      "page": 497
+      "page": 498
     },
     {
       "attempts": 0,
       "category_id": "6300",
       "category_name": "ظروف آشپزخانه",
-      "page": 498
+      "page": 499
     },
     {
       "attempts": 0,
       "category_id": "6075",
       "category_name": "باغبانی و کشاورزی",
-      "page": 499
+      "page": 500
     }
   ],
   "parallel_queue_initialized": true,
@@ -44314,14 +44314,14 @@
   "schema_version": 1,
   "stats": {
     "api_failures_total": 3383,
-    "catalog_candidate_cards_found_total": 10648114,
+    "catalog_candidate_cards_found_total": 10648174,
     "completed_cycles": 0,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 2819793,
+    "discounted_candidates_found_total": 2819804,
     "empty_product_pages_total": 21904,
-    "nonempty_product_pages_total": 539475,
-    "pages_scanned_total": 560587,
-    "product_rows_scanned_total": 10648154,
+    "nonempty_product_pages_total": 539478,
+    "pages_scanned_total": 560590,
+    "product_rows_scanned_total": 10648214,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
