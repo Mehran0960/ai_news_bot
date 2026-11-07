@@ -306,6 +306,15 @@ _LOCAL_LOGO_PATHS = {
 }
 _DIGIPAY_LOGO_PATH = _RETAILER_LOGO_DIR / "digipay-official.svg"
 
+# Destination marks are bundled SVGs. Normal rendering never calls a CDN for them.
+_CHANNEL_LOGO_DIR = Path(__file__).resolve().parent / "assets" / "channel-logos"
+_CHANNEL_LOGO_PATHS = {
+    "telegram": _CHANNEL_LOGO_DIR / "telegram.svg",
+    "bale": _CHANNEL_LOGO_DIR / "bale.svg",
+    "rubika": _CHANNEL_LOGO_DIR / "rubika.svg",
+    "youtube": _CHANNEL_LOGO_DIR / "youtube.svg",
+}
+
 
 def adaptive_text_colors(image, region, threshold: int = 145):
     """Choose readable foreground and opposing outline from pixels behind the text.
@@ -391,6 +400,54 @@ def _load_digipay_logo():
         print(f"DIGIPAY_LOGO_LOCAL_READ_FAILED error={type(exc).__name__}")
     print(f"DIGIPAY_LOGO_LOCAL_ASSET_UNAVAILABLE path={_DIGIPAY_LOGO_PATH.name}")
     return None
+
+
+@lru_cache(maxsize=4)
+def _load_channel_logo(platform: str):
+    """Load a bundled platform logo once per process; never request it over HTTP."""
+    key = str(platform or "").strip().lower()
+    path = _CHANNEL_LOGO_PATHS.get(key)
+    if path is None:
+        print(f"CHANNEL_LOGO_UNSUPPORTED platform={key or 'empty'}")
+        return None
+    try:
+        if not path.is_file():
+            print(f"CHANNEL_LOGO_LOCAL_ASSET_UNAVAILABLE platform={key} path={path.name}")
+            return None
+        return _decode_retailer_logo(path.read_bytes(), False)
+    except Exception as exc:
+        print(f"CHANNEL_LOGO_LOCAL_READ_FAILED platform={key} error={type(exc).__name__}")
+        return None
+
+
+def draw_channel_logo(image, platform: str, x: int, y: int, size: int) -> bool:
+    """Composite a proportional, antialiased platform mark from its local SVG asset."""
+    from PIL import Image, ImageOps
+
+    logo = _load_channel_logo(platform)
+    if logo is None:
+        return False
+    try:
+        tile_size = max(1, int(size))
+        fitted = ImageOps.contain(
+            logo.convert("RGBA"),
+            (tile_size, tile_size),
+            method=Image.Resampling.LANCZOS,
+        )
+        tile = Image.new("RGBA", (tile_size, tile_size), (0, 0, 0, 0))
+        tile.alpha_composite(
+            fitted,
+            ((tile.width - fitted.width) // 2, (tile.height - fitted.height) // 2),
+        )
+        destination = (int(x), int(y))
+        if image.mode == "RGBA":
+            image.alpha_composite(tile, dest=destination)
+        else:
+            image.paste(tile, destination, tile)
+        return True
+    except Exception as exc:
+        print(f"CHANNEL_LOGO_RENDER_FAILED platform={platform} error={type(exc).__name__}")
+        return False
 
 
 def _digipay_brand_blue(logo):
