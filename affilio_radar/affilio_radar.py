@@ -4678,6 +4678,8 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
         "aparat_next_upload_at": value("aparat_next_upload_at"),
         "filo_next_upload_at": value("filo_next_upload_at"),
+        "filo_login_verified_at": value("filo_login_verified_at"),
+        "filo_login_verification_status": value("filo_login_verification_status"),
         "published": compact_published,
     }
 
@@ -8632,6 +8634,21 @@ def _initialize_filo_upload_slot(state: dict) -> datetime | None:
     return next_slot
 
 
+def _filo_login_verified(state: dict, now: datetime | None = None) -> bool:
+    """Require a recent, explicit non-publishing login check before Filo can publish."""
+    if not isinstance(state, dict) or state.get("filo_login_verification_status") != "verified":
+        return False
+    verified_at = _parse_utc_datetime(state.get("filo_login_verified_at"))
+    if verified_at is None:
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    age = (current - verified_at).total_seconds()
+    return 0 <= age <= 7 * 24 * 60 * 60
+
+
 def _filo_upload_slot_due(
     state: dict,
     now: datetime | None = None,
@@ -8750,12 +8767,16 @@ def process_pending_short_video(
     except Exception as exc:
         aparat_ready = False
         print(f"APARAT_CREDENTIAL_CHECK_FAILED error={type(exc).__name__}; other destinations continue")
+    filo_login_verified = _filo_login_verified(state, current)
     try:
         filo_ready = (
             "filo" in selected_destinations
             and filo_credentials_available()
             and upload_filo_video is not None
+            and filo_login_verified
         )
+        if "filo" in selected_destinations and not filo_login_verified:
+            print("FILO_UPLOAD_BLOCKED reason=login_not_verified")
     except Exception as exc:
         filo_ready = False
         print(f"FILO_CREDENTIAL_CHECK_FAILED error={type(exc).__name__}; other destinations continue")
@@ -10750,15 +10771,35 @@ def run_filo_login_check_only() -> int:
 
     try:
         result = verify_filo_login()
+        state = load_state()
+        checked_at = datetime.now(timezone.utc)
         if result.get("status") == "login_verified" and result.get("upload_route_available") is True:
+            state["filo_login_verified_at"] = checked_at.isoformat()
+            state["filo_login_verification_status"] = "verified"
+            state["filo_login_verification_attempted_at"] = checked_at.isoformat()
+            save_json(STATE, state)
             print("FILO_LOGIN_CHECK_OK upload_route_available=true public_upload_performed=false")
             return 0
+        state.pop("filo_login_verified_at", None)
+        state["filo_login_verification_status"] = "failed"
+        state["filo_login_verification_attempted_at"] = checked_at.isoformat()
+        save_json(STATE, state)
         print("FILO_LOGIN_CHECK_FAILED error=upload_route_not_confirmed public_upload_performed=false")
         return 1
     except FiloUploadError as exc:
+        state = load_state()
+        state.pop("filo_login_verified_at", None)
+        state["filo_login_verification_status"] = "failed"
+        state["filo_login_verification_attempted_at"] = datetime.now(timezone.utc).isoformat()
+        save_json(STATE, state)
         print(f"FILO_LOGIN_CHECK_FAILED error={exc.code} public_upload_performed=false")
         return 1
     except Exception as exc:
+        state = load_state()
+        state.pop("filo_login_verified_at", None)
+        state["filo_login_verification_status"] = "failed"
+        state["filo_login_verification_attempted_at"] = datetime.now(timezone.utc).isoformat()
+        save_json(STATE, state)
         print(f"FILO_LOGIN_CHECK_FAILED error={type(exc).__name__} public_upload_performed=false")
         return 1
 
