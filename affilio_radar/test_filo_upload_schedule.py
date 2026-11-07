@@ -5,7 +5,9 @@ from affilio_radar import (
     FILO_UPLOAD_INTERVAL_HOURS,
     _filo_upload_slot_due,
     _initialize_filo_upload_slot,
+    build_video_upload_dispatch_state,
 )
+from platform_registry import PLATFORM_REGISTRY, VIDEO_PLATFORMS
 
 
 class FiloUploadScheduleTests(unittest.TestCase):
@@ -57,6 +59,31 @@ class FiloUploadScheduleTests(unittest.TestCase):
         expected = unknown_at + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
         self.assertEqual(_initialize_filo_upload_slot(state), expected)
         self.assertFalse(_filo_upload_slot_due(state, self.now, credentials_ready=True))
+
+    def test_filo_is_registered_as_a_video_destination(self):
+        self.assertEqual(PLATFORM_REGISTRY["filo"]["media"], "video")
+        self.assertIn("filo", VIDEO_PLATFORMS)
+
+    def test_dispatch_sidecar_includes_filo_status_and_next_slot(self):
+        state = {
+            "filo_next_upload_at": (self.now + timedelta(hours=2)).isoformat(),
+            "published": {
+                "sample": {
+                    "ts": self.now.timestamp(),
+                    "delivery_status": {"telegram": "sent"},
+                    "filo_upload_status": "submitted_pending_approval",
+                    "filo_next_attempt_at": (self.now + timedelta(minutes=20)).isoformat(),
+                    "expiry_deadline_verified_directly": True,
+                }
+            },
+        }
+        sidecar = build_video_upload_dispatch_state(state, now=self.now)
+        self.assertEqual(sidecar["filo_next_upload_at"], state["filo_next_upload_at"])
+        self.assertEqual(sidecar["published"]["sample"]["filo_upload_status"], "submitted_pending_approval")
+        self.assertEqual(
+            sidecar["published"]["sample"]["filo_next_attempt_at"],
+            state["published"]["sample"]["filo_next_attempt_at"],
+        )
 
     def test_aparat_and_youtube_schedules_do_not_delay_first_filo_slot(self):
         state = {
