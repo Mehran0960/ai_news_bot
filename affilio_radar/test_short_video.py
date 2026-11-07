@@ -6,6 +6,7 @@ from unittest import mock
 from pathlib import Path
 
 from PIL import Image, ImageDraw
+import offerchin_visuals
 from offerchin_audio import write_original_soundtrack
 
 from short_video import (
@@ -117,6 +118,30 @@ class ShortVideoTests(unittest.TestCase):
                 self.assertAlmostEqual(wav.getnframes() / wav.getframerate(), 5.0, delta=0.05)
                 self.assertGreater(wav.getnframes(), 100_000)
             self.assertGreater(path.stat().st_size, 100_000)
+
+    def test_channel_brand_assets_are_bundled_and_rendered_from_local_cache(self):
+        expected = {"telegram", "bale", "rubika", "youtube"}
+        self.assertEqual(set(offerchin_visuals._CHANNEL_LOGO_PATHS), expected)
+        offerchin_visuals._load_channel_logo.cache_clear()
+
+        for platform, path in offerchin_visuals._CHANNEL_LOGO_PATHS.items():
+            with self.subTest(platform=platform):
+                self.assertTrue(path.is_file(), f"{platform} SVG must be committed locally")
+                logo = offerchin_visuals._load_channel_logo(platform)
+                self.assertIsNotNone(logo, f"{platform} SVG must decode from disk")
+                first = offerchin_visuals._load_channel_logo.cache_info()
+                cached = offerchin_visuals._load_channel_logo(platform)
+                second = offerchin_visuals._load_channel_logo.cache_info()
+                self.assertIs(logo, cached, "decoded logo must be served from process cache")
+                self.assertGreater(second.hits, first.hits)
+
+                canvas = Image.new("RGBA", (48, 48), (32, 32, 32, 255))
+                self.assertTrue(offerchin_visuals.draw_channel_logo(canvas, platform, 12, 12, 24))
+                self.assertIsNotNone(canvas.getbbox())
+
+    def test_unknown_channel_logo_fails_without_network_fallback(self):
+        canvas = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+        self.assertFalse(offerchin_visuals.draw_channel_logo(canvas, "unknown-platform", 4, 4, 20))
 
     def test_watermark_places_other_channel_marks_in_a_vertical_youtube_safe_area(self):
         import short_video
