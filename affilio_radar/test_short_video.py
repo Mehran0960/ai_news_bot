@@ -131,8 +131,8 @@ class ShortVideoTests(unittest.TestCase):
             build_vertical_poster(stream.getvalue(), 50)
 
         drawn_platforms = [call.args[1] for call in draw_logo.call_args_list]
-        self.assertEqual(drawn_platforms, ["youtube", "telegram", "bale", "rubika"])
-        self.assertEqual(drawn_platforms[0], "youtube", "the YouTube Short must carry its official own-platform mark")
+        self.assertEqual(drawn_platforms, ["telegram", "bale", "rubika", "aparat"])
+        self.assertNotIn("youtube", drawn_platforms, "a YouTube Short must not list its own channel")
         # Official artwork and its backing fit cleanly into four non-overlapping
         # rows within the channel identity panel.
         self.assertEqual([call.args[3] for call in draw_logo.call_args_list], [165, 191, 217, 243])
@@ -143,7 +143,7 @@ class ShortVideoTests(unittest.TestCase):
     def test_bundled_official_platform_logo_assets_are_available_and_keep_their_original_ratios(self):
         import offerchin_visuals
 
-        expected_platforms = ("telegram", "bale", "rubika", "youtube")
+        expected_platforms = ("telegram", "bale", "rubika", "youtube", "aparat")
         for platform in expected_platforms:
             with self.subTest(platform=platform):
                 source = offerchin_visuals._load_platform_logo(platform)
@@ -164,6 +164,8 @@ class ShortVideoTests(unittest.TestCase):
             youtube.width / youtube.height, 2.8,
             "YouTube must use its full horizontal wordmark, not a square play icon",
         )
+        aparat = offerchin_visuals._load_platform_logo("aparat")
+        self.assertAlmostEqual(aparat.width / aparat.height, 3.2, delta=0.03)
 
     def test_product_image_footer_uses_resolution_aware_readable_official_logo_sizes(self):
         import affilio_radar
@@ -190,34 +192,49 @@ class ShortVideoTests(unittest.TestCase):
             self.assertEqual(result.size, (640, 800))
         self.assertEqual(
             [call.args[1] for call in draw_logo.call_args_list],
-            ["bale", "rubika", "youtube"],
+            ["bale", "rubika", "youtube", "aparat"],
         )
         self.assertEqual(
             [call.args[4] for call in draw_logo.call_args_list],
-            [metrics["logo_height"]] * 3,
+            [metrics["logo_height"]] * 4,
         )
         self.assertEqual(
             [call.kwargs["max_width"] for call in draw_logo.call_args_list],
-            [metrics["logo_max_width"]] * 3,
+            [metrics["logo_max_width"]] * 4,
         )
 
-    def test_platform_footer_labels_keep_youtube_brand_separate_and_name_other_channels(self):
+    def test_platform_footer_labels_are_only_bare_public_ids(self):
         import offerchin_visuals
 
-        self.assertEqual(
-            offerchin_visuals.platform_footer_label("youtube", "youtube.com/@offerchin"),
-            "youtube.com/@offerchin",
-        )
-        for platform, url in (
-            ("telegram", "t.me/OfferChin"),
-            ("bale", "ble.ir/OfferChin"),
-            ("rubika", "rubika.ir/offerchin"),
+        for platform, url, expected in (
+            ("telegram", "https://t.me/OfferChin/", "t.me/OfferChin"),
+            ("bale", "http://ble.ir/OfferChin/", "ble.ir/OfferChin"),
+            ("rubika", "https://www.rubika.ir/offerchin/", "rubika.ir/offerchin"),
+            ("youtube", "https://www.youtube.com/@offerchin/", "youtube.com/@offerchin"),
+            ("aparat", "https://www.aparat.com/OfferChin/", "aparat.com/OfferChin"),
         ):
             with self.subTest(platform=platform):
-                self.assertEqual(
-                    offerchin_visuals.platform_footer_label(platform, url),
-                    f"OfferChin  •  {url}",
-                )
+                self.assertEqual(offerchin_visuals.platform_footer_label(platform, url), expected)
+                self.assertNotRegex(offerchin_visuals.platform_footer_label(platform, url), r"(?i)^https?://")
+                self.assertNotIn("www.", offerchin_visuals.platform_footer_label(platform, url))
+
+    def test_each_public_platform_lists_every_other_media_and_never_itself(self):
+        import offerchin_visuals
+
+        expected = {
+            "telegram": ["bale", "rubika", "youtube", "aparat"],
+            "bale": ["telegram", "rubika", "youtube", "aparat"],
+            "rubika": ["telegram", "bale", "youtube", "aparat"],
+            "youtube": ["telegram", "bale", "rubika", "aparat"],
+            "aparat": ["telegram", "bale", "rubika", "youtube"],
+        }
+        for destination, expected_platforms in expected.items():
+            with self.subTest(destination=destination):
+                links = offerchin_visuals.public_channel_links(destination)
+                self.assertEqual([platform for platform, _url in links], expected_platforms)
+                for _platform, url in links:
+                    self.assertNotRegex(url, r"(?i)^https?://")
+                    self.assertNotIn("www.", url)
 
     def test_platform_logo_fitting_keeps_the_youtube_wordmark_rectangular(self):
         import offerchin_visuals
@@ -418,12 +435,12 @@ class ShortVideoTests(unittest.TestCase):
 
         self.assertEqual(format_persian_price(1_999_000), "۱٬۹۹۹٬۰۰۰")
         for label in (
-            "youtube.com/@offerchin", "t.me/OfferChin",
-            "ble.ir/OfferChin", "rubika.ir/offerchin",
+            "t.me/OfferChin", "ble.ir/OfferChin",
+            "rubika.ir/offerchin", "aparat.com/OfferChin",
         ):
             self.assertTrue(any(label in value for value in drawn_text), label)
-        for brand_label in ("OfferChin  •  t.me/OfferChin", "OfferChin  •  ble.ir/OfferChin", "OfferChin  •  rubika.ir/offerchin"):
-            self.assertIn(brand_label, drawn_text)
+        self.assertFalse(any("youtube.com/@offerchin" in value for value in drawn_text))
+        self.assertFalse(any("OfferChin  •" in value for value in drawn_text))
         # The compact CTA panel stays above the product card and YouTube interface-safe area.
         background_sample = poster.getpixel((680, 1150))
         self.assertGreater(min(background_sample), 45)
@@ -431,6 +448,33 @@ class ShortVideoTests(unittest.TestCase):
         price_panel = poster.getpixel((45, 731))
         self.assertGreater(price_panel[1], price_panel[0])
         self.assertEqual(poster.size, (720, 1280))
+
+    def test_aparat_poster_omits_its_own_id_and_includes_youtube_wordmark(self):
+        import short_video
+
+        image = Image.new("RGB", (400, 500), (255, 255, 255))
+        stream = io.BytesIO()
+        image.save(stream, format="PNG")
+        drawn_text = []
+        original_text = ImageDraw.ImageDraw.text
+
+        def capture_text(draw, xy, value, *args, **kwargs):
+            drawn_text.append(str(value))
+            return original_text(draw, xy, value, *args, **kwargs)
+
+        with mock.patch.object(ImageDraw.ImageDraw, "text", capture_text), mock.patch(
+            "short_video._draw_video_channel_logo",
+            wraps=short_video._draw_video_channel_logo,
+        ) as draw_logo:
+            build_vertical_poster(stream.getvalue(), 40, destination_platform="aparat")
+
+        self.assertEqual(
+            [call.args[1] for call in draw_logo.call_args_list],
+            ["telegram", "bale", "rubika", "youtube"],
+        )
+        self.assertTrue(any("youtube.com/@offerchin" in value for value in drawn_text))
+        self.assertFalse(any("aparat.com/OfferChin" in value for value in drawn_text))
+        self.assertFalse(any("OfferChin  •" in value for value in drawn_text))
 
     def test_ffmpeg_resolver_falls_back_to_bundled_binary(self):
         with (
@@ -535,7 +579,7 @@ class ShortVideoTests(unittest.TestCase):
         self.assertEqual(api_update["json"]["snippet"]["defaultLanguage"], "fa")
         self.assertEqual(api_update["json"]["snippet"]["description"], description)
 
-    def test_default_youtube_description_uses_all_three_public_channel_links(self):
+    def test_default_youtube_description_uses_all_other_public_channel_ids(self):
         http = FakeYouTubeHTTP()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "short.mp4"
@@ -554,9 +598,11 @@ class ShortVideoTests(unittest.TestCase):
             )
         upload_request = next(kwargs for url, kwargs in http.posts if url == YOUTUBE_UPLOAD_URL)
         description = upload_request["json"]["snippet"]["description"]
-        self.assertIn("کانال تلگرام:\nhttps://t.me/OfferChin", description)
-        self.assertIn("کانال بله:\nhttps://ble.ir/OfferChin", description)
-        self.assertIn("آپارات:\nhttps://www.aparat.com/OfferChin", description)
+        for channel_id in ("t.me/OfferChin", "ble.ir/OfferChin", "rubika.ir/offerchin", "aparat.com/OfferChin"):
+            self.assertIn(channel_id, description)
+        self.assertNotIn("youtube.com/@offerchin", description)
+        self.assertNotRegex(description, r"(?i)https?://|www\.")
+        self.assertNotIn("کانال تلگرام", description)
         self.assertNotIn("قیمت، موجودی و شرایط تخفیف", description)
 
     def test_youtube_public_description_has_no_affiliate_disclosure(self):
@@ -582,7 +628,8 @@ class ShortVideoTests(unittest.TestCase):
         self.assertNotIn("همکاری در فروش", description)
         self.assertNotIn("کمیسیون", description)
         self.assertIn("دیجی‌کالا", description)
-        self.assertIn("https://t.me/OfferChin", description)
+        self.assertIn("t.me/OfferChin", description)
+        self.assertNotRegex(description, r"(?i)https?://|www\.")
 
 
 if __name__ == "__main__":

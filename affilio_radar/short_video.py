@@ -278,8 +278,9 @@ def build_vertical_poster(
     current_price: object = None,
     original_price: object = None,
     merchant: str = "دیجی‌کالا",
+    destination_platform: str = "youtube",
 ) -> bytes:
-    """Build a self-contained 9:16 product card with a retailer-specific CTA."""
+    """Build a self-contained 9:16 product card with other-platform IDs only."""
     with Image.open(BytesIO(image_bytes)) as raw:
         raw.load()
         product = raw.convert("RGB")
@@ -332,9 +333,8 @@ def build_vertical_poster(
         )
         line_y += 47
 
-    # The YouTube Short identifies its own destination first, then lists the other
-    # three public OfferChin channels. This gives YouTube its official horizontal
-    # wordmark while preserving the approved destination-aware link order.
+    # List every verified public destination except the platform receiving this video.
+    # A separate poster is rendered per platform so a destination never lists itself.
     cta_panel = (34, 162, WIDTH - 34, 272)
     draw.rounded_rectangle(
         cta_panel,
@@ -345,10 +345,7 @@ def build_vertical_poster(
     )
     channel_font = _font(16)
     channel_color = (17, 77, 43, 255)
-    video_channels = [
-        ("youtube", "youtube.com/@offerchin"),
-        *public_channel_links("youtube"),
-    ]
+    video_channels = public_channel_links(destination_platform)
     for index, (platform, url) in enumerate(video_channels):
         # Twenty-pixel logos plus their official-brand padding require a 26px
         # row pitch; this prevents the horizontal YouTube wordmark tile overlapping
@@ -532,6 +529,7 @@ def render_short_video(
     current_price: object = None,
     original_price: object = None,
     merchant: str = "دیجی‌کالا",
+    destination_platform: str = "youtube",
     ffmpeg_binary: str | None = None,
     duration_seconds: int = DURATION_SECONDS,
     fps: int = FPS,
@@ -551,6 +549,7 @@ def render_short_video(
         current_price=current_price,
         original_price=original_price,
         merchant=merchant,
+        destination_platform=destination_platform,
     )
     target.parent.mkdir(parents=True, exist_ok=True)
 
@@ -716,12 +715,10 @@ def upload_youtube_video(
     video_title = (title_clean + suffix)[:100]
     description_text = str(description or "").strip() or (
         "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\n\n"
-        "کانال تلگرام:\n"
-        "https://t.me/OfferChin\n"
-        "کانال بله:\n"
-        "https://ble.ir/OfferChin\n"
-        "آپارات:\n"
-        "https://www.aparat.com/OfferChin"
+        "t.me/OfferChin\n"
+        "ble.ir/OfferChin\n"
+        "rubika.ir/offerchin\n"
+        "aparat.com/OfferChin"
     )
     video = {
         "snippet": {

@@ -7,6 +7,9 @@ on:
       - "affilio_radar/offerchin_visuals.py"
       - "affilio_radar/affilio_radar.py"
       - "affilio_radar/short_video.py"
+      - "affilio_radar/aparat_uploader.py"
+      - "affilio_radar/assets/platform-logos/**"
+      - ".github/workflows/sync-official-platform-logos.yml"
       - "affilio_radar/test_affilio.py"
       - "affilio_radar/test_short_video.py"
       - ".github/workflows/offerchin-platform-logo-tests.yml"
@@ -36,4 +39,5 @@ jobs:
             affilio_radar/short_video.py
           cd affilio_radar
           python -m unittest -v test_short_video.py
-          python -m unittest -v test_affilio.AffilioRadarTests.test_channel_watermarks_exclude_the_destination_and_show_other_three_platforms
+          python -m unittest -v test_affilio.AffilioRadarTests.test_channel_watermarks_exclude_the_destination_and_show_other_four_platforms
+          python -m unittest -v test_affilio.AffilioRadarTests.test_simultaneous_youtube_and_aparat_uploads_render_separate_destination_posters
