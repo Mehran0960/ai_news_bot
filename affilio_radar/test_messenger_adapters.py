@@ -18,10 +18,15 @@ class FakeResponse:
 class FakeRenderer:
     def __init__(self):
         self.render_calls = []
+        self.destinations = []
     def _is_valid_affilio_tracking_url(self, value):
         return value.startswith("https://aflo.ir/")
-    def build_discount_image(self, image_bytes, discount, merchant=None, extra_watermarks=None):
+    def build_discount_image(
+        self, image_bytes, discount, merchant=None, extra_watermarks=None,
+        destination_platform=None,
+    ):
         self.render_calls.append(extra_watermarks)
+        self.destinations.append(destination_platform)
         return b"rendered-jpeg"
     def build_caption(self, item, affiliate_url, channel_label, use_unicode_strikethrough=False):
         return f"Offer [{channel_label}]({channel_label})"
@@ -52,6 +57,7 @@ class MessengerAdapterTests(unittest.TestCase):
         self.assertEqual(post.call_args.kwargs["json"]["file_id"], "FILE-1")
         self.assertIn(self.affiliate, post.call_args.kwargs["json"]["text"])
         self.assertEqual(self.renderer.render_calls, [None])
+        self.assertEqual(self.renderer.destinations, ["rubika"])
 
     @patch("messenger_adapters.requests.post")
     def test_rubika_rejects_non_https_upload_url(self, post):
@@ -74,6 +80,7 @@ class MessengerAdapterTests(unittest.TestCase):
         self.assertNotIn("message_id", result)
         self.assertEqual(post.call_args.kwargs["data"]["chat_id"], "@offerchin")
         self.assertIn(self.affiliate, post.call_args.kwargs["data"]["caption"])
+        self.assertEqual(self.renderer.destinations, ["eitaa"])
 
     @patch("messenger_adapters.requests.post")
     def test_eitaa_rejection_is_not_marked_as_success(self, post):
