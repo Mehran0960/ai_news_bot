@@ -186,7 +186,7 @@ export function isInitialCatalogWarmup(status) {
   return Number(status.completed_cycles) === 0;
 }
 
-const PUBLISHER_INTERVAL_MS = 17 * 60 * 1000;
+export const PUBLISHER_INTERVAL_MS = 37 * 60 * 1000;
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
 
 async function readOfferChinState(token) {
@@ -287,7 +287,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     console.log("OFFERCHIN_PUBLISHER_WARMUP_FALLBACK reason=no_clean_snapshot_yet");
   } else {
     // Reuse the last immutable clean snapshot while the next full scan runs.
-    // A new full scan is not required between two 17-minute publication slots.
+    // A new full scan is not required between two 37-minute publication slots.
     console.log(
       "OFFERCHIN_PUBLISHER_USING_CLEAN_SNAPSHOT cycle=" +
       String(catalogStatus.last_clean_cycle_completed_at) +
@@ -316,7 +316,6 @@ async function dispatchPublisherWhenDue(env, tick, state) {
 }
 
 const VIDEO_WORKFLOW_RETRY_GAP_MS = 5 * 60 * 1000;
-const VIDEO_UPLOAD_CANDIDATE_LIMIT = 6;
 const VIDEO_UPLOAD_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const VIDEO_PENDING_STATUSES = new Set([
   "pending", "pending_credentials", "retry", "skipped_unverified_deadline"
@@ -335,7 +334,7 @@ function hasChannelDelivery(record) {
     /^\d+$/.test(String(record.bale_message_id || ""));
 }
 
-function videoRecordDue(record, platform, now) {
+export function videoRecordDue(record, platform, now) {
   if (!record || typeof record !== "object" || !hasChannelDelivery(record)) return false;
   const publishedAt = Number(record.ts || 0) * 1000;
   if (!Number.isFinite(publishedAt) || publishedAt <= 0 || now - publishedAt > VIDEO_UPLOAD_MAX_AGE_MS) return false;
@@ -362,17 +361,13 @@ function videoRecordDue(record, platform, now) {
   return true;
 }
 
-function hasDueVideoRecord(state, platform, now) {
+export function hasDueVideoRecord(state, platform, now) {
   const published = state && state.published && typeof state.published === "object"
     ? state.published : {};
-  const recent = Object.values(published)
-    .sort((left, right) => {
-      const leftTs = Number(left && left.ts || 0);
-      const rightTs = Number(right && right.ts || 0);
-      return (Number.isFinite(rightTs) ? rightTs : 0) - (Number.isFinite(leftTs) ? leftTs : 0);
-    })
-    .slice(0, VIDEO_UPLOAD_CANDIDATE_LIMIT);
-  return recent.some(record => videoRecordDue(record, platform, now));
+  // The compact dispatcher sidecar already caps this at the 250 most recent
+  // channel-delivered records. Do not inspect only the newest six: that can
+  // hide an older pending upload behind six newer completed uploads.
+  return Object.values(published).some(record => videoRecordDue(record, platform, now));
 }
 
 async function readLatestWorkflowAttempt(api, token) {
