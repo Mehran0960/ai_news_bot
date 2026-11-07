@@ -981,13 +981,17 @@
 
 **هدف:** حذف نیاز به اجرای دستی verify-login پس از تغییر workflow و جلوگیری از باقی‌ماندن گیت ورود فیلو بدون بررسی.
 
-**تغییر:** با هر تغییر فایل `.github/workflows/filo-video-upload.yml` روی main، workflow یک بررسی ورود verify-only اجرا می‌کند. برای رویداد push، مرحلهٔ آپلود صراحتاً غیرفعال است؛ آپلود فقط از مسیر workflow_dispatch و حالت upload انجام می‌شود. نتیجهٔ تأیید در state ذخیره می‌شود و فقط status/error غیرحساس در log چاپ می‌شود.
+**تغییر/اقدام:** با هر تغییر فایل `.github/workflows/filo-video-upload.yml` روی main، workflow یک بررسی ورود verify-only اجرا می‌کند. برای رویداد push، مرحلهٔ آپلود صراحتاً غیرفعال است؛ آپلود فقط از مسیر workflow_dispatch و حالت upload انجام می‌شود. نتیجهٔ تأیید در state و sidecar Worker ذخیره می‌شود و فقط status/error غیرحساس در log چاپ می‌شود. مرحلهٔ دریافت لوگوی DigiPay نیز در verify-only رد می‌شود تا بررسی حساب به دسترس‌پذیری سایت ثالث وابسته نباشد.
 
-**فایل‌ها:** `.github/workflows/filo-video-upload.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
+**فایل‌ها/سامانه‌ها:** `.github/workflows/filo-video-upload.yml`، `affilio_radar/affilio_radar.py`، `affilio_radar/test_filo_upload_schedule.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
 
-**ایمنی:** هیچ ویدئوی آزمایشی منتشر نمی‌شود، secrets خوانده یا افشا نمی‌شوند و CAPTCHA/OTP یا سایر کنترل‌های امنیتی دور زده نمی‌شوند.
+**آزمون و نتیجه:** تست‌های انتقال status ورود به sidecar، تست‌های queue فیلو، رگرسیون Worker و دروازهٔ مستندات روی نسخهٔ نهایی PR اجرا می‌شوند؛ نتیجه پس از تکمیل CI ثبت خواهد شد.
 
-**وضعیت:** شاخهٔ مستقل؛ پس از merge باید run verify-only و نتیجهٔ ورود کنترل شود.
+**شواهد/شناسه:** PR #115، شاخهٔ `ops/offerchin-auto-verify-filo-login-20261108`.
+
+**ریسک/بازگشت:** این مسیر هیچ ویدئوی آزمایشی منتشر نمی‌کند و CAPTCHA/OTP یا سایر کنترل‌های امنیتی را دور نمی‌زند. در صورت شکست ورود، وضعیت failed به Worker می‌رسد و آپلود متوقف می‌شود. rollback با revert کردن PR ممکن است.
+
+**وضعیت:** پیاده‌سازی در شاخهٔ PR؛ پس از merge، workflow به‌طور خودکار verify-only اجرا می‌شود.
 
 
 ## ۲۰۲۶-۱۱-۰۸ — تکمیل مسیر انتقال تأیید ورود فیلو به Worker
