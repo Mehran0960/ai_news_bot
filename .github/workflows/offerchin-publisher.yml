@@ -184,7 +184,7 @@ jobs:
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
           RUBIKA_BOT_TOKEN: ${{ secrets.RUBIKA_BOT_TOKEN }}
-          RUBIKA_CHANNEL_ID: ${{ secrets.RUBIKA_CHANNEL_ID }}
+          RUBIKA_CHANNEL_ID: ${{ vars.RUBIKA_CHANNEL_ID || 'c0EH9WW0c7fa831d965d050233b7ab35' }}
           RUBIKA_ENABLE_PUBLISHING: ${{ vars.RUBIKA_ENABLE_PUBLISHING || 'false' }}
           EITAA_BOT_TOKEN: ${{ secrets.EITAA_BOT_TOKEN }}
           EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
