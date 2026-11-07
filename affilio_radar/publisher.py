@@ -252,6 +252,7 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
             "youtube_video_url", "youtube_upload_status", "youtube_uploaded_at",
             "aparat_video_hash", "aparat_video_url", "aparat_upload_status",
             "aparat_uploaded_at", "video_file_name", "video_generation_status",
+            "platform_message_ids", "platform_delivery_receipts",
         ):
             if old.get(field) not in (None, ""):
                 record[field] = old[field]
@@ -470,10 +471,15 @@ def _process_photo_destination(
         target["attempts"] = 1
     _save(state)
     try:
-        result = radar._send_platform_photo(destination, item, image_bytes, str(item["affiliate_url"]))
+        if destination in {"rubika", "eitaa"}:
+            from messenger_adapters import send_photo
+            result = send_photo(destination, item, image_bytes, str(item["affiliate_url"]), radar)
+        else:
+            result = radar._send_platform_photo(destination, item, image_bytes, str(item["affiliate_url"]))
         message_id = result.get("message_id")
-        if not message_id:
-            raise RuntimeError("platform did not return a message id")
+        delivery_receipt = result.get("delivery_receipt")
+        if not message_id and not delivery_receipt:
+            raise RuntimeError("platform returned neither message_id nor acceptance receipt")
         sent_at = _now()
         _set_target(entry, destination, "sent", sent_at)
         record_status[destination] = "sent"
@@ -482,14 +488,19 @@ def _process_photo_destination(
             record["telegram_message_id"] = message_id
         elif destination == "bale":
             record["bale_message_id"] = message_id
-        else:
-            # Future channel adapters keep their own IDs under a neutral field;
-            # new destinations never require changes to content discovery.
+        elif message_id:
+            # Store only real message identifiers returned by the destination API.
             record.setdefault("platform_message_ids", {})[destination] = message_id
+        elif delivery_receipt:
+            # Some APIs confirm acceptance without exposing a message ID.
+            record.setdefault("platform_delivery_receipts", {})[destination] = str(delivery_receipt)
         record.setdefault("delivery_attempts", {})[destination] = target["attempts"]
         record["delivery_last_attempt_at"] = _now().isoformat()
         _save(state)
-        print(f"PLATFORM_DELIVERY_OK product_id={entry['product_id']} platform={destination} message_id={message_id}")
+        print(
+            f"PLATFORM_DELIVERY_OK product_id={entry['product_id']} platform={destination} "
+            f"message_id={message_id or 'not_returned'} receipt_only={bool(delivery_receipt and not message_id)}"
+        )
     except Exception as exc:
         _target_retry(entry, destination, _now(), f"{type(exc).__name__}: {str(exc)[:180]}")
         record_status[destination] = "failed"
