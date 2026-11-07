@@ -4955,10 +4955,10 @@ class AffilioRadarTests(unittest.TestCase):
             "YouTube channel IDs should appear before product details",
         )
 
-    def test_publication_interval_is_37_minutes(self):
-        self.assertAlmostEqual(MIN_POST_INTERVAL_HOURS, 37 / 60)
-        self.assertEqual(radar_module.URGENT_MIN_POST_INTERVAL_MINUTES, 37)
-        self.assertEqual(radar_module.ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES, 37)
+    def test_publication_interval_is_27_minutes(self):
+        self.assertAlmostEqual(MIN_POST_INTERVAL_HOURS, 27 / 60)
+        self.assertEqual(radar_module.URGENT_MIN_POST_INTERVAL_MINUTES, 27)
+        self.assertEqual(radar_module.ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES, 27)
 
     def test_video_upload_candidate_limit_covers_dispatch_sidecar(self):
         self.assertEqual(VIDEO_UPLOAD_CANDIDATE_LIMIT, VIDEO_DISPATCH_STATE_RECORD_LIMIT)
