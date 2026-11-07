@@ -750,3 +750,20 @@
 
 
 **پیگیری وضعیت — ۲۰۲۶-۱۱-۰۷:** همهٔ پنج بررسی GitHub Actions موفق شدند: Platform Logo Regression Tests، Documentation Gate، Catalog Sweep Regression Tests، Messenger Adapter Tests و Top-100 and DigiPay Regression Tests. PR شمارهٔ ۱۰۳ با commit ادغام `257c21af6f8ae66ae8075f6c872e37947baad53a` در شاخهٔ `main` ادغام شد. هیچ پست آزمایشی عمومی ارسال نشد؛ مشاهدهٔ نهاییِ ظاهر پست در کلاینت‌های واقعی پس از انتشار عادی، هنوز جداگانه قابل بررسی است.
+
+
+## 2026-11-07 — همگام‌سازی مستندات با وضعیت زنده و رفع شکست Documentation Gate
+
+**هدف:** رفع تعارض مستندات قدیمی با وضعیت واقعی Cloudflare و اسکن کاتالوگ، ثبت علت شکست Documentation Gate، بستن PR تکراری لوگو و تفکیک موفقیت اجرای workflow از انتشار عمومی واقعی.
+
+**تغییر/اقدام:** به‌روزرسانی handbook با وضعیت read-only نسخهٔ ۳۶ Worker و Cron یک‌دقیقه‌ای، شواهد آخرین چرخهٔ کامل کاتالوگ و پیشرفت چرخهٔ بعدی، و نتیجهٔ واقعی ناشر که در آن گاردهای تکرار مانع انتخاب شدند و پست تازه‌ای ارسال نشد. علت شکست run شمارهٔ 42395130657 از روی log ثبت شد: نه تست validator، بلکه فقدان عنوان تاریخ‌دار جدید برای یادداشت پیگیری changelog. یک بخش تاریخ‌دار مستقل با تمام هفت فیلد الزامی افزوده شد. PR قدیمی شمارهٔ ۹۶ به‌دلیل هم‌پوشانی و superseded شدن توسط PR شمارهٔ ۱۰۳ بسته شد. هیچ پست آزمایشی عمومی ارسال نشد.
+
+**فایل‌ها/سامانه‌ها:** `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`، Cloudflare Worker `affilio-minute-dispatcher`، GitHub Actions اسکنر کاتالوگ و ناشر؛ PRهای ۹۶ و ۱۰۳.
+
+**آزمون و نتیجه:** در run شکست‌خوردهٔ Documentation Gate، هر ۹ تست `test_validate_offerchin_documentation.py` موفق بودند و فقط مرحلهٔ enforce به‌علت نبود heading تاریخ‌دار جدید شکست خورد. اسکنر run شمارهٔ 42395883443 با success و checkpoint پایدار خاتمه یافت. ناشر run شمارهٔ 42395636227 نیز از نظر فنی موفق بود، اما `selected=0`، `publisher_invoked=false` و `PUBLISHER_NOTHING_DUE` ثبت کرد؛ بنابراین انتشار عمومی تازه‌ای اثبات نشد. صفحه‌های عمومی Telegram، Bale، YouTube و Aparat از نظر متن/فهرست قابل خواندن بودند و Rubika فقط metadata کانال را نشان داد؛ هیچ‌یک از این خروجی‌های متنی، نمایش لوگو و شناسه درون فایل تصویر را اثبات نمی‌کند. Documentation Gate اصلاح مستندات در PR شمارهٔ ۱۰۴ با run شمارهٔ 42396356334 موفق شد؛ merge و push-trigger پس از آن جداگانه پیگیری می‌شوند.
+
+**شواهد/شناسه:** Cloudflare deployment `19791161-bcb9-4c85-b802-e0aae51aa57a`، Worker version 36 با شناسهٔ `5b9c8cf2-898c-46ff-adc2-88cff1050fb5` و ۱۰۰٪ ترافیک؛ Cron برابر `* * * * *`. آخرین snapshot کامل: ۴٬۹۱۶/۴٬۹۱۶ دسته، ۲۲۷٬۰۰۹ صفحه، ۴٬۴۷۴٬۰۴۷ ردیف محصول، ۳٬۰۰۰ candidate و پایان در `2026-11-07T11:42:22.241603+00:00`. چرخهٔ بعدی در snapshot ساعت ۱۷:۲۴:۲۶ UTC: ۳٬۸۶۶ دسته تکمیل و ۱٬۰۵۰ صفحه pending. Catalog run: `42395883443`؛ publisher run: `42395636227`؛ شکست Documentation Gate: `42395130657`؛ PR #103 merge SHA: `257c21af6f8ae66ae8075f6c872e37947baad53a`؛ PR #96 closed.
+
+**ریسک/بازگشت:** این تغییرات فقط مستندات و وضعیت PR را اصلاح می‌کنند؛ کد انتشار، Worker، Cron، Secretها، صف‌ها و گاردهای تکرار تغییر نکرده‌اند. سابقهٔ changelog append-only باقی می‌ماند. تأیید بصری تصاویر عمومی تا زمان انتشار طبیعی و مشاهدهٔ شناسه‌دار در هر مقصد، باز می‌ماند. rollback مستندات با revert همین PR امکان‌پذیر است.
+
+**وضعیت:** مستندات در شاخهٔ کاری به‌روزرسانی می‌شوند؛ Documentation Gate و merge این اصلاح هنوز باید با نتیجهٔ واقعی Actions تأیید شوند.
