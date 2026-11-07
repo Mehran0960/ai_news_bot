@@ -7,6 +7,12 @@ on:
       - ".github/workflows/rubika-channel-discovery.yml"
       - "scripts/discover_rubika_channel.py"
       - "scripts/test_discover_rubika_channel.py"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/rubika-channel-discovery.yml"
+      - "scripts/discover_rubika_channel.py"
+      - "scripts/test_discover_rubika_channel.py"
   workflow_dispatch:
     inputs:
       channel_username:
