@@ -36,6 +36,7 @@ VIDEO_LOGO_MAX_WIDTH = 96
 VIDEO_PURCHASE_CTA_LABELS = {
     "youtube": "لینک خرید: توضیحات کانال",
     "aparat": "لینک خرید: کپشن ویدئو و توضیحات کانال",
+    "filo": "لینک خرید: توضیحات ویدئو",
 }
 YOUTUBE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/videos"
