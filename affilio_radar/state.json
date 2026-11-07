@@ -353675,6 +353675,7 @@
     },
     "dkp-11341710": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 1752,
       "bale_posted_at": "2026-11-07T11:30:38.179786+00:00",
       "brand": "",
@@ -353717,6 +353718,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "historical_deal_eligible": false,
       "historical_popularity_score": 19,
       "history_checked_at": "2026-11-07T11:30:10.414789+00:00",
@@ -353743,8 +353745,19 @@
       "telegram_posted_at": "2026-11-07T11:30:34.430876+00:00",
       "title": "فیوز خودرو الپا مدل EL-6805 مجموعه 10 عددی به همراه تستر فیوز",
       "ts": 1794051027.147358,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-11341710.mp4",
+      "video_generated_at": "2026-11-07T11:44:56.781861+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 6,
+      "youtube_description_version": 4,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-07T11:45:00.761207+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-07T11:45:02.675721+00:00",
+      "youtube_video_id": "M3wHspSzqeQ",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/M3wHspSzqeQ",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-11475250": {
       "aparat_upload_status": "pending",
@@ -417712,7 +417725,7 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 10,
   "snappshop_retry_after": "2026-11-08T06:36:11.124349+00:00",
-  "youtube_last_upload_success_at": "2026-11-07T08:43:30.519364+00:00",
-  "youtube_next_upload_at": "2026-11-07T11:43:30.519364+00:00",
+  "youtube_last_upload_success_at": "2026-11-07T11:45:02.675721+00:00",
+  "youtube_next_upload_at": "2026-11-07T14:45:02.675721+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
