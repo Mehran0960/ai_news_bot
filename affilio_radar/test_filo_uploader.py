@@ -1,8 +1,10 @@
 import unittest
 from pathlib import Path
+from unittest.mock import Mock
 
 from filo_uploader import (
     FiloUploadError,
+    _find_publish_button,
     _normalize_text,
     _success_flag,
     _title_matches,
@@ -27,6 +29,26 @@ class FiloUploaderUnitTests(unittest.TestCase):
     def test_persian_and_arabic_text_normalization_is_stable(self):
         self.assertEqual(_normalize_text("آفرچین ۱۲۳"), _normalize_text("آفرچین ۱۲۳"))
         self.assertTrue(_title_matches("فعال | پیشنهاد ویژه آفرچین", "پیشنهاد ویژه آفرچین"))
+
+    def test_publish_button_finder_supports_input_submit_controls(self):
+        page = Mock()
+        collection = Mock()
+        candidate = Mock()
+        candidate.count.return_value = 1
+        candidate.is_visible.return_value = True
+        candidate.is_enabled.return_value = True
+        collection.evaluate_all.return_value = [{
+            "index": 0,
+            "tag": "input",
+            "text": "بارگذاری ویدیو",
+            "disabled": False,
+            "visible": True,
+        }]
+        collection.nth.return_value = candidate
+        page.locator.return_value = collection
+
+        self.assertIs(_find_publish_button(page), candidate)
+        collection.nth.assert_called_once_with(0)
 
     def test_missing_credentials_fail_before_browser_start(self):
         with self.assertRaises(FiloUploadError) as caught:
