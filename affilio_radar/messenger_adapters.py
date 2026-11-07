@@ -99,7 +99,7 @@ def _rubika_inline_keypad(renderer: Any, item: dict, affiliate_url: str) -> dict
                     "type": "Link",
                     "button_text": purchase_label,
                     "button_link": {
-                        "type": "URL",
+                        "type": "url",
                         "link_url": affiliate_url,
                     },
                 }],
@@ -110,7 +110,7 @@ def _rubika_inline_keypad(renderer: Any, item: dict, affiliate_url: str) -> dict
                     "type": "Link",
                     "button_text": RUBIKA_MEMBERSHIP_BUTTON_TEXT,
                     "button_link": {
-                        "type": "URL",
+                        "type": "url",
                         "link_url": RUBIKA_CHANNEL_URL,
                     },
                 }],
