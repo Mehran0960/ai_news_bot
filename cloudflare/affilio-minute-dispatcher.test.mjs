@@ -144,6 +144,23 @@ test("video dispatcher sees an older pending upload beyond the newest six record
   assert.equal(hasDueVideoRecord({ published }, "youtube", now), true);
 });
 
+test("Filo login must be explicitly verified and no older than seven days", () => {
+  const now = Date.now();
+  assert.equal(isFiloLoginVerified({}, now), false);
+  assert.equal(isFiloLoginVerified({
+    filo_login_verification_status: "verified",
+    filo_login_verified_at: new Date(now - 60 * 60 * 1000).toISOString(),
+  }, now), true);
+  assert.equal(isFiloLoginVerified({
+    filo_login_verification_status: "verified",
+    filo_login_verified_at: new Date(now - 8 * 24 * 60 * 60 * 1000).toISOString(),
+  }, now), false);
+  assert.equal(isFiloLoginVerified({
+    filo_login_verification_status: "failed",
+    filo_login_verified_at: new Date(now).toISOString(),
+  }, now), false);
+});
+
 test("Filo dispatcher requires a verified deadline and a fresh channel-delivered product", () => {
   const now = Date.now();
   const base = {
