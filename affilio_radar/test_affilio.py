@@ -4733,8 +4733,10 @@ class AffilioRadarTests(unittest.TestCase):
             "affilio_radar._draw_platform_watermark_icon",
             side_effect=lambda _draw, platform, *_args: drawn_platforms.append(platform),
         ):
-            default_telegram = build_discount_image(source, None)
+            build_discount_image(source, None)
 
+        # Render comparison images without mocks so every real platform icon is drawn.
+        default_telegram = build_discount_image(source, None)
         canonical_telegram = build_discount_image(source, None, watermark="T.me/OfferChin")
         legacy_telegram = build_discount_image(source, None, watermark="Telegram.me/OfferChin")
         bale = build_discount_image(source, None, watermark="ble.ir/OfferChin")
