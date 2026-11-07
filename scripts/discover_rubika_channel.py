@@ -41,8 +41,8 @@ def is_target_channel(chat: dict, expected_username: str) -> bool:
         return False
     expected = normalize_username(expected_username)
     username = normalize_username(chat.get("username"))
-    title = normalize_username(chat.get("title"))
-    return bool(expected and (username == expected or title == expected))
+    # The channel username is known, so do not accept title-only matches.
+    return bool(expected and username == expected)
 
 
 def _post(token: str, method: str, body: dict | None = None) -> dict:
