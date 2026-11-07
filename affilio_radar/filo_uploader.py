@@ -129,6 +129,16 @@ def _visible_first(page, selectors):
             return locator
     return None
 
+def _visible_enabled_first(page, selectors):
+    """Return the first visible, enabled matching control, not a disabled decoy."""
+    for selector in selectors:
+        locator = page.locator(selector)
+        for index in range(locator.count()):
+            candidate = locator.nth(index)
+            if candidate.count() and candidate.is_visible() and candidate.is_enabled():
+                return candidate
+    return None
+
 
 def _find_title_field(page):
     field = _visible_first(page, [
@@ -266,18 +276,24 @@ def _login(page, username: str, password: str) -> None:
     username_field.press("Tab")
     password_field.press("Tab")
 
-    submit = _visible_first(page, ["button[type='submit']", "input[type='submit']"])
-    if submit is None:
-        submit = page.get_by_role("button", name=re.compile(r"^ورود$|^login$", re.I)).first
-    if not submit.count() or not submit.is_visible():
-        raise FiloUploadError("filo_login_submit_not_ready")
-    enabled = False
+    submit = None
+    submit_selectors = ["button[type='submit']", "input[type='submit']"]
+    login_role_button = page.get_by_role("button", name=re.compile(r"^ورود$|^login$", re.I)).first
     for _ in range(24):
-        enabled = submit.is_enabled()
-        if enabled:
+        submit = _visible_enabled_first(password_form, submit_selectors)
+        if submit is None:
+            submit = _visible_enabled_first(page, submit_selectors)
+        if (
+            submit is None
+            and login_role_button.count()
+            and login_role_button.is_visible()
+            and login_role_button.is_enabled()
+        ):
+            submit = login_role_button
+        if submit is not None:
             break
         time.sleep(0.4)
-    if not enabled:
+    if submit is None:
         # Emit only structural, non-secret diagnostics. Never include entered values,
         # cookies, query parameters, or full page text in Actions logs.
         diagnostic = page.evaluate(
