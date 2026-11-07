@@ -7,6 +7,7 @@ adapters independently. A platform failure never blocks another adapter.
 from __future__ import annotations
 
 import os
+import re
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -44,6 +45,15 @@ def _utc(value: Any) -> datetime | None:
         return parsed.astimezone(timezone.utc)
     except (TypeError, ValueError, OverflowError):
         return None
+
+
+def _safe_delivery_error(exc: Exception) -> str:
+    """Keep actionable delivery diagnostics while redacting URLs and credentials."""
+    detail = " ".join(str(exc or "").split())
+    detail = re.sub(r"https?://\\S+", "[redacted-url]", detail)
+    detail = re.sub(r"(?i)\\b(token|secret|authorization)\\b\\s*[:=]\\s*\\S+", r"\\1=[redacted]", detail)
+    detail = re.sub(r"\\b[A-Za-z0-9_-]{28,}\\b", "[redacted-id]", detail)
+    return detail[:150] or type(exc).__name__
 
 
 def _eligible_fallback_candidates(candidates: Any, now: datetime, catalog_context: dict | None = None) -> list[dict]:
@@ -502,12 +512,16 @@ def _process_photo_destination(
             f"message_id={message_id or 'not_returned'} receipt_only={bool(delivery_receipt and not message_id)}"
         )
     except Exception as exc:
-        _target_retry(entry, destination, _now(), f"{type(exc).__name__}: {str(exc)[:180]}")
+        safe_detail = _safe_delivery_error(exc)
+        _target_retry(entry, destination, _now(), f"{type(exc).__name__}: {safe_detail}"[:180])
         record_status[destination] = "failed"
         record.setdefault("delivery_attempts", {})[destination] = target["attempts"]
         record["delivery_last_attempt_at"] = _now().isoformat()
         _save(state)
-        print(f"PLATFORM_DELIVERY_FAILED product_id={entry['product_id']} platform={destination} error={type(exc).__name__}")
+        print(
+            f"PLATFORM_DELIVERY_FAILED product_id={entry['product_id']} platform={destination} "
+            f"error={type(exc).__name__} detail={safe_detail}"
+        )
 
 
 def _process_video_destinations(state: dict, entry: dict, record: dict, now: datetime) -> None:
