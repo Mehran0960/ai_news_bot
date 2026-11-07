@@ -363,6 +363,18 @@ export function videoRecordDue(record, platform, now) {
   return true;
 }
 
+export function isFiloLoginVerified(state, now) {
+  const verifiedAt = dateValue(state && state.filo_login_verified_at);
+  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
+  const age = verifiedAt === null ? -1 : timestamp - verifiedAt;
+  return Boolean(
+    state &&
+    state.filo_login_verification_status === "verified" &&
+    age >= 0 &&
+    age <= 7 * 24 * 60 * 60 * 1000
+  );
+}
+
 export function hasDueVideoRecord(state, platform, now) {
   const published = state && state.published && typeof state.published === "object"
     ? state.published : {};
@@ -392,6 +404,10 @@ async function dispatchVideoPlatformWhenDue(env, tick, state, platform) {
       : { api: OFFERCHIN_FILO_VIDEO_API, workflow: OFFERCHIN_FILO_VIDEO_WORKFLOW, slot: "filo_next_upload_at", pause: null };
 
   const now = tick.getTime();
+  if (platform === "filo" && !isFiloLoginVerified(state, now)) {
+    console.log("OFFERCHIN_FILO_VIDEO_DISPATCH_NOT_DUE reason=login_not_verified_or_stale");
+    return;
+  }
   const nextSlot = dateValue(state && state[config.slot]);
   const pauseUntil = config.pause ? dateValue(state && state[config.pause]) : null;
   if (nextSlot !== null && now < nextSlot) return;
