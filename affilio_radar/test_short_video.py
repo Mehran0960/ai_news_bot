@@ -670,6 +670,7 @@ class ShortVideoTests(unittest.TestCase):
             video_purchase_cta_text("aparat"),
             "لینک خرید: کپشن ویدئو و توضیحات کانال",
         )
+        self.assertEqual(video_purchase_cta_text("filo"), "لینک خرید: توضیحات ویدئو")
         self.assertFalse(any("aparat.com/OfferChin" in value for value in drawn_text))
         self.assertFalse(any("OfferChin  •" in value for value in drawn_text))
 
