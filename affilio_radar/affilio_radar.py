@@ -8359,8 +8359,8 @@ def effective_posts_per_run(backlog_count, configured_limit=None, force_full_bat
 
 
 
-VIDEO_STYLE_VERSION = 6  # DigiPay co-branding, clean discount line, and top-safe-area channel CTAs
-YOUTUBE_DESCRIPTION_VERSION = 4  # surface public channel links before the product-specific purchase link
+VIDEO_STYLE_VERSION = 7  # destination-specific cross-channel IDs, five official marks, and logo+bare-ID rows
+YOUTUBE_DESCRIPTION_VERSION = 5  # bare IDs for every other public platform; no self-link or protocol
 PERSIAN_TEXT_RENDERER_VERSION = 2  # single RTL/bidi pass via Pillow RAQM when available
 PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
 # The generic web uploader can publish vertical 9:16 videos to Aparat's regular feed, but cannot guarantee
@@ -9123,6 +9123,17 @@ def process_pending_short_video(
             record["video_generation_next_attempt_at"] = (current + timedelta(minutes=30)).isoformat()
             state_changed = True
             continue
+        render_destinations = []
+        if yt_need:
+            render_destinations.append("youtube")
+        if public_aparat_need or shorts_queue_need:
+            render_destinations.append("aparat")
+        if not render_destinations and review_need:
+            render_destinations.append(
+                "youtube" if "youtube" in selected_destinations else "aparat"
+            )
+        if not render_destinations and manual_artifact_need:
+            render_destinations.append("youtube")
         candidates.append((
             float(record.get("ts") or 0),
             str(pid),
@@ -9130,6 +9141,7 @@ def process_pending_short_video(
             expiry_for_sort,
             expiry,
             verified_expiry,
+            render_destinations,
         ))
 
     if state_changed:
@@ -9138,31 +9150,63 @@ def process_pending_short_video(
         return False
 
     candidates.sort(key=_video_upload_candidate_sort_key)
-    _, pid, record, _expiry_for_sort, expiry, verified_expiry = candidates[0]
+    _, pid, record, _expiry_for_sort, expiry, verified_expiry, render_destinations = candidates[0]
     output_folder = Path(output_dir)
     output_folder.mkdir(parents=True, exist_ok=True)
-    output_path = output_folder / f"offerchin-{pid}.mp4"
+    preferred_destination = (
+        render_destinations[0] if render_destinations
+        else ("youtube" if "youtube" in selected_destinations else "aparat")
+    )
+    rendered_video_paths: dict[str, Path] = {}
+    image_bytes: bytes | None = None
 
-    try:
-        image_bytes = _fetch_image(str(record["image_url"]))
+    def render_for_destination(destination: str) -> Path:
+        nonlocal image_bytes
+        platform = str(destination or "").strip().lower()
+        if platform not in {"youtube", "aparat"}:
+            raise ValueError(f"unsupported video destination: {platform}")
+        existing = rendered_video_paths.get(platform)
+        if existing is not None and existing.is_file():
+            return existing
+        if image_bytes is None:
+            image_bytes = _fetch_image(str(record["image_url"]))
+        # Keep the historical file name for the preferred/first destination. When
+        # both destinations are due, render a second MP4 with its own cross-link list.
+        output = (
+            output_folder / f"offerchin-{pid}.mp4"
+            if platform == preferred_destination
+            else output_folder / f"offerchin-{pid}-{platform}.mp4"
+        )
         render_short_video(
             image_bytes,
             record.get("posted_discount_percent"),
-            output_path,
+            output,
             title=str(record.get("title") or "پیشنهاد ویژه دیجی‌کالا"),
             current_price=record.get("posted_current_price"),
             original_price=record.get("posted_original_price"),
             merchant="اسنپ‌شاپ" if product_id(record.get("product_url", "")).startswith("snp-") else "دیجی‌کالا",
+            destination_platform=platform,
         )
+        rendered_video_paths[platform] = output
+        file_names = record.get("video_file_names")
+        if not isinstance(file_names, dict):
+            file_names = {}
+        file_names[platform] = output.name
+        record["video_file_names"] = file_names
+        record["video_file_name"] = output.name
+        return output
+
+    try:
+        output_path = render_for_destination(preferred_destination)
         record["video_generation_status"] = "generated"
         record["video_style_version"] = VIDEO_STYLE_VERSION
         record["video_generated_at"] = current.isoformat()
-        record["video_file_name"] = output_path.name
         record.pop("video_generation_next_attempt_at", None)
         record.pop("video_generation_last_error", None)
         expiry_label = expiry.isoformat() if expiry is not None else "unverified_or_missing"
         print(
             f"SHORT_VIDEO_GENERATED id={pid} file={output_path.name} "
+            f"destination={preferred_destination} additional_destinations={','.join(render_destinations[1:]) or 'none'} "
             f"youtube_credentials={youtube_ready} aparat_credentials={aparat_ready} "
             f"telegram_review={review_ready} expiry={expiry_label} "
             f"expiry_verified={verified_expiry}"
@@ -9225,7 +9269,7 @@ def process_pending_short_video(
         save_json(STATE, state)
         try:
             aparat_result = upload_aparat_video(
-                output_path,
+                render_for_destination("aparat"),
                 str(record.get("title") or "پیشنهاد آفِرچین"),
                 description=build_video_channel_description(state, "aparat", record=record),
             )
@@ -9295,7 +9339,7 @@ def process_pending_short_video(
         save_json(STATE, state)
         try:
             result = upload_youtube_video(
-                output_path,
+                render_for_destination("youtube"),
                 str(record.get("title") or "پیشنهاد آفِرچین"),
                 record.get("posted_discount_percent"),
                 description=build_video_channel_description(state, "youtube", record=record),
@@ -9546,27 +9590,18 @@ def record_daily_member_count_snapshot(
 
 
 def build_video_channel_description(state: dict, source: str, record: dict | None = None) -> str:
-    """Build platform descriptions with high-visibility channel links and a tracked product link."""
+    """List all verified public media IDs except the destination receiving this video."""
     source_value = str(source or "").strip().lower()
     lines = [
         "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا و اسنپ‌شاپ را در آفِرچین دنبال کنید.",
+        "",
+        *[url for _platform, url in public_channel_links(source_value)],
     ]
-
-    # On YouTube, channel links are placed immediately after the opening sentence.
-    # This keeps the public community CTA above product details in the collapsed preview.
-    if source_value == "youtube":
+    if source_value != "youtube":
         lines.extend([
             "",
-            "📢 عضویت در کانال‌ها:",
-            "کانال تلگرام:",
-            "https://t.me/OfferChin",
-            "کانال بله:",
-            "https://ble.ir/OfferChin",
-            "آپارات:",
-            "https://www.aparat.com/OfferChin",
+            "قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در فروشگاه مربوط بررسی کنید.",
         ])
-    else:
-        lines.append("قیمت، موجودی و شرایط تخفیف ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در فروشگاه مربوط بررسی کنید.")
 
     product_url = safe_product_url((record or {}).get("product_url", "")) if isinstance(record, dict) else ""
     if product_url:
@@ -9578,25 +9613,8 @@ def build_video_channel_description(state: dict, source: str, record: dict | Non
             )
             lines.extend(["", "لینک خرید محصول:", purchase_url])
 
-    if source_value == "youtube":
-        return "\n".join(lines)
-
-    tracking = state.get("growth_tracking", {}) if isinstance(state, dict) else {}
-    links = tracking.get("telegram_invite_links", {}) if isinstance(tracking, dict) else {}
-    link_record = links.get(source_value, {}) if isinstance(links, dict) else {}
-    invite_url = str(link_record.get("url") or "").strip() if isinstance(link_record, dict) else ""
-    parsed = urlsplit(invite_url)
-    if not (parsed.scheme == "https" and parsed.netloc.lower() in {"t.me", "telegram.me"} and parsed.path):
-        invite_url = TELEGRAM_CHANNEL_URL
-    source_names = {"aparat": "آپارات", "youtube": "یوتیوب"}
-    source_label = source_names.get(source_value, "این ویدئو")
-    lines.extend([
-        "",
-        f"برای عضویت در تلگرام از {source_label}:",
-        invite_url,
-        "کانال بله: https://ble.ir/OfferChin",
-    ])
     return "\n".join(lines)
+
 
 def tracked_telegram_invite_url(state: dict, source: str) -> str:
     """Get a validated saved invite URL for replacing a source link in a pinned message."""
