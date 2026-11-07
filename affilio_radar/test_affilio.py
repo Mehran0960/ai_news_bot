@@ -4724,7 +4724,7 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertLessEqual(max(ys) - min(ys) + 1, expected_height)
             self.assertGreaterEqual(max(ys) - min(ys) + 1, expected_height - 4)
 
-    def test_channel_watermarks_exclude_the_destination_and_show_other_three_platforms(self):
+    def test_channel_watermarks_exclude_the_destination_and_show_other_three_platforms_with_original_logo_sources(self):
         image_bytes = BytesIO()
         Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")
         source = image_bytes.getvalue()
