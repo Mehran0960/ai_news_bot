@@ -15,6 +15,8 @@ from __future__ import annotations
 PLATFORM_REGISTRY = {
     "telegram": {"media": "photo"},
     "bale": {"media": "photo"},
+    "rubika": {"media": "photo"},
+    "eitaa": {"media": "photo"},
     "youtube": {"media": "video"},
     "aparat": {"media": "video"},
 }
