@@ -116,6 +116,19 @@ class FiloUploadScheduleTests(unittest.TestCase):
         self.assertEqual(PLATFORM_REGISTRY["filo"]["media"], "video")
         self.assertIn("filo", VIDEO_PLATFORMS)
 
+    def test_sidecar_migrates_legacy_three_hour_slot_before_worker_dispatch(self):
+        last_success = self.now - timedelta(minutes=10)
+        state = {
+            "filo_last_upload_success_at": last_success.isoformat(),
+            "filo_next_upload_at": (last_success + timedelta(hours=3)).isoformat(),
+            "filo_upload_interval_policy_version": 1,
+            "published": {},
+        }
+        sidecar = build_video_upload_dispatch_state(state, now=self.now)
+        expected = last_success + timedelta(minutes=27)
+        self.assertEqual(sidecar["filo_next_upload_at"], expected.isoformat())
+        self.assertEqual(sidecar["filo_upload_interval_policy_version"], FILO_UPLOAD_INTERVAL_POLICY_VERSION)
+
     def test_dispatch_sidecar_includes_filo_status_and_next_slot(self):
         state = {
             "filo_next_upload_at": (self.now + timedelta(hours=2)).isoformat(),
