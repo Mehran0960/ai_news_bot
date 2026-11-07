@@ -130,7 +130,7 @@ def _visible_first(page, selectors):
 
 
 def _find_title_field(page):
-    return _visible_first(page, [
+    field = _visible_first(page, [
         'input[name*="title" i]',
         'input[id*="title" i]',
         'input[placeholder*="عنوان"]',
@@ -139,10 +139,30 @@ def _find_title_field(page):
         'input[placeholder*="نام ویدیو"]',
         'input[placeholder*="نام ویدئو"]',
     ])
+    if field is not None:
+        return field
+    candidates = page.locator("input, textarea").evaluate_all(
+        """nodes => nodes.map((el, index) => {
+          const style = getComputedStyle(el);
+          const visible = Boolean(el.getBoundingClientRect().width && el.getBoundingClientRect().height) &&
+            style.visibility !== 'hidden' && style.display !== 'none';
+          const labels = Array.from(el.labels || []).map(x => x.innerText || '').join(' ');
+          return {index, visible, tag: el.tagName.toLowerCase(), type: (el.type || '').toLowerCase(),
+            id: el.id || '', name: el.name || '', placeholder: el.placeholder || '',
+            ariaLabel: el.getAttribute('aria-label') || '', label: labels};
+        })"""
+    )
+    for item in candidates:
+        identity = " ".join(str(item.get(key) or "") for key in ("id", "name", "placeholder", "ariaLabel", "label"))
+        if item.get("visible") and item.get("type") in {"text", ""} and re.search(
+            r"عنوان|title|نام ویدیو|نام ویدئو", identity, re.I
+        ):
+            return page.locator("input, textarea").nth(int(item["index"]))
+    return None
 
 
 def _find_description_field(page):
-    return _visible_first(page, [
+    field = _visible_first(page, [
         'textarea[name*="description" i]',
         'textarea[id*="description" i]',
         'textarea[placeholder*="توضیح"]',
@@ -150,6 +170,22 @@ def _find_description_field(page):
         '[contenteditable="true"][aria-label*="توضیح"]',
         '[contenteditable="true"]',
     ])
+    if field is not None:
+        return field
+    candidates = page.locator("textarea").evaluate_all(
+        """nodes => nodes.map((el, index) => {
+          const r = el.getBoundingClientRect(), style = getComputedStyle(el);
+          return {index, visible: Boolean(r.width && r.height) && style.visibility !== 'hidden' && style.display !== 'none',
+            id: el.id || '', name: el.name || '', placeholder: el.placeholder || '',
+            ariaLabel: el.getAttribute('aria-label') || '',
+            label: Array.from(el.labels || []).map(x => x.innerText || '').join(' ')};
+        })"""
+    )
+    for item in candidates:
+        identity = " ".join(str(item.get(key) or "") for key in ("id", "name", "placeholder", "ariaLabel", "label"))
+        if item.get("visible") and re.search(r"توضیح|شرح|description", identity, re.I):
+            return page.locator("textarea").nth(int(item["index"]))
+    return None
 
 
 def _find_publish_button(page):
