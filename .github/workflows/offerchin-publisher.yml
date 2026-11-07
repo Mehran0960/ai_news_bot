@@ -12,6 +12,8 @@ on:
   # Routine source commits still cannot publish customer-facing posts.
   # [publisher-run-now] One-time controlled resume after repeat-candidate starvation fix.
   push:
+    branches:
+      - main
     paths:
       - ".github/workflows/offerchin-publisher.yml"
   # Cloudflare checks every minute and dispatches 17 minutes after the previous channel post.
