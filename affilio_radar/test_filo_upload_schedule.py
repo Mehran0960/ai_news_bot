@@ -119,6 +119,7 @@ class FiloUploadScheduleTests(unittest.TestCase):
     def test_dispatch_sidecar_includes_filo_status_and_next_slot(self):
         state = {
             "filo_next_upload_at": (self.now + timedelta(hours=2)).isoformat(),
+            "last_channel_published_at": self.now.isoformat(),
             "published": {
                 "sample": {
                     "ts": self.now.timestamp(),
@@ -131,6 +132,7 @@ class FiloUploadScheduleTests(unittest.TestCase):
         }
         sidecar = build_video_upload_dispatch_state(state, now=self.now)
         self.assertEqual(sidecar["filo_next_upload_at"], state["filo_next_upload_at"])
+        self.assertEqual(sidecar["last_channel_published_at"], state["last_channel_published_at"])
         self.assertEqual(sidecar["published"]["sample"]["filo_upload_status"], "submitted_pending_approval")
         self.assertEqual(
             sidecar["published"]["sample"]["filo_next_attempt_at"],
