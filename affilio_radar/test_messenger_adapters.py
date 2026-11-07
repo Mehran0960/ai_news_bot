@@ -3,6 +3,7 @@ from unittest.mock import patch
 from messenger_adapters import (
     RUBIKA_CHANNEL_URL,
     RUBIKA_MEMBERSHIP_BUTTON_TEXT,
+    _rubika_data,
     send_eitaa_photo,
     send_rubika_photo,
 )
@@ -118,6 +119,22 @@ class MessengerAdapterTests(unittest.TestCase):
                 "test-token", "test-channel", self.item, self.image, self.affiliate, self.renderer
             )
         self.assertEqual(post.call_count, 1)
+
+    def test_rubika_api_rejection_reports_safe_code_and_redacted_message(self):
+        with self.assertRaises(RuntimeError) as raised:
+            _rubika_data({
+                "status": "ERROR",
+                "error": {
+                    "code": "CHAT_NOT_FOUND",
+                    "message": "channel rejected https://private.invalid/path token=do-not-log-this",
+                },
+            }, "sendFile")
+        message = str(raised.exception)
+        self.assertIn("CHAT_NOT_FOUND", message)
+        self.assertIn("[redacted-url]", message)
+        self.assertIn("token=[redacted]", message)
+        self.assertNotIn("do-not-log-this", message)
+        self.assertIn("status=ERROR", message)
 
     @patch("messenger_adapters.requests.post")
     def test_eitaa_acceptance_without_message_id_uses_receipt_not_fake_id(self, post):
