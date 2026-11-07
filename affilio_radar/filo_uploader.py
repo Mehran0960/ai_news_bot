@@ -318,7 +318,18 @@ def _login(page, username: str, password: str) -> None:
                 }));
               const body = String((document.body && document.body.innerText) || '');
               const alerts = Array.from(document.querySelectorAll('[role=alert], [aria-live], .error, .invalid-feedback'))
-                .filter(visible).slice(0, 6).map(el => short(el.innerText || ''));
+                .filter(visible).slice(0, 6).map(el => {
+                  const text = String(el.innerText || '');
+                  return {
+                    length: text.length,
+                    phone: /شماره|موبایل|تلفن|phone|mobile/i.test(text),
+                    password: /رمز|گذرواژه|password/i.test(text),
+                    otp: /کد.?تایید|کد.?تأیید|رمز یکبار مصرف|otp/i.test(text),
+                    captcha: /captcha|تایید هویت/i.test(text),
+                    required: /الزامی|وارد کنید|required/i.test(text),
+                    invalid: /نامعتبر|معتبر نیست|صحیح نیست|invalid/i.test(text)
+                  };
+                });
               return {
                 path: location.pathname,
                 title: short(document.title),
