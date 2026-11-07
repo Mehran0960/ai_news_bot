@@ -1,6 +1,11 @@
 import unittest
 from unittest.mock import patch
-from messenger_adapters import send_eitaa_photo, send_rubika_photo
+from messenger_adapters import (
+    RUBIKA_CHANNEL_URL,
+    RUBIKA_MEMBERSHIP_BUTTON_TEXT,
+    send_eitaa_photo,
+    send_rubika_photo,
+)
 
 
 class FakeResponse:
@@ -19,6 +24,7 @@ class FakeRenderer:
     def __init__(self):
         self.render_calls = []
         self.destinations = []
+        self.caption_calls = []
     def _is_valid_affilio_tracking_url(self, value):
         return value.startswith("https://aflo.ir/")
     def build_discount_image(
@@ -29,7 +35,22 @@ class FakeRenderer:
         self.destinations.append(destination_platform)
         return b"rendered-jpeg"
     def build_caption(self, item, affiliate_url, channel_label, use_unicode_strikethrough=False):
-        return f"Offer [{channel_label}]({channel_label})"
+        self.caption_calls.append({
+            "channel_label": channel_label,
+            "use_unicode_strikethrough": use_unicode_strikethrough,
+        })
+        return (
+            "*🔥 فروش ویژه دیجی‌کالا 🔴*\n\n"
+            "🛍️ محصول آزمایشی\n\n"
+            "────────────\n\n"
+            "*💚 قیمت فعلی: ۱٬۰۰۰ تومان*\n\n"
+            "*⚡️ ۳۰٪ تخفیف*\n\n"
+            "*💳 با امکان خرید اقساطی (دیجی پی)*\n"
+            "────────────\n\n"
+            f"[➕ عضویت در کانال آفِرچین]({channel_label})"
+        )
+    def purchase_button_label(self, affiliate_url):
+        return "🛍️ مشاهده و خرید از دیجی‌کالا"
 
 
 class MessengerAdapterTests(unittest.TestCase):
@@ -55,7 +76,33 @@ class MessengerAdapterTests(unittest.TestCase):
         self.assertEqual(result, {"message_id": "MESSAGE-9"})
         self.assertEqual(post.call_count, 3)
         self.assertEqual(post.call_args.kwargs["json"]["file_id"], "FILE-1")
-        self.assertIn(self.affiliate, post.call_args.kwargs["json"]["text"])
+        payload = post.call_args.kwargs["json"]
+        self.assertNotIn(self.affiliate, payload["text"], "purchase URL belongs in its own direct button")
+        self.assertIn("فروش ویژه دیجی‌کالا", payload["text"])
+        self.assertIn("💚 قیمت فعلی: ۱٬۰۰۰ تومان", payload["text"])
+        self.assertIn("۳۰٪ تخفیف", payload["text"])
+        self.assertIn("با امکان خرید اقساطی (دیجی پی)", payload["text"])
+        self.assertNotIn("[➕ عضویت", payload["text"], "Rubika renders membership as a clickable button")
+        self.assertEqual(self.renderer.caption_calls, [{
+            "channel_label": RUBIKA_CHANNEL_URL,
+            "use_unicode_strikethrough": True,
+        }])
+        keypad = payload["inline_keypad"]
+        self.assertEqual(len(keypad["rows"]), 2)
+        buy_button = keypad["rows"][0]["buttons"][0]
+        join_button = keypad["rows"][1]["buttons"][0]
+        self.assertEqual(buy_button["type"], "Link")
+        self.assertEqual(buy_button["button_text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
+        self.assertEqual(buy_button["button_link"], {
+            "type": "url",
+            "link_url": self.affiliate,
+        })
+        self.assertEqual(join_button["type"], "Link")
+        self.assertEqual(join_button["button_text"], RUBIKA_MEMBERSHIP_BUTTON_TEXT)
+        self.assertEqual(join_button["button_link"], {
+            "type": "url",
+            "link_url": RUBIKA_CHANNEL_URL,
+        })
         self.assertEqual(self.renderer.render_calls, [None])
         self.assertEqual(self.renderer.destinations, ["rubika"])
 

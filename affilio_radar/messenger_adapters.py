@@ -10,6 +10,8 @@ RUBIKA_API = "https://botapi.rubika.ir/v3"
 EITAA_API = "https://eitaayar.ir/api"
 REQUEST_TIMEOUT = (15, 90)
 MAX_IMAGE_BYTES = 10_000_000
+RUBIKA_CHANNEL_URL = "https://rubika.ir/offerchin"
+RUBIKA_MEMBERSHIP_BUTTON_TEXT = "➕ عضویت در کانال آفِرچین"
 
 
 def _response_json(response: Any, label: str) -> dict:
@@ -54,18 +56,67 @@ def _valid_affiliate_url(renderer: Any, affiliate_url: str) -> bool:
 
 
 def _caption(renderer: Any, item: dict, affiliate_url: str, channel: str) -> str:
-    host = "rubika.ir" if channel == "rubika" else "eitaa.com"
-    platform_name = "روبیکا" if channel == "rubika" else "ایتا"
+    if channel == "rubika":
+        # Reuse the exact canonical price/title caption. Rubika's sendFile method
+        # documents inline_keypad, not text metadata; the membership CTA is therefore
+        # rendered as a URL button directly beneath this same photo message.
+        caption = renderer.build_caption(
+            item, affiliate_url, channel_label=RUBIKA_CHANNEL_URL,
+            use_unicode_strikethrough=True,
+        )
+        # Rubika receives plain text here. Strip only the Bale Markdown syntax;
+        # the final membership link is represented by the clickable inline button.
+        caption = re.sub(r"\[([^\]]+)\]\([^)]+\)", "", caption).rstrip()
+        caption = re.sub(r"\\([\\_*()\[\]])", r"\1", caption)
+        caption = caption.replace("*", "")
+        return caption[:3800]
+
     caption = renderer.build_caption(
-        item, affiliate_url, channel_label=f"https://{host}",
+        item, affiliate_url, channel_label="https://eitaa.com",
         use_unicode_strikethrough=True,
     )
     caption = re.sub(
         r"\[([^\]]+)\]\([^)]+\)",
-        lambda match: f"{match.group(1)} در {platform_name}",
+        lambda match: f"{match.group(1)} در ایتا",
         caption,
     )
     return (caption + f"\n\n🛍️ مشاهده و خرید:\n{affiliate_url}")[:3800]
+
+
+def _rubika_inline_keypad(renderer: Any, item: dict, affiliate_url: str) -> dict:
+    """Attach direct purchase and channel-membership URL buttons to the same photo post."""
+    label_builder = getattr(renderer, "purchase_button_label", None)
+    if callable(label_builder):
+        purchase_label = str(label_builder(affiliate_url))
+    else:
+        merchant = str(item.get("merchant") or "دیجی‌کالا")
+        purchase_label = f"🛍️ مشاهده و خرید از {merchant}"
+    return {
+        "rows": [
+            {
+                "buttons": [{
+                    "id": "offerchin_buy_product",
+                    "type": "Link",
+                    "button_text": purchase_label,
+                    "button_link": {
+                        "type": "url",
+                        "link_url": affiliate_url,
+                    },
+                }],
+            },
+            {
+                "buttons": [{
+                    "id": "offerchin_join_rubika",
+                    "type": "Link",
+                    "button_text": RUBIKA_MEMBERSHIP_BUTTON_TEXT,
+                    "button_link": {
+                        "type": "url",
+                        "link_url": RUBIKA_CHANNEL_URL,
+                    },
+                }],
+            },
+        ],
+    }
 
 
 def _render(renderer: Any, item: dict, image_bytes: bytes, channel: str) -> bytes:
@@ -114,6 +165,7 @@ def send_rubika_photo(token: str, channel_id: str, item: dict, image_bytes: byte
         "chat_id": channel_id,
         "file_id": file_id,
         "text": _caption(renderer, item, affiliate_url, "rubika"),
+        "inline_keypad": _rubika_inline_keypad(renderer, item, affiliate_url),
     })
     message_id = str(sent.get("message_id") or "").strip()
     if not message_id:
