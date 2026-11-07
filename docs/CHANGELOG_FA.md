@@ -696,3 +696,20 @@
 **ریسک/بازگشت:** اگر یک منبع رسمی موقتاً در دسترس نباشد یا فایل دانلودی نسبت مورد انتظار را نداشته باشد، sync با خطا متوقف می‌شود و دارایی ناقص commit نمی‌شود؛ publisher از لوگوی حدسی استفاده نمی‌کند. rollback با revert همین PR و commit sync دارایی‌ها ممکن است.
 
 **وضعیت:** منطق renderer، تست و مستندات در شاخهٔ کاری ثبت شده‌اند؛ دریافت و commit نهایی فایل‌های باینری در workflow پس از ادغام هنوز در انتظار اجراست.
+
+
+## 2026-11-07 — مقاوم‌سازی commit فایل‌های لوگوی رسمی در برابر push هم‌زمان
+
+**هدف:** جلوگیری از ردشدن commit دارایی‌های لوگو در صورتی که workflow دیگری هم‌زمان `main` را جلو ببرد.
+
+**تغییر/اقدام:** پس از اعتبارسنجی موفق چهار فایل رسمی، workflow قبل از push آخرین `origin/main` را fetch و commit دارایی‌ها را rebase می‌کند؛ در صورت race، تا چهار بار با فاصلهٔ افزایشی تلاش می‌کند. درخواست sync با version=2 دوباره trigger می‌شود تا assets رسمی مجدداً و روی HEAD تازه دانلود/ثبت شوند.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/sync-official-platform-logos.yml`، `.github/platform-brand-assets-sync.request`، `docs/CHANGELOG_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** اجرای نخست در run `42390714727` چهار فایل رسمی را کامل دریافت و اعتبارسنجی کرد؛ YouTube horizontal wordmark با نسبت ابعاد `2.976:1` تأیید شد. push نهایی به‌دلیل non-fast-forward رد شد، زیرا `main` در فاصلهٔ checkout و push به‌روزرسانی شده بود. اجرای دوم پس از ادغام retry logic باید commit واقعی فایل‌ها را ثبت کند.
+
+**شواهد/شناسه:** PR شمارهٔ ۹۹ merge commit `8b08c5f86fddb315947b46d0e3d0d59ef82ac625`؛ asset-sync run `42390714727` (validation success / push failure).
+
+**ریسک/بازگشت:** rebase خودکار فقط روی commit تازه‌ای انجام می‌شود که assetها را اضافه می‌کند؛ اگر conflict واقعی رخ دهد، job fail می‌شود و فایل‌های main بازنویسی نمی‌شوند. rollback با revert این تغییر workflow امکان‌پذیر است.
+
+**وضعیت:** retry logic و sync trigger نسخهٔ ۲ در شاخهٔ کاری آمادهٔ PR؛ commit دارایی‌ها پس از اجرای مجدد هنوز در انتظار است.
