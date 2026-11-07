@@ -75,6 +75,7 @@ class FiloUploadScheduleTests(unittest.TestCase):
         state = {
             "filo_next_upload_at": next_slot.isoformat(),
             "filo_last_upload_success_at": (self.now - timedelta(days=1)).isoformat(),
+            "filo_upload_interval_policy_version": FILO_UPLOAD_INTERVAL_POLICY_VERSION,
         }
         self.assertFalse(_filo_upload_slot_due(state, self.now, credentials_ready=True))
         self.assertTrue(_filo_upload_slot_due(state, next_slot, credentials_ready=True))
