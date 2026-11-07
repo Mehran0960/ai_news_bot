@@ -362475,7 +362475,7 @@
   },
   "published": {
     "dkp-1004486": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T21:13:13.878671+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1719,
@@ -362522,6 +362522,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 39,
       "history_checked_at": "2026-11-07T01:35:10.475673+00:00",
@@ -362560,8 +362561,8 @@
       "telegram_posted_at": "2026-11-07T01:35:30.386983+00:00",
       "title": "ریمل حجم دهنده و بلند کننده شون مدل Lash Duplicator",
       "ts": 1794015324.50646,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-10051218": {
       "aparat_upload_status": "pending",
@@ -364085,7 +364086,7 @@
       "ts": 1794051027.147358,
       "video_file_name": "offerchin-dkp-11341710.mp4",
       "video_generated_at": "2026-11-07T11:44:56.781861+00:00",
-      "video_generation_status": "generated",
+      "video_generation_status": "pending",
       "video_style_version": 6,
       "youtube_description_version": 4,
       "youtube_review_required": false,
@@ -364098,7 +364099,7 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-11475250": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T20:58:26.996854+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1724,
@@ -364145,6 +364146,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 33,
       "history_checked_at": "2026-11-07T03:11:16.873971+00:00",
@@ -364184,8 +364186,8 @@
       "telegram_posted_at": "2026-11-07T03:11:34.381666+00:00",
       "title": "ساعت هوشمند ایمیکی مدل IMIKI TG1",
       "ts": 1794021089.527946,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-1148394": {
       "aparat_upload_status": "pending",
@@ -364447,7 +364449,8 @@
     },
     "dkp-11721028": {
       "aparat_upload_status": "pending",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-07T23:03:45.815519+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 1627,
       "bale_posted_at": "2026-11-06T03:58:56.259387+00:00",
       "brand": "",
@@ -364479,18 +364482,26 @@
       "demand_window_hours": 22.5,
       "discount_vs_30d_median_pct": 0,
       "distribution_queue_id": "dkp-11721028:2026-11-06T03:58:46.164987+00:00",
-      "expires_at": "",
-      "expiry_deadline_verified_directly": false,
+      "expired_deleted_at": "2026-11-07T23:03:45.815519+00:00",
+      "expires_at": "2026-11-07T23:03:26.984531+00:00",
+      "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "expiry_status": "unknown",
+      "expiry_last_direct_verification_at": "2026-11-07T23:03:26.984531+00:00",
+      "expiry_last_removal_check_at": "2026-11-07T23:03:26.984531+00:00",
+      "expiry_last_removal_check_result": "confirmed",
+      "expiry_reason": "price_mismatch",
+      "expiry_source": "live_product_stock_or_price",
+      "expiry_status": "deleted",
       "historical_deal_eligible": false,
       "historical_popularity_score": 31,
       "history_checked_at": "2026-11-06T03:58:27.820545+00:00",
       "history_days": 5,
       "history_status": "pending_history",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/2d6994ebe51b95877fefdc22bc4c998d675e4d91_1687192743.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "last_seen_current_price": 439720,
+      "last_seen_in_stock": true,
+      "last_seen_original_price": 448700,
       "market_price_advantage_pct": null,
       "market_price_checked_at": "",
       "market_reference_kind": "",
@@ -364498,6 +364509,20 @@
       "posted_current_price": 696880,
       "posted_discount_percent": 17,
       "posted_original_price": 839900,
+      "price_audit_invalidated_at": "2026-11-07T23:03:26.984531+00:00",
+      "price_audit_last_checked_at": "2026-11-07T23:03:26.984531+00:00",
+      "price_audit_live_original_price": 448700,
+      "price_audit_live_price": 439720,
+      "price_audit_mismatch_fields": [
+        "current_price",
+        "original_price",
+        "discount_percent"
+      ],
+      "price_audit_next_check_at": "2026-11-07T23:08:26.984531+00:00",
+      "price_audit_posted_original_price": 839900,
+      "price_audit_posted_price": 696880,
+      "price_audit_reason": "price_mismatch",
+      "price_audit_status": "invalidated",
       "product_url": "https://www.digikala.com/product/dkp-11721028/",
       "promo_score": 14,
       "recent_review_growth_7d": 0,
@@ -364830,7 +364855,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-11847113": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T21:08:47.383994+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1751,
@@ -364881,6 +364906,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 16,
       "history_checked_at": "2026-11-07T11:08:54.920819+00:00",
@@ -364923,8 +364949,8 @@
       "telegram_posted_at": "2026-11-07T11:09:03.626692+00:00",
       "title": "وازلین هپسان مدل vitaminated - odorless حجم 100 میلی لیتر",
       "ts": 1794049738.383133,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-11949500": {
       "aparat_upload_status": "pending",
@@ -365893,7 +365919,7 @@
       "youtube_upload_status": "skipped_unverified_deadline"
     },
     "dkp-126148": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T22:18:39.852175+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1723,
@@ -365940,6 +365966,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 39,
       "history_checked_at": "2026-11-07T02:50:16.533661+00:00",
@@ -365979,8 +366006,8 @@
       "telegram_posted_at": "2026-11-07T02:50:35.579070+00:00",
       "title": "رول ضد تعریق زنانه شون مدل Pink Princess حجم 50 میلی لیتر",
       "ts": 1794019830.183908,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-12624245": {
       "aparat_upload_status": "pending",
@@ -368457,7 +368484,7 @@
       "youtube_upload_status": "skipped_unverified_deadline"
     },
     "dkp-1467782": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T14:58:12.813953+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1717,
@@ -368504,6 +368531,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 34,
       "history_checked_at": "2026-11-07T01:14:19.587451+00:00",
@@ -368539,8 +368567,8 @@
       "telegram_posted_at": "2026-11-07T01:14:37.980900+00:00",
       "title": "مداد رنگی 12 رنگ استدلر مدل 145AM12",
       "ts": 1794014072.68506,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-1479176": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -369791,7 +369819,8 @@
     },
     "dkp-15584297": {
       "aparat_upload_status": "skipped_unverified_deadline",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-07T22:43:22.552621+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 1204,
       "caption_deadline_format_version": 14,
       "click_count_30d": 0,
@@ -369816,22 +369845,36 @@
       "demand_signal_source": "",
       "demand_window_hours": 8.9,
       "distribution_queue_id": "dkp-15584297:2026-11-01T02:48:12.215843+00:00",
-      "expires_at": "",
-      "expiry_deadline_verified_directly": false,
+      "expires_at": "2026-11-07T22:43:14.635957+00:00",
+      "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "expiry_status": "unknown",
+      "expiry_last_direct_verification_at": "2026-11-07T22:43:14.635957+00:00",
+      "expiry_last_removal_check_at": "2026-11-07T22:43:14.635957+00:00",
+      "expiry_last_removal_check_result": "confirmed",
+      "expiry_reason": "out_of_stock",
+      "expiry_source": "live_product_stock_or_price",
+      "expiry_status": "delete_unavailable",
       "historical_popularity_score": 23,
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/ddffd76ceb1c1d7a9dce152d9a04119a31719ec0_1785336479.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "last_seen_in_stock": false,
       "posted_current_price": 1449900,
       "posted_discount_percent": 42,
       "posted_original_price": 2500000,
+      "price_audit_invalidated_at": "2026-11-07T22:43:14.635957+00:00",
+      "price_audit_last_checked_at": "2026-11-07T22:43:14.635957+00:00",
+      "price_audit_live_original_price": 2500000,
+      "price_audit_next_check_at": "2026-11-07T22:48:14.635957+00:00",
+      "price_audit_posted_original_price": 2500000,
+      "price_audit_posted_price": 1449900,
+      "price_audit_reason": "out_of_stock",
+      "price_audit_status": "invalidated",
       "product_url": "https://www.digikala.com/product/dkp-15584297/",
       "promo_score": 34,
       "recent_review_growth_7d": 0,
       "selection_discount_band": "1%+",
       "selection_discount_floor": 1,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 948,
       "title": "زیرپوش رکابی مردانه اسپست مدل ASP-RKW3 مجموعه 3 عددی",
       "ts": 1793501292.482707,
@@ -372029,6 +372072,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 11,
       "history_checked_at": "2026-11-07T07:54:01.042470+00:00",
@@ -372073,10 +372117,10 @@
       "ts": 1794038042.74522,
       "video_file_name": "offerchin-dkp-17115064.mp4",
       "video_generated_at": "2026-11-07T07:56:27.796730+00:00",
-      "video_generation_status": "generated",
+      "video_generation_status": "skipped_expiring_soon",
       "video_style_version": 6,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-17186694": {
       "aparat_expiry_attempts": 468,
@@ -374145,7 +374189,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-18358700": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T20:33:32.649608+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1716,
@@ -374192,6 +374236,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 31,
       "history_checked_at": "2026-11-07T00:53:37.954638+00:00",
@@ -374227,8 +374272,8 @@
       "telegram_posted_at": "2026-11-07T00:53:55.186631+00:00",
       "title": "مودم روتر سیم‌کارتی بی‌سیم 4G LTE بیرلینک مدل WL422 با فناوری Wi-Fi 6، سرعت دانلود 150Mbps، پورت LAN و USB Type-C، 4 آنتن 5dBi، پشتیبانی از SMS و قفل باند",
       "ts": 1794012830.463883,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-18362939": {
       "aparat_upload_status": "pending",
@@ -375518,7 +375563,7 @@
       "ts": 1794052333.935853,
       "video_file_name": "offerchin-dkp-18668472.mp4",
       "video_generated_at": "2026-11-07T14:46:21.584757+00:00",
-      "video_generation_status": "generated",
+      "video_generation_status": "pending",
       "video_style_version": 6,
       "youtube_description_version": 4,
       "youtube_review_required": false,
@@ -377917,7 +377962,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-20176433": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T14:53:26.836258+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1742,
@@ -377968,6 +378013,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 19,
       "history_checked_at": "2026-11-07T08:41:47.816729+00:00",
@@ -378010,8 +378056,8 @@
       "telegram_posted_at": "2026-11-07T08:42:06.998343+00:00",
       "title": "لپ‌تاپ لنوو مدل V15 G2 IJL، پردازنده Celeron-N4500، رم 8GB DDR4 با فرکانس 2933 مگاهرتز، حافظه 256GB SSD NVMe، نمایشگر 15.6 اینچی TN با وضوح Full HD و نرخ نوسازی 60 هرتز مات",
       "ts": 1794040921.020996,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-20206236": {
       "aparat_upload_status": "pending",
@@ -382754,7 +382800,7 @@
       "ts": 1794025929.722987,
       "video_file_name": "offerchin-dkp-20975242.mp4",
       "video_generated_at": "2026-11-07T05:37:08.062722+00:00",
-      "video_generation_status": "generated",
+      "video_generation_status": "pending",
       "video_style_version": 6,
       "youtube_description_version": 4,
       "youtube_review_required": false,
@@ -387386,7 +387432,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-21662099": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T22:08:29.904157+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1715,
@@ -387433,6 +387479,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 20,
       "history_checked_at": "2026-11-07T00:32:58.517393+00:00",
@@ -387468,8 +387515,8 @@
       "telegram_posted_at": "2026-11-07T00:33:21.591254+00:00",
       "title": "شارژر فندکی 66 وات دو پورت نوکسو مدل CCN‑10",
       "ts": 1794011595.647041,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21669904": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -392468,8 +392515,22 @@
       "telegram_posted_at": "2026-11-07T06:57:43.818796+00:00",
       "title": "دستمال نظافت صندلی خودرو سانگبو کلایمی مدل Nano MAX سایز 75x75 سانتی‌متر",
       "ts": 1794034657.93783,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22139012.mp4",
+      "video_file_names": {
+        "youtube": "offerchin-dkp-22139012.mp4"
+      },
+      "video_generated_at": "2026-11-07T23:55:14.784580+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-07T23:55:22.173826+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-07T23:55:24.415639+00:00",
+      "youtube_video_id": "jmIm8CMgNrc",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/jmIm8CMgNrc",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-22149727": {
       "bale_expired_deleted_at": "2026-10-27T10:07:47.178968+00:00",
@@ -401886,7 +401947,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-22810529": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T21:23:29.120822+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1732,
@@ -401937,6 +401998,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 24,
       "history_checked_at": "2026-11-07T05:34:56.664310+00:00",
@@ -401976,8 +402038,8 @@
       "telegram_posted_at": "2026-11-07T05:35:20.068675+00:00",
       "title": "خرما شکلاتی با مغزی کره فندق ورسادو - 350 گرم",
       "ts": 1794029714.243088,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22811256": {
       "aparat_upload_status": "pending",
@@ -404829,7 +404891,7 @@
       "ts": 1794035916.362317,
       "video_file_name": "offerchin-dkp-22922734.mp4",
       "video_generated_at": "2026-11-07T08:43:23.849131+00:00",
-      "video_generation_status": "generated",
+      "video_generation_status": "pending",
       "video_style_version": 6,
       "youtube_description_version": 4,
       "youtube_review_required": false,
@@ -406282,7 +406344,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-22958957": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T15:53:36.194802+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1721,
@@ -406329,6 +406391,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 2,
       "history_checked_at": "2026-11-07T02:02:57.455291+00:00",
@@ -406366,7 +406429,7 @@
       "ts": 1794016980.057268,
       "video_file_name": "offerchin-dkp-22958957.mp4",
       "video_generated_at": "2026-11-07T02:35:18.239266+00:00",
-      "video_generation_status": "generated",
+      "video_generation_status": "skipped_expiring_soon",
       "video_style_version": 6,
       "youtube_description_version": 4,
       "youtube_review_required": false,
@@ -407634,8 +407697,8 @@
       "video_style_version": 5,
       "youtube_deleted_at": "2026-10-27T20:37:55.563200+00:00",
       "youtube_description_last_error": "RuntimeError",
-      "youtube_description_next_attempt_at": "2026-11-07T21:53:26.618752+00:00",
-      "youtube_description_update_attempts": 7,
+      "youtube_description_next_attempt_at": "2026-11-08T00:55:14.784580+00:00",
+      "youtube_description_update_attempts": 8,
       "youtube_description_version": 3,
       "youtube_expiry_status": "deleted",
       "youtube_review_required": false,
@@ -410407,7 +410470,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-2884193": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T09:58:36.633144+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1726,
@@ -410458,6 +410521,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 29,
       "history_checked_at": "2026-11-07T04:04:01.144865+00:00",
@@ -410493,8 +410557,8 @@
       "telegram_posted_at": "2026-11-07T04:04:09.087048+00:00",
       "title": "مضراب سه تار مدل m2",
       "ts": 1794024243.988842,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-294012": {
       "aparat_upload_status": "pending",
@@ -411800,6 +411864,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 15,
       "history_checked_at": "2026-11-07T10:40:46.163210+00:00",
@@ -411841,10 +411906,10 @@
       "ts": 1794048059.721205,
       "video_file_name": "offerchin-dkp-369675.mp4",
       "video_generated_at": "2026-11-07T11:04:58.833755+00:00",
-      "video_generation_status": "generated",
+      "video_generation_status": "skipped_expiring_soon",
       "video_style_version": 6,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-369884": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -414859,7 +414924,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-592518": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T13:08:17.302027+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1730,
@@ -414910,6 +414975,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 38,
       "history_checked_at": "2026-11-07T05:13:20.681847+00:00",
@@ -414949,8 +415015,8 @@
       "telegram_posted_at": "2026-11-07T05:13:37.352038+00:00",
       "title": "اجاق گاز سفری مدل 202",
       "ts": 1794028413.093384,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-5972549": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -429719,7 +429785,7 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 10,
   "snappshop_retry_after": "2026-11-08T06:36:11.124349+00:00",
-  "youtube_last_upload_success_at": "2026-11-07T20:53:36.355959+00:00",
-  "youtube_next_upload_at": "2026-11-07T23:53:36.355959+00:00",
+  "youtube_last_upload_success_at": "2026-11-07T23:55:24.415639+00:00",
+  "youtube_next_upload_at": "2026-11-08T02:55:24.415639+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
