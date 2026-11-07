@@ -8975,7 +8975,7 @@ def process_pending_short_video(
 
     candidate_records = list(published.items())
     if candidate_limit is not None and only_product_id is None:
-        limit = max(1, min(100, int(candidate_limit)))
+        limit = max(1, min(VIDEO_DISPATCH_STATE_RECORD_LIMIT, int(candidate_limit)))
         candidate_records.sort(
             key=lambda item: _int_value(item[1].get("ts")) or 0,
             reverse=True,
