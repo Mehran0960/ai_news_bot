@@ -5062,7 +5062,7 @@ def build_discount_image(
     watermark: str = "T.me/OfferChin",
     merchant: str = "دیجی‌کالا",
     extra_watermarks: list[tuple[str, str]] | None = None,
-    destination_platform: str = "telegram",
+    destination_platform: str | None = None,
 ) -> bytes:
     """Prepare a product image with store identity, discount badge, and OfferChin channel watermark."""
     from io import BytesIO
