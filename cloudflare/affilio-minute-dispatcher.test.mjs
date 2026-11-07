@@ -121,8 +121,8 @@ test("fails closed on missing, stale-schema, or partial-scan status", () => {
 });
 
 
-test("uses a 37-minute channel publication interval", () => {
-  assert.equal(PUBLISHER_INTERVAL_MS, 37 * 60 * 1000);
+test("uses a 27-minute channel publication interval", () => {
+  assert.equal(PUBLISHER_INTERVAL_MS, 27 * 60 * 1000);
 });
 
 test("video dispatcher sees an older pending upload beyond the newest six records", () => {
@@ -162,20 +162,37 @@ test("Filo login must be explicitly verified and no older than seven days", () =
   }, now), false);
 });
 
-test("Filo dispatcher requires a verified deadline and a fresh channel-delivered product", () => {
+test("Filo accepts every confirmed channel delivery without requiring a retailer expiry timer", () => {
   const now = Date.now();
   const base = {
     ts: (now - 5 * 60_000) / 1000,
-    delivery_status: { telegram: "sent" },
     filo_upload_status: "pending",
     video_generation_status: "generated",
-    expires_at: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
   };
-  assert.equal(hasDueVideoRecord({ published: { item: base } }, "filo", now), false);
+  for (const channel of ["telegram", "bale", "rubika", "eitaa"]) {
+    assert.equal(
+      hasDueVideoRecord({ published: { item: { ...base, delivery_status: { [channel]: "sent" } } } }, "filo", now),
+      true,
+      channel
+    );
+  }
   assert.equal(
-    hasDueVideoRecord({
-      published: { item: { ...base, expiry_deadline_verified_directly: true } },
-    }, "filo", now),
+    hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" }, expires_at: new Date(now + 5 * 60_000).toISOString() } } }, "filo", now),
+    false,
+    "known near-expiry offer must remain blocked"
+  );
+  assert.equal(
+    hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" }, ts: (now - 25 * 60 * 60_000) / 1000 } } }, "filo", now),
+    false,
+    "stale videos remain blocked after 24 hours"
+  );
+  assert.equal(
+    hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" } } } }, "aparat", now),
+    false,
+    "Aparat's stricter verified-expiry rule must remain in place"
+  );
+  assert.equal(
+    hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" }, expiry_deadline_verified_directly: true } } }, "aparat", now),
     true
   );
 });
