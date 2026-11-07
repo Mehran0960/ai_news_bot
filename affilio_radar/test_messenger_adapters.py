@@ -94,13 +94,13 @@ class MessengerAdapterTests(unittest.TestCase):
         self.assertEqual(buy_button["type"], "Link")
         self.assertEqual(buy_button["button_text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
         self.assertEqual(buy_button["button_link"], {
-            "type": "URL",
+            "type": "url",
             "link_url": self.affiliate,
         })
         self.assertEqual(join_button["type"], "Link")
         self.assertEqual(join_button["button_text"], RUBIKA_MEMBERSHIP_BUTTON_TEXT)
         self.assertEqual(join_button["button_link"], {
-            "type": "URL",
+            "type": "url",
             "link_url": RUBIKA_CHANNEL_URL,
         })
         self.assertEqual(self.renderer.render_calls, [None])
