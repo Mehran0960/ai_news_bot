@@ -266,9 +266,9 @@ class ShortVideoTests(unittest.TestCase):
 
         # For a 400x500 source, the fitted product photo is 333x416 at (193,246).
         # The retailer tile is upper-left and the equal-sized discount tile upper-right.
-        retailer_crop = digikala.crop((202, 254, 334, 306))
-        digikala_discount_crop = digikala.crop((388, 254, 520, 306))
-        snappshop_discount_crop = snappshop.crop((388, 254, 520, 306))
+        retailer_crop = digikala.crop((202, 280, 334, 332))
+        digikala_discount_crop = digikala.crop((388, 280, 520, 332))
+        snappshop_discount_crop = snappshop.crop((388, 280, 520, 332))
         red_pixels = sum(1 for red, green, blue in retailer_crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
         digikala_discount_pixels = sum(1 for red, green, blue in digikala_discount_crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
         snappshop_discount_pixels = sum(1 for red, green, blue in snappshop_discount_crop.getdata() if blue > 90 and red > green * 1.6 and blue > green * 1.6)
@@ -289,7 +289,7 @@ class ShortVideoTests(unittest.TestCase):
         # The DigiPay tile now follows the actual retailer-logo bounds at upper-left.
         blue_points = [
             (x, y)
-            for y in range(300, 375)
+            for y in range(326, 401)
             for x in range(198, 340)
             if (lambda p: p[2] > 150 and p[2] > p[0] * 1.8 and p[2] > p[1] * 1.2)(
                 poster.getpixel((x, y))
@@ -429,7 +429,7 @@ class ShortVideoTests(unittest.TestCase):
         background_sample = poster.getpixel((680, 1150))
         self.assertGreater(min(background_sample), 45)
         self.assertNotEqual(background_sample, (14, 28, 22))
-        price_panel = poster.getpixel((45, 705))
+        price_panel = poster.getpixel((45, 731))
         self.assertGreater(price_panel[1], price_panel[0])
         self.assertEqual(poster.size, (720, 1280))
 
