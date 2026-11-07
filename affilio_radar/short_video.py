@@ -29,6 +29,10 @@ WIDTH = 720
 HEIGHT = 1280
 FPS = 24
 DURATION_SECONDS = 8
+TITLE_FONT_PATH = Path(__file__).resolve().parent / "assets" / "fonts" / "Lalezar-Regular.ttf"
+VIDEO_LOGO_COLUMN_WIDTH = 112
+VIDEO_LOGO_TEXT_GAP = 12
+VIDEO_LOGO_MAX_WIDTH = 96
 VIDEO_PURCHASE_CTA_LABELS = {
     "youtube": "لینک خرید: توضیحات کانال",
     "aparat": "لینک خرید: کپشن ویدئو و توضیحات کانال",
@@ -69,6 +73,24 @@ def _font(size: int, bold: bool = True) -> ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
+
+
+def _title_font(size: int) -> ImageFont.ImageFont:
+    """Load the bundled Persian display face for product headlines."""
+    layout_engine = (
+        ImageFont.Layout.RAQM if PERSIAN_TEXT_RAQM_AVAILABLE
+        else ImageFont.Layout.BASIC
+    )
+    try:
+        if TITLE_FONT_PATH.is_file():
+            return ImageFont.truetype(
+                str(TITLE_FONT_PATH),
+                size=max(10, int(size)),
+                layout_engine=layout_engine,
+            )
+    except OSError as exc:
+        print(f"VIDEO_TITLE_FONT_LOAD_FAILED error={type(exc).__name__}")
+    return _font(size, bold=True)
 
 
 def _draw_video_channel_logo(
@@ -324,7 +346,7 @@ def build_vertical_poster(
         outline=(130, 220, 150, 255),
         width=3,
     )
-    title_font = _font(29)
+    title_font = _title_font(32)
     title_lines = _wrap_rtl_text(
         draw,
         str(title or "پیشنهاد ویژه دیجی‌کالا"),
@@ -378,12 +400,20 @@ def build_vertical_poster(
         # neighbouring rows while keeping all four destinations in the safe panel.
         row_top = 188 + index * 26
         logo_width, _logo_height = _draw_video_channel_logo(
-            draw, platform, 64, row_top, 20,
-            canvas=background, max_width=96,
+            draw,
+            platform,
+            64 + max(0, (VIDEO_LOGO_COLUMN_WIDTH - VIDEO_LOGO_MAX_WIDTH) // 2),
+            row_top,
+            20,
+            canvas=background,
+            max_width=VIDEO_LOGO_MAX_WIDTH,
         )
+        # Align every ID at one fixed x-coordinate. Official wordmarks have
+        # different natural widths; their visual width must not move the ID column.
+        label_x = 64 + VIDEO_LOGO_COLUMN_WIDTH + VIDEO_LOGO_TEXT_GAP
         label = platform_footer_label(platform, url)
         draw.text(
-            (64 + logo_width + (8 if logo_width else 0), row_top + 13),
+            (label_x, row_top + 13),
             label, font=channel_font,
             fill=channel_color, anchor="lm",
         )
