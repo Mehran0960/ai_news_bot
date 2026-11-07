@@ -16667,9 +16667,9 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9435",
-      "catalog_best_selling_category_name": "لباس مردانه",
-      "catalog_best_selling_rank": 1240,
+      "catalog_best_selling_category_id": "8752",
+      "catalog_best_selling_category_name": "مردانه",
+      "catalog_best_selling_rank": 6091,
       "catalog_best_selling_ranks_by_category": {
         "10168": {
           "category_name": "ورزشی مردانه",
@@ -16685,6 +16685,11 @@
           "category_name": "پوشاک ورزشی",
           "observed_at": "2026-11-06T23:47:56.662619+00:00",
           "rank": 645
+        },
+        "8752": {
+          "category_name": "مردانه",
+          "observed_at": "2026-11-07T07:38:13.359989+00:00",
+          "rank": 6091
         },
         "9435": {
           "category_name": "لباس مردانه",
@@ -16702,22 +16707,23 @@
           "rank": 63
         }
       },
-      "catalog_category_id": "9435",
+      "catalog_category_id": "8752",
       "catalog_category_ids": [
         "6816",
+        "8752",
         "9435",
         "9457",
         "9460",
         "10168",
         "11144"
       ],
-      "catalog_category_name": "لباس مردانه",
-      "catalog_rank_observed_at": "2026-11-07T01:21:26.289591+00:00",
+      "catalog_category_name": "مردانه",
+      "catalog_rank_observed_at": "2026-11-07T07:38:13.359989+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 519600,
       "discount_percent": 80,
       "first_seen_at": "2026-11-06T20:21:26.349314+00:00",
-      "last_seen_at": "2026-11-07T01:20:36.401603+00:00",
+      "last_seen_at": "2026-11-07T07:37:32.094314+00:00",
       "original_price": 2598000,
       "product_id": "dkp-22837254",
       "product_url": "https://www.digikala.com/product/dkp-22837254/",
@@ -31663,27 +31669,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9537",
-      "catalog_best_selling_category_name": "عینک آفتابی زنانه و مردانه",
-      "catalog_best_selling_rank": 4126,
+      "catalog_best_selling_category_id": "9383",
+      "catalog_best_selling_category_name": "عینک آفتابی زنانه",
+      "catalog_best_selling_rank": 6095,
       "catalog_best_selling_ranks_by_category": {
+        "9383": {
+          "category_name": "عینک آفتابی زنانه",
+          "observed_at": "2026-11-07T07:38:13.362659+00:00",
+          "rank": 6095
+        },
         "9537": {
           "category_name": "عینک آفتابی زنانه و مردانه",
           "observed_at": "2026-11-07T05:42:56.598357+00:00",
           "rank": 4126
         }
       },
-      "catalog_category_id": "9537",
+      "catalog_category_id": "9383",
       "catalog_category_ids": [
+        "9383",
         "9537"
       ],
-      "catalog_category_name": "عینک آفتابی زنانه و مردانه",
-      "catalog_rank_observed_at": "2026-11-07T05:42:56.598357+00:00",
+      "catalog_category_name": "عینک آفتابی زنانه",
+      "catalog_rank_observed_at": "2026-11-07T07:38:13.362659+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 999000,
       "discount_percent": 75,
       "first_seen_at": "2026-11-07T05:42:56.598357+00:00",
-      "last_seen_at": "2026-11-07T05:42:41.514743+00:00",
+      "last_seen_at": "2026-11-07T07:37:33.271212+00:00",
       "original_price": 4000000,
       "product_id": "dkp-22446347",
       "product_url": "https://www.digikala.com/product/dkp-22446347/",
@@ -35987,12 +35999,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9491",
       "catalog_best_selling_category_name": "عینک آفتابی مردانه",
-      "catalog_best_selling_rank": 6063,
+      "catalog_best_selling_rank": 6094,
       "catalog_best_selling_ranks_by_category": {
         "9491": {
           "category_name": "عینک آفتابی مردانه",
-          "observed_at": "2026-11-07T07:36:46.297316+00:00",
-          "rank": 6063
+          "observed_at": "2026-11-07T07:38:13.365863+00:00",
+          "rank": 6094
         }
       },
       "catalog_category_id": "9491",
@@ -36000,12 +36012,12 @@
         "9491"
       ],
       "catalog_category_name": "عینک آفتابی مردانه",
-      "catalog_rank_observed_at": "2026-11-07T07:36:46.297316+00:00",
+      "catalog_rank_observed_at": "2026-11-07T07:38:13.365863+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 3900000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T07:31:50.367473+00:00",
-      "last_seen_at": "2026-11-07T07:36:31.711893+00:00",
+      "last_seen_at": "2026-11-07T07:37:34.768053+00:00",
       "original_price": 15000000,
       "product_id": "dkp-22846774",
       "product_url": "https://www.digikala.com/product/dkp-22846774/",
@@ -70588,24 +70600,30 @@
           "observed_at": "2026-11-06T19:41:15.951766+00:00",
           "rank": 4
         },
+        "5824": {
+          "category_name": "لوازم بهداشتی",
+          "observed_at": "2026-11-07T07:38:13.387617+00:00",
+          "rank": 6112
+        },
         "6486": {
           "category_name": "مراقبت پوست",
           "observed_at": "2026-11-07T03:49:00.784726+00:00",
           "rank": 2601
         }
       },
-      "catalog_category_id": "6486",
+      "catalog_category_id": "5824",
       "catalog_category_ids": [
+        "5824",
         "6486",
         "11738"
       ],
-      "catalog_category_name": "مراقبت پوست",
+      "catalog_category_name": "لوازم بهداشتی",
       "catalog_rank_observed_at": "2026-11-06T19:41:15.951766+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1465000,
       "discount_percent": 70,
       "first_seen_at": "2026-11-06T19:41:15.951766+00:00",
-      "last_seen_at": "2026-11-07T03:48:33.055450+00:00",
+      "last_seen_at": "2026-11-07T07:38:10.369356+00:00",
       "original_price": 4900000,
       "product_id": "dkp-20306044",
       "product_url": "https://www.digikala.com/product/dkp-20306044/",
@@ -93281,6 +93299,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "9633",
+      "catalog_best_selling_category_name": "ست لباس راحتی دخترانه",
+      "catalog_best_selling_rank": 6084,
+      "catalog_best_selling_ranks_by_category": {
+        "9633": {
+          "category_name": "ست لباس راحتی دخترانه",
+          "observed_at": "2026-11-07T07:38:13.368615+00:00",
+          "rank": 6084
+        }
+      },
+      "catalog_category_id": "9633",
+      "catalog_category_ids": [
+        "9633"
+      ],
+      "catalog_category_name": "ست لباس راحتی دخترانه",
+      "catalog_rank_observed_at": "2026-11-07T07:38:13.368615+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1299000,
+      "discount_percent": 68,
+      "first_seen_at": "2026-11-07T07:38:13.368615+00:00",
+      "last_seen_at": "2026-11-07T07:37:36.352346+00:00",
+      "original_price": 4000000,
+      "product_id": "dkp-22728050",
+      "product_url": "https://www.digikala.com/product/dkp-22728050/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 2701000,
+      "source": "digikala_catalog_sweep",
+      "title": "ست تی شرت و شلوارک دخترانه طرح پاپیون مدل 20204"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "10658",
       "catalog_best_selling_category_name": "نور و روشنایی",
       "catalog_best_selling_rank": 2975,
@@ -98949,12 +98999,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "11120",
       "catalog_best_selling_category_name": "عینک زنانه",
-      "catalog_best_selling_rank": 4935,
+      "catalog_best_selling_rank": 6087,
       "catalog_best_selling_ranks_by_category": {
         "11120": {
           "category_name": "عینک زنانه",
-          "observed_at": "2026-11-07T06:28:57.258129+00:00",
-          "rank": 4935
+          "observed_at": "2026-11-07T07:38:13.381103+00:00",
+          "rank": 6087
         },
         "9491": {
           "category_name": "عینک آفتابی مردانه",
@@ -98974,12 +99024,12 @@
         "11120"
       ],
       "catalog_category_name": "عینک زنانه",
-      "catalog_rank_observed_at": "2026-11-07T06:28:57.258129+00:00",
+      "catalog_rank_observed_at": "2026-11-07T07:38:13.381103+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 4980000,
       "discount_percent": 67,
       "first_seen_at": "2026-11-07T03:39:21.037723+00:00",
-      "last_seen_at": "2026-11-07T06:28:49.262361+00:00",
+      "last_seen_at": "2026-11-07T07:38:06.937085+00:00",
       "original_price": 15000000,
       "product_id": "dkp-23127811",
       "product_url": "https://www.digikala.com/product/dkp-23127811/",
@@ -105083,12 +105133,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9347",
       "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 5985,
+      "catalog_best_selling_rank": 6093,
       "catalog_best_selling_ranks_by_category": {
         "9347": {
           "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-07T07:30:46.014141+00:00",
-          "rank": 5985
+          "observed_at": "2026-11-07T07:38:13.361979+00:00",
+          "rank": 6093
         }
       },
       "catalog_category_id": "9347",
@@ -105096,12 +105146,12 @@
         "9347"
       ],
       "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T07:30:46.014141+00:00",
+      "catalog_rank_observed_at": "2026-11-07T07:38:13.361979+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1192000,
       "discount_percent": 67,
       "first_seen_at": "2026-11-06T23:36:12.644025+00:00",
-      "last_seen_at": "2026-11-07T07:30:30.129784+00:00",
+      "last_seen_at": "2026-11-07T07:37:32.776516+00:00",
       "original_price": 3580000,
       "product_id": "dkp-19626962",
       "product_url": "https://www.digikala.com/product/dkp-19626962/",
@@ -107229,12 +107279,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9347",
       "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 917,
+      "catalog_best_selling_rank": 6095,
       "catalog_best_selling_ranks_by_category": {
         "9347": {
           "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-07T00:32:04.608164+00:00",
-          "rank": 917
+          "observed_at": "2026-11-07T07:38:13.361979+00:00",
+          "rank": 6095
         }
       },
       "catalog_category_id": "9347",
@@ -107242,12 +107292,12 @@
         "9347"
       ],
       "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T00:32:04.608164+00:00",
+      "catalog_rank_observed_at": "2026-11-07T07:38:13.361979+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1192000,
       "discount_percent": 67,
       "first_seen_at": "2026-11-07T00:32:04.608164+00:00",
-      "last_seen_at": "2026-11-07T00:31:59.886544+00:00",
+      "last_seen_at": "2026-11-07T07:37:32.776643+00:00",
       "original_price": 3580000,
       "product_id": "dkp-17951982",
       "product_url": "https://www.digikala.com/product/dkp-17951982/",
@@ -108563,12 +108613,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9347",
       "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 1073,
+      "catalog_best_selling_rank": 6097,
       "catalog_best_selling_ranks_by_category": {
         "9347": {
           "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-07T00:58:19.363339+00:00",
-          "rank": 1073
+          "observed_at": "2026-11-07T07:38:13.361979+00:00",
+          "rank": 6097
         }
       },
       "catalog_category_id": "9347",
@@ -108576,12 +108626,12 @@
         "9347"
       ],
       "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T00:58:19.363339+00:00",
+      "catalog_rank_observed_at": "2026-11-07T07:38:13.361979+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1192000,
       "discount_percent": 67,
       "first_seen_at": "2026-11-07T00:58:19.363339+00:00",
-      "last_seen_at": "2026-11-07T00:57:59.857480+00:00",
+      "last_seen_at": "2026-11-07T07:37:32.776769+00:00",
       "original_price": 3580000,
       "product_id": "dkp-19669473",
       "product_url": "https://www.digikala.com/product/dkp-19669473/",
@@ -113524,41 +113574,9 @@
       "savings_toman": 2388000,
       "source": "digikala_catalog_sweep",
       "title": "تی شرت آستین کوتاه مردانه پاد آفرین مدل اسپرت طرح گوزن کد 1170"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9470",
-      "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 3402,
-      "catalog_best_selling_ranks_by_category": {
-        "9470": {
-          "category_name": "تی شرت مردانه",
-          "observed_at": "2026-11-07T04:49:54.262223+00:00",
-          "rank": 3402
-        }
-      },
-      "catalog_category_id": "9470",
-      "catalog_category_ids": [
-        "9470"
-      ],
-      "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-07T04:49:54.262223+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-07T02:22:59.450919+00:00",
-      "last_seen_at": "2026-11-07T04:49:37.933615+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-19944567",
-      "product_url": "https://www.digikala.com/product/dkp-19944567/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "تی‌شرت آستین کوتاه مردانه پاد آفرین مدل کلمه ایرانی شعر کد 1523"
     }
   ],
   "cycle_started_at": "2026-11-06T18:22:56.776413+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-07T07:36:46.341655+00:00"
+  "updated_at": "2026-11-07T07:38:13.420058+00:00"
 }
