@@ -628,7 +628,8 @@ class ShortVideoTests(unittest.TestCase):
         self.assertNotIn("همکاری در فروش", description)
         self.assertNotIn("کمیسیون", description)
         self.assertIn("دیجی‌کالا", description)
-        self.assertIn("https://t.me/OfferChin", description)
+        self.assertIn("t.me/OfferChin", description)
+        self.assertNotRegex(description, r"(?i)https?://|www\\.")
 
 
 if __name__ == "__main__":
