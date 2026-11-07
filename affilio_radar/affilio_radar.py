@@ -55,6 +55,10 @@ from offerchin_visuals import (
     draw_discount_burst, draw_retailer_badge, draw_digipay_badge, adaptive_text_colors,
     discount_badge_dimensions_for_reference_bounds, public_channel_links,
 )
+from offerchin_copy import (
+    CAPTION_SEPARATOR, CURRENT_PRICE_PREFIX, DISCOUNT_PREFIX, DIGIPAY_INSTALLMENT_TEXT,
+    MEMBERSHIP_BUTTON_TEXT, PRODUCT_TITLE_PREFIX, SALE_TITLE_PREFIX, purchase_action_label,
+)
 from integrity_audit_state import apply_integrity_audit_ledger
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -351,7 +355,7 @@ def product_merchant(url_or_affiliate: str) -> str:
 
 
 def purchase_button_label(affiliate_url: str) -> str:
-    return f"🛍️ مشاهده و خرید از {product_merchant(affiliate_url)}"
+    return purchase_action_label(product_merchant(affiliate_url))
 
 
 AFFILIO_REDIRECT_PLACEHOLDER = "{redirect_to}"
@@ -4917,11 +4921,7 @@ def build_caption(
     if not urlsplit(channel_url).scheme:
         channel_url = "https://" + channel_url
     channel_href = html.escape(channel_url, quote=True)
-    channel_text = (
-        "➕ عضویت در کانال آفِرچین"
-        if is_bale
-        else "➕ عضویت در کانال آفِرچین"
-    )
+    channel_text = MEMBERSHIP_BUTTON_TEXT
     if is_bale:
         channel_footer = f"[{channel_text}]({html.unescape(channel_href)})"
     else:
@@ -4930,9 +4930,9 @@ def build_caption(
     merchant = p.get("merchant") or product_merchant(p.get("product_url") or affiliate_url)
     merchant_marker = "🟣" if "اسنپ" in str(merchant) or "snapp" in str(merchant).lower() else "🔴"
     parts = [
-        f"🔥 فروش ویژه {merchant} {merchant_marker}",
+        f"{SALE_TITLE_PREFIX} {merchant} {merchant_marker}",
         "",
-        f"🛍️ {title}",
+        f"{PRODUCT_TITLE_PREFIX}{title}",
     ]
 
     # Keep the offer details visually separated; no list price, savings amount,
@@ -4940,24 +4940,24 @@ def build_caption(
     offer_lines = []
     if current:
         price = format_persian_number(current)
-        offer_lines.append(bold(f"💚 قیمت فعلی: {price} تومان"))
+        offer_lines.append(bold(f"{CURRENT_PRICE_PREFIX}{price} تومان"))
     if discount is not None and int(discount) > 0:
         discount_value = format_persian_number(discount) + "٪"
-        offer_lines.append(bold(f"⚡️ {discount_value} تخفیف"))
+        offer_lines.append(bold(f"{DISCOUNT_PREFIX}{discount_value} تخفیف"))
     # User-requested standard caption line: include on every retailer post.
-    offer_lines.append(bold("💳 با امکان خرید اقساطی (دیجی پی)"))
+    offer_lines.append(bold(DIGIPAY_INSTALLMENT_TEXT))
 
     # Keep one source-channel membership link for forwarded posts; the purchase button
     # remains a separate inline button and its presence is validated by the sender.
-    parts += ["", "────────────"]
+    parts += ["", CAPTION_SEPARATOR]
     for index, line in enumerate(offer_lines):
         if index:
             parts.append("")
         parts.append(line)
-    parts += ["────────────", "", channel_footer]
+    parts += [CAPTION_SEPARATOR, "", channel_footer]
     caption = "\n".join(parts)
     if len(caption) > 1024:
-        footer = f"\n────────────\n\n{channel_footer}"
+        footer = f"\n{CAPTION_SEPARATOR}\n\n{channel_footer}"
         body = "\n".join(parts[:-3])
         caption = body[:1024 - len(footer)].rstrip() + footer
     return caption
