@@ -601,7 +601,7 @@ class ShortVideoTests(unittest.TestCase):
         for channel_id in ("t.me/OfferChin", "ble.ir/OfferChin", "rubika.ir/offerchin", "aparat.com/OfferChin"):
             self.assertIn(channel_id, description)
         self.assertNotIn("youtube.com/@offerchin", description)
-        self.assertNotRegex(description, r"(?i)https?://|www\\.")
+        self.assertNotRegex(description, r"(?i)https?://|www\.")
         self.assertNotIn("کانال تلگرام", description)
         self.assertNotIn("قیمت، موجودی و شرایط تخفیف", description)
 
@@ -629,7 +629,7 @@ class ShortVideoTests(unittest.TestCase):
         self.assertNotIn("کمیسیون", description)
         self.assertIn("دیجی‌کالا", description)
         self.assertIn("t.me/OfferChin", description)
-        self.assertNotRegex(description, r"(?i)https?://|www\\.")
+        self.assertNotRegex(description, r"(?i)https?://|www\.")
 
 
 if __name__ == "__main__":
