@@ -24,8 +24,11 @@ def _response_json(response: Any, label: str) -> dict:
     try:
         response.raise_for_status()
         payload = response.json()
+    except requests.HTTPError:
+        status = getattr(response, "status_code", "unknown")
+        raise RuntimeError(f"{label}: HTTP {status}") from None
     except requests.RequestException:
-        raise RuntimeError(f"{label}: network or HTTP failure") from None
+        raise RuntimeError(f"{label}: network failure") from None
     except ValueError:
         raise RuntimeError(f"{label}: invalid JSON response") from None
     if not isinstance(payload, dict):
@@ -33,9 +36,45 @@ def _response_json(response: Any, label: str) -> dict:
     return payload
 
 
+def _safe_rubika_error_detail(payload: dict) -> str:
+    """Return a bounded API error summary without URLs, tokens, or raw payloads."""
+    details: list[str] = []
+    for key in ("error_code", "code"):
+        value = payload.get(key)
+        if isinstance(value, (str, int)) and str(value).strip():
+            details.append(f"{key}={str(value).strip()[:32]}")
+
+    error = payload.get("error")
+    if isinstance(error, dict):
+        for key in ("code", "error_code"):
+            value = error.get(key)
+            if isinstance(value, (str, int)) and str(value).strip():
+                details.append(f"error_{key}={str(value).strip()[:32]}")
+        for key in ("message", "description"):
+            value = error.get(key)
+            if isinstance(value, str) and value.strip():
+                details.append(value.strip())
+    elif isinstance(error, str) and error.strip():
+        details.append(error.strip())
+
+    for key in ("message", "description", "error_description"):
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip():
+            details.append(value.strip())
+
+    detail = " | ".join(details)
+    detail = re.sub(r"(?i)https?://\S+", "[redacted-url]", detail)
+    detail = re.sub(r"(?i)\b(token|authorization|secret)\b\s*[:=]\s*\S+", r"\1=[redacted]", detail)
+    detail = re.sub(r"\s+", " ", detail).strip()
+    return detail[:150]
+
+
 def _rubika_data(payload: dict, label: str) -> dict:
-    if str(payload.get("status") or "").upper() not in {"OK", "SUCCESS"}:
-        raise RuntimeError(f"Rubika {label} rejected the request")
+    status = str(payload.get("status") or "").upper()
+    if status not in {"OK", "SUCCESS"}:
+        detail = _safe_rubika_error_detail(payload)
+        suffix = f"; {detail}" if detail else ""
+        raise RuntimeError(f"Rubika {label} rejected the request (status={status or 'unknown'}{suffix})")
     data = payload.get("data")
     if not isinstance(data, dict):
         data = payload.get("result")
@@ -189,6 +228,9 @@ def send_rubika_photo(token: str, channel_id: str, item: dict, image_bytes: byte
     except requests.RequestException:
         raise RuntimeError("Rubika image upload: network failure") from None
     upload_payload = _response_json(upload_response, "Rubika image upload")
+    upload_status = str(upload_payload.get("status") or "").upper()
+    if upload_status and upload_status not in {"OK", "SUCCESS"}:
+        _rubika_data(upload_payload, "image upload")
     upload_data = upload_payload.get("data")
     if not isinstance(upload_data, dict):
         upload_data = upload_payload

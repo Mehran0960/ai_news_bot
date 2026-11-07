@@ -28,7 +28,7 @@ from offerchin_audio import write_original_soundtrack
 WIDTH = 720
 HEIGHT = 1280
 FPS = 24
-DURATION_SECONDS = 8
+DURATION_SECONDS = 12
 TITLE_FONT_PATH = Path(__file__).resolve().parent / "assets" / "fonts" / "Lalezar-Regular.ttf"
 VIDEO_LOGO_COLUMN_WIDTH = 112
 VIDEO_LOGO_TEXT_GAP = 12
@@ -615,7 +615,7 @@ def render_short_video(
 
     with tempfile.TemporaryDirectory(prefix="offerchin-poster-") as directory:
         poster_path = Path(directory) / "poster.png"
-        music_path = Path(directory) / "offerchin-original-jingle.wav"
+        music_path = Path(directory) / "offerchin-selected-funk.wav"
         poster_path.write_bytes(poster)
         write_original_soundtrack(music_path, duration)
 
