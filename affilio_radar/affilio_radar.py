@@ -4996,6 +4996,25 @@ def _draw_platform_watermark_icon(draw, platform: str, x: int, y: int, size: int
         ], fill="#BCEBFF")
         return
 
+    if platform in {"rubika", "eitaa"}:
+        fill = "#7B3FB5" if platform == "rubika" else "#F07824"
+        draw.rounded_rectangle(
+            (x, y, right, bottom),
+            radius=max(3, size // 5),
+            fill=fill,
+            outline="#ffffff",
+            width=max(1, size // 16),
+        )
+        letter = "R" if platform == "rubika" else "E"
+        font = ImageFont.load_default()
+        bounds = draw.textbbox((0, 0), letter, font=font)
+        draw.text(
+            (x + (size - (bounds[2] - bounds[0])) / 2,
+             y + (size - (bounds[3] - bounds[1])) / 2 - bounds[1]),
+            letter, font=font, fill="#ffffff",
+        )
+        return
+
     # Bale's compact green/teal app mark with a white badge and check.
     draw.rounded_rectangle(
         (x, y, right, bottom),
@@ -5023,6 +5042,7 @@ def build_discount_image(
     discount_percent=None,
     watermark: str = "T.me/OfferChin",
     merchant: str = "دیجی‌کالا",
+    extra_watermarks: list[tuple[str, str]] | None = None,
 ) -> bytes:
     """Prepare a product image with store identity, discount badge, and OfferChin channel watermark."""
     from io import BytesIO
@@ -5080,6 +5100,14 @@ def build_discount_image(
     # Choose each text color from the pixels directly behind it; use a thin opposing
     # stroke to retain legibility over both pale and dark product photography.
     watermarks = [("telegram", "T.me/OfferChin"), ("bale", "ble.ir/OfferChin")]
+    for mark in extra_watermarks or []:
+        if (
+            isinstance(mark, (tuple, list))
+            and len(mark) == 2
+            and str(mark[0]) in {"rubika", "eitaa"}
+            and str(mark[1]).strip()
+        ):
+            watermarks.append((str(mark[0]), str(mark[1]).strip()[:48]))
     margin = max(10, min_dim // 35)
     icon_size = max(12, min(48, min_dim // 32))
     icon_gap = max(5, icon_size // 4)
@@ -5097,7 +5125,7 @@ def build_discount_image(
             box = draw.textbbox((0, 0), label_text, font=font)
             rows.append((platform, label_text, max(1, box[2]-box[0]), max(font.size, box[3]-box[1])))
     row_height = max(icon_size, max(r[3] for r in rows))
-    box_top = max(0, height - margin - (2 * row_height + row_gap))
+    box_top = max(0, height - margin - (len(rows) * row_height + max(0, len(rows) - 1) * row_gap))
     stroke_width = max(1, min(3, min_dim // 320))
     for index, (platform, label_text, text_width, text_height) in enumerate(rows):
         row_top = box_top + index * (row_height + row_gap)
