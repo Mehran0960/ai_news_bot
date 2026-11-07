@@ -133,6 +133,91 @@ class ShortVideoTests(unittest.TestCase):
         drawn_platforms = [call.args[1] for call in draw_logo.call_args_list]
         self.assertEqual(drawn_platforms, ["youtube", "telegram", "bale", "rubika"])
         self.assertEqual(drawn_platforms[0], "youtube", "the YouTube Short must carry its official own-platform mark")
+        # Official artwork and its backing fit cleanly into four non-overlapping
+        # rows within the channel identity panel.
+        self.assertEqual([call.args[3] for call in draw_logo.call_args_list], [165, 191, 217, 243])
+        self.assertEqual([call.args[4] for call in draw_logo.call_args_list], [20, 20, 20, 20])
+        self.assertEqual([call.kwargs["max_width"] for call in draw_logo.call_args_list], [96, 96, 96, 96])
+
+    
+    def test_bundled_official_platform_logo_assets_are_available_and_keep_their_original_ratios(self):
+        import offerchin_visuals
+
+        expected_platforms = ("telegram", "bale", "rubika", "youtube")
+        for platform in expected_platforms:
+            with self.subTest(platform=platform):
+                source = offerchin_visuals._load_platform_logo(platform)
+                self.assertIsNotNone(source, f"{platform} official logo must be bundled locally")
+                fitted = offerchin_visuals.fit_platform_logo(platform, 20, 96)
+                self.assertIsNotNone(fitted)
+                self.assertLessEqual(fitted.height, 20)
+                self.assertLessEqual(fitted.width, 96)
+                self.assertAlmostEqual(
+                    fitted.width / fitted.height,
+                    source.width / source.height,
+                    delta=0.03,
+                    msg=f"{platform} logo was stretched or forced into a different aspect ratio",
+                )
+
+        youtube = offerchin_visuals._load_platform_logo("youtube")
+        self.assertGreater(
+            youtube.width / youtube.height, 2.8,
+            "YouTube must use its full horizontal wordmark, not a square play icon",
+        )
+
+    def test_product_image_footer_uses_resolution_aware_readable_official_logo_sizes(self):
+        import affilio_radar
+        import offerchin_visuals
+
+        small = offerchin_visuals.platform_footer_metrics(400)
+        large = offerchin_visuals.platform_footer_metrics(1600)
+        self.assertGreaterEqual(small["logo_height"], 16)
+        self.assertGreater(large["logo_height"], small["logo_height"])
+        self.assertLessEqual(large["logo_height"], 44)
+        self.assertGreater(large["font_size"], small["font_size"])
+
+        source = io.BytesIO()
+        Image.new("RGB", (640, 800), (238, 241, 246)).save(source, format="JPEG")
+        metrics = offerchin_visuals.platform_footer_metrics(640)
+        with mock.patch(
+            "affilio_radar._draw_platform_watermark_icon",
+            wraps=affilio_radar._draw_platform_watermark_icon,
+        ) as draw_logo:
+            rendered = affilio_radar.build_discount_image(
+                source.getvalue(), None, destination_platform="telegram",
+            )
+        with Image.open(io.BytesIO(rendered)) as result:
+            self.assertEqual(result.size, (640, 800))
+        self.assertEqual(
+            [call.args[1] for call in draw_logo.call_args_list],
+            ["bale", "rubika", "youtube"],
+        )
+        self.assertEqual(
+            [call.args[4] for call in draw_logo.call_args_list],
+            [metrics["logo_height"]] * 3,
+        )
+        self.assertEqual(
+            [call.kwargs["max_width"] for call in draw_logo.call_args_list],
+            [metrics["logo_max_width"]] * 3,
+        )
+
+    def test_platform_footer_labels_keep_youtube_brand_separate_and_name_other_channels(self):
+        import offerchin_visuals
+
+        self.assertEqual(
+            offerchin_visuals.platform_footer_label("youtube", "youtube.com/@offerchin"),
+            "youtube.com/@offerchin",
+        )
+        for platform, url in (
+            ("telegram", "t.me/OfferChin"),
+            ("bale", "ble.ir/OfferChin"),
+            ("rubika", "rubika.ir/offerchin"),
+        ):
+            with self.subTest(platform=platform):
+                self.assertEqual(
+                    offerchin_visuals.platform_footer_label(platform, url),
+                    f"OfferChin  •  {url}",
+                )
 
     def test_platform_logo_fitting_keeps_the_youtube_wordmark_rectangular(self):
         import offerchin_visuals
@@ -180,9 +265,9 @@ class ShortVideoTests(unittest.TestCase):
 
         # For a 400x500 source, the fitted product photo is 333x416 at (193,246).
         # The retailer tile is upper-left and the equal-sized discount tile upper-right.
-        retailer_crop = digikala.crop((202, 254, 334, 306))
-        digikala_discount_crop = digikala.crop((388, 254, 520, 306))
-        snappshop_discount_crop = snappshop.crop((388, 254, 520, 306))
+        retailer_crop = digikala.crop((202, 280, 334, 332))
+        digikala_discount_crop = digikala.crop((388, 280, 520, 332))
+        snappshop_discount_crop = snappshop.crop((388, 280, 520, 332))
         red_pixels = sum(1 for red, green, blue in retailer_crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
         digikala_discount_pixels = sum(1 for red, green, blue in digikala_discount_crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
         snappshop_discount_pixels = sum(1 for red, green, blue in snappshop_discount_crop.getdata() if blue > 90 and red > green * 1.6 and blue > green * 1.6)
@@ -203,7 +288,7 @@ class ShortVideoTests(unittest.TestCase):
         # The DigiPay tile now follows the actual retailer-logo bounds at upper-left.
         blue_points = [
             (x, y)
-            for y in range(300, 375)
+            for y in range(326, 401)
             for x in range(198, 340)
             if (lambda p: p[2] > 150 and p[2] > p[0] * 1.8 and p[2] > p[1] * 1.2)(
                 poster.getpixel((x, y))
@@ -343,7 +428,7 @@ class ShortVideoTests(unittest.TestCase):
         background_sample = poster.getpixel((680, 1150))
         self.assertGreater(min(background_sample), 45)
         self.assertNotEqual(background_sample, (14, 28, 22))
-        price_panel = poster.getpixel((45, 705))
+        price_panel = poster.getpixel((45, 731))
         self.assertGreater(price_panel[1], price_panel[0])
         self.assertEqual(poster.size, (720, 1280))
 

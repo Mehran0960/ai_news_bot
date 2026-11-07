@@ -335,7 +335,7 @@ def build_vertical_poster(
     # The YouTube Short identifies its own destination first, then lists the other
     # three public OfferChin channels. This gives YouTube its official horizontal
     # wordmark while preserving the approved destination-aware link order.
-    cta_panel = (34, 162, WIDTH - 34, 246)
+    cta_panel = (34, 162, WIDTH - 34, 272)
     draw.rounded_rectangle(
         cta_panel,
         radius=19,
@@ -343,27 +343,30 @@ def build_vertical_poster(
         outline=(78, 177, 105, 245),
         width=2,
     )
-    channel_font = _font(14)
+    channel_font = _font(16)
     channel_color = (17, 77, 43, 255)
     video_channels = [
         ("youtube", "youtube.com/@offerchin"),
         *public_channel_links("youtube"),
     ]
     for index, (platform, url) in enumerate(video_channels):
-        row_top = 165 + index * 20
+        # Twenty-pixel logos plus their official-brand padding require a 26px
+        # row pitch; this prevents the horizontal YouTube wordmark tile overlapping
+        # neighbouring rows while keeping all four destinations in the safe panel.
+        row_top = 165 + index * 26
         logo_width, _logo_height = _draw_video_channel_logo(
-            draw, platform, 64, row_top, 18,
-            canvas=background, max_width=78,
+            draw, platform, 64, row_top, 20,
+            canvas=background, max_width=96,
         )
         label = platform_footer_label(platform, url)
         draw.text(
-            (64 + logo_width + (8 if logo_width else 0), row_top + 9),
+            (64 + logo_width + (8 if logo_width else 0), row_top + 13),
             label, font=channel_font,
             fill=channel_color, anchor="lm",
         )
 
     # Product photo gets its own clean card; the CTA strip above remains outside it.
-    card = (34, 250, WIDTH - 34, 678)
+    card = (34, 276, WIDTH - 34, 704)
     draw.rounded_rectangle(
         (card[0] + 5, card[1] + 9, card[2] + 5, card[3] + 9),
         radius=30,
@@ -431,7 +434,7 @@ def build_vertical_poster(
 
     # Keep the current price as the primary amount. The discount is shown once,
     # in the upper-right badge that matches the channel-image layout.
-    price_panel = (34, 695, WIDTH - 34, 948)
+    price_panel = (34, 721, WIDTH - 34, 974)
     draw.rounded_rectangle(
         (price_panel[0] + 4, price_panel[1] + 7, price_panel[2] + 4, price_panel[3] + 7),
         radius=26,
@@ -445,7 +448,7 @@ def build_vertical_poster(
         width=3,
     )
     draw.text(
-        (WIDTH // 2, 725),
+        (WIDTH // 2, 751),
         _shape_rtl(f"قیمت ویژه در {merchant}"),
         font=_font(25),
         fill=(24, 111, 54, 255),
@@ -455,7 +458,7 @@ def build_vertical_poster(
     current_text = format_persian_price(current_price)
     if current_text:
         draw.text(
-            (WIDTH // 2, 783),
+            (WIDTH // 2, 809),
             _shape_rtl(f"{current_text} تومان"),
             font=_font(43),
             fill=(10, 79, 40, 255),
@@ -464,7 +467,7 @@ def build_vertical_poster(
         )
     else:
         draw.text(
-            (WIDTH // 2, 818),
+            (WIDTH // 2, 844),
             _shape_rtl(f"مشاهده قیمت روز در {merchant}"),
             font=_font(28),
             fill=(10, 79, 40, 255),

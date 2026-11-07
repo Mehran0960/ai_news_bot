@@ -114,6 +114,26 @@ def platform_footer_label(platform: str, url: str) -> str:
     return target if key == "youtube" else f"OfferChin  •  {target}"
 
 
+def platform_footer_metrics(reference_dimension: int) -> dict[str, int]:
+    """Scale footer marks and labels with the source image while keeping them secondary.
+
+    Small source images retain compact marks; high-resolution product photography
+    receives larger source-pixel dimensions so the footer stays readable after
+    social-platform downscaling. YouTube's true horizontal logo width is still
+    determined by its source aspect ratio, never by a square width/height clamp.
+    """
+    try:
+        dimension = max(1, int(reference_dimension))
+    except (TypeError, ValueError, OverflowError):
+        dimension = 1
+    return {
+        "logo_height": max(16, min(44, int(round(dimension * 0.032)))),
+        "logo_max_width": max(46, min(128, int(round(dimension * 0.08)))),
+        "font_size": max(13, min(32, int(round(dimension * 0.020)))),
+        "row_gap": max(4, min(10, int(round(dimension * 0.006)))),
+    }
+
+
 def _sale_font(size: int):
     """Find a bold Latin font for clear, readable percentage labels."""
     for font_path in (
