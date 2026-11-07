@@ -234,6 +234,44 @@ class ShortVideoTests(unittest.TestCase):
         self.assertEqual(command[command.index("-frames:v") + 1], "288")
         self.assertIn("1:a:0", command)
 
+    def test_real_twelve_second_render_contains_audio_and_video_streams(self):
+        import short_video
+        import subprocess
+
+        image = Image.new("RGB", (400, 500), (35, 70, 55))
+        stream = io.BytesIO()
+        image.save(stream, format="PNG")
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "real-render.mp4"
+            rendered = short_video.render_short_video(
+                stream.getvalue(),
+                50,
+                output,
+                title="نمونهٔ آزمون رندر آفِرچین",
+                current_price=100000,
+                original_price=200000,
+                destination_platform="youtube",
+                duration_seconds=12,
+                fps=24,
+            )
+            self.assertTrue(rendered.is_file())
+            self.assertGreater(rendered.stat().st_size, 20_000)
+
+            binary = short_video._resolve_ffmpeg_binary()
+            probe = subprocess.run(
+                [binary, "-hide_banner", "-i", str(rendered), "-f", "null", "-"],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            details = probe.stderr or ""
+            self.assertEqual(probe.returncode, 0, details[:2000])
+            self.assertIn("Video:", details)
+            self.assertIn("Audio:", details)
+            self.assertRegex(details, r"Duration: 00:00:12(?:\\.00)?")
+
     def test_watermark_places_other_channel_marks_in_a_vertical_youtube_safe_area(self):
         import short_video
 
