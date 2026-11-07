@@ -1,7 +1,7 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-07T07:56:32.552318+00:00",
-  "aparat_last_upload_success_at": "2026-11-07T07:56:36.151210+00:00",
-  "aparat_next_upload_at": "2026-11-07T10:56:36.151210+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-07T11:05:02.124967+00:00",
+  "aparat_last_upload_success_at": "2026-11-07T11:05:05.555598+00:00",
+  "aparat_next_upload_at": "2026-11-07T14:05:05.555598+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {
       "dkp-10583616": {
@@ -399428,7 +399428,13 @@
       "youtube_upload_status": "pending"
     },
     "dkp-369675": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-07T11:05:02.124967+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-07T11:05:05.555598+00:00",
+      "aparat_video_hash": "dvsde1j",
+      "aparat_video_record_id": "74106545",
+      "aparat_video_url": "https://www.aparat.com/v/dvsde1j",
+      "aparat_visibility": "public",
       "bale_expiry_status": "tracked",
       "bale_message_id": 1749,
       "bale_posted_at": "2026-11-07T10:41:08.033265+00:00",
@@ -399499,8 +399505,12 @@
       "telegram_posted_at": "2026-11-07T10:41:04.677736+00:00",
       "title": "مداد چشم آی کر سری 01C",
       "ts": 1794048059.721205,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-369675.mp4",
+      "video_generated_at": "2026-11-07T11:04:58.833755+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 6,
+      "youtube_last_error": "",
+      "youtube_upload_status": "pending_credentials"
     },
     "dkp-369884": {
       "aparat_upload_status": "skipped_expiring_soon",
