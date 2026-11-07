@@ -64,6 +64,7 @@ jobs:
           python -m playwright install --with-deps chromium
 
       - name: Stage official DigiPay logo for video cards
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode != 'verify-login' }}
         run: |
           mkdir -p affilio_radar/assets/retailer-logos
           curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 \
