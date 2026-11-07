@@ -345,8 +345,6 @@ def upload_filo_video(
     A missing publish response after clicking the final button is treated as an
     unknown outcome. The caller must not automatically retry such a submission.
     """
-    from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
-
     source = env if env is not None else os.environ
     username = str(source.get("FILO_USER", "")).strip()
     password = str(source.get("FILO_PASS", "")).strip()
@@ -359,6 +357,9 @@ def upload_filo_video(
         raise FiloUploadError("filo_video_file_invalid")
     if not clean_title or len(clean_title) < 5:
         raise FiloUploadError("filo_video_title_invalid")
+
+    # Keep validation-only calls and unit tests independent from the browser runtime.
+    from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
     temporary_dir = tempfile.TemporaryDirectory(prefix="offerchin-filo-")
     browser = None
