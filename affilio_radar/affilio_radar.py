@@ -10744,6 +10744,25 @@ def run_aparat_uploads_only() -> int:
     return 0
 
 
+def run_filo_login_check_only() -> int:
+    """Check Filo account access only; never select or submit a video."""
+    from filo_uploader import FiloUploadError, verify_filo_login
+
+    try:
+        result = verify_filo_login()
+        if result.get("status") == "login_verified" and result.get("upload_route_available") is True:
+            print("FILO_LOGIN_CHECK_OK upload_route_available=true public_upload_performed=false")
+            return 0
+        print("FILO_LOGIN_CHECK_FAILED error=upload_route_not_confirmed public_upload_performed=false")
+        return 1
+    except FiloUploadError as exc:
+        print(f"FILO_LOGIN_CHECK_FAILED error={exc.code} public_upload_performed=false")
+        return 1
+    except Exception as exc:
+        print(f"FILO_LOGIN_CHECK_FAILED error={type(exc).__name__} public_upload_performed=false")
+        return 1
+
+
 def run_filo_uploads_only() -> int:
     """Process the persisted video queue for Filo only; never run product discovery."""
     state = load_state()
@@ -10776,6 +10795,11 @@ def main():
         "--aparat-upload-only",
         action="store_true",
         help="process pending vertical videos for Aparat only; do not discover products or upload to YouTube",
+    )
+    parser.add_argument(
+        "--filo-login-check-only",
+        action="store_true",
+        help="verify Filo credentials and upload-page access without publishing a video",
     )
     parser.add_argument(
         "--filo-upload-only",
@@ -10851,6 +10875,8 @@ def main():
         except Exception as exc:
             print(f"APARAT_ONLY_RUN_FAILED error={type(exc).__name__}")
             sys.exit(1)
+    if args.filo_login_check_only:
+        sys.exit(run_filo_login_check_only())
     if args.filo_upload_only:
         try:
             sys.exit(run_filo_uploads_only())
