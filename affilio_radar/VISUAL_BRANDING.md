@@ -19,7 +19,9 @@ This is the canonical placement and legibility standard for generated OfferChin 
 
 ## Asset and runtime rules
 
-- Retailer logos live in `affilio_radar/assets/retailer-logos/` and must be read locally at render time. Never fetch logo assets from a remote URL during post creation.
+- Retailer logos live in `affilio_radar/assets/retailer-logos/`; channel logos live in `affilio_radar/assets/channel-logos/`. Both are read locally at render time. Never fetch logo assets from a remote URL during post creation.
+- Telegram, Bale, Rubika, and YouTube marks use their bundled color SVG files. Do not replace them with hand-drawn approximations, initials, or generic platform glyphs.
+- Decode each SVG once per process and reuse the cached image. Preserve source colors, shape, and aspect ratio; only proportional antialiased downscaling is allowed. A missing/corrupt asset is logged and must not block publishing.
 - Preserve each official logo's original background and color. Resize the full asset proportionally; do not create a transparent cut-out or a substitute icon.
 - A logo rendering failure must not block publishing; log the failure and continue without that logo.
 - Apply destination-aware links consistently to Telegram, Bale, and Rubika product images and to the YouTube Short artwork. The current shared video asset remains designed for the YouTube destination.
