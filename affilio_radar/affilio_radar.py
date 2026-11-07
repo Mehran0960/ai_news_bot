@@ -53,7 +53,7 @@ from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from offerchin_visuals import (
     draw_discount_burst, draw_retailer_badge, draw_digipay_badge, adaptive_text_colors,
-    discount_badge_dimensions_for_reference_bounds,
+    discount_badge_dimensions_for_reference_bounds, public_channel_links,
 )
 from integrity_audit_state import apply_integrity_audit_ledger
 import arabic_reshaper
@@ -4996,6 +4996,25 @@ def _draw_platform_watermark_icon(draw, platform: str, x: int, y: int, size: int
         ], fill="#BCEBFF")
         return
 
+    if platform == "youtube":
+        # YouTube's red rounded play tile remains recognizable at footer-icon size.
+        draw.rounded_rectangle(
+            (x, y, right, bottom),
+            radius=max(3, size // 5),
+            fill="#FF0033",
+            outline="#ffffff",
+            width=max(1, size // 16),
+        )
+        draw.polygon(
+            [
+                (x + size * 0.39, y + size * 0.25),
+                (x + size * 0.39, y + size * 0.75),
+                (x + size * 0.76, y + size * 0.50),
+            ],
+            fill="#ffffff",
+        )
+        return
+
     if platform in {"rubika", "eitaa"}:
         fill = "#7B3FB5" if platform == "rubika" else "#F07824"
         draw.rounded_rectangle(
@@ -5043,6 +5062,7 @@ def build_discount_image(
     watermark: str = "T.me/OfferChin",
     merchant: str = "دیجی‌کالا",
     extra_watermarks: list[tuple[str, str]] | None = None,
+    destination_platform: str = "telegram",
 ) -> bytes:
     """Prepare a product image with store identity, discount badge, and OfferChin channel watermark."""
     from io import BytesIO
@@ -5099,19 +5119,20 @@ def build_discount_image(
     # Keep the channel IDs at the lower-left without a card or solid panel.
     # Choose each text color from the pixels directly behind it; use a thin opposing
     # stroke to retain legibility over both pale and dark product photography.
-    watermarks = [
-        ("telegram", "T.me/OfferChin"),
-        ("bale", "ble.ir/OfferChin"),
-        ("rubika", "rubika.ir/offerchin"),
-    ]
+    destination = str(destination_platform or "").strip().lower()
+    watermarks = public_channel_links(destination)
+    existing_platforms = {platform for platform, _label in watermarks}
     for mark in extra_watermarks or []:
         if (
             isinstance(mark, (tuple, list))
             and len(mark) == 2
             and str(mark[0]) in {"rubika", "eitaa"}
+            and str(mark[0]) != destination
+            and str(mark[0]) not in existing_platforms
             and str(mark[1]).strip()
         ):
             watermarks.append((str(mark[0]), str(mark[1]).strip()[:48]))
+            existing_platforms.add(str(mark[0]))
     margin = max(10, min_dim // 35)
     icon_size = max(12, min(48, min_dim // 32))
     icon_gap = max(5, icon_size // 4)
@@ -5304,12 +5325,14 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
         photo = build_discount_image(
             image_bytes, item.get("discount_percent"),
             watermark="T.me/OfferChin", merchant=item.get("merchant") or "دیجی‌کالا",
+            destination_platform="telegram",
         )
         return _send_photo(photo, build_caption(item, affiliate_url, TELEGRAM_CHANNEL_URL), affiliate_url)
     if platform == "bale":
         photo = build_discount_image(
             image_bytes, item.get("discount_percent"),
             watermark="ble.ir/OfferChin", merchant=item.get("merchant") or "دیجی‌کالا",
+            destination_platform="bale",
         )
         return _send_bale_photo(
             photo,
@@ -6066,7 +6089,6 @@ def repair_recent_product_images(
             print(f"IMAGE_REPAIR_FAILED product_id={product_key} reason=official_digipay_logo_unavailable")
             continue
         discount = record.get("posted_discount_percent")
-        photo = build_discount_image(image_bytes, discount, merchant=merchant)
         product = {
             "title": record.get("title", "پیشنهاد ویژه"),
             "current_price": record.get("posted_current_price"),
@@ -6082,7 +6104,11 @@ def repair_recent_product_images(
             else:
                 try:
                     caption = build_caption(product, affiliate_url, TELEGRAM_CHANNEL_URL)
-                    edited = _edit_telegram_media(telegram_id, photo, caption, affiliate_url)
+                    telegram_photo = build_discount_image(
+                        image_bytes, discount, merchant=merchant,
+                        destination_platform="telegram",
+                    )
+                    edited = _edit_telegram_media(telegram_id, telegram_photo, caption, affiliate_url)
                     if isinstance(edited, dict) and edited.get("not_found"):
                         results["telegram_missing"] += 1
                         record["expiry_status"] = "already_absent"
@@ -6119,7 +6145,11 @@ def repair_recent_product_images(
                         caption = build_caption(
                             product, affiliate_url, BALE_CHANNEL_URL, use_unicode_strikethrough=True,
                         )
-                        replacement = _send_bale_photo(photo, caption, affiliate_url)
+                        bale_photo = build_discount_image(
+                            image_bytes, discount, merchant=merchant,
+                            destination_platform="bale",
+                        )
+                        replacement = _send_bale_photo(bale_photo, caption, affiliate_url)
                         new_id = _int_value(replacement.get("message_id")) if isinstance(replacement, dict) else None
                         if not new_id or new_id <= 0:
                             raise RuntimeError("Bale replacement photo returned no message_id")
