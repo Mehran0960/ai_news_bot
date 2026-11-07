@@ -1,8 +1,11 @@
 import unittest
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 from affilio_radar import (
     FILO_UPLOAD_INTERVAL_HOURS,
+    VIDEO_DISPATCH_STATE,
+    _persist_filo_login_state,
     FILO_UPLOAD_INTERVAL_POLICY_VERSION,
     video_deadline_allows_upload,
     _filo_upload_slot_due,
@@ -215,6 +218,23 @@ class FiloUploadScheduleTests(unittest.TestCase):
             **recent,
             "filo_login_verification_status": "failed",
         }, self.now))
+
+    def test_login_verification_is_persisted_to_worker_sidecar(self):
+        state = {
+            "filo_login_verification_status": "verified",
+            "filo_login_verified_at": self.now.isoformat(),
+            "filo_login_verification_attempted_at": self.now.isoformat(),
+            "published": {},
+        }
+        with patch("affilio_radar.save_json") as save:
+            _persist_filo_login_state(state, self.now)
+
+        self.assertEqual(save.call_count, 2)
+        self.assertEqual(save.call_args_list[0].args[0].name, "state.json")
+        self.assertEqual(save.call_args_list[1].args[0], VIDEO_DISPATCH_STATE)
+        sidecar = save.call_args_list[1].args[1]
+        self.assertEqual(sidecar["filo_login_verification_status"], "verified")
+        self.assertEqual(sidecar["filo_login_verified_at"], self.now.isoformat())
 
     def test_dispatch_sidecar_carries_filo_login_verification(self):
         state = {
