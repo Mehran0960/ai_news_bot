@@ -3687,23 +3687,29 @@
       "catalog_best_selling_category_name": "روغن صورت",
       "catalog_best_selling_rank": 26,
       "catalog_best_selling_ranks_by_category": {
+        "10050": {
+          "category_name": "مراقبت از پوست و مو",
+          "observed_at": "2026-11-07T23:01:09.836542+00:00",
+          "rank": 3419
+        },
         "8173": {
           "category_name": "روغن صورت",
           "observed_at": "2026-11-07T13:29:50.335852+00:00",
           "rank": 26
         }
       },
-      "catalog_category_id": "8173",
+      "catalog_category_id": "10050",
       "catalog_category_ids": [
-        "8173"
+        "8173",
+        "10050"
       ],
-      "catalog_category_name": "روغن صورت",
+      "catalog_category_name": "مراقبت از پوست و مو",
       "catalog_rank_observed_at": "2026-11-07T13:29:50.335852+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 2999900,
       "discount_percent": 87,
       "first_seen_at": "2026-11-07T13:29:50.335852+00:00",
-      "last_seen_at": "2026-11-07T13:29:50.181610+00:00",
+      "last_seen_at": "2026-11-07T23:00:29.282748+00:00",
       "original_price": 23000000,
       "product_id": "dkp-13643432",
       "product_url": "https://www.digikala.com/product/dkp-13643432/",
@@ -29195,6 +29201,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "8280",
+      "catalog_best_selling_category_name": "لامپ خودرو",
+      "catalog_best_selling_rank": 3429,
+      "catalog_best_selling_ranks_by_category": {
+        "8280": {
+          "category_name": "لامپ خودرو",
+          "observed_at": "2026-11-07T23:01:09.876738+00:00",
+          "rank": 3429
+        }
+      },
+      "catalog_category_id": "8280",
+      "catalog_category_ids": [
+        "8280"
+      ],
+      "catalog_category_name": "لامپ خودرو",
+      "catalog_rank_observed_at": "2026-11-07T23:01:09.876738+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1474000,
+      "discount_percent": 75,
+      "first_seen_at": "2026-11-07T23:01:09.876738+00:00",
+      "last_seen_at": "2026-11-07T23:00:58.184307+00:00",
+      "original_price": 5800000,
+      "product_id": "dkp-23100004",
+      "product_url": "https://www.digikala.com/product/dkp-23100004/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 4326000,
+      "source": "digikala_catalog_sweep",
+      "title": "لامپ هدلایت خودرو مدل M4 پایه H7 با نور سفید 10000 کلوین و توان مصرفی 12.1 تا 24 وات و نوردهی 3001 تا 4000 لومن همراه با فن خنک‌کننده مناسب انواع خودرو"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "9282",
       "catalog_best_selling_category_name": "لباس زنانه",
       "catalog_best_selling_rank": 3050,
@@ -43105,14 +43143,19 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9383",
-      "catalog_best_selling_category_name": "عینک آفتابی زنانه",
-      "catalog_best_selling_rank": 2816,
+      "catalog_best_selling_category_id": "9491",
+      "catalog_best_selling_category_name": "عینک آفتابی مردانه",
+      "catalog_best_selling_rank": 3438,
       "catalog_best_selling_ranks_by_category": {
         "9383": {
           "category_name": "عینک آفتابی زنانه",
           "observed_at": "2026-11-07T22:07:28.315907+00:00",
           "rank": 2816
+        },
+        "9491": {
+          "category_name": "عینک آفتابی مردانه",
+          "observed_at": "2026-11-07T23:01:09.889999+00:00",
+          "rank": 3438
         },
         "9537": {
           "category_name": "عینک آفتابی زنانه و مردانه",
@@ -43120,18 +43163,19 @@
           "rank": 2665
         }
       },
-      "catalog_category_id": "9383",
+      "catalog_category_id": "9491",
       "catalog_category_ids": [
         "9383",
+        "9491",
         "9537"
       ],
-      "catalog_category_name": "عینک آفتابی زنانه",
-      "catalog_rank_observed_at": "2026-11-07T22:07:28.315907+00:00",
+      "catalog_category_name": "عینک آفتابی مردانه",
+      "catalog_rank_observed_at": "2026-11-07T23:01:09.889999+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1099000,
       "discount_percent": 73,
       "first_seen_at": "2026-11-07T21:52:28.752995+00:00",
-      "last_seen_at": "2026-11-07T22:06:07.629755+00:00",
+      "last_seen_at": "2026-11-07T23:01:07.413124+00:00",
       "original_price": 4000000,
       "product_id": "dkp-22940653",
       "product_url": "https://www.digikala.com/product/dkp-22940653/",
@@ -48753,27 +48797,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "5824",
-      "catalog_best_selling_category_name": "لوازم بهداشتی",
-      "catalog_best_selling_rank": 2407,
+      "catalog_best_selling_category_id": "5968",
+      "catalog_best_selling_category_name": "آرایشی و بهداشتی",
+      "catalog_best_selling_rank": 3427,
       "catalog_best_selling_ranks_by_category": {
         "5824": {
           "category_name": "لوازم بهداشتی",
           "observed_at": "2026-11-07T21:25:18.900362+00:00",
           "rank": 2407
+        },
+        "5968": {
+          "category_name": "آرایشی و بهداشتی",
+          "observed_at": "2026-11-07T23:01:09.855506+00:00",
+          "rank": 3427
         }
       },
-      "catalog_category_id": "5824",
+      "catalog_category_id": "5968",
       "catalog_category_ids": [
-        "5824"
+        "5824",
+        "5968"
       ],
-      "catalog_category_name": "لوازم بهداشتی",
-      "catalog_rank_observed_at": "2026-11-07T21:25:18.900362+00:00",
+      "catalog_category_name": "آرایشی و بهداشتی",
+      "catalog_rank_observed_at": "2026-11-07T23:01:09.855506+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 399000,
       "discount_percent": 72,
       "first_seen_at": "2026-11-07T21:25:18.900362+00:00",
-      "last_seen_at": "2026-11-07T21:24:50.754334+00:00",
+      "last_seen_at": "2026-11-07T23:00:41.214900+00:00",
       "original_price": 1430000,
       "product_id": "dkp-19305194",
       "product_url": "https://www.digikala.com/product/dkp-19305194/",
@@ -55785,6 +55835,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "9528",
+      "catalog_best_selling_category_name": "ساعت مردانه",
+      "catalog_best_selling_rank": 3430,
+      "catalog_best_selling_ranks_by_category": {
+        "9528": {
+          "category_name": "ساعت مردانه",
+          "observed_at": "2026-11-07T23:01:09.891673+00:00",
+          "rank": 3430
+        }
+      },
+      "catalog_category_id": "9528",
+      "catalog_category_ids": [
+        "9528"
+      ],
+      "catalog_category_name": "ساعت مردانه",
+      "catalog_rank_observed_at": "2026-11-07T23:01:09.891673+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 5900000,
+      "discount_percent": 70,
+      "first_seen_at": "2026-11-07T23:01:09.891673+00:00",
+      "last_seen_at": "2026-11-07T23:01:08.052114+00:00",
+      "original_price": 19500000,
+      "product_id": "dkp-22457594",
+      "product_url": "https://www.digikala.com/product/dkp-22457594/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 13600000,
+      "source": "digikala_catalog_sweep",
+      "title": "ساعت مچی عقربه‌ای مردانه مدل C03 Moo-M"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "9908",
       "catalog_best_selling_category_name": "کفش روزمره زنانه",
       "catalog_best_selling_rank": 23,
@@ -61671,38 +61753,6 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9096",
-      "catalog_best_selling_category_name": "قطعات الکترونیکی",
-      "catalog_best_selling_rank": 1809,
-      "catalog_best_selling_ranks_by_category": {
-        "9096": {
-          "category_name": "قطعات الکترونیکی",
-          "observed_at": "2026-11-07T20:31:22.130557+00:00",
-          "rank": 1809
-        }
-      },
-      "catalog_category_id": "9096",
-      "catalog_category_ids": [
-        "9096"
-      ],
-      "catalog_category_name": "قطعات الکترونیکی",
-      "catalog_rank_observed_at": "2026-11-07T20:31:22.130557+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 585940,
-      "discount_percent": 70,
-      "first_seen_at": "2026-11-07T20:31:22.130557+00:00",
-      "last_seen_at": "2026-11-07T20:30:54.106798+00:00",
-      "original_price": 1981180,
-      "product_id": "dkp-6452339",
-      "product_url": "https://www.digikala.com/product/dkp-6452339/",
-      "rating": 3.62,
-      "review_count": 32,
-      "savings_toman": 1395240,
-      "source": "digikala_catalog_sweep",
-      "title": "سنسور تعیین سطح مایع مدل p52"
-    },
-    {
-      "availability": "unknown",
       "catalog_best_selling_category_id": "11153",
       "catalog_best_selling_category_name": "پولوشرت ورزشی مردانه",
       "catalog_best_selling_rank": 129,
@@ -63405,7 +63455,7 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9435",
       "catalog_best_selling_category_name": "لباس مردانه",
-      "catalog_best_selling_rank": 3388,
+      "catalog_best_selling_rank": 3424,
       "catalog_best_selling_ranks_by_category": {
         "6816": {
           "category_name": "پوشاک ورزشی",
@@ -63414,8 +63464,8 @@
         },
         "9435": {
           "category_name": "لباس مردانه",
-          "observed_at": "2026-11-07T22:57:15.020521+00:00",
-          "rank": 3388
+          "observed_at": "2026-11-07T23:01:09.888727+00:00",
+          "rank": 3424
         },
         "9460": {
           "category_name": "تی شرت ورزشی مردانه",
@@ -63430,12 +63480,12 @@
         "9460"
       ],
       "catalog_category_name": "لباس مردانه",
-      "catalog_rank_observed_at": "2026-11-07T22:57:15.020521+00:00",
+      "catalog_rank_observed_at": "2026-11-07T23:01:09.888727+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 389000,
       "discount_percent": 70,
       "first_seen_at": "2026-11-07T15:15:56.056498+00:00",
-      "last_seen_at": "2026-11-07T22:57:12.474472+00:00",
+      "last_seen_at": "2026-11-07T23:01:06.942758+00:00",
       "original_price": 1297000,
       "product_id": "dkp-18263132",
       "product_url": "https://www.digikala.com/product/dkp-18263132/",
@@ -87299,12 +87349,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9435",
       "catalog_best_selling_category_name": "لباس مردانه",
-      "catalog_best_selling_rank": 3383,
+      "catalog_best_selling_rank": 3425,
       "catalog_best_selling_ranks_by_category": {
         "9435": {
           "category_name": "لباس مردانه",
-          "observed_at": "2026-11-07T22:57:15.020521+00:00",
-          "rank": 3383
+          "observed_at": "2026-11-07T23:01:09.888727+00:00",
+          "rank": 3425
         },
         "9470": {
           "category_name": "تی شرت مردانه",
@@ -87318,12 +87368,12 @@
         "9470"
       ],
       "catalog_category_name": "لباس مردانه",
-      "catalog_rank_observed_at": "2026-11-07T22:57:15.020521+00:00",
+      "catalog_rank_observed_at": "2026-11-07T23:01:09.888727+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1192000,
       "discount_percent": 67,
       "first_seen_at": "2026-11-07T17:11:16.576768+00:00",
-      "last_seen_at": "2026-11-07T22:57:12.474328+00:00",
+      "last_seen_at": "2026-11-07T23:01:06.942859+00:00",
       "original_price": 3580000,
       "product_id": "dkp-11403780",
       "product_url": "https://www.digikala.com/product/dkp-11403780/",
@@ -108208,41 +108258,9 @@
       "savings_toman": 2388000,
       "source": "digikala_catalog_sweep",
       "title": "تی‌شرت اورسایز آستین کوتاه زنانه مدل باکسی طرح لایف"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9347",
-      "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 2320,
-      "catalog_best_selling_ranks_by_category": {
-        "9347": {
-          "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-07T21:14:23.044990+00:00",
-          "rank": 2320
-        }
-      },
-      "catalog_category_id": "9347",
-      "catalog_category_ids": [
-        "9347"
-      ],
-      "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T21:14:23.044990+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-07T21:14:23.044990+00:00",
-      "last_seen_at": "2026-11-07T21:14:08.126981+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-21598537",
-      "product_url": "https://www.digikala.com/product/dkp-21598537/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "تی‌شرت اورسایز آستین کوتاه زنانه مدل باکسی طرح دوقلب"
     }
   ],
   "cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-07T22:59:30.959428+00:00"
+  "updated_at": "2026-11-07T23:01:09.927541+00:00"
 }
