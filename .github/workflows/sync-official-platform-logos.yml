@@ -123,4 +123,15 @@ jobs:
             exit 0
           fi
           git commit -m "Store validated official platform logo assets"
-          git push origin HEAD:main
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              echo "OFFICIAL_PLATFORM_LOGOS_COMMITTED attempt=$attempt"
+              exit 0
+            fi
+            echo "PLATFORM_LOGO_PUSH_RACE attempt=$attempt; retrying after latest main"
+            sleep $((attempt * 2))
+          done
+          echo "OFFICIAL_PLATFORM_LOGO_COMMIT_FAILED_AFTER_RETRIES" >&2
+          exit 1
