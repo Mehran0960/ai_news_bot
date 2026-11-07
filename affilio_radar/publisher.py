@@ -117,6 +117,18 @@ def _target_ready(name: str) -> bool:
         return bool(radar.BOT_TOKEN)
     if name == "bale":
         return bool(radar.BALE_BOT_TOKEN and radar.BALE_CHANNEL_ID)
+    if name == "rubika":
+        return bool(
+            os.getenv("RUBIKA_ENABLE_PUBLISHING", "false").strip().lower() in {"1", "true", "yes", "on"}
+            and os.getenv("RUBIKA_BOT_TOKEN", "").strip()
+            and os.getenv("RUBIKA_CHANNEL_ID", "").strip()
+        )
+    if name == "eitaa":
+        return bool(
+            os.getenv("EITAA_ENABLE_PUBLISHING", "false").strip().lower() in {"1", "true", "yes", "on"}
+            and os.getenv("EITAA_BOT_TOKEN", "").strip()
+            and os.getenv("EITAA_CHANNEL_ID", "").strip()
+        )
     if name == "youtube":
         try:
             from short_video import youtube_credentials_available
