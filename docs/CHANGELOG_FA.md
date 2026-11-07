@@ -879,7 +879,7 @@
 
 **فایل‌ها/سامانه‌ها:** `affilio_radar/short_video.py`، `affilio_radar/test_short_video.py`، `affilio_radar/AUDIO_ASSETS.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
 
-**آزمون و نتیجه:** تست جدید فرمان FFmpeg را با mock کنترل می‌کند و به API انتشار وصل نمی‌شود؛ اجرای مجموعهٔ `test_short_video.py` و Documentation Gate پس از بازشدن PR از GitHub Actions بررسی می‌شود. تا آن زمان هیچ نتیجهٔ CI یا انتشار عمومی جدیدی ادعا نمی‌شود.
+**آزمون و نتیجه:** یک تست mock فرمان نهایی FFmpeg، نرمال‌سازی، fade، اتصال stream و ۲۸۸ فریم را کنترل می‌کند؛ تست دوم MP4 واقعی ۱۲ثانیه‌ای می‌سازد و با FFmpeg وجود stream صوتی و تصویری و مدت را دوباره بررسی می‌کند. اجرای مجموعهٔ `test_short_video.py` و Documentation Gate از GitHub Actions در حال بررسی است؛ این تست‌ها انتشار عمومی نیستند.
 
 **شواهد/شناسه:** شاخهٔ کاری `feat/offerchin-video-audio-loudness-20261107`؛ PR و شناسه‌های CI پس از ایجاد ثبت خواهند شد. مبنای کد، مولد مستقل فعلی و تنظیمات رندر موجود در `main` است.
 
