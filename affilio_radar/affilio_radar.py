@@ -9147,6 +9147,10 @@ def process_pending_short_video(
             aparat_status = "pending"
             record["aparat_upload_status"] = "pending"
             state_changed = True
+        if verified_expiry and filo_status in {"skipped_unverified_deadline", "skipped_expiring_soon"}:
+            filo_status = "pending"
+            record["filo_upload_status"] = "pending"
+            state_changed = True
 
         # Youtube may proceed without an official retailer timer after a successful
         # Telegram/Bale delivery and last-mile price/stock validation. The independent
