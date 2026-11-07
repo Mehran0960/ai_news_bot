@@ -1,6 +1,12 @@
 name: OfferChin Filo Video Upload
 
 on:
+  # A protected code deployment automatically checks the configured Filo account.
+  # This push path is verify-only and never publishes a video.
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/filo-video-upload.yml"
   # The minute dispatcher starts Filo when its own saved upload slot is due.
   # Manual dispatch also supports a credentials-only check with no public upload.
   workflow_dispatch:
@@ -58,6 +64,7 @@ jobs:
           python -m playwright install --with-deps chromium
 
       - name: Stage official DigiPay logo for video cards
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode != 'verify-login' }}
         run: |
           mkdir -p affilio_radar/assets/retailer-logos
           curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 \
@@ -81,7 +88,7 @@ jobs:
           python -m unittest -v test_filo_uploader.py test_filo_upload_schedule.py
 
       - name: Verify Filo login without publishing
-        if: ${{ inputs.mode == 'verify-login' }}
+        if: ${{ github.event_name == 'push' || inputs.mode == 'verify-login' }}
         env:
           FILO_USER: ${{ secrets.FILO_USER }}
           FILO_PASS: ${{ secrets.FILO_PASS }}
@@ -89,7 +96,7 @@ jobs:
         run: python affilio_radar/affilio_radar.py --filo-login-check-only
 
       - name: Process only the OfferChin Filo video queue
-        if: ${{ inputs.mode != 'verify-login' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode != 'verify-login' }}
         env:
           FILO_USER: ${{ secrets.FILO_USER }}
           FILO_PASS: ${{ secrets.FILO_PASS }}

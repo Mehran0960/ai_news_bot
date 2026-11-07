@@ -10784,6 +10784,13 @@ def run_aparat_uploads_only() -> int:
     return 0
 
 
+def _persist_filo_login_state(state: dict, recorded_at: datetime) -> None:
+    """Persist login verification to both the full state and Worker sidecar."""
+    sidecar = build_video_upload_dispatch_state(state, now=recorded_at)
+    save_json(STATE, state)
+    save_json(VIDEO_DISPATCH_STATE, sidecar)
+
+
 def run_filo_login_check_only() -> int:
     """Check Filo account access only; never select or submit a video."""
     from filo_uploader import FiloUploadError, verify_filo_login
@@ -10796,29 +10803,31 @@ def run_filo_login_check_only() -> int:
             state["filo_login_verified_at"] = checked_at.isoformat()
             state["filo_login_verification_status"] = "verified"
             state["filo_login_verification_attempted_at"] = checked_at.isoformat()
-            save_json(STATE, state)
+            _persist_filo_login_state(state, checked_at)
             print("FILO_LOGIN_CHECK_OK upload_route_available=true public_upload_performed=false")
             return 0
         state.pop("filo_login_verified_at", None)
         state["filo_login_verification_status"] = "failed"
         state["filo_login_verification_attempted_at"] = checked_at.isoformat()
-        save_json(STATE, state)
+        _persist_filo_login_state(state, checked_at)
         print("FILO_LOGIN_CHECK_FAILED error=upload_route_not_confirmed public_upload_performed=false")
         return 1
     except FiloUploadError as exc:
         state = load_state()
         state.pop("filo_login_verified_at", None)
         state["filo_login_verification_status"] = "failed"
-        state["filo_login_verification_attempted_at"] = datetime.now(timezone.utc).isoformat()
-        save_json(STATE, state)
+        failed_at = datetime.now(timezone.utc)
+        state["filo_login_verification_attempted_at"] = failed_at.isoformat()
+        _persist_filo_login_state(state, failed_at)
         print(f"FILO_LOGIN_CHECK_FAILED error={exc.code} public_upload_performed=false")
         return 1
     except Exception as exc:
         state = load_state()
         state.pop("filo_login_verified_at", None)
         state["filo_login_verification_status"] = "failed"
-        state["filo_login_verification_attempted_at"] = datetime.now(timezone.utc).isoformat()
-        save_json(STATE, state)
+        failed_at = datetime.now(timezone.utc)
+        state["filo_login_verification_attempted_at"] = failed_at.isoformat()
+        _persist_filo_login_state(state, failed_at)
         print(f"FILO_LOGIN_CHECK_FAILED error={type(exc).__name__} public_upload_performed=false")
         return 1
 
