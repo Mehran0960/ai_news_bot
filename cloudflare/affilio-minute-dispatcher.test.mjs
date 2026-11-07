@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   isUsableCleanCatalogSnapshot,
   isInitialCatalogWarmup,
+  hasDueVideoRecord,
+  PUBLISHER_INTERVAL_MS,
 } from "./affilio-minute-dispatcher.mjs";
 
 const categoryIds = Array.from({ length: 4917 }, (_, index) => String(index + 1));
@@ -115,4 +117,44 @@ test("fails closed on missing, stale-schema, or partial-scan status", () => {
   assert.equal(isUsableCleanCatalogSnapshot(null), false);
   assert.equal(isUsableCleanCatalogSnapshot({ ...cleanStatus, schema_version: 1 }), false);
   assert.equal(isUsableCleanCatalogSnapshot({ ...cleanStatus, scan_policy_version: "top_60_only" }), false);
+});
+
+
+test("uses a 37-minute channel publication interval", () => {
+  assert.equal(PUBLISHER_INTERVAL_MS, 37 * 60 * 1000);
+});
+
+test("video dispatcher sees an older pending upload beyond the newest six records", () => {
+  const now = Date.now();
+  const published = {};
+  for (let index = 0; index < 6; index += 1) {
+    published[`completed-${index}`] = {
+      ts: (now - index * 60_000) / 1000,
+      delivery_status: { telegram: "sent" },
+      youtube_upload_status: "uploaded",
+      video_generation_status: "generated",
+    };
+  }
+  published.older_pending = {
+    ts: (now - 7 * 60_000) / 1000,
+    delivery_status: { telegram: "sent" },
+    youtube_upload_status: "pending",
+    video_generation_status: "generated",
+  };
+  assert.equal(hasDueVideoRecord({ published }, "youtube", now), true);
+});
+
+test("video dispatcher still excludes products older than the 24-hour freshness window", () => {
+  const now = Date.now();
+  const state = {
+    published: {
+      stale: {
+        ts: (now - 25 * 60 * 60 * 1000) / 1000,
+        delivery_status: { telegram: "sent" },
+        youtube_upload_status: "pending",
+        video_generation_status: "pending",
+      },
+    },
+  };
+  assert.equal(hasDueVideoRecord(state, "youtube", now), false);
 });
