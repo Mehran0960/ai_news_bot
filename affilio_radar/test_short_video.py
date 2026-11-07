@@ -118,7 +118,7 @@ class ShortVideoTests(unittest.TestCase):
                 self.assertGreater(wav.getnframes(), 100_000)
             self.assertGreater(path.stat().st_size, 100_000)
 
-    def test_watermark_places_other_channel_marks_in_a_vertical_youtube_safe_area(self):
+    def test_watermark_places_official_channel_marks_in_a_vertical_youtube_safe_area(self):
         import short_video
 
         image = Image.new("RGB", (400, 500), (255, 255, 255))
