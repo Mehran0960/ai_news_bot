@@ -118,15 +118,21 @@ class ShortVideoTests(unittest.TestCase):
                 self.assertGreater(wav.getnframes(), 100_000)
             self.assertGreater(path.stat().st_size, 100_000)
 
-    def test_watermark_places_platform_marks_in_visible_top_safe_area(self):
+    def test_watermark_places_other_channel_marks_in_a_vertical_youtube_safe_area(self):
+        import short_video
+
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
         image.save(stream, format="PNG")
-        poster = Image.open(io.BytesIO(build_vertical_poster(stream.getvalue(), 50))).convert("RGB")
+        with mock.patch(
+            "short_video._draw_video_channel_logo",
+            wraps=short_video._draw_video_channel_logo,
+        ) as draw_logo:
+            build_vertical_poster(stream.getvalue(), 50)
 
-        # Both platform marks now sit in the dedicated strip directly below the title.
-        self.assertEqual(poster.getpixel((132, 191)), (36, 161, 222))
-        self.assertEqual(poster.getpixel((386, 191)), (0, 184, 148))
+        drawn_platforms = [call.args[1] for call in draw_logo.call_args_list]
+        self.assertEqual(drawn_platforms, ["telegram", "bale", "rubika"])
+        self.assertNotIn("youtube", drawn_platforms)
 
     def test_retailer_logo_and_discount_use_the_same_upper_corner_positions_as_channel_images(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
@@ -272,24 +278,34 @@ class ShortVideoTests(unittest.TestCase):
             self.assertNotEqual(_shape_rtl(sample), sample)
             self.assertEqual(_rtl_layout_kwargs(), {})
 
-    def test_video_poster_shows_product_title_prices_and_channel_cta(self):
+    def test_video_poster_shows_product_title_prices_and_other_channel_ctas(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
         stream = io.BytesIO()
         image.save(stream, format="PNG")
-        poster = Image.open(io.BytesIO(build_vertical_poster(
-            stream.getvalue(),
-            80,
-            title="هدفون بلوتوثی نمونه مدل X",
-            current_price=1_999_000,
-            original_price=10_000_000,
-        ))).convert("RGB")
+        drawn_text = []
+        original_text = ImageDraw.ImageDraw.text
+
+        def capture_text(draw, xy, value, *args, **kwargs):
+            drawn_text.append(str(value))
+            return original_text(draw, xy, value, *args, **kwargs)
+
+        with mock.patch.object(ImageDraw.ImageDraw, "text", capture_text):
+            poster = Image.open(io.BytesIO(build_vertical_poster(
+                stream.getvalue(),
+                80,
+                title="هدفون بلوتوثی نمونه مدل X",
+                current_price=1_999_000,
+                original_price=10_000_000,
+            ))).convert("RGB")
 
         self.assertEqual(format_persian_price(1_999_000), "۱٬۹۹۹٬۰۰۰")
-        # Top channel links are placed in their own compact strip, away from platform UI overlays.
+        for label in ("t.me/OfferChin", "ble.ir/OfferChin", "rubika.ir/offerchin"):
+            self.assertIn(label, drawn_text)
+        self.assertFalse(any("youtube.com/" in value for value in drawn_text))
+        # The compact CTA panel stays above the product card and YouTube interface-safe area.
         background_sample = poster.getpixel((680, 1150))
         self.assertGreater(min(background_sample), 45)
         self.assertNotEqual(background_sample, (14, 28, 22))
-        # The price panel has a consistent pale-green surface distinct from the dark background.
         price_panel = poster.getpixel((45, 705))
         self.assertGreater(price_panel[1], price_panel[0])
         self.assertEqual(poster.size, (720, 1280))

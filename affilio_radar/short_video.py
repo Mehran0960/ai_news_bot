@@ -21,6 +21,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps, features
 from offerchin_visuals import (
     draw_discount_burst, draw_digipay_badge, draw_retailer_badge,
     adaptive_text_colors, discount_badge_dimensions_for_reference_bounds,
+    public_channel_links,
 )
 from offerchin_audio import write_original_soundtrack
 
@@ -100,6 +101,36 @@ def _draw_bale_logo(draw: ImageDraw.ImageDraw, x: int, y: int, size: int = 36) -
         ],
         fill=(255, 255, 255, 255),
     )
+
+
+def _draw_rubika_logo(draw: ImageDraw.ImageDraw, x: int, y: int, size: int = 20) -> None:
+    """Draw a compact purple Rubika tile with a white monogram."""
+    draw.rounded_rectangle(
+        (x, y, x + size, y + size),
+        radius=max(3, size // 5),
+        fill=(123, 63, 181, 255),
+    )
+    font = ImageFont.load_default()
+    bounds = draw.textbbox((0, 0), "R", font=font)
+    draw.text(
+        (x + (size - (bounds[2] - bounds[0])) / 2,
+         y + (size - (bounds[3] - bounds[1])) / 2 - bounds[1]),
+        "R", font=font, fill=(255, 255, 255, 255),
+    )
+
+
+def _draw_video_channel_logo(
+    draw: ImageDraw.ImageDraw, platform: str, x: int, y: int, size: int = 20,
+) -> None:
+    """Draw the destination-specific social icon used immediately before each CTA link."""
+    if platform == "telegram":
+        _draw_telegram_logo(draw, x, y, size)
+    elif platform == "bale":
+        _draw_bale_logo(draw, x, y, size)
+    elif platform == "rubika":
+        _draw_rubika_logo(draw, x, y, size)
+    else:
+        raise ValueError(f"Unsupported video CTA platform: {platform}")
 
 
 def telegram_video_review_available(env: Mapping[str, str] | None = None) -> bool:
@@ -346,9 +377,9 @@ def build_vertical_poster(
         )
         line_y += 47
 
-    # Place public channel links directly below the title, above the media safe-area
-    # where YouTube's lower caption/description controls cannot bury them.
-    cta_panel = (34, 162, WIDTH - 34, 218)
+    # A compact vertical list sits below the title, above YouTube's lower interface.
+    # Exclude YouTube itself and promote the other three public OfferChin destinations.
+    cta_panel = (34, 162, WIDTH - 34, 226)
     draw.rounded_rectangle(
         cta_panel,
         radius=19,
@@ -356,18 +387,15 @@ def build_vertical_poster(
         outline=(78, 177, 105, 245),
         width=2,
     )
-    channel_font = _font(18)
+    channel_font = _font(15)
     channel_color = (17, 77, 43, 255)
-    _draw_telegram_logo(draw, 128, 175, 32)
-    draw.text(
-        (170, 191), "T.me/OfferChin", font=channel_font,
-        fill=channel_color, anchor="lm",
-    )
-    _draw_bale_logo(draw, 382, 175, 32)
-    draw.text(
-        (424, 191), "ble.ir/OfferChin", font=channel_font,
-        fill=channel_color, anchor="lm",
-    )
+    for index, (platform, label) in enumerate(public_channel_links("youtube")):
+        row_top = 165 + index * 20
+        _draw_video_channel_logo(draw, platform, 64, row_top, 20)
+        draw.text(
+            (96, row_top + 10), label, font=channel_font,
+            fill=channel_color, anchor="lm",
+        )
 
     # Product photo gets its own clean card; the CTA strip above remains outside it.
     card = (34, 230, WIDTH - 34, 678)
