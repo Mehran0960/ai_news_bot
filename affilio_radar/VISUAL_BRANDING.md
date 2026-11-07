@@ -9,13 +9,14 @@ This is the canonical placement and legibility standard for generated OfferChin 
 - **Below retailer logo:** Place the official DigiPay mark on its blue field, preserving the mark itself. The blue field may extend to match the retailer tile's target dimensions; do not stretch the logo artwork.
 - **Lower-left:** Place the other three public OfferChin destinations as a compact, vertically stacked list. Every row uses its official local logo first, then the channel identity and short address. Telegram, Bale, and Rubika use “OfferChin • {channel URL}”; the YouTube row uses its official horizontal wordmark and youtube.com/@offerchin.
 - **YouTube logo:** Use the official horizontal full-color wordmark on its light solid backing. Preserve its original landscape aspect ratio. Never force it into a square icon box or stretch/crop its artwork. Its height should match the other small channel marks; its width is derived from the source ratio.
+- Scale the footer with source resolution instead of keeping every export at a tiny fixed pixel size: logo height is clamped to 16–44 source pixels, width to 46–128 pixels, and channel text to 13–32 pixels. Row spacing is resolution-aware. The source logo's own ratio determines its final footprint; a wider wordmark may occupy more width but is never compressed to a square.
 - Choose each text foreground color from the luminance behind its actual text area. Keep logos and text legible without making the channel footer compete with the product or discount.
 - Keep every overlay inside a consistent safe margin. It must not cover essential product details.
 
 ## Vertical 9:16 videos
 
 - Keep the same product-card hierarchy: retailer logo upper-left, discount upper-right, and DigiPay directly below the retailer logo. Preserve the exact official artwork and aspect ratios; only the DigiPay background tile may extend.
-- Keep the channel identity panel below the product title and above the product image, clear of YouTube's lower interface-safe area.
+- Keep the channel identity panel below the product title and above the product image, clear of YouTube's lower interface-safe area. On the 720×1280 poster, use four 26-pixel rows with a 20-pixel logo-height limit and 16-pixel label text; this keeps the complete YouTube wordmark tile within its row without collisions or clipping.
 - For a YouTube Short, show the official YouTube horizontal wordmark and youtube.com/@offerchin first, followed by the Telegram, Bale, and Rubika rows. This identifies the current destination as well as the other channels.
 - The three cross-channel rows use exactly the same official local logos and label treatment as product images. Keep marks small but readable and derive widths from their actual aspect ratios.
 - Do not let video zoom/pan crop the discount, retailer mark, DigiPay tile, or channel identities.
