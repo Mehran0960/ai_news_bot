@@ -75,7 +75,7 @@ jobs:
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           YOUTUBE_PRIVACY_STATUS: "public"
           AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "3"
-          AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT: "6"
+          AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT: "250"
           AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS: "24"
           # Aparat is intentionally disabled in this workflow.
           AFFILIO_APARAT_UPLOAD_ENABLED: "false"
