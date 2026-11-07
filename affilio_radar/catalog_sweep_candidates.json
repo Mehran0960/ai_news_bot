@@ -23151,9 +23151,9 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "10690",
-      "catalog_best_selling_category_name": "لوازم و مصالح ساختمانی",
-      "catalog_best_selling_rank": 940,
+      "catalog_best_selling_category_id": "8450",
+      "catalog_best_selling_category_name": "ابزار آلات و تجهیزات",
+      "catalog_best_selling_rank": 8672,
       "catalog_best_selling_ranks_by_category": {
         "10690": {
           "category_name": "لوازم و مصالح ساختمانی",
@@ -23174,22 +23174,28 @@
           "category_name": "شیرآلات",
           "observed_at": "2026-11-06T23:34:45.405660+00:00",
           "rank": 577
+        },
+        "8450": {
+          "category_name": "ابزار آلات و تجهیزات",
+          "observed_at": "2026-11-07T10:03:46.043819+00:00",
+          "rank": 8672
         }
       },
-      "catalog_category_id": "10690",
+      "catalog_category_id": "8450",
       "catalog_category_ids": [
+        "8450",
         "10690",
         "10699",
         "11340",
         "11350"
       ],
-      "catalog_category_name": "لوازم و مصالح ساختمانی",
-      "catalog_rank_observed_at": "2026-11-07T00:36:06.909751+00:00",
+      "catalog_category_name": "ابزار آلات و تجهیزات",
+      "catalog_rank_observed_at": "2026-11-07T10:03:46.043819+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 2862000,
       "discount_percent": 78,
       "first_seen_at": "2026-11-06T20:43:01.783716+00:00",
-      "last_seen_at": "2026-11-07T00:35:41.922532+00:00",
+      "last_seen_at": "2026-11-07T10:03:30.632002+00:00",
       "original_price": 12880000,
       "product_id": "dkp-15431984",
       "product_url": "https://www.digikala.com/product/dkp-15431984/",
@@ -66347,9 +66353,9 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6071",
-      "catalog_best_selling_category_name": "ابزار برقی و شارژی",
-      "catalog_best_selling_rank": 2389,
+      "catalog_best_selling_category_id": "8450",
+      "catalog_best_selling_category_name": "ابزار آلات و تجهیزات",
+      "catalog_best_selling_rank": 8667,
       "catalog_best_selling_ranks_by_category": {
         "6071": {
           "category_name": "ابزار برقی و شارژی",
@@ -66360,20 +66366,26 @@
           "category_name": "صفحه فرز و پولیش",
           "observed_at": "2026-11-06T20:29:04.502958+00:00",
           "rank": 87
+        },
+        "8450": {
+          "category_name": "ابزار آلات و تجهیزات",
+          "observed_at": "2026-11-07T10:03:46.043819+00:00",
+          "rank": 8667
         }
       },
-      "catalog_category_id": "6071",
+      "catalog_category_id": "8450",
       "catalog_category_ids": [
         "6071",
-        "6151"
+        "6151",
+        "8450"
       ],
-      "catalog_category_name": "ابزار برقی و شارژی",
-      "catalog_rank_observed_at": "2026-11-07T03:29:43.680396+00:00",
+      "catalog_category_name": "ابزار آلات و تجهیزات",
+      "catalog_rank_observed_at": "2026-11-07T10:03:46.043819+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 269000,
       "discount_percent": 73,
       "first_seen_at": "2026-11-06T20:29:04.502958+00:00",
-      "last_seen_at": "2026-11-07T03:28:48.125792+00:00",
+      "last_seen_at": "2026-11-07T10:03:30.631824+00:00",
       "original_price": 980000,
       "product_id": "dkp-1040505",
       "product_url": "https://www.digikala.com/product/dkp-1040505/",
@@ -92473,23 +92485,29 @@
       "catalog_best_selling_category_name": "مجموعه لوازم جانبی",
       "catalog_best_selling_rank": 11,
       "catalog_best_selling_ranks_by_category": {
+        "12": {
+          "category_name": "محصولات بومی و محلی",
+          "observed_at": "2026-11-07T10:03:46.059617+00:00",
+          "rank": 8677
+        },
         "6959": {
           "category_name": "مجموعه لوازم جانبی",
           "observed_at": "2026-11-06T19:02:50.724178+00:00",
           "rank": 11
         }
       },
-      "catalog_category_id": "6959",
+      "catalog_category_id": "12",
       "catalog_category_ids": [
+        "12",
         "6959"
       ],
-      "catalog_category_name": "مجموعه لوازم جانبی",
+      "catalog_category_name": "محصولات بومی و محلی",
       "catalog_rank_observed_at": "2026-11-06T19:02:50.724178+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 209000,
       "discount_percent": 70,
       "first_seen_at": "2026-11-06T19:02:50.724178+00:00",
-      "last_seen_at": "2026-11-06T19:02:10.098168+00:00",
+      "last_seen_at": "2026-11-07T10:03:43.440382+00:00",
       "original_price": 700000,
       "product_id": "dkp-7665408",
       "product_url": "https://www.digikala.com/product/dkp-7665408/",
@@ -115228,5 +115246,5 @@
   ],
   "cycle_started_at": "2026-11-06T18:22:56.776413+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-07T10:02:41.104477+00:00"
+  "updated_at": "2026-11-07T10:03:46.083505+00:00"
 }
