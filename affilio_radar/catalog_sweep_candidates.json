@@ -15799,12 +15799,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "211",
       "catalog_best_selling_category_name": "هدفون، هدست و هندزفری",
-      "catalog_best_selling_rank": 5809,
+      "catalog_best_selling_rank": 5957,
       "catalog_best_selling_ranks_by_category": {
         "211": {
           "category_name": "هدفون، هدست و هندزفری",
-          "observed_at": "2026-11-07T07:19:33.098979+00:00",
-          "rank": 5809
+          "observed_at": "2026-11-07T07:27:34.816757+00:00",
+          "rank": 5957
         }
       },
       "catalog_category_id": "211",
@@ -15812,12 +15812,12 @@
         "211"
       ],
       "catalog_category_name": "هدفون، هدست و هندزفری",
-      "catalog_rank_observed_at": "2026-11-07T07:19:33.098979+00:00",
+      "catalog_rank_observed_at": "2026-11-07T07:27:34.816757+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1390000,
       "discount_percent": 80,
       "first_seen_at": "2026-11-07T07:16:24.493304+00:00",
-      "last_seen_at": "2026-11-07T07:19:22.854048+00:00",
+      "last_seen_at": "2026-11-07T07:27:32.464110+00:00",
       "original_price": 6800000,
       "product_id": "dkp-23032463",
       "product_url": "https://www.digikala.com/product/dkp-23032463/",
@@ -25305,9 +25305,9 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "5824",
-      "catalog_best_selling_category_name": "لوازم بهداشتی",
-      "catalog_best_selling_rank": 4030,
+      "catalog_best_selling_category_id": "5968",
+      "catalog_best_selling_category_name": "آرایشی و بهداشتی",
+      "catalog_best_selling_rank": 5942,
       "catalog_best_selling_ranks_by_category": {
         "10050": {
           "category_name": "مراقبت از پوست و مو",
@@ -25323,6 +25323,11 @@
           "category_name": "لوازم بهداشتی",
           "observed_at": "2026-11-07T05:36:17.033274+00:00",
           "rank": 4030
+        },
+        "5968": {
+          "category_name": "آرایشی و بهداشتی",
+          "observed_at": "2026-11-07T07:27:34.817774+00:00",
+          "rank": 5942
         },
         "6486": {
           "category_name": "مراقبت پوست",
@@ -25340,22 +25345,23 @@
           "rank": 3451
         }
       },
-      "catalog_category_id": "5824",
+      "catalog_category_id": "5968",
       "catalog_category_ids": [
         "5824",
+        "5968",
         "6486",
         "6654",
         "8895",
         "10050",
         "10284"
       ],
-      "catalog_category_name": "لوازم بهداشتی",
-      "catalog_rank_observed_at": "2026-11-07T05:36:17.033274+00:00",
+      "catalog_category_name": "آرایشی و بهداشتی",
+      "catalog_rank_observed_at": "2026-11-07T07:27:34.817774+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 339000,
       "discount_percent": 77,
       "first_seen_at": "2026-11-06T20:43:01.831290+00:00",
-      "last_seen_at": "2026-11-07T05:36:15.119799+00:00",
+      "last_seen_at": "2026-11-07T07:27:33.268778+00:00",
       "original_price": 1480000,
       "product_id": "dkp-20881073",
       "product_url": "https://www.digikala.com/product/dkp-20881073/",
@@ -41601,27 +41607,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9347",
-      "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 2241,
+      "catalog_best_selling_category_id": "9282",
+      "catalog_best_selling_category_name": "لباس زنانه",
+      "catalog_best_selling_rank": 5940,
       "catalog_best_selling_ranks_by_category": {
+        "9282": {
+          "category_name": "لباس زنانه",
+          "observed_at": "2026-11-07T07:27:34.801166+00:00",
+          "rank": 5940
+        },
         "9347": {
           "category_name": "تی شرت زنانه",
           "observed_at": "2026-11-07T03:16:04.884123+00:00",
           "rank": 2241
         }
       },
-      "catalog_category_id": "9347",
+      "catalog_category_id": "9282",
       "catalog_category_ids": [
+        "9282",
         "9347"
       ],
-      "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T03:16:04.884123+00:00",
+      "catalog_category_name": "لباس زنانه",
+      "catalog_rank_observed_at": "2026-11-07T07:27:34.801166+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1190000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T03:16:04.884123+00:00",
-      "last_seen_at": "2026-11-07T03:15:35.945062+00:00",
+      "last_seen_at": "2026-11-07T07:27:15.660588+00:00",
       "original_price": 4580000,
       "product_id": "dkp-16204748",
       "product_url": "https://www.digikala.com/product/dkp-16204748/",
@@ -45374,6 +45386,38 @@
       "savings_toman": 3390000,
       "source": "digikala_catalog_sweep",
       "title": "تی شرت لانگ زنانه مدل گربه و بالشت"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9282",
+      "catalog_best_selling_category_name": "لباس زنانه",
+      "catalog_best_selling_rank": 5925,
+      "catalog_best_selling_ranks_by_category": {
+        "9282": {
+          "category_name": "لباس زنانه",
+          "observed_at": "2026-11-07T07:27:34.801166+00:00",
+          "rank": 5925
+        }
+      },
+      "catalog_category_id": "9282",
+      "catalog_category_ids": [
+        "9282"
+      ],
+      "catalog_category_name": "لباس زنانه",
+      "catalog_rank_observed_at": "2026-11-07T07:27:34.801166+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-07T07:27:34.801166+00:00",
+      "last_seen_at": "2026-11-07T07:27:15.659627+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-18057198",
+      "product_url": "https://www.digikala.com/product/dkp-18057198/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت لانگ آستین کوتاه زنانه مدل فولوکس کد 2"
     },
     {
       "availability": "unknown",
@@ -56460,6 +56504,38 @@
       "savings_toman": 8800000,
       "source": "digikala_catalog_sweep",
       "title": "فیلتر دستگاه تصفیه آب آکوآ اسپرینگ مدل FAS_PAW7  مجموعه هفت عددی"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "8406",
+      "catalog_best_selling_category_name": "چادر خودرو",
+      "catalog_best_selling_rank": 5935,
+      "catalog_best_selling_ranks_by_category": {
+        "8406": {
+          "category_name": "چادر خودرو",
+          "observed_at": "2026-11-07T07:27:34.799364+00:00",
+          "rank": 5935
+        }
+      },
+      "catalog_category_id": "8406",
+      "catalog_category_ids": [
+        "8406"
+      ],
+      "catalog_category_name": "چادر خودرو",
+      "catalog_rank_observed_at": "2026-11-07T07:27:34.799364+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 3050000,
+      "discount_percent": 72,
+      "first_seen_at": "2026-11-07T07:27:34.799364+00:00",
+      "last_seen_at": "2026-11-07T07:27:11.079931+00:00",
+      "original_price": 10933000,
+      "product_id": "dkp-8806991",
+      "product_url": "https://www.digikala.com/product/dkp-8806991/",
+      "rating": 3.6,
+      "review_count": 15,
+      "savings_toman": 7883000,
+      "source": "digikala_catalog_sweep",
+      "title": "چادر خودرو پاسیکو مدل EXTRA PLUS مناسب برای پژو 206"
     },
     {
       "availability": "unknown",
@@ -88805,27 +88881,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "8669",
-      "catalog_best_selling_category_name": "لوازم کاشت ناخن",
-      "catalog_best_selling_rank": 524,
+      "catalog_best_selling_category_id": "6465",
+      "catalog_best_selling_category_name": "آرایش ناخن",
+      "catalog_best_selling_rank": 5924,
       "catalog_best_selling_ranks_by_category": {
+        "6465": {
+          "category_name": "آرایش ناخن",
+          "observed_at": "2026-11-07T07:27:34.796416+00:00",
+          "rank": 5924
+        },
         "8669": {
           "category_name": "لوازم کاشت ناخن",
           "observed_at": "2026-11-06T23:24:03.210463+00:00",
           "rank": 524
         }
       },
-      "catalog_category_id": "8669",
+      "catalog_category_id": "6465",
       "catalog_category_ids": [
+        "6465",
         "8669"
       ],
-      "catalog_category_name": "لوازم کاشت ناخن",
-      "catalog_rank_observed_at": "2026-11-06T23:24:03.210463+00:00",
+      "catalog_category_name": "آرایش ناخن",
+      "catalog_rank_observed_at": "2026-11-07T07:27:34.796416+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 93370,
       "discount_percent": 69,
       "first_seen_at": "2026-11-06T23:24:03.210463+00:00",
-      "last_seen_at": "2026-11-06T23:20:04.882954+00:00",
+      "last_seen_at": "2026-11-07T07:26:25.953405+00:00",
       "original_price": 298500,
       "product_id": "dkp-10603917",
       "product_url": "https://www.digikala.com/product/dkp-10603917/",
@@ -113288,73 +113370,9 @@
       "savings_toman": 2388000,
       "source": "digikala_catalog_sweep",
       "title": "تی شرت آستین کوتاه زنانه مدل butterfly کد mo263"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9347",
-      "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 4529,
-      "catalog_best_selling_ranks_by_category": {
-        "9347": {
-          "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-07T06:05:48.527611+00:00",
-          "rank": 4529
-        }
-      },
-      "catalog_category_id": "9347",
-      "catalog_category_ids": [
-        "9347"
-      ],
-      "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T06:05:48.527611+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-07T02:31:55.573212+00:00",
-      "last_seen_at": "2026-11-07T06:05:31.294085+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-15601451",
-      "product_url": "https://www.digikala.com/product/dkp-15601451/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "کراپ‌ تی‌شرت آستین کوتاه زنانه مدل باتری کم شارژ کد۱"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9347",
-      "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 4531,
-      "catalog_best_selling_ranks_by_category": {
-        "9347": {
-          "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-07T06:05:48.527611+00:00",
-          "rank": 4531
-        }
-      },
-      "catalog_category_id": "9347",
-      "catalog_category_ids": [
-        "9347"
-      ],
-      "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T06:05:48.527611+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-07T02:31:55.573212+00:00",
-      "last_seen_at": "2026-11-07T06:05:31.294178+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-18956990",
-      "product_url": "https://www.digikala.com/product/dkp-18956990/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "کراپ‌ تی‌شرت آستین کوتاه زنانه مدل گارفیلد کد 01"
     }
   ],
   "cycle_started_at": "2026-11-06T18:22:56.776413+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-07T07:25:48.111525+00:00"
+  "updated_at": "2026-11-07T07:27:34.836612+00:00"
 }
