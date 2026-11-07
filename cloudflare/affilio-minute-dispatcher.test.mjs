@@ -6,6 +6,7 @@ import {
   hasDueVideoRecord,
   isFiloLoginVerified,
   PUBLISHER_INTERVAL_MS,
+  readLastChannelPublicationAt,
 } from "./affilio-minute-dispatcher.mjs";
 
 const categoryIds = Array.from({ length: 4917 }, (_, index) => String(index + 1));
@@ -123,6 +124,26 @@ test("fails closed on missing, stale-schema, or partial-scan status", () => {
 
 test("uses a 27-minute channel publication interval", () => {
   assert.equal(PUBLISHER_INTERVAL_MS, 27 * 60 * 1000);
+});
+
+test("channel cadence clock recognizes every active publishing channel", () => {
+  const publishedAt = Date.parse("2026-11-08T01:00:00Z");
+  const base = { ts: publishedAt / 1000 };
+  for (const channel of ["telegram", "bale", "rubika", "eitaa"]) {
+    assert.equal(
+      readLastChannelPublicationAt({
+        published: { item: { ...base, delivery_status: { [channel]: "sent" } } },
+      }),
+      publishedAt,
+      channel
+    );
+  }
+  assert.equal(
+    readLastChannelPublicationAt({
+      published: { item: { ...base, delivery_status: { telegram: "pending" } } },
+    }),
+    null
+  );
 });
 
 test("video dispatcher sees an older pending upload beyond the newest six records", () => {
