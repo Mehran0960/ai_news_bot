@@ -200,7 +200,7 @@ def _login(page, username: str, password: str) -> None:
     except PlaywrightTimeoutError as exc:
         raise FiloUploadError("filo_login_password_field_missing") from exc
 
-    username_field = _visible_first(page, [
+    username_selectors = [
         'input[autocomplete="username"]',
         'input[type="tel"]',
         'input[name*="phone" i]',
@@ -212,18 +212,31 @@ def _login(page, username: str, password: str) -> None:
         'input[name*="user" i]',
         'input[name*="email" i]',
         'input[type="text"]',
-    ])
+    ]
+    password_form = password_field.locator("xpath=ancestor::form[1]")
+    username_field = _visible_first(password_form, username_selectors)
+    if username_field is None:
+        username_field = _visible_first(page, username_selectors)
     if username_field is None:
         raise FiloUploadError("filo_login_username_field_missing")
     username_field.fill(username)
     password_field.fill(password)
+    username_field.press("Tab")
     password_field.press("Tab")
 
     submit = _visible_first(page, ["button[type='submit']", "input[type='submit']"])
     if submit is None:
         submit = page.get_by_role("button", name=re.compile(r"^ورود$|^login$", re.I)).first
-    if not submit.count() or not submit.is_visible() or not submit.is_enabled():
+    if not submit.count() or not submit.is_visible():
         raise FiloUploadError("filo_login_submit_not_ready")
+    enabled = False
+    for _ in range(24):
+        enabled = submit.is_enabled()
+        if enabled:
+            break
+        time.sleep(0.4)
+    if not enabled:
+        raise FiloUploadError("filo_login_submit_stayed_disabled")
 
     login_response = None
     try:
