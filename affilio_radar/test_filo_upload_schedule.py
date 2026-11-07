@@ -5,6 +5,7 @@ from affilio_radar import (
     FILO_UPLOAD_INTERVAL_HOURS,
     _filo_upload_slot_due,
     _initialize_filo_upload_slot,
+    _filo_login_verified,
     build_video_upload_dispatch_state,
 )
 from platform_registry import PLATFORM_REGISTRY, VIDEO_PLATFORMS
@@ -84,6 +85,36 @@ class FiloUploadScheduleTests(unittest.TestCase):
             sidecar["published"]["sample"]["filo_next_attempt_at"],
             state["published"]["sample"]["filo_next_attempt_at"],
         )
+
+    def test_filo_login_verification_is_required_and_expires_after_seven_days(self):
+        self.assertFalse(_filo_login_verified({}, self.now))
+        recent = {
+            "filo_login_verification_status": "verified",
+            "filo_login_verified_at": (self.now - timedelta(hours=1)).isoformat(),
+        }
+        self.assertTrue(_filo_login_verified(recent, self.now))
+        self.assertFalse(_filo_login_verified({
+            **recent,
+            "filo_login_verified_at": (self.now - timedelta(days=8)).isoformat(),
+        }, self.now))
+        self.assertFalse(_filo_login_verified({
+            **recent,
+            "filo_login_verified_at": (self.now + timedelta(minutes=1)).isoformat(),
+        }, self.now))
+        self.assertFalse(_filo_login_verified({
+            **recent,
+            "filo_login_verification_status": "failed",
+        }, self.now))
+
+    def test_dispatch_sidecar_carries_filo_login_verification(self):
+        state = {
+            "filo_login_verification_status": "verified",
+            "filo_login_verified_at": self.now.isoformat(),
+            "published": {},
+        }
+        sidecar = build_video_upload_dispatch_state(state, now=self.now)
+        self.assertEqual(sidecar["filo_login_verified_at"], state["filo_login_verified_at"])
+        self.assertEqual(sidecar["filo_login_verification_status"], "verified")
 
     def test_aparat_and_youtube_schedules_do_not_delay_first_filo_slot(self):
         state = {
