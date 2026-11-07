@@ -226,7 +226,7 @@ async function readCatalogSweepStatus(token) {
   }
 }
 
-function readLastChannelPublicationAt(state) {
+export function readLastChannelPublicationAt(state) {
   if (!state || typeof state !== "object") return null;
   const explicit = Date.parse(String(state.last_channel_published_at || ""));
   if (Number.isFinite(explicit)) return explicit;
