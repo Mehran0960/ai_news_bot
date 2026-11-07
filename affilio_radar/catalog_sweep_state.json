@@ -34423,11 +34423,11 @@
   "last_error": "",
   "last_successful_category_id": "6071",
   "last_successful_category_name": "ابزار برقی و شارژی",
-  "last_successful_page": 498,
-  "last_successful_page_at": "2026-11-07T11:27:23.289932+00:00",
+  "last_successful_page": 499,
+  "last_successful_page_at": "2026-11-07T11:28:25.004326+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 487,
+  "page": 488,
   "parallel_cycle_completed_category_ids": [
     "1",
     "2",
@@ -39341,8 +39341,8 @@
     "11796",
     "214158"
   ],
-  "parallel_cycle_pages_success": 226955,
-  "parallel_cycle_product_rows_success": 4472967,
+  "parallel_cycle_pages_success": 226961,
+  "parallel_cycle_product_rows_success": 4473087,
   "parallel_cycle_started_at": "2026-11-06T18:22:56.776413+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -44267,19 +44267,19 @@
     "11796",
     "214158"
   ],
-  "parallel_last_batch_at": "2026-11-07T11:27:23.421417+00:00",
+  "parallel_last_batch_at": "2026-11-07T11:28:25.135410+00:00",
   "parallel_last_batch_candidate_file_bytes": 4318013,
   "parallel_last_batch_candidate_write_seconds": 0.117,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 2.702,
+  "parallel_last_batch_fetch_seconds": 1.946,
   "parallel_last_batch_nonempty_product_pages": 6,
   "parallel_last_batch_pages": 6,
-  "parallel_last_batch_pages_per_second": 2.22,
-  "parallel_last_batch_processing_seconds": 0.016,
+  "parallel_last_batch_pages_per_second": 3.08,
+  "parallel_last_batch_processing_seconds": 0.015,
   "parallel_last_batch_product_rows": 120,
   "parallel_last_batch_rate_limited": 0,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 42.34,
+  "parallel_last_batch_rows_per_second": 57.75,
   "parallel_last_batch_successes": 6,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4670,
@@ -44288,37 +44288,37 @@
       "attempts": 0,
       "category_id": "6038",
       "category_name": "عروسک، فیگور و ربات",
-      "page": 487
+      "page": 488
     },
     {
       "attempts": 0,
       "category_id": "6300",
       "category_name": "ظروف آشپزخانه",
-      "page": 488
+      "page": 489
     },
     {
       "attempts": 0,
       "category_id": "6075",
       "category_name": "باغبانی و کشاورزی",
-      "page": 489
+      "page": 490
     },
     {
       "attempts": 0,
       "category_id": "5975",
       "category_name": "دفتر و کاغذ و مقوا",
-      "page": 492
+      "page": 493
     },
     {
       "attempts": 0,
       "category_id": "6625",
       "category_name": "کمد لباس و ارگانایزر",
-      "page": 497
+      "page": 498
     },
     {
       "attempts": 0,
       "category_id": "6071",
       "category_name": "ابزار برقی و شارژی",
-      "page": 499
+      "page": 500
     }
   ],
   "parallel_queue_initialized": true,
@@ -44329,14 +44329,14 @@
   "schema_version": 1,
   "stats": {
     "api_failures_total": 3383,
-    "catalog_candidate_cards_found_total": 10647214,
+    "catalog_candidate_cards_found_total": 10647334,
     "completed_cycles": 0,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 2819444,
+    "discounted_candidates_found_total": 2819490,
     "empty_product_pages_total": 21904,
-    "nonempty_product_pages_total": 539430,
-    "pages_scanned_total": 560542,
-    "product_rows_scanned_total": 10647254,
+    "nonempty_product_pages_total": 539436,
+    "pages_scanned_total": 560548,
+    "product_rows_scanned_total": 10647374,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
