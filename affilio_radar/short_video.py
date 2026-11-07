@@ -28,7 +28,7 @@ from offerchin_audio import write_original_soundtrack
 WIDTH = 720
 HEIGHT = 1280
 FPS = 24
-DURATION_SECONDS = 8
+DURATION_SECONDS = 12
 TITLE_FONT_PATH = Path(__file__).resolve().parent / "assets" / "fonts" / "Lalezar-Regular.ttf"
 VIDEO_LOGO_COLUMN_WIDTH = 112
 VIDEO_LOGO_TEXT_GAP = 12
