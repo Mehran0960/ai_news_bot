@@ -50,9 +50,9 @@ def _utc(value: Any) -> datetime | None:
 def _safe_delivery_error(exc: Exception) -> str:
     """Keep actionable delivery diagnostics while redacting URLs and credentials."""
     detail = " ".join(str(exc or "").split())
-    detail = re.sub(r"https?://\\S+", "[redacted-url]", detail)
-    detail = re.sub(r"(?i)\\b(token|secret|authorization)\\b\\s*[:=]\\s*\\S+", r"\\1=[redacted]", detail)
-    detail = re.sub(r"\\b[A-Za-z0-9_-]{28,}\\b", "[redacted-id]", detail)
+    detail = re.sub(r"https?://\S+", "[redacted-url]", detail)
+    detail = re.sub(r"(?i)\b(token|secret|authorization)\b\s*[:=]\s*\S+", r"\1=[redacted]", detail)
+    detail = re.sub(r"\b[A-Za-z0-9_-]{28,}\b", "[redacted-id]", detail)
     return detail[:150] or type(exc).__name__
 
 
