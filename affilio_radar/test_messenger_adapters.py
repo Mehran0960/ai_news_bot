@@ -6,6 +6,7 @@ from messenger_adapters import (
     send_eitaa_photo,
     send_rubika_photo,
 )
+from offerchin_copy import MEMBERSHIP_BUTTON_TEXT
 
 
 class FakeResponse:
@@ -99,6 +100,7 @@ class MessengerAdapterTests(unittest.TestCase):
         })
         self.assertEqual(join_button["type"], "Link")
         self.assertEqual(join_button["button_text"], RUBIKA_MEMBERSHIP_BUTTON_TEXT)
+        self.assertEqual(join_button["button_text"], MEMBERSHIP_BUTTON_TEXT)
         self.assertEqual(join_button["button_link"], {
             "type": "url",
             "link_url": RUBIKA_CHANNEL_URL,
@@ -126,8 +128,26 @@ class MessengerAdapterTests(unittest.TestCase):
         self.assertEqual(result, {"delivery_receipt": "eitaayar-api-accepted"})
         self.assertNotIn("message_id", result)
         self.assertEqual(post.call_args.kwargs["data"]["chat_id"], "@offerchin")
-        self.assertIn(self.affiliate, post.call_args.kwargs["data"]["caption"])
+        caption = post.call_args.kwargs["data"]["caption"]
+        self.assertIn(self.affiliate, caption)
+        self.assertIn("🛍️ مشاهده و خرید از دیجی‌کالا\n" + self.affiliate, caption)
+        self.assertNotIn("در ایتا", caption)
+        self.assertNotIn("https://eitaa.com", caption)
+        self.assertNotIn(f"[{MEMBERSHIP_BUTTON_TEXT}]", caption)
         self.assertEqual(self.renderer.destinations, ["eitaa"])
+
+    
+    @patch("messenger_adapters.EITAA_CHANNEL_URL", "https://eitaa.com/offerchin")
+    @patch("messenger_adapters.requests.post")
+    def test_eitaa_uses_the_shared_membership_label_only_with_a_configured_public_url(self, post):
+        post.return_value = FakeResponse({"ok": True, "result": "success"})
+        send_eitaa_photo(
+            "test-token", "@offerchin", self.item, self.image, self.affiliate, self.renderer
+        )
+        caption = post.call_args.kwargs["data"]["caption"]
+        self.assertIn(f"{MEMBERSHIP_BUTTON_TEXT}\nhttps://eitaa.com/offerchin", caption)
+        self.assertNotIn(f"[{MEMBERSHIP_BUTTON_TEXT}]", caption)
+        self.assertIn("🛍️ مشاهده و خرید از دیجی‌کالا\n" + self.affiliate, caption)
 
     @patch("messenger_adapters.requests.post")
     def test_eitaa_rejection_is_not_marked_as_success(self, post):
