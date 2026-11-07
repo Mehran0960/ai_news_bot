@@ -566,7 +566,7 @@
 
 **هدف:** استخراج شناسه واقعی کانال OfferChin از پیام آزمایشی، بدون مشاهده یا افشای توکن و بدون ارسال پیام تازه.
 
-**تغییر/اقدام:** افزودن ابزار read-only مبتنی بر getMe، getUpdates و getChat؛ تطبیق username و نوع چت؛ جلوگیری از چاپ متن پیام‌ها؛ افزودن workflow خودکار پس از ادغام و امکان اجرای دستی مجدد.
+**تغییر/اقدام:** افزودن ابزار read-only مبتنی بر getMe، getUpdates و getChat؛ تطبیق دقیق username=offerchin و نوع چت Channel؛ رد تطبیق عنوانی؛ جلوگیری از چاپ متن پیام‌ها؛ افزودن workflow خودکار پس از ادغام، آزمون در Pull Request و امکان اجرای دستی مجدد.
 
 **فایل‌ها/سامانه‌ها:** scripts/discover_rubika_channel.py، scripts/test_discover_rubika_channel.py، .github/workflows/rubika-channel-discovery.yml، affilio_radar/MESSENGER_EXPANSION_FA.md، docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md.
 
