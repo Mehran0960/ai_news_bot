@@ -37,6 +37,7 @@ jobs:
           python -m unittest -v test_discover_rubika_channel.py
 
       - name: Resolve channel ID from Bot API updates
+        if: github.event_name != 'pull_request'
         env:
           RUBIKA_BOT_TOKEN: ${{ secrets.RUBIKA_BOT_TOKEN }}
           RUBIKA_CHANNEL_USERNAME: ${{ github.event.inputs.channel_username || vars.RUBIKA_CHANNEL_USERNAME || 'offerchin' }}
