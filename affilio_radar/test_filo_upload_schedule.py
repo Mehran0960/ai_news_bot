@@ -9,6 +9,7 @@ from affilio_radar import (
     _initialize_filo_upload_slot,
     _filo_login_verified,
     build_video_upload_dispatch_state,
+    _video_upload_candidate_sort_key,
 )
 from platform_registry import PLATFORM_REGISTRY, VIDEO_PLATFORMS
 from publisher import _record_from_item
@@ -85,6 +86,30 @@ class FiloUploadScheduleTests(unittest.TestCase):
         expected = unknown_at + timedelta(minutes=27)
         self.assertEqual(_initialize_filo_upload_slot(state), expected)
         self.assertFalse(_filo_upload_slot_due(state, self.now, credentials_ready=True))
+
+    def test_filo_queue_preserves_channel_publication_order(self):
+        newer_high_discount = (
+            self.now.timestamp(),
+            "newer",
+            {"posted_discount_percent": 90, "posted_original_price": 1_000, "posted_current_price": 100},
+            self.now,
+            None,
+            False,
+            ["filo"],
+        )
+        older_lower_discount = (
+            (self.now - timedelta(minutes=27)).timestamp(),
+            "older",
+            {"posted_discount_percent": 20, "posted_original_price": 1_000, "posted_current_price": 800},
+            self.now,
+            None,
+            False,
+            ["filo"],
+        )
+        self.assertLess(
+            _video_upload_candidate_sort_key(older_lower_discount),
+            _video_upload_candidate_sort_key(newer_high_discount),
+        )
 
     def test_filo_is_registered_as_a_video_destination(self):
         self.assertEqual(PLATFORM_REGISTRY["filo"]["media"], "video")
