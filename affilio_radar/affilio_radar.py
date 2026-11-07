@@ -55,6 +55,7 @@ from offerchin_visuals import (
     draw_discount_burst, draw_retailer_badge, draw_digipay_badge, adaptive_text_colors,
     discount_badge_dimensions_for_reference_bounds, public_channel_links,
     draw_platform_logo, platform_logo_dimensions, platform_footer_label,
+    platform_footer_metrics,
 )
 from offerchin_copy import (
     CAPTION_SEPARATOR, CURRENT_PRICE_PREFIX, DISCOUNT_PREFIX, DIGIPAY_INSTALLMENT_TEXT,
@@ -5074,11 +5075,12 @@ def build_discount_image(
             watermarks.append((str(mark[0]), str(mark[1]).strip()[:48]))
             existing_platforms.add(str(mark[0]))
     margin = max(10, min_dim // 35)
-    logo_height = max(15, min(25, min_dim // 27))
-    logo_max_width = max(36, min(84, min_dim // 5))
+    footer_metrics = platform_footer_metrics(min_dim)
+    logo_height = footer_metrics["logo_height"]
+    logo_max_width = footer_metrics["logo_max_width"]
     icon_gap = max(5, logo_height // 4)
-    row_gap = max(3, min_dim // 180)
-    font = _latin_font(max(10, min(15, min_dim // 34)))
+    row_gap = footer_metrics["row_gap"]
+    font = _latin_font(footer_metrics["font_size"])
     rows = []
 
     def measure_rows(active_font):
