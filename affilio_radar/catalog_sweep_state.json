@@ -34423,11 +34423,11 @@
   "last_error": "",
   "last_successful_category_id": "5975",
   "last_successful_category_name": "دفتر و کاغذ و مقوا",
-  "last_successful_page": 498,
-  "last_successful_page_at": "2026-11-07T11:34:25.298950+00:00",
+  "last_successful_page": 499,
+  "last_successful_page_at": "2026-11-07T11:35:27.444224+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 494,
+  "page": 495,
   "parallel_cycle_completed_category_ids": [
     "1",
     "2",
@@ -39343,8 +39343,8 @@
     "11796",
     "214158"
   ],
-  "parallel_cycle_pages_success": 226989,
-  "parallel_cycle_product_rows_success": 4473647,
+  "parallel_cycle_pages_success": 226993,
+  "parallel_cycle_product_rows_success": 4473727,
   "parallel_cycle_started_at": "2026-11-06T18:22:56.776413+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -44269,19 +44269,19 @@
     "11796",
     "214158"
   ],
-  "parallel_last_batch_at": "2026-11-07T11:34:25.407075+00:00",
+  "parallel_last_batch_at": "2026-11-07T11:35:27.522198+00:00",
   "parallel_last_batch_candidate_file_bytes": 4318013,
-  "parallel_last_batch_candidate_write_seconds": 0.096,
+  "parallel_last_batch_candidate_write_seconds": 0.069,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 1.688,
+  "parallel_last_batch_fetch_seconds": 3.215,
   "parallel_last_batch_nonempty_product_pages": 4,
   "parallel_last_batch_pages": 4,
-  "parallel_last_batch_pages_per_second": 2.37,
-  "parallel_last_batch_processing_seconds": 0.013,
+  "parallel_last_batch_pages_per_second": 1.24,
+  "parallel_last_batch_processing_seconds": 0.009,
   "parallel_last_batch_product_rows": 80,
   "parallel_last_batch_rate_limited": 0,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 44.51,
+  "parallel_last_batch_rows_per_second": 24.29,
   "parallel_last_batch_successes": 4,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4670,
@@ -44290,25 +44290,25 @@
       "attempts": 0,
       "category_id": "6038",
       "category_name": "عروسک، فیگور و ربات",
-      "page": 494
+      "page": 495
     },
     {
       "attempts": 0,
       "category_id": "6300",
       "category_name": "ظروف آشپزخانه",
-      "page": 495
+      "page": 496
     },
     {
       "attempts": 0,
       "category_id": "6075",
       "category_name": "باغبانی و کشاورزی",
-      "page": 496
+      "page": 497
     },
     {
       "attempts": 0,
       "category_id": "5975",
       "category_name": "دفتر و کاغذ و مقوا",
-      "page": 499
+      "page": 500
     }
   ],
   "parallel_queue_initialized": true,
@@ -44319,14 +44319,14 @@
   "schema_version": 1,
   "stats": {
     "api_failures_total": 3383,
-    "catalog_candidate_cards_found_total": 10647894,
+    "catalog_candidate_cards_found_total": 10647974,
     "completed_cycles": 0,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 2819721,
+    "discounted_candidates_found_total": 2819748,
     "empty_product_pages_total": 21904,
-    "nonempty_product_pages_total": 539464,
-    "pages_scanned_total": 560576,
-    "product_rows_scanned_total": 10647934,
+    "nonempty_product_pages_total": 539468,
+    "pages_scanned_total": 560580,
+    "product_rows_scanned_total": 10648014,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
