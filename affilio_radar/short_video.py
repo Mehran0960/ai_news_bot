@@ -615,7 +615,7 @@ def render_short_video(
 
     with tempfile.TemporaryDirectory(prefix="offerchin-poster-") as directory:
         poster_path = Path(directory) / "poster.png"
-        music_path = Path(directory) / "offerchin-original-jingle.wav"
+        music_path = Path(directory) / "offerchin-selected-funk.wav"
         poster_path.write_bytes(poster)
         write_original_soundtrack(music_path, duration)
 
