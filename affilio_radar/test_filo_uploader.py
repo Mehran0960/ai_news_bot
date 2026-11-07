@@ -10,6 +10,7 @@ from filo_uploader import (
     _title_matches,
     filo_credentials_available,
     upload_filo_video,
+    verify_filo_login,
 )
 
 
@@ -49,6 +50,12 @@ class FiloUploaderUnitTests(unittest.TestCase):
 
         self.assertIs(_find_publish_button(page), candidate)
         collection.nth.assert_called_once_with(0)
+
+    def test_login_check_requires_credentials_without_launching_browser(self):
+        with self.assertRaises(FiloUploadError) as caught:
+            verify_filo_login(env={})
+        self.assertEqual(caught.exception.code, "filo_credentials_missing")
+        self.assertFalse(caught.exception.submission_started)
 
     def test_missing_credentials_fail_before_browser_start(self):
         with self.assertRaises(FiloUploadError) as caught:
