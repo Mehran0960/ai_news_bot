@@ -4750,7 +4750,7 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(actual_platforms, expected_platforms)
             self.assertNotIn(destination, actual_platforms)
 
-        self.assertEqual(len(set(rendered)), 4, "each destination must receive its own link footer")
+        self.assertEqual(len(set(rendered)), 5, "each destination must receive its own link footer")
         # A destination-free render retains the complete network list for previews.
         with patch(
             "affilio_radar._draw_platform_watermark_icon",
@@ -4901,8 +4901,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("youtube.com/@offerchin", youtube_description)
         self.assertNotIn("https://t.me/+from_aparat", aparat_description)
         self.assertNotIn("https://t.me/+from_youtube", youtube_description)
-        self.assertNotRegex(aparat_description, r"(?i)https?://|www\\.")
-        self.assertNotRegex(youtube_description, r"(?i)https?://|www\\.")
+        self.assertNotRegex(aparat_description, r"(?i)https?://|www\.")
+        self.assertNotRegex(youtube_description, r"(?i)https?://|www\.")
         self.assertNotIn("کانال تلگرام", youtube_description)
         self.assertNotIn("قیمت، موجودی و شرایط تخفیف", youtube_description)
         self.assertEqual(tracked_telegram_invite_url(state, "bale"), "https://t.me/OfferChin")
