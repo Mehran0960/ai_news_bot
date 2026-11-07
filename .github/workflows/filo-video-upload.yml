@@ -1,0 +1,115 @@
+name: OfferChin Filo Video Upload
+
+on:
+  # The minute dispatcher starts Filo when its own saved upload slot is due.
+  # Manual dispatch remains available for controlled recovery.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  # This workflow shares state.json with the other isolated video uploaders.
+  group: offerchin-content-publisher
+  cancel-in-progress: false
+
+jobs:
+  upload-filo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out current repository state
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: affilio_radar/requirements.txt
+
+      - name: Install project dependencies
+        run: |
+          for attempt in 1 2 3; do
+            python -m pip install -r affilio_radar/requirements.txt && break
+            if [[ "$attempt" -lt 3 ]]; then
+              echo "Dependency install attempt $attempt failed; retrying."
+              sleep $((attempt * 3))
+            else
+              exit 1
+            fi
+          done
+
+      - name: Install Playwright Chromium runtime
+        run: |
+          python -m pip install "playwright>=1.48,<2"
+          python -m playwright install --with-deps chromium
+
+      - name: Stage official DigiPay logo for video cards
+        run: |
+          mkdir -p affilio_radar/assets/retailer-logos
+          curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 \
+            "https://www.mydigipay.com/bck-assets/images/logos/dp-logo.svg" \
+            -o affilio_radar/assets/retailer-logos/digipay-official.svg
+          test -s affilio_radar/assets/retailer-logos/digipay-official.svg
+          PYTHONPATH=affilio_radar python - <<'PY'
+          import offerchin_visuals
+          logo = offerchin_visuals._load_digipay_logo()
+          assert logo is not None and logo.width > 0 and logo.height > 0
+          print("DIGIPAY_OFFICIAL_LOGO_READY_FOR_VIDEO_RENDER")
+          PY
+
+      - name: Validate Filo adapter and isolated queue logic
+        run: |
+          python -m py_compile \
+            affilio_radar/affilio_radar.py \
+            affilio_radar/filo_uploader.py \
+            affilio_radar/short_video.py
+          cd affilio_radar
+          python -m unittest -v test_filo_uploader.py test_filo_upload_schedule.py
+
+      - name: Process only the OfferChin Filo video queue
+        env:
+          FILO_USER: \${{ secrets.FILO_USER }}
+          FILO_PASS: \${{ secrets.FILO_PASS }}
+          AFFILIO_FILO_UPLOAD_INTERVAL_HOURS: "3"
+          AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT: "250"
+          AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS: "24"
+          AFFILIO_MAX_SHORT_VIDEOS_PER_RUN: "2"
+          # Explicitly keep other destinations out of this workflow.
+          YOUTUBE_CLIENT_ID: ""
+          YOUTUBE_CLIENT_SECRET: ""
+          YOUTUBE_REFRESH_TOKEN: ""
+          APARAT_COOKIE_HEADER: ""
+          AFFILIO_APARAT_UPLOAD_ENABLED: "false"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/affilio_radar.py --filo-upload-only
+
+      - name: Preserve generated MP4s for short-term diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offerchin-filo-video-\${{ github.run_id }}
+          path: video_artifacts/*.mp4
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Persist Filo upload statuses and independent next slot
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [[ -f affilio_radar/state.json ]] && ! git diff --quiet -- affilio_radar/state.json; then
+            git add affilio_radar/state.json
+            if [[ -f affilio_radar/video_upload_dispatch_state.json ]]; then
+              git add affilio_radar/video_upload_dispatch_state.json
+            fi
+            git commit -m "chore: persist Filo video upload state [skip ci]"
+            git pull --rebase origin main
+            git push
+          else
+            echo "No Filo state changes to persist."
+          fi
