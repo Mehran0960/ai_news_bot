@@ -1060,3 +1060,20 @@
 **ریسک/بازگشت:** هیچ کلیک نهایی یا submit جدیدی خارج از دکمهٔ فعال فرم انجام نمی‌شود؛ CAPTCHA/OTP دور زده نمی‌شود. rollback با revert PR ممکن است.
 
 **وضعیت:** پیاده‌سازی در شاخهٔ مستقل؛ پس از CI، یک بررسی ورود دیگر اجرا خواهد شد.
+
+
+## ۲۰۲۶-۱۱-۰۸ — اجرای مجدد خودکار verify-login پس از تغییر آداپتر فیلو
+
+**هدف:** پس از هر اصلاح در کد ورود فیلو، همان حساب واقعی بدون اقدام دستی دوباره بررسی شود.
+
+**تغییر/اقدام:** مسیر trigger پوش workflow verify-only علاوه بر خود فایل workflow، فایل `affilio_radar/filo_uploader.py` را نیز شامل می‌شود؛ تغییر آداپتر پس از merge یک اجرای push verify-only ایجاد می‌کند و مرحلهٔ upload در رویداد push همچنان غیرفعال می‌ماند.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/filo-video-upload.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md` و `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** تست‌های workflow، آداپتر و دروازهٔ مستندات در PR #116 اجرا می‌شوند؛ پس از merge، GitHub Actions یک بررسی واقعی login بدون انتشار انجام خواهد داد.
+
+**شواهد/شناسه:** PR #116، شاخهٔ `fix/offerchin-filo-login-form-diagnostics-20261108`.
+
+**ریسک/بازگشت:** فقط verify-only در push اجرا می‌شود؛ مرحلهٔ upload فقط از workflow_dispatch حالت upload مجاز است. rollback با revert PR ممکن است.
+
+**وضعیت:** پیاده‌سازی در شاخهٔ PR؛ CI و اجرای مجدد verify-only در انتظار.
