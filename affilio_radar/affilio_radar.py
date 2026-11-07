@@ -4674,6 +4674,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     return {
         "schema_version": 1,
         "generated_at": current.isoformat(),
+        "last_channel_published_at": value("last_channel_published_at"),
         "youtube_next_upload_at": value("youtube_next_upload_at"),
         "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
         "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
