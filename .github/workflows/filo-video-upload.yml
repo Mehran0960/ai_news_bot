@@ -2,8 +2,17 @@ name: OfferChin Filo Video Upload
 
 on:
   # The minute dispatcher starts Filo when its own saved upload slot is due.
-  # Manual dispatch remains available for controlled recovery.
+  # Manual dispatch also supports a credentials-only check with no public upload.
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "upload videos or verify login without publishing"
+        required: true
+        type: choice
+        options:
+          - upload
+          - verify-login
+        default: upload
 
 permissions:
   contents: write
@@ -71,7 +80,16 @@ jobs:
           cd affilio_radar
           python -m unittest -v test_filo_uploader.py test_filo_upload_schedule.py
 
+      - name: Verify Filo login without publishing
+        if: ${{ inputs.mode == 'verify-login' }}
+        env:
+          FILO_USER: ${{ secrets.FILO_USER }}
+          FILO_PASS: ${{ secrets.FILO_PASS }}
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/affilio_radar.py --filo-login-check-only
+
       - name: Process only the OfferChin Filo video queue
+        if: ${{ inputs.mode != 'verify-login' }}
         env:
           FILO_USER: ${{ secrets.FILO_USER }}
           FILO_PASS: ${{ secrets.FILO_PASS }}
