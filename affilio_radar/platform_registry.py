@@ -19,6 +19,7 @@ PLATFORM_REGISTRY = {
     "eitaa": {"media": "photo"},
     "youtube": {"media": "video"},
     "aparat": {"media": "video"},
+    "filo": {"media": "video"},
 }
 
 PLATFORM_NAMES = tuple(PLATFORM_REGISTRY)
