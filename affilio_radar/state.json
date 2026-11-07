@@ -1,7 +1,7 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-07T15:13:10.174159+00:00",
-  "aparat_last_upload_success_at": "2026-11-07T15:13:14.775780+00:00",
-  "aparat_next_upload_at": "2026-11-07T18:13:14.775780+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-07T18:18:12.177672+00:00",
+  "aparat_last_upload_success_at": "2026-11-07T18:18:16.880337+00:00",
+  "aparat_next_upload_at": "2026-11-07T21:18:16.880337+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {
       "dkp-10583616": {
@@ -375023,7 +375023,13 @@
       "youtube_upload_status": "pending"
     },
     "dkp-16598762": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-07T18:18:12.177672+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-07T18:18:16.880337+00:00",
+      "aparat_video_hash": "zvb4h27",
+      "aparat_video_record_id": "74114180",
+      "aparat_video_url": "https://www.aparat.com/v/zvb4h27",
+      "aparat_visibility": "public",
       "bale_expiry_status": "tracked",
       "bale_message_id": 1765,
       "brand": "",
@@ -375090,8 +375096,15 @@
       "telegram_message_id": 1344,
       "title": "پولوشرت آستین کوتاه مردانه تکنیک+07 مدل TS-159-ZE",
       "ts": 1794069574.038649,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-16598762.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-16598762.mp4"
+      },
+      "video_generated_at": "2026-11-07T18:18:07.846536+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_upload_status": "pending_credentials"
     },
     "dkp-16601346": {
       "aparat_upload_status": "skipped_unverified_deadline",
