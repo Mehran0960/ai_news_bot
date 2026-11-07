@@ -16,4 +16,4 @@ References:
 
 ## Validation
 
-The video unit tests verify that the FFmpeg command normalizes the project soundtrack, fades both edges, maps the generated audio stream, and keeps a 12-second / 24-fps cut (288 frames). They do not claim that a video has been published to YouTube or Aparat.
+The video unit tests verify that the FFmpeg command normalizes the project soundtrack, fades both edges, maps the generated audio stream, and keeps a 12-second / 24-fps cut (288 frames). A separate smoke test performs a real MP4 encode and decodes it again with FFmpeg, checking that both audio and video streams exist and the duration is 12 seconds. No public YouTube or Aparat upload is part of these tests.
