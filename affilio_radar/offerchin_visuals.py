@@ -47,13 +47,13 @@ def _load_platform_logo(platform: str):
 
 def fit_platform_logo(platform: str, max_height: int, max_width: int):
     """Fit the official artwork proportionally; never stretch or crop the logo."""
-    from PIL import ImageOps
+    from PIL import Image, ImageOps
 
     logo = _load_platform_logo(str(platform or "").strip().lower())
     if logo is None:
         return None
     bounds = (max(1, int(max_width)), max(1, int(max_height)))
-    return ImageOps.contain(logo, bounds, method=ImageOps.Image.Resampling.LANCZOS)
+    return ImageOps.contain(logo, bounds, method=Image.Resampling.LANCZOS)
 
 
 def platform_logo_dimensions(platform: str, max_height: int, max_width: int) -> tuple[int, int]:
