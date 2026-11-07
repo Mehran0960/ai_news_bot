@@ -131,8 +131,41 @@ class ShortVideoTests(unittest.TestCase):
             build_vertical_poster(stream.getvalue(), 50)
 
         drawn_platforms = [call.args[1] for call in draw_logo.call_args_list]
-        self.assertEqual(drawn_platforms, ["telegram", "bale", "rubika"])
-        self.assertNotIn("youtube", drawn_platforms)
+        self.assertEqual(drawn_platforms, ["youtube", "telegram", "bale", "rubika"])
+        self.assertEqual(drawn_platforms[0], "youtube", "the YouTube Short must carry its official own-platform mark")
+
+    def test_platform_logo_fitting_keeps_the_youtube_wordmark_rectangular(self):
+        import offerchin_visuals
+
+        wide_youtube = Image.new("RGBA", (420, 100), (255, 0, 0, 255))
+        square_mark = Image.new("RGBA", (100, 100), (0, 100, 200, 255))
+        with mock.patch(
+            "offerchin_visuals._load_platform_logo",
+            side_effect=lambda platform: wide_youtube if platform == "youtube" else square_mark,
+        ):
+            fitted_youtube = offerchin_visuals.fit_platform_logo("youtube", 18, 78)
+            fitted_telegram = offerchin_visuals.fit_platform_logo("telegram", 18, 78)
+            self.assertIsNotNone(fitted_youtube)
+            self.assertIsNotNone(fitted_telegram)
+            self.assertLessEqual(fitted_youtube.height, 18)
+            self.assertLessEqual(fitted_youtube.width, 78)
+            self.assertAlmostEqual(
+                fitted_youtube.width / fitted_youtube.height,
+                4.2,
+                delta=0.15,
+            )
+            self.assertAlmostEqual(
+                fitted_telegram.width / fitted_telegram.height,
+                1.0,
+                delta=0.05,
+            )
+
+            canvas = Image.new("RGB", (180, 48), (30, 30, 30))
+            width, height = offerchin_visuals.draw_platform_logo(
+                canvas, "youtube", 4, 4, 18, 78,
+            )
+            self.assertGreater(width, height * 2)
+            self.assertLessEqual(height, 24)
 
     def test_retailer_logo_and_discount_use_the_same_upper_corner_positions_as_channel_images(self):
         image = Image.new("RGB", (400, 500), (255, 255, 255))
@@ -299,9 +332,13 @@ class ShortVideoTests(unittest.TestCase):
             ))).convert("RGB")
 
         self.assertEqual(format_persian_price(1_999_000), "۱٬۹۹۹٬۰۰۰")
-        for label in ("t.me/OfferChin", "ble.ir/OfferChin", "rubika.ir/offerchin"):
-            self.assertIn(label, drawn_text)
-        self.assertFalse(any("youtube.com/" in value for value in drawn_text))
+        for label in (
+            "youtube.com/@offerchin", "t.me/OfferChin",
+            "ble.ir/OfferChin", "rubika.ir/offerchin",
+        ):
+            self.assertTrue(any(label in value for value in drawn_text), label)
+        for brand_label in ("OfferChin  •  t.me/OfferChin", "OfferChin  •  ble.ir/OfferChin", "OfferChin  •  rubika.ir/offerchin"):
+            self.assertIn(brand_label, drawn_text)
         # The compact CTA panel stays above the product card and YouTube interface-safe area.
         background_sample = poster.getpixel((680, 1150))
         self.assertGreater(min(background_sample), 45)

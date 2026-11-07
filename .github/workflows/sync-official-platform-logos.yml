@@ -1,0 +1,126 @@
+name: Sync Official OfferChin Platform Logos
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/platform-brand-assets-sync.request"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: offerchin-platform-brand-assets-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-official-assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install image and SVG validation dependencies
+        run: python -m pip install --disable-pip-version-check "Pillow>=10.4,<13" "CairoSVG>=2.7,<3"
+
+      - name: Download and validate official platform brand files
+        run: |
+          python - <<'PY'
+          from io import BytesIO
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+          from xml.etree import ElementTree
+          from zipfile import ZipFile
+
+          from PIL import Image
+          import cairosvg
+
+          OUT = Path("affilio_radar/assets/platform-logos")
+          OUT.mkdir(parents=True, exist_ok=True)
+
+          def download(url: str) -> bytes:
+              request = Request(url, headers={"User-Agent": "OfferChin-Official-Brand-Asset-Sync/1.0"})
+              with urlopen(request, timeout=35) as response:
+                  payload = response.read(12_000_001)
+              if not payload or len(payload) > 12_000_000:
+                  raise RuntimeError(f"Unexpected asset size from {url}")
+              return payload
+
+          def validate_svg(payload: bytes, label: str) -> None:
+              root = ElementTree.fromstring(payload)
+              if not str(root.tag).lower().endswith("svg"):
+                  raise RuntimeError(f"{label}: downloaded content is not SVG")
+              if not (root.attrib.get("viewBox") or root.attrib.get("width")):
+                  raise RuntimeError(f"{label}: SVG has no declared geometry")
+              rendered = cairosvg.svg2png(bytestring=payload, output_width=512)
+              if not rendered.startswith(bytes((137, 80, 78, 71, 13, 10, 26, 10))):
+                  raise RuntimeError(f"{label}: SVG could not be rendered to PNG")
+
+          telegram_zip = download(
+              "https://telegram.org/file/464001088/1/bI7AJLo7oX4.287931.zip/374fe3b0a59dc60005"
+          )
+          with ZipFile(BytesIO(telegram_zip)) as archive:
+              telegram_svg = archive.read("Logo.svg")
+          validate_svg(telegram_svg, "Telegram")
+          (OUT / "telegram-official.svg").write_bytes(telegram_svg)
+
+          bale_svg = download("https://bale.ai/logo/bale_logo.svg")
+          validate_svg(bale_svg, "Bale")
+          (OUT / "bale-official.svg").write_bytes(bale_svg)
+
+          rubika_svg = download("https://rubika.ir/static/images/logo.svg")
+          validate_svg(rubika_svg, "Rubika")
+          (OUT / "rubika-official.svg").write_bytes(rubika_svg)
+
+          youtube_zip = download(
+              "https://www.gstatic.com/marketing-cms/8d/ad/e493a0704f44a47051ad8b7a3641/youtube-logo.zip"
+          )
+          with ZipFile(BytesIO(youtube_zip)) as archive:
+              youtube_png = archive.read(
+                  "YouTube_Logo/Digital/01 Full Color/yt_logo_fullcolor_almostblack_digital.png"
+              )
+          with Image.open(BytesIO(youtube_png)) as logo:
+              logo.load()
+              if logo.format != "PNG" or logo.width <= logo.height * 2:
+                  raise RuntimeError(
+                      f"YouTube wordmark must be horizontal; got {logo.width}x{logo.height}"
+                  )
+              if logo.width < 400:
+                  raise RuntimeError("YouTube source wordmark is not high-resolution enough")
+          (OUT / "youtube-wordmark-almostblack.png").write_bytes(youtube_png)
+
+          (OUT / "SOURCES.md").write_text(
+              "# Official platform logo sources\n\n"
+              "- Telegram: https://telegram.org/tour/screenshots (official press ZIP; Logo.svg)\n"
+              "- Bale: https://bale.ai/logo/bale_logo.svg\n"
+              "- Rubika: https://rubika.ir/logo and https://rubika.ir/static/images/logo.svg\n"
+              "- YouTube: https://brand.youtube/youtube-icon/ (official YouTube Logo ZIP; full-color horizontal digital wordmark)\n\n"
+              "Files in this directory are pinned local copies for deterministic rendering. "
+              "Renderers must not fetch logo files from the network.\n",
+              encoding="utf-8",
+          )
+          print("OFFICIAL_PLATFORM_LOGOS_VALIDATED")
+          print("YOUTUBE_WORDMARK_ASPECT_RATIO=" + str(round(logo.width / logo.height, 3)))
+          PY
+
+      - name: Commit the validated local logo files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add affilio_radar/assets/platform-logos
+          if git diff --cached --quiet; then
+            echo "PLATFORM_LOGOS_ALREADY_CURRENT"
+            exit 0
+          fi
+          git commit -m "Store validated official platform logo assets"
+          git push origin HEAD:main

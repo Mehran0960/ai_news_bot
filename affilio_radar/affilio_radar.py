@@ -54,6 +54,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from offerchin_visuals import (
     draw_discount_burst, draw_retailer_badge, draw_digipay_badge, adaptive_text_colors,
     discount_badge_dimensions_for_reference_bounds, public_channel_links,
+    draw_platform_logo, platform_logo_dimensions, platform_footer_label,
 )
 from offerchin_copy import (
     CAPTION_SEPARATOR, CURRENT_PRICE_PREFIX, DISCOUNT_PREFIX, DIGIPAY_INSTALLMENT_TEXT,
@@ -4974,85 +4975,24 @@ def format_discount_badge(discount_percent) -> str:
     return f"{persian_digits}٪ تخفیف"
 
 
-def _draw_platform_watermark_icon(draw, platform: str, x: int, y: int, size: int) -> None:
-    """Draw a tiny self-contained platform mark so each card remains dependency-free."""
-    right, bottom = x + size, y + size
-    if platform == "telegram":
-        # Telegram's recognizable paper-plane mark in its blue circular field.
-        draw.ellipse((x, y, right, bottom), fill="#2AABEE", outline="#ffffff", width=max(1, size // 16))
-        plane = [
-            (x + size * 0.18, y + size * 0.43),
-            (x + size * 0.82, y + size * 0.20),
-            (x + size * 0.65, y + size * 0.81),
-            (x + size * 0.48, y + size * 0.62),
-            (x + size * 0.36, y + size * 0.72),
-            (x + size * 0.39, y + size * 0.53),
-        ]
-        draw.polygon(plane, fill="#ffffff")
-        draw.polygon([
-            (x + size * 0.39, y + size * 0.53),
-            (x + size * 0.65, y + size * 0.35),
-            (x + size * 0.48, y + size * 0.62),
-        ], fill="#BCEBFF")
-        return
-
-    if platform == "youtube":
-        # YouTube's red rounded play tile remains recognizable at footer-icon size.
-        draw.rounded_rectangle(
-            (x, y, right, bottom),
-            radius=max(3, size // 5),
-            fill="#FF0033",
-            outline="#ffffff",
-            width=max(1, size // 16),
-        )
-        draw.polygon(
-            [
-                (x + size * 0.39, y + size * 0.25),
-                (x + size * 0.39, y + size * 0.75),
-                (x + size * 0.76, y + size * 0.50),
-            ],
-            fill="#ffffff",
-        )
-        return
-
-    if platform in {"rubika", "eitaa"}:
-        fill = "#7B3FB5" if platform == "rubika" else "#F07824"
-        draw.rounded_rectangle(
-            (x, y, right, bottom),
-            radius=max(3, size // 5),
-            fill=fill,
-            outline="#ffffff",
-            width=max(1, size // 16),
-        )
-        letter = "R" if platform == "rubika" else "E"
-        font = ImageFont.load_default()
-        bounds = draw.textbbox((0, 0), letter, font=font)
-        draw.text(
-            (x + (size - (bounds[2] - bounds[0])) / 2,
-             y + (size - (bounds[3] - bounds[1])) / 2 - bounds[1]),
-            letter, font=font, fill="#ffffff",
-        )
-        return
-
-    # Bale's compact green/teal app mark with a white badge and check.
-    draw.rounded_rectangle(
-        (x, y, right, bottom),
-        radius=max(3, size // 5),
-        fill="#00B894",
-        outline="#ffffff",
-        width=max(1, size // 16),
-    )
-    inset = size * 0.18
-    draw.ellipse((x + inset, y + inset, right - inset, bottom - inset), fill="#ffffff")
-    draw.line(
-        [
-            (x + size * 0.31, y + size * 0.51),
-            (x + size * 0.45, y + size * 0.65),
-            (x + size * 0.70, y + size * 0.37),
-        ],
-        fill="#00B894",
-        width=max(2, size // 8),
-        joint="curve",
+def _draw_platform_watermark_icon(
+    draw,
+    platform: str,
+    x: int,
+    y: int,
+    size: int,
+    *,
+    canvas=None,
+    max_width: int = 84,
+) -> tuple[int, int]:
+    """Draw the original local platform artwork; never synthesize a substitute icon."""
+    if canvas is None:
+        canvas = getattr(draw, "_image", None)
+    if canvas is None:
+        return (0, 0)
+    return draw_platform_logo(
+        canvas, platform, x, y,
+        max_height=size, max_width=max_width, solid_backdrop=True,
     )
 
 
@@ -5134,32 +5074,63 @@ def build_discount_image(
             watermarks.append((str(mark[0]), str(mark[1]).strip()[:48]))
             existing_platforms.add(str(mark[0]))
     margin = max(10, min_dim // 35)
-    icon_size = max(12, min(48, min_dim // 32))
-    icon_gap = max(5, icon_size // 4)
+    logo_height = max(15, min(25, min_dim // 27))
+    logo_max_width = max(36, min(84, min_dim // 5))
+    icon_gap = max(5, logo_height // 4)
     row_gap = max(3, min_dim // 180)
-    font = _latin_font(max(12, min_dim // 34))
+    font = _latin_font(max(10, min(15, min_dim // 34)))
     rows = []
-    for platform, label_text in watermarks:
-        box = draw.textbbox((0, 0), label_text, font=font)
-        rows.append((platform, label_text, max(1, box[2]-box[0]), max(font.size, box[3]-box[1])))
+
+    def measure_rows(active_font):
+        measured = []
+        for platform, channel_url in watermarks:
+            label_text = platform_footer_label(platform, channel_url)
+            box = draw.textbbox((0, 0), label_text, font=active_font)
+            logo_width, logo_height_actual = platform_logo_dimensions(
+                platform, logo_height, logo_max_width,
+            )
+            text_width = max(1, box[2] - box[0])
+            text_height = max(active_font.size, box[3] - box[1])
+            measured.append((
+                platform, label_text, logo_width, logo_height_actual,
+                text_width, text_height,
+            ))
+        return measured
+
+    rows = measure_rows(font)
     max_width = max(1, width - 2 * margin)
-    while icon_size + icon_gap + max(r[2] for r in rows) > max_width and font.size > 9:
+    while max(
+        (row[2] + (icon_gap if row[2] else 0) + row[4] for row in rows),
+        default=0,
+    ) > max_width and font.size > 9:
         font = _latin_font(font.size - 1)
-        rows = []
-        for platform, label_text in watermarks:
-            box = draw.textbbox((0, 0), label_text, font=font)
-            rows.append((platform, label_text, max(1, box[2]-box[0]), max(font.size, box[3]-box[1])))
-    row_height = max(icon_size, max(r[3] for r in rows))
-    box_top = max(0, height - margin - (len(rows) * row_height + max(0, len(rows) - 1) * row_gap))
+        rows = measure_rows(font)
+
+    row_height = max(
+        (max(row[3], row[5]) for row in rows),
+        default=logo_height,
+    )
+    box_top = max(
+        0,
+        height - margin - (len(rows) * row_height + max(0, len(rows) - 1) * row_gap),
+    )
     stroke_width = max(1, min(3, min_dim // 320))
-    for index, (platform, label_text, text_width, text_height) in enumerate(rows):
+    for index, (platform, label_text, logo_width, logo_height_actual, text_width, text_height) in enumerate(rows):
         row_top = box_top + index * (row_height + row_gap)
-        icon_x = margin
-        icon_y = row_top + (row_height - icon_size) // 2
-        _draw_platform_watermark_icon(draw, platform, icon_x, icon_y, icon_size)
-        text_x = icon_x + icon_size + icon_gap
+        logo_x = margin
+        logo_y = row_top + (row_height - logo_height_actual) // 2 if logo_height_actual else row_top
+        drawn_width, drawn_height = _draw_platform_watermark_icon(
+            draw, platform, logo_x, logo_y, logo_height,
+            canvas=image, max_width=logo_max_width,
+        )
+        if not drawn_width:
+            drawn_width, drawn_height = 0, 0
+        text_x = logo_x + drawn_width + (icon_gap if drawn_width else 0)
         text_y = row_top + (row_height - text_height) // 2 + text_height // 2
-        region = (text_x - 2, row_top - 1, min(width, text_x + text_width + 3), row_top + row_height + 2)
+        region = (
+            max(0, text_x - 2), row_top - 1,
+            min(width, text_x + text_width + 3), row_top + row_height + 2,
+        )
         fill, stroke = adaptive_text_colors(image, region)
         draw.text(
             (text_x, text_y), label_text, font=font, fill=fill, anchor="lm",

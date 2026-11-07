@@ -5,6 +5,114 @@ import math
 from pathlib import Path
 from functools import lru_cache
 
+PLATFORM_LOGO_DIR = Path(__file__).resolve().parent / "assets" / "platform-logos"
+_PLATFORM_LOGO_PATHS = {
+    "telegram": PLATFORM_LOGO_DIR / "telegram-official.svg",
+    "bale": PLATFORM_LOGO_DIR / "bale-official.svg",
+    "rubika": PLATFORM_LOGO_DIR / "rubika-official.svg",
+    "youtube": PLATFORM_LOGO_DIR / "youtube-wordmark-almostblack.png",
+}
+
+
+@lru_cache(maxsize=4)
+def _load_platform_logo(platform: str):
+    """Load an official, repository-local platform logo; never redraw a substitute."""
+    from io import BytesIO
+    from PIL import Image
+
+    key = str(platform or "").strip().lower()
+    path = _PLATFORM_LOGO_PATHS.get(key)
+    if path is None or not path.is_file():
+        print(f"PLATFORM_LOGO_ASSET_UNAVAILABLE platform={key or 'unknown'}")
+        return None
+    try:
+        payload = path.read_bytes()
+        if not payload or len(payload) > 2_000_000:
+            raise ValueError("invalid asset size")
+        if path.suffix.lower() == ".svg":
+            import cairosvg
+            payload = cairosvg.svg2png(bytestring=payload, output_width=512)
+        with Image.open(BytesIO(payload)) as raw:
+            raw.load()
+            logo = raw.convert("RGBA")
+        if logo.width < 2 or logo.height < 2 or logo.getbbox() is None:
+            raise ValueError("empty logo artwork")
+        if key == "youtube" and logo.width / logo.height < 2.0:
+            raise ValueError("YouTube brand asset is not a horizontal wordmark")
+        return logo.copy()
+    except Exception as exc:
+        print(f"PLATFORM_LOGO_ASSET_INVALID platform={key} error={type(exc).__name__}")
+        return None
+
+
+def fit_platform_logo(platform: str, max_height: int, max_width: int):
+    """Fit the official artwork proportionally; never stretch or crop the logo."""
+    from PIL import Image, ImageOps
+
+    logo = _load_platform_logo(str(platform or "").strip().lower())
+    if logo is None:
+        return None
+    bounds = (max(1, int(max_width)), max(1, int(max_height)))
+    return ImageOps.contain(logo, bounds, method=Image.Resampling.LANCZOS)
+
+
+def platform_logo_dimensions(platform: str, max_height: int, max_width: int) -> tuple[int, int]:
+    """Return the actual on-canvas footprint, including a tiny contrast-safe backing."""
+    fitted = fit_platform_logo(platform, max_height, max_width)
+    if fitted is None:
+        return 0, 0
+    padding_x = 4 if platform == "youtube" else 2
+    padding_y = 3 if platform == "youtube" else 2
+    return fitted.width + padding_x * 2, fitted.height + padding_y * 2
+
+
+def draw_platform_logo(
+    canvas,
+    platform: str,
+    left: int,
+    top: int,
+    max_height: int,
+    max_width: int = 84,
+    *,
+    solid_backdrop: bool = True,
+) -> tuple[int, int]:
+    """Draw a bundled official logo at small readable scale, preserving its aspect ratio."""
+    from PIL import Image, ImageDraw
+
+    key = str(platform or "").strip().lower()
+    fitted = fit_platform_logo(key, max_height, max_width)
+    if fitted is None:
+        return 0, 0
+    padding_x = 4 if key == "youtube" else 2
+    padding_y = 3 if key == "youtube" else 2
+    width, height = fitted.width + padding_x * 2, fitted.height + padding_y * 2
+    tile = Image.new("RGBA", (width, height), (255, 255, 255, 242))
+    if not solid_backdrop and key != "youtube":
+        tile = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    if solid_backdrop or key == "youtube":
+        tile_draw = ImageDraw.Draw(tile)
+        tile_draw.rounded_rectangle(
+            (0, 0, width - 1, height - 1),
+            radius=max(3, min(6, height // 4)),
+            fill=(255, 255, 255, 245),
+        )
+    tile.alpha_composite(fitted.convert("RGBA"), (padding_x, padding_y))
+    position = (int(left), int(top))
+    if canvas.mode == "RGBA":
+        canvas.alpha_composite(tile, position)
+    else:
+        canvas.paste(tile.convert("RGB"), position, tile.getchannel("A"))
+    return width, height
+
+
+def platform_footer_label(platform: str, url: str) -> str:
+    """Use the same channel identity treatment on product images and video overlays."""
+    key = str(platform or "").strip().lower()
+    target = str(url or "").strip()
+    # YouTube brand guidance favours its own logo linked/attributed to YouTube content;
+    # keep the channel URL adjacent without merging the YouTube mark into OfferChin's name.
+    return target if key == "youtube" else f"OfferChin  •  {target}"
+
 
 def _sale_font(size: int):
     """Find a bold Latin font for clear, readable percentage labels."""
