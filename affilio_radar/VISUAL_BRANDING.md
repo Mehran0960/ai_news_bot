@@ -9,6 +9,7 @@ This is the canonical placement and legibility standard for generated OfferChin 
 - **Below retailer logo:** Place the official DigiPay mark on its blue field, preserving the mark itself. The blue field may extend to match the retailer tile's target dimensions; do not stretch the logo artwork.
 - **Lower-left cross-media list:** Show every verified public OfferChin destination except the destination receiving the post. The current public set is Telegram, Bale, Rubika, YouTube, and Aparat; each post therefore has exactly four rows. Eitaa is not included until its actual public channel ID is confirmed.
 - **Each row:** Put only the original official platform logo beside its bare public ID. The ID is the link text itself, with no platform name, no “OfferChin •” prefix, no descriptive label, and no http://, https://, or www. Canonical IDs are t.me/OfferChin, ble.ir/OfferChin, rubika.ir/offerchin, youtube.com/@offerchin, and aparat.com/OfferChin.
+- **Alignment:** Reserve one equal-width logo column for all rows. Center each original logo/wordmark inside that column and start every ID at exactly the same horizontal coordinate. Never calculate the ID x-position from the natural width of the logo.
 - **YouTube logo:** Use the official horizontal full-color wordmark on its light solid backing. Preserve its original landscape aspect ratio. Never force it into a square icon box or stretch/crop its artwork. Its height should match the other small channel marks; its width is derived from the source ratio.
 - **Aparat logo:** Use the locally pinned first-party header wordmark from Aparat's own homepage. Preserve its 80:25 viewBox ratio; do not substitute a third-party redraw.
 - Scale the footer with source resolution instead of keeping every export at a tiny fixed pixel size. Row spacing remains resolution-aware, and logo width is derived from each source asset's actual aspect ratio.
@@ -22,7 +23,8 @@ This is the canonical placement and legibility standard for generated OfferChin 
 - A YouTube video lists only Telegram, Bale, Rubika, and Aparat; it must not list YouTube itself.
 - An Aparat video lists only Telegram, Bale, Rubika, and YouTube; it must not list Aparat itself. YouTube's full horizontal wordmark remains visible when it is one of the other destinations.
 - YouTube and Aparat must be rendered as separate MP4 artifacts when both are due. Never upload the same poster/video file to both platforms if the destination-specific cross-media ID list would differ.
-- Each video row contains only the original logo and the bare ID string described above. No channel-name text, “OfferChin •” prefix, protocol, or www. is allowed.
+- Each video row contains only the original logo and the bare ID string described above. No channel-name text, “OfferChin •” prefix, protocol, or www. is allowed. Logos sit centered in one fixed-width column; all four IDs share the same left edge.
+- Product titles inside the video title card use the bundled local Lalezar display font (SIL OFL 1.1), as a free, Titr-inspired headline treatment. Do not use an unlicensed Microsoft B Titr font or load fonts from the network at render time.
 - Do not let video zoom/pan crop the discount, retailer mark, DigiPay tile, or cross-media IDs.
 - Preserve product title, product image, current price, and purchase call-to-action as the primary sales content; platform marks remain secondary.
 

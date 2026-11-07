@@ -14,6 +14,10 @@ from short_video import (
     YOUTUBE_UPLOAD_URL,
     build_vertical_poster,
     video_purchase_cta_text,
+    TITLE_FONT_PATH,
+    VIDEO_LOGO_COLUMN_WIDTH,
+    VIDEO_LOGO_TEXT_GAP,
+    _title_font,
     format_persian_price,
     format_persian_discount,
     _font,
@@ -451,6 +455,39 @@ class ShortVideoTests(unittest.TestCase):
         price_panel = poster.getpixel((45, 731))
         self.assertGreater(price_panel[1], price_panel[0])
         self.assertEqual(poster.size, (720, 1280))
+
+    def test_video_channel_ids_share_a_fixed_column_for_both_destinations(self):
+        image = Image.new("RGB", (400, 500), (255, 255, 255))
+        stream = io.BytesIO()
+        image.save(stream, format="PNG")
+        original_text = ImageDraw.ImageDraw.text
+
+        for destination, expected_ids in (
+            ("youtube", {"t.me/OfferChin", "ble.ir/OfferChin", "rubika.ir/offerchin", "aparat.com/OfferChin"}),
+            ("aparat", {"t.me/OfferChin", "ble.ir/OfferChin", "rubika.ir/offerchin", "youtube.com/@offerchin"}),
+        ):
+            captured = []
+
+            def capture_text(draw, xy, value, *args, **kwargs):
+                label = str(value)
+                if label in expected_ids:
+                    captured.append((xy[0], label))
+                return original_text(draw, xy, value, *args, **kwargs)
+
+            with mock.patch.object(ImageDraw.ImageDraw, "text", capture_text):
+                build_vertical_poster(
+                    stream.getvalue(), 50, destination_platform=destination
+                )
+
+            self.assertEqual({label for _x, label in captured}, expected_ids)
+            self.assertEqual(len(captured), 4)
+            expected_x = 64 + VIDEO_LOGO_COLUMN_WIDTH + VIDEO_LOGO_TEXT_GAP
+            self.assertEqual({x for x, _label in captured}, {expected_x})
+
+    def test_video_title_uses_the_bundled_lalezar_display_face(self):
+        self.assertTrue(TITLE_FONT_PATH.is_file())
+        font = _title_font(32)
+        self.assertEqual(font.getname()[0], "Lalezar")
 
     def test_aparat_poster_omits_its_own_id_and_includes_youtube_wordmark(self):
         import short_video
