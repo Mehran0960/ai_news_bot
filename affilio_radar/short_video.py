@@ -29,6 +29,10 @@ WIDTH = 720
 HEIGHT = 1280
 FPS = 24
 DURATION_SECONDS = 8
+VIDEO_PURCHASE_CTA_LABELS = {
+    "youtube": "لینک خرید: توضیحات کانال",
+    "aparat": "لینک خرید: کپشن ویدئو و توضیحات کانال",
+}
 YOUTUBE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/videos"
 YOUTUBE_UPLOAD_URL = "https://www.googleapis.com/upload/youtube/v3/videos"
@@ -217,6 +221,13 @@ def _wrap_rtl_text(
     return lines
 
 
+def video_purchase_cta_text(destination_platform: str) -> str:
+    """Return the approved short purchase-location CTA for each video destination."""
+    return VIDEO_PURCHASE_CTA_LABELS.get(
+        str(destination_platform or "").strip().lower(), ""
+    )
+
+
 def format_persian_price(value: object) -> str:
     """Format a positive integer price with Persian digits and separators."""
     try:
@@ -335,7 +346,7 @@ def build_vertical_poster(
 
     # List every verified public destination except the platform receiving this video.
     # A separate poster is rendered per platform so a destination never lists itself.
-    cta_panel = (34, 162, WIDTH - 34, 272)
+    cta_panel = (34, 160, WIDTH - 34, 292)
     draw.rounded_rectangle(
         cta_panel,
         radius=19,
@@ -345,12 +356,27 @@ def build_vertical_poster(
     )
     channel_font = _font(16)
     channel_color = (17, 77, 43, 255)
+    purchase_cta = video_purchase_cta_text(destination_platform)
+    if purchase_cta:
+        cta_font_size = 19
+        cta_font = _font(cta_font_size)
+        while _text_width(draw, purchase_cta, cta_font) > 590 and cta_font_size > 15:
+            cta_font_size -= 1
+            cta_font = _font(cta_font_size)
+        draw.text(
+            (WIDTH // 2, 175),
+            _shape_rtl(purchase_cta),
+            font=cta_font,
+            fill=channel_color,
+            anchor="mm",
+            **_rtl_layout_kwargs(),
+        )
     video_channels = public_channel_links(destination_platform)
     for index, (platform, url) in enumerate(video_channels):
         # Twenty-pixel logos plus their official-brand padding require a 26px
         # row pitch; this prevents the horizontal YouTube wordmark tile overlapping
         # neighbouring rows while keeping all four destinations in the safe panel.
-        row_top = 165 + index * 26
+        row_top = 188 + index * 26
         logo_width, _logo_height = _draw_video_channel_logo(
             draw, platform, 64, row_top, 20,
             canvas=background, max_width=96,
@@ -363,7 +389,7 @@ def build_vertical_poster(
         )
 
     # Product photo gets its own clean card; the CTA strip above remains outside it.
-    card = (34, 276, WIDTH - 34, 704)
+    card = (34, 298, WIDTH - 34, 704)
     draw.rounded_rectangle(
         (card[0] + 5, card[1] + 9, card[2] + 5, card[3] + 9),
         radius=30,
