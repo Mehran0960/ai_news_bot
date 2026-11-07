@@ -13351,27 +13351,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9470",
-      "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 1320,
+      "catalog_best_selling_category_id": "9435",
+      "catalog_best_selling_category_name": "لباس مردانه",
+      "catalog_best_selling_rank": 9150,
       "catalog_best_selling_ranks_by_category": {
+        "9435": {
+          "category_name": "لباس مردانه",
+          "observed_at": "2026-11-07T10:28:41.830145+00:00",
+          "rank": 9150
+        },
         "9470": {
           "category_name": "تی شرت مردانه",
           "observed_at": "2026-11-07T01:33:45.539182+00:00",
           "rank": 1320
         }
       },
-      "catalog_category_id": "9470",
+      "catalog_category_id": "9435",
       "catalog_category_ids": [
+        "9435",
         "9470"
       ],
-      "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-07T01:33:45.539182+00:00",
+      "catalog_category_name": "لباس مردانه",
+      "catalog_rank_observed_at": "2026-11-07T10:28:41.830145+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 695000,
       "discount_percent": 81,
       "first_seen_at": "2026-11-07T01:33:45.539182+00:00",
-      "last_seen_at": "2026-11-07T01:32:40.632391+00:00",
+      "last_seen_at": "2026-11-07T10:28:31.722587+00:00",
       "original_price": 3580000,
       "product_id": "dkp-19935549",
       "product_url": "https://www.digikala.com/product/dkp-19935549/",
@@ -16564,6 +16570,38 @@
       "savings_toman": 2885000,
       "source": "digikala_catalog_sweep",
       "title": "تی شرت آستین کوتاه مردانه مدل انیمه ای جوجوتسو کایسن"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9626",
+      "catalog_best_selling_category_name": "لباس دخترانه",
+      "catalog_best_selling_rank": 9153,
+      "catalog_best_selling_ranks_by_category": {
+        "9626": {
+          "category_name": "لباس دخترانه",
+          "observed_at": "2026-11-07T10:28:41.832622+00:00",
+          "rank": 9153
+        }
+      },
+      "catalog_category_id": "9626",
+      "catalog_category_ids": [
+        "9626"
+      ],
+      "catalog_category_name": "لباس دخترانه",
+      "catalog_rank_observed_at": "2026-11-07T10:28:41.832622+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 695000,
+      "discount_percent": 81,
+      "first_seen_at": "2026-11-07T10:28:41.832622+00:00",
+      "last_seen_at": "2026-11-07T10:28:32.697079+00:00",
+      "original_price": 3580000,
+      "product_id": "dkp-12558603",
+      "product_url": "https://www.digikala.com/product/dkp-12558603/",
+      "rating": 5.0,
+      "review_count": 1,
+      "savings_toman": 2885000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه دخترانه مدل قلب فانتزی کد z005"
     },
     {
       "availability": "unknown",
@@ -35607,10 +35645,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "11122",
-      "catalog_best_selling_category_name": "عینک زنانه و مردانه",
-      "catalog_best_selling_rank": 6860,
+      "catalog_best_selling_category_id": "11120",
+      "catalog_best_selling_category_name": "عینک زنانه",
+      "catalog_best_selling_rank": 9144,
       "catalog_best_selling_ranks_by_category": {
+        "11120": {
+          "category_name": "عینک زنانه",
+          "observed_at": "2026-11-07T10:28:41.841105+00:00",
+          "rank": 9144
+        },
         "11122": {
           "category_name": "عینک زنانه و مردانه",
           "observed_at": "2026-11-07T08:19:58.779229+00:00",
@@ -35627,19 +35670,20 @@
           "rank": 4856
         }
       },
-      "catalog_category_id": "11122",
+      "catalog_category_id": "11120",
       "catalog_category_ids": [
         "9383",
         "9491",
+        "11120",
         "11122"
       ],
-      "catalog_category_name": "عینک زنانه و مردانه",
-      "catalog_rank_observed_at": "2026-11-07T08:19:58.779229+00:00",
+      "catalog_category_name": "عینک زنانه",
+      "catalog_rank_observed_at": "2026-11-07T10:28:41.841105+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 999000,
       "discount_percent": 75,
       "first_seen_at": "2026-11-07T06:21:02.845794+00:00",
-      "last_seen_at": "2026-11-07T08:19:47.370901+00:00",
+      "last_seen_at": "2026-11-07T10:28:37.859456+00:00",
       "original_price": 4000000,
       "product_id": "dkp-21844212",
       "product_url": "https://www.digikala.com/product/dkp-21844212/",
@@ -51325,12 +51369,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9282",
       "catalog_best_selling_category_name": "لباس زنانه",
-      "catalog_best_selling_rank": 6223,
+      "catalog_best_selling_rank": 9144,
       "catalog_best_selling_ranks_by_category": {
         "9282": {
           "category_name": "لباس زنانه",
-          "observed_at": "2026-11-07T07:45:41.945772+00:00",
-          "rank": 6223
+          "observed_at": "2026-11-07T10:28:41.828027+00:00",
+          "rank": 9144
         }
       },
       "catalog_category_id": "9282",
@@ -51338,12 +51382,12 @@
         "9282"
       ],
       "catalog_category_name": "لباس زنانه",
-      "catalog_rank_observed_at": "2026-11-07T07:45:41.945772+00:00",
+      "catalog_rank_observed_at": "2026-11-07T10:28:41.828027+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1190000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T07:45:41.945772+00:00",
-      "last_seen_at": "2026-11-07T07:45:29.873332+00:00",
+      "last_seen_at": "2026-11-07T10:28:30.515270+00:00",
       "original_price": 4580000,
       "product_id": "dkp-16187859",
       "product_url": "https://www.digikala.com/product/dkp-16187859/",
@@ -57272,6 +57316,102 @@
       "savings_toman": 3390000,
       "source": "digikala_catalog_sweep",
       "title": "کراپ‌ تی‌شرت آستین کوتاه زنانه مدل خرگوش مهربون کد 01"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9282",
+      "catalog_best_selling_category_name": "لباس زنانه",
+      "catalog_best_selling_rank": 9149,
+      "catalog_best_selling_ranks_by_category": {
+        "9282": {
+          "category_name": "لباس زنانه",
+          "observed_at": "2026-11-07T10:28:41.828027+00:00",
+          "rank": 9149
+        }
+      },
+      "catalog_category_id": "9282",
+      "catalog_category_ids": [
+        "9282"
+      ],
+      "catalog_category_name": "لباس زنانه",
+      "catalog_rank_observed_at": "2026-11-07T10:28:41.828027+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-07T10:28:41.828027+00:00",
+      "last_seen_at": "2026-11-07T10:28:30.515582+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-18916557",
+      "product_url": "https://www.digikala.com/product/dkp-18916557/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه زنانه مدل آدم فضایی کد04"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9282",
+      "catalog_best_selling_category_name": "لباس زنانه",
+      "catalog_best_selling_rank": 9154,
+      "catalog_best_selling_ranks_by_category": {
+        "9282": {
+          "category_name": "لباس زنانه",
+          "observed_at": "2026-11-07T10:28:41.828027+00:00",
+          "rank": 9154
+        }
+      },
+      "catalog_category_id": "9282",
+      "catalog_category_ids": [
+        "9282"
+      ],
+      "catalog_category_name": "لباس زنانه",
+      "catalog_rank_observed_at": "2026-11-07T10:28:41.828027+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-07T10:28:41.828027+00:00",
+      "last_seen_at": "2026-11-07T10:28:30.515900+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-19668524",
+      "product_url": "https://www.digikala.com/product/dkp-19668524/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی‌شرت لانگ آستین کوتاه زنانه مدل اسکیت سوار کد06"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9282",
+      "catalog_best_selling_category_name": "لباس زنانه",
+      "catalog_best_selling_rank": 9157,
+      "catalog_best_selling_ranks_by_category": {
+        "9282": {
+          "category_name": "لباس زنانه",
+          "observed_at": "2026-11-07T10:28:41.828027+00:00",
+          "rank": 9157
+        }
+      },
+      "catalog_category_id": "9282",
+      "catalog_category_ids": [
+        "9282"
+      ],
+      "catalog_category_name": "لباس زنانه",
+      "catalog_rank_observed_at": "2026-11-07T10:28:41.828027+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-07T10:28:41.828027+00:00",
+      "last_seen_at": "2026-11-07T10:28:30.516094+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-18959810",
+      "product_url": "https://www.digikala.com/product/dkp-18959810/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "کراپ‌ تی‌شرت آستین کوتاه زنانه مدل آدم فضایی کد 01"
     },
     {
       "availability": "unknown",
@@ -105871,6 +106011,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "8099",
+      "catalog_best_selling_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_best_selling_rank": 9156,
+      "catalog_best_selling_ranks_by_category": {
+        "8099": {
+          "category_name": "تجهیزات تردد، حفاظت و امنیت",
+          "observed_at": "2026-11-07T10:28:41.812776+00:00",
+          "rank": 9156
+        }
+      },
+      "catalog_category_id": "8099",
+      "catalog_category_ids": [
+        "8099"
+      ],
+      "catalog_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_rank_observed_at": "2026-11-07T10:28:41.812776+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 50360,
+      "discount_percent": 69,
+      "first_seen_at": "2026-11-07T10:28:41.812776+00:00",
+      "last_seen_at": "2026-11-07T10:28:28.361803+00:00",
+      "original_price": 162490,
+      "product_id": "dkp-15442455",
+      "product_url": "https://www.digikala.com/product/dkp-15442455/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 112130,
+      "source": "digikala_catalog_sweep",
+      "title": "تابلو راهنما طرح شماره تخت مدل NG1623"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "10011",
       "catalog_best_selling_category_name": "تابلو و برچسب ایمنی و راهنما",
       "catalog_best_selling_rank": 7254,
@@ -106666,6 +106838,38 @@
       "savings_toman": 12178800,
       "source": "digikala_catalog_sweep",
       "title": "چادر خودرو آرال اسپرت مدل ARAL - WTPR مناسب برای پژو 207 ُُُُُِِِِِSD"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "8406",
+      "catalog_best_selling_category_name": "چادر خودرو",
+      "catalog_best_selling_rank": 9144,
+      "catalog_best_selling_ranks_by_category": {
+        "8406": {
+          "category_name": "چادر خودرو",
+          "observed_at": "2026-11-07T10:28:41.825856+00:00",
+          "rank": 9144
+        }
+      },
+      "catalog_category_id": "8406",
+      "catalog_category_ids": [
+        "8406"
+      ],
+      "catalog_category_name": "چادر خودرو",
+      "catalog_rank_observed_at": "2026-11-07T10:28:41.825856+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 5657600,
+      "discount_percent": 68,
+      "first_seen_at": "2026-11-07T10:28:41.825856+00:00",
+      "last_seen_at": "2026-11-07T10:28:29.594281+00:00",
+      "original_price": 17680000,
+      "product_id": "dkp-12786553",
+      "product_url": "https://www.digikala.com/product/dkp-12786553/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 12022400,
+      "source": "digikala_catalog_sweep",
+      "title": "چادر خودرو آرال اسپرت مدل ARAL - WTPR مناسب برای رانا"
     },
     {
       "availability": "unknown",
@@ -114852,225 +115056,9 @@
       "savings_toman": 244650,
       "source": "digikala_catalog_sweep",
       "title": "میسلار واتر صورت بلوم مدل آووکادو منلسب برای پوست خشک حجم 250 میلی لیتر"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "6014",
-      "catalog_best_selling_category_name": "لوازم اداری رومیزی",
-      "catalog_best_selling_rank": 1414,
-      "catalog_best_selling_ranks_by_category": {
-        "6014": {
-          "category_name": "لوازم اداری رومیزی",
-          "observed_at": "2026-11-07T01:44:02.868889+00:00",
-          "rank": 1414
-        }
-      },
-      "catalog_category_id": "6014",
-      "catalog_category_ids": [
-        "6014"
-      ],
-      "catalog_category_name": "لوازم اداری رومیزی",
-      "catalog_rank_observed_at": "2026-11-07T01:44:02.868889+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 96000,
-      "discount_percent": 68,
-      "first_seen_at": "2026-11-07T01:44:02.868889+00:00",
-      "last_seen_at": "2026-11-07T01:43:38.392784+00:00",
-      "original_price": 300000,
-      "product_id": "dkp-23001734",
-      "product_url": "https://www.digikala.com/product/dkp-23001734/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 204000,
-      "source": "digikala_catalog_sweep",
-      "title": "جای کاغذ یادداشت مدل قاصدک مجموعه 2 عددی"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "10926",
-      "catalog_best_selling_category_name": "شانه مو",
-      "catalog_best_selling_rank": 211,
-      "catalog_best_selling_ranks_by_category": {
-        "10926": {
-          "category_name": "شانه مو",
-          "observed_at": "2026-11-06T21:29:29.469238+00:00",
-          "rank": 211
-        }
-      },
-      "catalog_category_id": "10926",
-      "catalog_category_ids": [
-        "10926"
-      ],
-      "catalog_category_name": "شانه مو",
-      "catalog_rank_observed_at": "2026-11-06T21:29:29.469238+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 85940,
-      "discount_percent": 68,
-      "first_seen_at": "2026-11-06T21:29:29.469238+00:00",
-      "last_seen_at": "2026-11-06T21:28:43.688841+00:00",
-      "original_price": 268400,
-      "product_id": "dkp-3481839",
-      "product_url": "https://www.digikala.com/product/dkp-3481839/",
-      "rating": 4.0,
-      "review_count": 80,
-      "savings_toman": 182460,
-      "source": "digikala_catalog_sweep",
-      "title": "شانه مو کد 005 مجموعه 2 عددی"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "8754",
-      "catalog_best_selling_category_name": "بچگانه",
-      "catalog_best_selling_rank": 6900,
-      "catalog_best_selling_ranks_by_category": {
-        "8754": {
-          "category_name": "بچگانه",
-          "observed_at": "2026-11-07T08:21:41.598338+00:00",
-          "rank": 6900
-        },
-        "9625": {
-          "category_name": "دخترانه",
-          "observed_at": "2026-11-07T05:29:01.561983+00:00",
-          "rank": 3905
-        },
-        "9692": {
-          "category_name": "اکسسوری دخترانه",
-          "observed_at": "2026-11-07T02:17:29.881073+00:00",
-          "rank": 1684
-        },
-        "9711": {
-          "category_name": "زیور آلات مو دخترانه",
-          "observed_at": "2026-11-06T22:32:28.402493+00:00",
-          "rank": 365
-        }
-      },
-      "catalog_category_id": "8754",
-      "catalog_category_ids": [
-        "8754",
-        "9625",
-        "9692",
-        "9711"
-      ],
-      "catalog_category_name": "بچگانه",
-      "catalog_rank_observed_at": "2026-11-07T08:21:41.598338+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 80000,
-      "discount_percent": 68,
-      "first_seen_at": "2026-11-06T22:32:28.402493+00:00",
-      "last_seen_at": "2026-11-07T08:21:29.013416+00:00",
-      "original_price": 250000,
-      "product_id": "dkp-9688601",
-      "product_url": "https://www.digikala.com/product/dkp-9688601/",
-      "rating": 3.76,
-      "review_count": 29,
-      "savings_toman": 170000,
-      "source": "digikala_catalog_sweep",
-      "title": "کش مو دخترانه آی جواهر مدل B50 مجموعه 50 عددی"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "6426",
-      "catalog_best_selling_category_name": "اسکاچ و سیم ظرفشویی",
-      "catalog_best_selling_rank": 220,
-      "catalog_best_selling_ranks_by_category": {
-        "6426": {
-          "category_name": "اسکاچ و سیم ظرفشویی",
-          "observed_at": "2026-11-06T21:24:51.058129+00:00",
-          "rank": 220
-        }
-      },
-      "catalog_category_id": "6426",
-      "catalog_category_ids": [
-        "6426"
-      ],
-      "catalog_category_name": "اسکاچ و سیم ظرفشویی",
-      "catalog_rank_observed_at": "2026-11-06T21:24:51.058129+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 64000,
-      "discount_percent": 68,
-      "first_seen_at": "2026-11-06T21:24:51.058129+00:00",
-      "last_seen_at": "2026-11-06T21:24:25.094498+00:00",
-      "original_price": 200000,
-      "product_id": "dkp-8018313",
-      "product_url": "https://www.digikala.com/product/dkp-8018313/",
-      "rating": 3.67,
-      "review_count": 93,
-      "savings_toman": 136000,
-      "source": "digikala_catalog_sweep",
-      "title": "اسکاج سیم استار مدل S-898"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9625",
-      "catalog_best_selling_category_name": "دخترانه",
-      "catalog_best_selling_rank": 7093,
-      "catalog_best_selling_ranks_by_category": {
-        "9625": {
-          "category_name": "دخترانه",
-          "observed_at": "2026-11-07T08:31:43.339840+00:00",
-          "rank": 7093
-        },
-        "9711": {
-          "category_name": "زیور آلات مو دخترانه",
-          "observed_at": "2026-11-06T23:32:22.959887+00:00",
-          "rank": 580
-        }
-      },
-      "catalog_category_id": "9625",
-      "catalog_category_ids": [
-        "9625",
-        "9711"
-      ],
-      "catalog_category_name": "دخترانه",
-      "catalog_rank_observed_at": "2026-11-07T08:31:43.339840+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 60000,
-      "discount_percent": 68,
-      "first_seen_at": "2026-11-06T23:24:03.241372+00:00",
-      "last_seen_at": "2026-11-07T08:31:31.856505+00:00",
-      "original_price": 190000,
-      "product_id": "dkp-7724641",
-      "product_url": "https://www.digikala.com/product/dkp-7724641/",
-      "rating": 3.62,
-      "review_count": 141,
-      "savings_toman": 130000,
-      "source": "digikala_catalog_sweep",
-      "title": "کش مو دخترانه آی جواهر مدل آفتابگردان کد D206 مجموعه 102 عددی"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9398",
-      "catalog_best_selling_category_name": "اکسسوری مو زنانه",
-      "catalog_best_selling_rank": 1321,
-      "catalog_best_selling_ranks_by_category": {
-        "9398": {
-          "category_name": "اکسسوری مو زنانه",
-          "observed_at": "2026-11-07T01:35:02.462963+00:00",
-          "rank": 1321
-        }
-      },
-      "catalog_category_id": "9398",
-      "catalog_category_ids": [
-        "9398"
-      ],
-      "catalog_category_name": "اکسسوری مو زنانه",
-      "catalog_rank_observed_at": "2026-11-07T01:35:02.462963+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 60000,
-      "discount_percent": 68,
-      "first_seen_at": "2026-11-07T01:35:02.462963+00:00",
-      "last_seen_at": "2026-11-07T01:35:01.686643+00:00",
-      "original_price": 190000,
-      "product_id": "dkp-9021579",
-      "product_url": "https://www.digikala.com/product/dkp-9021579/",
-      "rating": 2.0,
-      "review_count": 2,
-      "savings_toman": 130000,
-      "source": "digikala_catalog_sweep",
-      "title": "کش مو زنانه آی جواهر کد NEW106 مجموعه 106 عددی"
     }
   ],
   "cycle_started_at": "2026-11-06T18:22:56.776413+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-07T10:27:38.190006+00:00"
+  "updated_at": "2026-11-07T10:28:41.873353+00:00"
 }
