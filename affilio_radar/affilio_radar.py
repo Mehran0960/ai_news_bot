@@ -5079,6 +5079,9 @@ def build_discount_image(
     logo_height = footer_metrics["logo_height"]
     logo_max_width = footer_metrics["logo_max_width"]
     icon_gap = max(5, logo_height // 4)
+    # Reserve one identical logo column for every platform. Wordmark widths differ,
+    # but the public IDs must all begin at the same horizontal coordinate.
+    logo_column_width = logo_max_width + 8
     row_gap = footer_metrics["row_gap"]
     font = _latin_font(footer_metrics["font_size"])
     rows = []
@@ -5102,7 +5105,7 @@ def build_discount_image(
     rows = measure_rows(font)
     max_width = max(1, width - 2 * margin)
     while max(
-        (row[2] + (icon_gap if row[2] else 0) + row[4] for row in rows),
+        (logo_column_width + icon_gap + row[4] for row in rows),
         default=0,
     ) > max_width and font.size > 9:
         font = _latin_font(font.size - 1)
@@ -5119,7 +5122,7 @@ def build_discount_image(
     stroke_width = max(1, min(3, min_dim // 320))
     for index, (platform, label_text, logo_width, logo_height_actual, text_width, text_height) in enumerate(rows):
         row_top = box_top + index * (row_height + row_gap)
-        logo_x = margin
+        logo_x = margin + max(0, (logo_column_width - logo_width) // 2)
         logo_y = row_top + (row_height - logo_height_actual) // 2 if logo_height_actual else row_top
         drawn_width, drawn_height = _draw_platform_watermark_icon(
             draw, platform, logo_x, logo_y, logo_height,
@@ -5127,7 +5130,7 @@ def build_discount_image(
         )
         if not drawn_width:
             drawn_width, drawn_height = 0, 0
-        text_x = logo_x + drawn_width + (icon_gap if drawn_width else 0)
+        text_x = margin + logo_column_width + icon_gap
         text_y = row_top + (row_height - text_height) // 2 + text_height // 2
         region = (
             max(0, text_x - 2), row_top - 1,
