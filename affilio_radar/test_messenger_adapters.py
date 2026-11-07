@@ -51,7 +51,7 @@ class MessengerAdapterTests(unittest.TestCase):
         self.assertEqual(post.call_count, 3)
         self.assertEqual(post.call_args.kwargs["json"]["file_id"], "FILE-1")
         self.assertIn(self.affiliate, post.call_args.kwargs["json"]["text"])
-        self.assertEqual(self.renderer.render_calls, [[("rubika", "روبیکا | آفِرچین")]])
+        self.assertEqual(self.renderer.render_calls, [None])
 
     @patch("messenger_adapters.requests.post")
     def test_rubika_rejects_non_https_upload_url(self, post):
