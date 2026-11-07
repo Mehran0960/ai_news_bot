@@ -632,8 +632,10 @@ def render_short_video(
             f"fade=t=out:st={max(0.1, duration - 0.36):.3f}:d=0.35,"
             "format=yuv420p"
         )
+        # The procedural groove is intentionally mixed below platform loudness peaks.
+        # Normalize it to a consistent short-form target before applying clean edge fades.
         audio_filter = (
-            "volume=0.84,"
+            "loudnorm=I=-16:TP=-1.5:LRA=11,"
             "afade=t=in:st=0:d=0.18,"
             f"afade=t=out:st={max(0.1, duration - 0.42):.3f}:d=0.40"
         )

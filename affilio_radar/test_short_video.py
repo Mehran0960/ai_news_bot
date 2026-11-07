@@ -148,6 +148,92 @@ class ShortVideoTests(unittest.TestCase):
             self.assertEqual(first, second.read_bytes(), "the soundtrack must render deterministically")
             self.assertGreater(len(first), 500_000)
 
+    def test_render_short_video_normalizes_soundtrack_and_keeps_twelve_second_cut(self):
+        import short_video
+
+        commands = []
+
+        def fake_soundtrack(path, duration):
+            self.assertEqual(duration, 12)
+            Path(path).write_bytes(b"test-wav")
+            return Path(path)
+
+        def fake_ffmpeg(command, **kwargs):
+            commands.append(command)
+            Path(command[-1]).write_bytes(b"x" * 2048)
+            return mock.Mock(returncode=0, stderr="")
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "preview.mp4"
+            with (
+                mock.patch("short_video._resolve_ffmpeg_binary", return_value="/fake/ffmpeg"),
+                mock.patch("short_video.build_vertical_poster", return_value=b"test-poster"),
+                mock.patch("short_video.write_original_soundtrack", side_effect=fake_soundtrack),
+                mock.patch("short_video.subprocess.run", side_effect=fake_ffmpeg),
+            ):
+                rendered = short_video.render_short_video(
+                    b"test-image",
+                    50,
+                    output,
+                    duration_seconds=12,
+                    fps=24,
+                )
+
+            self.assertEqual(rendered, output)
+            self.assertGreater(output.stat().st_size, 1024)
+
+        self.assertEqual(len(commands), 1)
+        command = commands[0]
+        audio_filter = command[command.index("-af") + 1]
+        self.assertIn("loudnorm=I=-16:TP=-1.5:LRA=11", audio_filter)
+        self.assertIn("afade=t=in:st=0:d=0.18", audio_filter)
+        self.assertIn("afade=t=out:st=11.580:d=0.40", audio_filter)
+        self.assertEqual(command[command.index("-frames:v") + 1], "288")
+        self.assertIn("1:a:0", command)
+
+    def test_render_short_video_normalizes_soundtrack_and_keeps_twelve_second_cut(self):
+        import short_video
+
+        commands = []
+
+        def fake_soundtrack(path, duration):
+            self.assertEqual(duration, 12)
+            Path(path).write_bytes(b"test-wav")
+            return Path(path)
+
+        def fake_ffmpeg(command, **kwargs):
+            commands.append(command)
+            Path(command[-1]).write_bytes(b"x" * 2048)
+            return mock.Mock(returncode=0, stderr="")
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "preview.mp4"
+            with (
+                mock.patch("short_video._resolve_ffmpeg_binary", return_value="/fake/ffmpeg"),
+                mock.patch("short_video.build_vertical_poster", return_value=b"test-poster"),
+                mock.patch("short_video.write_original_soundtrack", side_effect=fake_soundtrack),
+                mock.patch("short_video.subprocess.run", side_effect=fake_ffmpeg),
+            ):
+                rendered = short_video.render_short_video(
+                    b"test-image",
+                    50,
+                    output,
+                    duration_seconds=12,
+                    fps=24,
+                )
+
+            self.assertEqual(rendered, output)
+            self.assertGreater(output.stat().st_size, 1024)
+
+        self.assertEqual(len(commands), 1)
+        command = commands[0]
+        audio_filter = command[command.index("-af") + 1]
+        self.assertIn("loudnorm=I=-16:TP=-1.5:LRA=11", audio_filter)
+        self.assertIn("afade=t=in:st=0:d=0.18", audio_filter)
+        self.assertIn("afade=t=out:st=11.580:d=0.40", audio_filter)
+        self.assertEqual(command[command.index("-frames:v") + 1], "288")
+        self.assertIn("1:a:0", command)
+
     def test_watermark_places_other_channel_marks_in_a_vertical_youtube_safe_area(self):
         import short_video
 
