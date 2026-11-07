@@ -406,8 +406,10 @@ def upload_aparat_video(
         or (
             "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا در آفِرچین.\n"
             "قیمت و موجودی ممکن است تغییر کند؛ پیش از خرید، اطلاعات روز محصول را در دیجی‌کالا بررسی کنید.\n\n"
-            "تلگرام: https://t.me/OfferChin\n"
-            "بله: https://ble.ir/OfferChin"
+            "t.me/OfferChin\n"
+            "ble.ir/OfferChin\n"
+            "rubika.ir/offerchin\n"
+            "youtube.com/@offerchin"
         )
     ).strip()[:3000]
     clean_tags = tags or ["آفِرچین", "دیجی‌کالا", "تخفیف", "پیشنهاد ویژه"]
