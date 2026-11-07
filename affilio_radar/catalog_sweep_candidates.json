@@ -13877,27 +13877,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9470",
-      "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 3953,
+      "catalog_best_selling_category_id": "9435",
+      "catalog_best_selling_category_name": "لباس مردانه",
+      "catalog_best_selling_rank": 9774,
       "catalog_best_selling_ranks_by_category": {
+        "9435": {
+          "category_name": "لباس مردانه",
+          "observed_at": "2026-11-07T11:02:50.471640+00:00",
+          "rank": 9774
+        },
         "9470": {
           "category_name": "تی شرت مردانه",
           "observed_at": "2026-11-07T05:31:10.258410+00:00",
           "rank": 3953
         }
       },
-      "catalog_category_id": "9470",
+      "catalog_category_id": "9435",
       "catalog_category_ids": [
+        "9435",
         "9470"
       ],
-      "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-07T05:31:10.258410+00:00",
+      "catalog_category_name": "لباس مردانه",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.471640+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 695000,
       "discount_percent": 81,
       "first_seen_at": "2026-11-07T03:49:00.810193+00:00",
-      "last_seen_at": "2026-11-07T05:30:54.484878+00:00",
+      "last_seen_at": "2026-11-07T11:02:32.628048+00:00",
       "original_price": 3580000,
       "product_id": "dkp-13618590",
       "product_url": "https://www.digikala.com/product/dkp-13618590/",
@@ -15745,12 +15751,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9470",
       "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 7440,
+      "catalog_best_selling_rank": 9767,
       "catalog_best_selling_ranks_by_category": {
         "9470": {
           "category_name": "تی شرت مردانه",
-          "observed_at": "2026-11-07T08:53:48.575165+00:00",
-          "rank": 7440
+          "observed_at": "2026-11-07T11:02:50.471839+00:00",
+          "rank": 9767
         }
       },
       "catalog_category_id": "9470",
@@ -15758,12 +15764,12 @@
         "9470"
       ],
       "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-07T08:53:48.575165+00:00",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.471839+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 695000,
       "discount_percent": 81,
       "first_seen_at": "2026-11-07T08:53:48.575165+00:00",
-      "last_seen_at": "2026-11-07T08:53:35.582005+00:00",
+      "last_seen_at": "2026-11-07T11:02:32.688870+00:00",
       "original_price": 3580000,
       "product_id": "dkp-17558100",
       "product_url": "https://www.digikala.com/product/dkp-17558100/",
@@ -16193,12 +16199,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9470",
       "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 8072,
+      "catalog_best_selling_rank": 9769,
       "catalog_best_selling_ranks_by_category": {
         "9470": {
           "category_name": "تی شرت مردانه",
-          "observed_at": "2026-11-07T09:31:38.976493+00:00",
-          "rank": 8072
+          "observed_at": "2026-11-07T11:02:50.471839+00:00",
+          "rank": 9769
         }
       },
       "catalog_category_id": "9470",
@@ -16206,12 +16212,12 @@
         "9470"
       ],
       "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-07T09:31:38.976493+00:00",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.471839+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 695000,
       "discount_percent": 81,
       "first_seen_at": "2026-11-07T09:31:38.976493+00:00",
-      "last_seen_at": "2026-11-07T09:31:28.634771+00:00",
+      "last_seen_at": "2026-11-07T11:02:32.688983+00:00",
       "original_price": 3580000,
       "product_id": "dkp-17492585",
       "product_url": "https://www.digikala.com/product/dkp-17492585/",
@@ -36243,10 +36249,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9491",
-      "catalog_best_selling_category_name": "عینک آفتابی مردانه",
-      "catalog_best_selling_rank": 7540,
+      "catalog_best_selling_category_id": "9383",
+      "catalog_best_selling_category_name": "عینک آفتابی زنانه",
+      "catalog_best_selling_rank": 9777,
       "catalog_best_selling_ranks_by_category": {
+        "9383": {
+          "category_name": "عینک آفتابی زنانه",
+          "observed_at": "2026-11-07T11:02:50.470096+00:00",
+          "rank": 9777
+        },
         "9491": {
           "category_name": "عینک آفتابی مردانه",
           "observed_at": "2026-11-07T08:59:12.367143+00:00",
@@ -36258,18 +36269,19 @@
           "rank": 5829
         }
       },
-      "catalog_category_id": "9491",
+      "catalog_category_id": "9383",
       "catalog_category_ids": [
+        "9383",
         "9491",
         "9537"
       ],
-      "catalog_category_name": "عینک آفتابی مردانه",
-      "catalog_rank_observed_at": "2026-11-07T08:59:12.367143+00:00",
+      "catalog_category_name": "عینک آفتابی زنانه",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.470096+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 999000,
       "discount_percent": 75,
       "first_seen_at": "2026-11-07T07:22:01.405746+00:00",
-      "last_seen_at": "2026-11-07T08:58:41.727884+00:00",
+      "last_seen_at": "2026-11-07T11:02:31.961273+00:00",
       "original_price": 4000000,
       "product_id": "dkp-22445832",
       "product_url": "https://www.digikala.com/product/dkp-22445832/",
@@ -36313,10 +36325,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9383",
-      "catalog_best_selling_category_name": "عینک آفتابی زنانه",
-      "catalog_best_selling_rank": 9487,
+      "catalog_best_selling_category_id": "11122",
+      "catalog_best_selling_category_name": "عینک زنانه و مردانه",
+      "catalog_best_selling_rank": 9769,
       "catalog_best_selling_ranks_by_category": {
+        "11122": {
+          "category_name": "عینک زنانه و مردانه",
+          "observed_at": "2026-11-07T11:02:50.494683+00:00",
+          "rank": 9769
+        },
         "9383": {
           "category_name": "عینک آفتابی زنانه",
           "observed_at": "2026-11-07T10:47:36.857308+00:00",
@@ -36333,19 +36350,20 @@
           "rank": 6366
         }
       },
-      "catalog_category_id": "9383",
+      "catalog_category_id": "11122",
       "catalog_category_ids": [
         "9383",
         "9491",
-        "9537"
+        "9537",
+        "11122"
       ],
-      "catalog_category_name": "عینک آفتابی زنانه",
-      "catalog_rank_observed_at": "2026-11-07T10:47:36.857308+00:00",
+      "catalog_category_name": "عینک زنانه و مردانه",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.494683+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 999000,
       "discount_percent": 75,
       "first_seen_at": "2026-11-07T07:47:57.631913+00:00",
-      "last_seen_at": "2026-11-07T10:47:26.232732+00:00",
+      "last_seen_at": "2026-11-07T11:02:40.318098+00:00",
       "original_price": 4000000,
       "product_id": "dkp-21844264",
       "product_url": "https://www.digikala.com/product/dkp-21844264/",
@@ -54903,12 +54921,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9470",
       "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 7123,
+      "catalog_best_selling_rank": 9770,
       "catalog_best_selling_ranks_by_category": {
         "9470": {
           "category_name": "تی شرت مردانه",
-          "observed_at": "2026-11-07T08:34:09.698002+00:00",
-          "rank": 7123
+          "observed_at": "2026-11-07T11:02:50.471839+00:00",
+          "rank": 9770
         }
       },
       "catalog_category_id": "9470",
@@ -54916,12 +54934,12 @@
         "9470"
       ],
       "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-07T08:34:09.698002+00:00",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.471839+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1190000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T08:34:09.698002+00:00",
-      "last_seen_at": "2026-11-07T08:33:55.395528+00:00",
+      "last_seen_at": "2026-11-07T11:02:32.689050+00:00",
       "original_price": 4580000,
       "product_id": "dkp-18647996",
       "product_url": "https://www.digikala.com/product/dkp-18647996/",
@@ -54935,12 +54953,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9470",
       "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 7146,
+      "catalog_best_selling_rank": 9772,
       "catalog_best_selling_ranks_by_category": {
         "9470": {
           "category_name": "تی شرت مردانه",
-          "observed_at": "2026-11-07T08:36:37.851588+00:00",
-          "rank": 7146
+          "observed_at": "2026-11-07T11:02:50.471839+00:00",
+          "rank": 9772
         }
       },
       "catalog_category_id": "9470",
@@ -54948,12 +54966,12 @@
         "9470"
       ],
       "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-07T08:36:37.851588+00:00",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.471839+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1190000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T08:36:37.851588+00:00",
-      "last_seen_at": "2026-11-07T08:36:01.771716+00:00",
+      "last_seen_at": "2026-11-07T11:02:32.689190+00:00",
       "original_price": 4580000,
       "product_id": "dkp-18591379",
       "product_url": "https://www.digikala.com/product/dkp-18591379/",
@@ -56183,12 +56201,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9470",
       "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 8049,
+      "catalog_best_selling_rank": 9771,
       "catalog_best_selling_ranks_by_category": {
         "9470": {
           "category_name": "تی شرت مردانه",
-          "observed_at": "2026-11-07T09:30:39.606944+00:00",
-          "rank": 8049
+          "observed_at": "2026-11-07T11:02:50.471839+00:00",
+          "rank": 9771
         }
       },
       "catalog_category_id": "9470",
@@ -56196,12 +56214,12 @@
         "9470"
       ],
       "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-07T09:30:39.606944+00:00",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.471839+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1190000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T09:30:39.606944+00:00",
-      "last_seen_at": "2026-11-07T09:30:30.309887+00:00",
+      "last_seen_at": "2026-11-07T11:02:32.689124+00:00",
       "original_price": 4580000,
       "product_id": "dkp-18623266",
       "product_url": "https://www.digikala.com/product/dkp-18623266/",
@@ -56503,12 +56521,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9470",
       "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 8490,
+      "catalog_best_selling_rank": 9780,
       "catalog_best_selling_ranks_by_category": {
         "9470": {
           "category_name": "تی شرت مردانه",
-          "observed_at": "2026-11-07T09:54:44.303954+00:00",
-          "rank": 8490
+          "observed_at": "2026-11-07T11:02:50.471839+00:00",
+          "rank": 9780
         }
       },
       "catalog_category_id": "9470",
@@ -56516,12 +56534,12 @@
         "9470"
       ],
       "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-07T09:54:44.303954+00:00",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.471839+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1190000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T09:42:43.778832+00:00",
-      "last_seen_at": "2026-11-07T09:54:33.364103+00:00",
+      "last_seen_at": "2026-11-07T11:02:32.689717+00:00",
       "original_price": 4580000,
       "product_id": "dkp-18580853",
       "product_url": "https://www.digikala.com/product/dkp-18580853/",
@@ -57047,12 +57065,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9470",
       "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 8475,
+      "catalog_best_selling_rank": 9774,
       "catalog_best_selling_ranks_by_category": {
         "9470": {
           "category_name": "تی شرت مردانه",
-          "observed_at": "2026-11-07T09:53:45.474456+00:00",
-          "rank": 8475
+          "observed_at": "2026-11-07T11:02:50.471839+00:00",
+          "rank": 9774
         }
       },
       "catalog_category_id": "9470",
@@ -57060,12 +57078,12 @@
         "9470"
       ],
       "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-07T09:53:45.474456+00:00",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.471839+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1190000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T09:53:45.474456+00:00",
-      "last_seen_at": "2026-11-07T09:53:30.815435+00:00",
+      "last_seen_at": "2026-11-07T11:02:32.689345+00:00",
       "original_price": 4580000,
       "product_id": "dkp-18591174",
       "product_url": "https://www.digikala.com/product/dkp-18591174/",
@@ -58647,12 +58665,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9470",
       "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 9733,
+      "catalog_best_selling_rank": 9762,
       "catalog_best_selling_ranks_by_category": {
         "9470": {
           "category_name": "تی شرت مردانه",
-          "observed_at": "2026-11-07T11:00:51.701443+00:00",
-          "rank": 9733
+          "observed_at": "2026-11-07T11:02:50.471839+00:00",
+          "rank": 9762
         }
       },
       "catalog_category_id": "9470",
@@ -58660,12 +58678,12 @@
         "9470"
       ],
       "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-07T11:00:51.701443+00:00",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.471839+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1190000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T11:00:51.701443+00:00",
-      "last_seen_at": "2026-11-07T11:00:30.035342+00:00",
+      "last_seen_at": "2026-11-07T11:02:32.688581+00:00",
       "original_price": 4580000,
       "product_id": "dkp-18590770",
       "product_url": "https://www.digikala.com/product/dkp-18590770/",
@@ -58674,6 +58692,102 @@
       "savings_toman": 3390000,
       "source": "digikala_catalog_sweep",
       "title": "تی شرت آستین کوتاه مردانه مدل انیمه ای طرح ناراتو کد anm522"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9470",
+      "catalog_best_selling_category_name": "تی شرت مردانه",
+      "catalog_best_selling_rank": 9773,
+      "catalog_best_selling_ranks_by_category": {
+        "9470": {
+          "category_name": "تی شرت مردانه",
+          "observed_at": "2026-11-07T11:02:50.471839+00:00",
+          "rank": 9773
+        }
+      },
+      "catalog_category_id": "9470",
+      "catalog_category_ids": [
+        "9470"
+      ],
+      "catalog_category_name": "تی شرت مردانه",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.471839+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-07T11:02:50.471839+00:00",
+      "last_seen_at": "2026-11-07T11:02:32.689274+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-18591189",
+      "product_url": "https://www.digikala.com/product/dkp-18591189/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه مردانه مدل ژاپن استایل کد anm544"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9470",
+      "catalog_best_selling_category_name": "تی شرت مردانه",
+      "catalog_best_selling_rank": 9778,
+      "catalog_best_selling_ranks_by_category": {
+        "9470": {
+          "category_name": "تی شرت مردانه",
+          "observed_at": "2026-11-07T11:02:50.471839+00:00",
+          "rank": 9778
+        }
+      },
+      "catalog_category_id": "9470",
+      "catalog_category_ids": [
+        "9470"
+      ],
+      "catalog_category_name": "تی شرت مردانه",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.471839+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-07T11:02:50.471839+00:00",
+      "last_seen_at": "2026-11-07T11:02:32.689609+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-18591158",
+      "product_url": "https://www.digikala.com/product/dkp-18591158/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه مردانه مدل ژاپن استایل اسکیت ربیت کد anm542"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9470",
+      "catalog_best_selling_category_name": "تی شرت مردانه",
+      "catalog_best_selling_rank": 9779,
+      "catalog_best_selling_ranks_by_category": {
+        "9470": {
+          "category_name": "تی شرت مردانه",
+          "observed_at": "2026-11-07T11:02:50.471839+00:00",
+          "rank": 9779
+        }
+      },
+      "catalog_category_id": "9470",
+      "catalog_category_ids": [
+        "9470"
+      ],
+      "catalog_category_name": "تی شرت مردانه",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.471839+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-07T11:02:50.471839+00:00",
+      "last_seen_at": "2026-11-07T11:02:32.689673+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-18601595",
+      "product_url": "https://www.digikala.com/product/dkp-18601595/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه مردانه مدل تایپوگرافی یونانی z616"
     },
     {
       "availability": "unknown",
@@ -76429,27 +76543,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "10011",
-      "catalog_best_selling_category_name": "تابلو و برچسب ایمنی و راهنما",
-      "catalog_best_selling_rank": 7203,
+      "catalog_best_selling_category_id": "8099",
+      "catalog_best_selling_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_best_selling_rank": 9765,
       "catalog_best_selling_ranks_by_category": {
         "10011": {
           "category_name": "تابلو و برچسب ایمنی و راهنما",
           "observed_at": "2026-11-07T08:40:52.503499+00:00",
           "rank": 7203
+        },
+        "8099": {
+          "category_name": "تجهیزات تردد، حفاظت و امنیت",
+          "observed_at": "2026-11-07T11:02:50.466099+00:00",
+          "rank": 9765
         }
       },
-      "catalog_category_id": "10011",
+      "catalog_category_id": "8099",
       "catalog_category_ids": [
+        "8099",
         "10011"
       ],
-      "catalog_category_name": "تابلو و برچسب ایمنی و راهنما",
-      "catalog_rank_observed_at": "2026-11-07T08:40:52.503499+00:00",
+      "catalog_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_rank_observed_at": "2026-11-07T11:02:50.466099+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 50690,
       "discount_percent": 72,
       "first_seen_at": "2026-11-06T22:55:04.028666+00:00",
-      "last_seen_at": "2026-11-07T08:40:40.484873+00:00",
+      "last_seen_at": "2026-11-07T11:02:28.716572+00:00",
       "original_price": 178820,
       "product_id": "dkp-5284906",
       "product_url": "https://www.digikala.com/product/dkp-5284906/",
@@ -114858,111 +114978,9 @@
       "savings_toman": 732050,
       "source": "digikala_catalog_sweep",
       "title": "پارچه ملحفه عرض 1.5 متر مدل مخمل 11316 رنگ طوسی"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "8640",
-      "catalog_best_selling_category_name": "پارچه",
-      "catalog_best_selling_rank": 187,
-      "catalog_best_selling_ranks_by_category": {
-        "8640": {
-          "category_name": "پارچه",
-          "observed_at": "2026-11-06T21:21:36.436226+00:00",
-          "rank": 187
-        }
-      },
-      "catalog_category_id": "8640",
-      "catalog_category_ids": [
-        "8640"
-      ],
-      "catalog_category_name": "پارچه",
-      "catalog_rank_observed_at": "2026-11-06T21:21:36.436226+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 345950,
-      "discount_percent": 68,
-      "first_seen_at": "2026-11-06T21:21:36.436226+00:00",
-      "last_seen_at": "2026-11-06T21:18:35.189501+00:00",
-      "original_price": 1078000,
-      "product_id": "dkp-19952578",
-      "product_url": "https://www.digikala.com/product/dkp-19952578/",
-      "rating": 3.67,
-      "review_count": 3,
-      "savings_toman": 732050,
-      "source": "digikala_catalog_sweep",
-      "title": "پارچه ملحفه عرض 1.5 متر مدل مخمل 11314 رنگ کرم"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "8640",
-      "catalog_best_selling_category_name": "پارچه",
-      "catalog_best_selling_rank": 391,
-      "catalog_best_selling_ranks_by_category": {
-        "8640": {
-          "category_name": "پارچه",
-          "observed_at": "2026-11-06T22:36:04.772509+00:00",
-          "rank": 391
-        }
-      },
-      "catalog_category_id": "8640",
-      "catalog_category_ids": [
-        "8640"
-      ],
-      "catalog_category_name": "پارچه",
-      "catalog_rank_observed_at": "2026-11-06T22:36:04.772509+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 350350,
-      "discount_percent": 68,
-      "first_seen_at": "2026-11-06T22:36:04.772509+00:00",
-      "last_seen_at": "2026-11-06T22:35:53.386800+00:00",
-      "original_price": 1078000,
-      "product_id": "dkp-20624014",
-      "product_url": "https://www.digikala.com/product/dkp-20624014/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 727650,
-      "source": "digikala_catalog_sweep",
-      "title": "پارچه ملحفه عرض 2 متر اسپی توره مدل تترون رنگ سفید"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "10657",
-      "catalog_best_selling_category_name": "الکتریکی",
-      "catalog_best_selling_rank": 4532,
-      "catalog_best_selling_ranks_by_category": {
-        "10657": {
-          "category_name": "الکتریکی",
-          "observed_at": "2026-11-07T06:05:48.543525+00:00",
-          "rank": 4532
-        },
-        "9096": {
-          "category_name": "قطعات الکترونیکی",
-          "observed_at": "2026-11-07T03:47:22.894967+00:00",
-          "rank": 2583
-        }
-      },
-      "catalog_category_id": "10657",
-      "catalog_category_ids": [
-        "9096",
-        "10657"
-      ],
-      "catalog_category_name": "الکتریکی",
-      "catalog_rank_observed_at": "2026-11-07T06:05:48.543525+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 333260,
-      "discount_percent": 68,
-      "first_seen_at": "2026-11-07T03:24:41.473624+00:00",
-      "last_seen_at": "2026-11-07T06:05:40.097409+00:00",
-      "original_price": 1053250,
-      "product_id": "dkp-6643830",
-      "product_url": "https://www.digikala.com/product/dkp-6643830/",
-      "rating": 3.17,
-      "review_count": 12,
-      "savings_toman": 719990,
-      "source": "digikala_catalog_sweep",
-      "title": "ماژول کارت خوان میکرو SD مدل SD_R/W"
     }
   ],
   "cycle_started_at": "2026-11-06T18:22:56.776413+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-07T11:01:41.660508+00:00"
+  "updated_at": "2026-11-07T11:02:50.525787+00:00"
 }
