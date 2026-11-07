@@ -4623,6 +4623,10 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
+    if isinstance(state, dict):
+        # Migrate the legacy three-hour Filo slot while building the sidecar;
+        # Cloudflare reads this projection before dispatching the Python workflow.
+        _initialize_filo_upload_slot(state)
     published = state.get("published") if isinstance(state, dict) else {}
     candidates = []
     if isinstance(published, dict):
@@ -4680,6 +4684,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
         "aparat_next_upload_at": value("aparat_next_upload_at"),
         "filo_next_upload_at": value("filo_next_upload_at"),
+        "filo_upload_interval_policy_version": value("filo_upload_interval_policy_version"),
         "filo_login_verified_at": value("filo_login_verified_at"),
         "filo_login_verification_status": value("filo_login_verification_status"),
         "published": compact_published,
