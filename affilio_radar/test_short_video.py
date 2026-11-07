@@ -281,11 +281,11 @@ class ShortVideoTests(unittest.TestCase):
             stream.getvalue(), 50, merchant="اسنپ‌شاپ",
         ))).convert("RGB")
 
-        # For a 400x500 source, the fitted product photo is 333x416 at (193,246).
-        # The retailer tile is upper-left and the equal-sized discount tile upper-right.
-        retailer_crop = digikala.crop((202, 302, 334, 354))
-        digikala_discount_crop = digikala.crop((388, 302, 520, 354))
-        snappshop_discount_crop = snappshop.crop((388, 302, 520, 354))
+        # With the CTA row, the fitted photo is about 299x374 at (210,314);
+        # the matching retailer/discount tiles sit at (220,324) and (375,324).
+        retailer_crop = digikala.crop((220, 324, 344, 372))
+        digikala_discount_crop = digikala.crop((375, 324, 499, 372))
+        snappshop_discount_crop = snappshop.crop((375, 324, 499, 372))
         red_pixels = sum(1 for red, green, blue in retailer_crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
         digikala_discount_pixels = sum(1 for red, green, blue in digikala_discount_crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
         snappshop_discount_pixels = sum(1 for red, green, blue in snappshop_discount_crop.getdata() if blue > 90 and red > green * 1.6 and blue > green * 1.6)
@@ -441,7 +441,7 @@ class ShortVideoTests(unittest.TestCase):
         ):
             self.assertTrue(any(label in value for value in drawn_text), label)
         self.assertFalse(any("youtube.com/@offerchin" in value for value in drawn_text))
-        self.assertTrue(any(value == "لینک خرید: توضیحات کانال" for value in drawn_text))
+        self.assertIn(_shape_rtl("لینک خرید: توضیحات کانال"), drawn_text)
         self.assertEqual(video_purchase_cta_text("youtube"), "لینک خرید: توضیحات کانال")
         self.assertFalse(any("OfferChin  •" in value for value in drawn_text))
         # The compact CTA panel stays above the product card and YouTube interface-safe area.
@@ -476,9 +476,10 @@ class ShortVideoTests(unittest.TestCase):
             ["telegram", "bale", "rubika", "youtube"],
         )
         self.assertTrue(any("youtube.com/@offerchin" in value for value in drawn_text))
-        self.assertTrue(any(
-            value == "لینک خرید: کپشن ویدئو و توضیحات کانال" for value in drawn_text
-        ))
+        self.assertIn(
+            _shape_rtl("لینک خرید: کپشن ویدئو و توضیحات کانال"),
+            drawn_text,
+        )
         self.assertEqual(
             video_purchase_cta_text("aparat"),
             "لینک خرید: کپشن ویدئو و توضیحات کانال",
