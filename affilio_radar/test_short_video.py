@@ -220,7 +220,6 @@ class ShortVideoTests(unittest.TestCase):
                 )
 
     def test_platform_logo_fitting_keeps_the_youtube_wordmark_rectangular(self):
-    def test_platform_logo_fitting_keeps_the_youtube_wordmark_rectangular(self):
         import offerchin_visuals
 
         wide_youtube = Image.new("RGBA", (420, 100), (255, 0, 0, 255))
