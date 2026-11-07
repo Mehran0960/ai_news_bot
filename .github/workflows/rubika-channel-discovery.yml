@@ -1,0 +1,50 @@
+name: Rubika Channel ID Discovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/rubika-channel-discovery.yml"
+      - "scripts/discover_rubika_channel.py"
+      - "scripts/test_discover_rubika_channel.py"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/rubika-channel-discovery.yml"
+      - "scripts/discover_rubika_channel.py"
+      - "scripts/test_discover_rubika_channel.py"
+  workflow_dispatch:
+    inputs:
+      channel_username:
+        description: "Public username of the Rubika channel (without @)"
+        required: false
+        default: "offerchin"
+
+permissions:
+  contents: read
+
+jobs:
+  discover-channel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Test safe channel matching
+        run: |
+          cd scripts
+          python -m unittest -v test_discover_rubika_channel.py
+
+      - name: Resolve channel ID from Bot API updates
+        if: github.event_name != 'pull_request'
+        env:
+          RUBIKA_BOT_TOKEN: ${{ secrets.RUBIKA_BOT_TOKEN }}
+          RUBIKA_CHANNEL_USERNAME: ${{ github.event.inputs.channel_username || vars.RUBIKA_CHANNEL_USERNAME || 'offerchin' }}
+          PYTHONUNBUFFERED: "1"
+        run: |
+          test -n "$RUBIKA_BOT_TOKEN" || {
+            echo "::error::RUBIKA_BOT_TOKEN secret is missing."
+            exit 1
+          }
+          python scripts/discover_rubika_channel.py
