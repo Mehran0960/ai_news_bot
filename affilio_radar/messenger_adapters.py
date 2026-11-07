@@ -69,11 +69,13 @@ def _caption(renderer: Any, item: dict, affiliate_url: str, channel: str) -> str
 
 
 def _render(renderer: Any, item: dict, image_bytes: bytes, channel: str) -> bytes:
-    mark = ("rubika", "روبیکا | آفِرچین") if channel == "rubika" else ("eitaa", "ایتا | آفِرچین")
+    # Rubika now appears in the shared cross-channel link list on every product card.
+    # Keep the Eitaa brand label only until a public Eitaa channel URL is configured.
+    extra_watermarks = [("eitaa", "ایتا | آفِرچین")] if channel == "eitaa" else None
     return renderer.build_discount_image(
         image_bytes, item.get("discount_percent"),
         merchant=item.get("merchant") or "دیجی‌کالا",
-        extra_watermarks=[mark],
+        extra_watermarks=extra_watermarks,
     )
 
 

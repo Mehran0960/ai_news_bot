@@ -5099,7 +5099,11 @@ def build_discount_image(
     # Keep the channel IDs at the lower-left without a card or solid panel.
     # Choose each text color from the pixels directly behind it; use a thin opposing
     # stroke to retain legibility over both pale and dark product photography.
-    watermarks = [("telegram", "T.me/OfferChin"), ("bale", "ble.ir/OfferChin")]
+    watermarks = [
+        ("telegram", "T.me/OfferChin"),
+        ("bale", "ble.ir/OfferChin"),
+        ("rubika", "rubika.ir/offerchin"),
+    ]
     for mark in extra_watermarks or []:
         if (
             isinstance(mark, (tuple, list))
