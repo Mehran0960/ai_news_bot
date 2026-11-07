@@ -20,6 +20,7 @@ on:
       - "affilio_radar/offerchin_audio.py"
       - "affilio_radar/aparat_uploader.py"
       - "affilio_radar/filo_uploader.py"
+      - ".github/workflows/filo-video-upload.yml"
       - "affilio_radar/test_filo_uploader.py"
       - "affilio_radar/test_filo_upload_schedule.py"
       - "affilio_radar/aparat_shorts_migration.py"
