@@ -499,3 +499,23 @@ def draw_retailer_badge(image, left: int, top: int, width: int, height: int, mer
     return (x, y, fitted.width, fitted.height)
 
 
+
+
+# Public OfferChin destinations in a fixed order. Keep these labels short enough
+# for the image footer and derive every destination-specific footer from this list.
+PUBLIC_CHANNEL_LINKS = (
+    ("telegram", "t.me/OfferChin"),
+    ("bale", "ble.ir/OfferChin"),
+    ("rubika", "rubika.ir/offerchin"),
+    ("youtube", "youtube.com/@offerchin"),
+)
+
+
+def public_channel_links(destination_platform: str | None = None) -> list[tuple[str, str]]:
+    """Return the public OfferChin links other than the channel receiving this post."""
+    excluded = str(destination_platform or "").strip().lower()
+    return [
+        (platform, label)
+        for platform, label in PUBLIC_CHANNEL_LINKS
+        if platform != excluded
+    ]
