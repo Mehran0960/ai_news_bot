@@ -4723,31 +4723,42 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertLessEqual(max(ys) - min(ys) + 1, expected_height)
             self.assertGreaterEqual(max(ys) - min(ys) + 1, expected_height - 4)
 
-    def test_channel_watermarks_use_platform_specific_compact_links(self):
+    def test_channel_watermarks_exclude_the_destination_and_show_other_three_platforms(self):
         image_bytes = BytesIO()
         Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")
         source = image_bytes.getvalue()
+        expected = {
+            "telegram": ["bale", "rubika", "youtube"],
+            "bale": ["telegram", "rubika", "youtube"],
+            "rubika": ["telegram", "bale", "youtube"],
+            "youtube": ["telegram", "bale", "rubika"],
+        }
+        rendered = []
 
-        drawn_platforms = []
+        for destination, expected_platforms in expected.items():
+            with patch(
+                "affilio_radar._draw_platform_watermark_icon",
+                wraps=radar_module._draw_platform_watermark_icon,
+            ) as draw_icon:
+                image = build_discount_image(
+                    source, None, destination_platform=destination,
+                )
+            rendered.append(image)
+            actual_platforms = [call.args[1] for call in draw_icon.call_args_list]
+            self.assertEqual(actual_platforms, expected_platforms)
+            self.assertNotIn(destination, actual_platforms)
+
+        self.assertEqual(len(set(rendered)), 4, "each destination must receive its own link footer")
+        # A destination-free render retains the complete network list for previews.
         with patch(
             "affilio_radar._draw_platform_watermark_icon",
-            side_effect=lambda _draw, platform, *_args: drawn_platforms.append(platform),
-        ):
+            wraps=radar_module._draw_platform_watermark_icon,
+        ) as draw_icon:
             build_discount_image(source, None)
-
-        # Render comparison images without mocks so every real platform icon is drawn.
-        default_telegram = build_discount_image(source, None)
-        canonical_telegram = build_discount_image(source, None, watermark="T.me/OfferChin")
-        legacy_telegram = build_discount_image(source, None, watermark="Telegram.me/OfferChin")
-        bale = build_discount_image(source, None, watermark="ble.ir/OfferChin")
-        rubika = build_discount_image(source, None, watermark="rubika.ir/offerchin")
-
-        self.assertEqual(drawn_platforms, ["telegram", "bale", "rubika"])
-        self.assertEqual(default_telegram, canonical_telegram)
-        self.assertEqual(legacy_telegram, canonical_telegram)
-        # Every channel's product card carries the same three cross-channel links and icons.
-        self.assertEqual(bale, canonical_telegram)
-        self.assertEqual(rubika, canonical_telegram)
+        self.assertEqual(
+            [call.args[1] for call in draw_icon.call_args_list],
+            ["telegram", "bale", "rubika", "youtube"],
+        )
 
     def test_telegram_growth_invites_are_created_once_per_source_and_reused(self):
         class FakeResponse:
