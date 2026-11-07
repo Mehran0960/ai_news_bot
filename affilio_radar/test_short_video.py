@@ -270,7 +270,7 @@ class ShortVideoTests(unittest.TestCase):
             self.assertEqual(probe.returncode, 0, details[:2000])
             self.assertIn("Video:", details)
             self.assertIn("Audio:", details)
-            self.assertRegex(details, r"Duration: 00:00:12(?:\\.00)?")
+            self.assertRegex(details, r"Duration: 00:00:12(?:\.00)?")
 
     def test_watermark_places_other_channel_marks_in_a_vertical_youtube_safe_area(self):
         import short_video
