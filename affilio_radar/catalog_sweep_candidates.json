@@ -9053,10 +9053,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "11122",
-      "catalog_best_selling_category_name": "عینک زنانه و مردانه",
-      "catalog_best_selling_rank": 6576,
+      "catalog_best_selling_category_id": "11120",
+      "catalog_best_selling_category_name": "عینک زنانه",
+      "catalog_best_selling_rank": 9999,
       "catalog_best_selling_ranks_by_category": {
+        "11120": {
+          "category_name": "عینک زنانه",
+          "observed_at": "2026-11-07T11:14:34.658275+00:00",
+          "rank": 9999
+        },
         "11122": {
           "category_name": "عینک زنانه و مردانه",
           "observed_at": "2026-11-07T08:05:01.216025+00:00",
@@ -9073,19 +9078,20 @@
           "rank": 4354
         }
       },
-      "catalog_category_id": "11122",
+      "catalog_category_id": "11120",
       "catalog_category_ids": [
         "9383",
         "9491",
+        "11120",
         "11122"
       ],
-      "catalog_category_name": "عینک زنانه و مردانه",
-      "catalog_rank_observed_at": "2026-11-07T08:05:01.216025+00:00",
+      "catalog_category_name": "عینک زنانه",
+      "catalog_rank_observed_at": "2026-11-07T11:14:34.658275+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 2800000,
       "discount_percent": 83,
       "first_seen_at": "2026-11-07T05:56:58.620969+00:00",
-      "last_seen_at": "2026-11-07T08:04:52.294638+00:00",
+      "last_seen_at": "2026-11-07T11:14:32.636941+00:00",
       "original_price": 16000000,
       "product_id": "dkp-22825969",
       "product_url": "https://www.digikala.com/product/dkp-22825969/",
@@ -59471,6 +59477,70 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "9470",
+      "catalog_best_selling_category_name": "تی شرت مردانه",
+      "catalog_best_selling_rank": 9981,
+      "catalog_best_selling_ranks_by_category": {
+        "9470": {
+          "category_name": "تی شرت مردانه",
+          "observed_at": "2026-11-07T11:14:34.594407+00:00",
+          "rank": 9981
+        }
+      },
+      "catalog_category_id": "9470",
+      "catalog_category_ids": [
+        "9470"
+      ],
+      "catalog_category_name": "تی شرت مردانه",
+      "catalog_rank_observed_at": "2026-11-07T11:14:34.594407+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-07T11:14:34.594407+00:00",
+      "last_seen_at": "2026-11-07T11:14:27.298934+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-18476900",
+      "product_url": "https://www.digikala.com/product/dkp-18476900/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه مردانه مدل مارsnake دارک هشدار گزیدگی z544"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9470",
+      "catalog_best_selling_category_name": "تی شرت مردانه",
+      "catalog_best_selling_rank": 9992,
+      "catalog_best_selling_ranks_by_category": {
+        "9470": {
+          "category_name": "تی شرت مردانه",
+          "observed_at": "2026-11-07T11:14:34.594407+00:00",
+          "rank": 9992
+        }
+      },
+      "catalog_category_id": "9470",
+      "catalog_category_ids": [
+        "9470"
+      ],
+      "catalog_category_name": "تی شرت مردانه",
+      "catalog_rank_observed_at": "2026-11-07T11:14:34.594407+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-07T11:14:34.594407+00:00",
+      "last_seen_at": "2026-11-07T11:14:27.299342+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-18372913",
+      "product_url": "https://www.digikala.com/product/dkp-18372913/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه مردانه مدل ساده یونانی لایف استایل mo434"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "9282",
       "catalog_best_selling_category_name": "لباس زنانه",
       "catalog_best_selling_rank": 7466,
@@ -64529,27 +64599,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "10011",
-      "catalog_best_selling_category_name": "تابلو و برچسب ایمنی و راهنما",
-      "catalog_best_selling_rank": 7255,
+      "catalog_best_selling_category_id": "8099",
+      "catalog_best_selling_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_best_selling_rank": 9998,
       "catalog_best_selling_ranks_by_category": {
         "10011": {
           "category_name": "تابلو و برچسب ایمنی و راهنما",
           "observed_at": "2026-11-07T08:42:48.368804+00:00",
           "rank": 7255
+        },
+        "8099": {
+          "category_name": "تجهیزات تردد، حفاظت و امنیت",
+          "observed_at": "2026-11-07T11:14:34.558065+00:00",
+          "rank": 9998
         }
       },
-      "catalog_category_id": "10011",
+      "catalog_category_id": "8099",
       "catalog_category_ids": [
+        "8099",
         "10011"
       ],
-      "catalog_category_name": "تابلو و برچسب ایمنی و راهنما",
-      "catalog_rank_observed_at": "2026-11-07T08:42:48.368804+00:00",
+      "catalog_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_rank_observed_at": "2026-11-07T11:14:34.558065+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 50020,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T08:39:09.642226+00:00",
-      "last_seen_at": "2026-11-07T08:42:34.119963+00:00",
+      "last_seen_at": "2026-11-07T11:14:24.022565+00:00",
       "original_price": 195330,
       "product_id": "dkp-12428317",
       "product_url": "https://www.digikala.com/product/dkp-12428317/",
@@ -71773,27 +71849,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "10011",
-      "catalog_best_selling_category_name": "تابلو و برچسب ایمنی و راهنما",
-      "catalog_best_selling_rank": 7253,
+      "catalog_best_selling_category_id": "8099",
+      "catalog_best_selling_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_best_selling_rank": 9996,
       "catalog_best_selling_ranks_by_category": {
         "10011": {
           "category_name": "تابلو و برچسب ایمنی و راهنما",
           "observed_at": "2026-11-07T08:42:48.368804+00:00",
           "rank": 7253
+        },
+        "8099": {
+          "category_name": "تجهیزات تردد، حفاظت و امنیت",
+          "observed_at": "2026-11-07T11:14:34.558065+00:00",
+          "rank": 9996
         }
       },
-      "catalog_category_id": "10011",
+      "catalog_category_id": "8099",
       "catalog_category_ids": [
+        "8099",
         "10011"
       ],
-      "catalog_category_name": "تابلو و برچسب ایمنی و راهنما",
-      "catalog_rank_observed_at": "2026-11-07T08:42:48.368804+00:00",
+      "catalog_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_rank_observed_at": "2026-11-07T11:14:34.558065+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 50750,
       "discount_percent": 73,
       "first_seen_at": "2026-11-07T08:39:09.642226+00:00",
-      "last_seen_at": "2026-11-07T08:42:34.119904+00:00",
+      "last_seen_at": "2026-11-07T11:14:24.022523+00:00",
       "original_price": 191500,
       "product_id": "dkp-15460448",
       "product_url": "https://www.digikala.com/product/dkp-15460448/",
@@ -72137,27 +72219,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "10011",
-      "catalog_best_selling_category_name": "تابلو و برچسب ایمنی و راهنما",
-      "catalog_best_selling_rank": 7256,
+      "catalog_best_selling_category_id": "8099",
+      "catalog_best_selling_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_best_selling_rank": 9995,
       "catalog_best_selling_ranks_by_category": {
         "10011": {
           "category_name": "تابلو و برچسب ایمنی و راهنما",
           "observed_at": "2026-11-07T08:42:48.368804+00:00",
           "rank": 7256
+        },
+        "8099": {
+          "category_name": "تجهیزات تردد، حفاظت و امنیت",
+          "observed_at": "2026-11-07T11:14:34.558065+00:00",
+          "rank": 9995
         }
       },
-      "catalog_category_id": "10011",
+      "catalog_category_id": "8099",
       "catalog_category_ids": [
+        "8099",
         "10011"
       ],
-      "catalog_category_name": "تابلو و برچسب ایمنی و راهنما",
-      "catalog_rank_observed_at": "2026-11-07T08:42:48.368804+00:00",
+      "catalog_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_rank_observed_at": "2026-11-07T11:14:34.558065+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 50970,
       "discount_percent": 73,
       "first_seen_at": "2026-11-07T08:39:09.642226+00:00",
-      "last_seen_at": "2026-11-07T08:42:34.119997+00:00",
+      "last_seen_at": "2026-11-07T11:14:24.022492+00:00",
       "original_price": 191500,
       "product_id": "dkp-16143818",
       "product_url": "https://www.digikala.com/product/dkp-16143818/",
@@ -107029,10 +107117,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "8111",
-      "catalog_best_selling_category_name": "لوازم جانبی ابزار برقی، شارژی و بادی",
-      "catalog_best_selling_rank": 2929,
+      "catalog_best_selling_category_id": "6071",
+      "catalog_best_selling_category_name": "ابزار برقی و شارژی",
+      "catalog_best_selling_rank": 9703,
       "catalog_best_selling_ranks_by_category": {
+        "6071": {
+          "category_name": "ابزار برقی و شارژی",
+          "observed_at": "2026-11-07T11:14:34.521098+00:00",
+          "rank": 9703
+        },
         "8111": {
           "category_name": "لوازم جانبی ابزار برقی، شارژی و بادی",
           "observed_at": "2026-11-07T04:14:11.242423+00:00",
@@ -107044,18 +107137,19 @@
           "rank": 169
         }
       },
-      "catalog_category_id": "8111",
+      "catalog_category_id": "6071",
       "catalog_category_ids": [
+        "6071",
         "8111",
         "9007"
       ],
-      "catalog_category_name": "لوازم جانبی ابزار برقی، شارژی و بادی",
-      "catalog_rank_observed_at": "2026-11-07T04:14:11.242423+00:00",
+      "catalog_category_name": "ابزار برقی و شارژی",
+      "catalog_rank_observed_at": "2026-11-07T11:14:34.521098+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 306700,
       "discount_percent": 69,
       "first_seen_at": "2026-11-06T21:13:18.110027+00:00",
-      "last_seen_at": "2026-11-07T04:13:14.597576+00:00",
+      "last_seen_at": "2026-11-07T11:14:20.747558+00:00",
       "original_price": 1000000,
       "product_id": "dkp-22070732",
       "product_url": "https://www.digikala.com/product/dkp-22070732/",
@@ -108915,27 +109009,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "10011",
-      "catalog_best_selling_category_name": "تابلو و برچسب ایمنی و راهنما",
-      "catalog_best_selling_rank": 7254,
+      "catalog_best_selling_category_id": "8099",
+      "catalog_best_selling_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_best_selling_rank": 9997,
       "catalog_best_selling_ranks_by_category": {
         "10011": {
           "category_name": "تابلو و برچسب ایمنی و راهنما",
           "observed_at": "2026-11-07T08:42:48.368804+00:00",
           "rank": 7254
+        },
+        "8099": {
+          "category_name": "تجهیزات تردد، حفاظت و امنیت",
+          "observed_at": "2026-11-07T11:14:34.558065+00:00",
+          "rank": 9997
         }
       },
-      "catalog_category_id": "10011",
+      "catalog_category_id": "8099",
       "catalog_category_ids": [
+        "8099",
         "10011"
       ],
-      "catalog_category_name": "تابلو و برچسب ایمنی و راهنما",
-      "catalog_rank_observed_at": "2026-11-07T08:42:48.368804+00:00",
+      "catalog_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_rank_observed_at": "2026-11-07T11:14:34.558065+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 50610,
       "discount_percent": 69,
       "first_seen_at": "2026-11-07T08:39:09.642226+00:00",
-      "last_seen_at": "2026-11-07T08:42:34.119934+00:00",
+      "last_seen_at": "2026-11-07T11:14:24.022544+00:00",
       "original_price": 162490,
       "product_id": "dkp-6001901",
       "product_url": "https://www.digikala.com/product/dkp-6001901/",
@@ -114818,115 +114918,9 @@
       "savings_toman": 1156000,
       "source": "digikala_catalog_sweep",
       "title": "کاغذ دیواری سوپر فرسکو ایزی مدل برگ 1014"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "6226",
-      "catalog_best_selling_category_name": "آشپزخانه",
-      "catalog_best_selling_rank": 2341,
-      "catalog_best_selling_ranks_by_category": {
-        "10639": {
-          "category_name": "ابزار آشپزی",
-          "observed_at": "2026-11-06T22:55:04.038959+00:00",
-          "rank": 449
-        },
-        "6226": {
-          "category_name": "آشپزخانه",
-          "observed_at": "2026-11-07T03:26:04.603931+00:00",
-          "rank": 2341
-        },
-        "6227": {
-          "category_name": "لوازم پخت و پز",
-          "observed_at": "2026-11-07T00:42:54.541818+00:00",
-          "rank": 983
-        },
-        "6247": {
-          "category_name": "ابزار آشپزی",
-          "observed_at": "2026-11-06T21:43:59.664465+00:00",
-          "rank": 272
-        }
-      },
-      "catalog_category_id": "6226",
-      "catalog_category_ids": [
-        "6226",
-        "6227",
-        "6247",
-        "10639"
-      ],
-      "catalog_category_name": "آشپزخانه",
-      "catalog_rank_observed_at": "2026-11-07T03:26:04.603931+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 520090,
-      "discount_percent": 68,
-      "first_seen_at": "2026-11-06T21:43:59.664465+00:00",
-      "last_seen_at": "2026-11-07T03:25:40.301589+00:00",
-      "original_price": 1616960,
-      "product_id": "dkp-7995342",
-      "product_url": "https://www.digikala.com/product/dkp-7995342/",
-      "rating": 4.05,
-      "review_count": 186,
-      "savings_toman": 1096870,
-      "source": "digikala_catalog_sweep",
-      "title": "دماسنج آشپزی واتان مدل ترمومتر JR-1"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "11210",
-      "catalog_best_selling_category_name": "مکمل بینایی",
-      "catalog_best_selling_rank": 4,
-      "catalog_best_selling_ranks_by_category": {
-        "10119": {
-          "category_name": "مکمل غذایی و ورزشی",
-          "observed_at": "2026-11-06T21:14:52.877086+00:00",
-          "rank": 169
-        },
-        "11196": {
-          "category_name": "مکمل غذایی",
-          "observed_at": "2026-11-06T21:00:24.893558+00:00",
-          "rank": 148
-        },
-        "11208": {
-          "category_name": "مکمل کمک درمانی",
-          "observed_at": "2026-11-06T21:00:24.895059+00:00",
-          "rank": 144
-        },
-        "11210": {
-          "category_name": "مکمل بینایی",
-          "observed_at": "2026-11-06T19:41:15.833799+00:00",
-          "rank": 4
-        },
-        "5702": {
-          "category_name": "سلامت و پزشکی",
-          "observed_at": "2026-11-06T21:00:24.948945+00:00",
-          "rank": 177
-        }
-      },
-      "catalog_category_id": "10119",
-      "catalog_category_ids": [
-        "5702",
-        "10119",
-        "11196",
-        "11208",
-        "11210"
-      ],
-      "catalog_category_name": "مکمل غذایی و ورزشی",
-      "catalog_rank_observed_at": "2026-11-06T19:41:15.833799+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 504870,
-      "discount_percent": 68,
-      "first_seen_at": "2026-11-06T19:41:15.833799+00:00",
-      "last_seen_at": "2026-11-06T21:14:37.026131+00:00",
-      "original_price": 1595000,
-      "product_id": "dkp-7927050",
-      "product_url": "https://www.digikala.com/product/dkp-7927050/",
-      "rating": 4.25,
-      "review_count": 5294,
-      "savings_toman": 1090130,
-      "source": "digikala_catalog_sweep",
-      "title": "کپسول چشم اوژن یوروویتال بسته 60 عددی"
     }
   ],
   "cycle_started_at": "2026-11-06T18:22:56.776413+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-07T11:13:40.651061+00:00"
+  "updated_at": "2026-11-07T11:14:34.691863+00:00"
 }
