@@ -5,6 +5,7 @@ from unittest.mock import Mock
 from filo_uploader import (
     FiloUploadError,
     _find_publish_button,
+    _visible_enabled_first,
     _normalize_text,
     _success_flag,
     _title_matches,
@@ -50,6 +51,23 @@ class FiloUploaderUnitTests(unittest.TestCase):
 
         self.assertIs(_find_publish_button(page), candidate)
         collection.nth.assert_called_once_with(0)
+
+    def test_login_selector_skips_visible_but_disabled_submit_decoy(self):
+        page = Mock()
+        collection = Mock()
+        disabled = Mock()
+        enabled = Mock()
+        collection.count.return_value = 2
+        collection.nth.side_effect = [disabled, enabled]
+        disabled.count.return_value = 1
+        disabled.is_visible.return_value = True
+        disabled.is_enabled.return_value = False
+        enabled.count.return_value = 1
+        enabled.is_visible.return_value = True
+        enabled.is_enabled.return_value = True
+        page.locator.return_value = collection
+
+        self.assertIs(_visible_enabled_first(page, ["button[type='submit']"]), enabled)
 
     def test_login_check_requires_credentials_without_launching_browser(self):
         with self.assertRaises(FiloUploadError) as caught:
