@@ -600,7 +600,7 @@
 
 **هدف:** فعال‌کردن مقصد روبیکا برای انتشار محصولات منتخب صف OfferChin و پشتیبانی از نام متغیر شناسه‌ای که در تنظیمات مخزن ثبت شده است.
 
-**تغییر/اقدام:** نگاشت RUBIKA_CHAT_ID از Secret یا Actions Variable به متغیر محیطی RUBIKA_CHANNEL_ID که آداپتور فعلی انتظار دارد؛ حفظ سازگاری با RUBIKA_CHANNEL_ID قدیمی و شناسهٔ کانال تأییدشده به‌عنوان fallback؛ روشن‌کردن انتشار به‌صورت پیش‌فرض با امکان توقف فوری از طریق RUBIKA_ENABLE_PUBLISHING=false.
+**تغییر/اقدام:** نگاشت RUBIKA_CHAT_ID از Secret یا Actions Variable به متغیر محیطی RUBIKA_CHANNEL_ID که آداپتور فعلی انتظار دارد؛ حفظ سازگاری با RUBIKA_CHANNEL_ID قدیمی و شناسهٔ کانال تأییدشده به‌عنوان fallback؛ روشن‌کردن انتشار به‌صورت پیش‌فرض با امکان توقف فوری از طریق RUBIKA_ENABLE_PUBLISHING=false؛ محدودکردن push-trigger ناشر به شاخهٔ main تا commitهای شاخه‌های کاری ناخواسته چرخهٔ انتشار را آغاز نکنند.
 
 **فایل‌ها/سامانه‌ها:** .github/workflows/offerchin-publisher.yml، docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md، docs/CHANGELOG_FA.md، آداپتور موجود در affilio_radar/messenger_adapters.py.
 
