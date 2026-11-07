@@ -115,7 +115,7 @@ APARAT_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_APARAT_UPLO
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "100"))))
-MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.2833333333333333")))
+MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.6166666666666667")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
@@ -134,11 +134,11 @@ COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
 CAPTION_DEADLINE_FORMAT_VERSION = 14
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
-URGENT_MIN_POST_INTERVAL_MINUTES = 17
+URGENT_MIN_POST_INTERVAL_MINUTES = 37
 DEADLINE_CRITICAL_WINDOW_MINUTES = 120
 # Offers inside the hard 90-minute cutoff are rejected instead of being rushed out.
 ULTRA_URGENT_WINDOW_MINUTES = 0
-ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 17
+ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 37
 URGENT_MIN_DISCOUNT_PERCENT = 80
 URGENT_MIN_SAVINGS_TOMAN = 500_000
 IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
@@ -8371,9 +8371,9 @@ PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
 APARAT_SHORTS_ONLY = str(os.getenv("APARAT_SHORTS_ONLY", "false")).strip().lower() in {"1", "true", "yes", "on"}
 # The main radar and the dedicated Aparat workflow can independently enable this destination.
 APARAT_UPLOAD_ENABLED = str(os.getenv("AFFILIO_APARAT_UPLOAD_ENABLED", "true")).strip().lower() in {"1", "true", "yes", "on"}
-# Each video slot selects from a small, fresh hand-off window rather than building a long backlog.
+# Each platform still obeys its own upload slot and 24-hour freshness guard; scan the full compact hand-off window so pending items are not hidden behind the newest six.
 MAX_SHORT_VIDEOS_PER_RUN = max(1, min(4, int(os.getenv("AFFILIO_MAX_SHORT_VIDEOS_PER_RUN", "2"))))
-VIDEO_UPLOAD_CANDIDATE_LIMIT = max(1, min(50, int(os.getenv("AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT", "6"))))
+VIDEO_UPLOAD_CANDIDATE_LIMIT = max(1, min(VIDEO_DISPATCH_STATE_RECORD_LIMIT, int(os.getenv("AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT", str(VIDEO_DISPATCH_STATE_RECORD_LIMIT)))))
 VIDEO_UPLOAD_MAX_AGE_HOURS = max(1, min(72, int(os.getenv("AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS", "24"))))
 
 
