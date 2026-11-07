@@ -112,6 +112,7 @@ MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNE
 YOUTUBE_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS", "3"))))
 # Aparat has an independent cadence and remains eligible during a YouTube quota pause.
 APARAT_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS", "3"))))
+FILO_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_FILO_UPLOAD_INTERVAL_HOURS", "3"))))
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "100"))))
@@ -4645,9 +4646,9 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
 
     fields = (
-        "youtube_upload_status", "aparat_upload_status", "video_generation_status",
+        "youtube_upload_status", "aparat_upload_status", "filo_upload_status", "video_generation_status",
         "video_generation_next_attempt_at", "youtube_next_attempt_at",
-        "aparat_next_attempt_at", "expires_at", "expiry_source", "expiry_estimated",
+        "aparat_next_attempt_at", "filo_next_attempt_at", "expires_at", "expiry_source", "expiry_estimated",
         "expiry_deadline_verified_directly", "expiry_deadline_verified_from_site_card",
     )
     compact_published = {}
@@ -4676,6 +4677,9 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
         "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
         "aparat_next_upload_at": value("aparat_next_upload_at"),
+        "filo_next_upload_at": value("filo_next_upload_at"),
+        "filo_login_verified_at": value("filo_login_verified_at"),
+        "filo_login_verification_status": value("filo_login_verification_status"),
         "published": compact_published,
     }
 
@@ -8596,6 +8600,71 @@ def _aparat_upload_slot_due(
     return next_slot is None or current >= next_slot
 
 
+def _initialize_filo_upload_slot(state: dict) -> datetime | None:
+    """Load Filo's slot or migrate it from previously accepted Filo submissions."""
+    next_slot = _parse_utc_datetime(state.get("filo_next_upload_at"))
+    if next_slot is not None:
+        return next_slot
+
+    timestamps: list[datetime] = []
+    if isinstance(state.get("published"), dict):
+        for record in state["published"].values():
+            if not isinstance(record, dict):
+                continue
+            status = str(record.get("filo_upload_status") or "")
+            if status not in {"published", "submitted_pending_approval", "submitted_unconfirmed", "upload_result_unknown"}:
+                continue
+            timestamp = _parse_utc_datetime(
+                record.get("filo_submitted_at") or record.get("filo_uploaded_at") or
+                record.get("filo_upload_started_at")
+            )
+            if timestamp is not None:
+                timestamps.append(timestamp)
+
+    for key in ("filo_last_upload_success_at", "filo_last_upload_outcome_unknown_at",
+                "filo_last_upload_attempt_at"):
+        timestamp = _parse_utc_datetime(state.get(key))
+        if timestamp is not None:
+            timestamps.append(timestamp)
+    if not timestamps:
+        return None
+
+    next_slot = max(timestamps) + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
+    state["filo_next_upload_at"] = next_slot.isoformat()
+    return next_slot
+
+
+def _filo_login_verified(state: dict, now: datetime | None = None) -> bool:
+    """Require a recent, explicit non-publishing login check before Filo can publish."""
+    if not isinstance(state, dict) or state.get("filo_login_verification_status") != "verified":
+        return False
+    verified_at = _parse_utc_datetime(state.get("filo_login_verified_at"))
+    if verified_at is None:
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    age = (current - verified_at).total_seconds()
+    return 0 <= age <= 7 * 24 * 60 * 60
+
+
+def _filo_upload_slot_due(
+    state: dict,
+    now: datetime | None = None,
+    credentials_ready: bool = True,
+) -> bool:
+    """Check Filo's cadence independently from YouTube and Aparat."""
+    if not credentials_ready:
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    next_slot = _initialize_filo_upload_slot(state)
+    return next_slot is None or current >= next_slot
+
+
 def _video_upload_candidate_sort_key(row: tuple) -> tuple:
     """Order public video work by markdown first; repair is only a tie-breaker."""
     record = row[2] if isinstance(row, tuple) and len(row) > 2 and isinstance(row[2], dict) else {}
@@ -8668,6 +8737,18 @@ def process_pending_short_video(
         PENDING_APARAT_STATUSES = {"pending", "pending_credentials", "retry"}
         print(f"APARAT_SETUP_UNAVAILABLE error={type(exc).__name__}; YouTube processing continues")
 
+    try:
+        from filo_uploader import (
+            FiloUploadError,
+            filo_credentials_available,
+            upload_filo_video,
+        )
+    except Exception as exc:
+        FiloUploadError = RuntimeError
+        filo_credentials_available = lambda: False
+        upload_filo_video = None
+        print(f"FILO_SETUP_UNAVAILABLE error={type(exc).__name__}; other video destinations continue")
+
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -8686,8 +8767,22 @@ def process_pending_short_video(
     except Exception as exc:
         aparat_ready = False
         print(f"APARAT_CREDENTIAL_CHECK_FAILED error={type(exc).__name__}; other destinations continue")
+    filo_login_verified = _filo_login_verified(state, current)
+    try:
+        filo_ready = (
+            "filo" in selected_destinations
+            and filo_credentials_available()
+            and upload_filo_video is not None
+            and filo_login_verified
+        )
+        if "filo" in selected_destinations and not filo_login_verified:
+            print("FILO_UPLOAD_BLOCKED reason=login_not_verified")
+    except Exception as exc:
+        filo_ready = False
+        print(f"FILO_CREDENTIAL_CHECK_FAILED error={type(exc).__name__}; other destinations continue")
     review_ready = destinations is None and telegram_video_review_available()
     pending_youtube = {"pending", "pending_credentials", "retry"}
+    pending_filo = {"pending", "pending_credentials", "retry"}
     candidates = []
     state_changed = False
 
@@ -8767,6 +8862,14 @@ def process_pending_short_video(
         state_changed = True
     if aparat_ready and not aparat_upload_due and aparat_next_upload_at is not None:
         print(f"APARAT_UPLOAD_SLOT_WAIT next_at={aparat_next_upload_at.isoformat()}")
+
+    filo_schedule_before = str(state.get("filo_next_upload_at") or "")
+    filo_upload_due = bool(force_due and filo_ready) or _filo_upload_slot_due(state, current, filo_ready)
+    filo_next_upload_at = _parse_utc_datetime(state.get("filo_next_upload_at"))
+    if str(state.get("filo_next_upload_at") or "") != filo_schedule_before:
+        state_changed = True
+    if filo_ready and not filo_upload_due and filo_next_upload_at is not None:
+        print(f"FILO_UPLOAD_SLOT_WAIT next_at={filo_next_upload_at.isoformat()}")
 
     if youtube_ready:
         for existing_pid, existing_record in published.items():
@@ -8893,7 +8996,7 @@ def process_pending_short_video(
 
     candidate_records = list(published.items())
     if candidate_limit is not None and only_product_id is None:
-        limit = max(1, min(100, int(candidate_limit)))
+        limit = max(1, min(VIDEO_DISPATCH_STATE_RECORD_LIMIT, int(candidate_limit)))
         candidate_records.sort(
             key=lambda item: _int_value(item[1].get("ts")) or 0,
             reverse=True,
@@ -8926,6 +9029,7 @@ def process_pending_short_video(
                 print(f"SHORT_VIDEO_REGENERATE id={pid} old_style={style_version} new_style={VIDEO_STYLE_VERSION}")
         upload_status = str(record.get("youtube_upload_status") or "pending_credentials")
         aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
+        filo_status = str(record.get("filo_upload_status") or "pending_credentials")
         # Earlier code incorrectly marked YouTube itself ineligible whenever the retailer
         # did not expose a verifiable expiry timer. A channel item has already passed the
         # live price/stock gate; YouTube can rely on the independent 5-minute integrity audit.
@@ -9001,6 +9105,19 @@ def process_pending_short_video(
             else:
                 aparat_in_flight = True
 
+        filo_in_flight = False
+        if filo_status == "uploading":
+            started = _parse_utc_datetime(record.get("filo_upload_started_at"))
+            if started and (current - started).total_seconds() > 1800:
+                record["filo_upload_status"] = "upload_result_unknown"
+                record["filo_review_required"] = True
+                record["filo_last_error"] = "runner_interrupted_during_upload"
+                state["filo_last_upload_outcome_unknown_at"] = current.isoformat()
+                filo_status = "upload_result_unknown"
+                state_changed = True
+            else:
+                filo_in_flight = True
+
         if generation_status not in {"pending", "generated"}:
             continue
 
@@ -9031,6 +9148,8 @@ def process_pending_short_video(
                 record["youtube_upload_status"] = "skipped_expiring_soon"
             if aparat_status in PENDING_APARAT_STATUSES:
                 record["aparat_upload_status"] = "skipped_expiring_soon"
+            if filo_status in pending_filo:
+                record["filo_upload_status"] = "skipped_expiring_soon"
             state_changed = True
             print(f"SHORT_VIDEO_SKIP id={pid} reason=inside_expiry_removal_buffer")
             continue
@@ -9048,6 +9167,10 @@ def process_pending_short_video(
         if verified_expiry and aparat_status in {"skipped_unverified_deadline", "skipped_expiring_soon"}:
             aparat_status = "pending"
             record["aparat_upload_status"] = "pending"
+            state_changed = True
+        if verified_expiry and filo_status in {"skipped_unverified_deadline", "skipped_expiring_soon"}:
+            filo_status = "pending"
+            record["filo_upload_status"] = "pending"
             state_changed = True
 
         # Youtube may proceed without an official retailer timer after a successful
@@ -9082,6 +9205,10 @@ def process_pending_short_video(
         )
         public_aparat_need = aparat_need and not APARAT_SHORTS_ONLY
         shorts_queue_need = aparat_pending and APARAT_SHORTS_ONLY
+        filo_need = (
+            filo_ready and filo_upload_due and filo_status in pending_filo
+            and not filo_in_flight and verified_expiry
+        )
         manual_artifact_need = (
             # A manual MP4 artifact is a YouTube fallback, not an Aparat destination.
             # In an Aparat-only run, treating it as work would let unverified-expiry
@@ -9095,15 +9222,15 @@ def process_pending_short_video(
         review_need = review_ready and not record.get("video_review_sent") and not (
             review_next and current < review_next
         )
-        if youtube_pause_active and not (public_aparat_need or shorts_queue_need or review_need):
+        if youtube_pause_active and not (public_aparat_need or shorts_queue_need or filo_need or review_need):
             # A YouTube daily limit suppresses only YouTube uploads; public Aparat uploads,
             # the separately queued Aparat Shorts path, and an explicitly configured private
             # review destination remain eligible.
             continue
-        if not (yt_need or public_aparat_need or shorts_queue_need or review_need or manual_artifact_need):
+        if not (yt_need or public_aparat_need or shorts_queue_need or filo_need or review_need or manual_artifact_need):
             # Don't render/select public YouTube content before its next scheduled slot.
             continue
-        if generation_status == "generated" and not (yt_need or public_aparat_need or shorts_queue_need or review_need or manual_artifact_need):
+        if generation_status == "generated" and not (yt_need or public_aparat_need or shorts_queue_need or filo_need or review_need or manual_artifact_need):
             # A previously generated MP4 has no configured destination needing work.
             continue
 
@@ -9111,6 +9238,7 @@ def process_pending_short_video(
         for key, needed in (
             ("youtube_next_attempt_at", yt_need),
             ("aparat_next_attempt_at", aparat_need),
+            ("filo_next_attempt_at", filo_need),
             ("video_generation_next_attempt_at", generation_status == "pending"),
         ):
             value = record.get(key)
@@ -9131,6 +9259,8 @@ def process_pending_short_video(
             render_destinations.append("youtube")
         if public_aparat_need or shorts_queue_need:
             render_destinations.append("aparat")
+        if filo_need:
+            render_destinations.append("filo")
         if not render_destinations and review_need:
             render_destinations.append(
                 "youtube" if "youtube" in selected_destinations else "aparat"
@@ -9166,7 +9296,7 @@ def process_pending_short_video(
     def render_for_destination(destination: str) -> Path:
         nonlocal image_bytes
         platform = str(destination or "").strip().lower()
-        if platform not in {"youtube", "aparat"}:
+        if platform not in {"youtube", "aparat", "filo"}:
             raise ValueError(f"unsupported video destination: {platform}")
         existing = rendered_video_paths.get(platform)
         if existing is not None and existing.is_file():
@@ -9334,7 +9464,98 @@ def process_pending_short_video(
         print(f"APARAT_SHORTS_QUEUED id={pid} format=9:16 generic_public_upload=disabled")
         save_json(STATE, state)
 
-    # Existing official YouTube upload stays independent from Aparat.
+    # Filo has its own authenticated uploader, status, schedule and failure boundary.
+    # It is isolated from both YouTube quota errors and Aparat API failures.
+    filo_status = str(record.get("filo_upload_status") or "pending_credentials")
+    if filo_ready and filo_upload_due and filo_status in pending_filo and not filo_in_flight:
+        filo_started_at = datetime.now(timezone.utc)
+        record["filo_upload_status"] = "uploading"
+        record["filo_upload_started_at"] = filo_started_at.isoformat()
+        state["filo_last_upload_attempt_at"] = filo_started_at.isoformat()
+        # Reserve the independent slot before interacting with Filo to prevent bursts.
+        state["filo_next_upload_at"] = (
+            filo_started_at + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
+        ).isoformat()
+        save_json(STATE, state)
+        try:
+            filo_result = upload_filo_video(
+                render_for_destination("filo"),
+                str(record.get("title") or "پیشنهاد ویژه دیجی‌کالا"),
+                build_video_channel_description(state, "filo", record=record),
+            )
+            filo_result_status = str(filo_result.get("status") or "upload_result_unknown")
+            if filo_result_status not in {
+                "published", "submitted_pending_approval", "submitted_unconfirmed",
+                "upload_result_unknown", "retry", "rejected_by_filo",
+            }:
+                filo_result_status = "upload_result_unknown"
+            record["filo_upload_status"] = filo_result_status
+            record["filo_video_url"] = str(filo_result.get("public_url") or "")
+            record["filo_video_code"] = str(filo_result.get("video_code") or "")
+            record["filo_visibility"] = str(filo_result.get("visibility") or "unknown")
+            record["filo_last_error"] = str(filo_result.get("error_code") or "")[:160]
+            if filo_result_status in {"published", "submitted_pending_approval", "submitted_unconfirmed"}:
+                submitted_at = datetime.now(timezone.utc)
+                record["filo_submitted_at"] = submitted_at.isoformat()
+                state["filo_last_upload_success_at"] = submitted_at.isoformat()
+                state["filo_next_upload_at"] = (
+                    submitted_at + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
+                ).isoformat()
+                record.pop("filo_next_attempt_at", None)
+                record["filo_review_required"] = False
+                print(
+                    f"FILO_UPLOAD_ACCEPTED id={pid} status={filo_result_status} "
+                    f"url={record['filo_video_url'] or 'pending_visibility'}"
+                )
+            elif filo_result_status == "upload_result_unknown":
+                unknown_at = datetime.now(timezone.utc)
+                record["filo_review_required"] = True
+                state["filo_last_upload_outcome_unknown_at"] = unknown_at.isoformat()
+                state["filo_next_upload_at"] = (
+                    unknown_at + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
+                ).isoformat()
+                print(f"FILO_UPLOAD_RESULT_UNKNOWN id={pid} no_automatic_duplicate_retry=true")
+            elif filo_result_status == "retry":
+                try:
+                    attempts = int(record.get("filo_upload_attempts", 0) or 0) + 1
+                except (TypeError, ValueError, OverflowError):
+                    attempts = 1
+                record["filo_upload_attempts"] = attempts
+                record["filo_next_attempt_at"] = (
+                    datetime.now(timezone.utc)
+                    + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
+                ).isoformat()
+                print(f"FILO_UPLOAD_RETRY id={pid} error={record['filo_last_error'] or 'retryable_failure'} attempts={attempts}")
+            else:
+                record["filo_review_required"] = True
+                print(f"FILO_UPLOAD_REJECTED id={pid} error={record['filo_last_error'] or 'rejected_by_filo'}")
+        except Exception as exc:
+            if getattr(exc, "submission_started", False):
+                record["filo_upload_status"] = "upload_result_unknown"
+                record["filo_review_required"] = True
+                record["filo_last_error"] = str(getattr(exc, "code", "filo_submit_outcome_unknown"))[:160]
+                unknown_at = datetime.now(timezone.utc)
+                state["filo_last_upload_outcome_unknown_at"] = unknown_at.isoformat()
+                state["filo_next_upload_at"] = (
+                    unknown_at + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
+                ).isoformat()
+                print(f"FILO_UPLOAD_RESULT_UNKNOWN id={pid} error={type(exc).__name__} no_automatic_duplicate_retry=true")
+            else:
+                try:
+                    attempts = int(record.get("filo_upload_attempts", 0) or 0) + 1
+                except (TypeError, ValueError, OverflowError):
+                    attempts = 1
+                record["filo_upload_attempts"] = attempts
+                record["filo_upload_status"] = "retry"
+                record["filo_last_error"] = str(getattr(exc, "code", type(exc).__name__))[:160]
+                record["filo_next_attempt_at"] = (
+                    datetime.now(timezone.utc)
+                    + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
+                ).isoformat()
+                print(f"FILO_UPLOAD_FAILED id={pid} error={type(exc).__name__} retry_attempt={attempts}")
+        save_json(STATE, state)
+
+    # Existing official YouTube upload stays independent from Aparat and Filo.
     upload_status = str(record.get("youtube_upload_status") or "pending_credentials")
     if youtube_upload_due and upload_status in pending_youtube:
         record["youtube_upload_status"] = "uploading"
@@ -10543,6 +10764,65 @@ def run_aparat_uploads_only() -> int:
     print(f"APARAT_ONLY_RUN_SUMMARY processed={processed} max_per_run={MAX_SHORT_VIDEOS_PER_RUN}")
     return 0
 
+
+def run_filo_login_check_only() -> int:
+    """Check Filo account access only; never select or submit a video."""
+    from filo_uploader import FiloUploadError, verify_filo_login
+
+    try:
+        result = verify_filo_login()
+        state = load_state()
+        checked_at = datetime.now(timezone.utc)
+        if result.get("status") == "login_verified" and result.get("upload_route_available") is True:
+            state["filo_login_verified_at"] = checked_at.isoformat()
+            state["filo_login_verification_status"] = "verified"
+            state["filo_login_verification_attempted_at"] = checked_at.isoformat()
+            save_json(STATE, state)
+            print("FILO_LOGIN_CHECK_OK upload_route_available=true public_upload_performed=false")
+            return 0
+        state.pop("filo_login_verified_at", None)
+        state["filo_login_verification_status"] = "failed"
+        state["filo_login_verification_attempted_at"] = checked_at.isoformat()
+        save_json(STATE, state)
+        print("FILO_LOGIN_CHECK_FAILED error=upload_route_not_confirmed public_upload_performed=false")
+        return 1
+    except FiloUploadError as exc:
+        state = load_state()
+        state.pop("filo_login_verified_at", None)
+        state["filo_login_verification_status"] = "failed"
+        state["filo_login_verification_attempted_at"] = datetime.now(timezone.utc).isoformat()
+        save_json(STATE, state)
+        print(f"FILO_LOGIN_CHECK_FAILED error={exc.code} public_upload_performed=false")
+        return 1
+    except Exception as exc:
+        state = load_state()
+        state.pop("filo_login_verified_at", None)
+        state["filo_login_verification_status"] = "failed"
+        state["filo_login_verification_attempted_at"] = datetime.now(timezone.utc).isoformat()
+        save_json(STATE, state)
+        print(f"FILO_LOGIN_CHECK_FAILED error={type(exc).__name__} public_upload_performed=false")
+        return 1
+
+
+def run_filo_uploads_only() -> int:
+    """Process the persisted video queue for Filo only; never run product discovery."""
+    state = load_state()
+    processed = 0
+    while processed < MAX_SHORT_VIDEOS_PER_RUN:
+        if not process_pending_short_video(
+            state,
+            output_dir="video_artifacts",
+            destinations={"filo"},
+            candidate_limit=VIDEO_UPLOAD_CANDIDATE_LIMIT,
+            max_age_hours=VIDEO_UPLOAD_MAX_AGE_HOURS,
+        ):
+            break
+        processed += 1
+        state = load_state()
+    print(f"FILO_ONLY_RUN_SUMMARY processed={processed} max_per_run={MAX_SHORT_VIDEOS_PER_RUN}")
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--publish", action="store_true", help="publish at most one eligible item if all checks pass")
@@ -10556,6 +10836,16 @@ def main():
         "--aparat-upload-only",
         action="store_true",
         help="process pending vertical videos for Aparat only; do not discover products or upload to YouTube",
+    )
+    parser.add_argument(
+        "--filo-login-check-only",
+        action="store_true",
+        help="verify Filo credentials and upload-page access without publishing a video",
+    )
+    parser.add_argument(
+        "--filo-upload-only",
+        action="store_true",
+        help="process pending vertical videos for Filo only; do not discover products or upload to other platforms",
     )
     parser.add_argument("--dry-run", action="store_true", help="force discovery-only mode")
     parser.add_argument("--setup-growth-invites", action="store_true", help="create source-specific Telegram invite links without running product discovery or publishing offers")
@@ -10625,6 +10915,14 @@ def main():
             sys.exit(run_aparat_uploads_only())
         except Exception as exc:
             print(f"APARAT_ONLY_RUN_FAILED error={type(exc).__name__}")
+            sys.exit(1)
+    if args.filo_login_check_only:
+        sys.exit(run_filo_login_check_only())
+    if args.filo_upload_only:
+        try:
+            sys.exit(run_filo_uploads_only())
+        except Exception as exc:
+            print(f"FILO_ONLY_RUN_FAILED error={type(exc).__name__}")
             sys.exit(1)
     if args.setup_growth_invites:
         state = load_state()

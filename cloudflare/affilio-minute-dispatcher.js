@@ -12,6 +12,8 @@ const YOUTUBE_VIDEO_WORKFLOW = "youtube-video-upload.yml";
 const YOUTUBE_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${YOUTUBE_VIDEO_WORKFLOW}`;
 const APARAT_VIDEO_WORKFLOW = "aparat-video-upload.yml";
 const APARAT_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${APARAT_VIDEO_WORKFLOW}`;
+const OFFERCHIN_FILO_VIDEO_WORKFLOW = "filo-video-upload.yml";
+const OFFERCHIN_FILO_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${OFFERCHIN_FILO_VIDEO_WORKFLOW}`;
 const RUNS_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
 const FILO_REPO = "Goushibaaz";
 const FILO_WORKFLOW = "filo-native-republish.yml";
@@ -351,7 +353,7 @@ export function videoRecordDue(record, platform, now) {
   const expiry = dateValue(record.expires_at);
   if (expiry !== null && expiry <= now + 10 * 60 * 1000) return false;
 
-  if (platform === "aparat") {
+  if (platform === "aparat" || platform === "filo") {
     const verifiedExpiry =
       record.expiry_deadline_verified_directly === true ||
       (record.expiry_source === "digikala_mcp_offer_card" &&
@@ -359,6 +361,18 @@ export function videoRecordDue(record, platform, now) {
     if (!verifiedExpiry) return false;
   }
   return true;
+}
+
+export function isFiloLoginVerified(state, now) {
+  const verifiedAt = dateValue(state && state.filo_login_verified_at);
+  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
+  const age = verifiedAt === null ? -1 : timestamp - verifiedAt;
+  return Boolean(
+    state &&
+    state.filo_login_verification_status === "verified" &&
+    age >= 0 &&
+    age <= 7 * 24 * 60 * 60 * 1000
+  );
 }
 
 export function hasDueVideoRecord(state, platform, now) {
@@ -385,9 +399,15 @@ async function readLatestWorkflowAttempt(api, token) {
 async function dispatchVideoPlatformWhenDue(env, tick, state, platform) {
   const config = platform === "youtube"
     ? { api: YOUTUBE_VIDEO_API, workflow: YOUTUBE_VIDEO_WORKFLOW, slot: "youtube_next_upload_at", pause: "youtube_uploads_paused_until" }
-    : { api: APARAT_VIDEO_API, workflow: APARAT_VIDEO_WORKFLOW, slot: "aparat_next_upload_at", pause: null };
+    : platform === "aparat"
+      ? { api: APARAT_VIDEO_API, workflow: APARAT_VIDEO_WORKFLOW, slot: "aparat_next_upload_at", pause: null }
+      : { api: OFFERCHIN_FILO_VIDEO_API, workflow: OFFERCHIN_FILO_VIDEO_WORKFLOW, slot: "filo_next_upload_at", pause: null };
 
   const now = tick.getTime();
+  if (platform === "filo" && !isFiloLoginVerified(state, now)) {
+    console.log("OFFERCHIN_FILO_VIDEO_DISPATCH_NOT_DUE reason=login_not_verified_or_stale");
+    return;
+  }
   const nextSlot = dateValue(state && state[config.slot]);
   const pauseUntil = config.pause ? dateValue(state && state[config.pause]) : null;
   if (nextSlot !== null && now < nextSlot) return;
@@ -406,7 +426,7 @@ async function dispatchVideoPlatformWhenDue(env, tick, state, platform) {
 
 async function dispatchVideoUploadsWhenDue(env, tick, state) {
   if (!state) return;
-  for (const platform of ["youtube", "aparat"]) {
+  for (const platform of ["youtube", "aparat", "filo"]) {
     try {
       await dispatchVideoPlatformWhenDue(env, tick, state, platform);
     } catch (error) {

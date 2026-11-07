@@ -4,6 +4,7 @@ import {
   isUsableCleanCatalogSnapshot,
   isInitialCatalogWarmup,
   hasDueVideoRecord,
+  isFiloLoginVerified,
   PUBLISHER_INTERVAL_MS,
 } from "./affilio-minute-dispatcher.mjs";
 
@@ -142,6 +143,58 @@ test("video dispatcher sees an older pending upload beyond the newest six record
     video_generation_status: "generated",
   };
   assert.equal(hasDueVideoRecord({ published }, "youtube", now), true);
+});
+
+test("Filo login must be explicitly verified and no older than seven days", () => {
+  const now = Date.now();
+  assert.equal(isFiloLoginVerified({}, now), false);
+  assert.equal(isFiloLoginVerified({
+    filo_login_verification_status: "verified",
+    filo_login_verified_at: new Date(now - 60 * 60 * 1000).toISOString(),
+  }, now), true);
+  assert.equal(isFiloLoginVerified({
+    filo_login_verification_status: "verified",
+    filo_login_verified_at: new Date(now - 8 * 24 * 60 * 60 * 1000).toISOString(),
+  }, now), false);
+  assert.equal(isFiloLoginVerified({
+    filo_login_verification_status: "failed",
+    filo_login_verified_at: new Date(now).toISOString(),
+  }, now), false);
+});
+
+test("Filo dispatcher requires a verified deadline and a fresh channel-delivered product", () => {
+  const now = Date.now();
+  const base = {
+    ts: (now - 5 * 60_000) / 1000,
+    delivery_status: { telegram: "sent" },
+    filo_upload_status: "pending",
+    video_generation_status: "generated",
+    expires_at: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
+  };
+  assert.equal(hasDueVideoRecord({ published: { item: base } }, "filo", now), false);
+  assert.equal(
+    hasDueVideoRecord({
+      published: { item: { ...base, expiry_deadline_verified_directly: true } },
+    }, "filo", now),
+    true
+  );
+});
+
+test("Filo does not retry accepted or outcome-unknown submissions", () => {
+  const now = Date.now();
+  const base = {
+    ts: (now - 5 * 60_000) / 1000,
+    delivery_status: { bale: "sent" },
+    video_generation_status: "generated",
+    expiry_deadline_verified_directly: true,
+    expires_at: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
+  };
+  for (const status of ["published", "submitted_pending_approval", "submitted_unconfirmed", "upload_result_unknown", "rejected_by_filo"]) {
+    assert.equal(
+      hasDueVideoRecord({ published: { item: { ...base, filo_upload_status: status } } }, "filo", now),
+      false
+    );
+  }
 });
 
 test("video dispatcher still excludes products older than the 24-hour freshness window", () => {
