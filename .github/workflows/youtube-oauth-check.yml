@@ -127,9 +127,16 @@ jobs:
 
           channel = items[0]
           channel_id = channel.get("id", "unknown")
-          channel_title = channel.get("snippet", {}).get("title", "Untitled channel")
-          # Channel information is intentionally the only account-specific detail printed.
+          channel_snippet = channel.get("snippet", {})
+          channel_title = channel_snippet.get("title", "Untitled channel")
+          custom_url = str(channel_snippet.get("customUrl", "")).strip()
+          if custom_url:
+              channel_url = "https://www.youtube.com/" + custom_url.lstrip("/")
+          else:
+              channel_url = f"https://www.youtube.com/channel/{channel_id}"
+          # Channel metadata and the public URL are safe to log; OAuth tokens are masked.
           print("YouTube Data API access: OK")
           print(f"Authenticated channel: {channel_title} (ID: {channel_id})")
+          print(f"PUBLIC_YOUTUBE_CHANNEL_URL={channel_url}")
           print("No video was uploaded, changed, or made public by this check.")
           PY
