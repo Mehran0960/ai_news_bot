@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import affilio_radar as radar_module
 from PIL import Image
+from offerchin_copy import MEMBERSHIP_BUTTON_TEXT, purchase_action_label
 
 from affilio_radar import (
     safe_product_url,
@@ -3692,7 +3693,7 @@ class AffilioRadarTests(unittest.TestCase):
             _send_photo(b"photo-bytes", "caption", direct_affiliate_url)
         data = post.call_args.kwargs["data"]
         markup = json.loads(data["reply_markup"])
-        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], purchase_action_label("دیجی‌کالا"))
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(urlsplit(markup["inline_keyboard"][0][0]["url"]).netloc, "aflo.ir")
 
@@ -3713,7 +3714,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(data["chat_id"], "-10012345")
         self.assertEqual(data["caption"], "bale caption")
         self.assertNotIn("parse_mode", data)
-        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], purchase_action_label("دیجی‌کالا"))
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(result["message_id"], 88)
 
@@ -3728,7 +3729,7 @@ class AffilioRadarTests(unittest.TestCase):
         ):
             _send_bale_photo(b"photo-bytes", "caption", link)
         markup = json.loads(post.call_args.kwargs["data"]["reply_markup"])
-        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده و خرید از اسنپ‌شاپ")
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], purchase_action_label("اسنپ‌شاپ"))
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], link)
 
     def test_original_price_is_never_shown_in_telegram_or_bale_caption(self):
@@ -3746,8 +3747,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertNotIn("<s>", bale_caption)
         self.assertNotIn("قیمت اصلی", telegram_caption)
         self.assertNotIn("۱٬۱۰۸٬۸۰۰", telegram_caption)
-        self.assertIn("[➕ عضویت در کانال آفِرچین](https://ble.ir/OfferChin)", bale_caption)
-        self.assertIn('<a href="https://t.me/OfferChin">➕ عضویت در کانال آفِرچین</a>', telegram_caption)
+        self.assertIn(f"[{MEMBERSHIP_BUTTON_TEXT}](https://ble.ir/OfferChin)", bale_caption)
+        self.assertIn(f'<a href="https://t.me/OfferChin">{MEMBERSHIP_BUTTON_TEXT}</a>', telegram_caption)
         self.assertNotIn("دکمهٔ زیر رو بزن", bale_caption)
         self.assertNotIn("دکمهٔ زیر رو بزن", telegram_caption)
         self.assertLess(bale_caption.index("⚡️"), bale_caption.index("عضویت در کانال آفِرچین"))
@@ -4114,7 +4115,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(data["caption"], "updated caption")
         self.assertEqual(data["parse_mode"], "HTML")
         markup = json.loads(data["reply_markup"])
-        self.assertEqual(markup["inline_keyboard"][0][0]["text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
+        self.assertEqual(markup["inline_keyboard"][0][0]["text"], purchase_action_label("دیجی‌کالا"))
         self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
         self.assertEqual(result["message_id"], 39)
 

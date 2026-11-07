@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "affilio_radar/messenger_adapters.py"
+      - "affilio_radar/offerchin_copy.py"
       - "affilio_radar/test_messenger_adapters.py"
       - "affilio_radar/platform_registry.py"
       - "affilio_radar/publisher.py"

@@ -6,12 +6,18 @@ from typing import Any
 from urllib.parse import urlsplit
 import requests
 
+try:
+    from .offerchin_copy import MEMBERSHIP_BUTTON_TEXT, purchase_action_label
+except ImportError:
+    from offerchin_copy import MEMBERSHIP_BUTTON_TEXT, purchase_action_label
+
 RUBIKA_API = "https://botapi.rubika.ir/v3"
 EITAA_API = "https://eitaayar.ir/api"
 REQUEST_TIMEOUT = (15, 90)
 MAX_IMAGE_BYTES = 10_000_000
 RUBIKA_CHANNEL_URL = "https://rubika.ir/offerchin"
-RUBIKA_MEMBERSHIP_BUTTON_TEXT = "➕ عضویت در کانال آفِرچین"
+RUBIKA_MEMBERSHIP_BUTTON_TEXT = MEMBERSHIP_BUTTON_TEXT
+EITAA_CHANNEL_URL = os.getenv("EITAA_CHANNEL_URL", "").strip()
 
 
 def _response_json(response: Any, label: str) -> dict:
@@ -55,32 +61,62 @@ def _valid_affiliate_url(renderer: Any, affiliate_url: str) -> bool:
     return bool(callable(validator) and validator(str(affiliate_url or "").strip()))
 
 
+def _validated_eitaa_channel_url() -> str:
+    """Accept only a configured HTTPS public Eitaa channel URL; never invent one."""
+    value = str(EITAA_CHANNEL_URL or "").strip()
+    if not value:
+        return ""
+    if "://" not in value:
+        value = "https://" + value
+    parsed = urlsplit(value)
+    if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+        return ""
+    return value
+
+
 def _caption(renderer: Any, item: dict, affiliate_url: str, channel: str) -> str:
     if channel == "rubika":
-        # Reuse the exact canonical price/title caption. Rubika's sendFile method
-        # documents inline_keypad, not text metadata; the membership CTA is therefore
-        # rendered as a URL button directly beneath this same photo message.
+        # Keep the shared caption body. Rubika's membership action is rendered in
+        # the same inline keypad as the purchase action because its text field is plain.
         caption = renderer.build_caption(
             item, affiliate_url, channel_label=RUBIKA_CHANNEL_URL,
             use_unicode_strikethrough=True,
         )
-        # Rubika receives plain text here. Strip only the Bale Markdown syntax;
-        # the final membership link is represented by the clickable inline button.
         caption = re.sub(r"\[([^\]]+)\]\([^)]+\)", "", caption).rstrip()
         caption = re.sub(r"\\([\\_*()\[\]])", r"\1", caption)
         caption = caption.replace("*", "")
         return caption[:3800]
 
+    if channel != "eitaa":
+        raise ValueError(f"Unsupported caption channel: {channel}")
+
+    eitaa_channel_url = _validated_eitaa_channel_url()
+    # EitaaYar currently gets a plain caption. A real public channel URL is optional;
+    # if configured, it is emitted as a bare HTTPS URL so the client can linkify it.
     caption = renderer.build_caption(
-        item, affiliate_url, channel_label="https://eitaa.com",
+        item, affiliate_url,
+        channel_label=eitaa_channel_url or "https://eitaa.com",
         use_unicode_strikethrough=True,
     )
-    caption = re.sub(
-        r"\[([^\]]+)\]\([^)]+\)",
-        lambda match: f"{match.group(1)} در ایتا",
-        caption,
+
+    def plain_link(match: re.Match) -> str:
+        label = match.group(1)
+        if label == MEMBERSHIP_BUTTON_TEXT:
+            return f"{label}\n{eitaa_channel_url}" if eitaa_channel_url else ""
+        return label
+
+    caption = re.sub(r"\[([^\]]+)\]\([^)]+\)", plain_link, caption)
+    caption = re.sub(r"\\([\\_*()\[\]])", r"\1", caption)
+    caption = caption.replace("*", "")
+    label_builder = getattr(renderer, "purchase_button_label", None)
+    purchase_label = (
+        str(label_builder(affiliate_url))
+        if callable(label_builder)
+        else purchase_action_label(item.get("merchant") or "دیجی‌کالا")
     )
-    return (caption + f"\n\n🛍️ مشاهده و خرید:\n{affiliate_url}")[:3800]
+    # Eitaa's file adapter has no verified inline-URL-button contract. Keep the
+    # exact purchase-action wording, followed by the verified, auto-linkable URL.
+    return (caption.rstrip() + f"\n\n{purchase_label}\n{affiliate_url}")[:3800]
 
 
 def _rubika_inline_keypad(renderer: Any, item: dict, affiliate_url: str) -> dict:
@@ -89,8 +125,7 @@ def _rubika_inline_keypad(renderer: Any, item: dict, affiliate_url: str) -> dict
     if callable(label_builder):
         purchase_label = str(label_builder(affiliate_url))
     else:
-        merchant = str(item.get("merchant") or "دیجی‌کالا")
-        purchase_label = f"🛍️ مشاهده و خرید از {merchant}"
+        purchase_label = purchase_action_label(item.get("merchant") or "دیجی‌کالا")
     return {
         "rows": [
             {
