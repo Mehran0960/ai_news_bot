@@ -333,6 +333,49 @@ def _login(page, username: str, password: str) -> None:
         raise FiloUploadError("filo_login_not_confirmed")
 
 
+def verify_filo_login(*, env: Mapping[str, str] | None = None) -> dict:
+    """Verify the account can access Filo's upload page without uploading anything."""
+    source = env if env is not None else os.environ
+    username = str(source.get("FILO_USER", "")).strip()
+    password = str(source.get("FILO_PASS", "")).strip()
+    if not username or not password:
+        raise FiloUploadError("filo_credentials_missing")
+
+    from playwright.sync_api import sync_playwright
+
+    browser = None
+    context = None
+    try:
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            context = browser.new_context(
+                locale="fa-IR",
+                viewport={"width": 1365, "height": 1000},
+            )
+            page = context.new_page()
+            page.set_default_timeout(15_000)
+            _login(page, username, password)
+            return {
+                "status": "login_verified",
+                "upload_route_available": urlparse(page.url).path.startswith("/upload"),
+            }
+    except FiloUploadError:
+        raise
+    except Exception as exc:
+        raise FiloUploadError("filo_login_check_unexpected") from exc
+    finally:
+        if context is not None:
+            try:
+                context.clear_cookies()
+            except Exception:
+                pass
+        if browser is not None:
+            try:
+                browser.close()
+            except Exception:
+                pass
+
+
 def upload_filo_video(
     video_path: str | Path,
     title: str,
