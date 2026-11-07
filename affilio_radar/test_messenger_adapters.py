@@ -6,7 +6,7 @@ from messenger_adapters import (
     send_eitaa_photo,
     send_rubika_photo,
 )
-from offerchin_copy import MEMBERSHIP_BUTTON_TEXT
+from offerchin_copy import MEMBERSHIP_BUTTON_TEXT, purchase_action_label
 
 
 class FakeResponse:
@@ -93,7 +93,7 @@ class MessengerAdapterTests(unittest.TestCase):
         buy_button = keypad["rows"][0]["buttons"][0]
         join_button = keypad["rows"][1]["buttons"][0]
         self.assertEqual(buy_button["type"], "Link")
-        self.assertEqual(buy_button["button_text"], "🛍️ مشاهده و خرید از دیجی‌کالا")
+        self.assertEqual(buy_button["button_text"], purchase_action_label("دیجی‌کالا"))
         self.assertEqual(buy_button["button_link"], {
             "type": "url",
             "link_url": self.affiliate,
