@@ -103,7 +103,7 @@ jobs:
           # Extract the exact inline wordmark displayed in Aparat's own live header.
           aparat_home = download("https://www.aparat.com/home").decode("utf-8", errors="strict")
           aparat_matches = re.findall(
-              r'(<svg\\b(?=[^>]*\\bclass="[^"]*\\bicon-aparatfa\\b[^"]*")[^>]*>.*?</svg>)',
+              r'(<svg[^>]*class="[^"]*icon-aparatfa[^"]*"[^>]*>.*?</svg>)',
               aparat_home,
               flags=re.IGNORECASE | re.DOTALL,
           )
