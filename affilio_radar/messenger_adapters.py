@@ -76,6 +76,7 @@ def _render(renderer: Any, item: dict, image_bytes: bytes, channel: str) -> byte
         image_bytes, item.get("discount_percent"),
         merchant=item.get("merchant") or "دیجی‌کالا",
         extra_watermarks=extra_watermarks,
+        destination_platform=channel,
     )
 
 
