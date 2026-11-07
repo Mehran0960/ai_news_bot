@@ -9127,6 +9127,8 @@ def process_pending_short_video(
                 record["youtube_upload_status"] = "skipped_expiring_soon"
             if aparat_status in PENDING_APARAT_STATUSES:
                 record["aparat_upload_status"] = "skipped_expiring_soon"
+            if filo_status in pending_filo:
+                record["filo_upload_status"] = "skipped_expiring_soon"
             state_changed = True
             print(f"SHORT_VIDEO_SKIP id={pid} reason=inside_expiry_removal_buffer")
             continue
