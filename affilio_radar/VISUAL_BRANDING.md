@@ -26,6 +26,10 @@ This is the canonical placement and legibility standard for generated OfferChin 
 - Do not let video zoom/pan crop the discount, retailer mark, DigiPay tile, or cross-media IDs.
 - Preserve product title, product image, current price, and purchase call-to-action as the primary sales content; platform marks remain secondary.
 
+- Above the four cross-media ID rows, the YouTube poster displays exactly “لینک خرید: توضیحات کانال”; the Aparat poster displays exactly “لینک خرید: کپشن ویدئو و توضیحات کانال”. The CTA is destination-specific, stays within the same light panel, and must not be copied to messenger images or to the other platform's video.
+- Aparat's video description continues to include the tracked product purchase URL for that specific product; the CTA must point viewers to the video caption/description and the already configured channel description. The YouTube CTA points to the already configured channel profile description/link area; do not claim the CTA URL itself is clickable in Shorts.
+- The purchase CTA is centered above the cross-media rows, fitted to the available width, and must remain readable without crowding the logos or covering the product image.
+
 ## Official platform logo assets
 
 - The platform marks must be official files, not hand-drawn substitutes or typographic approximations.
