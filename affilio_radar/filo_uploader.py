@@ -189,26 +189,31 @@ def _find_description_field(page):
 
 
 def _find_publish_button(page):
-    buttons = page.locator("button, input[type='submit'], [role='button']").evaluate_all(
-        """nodes => nodes.filter(el => {
-          const r = el.getBoundingClientRect();
-          return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden';
-        }).map(el => ({
-          text: String(el.getAttribute('aria-label') || el.innerText || el.getAttribute('value') || '')
-            .trim().replace(/\\s+/g, ' ').slice(0, 90),
-          disabled: Boolean(el.disabled)
-        }))"""
+    locator = page.locator("button, input[type='submit'], [role='button']")
+    buttons = locator.evaluate_all(
+        """nodes => nodes.map((el, index) => {
+          const r = el.getBoundingClientRect(), style = getComputedStyle(el);
+          return {
+            index,
+            tag: el.tagName.toLowerCase(),
+            text: String(el.getAttribute('aria-label') || el.innerText || el.getAttribute('value') || '')
+              .trim().replace(/\\s+/g, ' ').slice(0, 90),
+            disabled: Boolean(el.disabled) || el.getAttribute('aria-disabled') === 'true',
+            visible: Boolean(r.width && r.height) && style.visibility !== 'hidden' && style.display !== 'none'
+          };
+        })"""
     )
     for button in buttons:
         label = str(button.get("text") or "")
         if (
-            re.search(r"بارگذاری ویدیو|آپلود ویدیو|انتشار|ارسال ویدیو|ثبت ویدیو|بارگذاری|آپلود", label)
+            button.get("visible")
+            and re.search(r"بارگذاری ویدیو|آپلود ویدیو|انتشار|ارسال ویدیو|ثبت ویدیو|بارگذاری|آپلود", label)
             and not re.search(r"انتخاب فایل|انتخاب ویدیو|لغو|انصراف|بستن|بازگشت|ویرایش", label)
             and not button.get("disabled")
         ):
-            locator = page.get_by_role("button", name=label, exact=True).first
-            if locator.count() and locator.is_visible() and locator.is_enabled():
-                return locator
+            candidate = locator.nth(int(button["index"]))
+            if candidate.count() and candidate.is_visible() and candidate.is_enabled():
+                return candidate
     return None
 
 
@@ -418,7 +423,12 @@ def upload_filo_video(
                 if re.search(r"خطا در بارگذاری|فایل بیش از حد مجاز|فرمت فایل نامعتبر|آپلود ناموفق", body):
                     raise FiloUploadError("filo_video_transfer_rejected")
                 time.sleep(1.0)
-            upload_responses = [item for item in observed_upload_responses if item["status"] < 400]
+            upload_responses = [
+                item for item in observed_upload_responses
+                if item["method"] == "POST" and re.search(r"uploadFromFile", item["path"], re.I)
+            ]
+            if any(item["status"] >= 400 for item in upload_responses):
+                raise FiloUploadError("filo_video_transfer_rejected")
             if title_field is None:
                 code = "filo_video_transfer_incomplete" if upload_responses else "filo_video_transfer_not_confirmed"
                 raise FiloUploadError(code)
