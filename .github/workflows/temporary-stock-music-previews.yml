@@ -1,0 +1,103 @@
+name: Temporary stock music video previews
+
+on:
+  push:
+    branches:
+      - preview/stock-music-mux-20261107
+
+permissions:
+  contents: read
+
+jobs:
+  render-previews:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout isolated preview branch
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg and yt-dlp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade yt-dlp
+
+      - name: Download the four latest public OfferChin Shorts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p work/source work/music output
+          declare -A ids=(
+            [voltage]="GxjjtdAX39w"
+            [backpack]="uruFjgsnzkc"
+            [fuses]="M3wHspSzqeQ"
+            [jumper]="duU_xt53les"
+          )
+          for key in voltage backpack fuses jumper; do
+            id="${ids[$key]}"
+            echo "Downloading OfferChin Short $key ($id)"
+            yt-dlp --no-warnings --no-progress \
+              --format "bv*[ext=mp4]+ba/b[ext=mp4]/b" \
+              --merge-output-format mp4 \
+              --output "work/source/$key.%(ext)s" \
+              "https://www.youtube.com/shorts/$id"
+            test -s "work/source/$key.mp4"
+          done
+
+      - name: Download licensed Mixkit tracks
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-all-errors "https://assets.mixkit.co/music/124/124.mp3" -o work/music/techno-fest-vibes.mp3
+          curl -fL --retry 3 --retry-all-errors "https://assets.mixkit.co/music/126/126.mp3" -o work/music/trap-electro-vibes.mp3
+          curl -fL --retry 3 --retry-all-errors "https://assets.mixkit.co/music/371/371.mp3" -o work/music/cat-walk.mp3
+          curl -fL --retry 3 --retry-all-errors "https://assets.mixkit.co/music/872/872.mp3" -o work/music/gimme-that-groove.mp3
+
+      - name: Replace soundtrack and make each preview 12 seconds
+        shell: bash
+        run: |
+          set -euo pipefail
+          render() {
+            local key="$1"
+            local track="$2"
+            local label="$3"
+            local src="work/source/$key.mp4"
+            local dur factor
+            dur="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$src")"
+            factor="$(python -c "print(f'{12.0/float('$dur'):.8f}')")"
+            echo "$key source_duration=$dur setpts_factor=$factor"
+            ffmpeg -hide_banner -loglevel error -y \
+              -i "$src" -stream_loop -1 -i "$track" \
+              -filter_complex "[0:v]setpts=$factor*PTS,tpad=stop_mode=clone:stop_duration=12,scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2,setsar=1,format=yuv420p[v];[1:a]volume=0.82,afade=t=in:st=0:d=0.18,afade=t=out:st=11.45:d=0.55[a]" \
+              -map "[v]" -map "[a]" -t 12 \
+              -c:v libx264 -preset veryfast -crf 23 \
+              -c:a aac -b:a 160k -movflags +faststart \
+              "output/${key}-${label}-12s.mp4"
+            test -s "output/${key}-${label}-12s.mp4"
+          }
+          render voltage work/music/techno-fest-vibes.mp3 techno-fest-vibes
+          render backpack work/music/trap-electro-vibes.mp3 trap-electro-vibes
+          render fuses work/music/cat-walk.mp3 cat-walk
+          render jumper work/music/gimme-that-groove.mp3 gimme-that-groove
+          cp work/music/*.mp3 output/
+
+      - name: Write preview and license notes
+        run: |
+          cat > output/README_FA.txt <<'EOF'
+          پیش‌نمایش خصوصی OfferChin — منتشرنشده
+          هر ویدئو یکی از چهار Shorts عمومی اخیر کانال را به مدت ۱۲ ثانیه با موسیقی Mixkit انتخاب‌شده نمایش می‌دهد.
+          تطبیق‌ها:
+          voltage: محافظ ولتاژ ابرار — Techno Fest Vibes
+          backpack: کوله‌پشتی ورزشی — Trap Electro Vibes
+          fuses: مجموعه فیوز الپا — Cat Walk
+          jumper: کابل باتری‌به‌باتری — Gimme that Groove!
+          موسیقی‌ها از Mixkit دریافت شده‌اند. مجوز: https://mixkit.co/license/#musicFree
+          این خروجی فقط برای بررسی داخل گفتگوست و در هیچ کانالی منتشر نشده است.
+          EOF
+
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: offerchin-stock-music-previews-12s
+          path: output/
+          if-no-files-found: error
+          retention-days: 7
