@@ -852,3 +852,20 @@
 **ریسک/بازگشت:** طول ۱۲ ثانیه درآمدزایی فیلو یا YouTube را تضمین نمی‌کند و محتوای تکراری با ارزش افزودهٔ کم همچنان ریسک policy دارد. بازگشت با revert کردن تغییر `DURATION_SECONDS` و فایل موسیقی امکان‌پذیر است. تغییر زمان‌بندی/تکرار/مهلت انتشار انجام نشده است. روبیکا همچنان تا دیدن پاسخ دقیق API یا یک تحویل موفق، نیازمند پایش است.
 
 **وضعیت:** کد و مستندات در شاخهٔ کاری آمادهٔ CI و بازبینی؛ انتشار عمومی ویدئوی جدید هنوز انجام نشده است.
+
+
+## ۲۰۲۶-۱۱-۰۷ — ثبت نتیجهٔ CI و ادغام PR شمارهٔ ۱۰۹
+
+**هدف:** تکمیل شواهد انتشار نسخهٔ ویدئوی ۱۲ ثانیه‌ای و soundtrack فانک منتخب؛ ثبت نتیجهٔ تست‌ها و SHA نهایی بدون بازنویسی ورودی قبلی changelog.
+
+**تغییر/اقدام:** PR شمارهٔ ۱۰۹ با روش squash در `main` ادغام شد. مقدار پیش‌فرض ویدئو ۱۲ ثانیه و موسیقی فانک/نو-دیسکو مستقل فعال شدند؛ diagnostics امن روبیکا نیز به main رسید. زمان‌بندی انتشار، صف، گاردهای ضدتکرار، مهلت محصول، credentialها و Worker تغییر نکردند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/short_video.py`، `affilio_radar/offerchin_audio.py`، `affilio_radar/test_short_video.py`، `affilio_radar/messenger_adapters.py`، `affilio_radar/test_messenger_adapters.py`، `affilio_radar/publisher.py`، handbook و changelog.
+
+**آزمون و نتیجه:** run `42406664718`: ۴۴۱ تست regression موفق؛ run `42406762709`: ۲۹ تست رندر/لوگو موفق؛ run `42406762662`: ۷ تست آداپتور موفق؛ run `42406762722`: ۹ تست Documentation Gate موفق؛ push gate پس از merge با run `42406975332` نیز موفق شد.
+
+**شواهد/شناسه:** [PR #109](https://github.com/Mehran0960/ai_news_bot/pull/109)، merge commit `159a371096b1dfe8115da00d774ca558072531c9`؛ [Regression run](https://github.com/Mehran0960/ai_news_bot/actions/runs/42406664718)، [Platform Logo tests](https://github.com/Mehran0960/ai_news_bot/actions/runs/42406762709)، [Messenger Adapter tests](https://github.com/Mehran0960/ai_news_bot/actions/runs/42406762662)، [PR Documentation Gate](https://github.com/Mehran0960/ai_news_bot/actions/runs/42406762722)، [post-merge Documentation Gate](https://github.com/Mehran0960/ai_news_bot/actions/runs/42406975332).
+
+**ریسک/بازگشت:** ویدئوهای قبلی خودکار جایگزین نمی‌شوند؛ فقط رندرهای بعدی از تنظیم جدید استفاده می‌کنند. طول ۱۲ ثانیه درآمدزایی Filo/YouTube را تضمین نمی‌کند. rollback با revert کردن merge commit PR #109 انجام می‌شود؛ صف‌ها و تاریخچهٔ انتشار نباید برای بازگشت دستکاری شوند.
+
+**وضعیت:** ادغام‌شده و CIهای مرتبط موفق؛ انتشار ویدئوی بعدی از زمان‌بندی عادی و فقط برای محصول واجدشرایط انجام خواهد شد.
