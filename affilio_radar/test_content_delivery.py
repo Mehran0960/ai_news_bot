@@ -8,7 +8,7 @@ from content_delivery import (
     promote_fallback_selection,
     refresh_unpublished_selections, selection_cadence_anchor,
 )
-from platform_registry import PLATFORM_NAMES
+from platform_registry import PHOTO_PLATFORMS, PLATFORM_NAMES
 from publisher import (
     publish_due_queue, _fresh_selected_item, _eligible_fallback_candidates,
 )
@@ -150,7 +150,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
 
         self.assertEqual(state["last_published_at"], latest_channel_send.isoformat())
         self.assertEqual(state["last_channel_published_at"], latest_channel_send.isoformat())
-        self.assertEqual(send_photo.call_count, 2)
+        self.assertEqual(send_photo.call_count, len(PHOTO_PLATFORMS))
         # Because both channels were already sent, this retry must not reset either clock.
 
     def test_publisher_rejects_legacy_queued_supplement_before_any_delivery(self):
