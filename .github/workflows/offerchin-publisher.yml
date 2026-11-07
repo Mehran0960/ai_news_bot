@@ -190,6 +190,7 @@ jobs:
           RUBIKA_ENABLE_PUBLISHING: ${{ vars.RUBIKA_ENABLE_PUBLISHING || 'true' }}
           EITAA_BOT_TOKEN: ${{ secrets.EITAA_BOT_TOKEN }}
           EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
+          EITAA_CHANNEL_URL: ${{ vars.EITAA_CHANNEL_URL || '' }}
           EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'false' }}
           # Video publication is deliberately excluded from the channel worker.
           AFFILIO_APARAT_UPLOAD_ENABLED: "false"
