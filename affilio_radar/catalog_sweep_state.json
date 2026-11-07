@@ -34421,13 +34421,13 @@
   "current_cycle_pages": 6,
   "current_cycle_product_rows": 120,
   "last_error": "",
-  "last_successful_category_id": "6063",
-  "last_successful_category_name": "ابزار غیر برقی",
-  "last_successful_page": 494,
-  "last_successful_page_at": "2026-11-07T11:18:25.379546+00:00",
+  "last_successful_category_id": "6816",
+  "last_successful_category_name": "پوشاک ورزشی",
+  "last_successful_page": 495,
+  "last_successful_page_at": "2026-11-07T11:19:30.748514+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 478,
+  "page": 479,
   "parallel_cycle_completed_category_ids": [
     "1",
     "2",
@@ -39338,8 +39338,8 @@
     "11796",
     "214158"
   ],
-  "parallel_cycle_pages_success": 226886,
-  "parallel_cycle_product_rows_success": 4471593,
+  "parallel_cycle_pages_success": 226895,
+  "parallel_cycle_product_rows_success": 4471773,
   "parallel_cycle_started_at": "2026-11-06T18:22:56.776413+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -44264,20 +44264,20 @@
     "11796",
     "214158"
   ],
-  "parallel_last_batch_at": "2026-11-07T11:18:25.482249+00:00",
+  "parallel_last_batch_at": "2026-11-07T11:19:30.854519+00:00",
   "parallel_last_batch_candidate_file_bytes": 4318013,
-  "parallel_last_batch_candidate_write_seconds": 0.092,
+  "parallel_last_batch_candidate_write_seconds": 0.094,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 2.806,
-  "parallel_last_batch_nonempty_product_pages": 8,
+  "parallel_last_batch_fetch_seconds": 10.775,
+  "parallel_last_batch_nonempty_product_pages": 9,
   "parallel_last_batch_pages": 9,
-  "parallel_last_batch_pages_per_second": 3.21,
-  "parallel_last_batch_processing_seconds": 0.012,
-  "parallel_last_batch_product_rows": 160,
-  "parallel_last_batch_rate_limited": 1,
-  "parallel_last_batch_retries": 1,
-  "parallel_last_batch_rows_per_second": 54.99,
-  "parallel_last_batch_successes": 8,
+  "parallel_last_batch_pages_per_second": 0.84,
+  "parallel_last_batch_processing_seconds": 0.013,
+  "parallel_last_batch_product_rows": 180,
+  "parallel_last_batch_rate_limited": 0,
+  "parallel_last_batch_retries": 0,
+  "parallel_last_batch_rows_per_second": 16.54,
+  "parallel_last_batch_successes": 9,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4670,
   "parallel_pending_pages": [
@@ -44285,74 +44285,73 @@
       "attempts": 0,
       "category_id": "6038",
       "category_name": "عروسک، فیگور و ربات",
-      "page": 478
+      "page": 479
     },
     {
       "attempts": 0,
       "category_id": "6300",
       "category_name": "ظروف آشپزخانه",
-      "page": 479
+      "page": 480
     },
     {
       "attempts": 0,
       "category_id": "6075",
       "category_name": "باغبانی و کشاورزی",
-      "page": 480
+      "page": 481
     },
     {
       "attempts": 0,
       "category_id": "5975",
       "category_name": "دفتر و کاغذ و مقوا",
-      "page": 483
+      "page": 484
     },
     {
       "attempts": 0,
       "category_id": "6625",
       "category_name": "کمد لباس و ارگانایزر",
-      "page": 488
+      "page": 489
     },
     {
       "attempts": 0,
       "category_id": "6071",
       "category_name": "ابزار برقی و شارژی",
-      "page": 490
+      "page": 491
     },
     {
       "attempts": 0,
       "category_id": "6823",
       "category_name": "خراطی",
-      "page": 493
+      "page": 494
     },
     {
       "attempts": 0,
       "category_id": "6063",
       "category_name": "ابزار غیر برقی",
-      "page": 495
+      "page": 496
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6816",
       "category_name": "پوشاک ورزشی",
-      "last_error": "http_429",
-      "page": 495
+      "page": 496
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 8,
-  "parallel_workers_used": 9,
+  "parallel_worker_limit": 9,
+  "parallel_workers_used": 8,
   "pending_page_count": 9,
   "schema_version": 1,
   "stats": {
     "api_failures_total": 3383,
-    "catalog_candidate_cards_found_total": 10645840,
+    "catalog_candidate_cards_found_total": 10646020,
     "completed_cycles": 0,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 2818939,
+    "discounted_candidates_found_total": 2819008,
     "empty_product_pages_total": 21904,
-    "nonempty_product_pages_total": 539361,
-    "pages_scanned_total": 560473,
-    "product_rows_scanned_total": 10645880,
+    "nonempty_product_pages_total": 539370,
+    "pages_scanned_total": 560482,
+    "product_rows_scanned_total": 10646060,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
