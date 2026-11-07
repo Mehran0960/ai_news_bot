@@ -952,3 +952,26 @@
 **ریسک/بازگشت:** تا ثبت موفق بررسی ورود فیلو dispatch نمی‌شود؛ پس از ۷ روز تأیید منقضی است و باید دوباره اجرا شود. rollback با revert همین تغییر و گیت انجام می‌شود.
 
 **وضعیت:** افزوده‌شده به شاخه؛ CI، ادغام، deploy Worker و بررسی ورود زنده در انتظار.
+
+
+## ۲۰۲۶-۱۱-۰۸ — بازگشت cadence کانال به ۲۷ دقیقه و همگام‌سازی ویدئوهای فیلو
+
+**هدف:** بازگرداندن فاصلهٔ انتشار کانال‌های OfferChin به ۲۷ دقیقه و ایجاد یک ویدئوی متناظر در فیلو برای هر رکوردی که واقعاً در یکی از کانال‌های فعال منتشر شده است؛ بدون تغییر سهمیه و زمان‌بندی YouTube/Aparat.
+
+**تغییر/اقدام:**
+- فاصلهٔ کانال در Cloudflare Worker، مقدار پیش‌فرض Python و هر دو ورودی cadence در workflow ناشر از ۳۷ به ۲۷ دقیقه بازگردانده شد. ساعت cadence از زمان واقعی آخرین ارسال موفق کانالی (last_channel_published_at) استفاده می‌کند؛ sidecar نیز این timestamp را حفظ می‌کند.
+- فاصلهٔ مستقل فیلو از ۳ ساعت به ۲۷ دقیقه تغییر کرد؛ حداکثر یک ویدئو در هر اجرای فیلو پردازش می‌شود تا هر slot حداکثر یک submit داشته باشد. صف فیلو قدیمی‌ترین hand-off واجدشرایط را اولویت می‌دهد تا انتشارهای قبلی پشت پیشنهادهای جدیدتر جا نمانند.
+- hand-off فیلو از موفقیت Telegram، Bale، Rubika یا Eitaa ساخته می‌شود. ارسال ناموفق کانال، صرفاً انتخاب محصول یا صف‌شدن آن، مجوز آپلود فیلو نیست.
+- فیلو دیگر به deadline رسمی و مستقیماً تأییدشدهٔ خرده‌فروش نیاز ندارد؛ چون محصول قبلاً در مقصد کانالی با کنترل زندهٔ قیمت/موجودی تأیید شده است. تازگی ۲۴ساعته، رد آفر منقضی/نزدیک به انقضا، تأیید ورود حداکثر ۷روزه و منع retry خودکار پس از نتیجهٔ نامشخص حفظ شدند. گارد deadline سخت‌گیرانهٔ Aparat بدون تغییر باقی می‌ماند.
+- state قدیمی فیلو با نسخهٔ سیاست ۲ به cadence جدید migrate می‌شود؛ فاصلهٔ قدیمی سه‌ساعته از آخرین attempt/submit معتبر به ۲۷ دقیقه بازحساب می‌شود. فیلدهای نتیجه و لینک فیلو هنگام retry همان delivery حفظ می‌شوند تا ارسال تکراری رخ ندهد.
+- محدودیت ۳ساعته و سازوکار pause ناشی از quota در YouTube/Aparat تغییر نکردند. مقادیر FILO_USER و FILO_PASS فقط در GitHub Actions Secrets مصرف می‌شوند؛ هیچ مقدار credential در commit/log/doc قرار نمی‌گیرد.
+
+**فایل‌ها/سامانه‌ها:** affilio_radar/affilio_radar.py، affilio_radar/publisher.py، affilio_radar/test_affilio.py، affilio_radar/test_filo_upload_schedule.py، cloudflare/affilio-minute-dispatcher.js، cloudflare/affilio-minute-dispatcher.test.mjs، .github/workflows/offerchin-publisher.yml، .github/workflows/filo-video-upload.yml، docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md و docs/CHANGELOG_FA.md.
+
+**آزمون و نتیجه:** تست‌ها برای cadence ۲۷دقیقه‌ای، مهاجرت slot سه‌ساعته، پذیرش hand-off چهار کانال، FIFO فیلو، حفظ idempotency در retry، gateهای deadline متفاوت Aparat/Filo و استفاده از زمان واقعی ارسال کانال به‌روزرسانی شدند. نتیجهٔ CI پس از ایجاد PR ثبت می‌شود؛ تا آن زمان این تغییرات ادغام یا مستقرشده محسوب نمی‌شوند.
+
+**شواهد/شناسه:** شاخهٔ کاری feat/offerchin-27m-channel-filo-one-to-one-20261108. PR و شناسه‌های CI پس از اجرای workflowها ثبت خواهند شد.
+
+**ریسک/بازگشت:** UI automation فیلو به تغییر فرم، CAPTCHA/OTP، محدودیت درخواست و moderation وابسته است؛ هر ۲۷ دقیقه یک submit سقف هدف است، نه تضمین پذیرش/انتشار عمومی در همین بازه. rollback با revert کردن PR ممکن است؛ migration state با نسخهٔ ۲ برای جلوگیری از بازگشت ناخواسته به slot قدیمی نگهداری می‌شود. نتیجهٔ upload_result_unknown نباید خودکار دوباره submit شود.
+
+**وضعیت:** پیاده‌سازی و تست‌های رگرسیون در شاخهٔ مستقل؛ CI، بازبینی، ادغام، deploy و اولین تأیید انتشار عمومی فیلو در انتظار.

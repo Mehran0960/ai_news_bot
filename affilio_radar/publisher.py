@@ -191,6 +191,7 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "video_generation_status": "pending",
         "youtube_upload_status": "pending",
         "aparat_upload_status": "pending",
+        "filo_upload_status": "pending",
         "click_tracking_url": "",
         "telegram_message_id": None,
         "bale_message_id": None,
@@ -250,7 +251,7 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
     if isinstance(old, dict) and old and not same_delivery:
         snapshot = dict(old)
         snapshot.pop("post_history", None)
-        if any(str(snapshot.get(k) or "").isdigit() for k in ("telegram_message_id", "bale_message_id")) or snapshot.get("youtube_video_id") or snapshot.get("aparat_video_hash"):
+        if any(str(snapshot.get(k) or "").isdigit() for k in ("telegram_message_id", "bale_message_id")) or snapshot.get("youtube_video_id") or snapshot.get("aparat_video_hash") or snapshot.get("filo_video_url") or snapshot.get("filo_video_code"):
             old_history.append(snapshot)
     if old_history:
         record["post_history"] = old_history[-12:]
@@ -261,7 +262,10 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
             "telegram_message_id", "bale_message_id", "youtube_video_id",
             "youtube_video_url", "youtube_upload_status", "youtube_uploaded_at",
             "aparat_video_hash", "aparat_video_url", "aparat_upload_status",
-            "aparat_uploaded_at", "video_file_name", "video_generation_status",
+            "aparat_uploaded_at", "filo_video_url", "filo_video_code",
+            "filo_upload_status", "filo_submitted_at", "filo_visibility",
+            "filo_last_error", "filo_upload_attempts", "filo_next_attempt_at",
+            "filo_review_required", "video_file_name", "video_generation_status",
             "platform_message_ids", "platform_delivery_receipts",
         ):
             if old.get(field) not in (None, ""):

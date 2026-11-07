@@ -112,11 +112,13 @@ MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNE
 YOUTUBE_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS", "3"))))
 # Aparat has an independent cadence and remains eligible during a YouTube quota pause.
 APARAT_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS", "3"))))
-FILO_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_FILO_UPLOAD_INTERVAL_HOURS", "3"))))
+# Filo mirrors the 27-minute channel cadence; its slot remains independent of other video platforms.
+FILO_UPLOAD_INTERVAL_HOURS = max(1 / 60, min(24.0, float(os.getenv("AFFILIO_FILO_UPLOAD_INTERVAL_HOURS", "0.45"))))
+FILO_UPLOAD_INTERVAL_POLICY_VERSION = 2
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "100"))))
-MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.6166666666666667")))
+MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.45")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
@@ -135,11 +137,11 @@ COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
 CAPTION_DEADLINE_FORMAT_VERSION = 14
 # Urgency can speed cadence only while the offer still clears the minimum runway.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
-URGENT_MIN_POST_INTERVAL_MINUTES = 37
+URGENT_MIN_POST_INTERVAL_MINUTES = 27
 DEADLINE_CRITICAL_WINDOW_MINUTES = 120
 # Offers inside the hard 90-minute cutoff are rejected instead of being rushed out.
 ULTRA_URGENT_WINDOW_MINUTES = 0
-ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 37
+ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 27
 URGENT_MIN_DISCOUNT_PERCENT = 80
 URGENT_MIN_SAVINGS_TOMAN = 500_000
 IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
@@ -4621,6 +4623,10 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
+    if isinstance(state, dict):
+        # Migrate the legacy three-hour Filo slot while building the sidecar;
+        # Cloudflare reads this projection before dispatching the Python workflow.
+        _initialize_filo_upload_slot(state)
     published = state.get("published") if isinstance(state, dict) else {}
     candidates = []
     if isinstance(published, dict):
@@ -4629,10 +4635,9 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                 continue
             delivery = raw.get("delivery_status") if isinstance(raw.get("delivery_status"), dict) else {}
             has_channel_delivery = (
-                delivery.get("telegram") == "sent"
-                or delivery.get("bale") == "sent"
-                or str(raw.get("telegram_message_id") or "").isdigit()
-                or str(raw.get("bale_message_id") or "").isdigit()
+                any(delivery.get(name) == "sent" for name in ("telegram", "bale", "rubika", "eitaa"))
+                or any(str(raw.get(key) or "").isdigit()
+                       for key in ("telegram_message_id", "bale_message_id", "rubika_message_id", "eitaa_message_id"))
             )
             if not has_channel_delivery:
                 continue
@@ -4657,7 +4662,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             "ts": ts,
             "delivery_status": {
                 key: value for key, value in delivery.items()
-                if key in {"telegram", "bale"}
+                if key in {"telegram", "bale", "rubika", "eitaa"}
             },
         }
         for key in ("telegram_message_id", "bale_message_id", *fields):
@@ -4673,11 +4678,13 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     return {
         "schema_version": 1,
         "generated_at": current.isoformat(),
+        "last_channel_published_at": value("last_channel_published_at"),
         "youtube_next_upload_at": value("youtube_next_upload_at"),
         "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
         "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
         "aparat_next_upload_at": value("aparat_next_upload_at"),
         "filo_next_upload_at": value("filo_next_upload_at"),
+        "filo_upload_interval_policy_version": value("filo_upload_interval_policy_version"),
         "filo_login_verified_at": value("filo_login_verified_at"),
         "filo_login_verification_status": value("filo_login_verification_status"),
         "published": compact_published,
@@ -8601,9 +8608,13 @@ def _aparat_upload_slot_due(
 
 
 def _initialize_filo_upload_slot(state: dict) -> datetime | None:
-    """Load Filo's slot or migrate it from previously accepted Filo submissions."""
+    """Load Filo's slot and migrate legacy three-hour reservations to the 27-minute policy."""
     next_slot = _parse_utc_datetime(state.get("filo_next_upload_at"))
-    if next_slot is not None:
+    try:
+        policy_version = int(state.get("filo_upload_interval_policy_version") or 0)
+    except (TypeError, ValueError, OverflowError):
+        policy_version = 0
+    if next_slot is not None and policy_version >= FILO_UPLOAD_INTERVAL_POLICY_VERSION:
         return next_slot
 
     timestamps: list[datetime] = []
@@ -8626,11 +8637,16 @@ def _initialize_filo_upload_slot(state: dict) -> datetime | None:
         timestamp = _parse_utc_datetime(state.get(key))
         if timestamp is not None:
             timestamps.append(timestamp)
-    if not timestamps:
+
+    if timestamps:
+        # Recalculate legacy slots from the latest known attempt/submission. This
+        # shortens old three-hour waits without bypassing the new 27-minute minimum.
+        next_slot = max(timestamps) + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
+        state["filo_next_upload_at"] = next_slot.isoformat()
+    elif next_slot is None:
         return None
 
-    next_slot = max(timestamps) + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
-    state["filo_next_upload_at"] = next_slot.isoformat()
+    state["filo_upload_interval_policy_version"] = FILO_UPLOAD_INTERVAL_POLICY_VERSION
     return next_slot
 
 
@@ -8665,9 +8681,19 @@ def _filo_upload_slot_due(
     return next_slot is None or current >= next_slot
 
 
+def video_deadline_allows_upload(platform: str, verified_expiry: bool) -> bool:
+    """Aparat's generic public feed needs a verified timer; Filo can use a fresh channel offer."""
+    return bool(verified_expiry) if str(platform or "").strip().lower() == "aparat" else True
+
+
 def _video_upload_candidate_sort_key(row: tuple) -> tuple:
-    """Order public video work by markdown first; repair is only a tie-breaker."""
+    """Keep Filo in channel-post order; rank other video queues by markdown."""
     record = row[2] if isinstance(row, tuple) and len(row) > 2 and isinstance(row[2], dict) else {}
+    destinations = row[6] if isinstance(row, tuple) and len(row) > 6 and isinstance(row[6], list) else []
+    if "filo" in destinations:
+        # Filo is the one-to-one channel companion: consume the oldest eligible
+        # channel hand-off first so a newer product cannot leapfrog it.
+        return (0, row[0], str(row[1]))
     discount = max(
         0,
         _int_value(record.get("posted_discount_percent") or record.get("discount_percent")) or 0,
@@ -9168,7 +9194,9 @@ def process_pending_short_video(
             aparat_status = "pending"
             record["aparat_upload_status"] = "pending"
             state_changed = True
-        if verified_expiry and filo_status in {"skipped_unverified_deadline", "skipped_expiring_soon"}:
+        if filo_status == "skipped_unverified_deadline":
+            # A channel-published offer may have no retailer timer; Filo still gets
+            # the matching video while the 24-hour freshness and expiry checks hold.
             filo_status = "pending"
             record["filo_upload_status"] = "pending"
             state_changed = True
@@ -9201,13 +9229,13 @@ def process_pending_short_video(
         )
         aparat_pending = aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not aparat_in_flight
         aparat_need = aparat_pending and (
-            APARAT_SHORTS_ONLY or (aparat_upload_due and verified_expiry)
+            APARAT_SHORTS_ONLY or (aparat_upload_due and video_deadline_allows_upload("aparat", verified_expiry))
         )
         public_aparat_need = aparat_need and not APARAT_SHORTS_ONLY
         shorts_queue_need = aparat_pending and APARAT_SHORTS_ONLY
         filo_need = (
             filo_ready and filo_upload_due and filo_status in pending_filo
-            and not filo_in_flight and verified_expiry
+            and not filo_in_flight and video_deadline_allows_upload("filo", verified_expiry)
         )
         manual_artifact_need = (
             # A manual MP4 artifact is a YouTube fallback, not an Aparat destination.
@@ -9498,9 +9526,6 @@ def process_pending_short_video(
                 submitted_at = datetime.now(timezone.utc)
                 record["filo_submitted_at"] = submitted_at.isoformat()
                 state["filo_last_upload_success_at"] = submitted_at.isoformat()
-                state["filo_next_upload_at"] = (
-                    submitted_at + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
-                ).isoformat()
                 record.pop("filo_next_attempt_at", None)
                 record["filo_review_required"] = False
                 print(
@@ -9511,9 +9536,6 @@ def process_pending_short_video(
                 unknown_at = datetime.now(timezone.utc)
                 record["filo_review_required"] = True
                 state["filo_last_upload_outcome_unknown_at"] = unknown_at.isoformat()
-                state["filo_next_upload_at"] = (
-                    unknown_at + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
-                ).isoformat()
                 print(f"FILO_UPLOAD_RESULT_UNKNOWN id={pid} no_automatic_duplicate_retry=true")
             elif filo_result_status == "retry":
                 try:
@@ -9536,9 +9558,6 @@ def process_pending_short_video(
                 record["filo_last_error"] = str(getattr(exc, "code", "filo_submit_outcome_unknown"))[:160]
                 unknown_at = datetime.now(timezone.utc)
                 state["filo_last_upload_outcome_unknown_at"] = unknown_at.isoformat()
-                state["filo_next_upload_at"] = (
-                    unknown_at + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
-                ).isoformat()
                 print(f"FILO_UPLOAD_RESULT_UNKNOWN id={pid} error={type(exc).__name__} no_automatic_duplicate_retry=true")
             else:
                 try:

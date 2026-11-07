@@ -188,7 +188,7 @@ export function isInitialCatalogWarmup(status) {
   return Number(status.completed_cycles) === 0;
 }
 
-export const PUBLISHER_INTERVAL_MS = 37 * 60 * 1000;
+export const PUBLISHER_INTERVAL_MS = 27 * 60 * 1000;
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
 
 async function readOfferChinState(token) {
@@ -226,7 +226,7 @@ async function readCatalogSweepStatus(token) {
   }
 }
 
-function readLastChannelPublicationAt(state) {
+export function readLastChannelPublicationAt(state) {
   if (!state || typeof state !== "object") return null;
   const explicit = Date.parse(String(state.last_channel_published_at || ""));
   if (Number.isFinite(explicit)) return explicit;
@@ -235,9 +235,12 @@ function readLastChannelPublicationAt(state) {
   const published = state.published && typeof state.published === "object" ? state.published : {};
   for (const record of Object.values(published)) {
     if (!record || typeof record !== "object") continue;
+    const delivery = record.delivery_status && typeof record.delivery_status === "object"
+      ? record.delivery_status : {};
     const hasMessage =
-      /^\d+$/.test(String(record.telegram_message_id || "")) ||
-      /^\d+$/.test(String(record.bale_message_id || ""));
+      ["telegram", "bale", "rubika", "eitaa"].some(platform => delivery[platform] === "sent") ||
+      ["telegram_message_id", "bale_message_id", "rubika_message_id", "eitaa_message_id"]
+        .some(field => /^\d+$/.test(String(record[field] || "")));
     const seconds = Number(record.ts || 0);
     if (hasMessage && Number.isFinite(seconds)) latest = Math.max(latest, seconds * 1000);
   }
@@ -289,7 +292,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     console.log("OFFERCHIN_PUBLISHER_WARMUP_FALLBACK reason=no_clean_snapshot_yet");
   } else {
     // Reuse the last immutable clean snapshot while the next full scan runs.
-    // A new full scan is not required between two 37-minute publication slots.
+    // A new full scan is not required between two 27-minute publication slots.
     console.log(
       "OFFERCHIN_PUBLISHER_USING_CLEAN_SNAPSHOT cycle=" +
       String(catalogStatus.last_clean_cycle_completed_at) +
@@ -331,9 +334,9 @@ function dateValue(value) {
 function hasChannelDelivery(record) {
   const delivery = record && record.delivery_status && typeof record.delivery_status === "object"
     ? record.delivery_status : {};
-  return delivery.telegram === "sent" || delivery.bale === "sent" ||
-    /^\d+$/.test(String(record.telegram_message_id || "")) ||
-    /^\d+$/.test(String(record.bale_message_id || ""));
+  return ["telegram", "bale", "rubika", "eitaa"].some(platform => delivery[platform] === "sent") ||
+    ["telegram_message_id", "bale_message_id", "rubika_message_id", "eitaa_message_id"]
+      .some(field => /^\d+$/.test(String(record[field] || "")));
 }
 
 export function videoRecordDue(record, platform, now) {
@@ -343,7 +346,8 @@ export function videoRecordDue(record, platform, now) {
   const status = String(record[platform + "_upload_status"] || "pending");
   if (!VIDEO_PENDING_STATUSES.has(status)) return false;
   const generation = String(record.video_generation_status || "pending");
-  if (!["", "pending", "generated"].includes(generation)) return false;
+  if (!["", "pending", "generated"].includes(generation) &&
+      !(platform === "filo" && generation === "skipped_unverified_deadline")) return false;
 
   const generationRetry = dateValue(record.video_generation_next_attempt_at);
   if (generationRetry !== null && generationRetry > now) return false;
@@ -353,7 +357,7 @@ export function videoRecordDue(record, platform, now) {
   const expiry = dateValue(record.expires_at);
   if (expiry !== null && expiry <= now + 10 * 60 * 1000) return false;
 
-  if (platform === "aparat" || platform === "filo") {
+  if (platform === "aparat") {
     const verifiedExpiry =
       record.expiry_deadline_verified_directly === true ||
       (record.expiry_source === "digikala_mcp_offer_card" &&
