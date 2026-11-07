@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+import re
 from pathlib import Path
 from functools import lru_cache
 
@@ -11,10 +12,11 @@ _PLATFORM_LOGO_PATHS = {
     "bale": PLATFORM_LOGO_DIR / "bale-official.svg",
     "rubika": PLATFORM_LOGO_DIR / "rubika-official.svg",
     "youtube": PLATFORM_LOGO_DIR / "youtube-wordmark-almostblack.png",
+    "aparat": PLATFORM_LOGO_DIR / "aparat-official.svg",
 }
 
 
-@lru_cache(maxsize=4)
+@lru_cache(maxsize=5)
 def _load_platform_logo(platform: str):
     """Load an official, repository-local platform logo; never redraw a substitute."""
     from io import BytesIO
@@ -106,12 +108,11 @@ def draw_platform_logo(
 
 
 def platform_footer_label(platform: str, url: str) -> str:
-    """Use the same channel identity treatment on product images and video overlays."""
-    key = str(platform or "").strip().lower()
+    """Return only the channel's bare public ID, without labels or URL protocol."""
     target = str(url or "").strip()
-    # YouTube brand guidance favours its own logo linked/attributed to YouTube content;
-    # keep the channel URL adjacent without merging the YouTube mark into OfferChin's name.
-    return target if key == "youtube" else f"OfferChin  •  {target}"
+    target = re.sub(r"^https?://", "", target, flags=re.IGNORECASE)
+    target = re.sub(r"^www\.", "", target, flags=re.IGNORECASE)
+    return target.split("#", 1)[0].split("?", 1)[0].rstrip("/")
 
 
 def platform_footer_metrics(reference_dimension: int) -> dict[str, int]:
@@ -629,18 +630,19 @@ def draw_retailer_badge(image, left: int, top: int, width: int, height: int, mer
 
 
 
-# Public OfferChin destinations in a fixed order. Keep these labels short enough
-# for the image footer and derive every destination-specific footer from this list.
+# Verified public OfferChin destinations. Eitaa is intentionally absent until its
+# public channel URL is confirmed; never guess a destination ID.
 PUBLIC_CHANNEL_LINKS = (
     ("telegram", "t.me/OfferChin"),
     ("bale", "ble.ir/OfferChin"),
     ("rubika", "rubika.ir/offerchin"),
     ("youtube", "youtube.com/@offerchin"),
+    ("aparat", "aparat.com/OfferChin"),
 )
 
 
 def public_channel_links(destination_platform: str | None = None) -> list[tuple[str, str]]:
-    """Return the public OfferChin links other than the channel receiving this post."""
+    """Return every verified public OfferChin ID except the current destination."""
     excluded = str(destination_platform or "").strip().lower()
     return [
         (platform, label)
