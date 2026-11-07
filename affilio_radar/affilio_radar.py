@@ -8681,8 +8681,13 @@ def video_deadline_allows_upload(platform: str, verified_expiry: bool) -> bool:
 
 
 def _video_upload_candidate_sort_key(row: tuple) -> tuple:
-    """Order public video work by markdown first; repair is only a tie-breaker."""
+    """Keep Filo in channel-post order; rank other video queues by markdown."""
     record = row[2] if isinstance(row, tuple) and len(row) > 2 and isinstance(row[2], dict) else {}
+    destinations = row[6] if isinstance(row, tuple) and len(row) > 6 and isinstance(row[6], list) else []
+    if "filo" in destinations:
+        # Filo is the one-to-one channel companion: consume the oldest eligible
+        # channel hand-off first so a newer product cannot leapfrog it.
+        return (0, row[0], str(row[1]))
     discount = max(
         0,
         _int_value(record.get("posted_discount_percent") or record.get("discount_percent")) or 0,
