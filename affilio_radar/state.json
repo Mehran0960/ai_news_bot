@@ -385492,7 +385492,8 @@
       "video_generated_at": "2026-11-05T23:16:00.820075+00:00",
       "video_generation_status": "generated",
       "video_style_version": 6,
-      "youtube_description_version": 4,
+      "youtube_description_updated_at": "2026-11-07T17:51:28.852125+00:00",
+      "youtube_description_version": 5,
       "youtube_review_required": false,
       "youtube_upload_started_at": "2026-11-05T23:16:05.312937+00:00",
       "youtube_upload_status": "uploaded",
@@ -387993,7 +387994,7 @@
       "ts": 1794064277.504098,
       "video_file_name": "offerchin-dkp-21202033.mp4",
       "video_generated_at": "2026-11-07T15:13:06.801292+00:00",
-      "video_generation_status": "generated",
+      "video_generation_status": "pending",
       "video_style_version": 6,
       "youtube_last_error": "",
       "youtube_upload_status": "pending_credentials"
@@ -392839,8 +392840,22 @@
       "telegram_posted_at": "2026-11-07T12:13:43.682534+00:00",
       "title": "محافظ ولتاژ ابرار مدل دو راهی کد ۰۱۲۴",
       "ts": 1794053618.323371,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21920289.mp4",
+      "video_file_names": {
+        "youtube": "offerchin-dkp-21920289.mp4"
+      },
+      "video_generated_at": "2026-11-07T17:51:28.852125+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-07T17:51:36.916656+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-07T17:51:39.694386+00:00",
+      "youtube_video_id": "GxjjtdAX39w",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/GxjjtdAX39w",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-21922048": {
       "aparat_upload_status": "pending",
@@ -394271,7 +394286,7 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22109662": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-07T17:13:37.734741+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1759,
@@ -394364,8 +394379,8 @@
       "telegram_posted_at": "2026-11-07T13:03:30.631508+00:00",
       "title": "ادوتویلت تیای مدل Jordan S1 با رایحه خنک با حجم ۳۰ میلی‌لیتر",
       "ts": 1794056605.048116,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22119086": {
       "aparat_upload_status": "pending",
@@ -410640,8 +410655,8 @@
       "video_style_version": 5,
       "youtube_deleted_at": "2026-10-27T20:37:55.563200+00:00",
       "youtube_description_last_error": "RuntimeError",
-      "youtube_description_next_attempt_at": "2026-11-07T06:37:08.062722+00:00",
-      "youtube_description_update_attempts": 5,
+      "youtube_description_next_attempt_at": "2026-11-07T18:51:28.852125+00:00",
+      "youtube_description_update_attempts": 6,
       "youtube_description_version": 3,
       "youtube_expiry_status": "deleted",
       "youtube_review_required": false,
@@ -432621,7 +432636,7 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 10,
   "snappshop_retry_after": "2026-11-08T06:36:11.124349+00:00",
-  "youtube_last_upload_success_at": "2026-11-07T14:46:28.508566+00:00",
-  "youtube_next_upload_at": "2026-11-07T17:46:28.508566+00:00",
+  "youtube_last_upload_success_at": "2026-11-07T17:51:39.694386+00:00",
+  "youtube_next_upload_at": "2026-11-07T20:51:39.694386+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
