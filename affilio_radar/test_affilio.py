@@ -11,7 +11,7 @@ from types import SimpleNamespace
 from urllib.parse import parse_qs, urlsplit
 
 import affilio_radar as radar_module
-from PIL import Image
+from PIL import Image, ImageDraw
 from offerchin_copy import MEMBERSHIP_BUTTON_TEXT, purchase_action_label
 
 from affilio_radar import (
@@ -4761,6 +4761,34 @@ class AffilioRadarTests(unittest.TestCase):
             [call.args[1] for call in draw_icon.call_args_list],
             ["telegram", "bale", "rubika", "youtube", "aparat"],
         )
+
+    def test_product_image_channel_ids_share_a_fixed_column_and_never_add_brand_text(self):
+        image_bytes = BytesIO()
+        Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")
+        expected_ids = {
+            "ble.ir/OfferChin",
+            "rubika.ir/offerchin",
+            "youtube.com/@offerchin",
+            "aparat.com/OfferChin",
+        }
+        captured = []
+        original_text = ImageDraw.ImageDraw.text
+
+        def capture_text(draw, xy, value, *args, **kwargs):
+            label = str(value)
+            if label in expected_ids or "OfferChin" in label or "•" in label:
+                captured.append((xy[0], label))
+            return original_text(draw, xy, value, *args, **kwargs)
+
+        with patch.object(ImageDraw.ImageDraw, "text", capture_text):
+            build_discount_image(
+                image_bytes.getvalue(), None, destination_platform="telegram"
+            )
+
+        self.assertEqual({label for _x, label in captured}, expected_ids)
+        self.assertEqual(len(captured), 4)
+        self.assertEqual(len({x for x, _label in captured}), 1)
+        self.assertFalse(any("OfferChin  •" in label for _x, label in captured))
 
     def test_telegram_growth_invites_are_created_once_per_source_and_reused(self):
         class FakeResponse:
