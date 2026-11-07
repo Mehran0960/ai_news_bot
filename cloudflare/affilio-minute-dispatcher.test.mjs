@@ -203,6 +203,11 @@ test("Filo accepts every confirmed channel delivery without requiring a retailer
     "known near-expiry offer must remain blocked"
   );
   assert.equal(
+    hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" }, video_generation_status: "skipped_unverified_deadline" } } }, "filo", now),
+    true,
+    "Filo must be able to reprocess records held only by the old deadline gate"
+  );
+  assert.equal(
     hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" }, ts: (now - 25 * 60 * 60_000) / 1000 } } }, "filo", now),
     false,
     "stale videos remain blocked after 24 hours"
