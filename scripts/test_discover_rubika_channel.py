@@ -27,8 +27,8 @@ class RubikaChannelDiscoveryTests(unittest.TestCase):
             "@OfferChin",
         ))
 
-    def test_matches_exact_title_when_username_missing(self):
-        self.assertTrue(is_target_channel(
+    def test_rejects_title_only_match_when_username_missing(self):
+        self.assertFalse(is_target_channel(
             {"chat_type": "Channel", "title": "OfferChin"},
             "offerchin",
         ))
