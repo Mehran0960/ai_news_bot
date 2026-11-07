@@ -399,10 +399,14 @@ def build_vertical_poster(
         # row pitch; this prevents the horizontal YouTube wordmark tile overlapping
         # neighbouring rows while keeping all four destinations in the safe panel.
         row_top = 188 + index * 26
+        expected_logo_width, _expected_logo_height = offerchin_visuals.platform_logo_dimensions(
+            platform, 20, VIDEO_LOGO_MAX_WIDTH
+        )
+        logo_left = 64 + max(0, (VIDEO_LOGO_COLUMN_WIDTH - expected_logo_width) // 2)
         logo_width, _logo_height = _draw_video_channel_logo(
             draw,
             platform,
-            64 + max(0, (VIDEO_LOGO_COLUMN_WIDTH - VIDEO_LOGO_MAX_WIDTH) // 2),
+            logo_left,
             row_top,
             20,
             canvas=background,
