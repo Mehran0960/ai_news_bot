@@ -688,3 +688,14 @@ RUBIKA_CHANNEL_ID می‌تواند آن را override کند. Secret توکن R
 - Aparat: run `42400262177` آپلود عمومی واقعی با hash `zvb4h27` را ثبت کرد. فاصلهٔ slot در وضعیت ذخیره‌شده ۳ ساعت است؛ slot بعدی ثبت‌شده `2026-11-07T21:18:16Z` (۰۰:۴۸:۱۶ به‌وقت ایران در ۸ نوامبر) بود.
 - Rubika: در run `42392125523` همان محصول با خطای `RuntimeError` از مسیر ارسال روبیکا عبور نکرد. log قبلی فقط نوع خطا را ثبت می‌کرد و علت API قابل‌تشخیص نبود. در تغییر جدید، adapter فقط کد/پیام کوتاه و redacted پاسخ API را استخراج می‌کند و publisher نیز detail امن را ثبت می‌کند؛ URLها و credentialها نباید در log/state درج شوند. علت ریشه‌ای تا مشاهدهٔ خطای دقیقِ تلاش بعدی یا یک ارسال موفق، **تأییدنشده** می‌ماند. فعال بودن `RUBIKA_ENABLE_PUBLISHING` به‌تنهایی اثبات تحویل نیست.
 - تنظیمات فاصلهٔ ۳ساعتهٔ YouTube/Aparat، وضعیت queue، تکرار ۲۴ساعته، مهلت محصول و اعتبارسنجی قیمت/موجودی/لینک دست‌نخورده باقی مانده‌اند.
+
+
+## تأیید CI و ادغام نسخهٔ ویدئوی ۱۲ ثانیه‌ای — ۷ نوامبر ۲۰۲۶
+
+- [PR #109](https://github.com/Mehran0960/ai_news_bot/pull/109) با موفقیت در `main` ادغام شد؛ merge commit: `159a371096b1dfe8115da00d774ca558072531c9`.
+- اجرای regression اصلی `Affilio Product Radar` روی کد و تست‌های جدید، run `42406664718`: **۴۴۱ تست، موفق**. در همین اجرا مرحلهٔ discovery/queue اجرا شد اما step انتشار عمداً در این Workflow وجود ندارد.
+- `OfferChin Platform Logo Regression Tests`، run `42406762709`: **۲۹ تست، موفق**.
+- `OfferChin Messenger Adapter Tests`، run `42406762662`: **۷ تست، موفق**؛ شامل آزمون redaction پیام خطای روبیکا.
+- `OfferChin Documentation Gate` روی PR، run `42406762722`: **۹ تست validator، موفق**؛ handbook و changelog هر دو تأیید شدند.
+- Push Gate پس از ادغام روی main، run `42406975332`: **موفق**.
+- این rollout فقط کد رندر ویدئو، soundtrack، diagnostics و مستندات را تغییر داد. زمان‌بندی سه‌ساعتهٔ ویدئو، queue، گاردهای ضدتکرار، مهلت آفر، secrets و Cloudflare Worker تغییر نکردند. هیچ ویدئو یا پست آزمایشی عمومی منتشر نشد.
