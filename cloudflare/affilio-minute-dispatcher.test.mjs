@@ -144,6 +144,15 @@ test("channel cadence clock recognizes every active publishing channel", () => {
     }),
     null
   );
+  const preciseSendTime = "2026-11-08T01:23:45Z";
+  assert.equal(
+    readLastChannelPublicationAt({
+      last_channel_published_at: preciseSendTime,
+      published: { item: base },
+    }),
+    Date.parse(preciseSendTime),
+    "use the actual successful-send time instead of the earlier queue timestamp"
+  );
 });
 
 test("video dispatcher sees an older pending upload beyond the newest six records", () => {
