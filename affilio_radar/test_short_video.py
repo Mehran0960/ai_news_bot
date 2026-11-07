@@ -123,6 +123,31 @@ class ShortVideoTests(unittest.TestCase):
                 self.assertGreater(wav.getnframes(), 100_000)
             self.assertGreater(path.stat().st_size, 100_000)
 
+    def test_product_video_default_is_twelve_seconds_and_selected_funk_track_matches(self):
+        import inspect
+        import short_video
+        import wave
+
+        self.assertEqual(short_video.DURATION_SECONDS, 12)
+        self.assertEqual(
+            inspect.signature(short_video.render_short_video).parameters["duration_seconds"].default,
+            12,
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "selected-funk.wav"
+            write_original_soundtrack(path, duration_seconds=12)
+            with wave.open(str(path), "rb") as wav:
+                self.assertEqual(wav.getnchannels(), 2)
+                self.assertEqual(wav.getsampwidth(), 2)
+                self.assertEqual(wav.getframerate(), 22050)
+                self.assertAlmostEqual(wav.getnframes() / wav.getframerate(), 12.0, delta=0.05)
+                self.assertGreater(wav.getnframes(), 250_000)
+            first = path.read_bytes()
+            second = Path(directory) / "selected-funk-repeat.wav"
+            write_original_soundtrack(second, duration_seconds=12)
+            self.assertEqual(first, second.read_bytes(), "the soundtrack must render deterministically")
+            self.assertGreater(len(first), 500_000)
+
     def test_watermark_places_other_channel_marks_in_a_vertical_youtube_safe_area(self):
         import short_video
 
