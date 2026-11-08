@@ -1265,7 +1265,7 @@
 - URLها و usernameهای canonical مانند `rubika.ir/offerchin` و `youtube.com/@offerchin` عمداً حفظ می‌شوند؛ این‌ها نام نمایشی برند نیستند.
 - تست آداپتور Rubika برای metadata لینک با offset/length واحد UTF-16، دکمهٔ خرید و fallback دو دکمه‌ای به‌روز شد؛ تست نرمال‌سازی نام برند و حفظ شناسه‌های کانال اضافه شد.
 
-**فایل‌ها/سامانه‌ها:** `affilio_radar/messenger_adapters.py`، `affilio_radar/test_messenger_adapters.py`، `affilio_radar/offerchin_copy.py`، `affilio_radar/affilio_radar.py`، `affilio_radar/short_video.py`، `affilio_radar/aparat_uploader.py`، `affilio_radar/filo_uploader.py`، `affilio_radar/MESSENGER_EXPANSION_FA.md`، `affilio_radar/VISUAL_BRANDING.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
+**فایل‌ها/سامانه‌ها:** `affilio_radar/messenger_adapters.py`، `affilio_radar/test_messenger_adapters.py`، `affilio_radar/offerchin_copy.py`، `affilio_radar/affilio_radar.py`، `affilio_radar/short_video.py`، `affilio_radar/test_short_video.py`، `affilio_radar/aparat_uploader.py`، `affilio_radar/filo_uploader.py`، `.github/workflows/offerchin-platform-logo-tests.yml`، `affilio_radar/MESSENGER_EXPANSION_FA.md`، `affilio_radar/VISUAL_BRANDING.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
 
 **آزمون و نتیجه:** تست‌های `test_messenger_adapters.py`، `test_short_video.py`، تست‌های آداپتور Aparat/Filo و Documentation Gate پس از ساخت PR اجرا می‌شوند؛ تا مشاهدهٔ نتیجهٔ واقعی CI، موفقیت آن‌ها ادعا نمی‌شود.
 
