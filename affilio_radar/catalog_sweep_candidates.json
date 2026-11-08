@@ -9947,10 +9947,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "5974",
-      "catalog_best_selling_category_name": "لوازم اداری",
-      "catalog_best_selling_rank": 1291,
+      "catalog_best_selling_category_id": "5970",
+      "catalog_best_selling_category_name": "لوازم تحریر",
+      "catalog_best_selling_rank": 5741,
       "catalog_best_selling_ranks_by_category": {
+        "5970": {
+          "category_name": "لوازم تحریر",
+          "observed_at": "2026-11-08T03:52:41.836305+00:00",
+          "rank": 5741
+        },
         "5974": {
           "category_name": "لوازم اداری",
           "observed_at": "2026-11-07T19:34:29.557419+00:00",
@@ -9962,18 +9967,19 @@
           "rank": 67
         }
       },
-      "catalog_category_id": "5974",
+      "catalog_category_id": "5970",
       "catalog_category_ids": [
+        "5970",
         "5974",
         "5992"
       ],
-      "catalog_category_name": "لوازم اداری",
-      "catalog_rank_observed_at": "2026-11-07T19:34:29.557419+00:00",
+      "catalog_category_name": "لوازم تحریر",
+      "catalog_rank_observed_at": "2026-11-08T03:52:41.836305+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 110000,
       "discount_percent": 82,
       "first_seen_at": "2026-11-07T13:52:49.742970+00:00",
-      "last_seen_at": "2026-11-07T19:34:04.380761+00:00",
+      "last_seen_at": "2026-11-08T03:52:35.586412+00:00",
       "original_price": 600000,
       "product_id": "dkp-21240948",
       "product_url": "https://www.digikala.com/product/dkp-21240948/",
@@ -46330,6 +46336,38 @@
       "savings_toman": 3390000,
       "source": "digikala_catalog_sweep",
       "title": "تی شرت آستین کوتاه مردانه مدل انیمه ای جوجوتسوکایسن anm497"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9435",
+      "catalog_best_selling_category_name": "لباس مردانه",
+      "catalog_best_selling_rank": 5754,
+      "catalog_best_selling_ranks_by_category": {
+        "9435": {
+          "category_name": "لباس مردانه",
+          "observed_at": "2026-11-08T03:52:41.848763+00:00",
+          "rank": 5754
+        }
+      },
+      "catalog_category_id": "9435",
+      "catalog_category_ids": [
+        "9435"
+      ],
+      "catalog_category_name": "لباس مردانه",
+      "catalog_rank_observed_at": "2026-11-08T03:52:41.848763+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-08T03:52:41.848763+00:00",
+      "last_seen_at": "2026-11-08T03:52:40.882493+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-11342406",
+      "product_url": "https://www.digikala.com/product/dkp-11342406/",
+      "rating": 1.0,
+      "review_count": 1,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه مردانه مدل فانتزی دست خدا کد mo005"
     },
     {
       "availability": "unknown",
@@ -110572,41 +110610,9 @@
       "savings_toman": 2388000,
       "source": "digikala_catalog_sweep",
       "title": "تی شرت آستین کوتاه زنانه مدل ذهن پریشون"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9347",
-      "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 1318,
-      "catalog_best_selling_ranks_by_category": {
-        "9347": {
-          "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-07T19:39:00.111909+00:00",
-          "rank": 1318
-        }
-      },
-      "catalog_category_id": "9347",
-      "catalog_category_ids": [
-        "9347"
-      ],
-      "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T19:39:00.111909+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-07T19:39:00.111909+00:00",
-      "last_seen_at": "2026-11-07T19:38:33.741707+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-15654041",
-      "product_url": "https://www.digikala.com/product/dkp-15654041/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "تی شرت لانگ آستین کوتاه زنانه مدل دختر سرخپوست"
     }
   ],
   "cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-08T03:51:41.187313+00:00"
+  "updated_at": "2026-11-08T03:52:41.879015+00:00"
 }
