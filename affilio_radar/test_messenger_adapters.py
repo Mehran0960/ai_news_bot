@@ -110,6 +110,41 @@ class MessengerAdapterTests(unittest.TestCase):
         self.assertEqual(self.renderer.destinations, ["rubika"])
 
     @patch("messenger_adapters.requests.post")
+    def test_rubika_invalid_keypad_input_falls_back_to_plain_caption_links(self, post):
+        post.side_effect = [
+            FakeResponse({"status": "OK", "data": {"upload_url": "https://upload.rubika.ir/upload/abc"}}),
+            FakeResponse({"status": "OK", "data": {"file_id": "FILE-1"}}),
+            FakeResponse({"status": "ERROR", "error_code": "INVALID_INPUT"}),
+            FakeResponse({"status": "OK", "data": {"message_id": "MESSAGE-FALLBACK"}}),
+        ]
+        result = send_rubika_photo(
+            "test-token", "test-channel", self.item, self.image, self.affiliate, self.renderer
+        )
+        self.assertEqual(result, {"message_id": "MESSAGE-FALLBACK"})
+        self.assertEqual(post.call_count, 4)
+        first_send = post.call_args_list[2].kwargs["json"]
+        fallback_send = post.call_args_list[3].kwargs["json"]
+        self.assertIn("inline_keypad", first_send)
+        self.assertNotIn("inline_keypad", fallback_send)
+        self.assertIn(self.affiliate, fallback_send["text"])
+        self.assertIn(RUBIKA_CHANNEL_URL, fallback_send["text"])
+        self.assertIn(purchase_action_label("دیجی‌کالا"), fallback_send["text"])
+        self.assertIn(RUBIKA_MEMBERSHIP_BUTTON_TEXT, fallback_send["text"])
+
+    @patch("messenger_adapters.requests.post")
+    def test_rubika_does_not_retry_ambiguous_or_non_validation_errors(self, post):
+        post.side_effect = [
+            FakeResponse({"status": "OK", "data": {"upload_url": "https://upload.rubika.ir/upload/abc"}}),
+            FakeResponse({"status": "OK", "data": {"file_id": "FILE-1"}}),
+            FakeResponse({"status": "ERROR", "error_code": "SERVER_ERROR"}),
+        ]
+        with self.assertRaisesRegex(RuntimeError, "SERVER_ERROR"):
+            send_rubika_photo(
+                "test-token", "test-channel", self.item, self.image, self.affiliate, self.renderer
+            )
+        self.assertEqual(post.call_count, 3)
+
+    @patch("messenger_adapters.requests.post")
     def test_rubika_rejects_non_https_upload_url(self, post):
         post.return_value = FakeResponse(
             {"status": "OK", "data": {"upload_url": "http://unsafe.invalid/upload"}}
