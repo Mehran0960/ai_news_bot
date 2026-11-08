@@ -40835,27 +40835,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "11144",
-      "catalog_best_selling_category_name": "لباس ورزشی مردانه",
-      "catalog_best_selling_rank": 2194,
+      "catalog_best_selling_category_id": "10168",
+      "catalog_best_selling_category_name": "ورزشی مردانه",
+      "catalog_best_selling_rank": 5788,
       "catalog_best_selling_ranks_by_category": {
+        "10168": {
+          "category_name": "ورزشی مردانه",
+          "observed_at": "2026-11-08T03:57:39.771838+00:00",
+          "rank": 5788
+        },
         "11144": {
           "category_name": "لباس ورزشی مردانه",
           "observed_at": "2026-11-07T21:07:10.101259+00:00",
           "rank": 2194
         }
       },
-      "catalog_category_id": "11144",
+      "catalog_category_id": "10168",
       "catalog_category_ids": [
+        "10168",
         "11144"
       ],
-      "catalog_category_name": "لباس ورزشی مردانه",
-      "catalog_rank_observed_at": "2026-11-07T21:07:10.101259+00:00",
+      "catalog_category_name": "ورزشی مردانه",
+      "catalog_rank_observed_at": "2026-11-08T03:57:39.771838+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1190000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T20:27:13.240689+00:00",
-      "last_seen_at": "2026-11-07T21:06:46.761880+00:00",
+      "last_seen_at": "2026-11-08T03:57:27.590649+00:00",
       "original_price": 4580000,
       "product_id": "dkp-18098269",
       "product_url": "https://www.digikala.com/product/dkp-18098269/",
@@ -110674,5 +110680,5 @@
   ],
   "cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-08T03:56:41.854403+00:00"
+  "updated_at": "2026-11-08T03:57:39.805569+00:00"
 }
