@@ -4735,8 +4735,8 @@ class AffilioRadarTests(unittest.TestCase):
         Image.new("RGB", (480, 640), (238, 241, 246)).save(image_bytes, format="JPEG")
         expected_ids = {
             "ble.ir/OfferChin",
-            "rubika.ir/offerchin",
-            "youtube.com/@offerchin",
+            "rubika.ir/OfferChin",
+            "youtube.com/@OfferChin",
             "aparat.com/OfferChin",
         }
         captured = []

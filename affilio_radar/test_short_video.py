@@ -422,14 +422,19 @@ class ShortVideoTests(unittest.TestCase):
         for platform, url, expected in (
             ("telegram", "https://t.me/OfferChin/", "t.me/OfferChin"),
             ("bale", "http://ble.ir/OfferChin/", "ble.ir/OfferChin"),
-            ("rubika", "https://www.rubika.ir/offerchin/", "rubika.ir/offerchin"),
-            ("youtube", "https://www.youtube.com/@offerchin/", "youtube.com/@offerchin"),
+            ("rubika", "https://www.rubika.ir/offerchin/", "rubika.ir/OfferChin"),
+            ("youtube", "https://www.youtube.com/@offerchin/", "youtube.com/@OfferChin"),
             ("aparat", "https://www.aparat.com/OfferChin/", "aparat.com/OfferChin"),
         ):
             with self.subTest(platform=platform):
                 self.assertEqual(offerchin_visuals.platform_footer_label(platform, url), expected)
                 self.assertNotRegex(offerchin_visuals.platform_footer_label(platform, url), r"(?i)^https?://")
                 self.assertNotIn("www.", offerchin_visuals.platform_footer_label(platform, url))
+
+        # Visual labels are branded, but canonical route/handle values remain untouched.
+        canonical = dict(offerchin_visuals.PUBLIC_CHANNEL_LINKS)
+        self.assertEqual(canonical["rubika"], "rubika.ir/offerchin")
+        self.assertEqual(canonical["youtube"], "youtube.com/@offerchin")
 
     def test_each_public_platform_lists_every_other_media_and_never_itself(self):
         import offerchin_visuals
@@ -649,10 +654,10 @@ class ShortVideoTests(unittest.TestCase):
         self.assertEqual(format_persian_price(1_999_000), "۱٬۹۹۹٬۰۰۰")
         for label in (
             "t.me/OfferChin", "ble.ir/OfferChin",
-            "rubika.ir/offerchin", "aparat.com/OfferChin",
+            "rubika.ir/OfferChin", "aparat.com/OfferChin",
         ):
             self.assertTrue(any(label in value for value in drawn_text), label)
-        self.assertFalse(any("youtube.com/@offerchin" in value for value in drawn_text))
+        self.assertFalse(any("youtube.com/@OfferChin" in value for value in drawn_text))
         self.assertIn(_shape_rtl("لینک خرید: توضیحات کانال"), drawn_text)
         self.assertEqual(video_purchase_cta_text("youtube"), "لینک خرید: توضیحات کانال")
         self.assertFalse(any("OfferChin  •" in value for value in drawn_text))
@@ -726,8 +731,8 @@ class ShortVideoTests(unittest.TestCase):
         original_text = ImageDraw.ImageDraw.text
 
         for destination, expected_ids in (
-            ("youtube", {"t.me/OfferChin", "ble.ir/OfferChin", "rubika.ir/offerchin", "aparat.com/OfferChin"}),
-            ("aparat", {"t.me/OfferChin", "ble.ir/OfferChin", "rubika.ir/offerchin", "youtube.com/@offerchin"}),
+            ("youtube", {"t.me/OfferChin", "ble.ir/OfferChin", "rubika.ir/OfferChin", "aparat.com/OfferChin"}),
+            ("aparat", {"t.me/OfferChin", "ble.ir/OfferChin", "rubika.ir/OfferChin", "youtube.com/@OfferChin"}),
         ):
             captured = []
 
@@ -775,7 +780,7 @@ class ShortVideoTests(unittest.TestCase):
             [call.args[1] for call in draw_logo.call_args_list],
             ["telegram", "bale", "rubika", "youtube"],
         )
-        self.assertTrue(any("youtube.com/@offerchin" in value for value in drawn_text))
+        self.assertTrue(any("youtube.com/@OfferChin" in value for value in drawn_text))
         self.assertIn(
             _shape_rtl("لینک خرید: کپشن ویدئو و توضیحات کانال"),
             drawn_text,

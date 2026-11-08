@@ -1288,3 +1288,20 @@
 **فایل‌ها:** `docs/OFFERCHIN_OPTIMIZATION_PACKAGE_FA.md`، `README.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
 
 **وضعیت:** صرفاً مستندسازی؛ بدون تغییر کد، workflow، Worker، secret، متغیر محیطی یا مقصد انتشار.
+
+
+## 2026-11-08 — اصلاح حروف نام برند در شناسه‌های فوتر تصویر و ویدئو
+
+**هدف:** نمایش یکدست نام برند به شکل دقیق `OfferChin` در شناسه‌های رسانه‌ای چاپ‌شده روی تصاویر و پوستر ویدئوها، بدون تغییر شناسه‌های واقعی و URLهای عملیاتی.
+
+**تغییر/اقدام:** تابع `platform_footer_label` اکنون فقط بخش پایانی handle را در متن نمایشی به `OfferChin` تبدیل می‌کند. در نتیجه متن روی خروجی شامل `rubika.ir/OfferChin` و `youtube.com/@OfferChin` خواهد بود؛ مقادیر canonical در `PUBLIC_CHANNEL_LINKS` و URLهای قابل‌استفاده توسط پلتفرم‌ها با casing قبلی باقی می‌مانند. تست‌های خروجی تصویر و ویدئو نیز بر همین اساس به‌روزرسانی شدند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/offerchin_visuals.py`، `affilio_radar/test_short_video.py`، `affilio_radar/test_affilio.py`، `affilio_radar/VISUAL_BRANDING.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** تست‌های Platform Logo Regression (run `42506192000`) و Top-100/DigiPay Regression (run `42506191999`) موفق شدند. اجرای Documentation Gate نخست به دلیل قالب تاریخ/فیلدهای همین ورودی رد شد؛ پس از اصلاح این ورودی، اجرای مجدد Gate در انتظار است.
+
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-brand-case-in-visual-channel-ids-20261108`؛ [PR #129](https://github.com/Mehran0960/ai_news_bot/pull/129)؛ head پیش از اصلاح قالب changelog: `3eb116607fc591b5f6fa5ac06c1e1a467603b202`.
+
+**ریسک/بازگشت:** متن نمایشی تصویر ممکن است از نظر حروف بزرگ/کوچک با شکل canonical handle تفاوت داشته باشد؛ بنابراین فقط برچسب چاپ‌شده تغییر می‌کند و URL/API واقعی دست‌نخورده می‌ماند. بازگشت با revert کردن PR #129 امکان‌پذیر است. تصاویر و ویدئوهای قبلی به‌صورت عطف‌به‌ماسبق ویرایش نمی‌شوند.
+
+**وضعیت:** اصلاح کد و تست انجام شده؛ دو workflow فنی موفق‌اند؛ اصلاح قالب مستندات برای اجرای مجدد Documentation Gate ثبت شد. ادغام در main هنوز انجام نشده است.
