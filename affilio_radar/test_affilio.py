@@ -98,7 +98,6 @@ from affilio_radar import (
     ensure_recent_publications,
     _recent_publication_diversity,
     build_publication_diversity_report,
-    _diversify_ranked_records,
     is_product_repeat_blocked,
     is_fresh_selection_candidate,
     delete_previous_channel_posts,
@@ -122,8 +121,7 @@ def _with_verified_current_demand(product, now=None, growth=5, window_hours=24):
     observed = now or datetime.now(timezone.utc)
     product.update({
         "current_demand_verified": True,
-        "current_demand_score": 55,
-        "demand_score": 55,
+        "recent_review_growth_window": growth,
         "recent_review_growth_7d": growth,
         "demand_window_hours": window_hours,
         "demand_observed_at": observed.isoformat(),
@@ -193,38 +191,36 @@ class AffilioRadarTests(unittest.TestCase):
         self._click_tracker_health_patch.start()
         self.addCleanup(self._click_tracker_health_patch.stop)
 
-    def test_diversity_selection_keeps_leader_when_all_discounts_below_floor(self):
+    def test_deal_rank_uses_discount_then_savings_and_ignores_popularity_scores(self):
         now = datetime(2026, 10, 28, tzinfo=timezone.utc)
-        records = [
-            {
-                "product_id": "dkp-101",
-                "title": "محصول آزمون اول",
-                "discount_percent": 35,
-                "demand_score": 90,
-                "click_count_30d": 5,
-            },
-            {
-                "product_id": "dkp-102",
-                "title": "محصول آزمون دوم",
-                "discount_percent": 40,
-                "demand_score": 89,
-                "click_count_30d": 5,
-            },
-        ]
-        recent = [{
-            "product_id": "dkp-old",
-            "title": "کالای منتشرشده قبلی",
-            "ts": now.timestamp() - 3600,
-        }]
+        lower = {
+            "product_id": "dkp-101",
+            "discount_percent": 35,
+            "savings_toman": 150_000,
+            "demand_score": 100,
+            "current_demand_score": 100,
+            "click_count_30d": 90_000,
+            "review_count": 1_000_000,
+            "rating": 5.0,
+        }
+        higher = {
+            "product_id": "dkp-102",
+            "discount_percent": 40,
+            "savings_toman": 180_000,
+            "demand_score": 0,
+            "current_demand_score": 0,
+            "click_count_30d": 0,
+            "review_count": 0,
+            "rating": 0,
+        }
+        self.assertGreater(deal_sort_key(higher, now), deal_sort_key(lower, now))
 
-        selected = _diversify_ranked_records(
-            records,
-            limit=1,
-            published={},
-            recent_publications=recent,
-            now=now,
+        # With equal percentage, savings comes next and still beats any popularity field.
+        same_discount_more_savings = {**lower, "discount_percent": 40, "savings_toman": 200_000}
+        self.assertGreater(
+            deal_sort_key(same_discount_more_savings, now),
+            deal_sort_key(higher, now),
         )
-        self.assertEqual([row["product_id"] for row in selected], ["dkp-101"])
 
     def test_product_url_accepts_only_digikala_product_pages(self):
         self.assertEqual(
@@ -1567,23 +1563,36 @@ class AffilioRadarTests(unittest.TestCase):
         recent = _recent_publication_diversity(published, limit=2000, now=now)
         self.assertEqual([item["product_id"] for item in recent], ["dkp-in-window"])
 
-    def test_discovery_selection_skips_recent_eyewear_family_and_uses_other_category(self):
+    def test_discovery_selection_applies_family_cooldown_without_category_reranking(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         recent = [{
             "product_id": "dkp-old-eyewear",
             "title": "عینک آفتابی مردانه مدل قدیمی",
             "ts": (now - timedelta(minutes=20)).timestamp(),
         }]
-        candidates = [
-            {"product_id": "dkp-new-eyewear", "title": "عینک طبی زنانه مدل جدید", "demand_score": 90},
-            {"product_id": "dkp-new-charger", "title": "شارژر سریع دیواری مدل جدید", "demand_score": 55},
-        ]
+        queue = {
+            "dkp-new-eyewear": {
+                "product_id": "dkp-new-eyewear",
+                "product_url": "https://www.digikala.com/product/dkp-new-eyewear/",
+                "title": "عینک طبی زنانه مدل جدید",
+                "discount_percent": 80,
+                "savings_toman": 800_000,
+                "next_check_at": "",
+            },
+            "dkp-new-charger": {
+                "product_id": "dkp-new-charger",
+                "product_url": "https://www.digikala.com/product/dkp-new-charger/",
+                "title": "شارژر سریع دیواری مدل جدید",
+                "discount_percent": 60,
+                "savings_toman": 300_000,
+                "next_check_at": "",
+            },
+        }
 
-        selected = _diversify_ranked_records(
-            candidates, limit=2, published={}, recent_publications=recent, now=now,
+        selected = select_discovery_records_for_check(
+            queue, now, max_count=2, published={}, recent_publications=recent,
         )
-
-        self.assertEqual([row["product_id"] for row in selected], ["dkp-new-charger"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-new-charger"])
 
     def test_publish_selection_uses_next_highest_after_24h_family_guard(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
@@ -3185,20 +3194,6 @@ class AffilioRadarTests(unittest.TestCase):
             {row["product_id"] for row in quality},
             {"dkp-95501", "dkp-95502", "dkp-95503"},
         )
-
-    def test_diversity_comparison_uses_recent_activity_signal_and_not_a_discount_fallback(self):
-        stronger = {
-            "current_demand_verified": True, "demand_score": 60,
-            "click_count_30d": 100, "discount_percent": 49,
-        }
-        comparable = {
-            "current_demand_verified": True, "demand_score": 50,
-            "click_count_30d": 90, "discount_percent": 45,
-        }
-        self.assertTrue(
-            radar_module._candidate_demand_comparable_for_diversity(comparable, stronger)
-        )
-
 
     def test_open_ended_discovery_candidates_are_not_rejected_before_live_detail_check(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
