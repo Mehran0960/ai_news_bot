@@ -44286,13 +44286,13 @@
   "last_cycle_status": "complete",
   "last_cycle_unqueryable_category_ids": [],
   "last_error": "",
-  "last_successful_category_id": "8406",
-  "last_successful_category_name": "چادر خودرو",
-  "last_successful_page": 500,
-  "last_successful_page_at": "2026-11-08T07:38:38.735944+00:00",
+  "last_successful_category_id": "6816",
+  "last_successful_category_name": "پوشاک ورزشی",
+  "last_successful_page": 499,
+  "last_successful_page_at": "2026-11-08T07:39:23.755471+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 484,
+  "page": 485,
   "parallel_cycle_completed_category_ids": [
     "1",
     "2",
@@ -49202,8 +49202,8 @@
     "11797",
     "214186"
   ],
-  "parallel_cycle_pages_success": 192034,
-  "parallel_cycle_product_rows_success": 3770555,
+  "parallel_cycle_pages_success": 192045,
+  "parallel_cycle_product_rows_success": 3770775,
   "parallel_cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -54130,20 +54130,20 @@
     "214158",
     "214186"
   ],
-  "parallel_last_batch_at": "2026-11-08T07:38:38.863614+00:00",
+  "parallel_last_batch_at": "2026-11-08T07:39:23.832114+00:00",
   "parallel_last_batch_candidate_file_bytes": 4235138,
-  "parallel_last_batch_candidate_write_seconds": 0.113,
+  "parallel_last_batch_candidate_write_seconds": 0.068,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 10.93,
-  "parallel_last_batch_nonempty_product_pages": 19,
-  "parallel_last_batch_pages": 19,
-  "parallel_last_batch_pages_per_second": 1.74,
-  "parallel_last_batch_processing_seconds": 0.032,
-  "parallel_last_batch_product_rows": 380,
+  "parallel_last_batch_fetch_seconds": 1.97,
+  "parallel_last_batch_nonempty_product_pages": 11,
+  "parallel_last_batch_pages": 11,
+  "parallel_last_batch_pages_per_second": 5.58,
+  "parallel_last_batch_processing_seconds": 0.01,
+  "parallel_last_batch_product_rows": 220,
   "parallel_last_batch_rate_limited": 0,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 34.31,
-  "parallel_last_batch_successes": 19,
+  "parallel_last_batch_rows_per_second": 107.44,
+  "parallel_last_batch_successes": 11,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4672,
   "parallel_pending_pages": [
@@ -54151,85 +54151,85 @@
       "attempts": 0,
       "category_id": "6263",
       "category_name": "حمام و سرویس بهداشتی",
-      "page": 484
+      "page": 485
     },
     {
       "attempts": 0,
       "category_id": "9543",
       "category_name": "جاکلیدی زنانه و مردانه",
-      "page": 485
+      "page": 486
     },
     {
       "attempts": 0,
       "category_id": "9540",
       "category_name": "زیورآلات زنانه و مردانه",
-      "page": 486
+      "page": 487
     },
     {
       "attempts": 0,
       "category_id": "9534",
       "category_name": "اکسسوری زنانه و مردانه",
-      "page": 490
+      "page": 491
     },
     {
       "attempts": 0,
       "category_id": "10690",
       "category_name": "لوازم و مصالح ساختمانی",
-      "page": 491
+      "page": 492
     },
     {
       "attempts": 0,
       "category_id": "100",
       "category_name": "ماوس پد",
-      "page": 493
+      "page": 494
     },
     {
       "attempts": 0,
       "category_id": "9558",
       "category_name": "ساعت عقربه ای زنانه و مردانه",
-      "page": 493
+      "page": 494
     },
     {
       "attempts": 0,
       "category_id": "9625",
       "category_name": "دخترانه",
-      "page": 493
+      "page": 494
     },
     {
       "attempts": 0,
       "category_id": "6741",
       "category_name": "مادر و کودک",
-      "page": 495
+      "page": 496
     },
     {
       "attempts": 0,
       "category_id": "5700",
       "category_name": "لوازم آرایشی",
-      "page": 499
+      "page": 500
     },
     {
       "attempts": 0,
       "category_id": "6816",
       "category_name": "پوشاک ورزشی",
-      "page": 499
+      "page": 500
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 11,
-  "parallel_workers_used": 10,
+  "parallel_worker_limit": 12,
+  "parallel_workers_used": 11,
   "pending_page_count": 11,
   "schema_version": 1,
   "stats": {
     "api_failures_total": 48099,
-    "catalog_candidate_cards_found_total": 14418849,
+    "catalog_candidate_cards_found_total": 14419069,
     "completed_cycles": 1,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 3822025,
+    "discounted_candidates_found_total": 3822116,
     "empty_product_pages_total": 24123,
-    "nonempty_product_pages_total": 729299,
-    "pages_scanned_total": 752630,
-    "product_rows_scanned_total": 14418889,
+    "nonempty_product_pages_total": 729310,
+    "pages_scanned_total": 752641,
+    "product_rows_scanned_total": 14419109,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
