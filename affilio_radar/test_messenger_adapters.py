@@ -7,7 +7,12 @@ from messenger_adapters import (
     send_eitaa_photo,
     send_rubika_photo,
 )
-from offerchin_copy import MEMBERSHIP_BUTTON_TEXT, purchase_action_label
+from offerchin_copy import (
+    BRAND_DISPLAY_NAME,
+    MEMBERSHIP_BUTTON_TEXT,
+    normalize_brand_display_name,
+    purchase_action_label,
+)
 
 
 class FakeResponse:
@@ -56,6 +61,17 @@ class FakeRenderer:
 
 
 class MessengerAdapterTests(unittest.TestCase):
+    def test_visible_brand_spelling_is_canonical_without_rewriting_platform_handles(self):
+        self.assertEqual(BRAND_DISPLAY_NAME, "OfferChin")
+        self.assertEqual(
+            normalize_brand_display_name(
+                "Offerchin / OFFERCHIN / offerchin — rubika.ir/offerchin "
+                "@offerchin t.me/OfferChin"
+            ),
+            "OfferChin / OfferChin / OfferChin — rubika.ir/offerchin "
+            "@offerchin t.me/OfferChin",
+        )
+
     def setUp(self):
         self.renderer = FakeRenderer()
         self.item = {"title": "محصول آزمایشی", "discount_percent": 30, "merchant": "دیجی‌کالا"}
