@@ -24,6 +24,11 @@ from urllib.parse import parse_qs, quote, urlencode, urljoin, urlsplit, urlunspl
 import requests
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from product_quality import is_publishable_product_title
+from demand_shadow import (
+    build_demand_shadow_report,
+    sanitize_torob_trends,
+    torob_trends_snapshot_status,
+)
 try:
     from .catalog_sweep import (
         load_catalog_candidates_for_handoff,
@@ -180,6 +185,9 @@ MARKET_PRICE_RECHECK_HOURS = max(6, min(72, int(os.getenv("AFFILIO_MARKET_RECHEC
 MARKET_PRICE_CHALLENGE_COOLDOWN_HOURS = max(1, min(24, int(os.getenv("AFFILIO_MARKET_CHALLENGE_COOLDOWN_HOURS", "6"))))
 MARKET_PRICE_GLOBAL_PAUSE_MINUTES = max(5, min(120, int(os.getenv("AFFILIO_MARKET_GLOBAL_PAUSE_MINUTES", "20"))))
 TOROB_MCP_GAP_SECONDS = max(1.5, min(5.0, float(os.getenv("TOROB_MCP_GAP_SECONDS", "2"))))
+TOROB_TRENDS_REFRESH_HOURS = max(1, min(24, int(os.getenv("AFFILIO_TOROB_TRENDS_REFRESH_HOURS", "6"))))
+TOROB_TRENDS_CHALLENGE_RETRY_HOURS = max(1, min(6, int(os.getenv("AFFILIO_TOROB_TRENDS_CHALLENGE_RETRY_HOURS", "1"))))
+TOROB_TRENDS_FAILURE_RETRY_HOURS = max(1, min(12, int(os.getenv("AFFILIO_TOROB_TRENDS_FAILURE_RETRY_HOURS", "3"))))
 MIN_MARKET_MATCH_SCORE = max(40, min(95, int(os.getenv("AFFILIO_MIN_MARKET_MATCH_SCORE", "85"))))
 MARKET_UNDERCUT_BLOCK_PERCENT = max(1, min(30, int(os.getenv("AFFILIO_MARKET_UNDERCUT_BLOCK_PERCENT", "5"))))
 
@@ -2004,7 +2012,7 @@ def _is_market_challenge_error(exc: Exception) -> bool:
     )
 
 
-def _prepare_torob_mcp() -> None:
+def _prepare_torob_mcp() -> set[str]:
     initialized = _torob_rpc(
         "initialize",
         {
@@ -2037,6 +2045,104 @@ def _prepare_torob_mcp() -> None:
     if missing:
         raise RuntimeError("Torob MCP is missing required tools: " + ", ".join(sorted(missing)))
     time.sleep(TOROB_MCP_GAP_SECONDS)
+    return names
+
+
+def _torob_trends_refresh_due(state: dict, current: datetime) -> bool:
+    """Refresh trends on a bounded cadence; an active retry window suppresses calls."""
+    retry_at = _parse_utc_datetime(state.get("torob_trends_next_attempt_at"))
+    if retry_at and retry_at > current:
+        return False
+    snapshot_status, _ = torob_trends_snapshot_status(
+        state.get("torob_trends_snapshot"),
+        now=current,
+        max_age_hours=TOROB_TRENDS_REFRESH_HOURS,
+    )
+    return snapshot_status != "fresh"
+
+
+def _record_torob_trends_failure(
+    state: dict,
+    status: str,
+    current: datetime,
+    retry_hours: int,
+    error: Exception | None = None,
+) -> None:
+    state["torob_trends_last_status"] = {
+        "status": status,
+        "attempted_at": current.isoformat(),
+        "error_type": type(error).__name__ if error else "",
+    }
+    state["torob_trends_next_attempt_at"] = (
+        current + timedelta(hours=retry_hours)
+    ).isoformat()
+    print(
+        f"TOROB_TRENDS_REFRESH status={status} "
+        f"retry_hours={retry_hours} error={type(error).__name__ if error else 'none'}"
+    )
+
+
+def _refresh_torob_trends_snapshot(
+    state: dict,
+    tool_names: set[str],
+    request_id: int,
+    current: datetime,
+) -> tuple[int, bool]:
+    """Refresh the public trend feed. Returns the next request id and challenge flag."""
+    if "torob_trends" not in tool_names:
+        _record_torob_trends_failure(
+            state, "tool_not_available", current, retry_hours=24
+        )
+        return request_id, False
+
+    active_request_id = request_id
+    request_id += 1
+    try:
+        payload = _torob_tool(
+            "torob_trends",
+            {"limit": 30},
+            active_request_id,
+        )
+        snapshot = sanitize_torob_trends(payload, captured_at=current)
+        if snapshot is None:
+            _record_torob_trends_failure(
+                state, "empty_or_invalid_response", current,
+                retry_hours=TOROB_TRENDS_FAILURE_RETRY_HOURS,
+            )
+            return request_id, False
+        state["torob_trends_snapshot"] = snapshot
+        state["torob_trends_last_status"] = {
+            "status": "ok",
+            "attempted_at": current.isoformat(),
+            "count": snapshot["count"],
+            "error_type": "",
+        }
+        state["torob_trends_next_attempt_at"] = (
+            current + timedelta(hours=TOROB_TRENDS_REFRESH_HOURS)
+        ).isoformat()
+        print(
+            f"TOROB_TRENDS_REFRESH status=ok count={snapshot['count']} "
+            f"refresh_hours={TOROB_TRENDS_REFRESH_HOURS}"
+        )
+        return request_id, False
+    except Exception as exc:
+        challenge = _is_market_challenge_error(exc)
+        retry_hours = (
+            TOROB_TRENDS_CHALLENGE_RETRY_HOURS
+            if challenge else TOROB_TRENDS_FAILURE_RETRY_HOURS
+        )
+        _record_torob_trends_failure(
+            state,
+            "upstream_challenge" if challenge else "request_failed",
+            current,
+            retry_hours=retry_hours,
+            error=exc,
+        )
+        if challenge:
+            state["market_price_api_pause_until"] = (
+                current + timedelta(minutes=MARKET_PRICE_GLOBAL_PAUSE_MINUTES)
+            ).isoformat()
+        return request_id, challenge
 
 
 def _torob_tool(name: str, arguments: dict, request_id: int) -> dict:
@@ -2376,7 +2482,8 @@ def enrich_market_prices(
         f"check_limit={MARKET_PRICE_CHECK_LIMIT} cached={cached_count} "
         f"retry_skipped={skipped_retry} paused={bool(pause_until and pause_until > current)}"
     )
-    if not due:
+    trends_due = _torob_trends_refresh_due(state, current)
+    if not due and not trends_due:
         return
 
     def remember_result(product: dict, outcome: str, retry_hours: int) -> None:
@@ -2398,13 +2505,24 @@ def enrich_market_prices(
             state["market_price_api_checks"] = dict(ordered[:5000])
 
     request_id = 10
+    tool_names: set[str] = set()
     try:
-        _prepare_torob_mcp()
-        print(
-            f"MARKET_SOURCE=torob_mcp candidates={len(due)} "
-            f"match_threshold={MIN_MARKET_MATCH_SCORE}%"
-        )
+        tool_names = _prepare_torob_mcp()
     except Exception as exc:
+        if trends_due:
+            challenge = _is_market_challenge_error(exc)
+            _record_torob_trends_failure(
+                state,
+                "upstream_challenge" if challenge else "handshake_failed",
+                current,
+                retry_hours=(
+                    TOROB_TRENDS_CHALLENGE_RETRY_HOURS
+                    if challenge else TOROB_TRENDS_FAILURE_RETRY_HOURS
+                ),
+                error=exc,
+            )
+        if not due:
+            return
         product = due[0]
         product["market_status"] = "unavailable"
         product["market_error"] = type(exc).__name__
@@ -2423,6 +2541,31 @@ def enrich_market_prices(
             f"http_status={http_status or 'n/a'} challenge={challenge} detail={str(exc)[:180]!r}"
         )
         return
+
+    if trends_due:
+        request_id, trends_challenged = _refresh_torob_trends_snapshot(
+            state, tool_names, request_id, current
+        )
+        if trends_challenged and due:
+            product = due[0]
+            product["market_status"] = "unavailable"
+            product["market_error"] = "torob_upstream_challenge"
+            remember_result(
+                product, "error", MARKET_PRICE_CHALLENGE_COOLDOWN_HOURS
+            )
+            print(
+                f"MARKET_SOURCE_PAUSED reason=torob_trends_challenge "
+                f"http_status={state.get('market_price_api_pause_until', '')}"
+            )
+            return
+
+    if not due:
+        return
+
+    print(
+        f"MARKET_SOURCE=torob_mcp candidates={len(due)} "
+        f"match_threshold={MIN_MARKET_MATCH_SCORE}%"
+    )
 
     for product in due:
         title = str(product.get("title") or "")
@@ -9637,6 +9780,20 @@ def run(publish=False, selection_only=False):
     # Historical proof affects ranking only, not a fixed displayed-discount threshold.
     enrich_price_history(products, state)
     enrich_market_prices(products, state)
+    demand_shadow_report = build_demand_shadow_report(
+        products,
+        state.get("torob_trends_snapshot"),
+        now=datetime.now(timezone.utc),
+    )
+    shadow_summary = demand_shadow_report.get("summary", {})
+    print(
+        "DEMAND_SHADOW "
+        f"digikala_ranked={shadow_summary.get('products_with_fresh_digikala_rank', 0)}/"
+        f"{shadow_summary.get('products_examined', 0)} "
+        f"torob_snapshot={shadow_summary.get('torob_snapshot_status', 'missing')} "
+        f"torob_strong_matches={shadow_summary.get('products_with_strong_torob_trend_match', 0)} "
+        "live_ranking_changed=false"
+    )
     products.sort(key=deal_sort_key, reverse=True)
     queue_now = datetime.now(timezone.utc)
     # Independent market/history evidence is diagnostic; it cannot filter a live markdown.
@@ -9908,6 +10065,7 @@ def run(publish=False, selection_only=False):
             "endpoint": TOROB_MCP_URL,
         },
         "search_diagnostics": search_diagnostics,
+        "selection_shadow": demand_shadow_report,
         "products": products[:40],
     }
     save_json(REPORT, report)
