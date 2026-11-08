@@ -444,17 +444,18 @@ def due_content(state: dict, *, now: datetime | None = None, limit: int = 1) -> 
         # New content with zero successful deliveries must outrank old partial items.
         # A slow/broken platform therefore cannot monopolize the publisher's single-item run.
         has_success = _has_any_delivery_success(state, str(product_id), entry)
+        # Preserve queue/schedule order; demand or popularity telemetry must never
+        # reorder items after the discount-first selector has already ranked them.
         due.append((
             1 if has_success else 0,
             scheduled,
-            -int((entry.get("payload") or {}).get("demand_score") or 0),
             str(product_id),
             entry,
         ))
-    due.sort(key=lambda row: (row[0], row[1], row[2], row[3]))
+    due.sort(key=lambda row: (row[0], row[1], row[2]))
     return [
         (product_id, entry)
-        for _partial, _scheduled, _score, product_id, entry in due[:max(1, int(limit))]
+        for _partial, _scheduled, product_id, entry in due[:max(1, int(limit))]
     ]
 
 
