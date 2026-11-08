@@ -937,7 +937,7 @@ class ShortVideoTests(unittest.TestCase):
             )
         upload_request = next(kwargs for url, kwargs in http.posts if url == YOUTUBE_UPLOAD_URL)
         snippet = upload_request["json"]["snippet"]
-        self.assertEqual(snippet["title"], "پیشنهاد ویژه OfferChin | ۲۵٪ تخفیف")
+        self.assertEqual(snippet["title"], "پیشنهاد ویژه OfferChin | 25٪ تخفیف")
         self.assertEqual(
             snippet["description"],
             "OfferChin را دنبال کنید: rubika.ir/offerchin و @offerchin",
