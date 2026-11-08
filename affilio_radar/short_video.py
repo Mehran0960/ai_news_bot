@@ -351,7 +351,7 @@ def build_vertical_poster(
     title_font = _title_font(32)
     title_lines = _wrap_rtl_text(
         draw,
-        str(title or "پیشنهاد ویژه دیجی‌کالا"),
+        normalize_brand_display_name(str(title or "پیشنهاد ویژه دیجی‌کالا")),
         title_font,
         max_width=574,
         max_lines=2,
