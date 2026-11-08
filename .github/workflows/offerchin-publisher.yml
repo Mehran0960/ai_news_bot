@@ -97,7 +97,7 @@ jobs:
           print("OFFERCHIN_STATE_PERSISTENCE_WORKTREE_RESET_VALIDATED")
           PY
 
-      - name: Validate discount-first selection and demand telemetry behavior
+      - name: Validate discount-first ranking and optional review-growth tie-break
         run: |
           cd affilio_radar
           python -m unittest \
@@ -116,6 +116,8 @@ jobs:
             test_affilio.AffilioRadarTests.test_publication_interval_is_27_minutes \
             test_affilio.AffilioRadarTests.test_video_upload_candidate_limit_covers_dispatch_sidecar \
             test_affilio.AffilioRadarTests.test_cross_category_bestseller_is_telemetry_only_and_clicks_stay_analytics_only \
+            test_affilio.AffilioRadarTests.test_scoring_does_not_generate_popularity_or_demand_scores \
+            test_affilio.AffilioRadarTests.test_review_volume_and_rating_cannot_change_rank_without_fresh_growth \
             test_affilio.AffilioRadarTests.test_click_tracker_wraps_only_same_product_affiliate_destinations \
             test_affilio.AffilioRadarTests.test_click_tracker_preserves_supported_affilio_template \
             test_affilio.AffilioRadarTests.test_click_tracker_supports_channel_attribution_and_rejects_unknown_source_names \
@@ -125,6 +127,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_youtube_upload_allows_published_product_without_official_expiry_timer \
             test_affilio.AffilioRadarTests.test_public_aparat_upload_stays_blocked_without_verified_expiry \
             test_affilio.AffilioRadarTests.test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record -v
+          python -m unittest test_selection_evidence -v
 
       - name: Validate permanent YouTube retention policy
         run: |
@@ -153,6 +156,8 @@ jobs:
           AFFILIO_MARKET_RECHECK_HOURS: "24"
           AFFILIO_MARKET_CHALLENGE_COOLDOWN_HOURS: "6"
           AFFILIO_MARKET_GLOBAL_PAUSE_MINUTES: "20"
+          # Fresh review-count growth is only an indirect proxy tie-break after equal
+          # discount percentage and cash savings; it is not sales data and never a gate.
           AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "1"
           AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "3"
           AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS: "6"
