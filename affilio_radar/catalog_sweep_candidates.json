@@ -28547,6 +28547,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "6441",
+      "catalog_best_selling_category_name": "چراغ خواب و آباژور",
+      "catalog_best_selling_rank": 3330,
+      "catalog_best_selling_ranks_by_category": {
+        "6441": {
+          "category_name": "چراغ خواب و آباژور",
+          "observed_at": "2026-11-08T20:26:12.995298+00:00",
+          "rank": 3330
+        }
+      },
+      "catalog_category_id": "6441",
+      "catalog_category_ids": [
+        "6441"
+      ],
+      "catalog_category_name": "چراغ خواب و آباژور",
+      "catalog_rank_observed_at": "2026-11-08T20:26:12.995298+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1000000,
+      "discount_percent": 75,
+      "first_seen_at": "2026-11-08T20:26:12.995298+00:00",
+      "last_seen_at": "2026-11-08T20:26:04.268250+00:00",
+      "original_price": 4000000,
+      "product_id": "dkp-21461800",
+      "product_url": "https://www.digikala.com/product/dkp-21461800/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3000000,
+      "source": "digikala_catalog_sweep",
+      "title": "چراغ رومیزی مدل اسکای 6"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "11023",
       "catalog_best_selling_category_name": "اکسسوری دخترانه و پسرانه",
       "catalog_best_selling_rank": 3263,
@@ -30195,27 +30227,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "5880",
-      "catalog_best_selling_category_name": "باتری استاندارد",
-      "catalog_best_selling_rank": 1444,
+      "catalog_best_selling_category_id": "6",
+      "catalog_best_selling_category_name": "کتاب و هنر",
+      "catalog_best_selling_rank": 3316,
       "catalog_best_selling_ranks_by_category": {
         "5880": {
           "category_name": "باتری استاندارد",
           "observed_at": "2026-11-08T15:36:07.434536+00:00",
           "rank": 1444
+        },
+        "6": {
+          "category_name": "کتاب و هنر",
+          "observed_at": "2026-11-08T20:26:12.968083+00:00",
+          "rank": 3316
         }
       },
-      "catalog_category_id": "5880",
+      "catalog_category_id": "6",
       "catalog_category_ids": [
+        "6",
         "5880"
       ],
-      "catalog_category_name": "باتری استاندارد",
-      "catalog_rank_observed_at": "2026-11-08T15:36:07.434536+00:00",
+      "catalog_category_name": "کتاب و هنر",
+      "catalog_rank_observed_at": "2026-11-08T20:26:12.968083+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 475000,
       "discount_percent": 75,
       "first_seen_at": "2026-11-08T15:34:06.341796+00:00",
-      "last_seen_at": "2026-11-08T15:35:59.814489+00:00",
+      "last_seen_at": "2026-11-08T20:25:45.607487+00:00",
       "original_price": 1900000,
       "product_id": "dkp-22963239",
       "product_url": "https://www.digikala.com/product/dkp-22963239/",
@@ -106966,41 +107004,9 @@
       "savings_toman": 2388000,
       "source": "digikala_catalog_sweep",
       "title": "تی شرت لانگ آستین کوتاه زنانه مدل دختر و اسب کد 1"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9347",
-      "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 2955,
-      "catalog_best_selling_ranks_by_category": {
-        "9347": {
-          "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-08T19:26:03.926655+00:00",
-          "rank": 2955
-        }
-      },
-      "catalog_category_id": "9347",
-      "catalog_category_ids": [
-        "9347"
-      ],
-      "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-08T19:26:03.926655+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-08T19:26:03.926655+00:00",
-      "last_seen_at": "2026-11-08T19:25:32.259871+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-16518893",
-      "product_url": "https://www.digikala.com/product/dkp-16518893/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "تی شرت لانگ آستین کوتاه زنانه مدل فضانورد و ماه"
     }
   ],
   "cycle_started_at": "2026-11-08T07:56:20.016124+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-08T20:25:00.959976+00:00"
+  "updated_at": "2026-11-08T20:26:13.041164+00:00"
 }
