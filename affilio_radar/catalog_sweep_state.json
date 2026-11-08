@@ -44290,10 +44290,10 @@
   "last_cycle_status": "complete",
   "last_cycle_unqueryable_category_ids": [],
   "last_error": "",
-  "last_successful_category_id": "5981",
-  "last_successful_category_name": "نرم افزار و بازی",
+  "last_successful_category_id": "6911",
+  "last_successful_category_name": "جاکلیدی",
   "last_successful_page": 6,
-  "last_successful_page_at": "2026-11-08T10:24:54.330074+00:00",
+  "last_successful_page_at": "2026-11-08T10:26:26.552293+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
   "page": 6,
@@ -46070,8 +46070,10 @@
     "6025",
     "6026",
     "6030",
+    "6057",
     "6061",
     "6077",
+    "6078",
     "6079",
     "6085",
     "6120",
@@ -46079,6 +46081,7 @@
     "6122",
     "6130",
     "6132",
+    "6152",
     "6155",
     "6156",
     "6163",
@@ -46092,7 +46095,10 @@
     "6218",
     "6223",
     "6233",
+    "6236",
     "6240",
+    "6242",
+    "6273",
     "6281",
     "6283",
     "6290",
@@ -46103,16 +46109,19 @@
     "6405",
     "6406",
     "6411",
+    "6412",
     "6418",
     "6427",
     "6431",
     "6435",
     "6442",
+    "6455",
     "6479",
     "6499",
     "6507",
     "6508",
     "6511",
+    "6525",
     "6527",
     "6539",
     "6543",
@@ -46133,6 +46142,7 @@
     "6588",
     "6590",
     "6592",
+    "6597",
     "6598",
     "6602",
     "6604",
@@ -46147,6 +46157,8 @@
     "6727",
     "6734",
     "6762",
+    "6764",
+    "6765",
     "6766",
     "6772",
     "6773",
@@ -46155,11 +46167,14 @@
     "6781",
     "6782",
     "6786",
+    "6795",
+    "6799",
     "6802",
     "6804",
     "6805",
     "6809",
     "6811",
+    "6818",
     "6830",
     "6831",
     "6832",
@@ -47248,8 +47263,8 @@
     "11797",
     "214186"
   ],
-  "parallel_cycle_pages_success": 14376,
-  "parallel_cycle_product_rows_success": 237434,
+  "parallel_cycle_pages_success": 14856,
+  "parallel_cycle_product_rows_success": 246846,
   "parallel_cycle_started_at": "2026-11-08T07:56:20.016124+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -52176,2903 +52191,23 @@
     "214158",
     "214186"
   ],
-  "parallel_last_batch_at": "2026-11-08T10:24:54.422239+00:00",
-  "parallel_last_batch_candidate_file_bytes": 4014257,
-  "parallel_last_batch_candidate_write_seconds": 0.071,
-  "parallel_last_batch_empty_product_pages": 1,
-  "parallel_last_batch_fetch_seconds": 153.836,
-  "parallel_last_batch_nonempty_product_pages": 479,
+  "parallel_last_batch_at": "2026-11-08T10:26:26.698952+00:00",
+  "parallel_last_batch_candidate_file_bytes": 4008784,
+  "parallel_last_batch_candidate_write_seconds": 0.107,
+  "parallel_last_batch_empty_product_pages": 0,
+  "parallel_last_batch_fetch_seconds": 62.073,
+  "parallel_last_batch_nonempty_product_pages": 480,
   "parallel_last_batch_pages": 480,
-  "parallel_last_batch_pages_per_second": 3.12,
-  "parallel_last_batch_processing_seconds": 0.088,
-  "parallel_last_batch_product_rows": 9336,
+  "parallel_last_batch_pages_per_second": 7.73,
+  "parallel_last_batch_processing_seconds": 0.14,
+  "parallel_last_batch_product_rows": 9412,
   "parallel_last_batch_rate_limited": 0,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 60.63,
+  "parallel_last_batch_rows_per_second": 151.03,
   "parallel_last_batch_successes": 480,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4672,
   "parallel_pending_pages": [
-    {
-      "attempts": 0,
-      "category_id": "5982",
-      "category_name": "مداد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "5983",
-      "category_name": "مداد نوکی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "5984",
-      "category_name": "آبرنگ و گواش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "5985",
-      "category_name": "پاستل و مداد شمعی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "5986",
-      "category_name": "تراش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "5987",
-      "category_name": "پاک کن و غلط گیر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "5988",
-      "category_name": "چسب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "5989",
-      "category_name": "قیچی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "5992",
-      "category_name": "مهر و استامپ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "5993",
-      "category_name": "خط کش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "5994",
-      "category_name": "پرگار",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6000",
-      "category_name": "جامدادی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6004",
-      "category_name": "دفتر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6005",
-      "category_name": "کاغذ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6011",
-      "category_name": "مداد نوکی و نوک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6012",
-      "category_name": "نوک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6013",
-      "category_name": "اقلام مصرفی لوازم اداری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6014",
-      "category_name": "لوازم اداری رومیزی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6017",
-      "category_name": "کیف و کوله مدرسه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6018",
-      "category_name": "کاتر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6019",
-      "category_name": "مجموعه لوازم اداری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6020",
-      "category_name": "لوازم سفر و کمپینگ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6021",
-      "category_name": "چمدان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6023",
-      "category_name": "کیف و کوله سفری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6024",
-      "category_name": "تخته",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6027",
-      "category_name": "اسباب بازی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6028",
-      "category_name": "بوردگیم، اوریگامی و بازی فکری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6029",
-      "category_name": "بازی فکری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6031",
-      "category_name": "ساختنی، لگو و پازل",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6033",
-      "category_name": "ساختنی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6035",
-      "category_name": "پازل",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6038",
-      "category_name": "عروسک، فیگور و ربات",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6042",
-      "category_name": "عروسک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6043",
-      "category_name": "ربات",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6044",
-      "category_name": "آشنایی با فنون",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6048",
-      "category_name": "اسپری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6050",
-      "category_name": "بازی جنگی و مبارزه‌ای",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6051",
-      "category_name": "تفنگ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6054",
-      "category_name": "وسایل بازی نقلیه و کنترلی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6055",
-      "category_name": "ماشین بازی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6056",
-      "category_name": "بازی شانسی و ضداسترس",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6057",
-      "category_name": "تجهیزات اسباب بازی جنگی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6058",
-      "category_name": "بازی نقش آفرینی و مشاغل",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6059",
-      "category_name": "ایفای نقش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6060",
-      "category_name": "لوازم جانبی کالای دیجیتال",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6062",
-      "category_name": "لوازم جانبی اداری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6063",
-      "category_name": "ابزار غیر برقی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6071",
-      "category_name": "ابزار برقی و شارژی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6072",
-      "category_name": "ابزار دستی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6073",
-      "category_name": "ابزار دقیق و اندازه گیری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6074",
-      "category_name": "ابزارهای اندازه گیری دیجیتالی و لیزری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6075",
-      "category_name": "باغبانی و کشاورزی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6076",
-      "category_name": "اره زنجیری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6078",
-      "category_name": "داس موتوری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6081",
-      "category_name": "موتور",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6082",
-      "category_name": "لوازم جانبی پازل و ساختنی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6083",
-      "category_name": "ابزار شوخی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6084",
-      "category_name": "مجلات داخلی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6086",
-      "category_name": "اصلاح موی سر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6087",
-      "category_name": "موزن بینی و گوش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6088",
-      "category_name": "آهن ربا",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6089",
-      "category_name": "لوازم ورزشی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6090",
-      "category_name": "کوه‌ نوردی و صخره نوردی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6091",
-      "category_name": "ورزش های توپی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6094",
-      "category_name": "توپ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6095",
-      "category_name": "راکت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6096",
-      "category_name": "تنیس، بدمینتون، اسکواش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6097",
-      "category_name": "پینگ پنگ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6098",
-      "category_name": "لوازم جانبی راکت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6099",
-      "category_name": "چراغ قوه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6100",
-      "category_name": "اجاق و شعله افکن سفری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6102",
-      "category_name": "قمقمه، فلاسک و کلمن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6103",
-      "category_name": "کیسه خواب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6104",
-      "category_name": "چادر مسافرتی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6105",
-      "category_name": "چاقوی سفر و ابزار چند کاره",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6106",
-      "category_name": "عصای کوهنوردی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6107",
-      "category_name": "ورزش های آبی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6108",
-      "category_name": "عینک شنا",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6109",
-      "category_name": "کلاه شنا",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6111",
-      "category_name": "ورزش های رزمی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6112",
-      "category_name": "ورزش های هوازی و تناسب اندام",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6113",
-      "category_name": "دستکش رزمی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6115",
-      "category_name": "طناب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6116",
-      "category_name": "تجهیزات جانبی ایروبیک و تناسب اندام",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6117",
-      "category_name": "پوشش‌های دفاعی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6118",
-      "category_name": "کیسه بوکس",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6119",
-      "category_name": "دمبل",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6123",
-      "category_name": "زیر انداز",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6124",
-      "category_name": "ورزش و سفر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6125",
-      "category_name": "ورزش های فکری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6126",
-      "category_name": "شطرنج",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6127",
-      "category_name": "لوازم جانبی شنا",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6128",
-      "category_name": "هواپیما و هلیکوپتر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6129",
-      "category_name": "تجهیزات جانبی سفر و کمپینگ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6131",
-      "category_name": "مبدل برق",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6133",
-      "category_name": "اسباب بازی زینتی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6134",
-      "category_name": "مجلات",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6139",
-      "category_name": "عطر و ادکلن مردانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6141",
-      "category_name": "ابزار بایگانی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6143",
-      "category_name": "اره برقی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6144",
-      "category_name": "دستگاه سنباده زن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6148",
-      "category_name": "چسب صنعتی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6149",
-      "category_name": "مته و سری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6151",
-      "category_name": "صفحه فرز و پولیش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6152",
-      "category_name": "قطار",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6153",
-      "category_name": "آلات موسیقی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6154",
-      "category_name": "گیتار",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6162",
-      "category_name": "عطر و ادکلن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6165",
-      "category_name": "آچار",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6166",
-      "category_name": "قیچی‌، چاقو و ابزار باغبانی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6167",
-      "category_name": "جعبه و کیف ابزار",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6168",
-      "category_name": "انبر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6169",
-      "category_name": "چکش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6170",
-      "category_name": "متر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6171",
-      "category_name": "تراز",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6172",
-      "category_name": "لوازم روانکاری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6173",
-      "category_name": "پیچ گوشتی و فازمتر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6175",
-      "category_name": "لوازم جانبی خودرو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6176",
-      "category_name": "فرز و سنگ رومیزی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6177",
-      "category_name": "پولیش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6178",
-      "category_name": "دریل",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6179",
-      "category_name": "پیچ گوشتی برقی و شارژی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6184",
-      "category_name": "کارواش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6185",
-      "category_name": "مکنده - دمنده",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6186",
-      "category_name": "انبر پرچ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6187",
-      "category_name": "سشوار صنعتی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6190",
-      "category_name": "اره",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6191",
-      "category_name": "کمپرسور هوا",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6194",
-      "category_name": "تیغه اره و رنده",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6195",
-      "category_name": "دستگاه جوش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6202",
-      "category_name": "اسباب بازی جنگی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6204",
-      "category_name": "منگنه کوب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6205",
-      "category_name": "پیستوله و رنگ پاش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6206",
-      "category_name": "دستگاه چسب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6209",
-      "category_name": "خودنویس",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6216",
-      "category_name": "جوهر و سایر لوازم",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6219",
-      "category_name": "کابل های رابط",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6220",
-      "category_name": "کابل افزایش طول",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6221",
-      "category_name": "کابل صوتی و تصویری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6224",
-      "category_name": "سیم آلات موسیقی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6226",
-      "category_name": "آشپزخانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6227",
-      "category_name": "لوازم پخت و پز",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6228",
-      "category_name": "ظروف پخت و پز",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6229",
-      "category_name": "زودپز",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6232",
-      "category_name": "شیر جوش - قهوه جوش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6235",
-      "category_name": "کیس و کاور",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6236",
-      "category_name": "کابل تلفن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6238",
-      "category_name": "سالنامه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6239",
-      "category_name": "دستگاه هویه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6242",
-      "category_name": "تلمبه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6243",
-      "category_name": "پمپ سیالات",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6244",
-      "category_name": "دستگاه جوش لوله پلیمری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6246",
-      "category_name": "خواب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6247",
-      "category_name": "ابزار آشپزی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6249",
-      "category_name": "دکوراسیون و دکوراتیو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6250",
-      "category_name": "شستشو و نظافت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6251",
-      "category_name": "لوازم نظافت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6252",
-      "category_name": "نظافت لباس",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6253",
-      "category_name": "لوازم اتو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6254",
-      "category_name": "سرو و پذیرایی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6255",
-      "category_name": "سرویس پخت و پز",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6256",
-      "category_name": "تهیه و سرو چای و قهوه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6257",
-      "category_name": "لوازم تهیه کیک و دسر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6258",
-      "category_name": "سرویس چای خوری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6261",
-      "category_name": "قوری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6262",
-      "category_name": "اقلام سرویس خواب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6263",
-      "category_name": "حمام و سرویس بهداشتی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6264",
-      "category_name": "سرویس بهداشتی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6265",
-      "category_name": "کوسن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6266",
-      "category_name": "پتو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6268",
-      "category_name": "سینی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6269",
-      "category_name": "حوله",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6270",
-      "category_name": "کتری و قوری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6272",
-      "category_name": "قاشق، چنگال و کارد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6273",
-      "category_name": "روقوری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6274",
-      "category_name": "منسوجات آشپزخانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6275",
-      "category_name": "دستگیره",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6276",
-      "category_name": "پیش بند",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6277",
-      "category_name": "لوازم جانبی هویه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6279",
-      "category_name": "میز اتو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6280",
-      "category_name": "سرویس خواب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6282",
-      "category_name": "قالب کیک، شیرینی و دسر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6285",
-      "category_name": "سرویس پارچ و لیوان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6286",
-      "category_name": "پارچ، بطری و لیوان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6287",
-      "category_name": "پارچ و بطری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6289",
-      "category_name": "لیوان و فنجان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6291",
-      "category_name": "اسکیت و اسکوتر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6292",
-      "category_name": "اسکیت کفشی و اسکیت بورد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6294",
-      "category_name": "دستمال نظافت یکبار مصرف",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6295",
-      "category_name": "پادری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6297",
-      "category_name": "رومیزی و رانر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6298",
-      "category_name": "دم کنی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6299",
-      "category_name": "زیر قابلمه‌ای و زیربشقابی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6300",
-      "category_name": "ظروف آشپزخانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6302",
-      "category_name": "بشقاب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6303",
-      "category_name": "پرده حمام",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6304",
-      "category_name": "کیسه نان و سبزی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6305",
-      "category_name": "کاسه و پیاله",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6306",
-      "category_name": "بستنی خوری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6307",
-      "category_name": "مجسمه و تندیس",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6308",
-      "category_name": "دکوراتیو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6311",
-      "category_name": "شمع",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6312",
-      "category_name": "شمعدان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6313",
-      "category_name": "شکر پاش و نمک پاش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6314",
-      "category_name": "سبد، آبکش و لگن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6315",
-      "category_name": "آبکش و آبگیر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6316",
-      "category_name": "بانکه و ظروف بنشن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6317",
-      "category_name": "صافی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6318",
-      "category_name": "سطل",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6319",
-      "category_name": "جای ادویه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6321",
-      "category_name": "سس خوری و آبلیمو خوری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6322",
-      "category_name": "تخته گوشت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6323",
-      "category_name": "دمپایی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6324",
-      "category_name": "سبد رخت چرک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6326",
-      "category_name": "ظرف نان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6327",
-      "category_name": "بالش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6328",
-      "category_name": "ملحفه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6329",
-      "category_name": "سرویس غذاخوری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6330",
-      "category_name": "گل و گلدان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6331",
-      "category_name": "زیر سیگاری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6332",
-      "category_name": "زیر لیوانی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6333",
-      "category_name": "در قابلمه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6334",
-      "category_name": "سبد سیب زمینی و پیاز",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6335",
-      "category_name": "رو بالشی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6336",
-      "category_name": "ظروف سرو و پذیرایی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6337",
-      "category_name": "ظرف برنج",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6338",
-      "category_name": "بطری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6340",
-      "category_name": "زمین شوی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6341",
-      "category_name": "جارو و خاک‌انداز",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6343",
-      "category_name": "فرچه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6344",
-      "category_name": "ست های نظافت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6345",
-      "category_name": "مخزن مایع دستشویی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6346",
-      "category_name": "سرویس و ست لوازم پارچه ای آشپزخانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6347",
-      "category_name": "سبد آشپزخانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6350",
-      "category_name": "ظرف و قالب یخ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6352",
-      "category_name": "تشک خوشخواب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6354",
-      "category_name": "انواع رنگ‌های نقاشی و سایر ملزومات",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6356",
-      "category_name": "ست سرویس بهداشتی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6357",
-      "category_name": "تلویزیون",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6359",
-      "category_name": "سایر ظروف",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6361",
-      "category_name": "ناخن گیر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6362",
-      "category_name": "قیچی آشپزخانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6363",
-      "category_name": "آسیاب نمک و فلفل",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6364",
-      "category_name": "سرویس کفگیر و ملاقه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6367",
-      "category_name": "ارگانایزر آشپزخانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6368",
-      "category_name": "کارت پستال",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6369",
-      "category_name": "فندک آشپزخانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6370",
-      "category_name": "پایه رول دستمال",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6371",
-      "category_name": "فایل کشویی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6394",
-      "category_name": "روشنایی و الکتریکی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6395",
-      "category_name": "لامپ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6398",
-      "category_name": "گیرنده صوتی و تصویری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6400",
-      "category_name": "دستمال سر و گردن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6409",
-      "category_name": "هفت سین",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6410",
-      "category_name": "قندان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6412",
-      "category_name": "تخم مرغ تزیینی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6413",
-      "category_name": "سایر لوازم تزئینی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6414",
-      "category_name": "اسکوتر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6416",
-      "category_name": "صندلی و پایه‌ی آلات موسیقی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6417",
-      "category_name": "سایر لوازم جانبی آلات موسیقی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6420",
-      "category_name": "دستکش نظافت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6421",
-      "category_name": "بند رخت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6422",
-      "category_name": "گیره لباس",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6423",
-      "category_name": "کاور پوشاک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6424",
-      "category_name": "لیف",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6425",
-      "category_name": "لوازم جانبی آلات موسیقی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6426",
-      "category_name": "اسکاچ و سیم ظرفشویی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6429",
-      "category_name": "پرزگیر لباس",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6430",
-      "category_name": "لوازم جانبی اتو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6432",
-      "category_name": "لوازم پوششی و محافظتی ورزشی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6439",
-      "category_name": "چتر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6440",
-      "category_name": "مبدل",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6441",
-      "category_name": "چراغ خواب و آباژور",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6444",
-      "category_name": "کاور لوازم خانگی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6446",
-      "category_name": "تجهیزات کوهنوردی و صخره نوردی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6450",
-      "category_name": "بوم نقاشی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6451",
-      "category_name": "صنایع دستی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6452",
-      "category_name": "سفال، سرامیک و چینی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6454",
-      "category_name": "تخته شاسی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6455",
-      "category_name": "پالت رنگ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6456",
-      "category_name": "کفپوش و دیوارپوش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6457",
-      "category_name": "کاغذ دیواری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6458",
-      "category_name": "لوازم جانبی گجت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6459",
-      "category_name": "کلمن و فلاسک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6462",
-      "category_name": "کرم پودر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6463",
-      "category_name": "رژ لب جامد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6464",
-      "category_name": "آرایش چشم",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6465",
-      "category_name": "آرایش ناخن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6466",
-      "category_name": "دست بافته‌ ها، رودوزی و محصولات پارچه ای و چرمی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6467",
-      "category_name": "کیف دست دوز پارچه ای",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6470",
-      "category_name": "آرایش صورت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6471",
-      "category_name": "آرایش لب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6472",
-      "category_name": "رژ لب مایع و لیپ گلاس",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6474",
-      "category_name": "مداد لب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6475",
-      "category_name": "بالم لب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6478",
-      "category_name": "ظروف شیشه‌ای",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6480",
-      "category_name": "پنکیک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6481",
-      "category_name": "کانسیلر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6482",
-      "category_name": "رژ گونه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6483",
-      "category_name": "پاک کننده صورت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6484",
-      "category_name": "ابزار آرایش صورت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6485",
-      "category_name": "ریمل",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6486",
-      "category_name": "مراقبت پوست",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6487",
-      "category_name": "کرم ضد آفتاب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6488",
-      "category_name": "کرم دور چشم",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6489",
-      "category_name": "کرم آبرسان و مرطوب کننده",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6490",
-      "category_name": "تابلو صنایع دستی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6493",
-      "category_name": "کرم ضد چروک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6494",
-      "category_name": "کرم، اسپری و پودر موبر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6496",
-      "category_name": "فیروزه کوبی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6497",
-      "category_name": "میناکاری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6498",
-      "category_name": "خاتم کاری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6501",
-      "category_name": "پارچه قلمکار",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6503",
-      "category_name": "خط چشم",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6505",
-      "category_name": "سایه چشم",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6509",
-      "category_name": "مژه مصنوعی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6510",
-      "category_name": "تجهیزات آرایشی چشم و ابرو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6512",
-      "category_name": "رنگ مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6513",
-      "category_name": "بهداشت دهان و دندان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6515",
-      "category_name": "مسواک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6516",
-      "category_name": "خمیر دندان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6517",
-      "category_name": "نخ دندان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6518",
-      "category_name": "شامپو مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6520",
-      "category_name": "لوازم اصلاح مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6522",
-      "category_name": "ضد تعریق",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6523",
-      "category_name": "مام",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6524",
-      "category_name": "سازهای کوبه‌ای",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6525",
-      "category_name": "پرکاشن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6528",
-      "category_name": "نوار بهداشتی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6529",
-      "category_name": "اسپری ضد تعریق",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6530",
-      "category_name": "ژل و فوم اصلاح",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6531",
-      "category_name": "افتر شیو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6533",
-      "category_name": "شامپو بدن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6534",
-      "category_name": "بوگیر و خوشبو کننده هوا",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6535",
-      "category_name": "ژل مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6536",
-      "category_name": "دستمال مرطوب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6537",
-      "category_name": "لوسیون و روغن بدن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6538",
-      "category_name": "ژل بهداشتی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6542",
-      "category_name": "تجهیزات اپیلاسیون",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6545",
-      "category_name": "کرم روشن کننده پوست",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6546",
-      "category_name": "کرم و ژل ضد جوش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6547",
-      "category_name": "شلنگ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6556",
-      "category_name": "لایه بردار پوست و اسکراب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6558",
-      "category_name": "ژل و کرم ترمیم کننده",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6559",
-      "category_name": "تندیس و مجسمه دست ساز",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6560",
-      "category_name": "جک خودرو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6562",
-      "category_name": "سازهای بادی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6571",
-      "category_name": "لوازم جانبی کمپرسور هوا",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6573",
-      "category_name": "ملزومات هدیه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6574",
-      "category_name": "کاغذ کادو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6576",
-      "category_name": "منقل و تک شعله",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6578",
-      "category_name": "لاک ناخن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6580",
-      "category_name": "مداد چشم",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6581",
-      "category_name": "لوسیون مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6582",
-      "category_name": "مداد ابرو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6583",
-      "category_name": "رژ لب مدادی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6584",
-      "category_name": "لوازم طراحی ناخن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6587",
-      "category_name": "تقویت کننده ناخن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6591",
-      "category_name": "کرم ضد لک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6594",
-      "category_name": "سایه ابرو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6595",
-      "category_name": "ماسک و مراقبت مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6596",
-      "category_name": "ابزار حمام",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6597",
-      "category_name": "آویز و نگین ناخن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6599",
-      "category_name": "لاک پاک کن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6600",
-      "category_name": "تقویت کننده مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6601",
-      "category_name": "تیغ و یدک اصلاح",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6605",
-      "category_name": "دهان شویه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6607",
-      "category_name": "لوازم شخصی برقی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6610",
-      "category_name": "لوازم یکبار مصرف آشپزخانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6613",
-      "category_name": "پاکت هدیه و ساک خرید",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6617",
-      "category_name": "ماسک صورت و بدن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6618",
-      "category_name": "دوچرخه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6621",
-      "category_name": "اسپری حالت دهنده مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6622",
-      "category_name": "آلبوم عکس",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6623",
-      "category_name": "نشانگر کتاب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6624",
-      "category_name": "تشک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6625",
-      "category_name": "کمد لباس و ارگانایزر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6631",
-      "category_name": "روغن مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6633",
-      "category_name": "آچار ضربه ای",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6641",
-      "category_name": "کفش ورزشی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6654",
-      "category_name": "سرم پوست",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6655",
-      "category_name": "مراقبت مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6656",
-      "category_name": "سرم و اسپری مراقبت مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6657",
-      "category_name": "بهداشت صورت و بدن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6658",
-      "category_name": "لوازم جانبی اپل واچ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6659",
-      "category_name": "سوهان و سنباده",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6660",
-      "category_name": "قلم ساختمانی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6661",
-      "category_name": "تبر، بیل و کلنگ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6662",
-      "category_name": "پیچ و مهره، رول پلاک، میخ و پرچ",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6663",
-      "category_name": "گیره و پیچ دستی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6664",
-      "category_name": "مفتول بر، مهره شکن و پولی کش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6665",
-      "category_name": "ابزار همه کاره برقی، شارژی و دستی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6666",
-      "category_name": "سنبه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6667",
-      "category_name": "نظم دهنده ابزار",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6668",
-      "category_name": "باربر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6670",
-      "category_name": "عطر جیبی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6673",
-      "category_name": "قلم مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6674",
-      "category_name": "روغن بچه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6675",
-      "category_name": "ابزار مهمانی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6678",
-      "category_name": "کیس های اسمبل شده",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6724",
-      "category_name": "محصولات مسی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6725",
-      "category_name": "چراغ مطالعه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6726",
-      "category_name": "جعبه و گوی موزیکال",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6728",
-      "category_name": "ابزار جوشکاری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6739",
-      "category_name": "نردبان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6740",
-      "category_name": "ابزار نقاشی ساختمان",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6741",
-      "category_name": "مادر و کودک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6742",
-      "category_name": "پستانک و لوازم شیردهی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6743",
-      "category_name": "پستانک و ملزومات",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6744",
-      "category_name": "تغذیه و رشد کودک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6745",
-      "category_name": "شیشه شیر، سرلاک و داروخوری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6746",
-      "category_name": "ملزومات شیشه شیر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6748",
-      "category_name": "لوازم آبیاری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6749",
-      "category_name": "شیردوش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6750",
-      "category_name": "قاشق، چنگال و ظروف کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6751",
-      "category_name": "دندان گیر کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6755",
-      "category_name": "گیج و کولیس",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6756",
-      "category_name": "گونیا",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6757",
-      "category_name": "لوازم بسته بندی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6758",
-      "category_name": "ایمنی و مراقبت",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6759",
-      "category_name": "ابزار ایمنی کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6760",
-      "category_name": "بهداشت و حمام",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6761",
-      "category_name": "کرم، بالم و لوسیون کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6764",
-      "category_name": "محافظ و پد سینه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6765",
-      "category_name": "شورت آموزشی کودک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6767",
-      "category_name": "تبدیل توالت فرنگی و صندلی حمام",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6768",
-      "category_name": "پوشک کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6770",
-      "category_name": "صندلی غذاخوری کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6774",
-      "category_name": "کالسکه و کریر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6777",
-      "category_name": "تشک بازی، پارک بازی و تشک بادی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6784",
-      "category_name": "گردش و سفر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6788",
-      "category_name": "جغجغه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6792",
-      "category_name": "آویز تخت کودک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6795",
-      "category_name": "چارت اندازه گیری کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6797",
-      "category_name": "خواب کودک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6799",
-      "category_name": "وان حمام کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6801",
-      "category_name": "تاب و سرسره",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6806",
-      "category_name": "شوینده لباس کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6807",
-      "category_name": "گوش پاک کن",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6808",
-      "category_name": "ساک لوازم کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6813",
-      "category_name": "ترمه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6816",
-      "category_name": "پوشاک ورزشی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6818",
-      "category_name": "مینی واش",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6822",
-      "category_name": "محصولات چوبی و حصیری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6823",
-      "category_name": "خراطی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6824",
-      "category_name": "جوراب ورزشی زنانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6825",
-      "category_name": "جوراب ورزشی مردانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6838",
-      "category_name": "سرویس خواب کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6839",
-      "category_name": "حوله کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6840",
-      "category_name": "پتو کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6850",
-      "category_name": "شانه و برس کودک",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6852",
-      "category_name": "پد و کیسه آب گرم",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6853",
-      "category_name": "قمقمه و فلاسک کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6864",
-      "category_name": "صابون بچه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6867",
-      "category_name": "کفی طبی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6869",
-      "category_name": "شامپو کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6875",
-      "category_name": "اکسسوری ورزشی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6881",
-      "category_name": "دف",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6882",
-      "category_name": "باتری و شارژر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6884",
-      "category_name": "میخ کوب",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6885",
-      "category_name": "ابزار شبکه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6887",
-      "category_name": "قهوه ساز و دمنوش ساز",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6888",
-      "category_name": "مادربرد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6889",
-      "category_name": "ریموت کنترل",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6890",
-      "category_name": "ساعت و مچ بند هوشمند",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6891",
-      "category_name": "ارتوپدی و کمک درمانی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6892",
-      "category_name": "زانو بند طبی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6893",
-      "category_name": "مچ بند طبی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6894",
-      "category_name": "شکم بند طبی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6895",
-      "category_name": "واکس و چسب مو",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6896",
-      "category_name": "دهان‌شویه و خمیردندان کودک و نوزاد",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6900",
-      "category_name": "گردنبند طبی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6902",
-      "category_name": "نرم افزارهای حسابداری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6903",
-      "category_name": "تجهیزات کارگاهی",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6904",
-      "category_name": "پد آرایشی و بیوتی بلندر",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6906",
-      "category_name": "فیگور",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6908",
-      "category_name": "دست سازه های هنری",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6909",
-      "category_name": "طبقه و قفسه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6910",
-      "category_name": "جاشمعی، جاعودی و آباژور",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "6911",
-      "category_name": "جاکلیدی",
-      "page": 6
-    },
     {
       "attempts": 0,
       "category_id": "6912",
@@ -58627,6 +55762,12 @@
     },
     {
       "attempts": 0,
+      "category_id": "9671",
+      "category_name": "مایو یک تکه دخترانه",
+      "page": 6
+    },
+    {
+      "attempts": 0,
       "category_id": "9672",
       "category_name": "تی شرت دخترانه",
       "page": 6
@@ -58657,6 +55798,12 @@
     },
     {
       "attempts": 0,
+      "category_id": "9687",
+      "category_name": "صندل دخترانه",
+      "page": 6
+    },
+    {
+      "attempts": 0,
       "category_id": "9690",
       "category_name": "دمپایی دخترانه",
       "page": 6
@@ -58665,6 +55812,12 @@
       "attempts": 0,
       "category_id": "9691",
       "category_name": "کفش ورزشی دخترانه",
+      "page": 6
+    },
+    {
+      "attempts": 0,
+      "category_id": "9692",
+      "category_name": "اکسسوری دخترانه",
       "page": 6
     },
     {
@@ -61287,24 +58440,6 @@
       "attempts": 0,
       "category_id": "10995",
       "category_name": "مانتو کتی زنانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "9671",
-      "category_name": "مایو یک تکه دخترانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "9687",
-      "category_name": "صندل دخترانه",
-      "page": 6
-    },
-    {
-      "attempts": 0,
-      "category_id": "9692",
-      "category_name": "اکسسوری دخترانه",
       "page": 6
     },
     {
@@ -64006,24 +61141,2814 @@
       "category_id": "5981",
       "category_name": "نرم افزار و بازی",
       "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "5982",
+      "category_name": "مداد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "5983",
+      "category_name": "مداد نوکی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "5984",
+      "category_name": "آبرنگ و گواش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "5985",
+      "category_name": "پاستل و مداد شمعی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "5986",
+      "category_name": "تراش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "5987",
+      "category_name": "پاک کن و غلط گیر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "5988",
+      "category_name": "چسب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "5989",
+      "category_name": "قیچی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "5992",
+      "category_name": "مهر و استامپ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "5993",
+      "category_name": "خط کش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "5994",
+      "category_name": "پرگار",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6000",
+      "category_name": "جامدادی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6004",
+      "category_name": "دفتر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6005",
+      "category_name": "کاغذ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6011",
+      "category_name": "مداد نوکی و نوک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6012",
+      "category_name": "نوک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6013",
+      "category_name": "اقلام مصرفی لوازم اداری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6014",
+      "category_name": "لوازم اداری رومیزی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6017",
+      "category_name": "کیف و کوله مدرسه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6018",
+      "category_name": "کاتر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6019",
+      "category_name": "مجموعه لوازم اداری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6020",
+      "category_name": "لوازم سفر و کمپینگ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6021",
+      "category_name": "چمدان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6023",
+      "category_name": "کیف و کوله سفری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6024",
+      "category_name": "تخته",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6027",
+      "category_name": "اسباب بازی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6028",
+      "category_name": "بوردگیم، اوریگامی و بازی فکری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6029",
+      "category_name": "بازی فکری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6031",
+      "category_name": "ساختنی، لگو و پازل",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6033",
+      "category_name": "ساختنی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6035",
+      "category_name": "پازل",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6038",
+      "category_name": "عروسک، فیگور و ربات",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6042",
+      "category_name": "عروسک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6043",
+      "category_name": "ربات",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6044",
+      "category_name": "آشنایی با فنون",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6048",
+      "category_name": "اسپری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6050",
+      "category_name": "بازی جنگی و مبارزه‌ای",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6051",
+      "category_name": "تفنگ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6054",
+      "category_name": "وسایل بازی نقلیه و کنترلی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6055",
+      "category_name": "ماشین بازی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6056",
+      "category_name": "بازی شانسی و ضداسترس",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6058",
+      "category_name": "بازی نقش آفرینی و مشاغل",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6059",
+      "category_name": "ایفای نقش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6060",
+      "category_name": "لوازم جانبی کالای دیجیتال",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6062",
+      "category_name": "لوازم جانبی اداری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6063",
+      "category_name": "ابزار غیر برقی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6071",
+      "category_name": "ابزار برقی و شارژی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6072",
+      "category_name": "ابزار دستی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6073",
+      "category_name": "ابزار دقیق و اندازه گیری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6074",
+      "category_name": "ابزارهای اندازه گیری دیجیتالی و لیزری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6075",
+      "category_name": "باغبانی و کشاورزی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6076",
+      "category_name": "اره زنجیری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6081",
+      "category_name": "موتور",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6082",
+      "category_name": "لوازم جانبی پازل و ساختنی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6083",
+      "category_name": "ابزار شوخی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6084",
+      "category_name": "مجلات داخلی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6086",
+      "category_name": "اصلاح موی سر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6087",
+      "category_name": "موزن بینی و گوش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6088",
+      "category_name": "آهن ربا",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6089",
+      "category_name": "لوازم ورزشی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6090",
+      "category_name": "کوه‌ نوردی و صخره نوردی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6091",
+      "category_name": "ورزش های توپی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6094",
+      "category_name": "توپ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6095",
+      "category_name": "راکت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6096",
+      "category_name": "تنیس، بدمینتون، اسکواش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6097",
+      "category_name": "پینگ پنگ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6098",
+      "category_name": "لوازم جانبی راکت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6099",
+      "category_name": "چراغ قوه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6100",
+      "category_name": "اجاق و شعله افکن سفری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6102",
+      "category_name": "قمقمه، فلاسک و کلمن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6103",
+      "category_name": "کیسه خواب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6104",
+      "category_name": "چادر مسافرتی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6105",
+      "category_name": "چاقوی سفر و ابزار چند کاره",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6106",
+      "category_name": "عصای کوهنوردی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6107",
+      "category_name": "ورزش های آبی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6108",
+      "category_name": "عینک شنا",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6109",
+      "category_name": "کلاه شنا",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6111",
+      "category_name": "ورزش های رزمی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6112",
+      "category_name": "ورزش های هوازی و تناسب اندام",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6113",
+      "category_name": "دستکش رزمی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6115",
+      "category_name": "طناب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6116",
+      "category_name": "تجهیزات جانبی ایروبیک و تناسب اندام",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6117",
+      "category_name": "پوشش‌های دفاعی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6118",
+      "category_name": "کیسه بوکس",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6119",
+      "category_name": "دمبل",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6123",
+      "category_name": "زیر انداز",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6124",
+      "category_name": "ورزش و سفر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6125",
+      "category_name": "ورزش های فکری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6126",
+      "category_name": "شطرنج",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6127",
+      "category_name": "لوازم جانبی شنا",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6128",
+      "category_name": "هواپیما و هلیکوپتر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6129",
+      "category_name": "تجهیزات جانبی سفر و کمپینگ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6131",
+      "category_name": "مبدل برق",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6133",
+      "category_name": "اسباب بازی زینتی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6134",
+      "category_name": "مجلات",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6139",
+      "category_name": "عطر و ادکلن مردانه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6141",
+      "category_name": "ابزار بایگانی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6143",
+      "category_name": "اره برقی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6144",
+      "category_name": "دستگاه سنباده زن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6148",
+      "category_name": "چسب صنعتی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6149",
+      "category_name": "مته و سری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6151",
+      "category_name": "صفحه فرز و پولیش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6153",
+      "category_name": "آلات موسیقی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6154",
+      "category_name": "گیتار",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6162",
+      "category_name": "عطر و ادکلن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6165",
+      "category_name": "آچار",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6166",
+      "category_name": "قیچی‌، چاقو و ابزار باغبانی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6167",
+      "category_name": "جعبه و کیف ابزار",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6168",
+      "category_name": "انبر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6169",
+      "category_name": "چکش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6170",
+      "category_name": "متر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6171",
+      "category_name": "تراز",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6172",
+      "category_name": "لوازم روانکاری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6173",
+      "category_name": "پیچ گوشتی و فازمتر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6175",
+      "category_name": "لوازم جانبی خودرو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6176",
+      "category_name": "فرز و سنگ رومیزی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6177",
+      "category_name": "پولیش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6178",
+      "category_name": "دریل",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6179",
+      "category_name": "پیچ گوشتی برقی و شارژی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6184",
+      "category_name": "کارواش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6185",
+      "category_name": "مکنده - دمنده",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6186",
+      "category_name": "انبر پرچ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6187",
+      "category_name": "سشوار صنعتی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6190",
+      "category_name": "اره",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6191",
+      "category_name": "کمپرسور هوا",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6194",
+      "category_name": "تیغه اره و رنده",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6195",
+      "category_name": "دستگاه جوش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6202",
+      "category_name": "اسباب بازی جنگی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6204",
+      "category_name": "منگنه کوب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6205",
+      "category_name": "پیستوله و رنگ پاش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6206",
+      "category_name": "دستگاه چسب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6209",
+      "category_name": "خودنویس",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6216",
+      "category_name": "جوهر و سایر لوازم",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6219",
+      "category_name": "کابل های رابط",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6220",
+      "category_name": "کابل افزایش طول",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6221",
+      "category_name": "کابل صوتی و تصویری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6224",
+      "category_name": "سیم آلات موسیقی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6226",
+      "category_name": "آشپزخانه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6227",
+      "category_name": "لوازم پخت و پز",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6228",
+      "category_name": "ظروف پخت و پز",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6229",
+      "category_name": "زودپز",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6232",
+      "category_name": "شیر جوش - قهوه جوش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6235",
+      "category_name": "کیس و کاور",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6238",
+      "category_name": "سالنامه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6239",
+      "category_name": "دستگاه هویه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6243",
+      "category_name": "پمپ سیالات",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6244",
+      "category_name": "دستگاه جوش لوله پلیمری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6246",
+      "category_name": "خواب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6247",
+      "category_name": "ابزار آشپزی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6249",
+      "category_name": "دکوراسیون و دکوراتیو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6250",
+      "category_name": "شستشو و نظافت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6251",
+      "category_name": "لوازم نظافت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6252",
+      "category_name": "نظافت لباس",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6253",
+      "category_name": "لوازم اتو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6254",
+      "category_name": "سرو و پذیرایی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6255",
+      "category_name": "سرویس پخت و پز",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6256",
+      "category_name": "تهیه و سرو چای و قهوه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6257",
+      "category_name": "لوازم تهیه کیک و دسر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6258",
+      "category_name": "سرویس چای خوری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6261",
+      "category_name": "قوری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6262",
+      "category_name": "اقلام سرویس خواب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6263",
+      "category_name": "حمام و سرویس بهداشتی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6264",
+      "category_name": "سرویس بهداشتی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6265",
+      "category_name": "کوسن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6266",
+      "category_name": "پتو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6268",
+      "category_name": "سینی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6269",
+      "category_name": "حوله",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6270",
+      "category_name": "کتری و قوری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6272",
+      "category_name": "قاشق، چنگال و کارد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6274",
+      "category_name": "منسوجات آشپزخانه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6275",
+      "category_name": "دستگیره",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6276",
+      "category_name": "پیش بند",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6277",
+      "category_name": "لوازم جانبی هویه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6279",
+      "category_name": "میز اتو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6280",
+      "category_name": "سرویس خواب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6282",
+      "category_name": "قالب کیک، شیرینی و دسر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6285",
+      "category_name": "سرویس پارچ و لیوان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6286",
+      "category_name": "پارچ، بطری و لیوان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6287",
+      "category_name": "پارچ و بطری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6289",
+      "category_name": "لیوان و فنجان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6291",
+      "category_name": "اسکیت و اسکوتر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6292",
+      "category_name": "اسکیت کفشی و اسکیت بورد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6294",
+      "category_name": "دستمال نظافت یکبار مصرف",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6295",
+      "category_name": "پادری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6297",
+      "category_name": "رومیزی و رانر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6298",
+      "category_name": "دم کنی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6299",
+      "category_name": "زیر قابلمه‌ای و زیربشقابی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6300",
+      "category_name": "ظروف آشپزخانه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6302",
+      "category_name": "بشقاب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6303",
+      "category_name": "پرده حمام",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6304",
+      "category_name": "کیسه نان و سبزی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6305",
+      "category_name": "کاسه و پیاله",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6306",
+      "category_name": "بستنی خوری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6307",
+      "category_name": "مجسمه و تندیس",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6308",
+      "category_name": "دکوراتیو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6311",
+      "category_name": "شمع",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6312",
+      "category_name": "شمعدان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6313",
+      "category_name": "شکر پاش و نمک پاش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6314",
+      "category_name": "سبد، آبکش و لگن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6315",
+      "category_name": "آبکش و آبگیر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6316",
+      "category_name": "بانکه و ظروف بنشن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6317",
+      "category_name": "صافی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6318",
+      "category_name": "سطل",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6319",
+      "category_name": "جای ادویه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6321",
+      "category_name": "سس خوری و آبلیمو خوری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6322",
+      "category_name": "تخته گوشت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6323",
+      "category_name": "دمپایی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6324",
+      "category_name": "سبد رخت چرک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6326",
+      "category_name": "ظرف نان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6327",
+      "category_name": "بالش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6328",
+      "category_name": "ملحفه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6329",
+      "category_name": "سرویس غذاخوری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6330",
+      "category_name": "گل و گلدان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6331",
+      "category_name": "زیر سیگاری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6332",
+      "category_name": "زیر لیوانی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6333",
+      "category_name": "در قابلمه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6334",
+      "category_name": "سبد سیب زمینی و پیاز",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6335",
+      "category_name": "رو بالشی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6336",
+      "category_name": "ظروف سرو و پذیرایی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6337",
+      "category_name": "ظرف برنج",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6338",
+      "category_name": "بطری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6340",
+      "category_name": "زمین شوی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6341",
+      "category_name": "جارو و خاک‌انداز",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6343",
+      "category_name": "فرچه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6344",
+      "category_name": "ست های نظافت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6345",
+      "category_name": "مخزن مایع دستشویی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6346",
+      "category_name": "سرویس و ست لوازم پارچه ای آشپزخانه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6347",
+      "category_name": "سبد آشپزخانه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6350",
+      "category_name": "ظرف و قالب یخ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6352",
+      "category_name": "تشک خوشخواب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6354",
+      "category_name": "انواع رنگ‌های نقاشی و سایر ملزومات",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6356",
+      "category_name": "ست سرویس بهداشتی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6357",
+      "category_name": "تلویزیون",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6359",
+      "category_name": "سایر ظروف",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6361",
+      "category_name": "ناخن گیر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6362",
+      "category_name": "قیچی آشپزخانه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6363",
+      "category_name": "آسیاب نمک و فلفل",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6364",
+      "category_name": "سرویس کفگیر و ملاقه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6367",
+      "category_name": "ارگانایزر آشپزخانه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6368",
+      "category_name": "کارت پستال",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6369",
+      "category_name": "فندک آشپزخانه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6370",
+      "category_name": "پایه رول دستمال",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6371",
+      "category_name": "فایل کشویی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6394",
+      "category_name": "روشنایی و الکتریکی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6395",
+      "category_name": "لامپ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6398",
+      "category_name": "گیرنده صوتی و تصویری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6400",
+      "category_name": "دستمال سر و گردن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6409",
+      "category_name": "هفت سین",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6410",
+      "category_name": "قندان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6413",
+      "category_name": "سایر لوازم تزئینی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6414",
+      "category_name": "اسکوتر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6416",
+      "category_name": "صندلی و پایه‌ی آلات موسیقی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6417",
+      "category_name": "سایر لوازم جانبی آلات موسیقی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6420",
+      "category_name": "دستکش نظافت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6421",
+      "category_name": "بند رخت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6422",
+      "category_name": "گیره لباس",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6423",
+      "category_name": "کاور پوشاک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6424",
+      "category_name": "لیف",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6425",
+      "category_name": "لوازم جانبی آلات موسیقی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6426",
+      "category_name": "اسکاچ و سیم ظرفشویی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6429",
+      "category_name": "پرزگیر لباس",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6430",
+      "category_name": "لوازم جانبی اتو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6432",
+      "category_name": "لوازم پوششی و محافظتی ورزشی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6439",
+      "category_name": "چتر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6440",
+      "category_name": "مبدل",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6441",
+      "category_name": "چراغ خواب و آباژور",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6444",
+      "category_name": "کاور لوازم خانگی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6446",
+      "category_name": "تجهیزات کوهنوردی و صخره نوردی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6450",
+      "category_name": "بوم نقاشی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6451",
+      "category_name": "صنایع دستی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6452",
+      "category_name": "سفال، سرامیک و چینی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6454",
+      "category_name": "تخته شاسی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6456",
+      "category_name": "کفپوش و دیوارپوش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6457",
+      "category_name": "کاغذ دیواری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6458",
+      "category_name": "لوازم جانبی گجت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6459",
+      "category_name": "کلمن و فلاسک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6462",
+      "category_name": "کرم پودر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6463",
+      "category_name": "رژ لب جامد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6464",
+      "category_name": "آرایش چشم",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6465",
+      "category_name": "آرایش ناخن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6466",
+      "category_name": "دست بافته‌ ها، رودوزی و محصولات پارچه ای و چرمی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6467",
+      "category_name": "کیف دست دوز پارچه ای",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6470",
+      "category_name": "آرایش صورت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6471",
+      "category_name": "آرایش لب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6472",
+      "category_name": "رژ لب مایع و لیپ گلاس",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6474",
+      "category_name": "مداد لب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6475",
+      "category_name": "بالم لب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6478",
+      "category_name": "ظروف شیشه‌ای",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6480",
+      "category_name": "پنکیک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6481",
+      "category_name": "کانسیلر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6482",
+      "category_name": "رژ گونه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6483",
+      "category_name": "پاک کننده صورت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6484",
+      "category_name": "ابزار آرایش صورت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6485",
+      "category_name": "ریمل",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6486",
+      "category_name": "مراقبت پوست",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6487",
+      "category_name": "کرم ضد آفتاب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6488",
+      "category_name": "کرم دور چشم",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6489",
+      "category_name": "کرم آبرسان و مرطوب کننده",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6490",
+      "category_name": "تابلو صنایع دستی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6493",
+      "category_name": "کرم ضد چروک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6494",
+      "category_name": "کرم، اسپری و پودر موبر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6496",
+      "category_name": "فیروزه کوبی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6497",
+      "category_name": "میناکاری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6498",
+      "category_name": "خاتم کاری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6501",
+      "category_name": "پارچه قلمکار",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6503",
+      "category_name": "خط چشم",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6505",
+      "category_name": "سایه چشم",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6509",
+      "category_name": "مژه مصنوعی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6510",
+      "category_name": "تجهیزات آرایشی چشم و ابرو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6512",
+      "category_name": "رنگ مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6513",
+      "category_name": "بهداشت دهان و دندان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6515",
+      "category_name": "مسواک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6516",
+      "category_name": "خمیر دندان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6517",
+      "category_name": "نخ دندان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6518",
+      "category_name": "شامپو مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6520",
+      "category_name": "لوازم اصلاح مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6522",
+      "category_name": "ضد تعریق",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6523",
+      "category_name": "مام",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6524",
+      "category_name": "سازهای کوبه‌ای",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6528",
+      "category_name": "نوار بهداشتی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6529",
+      "category_name": "اسپری ضد تعریق",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6530",
+      "category_name": "ژل و فوم اصلاح",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6531",
+      "category_name": "افتر شیو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6533",
+      "category_name": "شامپو بدن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6534",
+      "category_name": "بوگیر و خوشبو کننده هوا",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6535",
+      "category_name": "ژل مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6536",
+      "category_name": "دستمال مرطوب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6537",
+      "category_name": "لوسیون و روغن بدن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6538",
+      "category_name": "ژل بهداشتی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6542",
+      "category_name": "تجهیزات اپیلاسیون",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6545",
+      "category_name": "کرم روشن کننده پوست",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6546",
+      "category_name": "کرم و ژل ضد جوش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6547",
+      "category_name": "شلنگ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6556",
+      "category_name": "لایه بردار پوست و اسکراب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6558",
+      "category_name": "ژل و کرم ترمیم کننده",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6559",
+      "category_name": "تندیس و مجسمه دست ساز",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6560",
+      "category_name": "جک خودرو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6562",
+      "category_name": "سازهای بادی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6571",
+      "category_name": "لوازم جانبی کمپرسور هوا",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6573",
+      "category_name": "ملزومات هدیه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6574",
+      "category_name": "کاغذ کادو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6576",
+      "category_name": "منقل و تک شعله",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6578",
+      "category_name": "لاک ناخن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6580",
+      "category_name": "مداد چشم",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6581",
+      "category_name": "لوسیون مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6582",
+      "category_name": "مداد ابرو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6583",
+      "category_name": "رژ لب مدادی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6584",
+      "category_name": "لوازم طراحی ناخن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6587",
+      "category_name": "تقویت کننده ناخن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6591",
+      "category_name": "کرم ضد لک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6594",
+      "category_name": "سایه ابرو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6595",
+      "category_name": "ماسک و مراقبت مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6596",
+      "category_name": "ابزار حمام",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6599",
+      "category_name": "لاک پاک کن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6600",
+      "category_name": "تقویت کننده مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6601",
+      "category_name": "تیغ و یدک اصلاح",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6605",
+      "category_name": "دهان شویه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6607",
+      "category_name": "لوازم شخصی برقی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6610",
+      "category_name": "لوازم یکبار مصرف آشپزخانه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6613",
+      "category_name": "پاکت هدیه و ساک خرید",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6617",
+      "category_name": "ماسک صورت و بدن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6618",
+      "category_name": "دوچرخه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6621",
+      "category_name": "اسپری حالت دهنده مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6622",
+      "category_name": "آلبوم عکس",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6623",
+      "category_name": "نشانگر کتاب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6624",
+      "category_name": "تشک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6625",
+      "category_name": "کمد لباس و ارگانایزر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6631",
+      "category_name": "روغن مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6633",
+      "category_name": "آچار ضربه ای",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6641",
+      "category_name": "کفش ورزشی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6654",
+      "category_name": "سرم پوست",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6655",
+      "category_name": "مراقبت مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6656",
+      "category_name": "سرم و اسپری مراقبت مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6657",
+      "category_name": "بهداشت صورت و بدن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6658",
+      "category_name": "لوازم جانبی اپل واچ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6659",
+      "category_name": "سوهان و سنباده",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6660",
+      "category_name": "قلم ساختمانی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6661",
+      "category_name": "تبر، بیل و کلنگ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6662",
+      "category_name": "پیچ و مهره، رول پلاک، میخ و پرچ",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6663",
+      "category_name": "گیره و پیچ دستی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6664",
+      "category_name": "مفتول بر، مهره شکن و پولی کش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6665",
+      "category_name": "ابزار همه کاره برقی، شارژی و دستی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6666",
+      "category_name": "سنبه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6667",
+      "category_name": "نظم دهنده ابزار",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6668",
+      "category_name": "باربر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6670",
+      "category_name": "عطر جیبی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6673",
+      "category_name": "قلم مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6674",
+      "category_name": "روغن بچه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6675",
+      "category_name": "ابزار مهمانی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6678",
+      "category_name": "کیس های اسمبل شده",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6724",
+      "category_name": "محصولات مسی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6725",
+      "category_name": "چراغ مطالعه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6726",
+      "category_name": "جعبه و گوی موزیکال",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6728",
+      "category_name": "ابزار جوشکاری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6739",
+      "category_name": "نردبان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6740",
+      "category_name": "ابزار نقاشی ساختمان",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6741",
+      "category_name": "مادر و کودک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6742",
+      "category_name": "پستانک و لوازم شیردهی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6743",
+      "category_name": "پستانک و ملزومات",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6744",
+      "category_name": "تغذیه و رشد کودک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6745",
+      "category_name": "شیشه شیر، سرلاک و داروخوری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6746",
+      "category_name": "ملزومات شیشه شیر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6748",
+      "category_name": "لوازم آبیاری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6749",
+      "category_name": "شیردوش",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6750",
+      "category_name": "قاشق، چنگال و ظروف کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6751",
+      "category_name": "دندان گیر کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6755",
+      "category_name": "گیج و کولیس",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6756",
+      "category_name": "گونیا",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6757",
+      "category_name": "لوازم بسته بندی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6758",
+      "category_name": "ایمنی و مراقبت",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6759",
+      "category_name": "ابزار ایمنی کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6760",
+      "category_name": "بهداشت و حمام",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6761",
+      "category_name": "کرم، بالم و لوسیون کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6767",
+      "category_name": "تبدیل توالت فرنگی و صندلی حمام",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6768",
+      "category_name": "پوشک کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6770",
+      "category_name": "صندلی غذاخوری کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6774",
+      "category_name": "کالسکه و کریر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6777",
+      "category_name": "تشک بازی، پارک بازی و تشک بادی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6784",
+      "category_name": "گردش و سفر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6788",
+      "category_name": "جغجغه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6792",
+      "category_name": "آویز تخت کودک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6797",
+      "category_name": "خواب کودک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6801",
+      "category_name": "تاب و سرسره",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6806",
+      "category_name": "شوینده لباس کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6807",
+      "category_name": "گوش پاک کن",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6808",
+      "category_name": "ساک لوازم کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6813",
+      "category_name": "ترمه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6816",
+      "category_name": "پوشاک ورزشی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6822",
+      "category_name": "محصولات چوبی و حصیری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6823",
+      "category_name": "خراطی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6824",
+      "category_name": "جوراب ورزشی زنانه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6825",
+      "category_name": "جوراب ورزشی مردانه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6838",
+      "category_name": "سرویس خواب کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6839",
+      "category_name": "حوله کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6840",
+      "category_name": "پتو کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6850",
+      "category_name": "شانه و برس کودک",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6852",
+      "category_name": "پد و کیسه آب گرم",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6853",
+      "category_name": "قمقمه و فلاسک کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6864",
+      "category_name": "صابون بچه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6867",
+      "category_name": "کفی طبی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6869",
+      "category_name": "شامپو کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6875",
+      "category_name": "اکسسوری ورزشی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6881",
+      "category_name": "دف",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6882",
+      "category_name": "باتری و شارژر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6884",
+      "category_name": "میخ کوب",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6885",
+      "category_name": "ابزار شبکه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6887",
+      "category_name": "قهوه ساز و دمنوش ساز",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6888",
+      "category_name": "مادربرد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6889",
+      "category_name": "ریموت کنترل",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6890",
+      "category_name": "ساعت و مچ بند هوشمند",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6891",
+      "category_name": "ارتوپدی و کمک درمانی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6892",
+      "category_name": "زانو بند طبی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6893",
+      "category_name": "مچ بند طبی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6894",
+      "category_name": "شکم بند طبی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6895",
+      "category_name": "واکس و چسب مو",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6896",
+      "category_name": "دهان‌شویه و خمیردندان کودک و نوزاد",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6900",
+      "category_name": "گردنبند طبی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6902",
+      "category_name": "نرم افزارهای حسابداری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6903",
+      "category_name": "تجهیزات کارگاهی",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6904",
+      "category_name": "پد آرایشی و بیوتی بلندر",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6906",
+      "category_name": "فیگور",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6908",
+      "category_name": "دست سازه های هنری",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6909",
+      "category_name": "طبقه و قفسه",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6910",
+      "category_name": "جاشمعی، جاعودی و آباژور",
+      "page": 7
+    },
+    {
+      "attempts": 0,
+      "category_id": "6911",
+      "category_name": "جاکلیدی",
+      "page": 7
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 6,
-  "parallel_workers_used": 5,
-  "pending_page_count": 1969,
+  "parallel_worker_limit": 7,
+  "parallel_workers_used": 6,
+  "pending_page_count": 1954,
   "schema_version": 1,
   "stats": {
     "api_failures_total": 48125,
-    "catalog_candidate_cards_found_total": 14658343,
+    "catalog_candidate_cards_found_total": 14667755,
     "completed_cycles": 2,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 3885932,
+    "discounted_candidates_found_total": 3887933,
     "empty_product_pages_total": 26105,
-    "nonempty_product_pages_total": 741796,
-    "pages_scanned_total": 767109,
-    "product_rows_scanned_total": 14658383,
+    "nonempty_product_pages_total": 742276,
+    "pages_scanned_total": 767589,
+    "product_rows_scanned_total": 14667795,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
