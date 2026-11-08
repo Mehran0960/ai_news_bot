@@ -165,7 +165,7 @@ jobs:
           AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES: "100"
           AFFILIO_MAX_QUEUED_RECHECKS: "16"
           AFFILIO_PENDING_QUEUE_LIMIT: "200"
-          AFFILIO_DISCOVERY_QUEUE_LIMIT: "1000"
+          AFFILIO_DISCOVERY_QUEUE_LIMIT: "5000"
           # Only a small rolling set of publication hand-offs/retries may be retained.
           AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "6"
           AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN: "100"
