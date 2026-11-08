@@ -48212,6 +48212,11 @@
           "observed_at": "2026-11-07T20:23:40.453649+00:00",
           "rank": 1757
         },
+        "5968": {
+          "category_name": "آرایشی و بهداشتی",
+          "observed_at": "2026-11-08T03:58:47.234956+00:00",
+          "rank": 5863
+        },
         "6470": {
           "category_name": "آرایش صورت",
           "observed_at": "2026-11-07T16:15:00.021574+00:00",
@@ -48223,19 +48228,20 @@
           "rank": 39
         }
       },
-      "catalog_category_id": "5700",
+      "catalog_category_id": "5968",
       "catalog_category_ids": [
         "5700",
+        "5968",
         "6470",
         "6482"
       ],
-      "catalog_category_name": "لوازم آرایشی",
+      "catalog_category_name": "آرایشی و بهداشتی",
       "catalog_rank_observed_at": "2026-11-07T13:29:50.258664+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 390000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T13:29:50.258664+00:00",
-      "last_seen_at": "2026-11-07T20:23:27.991970+00:00",
+      "last_seen_at": "2026-11-08T03:58:41.563105+00:00",
       "original_price": 1500000,
       "product_id": "dkp-6662707",
       "product_url": "https://www.digikala.com/product/dkp-6662707/",
@@ -72679,6 +72685,11 @@
           "observed_at": "2026-11-07T16:03:32.449518+00:00",
           "rank": 279
         },
+        "6124": {
+          "category_name": "ورزش و سفر",
+          "observed_at": "2026-11-08T03:58:47.237296+00:00",
+          "rank": 5864
+        },
         "6816": {
           "category_name": "پوشاک ورزشی",
           "observed_at": "2026-11-07T17:30:11.313808+00:00",
@@ -72695,21 +72706,22 @@
           "rank": 57
         }
       },
-      "catalog_category_id": "9435",
+      "catalog_category_id": "6124",
       "catalog_category_ids": [
+        "6124",
         "6816",
         "9435",
         "9464",
         "10168",
         "11144"
       ],
-      "catalog_category_name": "لباس مردانه",
+      "catalog_category_name": "ورزش و سفر",
       "catalog_rank_observed_at": "2026-11-07T13:45:37.451284+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 599400,
       "discount_percent": 70,
       "first_seen_at": "2026-11-07T13:45:37.451284+00:00",
-      "last_seen_at": "2026-11-07T19:13:40.407115+00:00",
+      "last_seen_at": "2026-11-08T03:58:43.019034+00:00",
       "original_price": 1998000,
       "product_id": "dkp-20995893",
       "product_url": "https://www.digikala.com/product/dkp-20995893/",
@@ -82715,10 +82727,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6471",
-      "catalog_best_selling_category_name": "آرایش لب",
-      "catalog_best_selling_rank": 678,
+      "catalog_best_selling_category_id": "5700",
+      "catalog_best_selling_category_name": "لوازم آرایشی",
+      "catalog_best_selling_rank": 5781,
       "catalog_best_selling_ranks_by_category": {
+        "5700": {
+          "category_name": "لوازم آرایشی",
+          "observed_at": "2026-11-08T03:58:47.220971+00:00",
+          "rank": 5781
+        },
         "6471": {
           "category_name": "آرایش لب",
           "observed_at": "2026-11-07T17:58:27.226496+00:00",
@@ -82730,18 +82747,19 @@
           "rank": 163
         }
       },
-      "catalog_category_id": "6471",
+      "catalog_category_id": "5700",
       "catalog_category_ids": [
+        "5700",
         "6471",
         "6472"
       ],
-      "catalog_category_name": "آرایش لب",
-      "catalog_rank_observed_at": "2026-11-07T17:58:27.226496+00:00",
+      "catalog_category_name": "لوازم آرایشی",
+      "catalog_rank_observed_at": "2026-11-08T03:58:47.220971+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 775000,
       "discount_percent": 69,
       "first_seen_at": "2026-11-07T15:12:46.705204+00:00",
-      "last_seen_at": "2026-11-07T17:56:21.252276+00:00",
+      "last_seen_at": "2026-11-08T03:58:33.359919+00:00",
       "original_price": 2500000,
       "product_id": "dkp-17322626",
       "product_url": "https://www.digikala.com/product/dkp-17322626/",
@@ -110680,5 +110698,5 @@
   ],
   "cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-08T03:57:39.805569+00:00"
+  "updated_at": "2026-11-08T03:58:47.265787+00:00"
 }
