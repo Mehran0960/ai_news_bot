@@ -45,6 +45,7 @@ jobs:
             affilio_radar/filo_uploader.py
           cd affilio_radar
           python -m unittest -v test_short_video.py
+          python -m unittest -v test_affilio.AffilioRadarTests.test_previous_generated_short_is_rebuilt_for_current_style_version
           python -m unittest -v test_aparat_uploader.py
           python -m unittest -v test_filo_uploader.py test_filo_upload_schedule.py
           python -m unittest -v test_affilio.AffilioRadarTests.test_channel_watermarks_exclude_the_destination_and_show_other_four_platforms
