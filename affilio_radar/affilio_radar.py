@@ -123,7 +123,8 @@ PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "3
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
 MAX_QUEUED_RECHECKS = max(0, min(16, int(os.getenv("AFFILIO_MAX_QUEUED_RECHECKS", "12"))))
-DISCOVERY_QUEUE_LIMIT = max(100, min(1000, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_LIMIT", "1000"))))
+# Preserve the complete 3,000-card catalog shortlist while it rotates through live checks.
+DISCOVERY_QUEUE_LIMIT = max(100, min(5000, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_LIMIT", "5000"))))
 DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_TTL_HOURS", "24"))))
 MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(64, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "48"))))
 # Never publish an offer that gives the audience less than this much time to act.
@@ -3181,11 +3182,17 @@ def merge_discovery_queue(
                 except (TypeError, ValueError, OverflowError):
                     return 0
 
+        raw_brand = row.get("brand") or row.get("brand_name") or old.get("brand") or old.get("brand_name") or ""
+        if isinstance(raw_brand, dict):
+            raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
+        brand = re.sub(r"\\s+", " ", str(raw_brand or "")).strip()[:100]
+
         record = {
             **old,
             "product_id": pid,
             "product_url": url,
             "title": title,
+            "brand": brand,
             "source": raw_source,
             "first_seen_at": first_seen.isoformat(),
             "last_seen_at": current_iso,
@@ -3488,10 +3495,44 @@ def select_discovery_records_for_check(
             continue
         due.append((pid, record))
     due.sort(key=lambda pair: discovery_queue_sort_key(pair[1], current), reverse=True)
-    # The detail-check budget must preserve the global discount/savings order.
-    # Category/family/brand history and demand telemetry never remove or reorder candidates.
-    selected = due[:limit]
-    print(f"DISCOVERY_QUEUE_CHECK_BATCH due={len(due)} selected={len(selected)} limit={limit}")
+
+    # Apply the exact same rolling 24-hour family/brand/similarity guards to the
+    # complete due pool BEFORE consuming scarce live-detail slots. Previously the
+    # top 48 could all be rejected later by the publisher, starving valid offers
+    # ranked just below them. This is a temporary selection filter only: blocked
+    # queue entries remain queued and become eligible when their cooldown expires.
+    guard_rows = [
+        {**record, "product_id": pid}
+        for pid, record in due
+    ]
+    guarded_rows = _filter_recent_publication_repeats(
+        guard_rows,
+        published,
+        recent_publications,
+        current,
+        label="DISCOVERY_QUEUE",
+    )
+    guarded_ids = {
+        str(row.get("product_id") or "").strip()
+        for row in guarded_rows
+        if isinstance(row, dict)
+    }
+    guarded_due = [
+        (pid, record)
+        for pid, record in due
+        if pid in guarded_ids
+    ]
+    blocked_by_repeat_guard = len(due) - len(guarded_due)
+
+    # Filtering does not reorder the remaining rows: global discount/savings
+    # priority remains intact and category/family diversity is only a 24h guard.
+    selected = guarded_due[:limit]
+    print(
+        f"DISCOVERY_QUEUE_CHECK_BATCH due={len(due)} "
+        f"after_repeat_guards={len(guarded_due)} "
+        f"repeat_deferred={blocked_by_repeat_guard} "
+        f"selected={len(selected)} limit={limit}"
+    )
     return selected
 
 
