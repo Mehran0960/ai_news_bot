@@ -2839,18 +2839,6 @@ def update_current_demand_signals(
     return summary
 
 
-def _candidate_demand_score(record: dict) -> int:
-    """Legacy compatibility helper: only a verified recent review-growth proxy."""
-    if not has_current_demand_signal(record):
-        return 0
-    try:
-        growth = max(0, int(record.get("recent_review_growth_window", record.get("recent_review_growth_7d")) or 0))
-        hours = float(record.get("demand_window_hours") or 0)
-    except (TypeError, ValueError, OverflowError):
-        return 0
-    return max(0, min(100, round(100 * growth / max(hours, 1))))
-
-
 def _candidate_promo_score(record: dict) -> int:
     """Legacy deal-only score; never reads popularity, ratings, or review volume."""
     if not isinstance(record, dict):
@@ -2912,34 +2900,6 @@ def _deal_primary_sort_key(record: dict, now: datetime | None = None) -> tuple:
     except (TypeError, ValueError, OverflowError):
         savings = 0
     return (_discount_percentage_sort_value(candidate), savings)
-
-def _deal_value_evidence_key(record: dict) -> tuple[int, int]:
-    """Prefer independent same-product market/history evidence without setting a discount floor."""
-    if not isinstance(record, dict):
-        return (0, -101)
-    if (
-        record.get("market_status") == "verified"
-        and record.get("market_reference_kind") == "seller_median"
-        and record.get("market_price_advantage_pct") is not None
-    ):
-        try:
-            advantage = int(record.get("market_price_advantage_pct"))
-        except (TypeError, ValueError, OverflowError):
-            advantage = -101
-        return (3, advantage) if advantage >= VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT else (1, advantage)
-    if record.get("history_status") == "verified":
-        try:
-            advantage = int(record.get("discount_vs_30d_median_pct") or 0)
-        except (TypeError, ValueError, OverflowError):
-            advantage = 0
-        if advantage > 0:
-            return (2, advantage)
-        if record.get("historical_deal_eligible") is True:
-            return (2, 1)
-        return (1, advantage)
-    return (0, -101)
-
-
 
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
     """Strict discount/savings order; fresh review growth is an optional exact-tie proxy."""
@@ -3116,175 +3076,6 @@ def _is_specific_product_family(category: str, family: str) -> bool:
     category = str(category or "").strip()
     family = str(family or "").strip()
     return bool(family and family not in {"other", "unknown"} and family != category)
-
-
-def _candidate_demand_comparable_for_diversity(candidate: dict, leader: dict) -> bool:
-    """Allow variety only when demand, recent clicks, and deal discount remain reasonably close."""
-    candidate = candidate if isinstance(candidate, dict) else {}
-    leader = leader if isinstance(leader, dict) else {}
-    if _candidate_demand_score(candidate) < _candidate_demand_score(leader) - 18:
-        return False
-    leader_discount = max(0, int(leader.get("discount_percent") or 0))
-    candidate_discount = max(0, int(candidate.get("discount_percent") or 0))
-    # Discount fields are sometimes absent before live detail validation.
-    # Missing data is unknown, not a known zero-percent offer; enforce the
-    # quality comparison only when both candidates have measured discounts.
-    if leader_discount > 0 and candidate_discount > 0:
-        minimum_comparable_discount = max(0, leader_discount - 25)
-        if candidate_discount < minimum_comparable_discount:
-            return False
-    return True
-
-
-def _diversify_ranked_records(
-    records,
-    limit: int | None = None,
-    published: dict | None = None,
-    recent_publications: list | None = None,
-    label: str = "DISCOVERY",
-    now: datetime | None = None,
-):
-    """Legacy utility; active catalog discovery no longer calls this category re-ranker."""
-    source = list(records or [])
-    cap = len(source) if limit is None else max(0, int(limit))
-    if cap <= 0 or not source:
-        return []
-    if not (published or recent_publications):
-        return source[:cap]
-    current = now or datetime.now(timezone.utc)
-    if current.tzinfo is None:
-        current = current.replace(tzinfo=timezone.utc)
-    current = current.astimezone(timezone.utc)
-    try:
-        recent = _recent_publication_diversity(
-            published, limit=2000, durable_history=recent_publications, now=current
-        )
-    except Exception as exc:
-        print(f"{label}_DIVERSITY_HISTORY_UNAVAILABLE error={type(exc).__name__}")
-        return source[:cap]
-    if not recent:
-        return source[:cap]
-    category_counts, family_counts, brand_counts = {}, {}, {}
-    recent_product_ids = []
-    for post in recent:
-        category = str(post.get("category") or "other")
-        family = str(post.get("family") or category)
-        brand = str(post.get("brand") or "")
-        category_counts[category] = category_counts.get(category, 0) + 1
-        family_counts[family] = family_counts.get(family, 0) + 1
-        if brand:
-            brand_counts[brand] = brand_counts.get(brand, 0) + 1
-        recent_product_ids.append(str(post.get("product_id") or ""))
-    now_ts = current.timestamp()
-    recent_categories = [
-        str(post.get("category") or "other") for post in recent
-        if float(post.get("order") or post.get("ts") or 0) >= now_ts - CATEGORY_REPEAT_COOLDOWN_MINUTES * 60
-    ]
-    recent_families = [
-        str(post.get("family") or post.get("category") or "other") for post in recent
-        if float(post.get("order") or post.get("ts") or 0) >= now_ts - FAMILY_REPEAT_COOLDOWN_HOURS * 3600
-    ]
-    recent_brands = [
-        str(post.get("brand") or "") for post in recent
-        if post.get("brand") and float(post.get("order") or post.get("ts") or 0) >= now_ts - BRAND_REPEAT_COOLDOWN_HOURS * 3600
-    ]
-    remaining, selected = list(source), []
-    selection_anchor = None
-
-    def _as_product(entry):
-        if isinstance(entry, tuple) and len(entry) >= 2 and isinstance(entry[1], dict):
-            return {**entry[1], "product_id": str(entry[0])}
-        return entry if isinstance(entry, dict) else {}
-
-    while remaining and len(selected) < cap:
-        # A specific family published inside its cooldown window is ineligible.
-        # Filter the full ranked pool before lookahead so a repeated leader cannot
-        # win via a last-resort fallback or hide alternatives just beyond lookahead.
-        fresh_remaining = []
-        skipped_families = []
-        for entry in remaining:
-            item = _as_product(entry)
-            category, family, _ = _publication_diversity_group(item)
-            if _is_specific_product_family(category, family) and family in recent_families:
-                skipped_families.append(family)
-                continue
-            fresh_remaining.append(entry)
-        if skipped_families:
-            print(
-                f"{label}_DIVERSITY_FAMILY_COOLDOWN_SKIP "
-                f"count={len(skipped_families)} families={','.join(sorted(set(skipped_families))[:5])}"
-            )
-        remaining = fresh_remaining
-        if not remaining:
-            break
-        lookahead = remaining[:DIVERSITY_LOOKAHEAD_CANDIDATES]
-        if selection_anchor is None:
-            # The first eligible candidate becomes the fixed demand baseline for
-            # this detail-check batch. Do not refill empty slots with much weaker
-            # products after the repeated family has been filtered out.
-            selection_anchor = _as_product(lookahead[0])
-        leader = selection_anchor
-        comparable = [
-            (position, entry, _as_product(entry))
-            for position, entry in enumerate(lookahead)
-            if (not selected and position == 0)
-            or _candidate_demand_comparable_for_diversity(_as_product(entry), leader)
-        ]
-        if not comparable:
-            # Demand is a ranking signal, not a hard eligibility gate. Continue with
-            # the next best remaining record so a large catalog can fill the bounded
-            # live-detail budget and reveal the next available discount tier.
-            print(
-                f"{label}_DIVERSITY_DEMAND_GAP_CONTINUE "
-                f"selected={len(selected)} baseline_product_id={leader.get('product_id') or 'unknown'} "
-                f"next_product_id={_as_product(lookahead[0]).get('product_id') or 'unknown'}"
-            )
-            comparable = [(0, lookahead[0], _as_product(lookahead[0]))]
-        ranked = []
-        for position, entry, item in comparable:
-            category, family, brand = _publication_diversity_group(item)
-            pid = str(item.get("product_id") or item.get("id") or product_id(item.get("product_url") or item.get("url") or ""))
-            penalty = float(position * 20)
-            penalty += min(360.0, category_counts.get(category, 0) * 45.0)
-            penalty += min(440.0, family_counts.get(family, 0) * 55.0)
-            if brand:
-                penalty += min(240.0, brand_counts.get(brand, 0) * 35.0)
-            if category in recent_categories:
-                penalty += 150.0
-            if family in recent_families:
-                penalty += 210.0
-            if brand and brand in recent_brands:
-                penalty += 160.0
-            if pid and pid in recent_product_ids:
-                penalty += 250.0
-            ranked.append((penalty, position, entry, pid, category, family, brand))
-        allowed = [
-            row for row in ranked
-            if row[4] not in recent_categories and row[5] not in recent_families
-            and (not row[6] or row[6] not in recent_brands)
-        ]
-        if not allowed:
-            allowed = [row for row in ranked if row[4] not in recent_categories and row[5] not in recent_families]
-        if not allowed:
-            allowed = [row for row in ranked if row[5] not in recent_families]
-        if not allowed:
-            allowed = [row for row in ranked if row[4] not in recent_categories]
-        _, position, entry, pid, category, family, brand = min(allowed or ranked, key=lambda row: (row[0], row[1]))
-        if position:
-            print(f"{label}_DIVERSITY_REORDER product_id={pid or 'unknown'} original_rank={position + 1} category={category} family={family}")
-        selected.append(entry)
-        remaining.pop(position)
-        category_counts[category] = category_counts.get(category, 0) + 1
-        family_counts[family] = family_counts.get(family, 0) + 1
-        if brand:
-            brand_counts[brand] = brand_counts.get(brand, 0) + 1
-        if pid:
-            recent_product_ids.append(pid)
-        recent_categories = (recent_categories + [category])[-3:]
-        recent_families = (recent_families + [family])[-14:]
-        if brand:
-            recent_brands = (recent_brands + [brand])[-9:]
-    return selected
 
 
 def select_discovery_records_for_check(
@@ -6615,34 +6406,13 @@ def is_materially_improved_offer(previous: dict, product: dict, now: datetime | 
     return bool(old_price > 0 and new_price > 0 and new_price <= old_price * 0.90)
 
 
-def pending_queue_sort_key(product: dict, queue_record: dict | None = None,
-                           now: datetime | None = None) -> tuple:
-    """Rank by discount percentage then cash savings; deadline urgency is a later tie-breaker."""
-    now = now or datetime.now(timezone.utc)
-    if now.tzinfo is None:
-        now = now.replace(tzinfo=timezone.utc)
-    now = now.astimezone(timezone.utc)
-    queue_record = queue_record if isinstance(queue_record, dict) else {}
-    first_seen = _parse_utc_datetime(queue_record.get("first_seen_at")) or now
-    expiry = _parse_utc_datetime(_parse_deal_expiry_value(product.get("deal_expires_at")))
-    remaining = (expiry - now).total_seconds() if expiry else float("inf")
-    if remaining <= ULTRA_URGENT_WINDOW_MINUTES * 60:
-        deadline_priority = 3
-    elif remaining <= DEADLINE_CRITICAL_WINDOW_MINUTES * 60:
-        deadline_priority = 2
-    elif remaining <= URGENT_EXPIRY_WINDOW_MINUTES * 60:
-        deadline_priority = 1
-    else:
-        deadline_priority = 0
-    # deal_sort_key is strictly discount percentage then cash saving.
-    # Deadline urgency only breaks ties after both discount fields.
-    return (
-        *deal_sort_key(product, now=now),
-        int(is_urgent_priority_deal(product, now)),
-        deadline_priority,
-        -remaining if math.isfinite(remaining) else float("-inf"),
-        -first_seen.timestamp(),
-    )
+def pending_queue_sort_key(
+    product: dict,
+    queue_record: dict | None = None,
+    now: datetime | None = None,
+) -> tuple:
+    """Use only discount %, savings, and the optional exact-tie review-growth proxy."""
+    return deal_sort_key(product, now=now)
 
 
 def defer_pending_publication(
