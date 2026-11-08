@@ -19355,14 +19355,19 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "10703",
-      "catalog_best_selling_category_name": "ابزارآلات باغبانی",
-      "catalog_best_selling_rank": 1532,
+      "catalog_best_selling_category_id": "6075",
+      "catalog_best_selling_category_name": "باغبانی و کشاورزی",
+      "catalog_best_selling_rank": 3698,
       "catalog_best_selling_ranks_by_category": {
         "10703": {
           "category_name": "ابزارآلات باغبانی",
           "observed_at": "2026-11-08T15:47:09.893331+00:00",
           "rank": 1532
+        },
+        "6075": {
+          "category_name": "باغبانی و کشاورزی",
+          "observed_at": "2026-11-08T21:24:29.133536+00:00",
+          "rank": 3698
         },
         "6661": {
           "category_name": "تبر، بیل و کلنگ",
@@ -19370,18 +19375,19 @@
           "rank": 184
         }
       },
-      "catalog_category_id": "10703",
+      "catalog_category_id": "6075",
       "catalog_category_ids": [
+        "6075",
         "6661",
         "10703"
       ],
-      "catalog_category_name": "ابزارآلات باغبانی",
-      "catalog_rank_observed_at": "2026-11-08T15:47:09.893331+00:00",
+      "catalog_category_name": "باغبانی و کشاورزی",
+      "catalog_rank_observed_at": "2026-11-08T21:24:29.133536+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 200000,
       "discount_percent": 78,
       "first_seen_at": "2026-11-08T10:55:50.513521+00:00",
-      "last_seen_at": "2026-11-08T15:47:07.030944+00:00",
+      "last_seen_at": "2026-11-08T21:23:56.746240+00:00",
       "original_price": 900000,
       "product_id": "dkp-203284",
       "product_url": "https://www.digikala.com/product/dkp-203284/",
@@ -78337,6 +78343,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "6441",
+      "catalog_best_selling_category_name": "چراغ خواب و آباژور",
+      "catalog_best_selling_rank": 3692,
+      "catalog_best_selling_ranks_by_category": {
+        "6441": {
+          "category_name": "چراغ خواب و آباژور",
+          "observed_at": "2026-11-08T21:24:29.149286+00:00",
+          "rank": 3692
+        }
+      },
+      "catalog_category_id": "6441",
+      "catalog_category_ids": [
+        "6441"
+      ],
+      "catalog_category_name": "چراغ خواب و آباژور",
+      "catalog_rank_observed_at": "2026-11-08T21:24:29.149286+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1940000,
+      "discount_percent": 68,
+      "first_seen_at": "2026-11-08T21:24:29.149286+00:00",
+      "last_seen_at": "2026-11-08T21:24:09.458565+00:00",
+      "original_price": 6000000,
+      "product_id": "dkp-8169859",
+      "product_url": "https://www.digikala.com/product/dkp-8169859/",
+      "rating": 4.08,
+      "review_count": 80,
+      "savings_toman": 4060000,
+      "source": "digikala_catalog_sweep",
+      "title": "آباژور رومیزی نورهام مدل NHM G-M-28"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "10486",
       "catalog_best_selling_category_name": "کتاب",
       "catalog_best_selling_rank": 3232,
@@ -107356,41 +107394,9 @@
       "savings_toman": 2388000,
       "source": "digikala_catalog_sweep",
       "title": "تی شرت آستین کوتاه مردانه مدل انیمه ای اتک ان تایتان"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9470",
-      "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 3595,
-      "catalog_best_selling_ranks_by_category": {
-        "9470": {
-          "category_name": "تی شرت مردانه",
-          "observed_at": "2026-11-08T21:12:19.146528+00:00",
-          "rank": 3595
-        }
-      },
-      "catalog_category_id": "9470",
-      "catalog_category_ids": [
-        "9470"
-      ],
-      "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-08T21:12:19.146528+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-08T18:41:24.330950+00:00",
-      "last_seen_at": "2026-11-08T21:11:48.775195+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-11581904",
-      "product_url": "https://www.digikala.com/product/dkp-11581904/",
-      "rating": 5.0,
-      "review_count": 1,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "تی شرت آستین کوتاه مردانه مدل g043"
     }
   ],
   "cycle_started_at": "2026-11-08T07:56:20.016124+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-08T21:22:57.081163+00:00"
+  "updated_at": "2026-11-08T21:24:29.209068+00:00"
 }
