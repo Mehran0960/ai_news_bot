@@ -452,7 +452,8 @@ def due_content(state: dict, *, now: datetime | None = None, limit: int = 1) -> 
             str(product_id),
             entry,
         ))
-    due.sort(key=lambda row: (row[0], row[1], row[2]))
+    # Python's stable sort retains queue insertion (selection) order on an exact schedule tie.
+    due.sort(key=lambda row: (row[0], row[1]))
     return [
         (product_id, entry)
         for _partial, _scheduled, product_id, entry in due[:max(1, int(limit))]
