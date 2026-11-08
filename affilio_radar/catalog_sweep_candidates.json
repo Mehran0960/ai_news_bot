@@ -87523,10 +87523,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6486",
-      "catalog_best_selling_category_name": "مراقبت پوست",
-      "catalog_best_selling_rank": 2648,
+      "catalog_best_selling_category_id": "5968",
+      "catalog_best_selling_category_name": "آرایشی و بهداشتی",
+      "catalog_best_selling_rank": 9397,
       "catalog_best_selling_ranks_by_category": {
+        "5968": {
+          "category_name": "آرایشی و بهداشتی",
+          "observed_at": "2026-11-08T07:04:32.555774+00:00",
+          "rank": 9397
+        },
         "6486": {
           "category_name": "مراقبت پوست",
           "observed_at": "2026-11-07T21:48:23.201300+00:00",
@@ -87538,18 +87543,19 @@
           "rank": 628
         }
       },
-      "catalog_category_id": "6486",
+      "catalog_category_id": "5968",
       "catalog_category_ids": [
+        "5968",
         "6486",
         "6489"
       ],
-      "catalog_category_name": "مراقبت پوست",
-      "catalog_rank_observed_at": "2026-11-07T21:48:23.201300+00:00",
+      "catalog_category_name": "آرایشی و بهداشتی",
+      "catalog_rank_observed_at": "2026-11-08T07:04:32.555774+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 449000,
       "discount_percent": 70,
       "first_seen_at": "2026-11-07T17:47:34.983876+00:00",
-      "last_seen_at": "2026-11-07T21:48:01.992568+00:00",
+      "last_seen_at": "2026-11-08T07:04:28.146420+00:00",
       "original_price": 1500000,
       "product_id": "dkp-22502129",
       "product_url": "https://www.digikala.com/product/dkp-22502129/",
@@ -112168,5 +112174,5 @@
   ],
   "cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-08T07:03:35.307453+00:00"
+  "updated_at": "2026-11-08T07:04:32.581303+00:00"
 }
