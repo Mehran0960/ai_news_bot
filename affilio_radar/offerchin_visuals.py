@@ -46,13 +46,18 @@ def _icon_only_svg_payload(payload: bytes, platform: str) -> bytes:
 
 
 def _crop_youtube_play_icon(logo):
-    """Keep only the red play-button mark from YouTube's official full-color lockup."""
+    """Keep the complete red play-button mark, including its anti-aliased edge pixels."""
     from PIL import ImageChops
 
     red, green, blue = logo.convert("RGB").split()
-    mask = red.point(lambda value: 255 if value >= 160 else 0)
-    mask = ImageChops.multiply(mask, green.point(lambda value: 255 if value <= 80 else 0))
-    mask = ImageChops.multiply(mask, blue.point(lambda value: 255 if value <= 120 else 0))
+    # Compare channels instead of requiring a dark, fully saturated red. The
+    # official PNG has anti-aliased red pixels blended toward its white canvas;
+    # strict green/blue cutoffs shave those edge pixels off the rounded button.
+    red_green = ImageChops.subtract(red, green)
+    red_blue = ImageChops.subtract(red, blue)
+    mask = red.point(lambda value: 255 if value >= 128 else 0)
+    mask = ImageChops.multiply(mask, red_green.point(lambda value: 255 if value >= 12 else 0))
+    mask = ImageChops.multiply(mask, red_blue.point(lambda value: 255 if value >= 12 else 0))
     bounds = mask.getbbox()
     if bounds is None:
         raise ValueError("YouTube play-button artwork was not found")
