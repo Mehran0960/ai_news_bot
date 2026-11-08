@@ -2121,7 +2121,7 @@ def refresh_torob_trends_snapshot(
         state["torob_trends_snapshot"] = snapshot
         print(
             f"TOROB_TRENDS_REFRESHED count={snapshot['count']} "
-            f"observed_at={snapshot['observed_at']}"
+            f"fetched_at={snapshot['fetched_at']}"
         )
         return snapshot, "refreshed"
     except Exception as exc:
