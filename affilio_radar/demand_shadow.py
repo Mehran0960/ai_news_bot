@@ -78,7 +78,7 @@ def normalize_search_tokens(value: Any) -> set[str]:
 
 def build_torob_trends_snapshot(
     payload: Any,
-    observed_at: str | datetime,
+    fetched_at: str | datetime,
 ) -> dict:
     """Validate and compact Torob MCP's read-only torob_trends response."""
     if isinstance(payload, dict):
@@ -90,10 +90,10 @@ def build_torob_trends_snapshot(
     if not isinstance(rows, list):
         raise ValueError("torob_trends_payload_missing_list")
 
-    if isinstance(observed_at, datetime):
-        stamp = observed_at.astimezone(timezone.utc).isoformat() if observed_at.tzinfo else observed_at.replace(tzinfo=timezone.utc).isoformat()
+    if isinstance(fetched_at, datetime):
+        stamp = fetched_at.astimezone(timezone.utc).isoformat() if fetched_at.tzinfo else fetched_at.replace(tzinfo=timezone.utc).isoformat()
     else:
-        stamp = _iso_utc(observed_at)
+        stamp = _iso_utc(fetched_at)
 
     trends: list[dict] = []
     seen_queries: set[str] = set()
@@ -128,7 +128,7 @@ def build_torob_trends_snapshot(
 
     return {
         "source": "torob_public_mcp.torob_trends",
-        "observed_at": stamp,
+        "fetched_at": stamp,
         "count": len(trends),
         "trends": trends,
     }
@@ -141,7 +141,7 @@ def torob_trends_snapshot_is_fresh(
 ) -> bool:
     if not isinstance(snapshot, dict) or not isinstance(snapshot.get("trends"), list):
         return False
-    observed = _as_utc(snapshot.get("observed_at"))
+    observed = _as_utc(snapshot.get("fetched_at"))
     if observed is None:
         return False
     current = now or datetime.now(timezone.utc)
@@ -300,7 +300,7 @@ def annotate_shadow_demand_evidence(
             "evidence_level": level,
             "digikala_bestseller": digikala,
             "torob_trend": (
-                {**torob, "observed_at": snapshot.get("observed_at")}
+                {**torob, "fetched_at": snapshot.get("fetched_at")}
                 if torob else None
             ),
             "review_growth_proxy": review_growth,
@@ -360,7 +360,7 @@ def build_shadow_demand_report(
 
     examples.sort(key=sort_key)
     trends = torob_snapshot.get("trends", []) if isinstance(torob_snapshot, dict) else []
-    observed_at = torob_snapshot.get("observed_at") if isinstance(torob_snapshot, dict) else None
+    fetched_at = torob_snapshot.get("fetched_at") if isinstance(torob_snapshot, dict) else None
     return {
         "mode": "shadow_only",
         "production_ranking_affected": False,
@@ -379,7 +379,7 @@ def build_shadow_demand_report(
                 if torob_trends_snapshot_is_fresh(torob_snapshot, current)
                 else "unavailable_or_stale"
             ),
-            "observed_at": observed_at,
+            "fetched_at": fetched_at,
             "trend_count": len(trends) if isinstance(trends, list) else 0,
         },
         "candidate_count": len(records),
