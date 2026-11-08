@@ -364,6 +364,22 @@ class ShortVideoTests(unittest.TestCase):
         self.assertEqual(bale_root.attrib["width"], "512")
         self.assertEqual(bale_root.attrib["height"], "512")
 
+    def test_youtube_official_play_button_crop_keeps_antialiased_edges(self):
+        import offerchin_visuals
+
+        # A one-pixel, lightly blended red fringe represents the edge pixels
+        # of the official rounded play button against its white PNG canvas.
+        image = Image.new("RGBA", (100, 80), (255, 255, 255, 255))
+        ImageDraw.Draw(image).rectangle((20, 20, 79, 59), fill=(255, 0, 51, 255))
+        fringe = (255, 220, 229, 255)
+        image.putpixel((19, 20), fringe)
+        image.putpixel((80, 59), fringe)
+
+        cropped = offerchin_visuals._crop_youtube_play_icon(image)
+        self.assertEqual(cropped.size, (62, 40))
+        self.assertEqual(cropped.getpixel((0, 0)), fringe)
+        self.assertEqual(cropped.getpixel((-1, -1)), fringe)
+
     def test_product_image_footer_uses_resolution_aware_readable_official_logo_sizes(self):
         import affilio_radar
         import offerchin_visuals
