@@ -1187,10 +1187,10 @@
 
 **فایل‌ها/سامانه‌ها:** `affilio_radar/offerchin_visuals.py`، `affilio_radar/short_video.py`، `affilio_radar/test_short_video.py`، `affilio_radar/VISUAL_BRANDING.md`، `affilio_radar/assets/platform-logos/SOURCES.md`، `.github/workflows/sync-official-platform-logos.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
 
-**آزمون و نتیجه:** اجرای تست رگرسیون لوگو و ویدئو در GitHub Actions پس از ایجاد PR؛ تا پیش از اجرای CI در انتظار نتیجه.
+**آزمون و نتیجه:** Workflow اختصاصی لوگو/ویدئو با موفقیت اجرا شد؛ رگرسیون عمومی OfferChin نیز موفق بود. در اجرای نخست Documentation Gate فقط به‌دلیل درج ورودی در جای غیرانتهایی فایل رد شد؛ ورودی به انتهای changelog منتقل شده و اجرای مجدد Gate لازم است.
 
 **شواهد/شناسه:** شاخهٔ `fix/platform-icon-only-watermarks-2026-11-08`؛ شمارهٔ PR و commit نهایی پس از ایجاد ثبت می‌شوند.
 
 **ریسک/بازگشت:** برش اشتباه می‌تواند بخشی از نماد رسمی را حذف کند؛ آزمون هندسهٔ آیکون‌ها و تناسب ابعاد پیش از merge الزامی است. بازگشت با revert همین PR ممکن است. هیچ تغییری در صف/تنظیم انتشار یا متن شناسه‌ها انجام نمی‌شود.
 
-**وضعیت:** در انتظار CI و merge.
+**وضعیت:** تغییر کد و تست لوگو/ویدئو موفق؛ در انتظار تأیید نهایی Documentation Gate و بررسی PR.
