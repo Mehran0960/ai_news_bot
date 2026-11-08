@@ -342,13 +342,18 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(fresh["selection_discount_floor"], 1)
         self.assertEqual(fresh["selection_discount_band"], "1%+")
 
-    def test_publisher_rejects_old_queue_item_without_new_demand_evidence(self):
+    def test_publisher_accepts_old_queue_item_without_review_growth_or_demand_scores(self):
         entry = {
             "product_id": "dkp-95045",
             "payload": {
                 "product_id": "dkp-95045",
                 "product_url": "https://www.digikala.com/product/dkp-95045/",
                 "selection_discount_floor": 44,
+                "current_price": 500_000,
+                "original_price": 520_000,
+                "discount_percent": 4,
+                "savings_toman": 20_000,
+                "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95045%2F",
             },
         }
         from unittest.mock import patch
@@ -373,13 +378,9 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             patch("publisher.radar.is_market_value_publish_eligible", return_value=True),
             patch("publisher.radar.has_publishable_expiry_or_open_offer", return_value=True),
         ):
-            entry["payload"].update({
-                "current_price": 500_000,
-                "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95045%2F",
-            })
             fresh, reason = _fresh_selected_item(entry, self.now)
-        self.assertIsNone(fresh)
-        self.assertEqual(reason, "live_demand_signal_missing")
+        self.assertIsNotNone(fresh)
+        self.assertEqual(reason, "")
 
     def test_final_publisher_gate_accepts_discount_first_offers_and_protects_legacy_and_partial_retry(self):
         from unittest.mock import patch
@@ -628,6 +629,25 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual({pid for pid, _entry in later}, {"dkp-1", "dkp-2"})
 
 
+    def test_due_queue_keeps_selector_order_and_ignores_demand_scores(self):
+        state = {}
+        enqueue_selected_content(
+            state,
+            [self.item("dkp-100", demand=0), self.item("dkp-200", demand=999)],
+            now=self.now,
+            interval_seconds=1200,
+            max_items=2,
+        )
+        # Force an exact schedule tie; stable insertion order is the original
+        # selector order and must not be replaced by a demand/popularity score.
+        same_slot = self.now.isoformat()
+        state["content_delivery_queue"]["dkp-100"]["scheduled_at"] = same_slot
+        state["content_delivery_queue"]["dkp-200"]["scheduled_at"] = same_slot
+        state["content_delivery_queue"]["dkp-100"]["next_attempt_at"] = same_slot
+        state["content_delivery_queue"]["dkp-200"]["next_attempt_at"] = same_slot
+        due = due_content(state, now=self.now, limit=2)
+        self.assertEqual([pid for pid, _entry in due], ["dkp-100", "dkp-200"])
+
     def test_future_selection_is_replaced_by_live_scan(self):
         state = {"last_published_at": self.now.isoformat()}
         enqueue_selected_content(
@@ -730,14 +750,26 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "active_publication_exists",
         )
 
-    def test_fallback_filter_requires_current_demand_and_attractive_value(self):
+    def test_fallback_filter_does_not_gate_on_demand_and_normalizes_legacy_discount_tiers(self):
         low_discount = self.item("dkp-99008", demand=95)
-        low_discount.update({"discount_percent": 45, "selection_discount_floor": 45})
+        low_discount.update({
+            "current_price": 110_000,
+            "original_price": 200_000,
+            "discount_percent": 45,
+            "savings_toman": 90_000,
+            "selection_discount_floor": 45,
+        })
         no_current_demand = self.item("dkp-99009", demand=95)
         no_current_demand["current_demand_verified"] = False
         valid = self.item("dkp-99010", demand=45)
         unsupported_floor = self.item("dkp-99011", demand=99)
-        unsupported_floor.update({"discount_percent": 34, "selection_discount_floor": 35})
+        unsupported_floor.update({
+            "current_price": 132_000,
+            "original_price": 200_000,
+            "discount_percent": 34,
+            "savings_toman": 68_000,
+            "selection_discount_floor": 35,
+        })
 
         filtered = _eligible_fallback_candidates(
             [low_discount, no_current_demand, valid, unsupported_floor], self.now
@@ -745,7 +777,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
 
         self.assertEqual(
             {item["product_id"] for item in filtered},
-            {"dkp-99008", "dkp-99010", "dkp-99011"},
+            {"dkp-99008", "dkp-99009", "dkp-99010", "dkp-99011"},
         )
         self.assertTrue(all(item["selection_discount_floor"] == 1 for item in filtered))
 
@@ -800,7 +832,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         fallback_candidate = {
             **self.item("dkp-99002", demand=45),
+            "current_price": 110_000,
+            "original_price": 200_000,
             "discount_percent": 45,
+            "savings_toman": 90_000,
             "selection_discount_floor": 45,
             "selection_discount_band": "45%–49%",
         }
