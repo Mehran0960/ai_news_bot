@@ -142,8 +142,6 @@ def _visible_enabled_first(page, selectors):
 
 def _wait_for_filo_login_form_hydration(page) -> None:
     """Wait until Vue has attached its v-model input handlers to both login fields."""
-    from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
-
     try:
         page.wait_for_function(
             """() => {
@@ -159,7 +157,11 @@ def _wait_for_filo_login_form_hydration(page) -> None:
             }""",
             timeout=20_000,
         )
-    except PlaywrightTimeoutError as exc:
+    except Exception as exc:
+        # Playwright's TimeoutError is optional in unit-test environments where
+        # only the browser workflow installs Playwright.
+        if "timeout" not in type(exc).__name__.lower():
+            raise
         raise FiloUploadError("filo_login_form_not_hydrated") from exc
 
 
