@@ -44288,11 +44288,11 @@
   "last_error": "",
   "last_successful_category_id": "6816",
   "last_successful_category_name": "پوشاک ورزشی",
-  "last_successful_page": 499,
-  "last_successful_page_at": "2026-11-08T07:39:23.755471+00:00",
+  "last_successful_page": 500,
+  "last_successful_page_at": "2026-11-08T07:40:31.912049+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 485,
+  "page": 486,
   "parallel_cycle_completed_category_ids": [
     "1",
     "2",
@@ -46139,6 +46139,7 @@
     "5697",
     "5698",
     "5699",
+    "5700",
     "5701",
     "5702",
     "5721",
@@ -46801,6 +46802,7 @@
     "6809",
     "6811",
     "6813",
+    "6816",
     "6818",
     "6822",
     "6823",
@@ -49202,8 +49204,8 @@
     "11797",
     "214186"
   ],
-  "parallel_cycle_pages_success": 192045,
-  "parallel_cycle_product_rows_success": 3770775,
+  "parallel_cycle_pages_success": 192054,
+  "parallel_cycle_product_rows_success": 3770955,
   "parallel_cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -54130,20 +54132,20 @@
     "214158",
     "214186"
   ],
-  "parallel_last_batch_at": "2026-11-08T07:39:23.832114+00:00",
+  "parallel_last_batch_at": "2026-11-08T07:40:32.038245+00:00",
   "parallel_last_batch_candidate_file_bytes": 4235138,
-  "parallel_last_batch_candidate_write_seconds": 0.068,
+  "parallel_last_batch_candidate_write_seconds": 0.112,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 1.97,
-  "parallel_last_batch_nonempty_product_pages": 11,
+  "parallel_last_batch_fetch_seconds": 11.457,
+  "parallel_last_batch_nonempty_product_pages": 9,
   "parallel_last_batch_pages": 11,
-  "parallel_last_batch_pages_per_second": 5.58,
-  "parallel_last_batch_processing_seconds": 0.01,
-  "parallel_last_batch_product_rows": 220,
-  "parallel_last_batch_rate_limited": 0,
-  "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 107.44,
-  "parallel_last_batch_successes": 11,
+  "parallel_last_batch_pages_per_second": 0.96,
+  "parallel_last_batch_processing_seconds": 0.019,
+  "parallel_last_batch_product_rows": 180,
+  "parallel_last_batch_rate_limited": 2,
+  "parallel_last_batch_retries": 2,
+  "parallel_last_batch_rows_per_second": 15.53,
+  "parallel_last_batch_successes": 9,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4672,
   "parallel_pending_pages": [
@@ -54151,85 +54153,75 @@
       "attempts": 0,
       "category_id": "6263",
       "category_name": "حمام و سرویس بهداشتی",
-      "page": 485
+      "page": 486
     },
     {
       "attempts": 0,
       "category_id": "9543",
       "category_name": "جاکلیدی زنانه و مردانه",
-      "page": 486
-    },
-    {
-      "attempts": 0,
-      "category_id": "9540",
-      "category_name": "زیورآلات زنانه و مردانه",
       "page": 487
     },
     {
-      "attempts": 0,
+      "attempts": 1,
+      "category_id": "9540",
+      "category_name": "زیورآلات زنانه و مردانه",
+      "last_error": "http_429",
+      "page": 487
+    },
+    {
+      "attempts": 1,
       "category_id": "9534",
       "category_name": "اکسسوری زنانه و مردانه",
+      "last_error": "http_429",
       "page": 491
     },
     {
       "attempts": 0,
       "category_id": "10690",
       "category_name": "لوازم و مصالح ساختمانی",
-      "page": 492
+      "page": 493
     },
     {
       "attempts": 0,
       "category_id": "100",
       "category_name": "ماوس پد",
-      "page": 494
+      "page": 495
     },
     {
       "attempts": 0,
       "category_id": "9558",
       "category_name": "ساعت عقربه ای زنانه و مردانه",
-      "page": 494
+      "page": 495
     },
     {
       "attempts": 0,
       "category_id": "9625",
       "category_name": "دخترانه",
-      "page": 494
+      "page": 495
     },
     {
       "attempts": 0,
       "category_id": "6741",
       "category_name": "مادر و کودک",
-      "page": 496
-    },
-    {
-      "attempts": 0,
-      "category_id": "5700",
-      "category_name": "لوازم آرایشی",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "6816",
-      "category_name": "پوشاک ورزشی",
-      "page": 500
+      "page": 497
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 12,
+  "parallel_worker_limit": 11,
   "parallel_workers_used": 11,
-  "pending_page_count": 11,
+  "pending_page_count": 9,
   "schema_version": 1,
   "stats": {
-    "api_failures_total": 48099,
-    "catalog_candidate_cards_found_total": 14419069,
+    "api_failures_total": 48101,
+    "catalog_candidate_cards_found_total": 14419249,
     "completed_cycles": 1,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 3822116,
+    "discounted_candidates_found_total": 3822167,
     "empty_product_pages_total": 24123,
-    "nonempty_product_pages_total": 729310,
-    "pages_scanned_total": 752641,
-    "product_rows_scanned_total": 14419109,
+    "nonempty_product_pages_total": 729319,
+    "pages_scanned_total": 752650,
+    "product_rows_scanned_total": 14419289,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
