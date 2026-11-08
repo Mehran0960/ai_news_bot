@@ -109,7 +109,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
 
     def test_positive_market_or_history_confirmation_is_not_required(self):
         product = {
-            "product_id": "dkp-retailer-markdown",
+            "product_id": "dkp-1234567",
             "product_url": "https://www.digikala.com/product/dkp-1234567/",
             "title": "پاوربانک آزمایشی",
             "availability": "in_stock",
