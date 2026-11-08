@@ -1146,3 +1146,19 @@
 **ریسک/بازگشت:** صف بزرگ‌تر می‌تواند فایل state را حجیم‌تر کند؛ سقف ۵٬۰۰۰ و TTL محدود ۲۴ساعته باقی می‌ماند. گارد ضدتکرار، کنترل قیمت/موجودی/لینک و شروط ایمنی تضعیف نشده‌اند. بازگشت با revert همین PR ممکن است.
 
 **وضعیت:** پیاده‌سازی در شاخهٔ PR؛ CI، بازبینی، merge و deploy در انتظار.
+
+## ۲۰۲۶-۱۱-۰۸ — اصلاح نام تست متمرکز workflow ناشر
+
+**هدف:** جلوگیری از توقف workflow ناشر پیش از مرحلهٔ انتخاب محصول به‌علت فراخوانی نام قدیمی تست کشف.
+
+**تغییر/اقدام:** مرجع تست متمرکز در `.github/workflows/offerchin-publisher.yml` از نام قدیمی `test_discovery_check_budget_is_discount_first_and_ignores_category_history` به نام جدید `test_discovery_check_budget_applies_24h_family_guard_before_budget` تغییر کرد؛ نام جدید با متد موجود در `affilio_radar/test_affilio.py` تطابق دارد.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-publisher.yml`، `affilio_radar/test_affilio.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md` و `docs/CHANGELOG_FA.md`.
+
+**شواهد/شناسه:** اجرای ناشر #42445429205 در مرحلهٔ focused regression با `AttributeError: type object 'AffilioRadarTests' has no attribute 'test_discovery_check_budget_is_discount_first_and_ignores_category_history'` متوقف شد؛ خطا پیش از اجرای publisher.py و هرگونه ارسال کانالی رخ داد.
+
+**آزمون و نتیجه:** CI باید focused regression suite ناشر و دروازهٔ مستندات را روی این اصلاح دوباره اجرا کند.
+
+**ریسک/بازگشت:** فقط نام متد تست در workflow عوض شده است؛ رفتار production و گاردهای ضدتکرار بدون تغییرند. بازگشت با revert همین PR ممکن است.
+
+**وضعیت:** اصلاح در شاخهٔ PR؛ CI، merge و اجرای بعدی ناشر در انتظار.
