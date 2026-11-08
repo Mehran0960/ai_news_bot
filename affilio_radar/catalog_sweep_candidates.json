@@ -22093,14 +22093,19 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6089",
-      "catalog_best_selling_category_name": "لوازم ورزشی",
-      "catalog_best_selling_rank": 7201,
+      "catalog_best_selling_category_id": "6020",
+      "catalog_best_selling_category_name": "لوازم سفر و کمپینگ",
+      "catalog_best_selling_rank": 7634,
       "catalog_best_selling_ranks_by_category": {
         "10670": {
           "category_name": "تجهیزات و لوازم بدنسازی و هوازی",
           "observed_at": "2026-11-07T21:52:28.759848+00:00",
           "rank": 2676
+        },
+        "6020": {
+          "category_name": "لوازم سفر و کمپینگ",
+          "observed_at": "2026-11-08T05:29:44.075770+00:00",
+          "rank": 7634
         },
         "6089": {
           "category_name": "لوازم ورزشی",
@@ -22113,19 +22118,20 @@
           "rank": 2885
         }
       },
-      "catalog_category_id": "6089",
+      "catalog_category_id": "6020",
       "catalog_category_ids": [
+        "6020",
         "6089",
         "6112",
         "10670"
       ],
-      "catalog_category_name": "لوازم ورزشی",
-      "catalog_rank_observed_at": "2026-11-08T05:08:36.337590+00:00",
+      "catalog_category_name": "لوازم سفر و کمپینگ",
+      "catalog_rank_observed_at": "2026-11-08T05:29:44.075770+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 999000,
       "discount_percent": 78,
       "first_seen_at": "2026-11-07T21:52:28.759848+00:00",
-      "last_seen_at": "2026-11-08T05:08:32.620890+00:00",
+      "last_seen_at": "2026-11-08T05:29:36.137227+00:00",
       "original_price": 4500000,
       "product_id": "dkp-21315375",
       "product_url": "https://www.digikala.com/product/dkp-21315375/",
@@ -35271,9 +35277,9 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9531",
-      "catalog_best_selling_category_name": "زنانه و مردانه",
-      "catalog_best_selling_rank": 4931,
+      "catalog_best_selling_category_id": "9380",
+      "catalog_best_selling_category_name": "اکسسوری زنانه",
+      "catalog_best_selling_rank": 7623,
       "catalog_best_selling_ranks_by_category": {
         "11120": {
           "category_name": "عینک زنانه",
@@ -35284,6 +35290,11 @@
           "category_name": "عینک زنانه و مردانه",
           "observed_at": "2026-11-07T17:02:43.657009+00:00",
           "rank": 446
+        },
+        "9380": {
+          "category_name": "اکسسوری زنانه",
+          "observed_at": "2026-11-08T05:29:44.083923+00:00",
+          "rank": 7623
         },
         "9383": {
           "category_name": "عینک آفتابی زنانه",
@@ -35311,8 +35322,9 @@
           "rank": 144
         }
       },
-      "catalog_category_id": "9531",
+      "catalog_category_id": "9380",
       "catalog_category_ids": [
+        "9380",
         "9383",
         "9491",
         "9531",
@@ -35321,13 +35333,13 @@
         "11120",
         "11122"
       ],
-      "catalog_category_name": "زنانه و مردانه",
-      "catalog_rank_observed_at": "2026-11-08T03:01:05.850940+00:00",
+      "catalog_category_name": "اکسسوری زنانه",
+      "catalog_rank_observed_at": "2026-11-08T05:29:44.083923+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 999000,
       "discount_percent": 75,
       "first_seen_at": "2026-11-07T14:59:53.953590+00:00",
-      "last_seen_at": "2026-11-08T03:01:05.770880+00:00",
+      "last_seen_at": "2026-11-08T05:29:40.894288+00:00",
       "original_price": 4000000,
       "product_id": "dkp-21843766",
       "product_url": "https://www.digikala.com/product/dkp-21843766/",
@@ -43905,27 +43917,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9347",
-      "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 2358,
+      "catalog_best_selling_category_id": "9282",
+      "catalog_best_selling_category_name": "لباس زنانه",
+      "catalog_best_selling_rank": 7640,
       "catalog_best_selling_ranks_by_category": {
+        "9282": {
+          "category_name": "لباس زنانه",
+          "observed_at": "2026-11-08T05:29:44.083201+00:00",
+          "rank": 7640
+        },
         "9347": {
           "category_name": "تی شرت زنانه",
           "observed_at": "2026-11-07T21:18:33.855606+00:00",
           "rank": 2358
         }
       },
-      "catalog_category_id": "9347",
+      "catalog_category_id": "9282",
       "catalog_category_ids": [
+        "9282",
         "9347"
       ],
-      "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T21:18:33.855606+00:00",
+      "catalog_category_name": "لباس زنانه",
+      "catalog_rank_observed_at": "2026-11-08T05:29:44.083201+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1190000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T21:18:33.855606+00:00",
-      "last_seen_at": "2026-11-07T21:18:27.511194+00:00",
+      "last_seen_at": "2026-11-08T05:29:40.627974+00:00",
       "original_price": 4580000,
       "product_id": "dkp-16183763",
       "product_url": "https://www.digikala.com/product/dkp-16183763/",
@@ -51898,6 +51916,70 @@
       "savings_toman": 3390000,
       "source": "digikala_catalog_sweep",
       "title": "تی شرت آستین کوتاه مردانه مدل استایل خیابانی وینتیج تیغ z553"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9282",
+      "catalog_best_selling_category_name": "لباس زنانه",
+      "catalog_best_selling_rank": 7622,
+      "catalog_best_selling_ranks_by_category": {
+        "9282": {
+          "category_name": "لباس زنانه",
+          "observed_at": "2026-11-08T05:29:44.083201+00:00",
+          "rank": 7622
+        }
+      },
+      "catalog_category_id": "9282",
+      "catalog_category_ids": [
+        "9282"
+      ],
+      "catalog_category_name": "لباس زنانه",
+      "catalog_rank_observed_at": "2026-11-08T05:29:44.083201+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-08T05:29:44.083201+00:00",
+      "last_seen_at": "2026-11-08T05:29:40.626853+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-16584377",
+      "product_url": "https://www.digikala.com/product/dkp-16584377/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه زنانه مدل لوگو کد ۶"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9347",
+      "catalog_best_selling_category_name": "تی شرت زنانه",
+      "catalog_best_selling_rank": 7621,
+      "catalog_best_selling_ranks_by_category": {
+        "9347": {
+          "category_name": "تی شرت زنانه",
+          "observed_at": "2026-11-08T05:29:44.083567+00:00",
+          "rank": 7621
+        }
+      },
+      "catalog_category_id": "9347",
+      "catalog_category_ids": [
+        "9347"
+      ],
+      "catalog_category_name": "تی شرت زنانه",
+      "catalog_rank_observed_at": "2026-11-08T05:29:44.083567+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-08T05:29:44.083567+00:00",
+      "last_seen_at": "2026-11-08T05:29:41.226543+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-18892136",
+      "product_url": "https://www.digikala.com/product/dkp-18892136/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت لانگ آستین کوتاه زنانه مدل گارفیلد کد 01"
     },
     {
       "availability": "unknown",
@@ -111794,73 +111876,9 @@
       "savings_toman": 2388000,
       "source": "digikala_catalog_sweep",
       "title": "کراپ تی‌شرت آستین کوتاه زنانه مدل گربه های متعجب"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9347",
-      "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 743,
-      "catalog_best_selling_ranks_by_category": {
-        "9347": {
-          "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-07T18:12:17.212996+00:00",
-          "rank": 743
-        }
-      },
-      "catalog_category_id": "9347",
-      "catalog_category_ids": [
-        "9347"
-      ],
-      "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T18:12:17.212996+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-07T18:12:17.212996+00:00",
-      "last_seen_at": "2026-11-07T18:10:36.783607+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-16187367",
-      "product_url": "https://www.digikala.com/product/dkp-16187367/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "تی شرت آستین کوتاه زنانه مدل اسنوپی کد ۱۲"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9347",
-      "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 744,
-      "catalog_best_selling_ranks_by_category": {
-        "9347": {
-          "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-07T18:12:17.212996+00:00",
-          "rank": 744
-        }
-      },
-      "catalog_category_id": "9347",
-      "catalog_category_ids": [
-        "9347"
-      ],
-      "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T18:12:17.212996+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-07T18:12:17.212996+00:00",
-      "last_seen_at": "2026-11-07T18:10:36.783641+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-15589836",
-      "product_url": "https://www.digikala.com/product/dkp-15589836/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "تی شرت لانگ آستین کوتاه زنانه مدل نوشته کد 03"
     }
   ],
   "cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-08T05:28:50.531202+00:00"
+  "updated_at": "2026-11-08T05:29:44.112756+00:00"
 }
