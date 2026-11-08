@@ -18,6 +18,7 @@ from typing import Mapping
 from urllib.parse import urljoin, urlsplit
 
 import requests
+from offerchin_copy import normalize_brand_display_name
 
 APARAT_ORIGIN = "https://www.aparat.com"
 APARAT_UPLOAD_CONFIG_URL = f"{APARAT_ORIGIN}/api/fa/v1/video/upload/upload_config"
@@ -400,7 +401,7 @@ def upload_aparat_video(
     except (TypeError, ValueError):
         category_id = "5"
 
-    name = str(title or "پیشنهاد آفِرچین").strip()[:100]
+    name = normalize_brand_display_name(str(title or "پیشنهاد آفِرچین").strip())[:100]
     desc = str(
         description
         or (
@@ -411,7 +412,8 @@ def upload_aparat_video(
             "rubika.ir/offerchin\n"
             "youtube.com/@offerchin"
         )
-    ).strip()[:3000]
+    ).strip()
+    desc = normalize_brand_display_name(desc)[:3000]
     clean_tags = tags or ["آفِرچین", "دیجی‌کالا", "تخفیف", "پیشنهاد ویژه"]
     tags_string = "-".join(str(tag).strip().replace("-", " ") for tag in clean_tags if str(tag).strip())
 
