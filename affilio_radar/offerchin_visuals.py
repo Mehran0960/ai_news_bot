@@ -205,8 +205,8 @@ def _sale_font(size: int):
     return ImageFont.load_default()
 
 
-def _badge_font(size: int):
-    """Load the bundled Vazirmatn ExtraBold font, with safe system fallbacks."""
+def _badge_font(size: int, preferred_font_path: str | Path | None = None):
+    """Load a requested Persian display face or the default badge face."""
     from PIL import ImageFont, features
 
     try:
@@ -214,6 +214,15 @@ def _badge_font(size: int):
     except Exception:
         use_raqm = False
     layout = ImageFont.Layout.RAQM if use_raqm else ImageFont.Layout.BASIC
+    if preferred_font_path:
+        preferred = Path(preferred_font_path)
+        if preferred.is_file():
+            try:
+                return ImageFont.truetype(
+                    str(preferred), size=max(10, int(size)), layout_engine=layout
+                ), use_raqm
+            except OSError:
+                pass
     bundled_font = Path(__file__).resolve().parent / "assets" / "fonts" / "Vazirmatn-ExtraBold.ttf"
     candidates = (
         str(bundled_font),
@@ -317,6 +326,7 @@ def draw_discount_burst(
     height: int,
     discount: int,
     merchant: str = "دیجی‌کالا",
+    persian_font_path: str | Path | None = None,
 ) -> None:
     """Draw a retailer-colored discount tile inside the exact supplied bounds."""
     width, height = int(width), int(height)
@@ -348,7 +358,7 @@ def draw_discount_burst(
 
     percentage = f"{_persian_digits(int(discount))}٪"
     percent_font_size = max(15, int(height * 0.40))
-    percent_font, use_raqm = _badge_font(percent_font_size)
+    percent_font, use_raqm = _badge_font(percent_font_size, preferred_font_path=persian_font_path)
     percent_layout = {"direction": "ltr", "language": "fa"} if use_raqm else {}
 
     # A wide tile (the production layout) uses one horizontal line: percentage
@@ -357,9 +367,9 @@ def draw_discount_burst(
     if width >= height * 1.65:
         percent_font_size = max(15, min(int(height * 0.52), int(width * 0.20)))
         label_size = max(11, int(height * 0.28))
-        percent_font, use_raqm = _badge_font(percent_font_size)
+        percent_font, use_raqm = _badge_font(percent_font_size, preferred_font_path=persian_font_path)
         percent_layout = {"direction": "ltr", "language": "fa"} if use_raqm else {}
-        label_font, label_raqm = _badge_font(label_size)
+        label_font, label_raqm = _badge_font(label_size, preferred_font_path=persian_font_path)
         label, label_layout = _prepare_persian_badge_text("تخفیف", use_raqm=label_raqm)
         if not label:
             print("DISCOUNT_BADGE_PERSIAN_LABEL_SKIPPED: no safe RTL shaping backend available")
@@ -383,11 +393,11 @@ def draw_discount_burst(
                 break
             if percent_font_size > min_percent_size:
                 percent_font_size -= 1
-                percent_font, use_raqm = _badge_font(percent_font_size)
+                percent_font, use_raqm = _badge_font(percent_font_size, preferred_font_path=persian_font_path)
                 percent_layout = {"direction": "ltr", "language": "fa"} if use_raqm else {}
             elif label_size > min_label_size:
                 label_size -= 1
-                label_font, label_raqm = _badge_font(label_size)
+                label_font, label_raqm = _badge_font(label_size, preferred_font_path=persian_font_path)
                 label, label_layout = _prepare_persian_badge_text("تخفیف", use_raqm=label_raqm)
                 if not label:
                     print("DISCOUNT_BADGE_PERSIAN_LABEL_SKIPPED: no safe RTL shaping backend available")
@@ -425,7 +435,7 @@ def draw_discount_burst(
     # Keep compact, near-square tiles on the original two-line treatment.
     font_size = max(15, int(height * 0.40))
     while font_size > max(13, int(height * 0.25)):
-        percent_font, use_raqm = _badge_font(font_size)
+        percent_font, use_raqm = _badge_font(font_size, preferred_font_path=persian_font_path)
         percent_layout = {"direction": "ltr", "language": "fa"} if use_raqm else {}
         try:
             box = draw.textbbox((0, 0), percentage, font=percent_font, **percent_layout)
@@ -447,7 +457,7 @@ def draw_discount_burst(
     )
 
     label_size = max(13, int(height * 0.255))
-    label_font, label_raqm = _badge_font(label_size)
+    label_font, label_raqm = _badge_font(label_size, preferred_font_path=persian_font_path)
     label, label_layout = _prepare_persian_badge_text("تخفیف", use_raqm=label_raqm)
     if not label:
         print("DISCOUNT_BADGE_PERSIAN_LABEL_SKIPPED: no safe RTL shaping backend available")
@@ -461,7 +471,7 @@ def draw_discount_burst(
         if label_box[2] - label_box[0] <= width * 0.84:
             break
         label_size -= 1
-        label_font, label_raqm = _badge_font(label_size)
+        label_font, label_raqm = _badge_font(label_size, preferred_font_path=persian_font_path)
         label, label_layout = _prepare_persian_badge_text("تخفیف", use_raqm=label_raqm)
         if not label:
             print("DISCOUNT_BADGE_PERSIAN_LABEL_SKIPPED: no safe RTL shaping backend available")
