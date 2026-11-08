@@ -173,7 +173,7 @@ def platform_footer_label(platform: str, url: str) -> str:
     target = target.split("#", 1)[0].split("?", 1)[0].rstrip("/")
     # Do not change the domain or stored route. Normalize only a terminal brand
     # handle in the user-visible label (including @handles).
-    target = re.sub(r"([/@])offerchin$", r"\1OfferChin", target, flags=re.IGNORECASE)
+    target = re.sub(r"([/@])offerchin(?=/|$)", r"\1OfferChin", target, flags=re.IGNORECASE)
     return target
 
 
@@ -712,9 +712,40 @@ PUBLIC_CHANNEL_LINKS = (
     ("aparat", "aparat.com/OfferChin"),
 )
 
+PUBLIC_CHANNEL_DISPLAY_LABELS = {
+    "telegram": "t.me/OfferChin",
+    "bale": "ble.ir/OfferChin",
+    "rubika": "rubika.ir/OfferChin",
+    "youtube": "youtube.com/@OfferChin",
+    "aparat": "aparat.com/OfferChin",
+}
+
+
+def validate_public_channel_footer_labels() -> bool:
+    """Fail closed if any verified cross-media ID loses the required visible brand casing."""
+    registered = dict(PUBLIC_CHANNEL_LINKS)
+    expected_platforms = set(PUBLIC_CHANNEL_DISPLAY_LABELS)
+    if set(registered) != expected_platforms:
+        missing = sorted(expected_platforms - set(registered))
+        unexpected = sorted(set(registered) - expected_platforms)
+        raise RuntimeError(
+            "PUBLIC_CHANNEL_LABEL_REGISTRY_MISMATCH "
+            f"missing={missing} unexpected={unexpected}"
+        )
+    mismatches = []
+    for platform, canonical_url in PUBLIC_CHANNEL_LINKS:
+        actual = platform_footer_label(platform, canonical_url)
+        expected = PUBLIC_CHANNEL_DISPLAY_LABELS[platform]
+        if actual != expected:
+            mismatches.append(f"{platform}:{actual!r}!={expected!r}")
+    if mismatches:
+        raise RuntimeError("PUBLIC_CHANNEL_LABEL_CASING_INVALID " + "; ".join(mismatches))
+    return True
+
 
 def public_channel_links(destination_platform: str | None = None) -> list[tuple[str, str]]:
     """Return every verified public OfferChin ID except the current destination."""
+    validate_public_channel_footer_labels()
     excluded = str(destination_platform or "").strip().lower()
     return [
         (platform, label)
