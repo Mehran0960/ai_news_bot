@@ -44288,11 +44288,11 @@
   "last_error": "",
   "last_successful_category_id": "10690",
   "last_successful_category_name": "لوازم و مصالح ساختمانی",
-  "last_successful_page": 499,
-  "last_successful_page_at": "2026-11-08T07:47:25.015365+00:00",
+  "last_successful_page": 500,
+  "last_successful_page_at": "2026-11-08T07:48:31.108280+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 493,
+  "page": 494,
   "parallel_cycle_completed_category_ids": [
     "1",
     "2",
@@ -48457,6 +48457,7 @@
     "10681",
     "10684",
     "10688",
+    "10690",
     "10691",
     "10692",
     "10693",
@@ -49208,8 +49209,8 @@
     "11797",
     "214186"
   ],
-  "parallel_cycle_pages_success": 192111,
-  "parallel_cycle_product_rows_success": 3772095,
+  "parallel_cycle_pages_success": 192116,
+  "parallel_cycle_product_rows_success": 3772195,
   "parallel_cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -54136,19 +54137,19 @@
     "214158",
     "214186"
   ],
-  "parallel_last_batch_at": "2026-11-08T07:47:25.142499+00:00",
+  "parallel_last_batch_at": "2026-11-08T07:48:31.214341+00:00",
   "parallel_last_batch_candidate_file_bytes": 4234987,
-  "parallel_last_batch_candidate_write_seconds": 0.113,
+  "parallel_last_batch_candidate_write_seconds": 0.094,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 1.579,
+  "parallel_last_batch_fetch_seconds": 2.724,
   "parallel_last_batch_nonempty_product_pages": 5,
   "parallel_last_batch_pages": 5,
-  "parallel_last_batch_pages_per_second": 3.17,
+  "parallel_last_batch_pages_per_second": 1.84,
   "parallel_last_batch_processing_seconds": 0.015,
   "parallel_last_batch_product_rows": 100,
   "parallel_last_batch_rate_limited": 0,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 58.59,
+  "parallel_last_batch_rows_per_second": 35.31,
   "parallel_last_batch_successes": 5,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4672,
@@ -54157,49 +54158,43 @@
       "attempts": 0,
       "category_id": "6263",
       "category_name": "حمام و سرویس بهداشتی",
-      "page": 493
+      "page": 494
     },
     {
       "attempts": 0,
       "category_id": "9540",
       "category_name": "زیورآلات زنانه و مردانه",
-      "page": 494
+      "page": 495
     },
     {
       "attempts": 0,
       "category_id": "9543",
       "category_name": "جاکلیدی زنانه و مردانه",
-      "page": 494
+      "page": 495
     },
     {
       "attempts": 0,
       "category_id": "9534",
       "category_name": "اکسسوری زنانه و مردانه",
-      "page": 498
-    },
-    {
-      "attempts": 0,
-      "category_id": "10690",
-      "category_name": "لوازم و مصالح ساختمانی",
-      "page": 500
+      "page": 499
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
   "parallel_worker_limit": 16,
   "parallel_workers_used": 5,
-  "pending_page_count": 5,
+  "pending_page_count": 4,
   "schema_version": 1,
   "stats": {
     "api_failures_total": 48101,
-    "catalog_candidate_cards_found_total": 14420389,
+    "catalog_candidate_cards_found_total": 14420489,
     "completed_cycles": 1,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 3822593,
+    "discounted_candidates_found_total": 3822642,
     "empty_product_pages_total": 24123,
-    "nonempty_product_pages_total": 729376,
-    "pages_scanned_total": 752707,
-    "product_rows_scanned_total": 14420429,
+    "nonempty_product_pages_total": 729381,
+    "pages_scanned_total": 752712,
+    "product_rows_scanned_total": 14420529,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
