@@ -9,6 +9,11 @@
 - [دفتر تغییرات و اقدامات](docs/CHANGELOG_FA.md)
 - [دسترسی و گزارش‌گیری افیلیو](affilio_radar/AFFILIO_REPORTING_ACCESS.md)
 - [استاندارد برندینگ تصویر/ویدئو](affilio_radar/VISUAL_BRANDING.md)
+- [پکیج بهینه‌سازی OfferChin — نقشهٔ راه پیشنهادی، هنوز تصویب‌نشده](docs/OFFERCHIN_OPTIMIZATION_PACKAGE_FA.md)
+
+## پکیج بهینه‌سازی
+
+سند [پکیج بهینه‌سازی OfferChin](docs/OFFERCHIN_OPTIMIZATION_PACKAGE_FA.md) تمام پیشنهادهای توسعهٔ فروش، انتخاب محصول، تصویر، ویدئو، کپشن، اعتمادسازی و سنجش عملکرد را جمع‌بندی می‌کند. این سند فعلاً فقط نقشهٔ راه پیشنهادی است و سیاست اجرایی جاری را تغییر نمی‌دهد.
 
 ## اصل عملیاتی
 
