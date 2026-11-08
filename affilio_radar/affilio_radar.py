@@ -155,12 +155,10 @@ MIN_DISCOUNT_PERCENT = max(1, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCE
 DISCOUNT_FALLBACK_FLOORS = (1,)
 MIN_DISCOUNT_FALLBACK_PERCENT = 1
 MIN_SAVINGS_TOMAN = 1
-# Recent review growth improves the demand rank when observable; lifetime review
-# count/rating are used as fallback public popularity proxies, never as sales claims.
+# Fresh rolling review-count growth is an optional indirect proxy, used only
+# after exact equality on discount percentage and cash savings. It is not sales data.
 CURRENT_DEMAND_WINDOW_DAYS = max(1, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "1"))))
 CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "3"))))
-BEST_SELLING_MAX_RANK = 60
-BEST_SELLING_MAX_AGE_HOURS = 24
 VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT = 5
 CURRENT_DEMAND_MIN_OBSERVATION_HOURS = max(6, min(72, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS", "6"))))
 CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS", "2"))))
@@ -2606,7 +2604,7 @@ def select_queued_records_for_recheck(
 
 
 def has_current_demand_signal(record: dict, now: datetime | None = None) -> bool:
-    """Require fresh, measured review/rating growth; lifetime popularity is never sufficient."""
+    """Return True only for fresh measured review-count growth; this is not sales data."""
     if not isinstance(record, dict) or record.get("current_demand_verified") is not True:
         return False
     try:
@@ -2694,7 +2692,7 @@ def update_current_demand_signals(
     products: list[dict],
     now: datetime | None = None,
 ) -> dict:
-    """Track retailer review/rating-count movement; this is current interest, not sales volume."""
+    """Track rolling review-count growth as an indirect tie-break proxy, never as unit sales."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -2718,8 +2716,6 @@ def update_current_demand_signals(
         if not pid or review_count <= 0:
             product.update({
                 "current_demand_verified": False,
-                "current_demand_score": 0,
-                "demand_score": 0,
                 "recent_review_growth_window": 0,
                 "recent_review_growth_7d": 0,
                 "demand_window_hours": 0,
@@ -2778,7 +2774,6 @@ def update_current_demand_signals(
         )
         growth = 0
         window_hours = 0.0
-        current_score = 0
         demand_verified = False
         if baseline:
             baseline_at = _parse_utc_datetime(baseline["observed_at"])
@@ -2786,9 +2781,7 @@ def update_current_demand_signals(
             growth = max(0, review_count - baseline_count)
             window_hours = max(0.0, (current - baseline_at).total_seconds() / 3600)
             demand_verified = growth >= CURRENT_DEMAND_MIN_REVIEW_GROWTH
-            if demand_verified:
-                reviews_per_day = growth / max(window_hours / 24.0, 1.0)
-                current_score = max(1, min(100, 20 + round(20 * math.log1p(reviews_per_day))))
+            # Keep raw growth/window only; no popularity or demand score is derived.
 
         source = (
             "digikala_recent_review_growth" if pid.startswith("dkp-")
@@ -2796,8 +2789,6 @@ def update_current_demand_signals(
         )
         product.update({
             "current_demand_verified": demand_verified,
-            "current_demand_score": current_score,
-            "demand_score": current_score,
             "recent_review_growth_window": growth,
             "recent_review_growth_7d": growth,  # Backward-compatible field for older state/tests.
             "demand_window_hours": round(window_hours, 1),
@@ -2996,7 +2987,6 @@ def merge_discovery_queue(
             "review_count": max(0, int(row.get("review_count") or old.get("review_count") or 0)),
             "rating": row.get("rating") or row.get("rating_value") or old.get("rating") or 0,
             "click_count_30d": max(0, int(row.get("click_count_30d") or old.get("click_count_30d") or 0)),
-            "demand_score": max(0, int(row.get("demand_score") or old.get("demand_score") or 0)),
             "promo_score": max(0, int(row.get("promo_score") or old.get("promo_score") or 0)),
         }
         for field in (
@@ -3141,7 +3131,7 @@ def select_discovery_records_for_check(
     blocked_by_repeat_guard = len(due) - len(guarded_due)
 
     # Filtering does not reorder the remaining rows: global discount/savings
-    # priority remains intact and category/family diversity is only a 24h guard.
+    # priority remains intact and family/brand/similarity checks are independent 24h guards.
     selected = guarded_due[:limit]
     print(
         f"DISCOVERY_QUEUE_CHECK_BATCH due={len(due)} "
@@ -3184,7 +3174,6 @@ def mark_discovery_candidate_checked(
             ("original_price", "last_checked_original_price"),
             ("discount_percent", "discount_percent"),
             ("savings_toman", "savings_toman"),
-            ("demand_score", "demand_score"),
             ("review_count", "review_count"),
         ):
             value = product.get(source_key)
@@ -7207,7 +7196,7 @@ def select_urgent_publication_candidate(
         return None
     leader = ranked[0]
     # A lower-discount offer must never jump the global queue just because its
-    # deadline is sooner or its popularity signal is stronger.
+    # deadline is sooner.
     if is_urgent_priority_deal(leader, current) or is_deadline_critical_deal(leader, current):
         return leader
     return None
@@ -7265,12 +7254,9 @@ def select_publish_candidates(
 
 MIN_REPEAT_PRODUCT_INTERVAL_HOURS = 24
 PUBLICATION_LEDGER_LIMIT = 2000
-# Repeat-gap preferences; diversity can reorder within a bounded demand gap to avoid category saturation.
+# Repeat guards suppress near-duplicates but never change candidate rank.
 FAMILY_REPEAT_COOLDOWN_HOURS = 24
 BRAND_REPEAT_COOLDOWN_HOURS = 24
-CATEGORY_REPEAT_COOLDOWN_MINUTES = 180
-RETAILER_REPEAT_COOLDOWN_MINUTES = 60
-DIVERSITY_LOOKAHEAD_CANDIDATES = 128
 
 
 def _publication_record_ts(record: dict | None) -> float:
@@ -7287,7 +7273,7 @@ def ensure_publication_ledger(state: dict) -> bool:
 
     Expiration cleanup and one-time user-requested removals keep this durable cooldown
     record, so a fresh discovery run cannot immediately repost a just-removed product.
-    Candidate diversity ordering applies after this standard repeat guard.
+    Candidates retain their discount-first order; repeat guards only suppress duplicates.
     """
     if not isinstance(state, dict):
         return False
@@ -7878,7 +7864,6 @@ def refresh_pending_queue(state: dict, eligible: list[dict],
             "original_price": int(product.get("original_price") or 0),
             "discount_percent": int(product.get("discount_percent") or 0),
             "savings_toman": int(product.get("savings_toman") or 0),
-            "demand_score": int(product.get("demand_score") or 0),
             "promo_score": int(product.get("promo_score") or 0),
             "urgent": is_urgent_priority_deal(product, now),
             "publish_failure_count": old_publish_failures,
@@ -10273,14 +10258,11 @@ def run(publish=False, selection_only=False):
                 "posted_discount_percent": int(item.get("discount_percent") or 0),
                 "posted_current_price": int(item.get("current_price") or 0),
                 "posted_original_price": int(item.get("original_price") or 0),
-                "demand_score": int(item.get("demand_score") or 0),
-                "current_demand_verified": item.get("current_demand_verified") is True,
-                "current_demand_score": int(item.get("current_demand_score") or 0),
-                "recent_review_growth_7d": int(item.get("recent_review_growth_7d") or 0),
-                "demand_window_hours": float(item.get("demand_window_hours") or 0),
-                "demand_observed_at": str(item.get("demand_observed_at") or ""),
-                "demand_signal_source": str(item.get("demand_signal_source") or ""),
-                "historical_popularity_score": int(item.get("historical_popularity_score") or 0),
+                "review_growth_proxy_verified": has_current_demand_signal(item),
+                "recent_review_growth_window": int(item.get("recent_review_growth_window", item.get("recent_review_growth_7d")) or 0),
+                "review_growth_proxy_window_hours": float(item.get("demand_window_hours") or 0),
+                "review_growth_proxy_observed_at": str(item.get("demand_observed_at") or ""),
+                "review_growth_proxy_source": str(item.get("demand_signal_source") or ""),
                 "promo_score": int(item.get("promo_score") or 0),
                 "click_count_30d": int(item.get("click_count_30d") or 0),
             }
@@ -10346,7 +10328,7 @@ def run(publish=False, selection_only=False):
                 f"PUBLISHED id={pid} "
                 f"telegram={statuses['telegram']} "
                 f"bale={statuses['bale']} "
-                f"score={item['demand_score']} direct_affiliate_link=True"
+                f"review_growth_proxy={has_current_demand_signal(item)} direct_affiliate_link=True"
             )
             sent += 1
             if not all(statuses.get(platform) == "sent" for platform in ("telegram", "bale")):
