@@ -2531,7 +2531,7 @@ def enrich_market_prices(
         remember_result(
             product,
             "error",
-            MARKET_PRICE_CHALLENGE_RETRY_HOURS if challenge else 2,
+            MARKET_PRICE_CHALLENGE_COOLDOWN_HOURS if challenge else 2,
         )
         state["market_price_api_pause_until"] = (
             current + timedelta(minutes=MARKET_PRICE_GLOBAL_PAUSE_MINUTES)
@@ -2551,7 +2551,7 @@ def enrich_market_prices(
             product["market_status"] = "unavailable"
             product["market_error"] = "torob_upstream_challenge"
             remember_result(
-                product, "error", MARKET_PRICE_CHALLENGE_RETRY_HOURS
+                product, "error", MARKET_PRICE_CHALLENGE_COOLDOWN_HOURS
             )
             print(
                 "MARKET_SOURCE_PAUSED reason=torob_trends_challenge "
