@@ -79,38 +79,48 @@ class MessengerAdapterTests(unittest.TestCase):
         self.assertEqual(post.call_count, 3)
         self.assertEqual(post.call_args.kwargs["json"]["file_id"], "FILE-1")
         payload = post.call_args.kwargs["json"]
-        self.assertNotIn(self.affiliate, payload["text"], "purchase URL belongs in its own direct button")
+        self.assertNotIn(self.affiliate, payload["text"], "purchase URL belongs in the separate buy button")
         self.assertIn("فروش ویژه دیجی‌کالا", payload["text"])
         self.assertIn("💚 قیمت فعلی: ۱٬۰۰۰ تومان", payload["text"])
         self.assertIn("۳۰٪ تخفیف", payload["text"])
         self.assertIn("با امکان خرید اقساطی (دیجی پی)", payload["text"])
-        self.assertNotIn("[➕ عضویت", payload["text"], "Rubika renders membership as a clickable button")
+        self.assertTrue(payload["text"].endswith(RUBIKA_MEMBERSHIP_BUTTON_TEXT))
+
         self.assertEqual(self.renderer.caption_calls, [{
             "channel_label": RUBIKA_CHANNEL_URL,
             "use_unicode_strikethrough": True,
         }])
+        metadata = payload["metadata"]
+        self.assertEqual(len(metadata["meta_data_parts"]), 1)
+        link_part = metadata["meta_data_parts"][0]
+        label_start = payload["text"].rfind(RUBIKA_MEMBERSHIP_BUTTON_TEXT)
+        expected_from_index = len(
+            payload["text"][:label_start].encode("utf-16-le")
+        ) // 2
+        expected_length = len(RUBIKA_MEMBERSHIP_BUTTON_TEXT.encode("utf-16-le")) // 2
+        self.assertEqual(link_part, {
+            "type": "Link",
+            "from_index": expected_from_index,
+            "length": expected_length,
+            "link_url": RUBIKA_CHANNEL_URL,
+        })
+
         keypad = payload["inline_keypad"]
-        self.assertEqual(len(keypad["rows"]), 2)
+        self.assertEqual(len(keypad["rows"]), 1)
         buy_button = keypad["rows"][0]["buttons"][0]
-        join_button = keypad["rows"][1]["buttons"][0]
         self.assertEqual(buy_button["type"], "Link")
         self.assertEqual(buy_button["button_text"], purchase_action_label("دیجی‌کالا"))
         self.assertEqual(buy_button["button_link"], {
             "type": "url",
             "link_url": self.affiliate,
         })
-        self.assertEqual(join_button["type"], "Link")
-        self.assertEqual(join_button["button_text"], RUBIKA_MEMBERSHIP_BUTTON_TEXT)
-        self.assertEqual(join_button["button_text"], MEMBERSHIP_BUTTON_TEXT)
-        self.assertEqual(join_button["button_link"], {
-            "type": "url",
-            "link_url": RUBIKA_CHANNEL_URL,
-        })
+        self.assertEqual(self.renderer.render_calls, [None])
+        self.assertEqual(self.renderer.destinations, ["rubika"])
         self.assertEqual(self.renderer.render_calls, [None])
         self.assertEqual(self.renderer.destinations, ["rubika"])
 
     @patch("messenger_adapters.requests.post")
-    def test_rubika_invalid_keypad_input_falls_back_to_plain_caption_links(self, post):
+    def test_rubika_invalid_metadata_or_keypad_falls_back_to_dual_link_buttons(self, post):
         post.side_effect = [
             FakeResponse({"status": "OK", "data": {"upload_url": "https://upload.rubika.ir/upload/abc"}}),
             FakeResponse({"status": "OK", "data": {"file_id": "FILE-1"}}),
@@ -124,12 +134,20 @@ class MessengerAdapterTests(unittest.TestCase):
         self.assertEqual(post.call_count, 4)
         first_send = post.call_args_list[2].kwargs["json"]
         fallback_send = post.call_args_list[3].kwargs["json"]
+        self.assertIn("metadata", first_send)
         self.assertIn("inline_keypad", first_send)
-        self.assertNotIn("inline_keypad", fallback_send)
-        self.assertIn(self.affiliate, fallback_send["text"])
-        self.assertIn(RUBIKA_CHANNEL_URL, fallback_send["text"])
-        self.assertIn(purchase_action_label("دیجی‌کالا"), fallback_send["text"])
+        self.assertNotIn("metadata", fallback_send)
+        self.assertIn("inline_keypad", fallback_send)
         self.assertIn(RUBIKA_MEMBERSHIP_BUTTON_TEXT, fallback_send["text"])
+        self.assertNotIn(RUBIKA_CHANNEL_URL, fallback_send["text"])
+
+        keypad = fallback_send["inline_keypad"]
+        self.assertEqual(len(keypad["rows"]), 2)
+        buy_button = keypad["rows"][0]["buttons"][0]
+        join_button = keypad["rows"][1]["buttons"][0]
+        self.assertEqual(buy_button["button_link"]["link_url"], self.affiliate)
+        self.assertEqual(join_button["button_text"], MEMBERSHIP_BUTTON_TEXT)
+        self.assertEqual(join_button["button_link"]["link_url"], RUBIKA_CHANNEL_URL)
 
     @patch("messenger_adapters.requests.post")
     def test_rubika_does_not_retry_ambiguous_or_non_validation_errors(self, post):
