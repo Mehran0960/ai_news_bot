@@ -5737,6 +5737,7 @@ class AffilioRadarTests(unittest.TestCase):
         render.assert_called_once()
         self.assertEqual(record["video_generation_status"], "generated")
         self.assertEqual(record["video_style_version"], VIDEO_STYLE_VERSION)
+        self.assertEqual(radar_module.VIDEO_STYLE_VERSION, 8)
         self.assertGreater(VIDEO_STYLE_VERSION, 1)
 
     def test_posted_short_is_not_rejected_by_extra_twenty_minute_video_cutoff(self):
