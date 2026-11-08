@@ -1321,7 +1321,7 @@
 
 **فایل‌ها/سامانه‌ها:** `affilio_radar/demand_shadow.py`، `affilio_radar/test_demand_shadow.py`، `affilio_radar/affilio_radar.py`، `.github/workflows/affilio-radar.yml`، `docs/OFFERCHIN_DEMAND_SHADOW_PILOT_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`، `README.md`.
 
-**آزمون و نتیجه:** تست‌های واحد ماژول و lifecycle refresh با mock به workflow رگرسیون افزوده شده‌اند؛ اجرای CI و اجرای واقعی ابزار ترب روی شاخهٔ همگام‌شده در انتظار است. تست واحد هیچ درخواست شبکه‌ای به ترب انجام نمی‌دهد.
+**آزمون و نتیجه:** روی فایل‌های کد نهایی، اجرای Affilio Product Radar در run `42513237346` موفق شد: py_compile و مجموعهٔ کامل `unittest` با ۴۹۰ تست موفق، شامل ۱۶ تست جدید `test_demand_shadow`. پنج بررسی PR روی head نهایی `74b3d2cdc2d8f614af89e7b675fcf22e4ed82365` نیز موفق‌اند: Documentation Gate (`42513397952`)، Catalog Sweep Regression (`42513398134`)، Messenger Adapter (`42513398101`)، Platform Logo (`42513397998`) و Top-100/DigiPay (`42513397970`). تست واحد هیچ درخواست شبکه‌ای به ترب انجام نمی‌دهد. probe زندهٔ جداگانه از محیط اجرا به‌دلیل حل‌نشدن DNS میزبان `torob-mcp.mmdju3.workers.dev` انجام نشد؛ این نتیجه وضعیت endpoint را اثبات یا رد نمی‌کند و snapshot زنده هنوز تأیید نشده است.
 
 **شواهد/شناسه:** شاخهٔ `feat/offerchin-demand-shadow-pilot-sync`. PR پس از اجرای بررسی‌های همگام‌شده ثبت شده است.
 
