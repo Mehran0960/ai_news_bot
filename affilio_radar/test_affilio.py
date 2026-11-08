@@ -3002,6 +3002,8 @@ class AffilioRadarTests(unittest.TestCase):
         small_saving = _with_verified_current_demand({
             **lower_discount,
             "product_id": "dkp-95303",
+            "current_price": 33_333,
+            "original_price": 83_333,
             "discount_percent": 60,
             "savings_toman": 50_000,
         }, now)
@@ -3009,22 +3011,27 @@ class AffilioRadarTests(unittest.TestCase):
             [high_discount, lower_discount, small_saving], {"published": {}}, now
         )
         self.assertEqual(floor, 1)
+        # Fresh verified market evidence shows dkp-95301 is 8% above the
+        # comparable seller median, so it is vetoed. Missing positive evidence
+        # is not a veto; the low-savings but math-consistent 60% offer remains.
         self.assertEqual(
             {item["product_id"] for item in selected},
-            {"dkp-95301", "dkp-95302", "dkp-95303"},
+            {"dkp-95302", "dkp-95303"},
         )
         self.assertEqual(
             {item["product_id"] for item in quality},
-            {"dkp-95301", "dkp-95302", "dkp-95303"},
+            {"dkp-95302", "dkp-95303"},
         )
 
-    def test_actionable_demand_requires_recent_growth_or_fresh_best_selling_rank(self):
+    def test_actionable_review_growth_proxy_requires_fresh_observation_and_ignores_bestseller_rank(self):
         now = datetime.now(timezone.utc)
         lifetime_only = {
             "review_count": 250_000,
             "rating": 4.9,
             "current_demand_verified": False,
-            "catalog_sort_mode": "",
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 1,
+            "catalog_rank_observed_at": now.isoformat(),
         }
         self.assertFalse(radar_module.has_actionable_demand_signal(lifetime_only, now))
 
@@ -3033,26 +3040,24 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertTrue(radar_module.has_actionable_demand_signal(recent_growth, now))
 
+        stale_growth = dict(
+            recent_growth,
+            demand_observed_at=(now - timedelta(hours=radar_module.CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS + 1)).isoformat(),
+        )
+        self.assertFalse(radar_module.has_actionable_demand_signal(stale_growth, now))
+
         ranked_best_seller = {
             "catalog_sort_mode": "best_selling",
-            "catalog_best_selling_rank": 60,
+            "catalog_best_selling_rank": 1,
             "catalog_rank_observed_at": now.isoformat(),
         }
-        self.assertTrue(radar_module.has_actionable_demand_signal(ranked_best_seller, now))
-        ranked_beyond_cutoff = {
-            **ranked_best_seller,
-            "catalog_best_selling_rank": 61,
-        }
-        self.assertFalse(radar_module.has_actionable_demand_signal(ranked_beyond_cutoff, now))
-        stale_rank = {
-            **ranked_best_seller,
-            "catalog_rank_observed_at": (now - timedelta(hours=25)).isoformat(),
-        }
-        self.assertFalse(radar_module.has_actionable_demand_signal(stale_rank, now))
+        self.assertFalse(radar_module.has_actionable_demand_signal(ranked_best_seller, now))
 
-    def test_cross_category_bestseller_is_telemetry_only_and_clicks_stay_analytics_only(self):
+    def test_bestseller_rank_and_clicks_never_change_product_ranking(self):
         now = datetime.now(timezone.utc)
-        multi_category = {
+        base = {
+            "discount_percent": 55,
+            "savings_toman": 550_000,
             "catalog_sort_mode": "best_selling",
             "catalog_best_selling_rank": 5,
             "catalog_best_selling_category_id": "100",
@@ -3065,25 +3070,20 @@ class AffilioRadarTests(unittest.TestCase):
             "review_count": 100,
             "rating": 4.5,
         }
-        single_category = {
-            **multi_category,
+        very_high_bestseller = {
+            **base,
+            "catalog_best_selling_rank": 1,
             "catalog_best_selling_ranks_by_category": {
-                "100": {"rank": 5, "observed_at": now.isoformat()},
+                "100": {"rank": 1, "observed_at": now.isoformat()},
             },
+            "click_count_30d": 50_000,
+            "review_count": 1_000_000,
+            "rating": 5.0,
+            "demand_score": 999,
         }
-
-        self.assertEqual(
-            radar_module._fresh_catalog_best_selling_rank_evidence(multi_category, now),
-            [(5, "100"), (7, "200")],
-        )
-        self.assertGreater(
-            radar_module._demand_evidence_sort_key(multi_category, now),
-            radar_module._demand_evidence_sort_key(single_category, now),
-        )
-        self.assertEqual(
-            deal_sort_key({**multi_category, "click_count_30d": 50}),
-            deal_sort_key(multi_category),
-        )
+        self.assertFalse(radar_module.has_actionable_demand_signal(base, now))
+        self.assertFalse(radar_module.has_actionable_demand_signal(very_high_bestseller, now))
+        self.assertEqual(deal_sort_key(base, now), deal_sort_key(very_high_bestseller, now))
 
     def test_discount_value_gate_rejects_unverified_markdowns_and_accepts_fresh_evidence(self):
         now = datetime.now(timezone.utc)
@@ -3158,6 +3158,8 @@ class AffilioRadarTests(unittest.TestCase):
         weak_discount = {
             **recent_ranked,
             "product_id": "dkp-95503",
+            "current_price": 900_000,
+            "original_price": 1_000_000,
             "discount_percent": 10,
             "savings_toman": 100_000,
             "market_status": "not_checked",
@@ -3428,26 +3430,23 @@ class AffilioRadarTests(unittest.TestCase):
         weaker_discount = {**high_clicks, "discount_percent": 59}
         self.assertGreater(deal_sort_key(high_clicks), deal_sort_key(weaker_discount))
 
-    def test_lifetime_reviews_change_historical_popularity_not_current_demand(self):
-        high = score_product({
+    def test_lifetime_reviews_and_rating_do_not_generate_popularity_or_ranking_scores(self):
+        common = {
             "title": "پاوربانک سریع",
             "current_price": 1_200_000,
             "original_price": 1_500_000,
-            "rating": 4.5,
-            "review_count": 1000,
             "image_url": "https://example.com/image.jpg",
-        })
-        low = score_product({
-            "title": "کالای معمولی",
-            "current_price": 25_000_000,
-            "rating": 3.0,
-            "review_count": 0,
-            "image_url": "",
-        })
-        self.assertGreater(high["historical_popularity_score"], low["historical_popularity_score"])
-        self.assertGreater(high["demand_score"], 0)
-        self.assertFalse(high["current_demand_verified"])
+        }
+        high = score_product({**common, "rating": 4.9, "review_count": 1_000_000})
+        low = score_product({**common, "rating": 2.0, "review_count": 0})
+        for product in (high, low):
+            self.assertNotIn("historical_popularity_score", product)
+            self.assertNotIn("demand_score", product)
+            self.assertNotIn("current_demand_score", product)
         self.assertEqual(high["discount_percent"], 20)
+        self.assertEqual(high["savings_toman"], 300_000)
+        self.assertEqual(high["promo_score"], low["promo_score"])
+        self.assertEqual(deal_sort_key(high), deal_sort_key(low))
 
     def test_current_demand_requires_measurable_recent_review_growth(self):
         start = datetime(2026, 10, 20, 8, 0, tzinfo=timezone.utc)
@@ -3535,10 +3534,10 @@ class AffilioRadarTests(unittest.TestCase):
         item = {
             "title": "شارژر سریع دیواری مدل نمونه",
             "availability": "in_stock",
-            "current_price": 550_000,
+            "current_price": 510_000,
             "original_price": 1_000_000,
             "discount_percent": 49,
-            "savings_toman": 450_000,
+            "savings_toman": 490_000,
             "image_url": "https://example.com/charger.webp",
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95045%2F",
             "current_demand_verified": True,
@@ -5030,6 +5029,7 @@ class AffilioRadarTests(unittest.TestCase):
             "market_match_score": 90,
             "market_available_offer_count": 3,
             "market_price_advantage_pct": -8,
+            "market_price_checked_at": datetime.now(timezone.utc).isoformat(),
         }
         self.assertFalse(is_market_value_publish_eligible(candidate))
         candidate["market_price_advantage_pct"] = 8
