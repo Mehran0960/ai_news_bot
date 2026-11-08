@@ -1984,6 +1984,27 @@ def _torob_rpc(method: str, params: dict | None = None, request_id: int = 1) -> 
     return payload
 
 
+def _market_http_status_code(exc: Exception) -> int | None:
+    """Read an upstream HTTP status without relying on library-specific error text."""
+    response = getattr(exc, "response", None)
+    raw_status = getattr(response, "status_code", None)
+    try:
+        status = int(raw_status)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return status if 100 <= status <= 599 else None
+
+
+def _is_market_challenge_error(exc: Exception) -> bool:
+    """Classify 403/429/490 challenges and equivalent explicit rate-limit errors."""
+    status = _market_http_status_code(exc)
+    message = str(exc).lower()
+    return status in {403, 429, 490} or any(
+        token in message
+        for token in ("490", "429", "403", "challenge", "rate limit", "rate limited", "temporarily paused", "blocked")
+    )
+
+
 def _prepare_torob_mcp() -> None:
     initialized = _torob_rpc(
         "initialize",
@@ -2357,11 +2378,8 @@ def enrich_market_prices(
         product = due[0]
         product["market_status"] = "unavailable"
         product["market_error"] = type(exc).__name__
-        message = str(exc).lower()
-        challenge = any(
-            token in message
-            for token in ("490", "429", "challenge", "rate limit", "temporarily paused", "blocked")
-        )
+        challenge = _is_market_challenge_error(exc)
+        http_status = _market_http_status_code(exc)
         remember_result(
             product,
             "error",
@@ -2372,7 +2390,7 @@ def enrich_market_prices(
         ).isoformat()
         print(
             f"MARKET_SOURCE_UNAVAILABLE error={type(exc).__name__} "
-            f"challenge={challenge} detail={str(exc)[:180]!r}"
+            f"http_status={http_status or 'n/a'} challenge={challenge} detail={str(exc)[:180]!r}"
         )
         return
 
@@ -2452,15 +2470,15 @@ def enrich_market_prices(
                 except Exception as exc:
                     # Search's price remains a low-offer signal; it is never upgraded to a median.
                     product["market_detail_error"] = type(exc).__name__
-                    msg = str(exc).lower()
-                    if any(token in msg for token in ("490", "429", "challenge", "rate limit", "temporarily paused", "blocked")):
+                    http_status = _market_http_status_code(exc)
+                    if _is_market_challenge_error(exc):
                         product["market_status"] = "unavailable"
                         product["market_error"] = type(exc).__name__
                         remember_result(product, "error", MARKET_PRICE_CHALLENGE_COOLDOWN_HOURS)
                         state["market_price_api_pause_until"] = (
                             current + timedelta(minutes=MARKET_PRICE_GLOBAL_PAUSE_MINUTES)
                         ).isoformat()
-                        print(f"MARKET_PRICE_PAUSE id={product.get('product_id')} detail_error={type(exc).__name__}")
+                        print(f"MARKET_PRICE_PAUSE id={product.get('product_id')} detail_error={type(exc).__name__} http_status={http_status or 'n/a'} rotate_remaining_candidates=true")
                         break
             apply_market_price_comparison(product, card, details, best_score, query)
             remember_result(product, "checked", MARKET_PRICE_RECHECK_HOURS)
@@ -2473,11 +2491,8 @@ def enrich_market_prices(
         except Exception as exc:
             product["market_status"] = "unavailable"
             product["market_error"] = type(exc).__name__
-            message = str(exc).lower()
-            challenge = any(
-                token in message
-                for token in ("490", "429", "challenge", "rate limit", "temporarily paused", "blocked")
-            )
+            challenge = _is_market_challenge_error(exc)
+            http_status = _market_http_status_code(exc)
             remember_result(
                 product,
                 "error",
@@ -2485,7 +2500,7 @@ def enrich_market_prices(
             )
             print(
                 f"MARKET_PRICE_FAILED id={product.get('product_id')} error={type(exc).__name__} "
-                f"challenge={challenge} detail={str(exc)[:160]!r}"
+                f"http_status={http_status or 'n/a'} challenge={challenge} detail={str(exc)[:160]!r}"
             )
             if challenge:
                 state["market_price_api_pause_until"] = (
