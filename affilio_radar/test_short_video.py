@@ -660,7 +660,7 @@ class ShortVideoTests(unittest.TestCase):
         background_sample = poster.getpixel((680, 1150))
         self.assertGreater(min(background_sample), 45)
         self.assertNotEqual(background_sample, (14, 28, 22))
-        price_panel = poster.getpixel((45, 753))
+        price_panel = poster.getpixel((80, 770))
         self.assertGreater(price_panel[1], price_panel[0])
         self.assertEqual(poster.size, (720, 1280))
 
@@ -692,7 +692,7 @@ class ShortVideoTests(unittest.TestCase):
 
         persian_draws = [
             item for item in captured
-            if any("\\u0600" <= char <= "\\u06ff" for char in item["text"])
+            if any("\u0600" <= char <= "\u06ff" for char in item["text"])
         ]
         self.assertTrue(persian_draws, "the poster must contain Persian overlay text")
         for item in persian_draws:
