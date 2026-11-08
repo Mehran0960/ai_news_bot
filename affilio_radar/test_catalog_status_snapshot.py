@@ -13,6 +13,7 @@ try:
         load_publication_catalog_context,
         is_initial_catalog_warmup,
         candidate_allowed_by_publication_context,
+        _category_addition_budget,
     )
 except ImportError:
     from catalog_status_snapshot import (
@@ -22,6 +23,7 @@ except ImportError:
         load_publication_catalog_context,
         is_initial_catalog_warmup,
         candidate_allowed_by_publication_context,
+        _category_addition_budget,
     )
 
 
@@ -125,7 +127,7 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         self.assertEqual(status["last_clean_cycle_completed_at"], self.completed_at)
         self.assertEqual(status["last_cycle_status"], "complete_with_gaps")
 
-    def test_category_set_must_still_match_the_snapshot(self):
+    def test_category_removal_or_replacement_invalidates_the_snapshot(self):
         changed = {
             **self.state,
             "categories": [{"id": "1"}, {"id": "2"}, {"id": "4"}],
@@ -133,6 +135,31 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         status = build_status_snapshot(changed, completed_candidates=self.candidates)
         self.assertFalse(status["completed_candidates_snapshot_valid"])
         self.assertEqual(status["last_clean_cycle_status"], "unavailable")
+
+    def test_small_number_of_new_categories_keeps_the_verified_snapshot_usable(self):
+        changed = {
+            **self.state,
+            "categories": [{"id": "1"}, {"id": "2"}, {"id": "3"}, {"id": "4"}],
+        }
+        status = build_status_snapshot(changed, completed_candidates=self.candidates)
+        self.assertTrue(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["last_clean_cycle_status"], "complete")
+        self.assertEqual(status["last_clean_cycle_categories_total"], 3)
+        self.assertEqual(status["catalog_category_count"], 4)
+        self.assertEqual(status["unscanned_new_category_count"], 1)
+        self.assertEqual(status["unscanned_new_category_budget"], 1)
+
+    def test_new_category_additions_above_one_percent_budget_are_blocked(self):
+        changed = {
+            **self.state,
+            "categories": [{"id": str(value)} for value in range(1, 8)],
+        }
+        status = build_status_snapshot(changed, completed_candidates=self.candidates)
+        self.assertFalse(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["last_clean_cycle_status"], "unavailable")
+
+    def test_new_category_addition_budget_is_capped_at_fifty(self):
+        self.assertEqual(_category_addition_budget(10000), 50)
 
     def test_candidate_snapshot_metadata_must_prove_full_coverage(self):
         for key, value in (
@@ -184,6 +211,24 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
                 "completed_candidates_snapshot_valid"
             ]
         )
+
+    def test_loader_accepts_small_new_category_additions_without_weakening_hash_checks(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            status_path = root / "status.json"
+            candidates_path = root / "completed.json"
+            changed = {
+                **self.state,
+                "categories": [{"id": "1"}, {"id": "2"}, {"id": "3"}, {"id": "4"}],
+            }
+            status = build_status_snapshot(changed, completed_candidates=self.candidates)
+            status_path.write_text(json.dumps(status), encoding="utf-8")
+            candidates_path.write_text(json.dumps(self.candidates), encoding="utf-8")
+
+            loaded = load_completed_candidates_snapshot(status_path, candidates_path)
+            self.assertIsNotNone(loaded)
+            self.assertEqual(loaded["candidate_count"], 2)
+            self.assertTrue(candidate_matches_completed_snapshot(self.candidates["candidates"][0], loaded))
 
     def test_loaded_snapshot_is_hash_verified_and_provenance_matched(self):
         with tempfile.TemporaryDirectory() as temp:

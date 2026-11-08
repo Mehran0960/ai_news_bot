@@ -161,13 +161,22 @@ export function isUsableCleanCatalogSnapshot(status) {
     const b = [...right].sort();
     return a.every((value, index) => value === b[index]);
   };
+  const currentIdSet = new Set(currentIds);
+  const cleanIdSet = new Set(cleanIds);
+  const unscannedNewCategoryCount = currentIds.filter(id => !cleanIdSet.has(id)).length;
+  const unscannedNewCategoryBudget = Math.max(1, Math.min(50, Math.ceil(currentIds.length * 0.01)));
 
   if (!Number.isFinite(total) || total < 1 || completed !== total) return false;
   if (!Number.isFinite(currentCategoryCount) || currentIds.length !== currentCategoryCount) return false;
   if (new Set(currentIds).size !== currentIds.length) return false;
+  if (currentIds.some(id => !/^\d+$/.test(id)) || cleanIds.some(id => !/^\d+$/.test(id))) return false;
   if (cleanIds.length !== total || new Set(cleanIds).size !== total) return false;
   if (completedIds.length !== total || new Set(completedIds).size !== total) return false;
-  if (!sameIds(currentIds, cleanIds) || !sameIds(cleanIds, completedIds)) return false;
+  // New categories are swept incrementally, but a small bounded backlog must not
+  // invalidate the last complete snapshot. Removed/replaced categories still block.
+  if ([...cleanIdSet].some(id => !currentIdSet.has(id))) return false;
+  if (unscannedNewCategoryCount > unscannedNewCategoryBudget) return false;
+  if (!sameIds(cleanIds, completedIds)) return false;
   if (unqueryableIds.length !== 0 || unqueryable !== 0) return false;
   if (!Number.isFinite(coverage) || coverage < 100) return false;
   if (!Number.isFinite(pages) || pages < 1) return false;
@@ -296,7 +305,9 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     console.log(
       "OFFERCHIN_PUBLISHER_USING_CLEAN_SNAPSHOT cycle=" +
       String(catalogStatus.last_clean_cycle_completed_at) +
-      " candidates=" + String(catalogStatus.completed_candidates_count)
+      " candidates=" + String(catalogStatus.completed_candidates_count) +
+      " unscanned_new_categories=" + String(catalogStatus.unscanned_new_category_count || 0) +
+      "/" + String(catalogStatus.unscanned_new_category_budget || 0)
     );
   }
   const now = tick.getTime();

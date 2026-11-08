@@ -15,6 +15,7 @@ STATUS_PATH = ROOT / "catalog_sweep_status.json"
 COMPLETED_CANDIDATES_PATH = ROOT / "catalog_sweep_completed_candidates.json"
 SCAN_POLICY_VERSION = "all_categories_all_pages_v3_cycle_snapshot"
 MAX_CATALOG_SNAPSHOT_AGE_HOURS = 96
+MAX_UNSCANNED_CATEGORY_ADDITIONS = 50
 
 
 def _integer(value: Any, default: int = 0) -> int:
@@ -44,6 +45,25 @@ def _sorted_ids(value: Any) -> list[str]:
     if not ids or any(not item.isdigit() for item in ids) or len(ids) != len(set(ids)):
         return []
     return sorted(ids, key=int)
+
+
+def _category_addition_budget(current_count: int) -> int:
+    """Allow at most 1% newly-added categories, capped at 50, during a rescan."""
+    count = max(0, int(current_count))
+    return max(1, min(MAX_UNSCANNED_CATEGORY_ADDITIONS, (count + 99) // 100))
+
+
+def _category_ids_compatible_with_current_catalog(snapshot_ids: Any, current_ids: Any) -> bool:
+    """Allow additions only; removals/replacements invalidate the snapshot."""
+    snapshot = _sorted_ids(snapshot_ids)
+    current = _sorted_ids(current_ids)
+    if not snapshot or not current:
+        return False
+    snapshot_set = set(snapshot)
+    current_set = set(current)
+    if not snapshot_set.issubset(current_set):
+        return False
+    return len(current_set - snapshot_set) <= _category_addition_budget(len(current_set))
 
 
 def _parse_timestamp(value: Any) -> datetime | None:
@@ -219,7 +239,7 @@ def build_status_snapshot(
         policy_ok
         and current_ids_unique
         and snapshot["valid"]
-        and snapshot["category_ids"] == current_ids
+        and _category_ids_compatible_with_current_catalog(snapshot["category_ids"], current_ids)
         and _snapshot_is_fresh(snapshot["cycle_completed_at"], status_time)
     )
     cycles = _integer(stats.get("completed_cycles", state.get("completed_cycles")))
@@ -269,6 +289,12 @@ def build_status_snapshot(
         "completed_candidates_snapshot_valid": snapshot_valid,
         "completed_candidates_cycle_at": snapshot["cycle_completed_at"] if snapshot_valid else None,
         "completed_candidates_count": snapshot["candidate_count"] if snapshot_valid else 0,
+        "unscanned_new_category_count": (
+            len(set(current_ids) - set(snapshot["category_ids"])) if snapshot_valid else 0
+        ),
+        "unscanned_new_category_budget": (
+            _category_addition_budget(len(current_ids)) if snapshot_valid else 0
+        ),
         "completed_candidates_ids": snapshot["candidate_ids"] if snapshot_valid else [],
         "completed_candidates_sha256": snapshot["sha256"] if snapshot_valid else "",
         "current_cycle_started_at": state.get("parallel_cycle_started_at"),
@@ -313,7 +339,7 @@ def load_completed_candidates_snapshot(
         return None
     category_ids = status.get("last_clean_cycle_category_ids")
     current_ids = status.get("catalog_category_ids")
-    if not isinstance(category_ids, list) or category_ids != current_ids:
+    if not isinstance(category_ids, list) or not _category_ids_compatible_with_current_catalog(category_ids, current_ids):
         return None
     if details["category_ids"] != category_ids:
         return None
