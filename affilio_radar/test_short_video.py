@@ -332,7 +332,7 @@ class ShortVideoTests(unittest.TestCase):
 
         expected_viewboxes = {
             "bale": "54 4 32 32",
-            "rubika": "830 0 449 543.02",
+            "rubika": "783.5 0 495.39 543.02",
             "aparat": "56 0 24 25",
         }
         for platform, expected_viewbox in expected_viewboxes.items():
