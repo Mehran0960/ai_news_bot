@@ -301768,7 +301768,7 @@
     "unchanged": 9,
     "updated": 0
   },
-  "filo_login_verification_attempted_at": "2026-11-07T22:25:53.211640+00:00",
+  "filo_login_verification_attempted_at": "2026-11-08T02:50:22.403074+00:00",
   "filo_login_verification_status": "failed",
   "growth_tracking": {
     "daily_member_counts": {
@@ -367933,8 +367933,12 @@
     },
     "dkp-1426662": {
       "aparat_upload_status": "skipped_unverified_deadline",
-      "bale_expiry_status": "deleted",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 1199,
+      "bale_retention_deleted_at": "2026-11-08T01:53:21.845291+00:00",
+      "bale_retention_last_attempt_at": "2026-11-08T01:53:21.845291+00:00",
+      "bale_retention_started_at": "2026-11-08T01:53:21.845291+00:00",
+      "bale_retention_status": "deleted",
       "caption_deadline_format_version": 14,
       "click_count_30d": 0,
       "click_tracking_url": "",
@@ -367978,11 +367982,7 @@
       "title": "قیف طرح گل مدل AG-001 مجموعه سه عددی",
       "ts": 1793495877.206153,
       "video_generation_status": "skipped_unverified_deadline",
-      "youtube_upload_status": "skipped_unverified_deadline",
-      "bale_retention_status": "deleted",
-      "bale_retention_started_at": "2026-11-08T01:53:21.845291+00:00",
-      "bale_retention_deleted_at": "2026-11-08T01:53:21.845291+00:00",
-      "bale_retention_last_attempt_at": "2026-11-08T01:53:21.845291+00:00"
+      "youtube_upload_status": "skipped_unverified_deadline"
     },
     "dkp-14292122": {
       "aparat_upload_status": "skipped_expiring_soon",
