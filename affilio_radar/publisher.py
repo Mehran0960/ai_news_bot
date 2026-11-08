@@ -208,14 +208,12 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "selection_discount_band": str(item.get("selection_discount_band") or ""),
         "posted_current_price": int(item.get("current_price") or 0),
         "posted_original_price": int(item.get("original_price") or 0),
-        "demand_score": int(item.get("demand_score") or 0),
-        "current_demand_verified": item.get("current_demand_verified") is True,
-        "current_demand_score": int(item.get("current_demand_score") or 0),
-        "recent_review_growth_7d": int(item.get("recent_review_growth_7d") or 0),
-        "demand_window_hours": float(item.get("demand_window_hours") or 0),
-        "demand_observed_at": str(item.get("demand_observed_at") or ""),
-        "demand_signal_source": str(item.get("demand_signal_source") or ""),
-        "historical_popularity_score": int(item.get("historical_popularity_score") or 0),
+        "selection_review_growth_evidence": str(item.get("selection_review_growth_evidence") or "none"),
+        "review_growth_proxy_verified": item.get("selection_review_growth_evidence") == "verified_indirect_proxy_not_sales",
+        "review_growth_proxy_count": int(item.get("recent_review_growth_window", item.get("recent_review_growth_7d")) or 0),
+        "review_growth_proxy_window_hours": float(item.get("demand_window_hours") or 0),
+        "review_growth_proxy_observed_at": str(item.get("demand_observed_at") or ""),
+        "review_growth_proxy_source": str(item.get("demand_signal_source") or ""),
         "history_status": str(item.get("history_status") or ""),
         "historical_deal_eligible": item.get("historical_deal_eligible") is True,
         "discount_vs_30d_median_pct": item.get("discount_vs_30d_median_pct"),
@@ -320,10 +318,9 @@ def _fresh_selected_item(
         fresh["affiliate_url"] = radar.build_affilio_tracking_link(product_url)
     fresh["has_affiliate_link"] = bool(fresh["affiliate_url"])
     for key in (
-        "demand_score", "current_demand_verified", "current_demand_score",
         "recent_review_growth_7d", "recent_review_growth_window",
         "demand_window_hours", "demand_observed_at", "demand_signal_source",
-        "historical_popularity_score", "history_status", "historical_deal_eligible",
+        "history_status", "historical_deal_eligible",
         "discount_vs_30d_median_pct", "history_days", "history_checked_at", "promo_score",
         "click_count_30d", "market_status", "market_reference_kind",
         "market_reference_price_toman", "market_price_advantage_pct", "market_price_checked_at",
@@ -331,7 +328,7 @@ def _fresh_selected_item(
         "catalog_best_selling_rank", "catalog_best_selling_category_id",
         "catalog_best_selling_category_name", "catalog_rank_observed_at",
         "catalog_cycle_completed_at", "catalog_cycle_snapshot_rank",
-        "publication_policy", "selection_demand_evidence", "selection_value_evidence",
+        "publication_policy", "selection_review_growth_evidence", "selection_value_evidence",
         "selection_fallback_mode",
     ):
         if key in payload:
@@ -403,27 +400,9 @@ def _fresh_selected_item(
     ):
         return None, "live_discount_no_longer_eligible"
 
-    # New selections must still pass demand/value evidence at the final send boundary.
-    # Once any destination has sent successfully, allow the other independent adapters
-    # to finish that same hand-off even if its discovery signal later ages out.
-    platform_states = entry.get("platforms")
-    already_partially_delivered = isinstance(platform_states, dict) and any(
-        isinstance(target, dict) and target.get("status") == "sent"
-        for target in platform_states.values()
-    )
-    ranked_delivery_policy = str(payload.get("publication_policy") or "") in {
-        "demand_then_discount_v1",  # legacy ranked selections
-        "discount_first_catalog_v2",
-    }
-    if not already_partially_delivered and not ranked_delivery_policy:
-        # Only legacy queue records without a selection policy retain old proxy gates.
-        if not radar.has_actionable_demand_signal(fresh, now=now):
-            return None, "live_demand_signal_missing"
-        if not radar.has_attractive_discount_value(fresh, now=now):
-            return None, "live_discount_value_not_verified"
-
-    if not ranked_delivery_policy and not radar.is_market_value_publish_eligible(fresh):
-        return None, "live_market_value_rejected"
+    # Demand/review-growth and independent positive market/history signals never
+    # gate an already selected live markdown. Fresh verified contradictions were
+    # already applied by is_discount_publish_eligible above.
     if not radar.has_publishable_expiry_or_open_offer(fresh, now):
         return None, "live_offer_expired_or_unverified"
     expiry = _utc(fresh.get("deal_expires_at"))
