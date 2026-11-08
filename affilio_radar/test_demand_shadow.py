@@ -183,6 +183,68 @@ class DemandShadowTests(unittest.TestCase):
         self.assertFalse(report["live_ranking_changed"])
         self.assertEqual(report["global_cross_category_bestseller_rank"], "not_computed")
 
+    def test_completed_catalog_snapshot_drives_bestseller_report_without_detail_checks(self):
+        snapshot_rows = [
+            {
+                "product_id": "dkp-10",
+                "title": "هندزفری بلوتوثی مدل الف",
+                "discount_percent": 22,
+                "savings_toman": 120000,
+                "catalog_best_selling_ranks_by_category": {
+                    "11": {"rank": 7, "category_name": "هدفون", "observed_at": self.now.isoformat()}
+                },
+            },
+            {
+                "product_id": "dkp-20",
+                "title": "گوشی سامسونگ مدل ب",
+                "discount_percent": 15,
+                "savings_toman": 90000,
+                "catalog_best_selling_ranks_by_category": {
+                    "12": {"rank": 4, "category_name": "موبایل", "observed_at": self.now.isoformat()}
+                },
+            },
+        ]
+        report = build_demand_shadow_report(
+            [],
+            now=self.now,
+            catalog_candidates=snapshot_rows,
+        )
+        summary = report["summary"]
+        self.assertEqual(report["data_scope"], "verified_completed_catalog_snapshot")
+        self.assertEqual(summary["products_examined"], 2)
+        self.assertEqual(summary["catalog_snapshot_candidates_examined"], 2)
+        self.assertEqual(summary["deep_checked_products_in_current_run"], 0)
+        self.assertEqual(summary["products_with_fresh_digikala_rank"], 2)
+        self.assertEqual(summary["digikala_rank_coverage_percent"], 100.0)
+        self.assertEqual(len(report["category_rankings"]), 2)
+        self.assertFalse(report["live_ranking_changed"])
+
+    def test_detail_checked_product_overlays_snapshot_row_without_losing_category_ranks(self):
+        snapshot_rows = [{
+            "product_id": "dkp-10",
+            "title": "هندزفری بلوتوثی مدل قدیمی",
+            "discount_percent": 10,
+            "catalog_best_selling_ranks_by_category": {
+                "11": {"rank": 7, "category_name": "هدفون", "observed_at": self.now.isoformat()}
+            },
+        }]
+        detail_rows = [{
+            "product_id": "dkp-10",
+            "title": "هندزفری بلوتوثی مدل جدید",
+            "discount_percent": 25,
+            "savings_toman": 250000,
+        }]
+        report = build_demand_shadow_report(
+            detail_rows,
+            now=self.now,
+            catalog_candidates=snapshot_rows,
+        )
+        row = report["product_signals"][0]
+        self.assertEqual(row["title"], "هندزفری بلوتوثی مدل جدید")
+        self.assertEqual(row["discount_percent"], 25)
+        self.assertEqual(row["digikala_bestseller"]["best_rank"], 7)
+        self.assertTrue(row["detail_checked_in_current_run"])
+
     def test_torob_matches_are_separate_from_digikala_rankings(self):
         snapshot = sanitize_torob_trends({
             "trends": [{"query": "هندزفری بلوتوث", "category_id": "5"}]
