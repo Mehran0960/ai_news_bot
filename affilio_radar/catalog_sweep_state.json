@@ -44286,13 +44286,13 @@
   "last_cycle_status": "complete",
   "last_cycle_unqueryable_category_ids": [],
   "last_error": "",
-  "last_successful_category_id": "10311",
-  "last_successful_category_name": "گیره و مگنت",
+  "last_successful_category_id": "8406",
+  "last_successful_category_name": "چادر خودرو",
   "last_successful_page": 500,
-  "last_successful_page_at": "2026-11-08T07:37:29.226317+00:00",
+  "last_successful_page_at": "2026-11-08T07:38:38.735944+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 483,
+  "page": 484,
   "parallel_cycle_completed_category_ids": [
     "1",
     "2",
@@ -46802,6 +46802,7 @@
     "6811",
     "6813",
     "6818",
+    "6822",
     "6823",
     "6824",
     "6825",
@@ -46844,6 +46845,7 @@
     "6903",
     "6904",
     "6906",
+    "6908",
     "6909",
     "6910",
     "6911",
@@ -46872,6 +46874,7 @@
     "6941",
     "6942",
     "6944",
+    "6946",
     "6949",
     "6950",
     "6951",
@@ -46886,17 +46889,20 @@
     "6974",
     "6975",
     "6976",
+    "6977",
     "6978",
     "8016",
     "8017",
     "8018",
     "8020",
+    "8099",
     "8100",
     "8101",
     "8102",
     "8105",
     "8110",
     "8111",
+    "8113",
     "8120",
     "8122",
     "8123",
@@ -46928,6 +46934,7 @@
     "8178",
     "8179",
     "8180",
+    "8182",
     "8183",
     "8184",
     "8185",
@@ -47070,6 +47077,7 @@
     "8400",
     "8401",
     "8402",
+    "8406",
     "8407",
     "8408",
     "8413",
@@ -49194,8 +49202,8 @@
     "11797",
     "214186"
   ],
-  "parallel_cycle_pages_success": 192015,
-  "parallel_cycle_product_rows_success": 3770175,
+  "parallel_cycle_pages_success": 192034,
+  "parallel_cycle_product_rows_success": 3770555,
   "parallel_cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -54122,20 +54130,20 @@
     "214158",
     "214186"
   ],
-  "parallel_last_batch_at": "2026-11-08T07:37:29.325235+00:00",
-  "parallel_last_batch_candidate_file_bytes": 4235638,
-  "parallel_last_batch_candidate_write_seconds": 0.086,
+  "parallel_last_batch_at": "2026-11-08T07:38:38.863614+00:00",
+  "parallel_last_batch_candidate_file_bytes": 4235138,
+  "parallel_last_batch_candidate_write_seconds": 0.113,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 6.27,
-  "parallel_last_batch_nonempty_product_pages": 34,
-  "parallel_last_batch_pages": 36,
-  "parallel_last_batch_pages_per_second": 5.74,
-  "parallel_last_batch_processing_seconds": 0.045,
-  "parallel_last_batch_product_rows": 680,
-  "parallel_last_batch_rate_limited": 2,
-  "parallel_last_batch_retries": 2,
-  "parallel_last_batch_rows_per_second": 106.23,
-  "parallel_last_batch_successes": 34,
+  "parallel_last_batch_fetch_seconds": 10.93,
+  "parallel_last_batch_nonempty_product_pages": 19,
+  "parallel_last_batch_pages": 19,
+  "parallel_last_batch_pages_per_second": 1.74,
+  "parallel_last_batch_processing_seconds": 0.032,
+  "parallel_last_batch_product_rows": 380,
+  "parallel_last_batch_rate_limited": 0,
+  "parallel_last_batch_retries": 0,
+  "parallel_last_batch_rows_per_second": 34.31,
+  "parallel_last_batch_successes": 19,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4672,
   "parallel_pending_pages": [
@@ -54143,135 +54151,85 @@
       "attempts": 0,
       "category_id": "6263",
       "category_name": "حمام و سرویس بهداشتی",
-      "page": 483
+      "page": 484
+    },
+    {
+      "attempts": 0,
+      "category_id": "9543",
+      "category_name": "جاکلیدی زنانه و مردانه",
+      "page": 485
     },
     {
       "attempts": 0,
       "category_id": "9540",
       "category_name": "زیورآلات زنانه و مردانه",
-      "page": 485
-    },
-    {
-      "attempts": 1,
-      "category_id": "9543",
-      "category_name": "جاکلیدی زنانه و مردانه",
-      "last_error": "http_429",
-      "page": 484
+      "page": 486
     },
     {
       "attempts": 0,
       "category_id": "9534",
       "category_name": "اکسسوری زنانه و مردانه",
-      "page": 489
+      "page": 490
     },
     {
       "attempts": 0,
       "category_id": "10690",
       "category_name": "لوازم و مصالح ساختمانی",
-      "page": 490
+      "page": 491
     },
     {
       "attempts": 0,
       "category_id": "100",
       "category_name": "ماوس پد",
-      "page": 492
+      "page": 493
+    },
+    {
+      "attempts": 0,
+      "category_id": "9558",
+      "category_name": "ساعت عقربه ای زنانه و مردانه",
+      "page": 493
     },
     {
       "attempts": 0,
       "category_id": "9625",
       "category_name": "دخترانه",
-      "page": 492
-    },
-    {
-      "attempts": 1,
-      "category_id": "9558",
-      "category_name": "ساعت عقربه ای زنانه و مردانه",
-      "last_error": "http_429",
-      "page": 492
+      "page": 493
     },
     {
       "attempts": 0,
       "category_id": "6741",
       "category_name": "مادر و کودک",
-      "page": 494
+      "page": 495
     },
     {
       "attempts": 0,
       "category_id": "5700",
       "category_name": "لوازم آرایشی",
-      "page": 498
+      "page": 499
     },
     {
       "attempts": 0,
       "category_id": "6816",
       "category_name": "پوشاک ورزشی",
-      "page": 498
-    },
-    {
-      "attempts": 0,
-      "category_id": "6822",
-      "category_name": "محصولات چوبی و حصیری",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "6908",
-      "category_name": "دست سازه های هنری",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "6946",
-      "category_name": "تابلو",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "6977",
-      "category_name": "پرده",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "8099",
-      "category_name": "تجهیزات تردد، حفاظت و امنیت",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "8113",
-      "category_name": "لوازم مصرفی",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "8182",
-      "category_name": "لوازم یدکی خودرو",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "8406",
-      "category_name": "چادر خودرو",
-      "page": 500
+      "page": 499
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 10,
-  "parallel_workers_used": 11,
-  "pending_page_count": 19,
+  "parallel_worker_limit": 11,
+  "parallel_workers_used": 10,
+  "pending_page_count": 11,
   "schema_version": 1,
   "stats": {
     "api_failures_total": 48099,
-    "catalog_candidate_cards_found_total": 14418469,
+    "catalog_candidate_cards_found_total": 14418849,
     "completed_cycles": 1,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 3821908,
+    "discounted_candidates_found_total": 3822025,
     "empty_product_pages_total": 24123,
-    "nonempty_product_pages_total": 729280,
-    "pages_scanned_total": 752611,
-    "product_rows_scanned_total": 14418509,
+    "nonempty_product_pages_total": 729299,
+    "pages_scanned_total": 752630,
+    "product_rows_scanned_total": 14418889,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
