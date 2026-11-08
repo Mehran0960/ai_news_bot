@@ -1566,22 +1566,22 @@ class AffilioRadarTests(unittest.TestCase):
     def test_discovery_selection_applies_family_cooldown_without_category_reranking(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         recent = [{
-            "product_id": "dkp-old-eyewear",
+            "product_id": "dkp-100000",
             "title": "عینک آفتابی مردانه مدل قدیمی",
             "ts": (now - timedelta(minutes=20)).timestamp(),
         }]
         queue = {
-            "dkp-new-eyewear": {
-                "product_id": "dkp-new-eyewear",
-                "product_url": "https://www.digikala.com/product/dkp-new-eyewear/",
+            "dkp-100001": {
+                "product_id": "dkp-100001",
+                "product_url": "https://www.digikala.com/product/dkp-100001/",
                 "title": "عینک طبی زنانه مدل جدید",
                 "discount_percent": 80,
                 "savings_toman": 800_000,
                 "next_check_at": "",
             },
-            "dkp-new-charger": {
-                "product_id": "dkp-new-charger",
-                "product_url": "https://www.digikala.com/product/dkp-new-charger/",
+            "dkp-100002": {
+                "product_id": "dkp-100002",
+                "product_url": "https://www.digikala.com/product/dkp-100002/",
                 "title": "شارژر سریع دیواری مدل جدید",
                 "discount_percent": 60,
                 "savings_toman": 300_000,
@@ -1592,7 +1592,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_discovery_records_for_check(
             queue, now, max_count=2, published={}, recent_publications=recent,
         )
-        self.assertEqual([pid for pid, _ in selected], ["dkp-new-charger"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-100002"])
 
     def test_publish_selection_uses_next_highest_after_24h_family_guard(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
@@ -3460,7 +3460,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         radar_module.update_current_demand_signals(state, [product], now=start)
         self.assertFalse(product["current_demand_verified"])
-        self.assertEqual(product["demand_score"], 0)
+        self.assertNotIn("demand_score", product)
 
         product["review_count"] = 50_003
         radar_module.update_current_demand_signals(
@@ -3468,7 +3468,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertTrue(product["current_demand_verified"])
         self.assertEqual(product["recent_review_growth_7d"], 3)
-        self.assertGreater(product["demand_score"], 0)
+        self.assertNotIn("demand_score", product)
         self.assertTrue(
             radar_module.has_current_demand_signal(
                 product, now=start + timedelta(hours=25)
@@ -3482,17 +3482,18 @@ class AffilioRadarTests(unittest.TestCase):
             )
         )
 
-    def test_large_lifetime_review_count_without_recent_growth_is_not_demand(self):
+    def test_large_lifetime_review_count_without_recent_growth_is_not_a_tie_break_proxy(self):
         start = datetime(2026, 10, 20, 8, 0, tzinfo=timezone.utc)
         state = {}
-        product = {"product_id": "dkp-static-reviews", "review_count": 250_000}
+        product = {"product_id": "dkp-123456", "review_count": 250_000}
         radar_module.update_current_demand_signals(state, [product], now=start)
         radar_module.update_current_demand_signals(
             state, [product], now=start + timedelta(hours=36)
         )
         self.assertEqual(product["recent_review_growth_7d"], 0)
         self.assertFalse(product["current_demand_verified"])
-        self.assertEqual(radar_module._candidate_demand_score(product), 0)
+        self.assertFalse(radar_module.has_current_demand_signal(product))
+        self.assertNotIn("demand_score", product)
 
     def test_scoring_does_not_generate_popularity_or_demand_scores(self):
         shared = {
