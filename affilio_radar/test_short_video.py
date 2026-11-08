@@ -917,6 +917,32 @@ class ShortVideoTests(unittest.TestCase):
         self.assertNotIn("کانال تلگرام", description)
         self.assertNotIn("قیمت، موجودی و شرایط تخفیف", description)
 
+    def test_youtube_visible_brand_name_is_normalized_but_platform_handles_are_preserved(self):
+        http = FakeYouTubeHTTP()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "short.mp4"
+            path.write_bytes(b"test-video")
+            upload_youtube_video(
+                path,
+                "پیشنهاد ویژه Offerchin",
+                25,
+                description="Offerchin را دنبال کنید: rubika.ir/offerchin و @offerchin",
+                session=http,
+                env={
+                    "YOUTUBE_CLIENT_ID": "test-client",
+                    "YOUTUBE_CLIENT_SECRET": "test-secret",
+                    "YOUTUBE_REFRESH_TOKEN": "test-refresh",
+                    "YOUTUBE_PRIVACY_STATUS": "unlisted",
+                },
+            )
+        upload_request = next(kwargs for url, kwargs in http.posts if url == YOUTUBE_UPLOAD_URL)
+        snippet = upload_request["json"]["snippet"]
+        self.assertEqual(snippet["title"], "پیشنهاد ویژه OfferChin | ۲۵٪ تخفیف")
+        self.assertEqual(
+            snippet["description"],
+            "OfferChin را دنبال کنید: rubika.ir/offerchin و @offerchin",
+        )
+
     def test_youtube_public_description_has_no_affiliate_disclosure(self):
         http = FakeYouTubeHTTP()
         with tempfile.TemporaryDirectory() as directory:
