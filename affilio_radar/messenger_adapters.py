@@ -259,8 +259,8 @@ def send_rubika_photo(token: str, channel_id: str, item: dict, image_bytes: byte
             else purchase_action_label(item.get("merchant") or "دیجی‌کالا")
         )
         link_footer = (
-            f"\\n\\n{purchase_label}\\n{affiliate_url}"
-            f"\\n\\n{RUBIKA_MEMBERSHIP_BUTTON_TEXT}\\n{RUBIKA_CHANNEL_URL}"
+            f"\n\n{purchase_label}\n{affiliate_url}"
+            f"\n\n{RUBIKA_MEMBERSHIP_BUTTON_TEXT}\n{RUBIKA_CHANNEL_URL}"
         )
         plain_caption = _caption(renderer, item, affiliate_url, "rubika").rstrip()
         plain_caption = plain_caption[: max(0, 3800 - len(link_footer))] + link_footer
