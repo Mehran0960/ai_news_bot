@@ -32,6 +32,7 @@ from demand_shadow import (
 try:
     from .catalog_sweep import (
         load_catalog_candidates_for_handoff,
+        load_catalog_candidates,
         acknowledge_catalog_candidates_handoff,
         defer_catalog_candidates_handoff,
         catalog_handoff_fingerprint,
@@ -39,6 +40,7 @@ try:
 except ImportError:
     from catalog_sweep import (
         load_catalog_candidates_for_handoff,
+        load_catalog_candidates,
         acknowledge_catalog_candidates_handoff,
         defer_catalog_candidates_handoff,
         catalog_handoff_fingerprint,
@@ -9782,16 +9784,23 @@ def run(publish=False, selection_only=False):
     # Historical proof affects ranking only, not a fixed displayed-discount threshold.
     enrich_price_history(products, state)
     enrich_market_prices(products, state)
+    shadow_catalog_rows = (
+        load_catalog_candidates(CATALOG_SWEEP_CANDIDATES)
+        if catalog_context.get("mode") == "full_catalog" else []
+    )
     demand_shadow_report = build_demand_shadow_report(
         products,
         state.get("torob_trends_snapshot"),
         now=datetime.now(timezone.utc),
+        catalog_candidates=shadow_catalog_rows,
     )
     shadow_summary = demand_shadow_report.get("summary", {})
     print(
         "DEMAND_SHADOW "
         f"digikala_ranked={shadow_summary.get('products_with_fresh_digikala_rank', 0)}/"
         f"{shadow_summary.get('products_examined', 0)} "
+        f"catalog_snapshot={shadow_summary.get('catalog_snapshot_candidates_examined', 0)} "
+
         f"torob_snapshot={shadow_summary.get('torob_snapshot_status', 'missing')} "
         f"torob_strong_matches={shadow_summary.get('products_with_strong_torob_trend_match', 0)} "
         "live_ranking_changed=false"
