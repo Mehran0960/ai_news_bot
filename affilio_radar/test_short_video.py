@@ -289,7 +289,7 @@ class ShortVideoTests(unittest.TestCase):
         self.assertNotIn("youtube", drawn_platforms, "a YouTube Short must not list its own channel")
         # Official artwork and its backing fit cleanly into four non-overlapping
         # rows within the channel identity panel.
-        self.assertEqual([call.args[3] for call in draw_logo.call_args_list], [188, 214, 240, 266])
+        self.assertEqual([call.args[3] for call in draw_logo.call_args_list], [210, 236, 262, 288])
         self.assertEqual([call.args[4] for call in draw_logo.call_args_list], [20, 20, 20, 20])
         self.assertEqual([call.kwargs["max_width"] for call in draw_logo.call_args_list], [96, 96, 96, 96])
 
