@@ -435,6 +435,15 @@ class ShortVideoTests(unittest.TestCase):
         canonical = dict(offerchin_visuals.PUBLIC_CHANNEL_LINKS)
         self.assertEqual(canonical["rubika"], "rubika.ir/offerchin")
         self.assertEqual(canonical["youtube"], "youtube.com/@offerchin")
+        self.assertTrue(offerchin_visuals.validate_public_channel_footer_labels())
+        self.assertEqual(
+            offerchin_visuals.platform_footer_label("youtube", "https://www.youtube.com/@oFfErChIn/"),
+            "youtube.com/@OfferChin",
+        )
+        self.assertEqual(
+            offerchin_visuals.platform_footer_label("rubika", "rubika.ir/offerchin/posts"),
+            "rubika.ir/OfferChin/posts",
+        )
 
     def test_each_public_platform_lists_every_other_media_and_never_itself(self):
         import offerchin_visuals
