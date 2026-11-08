@@ -82,9 +82,39 @@ test("blocks a category-set replacement even when the category count is unchange
   );
 });
 
-test("blocks newly added catalog categories until a matching clean snapshot exists", () => {
+test("allows a small number of new categories while the last clean snapshot is fresh", () => {
+  const newIds = [...categoryIds, "4918", "4919"];
   assert.equal(
-    isUsableCleanCatalogSnapshot({ ...cleanStatus, catalog_category_count: 4918 }),
+    isUsableCleanCatalogSnapshot({
+      ...cleanStatus,
+      catalog_category_count: newIds.length,
+      catalog_category_ids: newIds,
+    }),
+    true
+  );
+});
+
+test("blocks a new-category backlog above one percent or fifty categories", () => {
+  const additions = Array.from({ length: 51 }, (_, index) => String(100000 + index));
+  const newIds = [...categoryIds, ...additions];
+  assert.equal(
+    isUsableCleanCatalogSnapshot({
+      ...cleanStatus,
+      catalog_category_count: newIds.length,
+      catalog_category_ids: newIds,
+    }),
+    false
+  );
+});
+
+test("blocks removal of any category covered by the last clean snapshot", () => {
+  const removedIds = categoryIds.slice(0, -1);
+  assert.equal(
+    isUsableCleanCatalogSnapshot({
+      ...cleanStatus,
+      catalog_category_count: removedIds.length,
+      catalog_category_ids: removedIds,
+    }),
     false
   );
 });
