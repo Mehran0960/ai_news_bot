@@ -38655,9 +38655,9 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "10284",
-      "catalog_best_selling_category_name": "بهداشت شخصی",
-      "catalog_best_selling_rank": 6412,
+      "catalog_best_selling_category_id": "5700",
+      "catalog_best_selling_category_name": "لوازم آرایشی",
+      "catalog_best_selling_rank": 9402,
       "catalog_best_selling_ranks_by_category": {
         "10050": {
           "category_name": "مراقبت از پوست و مو",
@@ -38668,6 +38668,11 @@
           "category_name": "بهداشت شخصی",
           "observed_at": "2026-11-08T04:28:43.461929+00:00",
           "rank": 6412
+        },
+        "5700": {
+          "category_name": "لوازم آرایشی",
+          "observed_at": "2026-11-08T07:09:35.524434+00:00",
+          "rank": 9402
         },
         "6471": {
           "category_name": "آرایش لب",
@@ -38680,20 +38685,21 @@
           "rank": 213
         }
       },
-      "catalog_category_id": "10284",
+      "catalog_category_id": "5700",
       "catalog_category_ids": [
+        "5700",
         "6471",
         "6475",
         "10050",
         "10284"
       ],
-      "catalog_category_name": "بهداشت شخصی",
-      "catalog_rank_observed_at": "2026-11-08T04:28:43.461929+00:00",
+      "catalog_category_name": "لوازم آرایشی",
+      "catalog_rank_observed_at": "2026-11-08T07:09:35.524434+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 500000,
       "discount_percent": 75,
       "first_seen_at": "2026-11-07T15:29:00.998818+00:00",
-      "last_seen_at": "2026-11-08T04:28:32.818493+00:00",
+      "last_seen_at": "2026-11-08T07:09:23.697703+00:00",
       "original_price": 2000000,
       "product_id": "dkp-20896338",
       "product_url": "https://www.digikala.com/product/dkp-20896338/",
@@ -59513,10 +59519,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6486",
-      "catalog_best_selling_category_name": "مراقبت پوست",
-      "catalog_best_selling_rank": 2679,
+      "catalog_best_selling_category_id": "5968",
+      "catalog_best_selling_category_name": "آرایشی و بهداشتی",
+      "catalog_best_selling_rank": 9488,
       "catalog_best_selling_ranks_by_category": {
+        "5968": {
+          "category_name": "آرایشی و بهداشتی",
+          "observed_at": "2026-11-08T07:09:35.534169+00:00",
+          "rank": 9488
+        },
         "6486": {
           "category_name": "مراقبت پوست",
           "observed_at": "2026-11-07T21:50:36.130965+00:00",
@@ -59528,18 +59539,19 @@
           "rank": 78
         }
       },
-      "catalog_category_id": "6486",
+      "catalog_category_id": "5968",
       "catalog_category_ids": [
+        "5968",
         "6486",
         "6493"
       ],
-      "catalog_category_name": "مراقبت پوست",
-      "catalog_rank_observed_at": "2026-11-07T21:50:36.130965+00:00",
+      "catalog_category_name": "آرایشی و بهداشتی",
+      "catalog_rank_observed_at": "2026-11-08T07:09:35.534169+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 449000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-07T13:52:49.804846+00:00",
-      "last_seen_at": "2026-11-07T21:49:56.088027+00:00",
+      "last_seen_at": "2026-11-08T07:09:30.422545+00:00",
       "original_price": 1700000,
       "product_id": "dkp-21332877",
       "product_url": "https://www.digikala.com/product/dkp-21332877/",
@@ -102213,6 +102225,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "8099",
+      "catalog_best_selling_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_best_selling_rank": 9403,
+      "catalog_best_selling_ranks_by_category": {
+        "8099": {
+          "category_name": "تجهیزات تردد، حفاظت و امنیت",
+          "observed_at": "2026-11-08T07:09:35.525064+00:00",
+          "rank": 9403
+        }
+      },
+      "catalog_category_id": "8099",
+      "catalog_category_ids": [
+        "8099"
+      ],
+      "catalog_category_name": "تجهیزات تردد، حفاظت و امنیت",
+      "catalog_rank_observed_at": "2026-11-08T07:09:35.525064+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 51030,
+      "discount_percent": 69,
+      "first_seen_at": "2026-11-08T07:09:35.525064+00:00",
+      "last_seen_at": "2026-11-08T07:09:24.053472+00:00",
+      "original_price": 162490,
+      "product_id": "dkp-15906911",
+      "product_url": "https://www.digikala.com/product/dkp-15906911/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 111460,
+      "source": "digikala_catalog_sweep",
+      "title": "تابلو راهنما طرح شماره اتاق مدل NS423"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "6617",
       "catalog_best_selling_category_name": "ماسک صورت و بدن",
       "catalog_best_selling_rank": 367,
@@ -105139,14 +105183,19 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "10050",
-      "catalog_best_selling_category_name": "مراقبت از پوست و مو",
-      "catalog_best_selling_rank": 2305,
+      "catalog_best_selling_category_id": "5700",
+      "catalog_best_selling_category_name": "لوازم آرایشی",
+      "catalog_best_selling_rank": 9420,
       "catalog_best_selling_ranks_by_category": {
         "10050": {
           "category_name": "مراقبت از پوست و مو",
           "observed_at": "2026-11-07T21:16:27.399601+00:00",
           "rank": 2305
+        },
+        "5700": {
+          "category_name": "لوازم آرایشی",
+          "observed_at": "2026-11-08T07:09:35.524434+00:00",
+          "rank": 9420
         },
         "6471": {
           "category_name": "آرایش لب",
@@ -105159,19 +105208,20 @@
           "rank": 212
         }
       },
-      "catalog_category_id": "10050",
+      "catalog_category_id": "5700",
       "catalog_category_ids": [
+        "5700",
         "6471",
         "6475",
         "10050"
       ],
-      "catalog_category_name": "مراقبت از پوست و مو",
-      "catalog_rank_observed_at": "2026-11-07T21:16:27.399601+00:00",
+      "catalog_category_name": "لوازم آرایشی",
+      "catalog_rank_observed_at": "2026-11-08T07:09:35.524434+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1280000,
       "discount_percent": 68,
       "first_seen_at": "2026-11-07T15:29:00.998818+00:00",
-      "last_seen_at": "2026-11-07T21:15:32.493712+00:00",
+      "last_seen_at": "2026-11-08T07:09:23.698273+00:00",
       "original_price": 4000000,
       "product_id": "dkp-21843797",
       "product_url": "https://www.digikala.com/product/dkp-21843797/",
@@ -112102,53 +112152,9 @@
       "savings_toman": 5960000,
       "source": "digikala_catalog_sweep",
       "title": "لوستر بافتنی مدل تک شعله مدل رافیا سامورایی"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "10145",
-      "catalog_best_selling_category_name": "آینه سرویس بهداشتی",
-      "catalog_best_selling_rank": 59,
-      "catalog_best_selling_ranks_by_category": {
-        "10145": {
-          "category_name": "آینه سرویس بهداشتی",
-          "observed_at": "2026-11-07T13:47:58.601242+00:00",
-          "rank": 59
-        },
-        "10656": {
-          "category_name": "تجهیزات و قطعات سرویس بهداشتی",
-          "observed_at": "2026-11-07T15:57:20.853130+00:00",
-          "rank": 251
-        },
-        "6264": {
-          "category_name": "سرویس بهداشتی",
-          "observed_at": "2026-11-07T17:55:12.214740+00:00",
-          "rank": 661
-        }
-      },
-      "catalog_category_id": "6264",
-      "catalog_category_ids": [
-        "6264",
-        "10145",
-        "10656"
-      ],
-      "catalog_category_name": "سرویس بهداشتی",
-      "catalog_rank_observed_at": "2026-11-07T13:47:58.601242+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 2960700,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-07T13:47:58.601242+00:00",
-      "last_seen_at": "2026-11-07T17:55:05.888029+00:00",
-      "original_price": 8880000,
-      "product_id": "dkp-9396133",
-      "product_url": "https://www.digikala.com/product/dkp-9396133/",
-      "rating": 3.36,
-      "review_count": 99,
-      "savings_toman": 5919300,
-      "source": "digikala_catalog_sweep",
-      "title": "آیینه آزالیا مدل H3040"
     }
   ],
   "cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-08T07:08:34.378825+00:00"
+  "updated_at": "2026-11-08T07:09:35.557781+00:00"
 }
