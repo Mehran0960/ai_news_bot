@@ -1,235 +1,177 @@
 import unittest
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch
 
 import affilio_radar as radar
+from publisher import _eligible_fallback_candidates
 
 
 class OfferChinSelectionEvidenceTests(unittest.TestCase):
     def setUp(self):
-        self.now = datetime(2026, 11, 2, 16, 30, tzinfo=timezone.utc)
+        self.now = datetime(2026, 11, 8, 12, 0, tzinfo=timezone.utc)
 
-    def test_recent_review_growth_must_meet_threshold_and_be_fresh(self):
+    def _verified_review_growth(self, **overrides):
         record = {
             "current_demand_verified": True,
-            "recent_review_growth_7d": radar.CURRENT_DEMAND_MIN_REVIEW_GROWTH,
-            "demand_window_hours": radar.CURRENT_DEMAND_MIN_OBSERVATION_HOURS,
+            "recent_review_growth_window": 6,
+            "recent_review_growth_7d": 6,
+            "demand_window_hours": 6,
             "demand_observed_at": self.now.isoformat(),
             "demand_signal_source": "digikala_recent_review_growth",
         }
+        record.update(overrides)
+        return record
+
+    def test_review_growth_is_only_an_indirect_fresh_proxy_not_sales(self):
+        record = self._verified_review_growth()
+        self.assertTrue(radar.has_current_demand_signal(record, now=self.now))
         self.assertTrue(radar.has_actionable_demand_signal(record, now=self.now))
-
-        below_threshold = dict(record)
-        below_threshold["recent_review_growth_7d"] = max(
-            0, radar.CURRENT_DEMAND_MIN_REVIEW_GROWTH - 1
-        )
-        self.assertFalse(radar.has_actionable_demand_signal(below_threshold, now=self.now))
-
-        stale = dict(record)
-        stale["demand_observed_at"] = (
-            self.now - timedelta(hours=radar.CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS + 1)
-        ).isoformat()
-        self.assertFalse(radar.has_actionable_demand_signal(stale, now=self.now))
-
-    def test_fresh_digikala_bestseller_rank_is_actionable_but_stale_or_outside_top60_is_not(self):
-        record = {
-            "catalog_sort_mode": "best_selling",
-            "catalog_best_selling_rank": 12,
-            "catalog_rank_observed_at": (self.now - timedelta(hours=2)).isoformat(),
-        }
-        self.assertTrue(radar.has_actionable_demand_signal(record, now=self.now))
-
-        outside_top60 = dict(record, catalog_best_selling_rank=61)
-        self.assertFalse(radar.has_actionable_demand_signal(outside_top60, now=self.now))
 
         stale = dict(
             record,
-            catalog_rank_observed_at=(
-                self.now - timedelta(hours=radar.BEST_SELLING_MAX_AGE_HOURS + 1)
-            ).isoformat(),
+            demand_observed_at=(self.now - timedelta(hours=radar.CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS + 1)).isoformat(),
         )
         self.assertFalse(radar.has_actionable_demand_signal(stale, now=self.now))
 
-        wrong_sort = dict(record, catalog_sort_mode="price")
-        self.assertFalse(radar.has_actionable_demand_signal(wrong_sort, now=self.now))
-
-    def test_stale_or_missing_price_evidence_cannot_qualify_as_verified_value(self):
-        base = {"discount_percent": 14, "savings_toman": 140_000}
-        self.assertFalse(radar.has_attractive_discount_value(base, now=self.now))
-        # Even a very large displayed markdown is not proof when its reference price
-        # has not been independently verified.
-        self.assertFalse(
-            radar.has_attractive_discount_value(
-                dict(base, discount_percent=85, savings_toman=850_000),
-                now=self.now,
-            )
-        )
-
-        stale_history = {
-            **base,
-            "discount_percent": 10,
-            "history_status": "verified",
-            "historical_deal_eligible": True,
-            "history_checked_at": (
-                self.now - timedelta(hours=radar.PRICE_HISTORY_RECHECK_HOURS + 1)
-            ).isoformat(),
+        lifetime_reviews_only = {
+            "review_count": 250_000,
+            "rating": 4.9,
+            "historical_popularity_score": 100,
+            "demand_score": 100,
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 1,
+            "catalog_rank_observed_at": self.now.isoformat(),
         }
-        self.assertFalse(radar.has_attractive_discount_value(stale_history, now=self.now))
+        self.assertFalse(radar.has_actionable_demand_signal(lifetime_reviews_only, now=self.now))
 
-        fresh_history_reject = {
-            **base,
-            "discount_percent": 80,
-            "history_status": "verified",
-            "historical_deal_eligible": False,
-            "history_checked_at": (self.now - timedelta(hours=2)).isoformat(),
-        }
-        self.assertFalse(
-            radar.has_attractive_discount_value(fresh_history_reject, now=self.now)
-        )
-
-    def test_fresh_independent_price_comparisons_can_prove_value(self):
-        fresh_history = {
-            "discount_percent": 5,
-            "savings_toman": 100_000,
-            "history_status": "verified",
-            "historical_deal_eligible": True,
-            "history_checked_at": (self.now - timedelta(hours=1)).isoformat(),
-        }
-        self.assertTrue(radar.has_attractive_discount_value(fresh_history, now=self.now))
-
-        fresh_market = {
-            "discount_percent": 5,
-            "savings_toman": 100_000,
-            "market_status": "verified",
-            "market_reference_kind": "seller_median",
-            "market_price_advantage_pct": radar.VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT,
-            "market_price_checked_at": (self.now - timedelta(hours=1)).isoformat(),
-        }
-        self.assertTrue(radar.has_attractive_discount_value(fresh_market, now=self.now))
-
-        stale_market = dict(
-            fresh_market,
-            discount_percent=14,
-            market_price_checked_at=(
-                self.now - timedelta(hours=radar.MARKET_PRICE_RECHECK_HOURS + 1)
-            ).isoformat(),
-        )
-        self.assertFalse(radar.has_attractive_discount_value(stale_market, now=self.now))
-
-    def test_shadow_rank_prefers_fresh_demand_while_live_sort_stays_discount_first(self):
-        fresh_demand = {
-            "product_id": "dkp-fresh-demand",
-            "current_demand_verified": True,
-            "current_demand_score": 72,
-            "recent_review_growth_7d": radar.CURRENT_DEMAND_MIN_REVIEW_GROWTH,
-            "demand_window_hours": radar.CURRENT_DEMAND_MIN_OBSERVATION_HOURS,
-            "demand_observed_at": self.now.isoformat(),
-            "demand_signal_source": "digikala_recent_review_growth",
-            "discount_percent": 18,
-            "savings_toman": 180_000,
-        }
-        high_discount_no_demand = {
+    def test_discount_and_savings_always_beat_review_growth_proxy(self):
+        high_discount_without_growth = {
             "product_id": "dkp-high-discount",
             "discount_percent": 85,
             "savings_toman": 8_500_000,
+            "review_count": 0,
         }
-
-        self.assertGreater(
-            radar.selection_policy_shadow_sort_key(fresh_demand, now=self.now),
-            radar.selection_policy_shadow_sort_key(high_discount_no_demand, now=self.now),
-        )
-        # The active production comparator is deliberately unchanged in shadow mode.
-        self.assertGreater(
-            radar.deal_sort_key(high_discount_no_demand, now=self.now),
-            radar.deal_sort_key(fresh_demand, now=self.now),
-        )
-
-    def test_shadow_rank_prefers_fresh_independent_value_with_equal_demand(self):
-        verified_value = {
-            "product_id": "dkp-verified-value",
-            "discount_percent": 8,
-            "savings_toman": 80_000,
-            "market_status": "verified",
-            "market_reference_kind": "seller_median",
-            "market_price_advantage_pct": radar.VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT,
-            "market_price_checked_at": self.now.isoformat(),
+        lower_discount_with_growth = {
+            "product_id": "dkp-review-growth",
+            "discount_percent": 18,
+            "savings_toman": 180_000,
+            "review_count": 50,
+            **self._verified_review_growth(),
         }
-        retailer_only_markdown = {
-            "product_id": "dkp-retailer-only",
-            "discount_percent": 75,
-            "savings_toman": 750_000,
-        }
-
-        self.assertTrue(radar.has_attractive_discount_value(verified_value, now=self.now))
-        self.assertFalse(radar.has_attractive_discount_value(retailer_only_markdown, now=self.now))
         self.assertGreater(
-            radar.selection_policy_shadow_sort_key(verified_value, now=self.now),
-            radar.selection_policy_shadow_sort_key(retailer_only_markdown, now=self.now),
+            radar.deal_sort_key(high_discount_without_growth, now=self.now),
+            radar.deal_sort_key(lower_discount_with_growth, now=self.now),
+        )
+        self.assertGreater(
+            radar.discovery_queue_sort_key(high_discount_without_growth, now=self.now),
+            radar.discovery_queue_sort_key(lower_discount_with_growth, now=self.now),
         )
 
-    def test_shadow_telemetry_does_not_mutate_candidate_list_or_records(self):
-        rows = [
-            {"product_id": "dkp-shadow-a", "discount_percent": 20, "savings_toman": 100_000},
-            {"product_id": "dkp-shadow-b", "discount_percent": 60, "savings_toman": 900_000},
-        ]
-        snapshot = [dict(row) for row in rows]
-        with patch("builtins.print"):
-            radar.log_selection_policy_shadow(rows, now=self.now)
-        self.assertEqual(rows, snapshot)
-
-    def test_selector_hands_off_live_discounts_by_percentage_then_savings(self):
-        def candidate(pid, discount, rank, market_verified=False):
-            row = {
-                "product_id": pid,
-                "product_url": f"https://www.digikala.com/product/{pid}/",
-                "title": f"محصول آزمایشی {pid}",
-                "availability": "in_stock",
-                "current_price": 400_000,
-                "original_price": 500_000,
-                "discount_percent": discount,
-                "savings_toman": 500_000 - 500_000 * (100 - discount) // 100,
-                "image_url": "https://example.com/product.webp",
-                "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2F"
-                                 + pid + "%2F",
-                "catalog_sort_mode": "best_selling",
-                "catalog_best_selling_rank": rank,
-                "catalog_rank_observed_at": self.now.isoformat(),
-            }
-            if market_verified:
-                row.update({
-                    "market_status": "verified",
-                    "market_reference_kind": "seller_median",
-                    "market_price_advantage_pct": radar.VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT,
-                    "market_price_checked_at": self.now.isoformat(),
-                })
-            return row
-
-        good = candidate("dkp-101", 20, 12, market_verified=True)
-        weak_demand = candidate("dkp-102", 80, 61, market_verified=True)
-        weak_value = candidate("dkp-103", 85, 8)
-
-        with (
-            patch.object(radar, "is_discount_publish_eligible", return_value=True),
-            patch.object(radar, "is_market_value_publish_eligible", return_value=True),
-            patch.object(radar, "has_publishable_expiry_or_open_offer", return_value=True),
-            patch.object(radar, "is_fresh_selection_candidate", return_value=True),
-            patch.object(radar, "is_selection_candidate_rejected", return_value=False),
-            patch.object(
-                radar,
-                "_order_candidates_by_primary_rank",
-                side_effect=lambda records, **_kwargs: list(records),
-            ),
-        ):
-            selected, _floor, _quality_pool = radar.select_discount_fallback_candidates(
-                [weak_demand, weak_value, good],
-                {},
-                now=self.now,
-            )
-
-        self.assertEqual(
-            [row["product_id"] for row in selected],
-            ["dkp-103", "dkp-102", "dkp-101"],
+    def test_fresh_review_growth_is_used_only_after_both_discount_keys_tie(self):
+        no_growth = {
+            "product_id": "dkp-no-growth",
+            "discount_percent": 70,
+            "savings_toman": 700_000,
+            "review_count": 900_000,
+            "rating": 5.0,
+            "demand_score": 999,
+        }
+        with_growth = {
+            "product_id": "dkp-growth",
+            "discount_percent": 70,
+            "savings_toman": 700_000,
+            "review_count": 1,
+            **self._verified_review_growth(),
+        }
+        self.assertGreater(
+            radar.deal_sort_key(with_growth, now=self.now),
+            radar.deal_sort_key(no_growth, now=self.now),
         )
+
+        lower_savings_even_with_growth = {
+            **with_growth,
+            "product_id": "dkp-lower-savings",
+            "savings_toman": 699_999,
+        }
+        self.assertGreater(
+            radar.deal_sort_key(no_growth, now=self.now),
+            radar.deal_sort_key(lower_savings_even_with_growth, now=self.now),
+        )
+
+    def test_fresh_bestseller_rank_never_counts_as_review_growth_or_sales(self):
+        bestseller_only = {
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 1,
+            "catalog_rank_observed_at": self.now.isoformat(),
+            "review_count": 25_000,
+            "rating": 4.9,
+        }
+        self.assertFalse(radar.has_actionable_demand_signal(bestseller_only, now=self.now))
+
+    def test_positive_market_or_history_confirmation_is_not_required(self):
+        product = {
+            "product_id": "dkp-retailer-markdown",
+            "product_url": "https://www.digikala.com/product/dkp-1234567/",
+            "title": "پاوربانک آزمایشی",
+            "availability": "in_stock",
+            "current_price": 900_000,
+            "original_price": 1_000_000,
+            "discount_percent": 10,
+            "savings_toman": 100_000,
+            "image_url": "https://example.com/product.webp",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1234567%2F",
+            "selection_discount_floor": 1,
+            "publication_policy": "discount_first_review_growth_tiebreak_v3",
+        }
+        # No review-growth or independent market/history evidence is present.
+        self.assertTrue(radar.is_discount_publish_eligible(product, minimum_discount_percent=1, now=self.now))
+        eligible = _eligible_fallback_candidates([product], self.now)
+        self.assertEqual([row["product_id"] for row in eligible], ["dkp-1234567"])
+
+    def test_fresh_verified_contradictory_history_can_veto_but_stale_history_cannot(self):
+        base = {
+            "product_id": "dkp-history-check",
+            "product_url": "https://www.digikala.com/product/dkp-1234567/",
+            "title": "پاوربانک آزمایشی",
+            "availability": "in_stock",
+            "current_price": 900_000,
+            "original_price": 1_000_000,
+            "discount_percent": 10,
+            "savings_toman": 100_000,
+            "image_url": "https://example.com/product.webp",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1234567%2F",
+        }
+        fresh_reject = {
+            **base,
+            "history_status": "verified",
+            "historical_deal_eligible": False,
+            "history_checked_at": self.now.isoformat(),
+        }
+        self.assertFalse(radar.is_discount_publish_eligible(fresh_reject, minimum_discount_percent=1, now=self.now))
+
+        stale_reject = {
+            **base,
+            "history_status": "verified",
+            "historical_deal_eligible": False,
+            "history_checked_at": (self.now - timedelta(hours=radar.PRICE_HISTORY_RECHECK_HOURS + 1)).isoformat(),
+        }
+        self.assertTrue(radar.is_discount_publish_eligible(stale_reject, minimum_discount_percent=1, now=self.now))
+
+    def test_price_math_must_match_and_default_floor_is_any_positive_markdown(self):
+        valid = {
+            "discount_percent": 10,
+            "savings_toman": 100_000,
+            "current_price": 900_000,
+            "original_price": 1_000_000,
+        }
+        self.assertTrue(radar.has_meaningful_discount(valid))
+        self.assertFalse(radar.has_meaningful_discount({**valid, "discount_percent": 11}))
+        self.assertFalse(radar.has_meaningful_discount({**valid, "savings_toman": 99_000}))
+        self.assertTrue(radar.has_meaningful_discount({
+            "discount_percent": 1,
+            "savings_toman": 10_000,
+            "current_price": 990_000,
+            "original_price": 1_000_000,
+        }))
 
 
 if __name__ == "__main__":
