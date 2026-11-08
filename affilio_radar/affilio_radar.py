@@ -3200,7 +3200,7 @@ def merge_discovery_queue(
         raw_brand = row.get("brand") or row.get("brand_name") or old.get("brand") or old.get("brand_name") or ""
         if isinstance(raw_brand, dict):
             raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
-        brand = re.sub(r"\\s+", " ", str(raw_brand or "")).strip()[:100]
+        brand = re.sub(r"\s+", " ", str(raw_brand or "")).strip()[:100]
 
         record = {
             **old,
