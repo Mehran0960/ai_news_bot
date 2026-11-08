@@ -42,3 +42,11 @@ This is the canonical placement and legibility standard for generated OfferChin 
 - The sync workflow downloads the source assets from official/first-party sources and commits them locally. The shared renderer crops the icon-only viewBox/mark before drawing; content renderers never make network requests for platform logos. Regression tests validate icon-only geometry and preserved proportions.
 - An icon must be resized proportionally with high-quality resampling. Its height is kept small and consistent; its width follows the symbol's aspect ratio. The only permitted source modification is the crop/viewport that removes the platform-name wordmark; the symbol artwork itself is immutable.
 - A logo rendering failure must not block a product post. Log the missing/invalid asset and omit it rather than draw an inaccurate replacement.
+
+
+
+## Brand display-name casing
+
+Any visible Latin spelling of the project/brand name in generated captions, image text, video title cards, video metadata, descriptions, or other public-facing copy must be exactly **OfferChin** (capital O and C). Do not display `Offerchin`, `offerchin`, or `OFFERCHIN` as the brand name.
+
+The shared `normalize_brand_display_name` helper enforces this spelling in public-facing title and description paths. It must not rewrite canonical platform identifiers, URLs, usernames, module/file names, API IDs, or environment-variable keys. For example, `rubika.ir/offerchin` and `youtube.com/@offerchin` are platform handles and must retain their actual lowercase spelling.

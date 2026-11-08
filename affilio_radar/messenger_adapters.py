@@ -113,18 +113,54 @@ def _validated_eitaa_channel_url() -> str:
     return value
 
 
+def _rubika_caption_payload(
+    renderer: Any,
+    item: dict,
+    affiliate_url: str,
+) -> tuple[str, dict]:
+    """Render the shared caption with a clickable in-caption membership link.
+
+    Rubika sendFile accepts text metadata. Link offsets are UTF-16 code units,
+    not Python character indexes; calculate both after removing Markdown syntax.
+    """
+    caption = renderer.build_caption(
+        item, affiliate_url, channel_label=RUBIKA_CHANNEL_URL,
+        use_unicode_strikethrough=True,
+    )
+    link_pattern = re.compile(
+        r"\[(" + re.escape(RUBIKA_MEMBERSHIP_BUTTON_TEXT) + r")\]\(([^)]+)\)"
+    )
+    match = link_pattern.search(caption)
+    if not match:
+        raise RuntimeError("Rubika caption is missing the shared membership link")
+
+    membership_label = match.group(1)
+    caption = caption[:match.start()] + membership_label + caption[match.end():]
+    caption = re.sub(r"\\([\\_*()\[\]])", r"\1", caption)
+    caption = caption.replace("*", "").strip()
+    caption = caption[:3800]
+
+    # Re-find after Markdown removal, since earlier bold markers and emojis
+    # change the final UTF-16 offset. The membership label is the final CTA.
+    link_start = caption.rfind(membership_label)
+    if link_start < 0:
+        raise RuntimeError("Rubika caption membership label was truncated")
+    utf16_start = len(caption[:link_start].encode("utf-16-le")) // 2
+    utf16_length = len(membership_label.encode("utf-16-le")) // 2
+    metadata = {
+        "meta_data_parts": [{
+            "type": "Link",
+            "from_index": utf16_start,
+            "length": utf16_length,
+            "link_url": RUBIKA_CHANNEL_URL,
+        }],
+    }
+    return caption, metadata
+
+
 def _caption(renderer: Any, item: dict, affiliate_url: str, channel: str) -> str:
     if channel == "rubika":
-        # Keep the shared caption body. Rubika's membership action is rendered in
-        # the same inline keypad as the purchase action because its text field is plain.
-        caption = renderer.build_caption(
-            item, affiliate_url, channel_label=RUBIKA_CHANNEL_URL,
-            use_unicode_strikethrough=True,
-        )
-        caption = re.sub(r"\[([^\]]+)\]\([^)]+\)", "", caption).rstrip()
-        caption = re.sub(r"\\([\\_*()\[\]])", r"\1", caption)
-        caption = caption.replace("*", "")
-        return caption[:3800]
+        return _rubika_caption_payload(renderer, item, affiliate_url)[0]
 
     if channel != "eitaa":
         raise ValueError(f"Unsupported caption channel: {channel}")
@@ -158,39 +194,44 @@ def _caption(renderer: Any, item: dict, affiliate_url: str, channel: str) -> str
     return (caption.rstrip() + f"\n\n{purchase_label}\n{affiliate_url}")[:3800]
 
 
-def _rubika_inline_keypad(renderer: Any, item: dict, affiliate_url: str) -> dict:
-    """Attach direct purchase and channel-membership URL buttons to the same photo post."""
+def _rubika_inline_keypad(
+    renderer: Any,
+    item: dict,
+    affiliate_url: str,
+    *,
+    include_membership: bool = False,
+) -> dict:
+    """Attach a direct purchase button, optionally adding membership as API fallback."""
     label_builder = getattr(renderer, "purchase_button_label", None)
     if callable(label_builder):
         purchase_label = str(label_builder(affiliate_url))
     else:
         purchase_label = purchase_action_label(item.get("merchant") or "دیجی‌کالا")
-    return {
-        "rows": [
-            {
-                "buttons": [{
-                    "id": "offerchin_buy_product",
-                    "type": "Link",
-                    "button_text": purchase_label,
-                    "button_link": {
-                        "type": "url",
-                        "link_url": affiliate_url,
-                    },
-                }],
+
+    rows = [{
+        "buttons": [{
+            "id": "offerchin_buy_product",
+            "type": "Link",
+            "button_text": purchase_label,
+            "button_link": {
+                "type": "url",
+                "link_url": affiliate_url,
             },
-            {
-                "buttons": [{
-                    "id": "offerchin_join_rubika",
-                    "type": "Link",
-                    "button_text": RUBIKA_MEMBERSHIP_BUTTON_TEXT,
-                    "button_link": {
-                        "type": "url",
-                        "link_url": RUBIKA_CHANNEL_URL,
-                    },
-                }],
-            },
-        ],
-    }
+        }],
+    }]
+    if include_membership:
+        rows.append({
+            "buttons": [{
+                "id": "offerchin_join_rubika",
+                "type": "Link",
+                "button_text": RUBIKA_MEMBERSHIP_BUTTON_TEXT,
+                "button_link": {
+                    "type": "url",
+                    "link_url": RUBIKA_CHANNEL_URL,
+                },
+            }],
+        })
+    return {"rows": rows}
 
 
 def _render(renderer: Any, item: dict, image_bytes: bytes, channel: str) -> bytes:
@@ -238,37 +279,32 @@ def send_rubika_photo(token: str, channel_id: str, item: dict, image_bytes: byte
     if not file_id:
         raise RuntimeError("Rubika image upload returned no file_id")
 
+    rubika_caption, rubika_metadata = _rubika_caption_payload(
+        renderer, item, affiliate_url
+    )
     send_payload = {
         "chat_id": channel_id,
         "file_id": file_id,
-        "text": _caption(renderer, item, affiliate_url, "rubika"),
+        "text": rubika_caption,
+        "metadata": rubika_metadata,
         "inline_keypad": _rubika_inline_keypad(renderer, item, affiliate_url),
     }
     try:
         sent = _rubika_call(token, "sendFile", send_payload)
     except RuntimeError as exc:
-        # An explicit INVALID_INPUT response means Rubika rejected the request;
-        # no message was accepted, so one conservative retry without the optional
-        # keypad cannot duplicate a public post. Network/unknown failures are never retried.
+        # An explicit INVALID_INPUT response proves the first send was rejected.
+        # Retry without text metadata, using two direct Link buttons; ambiguous
+        # network/server failures are never retried to avoid duplicate posts.
         if "INVALID_INPUT" not in str(exc).upper():
             raise
-        label_builder = getattr(renderer, "purchase_button_label", None)
-        purchase_label = (
-            str(label_builder(affiliate_url))
-            if callable(label_builder)
-            else purchase_action_label(item.get("merchant") or "دیجی‌کالا")
-        )
-        link_footer = (
-            f"\n\n{purchase_label}\n{affiliate_url}"
-            f"\n\n{RUBIKA_MEMBERSHIP_BUTTON_TEXT}\n{RUBIKA_CHANNEL_URL}"
-        )
-        plain_caption = _caption(renderer, item, affiliate_url, "rubika").rstrip()
-        plain_caption = plain_caption[: max(0, 3800 - len(link_footer))] + link_footer
-        print("RUBIKA_INLINE_KEYPAD_REJECTED fallback=plain_caption_links")
+        print("RUBIKA_CAPTION_METADATA_REJECTED fallback=dual_link_keypad")
         sent = _rubika_call(token, "sendFile", {
             "chat_id": channel_id,
             "file_id": file_id,
-            "text": plain_caption,
+            "text": rubika_caption,
+            "inline_keypad": _rubika_inline_keypad(
+                renderer, item, affiliate_url, include_membership=True
+            ),
         })
     message_id = str(sent.get("message_id") or "").strip()
     if not message_id:
