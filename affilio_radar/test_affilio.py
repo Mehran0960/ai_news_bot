@@ -1124,6 +1124,8 @@ class AffilioRadarTests(unittest.TestCase):
     def test_deadline_critical_priority_accepts_any_unexpired_offer_past_23_minutes(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
         close_but_safe = {
+            "current_price": 150_000,
+            "original_price": 300_000,
             "discount_percent": 50,
             "savings_toman": 150_000,
             "deal_expires_at": (now + timedelta(minutes=110)).isoformat(),
@@ -2784,12 +2786,16 @@ class AffilioRadarTests(unittest.TestCase):
         now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
         global_leader = {
             "product_id": "dkp-global-leader",
+            "current_price": 200_000,
+            "original_price": 900_000,
             "discount_percent": 78,
             "savings_toman": 700_000,
             "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
         }
         lower_discount_but_urgent = {
             "product_id": "dkp-lower-urgent",
+            "current_price": 750_000,
+            "original_price": 1_250_000,
             "discount_percent": 40,
             "savings_toman": 500_000,
             "deal_expires_at": (now + timedelta(minutes=90)).isoformat(),
