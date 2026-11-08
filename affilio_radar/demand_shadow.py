@@ -16,7 +16,7 @@ DIGIKALA_BESTSELLER_MAX_RANK = 60
 DIGIKALA_BESTSELLER_MAX_AGE_HOURS = 24
 TOROB_TRENDS_MAX_AGE_HOURS = 12
 TOROB_TRENDS_LIMIT = 30
-MAX_CATEGORY_GROUPS = 30
+MAX_CATEGORY_GROUPS = 80
 MAX_PRODUCTS_PER_CATEGORY = 15
 MAX_TREND_MATCHES = 60
 
@@ -274,22 +274,42 @@ def build_demand_shadow_report(
     products: list[dict[str, Any]],
     torob_snapshot: Any = None,
     now: datetime | None = None,
+    catalog_candidates: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Build category-local evidence tables without a global popularity score or live reordering."""
+    """Build category-local evidence from the completed catalog snapshot, plus fresh detail overlays."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
     torob_status, torob_age = torob_trends_snapshot_status(torob_snapshot, current)
 
+    detailed_products = [row for row in (products or []) if isinstance(row, dict)]
+    detailed_by_id = {
+        str(row.get("product_id") or row.get("product_url") or ""): row
+        for row in detailed_products
+    }
+    snapshot_rows = (
+        [row for row in catalog_candidates if isinstance(row, dict)]
+        if isinstance(catalog_candidates, list) else []
+    )
+    # Snapshot rows supply the broad ranking universe. Detail-checked records only
+    # overlay fresher title/discount values when the same product is present.
+    if snapshot_rows:
+        ranking_products = []
+        for row in snapshot_rows:
+            pid = str(row.get("product_id") or row.get("product_url") or "")
+            ranking_products.append({**row, **detailed_by_id.get(pid, {})})
+        data_scope = "verified_completed_catalog_snapshot"
+    else:
+        ranking_products = detailed_products
+        data_scope = "deep_checked_products_fallback"
+
     category_buckets: dict[str, dict[str, Any]] = {}
     product_signals = []
     ranked_count = 0
     strong_count = 0
     weak_count = 0
-    for product in products or []:
-        if not isinstance(product, dict):
-            continue
+    for product in ranking_products:
         product_id = str(product.get("product_id") or product.get("product_url") or "")[:160]
         title = str(product.get("title") or "")[:180]
         digikala = extract_digikala_bestseller_evidence(product, current)
@@ -300,6 +320,8 @@ def build_demand_shadow_report(
         signal_row = {
             "product_id": product_id,
             "title": title,
+            "in_completed_catalog_snapshot": data_scope == "verified_completed_catalog_snapshot",
+            "detail_checked_in_current_run": product_id in detailed_by_id,
             "discount_percent": max(0, _integer(product.get("discount_percent")) or 0),
             "savings_toman": max(0, _integer(product.get("savings_toman")) or 0),
             "digikala_bestseller": digikala,
@@ -359,10 +381,13 @@ def build_demand_shadow_report(
         "generated_at": current.isoformat(),
         "mode": "shadow_only",
         "live_ranking_changed": False,
+        "data_scope": data_scope,
         "global_cross_category_bestseller_rank": "not_computed",
         "principle": "DigiKala bestseller ranks are compared only inside their own category; Torob trends are query-interest hints, not unit sales.",
         "summary": {
             "products_examined": len(product_signals),
+            "catalog_snapshot_candidates_examined": len(snapshot_rows),
+            "deep_checked_products_in_current_run": len(detailed_products),
             "products_with_fresh_digikala_rank": ranked_count,
             "digikala_rank_coverage_percent": round(100 * ranked_count / len(product_signals), 1) if product_signals else 0.0,
             "torob_snapshot_status": torob_status,
