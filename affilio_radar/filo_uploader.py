@@ -14,6 +14,7 @@ import subprocess
 import tempfile
 import time
 import unicodedata
+from offerchin_copy import normalize_brand_display_name
 from pathlib import Path
 from typing import Mapping
 from urllib.parse import urlparse
@@ -514,8 +515,8 @@ def upload_filo_video(
     if not username or not password:
         raise FiloUploadError("filo_credentials_missing")
     path = Path(video_path)
-    clean_title = re.sub(r"\s+", " ", str(title or "").strip())[:180]
-    clean_description = str(description or "").strip()[:1_800]
+    clean_title = normalize_brand_display_name(re.sub(r"\s+", " ", str(title or "").strip()))[:180]
+    clean_description = normalize_brand_display_name(str(description or "").strip())[:1_800]
     if not path.is_file() or path.stat().st_size < 1_024 or path.suffix.lower() != ".mp4":
         raise FiloUploadError("filo_video_file_invalid")
     if not clean_title or len(clean_title) < 5:
