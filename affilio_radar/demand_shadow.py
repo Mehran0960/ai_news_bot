@@ -242,7 +242,7 @@ def match_torob_trends_to_product(
         }
 
     title = _normal_text(product.get("title") or "")
-    title_tokens = set(title.split())
+    title_tokens = _meaningful_tokens(title)
     matches: list[dict[str, Any]] = []
     for trend in snapshot.get("trends", []):
         if not isinstance(trend, dict):
