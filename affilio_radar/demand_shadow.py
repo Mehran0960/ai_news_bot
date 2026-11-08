@@ -60,11 +60,21 @@ def _normal_text(value: Any) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def _token_forms(token: str) -> set[str]:
+    forms = {token}
+    for suffix in ("های", "ها", "ی"):
+        if token.endswith(suffix) and len(token) - len(suffix) >= 3:
+            forms.add(token[:-len(suffix)])
+    return forms
+
+
 def _meaningful_tokens(value: Any) -> set[str]:
-    return {
-        token for token in _normal_text(value).split()
-        if len(token) > 1 and token not in _TREND_STOP_WORDS
-    }
+    tokens = set()
+    for token in _normal_text(value).split():
+        if len(token) <= 1 or token in _TREND_STOP_WORDS:
+            continue
+        tokens.update(_token_forms(token))
+    return tokens
 
 
 def _rank_tier(rank: int) -> str:
@@ -112,7 +122,7 @@ def extract_digikala_bestseller_evidence(
             })
 
     # Legacy/flattened fields are accepted only when category-rank history is absent.
-    if not observations and not isinstance(raw_by_category, dict):
+    if not observations and not raw_by_category:
         rank = _integer(product.get("catalog_best_selling_rank"))
         observed_at = _parse_datetime(product.get("catalog_rank_observed_at"))
         if rank is not None and observed_at is not None and 1 <= rank <= max_rank:
