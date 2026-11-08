@@ -3,16 +3,26 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-import affilio_radar as radar_module
 from datetime import datetime, timedelta, timezone
 
-from demand_shadow import (
-    build_demand_shadow_report,
-    extract_digikala_bestseller_evidence,
-    match_torob_trends_to_product,
-    sanitize_torob_trends,
-    torob_trends_snapshot_status,
-)
+try:
+    from . import affilio_radar as radar_module
+    from .demand_shadow import (
+        build_demand_shadow_report,
+        extract_digikala_bestseller_evidence,
+        match_torob_trends_to_product,
+        sanitize_torob_trends,
+        torob_trends_snapshot_status,
+    )
+except ImportError:
+    import affilio_radar as radar_module
+    from demand_shadow import (
+        build_demand_shadow_report,
+        extract_digikala_bestseller_evidence,
+        match_torob_trends_to_product,
+        sanitize_torob_trends,
+        torob_trends_snapshot_status,
+    )
 
 
 class DemandShadowTests(unittest.TestCase):
