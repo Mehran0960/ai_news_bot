@@ -5070,6 +5070,17 @@ class AffilioRadarTests(unittest.TestCase):
         candidate["market_price_advantage_pct"] = 8
         self.assertTrue(is_market_value_publish_eligible(candidate))
 
+    def test_torob_http_490_is_classified_as_upstream_challenge(self):
+        challenge = RuntimeError("upstream request failed")
+        challenge.response = SimpleNamespace(status_code=490)
+        self.assertEqual(radar_module._market_http_status_code(challenge), 490)
+        self.assertTrue(radar_module._is_market_challenge_error(challenge))
+
+        unavailable = RuntimeError("upstream internal error")
+        unavailable.response = SimpleNamespace(status_code=502)
+        self.assertEqual(radar_module._market_http_status_code(unavailable), 502)
+        self.assertFalse(radar_module._is_market_challenge_error(unavailable))
+
     def test_market_price_enrichment_rotates_after_torob_challenge(self):
         now = datetime(2026, 11, 2, 4, 0, tzinfo=timezone.utc)
         products = [
@@ -5523,7 +5534,7 @@ class AffilioRadarTests(unittest.TestCase):
         merge_discovery_queue(queue, [], now + timedelta(minutes=20))
         self.assertNotIn("dkp-91011", queue)
 
-    def test_discovery_check_budget_is_discount_first_and_ignores_category_history(self):
+    def test_discovery_check_budget_applies_24h_family_guard_before_budget(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
         recent = [
             {"product_id": f"dkp-recent-audio-{i}", "title": f"هدفون بلوتوثی نمونه {i}",
@@ -5551,7 +5562,51 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_discovery_records_for_check(
             queue, now, max_count=2, published={}, recent_publications=recent
         )
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93031", "dkp-93032"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93032", "dkp-93033"])
+
+    def test_discovery_check_budget_applies_brand_and_family_guards_before_limit(self):
+        now = datetime(2026, 11, 6, 9, 0, tzinfo=timezone.utc)
+        recent = [{
+            "product_id": "dkp-94000",
+            "title": "چراغ مطالعه LED مدل قبلی",
+            "brand": "Nexa",
+            "ts": now.timestamp() - 1800,
+        }]
+        queue = {}
+        candidates = [
+            {
+                "product_url": "https://www.digikala.com/product/dkp-94001/",
+                "title": "مجموعه ابزار تعمیراتی مدل جدید",
+                "brand": {"name": "Nexa"},
+                "discount_percent": 95,
+                "savings_toman": 950_000,
+                "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+            },
+            {
+                "product_url": "https://www.digikala.com/product/dkp-94002/",
+                "title": "چراغ مطالعه LED مدل تازه",
+                "brand": "OtherBrand",
+                "discount_percent": 90,
+                "savings_toman": 900_000,
+                "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+            },
+            {
+                "product_url": "https://www.digikala.com/product/dkp-94003/",
+                "title": "جاروبرقی شارژی مدل مستقل",
+                "brand": "CleanCo",
+                "discount_percent": 70,
+                "savings_toman": 700_000,
+                "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
+            },
+        ]
+        merge_discovery_queue(queue, candidates, now)
+        self.assertEqual(queue["dkp-94001"]["brand"], "Nexa")
+        self.assertEqual(queue["dkp-94002"]["brand"], "OtherBrand")
+
+        selected = select_discovery_records_for_check(
+            queue, now, max_count=1, published={}, recent_publications=recent
+        )
+        self.assertEqual([pid for pid, _ in selected], ["dkp-94003"])
 
     def test_discovery_checks_prioritize_discount_over_deadline_urgency(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
