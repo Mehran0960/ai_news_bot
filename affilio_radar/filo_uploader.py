@@ -6,6 +6,7 @@ that is still awaiting review. Credentials are read only from the process env.
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
@@ -126,6 +127,16 @@ def _visible_first(page, selectors):
         locator = page.locator(selector).first
         if locator.count() and locator.is_visible():
             return locator
+    return None
+
+def _visible_enabled_first(page, selectors):
+    """Return the first visible, enabled matching control, not a disabled decoy."""
+    for selector in selectors:
+        locator = page.locator(selector)
+        for index in range(locator.count()):
+            candidate = locator.nth(index)
+            if candidate.count() and candidate.is_visible() and candidate.is_enabled():
+                return candidate
     return None
 
 
@@ -265,18 +276,100 @@ def _login(page, username: str, password: str) -> None:
     username_field.press("Tab")
     password_field.press("Tab")
 
-    submit = _visible_first(page, ["button[type='submit']", "input[type='submit']"])
-    if submit is None:
-        submit = page.get_by_role("button", name=re.compile(r"^ورود$|^login$", re.I)).first
-    if not submit.count() or not submit.is_visible():
-        raise FiloUploadError("filo_login_submit_not_ready")
-    enabled = False
+    submit = None
+    submit_selectors = ["button[type='submit']", "input[type='submit']"]
+    login_role_button = page.get_by_role("button", name=re.compile(r"^ورود$|^login$", re.I)).first
     for _ in range(24):
-        enabled = submit.is_enabled()
-        if enabled:
+        submit = _visible_enabled_first(password_form, submit_selectors)
+        if submit is None:
+            submit = _visible_enabled_first(page, submit_selectors)
+        if (
+            submit is None
+            and login_role_button.count()
+            and login_role_button.is_visible()
+            and login_role_button.is_enabled()
+        ):
+            submit = login_role_button
+        if submit is not None:
             break
         time.sleep(0.4)
-    if not enabled:
+    if submit is None:
+        # Emit only structural, non-secret diagnostics. Never include entered values,
+        # cookies, query parameters, or full page text in Actions logs.
+        diagnostic = page.evaluate(
+            """() => {
+              const visible = el => Boolean(el && el.offsetParent !== null);
+              const short = value => String(value || '').trim().replace(/\\s+/g, ' ').slice(0, 64);
+              const validity = el => {
+                if (!el.validity) return null;
+                return {
+                  valid: el.validity.valid,
+                  valueMissing: el.validity.valueMissing,
+                  typeMismatch: el.validity.typeMismatch,
+                  patternMismatch: el.validity.patternMismatch,
+                  tooShort: el.validity.tooShort,
+                  tooLong: el.validity.tooLong
+                };
+              };
+              const fields = Array.from(document.querySelectorAll('input, textarea, select'))
+                .filter(visible).slice(0, 12).map(el => ({
+                  tag: el.tagName.toLowerCase(),
+                  type: short(el.type || ''),
+                  name: short(el.name || ''),
+                  id: short(el.id || ''),
+                  placeholder: short(el.getAttribute('placeholder') || ''),
+                  required: Boolean(el.required),
+                  disabled: Boolean(el.disabled),
+                  ariaDisabled: el.getAttribute('aria-disabled'),
+                  valueLength: 'value' in el ? String(el.value || '').length : null,
+                  validity: validity(el)
+                }));
+              const buttons = Array.from(document.querySelectorAll('button, input[type=submit]'))
+                .filter(visible).slice(0, 12).map(el => ({
+                  tag: el.tagName.toLowerCase(),
+                  type: short(el.type || ''),
+                  text: short(el.innerText || el.value || el.getAttribute('aria-label') || ''),
+                  disabled: Boolean(el.disabled),
+                  ariaDisabled: el.getAttribute('aria-disabled')
+                }));
+              const body = String((document.body && document.body.innerText) || '');
+              const alerts = Array.from(document.querySelectorAll('[role=alert], [aria-live], .error, .invalid-feedback'))
+                .filter(visible).slice(0, 6).map(el => {
+                  const text = String(el.innerText || '');
+                  return {
+                    length: text.length,
+                    phone: /شماره|موبایل|تلفن|phone|mobile/i.test(text),
+                    password: /رمز|گذرواژه|password/i.test(text),
+                    otp: /کد.?تایید|کد.?تأیید|رمز یکبار مصرف|otp/i.test(text),
+                    captcha: /captcha|تایید هویت/i.test(text),
+                    required: /الزامی|وارد کنید|required/i.test(text),
+                    invalid: /نامعتبر|معتبر نیست|صحیح نیست|invalid/i.test(text)
+                  };
+                });
+              return {
+                path: location.pathname,
+                title: short(document.title),
+                forms: Array.from(document.forms).slice(0, 4).map(form => ({
+                  method: short(form.method || ''),
+                  actionPath: (() => { try { return new URL(form.action, location.href).pathname; } catch { return ''; } })()
+                })),
+                fields,
+                buttons,
+                alerts,
+                pageFlags: {
+                  otp: /کد.?تایید|کد.?تأیید|رمز یکبار مصرف|one.?time.?password/i.test(body),
+                  captcha: /captcha|verify you are human|تایید هویت/i.test(body),
+                  phoneVerification: /شماره.?موبایل|شماره.?تلفن|تایید شماره|تأیید شماره/i.test(body),
+                  terms: /قوانین|شرایط استفاده|حریم خصوصی/i.test(body),
+                  validationMessage: /الزامی|وارد کنید|معتبر نیست|صحیح نیست/i.test(body)
+                }
+              };
+            }"""
+        )
+        print(
+            "FILO_LOGIN_DISABLED_FORM_DIAGNOSTIC "
+            + json.dumps(diagnostic, ensure_ascii=False, sort_keys=True)[:5000]
+        )
         raise FiloUploadError("filo_login_submit_stayed_disabled")
 
     login_response = None
