@@ -161,11 +161,20 @@ def draw_platform_logo(
 
 
 def platform_footer_label(platform: str, url: str) -> str:
-    """Return only the channel's bare public ID, without labels or URL protocol."""
+    """Return a bare visual channel ID with the brand's exact display casing.
+
+    Canonical URLs/handles remain unchanged in PUBLIC_CHANNEL_LINKS and all
+    clickable/API destinations. Only the text painted onto images and videos
+    receives the human-readable OfferChin casing.
+    """
     target = str(url or "").strip()
     target = re.sub(r"^https?://", "", target, flags=re.IGNORECASE)
-    target = re.sub(r"^www\.", "", target, flags=re.IGNORECASE)
-    return target.split("#", 1)[0].split("?", 1)[0].rstrip("/")
+    target = re.sub(r"^www\\.", "", target, flags=re.IGNORECASE)
+    target = target.split("#", 1)[0].split("?", 1)[0].rstrip("/")
+    # Do not change the domain or stored route. Normalize only a terminal brand
+    # handle in the user-visible label (including @handles).
+    target = re.sub(r"([/@])offerchin$", r"\\1OfferChin", target, flags=re.IGNORECASE)
+    return target
 
 
 def platform_footer_metrics(reference_dimension: int) -> dict[str, int]:
