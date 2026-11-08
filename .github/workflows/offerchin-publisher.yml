@@ -115,7 +115,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_preferred_posting_windows_use_iran_local_time \
             test_affilio.AffilioRadarTests.test_publication_interval_is_27_minutes \
             test_affilio.AffilioRadarTests.test_video_upload_candidate_limit_covers_dispatch_sidecar \
-            test_affilio.AffilioRadarTests.test_cross_category_bestseller_is_telemetry_only_and_clicks_stay_analytics_only \
+            test_affilio.AffilioRadarTests.test_bestseller_rank_and_clicks_never_change_product_ranking \
             test_affilio.AffilioRadarTests.test_scoring_does_not_generate_popularity_or_demand_scores \
             test_affilio.AffilioRadarTests.test_review_volume_and_rating_cannot_change_rank_without_fresh_growth \
             test_affilio.AffilioRadarTests.test_click_tracker_wraps_only_same_product_affiliate_destinations \
