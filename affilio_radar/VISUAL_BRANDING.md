@@ -50,3 +50,10 @@ This is the canonical placement and legibility standard for generated OfferChin 
 Any visible Latin spelling of the project/brand name in generated captions, image text, video title cards, video metadata, descriptions, or other public-facing copy must be exactly **OfferChin** (capital O and C). Do not display `Offerchin`, `offerchin`, or `OFFERCHIN` as the brand name.
 
 The shared `normalize_brand_display_name` helper enforces this spelling in public-facing title and description paths. It must not rewrite canonical platform identifiers, URLs, usernames, module/file names, API IDs, or environment-variable keys. For image/video overlays only, `platform_footer_label` separately formats the human-visible ID label with `OfferChin` casing; it does not mutate the canonical route/handle (`rubika.ir/offerchin` and `youtube.com/@offerchin`) used by links and APIs.
+
+
+## Runtime casing guard and stale-video re-render
+
+- Every generated product image and every destination-specific vertical video derives public channel rows from the same `platform_footer_label` formatter. Before any cross-media list is assembled, `validate_public_channel_footer_labels()` checks every registered public ID against the exact display contract: `t.me/OfferChin`, `ble.ir/OfferChin`, `rubika.ir/OfferChin`, `youtube.com/@OfferChin`, and `aparat.com/OfferChin`.
+- If the registry or formatter drifts, rendering stops with an explicit validation error instead of silently publishing a lowercase brand spelling. This check is separate from canonical routes: `rubika.ir/offerchin` and `youtube.com/@offerchin` remain unchanged for routing and API use.
+- `VIDEO_STYLE_VERSION` is advanced to 8 for the cross-media casing correction. Previously generated but not yet uploaded MP4s are marked for regeneration before their next eligible upload. Already-published images/videos are not rewritten or reposted automatically.
