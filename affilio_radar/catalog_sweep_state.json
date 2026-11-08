@@ -44288,11 +44288,11 @@
   "last_error": "",
   "last_successful_category_id": "9531",
   "last_successful_category_name": "زنانه و مردانه",
-  "last_successful_page": 273,
-  "last_successful_page_at": "2026-11-08T03:33:27.412361+00:00",
+  "last_successful_page": 274,
+  "last_successful_page_at": "2026-11-08T03:35:24.223899+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 257,
+  "page": 258,
   "parallel_cycle_completed_category_ids": [
     "3",
     "7",
@@ -44341,6 +44341,7 @@
     "56",
     "57",
     "58",
+    "59",
     "60",
     "61",
     "62",
@@ -46427,6 +46428,7 @@
     "6291",
     "6292",
     "6294",
+    "6295",
     "6298",
     "6299",
     "6300",
@@ -46526,6 +46528,8 @@
     "6459",
     "6462",
     "6463",
+    "6464",
+    "6465",
     "6466",
     "6467",
     "6472",
@@ -47641,6 +47645,7 @@
     "9723",
     "9725",
     "9728",
+    "9744",
     "9745",
     "9746",
     "9747",
@@ -47650,6 +47655,7 @@
     "9753",
     "9754",
     "9755",
+    "9756",
     "9757",
     "9759",
     "9760",
@@ -47701,6 +47707,7 @@
     "9834",
     "9835",
     "9836",
+    "9841",
     "9842",
     "9843",
     "9845",
@@ -47771,6 +47778,7 @@
     "9944",
     "9946",
     "9954",
+    "9955",
     "9956",
     "9957",
     "9958",
@@ -47901,6 +47909,7 @@
     "10154",
     "10155",
     "10156",
+    "10158",
     "10166",
     "10167",
     "10173",
@@ -48979,8 +48988,8 @@
     "11797",
     "214186"
   ],
-  "parallel_cycle_pages_success": 155299,
-  "parallel_cycle_product_rows_success": 3037376,
+  "parallel_cycle_pages_success": 155532,
+  "parallel_cycle_product_rows_success": 3041871,
   "parallel_cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -53907,20 +53916,20 @@
     "214158",
     "214186"
   ],
-  "parallel_last_batch_at": "2026-11-08T03:33:27.550122+00:00",
-  "parallel_last_batch_candidate_file_bytes": 4182969,
-  "parallel_last_batch_candidate_write_seconds": 0.115,
-  "parallel_last_batch_empty_product_pages": 6,
-  "parallel_last_batch_fetch_seconds": 244.801,
-  "parallel_last_batch_nonempty_product_pages": 152,
-  "parallel_last_batch_pages": 240,
-  "parallel_last_batch_pages_per_second": 0.98,
-  "parallel_last_batch_processing_seconds": 0.061,
-  "parallel_last_batch_product_rows": 3040,
-  "parallel_last_batch_rate_limited": 0,
-  "parallel_last_batch_retries": 82,
-  "parallel_last_batch_rows_per_second": 12.41,
-  "parallel_last_batch_successes": 158,
+  "parallel_last_batch_at": "2026-11-08T03:35:24.306597+00:00",
+  "parallel_last_batch_candidate_file_bytes": 4183143,
+  "parallel_last_batch_candidate_write_seconds": 0.067,
+  "parallel_last_batch_empty_product_pages": 8,
+  "parallel_last_batch_fetch_seconds": 61.83,
+  "parallel_last_batch_nonempty_product_pages": 225,
+  "parallel_last_batch_pages": 234,
+  "parallel_last_batch_pages_per_second": 3.78,
+  "parallel_last_batch_processing_seconds": 0.047,
+  "parallel_last_batch_product_rows": 4495,
+  "parallel_last_batch_rate_limited": 1,
+  "parallel_last_batch_retries": 1,
+  "parallel_last_batch_rows_per_second": 72.57,
+  "parallel_last_batch_successes": 233,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4672,
   "parallel_pending_pages": [
@@ -53928,1505 +53937,1370 @@
       "attempts": 0,
       "category_id": "9749",
       "category_name": "لباس پسرانه",
-      "page": 257
+      "page": 258
     },
     {
       "attempts": 0,
       "category_id": "9932",
       "category_name": "سویشرت و هودی دخترانه و پسرانه",
-      "page": 257
+      "page": 258
     },
     {
       "attempts": 0,
       "category_id": "9672",
       "category_name": "تی شرت دخترانه",
-      "page": 259
+      "page": 260
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "11350",
       "category_name": "شیرآلات",
+      "last_error": "http_429",
       "page": 260
     },
     {
       "attempts": 0,
       "category_id": "9783",
       "category_name": "تی شرت پسرانه",
-      "page": 263
+      "page": 264
     },
     {
       "attempts": 0,
       "category_id": "6456",
       "category_name": "کفپوش و دیوارپوش",
-      "page": 264
+      "page": 265
     },
     {
       "attempts": 0,
       "category_id": "8557",
       "category_name": "جلوبندی و تعلیق",
-      "page": 264
+      "page": 265
     },
     {
       "attempts": 0,
       "category_id": "6457",
       "category_name": "کاغذ دیواری",
-      "page": 268
+      "page": 269
+    },
+    {
+      "attempts": 0,
+      "category_id": "6263",
+      "category_name": "حمام و سرویس بهداشتی",
+      "page": 270
     },
     {
       "attempts": 0,
       "category_id": "9534",
       "category_name": "اکسسوری زنانه و مردانه",
-      "page": 269
+      "page": 270
     },
     {
-      "attempts": 1,
-      "category_id": "6263",
-      "category_name": "حمام و سرویس بهداشتی",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 269
-    },
-    {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9536",
       "category_name": "کیف زنانه و مردانه",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 269
+      "page": 270
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9540",
       "category_name": "زیورآلات زنانه و مردانه",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 269
+      "page": 270
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9543",
       "category_name": "جاکلیدی زنانه و مردانه",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 269
+      "page": 270
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9556",
       "category_name": "کیف پول زنانه و مردانه",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 269
+      "page": 270
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9558",
       "category_name": "ساعت عقربه ای زنانه و مردانه",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 269
+      "page": 270
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9562",
       "category_name": "نوزاد",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 269
+      "page": 270
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9625",
       "category_name": "دخترانه",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 269
+      "page": 270
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "10143",
       "category_name": "کتاب چاپی غیر فارسی",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 269
+      "page": 270
     },
     {
-      "attempts": 1,
-      "category_id": "10158",
-      "category_name": "بهداشت مو",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=10158&page=269&sort=7",
-      "page": 269
-    },
-    {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "10690",
       "category_name": "لوازم و مصالح ساختمانی",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 269
+      "page": 270
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "10699",
       "category_name": "تجهیزات ساختمانی",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 269
+      "page": 270
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "100",
       "category_name": "ماوس پد",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "5700",
       "category_name": "لوازم آرایشی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=5700&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6247",
       "category_name": "ابزار آشپزی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6247&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6250",
       "category_name": "شستشو و نظافت",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6250&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6670",
       "category_name": "عطر جیبی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6670&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6741",
       "category_name": "مادر و کودک",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6797",
       "category_name": "خواب کودک",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6797&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6816",
       "category_name": "پوشاک ورزشی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6816&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6822",
       "category_name": "محصولات چوبی و حصیری",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6822&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6908",
       "category_name": "دست سازه های هنری",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6908&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6912",
       "category_name": "محصولات سنگی، چینی و سرامیکی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6912&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6946",
       "category_name": "تابلو",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6946&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6977",
       "category_name": "پرده",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6977&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8099",
       "category_name": "تجهیزات تردد، حفاظت و امنیت",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8099&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8113",
       "category_name": "لوازم مصرفی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8113&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8157",
       "category_name": "خاک و کود",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8157&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8182",
       "category_name": "لوازم یدکی خودرو",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8182&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8184",
       "category_name": "لنت ترمز خودرو",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8184&page=270&sort=7",
-      "page": 270
+      "page": 271
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8241",
       "category_name": "ابزار ایمنی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8241&page=271&sort=7",
-      "page": 271
+      "page": 272
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8264",
       "category_name": "چراغ خودرو",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8264&page=271&sort=7",
-      "page": 271
+      "page": 272
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8299",
       "category_name": "دکوراسیون خانگی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8299&page=271&sort=7",
-      "page": 271
+      "page": 272
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8337",
       "category_name": "یراق آلات",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8337&page=271&sort=7",
-      "page": 271
+      "page": 272
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8341",
       "category_name": "فندک",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8341&page=271&sort=7",
-      "page": 271
+      "page": 272
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8406",
       "category_name": "چادر خودرو",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8406&page=271&sort=7",
-      "page": 271
+      "page": 272
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8428",
       "category_name": "پت شاپ",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8428&page=271&sort=7",
-      "page": 271
+      "page": 272
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8431",
       "category_name": "استیکر و پوستر",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8431&page=271&sort=7",
-      "page": 271
+      "page": 272
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8432",
       "category_name": "تابلو شاسی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8432&page=271&sort=7",
-      "page": 271
+      "page": 272
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8450",
       "category_name": "ابزار آلات و تجهیزات",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8450&page=271&sort=7",
-      "page": 271
+      "page": 272
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8451",
       "category_name": "لوازم مصرفی خودرو",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8451&page=271&sort=7",
-      "page": 271
-    },
-    {
-      "attempts": 1,
-      "category_id": "6295",
-      "category_name": "پادری",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6295&page=272&sort=7",
       "page": 272
     },
     {
-      "attempts": 2,
+      "attempts": 0,
       "category_id": "6297",
       "category_name": "رومیزی و رانر",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6297&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
-      "category_id": "6464",
-      "category_name": "آرایش چشم",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6464&page=272&sort=7",
-      "page": 272
-    },
-    {
-      "attempts": 1,
-      "category_id": "6465",
-      "category_name": "آرایش ناخن",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6465&page=272&sort=7",
-      "page": 272
-    },
-    {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6470",
       "category_name": "آرایش صورت",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6470&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6471",
       "category_name": "آرایش لب",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6471&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6484",
       "category_name": "ابزار آرایش صورت",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6484&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6486",
       "category_name": "مراقبت پوست",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6486&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6511",
       "category_name": "آرایش مو",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6511&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6613",
       "category_name": "پاکت هدیه و ساک خرید",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6613&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "6625",
       "category_name": "کمد لباس و ارگانایزر",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=6625&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8452",
       "category_name": "فیلتر خودرو",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8452&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8465",
       "category_name": "اکسسوری لوازم شخصی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8465&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8482",
       "category_name": "هدیه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8482&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8693",
       "category_name": "پرچم",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8693&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8697",
       "category_name": "لوازم جانبی موتورسیکلت",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8697&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "8719",
       "category_name": "حیوانات خانگی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=8719&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 2,
+      "attempts": 0,
       "category_id": "9258",
       "category_name": "سایر لوازم جانبی لپ تاپ",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9258&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 2,
+      "attempts": 0,
       "category_id": "9334",
       "category_name": "لباس ورزشی زنانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9334&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 2,
+      "attempts": 0,
       "category_id": "9337",
       "category_name": "لباس زیر زنانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9337&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9632",
       "category_name": "لباس راحتی دخترانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9632&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9633",
       "category_name": "ست لباس راحتی دخترانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9633&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9666",
       "category_name": "سویشرت و هودی دخترانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9666&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9692",
       "category_name": "اکسسوری دخترانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9692&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
-      "category_id": "9744",
-      "category_name": "کیف پول و کیف لوازم آرایش دخترانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9744&page=272&sort=7",
-      "page": 272
-    },
-    {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9748",
       "category_name": "پسرانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9748&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
-      "category_id": "9756",
-      "category_name": "لباس راحتی پسرانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9756&page=272&sort=7",
-      "page": 272
-    },
-    {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9779",
       "category_name": "سویشرت و هودی پسرانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9779&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
-      "category_id": "9841",
-      "category_name": "جوراب زنانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9841&page=272&sort=7",
-      "page": 272
-    },
-    {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9844",
       "category_name": "برس‌ها و تجهیزات آرایشی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9844&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9898",
       "category_name": "گردنبند زنانه و مردانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9898&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
-      "category_id": "9955",
-      "category_name": "ست لباس راحتی دخترانه و پسرانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=9955&page=272&sort=7",
-      "page": 272
-    },
-    {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "10050",
       "category_name": "مراقبت از پوست و مو",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=10050&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "10095",
       "category_name": "ابزار کار هنری و دستی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=10095&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "10168",
       "category_name": "ورزشی مردانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=10168&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "10169",
       "category_name": "ورزشی زنانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=10169&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "10170",
       "category_name": "محصولات بومی و محلی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=10170&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "10171",
       "category_name": "خانه و کاشانه",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=10171&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "10284",
       "category_name": "بهداشت شخصی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=10284&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "10285",
       "category_name": "بهداشت خانگی",
-      "last_error": "HTTPError:502 Server Error: Bad Gateway for url: https://api.digikala.com/v1/search/?categories%5B%5D=10285&page=272&sort=7",
-      "page": 272
+      "page": 273
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "10311",
       "category_name": "گیره و مگنت",
-      "last_error": "ReadTimeout:HTTPSConnectionPool(host='api.digikala.com', port=443): Read timed out. (read timeout=18)",
-      "page": 272
+      "page": 273
     },
     {
       "attempts": 0,
       "category_id": "10318",
       "category_name": "مواد غذایی ارگانیک",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10335",
       "category_name": "ادویه‌های ارگانیک",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10490",
       "category_name": "کتاب کودک و نوجوان",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10557",
       "category_name": "کتاب روانشناسی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10562",
       "category_name": "کتاب سیاسی و علوم اجتماعی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10579",
       "category_name": "ادویه و چاشنی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10633",
       "category_name": "فرش",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10637",
       "category_name": "ظروف پخت و پز",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10639",
       "category_name": "ابزار آشپزی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10645",
       "category_name": "دکوراسیون",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10649",
       "category_name": "نگهدارنده لباس و لوازم",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10651",
       "category_name": "پرده و ملزومات",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10652",
       "category_name": "قاب عکس و تابلو",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10653",
       "category_name": "کوسن، رومیزی و شال مبل",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10657",
       "category_name": "الکتریکی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10658",
       "category_name": "نور و روشنایی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10670",
       "category_name": "تجهیزات و لوازم بدنسازی و هوازی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10688",
       "category_name": "خودرو و موتورسیکلت",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10703",
       "category_name": "ابزارآلات باغبانی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10704",
       "category_name": "آرم و برچسب خودرو",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10756",
       "category_name": "سایر ادویه و چاشنی‌ها",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10888",
       "category_name": "نوشیدنی‌های گرم",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "10941",
       "category_name": "عطر و ادکلن زنانه",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11003",
       "category_name": "عطاری",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11008",
       "category_name": "لوازم برقی و الکترونیکی خودرو",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11009",
       "category_name": "لوازم مکانیکی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11012",
       "category_name": "آچار و انبر",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11018",
       "category_name": "مواد غذایی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11122",
       "category_name": "عینک زنانه و مردانه",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11132",
       "category_name": "جانبی خودرو",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11331",
       "category_name": "کتاب دانشگاهی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11358",
       "category_name": "قاب، زه و ضربه‌گیر خودرو",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11362",
       "category_name": "لوازم موتورسیکلت",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11394",
       "category_name": "سویشرت زنانه",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11398",
       "category_name": "زیورآلات نقره",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "11794",
       "category_name": "لباس زیر و جوراب زنانه",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "51",
       "category_name": "گیمینگ",
-      "page": 273
-    },
-    {
-      "attempts": 0,
-      "category_id": "59",
-      "category_name": "هدفون",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "1",
       "category_name": "موبایل",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "2",
       "category_name": "کالای دیجیتال",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "4",
       "category_name": "مد و پوشاک",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "5",
       "category_name": "سوپر مارکت آنلاین",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "6",
       "category_name": "کتاب و هنر",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "8",
       "category_name": "آرایشی بهداشتی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "12",
       "category_name": "محصولات بومی و محلی",
-      "page": 273
+      "page": 274
     },
     {
       "attempts": 0,
       "category_id": "22",
       "category_name": "گوشی نوکیا",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "77",
       "category_name": "فرمان بازی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "81",
       "category_name": "دوربین چاپ سریع",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "82",
       "category_name": "هارد ssd",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "87",
       "category_name": "اپل واچ اولترا ۳",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "211",
       "category_name": "هدفون، هدست و هندزفری",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5753",
       "category_name": "لوازم خانگی برقی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5824",
       "category_name": "لوازم بهداشتی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5857",
       "category_name": "سایر لوازم خودرو",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5872",
       "category_name": "لوازم جانبی ساعت و مچ بند هوشمند",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5967",
       "category_name": "خانه و آشپزخانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5968",
       "category_name": "آرایشی و بهداشتی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5970",
       "category_name": "لوازم تحریر",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5971",
       "category_name": "نوشت افزار",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5972",
       "category_name": "ابزار نقاشی و رنگ آمیزی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5973",
       "category_name": "ابزار طراحی و مهندسی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5974",
       "category_name": "لوازم اداری",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5975",
       "category_name": "دفتر و کاغذ و مقوا",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "5993",
       "category_name": "خط کش",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6000",
       "category_name": "جامدادی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6004",
       "category_name": "دفتر",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6020",
       "category_name": "لوازم سفر و کمپینگ",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6027",
       "category_name": "اسباب بازی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6028",
       "category_name": "بوردگیم، اوریگامی و بازی فکری",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6030",
       "category_name": "بازی آموزشی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6031",
       "category_name": "ساختنی، لگو و پازل",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6035",
       "category_name": "پازل",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6054",
       "category_name": "وسایل بازی نقلیه و کنترلی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6089",
       "category_name": "لوازم ورزشی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6112",
       "category_name": "ورزش های هوازی و تناسب اندام",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6124",
       "category_name": "ورزش و سفر",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6139",
       "category_name": "عطر و ادکلن مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6141",
       "category_name": "ابزار بایگانی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6149",
       "category_name": "مته و سری",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6153",
       "category_name": "آلات موسیقی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6162",
       "category_name": "عطر و ادکلن",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6165",
       "category_name": "آچار",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6175",
       "category_name": "لوازم جانبی خودرو",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6226",
       "category_name": "آشپزخانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6246",
       "category_name": "خواب",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6249",
       "category_name": "دکوراسیون و دکوراتیو",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6254",
       "category_name": "سرو و پذیرایی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6262",
       "category_name": "اقلام سرویس خواب",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6264",
       "category_name": "سرویس بهداشتی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6265",
       "category_name": "کوسن",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6274",
       "category_name": "منسوجات آشپزخانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6280",
       "category_name": "سرویس خواب",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6286",
       "category_name": "پارچ، بطری و لیوان",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6308",
       "category_name": "دکوراتیو",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6332",
       "category_name": "زیر لیوانی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6336",
       "category_name": "ظروف سرو و پذیرایی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6394",
       "category_name": "روشنایی و الکتریکی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6413",
       "category_name": "سایر لوازم تزئینی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6451",
       "category_name": "صنایع دستی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6641",
       "category_name": "کفش ورزشی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6657",
       "category_name": "بهداشت صورت و بدن",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "6658",
       "category_name": "لوازم جانبی اپل واچ",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "8749",
       "category_name": "مد و پوشاک",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "8895",
       "category_name": "کالای خوراکی و اساسی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "8897",
       "category_name": "خشکبار و شیرینی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "8915",
       "category_name": "صبحانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "8996",
       "category_name": "چرخ خیاطی دستی و ملزومات خیاطی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9096",
       "category_name": "قطعات الکترونیکی",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9277",
       "category_name": "پیکسل",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9282",
       "category_name": "لباس زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9295",
       "category_name": "لباس خواب و راحتی زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9333",
       "category_name": "جوراب و ساق زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9347",
       "category_name": "تی شرت زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9365",
       "category_name": "کفش زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9380",
       "category_name": "اکسسوری زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9381",
       "category_name": "کیف زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9383",
       "category_name": "عینک آفتابی زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9388",
       "category_name": "دستبند طلا زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9393",
       "category_name": "گردنبند طلا زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9394",
       "category_name": "آویز طلا زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9398",
       "category_name": "اکسسوری مو زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9400",
       "category_name": "زیورآلات زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9402",
       "category_name": "دستبند زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9405",
       "category_name": "گوشواره زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9408",
       "category_name": "جاکلیدی زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9409",
       "category_name": "گردنبند زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9416",
       "category_name": "زیورآلات نقره زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9431",
       "category_name": "کیف پول و کیف لوازم آرایش زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9432",
       "category_name": "ساعت زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9433",
       "category_name": "ساعت عقربه ای زنانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9435",
       "category_name": "لباس مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9470",
       "category_name": "تی شرت مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9476",
       "category_name": "کفش مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9487",
       "category_name": "اکسسوری مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9489",
       "category_name": "کیف مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9491",
       "category_name": "عینک آفتابی مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9495",
       "category_name": "دستبند طلا مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9505",
       "category_name": "زیورآلات مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9509",
       "category_name": "گردنبند مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9527",
       "category_name": "کیف پول مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9528",
       "category_name": "ساعت مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9529",
       "category_name": "ساعت عقربه ای مردانه",
-      "page": 274
+      "page": 275
     },
     {
       "attempts": 0,
       "category_id": "9531",
       "category_name": "زنانه و مردانه",
-      "page": 274
+      "page": 275
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 9,
+  "parallel_worker_limit": 8,
   "parallel_workers_used": 9,
-  "pending_page_count": 234,
+  "pending_page_count": 225,
   "schema_version": 1,
   "stats": {
-    "api_failures_total": 47886,
-    "catalog_candidate_cards_found_total": 13685670,
+    "api_failures_total": 47887,
+    "catalog_candidate_cards_found_total": 13690165,
     "completed_cycles": 1,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 3600392,
-    "empty_product_pages_total": 24077,
-    "nonempty_product_pages_total": 692610,
-    "pages_scanned_total": 715895,
-    "product_rows_scanned_total": 13685710,
+    "discounted_candidates_found_total": 3601666,
+    "empty_product_pages_total": 24085,
+    "nonempty_product_pages_total": 692835,
+    "pages_scanned_total": 716128,
+    "product_rows_scanned_total": 13690205,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
