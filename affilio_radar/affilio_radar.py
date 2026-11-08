@@ -2196,7 +2196,7 @@ def is_market_value_publish_eligible(
     product: dict,
     now: datetime | None = None,
 ) -> bool:
-    """Only a fresh, verified same-product market comparison may veto an uncompetitive price."""
+    """Only fresh, verified same-product market evidence can veto; missing/stale data cannot."""
     if not is_market_price_uncompetitive(product):
         return True
     checked_at = _parse_utc_datetime(product.get("market_price_checked_at"))
@@ -2207,9 +2207,6 @@ def is_market_value_publish_eligible(
         current = current.replace(tzinfo=timezone.utc)
     age_hours = (current.astimezone(timezone.utc) - checked_at.astimezone(timezone.utc)).total_seconds() / 3600
     return not (-0.1 <= age_hours <= MARKET_PRICE_RECHECK_HOURS)
-
-    """Missing market data must not block a post; block only a verified, clearly uncompetitive price."""
-    return not is_market_price_uncompetitive(product)
 
 
 def apply_market_price_comparison(product: dict, card: dict, details: dict, match_score: int, query: str) -> dict:
@@ -2886,19 +2883,16 @@ def has_meaningful_discount(
     except (TypeError, ValueError, OverflowError):
         return False
 
-    if discount < floor or savings <= 0:
+    if discount < floor or savings <= 0 or current_price <= 0 or original_price <= 0:
         return False
 
-    # When both prices are present, require every displayed field to match their math.
-    # Missing original-price data is not independently invented; live stock/price/link
-    # checks still apply, and fresh verified contrary evidence can veto the offer.
-    if current_price > 0 and original_price > 0:
-        actual_savings = original_price - current_price
-        if actual_savings <= 0:
-            return False
-        actual_discount = round(100 * actual_savings / original_price)
-        if savings != actual_savings or discount != actual_discount:
-            return False
+    # A markdown is genuine only when the exact current/original price pair proves it.
+    actual_savings = original_price - current_price
+    if actual_savings <= 0:
+        return False
+    actual_discount = round(100 * actual_savings / original_price)
+    if savings != actual_savings or discount != actual_discount:
+        return False
     return True
 
 
@@ -5176,8 +5170,8 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
     ):
         floor_label = minimum_discount_percent or DISCOUNT_FALLBACK_FLOORS[0]
         raise RuntimeError(
-            "Refusing to send an OfferChin post that fails the hard discount/current-demand gate "
-            f"({floor_label}% minimum plus verified recent activity)"
+            "Refusing to send an OfferChin post that fails hard product/price/discount validation "
+            f"({floor_label}% minimum; no demand or popularity signal is required)"
         )
     if platform == "telegram":
         photo = build_discount_image(
