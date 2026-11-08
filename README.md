@@ -10,6 +10,7 @@
 - [دسترسی و گزارش‌گیری افیلیو](affilio_radar/AFFILIO_REPORTING_ACCESS.md)
 - [استاندارد برندینگ تصویر/ویدئو](affilio_radar/VISUAL_BRANDING.md)
 - [پکیج بهینه‌سازی OfferChin — نقشهٔ راه پیشنهادی، هنوز تصویب‌نشده](docs/OFFERCHIN_OPTIMIZATION_PACKAGE_FA.md)
+- [پایلوت سنجش تقاضای بازار در حالت shadow](docs/OFFERCHIN_DEMAND_SHADOW_PILOT_FA.md) — فقط گزارش تشخیصی؛ بدون اثر بر رتبه‌بندی زنده.
 
 ## پکیج بهینه‌سازی
 
