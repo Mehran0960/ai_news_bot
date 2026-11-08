@@ -360759,7 +360759,7 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-11341710": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-08T08:23:20.414794+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1752,
@@ -360810,6 +360810,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 19,
       "history_checked_at": "2026-11-07T11:30:10.414789+00:00",
@@ -360854,7 +360855,7 @@
       "ts": 1794051027.147358,
       "video_file_name": "offerchin-dkp-11341710.mp4",
       "video_generated_at": "2026-11-07T11:44:56.781861+00:00",
-      "video_generation_status": "pending",
+      "video_generation_status": "skipped_expiring_soon",
       "video_style_version": 6,
       "youtube_description_version": 4,
       "youtube_review_required": false,
@@ -364610,7 +364611,7 @@
       "youtube_upload_status": "skipped_unverified_deadline"
     },
     "dkp-14061102": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-08T08:33:19.874243+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1778,
@@ -364662,7 +364663,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
-      "filo_upload_status": "pending",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 35,
       "history_checked_at": "2026-11-08T08:28:10.398812+00:00",
@@ -364706,8 +364707,8 @@
       "telegram_posted_at": "2026-11-08T08:28:31.257312+00:00",
       "title": "شانه مو کد TR بسته دو عددی به همراه برس مو",
       "ts": 1794126505.81547,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-14081797": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -372439,7 +372440,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-18668472": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-08T08:53:49.554860+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1754,
@@ -372490,6 +372491,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "historical_popularity_score": 0,
       "history_checked_at": "2026-11-07T11:52:01.581958+00:00",
@@ -372534,7 +372536,7 @@
       "ts": 1794052333.935853,
       "video_file_name": "offerchin-dkp-18668472.mp4",
       "video_generated_at": "2026-11-07T14:46:21.584757+00:00",
-      "video_generation_status": "pending",
+      "video_generation_status": "skipped_expiring_soon",
       "video_style_version": 6,
       "youtube_description_version": 4,
       "youtube_review_required": false,
@@ -405012,8 +405014,8 @@
       "video_style_version": 5,
       "youtube_deleted_at": "2026-10-27T20:37:55.563200+00:00",
       "youtube_description_last_error": "RuntimeError",
-      "youtube_description_next_attempt_at": "2026-11-08T06:58:29.438121+00:00",
-      "youtube_description_update_attempts": 10,
+      "youtube_description_next_attempt_at": "2026-11-08T10:02:20.514701+00:00",
+      "youtube_description_update_attempts": 11,
       "youtube_description_version": 3,
       "youtube_expiry_status": "deleted",
       "youtube_review_required": false,
@@ -406878,8 +406880,22 @@
       "telegram_posted_at": "2026-11-08T07:25:34.882860+00:00",
       "title": "کابل اتصال باتری به باتری خودرو مدل Goretex 1000A-5m مجموعه 2 عددی",
       "ts": 1794122729.517293,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-23126855.mp4",
+      "video_file_names": {
+        "youtube": "offerchin-dkp-23126855.mp4"
+      },
+      "video_generated_at": "2026-11-08T09:02:20.514701+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-08T09:02:29.820309+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-08T09:02:31.775469+00:00",
+      "youtube_video_id": "1sY5_Zppbl8",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/1sY5_Zppbl8",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-2441353": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -427526,7 +427542,7 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 11,
   "snappshop_retry_after": "2026-11-09T06:52:04.090200+00:00",
-  "youtube_last_upload_success_at": "2026-11-08T05:58:39.673870+00:00",
-  "youtube_next_upload_at": "2026-11-08T08:58:39.673870+00:00",
+  "youtube_last_upload_success_at": "2026-11-08T09:02:31.775469+00:00",
+  "youtube_next_upload_at": "2026-11-08T12:02:31.775469+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
