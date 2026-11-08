@@ -396,9 +396,8 @@ def build_vertical_poster(
         )
     video_channels = public_channel_links(destination_platform)
     for index, (platform, url) in enumerate(video_channels):
-        # Twenty-pixel logos plus their official-brand padding require a 26px
-        # row pitch; this prevents the horizontal YouTube wordmark tile overlapping
-        # neighbouring rows while keeping all four destinations in the safe panel.
+        # Twenty-pixel icon marks plus their padding require a 26px row pitch;
+        # this keeps all four destinations separated inside the safe panel.
         row_top = 188 + index * 26
         expected_logo_width, _expected_logo_height = offerchin_visuals.platform_logo_dimensions(
             platform, 20, VIDEO_LOGO_MAX_WIDTH
@@ -413,8 +412,8 @@ def build_vertical_poster(
             canvas=background,
             max_width=VIDEO_LOGO_MAX_WIDTH,
         )
-        # Align every ID at one fixed x-coordinate. Official wordmarks have
-        # different natural widths; their visual width must not move the ID column.
+        # Align every ID at one fixed x-coordinate; differing icon widths must
+        # never move the ID column or introduce a platform-name label.
         label_x = 64 + VIDEO_LOGO_COLUMN_WIDTH + VIDEO_LOGO_TEXT_GAP
         label = platform_footer_label(platform, url)
         draw.text(
