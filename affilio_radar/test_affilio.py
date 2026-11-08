@@ -5614,7 +5614,7 @@ class AffilioRadarTests(unittest.TestCase):
             "dkp-93021": {
                 "product_id": "dkp-93021",
                 "product_url": "https://www.digikala.com/product/dkp-93021/",
-                "title": "popular item with longer deadline",
+                "title": "battery backup unit alpha",
                 "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
                 "demand_score": 88,
                 "review_count": 2400,
@@ -5627,7 +5627,7 @@ class AffilioRadarTests(unittest.TestCase):
             "dkp-93022": {
                 "product_id": "dkp-93022",
                 "product_url": "https://www.digikala.com/product/dkp-93022/",
-                "title": "less popular item with nearer deadline",
+                "title": "wireless router beta",
                 "deal_expires_at": (now + timedelta(hours=2)).isoformat(),
                 "demand_score": 28,
                 "review_count": 35,
