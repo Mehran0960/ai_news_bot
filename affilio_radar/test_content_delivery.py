@@ -342,13 +342,18 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(fresh["selection_discount_floor"], 1)
         self.assertEqual(fresh["selection_discount_band"], "1%+")
 
-    def test_publisher_rejects_old_queue_item_without_new_demand_evidence(self):
+    def test_publisher_accepts_old_queue_item_without_review_growth_or_demand_scores(self):
         entry = {
             "product_id": "dkp-95045",
             "payload": {
                 "product_id": "dkp-95045",
                 "product_url": "https://www.digikala.com/product/dkp-95045/",
                 "selection_discount_floor": 44,
+                "current_price": 500_000,
+                "original_price": 520_000,
+                "discount_percent": 4,
+                "savings_toman": 20_000,
+                "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95045%2F",
             },
         }
         from unittest.mock import patch
@@ -373,13 +378,9 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             patch("publisher.radar.is_market_value_publish_eligible", return_value=True),
             patch("publisher.radar.has_publishable_expiry_or_open_offer", return_value=True),
         ):
-            entry["payload"].update({
-                "current_price": 500_000,
-                "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95045%2F",
-            })
             fresh, reason = _fresh_selected_item(entry, self.now)
-        self.assertIsNone(fresh)
-        self.assertEqual(reason, "live_demand_signal_missing")
+        self.assertIsNotNone(fresh)
+        self.assertEqual(reason, "")
 
     def test_final_publisher_gate_accepts_discount_first_offers_and_protects_legacy_and_partial_retry(self):
         from unittest.mock import patch
@@ -642,6 +643,8 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         same_slot = self.now.isoformat()
         state["content_delivery_queue"]["dkp-100"]["scheduled_at"] = same_slot
         state["content_delivery_queue"]["dkp-200"]["scheduled_at"] = same_slot
+        state["content_delivery_queue"]["dkp-100"]["next_attempt_at"] = same_slot
+        state["content_delivery_queue"]["dkp-200"]["next_attempt_at"] = same_slot
         due = due_content(state, now=self.now, limit=2)
         self.assertEqual([pid for pid, _entry in due], ["dkp-100", "dkp-200"])
 
