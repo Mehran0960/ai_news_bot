@@ -294,7 +294,7 @@ class ShortVideoTests(unittest.TestCase):
         self.assertEqual([call.kwargs["max_width"] for call in draw_logo.call_args_list], [96, 96, 96, 96])
 
     
-    def test_bundled_official_platform_logo_assets_are_available_and_keep_their_original_ratios(self):
+    def test_bundled_official_platform_marks_are_icon_only_and_keep_their_ratios(self):
         import offerchin_visuals
 
         expected_platforms = ("telegram", "bale", "rubika", "youtube", "aparat")
@@ -306,20 +306,23 @@ class ShortVideoTests(unittest.TestCase):
                 self.assertIsNotNone(fitted)
                 self.assertLessEqual(fitted.height, 20)
                 self.assertLessEqual(fitted.width, 96)
+                ratio = source.width / source.height
+                self.assertLess(
+                    ratio, 1.8,
+                    f"{platform} must render its pictorial symbol only, without a horizontal name/wordmark",
+                )
                 self.assertAlmostEqual(
                     fitted.width / fitted.height,
-                    source.width / source.height,
+                    ratio,
                     delta=0.03,
-                    msg=f"{platform} logo was stretched or forced into a different aspect ratio",
+                    msg=f"{platform} icon was stretched or forced into a different aspect ratio",
                 )
 
         youtube = offerchin_visuals._load_platform_logo("youtube")
-        self.assertGreater(
-            youtube.width / youtube.height, 2.8,
-            "YouTube must use its full horizontal wordmark, not a square play icon",
-        )
+        self.assertGreater(youtube.width / youtube.height, 1.2)
+        self.assertLess(youtube.width / youtube.height, 1.8)
         aparat = offerchin_visuals._load_platform_logo("aparat")
-        self.assertAlmostEqual(aparat.width / aparat.height, 3.2, delta=0.03)
+        self.assertLess(aparat.width / aparat.height, 1.2)
 
     def test_product_image_footer_uses_resolution_aware_readable_official_logo_sizes(self):
         import affilio_radar
@@ -390,14 +393,14 @@ class ShortVideoTests(unittest.TestCase):
                     self.assertNotRegex(url, r"(?i)^https?://")
                     self.assertNotIn("www.", url)
 
-    def test_platform_logo_fitting_keeps_the_youtube_wordmark_rectangular(self):
+    def test_platform_logo_fitting_keeps_the_youtube_play_icon_proportional(self):
         import offerchin_visuals
 
-        wide_youtube = Image.new("RGBA", (420, 100), (255, 0, 0, 255))
+        youtube_icon = Image.new("RGBA", (140, 100), (255, 0, 0, 255))
         square_mark = Image.new("RGBA", (100, 100), (0, 100, 200, 255))
         with mock.patch(
             "offerchin_visuals._load_platform_logo",
-            side_effect=lambda platform: wide_youtube if platform == "youtube" else square_mark,
+            side_effect=lambda platform: youtube_icon if platform == "youtube" else square_mark,
         ):
             fitted_youtube = offerchin_visuals.fit_platform_logo("youtube", 18, 78)
             fitted_telegram = offerchin_visuals.fit_platform_logo("telegram", 18, 78)
@@ -407,8 +410,8 @@ class ShortVideoTests(unittest.TestCase):
             self.assertLessEqual(fitted_youtube.width, 78)
             self.assertAlmostEqual(
                 fitted_youtube.width / fitted_youtube.height,
-                4.2,
-                delta=0.15,
+                1.4,
+                delta=0.05,
             )
             self.assertAlmostEqual(
                 fitted_telegram.width / fitted_telegram.height,
@@ -420,7 +423,7 @@ class ShortVideoTests(unittest.TestCase):
             width, height = offerchin_visuals.draw_platform_logo(
                 canvas, "youtube", 4, 4, 18, 78,
             )
-            self.assertGreater(width, height * 2)
+            self.assertLess(width, height * 1.8)
             self.assertLessEqual(height, 24)
 
     def test_retailer_logo_and_discount_use_the_same_upper_corner_positions_as_channel_images(self):
@@ -638,7 +641,7 @@ class ShortVideoTests(unittest.TestCase):
         font = _title_font(32)
         self.assertEqual(font.getname()[0], "Lalezar")
 
-    def test_aparat_poster_omits_its_own_id_and_includes_youtube_wordmark(self):
+    def test_aparat_poster_omits_its_own_id_and_includes_youtube_icon(self):
         import short_video
 
         image = Image.new("RGB", (400, 500), (255, 255, 255))
