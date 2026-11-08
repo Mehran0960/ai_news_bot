@@ -628,6 +628,23 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual({pid for pid, _entry in later}, {"dkp-1", "dkp-2"})
 
 
+    def test_due_queue_keeps_selector_order_and_ignores_demand_scores(self):
+        state = {}
+        enqueue_selected_content(
+            state,
+            [self.item("dkp-100", demand=0), self.item("dkp-200", demand=999)],
+            now=self.now,
+            interval_seconds=1200,
+            max_items=2,
+        )
+        # Force an exact schedule tie; stable insertion order is the original
+        # selector order and must not be replaced by a demand/popularity score.
+        same_slot = self.now.isoformat()
+        state["content_delivery_queue"]["dkp-100"]["scheduled_at"] = same_slot
+        state["content_delivery_queue"]["dkp-200"]["scheduled_at"] = same_slot
+        due = due_content(state, now=self.now, limit=2)
+        self.assertEqual([pid for pid, _entry in due], ["dkp-100", "dkp-200"])
+
     def test_future_selection_is_replaced_by_live_scan(self):
         state = {"last_published_at": self.now.isoformat()}
         enqueue_selected_content(
