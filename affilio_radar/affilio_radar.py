@@ -2049,9 +2049,10 @@ def _prepare_torob_mcp() -> set[str]:
 
 
 def _torob_trends_refresh_due(state: dict, current: datetime) -> bool:
-    """Refresh trends on a bounded cadence; an active retry window suppresses calls."""
+    """Refresh trends on a bounded cadence; an active retry or shared Torob pause suppresses calls."""
     retry_at = _parse_utc_datetime(state.get("torob_trends_next_attempt_at"))
-    if retry_at and retry_at > current:
+    pause_until = _parse_utc_datetime(state.get("market_price_api_pause_until"))
+    if (retry_at and retry_at > current) or (pause_until and pause_until > current):
         return False
     snapshot_status, _ = torob_trends_snapshot_status(
         state.get("torob_trends_snapshot"),
@@ -9698,6 +9699,7 @@ def run(publish=False, selection_only=False):
                     "catalog_best_selling_category_id",
                     "catalog_best_selling_category_name",
                     "catalog_rank_observed_at",
+                    "catalog_best_selling_ranks_by_category",
                     "catalog_cycle_completed_at",
                     "catalog_cycle_snapshot_rank",
                 ):
