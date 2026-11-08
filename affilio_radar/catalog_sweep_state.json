@@ -44288,11 +44288,11 @@
   "last_error": "",
   "last_successful_category_id": "9543",
   "last_successful_category_name": "جاکلیدی زنانه و مردانه",
-  "last_successful_page": 497,
-  "last_successful_page_at": "2026-11-08T07:51:24.617087+00:00",
+  "last_successful_page": 498,
+  "last_successful_page_at": "2026-11-08T07:52:22.642728+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 497,
+  "page": 498,
   "parallel_cycle_completed_category_ids": [
     "1",
     "2",
@@ -49210,8 +49210,8 @@
     "11797",
     "214186"
   ],
-  "parallel_cycle_pages_success": 192127,
-  "parallel_cycle_product_rows_success": 3772415,
+  "parallel_cycle_pages_success": 192130,
+  "parallel_cycle_product_rows_success": 3772475,
   "parallel_cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -54138,19 +54138,19 @@
     "214158",
     "214186"
   ],
-  "parallel_last_batch_at": "2026-11-08T07:51:24.719964+00:00",
+  "parallel_last_batch_at": "2026-11-08T07:52:22.713168+00:00",
   "parallel_last_batch_candidate_file_bytes": 4234987,
-  "parallel_last_batch_candidate_write_seconds": 0.092,
+  "parallel_last_batch_candidate_write_seconds": 0.063,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 2.203,
+  "parallel_last_batch_fetch_seconds": 1.628,
   "parallel_last_batch_nonempty_product_pages": 3,
   "parallel_last_batch_pages": 3,
-  "parallel_last_batch_pages_per_second": 1.36,
-  "parallel_last_batch_processing_seconds": 0.012,
+  "parallel_last_batch_pages_per_second": 1.84,
+  "parallel_last_batch_processing_seconds": 0.008,
   "parallel_last_batch_product_rows": 60,
   "parallel_last_batch_rate_limited": 0,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 26.02,
+  "parallel_last_batch_rows_per_second": 35.32,
   "parallel_last_batch_successes": 3,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4672,
@@ -54159,19 +54159,19 @@
       "attempts": 0,
       "category_id": "6263",
       "category_name": "حمام و سرویس بهداشتی",
-      "page": 497
+      "page": 498
     },
     {
       "attempts": 0,
       "category_id": "9540",
       "category_name": "زیورآلات زنانه و مردانه",
-      "page": 498
+      "page": 499
     },
     {
       "attempts": 0,
       "category_id": "9543",
       "category_name": "جاکلیدی زنانه و مردانه",
-      "page": 498
+      "page": 499
     }
   ],
   "parallel_queue_initialized": true,
@@ -54182,14 +54182,14 @@
   "schema_version": 1,
   "stats": {
     "api_failures_total": 48101,
-    "catalog_candidate_cards_found_total": 14420709,
+    "catalog_candidate_cards_found_total": 14420769,
     "completed_cycles": 1,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 3822802,
+    "discounted_candidates_found_total": 3822850,
     "empty_product_pages_total": 24123,
-    "nonempty_product_pages_total": 729392,
-    "pages_scanned_total": 752723,
-    "product_rows_scanned_total": 14420749,
+    "nonempty_product_pages_total": 729395,
+    "pages_scanned_total": 752726,
+    "product_rows_scanned_total": 14420809,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
