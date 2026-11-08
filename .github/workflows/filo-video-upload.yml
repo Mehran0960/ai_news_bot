@@ -1,7 +1,7 @@
 name: OfferChin Filo Video Upload
 
 on:
-  # A protected code deployment automatically checks the configured Filo account.
+  # A controlled main-branch config update automatically checks Filo login only.
   # This push path is verify-only and never publishes a video.
   push:
     branches: [main]
