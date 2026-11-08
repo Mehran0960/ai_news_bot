@@ -4487,10 +4487,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "5974",
-      "catalog_best_selling_category_name": "لوازم اداری",
-      "catalog_best_selling_rank": 1435,
+      "catalog_best_selling_category_id": "5970",
+      "catalog_best_selling_category_name": "لوازم تحریر",
+      "catalog_best_selling_rank": 6368,
       "catalog_best_selling_ranks_by_category": {
+        "5970": {
+          "category_name": "لوازم تحریر",
+          "observed_at": "2026-11-08T04:23:45.466446+00:00",
+          "rank": 6368
+        },
         "5974": {
           "category_name": "لوازم اداری",
           "observed_at": "2026-11-07T19:50:26.789740+00:00",
@@ -4502,18 +4507,19 @@
           "rank": 79
         }
       },
-      "catalog_category_id": "5974",
+      "catalog_category_id": "5970",
       "catalog_category_ids": [
+        "5970",
         "5974",
         "5992"
       ],
-      "catalog_category_name": "لوازم اداری",
-      "catalog_rank_observed_at": "2026-11-07T19:50:26.789740+00:00",
+      "catalog_category_name": "لوازم تحریر",
+      "catalog_rank_observed_at": "2026-11-08T04:23:45.466446+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 90000,
       "discount_percent": 87,
       "first_seen_at": "2026-11-07T13:52:49.742970+00:00",
-      "last_seen_at": "2026-11-07T19:49:46.210740+00:00",
+      "last_seen_at": "2026-11-08T04:23:37.685399+00:00",
       "original_price": 700000,
       "product_id": "dkp-21241015",
       "product_url": "https://www.digikala.com/product/dkp-21241015/",
@@ -13161,12 +13167,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9347",
       "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 4593,
+      "catalog_best_selling_rank": 6376,
       "catalog_best_selling_ranks_by_category": {
         "9347": {
           "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-08T02:43:44.554877+00:00",
-          "rank": 4593
+          "observed_at": "2026-11-08T04:23:45.473696+00:00",
+          "rank": 6376
         }
       },
       "catalog_category_id": "9347",
@@ -13174,12 +13180,12 @@
         "9347"
       ],
       "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-08T02:43:44.554877+00:00",
+      "catalog_rank_observed_at": "2026-11-08T04:23:45.473696+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 695000,
       "discount_percent": 81,
       "first_seen_at": "2026-11-08T02:43:44.554877+00:00",
-      "last_seen_at": "2026-11-08T02:43:42.250284+00:00",
+      "last_seen_at": "2026-11-08T04:23:41.858351+00:00",
       "original_price": 3580000,
       "product_id": "dkp-21597284",
       "product_url": "https://www.digikala.com/product/dkp-21597284/",
@@ -14116,6 +14122,38 @@
       "savings_toman": 2885000,
       "source": "digikala_catalog_sweep",
       "title": "تی شرت آستین کوتاه مردانه مدل موتورسیکلت کلاسیک انگلیسی کد mo312"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "9470",
+      "catalog_best_selling_category_name": "تی شرت مردانه",
+      "catalog_best_selling_rank": 6379,
+      "catalog_best_selling_ranks_by_category": {
+        "9470": {
+          "category_name": "تی شرت مردانه",
+          "observed_at": "2026-11-08T04:23:45.475915+00:00",
+          "rank": 6379
+        }
+      },
+      "catalog_category_id": "9470",
+      "catalog_category_ids": [
+        "9470"
+      ],
+      "catalog_category_name": "تی شرت مردانه",
+      "catalog_rank_observed_at": "2026-11-08T04:23:45.475915+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 695000,
+      "discount_percent": 81,
+      "first_seen_at": "2026-11-08T04:23:45.475915+00:00",
+      "last_seen_at": "2026-11-08T04:23:43.285026+00:00",
+      "original_price": 3580000,
+      "product_id": "dkp-14206925",
+      "product_url": "https://www.digikala.com/product/dkp-14206925/",
+      "rating": 3.56,
+      "review_count": 25,
+      "savings_toman": 2885000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه مردانه مدل عاشقانه گل رز کد mo235"
     },
     {
       "availability": "unknown",
@@ -28651,27 +28689,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6516",
-      "catalog_best_selling_category_name": "خمیر دندان",
-      "catalog_best_selling_rank": 114,
+      "catalog_best_selling_category_id": "5824",
+      "catalog_best_selling_category_name": "لوازم بهداشتی",
+      "catalog_best_selling_rank": 6379,
       "catalog_best_selling_ranks_by_category": {
+        "5824": {
+          "category_name": "لوازم بهداشتی",
+          "observed_at": "2026-11-08T04:23:45.465653+00:00",
+          "rank": 6379
+        },
         "6516": {
           "category_name": "خمیر دندان",
           "observed_at": "2026-11-07T14:37:36.626233+00:00",
           "rank": 114
         }
       },
-      "catalog_category_id": "6516",
+      "catalog_category_id": "5824",
       "catalog_category_ids": [
+        "5824",
         "6516"
       ],
-      "catalog_category_name": "خمیر دندان",
-      "catalog_rank_observed_at": "2026-11-07T14:37:36.626233+00:00",
+      "catalog_category_name": "لوازم بهداشتی",
+      "catalog_rank_observed_at": "2026-11-08T04:23:45.465653+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 194500,
       "discount_percent": 76,
       "first_seen_at": "2026-11-07T14:37:36.626233+00:00",
-      "last_seen_at": "2026-11-07T14:35:59.258264+00:00",
+      "last_seen_at": "2026-11-08T04:23:37.158116+00:00",
       "original_price": 800000,
       "product_id": "dkp-18788818",
       "product_url": "https://www.digikala.com/product/dkp-18788818/",
@@ -37945,27 +37989,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "11760",
-      "catalog_best_selling_category_name": "پاک‌کننده و شوینده صورت",
-      "catalog_best_selling_rank": 937,
+      "catalog_best_selling_category_id": "6486",
+      "catalog_best_selling_category_name": "مراقبت پوست",
+      "catalog_best_selling_rank": 6330,
       "catalog_best_selling_ranks_by_category": {
         "11760": {
           "category_name": "پاک‌کننده و شوینده صورت",
           "observed_at": "2026-11-07T18:47:02.278365+00:00",
           "rank": 937
+        },
+        "6486": {
+          "category_name": "مراقبت پوست",
+          "observed_at": "2026-11-08T04:23:45.459096+00:00",
+          "rank": 6330
         }
       },
-      "catalog_category_id": "11760",
+      "catalog_category_id": "6486",
       "catalog_category_ids": [
+        "6486",
         "11760"
       ],
-      "catalog_category_name": "پاک‌کننده و شوینده صورت",
-      "catalog_rank_observed_at": "2026-11-07T18:47:02.278365+00:00",
+      "catalog_category_name": "مراقبت پوست",
+      "catalog_rank_observed_at": "2026-11-08T04:23:45.459096+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 108500,
       "discount_percent": 75,
       "first_seen_at": "2026-11-07T18:47:02.278365+00:00",
-      "last_seen_at": "2026-11-07T18:46:51.759290+00:00",
+      "last_seen_at": "2026-11-08T04:23:32.779263+00:00",
       "original_price": 434000,
       "product_id": "dkp-6753107",
       "product_url": "https://www.digikala.com/product/dkp-6753107/",
@@ -47275,6 +47325,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "9470",
+      "catalog_best_selling_category_name": "تی شرت مردانه",
+      "catalog_best_selling_rank": 6380,
+      "catalog_best_selling_ranks_by_category": {
+        "9470": {
+          "category_name": "تی شرت مردانه",
+          "observed_at": "2026-11-08T04:23:45.475915+00:00",
+          "rank": 6380
+        }
+      },
+      "catalog_category_id": "9470",
+      "catalog_category_ids": [
+        "9470"
+      ],
+      "catalog_category_name": "تی شرت مردانه",
+      "catalog_rank_observed_at": "2026-11-08T04:23:45.475915+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1190000,
+      "discount_percent": 74,
+      "first_seen_at": "2026-11-08T04:23:45.475915+00:00",
+      "last_seen_at": "2026-11-08T04:23:43.285056+00:00",
+      "original_price": 4580000,
+      "product_id": "dkp-18648148",
+      "product_url": "https://www.digikala.com/product/dkp-18648148/",
+      "rating": 1.0,
+      "review_count": 1,
+      "savings_toman": 3390000,
+      "source": "digikala_catalog_sweep",
+      "title": "تی شرت آستین کوتاه مردانه مدل اسپرت کیت اتلتیکو مادرید v027"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "9347",
       "catalog_best_selling_category_name": "تی شرت زنانه",
       "catalog_best_selling_rank": 5415,
@@ -53654,6 +53736,38 @@
       "savings_toman": 2555000,
       "source": "digikala_catalog_sweep",
       "title": "رژ لب جامد سالوته پرو شماره S993"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "6471",
+      "catalog_best_selling_category_name": "آرایش لب",
+      "catalog_best_selling_rank": 6324,
+      "catalog_best_selling_ranks_by_category": {
+        "6471": {
+          "category_name": "آرایش لب",
+          "observed_at": "2026-11-08T04:23:45.458970+00:00",
+          "rank": 6324
+        }
+      },
+      "catalog_category_id": "6471",
+      "catalog_category_ids": [
+        "6471"
+      ],
+      "catalog_category_name": "آرایش لب",
+      "catalog_rank_observed_at": "2026-11-08T04:23:45.458970+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 945000,
+      "discount_percent": 73,
+      "first_seen_at": "2026-11-08T04:23:45.458970+00:00",
+      "last_seen_at": "2026-11-08T04:23:32.854263+00:00",
+      "original_price": 3500000,
+      "product_id": "dkp-18072341",
+      "product_url": "https://www.digikala.com/product/dkp-18072341/",
+      "rating": 3.19,
+      "review_count": 27,
+      "savings_toman": 2555000,
+      "source": "digikala_catalog_sweep",
+      "title": "رژ لب جامد سالوته پرو شماره 916"
     },
     {
       "availability": "unknown",
@@ -82383,7 +82497,7 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "6394",
       "catalog_best_selling_category_name": "روشنایی و الکتریکی",
-      "catalog_best_selling_rank": 6203,
+      "catalog_best_selling_rank": 6365,
       "catalog_best_selling_ranks_by_category": {
         "10658": {
           "category_name": "نور و روشنایی",
@@ -82392,8 +82506,8 @@
         },
         "6394": {
           "category_name": "روشنایی و الکتریکی",
-          "observed_at": "2026-11-08T04:15:38.533189+00:00",
-          "rank": 6203
+          "observed_at": "2026-11-08T04:23:45.472070+00:00",
+          "rank": 6365
         },
         "6961": {
           "category_name": "لوستر و دیوارکوب",
@@ -82408,12 +82522,12 @@
         "10658"
       ],
       "catalog_category_name": "روشنایی و الکتریکی",
-      "catalog_rank_observed_at": "2026-11-08T04:15:38.533189+00:00",
+      "catalog_rank_observed_at": "2026-11-08T04:23:45.472070+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1495000,
       "discount_percent": 69,
       "first_seen_at": "2026-11-07T17:47:35.006982+00:00",
-      "last_seen_at": "2026-11-08T04:15:35.378783+00:00",
+      "last_seen_at": "2026-11-08T04:23:40.590169+00:00",
       "original_price": 4800000,
       "product_id": "dkp-22555629",
       "product_url": "https://www.digikala.com/product/dkp-22555629/",
@@ -84567,27 +84681,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6472",
-      "catalog_best_selling_category_name": "رژ لب مایع و لیپ گلاس",
-      "catalog_best_selling_rank": 2547,
+      "catalog_best_selling_category_id": "6471",
+      "catalog_best_selling_category_name": "آرایش لب",
+      "catalog_best_selling_rank": 6323,
       "catalog_best_selling_ranks_by_category": {
+        "6471": {
+          "category_name": "آرایش لب",
+          "observed_at": "2026-11-08T04:23:45.458970+00:00",
+          "rank": 6323
+        },
         "6472": {
           "category_name": "رژ لب مایع و لیپ گلاس",
           "observed_at": "2026-11-07T21:36:31.753767+00:00",
           "rank": 2547
         }
       },
-      "catalog_category_id": "6472",
+      "catalog_category_id": "6471",
       "catalog_category_ids": [
+        "6471",
         "6472"
       ],
-      "catalog_category_name": "رژ لب مایع و لیپ گلاس",
-      "catalog_rank_observed_at": "2026-11-07T21:36:31.753767+00:00",
+      "catalog_category_name": "آرایش لب",
+      "catalog_rank_observed_at": "2026-11-08T04:23:45.458970+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 775000,
       "discount_percent": 69,
       "first_seen_at": "2026-11-07T21:28:06.083303+00:00",
-      "last_seen_at": "2026-11-07T21:36:15.909768+00:00",
+      "last_seen_at": "2026-11-08T04:23:32.854229+00:00",
       "original_price": 2500000,
       "product_id": "dkp-21104082",
       "product_url": "https://www.digikala.com/product/dkp-21104082/",
@@ -110946,105 +111066,9 @@
       "savings_toman": 2388000,
       "source": "digikala_catalog_sweep",
       "title": "تی شرت آستین کوتاه مردانه مدل بازی مورتال کمبت کد b009"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9347",
-      "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 5431,
-      "catalog_best_selling_ranks_by_category": {
-        "9347": {
-          "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-08T03:29:04.131707+00:00",
-          "rank": 5431
-        }
-      },
-      "catalog_category_id": "9347",
-      "catalog_category_ids": [
-        "9347"
-      ],
-      "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-08T03:29:04.131707+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-07T19:26:07.853520+00:00",
-      "last_seen_at": "2026-11-08T03:28:46.803318+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-18059191",
-      "product_url": "https://www.digikala.com/product/dkp-18059191/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "تی شرت لانگ زنانه مدل هری پاتر کد 1"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9347",
-      "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 1202,
-      "catalog_best_selling_ranks_by_category": {
-        "9347": {
-          "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-07T19:26:07.853520+00:00",
-          "rank": 1202
-        }
-      },
-      "catalog_category_id": "9347",
-      "catalog_category_ids": [
-        "9347"
-      ],
-      "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T19:26:07.853520+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-07T19:26:07.853520+00:00",
-      "last_seen_at": "2026-11-07T19:25:37.994607+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-17920713",
-      "product_url": "https://www.digikala.com/product/dkp-17920713/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "کراپ‌ تی‌شرت آستین کوتاه زنانه مدل لاکپشت و تنبل"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9347",
-      "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 1203,
-      "catalog_best_selling_ranks_by_category": {
-        "9347": {
-          "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-07T19:26:07.853520+00:00",
-          "rank": 1203
-        }
-      },
-      "catalog_category_id": "9347",
-      "catalog_category_ids": [
-        "9347"
-      ],
-      "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-07T19:26:07.853520+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-07T19:26:07.853520+00:00",
-      "last_seen_at": "2026-11-07T19:25:37.994678+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-18090534",
-      "product_url": "https://www.digikala.com/product/dkp-18090534/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "تی شرت لانگ زنانه مدل کاکتوس و بادکنک"
     }
   ],
   "cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-08T04:22:42.908623+00:00"
+  "updated_at": "2026-11-08T04:23:45.497759+00:00"
 }
