@@ -730,14 +730,26 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "active_publication_exists",
         )
 
-    def test_fallback_filter_requires_current_demand_and_attractive_value(self):
+    def test_fallback_filter_does_not_gate_on_demand_and_normalizes_legacy_discount_tiers(self):
         low_discount = self.item("dkp-99008", demand=95)
-        low_discount.update({"discount_percent": 45, "selection_discount_floor": 45})
+        low_discount.update({
+            "current_price": 110_000,
+            "original_price": 200_000,
+            "discount_percent": 45,
+            "savings_toman": 90_000,
+            "selection_discount_floor": 45,
+        })
         no_current_demand = self.item("dkp-99009", demand=95)
         no_current_demand["current_demand_verified"] = False
         valid = self.item("dkp-99010", demand=45)
         unsupported_floor = self.item("dkp-99011", demand=99)
-        unsupported_floor.update({"discount_percent": 34, "selection_discount_floor": 35})
+        unsupported_floor.update({
+            "current_price": 132_000,
+            "original_price": 200_000,
+            "discount_percent": 34,
+            "savings_toman": 68_000,
+            "selection_discount_floor": 35,
+        })
 
         filtered = _eligible_fallback_candidates(
             [low_discount, no_current_demand, valid, unsupported_floor], self.now
@@ -745,7 +757,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
 
         self.assertEqual(
             {item["product_id"] for item in filtered},
-            {"dkp-99008", "dkp-99010", "dkp-99011"},
+            {"dkp-99008", "dkp-99009", "dkp-99010", "dkp-99011"},
         )
         self.assertTrue(all(item["selection_discount_floor"] == 1 for item in filtered))
 
@@ -800,7 +812,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         fallback_candidate = {
             **self.item("dkp-99002", demand=45),
+            "current_price": 110_000,
+            "original_price": 200_000,
             "discount_percent": 45,
+            "savings_toman": 90_000,
             "selection_discount_floor": 45,
             "selection_discount_band": "45%–49%",
         }
