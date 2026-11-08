@@ -1243,10 +1243,10 @@
 
 **فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/publisher.py`، `affilio_radar/test_affilio.py`، `affilio_radar/test_selection_evidence.py`، `.github/workflows/offerchin-publisher.yml`، `docs/PROJECT_CHARTER_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
 
-**آزمون و نتیجه:** اجرای تست‌های هدفمند و Documentation Gate در GitHub Actions پس از ساخت PR در انتظار است؛ تا پیش از مشاهدهٔ نتیجهٔ واقعی CI، موفقیت تست ادعا نمی‌شود.
+**آزمون و نتیجه:** روی commit اجرایی `08f10b5d8217b0b315fe54142e077e8e76d98c7e`، تمام بررسی‌های مرتبط GitHub Actions موفق شدند: تست Top-100/DigiPay، اسکن کاتالوگ، آداپتر پیام‌رسان، تست لوگو، Documentation Gate و اجرای کامل تست‌های code-push در Affilio Product Radar. شناسه‌های اجرا به‌ترتیب: `42469575963`، `42469576028`، `42469575962`، `42469575944`، `42469575985` و `42469571700`.
 
-**شواهد/شناسه:** شاخهٔ `fix/offerchin-discount-first-review-growth-tiebreak-2026-11-08`؛ commitهای اولیهٔ پیاده‌سازی: `e97141f0e4af5129d713664d4cd7cc7f211884ca`، `3a9d3ed9c8670a44559c32a2b9a9d4e5d1396e29` و `72e03f10b35d6fac68bd7b21fcf786d721ae4da2`. شناسهٔ PR و نتایج CI پس از اجرا تکمیل می‌شود.
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-discount-first-review-growth-tiebreak-2026-11-08`؛ PR شمارهٔ `127` در https://github.com/Mehran0960/ai_news_bot/pull/127 . commitهای اولیهٔ پیاده‌سازی: `e97141f0e4af5129d713664d4cd7cc7f211884ca`، `3a9d3ed9c8670a44559c32a2b9a9d4e5d1396e29` و `72e03f10b35d6fac68bd7b21fcf786d721ae4da2`.
 
 **ریسک/بازگشت:** هر تغییر در tie-break می‌تواند فقط میان کالاهایی با درصد و صرفه‌جویی یکسان ترتیب را عوض کند. رشد نظر فقط پروکسی است و نباید به‌عنوان فروش گزارش شود. تغییرات روی شاخهٔ کاری انجام شده‌اند و تا merge روی `main` اثر زنده ندارند؛ بازگشت با revert commitهای این PR ممکن است. هیچ state، صف انتشار یا شناسهٔ پست موجود تغییر داده نشده است.
 
-**وضعیت:** پیاده‌سازی و مستندسازی روی شاخه انجام شد؛ در انتظار CI و بازبینی نهایی پیش از merge.
+**وضعیت:** پیاده‌سازی روی شاخه و آزمون‌های مرتبط موفق است؛ PR هنوز به `main` ادغام نشده است. پیش از ادغام، branch باید با تغییرات state خودکار جدید `main` همگام شود؛ این تغییرات فقط فایل‌های state کاتالوگ و ممیزی را لمس کرده‌اند و در فایل‌های کد این PR تعارضی ثبت نشده است.
