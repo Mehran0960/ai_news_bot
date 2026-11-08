@@ -24,7 +24,7 @@ _PLATFORM_ICON_VIEWBOXES = {
     "bale": "54 4 32 32",
     # Rubika's official multicolour symbol occupies the right-hand artwork;
     # the grey Persian/Latin wordmark is outside this viewport.
-    "rubika": "830 0 449 543.02",
+    "rubika": "783.5 0 495.39 543.02",
     # Aparat's pictorial mark is the original coloured emblem at the far right.
     "aparat": "56 0 24 25",
 }
