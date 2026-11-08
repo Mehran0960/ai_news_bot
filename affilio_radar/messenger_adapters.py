@@ -238,12 +238,38 @@ def send_rubika_photo(token: str, channel_id: str, item: dict, image_bytes: byte
     if not file_id:
         raise RuntimeError("Rubika image upload returned no file_id")
 
-    sent = _rubika_call(token, "sendFile", {
+    send_payload = {
         "chat_id": channel_id,
         "file_id": file_id,
         "text": _caption(renderer, item, affiliate_url, "rubika"),
         "inline_keypad": _rubika_inline_keypad(renderer, item, affiliate_url),
-    })
+    }
+    try:
+        sent = _rubika_call(token, "sendFile", send_payload)
+    except RuntimeError as exc:
+        # An explicit INVALID_INPUT response means Rubika rejected the request;
+        # no message was accepted, so one conservative retry without the optional
+        # keypad cannot duplicate a public post. Network/unknown failures are never retried.
+        if "INVALID_INPUT" not in str(exc).upper():
+            raise
+        label_builder = getattr(renderer, "purchase_button_label", None)
+        purchase_label = (
+            str(label_builder(affiliate_url))
+            if callable(label_builder)
+            else purchase_action_label(item.get("merchant") or "دیجی‌کالا")
+        )
+        link_footer = (
+            f"\n\n{purchase_label}\n{affiliate_url}"
+            f"\n\n{RUBIKA_MEMBERSHIP_BUTTON_TEXT}\n{RUBIKA_CHANNEL_URL}"
+        )
+        plain_caption = _caption(renderer, item, affiliate_url, "rubika").rstrip()
+        plain_caption = plain_caption[: max(0, 3800 - len(link_footer))] + link_footer
+        print("RUBIKA_INLINE_KEYPAD_REJECTED fallback=plain_caption_links")
+        sent = _rubika_call(token, "sendFile", {
+            "chat_id": channel_id,
+            "file_id": file_id,
+            "text": plain_caption,
+        })
     message_id = str(sent.get("message_id") or "").strip()
     if not message_id:
         raise RuntimeError("Rubika sendFile returned no message_id")
