@@ -6,6 +6,7 @@ from filo_uploader import (
     FiloUploadError,
     _find_publish_button,
     _visible_enabled_first,
+    _wait_for_filo_login_form_hydration,
     _normalize_text,
     _success_flag,
     _title_matches,
@@ -68,6 +69,14 @@ class FiloUploaderUnitTests(unittest.TestCase):
         page.locator.return_value = collection
 
         self.assertIs(_visible_enabled_first(page, ["button[type='submit']"]), enabled)
+
+    def test_login_waits_for_vue_v_model_handlers_before_fill(self):
+        page = Mock()
+        _wait_for_filo_login_form_hydration(page)
+        script = page.wait_for_function.call_args.args[0]
+        self.assertIn("Object.getOwnPropertySymbols", script)
+        self.assertIn("_assign", script)
+        self.assertEqual(page.wait_for_function.call_args.kwargs["timeout"], 20_000)
 
     def test_login_check_requires_credentials_without_launching_browser(self):
         with self.assertRaises(FiloUploadError) as caught:

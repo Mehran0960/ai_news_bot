@@ -140,6 +140,31 @@ def _visible_enabled_first(page, selectors):
     return None
 
 
+def _wait_for_filo_login_form_hydration(page) -> None:
+    """Wait until Vue has attached its v-model input handlers to both login fields."""
+    try:
+        page.wait_for_function(
+            """() => {
+              const form = document.querySelector('#app form');
+              if (!form) return false;
+              const username = form.querySelector('input[placeholder*="شماره"]');
+              const password = form.querySelector('input[type="password"]');
+              const hasVueModelAssigner = element =>
+                Boolean(element) && Object.getOwnPropertySymbols(element).some(symbol =>
+                  symbol.description === '_assign' && typeof element[symbol] === 'function'
+                );
+              return hasVueModelAssigner(username) && hasVueModelAssigner(password);
+            }""",
+            timeout=20_000,
+        )
+    except Exception as exc:
+        # Playwright's TimeoutError is optional in unit-test environments where
+        # only the browser workflow installs Playwright.
+        if "timeout" not in type(exc).__name__.lower():
+            raise
+        raise FiloUploadError("filo_login_form_not_hydrated") from exc
+
+
 def _find_title_field(page):
     field = _visible_first(page, [
         'input[name*="title" i]',
@@ -271,10 +296,12 @@ def _login(page, username: str, password: str) -> None:
         username_field = _visible_first(page, username_selectors)
     if username_field is None:
         raise FiloUploadError("filo_login_username_field_missing")
+
+    # The login page is server-rendered, but its form is controlled by Vue v-model.
+    # Filling before Vue attaches its input handler lets hydration erase the values.
+    _wait_for_filo_login_form_hydration(page)
     username_field.fill(username)
     password_field.fill(password)
-    username_field.press("Tab")
-    password_field.press("Tab")
 
     submit = None
     submit_selectors = ["button[type='submit']", "input[type='submit']"]
