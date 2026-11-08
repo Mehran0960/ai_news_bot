@@ -431,6 +431,11 @@ class ShortVideoTests(unittest.TestCase):
                 self.assertNotRegex(offerchin_visuals.platform_footer_label(platform, url), r"(?i)^https?://")
                 self.assertNotIn("www.", offerchin_visuals.platform_footer_label(platform, url))
 
+        # Visual labels are branded, but canonical route/handle values remain untouched.
+        canonical = dict(offerchin_visuals.PUBLIC_CHANNEL_LINKS)
+        self.assertEqual(canonical["rubika"], "rubika.ir/offerchin")
+        self.assertEqual(canonical["youtube"], "youtube.com/@offerchin")
+
     def test_each_public_platform_lists_every_other_media_and_never_itself(self):
         import offerchin_visuals
 
