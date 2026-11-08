@@ -44286,13 +44286,13 @@
   "last_cycle_status": "complete",
   "last_cycle_unqueryable_category_ids": [],
   "last_error": "",
-  "last_successful_category_id": "8",
-  "last_successful_category_name": "آرایشی بهداشتی",
+  "last_successful_category_id": "10311",
+  "last_successful_category_name": "گیره و مگنت",
   "last_successful_page": 500,
-  "last_successful_page_at": "2026-11-08T07:36:33.201057+00:00",
+  "last_successful_page_at": "2026-11-08T07:37:29.226317+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 482,
+  "page": 483,
   "parallel_cycle_completed_category_ids": [
     "1",
     "2",
@@ -46610,6 +46610,7 @@
     "6481",
     "6482",
     "6483",
+    "6484",
     "6485",
     "6486",
     "6487",
@@ -47008,6 +47009,7 @@
     "8296",
     "8297",
     "8298",
+    "8299",
     "8300",
     "8301",
     "8302",
@@ -47076,8 +47078,10 @@
     "8417",
     "8419",
     "8422",
+    "8428",
     "8429",
     "8430",
+    "8431",
     "8432",
     "8433",
     "8434",
@@ -47088,6 +47092,7 @@
     "8441",
     "8448",
     "8449",
+    "8450",
     "8451",
     "8452",
     "8453",
@@ -47103,6 +47108,7 @@
     "8478",
     "8480",
     "8481",
+    "8482",
     "8483",
     "8484",
     "8485",
@@ -47460,6 +47466,7 @@
     "9333",
     "9334",
     "9335",
+    "9337",
     "9339",
     "9340",
     "9342",
@@ -47765,6 +47772,7 @@
     "9687",
     "9690",
     "9691",
+    "9692",
     "9693",
     "9694",
     "9695",
@@ -47857,6 +47865,7 @@
     "9841",
     "9842",
     "9843",
+    "9844",
     "9845",
     "9846",
     "9847",
@@ -47895,6 +47904,7 @@
     "9895",
     "9896",
     "9897",
+    "9898",
     "9900",
     "9901",
     "9902",
@@ -48005,6 +48015,7 @@
     "10092",
     "10093",
     "10094",
+    "10095",
     "10096",
     "10097",
     "10098",
@@ -48062,6 +48073,9 @@
     "10158",
     "10166",
     "10167",
+    "10168",
+    "10169",
+    "10170",
     "10171",
     "10173",
     "10174",
@@ -48162,6 +48176,8 @@
     "10280",
     "10282",
     "10283",
+    "10284",
+    "10285",
     "10286",
     "10287",
     "10288",
@@ -48172,6 +48188,7 @@
     "10308",
     "10309",
     "10310",
+    "10311",
     "10312",
     "10313",
     "10314",
@@ -49177,8 +49194,8 @@
     "11797",
     "214186"
   ],
-  "parallel_cycle_pages_success": 191981,
-  "parallel_cycle_product_rows_success": 3769495,
+  "parallel_cycle_pages_success": 192015,
+  "parallel_cycle_product_rows_success": 3770175,
   "parallel_cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -54105,20 +54122,20 @@
     "214158",
     "214186"
   ],
-  "parallel_last_batch_at": "2026-11-08T07:36:33.338268+00:00",
+  "parallel_last_batch_at": "2026-11-08T07:37:29.325235+00:00",
   "parallel_last_batch_candidate_file_bytes": 4235638,
-  "parallel_last_batch_candidate_write_seconds": 0.118,
+  "parallel_last_batch_candidate_write_seconds": 0.086,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 7.381,
-  "parallel_last_batch_nonempty_product_pages": 66,
-  "parallel_last_batch_pages": 66,
-  "parallel_last_batch_pages_per_second": 8.94,
-  "parallel_last_batch_processing_seconds": 0.1,
-  "parallel_last_batch_product_rows": 1304,
-  "parallel_last_batch_rate_limited": 0,
-  "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 171.59,
-  "parallel_last_batch_successes": 66,
+  "parallel_last_batch_fetch_seconds": 6.27,
+  "parallel_last_batch_nonempty_product_pages": 34,
+  "parallel_last_batch_pages": 36,
+  "parallel_last_batch_pages_per_second": 5.74,
+  "parallel_last_batch_processing_seconds": 0.045,
+  "parallel_last_batch_product_rows": 680,
+  "parallel_last_batch_rate_limited": 2,
+  "parallel_last_batch_retries": 2,
+  "parallel_last_batch_rows_per_second": 106.23,
+  "parallel_last_batch_successes": 34,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4672,
   "parallel_pending_pages": [
@@ -54126,235 +54143,135 @@
       "attempts": 0,
       "category_id": "6263",
       "category_name": "حمام و سرویس بهداشتی",
-      "page": 482
+      "page": 483
     },
     {
       "attempts": 0,
       "category_id": "9540",
       "category_name": "زیورآلات زنانه و مردانه",
-      "page": 484
+      "page": 485
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "9543",
       "category_name": "جاکلیدی زنانه و مردانه",
+      "last_error": "http_429",
       "page": 484
     },
     {
       "attempts": 0,
       "category_id": "9534",
       "category_name": "اکسسوری زنانه و مردانه",
-      "page": 488
+      "page": 489
     },
     {
       "attempts": 0,
       "category_id": "10690",
       "category_name": "لوازم و مصالح ساختمانی",
-      "page": 489
+      "page": 490
     },
     {
       "attempts": 0,
       "category_id": "100",
       "category_name": "ماوس پد",
-      "page": 491
+      "page": 492
     },
     {
       "attempts": 0,
       "category_id": "9625",
       "category_name": "دخترانه",
-      "page": 491
+      "page": 492
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "9558",
       "category_name": "ساعت عقربه ای زنانه و مردانه",
+      "last_error": "http_429",
       "page": 492
     },
     {
       "attempts": 0,
       "category_id": "6741",
       "category_name": "مادر و کودک",
-      "page": 493
+      "page": 494
     },
     {
       "attempts": 0,
       "category_id": "5700",
       "category_name": "لوازم آرایشی",
-      "page": 497
+      "page": 498
     },
     {
       "attempts": 0,
       "category_id": "6816",
       "category_name": "پوشاک ورزشی",
-      "page": 497
+      "page": 498
     },
     {
       "attempts": 0,
       "category_id": "6822",
       "category_name": "محصولات چوبی و حصیری",
-      "page": 499
+      "page": 500
     },
     {
       "attempts": 0,
       "category_id": "6908",
       "category_name": "دست سازه های هنری",
-      "page": 499
+      "page": 500
     },
     {
       "attempts": 0,
       "category_id": "6946",
       "category_name": "تابلو",
-      "page": 499
+      "page": 500
     },
     {
       "attempts": 0,
       "category_id": "6977",
       "category_name": "پرده",
-      "page": 499
+      "page": 500
     },
     {
       "attempts": 0,
       "category_id": "8099",
       "category_name": "تجهیزات تردد، حفاظت و امنیت",
-      "page": 499
+      "page": 500
     },
     {
       "attempts": 0,
       "category_id": "8113",
       "category_name": "لوازم مصرفی",
-      "page": 499
+      "page": 500
     },
     {
       "attempts": 0,
       "category_id": "8182",
       "category_name": "لوازم یدکی خودرو",
-      "page": 499
+      "page": 500
     },
     {
       "attempts": 0,
       "category_id": "8406",
       "category_name": "چادر خودرو",
-      "page": 499
-    },
-    {
-      "attempts": 0,
-      "category_id": "6484",
-      "category_name": "ابزار آرایش صورت",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "8299",
-      "category_name": "دکوراسیون خانگی",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "8428",
-      "category_name": "پت شاپ",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "8431",
-      "category_name": "استیکر و پوستر",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "8450",
-      "category_name": "ابزار آلات و تجهیزات",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "8482",
-      "category_name": "هدیه",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "9337",
-      "category_name": "لباس زیر زنانه",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "9692",
-      "category_name": "اکسسوری دخترانه",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "9844",
-      "category_name": "برس‌ها و تجهیزات آرایشی",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "9898",
-      "category_name": "گردنبند زنانه و مردانه",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "10095",
-      "category_name": "ابزار کار هنری و دستی",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "10168",
-      "category_name": "ورزشی مردانه",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "10169",
-      "category_name": "ورزشی زنانه",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "10170",
-      "category_name": "محصولات بومی و محلی",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "10284",
-      "category_name": "بهداشت شخصی",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "10285",
-      "category_name": "بهداشت خانگی",
-      "page": 500
-    },
-    {
-      "attempts": 0,
-      "category_id": "10311",
-      "category_name": "گیره و مگنت",
       "page": 500
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 11,
-  "parallel_workers_used": 10,
-  "pending_page_count": 36,
+  "parallel_worker_limit": 10,
+  "parallel_workers_used": 11,
+  "pending_page_count": 19,
   "schema_version": 1,
   "stats": {
-    "api_failures_total": 48097,
-    "catalog_candidate_cards_found_total": 14417789,
+    "api_failures_total": 48099,
+    "catalog_candidate_cards_found_total": 14418469,
     "completed_cycles": 1,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 3821668,
+    "discounted_candidates_found_total": 3821908,
     "empty_product_pages_total": 24123,
-    "nonempty_product_pages_total": 729246,
-    "pages_scanned_total": 752577,
-    "product_rows_scanned_total": 14417829,
+    "nonempty_product_pages_total": 729280,
+    "pages_scanned_total": 752611,
+    "product_rows_scanned_total": 14418509,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
