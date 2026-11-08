@@ -1,3 +1,4 @@
+# [scan-now] One-time branch-only, non-publishing sample for the demand-shadow pilot.
 """Evidence-only demand signals for OfferChin's shadow selection experiment.
 
 This module never changes the live publisher ordering. DigiKala ranks stay
