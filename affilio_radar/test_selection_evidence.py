@@ -1,5 +1,6 @@
 import unittest
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 import affilio_radar as radar
 from demand_shadow import (
@@ -290,6 +291,66 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "not units sold",
             report["cross_category_comparability"]["review_growth"],
         )
+
+
+
+    def test_torob_trend_refresh_uses_30_minute_cache_and_optional_tool(self):
+        state = {}
+        payload = {
+            "count": 1,
+            "trends": [{
+                "query": "هندزفری بلوتوثی",
+                "category_id": "55",
+                "sample": {"name_fa": "هندزفری بلوتوثی مدل نمونه"},
+            }],
+        }
+        with (
+            patch.object(radar, "_prepare_torob_mcp", return_value={
+                "search_products", "product_details", "torob_trends",
+            }) as prepare,
+            patch.object(radar, "_torob_tool", return_value=payload) as call,
+        ):
+            snapshot, status = radar.refresh_torob_trends_snapshot(state, self.now)
+            self.assertEqual(status, "refreshed")
+            self.assertEqual(snapshot["count"], 1)
+            self.assertEqual(call.call_args.args[0], "torob_trends")
+            self.assertEqual(call.call_args.args[1], {"limit": 30})
+            cached, cache_status = radar.refresh_torob_trends_snapshot(
+                state, self.now + timedelta(minutes=20)
+            )
+        self.assertEqual(cache_status, "cached")
+        self.assertEqual(cached["count"], 1)
+        prepare.assert_called_once()
+
+    def test_torob_trend_refresh_failure_uses_only_recent_fallback_cache(self):
+        cached = build_torob_trends_snapshot(
+            {"trends": [{"query": "هدفون بی سیم"}]},
+            self.now - timedelta(minutes=65),
+        )
+        state = {"torob_trends_snapshot": cached}
+        with patch.object(radar, "_prepare_torob_mcp", side_effect=RuntimeError("challenge")):
+            result, status = radar.refresh_torob_trends_snapshot(state, self.now)
+        self.assertEqual(status, "stale_cache")
+        self.assertIs(result, cached)
+
+        too_old = build_torob_trends_snapshot(
+            {"trends": [{"query": "هدفون بی سیم"}]},
+            self.now - timedelta(minutes=95),
+        )
+        with patch.object(radar, "_prepare_torob_mcp", side_effect=RuntimeError("challenge")):
+            result, status = radar.refresh_torob_trends_snapshot(
+                {"torob_trends_snapshot": too_old}, self.now
+            )
+        self.assertIsNone(result)
+        self.assertEqual(status, "unavailable")
+
+    def test_missing_optional_torob_trends_tool_does_not_raise_or_break_run(self):
+        with patch.object(radar, "_prepare_torob_mcp", return_value={
+            "search_products", "product_details",
+        }):
+            snapshot, status = radar.refresh_torob_trends_snapshot({}, self.now)
+        self.assertIsNone(snapshot)
+        self.assertEqual(status, "unavailable")
 
 
 
