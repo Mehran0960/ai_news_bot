@@ -7985,7 +7985,7 @@ def effective_posts_per_run(backlog_count, configured_limit=None, force_full_bat
 
 
 
-VIDEO_STYLE_VERSION = 7  # destination-specific cross-channel IDs, five official marks, and logo+bare-ID rows
+VIDEO_STYLE_VERSION = 8  # exact OfferChin casing guard across every destination-specific cross-media ID row
 YOUTUBE_DESCRIPTION_VERSION = 5  # bare IDs for every other public platform; no self-link or protocol
 PERSIAN_TEXT_RENDERER_VERSION = 2  # single RTL/bidi pass via Pillow RAQM when available
 PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
