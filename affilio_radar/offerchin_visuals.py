@@ -19,8 +19,13 @@ _PLATFORM_LOGO_PATHS = {
 # Official source files may contain a full horizontal brand lockup. These
 # viewBoxes retain only the platform's standalone pictorial mark at render time.
 _PLATFORM_ICON_VIEWBOXES = {
-    "bale": "55 0 26 25",
-    "rubika": "820 0 459 543.02",
+    # Bale's original SVG contains its Persian wordmark at x=4..46 and the
+    # complete standalone speech/check symbol at x=54..86, y=4..36.
+    "bale": "54 4 32 32",
+    # Rubika's official multicolour symbol occupies the right-hand artwork;
+    # the grey Persian/Latin wordmark is outside this viewport.
+    "rubika": "830 0 449 543.02",
+    # Aparat's pictorial mark is the original coloured emblem at the far right.
     "aparat": "56 0 24 25",
 }
 
