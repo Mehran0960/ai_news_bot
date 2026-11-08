@@ -321,8 +321,48 @@ class ShortVideoTests(unittest.TestCase):
         youtube = offerchin_visuals._load_platform_logo("youtube")
         self.assertGreater(youtube.width / youtube.height, 1.2)
         self.assertLess(youtube.width / youtube.height, 1.8)
+        bale = offerchin_visuals._load_platform_logo("bale")
+        self.assertAlmostEqual(bale.width / bale.height, 1.0, delta=0.03)
         aparat = offerchin_visuals._load_platform_logo("aparat")
         self.assertLess(aparat.width / aparat.height, 1.2)
+
+    def test_official_svg_symbol_crops_change_only_the_viewport_and_keep_full_marks(self):
+        import offerchin_visuals
+        from xml.etree import ElementTree
+
+        expected_viewboxes = {
+            "bale": "54 4 32 32",
+            "rubika": "830 0 449 543.02",
+            "aparat": "56 0 24 25",
+        }
+        for platform, expected_viewbox in expected_viewboxes.items():
+            with self.subTest(platform=platform):
+                original_bytes = offerchin_visuals._PLATFORM_LOGO_PATHS[platform].read_bytes()
+                original = ElementTree.fromstring(original_bytes)
+                cropped = ElementTree.fromstring(
+                    offerchin_visuals._icon_only_svg_payload(original_bytes, platform)
+                )
+                self.assertEqual(cropped.attrib.get("viewBox"), expected_viewbox)
+
+                # The crop is a viewport change only: do not edit, recolour,
+                # redraw, stretch, or remove any path from the official source.
+                ns = "{http://www.w3.org/2000/svg}path"
+                original_paths = [
+                    (node.attrib.get("d"), node.attrib.get("fill"), node.attrib.get("transform"))
+                    for node in original.findall(ns)
+                ]
+                cropped_paths = [
+                    (node.attrib.get("d"), node.attrib.get("fill"), node.attrib.get("transform"))
+                    for node in cropped.findall(ns)
+                ]
+                self.assertEqual(cropped_paths, original_paths)
+
+        bale = offerchin_visuals._icon_only_svg_payload(
+            offerchin_visuals._PLATFORM_LOGO_PATHS["bale"].read_bytes(), "bale"
+        )
+        bale_root = ElementTree.fromstring(bale)
+        self.assertEqual(bale_root.attrib["width"], "512")
+        self.assertEqual(bale_root.attrib["height"], "512")
 
     def test_product_image_footer_uses_resolution_aware_readable_official_logo_sizes(self):
         import affilio_radar
