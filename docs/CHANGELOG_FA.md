@@ -1267,10 +1267,10 @@
 
 **فایل‌ها/سامانه‌ها:** `affilio_radar/messenger_adapters.py`، `affilio_radar/test_messenger_adapters.py`، `affilio_radar/offerchin_copy.py`، `affilio_radar/affilio_radar.py`، `affilio_radar/short_video.py`، `affilio_radar/test_short_video.py`، `affilio_radar/aparat_uploader.py`، `affilio_radar/filo_uploader.py`، `.github/workflows/offerchin-platform-logo-tests.yml`، `affilio_radar/MESSENGER_EXPANSION_FA.md`، `affilio_radar/VISUAL_BRANDING.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
 
-**آزمون و نتیجه:** تست‌های `test_messenger_adapters.py`، `test_short_video.py`، تست‌های آداپتور Aparat/Filo و Documentation Gate پس از ساخت PR اجرا می‌شوند؛ تا مشاهدهٔ نتیجهٔ واقعی CI، موفقیت آن‌ها ادعا نمی‌شود.
+**آزمون و نتیجه:** روی commit `a1f8c207882e815496847091e027c67993580bbf`، همهٔ بررسی‌های مرتبط موفق شدند: آداپترهای پیام‌رسان (run `42503460912`)، تست کاتالوگ (run `42503460940`)، Top-100/DigiPay (run `42503460852`)، تست لوگو/ویدئو شامل `test_short_video.py`، `test_aparat_uploader.py` و تست‌های Filo (run `42503474509`)، Documentation Gate (run `42503460880`) و اجرای کامل Affilio Product Radar (run `42503436583`).
 
-**شواهد/شناسه:** شاخهٔ کاری `fix/rubika-caption-link-and-offerchin-brand-case-20261108`. PR و merge SHA پس از اجرای CI تکمیل می‌شوند.
+**شواهد/شناسه:** شاخهٔ کاری `fix/rubika-caption-link-and-offerchin-brand-case-20261108`؛ PR شمارهٔ `128` در https://github.com/Mehran0960/ai_news_bot/pull/128 .
 
 **ریسک/بازگشت:** metadata لینک باید با offset و length دقیق UTF-16 هم‌خوان باشد؛ در پاسخ صریح INVALID_INPUT fallback دو دکمه‌ای فعال می‌شود. هیچ پیام عمومی یا محتوای منتشرشدهٔ قبلی ویرایش نشده است. بازگشت با revert همین PR ممکن است.
 
-**وضعیت:** اصلاح کد و مستندات روی شاخه انجام شده؛ در انتظار CI و ادغام.
+**وضعیت:** همهٔ تست‌های PR روی commit ثبت‌شده موفق‌اند؛ PR هنوز ادغام نشده است. پیش از merge باید stateهای خودکار تازهٔ main حفظ و شاخه با آخرین main همگام شود؛ سپس checkهای روی commit همگام‌شده باید دوباره موفق باشند.
