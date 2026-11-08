@@ -2,6 +2,12 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 import affilio_radar as radar
+from demand_shadow import (
+    annotate_shadow_demand_evidence,
+    build_torob_trends_snapshot,
+    normalize_search_tokens,
+    torob_trends_snapshot_is_fresh,
+)
 from publisher import _eligible_fallback_candidates
 
 
@@ -172,6 +178,119 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "current_price": 990_000,
             "original_price": 1_000_000,
         }))
+
+
+    def test_torob_trend_snapshot_deduplicates_without_reordering_source_ranks(self):
+        snapshot = build_torob_trends_snapshot(
+            {
+                "trends": [
+                    {"query": "هندزفری بلوتوثی", "category_id": "11",
+                     "sample": {"name_fa": "هندزفری بلوتوثی مدل TWS X"}},
+                    {"query": "هندزفری بلوتوثی", "category_id": "12",
+                     "sample": {"name_fa": "مدل تکراری"}},
+                    {"query": "جارو شارژی", "category_id": "13",
+                     "sample": {"name_fa": "جارو شارژی مدل نمونه"}},
+                ]
+            },
+            self.now,
+        )
+        self.assertEqual(snapshot["count"], 2)
+        self.assertEqual(snapshot["trends"][0]["rank"], 1)
+        self.assertEqual(snapshot["trends"][1]["rank"], 3)
+        self.assertEqual(snapshot["trends"][0]["category_id"], "11")
+        self.assertTrue(torob_trends_snapshot_is_fresh(snapshot, self.now))
+
+    def test_torob_search_normalization_handles_arabic_characters_and_persian_digits(self):
+        tokens = normalize_search_tokens("هندزفری بلوتوثي مدل X ۱۲۳")
+        self.assertIn("هندزفری", tokens)
+        self.assertIn("بلوتوثی", tokens)
+        self.assertIn("123", tokens)
+        self.assertNotIn("مدل", tokens)
+
+    def test_shadow_evidence_requires_fresh_bestseller_rank_and_specific_torob_match(self):
+        snapshot = build_torob_trends_snapshot(
+            {
+                "trends": [
+                    {"query": "هندزفری بلوتوثی", "category_id": "55",
+                     "sample": {"name_fa": "هندزفری بلوتوثی مدل TWS X"}}
+                ]
+            },
+            self.now - timedelta(minutes=5),
+        )
+        product = {
+            "product_id": "dkp-12345",
+            "title": "هندزفری بلوتوثی مدل TWS X با کیس شارژ",
+            "discount_percent": 20,
+            "current_price": 900_000,
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 8,
+            "catalog_best_selling_category_id": "211",
+            "catalog_best_selling_category_name": "هدفون و هندزفری",
+            "catalog_rank_observed_at": (self.now - timedelta(hours=2)).isoformat(),
+        }
+        unrelated = {
+            "product_id": "dkp-12346",
+            "title": "جارو شارژی مدل نمونه",
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 4,
+            "catalog_best_selling_category_id": "127",
+            "catalog_best_selling_category_name": "لوازم خانه",
+            "catalog_rank_observed_at": (self.now - timedelta(hours=2)).isoformat(),
+        }
+        report = annotate_shadow_demand_evidence([product, unrelated], snapshot, self.now)
+        evidence = product["shadow_demand_evidence"]
+        self.assertEqual(evidence["evidence_level"], "cross_source")
+        self.assertEqual(evidence["digikala_bestseller"]["rank"], 8)
+        self.assertEqual(evidence["torob_trend"]["rank"], 1)
+        self.assertEqual(unrelated["shadow_demand_evidence"]["evidence_level"], "digikala_bestseller_only")
+        self.assertEqual(report["evidence_counts"]["cross_source"], 1)
+        self.assertFalse(report["production_ranking_affected"])
+        self.assertEqual(report["ranking_method"], "transparent_evidence_tiers_no_weighted_score")
+
+    def test_shadow_evidence_rejects_stale_digikala_rank_and_stale_torob_snapshot(self):
+        stale_snapshot = build_torob_trends_snapshot(
+            {"trends": [{"query": "هندزفری بلوتوثی"}]},
+            self.now - timedelta(hours=2),
+        )
+        self.assertFalse(torob_trends_snapshot_is_fresh(stale_snapshot, self.now))
+        product = {
+            "product_id": "dkp-12347",
+            "title": "هندزفری بلوتوثی مدل TWS X",
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 1,
+            "catalog_best_selling_category_id": "211",
+            "catalog_best_selling_category_name": "هدفون",
+            "catalog_rank_observed_at": (self.now - timedelta(hours=30)).isoformat(),
+        }
+        report = annotate_shadow_demand_evidence([product], stale_snapshot, self.now)
+        self.assertEqual(
+            product["shadow_demand_evidence"]["evidence_level"],
+            "no_verified_demand_signal",
+        )
+        self.assertEqual(report["evidence_counts"]["no_verified_demand_signal"], 1)
+        self.assertEqual(report["torob"]["status"], "unavailable_or_stale")
+
+    def test_review_growth_remains_explicitly_an_indirect_demand_proxy(self):
+        product = {
+            "product_id": "snp-123456",
+            "title": "وسیله کاربردی مدل آزمایشی",
+            "current_demand_verified": True,
+            "recent_review_growth_window": 6,
+            "demand_window_hours": 12,
+            "demand_observed_at": self.now.isoformat(),
+            "demand_signal_source": "snappshop_recent_review_growth",
+        }
+        report = annotate_shadow_demand_evidence([product], None, self.now)
+        self.assertEqual(
+            product["shadow_demand_evidence"]["evidence_level"],
+            "review_growth_proxy_only",
+        )
+        self.assertEqual(report["evidence_counts"]["review_growth_proxy_only"], 1)
+        self.assertIn(
+            "not units sold",
+            report["cross_category_comparability"]["review_growth"],
+        )
+
 
 
 if __name__ == "__main__":
