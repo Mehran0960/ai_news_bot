@@ -78,22 +78,11 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime, catalog_contex
         candidate = dict(candidate)
         candidate["selection_discount_floor"] = selected_floor
         candidate["selection_discount_band"] = "1%+"
-        ranked_policy = str(candidate.get("publication_policy") or "") in {
-            "demand_then_discount_v1",
-            "discount_first_catalog_v2",
-        }
-        if (
-            radar.is_discount_publish_eligible(
-                candidate, minimum_discount_percent=selected_floor, now=now
-            )
-            and (
-                ranked_policy
-                or (
-                    radar.is_market_value_publish_eligible(candidate)
-                    and radar.has_actionable_demand_signal(candidate, now=now)
-                    and radar.has_attractive_discount_value(candidate, now=now)
-                )
-            )
+        # A missing demand/review-growth or positive market/history signal never blocks
+        # a genuine discount. Fresh verified contradictory price evidence is checked
+        # inside is_discount_publish_eligible; positive external proof is optional.
+        if radar.is_discount_publish_eligible(
+            candidate, minimum_discount_percent=selected_floor, now=now
         ):
             eligible.append(candidate)
     return eligible
