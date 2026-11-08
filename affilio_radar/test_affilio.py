@@ -3492,78 +3492,43 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(product["recent_review_growth_7d"], 0)
         self.assertFalse(product["current_demand_verified"])
-        self.assertGreater(radar_module._candidate_demand_score(product), 0)
+        self.assertEqual(radar_module._candidate_demand_score(product), 0)
 
-    def test_same_offer_signals_get_same_score_across_categories(self):
+    def test_scoring_does_not_generate_popularity_or_demand_scores(self):
         shared = {
             "current_price": 790_000,
             "original_price": 1_490_000,
-            "rating": 4.5,
-            "review_count": 800,
             "image_url": "https://example.com/image.jpg",
         }
-        digital = score_product({**shared, "title": "پاوربانک سریع"})
-        unrelated = score_product({**shared, "title": "مکمل غذایی"})
-        self.assertEqual(digital["historical_popularity_score"], unrelated["historical_popularity_score"])
-        self.assertGreater(digital["demand_score"], 0)
-        self.assertEqual(digital["demand_score"], unrelated["demand_score"])
-        self.assertEqual(digital["promo_score"], unrelated["promo_score"])
+        low_history = score_product({
+            **shared, "title": "پاوربانک سریع", "rating": 3.1, "review_count": 2,
+        })
+        massive_history = score_product({
+            **shared, "title": "پاوربانک سریع", "rating": 5.0, "review_count": 900_000,
+        })
+        for scored in (low_history, massive_history):
+            self.assertNotIn("historical_popularity_score", scored)
+            self.assertNotIn("demand_score", scored)
+            self.assertNotIn("current_demand_score", scored)
+        self.assertEqual(low_history["promo_score"], massive_history["promo_score"])
+        self.assertEqual(deal_sort_key(low_history), deal_sort_key(massive_history))
 
-    def test_price_band_does_not_change_demand_score(self):
-        low_price = score_product({
-            "title": "گوشی موبایل مدل اقتصادی",
-            "current_price": 300_000,
-            "original_price": 400_000,
-            "rating": 4.2,
-            "review_count": 280,
+    def test_review_volume_and_rating_cannot_change_rank_without_fresh_growth(self):
+        base = {
+            "title": "گوشی موبایل مدل آزمایشی",
+            "current_price": 9_000_000,
+            "original_price": 10_000_000,
             "image_url": "https://example.com/image.jpg",
-        })
-        high_price = score_product({
-            "title": "گوشی موبایل مدل پرچمدار",
-            "current_price": 40_000_000,
-            "original_price": 50_000_000,
-            "rating": 4.2,
-            "review_count": 280,
-            "image_url": "https://example.com/image.jpg",
-        })
-        self.assertEqual(low_price["historical_popularity_score"], high_price["historical_popularity_score"])
-        self.assertGreater(low_price["demand_score"], 0)
-        self.assertEqual(low_price["demand_score"], high_price["demand_score"])
-        common = {
-            "discount_percent": 25, "savings_toman": 100_000,
-            "demand_score": 35, "review_count": 280,
-            "first_seen_at": "2026-10-19T00:00:00+00:00",
         }
+        low_history = score_product({**base, "rating": 3.0, "review_count": 1})
+        high_history = score_product({**base, "rating": 5.0, "review_count": 700_000})
+        self.assertEqual(low_history["discount_percent"], high_history["discount_percent"])
+        self.assertEqual(low_history["savings_toman"], high_history["savings_toman"])
+        self.assertEqual(deal_sort_key(low_history), deal_sort_key(high_history))
         self.assertEqual(
-            discovery_queue_sort_key({**common, "current_price": 300_000}, now=datetime(2026, 10, 20, tzinfo=timezone.utc)),
-            discovery_queue_sort_key({**common, "current_price": 40_000_000}, now=datetime(2026, 10, 20, tzinfo=timezone.utc)),
+            discovery_queue_sort_key(low_history, now=datetime(2026, 11, 8, tzinfo=timezone.utc)),
+            discovery_queue_sort_key(high_history, now=datetime(2026, 11, 8, tzinfo=timezone.utc)),
         )
-
-    def test_lifetime_review_volume_is_popularity_not_current_demand(self):
-        broad_popularity = score_product({
-            "title": "پاوربانک 20000",
-            "current_price": 3_300_000,
-            "original_price": 4_700_000,
-            "rating": 4.2,
-            "review_count": 21_821,
-            "image_url": "https://example.com/image.jpg",
-        })
-        lower_volume = score_product({
-            "title": "پاوربانک 20000 مدل اقتصادی",
-            "current_price": 3_300_000,
-            "original_price": 4_700_000,
-            "rating": 4.2,
-            "review_count": 280,
-            "image_url": "https://example.com/image.jpg",
-        })
-        self.assertGreater(
-            broad_popularity["historical_popularity_score"],
-            lower_volume["historical_popularity_score"],
-        )
-        self.assertFalse(broad_popularity["current_demand_verified"])
-        self.assertGreater(broad_popularity["demand_score"], 0)
-        self.assertGreater(lower_volume["demand_score"], 0)
-        self.assertGreater(broad_popularity["demand_score"], lower_volume["demand_score"])
 
     def test_last_mile_photo_sender_accepts_a_49_percent_offer_with_real_markdown(self):
         now = datetime.now(timezone.utc)
