@@ -98,7 +98,6 @@ from affilio_radar import (
     ensure_recent_publications,
     _recent_publication_diversity,
     build_publication_diversity_report,
-    _diversify_ranked_records,
     is_product_repeat_blocked,
     is_fresh_selection_candidate,
     delete_previous_channel_posts,
@@ -122,8 +121,7 @@ def _with_verified_current_demand(product, now=None, growth=5, window_hours=24):
     observed = now or datetime.now(timezone.utc)
     product.update({
         "current_demand_verified": True,
-        "current_demand_score": 55,
-        "demand_score": 55,
+        "recent_review_growth_window": growth,
         "recent_review_growth_7d": growth,
         "demand_window_hours": window_hours,
         "demand_observed_at": observed.isoformat(),
@@ -193,38 +191,36 @@ class AffilioRadarTests(unittest.TestCase):
         self._click_tracker_health_patch.start()
         self.addCleanup(self._click_tracker_health_patch.stop)
 
-    def test_diversity_selection_keeps_leader_when_all_discounts_below_floor(self):
+    def test_deal_rank_uses_discount_then_savings_and_ignores_popularity_scores(self):
         now = datetime(2026, 10, 28, tzinfo=timezone.utc)
-        records = [
-            {
-                "product_id": "dkp-101",
-                "title": "محصول آزمون اول",
-                "discount_percent": 35,
-                "demand_score": 90,
-                "click_count_30d": 5,
-            },
-            {
-                "product_id": "dkp-102",
-                "title": "محصول آزمون دوم",
-                "discount_percent": 40,
-                "demand_score": 89,
-                "click_count_30d": 5,
-            },
-        ]
-        recent = [{
-            "product_id": "dkp-old",
-            "title": "کالای منتشرشده قبلی",
-            "ts": now.timestamp() - 3600,
-        }]
+        lower = {
+            "product_id": "dkp-101",
+            "discount_percent": 35,
+            "savings_toman": 150_000,
+            "demand_score": 100,
+            "current_demand_score": 100,
+            "click_count_30d": 90_000,
+            "review_count": 1_000_000,
+            "rating": 5.0,
+        }
+        higher = {
+            "product_id": "dkp-102",
+            "discount_percent": 40,
+            "savings_toman": 180_000,
+            "demand_score": 0,
+            "current_demand_score": 0,
+            "click_count_30d": 0,
+            "review_count": 0,
+            "rating": 0,
+        }
+        self.assertGreater(deal_sort_key(higher, now), deal_sort_key(lower, now))
 
-        selected = _diversify_ranked_records(
-            records,
-            limit=1,
-            published={},
-            recent_publications=recent,
-            now=now,
+        # With equal percentage, savings comes next and still beats any popularity field.
+        same_discount_more_savings = {**lower, "discount_percent": 40, "savings_toman": 200_000}
+        self.assertGreater(
+            deal_sort_key(same_discount_more_savings, now),
+            deal_sort_key(higher, now),
         )
-        self.assertEqual([row["product_id"] for row in selected], ["dkp-101"])
 
     def test_product_url_accepts_only_digikala_product_pages(self):
         self.assertEqual(
@@ -1124,6 +1120,8 @@ class AffilioRadarTests(unittest.TestCase):
     def test_deadline_critical_priority_accepts_any_unexpired_offer_past_23_minutes(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
         close_but_safe = {
+            "current_price": 150_000,
+            "original_price": 300_000,
             "discount_percent": 50,
             "savings_toman": 150_000,
             "deal_expires_at": (now + timedelta(minutes=110)).isoformat(),
@@ -1565,23 +1563,36 @@ class AffilioRadarTests(unittest.TestCase):
         recent = _recent_publication_diversity(published, limit=2000, now=now)
         self.assertEqual([item["product_id"] for item in recent], ["dkp-in-window"])
 
-    def test_discovery_selection_skips_recent_eyewear_family_and_uses_other_category(self):
+    def test_discovery_selection_applies_family_cooldown_without_category_reranking(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         recent = [{
-            "product_id": "dkp-old-eyewear",
+            "product_id": "dkp-100000",
             "title": "عینک آفتابی مردانه مدل قدیمی",
             "ts": (now - timedelta(minutes=20)).timestamp(),
         }]
-        candidates = [
-            {"product_id": "dkp-new-eyewear", "title": "عینک طبی زنانه مدل جدید", "demand_score": 90},
-            {"product_id": "dkp-new-charger", "title": "شارژر سریع دیواری مدل جدید", "demand_score": 55},
-        ]
+        queue = {
+            "dkp-100001": {
+                "product_id": "dkp-100001",
+                "product_url": "https://www.digikala.com/product/dkp-100001/",
+                "title": "عینک طبی زنانه مدل جدید",
+                "discount_percent": 80,
+                "savings_toman": 800_000,
+                "next_check_at": "",
+            },
+            "dkp-100002": {
+                "product_id": "dkp-100002",
+                "product_url": "https://www.digikala.com/product/dkp-100002/",
+                "title": "شارژر سریع دیواری مدل جدید",
+                "discount_percent": 60,
+                "savings_toman": 300_000,
+                "next_check_at": "",
+            },
+        }
 
-        selected = _diversify_ranked_records(
-            candidates, limit=2, published={}, recent_publications=recent, now=now,
+        selected = select_discovery_records_for_check(
+            queue, now, max_count=2, published={}, recent_publications=recent,
         )
-
-        self.assertEqual([row["product_id"] for row in selected], ["dkp-new-charger"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-100002"])
 
     def test_publish_selection_uses_next_highest_after_24h_family_guard(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
@@ -2784,12 +2795,16 @@ class AffilioRadarTests(unittest.TestCase):
         now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
         global_leader = {
             "product_id": "dkp-global-leader",
+            "current_price": 200_000,
+            "original_price": 900_000,
             "discount_percent": 78,
             "savings_toman": 700_000,
             "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
         }
         lower_discount_but_urgent = {
             "product_id": "dkp-lower-urgent",
+            "current_price": 750_000,
+            "original_price": 1_250_000,
             "discount_percent": 40,
             "savings_toman": 500_000,
             "deal_expires_at": (now + timedelta(minutes=90)).isoformat(),
@@ -3002,6 +3017,8 @@ class AffilioRadarTests(unittest.TestCase):
         small_saving = _with_verified_current_demand({
             **lower_discount,
             "product_id": "dkp-95303",
+            "current_price": 33_333,
+            "original_price": 83_333,
             "discount_percent": 60,
             "savings_toman": 50_000,
         }, now)
@@ -3009,22 +3026,27 @@ class AffilioRadarTests(unittest.TestCase):
             [high_discount, lower_discount, small_saving], {"published": {}}, now
         )
         self.assertEqual(floor, 1)
+        # Fresh verified market evidence shows dkp-95301 is 8% above the
+        # comparable seller median, so it is vetoed. Missing positive evidence
+        # is not a veto; the low-savings but math-consistent 60% offer remains.
         self.assertEqual(
             {item["product_id"] for item in selected},
-            {"dkp-95301", "dkp-95302", "dkp-95303"},
+            {"dkp-95302", "dkp-95303"},
         )
         self.assertEqual(
             {item["product_id"] for item in quality},
-            {"dkp-95301", "dkp-95302", "dkp-95303"},
+            {"dkp-95302", "dkp-95303"},
         )
 
-    def test_actionable_demand_requires_recent_growth_or_fresh_best_selling_rank(self):
+    def test_actionable_review_growth_proxy_requires_fresh_observation_and_ignores_bestseller_rank(self):
         now = datetime.now(timezone.utc)
         lifetime_only = {
             "review_count": 250_000,
             "rating": 4.9,
             "current_demand_verified": False,
-            "catalog_sort_mode": "",
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 1,
+            "catalog_rank_observed_at": now.isoformat(),
         }
         self.assertFalse(radar_module.has_actionable_demand_signal(lifetime_only, now))
 
@@ -3033,26 +3055,24 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertTrue(radar_module.has_actionable_demand_signal(recent_growth, now))
 
+        stale_growth = dict(
+            recent_growth,
+            demand_observed_at=(now - timedelta(hours=radar_module.CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS + 1)).isoformat(),
+        )
+        self.assertFalse(radar_module.has_actionable_demand_signal(stale_growth, now))
+
         ranked_best_seller = {
             "catalog_sort_mode": "best_selling",
-            "catalog_best_selling_rank": 60,
+            "catalog_best_selling_rank": 1,
             "catalog_rank_observed_at": now.isoformat(),
         }
-        self.assertTrue(radar_module.has_actionable_demand_signal(ranked_best_seller, now))
-        ranked_beyond_cutoff = {
-            **ranked_best_seller,
-            "catalog_best_selling_rank": 61,
-        }
-        self.assertFalse(radar_module.has_actionable_demand_signal(ranked_beyond_cutoff, now))
-        stale_rank = {
-            **ranked_best_seller,
-            "catalog_rank_observed_at": (now - timedelta(hours=25)).isoformat(),
-        }
-        self.assertFalse(radar_module.has_actionable_demand_signal(stale_rank, now))
+        self.assertFalse(radar_module.has_actionable_demand_signal(ranked_best_seller, now))
 
-    def test_cross_category_bestseller_is_telemetry_only_and_clicks_stay_analytics_only(self):
+    def test_bestseller_rank_and_clicks_never_change_product_ranking(self):
         now = datetime.now(timezone.utc)
-        multi_category = {
+        base = {
+            "discount_percent": 55,
+            "savings_toman": 550_000,
             "catalog_sort_mode": "best_selling",
             "catalog_best_selling_rank": 5,
             "catalog_best_selling_category_id": "100",
@@ -3065,25 +3085,20 @@ class AffilioRadarTests(unittest.TestCase):
             "review_count": 100,
             "rating": 4.5,
         }
-        single_category = {
-            **multi_category,
+        very_high_bestseller = {
+            **base,
+            "catalog_best_selling_rank": 1,
             "catalog_best_selling_ranks_by_category": {
-                "100": {"rank": 5, "observed_at": now.isoformat()},
+                "100": {"rank": 1, "observed_at": now.isoformat()},
             },
+            "click_count_30d": 50_000,
+            "review_count": 1_000_000,
+            "rating": 5.0,
+            "demand_score": 999,
         }
-
-        self.assertEqual(
-            radar_module._fresh_catalog_best_selling_rank_evidence(multi_category, now),
-            [(5, "100"), (7, "200")],
-        )
-        self.assertGreater(
-            radar_module._demand_evidence_sort_key(multi_category, now),
-            radar_module._demand_evidence_sort_key(single_category, now),
-        )
-        self.assertEqual(
-            deal_sort_key({**multi_category, "click_count_30d": 50}),
-            deal_sort_key(multi_category),
-        )
+        self.assertFalse(radar_module.has_actionable_demand_signal(base, now))
+        self.assertFalse(radar_module.has_actionable_demand_signal(very_high_bestseller, now))
+        self.assertEqual(deal_sort_key(base, now), deal_sort_key(very_high_bestseller, now))
 
     def test_discount_value_gate_rejects_unverified_markdowns_and_accepts_fresh_evidence(self):
         now = datetime.now(timezone.utc)
@@ -3158,6 +3173,8 @@ class AffilioRadarTests(unittest.TestCase):
         weak_discount = {
             **recent_ranked,
             "product_id": "dkp-95503",
+            "current_price": 900_000,
+            "original_price": 1_000_000,
             "discount_percent": 10,
             "savings_toman": 100_000,
             "market_status": "not_checked",
@@ -3177,20 +3194,6 @@ class AffilioRadarTests(unittest.TestCase):
             {row["product_id"] for row in quality},
             {"dkp-95501", "dkp-95502", "dkp-95503"},
         )
-
-    def test_diversity_comparison_uses_recent_activity_signal_and_not_a_discount_fallback(self):
-        stronger = {
-            "current_demand_verified": True, "demand_score": 60,
-            "click_count_30d": 100, "discount_percent": 49,
-        }
-        comparable = {
-            "current_demand_verified": True, "demand_score": 50,
-            "click_count_30d": 90, "discount_percent": 45,
-        }
-        self.assertTrue(
-            radar_module._candidate_demand_comparable_for_diversity(comparable, stronger)
-        )
-
 
     def test_open_ended_discovery_candidates_are_not_rejected_before_live_detail_check(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
@@ -3428,26 +3431,23 @@ class AffilioRadarTests(unittest.TestCase):
         weaker_discount = {**high_clicks, "discount_percent": 59}
         self.assertGreater(deal_sort_key(high_clicks), deal_sort_key(weaker_discount))
 
-    def test_lifetime_reviews_change_historical_popularity_not_current_demand(self):
-        high = score_product({
+    def test_lifetime_reviews_and_rating_do_not_generate_popularity_or_ranking_scores(self):
+        common = {
             "title": "پاوربانک سریع",
             "current_price": 1_200_000,
             "original_price": 1_500_000,
-            "rating": 4.5,
-            "review_count": 1000,
             "image_url": "https://example.com/image.jpg",
-        })
-        low = score_product({
-            "title": "کالای معمولی",
-            "current_price": 25_000_000,
-            "rating": 3.0,
-            "review_count": 0,
-            "image_url": "",
-        })
-        self.assertGreater(high["historical_popularity_score"], low["historical_popularity_score"])
-        self.assertGreater(high["demand_score"], 0)
-        self.assertFalse(high["current_demand_verified"])
+        }
+        high = score_product({**common, "rating": 4.9, "review_count": 1_000_000})
+        low = score_product({**common, "rating": 2.0, "review_count": 0})
+        for product in (high, low):
+            self.assertNotIn("historical_popularity_score", product)
+            self.assertNotIn("demand_score", product)
+            self.assertNotIn("current_demand_score", product)
         self.assertEqual(high["discount_percent"], 20)
+        self.assertEqual(high["savings_toman"], 300_000)
+        self.assertEqual(high["promo_score"], low["promo_score"])
+        self.assertEqual(deal_sort_key(high), deal_sort_key(low))
 
     def test_current_demand_requires_measurable_recent_review_growth(self):
         start = datetime(2026, 10, 20, 8, 0, tzinfo=timezone.utc)
@@ -3460,7 +3460,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         radar_module.update_current_demand_signals(state, [product], now=start)
         self.assertFalse(product["current_demand_verified"])
-        self.assertEqual(product["demand_score"], 0)
+        self.assertNotIn("demand_score", product)
 
         product["review_count"] = 50_003
         radar_module.update_current_demand_signals(
@@ -3468,7 +3468,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertTrue(product["current_demand_verified"])
         self.assertEqual(product["recent_review_growth_7d"], 3)
-        self.assertGreater(product["demand_score"], 0)
+        self.assertNotIn("demand_score", product)
         self.assertTrue(
             radar_module.has_current_demand_signal(
                 product, now=start + timedelta(hours=25)
@@ -3482,98 +3482,64 @@ class AffilioRadarTests(unittest.TestCase):
             )
         )
 
-    def test_large_lifetime_review_count_without_recent_growth_is_not_demand(self):
+    def test_large_lifetime_review_count_without_recent_growth_is_not_a_tie_break_proxy(self):
         start = datetime(2026, 10, 20, 8, 0, tzinfo=timezone.utc)
         state = {}
-        product = {"product_id": "dkp-static-reviews", "review_count": 250_000}
+        product = {"product_id": "dkp-123456", "review_count": 250_000}
         radar_module.update_current_demand_signals(state, [product], now=start)
         radar_module.update_current_demand_signals(
             state, [product], now=start + timedelta(hours=36)
         )
         self.assertEqual(product["recent_review_growth_7d"], 0)
         self.assertFalse(product["current_demand_verified"])
-        self.assertGreater(radar_module._candidate_demand_score(product), 0)
+        self.assertFalse(radar_module.has_current_demand_signal(product))
+        self.assertNotIn("demand_score", product)
 
-    def test_same_offer_signals_get_same_score_across_categories(self):
+    def test_scoring_does_not_generate_popularity_or_demand_scores(self):
         shared = {
             "current_price": 790_000,
             "original_price": 1_490_000,
-            "rating": 4.5,
-            "review_count": 800,
             "image_url": "https://example.com/image.jpg",
         }
-        digital = score_product({**shared, "title": "پاوربانک سریع"})
-        unrelated = score_product({**shared, "title": "مکمل غذایی"})
-        self.assertEqual(digital["historical_popularity_score"], unrelated["historical_popularity_score"])
-        self.assertGreater(digital["demand_score"], 0)
-        self.assertEqual(digital["demand_score"], unrelated["demand_score"])
-        self.assertEqual(digital["promo_score"], unrelated["promo_score"])
+        low_history = score_product({
+            **shared, "title": "پاوربانک سریع", "rating": 3.1, "review_count": 2,
+        })
+        massive_history = score_product({
+            **shared, "title": "پاوربانک سریع", "rating": 5.0, "review_count": 900_000,
+        })
+        for scored in (low_history, massive_history):
+            self.assertNotIn("historical_popularity_score", scored)
+            self.assertNotIn("demand_score", scored)
+            self.assertNotIn("current_demand_score", scored)
+        self.assertEqual(low_history["promo_score"], massive_history["promo_score"])
+        self.assertEqual(deal_sort_key(low_history), deal_sort_key(massive_history))
 
-    def test_price_band_does_not_change_demand_score(self):
-        low_price = score_product({
-            "title": "گوشی موبایل مدل اقتصادی",
-            "current_price": 300_000,
-            "original_price": 400_000,
-            "rating": 4.2,
-            "review_count": 280,
+    def test_review_volume_and_rating_cannot_change_rank_without_fresh_growth(self):
+        base = {
+            "title": "گوشی موبایل مدل آزمایشی",
+            "current_price": 9_000_000,
+            "original_price": 10_000_000,
             "image_url": "https://example.com/image.jpg",
-        })
-        high_price = score_product({
-            "title": "گوشی موبایل مدل پرچمدار",
-            "current_price": 40_000_000,
-            "original_price": 50_000_000,
-            "rating": 4.2,
-            "review_count": 280,
-            "image_url": "https://example.com/image.jpg",
-        })
-        self.assertEqual(low_price["historical_popularity_score"], high_price["historical_popularity_score"])
-        self.assertGreater(low_price["demand_score"], 0)
-        self.assertEqual(low_price["demand_score"], high_price["demand_score"])
-        common = {
-            "discount_percent": 25, "savings_toman": 100_000,
-            "demand_score": 35, "review_count": 280,
-            "first_seen_at": "2026-10-19T00:00:00+00:00",
         }
+        low_history = score_product({**base, "rating": 3.0, "review_count": 1})
+        high_history = score_product({**base, "rating": 5.0, "review_count": 700_000})
+        self.assertEqual(low_history["discount_percent"], high_history["discount_percent"])
+        self.assertEqual(low_history["savings_toman"], high_history["savings_toman"])
+        self.assertEqual(deal_sort_key(low_history), deal_sort_key(high_history))
         self.assertEqual(
-            discovery_queue_sort_key({**common, "current_price": 300_000}, now=datetime(2026, 10, 20, tzinfo=timezone.utc)),
-            discovery_queue_sort_key({**common, "current_price": 40_000_000}, now=datetime(2026, 10, 20, tzinfo=timezone.utc)),
+            discovery_queue_sort_key(low_history, now=datetime(2026, 11, 8, tzinfo=timezone.utc)),
+            discovery_queue_sort_key(high_history, now=datetime(2026, 11, 8, tzinfo=timezone.utc)),
         )
-
-    def test_lifetime_review_volume_is_popularity_not_current_demand(self):
-        broad_popularity = score_product({
-            "title": "پاوربانک 20000",
-            "current_price": 3_300_000,
-            "original_price": 4_700_000,
-            "rating": 4.2,
-            "review_count": 21_821,
-            "image_url": "https://example.com/image.jpg",
-        })
-        lower_volume = score_product({
-            "title": "پاوربانک 20000 مدل اقتصادی",
-            "current_price": 3_300_000,
-            "original_price": 4_700_000,
-            "rating": 4.2,
-            "review_count": 280,
-            "image_url": "https://example.com/image.jpg",
-        })
-        self.assertGreater(
-            broad_popularity["historical_popularity_score"],
-            lower_volume["historical_popularity_score"],
-        )
-        self.assertFalse(broad_popularity["current_demand_verified"])
-        self.assertGreater(broad_popularity["demand_score"], 0)
-        self.assertGreater(lower_volume["demand_score"], 0)
-        self.assertGreater(broad_popularity["demand_score"], lower_volume["demand_score"])
 
     def test_last_mile_photo_sender_accepts_a_49_percent_offer_with_real_markdown(self):
         now = datetime.now(timezone.utc)
         item = {
             "title": "شارژر سریع دیواری مدل نمونه",
             "availability": "in_stock",
-            "current_price": 550_000,
+            "current_price": 510_000,
             "original_price": 1_000_000,
             "discount_percent": 49,
-            "savings_toman": 450_000,
+            "savings_toman": 490_000,
             "image_url": "https://example.com/charger.webp",
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95045%2F",
             "current_demand_verified": True,
@@ -5065,6 +5031,7 @@ class AffilioRadarTests(unittest.TestCase):
             "market_match_score": 90,
             "market_available_offer_count": 3,
             "market_price_advantage_pct": -8,
+            "market_price_checked_at": datetime.now(timezone.utc).isoformat(),
         }
         self.assertFalse(is_market_value_publish_eligible(candidate))
         candidate["market_price_advantage_pct"] = 8
