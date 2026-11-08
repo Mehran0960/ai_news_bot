@@ -9587,6 +9587,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "5974",
+      "catalog_best_selling_category_name": "لوازم اداری",
+      "catalog_best_selling_rank": 3629,
+      "catalog_best_selling_ranks_by_category": {
+        "5974": {
+          "category_name": "لوازم اداری",
+          "observed_at": "2026-11-08T21:16:34.050548+00:00",
+          "rank": 3629
+        }
+      },
+      "catalog_category_id": "5974",
+      "catalog_category_ids": [
+        "5974"
+      ],
+      "catalog_category_name": "لوازم اداری",
+      "catalog_rank_observed_at": "2026-11-08T21:16:34.050548+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 110000,
+      "discount_percent": 82,
+      "first_seen_at": "2026-11-08T21:16:34.050548+00:00",
+      "last_seen_at": "2026-11-08T21:15:50.575635+00:00",
+      "original_price": 600000,
+      "product_id": "dkp-21241051",
+      "product_url": "https://www.digikala.com/product/dkp-21241051/",
+      "rating": 5.0,
+      "review_count": 1,
+      "savings_toman": 490000,
+      "source": "digikala_catalog_sweep",
+      "title": "مهر مدل تشویقی طرح خلاقی و مهربون همیشه اینطور بمون"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "11209",
       "catalog_best_selling_category_name": "مکمل اعصاب و روان",
       "catalog_best_selling_rank": 15,
@@ -40311,9 +40343,9 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "5824",
-      "catalog_best_selling_category_name": "لوازم بهداشتی",
-      "catalog_best_selling_rank": 2581,
+      "catalog_best_selling_category_id": "5968",
+      "catalog_best_selling_category_name": "آرایشی و بهداشتی",
+      "catalog_best_selling_rank": 3640,
       "catalog_best_selling_ranks_by_category": {
         "10050": {
           "category_name": "مراقبت از پوست و مو",
@@ -40324,6 +40356,11 @@
           "category_name": "لوازم بهداشتی",
           "observed_at": "2026-11-08T18:26:00.912769+00:00",
           "rank": 2581
+        },
+        "5968": {
+          "category_name": "آرایشی و بهداشتی",
+          "observed_at": "2026-11-08T21:16:34.049668+00:00",
+          "rank": 3640
         },
         "6486": {
           "category_name": "مراقبت پوست",
@@ -40336,20 +40373,21 @@
           "rank": 73
         }
       },
-      "catalog_category_id": "5824",
+      "catalog_category_id": "5968",
       "catalog_category_ids": [
         "5824",
+        "5968",
         "6486",
         "6654",
         "10050"
       ],
-      "catalog_category_name": "لوازم بهداشتی",
-      "catalog_rank_observed_at": "2026-11-08T18:26:00.912769+00:00",
+      "catalog_category_name": "آرایشی و بهداشتی",
+      "catalog_rank_observed_at": "2026-11-08T21:16:34.049668+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 449000,
       "discount_percent": 74,
       "first_seen_at": "2026-11-08T10:14:01.808629+00:00",
-      "last_seen_at": "2026-11-08T18:25:31.734784+00:00",
+      "last_seen_at": "2026-11-08T21:15:50.249395+00:00",
       "original_price": 1700000,
       "product_id": "dkp-22328907",
       "product_url": "https://www.digikala.com/product/dkp-22328907/",
@@ -107320,41 +107358,9 @@
       "savings_toman": 2388000,
       "source": "digikala_catalog_sweep",
       "title": "کراپ‌ تی‌شرت آستین کوتاه زنانه مدل لاکپشت و تنبل"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "9470",
-      "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 3221,
-      "catalog_best_selling_ranks_by_category": {
-        "9470": {
-          "category_name": "تی شرت مردانه",
-          "observed_at": "2026-11-08T20:15:22.436505+00:00",
-          "rank": 3221
-        }
-      },
-      "catalog_category_id": "9470",
-      "catalog_category_ids": [
-        "9470"
-      ],
-      "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-08T20:15:22.436505+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1192000,
-      "discount_percent": 67,
-      "first_seen_at": "2026-11-08T18:54:16.665491+00:00",
-      "last_seen_at": "2026-11-08T20:14:42.999900+00:00",
-      "original_price": 3580000,
-      "product_id": "dkp-21918311",
-      "product_url": "https://www.digikala.com/product/dkp-21918311/",
-      "rating": 0.0,
-      "review_count": 0,
-      "savings_toman": 2388000,
-      "source": "digikala_catalog_sweep",
-      "title": "تی‌شرت آستین کوتاه یقه گرد مردانه پاد آفرین مدل t281"
     }
   ],
   "cycle_started_at": "2026-11-08T07:56:20.016124+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-08T21:14:14.055465+00:00"
+  "updated_at": "2026-11-08T21:16:34.144027+00:00"
 }
