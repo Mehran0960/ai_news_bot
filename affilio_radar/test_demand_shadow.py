@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
+
+import affilio_radar as radar_module
 from datetime import datetime, timedelta, timezone
 
 from demand_shadow import (
@@ -186,6 +189,50 @@ class DemandShadowTests(unittest.TestCase):
         self.assertEqual(report["summary"]["products_with_fresh_digikala_rank"], 1)
         self.assertEqual(report["summary"]["products_with_strong_torob_trend_match"], 1)
         self.assertEqual(len(report["torob_trend_matches"]), 1)
+
+
+    def test_enrich_market_prices_refreshes_trends_when_no_price_checks_are_due(self):
+        state = {}
+        with patch.object(
+            radar_module,
+            "_prepare_torob_mcp",
+            return_value={"search_products", "product_details", "torob_trends"},
+        ) as prepare, patch.object(
+            radar_module,
+            "_torob_tool",
+            return_value={"trends": [{"query": "هندزفری بلوتوث", "category_id": "7"}]},
+        ) as call:
+            radar_module.enrich_market_prices([], state, now=self.now)
+        prepare.assert_called_once()
+        call.assert_called_once_with("torob_trends", {"limit": 30}, 10)
+        self.assertEqual(state["torob_trends_snapshot"]["count"], 1)
+        self.assertEqual(state["torob_trends_last_status"]["status"], "ok")
+
+    def test_enrich_market_prices_reuses_fresh_trends_snapshot_without_network_calls(self):
+        state = {
+            "torob_trends_snapshot": sanitize_torob_trends(
+                {"trends": [{"query": "هندزفری بلوتوث"}]},
+                self.now - timedelta(hours=2),
+            ),
+            "torob_trends_next_attempt_at": (self.now + timedelta(hours=4)).isoformat(),
+        }
+        with patch.object(radar_module, "_prepare_torob_mcp") as prepare, patch.object(
+            radar_module, "_torob_tool"
+        ) as call:
+            radar_module.enrich_market_prices([], state, now=self.now)
+        prepare.assert_not_called()
+        call.assert_not_called()
+
+    def test_missing_torob_trends_tool_does_not_block_empty_market_queue(self):
+        state = {}
+        with patch.object(
+            radar_module,
+            "_prepare_torob_mcp",
+            return_value={"search_products", "product_details"},
+        ), patch.object(radar_module, "_torob_tool") as call:
+            radar_module.enrich_market_prices([], state, now=self.now)
+        call.assert_not_called()
+        self.assertEqual(state["torob_trends_last_status"]["status"], "tool_not_available")
 
     def test_trends_expire_after_twelve_hours(self):
         snapshot = sanitize_torob_trends({
