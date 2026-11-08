@@ -5,6 +5,7 @@ import math
 import re
 from pathlib import Path
 from functools import lru_cache
+from xml.etree import ElementTree
 
 PLATFORM_LOGO_DIR = Path(__file__).resolve().parent / "assets" / "platform-logos"
 _PLATFORM_LOGO_PATHS = {
@@ -14,6 +15,47 @@ _PLATFORM_LOGO_PATHS = {
     "youtube": PLATFORM_LOGO_DIR / "youtube-wordmark-almostblack.png",
     "aparat": PLATFORM_LOGO_DIR / "aparat-official.svg",
 }
+
+# Official source files may contain a full horizontal brand lockup. These
+# viewBoxes retain only the platform's standalone pictorial mark at render time.
+_PLATFORM_ICON_VIEWBOXES = {
+    "bale": "55 0 26 25",
+    "rubika": "820 0 459 543.02",
+    "aparat": "56 0 24 25",
+}
+
+
+def _icon_only_svg_payload(payload: bytes, platform: str) -> bytes:
+    """Crop official SVG lockups to their original symbol, excluding the wordmark."""
+    view_box = _PLATFORM_ICON_VIEWBOXES.get(platform)
+    if not view_box:
+        return payload
+    root = ElementTree.fromstring(payload)
+    coordinates = [float(value) for value in re.split(r"[ ,]+", view_box.strip())]
+    if len(coordinates) != 4 or coordinates[2] <= 0 or coordinates[3] <= 0:
+        raise ValueError("invalid platform icon viewBox")
+    root.set("viewBox", view_box)
+    root.set("width", "512")
+    root.set("height", str(max(1, round(512 * coordinates[3] / coordinates[2]))))
+    return ElementTree.tostring(root, encoding="utf-8")
+
+
+def _crop_youtube_play_icon(logo):
+    """Keep only the red play-button mark from YouTube's official full-color lockup."""
+    from PIL import ImageChops
+
+    red, green, blue = logo.convert("RGB").split()
+    mask = red.point(lambda value: 255 if value >= 160 else 0)
+    mask = ImageChops.multiply(mask, green.point(lambda value: 255 if value <= 80 else 0))
+    mask = ImageChops.multiply(mask, blue.point(lambda value: 255 if value <= 120 else 0))
+    bounds = mask.getbbox()
+    if bounds is None:
+        raise ValueError("YouTube play-button artwork was not found")
+    icon = logo.crop(bounds)
+    ratio = icon.width / max(1, icon.height)
+    if not 1.15 <= ratio <= 1.8:
+        raise ValueError(f"unexpected YouTube icon geometry: {icon.width}x{icon.height}")
+    return icon
 
 
 @lru_cache(maxsize=5)
@@ -33,14 +75,15 @@ def _load_platform_logo(platform: str):
             raise ValueError("invalid asset size")
         if path.suffix.lower() == ".svg":
             import cairosvg
+            payload = _icon_only_svg_payload(payload, key)
             payload = cairosvg.svg2png(bytestring=payload, output_width=512)
         with Image.open(BytesIO(payload)) as raw:
             raw.load()
             logo = raw.convert("RGBA")
+        if key == "youtube":
+            logo = _crop_youtube_play_icon(logo)
         if logo.width < 2 or logo.height < 2 or logo.getbbox() is None:
-            raise ValueError("empty logo artwork")
-        if key == "youtube" and logo.width / logo.height < 2.0:
-            raise ValueError("YouTube brand asset is not a horizontal wordmark")
+            raise ValueError("empty icon artwork")
         return logo.copy()
     except Exception as exc:
         print(f"PLATFORM_LOGO_ASSET_INVALID platform={key} error={type(exc).__name__}")
@@ -63,8 +106,8 @@ def platform_logo_dimensions(platform: str, max_height: int, max_width: int) -> 
     fitted = fit_platform_logo(platform, max_height, max_width)
     if fitted is None:
         return 0, 0
-    padding_x = 4 if platform == "youtube" else 2
-    padding_y = 3 if platform == "youtube" else 2
+    padding_x = 2
+    padding_y = 2
     return fitted.width + padding_x * 2, fitted.height + padding_y * 2
 
 
@@ -85,13 +128,13 @@ def draw_platform_logo(
     fitted = fit_platform_logo(key, max_height, max_width)
     if fitted is None:
         return 0, 0
-    padding_x = 4 if key == "youtube" else 2
-    padding_y = 3 if key == "youtube" else 2
+    padding_x = 2
+    padding_y = 2
     width, height = fitted.width + padding_x * 2, fitted.height + padding_y * 2
     tile = Image.new("RGBA", (width, height), (255, 255, 255, 242))
-    if not solid_backdrop and key != "youtube":
+    if not solid_backdrop:
         tile = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    if solid_backdrop or key == "youtube":
+    if solid_backdrop:
         tile_draw = ImageDraw.Draw(tile)
         tile_draw.rounded_rectangle(
             (0, 0, width - 1, height - 1),
@@ -120,8 +163,8 @@ def platform_footer_metrics(reference_dimension: int) -> dict[str, int]:
 
     Small source images retain compact marks; high-resolution product photography
     receives larger source-pixel dimensions so the footer stays readable after
-    social-platform downscaling. YouTube's true horizontal logo width is still
-    determined by its source aspect ratio, never by a square width/height clamp.
+    social-platform downscaling. Each pictorial mark keeps its own source aspect
+    ratio; no platform-name lettering is rendered in the ID column.
     """
     try:
         dimension = max(1, int(reference_dimension))
