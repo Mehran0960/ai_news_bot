@@ -4101,10 +4101,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "12",
-      "catalog_best_selling_category_name": "محصولات بومی و محلی",
-      "catalog_best_selling_rank": 6996,
+      "catalog_best_selling_category_id": "1",
+      "catalog_best_selling_category_name": "موبایل",
+      "catalog_best_selling_rank": 7359,
       "catalog_best_selling_ranks_by_category": {
+        "1": {
+          "category_name": "موبایل",
+          "observed_at": "2026-11-08T05:17:36.535165+00:00",
+          "rank": 7359
+        },
         "12": {
           "category_name": "محصولات بومی و محلی",
           "observed_at": "2026-11-08T04:59:38.028168+00:00",
@@ -4116,18 +4121,19 @@
           "rank": 2983
         }
       },
-      "catalog_category_id": "12",
+      "catalog_category_id": "1",
       "catalog_category_ids": [
+        "1",
         "12",
         "77"
       ],
-      "catalog_category_name": "محصولات بومی و محلی",
-      "catalog_rank_observed_at": "2026-11-08T04:59:38.028168+00:00",
+      "catalog_category_name": "موبایل",
+      "catalog_rank_observed_at": "2026-11-08T05:17:36.535165+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 48000,
       "discount_percent": 88,
       "first_seen_at": "2026-11-07T22:25:07.673659+00:00",
-      "last_seen_at": "2026-11-08T04:59:31.133196+00:00",
+      "last_seen_at": "2026-11-08T05:17:30.925188+00:00",
       "original_price": 400000,
       "product_id": "dkp-8731615",
       "product_url": "https://www.digikala.com/product/dkp-8731615/",
@@ -8047,12 +8053,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9380",
       "catalog_best_selling_category_name": "اکسسوری زنانه",
-      "catalog_best_selling_rank": 7366,
+      "catalog_best_selling_rank": 7384,
       "catalog_best_selling_ranks_by_category": {
         "9380": {
           "category_name": "اکسسوری زنانه",
-          "observed_at": "2026-11-08T05:16:36.302762+00:00",
-          "rank": 7366
+          "observed_at": "2026-11-08T05:17:36.544477+00:00",
+          "rank": 7384
         },
         "9398": {
           "category_name": "اکسسوری مو زنانه",
@@ -8066,12 +8072,12 @@
         "9398"
       ],
       "catalog_category_name": "اکسسوری زنانه",
-      "catalog_rank_observed_at": "2026-11-08T05:16:36.302762+00:00",
+      "catalog_rank_observed_at": "2026-11-08T05:17:36.544477+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 30000,
       "discount_percent": 84,
       "first_seen_at": "2026-11-07T19:08:32.940018+00:00",
-      "last_seen_at": "2026-11-08T05:16:34.945431+00:00",
+      "last_seen_at": "2026-11-08T05:17:34.815946+00:00",
       "original_price": 190000,
       "product_id": "dkp-8901078",
       "product_url": "https://www.digikala.com/product/dkp-8901078/",
@@ -60129,12 +60135,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "8099",
       "catalog_best_selling_category_name": "تجهیزات تردد، حفاظت و امنیت",
-      "catalog_best_selling_rank": 7213,
+      "catalog_best_selling_rank": 7315,
       "catalog_best_selling_ranks_by_category": {
         "8099": {
           "category_name": "تجهیزات تردد، حفاظت و امنیت",
-          "observed_at": "2026-11-08T05:12:45.404296+00:00",
-          "rank": 7213
+          "observed_at": "2026-11-08T05:17:36.526064+00:00",
+          "rank": 7315
         }
       },
       "catalog_category_id": "8099",
@@ -60142,12 +60148,12 @@
         "8099"
       ],
       "catalog_category_name": "تجهیزات تردد، حفاظت و امنیت",
-      "catalog_rank_observed_at": "2026-11-08T05:12:45.404296+00:00",
+      "catalog_rank_observed_at": "2026-11-08T05:17:36.526064+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 50980,
       "discount_percent": 73,
       "first_seen_at": "2026-11-08T05:02:37.935551+00:00",
-      "last_seen_at": "2026-11-08T05:12:28.747305+00:00",
+      "last_seen_at": "2026-11-08T05:17:26.142120+00:00",
       "original_price": 191500,
       "product_id": "dkp-5294233",
       "product_url": "https://www.digikala.com/product/dkp-5294233/",
@@ -111778,5 +111784,5 @@
   ],
   "cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-08T05:16:36.340762+00:00"
+  "updated_at": "2026-11-08T05:17:36.582205+00:00"
 }
