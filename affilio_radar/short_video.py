@@ -363,13 +363,15 @@ def build_vertical_poster(
             font=title_font,
             fill=(17, 57, 34, 255),
             anchor="mm",
+            stroke_width=1,
+            stroke_fill=(17, 57, 34, 255),
             **_rtl_layout_kwargs(),
         )
         line_y += 47
 
     # List every verified public destination except the platform receiving this video.
     # A separate poster is rendered per platform so a destination never lists itself.
-    cta_panel = (34, 160, WIDTH - 34, 292)
+    cta_panel = (34, 160, WIDTH - 34, 314)
     draw.rounded_rectangle(
         cta_panel,
         radius=19,
@@ -382,10 +384,10 @@ def build_vertical_poster(
     purchase_cta = video_purchase_cta_text(destination_platform)
     if purchase_cta:
         cta_font_size = 19
-        cta_font = _font(cta_font_size)
+        cta_font = _title_font(cta_font_size)
         while _text_width(draw, purchase_cta, cta_font) > 590 and cta_font_size > 15:
             cta_font_size -= 1
-            cta_font = _font(cta_font_size)
+            cta_font = _title_font(cta_font_size)
         draw.text(
             (WIDTH // 2, 175),
             _shape_rtl(purchase_cta),
@@ -398,7 +400,7 @@ def build_vertical_poster(
     for index, (platform, url) in enumerate(video_channels):
         # Twenty-pixel icon marks plus their padding require a 26px row pitch;
         # this keeps all four destinations separated inside the safe panel.
-        row_top = 188 + index * 26
+        row_top = 210 + index * 26
         expected_logo_width, _expected_logo_height = offerchin_visuals.platform_logo_dimensions(
             platform, 20, VIDEO_LOGO_MAX_WIDTH
         )
@@ -423,7 +425,7 @@ def build_vertical_poster(
         )
 
     # Product photo gets its own clean card; the CTA strip above remains outside it.
-    card = (34, 298, WIDTH - 34, 704)
+    card = (34, 320, WIDTH - 34, 726)
     draw.rounded_rectangle(
         (card[0] + 5, card[1] + 9, card[2] + 5, card[3] + 9),
         radius=30,
@@ -476,6 +478,7 @@ def build_vertical_poster(
             min(discount_height, y + fitted.height - discount_top),
             discount_value,
             merchant=merchant,
+            persian_font_path=str(TITLE_FONT_PATH),
         )
 
     if retailer_bounds:
@@ -491,7 +494,7 @@ def build_vertical_poster(
 
     # Keep the current price as the primary amount. The discount is shown once,
     # in the upper-right badge that matches the channel-image layout.
-    price_panel = (34, 721, WIDTH - 34, 974)
+    price_panel = (34, 743, WIDTH - 34, 996)
     draw.rounded_rectangle(
         (price_panel[0] + 4, price_panel[1] + 7, price_panel[2] + 4, price_panel[3] + 7),
         radius=26,
@@ -505,9 +508,9 @@ def build_vertical_poster(
         width=3,
     )
     draw.text(
-        (WIDTH // 2, 751),
+        (WIDTH // 2, 773),
         _shape_rtl(f"قیمت ویژه در {merchant}"),
-        font=_font(25),
+        font=_title_font(25),
         fill=(24, 111, 54, 255),
         anchor="mm",
         **_rtl_layout_kwargs(),
@@ -515,25 +518,27 @@ def build_vertical_poster(
     current_text = format_persian_price(current_price)
     if current_text:
         draw.text(
-            (WIDTH // 2, 809),
+            (WIDTH // 2, 831),
             _shape_rtl(f"{current_text} تومان"),
-            font=_font(43),
+            font=_title_font(43),
             fill=(10, 79, 40, 255),
             anchor="mm",
+            stroke_width=1,
+            stroke_fill=(10, 79, 40, 255),
             **_rtl_layout_kwargs(),
         )
     else:
         draw.text(
-            (WIDTH // 2, 844),
+            (WIDTH // 2, 866),
             _shape_rtl(f"مشاهده قیمت روز در {merchant}"),
-            font=_font(28),
+            font=_title_font(28),
             fill=(10, 79, 40, 255),
             anchor="mm",
             **_rtl_layout_kwargs(),
         )
 
     tagline = _shape_rtl("آفِرچین | شکار تخفیف‌های واقعی")
-    tagline_font = _font(19)
+    tagline_font = _title_font(19)
     tagline_pos = (WIDTH // 2, 1207)
     tagline_bbox = draw.textbbox(tagline_pos, tagline, font=tagline_font, anchor="mm", **_rtl_layout_kwargs())
     tagline_fill, tagline_stroke = adaptive_text_colors(
