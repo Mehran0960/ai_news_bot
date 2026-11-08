@@ -22,6 +22,18 @@ from pathlib import Path
 from urllib.parse import parse_qs, quote, urlencode, urljoin, urlsplit, urlunsplit
 
 import requests
+try:
+    from .demand_shadow import (
+        annotate_shadow_demand_evidence,
+        build_torob_trends_snapshot,
+        torob_trends_snapshot_is_fresh,
+    )
+except ImportError:
+    from demand_shadow import (
+        annotate_shadow_demand_evidence,
+        build_torob_trends_snapshot,
+        torob_trends_snapshot_is_fresh,
+    )
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from product_quality import is_publishable_product_title
 try:
@@ -180,6 +192,12 @@ MARKET_PRICE_RECHECK_HOURS = max(6, min(72, int(os.getenv("AFFILIO_MARKET_RECHEC
 MARKET_PRICE_CHALLENGE_COOLDOWN_HOURS = max(1, min(24, int(os.getenv("AFFILIO_MARKET_CHALLENGE_COOLDOWN_HOURS", "6"))))
 MARKET_PRICE_GLOBAL_PAUSE_MINUTES = max(5, min(120, int(os.getenv("AFFILIO_MARKET_GLOBAL_PAUSE_MINUTES", "20"))))
 TOROB_MCP_GAP_SECONDS = max(1.5, min(5.0, float(os.getenv("TOROB_MCP_GAP_SECONDS", "2"))))
+TOROB_TRENDS_SHADOW_ENABLED = os.getenv(
+    "AFFILIO_TOROB_TRENDS_SHADOW_ENABLED", "true"
+).strip().lower() in {"1", "true", "yes", "on"}
+TOROB_TRENDS_CACHE_REFRESH_MINUTES = 30
+TOROB_TRENDS_CACHE_MAX_AGE_MINUTES = 90
+TOROB_TRENDS_LIMIT = 30
 MIN_MARKET_MATCH_SCORE = max(40, min(95, int(os.getenv("AFFILIO_MIN_MARKET_MATCH_SCORE", "85"))))
 MARKET_UNDERCUT_BLOCK_PERCENT = max(1, min(30, int(os.getenv("AFFILIO_MARKET_UNDERCUT_BLOCK_PERCENT", "5"))))
 
@@ -2004,7 +2022,7 @@ def _is_market_challenge_error(exc: Exception) -> bool:
     )
 
 
-def _prepare_torob_mcp() -> None:
+def _prepare_torob_mcp() -> set[str]:
     initialized = _torob_rpc(
         "initialize",
         {
@@ -2037,6 +2055,7 @@ def _prepare_torob_mcp() -> None:
     if missing:
         raise RuntimeError("Torob MCP is missing required tools: " + ", ".join(sorted(missing)))
     time.sleep(TOROB_MCP_GAP_SECONDS)
+    return names
 
 
 def _torob_tool(name: str, arguments: dict, request_id: int) -> dict:
@@ -2064,6 +2083,58 @@ def _torob_tool(name: str, arguments: dict, request_id: int) -> dict:
     finally:
         # The hosted demo is rate-limited; respect its documented per-client request pacing.
         time.sleep(TOROB_MCP_GAP_SECONDS)
+
+
+
+
+def refresh_torob_trends_snapshot(
+    state: dict,
+    now: datetime | None = None,
+) -> tuple[dict | None, str]:
+    """Fetch optional Torob search trends with a 30m cache and fail-open behavior."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
+    if not TOROB_TRENDS_SHADOW_ENABLED:
+        return None, "disabled"
+
+    cached = state.get("torob_trends_snapshot")
+    if torob_trends_snapshot_is_fresh(
+        cached,
+        current,
+        max_age_minutes=TOROB_TRENDS_CACHE_REFRESH_MINUTES,
+    ):
+        return cached, "cached"
+
+    try:
+        available_tools = _prepare_torob_mcp()
+        if "torob_trends" not in available_tools:
+            raise RuntimeError("optional_torob_trends_tool_unavailable")
+        payload = _torob_tool(
+            "torob_trends",
+            {"limit": TOROB_TRENDS_LIMIT},
+            request_id=4,
+        )
+        snapshot = build_torob_trends_snapshot(payload, current)
+        state["torob_trends_snapshot"] = snapshot
+        print(
+            f"TOROB_TRENDS_REFRESHED count={snapshot['count']} "
+            f"observed_at={snapshot['observed_at']}"
+        )
+        return snapshot, "refreshed"
+    except Exception as exc:
+        # Torob is an optional, unofficial public source. It must never block
+        # product validation, channel publishing, or the independent price check.
+        print(f"TOROB_TRENDS_UNAVAILABLE error={type(exc).__name__}")
+        if torob_trends_snapshot_is_fresh(
+            cached,
+            current,
+            max_age_minutes=TOROB_TRENDS_CACHE_MAX_AGE_MINUTES,
+        ):
+            return cached, "stale_cache"
+        return None, "unavailable"
 
 
 def market_query_from_title(title: str) -> str:
@@ -9626,6 +9697,22 @@ def run(publish=False, selection_only=False):
 
     # Repeated retailer observations are required to distinguish recent interest from lifetime popularity.
     update_current_demand_signals(state, products, now=datetime.now(timezone.utc))
+    torob_trends_snapshot, torob_trends_fetch_status = refresh_torob_trends_snapshot(state)
+    demand_shadow_report = annotate_shadow_demand_evidence(
+        products,
+        torob_trends_snapshot,
+        now=datetime.now(timezone.utc),
+    )
+    demand_shadow_report["torob"]["fetch_status"] = torob_trends_fetch_status
+    print(
+        "DEMAND_SHADOW "
+        f"products={demand_shadow_report['candidate_count']} "
+        f"torob={torob_trends_fetch_status} "
+        f"cross_source={demand_shadow_report['evidence_counts']['cross_source']} "
+        f"torob_only={demand_shadow_report['evidence_counts']['torob_trend_only']} "
+        f"digikala_only={demand_shadow_report['evidence_counts']['digikala_bestseller_only']}"
+    )
+    # Shadow demand evidence is diagnostic only; keep the live product order unchanged.
     # Do not fetch click-worker statistics: they are not affiliate conversions and
     # new purchase buttons now go directly to Affilio to preserve attribution.
     products.sort(key=deal_sort_key, reverse=True)
@@ -9869,7 +9956,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "The scanner traverses every queryable DigiKala category page and retains the globally highest observed markdown cards. Live candidates are ranked strictly by discount percentage descending, then cash savings descending; only when both are equal may fresh verified rolling review-count growth act as an optional indirect proxy tiebreaker. Review growth is not unit sales. Lifetime reviews, ratings, category bestseller rank, general popularity, category demand, category/brand preference, trends and clicks never gate or reorder the selection. Independent positive market/history confirmation is not mandatory; only fresh verified evidence that contradicts the markdown may veto it. Detail checks continue across cycles. Publication requires verified product identity, in-stock status, current price, arithmetic-consistent positive markdown, usable title/image, valid Affilio tracking link, live/non-expired offer, duplicate protection, and safety checks.",
+        "ranking_note": "The scanner traverses every queryable DigiKala category page and retains the globally highest observed markdown cards. Live candidates are ranked strictly by discount percentage descending, then cash savings descending; only when both are equal may fresh verified rolling review-count growth act as an optional indirect proxy tiebreaker. Review growth is not unit sales. DigiKala category bestseller ranks and Torob current search trends are attached only as separate shadow evidence; they do not gate or reorder live selection. Lifetime reviews, ratings, category bestseller rank, general popularity, category demand, category/brand preference, trends and clicks never gate or reorder the production selection. Independent positive market/history confirmation is not mandatory; only fresh verified evidence that contradicts the markdown may veto it. Detail checks continue across cycles. Publication requires verified product identity, in-stock status, current price, arithmetic-consistent positive markdown, usable title/image, valid Affilio tracking link, live/non-expired offer, duplicate protection, and safety checks.",
         "review_growth_tiebreak_policy": {
             "use": "optional_tertiary_tiebreak_only",
             "ranking_effect": "only_after_equal_discount_percent_and_savings_toman",
@@ -9908,6 +9995,7 @@ def run(publish=False, selection_only=False):
             "endpoint": TOROB_MCP_URL,
         },
         "search_diagnostics": search_diagnostics,
+        "demand_shadow": demand_shadow_report,
         "products": products[:40],
     }
     save_json(REPORT, report)
