@@ -44290,10 +44290,10 @@
   "last_cycle_status": "complete",
   "last_cycle_unqueryable_category_ids": [],
   "last_error": "",
-  "last_successful_category_id": "9267",
-  "last_successful_category_name": "سایر تجهیزات فروشگاهی",
+  "last_successful_category_id": "10255",
+  "last_successful_category_name": "شیرینی خوری سنتی",
   "last_successful_page": 4,
-  "last_successful_page_at": "2026-11-08T10:14:55.154090+00:00",
+  "last_successful_page_at": "2026-11-08T10:16:03.868281+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
   "page": 4,
@@ -46361,7 +46361,9 @@
     "9368",
     "9372",
     "9374",
+    "9389",
     "9411",
+    "9417",
     "9419",
     "9427",
     "9429",
@@ -46397,6 +46399,7 @@
     "9578",
     "9579",
     "9580",
+    "9581",
     "9584",
     "9585",
     "9589",
@@ -46445,6 +46448,7 @@
     "9700",
     "9709",
     "9710",
+    "9716",
     "9723",
     "9725",
     "9744",
@@ -46453,11 +46457,13 @@
     "9752",
     "9753",
     "9757",
+    "9761",
     "9763",
     "9764",
     "9765",
     "9766",
     "9772",
+    "9774",
     "9775",
     "9776",
     "9777",
@@ -46495,6 +46501,7 @@
     "9892",
     "9893",
     "9895",
+    "9902",
     "9903",
     "9904",
     "9909",
@@ -46502,9 +46509,12 @@
     "9919",
     "9921",
     "9930",
+    "9931",
     "9934",
+    "9940",
     "9944",
     "9956",
+    "9958",
     "9959",
     "9961",
     "9962",
@@ -46516,6 +46526,7 @@
     "10019",
     "10026",
     "10031",
+    "10035",
     "10036",
     "10037",
     "10038",
@@ -46533,6 +46544,7 @@
     "10073",
     "10075",
     "10079",
+    "10080",
     "10085",
     "10088",
     "10090",
@@ -46548,12 +46560,17 @@
     "10115",
     "10117",
     "10118",
+    "10122",
     "10125",
     "10126",
+    "10127",
+    "10128",
+    "10132",
     "10134",
     "10136",
     "10139",
     "10142",
+    "10144",
     "10146",
     "10150",
     "10151",
@@ -46604,6 +46621,7 @@
     "10246",
     "10249",
     "10251",
+    "10253",
     "10257",
     "10259",
     "10260",
@@ -47073,8 +47091,8 @@
     "11797",
     "214186"
   ],
-  "parallel_cycle_pages_success": 11021,
-  "parallel_cycle_product_rows_success": 172146,
+  "parallel_cycle_pages_success": 11500,
+  "parallel_cycle_product_rows_success": 181534,
   "parallel_cycle_started_at": "2026-11-08T07:56:20.016124+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -52001,2891 +52019,23 @@
     "214158",
     "214186"
   ],
-  "parallel_last_batch_at": "2026-11-08T10:14:55.245953+00:00",
-  "parallel_last_batch_candidate_file_bytes": 3986129,
-  "parallel_last_batch_candidate_write_seconds": 0.067,
-  "parallel_last_batch_empty_product_pages": 1,
-  "parallel_last_batch_fetch_seconds": 35.153,
-  "parallel_last_batch_nonempty_product_pages": 477,
+  "parallel_last_batch_at": "2026-11-08T10:16:03.991295+00:00",
+  "parallel_last_batch_candidate_file_bytes": 3986722,
+  "parallel_last_batch_candidate_write_seconds": 0.088,
+  "parallel_last_batch_empty_product_pages": 0,
+  "parallel_last_batch_fetch_seconds": 41.255,
+  "parallel_last_batch_nonempty_product_pages": 479,
   "parallel_last_batch_pages": 480,
-  "parallel_last_batch_pages_per_second": 13.65,
-  "parallel_last_batch_processing_seconds": 0.095,
-  "parallel_last_batch_product_rows": 9201,
-  "parallel_last_batch_rate_limited": 2,
-  "parallel_last_batch_retries": 2,
-  "parallel_last_batch_rows_per_second": 260.54,
-  "parallel_last_batch_successes": 478,
+  "parallel_last_batch_pages_per_second": 11.63,
+  "parallel_last_batch_processing_seconds": 0.116,
+  "parallel_last_batch_product_rows": 9388,
+  "parallel_last_batch_rate_limited": 1,
+  "parallel_last_batch_retries": 1,
+  "parallel_last_batch_rows_per_second": 226.44,
+  "parallel_last_batch_successes": 479,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4672,
   "parallel_pending_pages": [
-    {
-      "attempts": 0,
-      "category_id": "9268",
-      "category_name": "ابزار و یراق آلات چرم دوزی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9270",
-      "category_name": "پوشش ایمنی موتورسواری",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9275",
-      "category_name": "تشک مهمان",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9277",
-      "category_name": "پیکسل",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9279",
-      "category_name": "سفره",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9280",
-      "category_name": "سایر لوازم جانبی موتور سیکلت",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9281",
-      "category_name": "تجهیزات جانبی اسکیت و هاکی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9282",
-      "category_name": "لباس زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9283",
-      "category_name": "پوشش اسلامی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9284",
-      "category_name": "مانتو، پانچو و رویه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9285",
-      "category_name": "کت، جلیقه و ست رسمی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9286",
-      "category_name": "ست رسمی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9289",
-      "category_name": "جلیقه رسمی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9291",
-      "category_name": "کت رسمی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9294",
-      "category_name": "پیراهن زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9295",
-      "category_name": "لباس خواب و راحتی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9298",
-      "category_name": "تاپ و تی‌شرت راحتی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9299",
-      "category_name": "شلوار راحتی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9301",
-      "category_name": "چادر",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9302",
-      "category_name": "مقنعه و پوشیه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9303",
-      "category_name": "شلوار جین زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9304",
-      "category_name": "ژاکت و پلیور زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9305",
-      "category_name": "لباس بارداری",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9307",
-      "category_name": "شلوار و سرهمی بارداری",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9308",
-      "category_name": "تی شرت و پولوشرت بارداری",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9315",
-      "category_name": "پالتو، بارانی و کاپشن زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9316",
-      "category_name": "پالتو زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9317",
-      "category_name": "کت چرم زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9318",
-      "category_name": "کت پاییزه و زمستانه زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9321",
-      "category_name": "کاپشن زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9322",
-      "category_name": "بلوز و شومیز زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9323",
-      "category_name": "بلوز زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9324",
-      "category_name": "ست لباس زیر زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9325",
-      "category_name": "شومیز زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9326",
-      "category_name": "تاپ و نیم تنه زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9328",
-      "category_name": "شلوارک زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9330",
-      "category_name": "دامن زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9333",
-      "category_name": "جوراب و ساق زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9334",
-      "category_name": "لباس ورزشی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9335",
-      "category_name": "مجموعه هودی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9337",
-      "category_name": "لباس زیر زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9340",
-      "category_name": "سوتین زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9342",
-      "category_name": "گن زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9344",
-      "category_name": "اکسسوری لباس زیر زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9345",
-      "category_name": "شورت زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9346",
-      "category_name": "شلوار زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9347",
-      "category_name": "تی شرت زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9348",
-      "category_name": "لباس شنا زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9349",
-      "category_name": "بادی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9351",
-      "category_name": "شال مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9352",
-      "category_name": "شال زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9356",
-      "category_name": "شلوار و سرهمی ورزشی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9357",
-      "category_name": "تی شرت ورزشی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9358",
-      "category_name": "تاپ و نیم تنه ورزشی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9360",
-      "category_name": "شلوارک ورزشی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9362",
-      "category_name": "سویشرت و هودی ورزشی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9363",
-      "category_name": "گرمکن و ست ورزشی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9365",
-      "category_name": "کفش زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9366",
-      "category_name": "نیم بوت زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9367",
-      "category_name": "بوت زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9369",
-      "category_name": "کفش تخت زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9370",
-      "category_name": "دمپایی لاانگشتی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9371",
-      "category_name": "کفش پاشنه دار زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9373",
-      "category_name": "صندل زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9375",
-      "category_name": "مانتو و شلوار زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9376",
-      "category_name": "دمپایی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9378",
-      "category_name": "کفش ورزشی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9379",
-      "category_name": "کوله پشتی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9380",
-      "category_name": "اکسسوری زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9381",
-      "category_name": "کیف زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9382",
-      "category_name": "کمربند زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9383",
-      "category_name": "عینک آفتابی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9384",
-      "category_name": "ست هدیه زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9385",
-      "category_name": "دستکش زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9386",
-      "category_name": "پابند طلا زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9387",
-      "category_name": "زیورآلات طلا زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9388",
-      "category_name": "دستبند طلا زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9389",
-      "category_name": "گل سینه طلا زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9390",
-      "category_name": "زنجیر طلا زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9391",
-      "category_name": "گوشواره طلا زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9392",
-      "category_name": "سرویس طلا زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9393",
-      "category_name": "گردنبند طلا زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9394",
-      "category_name": "آویز طلا زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9395",
-      "category_name": "پیرسینگ طلا زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9396",
-      "category_name": "انگشتر طلا زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9397",
-      "category_name": "آویز ساعت طلا",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9398",
-      "category_name": "اکسسوری مو زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9399",
-      "category_name": "سرپوش زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9400",
-      "category_name": "زیورآلات زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9401",
-      "category_name": "پابند زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9402",
-      "category_name": "دستبند زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9403",
-      "category_name": "گل سینه زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9404",
-      "category_name": "زنجیر زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9405",
-      "category_name": "گوشواره زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9406",
-      "category_name": "جعبه جواهرات زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9407",
-      "category_name": "ست زیورآلات زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9408",
-      "category_name": "جاکلیدی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9409",
-      "category_name": "گردنبند زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9410",
-      "category_name": "آویز زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9412",
-      "category_name": "انگشتر زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9413",
-      "category_name": "آویز ساعت زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9415",
-      "category_name": "شال و روسری زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9416",
-      "category_name": "زیورآلات نقره زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9417",
-      "category_name": "پابند نقره زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9418",
-      "category_name": "دستبند نقره زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9420",
-      "category_name": "زنجیر نقره زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9421",
-      "category_name": "گوشواره نقره زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9422",
-      "category_name": "سرویس نقره زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9423",
-      "category_name": "گردنبند نقره زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9424",
-      "category_name": "آویز نقره زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9425",
-      "category_name": "پیرسینگ نقره زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9426",
-      "category_name": "انگشتر نقره زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9428",
-      "category_name": "اکسسوری ورزشی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9431",
-      "category_name": "کیف پول و کیف لوازم آرایش زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9432",
-      "category_name": "ساعت زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9433",
-      "category_name": "ساعت عقربه ای زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9434",
-      "category_name": "ساعت دیجیتال زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9435",
-      "category_name": "لباس مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9436",
-      "category_name": "کت، جلیقه و ست رسمی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9438",
-      "category_name": "کت تک رسمی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9442",
-      "category_name": "لباس راحتی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9443",
-      "category_name": "ست لباس راحتی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9445",
-      "category_name": "شلوار راحتی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9447",
-      "category_name": "شلوار جین مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9448",
-      "category_name": "ژاکت و پلیور مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9449",
-      "category_name": "پالتو، بارانی و کاپشن مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9451",
-      "category_name": "کت چرم مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9453",
-      "category_name": "کاپشن مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9454",
-      "category_name": "پیراهن مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9455",
-      "category_name": "شلوارک مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9456",
-      "category_name": "جوراب مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9457",
-      "category_name": "لباس ورزشی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9459",
-      "category_name": "شلوار ورزشی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9460",
-      "category_name": "تی شرت ورزشی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9461",
-      "category_name": "کاپشن و جلیقه ورزشی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9462",
-      "category_name": "شلوارک ورزشی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9463",
-      "category_name": "سویشرت و هودی ورزشی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9464",
-      "category_name": "گرمکن و ست ورزشی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9465",
-      "category_name": "مجموعه هودی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9466",
-      "category_name": "لباس شنا مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9467",
-      "category_name": "مایو و لباس شنای مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9469",
-      "category_name": "لباس زیر مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9470",
-      "category_name": "تی شرت مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9471",
-      "category_name": "تاپ مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9472",
-      "category_name": "شلوار مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9473",
-      "category_name": "زیرپوش مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9474",
-      "category_name": "شورت مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9476",
-      "category_name": "کفش مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9477",
-      "category_name": "نیم بوت مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9480",
-      "category_name": "دمپایی لاانگشتی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9481",
-      "category_name": "کفش رسمی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9482",
-      "category_name": "صندل مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9483",
-      "category_name": "کت پاییزه و زمستانه مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9484",
-      "category_name": "دمپایی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9486",
-      "category_name": "کفش ورزشی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9487",
-      "category_name": "اکسسوری مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9488",
-      "category_name": "کوله پشتی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9489",
-      "category_name": "کیف مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9490",
-      "category_name": "کمربند و ساسبند مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9491",
-      "category_name": "عینک آفتابی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9492",
-      "category_name": "ست هدیه مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9493",
-      "category_name": "دستکش مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9494",
-      "category_name": "زیورآلات طلا مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9495",
-      "category_name": "دستبند طلا مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9496",
-      "category_name": "لباس خواب زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9500",
-      "category_name": "آویز طلا مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9501",
-      "category_name": "انگشتر طلا مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9504",
-      "category_name": "سرپوش مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9505",
-      "category_name": "زیورآلات مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9506",
-      "category_name": "دستبند مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9507",
-      "category_name": "زنجیر مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9508",
-      "category_name": "ست زیورآلات مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9509",
-      "category_name": "گردنبند مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9510",
-      "category_name": "آویز مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9511",
-      "category_name": "انگشتر مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9512",
-      "category_name": "دکمه سردست مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9515",
-      "category_name": "زیورآلات نقره مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9516",
-      "category_name": "دستبند نقره مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9517",
-      "category_name": "زنجیر نقره مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9519",
-      "category_name": "گردنبند نقره مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9520",
-      "category_name": "آویز نقره مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9521",
-      "category_name": "انگشتر نقره مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9524",
-      "category_name": "اکسسوری ورزشی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9525",
-      "category_name": "کراوات و پاپیون مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9527",
-      "category_name": "کیف پول مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9528",
-      "category_name": "ساعت مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9529",
-      "category_name": "ساعت عقربه ای مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9530",
-      "category_name": "ساعت دیجیتال مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9531",
-      "category_name": "زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9532",
-      "category_name": "کفش زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9533",
-      "category_name": "مراقبت کفش و لوازم جانبی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9534",
-      "category_name": "اکسسوری زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9535",
-      "category_name": "کوله پشتی زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9536",
-      "category_name": "کیف زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9538",
-      "category_name": "ست هدیه زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9539",
-      "category_name": "سرپوش زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9540",
-      "category_name": "زیورآلات زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9541",
-      "category_name": "دستبند زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9542",
-      "category_name": "جعبه جواهرات",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9543",
-      "category_name": "جاکلیدی زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9544",
-      "category_name": "آویز زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9546",
-      "category_name": "ملزومات زیورآلات",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9550",
-      "category_name": "آویز نقره زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9551",
-      "category_name": "اکسسوری ورزشی زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9556",
-      "category_name": "کیف پول زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9557",
-      "category_name": "ساعت زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9558",
-      "category_name": "ساعت عقربه ای زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9559",
-      "category_name": "ساعت دیجیتال زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9561",
-      "category_name": "ست ساعت زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9563",
-      "category_name": "لباس نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9568",
-      "category_name": "لباس راحتی نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9569",
-      "category_name": "ست لباس راحتی نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9571",
-      "category_name": "شلوار و شلوارک راحتی نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9573",
-      "category_name": "ست نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9575",
-      "category_name": "پالتو، بارانی و کاپشن نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9581",
-      "category_name": "سرهمی زمستانی نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9583",
-      "category_name": "بلوز و شومیز نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9586",
-      "category_name": "جوراب و ساق نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9588",
-      "category_name": "جوراب نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9605",
-      "category_name": "تی شرت نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9607",
-      "category_name": "سرهمی نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9608",
-      "category_name": "لباس زیر نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9609",
-      "category_name": "بادی نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9611",
-      "category_name": "کفش نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9614",
-      "category_name": "کفش تخت نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9620",
-      "category_name": "اکسسوری نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9621",
-      "category_name": "اکسسوری نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9623",
-      "category_name": "سرپوش نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9624",
-      "category_name": "پیش بند نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9625",
-      "category_name": "دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9626",
-      "category_name": "لباس دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9631",
-      "category_name": "پیراهن دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9632",
-      "category_name": "لباس راحتی دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9633",
-      "category_name": "ست لباس راحتی دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9634",
-      "category_name": "تاپ و تی شرت راحتی دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9635",
-      "category_name": "شلوار و شلوارک راحتی دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9637",
-      "category_name": "شلوار و سرهمی جین دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9638",
-      "category_name": "ست لباس دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9639",
-      "category_name": "ژاکت و پلیور دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9640",
-      "category_name": "پالتو، بارانی و کاپشن دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9645",
-      "category_name": "کاپشن دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9646",
-      "category_name": "بلوز و شومیز دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9647",
-      "category_name": "بلوز دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9649",
-      "category_name": "شومیز دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9651",
-      "category_name": "شلوارک دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9652",
-      "category_name": "دامن دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9653",
-      "category_name": "جوراب و ساق دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9654",
-      "category_name": "جوراب دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9655",
-      "category_name": "ساق دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9656",
-      "category_name": "لباس ورزشی دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9658",
-      "category_name": "شلوار و سرهمی ورزشی دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9666",
-      "category_name": "سویشرت و هودی دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9667",
-      "category_name": "لباس شنا دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9668",
-      "category_name": "مایو دو تکه دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9669",
-      "category_name": "شورت مایو دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9671",
-      "category_name": "مایو یک تکه دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9672",
-      "category_name": "تی شرت دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9673",
-      "category_name": "تاپ و تونیک دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9680",
-      "category_name": "کفش دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9681",
-      "category_name": "نیم بوت دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9684",
-      "category_name": "کفش تخت دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9687",
-      "category_name": "صندل دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9690",
-      "category_name": "دمپایی دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9691",
-      "category_name": "کفش ورزشی دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9692",
-      "category_name": "اکسسوری دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9693",
-      "category_name": "کوله پشتی دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9694",
-      "category_name": "کیف دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9695",
-      "category_name": "کمربند دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9696",
-      "category_name": "عینک دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9698",
-      "category_name": "دستکش دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9704",
-      "category_name": "گوشواره طلا بچگانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9705",
-      "category_name": "ست زیورآلات طلا بچگانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9711",
-      "category_name": "زیور آلات مو دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9712",
-      "category_name": "سرپوش دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9713",
-      "category_name": "زیورآلات دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9715",
-      "category_name": "دستبند دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9716",
-      "category_name": "گل سینه دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9718",
-      "category_name": "گوشواره دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9720",
-      "category_name": "ست زیورآلات دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9721",
-      "category_name": "جاکلیدی دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9722",
-      "category_name": "گردنبند دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9728",
-      "category_name": "شال و روسری دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9745",
-      "category_name": "ساعت دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9746",
-      "category_name": "ساعت عقربه ای دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9747",
-      "category_name": "ساعت دیجیتال دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9748",
-      "category_name": "پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9749",
-      "category_name": "لباس پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9754",
-      "category_name": "ست لباس راحتی پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9755",
-      "category_name": "تاپ و تی شرت راحتی پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9756",
-      "category_name": "لباس راحتی پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9759",
-      "category_name": "شلوار و سرهمی جین پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9760",
-      "category_name": "ست لباس پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9761",
-      "category_name": "ژاکت و پلیور پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9762",
-      "category_name": "پالتو، بارانی و کاپشن پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9767",
-      "category_name": "کاپشن پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9768",
-      "category_name": "پیراهن پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9769",
-      "category_name": "شلوارک پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9770",
-      "category_name": "جوراب و ساق پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9771",
-      "category_name": "لباس ورزشی پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9773",
-      "category_name": "شلوار و سرهمی ورزشی پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9774",
-      "category_name": "تیشرت و پولوشرت ورزشی پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9778",
-      "category_name": "گرمکن و ست ورزشی پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9779",
-      "category_name": "سویشرت و هودی پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9780",
-      "category_name": "لباس شنا پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9781",
-      "category_name": "مایو پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9783",
-      "category_name": "تی شرت پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9784",
-      "category_name": "تاپ پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9786",
-      "category_name": "لباس زیر پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9789",
-      "category_name": "زیرپوش پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9790",
-      "category_name": "کفش پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9796",
-      "category_name": "صندل پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9798",
-      "category_name": "دمپایی پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9799",
-      "category_name": "کفش ورزشی پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9801",
-      "category_name": "کوله پشتی پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9802",
-      "category_name": "کیف پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9803",
-      "category_name": "کمربند پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9814",
-      "category_name": "سرپوش پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9831",
-      "category_name": "کراوات و پاپیون پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9836",
-      "category_name": "ساعت دیجیتال پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9842",
-      "category_name": "جوراب شلواری زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9844",
-      "category_name": "برس‌ها و تجهیزات آرایشی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9846",
-      "category_name": "کره بادام زمینی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9847",
-      "category_name": "قهوه اسپرسو",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9848",
-      "category_name": "دمنوش",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9850",
-      "category_name": "نوشیدنی ورزشی و انرژی‌زا",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9854",
-      "category_name": "سوهان و رنده پا",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9860",
-      "category_name": "گیره، ترمز و محافظ ریشه فرش",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9861",
-      "category_name": "لوازم جانبی آسانسور",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9862",
-      "category_name": "آسانسور",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9863",
-      "category_name": "باربند",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9865",
-      "category_name": "لوازم مصرفی هنرهای دستی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9866",
-      "category_name": "معرق کاری",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9869",
-      "category_name": "تیونینگ و تقویت موتور",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9877",
-      "category_name": "پشتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9878",
-      "category_name": "فرش پارچه‌ای",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9881",
-      "category_name": "خرما",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9882",
-      "category_name": "نقشه چاپی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9884",
-      "category_name": "لوازم جانبی و اکسسوری عینک",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9888",
-      "category_name": "کیف چرمی دست دوز",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9890",
-      "category_name": "پوشش اسلامی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9896",
-      "category_name": "لوازم جانبی و اکسسوری عینک مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9897",
-      "category_name": "لوازم جانبی و اکسسوری عینک زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9898",
-      "category_name": "گردنبند زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9900",
-      "category_name": "لوازم جانبی ساعت عقربه ای و دیجیتال",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9901",
-      "category_name": "تسبیح",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9902",
-      "category_name": "سایر لوازم جانبی دوربین",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9906",
-      "category_name": "کفش روزمره مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9908",
-      "category_name": "کفش روزمره زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9912",
-      "category_name": "تمبر",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9914",
-      "category_name": "ست حلقه نقره زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9925",
-      "category_name": "جوراب زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9927",
-      "category_name": "دستکش زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9928",
-      "category_name": "شلوار و سرهمی جین دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9929",
-      "category_name": "تی شرت و پولوشرت دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9931",
-      "category_name": "شلوار و سرهمی دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9932",
-      "category_name": "سویشرت و هودی دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9933",
-      "category_name": "دستکش دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9937",
-      "category_name": "جوراب دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9938",
-      "category_name": "سرپوش دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9940",
-      "category_name": "کیف پول دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9941",
-      "category_name": "کوله پشتی دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9942",
-      "category_name": "کیف دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9943",
-      "category_name": "عینک دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9946",
-      "category_name": "دستبند نقره زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9954",
-      "category_name": "کفش ورزشی زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9955",
-      "category_name": "ست لباس راحتی دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9957",
-      "category_name": "شلوار و شلوارک راحتی دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9958",
-      "category_name": "شلوار و سرهمی ورزشی دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9963",
-      "category_name": "دستبند طلا بچگانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9964",
-      "category_name": "آویز طلا بچگانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9965",
-      "category_name": "دستبند دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9967",
-      "category_name": "ساعت عقربه ای دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9968",
-      "category_name": "ساعت دیجیتال دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9969",
-      "category_name": "کفش ورزشی دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9970",
-      "category_name": "جاکلیدی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "9974",
-      "category_name": "ملزومات زیورآلات زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10009",
-      "category_name": "گلیم ماشینی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10011",
-      "category_name": "تابلو و برچسب ایمنی و راهنما",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10012",
-      "category_name": "دخترانه و پسرانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10021",
-      "category_name": "پیرسینگ زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10022",
-      "category_name": "انگشتر زنانه و مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10023",
-      "category_name": "یراق آلات کرکره برقی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10024",
-      "category_name": "چشمی درب",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10025",
-      "category_name": "چرخ",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10030",
-      "category_name": "بهداشت زنان",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10033",
-      "category_name": "بهداشت و نگهداری کودک",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10034",
-      "category_name": "بهداشت دهان و دندان",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10035",
-      "category_name": "توری",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10040",
-      "category_name": "ابزار پیش ساخته",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10042",
-      "category_name": "لیف کودک و نوزاد",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10043",
-      "category_name": "محصولات برنجی و برنزی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10050",
-      "category_name": "مراقبت از پوست و مو",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10051",
-      "category_name": "لوازم بهداشتی مصرفی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10053",
-      "category_name": "صنایع دستی تزئینی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10056",
-      "category_name": "اسباب بازی شانسی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10057",
-      "category_name": "سنگ راف",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10061",
-      "category_name": "کارت هدیه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10064",
-      "category_name": "کابینت",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10067",
-      "category_name": "غذای مادر و کودک",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10068",
-      "category_name": "سفره یکبار مصرف",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10071",
-      "category_name": "معرق فلزی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10072",
-      "category_name": "محافظ لنز گوشی موبایل",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10076",
-      "category_name": "شال مبل و تخت",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10078",
-      "category_name": "ظروف سرو و پذیرایی سنگی و سرامیکی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10080",
-      "category_name": "کفش رسمی دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10082",
-      "category_name": "مجموعه ابزار",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10083",
-      "category_name": "ماسک تنفسی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10084",
-      "category_name": "دستگاه شست‌وشوی دهان و دندان",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10091",
-      "category_name": "مخزن آب",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10094",
-      "category_name": "سموم گیاهی و جانوری",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10095",
-      "category_name": "ابزار کار هنری و دستی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10097",
-      "category_name": "لگینگ زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10099",
-      "category_name": "لوازم جانبی تصفیه‌آب و آبسردکن",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10101",
-      "category_name": "قطعات یدکی کالای دیجیتال",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10102",
-      "category_name": "گل طبیعی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10105",
-      "category_name": "سبد گل",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10109",
-      "category_name": "قطعات یدکی ماشین آلات صنعتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10110",
-      "category_name": "تجهیزات موتوری ماشین آلات صنعتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10113",
-      "category_name": "تجهیزات مصرفی ماشین آلات صنعتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10116",
-      "category_name": "برچسب پوششی گوشی موبایل",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10119",
-      "category_name": "مکمل غذایی و ورزشی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10120",
-      "category_name": "پروتئین",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10121",
-      "category_name": "ویتامین‌ها و مواد معدنی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10122",
-      "category_name": "مکمل کمک درمانی کودک",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10123",
-      "category_name": "تاج گل",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10124",
-      "category_name": "دسته گل",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10127",
-      "category_name": "لوازم جانبی دارت",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10128",
-      "category_name": "سرویس‌های اینترنت و سیم‌کارت",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10129",
-      "category_name": "لوازم جانبی ماسک تنفسی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10130",
-      "category_name": "لوازم مصرفی دندانپزشکی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10132",
-      "category_name": "سرویس اینترنت",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10133",
-      "category_name": "چنگ",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10135",
-      "category_name": "چراغ موتور سیکلت",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10137",
-      "category_name": "نقاشی و دست‌نوشته‌های هنری",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10138",
-      "category_name": "آیات و ادعیه کارتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10140",
-      "category_name": "محافظ و آبگیر کنار سینک",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10141",
-      "category_name": "جعبه و تابلو برق",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10143",
-      "category_name": "کتاب چاپی غیر فارسی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10144",
-      "category_name": "تجهیزات جانبی سمپاش",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10145",
-      "category_name": "آینه سرویس بهداشتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10147",
-      "category_name": "جامسواکی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10152",
-      "category_name": "روکش توالت فرنگی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10153",
-      "category_name": "ساعت دست‌ساز",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10155",
-      "category_name": "بارانی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10156",
-      "category_name": "اکسسوری شال و روسری زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10158",
-      "category_name": "بهداشت مو",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10166",
-      "category_name": "سارافون دخترانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10168",
-      "category_name": "ورزشی مردانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10169",
-      "category_name": "ورزشی زنانه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10170",
-      "category_name": "محصولات بومی و محلی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10173",
-      "category_name": "پوشاک بومی و محلی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10174",
-      "category_name": "دکوراتیو سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10175",
-      "category_name": "لوازم آشپزخانه سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10176",
-      "category_name": "ظروف سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10177",
-      "category_name": "قالی و قالیچه",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10178",
-      "category_name": "رومیزی، رانر و زیربشقابی سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10182",
-      "category_name": "لباس سنتی و محلی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10183",
-      "category_name": "اکسسوری و زیورآلات دست ساز",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10184",
-      "category_name": "بازی و سرگرمی های بومی محلی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10188",
-      "category_name": "لنز چشم",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10189",
-      "category_name": "چراغ خواب و آباژور دست ساز",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10190",
-      "category_name": "لوستر و چراغ آویز دست ساز",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10193",
-      "category_name": "مجسمه دست ساز",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10196",
-      "category_name": "گلدان دست ساز",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10202",
-      "category_name": "شمعدان دست ساز",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10207",
-      "category_name": "تابلو سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10218",
-      "category_name": "ست هدیه سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10219",
-      "category_name": "ست هفت سین سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10234",
-      "category_name": "سبد دستبافت",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10238",
-      "category_name": "آجیل خوری سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10243",
-      "category_name": "دیس و سینی سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10244",
-      "category_name": "قندان سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10248",
-      "category_name": "کاسه و بشقاب سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10250",
-      "category_name": "فنجان و نعلبکی سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10252",
-      "category_name": "لیوان سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10253",
-      "category_name": "میوه‌ خوری دست ساز",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10254",
-      "category_name": "شکلات خوری سنتی",
-      "page": 4
-    },
-    {
-      "attempts": 0,
-      "category_id": "10255",
-      "category_name": "شیرینی خوری سنتی",
-      "page": 4
-    },
     {
       "attempts": 0,
       "category_id": "10256",
@@ -62201,13 +59351,6 @@
       "page": 5
     },
     {
-      "attempts": 1,
-      "category_id": "6726",
-      "category_name": "جعبه و گوی موزیکال",
-      "last_error": "http_429",
-      "page": 4
-    },
-    {
       "attempts": 0,
       "category_id": "6728",
       "category_name": "ابزار جوشکاری",
@@ -62242,13 +59385,6 @@
       "category_id": "6743",
       "category_name": "پستانک و ملزومات",
       "page": 5
-    },
-    {
-      "attempts": 1,
-      "category_id": "6744",
-      "category_name": "تغذیه و رشد کودک",
-      "last_error": "http_429",
-      "page": 4
     },
     {
       "attempts": 0,
@@ -64883,24 +62019,2797 @@
       "category_id": "9267",
       "category_name": "سایر تجهیزات فروشگاهی",
       "page": 5
+    },
+    {
+      "attempts": 2,
+      "category_id": "6726",
+      "category_name": "جعبه و گوی موزیکال",
+      "last_error": "http_429",
+      "page": 4
+    },
+    {
+      "attempts": 0,
+      "category_id": "6744",
+      "category_name": "تغذیه و رشد کودک",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9268",
+      "category_name": "ابزار و یراق آلات چرم دوزی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9270",
+      "category_name": "پوشش ایمنی موتورسواری",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9275",
+      "category_name": "تشک مهمان",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9277",
+      "category_name": "پیکسل",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9279",
+      "category_name": "سفره",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9280",
+      "category_name": "سایر لوازم جانبی موتور سیکلت",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9281",
+      "category_name": "تجهیزات جانبی اسکیت و هاکی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9282",
+      "category_name": "لباس زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9283",
+      "category_name": "پوشش اسلامی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9284",
+      "category_name": "مانتو، پانچو و رویه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9285",
+      "category_name": "کت، جلیقه و ست رسمی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9286",
+      "category_name": "ست رسمی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9289",
+      "category_name": "جلیقه رسمی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9291",
+      "category_name": "کت رسمی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9294",
+      "category_name": "پیراهن زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9295",
+      "category_name": "لباس خواب و راحتی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9298",
+      "category_name": "تاپ و تی‌شرت راحتی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9299",
+      "category_name": "شلوار راحتی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9301",
+      "category_name": "چادر",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9302",
+      "category_name": "مقنعه و پوشیه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9303",
+      "category_name": "شلوار جین زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9304",
+      "category_name": "ژاکت و پلیور زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9305",
+      "category_name": "لباس بارداری",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9307",
+      "category_name": "شلوار و سرهمی بارداری",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9308",
+      "category_name": "تی شرت و پولوشرت بارداری",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9315",
+      "category_name": "پالتو، بارانی و کاپشن زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9316",
+      "category_name": "پالتو زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9317",
+      "category_name": "کت چرم زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9318",
+      "category_name": "کت پاییزه و زمستانه زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9321",
+      "category_name": "کاپشن زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9322",
+      "category_name": "بلوز و شومیز زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9323",
+      "category_name": "بلوز زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9324",
+      "category_name": "ست لباس زیر زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9325",
+      "category_name": "شومیز زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9326",
+      "category_name": "تاپ و نیم تنه زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9328",
+      "category_name": "شلوارک زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9330",
+      "category_name": "دامن زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9333",
+      "category_name": "جوراب و ساق زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9334",
+      "category_name": "لباس ورزشی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9335",
+      "category_name": "مجموعه هودی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9337",
+      "category_name": "لباس زیر زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9340",
+      "category_name": "سوتین زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9342",
+      "category_name": "گن زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9344",
+      "category_name": "اکسسوری لباس زیر زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9345",
+      "category_name": "شورت زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9346",
+      "category_name": "شلوار زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9347",
+      "category_name": "تی شرت زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9348",
+      "category_name": "لباس شنا زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9349",
+      "category_name": "بادی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9351",
+      "category_name": "شال مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9352",
+      "category_name": "شال زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9356",
+      "category_name": "شلوار و سرهمی ورزشی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9357",
+      "category_name": "تی شرت ورزشی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9358",
+      "category_name": "تاپ و نیم تنه ورزشی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9360",
+      "category_name": "شلوارک ورزشی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9362",
+      "category_name": "سویشرت و هودی ورزشی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9363",
+      "category_name": "گرمکن و ست ورزشی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9365",
+      "category_name": "کفش زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9366",
+      "category_name": "نیم بوت زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9367",
+      "category_name": "بوت زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9369",
+      "category_name": "کفش تخت زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9370",
+      "category_name": "دمپایی لاانگشتی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9371",
+      "category_name": "کفش پاشنه دار زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9373",
+      "category_name": "صندل زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9375",
+      "category_name": "مانتو و شلوار زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9376",
+      "category_name": "دمپایی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9378",
+      "category_name": "کفش ورزشی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9379",
+      "category_name": "کوله پشتی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9380",
+      "category_name": "اکسسوری زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9381",
+      "category_name": "کیف زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9382",
+      "category_name": "کمربند زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9383",
+      "category_name": "عینک آفتابی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9384",
+      "category_name": "ست هدیه زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9385",
+      "category_name": "دستکش زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9386",
+      "category_name": "پابند طلا زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9387",
+      "category_name": "زیورآلات طلا زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9388",
+      "category_name": "دستبند طلا زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9390",
+      "category_name": "زنجیر طلا زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9391",
+      "category_name": "گوشواره طلا زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9392",
+      "category_name": "سرویس طلا زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9393",
+      "category_name": "گردنبند طلا زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9394",
+      "category_name": "آویز طلا زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9395",
+      "category_name": "پیرسینگ طلا زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9396",
+      "category_name": "انگشتر طلا زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9397",
+      "category_name": "آویز ساعت طلا",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9398",
+      "category_name": "اکسسوری مو زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9399",
+      "category_name": "سرپوش زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9400",
+      "category_name": "زیورآلات زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9401",
+      "category_name": "پابند زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9402",
+      "category_name": "دستبند زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9403",
+      "category_name": "گل سینه زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9404",
+      "category_name": "زنجیر زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9405",
+      "category_name": "گوشواره زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9406",
+      "category_name": "جعبه جواهرات زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9407",
+      "category_name": "ست زیورآلات زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9408",
+      "category_name": "جاکلیدی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9409",
+      "category_name": "گردنبند زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9410",
+      "category_name": "آویز زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9412",
+      "category_name": "انگشتر زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9413",
+      "category_name": "آویز ساعت زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9415",
+      "category_name": "شال و روسری زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9416",
+      "category_name": "زیورآلات نقره زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9418",
+      "category_name": "دستبند نقره زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9420",
+      "category_name": "زنجیر نقره زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9421",
+      "category_name": "گوشواره نقره زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9422",
+      "category_name": "سرویس نقره زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9423",
+      "category_name": "گردنبند نقره زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9424",
+      "category_name": "آویز نقره زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9425",
+      "category_name": "پیرسینگ نقره زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9426",
+      "category_name": "انگشتر نقره زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9428",
+      "category_name": "اکسسوری ورزشی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9431",
+      "category_name": "کیف پول و کیف لوازم آرایش زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9432",
+      "category_name": "ساعت زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9433",
+      "category_name": "ساعت عقربه ای زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9434",
+      "category_name": "ساعت دیجیتال زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9435",
+      "category_name": "لباس مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9436",
+      "category_name": "کت، جلیقه و ست رسمی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9438",
+      "category_name": "کت تک رسمی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9442",
+      "category_name": "لباس راحتی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9443",
+      "category_name": "ست لباس راحتی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9445",
+      "category_name": "شلوار راحتی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9447",
+      "category_name": "شلوار جین مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9448",
+      "category_name": "ژاکت و پلیور مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9449",
+      "category_name": "پالتو، بارانی و کاپشن مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9451",
+      "category_name": "کت چرم مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9453",
+      "category_name": "کاپشن مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9454",
+      "category_name": "پیراهن مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9455",
+      "category_name": "شلوارک مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9456",
+      "category_name": "جوراب مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9457",
+      "category_name": "لباس ورزشی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9459",
+      "category_name": "شلوار ورزشی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9460",
+      "category_name": "تی شرت ورزشی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9461",
+      "category_name": "کاپشن و جلیقه ورزشی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9462",
+      "category_name": "شلوارک ورزشی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9463",
+      "category_name": "سویشرت و هودی ورزشی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9464",
+      "category_name": "گرمکن و ست ورزشی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9465",
+      "category_name": "مجموعه هودی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9466",
+      "category_name": "لباس شنا مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9467",
+      "category_name": "مایو و لباس شنای مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9469",
+      "category_name": "لباس زیر مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9470",
+      "category_name": "تی شرت مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9471",
+      "category_name": "تاپ مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9472",
+      "category_name": "شلوار مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9473",
+      "category_name": "زیرپوش مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9474",
+      "category_name": "شورت مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9476",
+      "category_name": "کفش مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9477",
+      "category_name": "نیم بوت مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9480",
+      "category_name": "دمپایی لاانگشتی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9481",
+      "category_name": "کفش رسمی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9482",
+      "category_name": "صندل مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9483",
+      "category_name": "کت پاییزه و زمستانه مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9484",
+      "category_name": "دمپایی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9486",
+      "category_name": "کفش ورزشی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9487",
+      "category_name": "اکسسوری مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9488",
+      "category_name": "کوله پشتی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9489",
+      "category_name": "کیف مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9490",
+      "category_name": "کمربند و ساسبند مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9491",
+      "category_name": "عینک آفتابی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9492",
+      "category_name": "ست هدیه مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9493",
+      "category_name": "دستکش مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9494",
+      "category_name": "زیورآلات طلا مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9495",
+      "category_name": "دستبند طلا مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9496",
+      "category_name": "لباس خواب زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9500",
+      "category_name": "آویز طلا مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9501",
+      "category_name": "انگشتر طلا مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9504",
+      "category_name": "سرپوش مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9505",
+      "category_name": "زیورآلات مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9506",
+      "category_name": "دستبند مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9507",
+      "category_name": "زنجیر مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9508",
+      "category_name": "ست زیورآلات مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9509",
+      "category_name": "گردنبند مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9510",
+      "category_name": "آویز مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9511",
+      "category_name": "انگشتر مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9512",
+      "category_name": "دکمه سردست مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9515",
+      "category_name": "زیورآلات نقره مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9516",
+      "category_name": "دستبند نقره مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9517",
+      "category_name": "زنجیر نقره مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9519",
+      "category_name": "گردنبند نقره مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9520",
+      "category_name": "آویز نقره مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9521",
+      "category_name": "انگشتر نقره مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9524",
+      "category_name": "اکسسوری ورزشی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9525",
+      "category_name": "کراوات و پاپیون مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9527",
+      "category_name": "کیف پول مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9528",
+      "category_name": "ساعت مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9529",
+      "category_name": "ساعت عقربه ای مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9530",
+      "category_name": "ساعت دیجیتال مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9531",
+      "category_name": "زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9532",
+      "category_name": "کفش زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9533",
+      "category_name": "مراقبت کفش و لوازم جانبی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9534",
+      "category_name": "اکسسوری زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9535",
+      "category_name": "کوله پشتی زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9536",
+      "category_name": "کیف زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9538",
+      "category_name": "ست هدیه زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9539",
+      "category_name": "سرپوش زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9540",
+      "category_name": "زیورآلات زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9541",
+      "category_name": "دستبند زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9542",
+      "category_name": "جعبه جواهرات",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9543",
+      "category_name": "جاکلیدی زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9544",
+      "category_name": "آویز زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9546",
+      "category_name": "ملزومات زیورآلات",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9550",
+      "category_name": "آویز نقره زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9551",
+      "category_name": "اکسسوری ورزشی زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9556",
+      "category_name": "کیف پول زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9557",
+      "category_name": "ساعت زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9558",
+      "category_name": "ساعت عقربه ای زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9559",
+      "category_name": "ساعت دیجیتال زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9561",
+      "category_name": "ست ساعت زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9563",
+      "category_name": "لباس نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9568",
+      "category_name": "لباس راحتی نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9569",
+      "category_name": "ست لباس راحتی نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9571",
+      "category_name": "شلوار و شلوارک راحتی نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9573",
+      "category_name": "ست نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9575",
+      "category_name": "پالتو، بارانی و کاپشن نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9583",
+      "category_name": "بلوز و شومیز نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9586",
+      "category_name": "جوراب و ساق نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9588",
+      "category_name": "جوراب نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9605",
+      "category_name": "تی شرت نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9607",
+      "category_name": "سرهمی نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9608",
+      "category_name": "لباس زیر نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9609",
+      "category_name": "بادی نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9611",
+      "category_name": "کفش نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9614",
+      "category_name": "کفش تخت نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9620",
+      "category_name": "اکسسوری نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9621",
+      "category_name": "اکسسوری نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9623",
+      "category_name": "سرپوش نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9624",
+      "category_name": "پیش بند نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9625",
+      "category_name": "دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9626",
+      "category_name": "لباس دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9631",
+      "category_name": "پیراهن دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9632",
+      "category_name": "لباس راحتی دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9633",
+      "category_name": "ست لباس راحتی دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9634",
+      "category_name": "تاپ و تی شرت راحتی دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9635",
+      "category_name": "شلوار و شلوارک راحتی دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9637",
+      "category_name": "شلوار و سرهمی جین دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9638",
+      "category_name": "ست لباس دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9639",
+      "category_name": "ژاکت و پلیور دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9640",
+      "category_name": "پالتو، بارانی و کاپشن دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9645",
+      "category_name": "کاپشن دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9646",
+      "category_name": "بلوز و شومیز دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9647",
+      "category_name": "بلوز دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9649",
+      "category_name": "شومیز دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9651",
+      "category_name": "شلوارک دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9652",
+      "category_name": "دامن دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9653",
+      "category_name": "جوراب و ساق دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9654",
+      "category_name": "جوراب دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9655",
+      "category_name": "ساق دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9656",
+      "category_name": "لباس ورزشی دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9658",
+      "category_name": "شلوار و سرهمی ورزشی دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9666",
+      "category_name": "سویشرت و هودی دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9667",
+      "category_name": "لباس شنا دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9668",
+      "category_name": "مایو دو تکه دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9669",
+      "category_name": "شورت مایو دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9671",
+      "category_name": "مایو یک تکه دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9672",
+      "category_name": "تی شرت دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9673",
+      "category_name": "تاپ و تونیک دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9680",
+      "category_name": "کفش دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9681",
+      "category_name": "نیم بوت دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9684",
+      "category_name": "کفش تخت دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9687",
+      "category_name": "صندل دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9690",
+      "category_name": "دمپایی دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9691",
+      "category_name": "کفش ورزشی دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9692",
+      "category_name": "اکسسوری دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9693",
+      "category_name": "کوله پشتی دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9694",
+      "category_name": "کیف دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9695",
+      "category_name": "کمربند دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9696",
+      "category_name": "عینک دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9698",
+      "category_name": "دستکش دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9704",
+      "category_name": "گوشواره طلا بچگانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9705",
+      "category_name": "ست زیورآلات طلا بچگانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9711",
+      "category_name": "زیور آلات مو دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9712",
+      "category_name": "سرپوش دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9713",
+      "category_name": "زیورآلات دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9715",
+      "category_name": "دستبند دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9718",
+      "category_name": "گوشواره دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9720",
+      "category_name": "ست زیورآلات دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9721",
+      "category_name": "جاکلیدی دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9722",
+      "category_name": "گردنبند دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9728",
+      "category_name": "شال و روسری دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9745",
+      "category_name": "ساعت دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9746",
+      "category_name": "ساعت عقربه ای دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9747",
+      "category_name": "ساعت دیجیتال دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9748",
+      "category_name": "پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9749",
+      "category_name": "لباس پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9754",
+      "category_name": "ست لباس راحتی پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9755",
+      "category_name": "تاپ و تی شرت راحتی پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9756",
+      "category_name": "لباس راحتی پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9759",
+      "category_name": "شلوار و سرهمی جین پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9760",
+      "category_name": "ست لباس پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9762",
+      "category_name": "پالتو، بارانی و کاپشن پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9767",
+      "category_name": "کاپشن پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9768",
+      "category_name": "پیراهن پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9769",
+      "category_name": "شلوارک پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9770",
+      "category_name": "جوراب و ساق پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9771",
+      "category_name": "لباس ورزشی پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9773",
+      "category_name": "شلوار و سرهمی ورزشی پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9778",
+      "category_name": "گرمکن و ست ورزشی پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9779",
+      "category_name": "سویشرت و هودی پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9780",
+      "category_name": "لباس شنا پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9781",
+      "category_name": "مایو پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9783",
+      "category_name": "تی شرت پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9784",
+      "category_name": "تاپ پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9786",
+      "category_name": "لباس زیر پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9789",
+      "category_name": "زیرپوش پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9790",
+      "category_name": "کفش پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9796",
+      "category_name": "صندل پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9798",
+      "category_name": "دمپایی پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9799",
+      "category_name": "کفش ورزشی پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9801",
+      "category_name": "کوله پشتی پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9802",
+      "category_name": "کیف پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9803",
+      "category_name": "کمربند پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9814",
+      "category_name": "سرپوش پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9831",
+      "category_name": "کراوات و پاپیون پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9836",
+      "category_name": "ساعت دیجیتال پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9842",
+      "category_name": "جوراب شلواری زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9844",
+      "category_name": "برس‌ها و تجهیزات آرایشی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9846",
+      "category_name": "کره بادام زمینی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9847",
+      "category_name": "قهوه اسپرسو",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9848",
+      "category_name": "دمنوش",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9850",
+      "category_name": "نوشیدنی ورزشی و انرژی‌زا",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9854",
+      "category_name": "سوهان و رنده پا",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9860",
+      "category_name": "گیره، ترمز و محافظ ریشه فرش",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9861",
+      "category_name": "لوازم جانبی آسانسور",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9862",
+      "category_name": "آسانسور",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9863",
+      "category_name": "باربند",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9865",
+      "category_name": "لوازم مصرفی هنرهای دستی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9866",
+      "category_name": "معرق کاری",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9869",
+      "category_name": "تیونینگ و تقویت موتور",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9877",
+      "category_name": "پشتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9878",
+      "category_name": "فرش پارچه‌ای",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9881",
+      "category_name": "خرما",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9882",
+      "category_name": "نقشه چاپی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9884",
+      "category_name": "لوازم جانبی و اکسسوری عینک",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9888",
+      "category_name": "کیف چرمی دست دوز",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9890",
+      "category_name": "پوشش اسلامی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9896",
+      "category_name": "لوازم جانبی و اکسسوری عینک مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9897",
+      "category_name": "لوازم جانبی و اکسسوری عینک زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9898",
+      "category_name": "گردنبند زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9900",
+      "category_name": "لوازم جانبی ساعت عقربه ای و دیجیتال",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9901",
+      "category_name": "تسبیح",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9906",
+      "category_name": "کفش روزمره مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9908",
+      "category_name": "کفش روزمره زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9912",
+      "category_name": "تمبر",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9914",
+      "category_name": "ست حلقه نقره زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9925",
+      "category_name": "جوراب زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9927",
+      "category_name": "دستکش زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9928",
+      "category_name": "شلوار و سرهمی جین دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9929",
+      "category_name": "تی شرت و پولوشرت دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9932",
+      "category_name": "سویشرت و هودی دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9933",
+      "category_name": "دستکش دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9937",
+      "category_name": "جوراب دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9938",
+      "category_name": "سرپوش دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9941",
+      "category_name": "کوله پشتی دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9942",
+      "category_name": "کیف دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9943",
+      "category_name": "عینک دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9946",
+      "category_name": "دستبند نقره زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9954",
+      "category_name": "کفش ورزشی زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9955",
+      "category_name": "ست لباس راحتی دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9957",
+      "category_name": "شلوار و شلوارک راحتی دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9963",
+      "category_name": "دستبند طلا بچگانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9964",
+      "category_name": "آویز طلا بچگانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9965",
+      "category_name": "دستبند دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9967",
+      "category_name": "ساعت عقربه ای دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9968",
+      "category_name": "ساعت دیجیتال دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9969",
+      "category_name": "کفش ورزشی دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9970",
+      "category_name": "جاکلیدی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "9974",
+      "category_name": "ملزومات زیورآلات زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10009",
+      "category_name": "گلیم ماشینی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10011",
+      "category_name": "تابلو و برچسب ایمنی و راهنما",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10012",
+      "category_name": "دخترانه و پسرانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10021",
+      "category_name": "پیرسینگ زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10022",
+      "category_name": "انگشتر زنانه و مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10023",
+      "category_name": "یراق آلات کرکره برقی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10024",
+      "category_name": "چشمی درب",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10025",
+      "category_name": "چرخ",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10030",
+      "category_name": "بهداشت زنان",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10033",
+      "category_name": "بهداشت و نگهداری کودک",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10034",
+      "category_name": "بهداشت دهان و دندان",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10040",
+      "category_name": "ابزار پیش ساخته",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10042",
+      "category_name": "لیف کودک و نوزاد",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10043",
+      "category_name": "محصولات برنجی و برنزی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10050",
+      "category_name": "مراقبت از پوست و مو",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10051",
+      "category_name": "لوازم بهداشتی مصرفی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10053",
+      "category_name": "صنایع دستی تزئینی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10056",
+      "category_name": "اسباب بازی شانسی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10057",
+      "category_name": "سنگ راف",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10061",
+      "category_name": "کارت هدیه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10064",
+      "category_name": "کابینت",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10067",
+      "category_name": "غذای مادر و کودک",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10068",
+      "category_name": "سفره یکبار مصرف",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10071",
+      "category_name": "معرق فلزی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10072",
+      "category_name": "محافظ لنز گوشی موبایل",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10076",
+      "category_name": "شال مبل و تخت",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10078",
+      "category_name": "ظروف سرو و پذیرایی سنگی و سرامیکی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10082",
+      "category_name": "مجموعه ابزار",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10083",
+      "category_name": "ماسک تنفسی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10084",
+      "category_name": "دستگاه شست‌وشوی دهان و دندان",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10091",
+      "category_name": "مخزن آب",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10094",
+      "category_name": "سموم گیاهی و جانوری",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10095",
+      "category_name": "ابزار کار هنری و دستی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10097",
+      "category_name": "لگینگ زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10099",
+      "category_name": "لوازم جانبی تصفیه‌آب و آبسردکن",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10101",
+      "category_name": "قطعات یدکی کالای دیجیتال",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10102",
+      "category_name": "گل طبیعی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10105",
+      "category_name": "سبد گل",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10109",
+      "category_name": "قطعات یدکی ماشین آلات صنعتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10110",
+      "category_name": "تجهیزات موتوری ماشین آلات صنعتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10113",
+      "category_name": "تجهیزات مصرفی ماشین آلات صنعتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10116",
+      "category_name": "برچسب پوششی گوشی موبایل",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10119",
+      "category_name": "مکمل غذایی و ورزشی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10120",
+      "category_name": "پروتئین",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10121",
+      "category_name": "ویتامین‌ها و مواد معدنی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10123",
+      "category_name": "تاج گل",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10124",
+      "category_name": "دسته گل",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10129",
+      "category_name": "لوازم جانبی ماسک تنفسی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10130",
+      "category_name": "لوازم مصرفی دندانپزشکی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10133",
+      "category_name": "چنگ",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10135",
+      "category_name": "چراغ موتور سیکلت",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10137",
+      "category_name": "نقاشی و دست‌نوشته‌های هنری",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10138",
+      "category_name": "آیات و ادعیه کارتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10140",
+      "category_name": "محافظ و آبگیر کنار سینک",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10141",
+      "category_name": "جعبه و تابلو برق",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10143",
+      "category_name": "کتاب چاپی غیر فارسی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10145",
+      "category_name": "آینه سرویس بهداشتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10147",
+      "category_name": "جامسواکی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10152",
+      "category_name": "روکش توالت فرنگی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10153",
+      "category_name": "ساعت دست‌ساز",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10155",
+      "category_name": "بارانی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10156",
+      "category_name": "اکسسوری شال و روسری زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10158",
+      "category_name": "بهداشت مو",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10166",
+      "category_name": "سارافون دخترانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10168",
+      "category_name": "ورزشی مردانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10169",
+      "category_name": "ورزشی زنانه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10170",
+      "category_name": "محصولات بومی و محلی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10173",
+      "category_name": "پوشاک بومی و محلی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10174",
+      "category_name": "دکوراتیو سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10175",
+      "category_name": "لوازم آشپزخانه سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10176",
+      "category_name": "ظروف سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10177",
+      "category_name": "قالی و قالیچه",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10178",
+      "category_name": "رومیزی، رانر و زیربشقابی سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10182",
+      "category_name": "لباس سنتی و محلی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10183",
+      "category_name": "اکسسوری و زیورآلات دست ساز",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10184",
+      "category_name": "بازی و سرگرمی های بومی محلی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10188",
+      "category_name": "لنز چشم",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10189",
+      "category_name": "چراغ خواب و آباژور دست ساز",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10190",
+      "category_name": "لوستر و چراغ آویز دست ساز",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10193",
+      "category_name": "مجسمه دست ساز",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10196",
+      "category_name": "گلدان دست ساز",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10202",
+      "category_name": "شمعدان دست ساز",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10207",
+      "category_name": "تابلو سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10218",
+      "category_name": "ست هدیه سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10219",
+      "category_name": "ست هفت سین سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10234",
+      "category_name": "سبد دستبافت",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10238",
+      "category_name": "آجیل خوری سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10243",
+      "category_name": "دیس و سینی سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10244",
+      "category_name": "قندان سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10248",
+      "category_name": "کاسه و بشقاب سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10250",
+      "category_name": "فنجان و نعلبکی سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10252",
+      "category_name": "لیوان سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10254",
+      "category_name": "شکلات خوری سنتی",
+      "page": 5
+    },
+    {
+      "attempts": 0,
+      "category_id": "10255",
+      "category_name": "شیرینی خوری سنتی",
+      "page": 5
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 10,
-  "parallel_workers_used": 11,
-  "pending_page_count": 2144,
+  "parallel_worker_limit": 9,
+  "parallel_workers_used": 10,
+  "pending_page_count": 2126,
   "schema_version": 1,
   "stats": {
-    "api_failures_total": 48120,
-    "catalog_candidate_cards_found_total": 14593055,
+    "api_failures_total": 48121,
+    "catalog_candidate_cards_found_total": 14602443,
     "completed_cycles": 2,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 3868898,
+    "discounted_candidates_found_total": 3871701,
     "empty_product_pages_total": 26103,
-    "nonempty_product_pages_total": 738443,
-    "pages_scanned_total": 763754,
-    "product_rows_scanned_total": 14593095,
+    "nonempty_product_pages_total": 738922,
+    "pages_scanned_total": 764233,
+    "product_rows_scanned_total": 14602483,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
