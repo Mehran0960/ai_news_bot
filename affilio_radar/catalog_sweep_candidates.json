@@ -82665,27 +82665,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "11060",
-      "catalog_best_selling_category_name": "ژل و صابون ابرو",
-      "catalog_best_selling_rank": 137,
+      "catalog_best_selling_category_id": "5700",
+      "catalog_best_selling_category_name": "لوازم آرایشی",
+      "catalog_best_selling_rank": 8105,
       "catalog_best_selling_ranks_by_category": {
         "11060": {
           "category_name": "ژل و صابون ابرو",
           "observed_at": "2026-11-07T14:57:58.356763+00:00",
           "rank": 137
+        },
+        "5700": {
+          "category_name": "لوازم آرایشی",
+          "observed_at": "2026-11-08T06:00:31.373923+00:00",
+          "rank": 8105
         }
       },
-      "catalog_category_id": "11060",
+      "catalog_category_id": "5700",
       "catalog_category_ids": [
+        "5700",
         "11060"
       ],
-      "catalog_category_name": "ژل و صابون ابرو",
-      "catalog_rank_observed_at": "2026-11-07T14:57:58.356763+00:00",
+      "catalog_category_name": "لوازم آرایشی",
+      "catalog_rank_observed_at": "2026-11-08T06:00:31.373923+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 561000,
       "discount_percent": 70,
       "first_seen_at": "2026-11-07T14:57:58.356763+00:00",
-      "last_seen_at": "2026-11-07T14:57:32.857916+00:00",
+      "last_seen_at": "2026-11-08T06:00:22.030018+00:00",
       "original_price": 1870000,
       "product_id": "dkp-22669648",
       "product_url": "https://www.digikala.com/product/dkp-22669648/",
@@ -83221,10 +83227,15 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6486",
-      "catalog_best_selling_category_name": "مراقبت پوست",
-      "catalog_best_selling_rank": 3351,
+      "catalog_best_selling_category_id": "5824",
+      "catalog_best_selling_category_name": "لوازم بهداشتی",
+      "catalog_best_selling_rank": 8189,
       "catalog_best_selling_ranks_by_category": {
+        "5824": {
+          "category_name": "لوازم بهداشتی",
+          "observed_at": "2026-11-08T06:00:31.383184+00:00",
+          "rank": 8189
+        },
         "6486": {
           "category_name": "مراقبت پوست",
           "observed_at": "2026-11-07T22:54:10.904930+00:00",
@@ -83236,18 +83247,19 @@
           "rank": 811
         }
       },
-      "catalog_category_id": "6486",
+      "catalog_category_id": "5824",
       "catalog_category_ids": [
+        "5824",
         "6486",
         "6489"
       ],
-      "catalog_category_name": "مراقبت پوست",
-      "catalog_rank_observed_at": "2026-11-07T22:54:10.904930+00:00",
+      "catalog_category_name": "لوازم بهداشتی",
+      "catalog_rank_observed_at": "2026-11-08T06:00:31.383184+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 449000,
       "discount_percent": 70,
       "first_seen_at": "2026-11-07T18:23:17.410791+00:00",
-      "last_seen_at": "2026-11-07T22:53:47.423717+00:00",
+      "last_seen_at": "2026-11-08T06:00:27.049599+00:00",
       "original_price": 1500000,
       "product_id": "dkp-22502350",
       "product_url": "https://www.digikala.com/product/dkp-22502350/",
@@ -112150,5 +112162,5 @@
   ],
   "cycle_started_at": "2026-11-07T11:42:22.339964+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-08T05:59:35.314557+00:00"
+  "updated_at": "2026-11-08T06:00:31.408320+00:00"
 }
