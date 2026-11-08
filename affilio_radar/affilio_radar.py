@@ -60,6 +60,7 @@ from offerchin_visuals import (
 from offerchin_copy import (
     CAPTION_SEPARATOR, CURRENT_PRICE_PREFIX, DISCOUNT_PREFIX, DIGIPAY_INSTALLMENT_TEXT,
     MEMBERSHIP_BUTTON_TEXT, PRODUCT_TITLE_PREFIX, SALE_TITLE_PREFIX, purchase_action_label,
+    normalize_brand_display_name,
 )
 from integrity_audit_state import apply_integrity_audit_ledger
 import arabic_reshaper
@@ -4567,7 +4568,7 @@ def build_caption(
     def bold(value: str) -> str:
         return f"*{value}*" if is_bale else f"<b>{value}</b>"
 
-    raw_title = (p.get("title") or "پیشنهاد ویژه").strip()
+    raw_title = normalize_brand_display_name((p.get("title") or "پیشنهاد ویژه").strip())
     raw_title = to_persian_digits(raw_title)
     if len(raw_title) > 140:
         raw_title = raw_title[:137].rstrip() + "…"

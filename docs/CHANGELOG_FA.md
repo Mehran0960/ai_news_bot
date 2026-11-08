@@ -1250,3 +1250,27 @@
 **ریسک/بازگشت:** هر تغییر در tie-break می‌تواند فقط میان کالاهایی با درصد و صرفه‌جویی یکسان ترتیب را عوض کند. رشد نظر فقط پروکسی است و نباید به‌عنوان فروش گزارش شود. تغییرات روی شاخهٔ کاری انجام شده‌اند و تا merge روی `main` اثر زنده ندارند؛ بازگشت با revert commitهای این PR ممکن است. هیچ state، صف انتشار یا شناسهٔ پست موجود تغییر داده نشده است.
 
 **وضعیت:** پیاده‌سازی روی شاخه و آزمون‌های مرتبط موفق است؛ PR هنوز به `main` ادغام نشده است. پیش از ادغام، branch باید با تغییرات state خودکار جدید `main` همگام شود؛ این تغییرات فقط فایل‌های state کاتالوگ و ممیزی را لمس کرده‌اند و در فایل‌های کد این PR تعارضی ثبت نشده است.
+
+
+
+## ۲۰۲۶-۱۱-۰۸ — اصلاح CTA کپشن روبیکا و تثبیت نگارش نام OfferChin
+
+**هدف:** همسان‌سازی واقعی پست روبیکا با Telegram/Bale و جلوگیری از نوسان حروف نام برند در خروجی‌های عمومی.
+
+**تغییر/اقدام:**
+- دعوت عضویت روبیکا از یک دکمهٔ دومِ صرفاً کی‌پدی به یک پیوند واقعی داخل کپشن با Rubika `metadata` از نوع `Link` منتقل شد.
+- دکمهٔ خرید با لینک افیلیت معتبر به‌صورت دکمهٔ مستقل زیر پست باقی ماند.
+- fallback در صورت `INVALID_INPUT` صریح، دو دکمهٔ لینک‌دار خرید و عضویت را نگه می‌دارد؛ خطای شبکه/مبهم retry نمی‌شود.
+- تابع مرکزی `normalize_brand_display_name` افزوده شد و در کپشن‌های Telegram/Bale، عنوان کارت ویدئو، metadata YouTube/Aparat/Filo به کار می‌رود.
+- URLها و usernameهای canonical مانند `rubika.ir/offerchin` و `youtube.com/@offerchin` عمداً حفظ می‌شوند؛ این‌ها نام نمایشی برند نیستند.
+- تست آداپتور Rubika برای metadata لینک با offset/length واحد UTF-16، دکمهٔ خرید و fallback دو دکمه‌ای به‌روز شد؛ تست نرمال‌سازی نام برند و حفظ شناسه‌های کانال اضافه شد.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/messenger_adapters.py`، `affilio_radar/test_messenger_adapters.py`، `affilio_radar/offerchin_copy.py`، `affilio_radar/affilio_radar.py`، `affilio_radar/short_video.py`، `affilio_radar/test_short_video.py`، `affilio_radar/aparat_uploader.py`، `affilio_radar/filo_uploader.py`، `.github/workflows/offerchin-platform-logo-tests.yml`، `affilio_radar/MESSENGER_EXPANSION_FA.md`، `affilio_radar/VISUAL_BRANDING.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** روی commit `a1f8c207882e815496847091e027c67993580bbf`، همهٔ بررسی‌های مرتبط موفق شدند: آداپترهای پیام‌رسان (run `42503460912`)، تست کاتالوگ (run `42503460940`)، Top-100/DigiPay (run `42503460852`)، تست لوگو/ویدئو شامل `test_short_video.py`، `test_aparat_uploader.py` و تست‌های Filo (run `42503474509`)، Documentation Gate (run `42503460880`) و اجرای کامل Affilio Product Radar (run `42503436583`).
+
+**شواهد/شناسه:** شاخهٔ کاری `fix/rubika-caption-link-and-offerchin-brand-case-20261108`؛ PR شمارهٔ `128` در https://github.com/Mehran0960/ai_news_bot/pull/128 .
+
+**ریسک/بازگشت:** metadata لینک باید با offset و length دقیق UTF-16 هم‌خوان باشد؛ در پاسخ صریح INVALID_INPUT fallback دو دکمه‌ای فعال می‌شود. هیچ پیام عمومی یا محتوای منتشرشدهٔ قبلی ویرایش نشده است. بازگشت با revert همین PR ممکن است.
+
+**وضعیت:** همهٔ تست‌های PR روی commit ثبت‌شده موفق‌اند؛ PR هنوز ادغام نشده است. پیش از merge باید stateهای خودکار تازهٔ main حفظ و شاخه با آخرین main همگام شود؛ سپس checkهای روی commit همگام‌شده باید دوباره موفق باشند.

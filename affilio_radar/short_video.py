@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Mapping
 
 import requests
+from offerchin_copy import normalize_brand_display_name
 import offerchin_visuals
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps, features
 from offerchin_visuals import (
@@ -350,7 +351,7 @@ def build_vertical_poster(
     title_font = _title_font(32)
     title_lines = _wrap_rtl_text(
         draw,
-        str(title or "پیشنهاد ویژه دیجی‌کالا"),
+        normalize_brand_display_name(str(title or "پیشنهاد ویژه دیجی‌کالا")),
         title_font,
         max_width=574,
         max_lines=2,
@@ -771,7 +772,7 @@ def upload_youtube_video(
     if not path.is_file() or path.stat().st_size <= 0:
         raise RuntimeError("YouTube upload file does not exist or is empty")
 
-    title_clean = str(title or "پیشنهاد آفِرچین").strip()
+    title_clean = normalize_brand_display_name(str(title or "پیشنهاد آفِرچین").strip())
     suffix = ""
     try:
         discount = int(discount_percent)
@@ -780,7 +781,7 @@ def upload_youtube_video(
     except (TypeError, ValueError, OverflowError):
         pass
     video_title = (title_clean + suffix)[:100]
-    description_text = str(description or "").strip() or (
+    description_text = normalize_brand_display_name(str(description or "").strip()) or (
         "پیشنهادهای کاربردی و تخفیف‌های منتخب دیجی‌کالا را در آفِرچین دنبال کنید.\n\n"
         "t.me/OfferChin\n"
         "ble.ir/OfferChin\n"
@@ -848,7 +849,7 @@ def update_youtube_video_description(
     safe_id = str(video_id or "").strip()
     if not safe_id or not safe_id.replace("-", "").replace("_", "").isalnum():
         raise ValueError("invalid YouTube video ID")
-    description_text = str(description or "").strip()
+    description_text = normalize_brand_display_name(str(description or "").strip())
     if not description_text:
         raise ValueError("YouTube video description cannot be empty")
     if len(description_text) > 5000:
