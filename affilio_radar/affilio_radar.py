@@ -6437,8 +6437,97 @@ def defer_pending_publication(
     return record
 
 
+def _publication_catalog_category_context(product_or_title) -> dict:
+    """Return the best evidenced DigiKala taxonomy node carried by a candidate."""
+    if not isinstance(product_or_title, dict):
+        return {"id": "", "name": "", "path": ""}
+    product = product_or_title
+    category_id = str(
+        product.get("catalog_best_selling_category_id")
+        or product.get("catalog_category_id")
+        or ""
+    ).strip()
+    category_name = str(
+        product.get("catalog_best_selling_category_name")
+        or product.get("catalog_category_name")
+        or ""
+    ).strip()
+    ranks = product.get("catalog_best_selling_ranks_by_category")
+    if isinstance(ranks, dict):
+        ranked = []
+        for raw_id, record in ranks.items():
+            if not isinstance(record, dict):
+                continue
+            name = str(record.get("category_name") or "").strip()
+            try:
+                rank = int(record.get("rank") or 0)
+            except (TypeError, ValueError, OverflowError):
+                rank = 0
+            if name:
+                ranked.append((rank if rank > 0 else 10**9, str(raw_id), name))
+        if ranked:
+            _, ranked_id, ranked_name = min(ranked)
+            if not category_name:
+                category_name = ranked_name
+            if not category_id:
+                category_id = ranked_id
+
+    raw_path = product.get("catalog_category_path") or product.get("category_path") or ""
+    if isinstance(raw_path, (list, tuple)):
+        parts = [
+            str(item.get("name") or item.get("title") or "").strip()
+            if isinstance(item, dict) else str(item).strip()
+            for item in raw_path
+        ]
+        path = " > ".join(part for part in parts if part)
+    elif isinstance(raw_path, dict):
+        path = " > ".join(
+            str(raw_path.get(key) or "").strip()
+            for key in ("parent_name", "name", "title")
+            if str(raw_path.get(key) or "").strip()
+        )
+    else:
+        path = str(raw_path or "").strip()
+    if not path and category_name:
+        path = category_name
+    return {"id": category_id, "name": category_name, "path": path}
+
+
+def _publication_use_case_group(product_or_title) -> str:
+    """Classify the practical context of a product using title and DigiKala taxonomy."""
+    category = _publication_catalog_category_context(product_or_title)
+    title = (
+        str(product_or_title.get("title") or "")
+        if isinstance(product_or_title, dict) else str(product_or_title or "")
+    )
+    text = " ".join((title, category.get("name", ""), category.get("path", ""))).lower()
+    text = text.replace("\u200c", " ")
+    patterns = (
+        ("automotive", r"خودرو|ماشین|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو"),
+        ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت"),
+        ("gaming", r"گیمینگ|بازی رایانه|کنسول بازی|پلی استیشن|ایکس باکس|\bxbox\b"),
+        ("office_study", r"اداری|میز کار|مطالعه|تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه"),
+        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک"),
+        ("pet_care", r"حیوان خانگی|گربه|سگ|خاک گربه|غذای حیوان"),
+        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو"),
+        ("home_cleaning", r"نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی"),
+        ("personal_care", r"مراقبت پوست|مراقبت مو|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن"),
+        ("sports_fitness", r"ورزشی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس"),
+        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه"),
+        ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب"),
+    )
+    return next((name for name, pattern in patterns if re.search(pattern, text, re.I)), "general")
+
+
 def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     """Return a broad category, narrower product family, and known brand hint."""
+    catalog_context = _publication_catalog_category_context(
+        product_or_title if isinstance(product_or_title, dict) else {}
+    )
+    catalog_text = " ".join(
+        value for value in (catalog_context.get("name", ""), catalog_context.get("path", ""))
+        if value
+    )
     explicit_brand = ""
     if isinstance(product_or_title, dict):
         title = str(product_or_title.get("title") or "")
@@ -6449,8 +6538,12 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     else:
         title = str(product_or_title or "")
     normalized = title.lower().replace("\u200c", " ")
-    brand_search_text = (normalized + " " + explicit_brand.lower()).strip()
+    family_match_text = (normalized + " " + catalog_text.lower()).strip()
+    brand_search_text = (family_match_text + " " + explicit_brand.lower()).strip()
     category = classify_category(normalized)
+    catalog_category = classify_category(catalog_text.lower()) if catalog_text else "other"
+    if category == "other" and catalog_category != "other":
+        category = catalog_category
     family_patterns = {
         "lighting": [
             ("desk_lighting", r"چراغ مطالعه|چراغ خواب"),
@@ -6580,9 +6673,22 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     family = "fashion:eyewear" if re.search(r"عینک", normalized, re.I) else category
     if family == category:
         for subfamily, pattern in family_patterns.get(category, []):
-            if re.search(pattern, normalized, re.I):
+            if re.search(pattern, family_match_text, re.I):
                 family = f"{category}:{subfamily}"
                 break
+
+    # Prefer the real DigiKala leaf node as the canonical family boundary.
+    # The title and use-case remain part of the classification and similarity guard.
+    catalog_category_id = str(catalog_context.get("id") or "").strip()
+    if catalog_category_id:
+        family = f"digikala_category:{catalog_category_id}"
+    elif family == category:
+        family_tokens = sorted(_publication_similarity_tokens(product_or_title))
+        if family_tokens:
+            family = f"{category}:tokens_{'_'.join(family_tokens[:3])}"
+    use_case = _publication_use_case_group(product_or_title)
+    if use_case != "general" and family not in {"", "other", "unknown"}:
+        family = f"{family}:use:{use_case}"
     brand_hints = [
         ("ufc", r"\bUFC\b|یو\s*اف\s*سی"),
         ("ai_javaher", r"آی\s*جواهر"),
@@ -6712,7 +6818,13 @@ def _recent_publication_diversity(
             except (TypeError, ValueError, OverflowError):
                 timestamp = 0.0
             order = timestamp if timestamp > 0 else float(max(message_ids))
-            category, family, brand = _publication_diversity_group({"title": title, "brand": post.get("brand") or record.get("brand") or ""})
+            history_item = {
+                **record, **post, "product_id": str(raw_pid), "title": title,
+                "brand": post.get("brand") or record.get("brand") or "",
+            }
+            category, family, brand = _publication_diversity_group(history_item)
+            use_case = _publication_use_case_group(history_item)
+            catalog_context = _publication_catalog_category_context(history_item)
             retailer = _publication_retailer_group({"product_id": raw_pid, "merchant": post.get("merchant") or record.get("merchant") or ""})
             records.append({
                 "product_id": str(raw_pid), "title": title,
@@ -6720,6 +6832,8 @@ def _recent_publication_diversity(
                 "telegram_message_id": int(post["telegram_message_id"]) if str(post.get("telegram_message_id") or "").isdigit() else 0,
                 "bale_message_id": int(post["bale_message_id"]) if str(post.get("bale_message_id") or "").isdigit() else 0,
                 "ts": order, "order": order, "category": category, "family": family, "brand": brand,
+                "use_case": use_case, "catalog_category_id": catalog_context.get("id", ""),
+                "catalog_category_name": catalog_context.get("name", ""),
                 "retailer": retailer,
             })
     for entry in durable_history if isinstance(durable_history, list) else []:
@@ -6733,7 +6847,10 @@ def _recent_publication_diversity(
             order = 0.0
         if not pid or not title or order <= 0:
             continue
-        category, family, brand = _publication_diversity_group({"title": title, "brand": entry.get("brand") or ""})
+        history_item = {**entry, "product_id": pid, "title": title, "brand": entry.get("brand") or ""}
+        category, family, brand = _publication_diversity_group(history_item)
+        use_case = _publication_use_case_group(history_item)
+        catalog_context = _publication_catalog_category_context(history_item)
         retailer = _publication_retailer_group({"product_id": pid, "merchant": entry.get("merchant") or ""})
         raw_message_id = entry.get("telegram_message_id") or entry.get("bale_message_id")
         try:
@@ -6745,6 +6862,8 @@ def _recent_publication_diversity(
             "telegram_message_id": int(entry["telegram_message_id"]) if str(entry.get("telegram_message_id") or "").isdigit() else 0,
             "bale_message_id": int(entry["bale_message_id"]) if str(entry.get("bale_message_id") or "").isdigit() else 0,
             "ts": order, "order": order, "category": category, "family": family, "brand": brand,
+            "use_case": use_case, "catalog_category_id": catalog_context.get("id", ""),
+            "catalog_category_name": catalog_context.get("name", ""),
             "retailer": retailer,
         })
     unique = {}
@@ -6771,6 +6890,7 @@ _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS: dict = {
     "candidate_count": 0,
     "top10_category_counts": {},
     "fallback_events": [],
+    "rejection_events": [],
 }
 
 
@@ -6780,6 +6900,8 @@ def _publication_distribution_summary(records: list[dict]) -> dict:
     family_counts: dict[str, int] = {}
     brand_counts: dict[str, int] = {}
     retailer_counts: dict[str, int] = {}
+    use_case_counts: dict[str, int] = {}
+    catalog_category_counts: dict[str, int] = {}
     for record in records if isinstance(records, list) else []:
         if not isinstance(record, dict):
             continue
@@ -6790,6 +6912,11 @@ def _publication_distribution_summary(records: list[dict]) -> dict:
         family_counts[family] = family_counts.get(family, 0) + 1
         if brand:
             brand_counts[brand] = brand_counts.get(brand, 0) + 1
+        use_case = str(record.get("use_case") or "general")
+        use_case_counts[use_case] = use_case_counts.get(use_case, 0) + 1
+        catalog_category = str(record.get("catalog_category_name") or "").strip()
+        if catalog_category:
+            catalog_category_counts[catalog_category] = catalog_category_counts.get(catalog_category, 0) + 1
         retailer = str(record.get("retailer") or _publication_retailer_group(record))
         if retailer:
             retailer_counts[retailer] = retailer_counts.get(retailer, 0) + 1
@@ -6806,6 +6933,10 @@ def _publication_distribution_summary(records: list[dict]) -> dict:
         "distinct_categories": len(category_counts),
         "distinct_families": len(family_counts),
         "distinct_retailers": len(retailer_counts),
+        "distinct_use_cases": len(use_case_counts),
+        "use_case_post_counts": dict(sorted(use_case_counts.items(), key=lambda row: (-row[1], row[0]))),
+        "distinct_catalog_categories": len(catalog_category_counts),
+        "catalog_category_post_counts": dict(sorted(catalog_category_counts.items(), key=lambda row: (-row[1], row[0]))),
         "retailer_post_counts": dict(sorted(retailer_counts.items(), key=lambda row: (-row[1], row[0]))),
         "retailer_share_percent": {
             retailer: round(count * 100.0 / post_count, 1)
@@ -6829,6 +6960,8 @@ def build_publication_diversity_report(
     fallback_events: list | None = None,
     fallback_total: int = 0,
     fallbacks_this_selection: list | None = None,
+    repeat_guard_rejections: list | None = None,
+    repeat_guard_rejection_total: int = 0,
 ) -> dict:
     """Build a rolling report from deduplicated real publication history."""
     current = now or datetime.now(timezone.utc)
@@ -6858,6 +6991,23 @@ def build_publication_diversity_report(
     current_fallbacks = [
         dict(event) for event in (fallbacks_this_selection or []) if isinstance(event, dict)
     ]
+    rejection_events = [
+        dict(event) for event in (repeat_guard_rejections or []) if isinstance(event, dict)
+    ]
+    rejection_reason_counts: dict[str, int] = {}
+    rejections_last_7d = 0
+    for event in rejection_events:
+        reasons = event.get("reasons") if isinstance(event.get("reasons"), list) else [event.get("reason", "unknown")]
+        for reason in reasons:
+            key = str(reason or "unknown")
+            rejection_reason_counts[key] = rejection_reason_counts.get(key, 0) + 1
+        event_at = _parse_utc_datetime(event.get("at"))
+        if event_at and cutoff <= event_at <= current + timedelta(minutes=5):
+            rejections_last_7d += 1
+    try:
+        total_rejections = max(0, int(repeat_guard_rejection_total or 0))
+    except (TypeError, ValueError, OverflowError):
+        total_rejections = 0
 
     return {
         "generated_at": current.isoformat(),
@@ -6879,6 +7029,12 @@ def build_publication_diversity_report(
             "current_selection_count": len(current_fallbacks),
             "current_selection_events": current_fallbacks[-10:],
             "recent_events": events[-10:],
+        },
+        "repeat_guard_rejections": {
+            "all_time_count": total_rejections,
+            "last_7_days_count": rejections_last_7d,
+            "reason_counts_in_retained_history": dict(sorted(rejection_reason_counts.items())),
+            "recent_events": rejection_events[-20:],
         },
     }
 
@@ -6910,6 +7066,29 @@ def record_publication_diversity_report(state: dict, now: datetime | None = None
             retained_events.append(event)
     state["publication_diversity_fallback_events"] = retained_events[-500:]
 
+    new_rejections = [
+        dict(event) for event in diagnostics.get("rejection_events", [])
+        if isinstance(event, dict)
+    ] if isinstance(diagnostics, dict) else []
+    existing_rejections = state.get("publication_diversity_rejection_events", [])
+    if not isinstance(existing_rejections, list):
+        existing_rejections = []
+    stamped_rejections = [{"at": current.isoformat(), **event} for event in new_rejections]
+    retained_rejections = []
+    for event in [*existing_rejections, *stamped_rejections]:
+        if not isinstance(event, dict):
+            continue
+        event_at = _parse_utc_datetime(event.get("at"))
+        if event_at and cutoff <= event_at <= current + timedelta(minutes=5):
+            retained_rejections.append(event)
+    state["publication_diversity_rejection_events"] = retained_rejections[-500:]
+    try:
+        previous_rejection_total = max(0, int(state.get("publication_diversity_rejection_count") or 0))
+    except (TypeError, ValueError, OverflowError):
+        previous_rejection_total = 0
+    rejection_total = previous_rejection_total + len(stamped_rejections)
+    state["publication_diversity_rejection_count"] = rejection_total
+
     try:
         previous_total = max(0, int(state.get("publication_diversity_fallback_count") or 0))
     except (TypeError, ValueError, OverflowError):
@@ -6924,6 +7103,8 @@ def record_publication_diversity_report(state: dict, now: datetime | None = None
         fallback_events=state["publication_diversity_fallback_events"],
         fallback_total=total,
         fallbacks_this_selection=stamped_events,
+        repeat_guard_rejections=state["publication_diversity_rejection_events"],
+        repeat_guard_rejection_total=rejection_total,
     )
     save_json(DIVERSITY_REPORT, report)
     print(
@@ -6932,6 +7113,7 @@ def record_publication_diversity_report(state: dict, now: datetime | None = None
             "last_24_hours": report["last_24_hours"],
             "last_7_days": report["last_7_days"],
             "fallbacks": report["fallbacks"],
+            "repeat_guard_rejections": report["repeat_guard_rejections"],
             "ranked_candidates": diagnostics.get("candidate_count", 0) if isinstance(diagnostics, dict) else 0,
             "top10_ranked_categories": diagnostics.get("top10_category_counts", {}) if isinstance(diagnostics, dict) else {},
         }, ensure_ascii=False, sort_keys=True)
@@ -7042,6 +7224,14 @@ def _publication_similarity_tokens(product_or_title) -> set[str]:
     return tokens
 
 
+def _publication_family_guard_key(product_or_record) -> str:
+    """Return a stable family key using the real taxonomy where available."""
+    _, family, _ = _publication_diversity_group(product_or_record)
+    if family in {"", "other", "unknown"}:
+        return ""
+    return family
+
+
 def _publication_products_are_similar(left, right) -> bool:
     """Conservatively detect the same functional product despite model/variant wording."""
     left_title = left.get("title") if isinstance(left, dict) else str(left or "")
@@ -7049,12 +7239,9 @@ def _publication_products_are_similar(left, right) -> bool:
     if not str(left_title or "").strip() or not str(right_title or "").strip():
         return False
 
-    left_category, left_family, _ = _publication_diversity_group(left)
-    right_category, right_family, _ = _publication_diversity_group(right)
-    if (
-        _is_specific_product_family(left_category, left_family)
-        and left_family == right_family
-    ):
+    left_family = _publication_family_guard_key(left)
+    right_family = _publication_family_guard_key(right)
+    if left_family and left_family == right_family:
         return True
 
     left_tokens = _publication_similarity_tokens(left)
@@ -7113,9 +7300,10 @@ def _filter_recent_publication_repeats(
     recent_families: set[str] = set()
     recent_brands: set[str] = set()
     for previous in history:
-        category, family, brand = _publication_diversity_group(previous)
-        if _is_specific_product_family(category, family):
-            recent_families.add(family)
+        family_key = _publication_family_guard_key(previous)
+        _, _, brand = _publication_diversity_group(previous)
+        if family_key:
+            recent_families.add(family_key)
         if brand:
             recent_brands.add(brand)
 
@@ -7126,30 +7314,72 @@ def _filter_recent_publication_repeats(
     family_blocked = 0
     brand_blocked = 0
     similarity_blocked = 0
+    global _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
 
     for candidate in source:
         category, family, brand = _publication_diversity_group(candidate)
-        family_repeat = bool(
-            _is_specific_product_family(category, family)
-            and (family in recent_families or family in selected_families)
-        )
-        brand_repeat = bool(
-            brand and (brand in recent_brands or brand in selected_brands)
-        )
-        similarity_repeat = any(
-            _publication_products_are_similar(candidate, previous)
-            for previous in comparison_history
-        )
+        family_key = _publication_family_guard_key(candidate)
+        family_match = next((
+            previous for previous in comparison_history
+            if family_key and _publication_family_guard_key(previous) == family_key
+        ), None)
+        family_repeat = bool(family_key and (
+            family_key in recent_families or family_key in selected_families or family_match
+        ))
+        brand_match = next((
+            previous for previous in comparison_history
+            if brand and _publication_diversity_group(previous)[2] == brand
+        ), None)
+        brand_repeat = bool(brand and (
+            brand in recent_brands or brand in selected_brands or brand_match
+        ))
+        similarity_match = next((
+            previous for previous in comparison_history
+            if _publication_products_are_similar(candidate, previous)
+        ), None)
+        similarity_repeat = bool(similarity_match)
 
         if family_repeat or brand_repeat or similarity_repeat:
             family_blocked += int(family_repeat)
             brand_blocked += int(brand_repeat)
             similarity_blocked += int(similarity_repeat)
+            reasons = [
+                reason for reason, blocked in (
+                    ("family_repeat", family_repeat),
+                    ("brand_repeat", brand_repeat),
+                    ("similarity_repeat", similarity_repeat),
+                ) if blocked
+            ]
+            catalog_context = _publication_catalog_category_context(candidate)
+            use_case = _publication_use_case_group(candidate)
+            compared = family_match or brand_match or similarity_match or {}
+            event = {
+                "product_id": str(candidate.get("product_id") or product_id(candidate.get("product_url") or "")),
+                "title": str(candidate.get("title") or "")[:180],
+                "reasons": reasons,
+                "reason": ",".join(reasons),
+                "category": category,
+                "family": family,
+                "brand": brand,
+                "use_case": use_case,
+                "catalog_category_id": catalog_context.get("id", ""),
+                "catalog_category_name": catalog_context.get("name", ""),
+                "compared_to_product_id": str(compared.get("product_id") or ""),
+            }
+            if not isinstance(_LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS, dict):
+                _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = {}
+            rejection_events = _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS.setdefault("rejection_events", [])
+            rejection_events.append(event)
+            del rejection_events[:-100]
+            print(
+                f"{label}_REPEAT_REJECTED "
+                + json.dumps(event, ensure_ascii=False, sort_keys=True)
+            )
             continue
 
         selected.append(candidate)
-        if _is_specific_product_family(category, family):
-            selected_families.add(family)
+        if family_key:
+            selected_families.add(family_key)
         if brand:
             selected_brands.add(brand)
         comparison_history.append(candidate)
@@ -7599,6 +7829,13 @@ def select_discount_fallback_candidates(
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
     state = state if isinstance(state, dict) else {}
+    global _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
+    _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = {
+        "candidate_count": len(products or []),
+        "top10_category_counts": {},
+        "fallback_events": [],
+        "rejection_events": [],
+    }
     quality_eligible: list[dict] = []
     fresh_candidates: list[dict] = []
     seen_ids: set[str] = set()
@@ -7698,11 +7935,25 @@ def select_discount_fallback_candidates(
                 f"ranked={len(handoff)} fallback_mode={fallback_mode}"
             )
         if not include_fallback_bands:
-            return handoff, floor, quality_eligible
+            safe_handoff = _filter_recent_publication_repeats(
+                handoff, published_records, state.get("recent_publications", []),
+                current, label="SELECTION_PREPRIMARY",
+            )
+            if safe_handoff:
+                return safe_handoff, floor, quality_eligible
+            continue
         fallback_pool.extend(handoff)
 
     if fallback_pool:
-        return fallback_pool, first_floor, quality_eligible
+        safe_fallback_pool = _filter_recent_publication_repeats(
+            fallback_pool, published_records, state.get("recent_publications", []),
+            current, label="SELECTION_ALL_FALLBACKS",
+        )
+        safe_floor = (
+            int(safe_fallback_pool[0].get("selection_discount_floor") or first_floor)
+            if safe_fallback_pool else None
+        )
+        return safe_fallback_pool, safe_floor, quality_eligible
     print(
         "PUBLICATION_CANDIDATES_EXHAUSTED "
         f"products_seen={len(products or [])} hard_eligible={len(quality_eligible)} "
