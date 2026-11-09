@@ -97,11 +97,10 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T11:21:33.131912+00:00",
+  "generated_at": "2026-11-09T11:55:27.144970+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آرایش چشم": 1,
-      "آرایشی بهداشتی": 1,
       "ابزار آلات و تجهیزات": 1,
       "بوردگیم، اوریگامی و بازی فکری": 1,
       "تی شرت مردانه": 1,
@@ -123,8 +122,8 @@
       "books_stationery": 2,
       "fashion": 1,
       "kids_sports": 1,
-      "other": 12,
-      "personal_care": 5,
+      "other": 13,
+      "personal_care": 4,
       "sports_outdoor": 2
     },
     "category_share_percent": {
@@ -132,13 +131,13 @@
       "books_stationery": 8.3,
       "fashion": 4.2,
       "kids_sports": 4.2,
-      "other": 50.0,
-      "personal_care": 20.8,
+      "other": 54.2,
+      "personal_care": 16.7,
       "sports_outdoor": 8.3
     },
-    "distinct_catalog_categories": 17,
+    "distinct_catalog_categories": 16,
     "distinct_categories": 7,
-    "distinct_families": 22,
+    "distinct_families": 21,
     "distinct_retailers": 1,
     "distinct_use_cases": 14,
     "known_brand_posts": 2,
@@ -153,9 +152,9 @@
     },
     "use_case_post_counts": {
       "audio_visual": 1,
-      "books_learning": 3,
+      "books_learning": 2,
       "fashion_lifestyle": 1,
-      "general": 1,
+      "general": 2,
       "grocery_food": 1,
       "health_wellness": 1,
       "home_living": 1,
@@ -344,7 +343,7 @@
       "jewelry": 3,
       "kids_sports": 7,
       "large_appliances": 10,
-      "mobile_devices": 3,
+      "mobile_devices": 2,
       "other": 101,
       "personal_care": 36,
       "pet_supplies": 1,
@@ -359,19 +358,19 @@
       "books_stationery": 4.3,
       "computer_network": 1.4,
       "digital_accessories": 1.1,
-      "fashion": 14.8,
+      "fashion": 14.9,
       "gaming": 0.9,
       "home": 3.1,
       "home_cleaning": 3.1,
       "jewelry": 0.9,
       "kids_sports": 2.0,
-      "large_appliances": 2.8,
-      "mobile_devices": 0.9,
-      "other": 28.8,
+      "large_appliances": 2.9,
+      "mobile_devices": 0.6,
+      "other": 28.9,
       "personal_care": 10.3,
       "pet_supplies": 0.3,
       "power_backup": 2.6,
-      "sports_outdoor": 8.5,
+      "sports_outdoor": 8.6,
       "tv_audio_video": 0.6
     },
     "distinct_catalog_categories": 159,
@@ -380,7 +379,7 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 25,
     "known_brand_posts": 61,
-    "posts": 351,
+    "posts": 350,
     "repeated_brand_count": 48,
     "repeated_brands": {
       "ai_javaher": 8,
@@ -393,7 +392,7 @@
       "ufc": 12
     },
     "retailer_post_counts": {
-      "digikala": 351
+      "digikala": 350
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -416,7 +415,7 @@
       "kitchen_food": 3,
       "lighting_electrical": 10,
       "local_goods": 2,
-      "mobile_productivity": 44,
+      "mobile_productivity": 43,
       "office_study": 9,
       "outdoor_travel": 6,
       "personal_care": 34,
@@ -439,65 +438,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 112,
-    "last_7_days_count": 112,
+    "all_time_count": 115,
+    "last_7_days_count": 115,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 6,
-      "family_repeat": 112,
-      "similarity_repeat": 112
+      "brand_repeat": 9,
+      "family_repeat": 115,
+      "similarity_repeat": 115
     },
     "recent_events": [
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "power_backup",
-        "compared_to_product_id": "dkp-23127308",
-        "family": "power_backup:power_bank",
-        "product_id": "dkp-20328532",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "پاوربانک 22.5 وات نوکسو مدل PN-1 ظرفیت 10000 میلی آمپر ساعت",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-116180",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده پرایم سری Matex مدل Moist-24 حجم 50 میلی‌لیتر",
-        "use_case": "general"
-      },
       {
         "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
@@ -786,6 +734,60 @@
         ],
         "title": "جوراب ساق بلند مردانه پالوته مدل PLT-3COL-LN بسته 3 عددی",
         "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T11:55:27.144970+00:00",
+        "brand": "muzik_apollo",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "audio_wearables",
+        "compared_to_product_id": "dkp-23000078",
+        "family": "audio_wearables:headphones",
+        "product_id": "dkp-23096756",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "هدفون بلوتوثی موزیک آپولو مدل KOT/39",
+        "use_case": "audio_visual"
+      },
+      {
+        "at": "2026-11-09T11:55:27.144970+00:00",
+        "brand": "muzik_apollo",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "audio_wearables",
+        "compared_to_product_id": "dkp-23000078",
+        "family": "audio_wearables:headphones",
+        "product_id": "dkp-22938123",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "هدفون بلوتوثی موزیک آپولو مدل CCD--K2",
+        "use_case": "audio_visual"
+      },
+      {
+        "at": "2026-11-09T11:55:27.144970+00:00",
+        "brand": "muzik_apollo",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "audio_wearables",
+        "compared_to_product_id": "dkp-23000078",
+        "family": "audio_wearables:headphones",
+        "product_id": "dkp-23083919",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "هدفون بلوتوثی موزیک آپولو مدل YRB/22",
+        "use_case": "audio_visual"
       }
     ]
   }
