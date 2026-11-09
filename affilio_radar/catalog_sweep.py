@@ -594,7 +594,7 @@ def retain_diverse_candidates(
     limit: int = MAX_RETAINED_CANDIDATES,
     rotation: int = 0,
 ) -> list[dict]:
-    """Compatibility wrapper: retain global top markdowns without category balancing."""
+    """Retain the global demand-first shortlist; do not impose category quotas or promote markdowns."""
     cap = max(0, int(limit))
     # The rolling candidate shortlist exists to find publishable offers, not to keep
     # undiscounted bestsellers that can never pass the last-mile publication gate.
