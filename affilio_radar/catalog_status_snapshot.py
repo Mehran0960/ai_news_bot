@@ -16,6 +16,7 @@ COMPLETED_CANDIDATES_PATH = ROOT / "catalog_sweep_completed_candidates.json"
 SCAN_POLICY_VERSION = "all_categories_all_pages_v3_cycle_snapshot"
 MAX_CATALOG_SNAPSHOT_AGE_HOURS = 96
 MAX_UNSCANNED_CATEGORY_ADDITIONS = 50
+TOP_CANDIDATES_PREVIEW_LIMIT = 100
 
 
 def _integer(value: Any, default: int = 0) -> int:
@@ -213,6 +214,51 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
     }
 
 
+def _top_candidates_preview(completed_candidates: Any, valid: bool) -> list[dict[str, Any]]:
+    """Expose a compact demand-first shortlist for lightweight downstream readers.
+
+    The preview is never emitted from an invalid/stale snapshot. Its ordering is
+    inherited unchanged from the full, hash-verified candidate snapshot. Prices
+    and stock here are listing observations only; downstream publication must
+    revalidate them live.
+    """
+    if not valid or not isinstance(completed_candidates, dict):
+        return []
+    rows = completed_candidates.get("candidates")
+    if not isinstance(rows, list):
+        return []
+
+    preview: list[dict[str, Any]] = []
+    for row in rows[:TOP_CANDIDATES_PREVIEW_LIMIT]:
+        if not isinstance(row, dict):
+            continue
+        raw_brand = row.get("brand") or row.get("brand_name") or ""
+        if isinstance(raw_brand, dict):
+            raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
+        category_ids = _sorted_ids(row.get("catalog_category_ids"))
+        preview.append({
+            "snapshot_rank": _integer(row.get("catalog_cycle_snapshot_rank")),
+            "product_id": str(row.get("product_id") or ""),
+            "product_url": str(row.get("product_url") or ""),
+            "title": str(row.get("title") or "")[:180],
+            "brand": str(raw_brand or "")[:100],
+            "current_price": max(0, _integer(row.get("current_price"))),
+            "original_price": max(0, _integer(row.get("original_price"))),
+            "discount_percent": max(0, _integer(row.get("discount_percent"))),
+            "savings_toman": max(0, _integer(row.get("savings_toman"))),
+            "listing_availability": str(row.get("availability") or ""),
+            "rating": _number(row.get("rating")),
+            "review_count": max(0, _integer(row.get("review_count"))),
+            "best_selling_rank": max(0, _integer(row.get("catalog_best_selling_rank"))),
+            "best_selling_category_id": str(row.get("catalog_best_selling_category_id") or ""),
+            "best_selling_category_name": str(row.get("catalog_best_selling_category_name") or "")[:120],
+            "best_selling_rank_observed_at": str(row.get("catalog_rank_observed_at") or ""),
+            "category_ids": category_ids[:12],
+            "category_count": len(category_ids),
+        })
+    return preview
+
+
 def build_status_snapshot(
     state: dict[str, Any],
     generated_at: str | None = None,
@@ -297,6 +343,10 @@ def build_status_snapshot(
         ),
         "completed_candidates_ids": snapshot["candidate_ids"] if snapshot_valid else [],
         "completed_candidates_sha256": snapshot["sha256"] if snapshot_valid else "",
+        "top_candidates_preview": _top_candidates_preview(completed_candidates, snapshot_valid),
+        "top_candidates_preview_count": (
+            min(TOP_CANDIDATES_PREVIEW_LIMIT, snapshot["candidate_count"]) if snapshot_valid else 0
+        ),
         "current_cycle_started_at": state.get("parallel_cycle_started_at"),
         "current_cycle_pages_success": _integer(state.get("parallel_cycle_pages_success")),
         "current_cycle_categories_complete": len(state.get("parallel_cycle_completed_category_ids", [])),
