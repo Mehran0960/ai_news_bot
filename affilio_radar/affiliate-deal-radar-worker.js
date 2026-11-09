@@ -79,13 +79,14 @@ export default {
         service: "affiliate-deal-radar",
         clickStoreReady: !!env.CLICKS,
         experimentAttribution: true,
-        routes: ["/health", "/stats", "/p/<dkp-or-snp-product-id>?u=<verified-aflo-link>&src=<telegram|bale|youtube|aparat>&exp=<experiment>&variant=<a|b>"],
+        captionExperimentAttribution: true,
+        routes: ["/health", "/stats", "/p/<dkp-or-snp-product-id>?u=<verified-aflo-link>&src=<telegram|bale|youtube|aparat>&exp=<visual-experiment>&variant=<a|b>&cexp=<caption-experiment>&cvariant=<a|b>"],
         stats: "Aggregated product and source click counts for the last 30 days only"
       });
     }
     if (url.pathname === "/stats") {
       if (!env.CLICKS) return jsonResponse({ok:false,error:"click_store_unavailable"},503);
-      const cacheKey = "analytics:clicks:30d:v3";
+      const cacheKey = "analytics:clicks:30d:v4";
       try {
         const cached = await env.CLICKS.get(cacheKey, "json");
         const cacheAgeMs = cached && cached.updatedAt
@@ -110,8 +111,12 @@ export default {
       const variants = Object.create(null);
       const experiments = Object.create(null);
       const experimentVariants = Object.create(null);
+      const visualExperimentVariants = Object.create(null);
+      const captionExperimentVariants = Object.create(null);
       const productSources = Object.create(null);
       const productExperimentVariants = Object.create(null);
+      const productVisualExperimentVariants = Object.create(null);
+      const productCaptionExperimentVariants = Object.create(null);
       let complete = true;
       try {
         // Day-scoped prefixes avoid scanning old keys first as the namespace grows.
@@ -126,25 +131,39 @@ export default {
           const page = pages[index];
           for (const key of page.keys || []) {
             const keyName = String(key.name || "");
+            const dual = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20})):((?:telegram|bale|youtube|aparat|unknown)):v:([a-z0-9][a-z0-9_-]{0,31}):([ab]):c:([a-z0-9][a-z0-9_-]{0,31}):([ab]):/);
             const current = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20})):((?:telegram|bale|youtube|aparat|unknown)):([a-z0-9][a-z0-9_-]{0,31}):([ab]):/);
             const legacy = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20}))(?::(telegram|bale|youtube|aparat|unknown))?:/);
-            if (current || legacy) {
-              const productId = current ? current[2] : legacy[2];
-              const source = current ? current[3] : (legacy[3] || "unknown");
+            if (dual || current || legacy) {
+              const productId = dual ? dual[2] : current ? current[2] : legacy[2];
+              const source = dual ? dual[3] : current ? current[3] : (legacy[3] || "unknown");
               products[productId] = (products[productId] || 0) + 1;
               sources[source] = (sources[source] || 0) + 1;
               productSources[productId] = productSources[productId] || Object.create(null);
               productSources[productId][source] = (productSources[productId][source] || 0) + 1;
-              if (current) {
-                const experiment = current[4];
-                const variant = current[5].toUpperCase();
+              if (dual || current) {
+                const experiment = dual ? dual[4] : current[4];
+                const variant = (dual ? dual[5] : current[5]).toUpperCase();
                 const experimentKey = experiment + ":" + variant;
                 variants[variant] = (variants[variant] || 0) + 1;
                 experiments[experiment] = (experiments[experiment] || 0) + 1;
                 experimentVariants[experimentKey] = (experimentVariants[experimentKey] || 0) + 1;
+                visualExperimentVariants[experimentKey] = (visualExperimentVariants[experimentKey] || 0) + 1;
                 productExperimentVariants[productId] = productExperimentVariants[productId] || Object.create(null);
                 productExperimentVariants[productId][experimentKey] =
                   (productExperimentVariants[productId][experimentKey] || 0) + 1;
+                productVisualExperimentVariants[productId] = productVisualExperimentVariants[productId] || Object.create(null);
+                productVisualExperimentVariants[productId][experimentKey] =
+                  (productVisualExperimentVariants[productId][experimentKey] || 0) + 1;
+              }
+              if (dual) {
+                const captionExperiment = dual[6];
+                const captionVariant = dual[7].toUpperCase();
+                const captionKey = captionExperiment + ":" + captionVariant;
+                captionExperimentVariants[captionKey] = (captionExperimentVariants[captionKey] || 0) + 1;
+                productCaptionExperimentVariants[productId] = productCaptionExperimentVariants[productId] || Object.create(null);
+                productCaptionExperimentVariants[productId][captionKey] =
+                  (productCaptionExperimentVariants[productId][captionKey] || 0) + 1;
               }
             }
           }
@@ -167,8 +186,12 @@ export default {
         variants,
         experiments,
         experimentVariants,
+        visualExperimentVariants,
+        captionExperimentVariants,
         productSources,
-        productExperimentVariants
+        productExperimentVariants,
+        productVisualExperimentVariants,
+        productCaptionExperimentVariants
       };
       try {
         await env.CLICKS.put(cacheKey, JSON.stringify(result), {expirationTtl:7200});
@@ -190,6 +213,11 @@ export default {
     const experiment = /^[a-z0-9][a-z0-9_-]{0,31}$/.test(rawExperiment) ? rawExperiment : "";
     const rawVariant = String(url.searchParams.get("variant") || "").toLowerCase();
     const variant = experiment && (rawVariant === "a" || rawVariant === "b") ? rawVariant : "";
+    const rawCaptionExperiment = String(url.searchParams.get("cexp") || "").toLowerCase();
+    const captionExperiment = /^[a-z0-9][a-z0-9_-]{0,31}$/.test(rawCaptionExperiment) ? rawCaptionExperiment : "";
+    const rawCaptionVariant = String(url.searchParams.get("cvariant") || "").toLowerCase();
+    const captionVariant = captionExperiment && (rawCaptionVariant === "a" || rawCaptionVariant === "b")
+      ? rawCaptionVariant : "";
 
     const ua = request.headers.get("user-agent") || "";
     const likelyPreviewBot = /(telegrambot|facebookexternalhit|whatsapp|slackbot|discordbot|twitterbot|linkedinbot|googlebot|bingbot|yandexbot|crawler|spider|\bbot\b)/i.test(ua);
@@ -197,17 +225,22 @@ export default {
       const now = new Date();
       const stamp = now.toISOString();
       const day = stamp.slice(0, 10);
-      const attribution = experiment && variant ? ":" + experiment + ":" + variant : "";
+      const attributionParts = [];
+      if (experiment && variant) attributionParts.push("v", experiment, variant);
+      if (captionExperiment && captionVariant) attributionParts.push("c", captionExperiment, captionVariant);
+      const attribution = attributionParts.length ? ":" + attributionParts.join(":") : "";
       const eventKey = "click:" + day + ":" + productId + ":" + source + attribution + ":" + now.getTime() + "-" + crypto.randomUUID();
       try {
-        // Store only product ID, timestamp, fixed source and optional A/B labels;
+        // Store only product ID, timestamp, fixed source and optional visual/caption A/B labels;
         // no IPs, referrers or full affiliate URLs are retained.
         await env.CLICKS.put(eventKey, JSON.stringify({
           product_id: productId,
           clicked_at: stamp,
           channel: source,
           experiment: experiment || "",
-          variant: variant ? variant.toUpperCase() : ""
+          variant: variant ? variant.toUpperCase() : "",
+          caption_experiment: captionExperiment || "",
+          caption_variant: captionVariant ? captionVariant.toUpperCase() : ""
         }), {expirationTtl:15552000});
       } catch (error) {
         console.error("CLICK_WRITE_FAILED", productId, String(error).slice(0,100));

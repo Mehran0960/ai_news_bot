@@ -102,6 +102,10 @@ _LAST_CLICK_STATISTICS_SNAPSHOT: dict | None = None
 CREATIVE_EXPERIMENT_ID = re.sub(
     r"[^a-z0-9_-]", "-", os.getenv("AFFILIO_CREATIVE_EXPERIMENT_ID", "offerchin-creative-v1").strip().lower()
 )[:32] or "offerchin-creative-v1"
+CAPTION_EXPERIMENT_ID = re.sub(
+    r"[^a-z0-9_-]", "-", os.getenv("AFFILIO_CAPTION_EXPERIMENT_ID", "offerchin-caption-v1").strip().lower()
+)[:32] or "offerchin-caption-v1"
+CAPTION_VARIANT_B_PREFIX = "✨ پیشنهاد ویژه"
 PERFORMANCE_REPORT = ROOT / "performance_report.json"
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
 FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "false").strip().lower() in {"1", "true", "yes", "on"}
@@ -469,6 +473,8 @@ def build_click_tracking_link(
     source: str = "unknown",
     experiment_id: str = "",
     variant: str = "",
+    caption_experiment_id: str = "",
+    caption_variant: str = "",
 ) -> str:
     """Wrap only a matching, verified Affilio URL in the healthy OfferChin click tracker."""
     original = str(affiliate_url or "").strip()
@@ -504,6 +510,17 @@ def build_click_tracking_link(
     if experiment and re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,31}", experiment) and selected_variant in {"A", "B"}:
         query["exp"] = experiment
         query["variant"] = selected_variant.lower()
+    caption_experiment = re.sub(
+        r"[^a-z0-9_-]", "-", str(caption_experiment_id or "").strip().lower()
+    )[:32]
+    selected_caption_variant = str(caption_variant or "").strip().upper()
+    if (
+        caption_experiment
+        and re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,31}", caption_experiment)
+        and selected_caption_variant in {"A", "B"}
+    ):
+        query["cexp"] = caption_experiment
+        query["cvariant"] = selected_caption_variant.lower()
     return f"{base}/p/{product_id(canonical)}?{urlencode(query)}"
 
 
@@ -537,6 +554,7 @@ def _click_tracker_is_healthy() -> bool:
             health_payload.get("ok") is not True
             or health_payload.get("clickStoreReady") is not True
             or health_payload.get("experimentAttribution") is not True
+            or health_payload.get("captionExperimentAttribution") is not True
         ):
             raise RuntimeError("tracker_health_or_experiment_attribution_not_ready")
 
@@ -590,6 +608,8 @@ def tracked_affiliate_button_url(
     source: str,
     experiment_id: str = "",
     variant: str = "",
+    caption_experiment_id: str = "",
+    caption_variant: str = "",
 ) -> str:
     """Use the tracker only after health/capability probes; otherwise preserve direct Affilio."""
     original = str(affiliate_url or "").strip()
@@ -605,17 +625,28 @@ def tracked_affiliate_button_url(
         source=source,
         experiment_id=experiment_id,
         variant=variant,
+        caption_experiment_id=caption_experiment_id,
+        caption_variant=caption_variant,
     )
     return wrapped or original
 
 
 def creative_experiment_assignment(product_id_value: str) -> tuple[str, str]:
-    """Assign one stable A/B creative treatment per product without using affiliate income."""
+    """Assign one stable visual A/B treatment per product, independently of revenue."""
     pid = str(product_id_value or "").strip().lower()
     if not re.fullmatch(r"(?:dkp-\d{1,12}|snp-\d{1,20})", pid):
         return "", "A"
     digest = hashlib.sha256(f"{CREATIVE_EXPERIMENT_ID}:{pid}".encode("utf-8")).digest()
     return CREATIVE_EXPERIMENT_ID, ("A", "B")[digest[0] & 1]
+
+
+def caption_experiment_assignment(product_id_value: str) -> tuple[str, str]:
+    """Assign an independent, stable A/B copy treatment for the same product."""
+    pid = str(product_id_value or "").strip().lower()
+    if not re.fullmatch(r"(?:dkp-\d{1,12}|snp-\d{1,20})", pid):
+        return "", "A"
+    digest = hashlib.sha256(f"{CAPTION_EXPERIMENT_ID}:{pid}".encode("utf-8")).digest()
+    return CAPTION_EXPERIMENT_ID, ("A", "B")[digest[0] & 1]
 
 
 def _walk_dicts(value):
@@ -4479,6 +4510,7 @@ def build_performance_report(
             return 0
 
     posts_by_variant: dict[str, int] = {}
+    posts_by_caption_variant: dict[str, int] = {}
     posts_by_platform: dict[str, int] = {}
     posts_by_product: dict[str, dict] = {}
     published = state.get("published") if isinstance(state, dict) else {}
@@ -4491,6 +4523,11 @@ def build_performance_report(
         if experiment and variant in {"A", "B"}:
             key = f"{experiment}:{variant}"
             posts_by_variant[key] = posts_by_variant.get(key, 0) + 1
+        caption_experiment = str(record.get("caption_experiment_id") or "")
+        caption_variant = str(record.get("caption_variant") or "").upper()
+        if caption_experiment and caption_variant in {"A", "B"}:
+            caption_key = f"{caption_experiment}:{caption_variant}"
+            posts_by_caption_variant[caption_key] = posts_by_caption_variant.get(caption_key, 0) + 1
         statuses = record.get("delivery_status")
         statuses = statuses if isinstance(record.get("delivery_status"), dict) else {}
         for platform in ("telegram", "bale", "youtube", "aparat"):
@@ -4503,6 +4540,8 @@ def build_performance_report(
         posts_by_product[str(pid)] = {
             "creative_experiment_id": experiment,
             "creative_variant": variant,
+            "caption_experiment_id": caption_experiment,
+            "caption_variant": caption_variant,
             "selection_demand_evidence": record.get("selection_demand_evidence"),
             "selection_demand_quality": record.get("selection_demand_quality"),
             "bestseller_rank": record.get("selection_bestseller_rank"),
@@ -4516,6 +4555,8 @@ def build_performance_report(
     clicks_by_product = {}
     clicks_by_product_source = {}
     clicks_by_product_variant = {}
+    clicks_by_caption_variant = {}
+    clicks_by_product_caption_variant = {}
     if complete:
         clicks_by_variant = {
             str(key): safe_count(value)
@@ -4548,11 +4589,41 @@ def build_performance_report(
             for pid, variants in (snapshot.get("productExperimentVariants") or {}).items()
             if isinstance(pid, str) and isinstance(variants, dict)
         }
+        clicks_by_caption_variant = {
+            str(key): safe_count(value)
+            for key, value in (snapshot.get("captionExperimentVariants") or {}).items()
+            if isinstance(key, str)
+        }
+        clicks_by_product_caption_variant = {
+            str(pid): {
+                str(variant): safe_count(count)
+                for variant, count in (variants or {}).items()
+            }
+            for pid, variants in (snapshot.get("productCaptionExperimentVariants") or {}).items()
+            if isinstance(pid, str) and isinstance(variants, dict)
+        }
     comparisons = {}
     for key in sorted(set(posts_by_variant) | set(clicks_by_variant)):
         post_count = posts_by_variant.get(key, 0)
         click_count = clicks_by_variant.get(key)
         comparisons[key] = {
+            "published_posts": post_count,
+            "tracked_clicks_30d": click_count,
+            "clicks_per_published_post": (
+                round(click_count / post_count, 3)
+                if click_count is not None and post_count > 0 else None
+            ),
+            "ctr": None,
+            "orders": None,
+            "sales_amount": None,
+            "approved_commission": None,
+        }
+
+    caption_comparisons = {}
+    for key in sorted(set(posts_by_caption_variant) | set(clicks_by_caption_variant)):
+        post_count = posts_by_caption_variant.get(key, 0)
+        click_count = clicks_by_caption_variant.get(key)
+        caption_comparisons[key] = {
             "published_posts": post_count,
             "tracked_clicks_30d": click_count,
             "clicks_per_published_post": (
@@ -4575,6 +4646,13 @@ def build_performance_report(
         if published_product_count else None
     )
     experiment_click_total = sum(clicks_by_variant.values())
+    caption_assigned_posts = sum(posts_by_caption_variant.values())
+    caption_unassigned_posts = max(0, published_product_count - caption_assigned_posts)
+    caption_assignment_coverage = (
+        round(100.0 * caption_assigned_posts / published_product_count, 2)
+        if published_product_count else None
+    )
+    caption_click_total = sum(clicks_by_caption_variant.values())
     tracked_click_total = (
         safe_count(snapshot.get("totalClicks"))
         if complete and snapshot.get("totalClicks") is not None
@@ -4586,6 +4664,20 @@ def build_performance_report(
     )
     experiment_supported = bool(
         complete and snapshot.get("experimentVariants") is not None
+    )
+    caption_experiment_supported = bool(
+        complete and snapshot.get("captionExperimentVariants") is not None
+    )
+    caption_experiment_publication_status = (
+        "no_published_products" if published_product_count == 0
+        else "awaiting_first_tagged_publication" if caption_assigned_posts == 0
+        else "partially_assigned" if caption_unassigned_posts > 0
+        else "fully_assigned"
+    )
+    caption_experiment_measurement_status = (
+        "worker_unavailable" if not caption_experiment_supported
+        else "awaiting_first_tagged_click" if caption_click_total == 0
+        else "clicks_observed"
     )
     experiment_publication_status = (
         "no_published_products" if published_product_count == 0
@@ -4610,14 +4702,29 @@ def build_performance_report(
         "experiment_publication_status": experiment_publication_status,
         "experiment_measurement_status": experiment_measurement_status,
         "experiment_attribution_active": bool(experiment_supported and assigned_experiment_posts > 0),
+        "caption_experiment_attribution_supported_by_worker": caption_experiment_supported,
+        "caption_experiment_publication_status": caption_experiment_publication_status,
+        "caption_experiment_measurement_status": caption_experiment_measurement_status,
+        "caption_experiment_attribution_active": bool(caption_experiment_supported and caption_assigned_posts > 0),
         "published_product_count": published_product_count,
         "published_experiment_posts": assigned_experiment_posts,
         "unassigned_published_posts": unassigned_published_posts,
         "experiment_assignment_coverage_percent": experiment_assignment_coverage,
+        "published_caption_experiment_posts": caption_assigned_posts,
+        "unassigned_caption_experiment_posts": caption_unassigned_posts,
+        "caption_experiment_assignment_coverage_percent": caption_assignment_coverage,
         "tracked_clicks_total": tracked_click_total,
         "tracked_clicks_with_experiment_attribution": experiment_click_total if complete else None,
         "tracked_clicks_without_experiment_attribution": unattributed_click_total,
+        "tracked_clicks_with_caption_experiment_attribution": (
+            caption_click_total if caption_experiment_supported else None
+        ),
+        "tracked_clicks_without_caption_experiment_attribution": (
+            max(0, tracked_click_total - caption_click_total)
+            if tracked_click_total is not None and caption_experiment_supported else None
+        ),
         "published_posts_by_variant": posts_by_variant,
+        "published_posts_by_caption_variant": posts_by_caption_variant,
         "published_posts_by_platform": posts_by_platform,
         "published_posts_by_product": posts_by_product,
         "tracked_clicks_by_product": clicks_by_product,
@@ -4625,7 +4732,10 @@ def build_performance_report(
         "tracked_clicks_by_product_source": clicks_by_product_source,
         "tracked_clicks_by_experiment_variant": clicks_by_variant,
         "tracked_clicks_by_product_variant": clicks_by_product_variant,
+        "tracked_clicks_by_caption_experiment_variant": clicks_by_caption_variant,
+        "tracked_clicks_by_product_caption_variant": clicks_by_product_caption_variant,
         "creative_variant_comparison": comparisons,
+        "caption_variant_comparison": caption_comparisons,
         "impressions": None,
         "ctr": None,
         "orders": None,
@@ -4982,8 +5092,9 @@ def build_caption(
     channel_label: str = TELEGRAM_CHANNEL_URL,
     use_unicode_strikethrough: bool = False,
     experiment_variant: str = "A",
+    caption_variant: str = "A",
 ) -> str:
-    """Build a concise cross-platform caption with a clear price hierarchy and channel CTA."""
+    """Build a concise cross-platform caption with a separately testable copy treatment."""
     is_bale = use_unicode_strikethrough
 
     def bold(value: str) -> str:
@@ -5009,10 +5120,12 @@ def build_caption(
 
     merchant = p.get("merchant") or product_merchant(p.get("product_url") or affiliate_url)
     merchant_marker = "🟣" if "اسنپ" in str(merchant) or "snapp" in str(merchant).lower() else "🔴"
-    # The approved sales caption stays identical in both visual experiment arms.
-    # A/B variation is limited to image/video treatment, not approved sales wording.
+    # Copy A keeps the approved headline. Copy B changes only the headline wording;
+    # price, discount, DigiPay wording, membership CTA and purchase-button link remain identical.
+    selected_caption_variant = str(caption_variant or "A").strip().upper()
+    caption_prefix = CAPTION_VARIANT_B_PREFIX if selected_caption_variant == "B" else SALE_TITLE_PREFIX
     parts = [
-        f"{SALE_TITLE_PREFIX} {merchant} {merchant_marker}",
+        f"{caption_prefix} {merchant} {merchant_marker}",
         "",
         f"{PRODUCT_TITLE_PREFIX}{title}",
     ]
@@ -5297,6 +5410,8 @@ def _send_photo(
     affiliate_url: str = "",
     experiment_id: str = "",
     experiment_variant: str = "",
+    caption_experiment_id: str = "",
+    caption_variant: str = "",
 ):
     if not BOT_TOKEN:
         raise RuntimeError("Missing TELEGRAM_BOT_TOKEN secret; no post sent")
@@ -5305,7 +5420,8 @@ def _send_photo(
     if not _is_valid_affilio_tracking_url(affiliate_url):
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
     button_url = tracked_affiliate_button_url(
-        affiliate_url, "telegram", experiment_id, experiment_variant
+        affiliate_url, "telegram", experiment_id, experiment_variant,
+        caption_experiment_id, caption_variant,
     )
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
@@ -5332,6 +5448,8 @@ def _send_bale_photo(
     affiliate_url: str = "",
     experiment_id: str = "",
     experiment_variant: str = "",
+    caption_experiment_id: str = "",
+    caption_variant: str = "",
 ):
     """Send a photo post through Bale's Bot API, independently of Telegram delivery."""
     if not BALE_BOT_TOKEN:
@@ -5343,7 +5461,8 @@ def _send_bale_photo(
     if not _is_valid_affilio_tracking_url(affiliate_url):
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
     button_url = tracked_affiliate_button_url(
-        affiliate_url, "bale", experiment_id, experiment_variant
+        affiliate_url, "bale", experiment_id, experiment_variant,
+        caption_experiment_id, caption_variant,
     )
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
@@ -5416,10 +5535,13 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
             build_caption(
                 item, affiliate_url, TELEGRAM_CHANNEL_URL,
                 experiment_variant=item.get("creative_variant", "A"),
+                caption_variant=item.get("caption_variant", "A"),
             ),
             affiliate_url,
             item.get("creative_experiment_id", ""),
             item.get("creative_variant", "A"),
+            item.get("caption_experiment_id", ""),
+            item.get("caption_variant", "A"),
         )
     if platform == "bale":
         photo = build_discount_image(
@@ -5434,10 +5556,13 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
                 item, affiliate_url, BALE_CHANNEL_URL,
                 use_unicode_strikethrough=True,
                 experiment_variant=item.get("creative_variant", "A"),
+                caption_variant=item.get("caption_variant", "A"),
             ),
             affiliate_url,
             item.get("creative_experiment_id", ""),
             item.get("creative_variant", "A"),
+            item.get("caption_experiment_id", ""),
+            item.get("caption_variant", "A"),
         )
     raise ValueError("Unsupported publication platform")
 
@@ -8479,19 +8604,26 @@ def select_discount_fallback_candidates(
         return [], None, quality_eligible
 
     experiment_counts = {"A": 0, "B": 0}
+    caption_experiment_counts = {"A": 0, "B": 0}
     for selected in safe_handoff:
         pid = str(selected.get("product_id") or product_id(selected.get("product_url") or ""))
         experiment_id, variant = creative_experiment_assignment(pid)
+        caption_experiment_id, caption_variant = caption_experiment_assignment(pid)
         selected["creative_experiment_id"] = experiment_id
         selected["creative_variant"] = variant
+        selected["caption_experiment_id"] = caption_experiment_id
+        selected["caption_variant"] = caption_variant
         if variant in experiment_counts:
             experiment_counts[variant] += 1
+        if caption_variant in caption_experiment_counts:
+            caption_experiment_counts[caption_variant] += 1
 
     print(
         f"PUBLICATION_CANDIDATES_READY demand_ranked={len(safe_handoff)} "
         f"top_bestseller_rank={safe_handoff[0].get('selection_bestseller_rank')} "
         f"top_discount={safe_handoff[0].get('discount_percent')} "
-        f"variant_counts={experiment_counts} fallback_mode={fallback_mode}"
+        f"visual_variants={experiment_counts} caption_variants={caption_experiment_counts} "
+        f"fallback_mode={fallback_mode}"
     )
     selected_floor = int(safe_handoff[0].get("selection_discount_floor") or MIN_DISCOUNT_FALLBACK_PERCENT)
     return safe_handoff, selected_floor, quality_eligible
@@ -10254,6 +10386,10 @@ def build_video_channel_description(state: dict, source: str, record: dict | Non
             purchase_url = tracked_affiliate_button_url(
                 affiliate_url,
                 source_value if source_value in {"youtube", "aparat"} else "unknown",
+                str((record or {}).get("creative_experiment_id") or ""),
+                str((record or {}).get("creative_variant") or ""),
+                str((record or {}).get("caption_experiment_id") or ""),
+                str((record or {}).get("caption_variant") or ""),
             )
             lines.extend(["", "لینک خرید محصول:", purchase_url])
 

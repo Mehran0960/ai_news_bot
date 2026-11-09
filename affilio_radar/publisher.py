@@ -221,6 +221,8 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "selection_discount_band": str(item.get("selection_discount_band") or ""),
         "creative_experiment_id": str(item.get("creative_experiment_id") or ""),
         "creative_variant": str(item.get("creative_variant") or "A").upper(),
+        "caption_experiment_id": str(item.get("caption_experiment_id") or ""),
+        "caption_variant": str(item.get("caption_variant") or "A").upper(),
         "selection_demand_evidence": str(item.get("selection_demand_evidence") or "none"),
         "selection_demand_quality": str(item.get("selection_demand_quality") or "unknown"),
         "selection_bestseller_rank": item.get("selection_bestseller_rank"),
@@ -354,6 +356,7 @@ def _fresh_selected_item(
         "selection_bestseller_rank_improvement", "selection_review_growth_evidence",
         "selection_value_evidence", "selection_fallback_mode",
         "creative_experiment_id", "creative_variant",
+        "caption_experiment_id", "caption_variant",
     ):
         if key in payload:
             fresh[key] = payload[key]

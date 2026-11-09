@@ -698,12 +698,15 @@ class AffilioRadarTests(unittest.TestCase):
         wrapped = build_click_tracking_link(
             product, affiliate, "https://tracker.example",
             source="bale", experiment_id="creative-test-1", variant="B",
+            caption_experiment_id="caption-test-1", caption_variant="A",
         )
         query = parse_qs(urlsplit(wrapped).query)
         self.assertEqual(query.get("u"), [affiliate])
         self.assertEqual(query.get("src"), ["bale"])
         self.assertEqual(query.get("exp"), ["creative-test-1"])
         self.assertEqual(query.get("variant"), ["b"])
+        self.assertEqual(query.get("cexp"), ["caption-test-1"])
+        self.assertEqual(query.get("cvariant"), ["a"])
         self.assertEqual(
             build_click_tracking_link(product, affiliate, "http://tracker.example"),
             affiliate,
@@ -742,12 +745,16 @@ class AffilioRadarTests(unittest.TestCase):
         with patch("affilio_radar._click_tracker_is_healthy", return_value=False):
             self.assertEqual(tracked_affiliate_button_url(affiliate, "bale", "creative-test-1", "B"), affiliate)
         with patch("affilio_radar._click_tracker_is_healthy", return_value=True):
-            wrapped = tracked_affiliate_button_url(affiliate, "telegram", "creative-test-1", "B")
+            wrapped = tracked_affiliate_button_url(
+                affiliate, "telegram", "creative-test-1", "B", "caption-test-1", "A"
+            )
         query = parse_qs(urlsplit(wrapped).query)
         self.assertEqual(urlsplit(wrapped).path, "/p/snp-2097083854")
         self.assertEqual(query.get("u"), [affiliate])
         self.assertEqual(query.get("exp"), ["creative-test-1"])
         self.assertEqual(query.get("variant"), ["b"])
+        self.assertEqual(query.get("cexp"), ["caption-test-1"])
+        self.assertEqual(query.get("cvariant"), ["a"])
         self.assertEqual(tracked_affiliate_button_url("https://example.com/not-affiliate", "bale"), "")
 
     def test_click_statistics_include_aggregate_counts_for_both_stores(self):
@@ -6545,6 +6552,27 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(radar_module.creative_experiment_assignment("not-a-product"), ("", "A"))
 
+    def test_caption_experiment_assignment_is_stable_balanced_and_independent(self):
+        visual = {
+            radar_module.creative_experiment_assignment(f"dkp-{index}")[1]
+            for index in range(1, 101)
+        }
+        captions = {
+            radar_module.caption_experiment_assignment(f"dkp-{index}")[1]
+            for index in range(1, 101)
+        }
+        self.assertEqual(visual, {"A", "B"})
+        self.assertEqual(captions, {"A", "B"})
+        self.assertEqual(
+            radar_module.caption_experiment_assignment("dkp-123"),
+            radar_module.caption_experiment_assignment("dkp-123"),
+        )
+        self.assertNotEqual(
+            radar_module.caption_experiment_assignment("dkp-123")[0],
+            radar_module.creative_experiment_assignment("dkp-123")[0],
+        )
+        self.assertEqual(radar_module.caption_experiment_assignment("not-a-product"), ("", "A"))
+
     def test_performance_report_never_infers_ctr_sales_or_commission_from_clicks(self):
         snapshot = {
             "ok": True,
@@ -6553,20 +6581,26 @@ class AffilioRadarTests(unittest.TestCase):
             "totalClicks": 12,
             "sources": {"telegram": 8, "bale": 4},
             "experimentVariants": {"creative-test-1:A": 8, "creative-test-1:B": 4},
+            "captionExperimentVariants": {"caption-test-1:A": 7, "caption-test-1:B": 5},
             "productSources": {"dkp-123": {"telegram": 8}},
             "productExperimentVariants": {"dkp-123": {"creative-test-1:A": 8}},
+            "productCaptionExperimentVariants": {"dkp-123": {"caption-test-1:A": 7}},
         }
         state = {
             "published": {
                 "dkp-123": {
                     "creative_experiment_id": "creative-test-1",
                     "creative_variant": "A",
+                    "caption_experiment_id": "caption-test-1",
+                    "caption_variant": "A",
                     "telegram_message_id": 123,
                     "delivery_status": {"telegram": "sent"},
                 },
                 "dkp-456": {
                     "creative_experiment_id": "creative-test-1",
                     "creative_variant": "B",
+                    "caption_experiment_id": "caption-test-1",
+                    "caption_variant": "B",
                     "bale_message_id": 456,
                     "delivery_status": {"bale": "sent"},
                 },
@@ -6587,6 +6621,15 @@ class AffilioRadarTests(unittest.TestCase):
             "creative-test-1:A": 8, "creative-test-1:B": 4
         })
         self.assertEqual(report["creative_variant_comparison"]["creative-test-1:A"]["published_posts"], 1)
+        self.assertEqual(report["tracked_clicks_by_caption_experiment_variant"], {
+            "caption-test-1:A": 7, "caption-test-1:B": 5
+        })
+        self.assertEqual(report["caption_variant_comparison"]["caption-test-1:A"]["published_posts"], 1)
+        self.assertEqual(report["caption_experiment_assignment_coverage_percent"], 66.67)
+        self.assertEqual(report["tracked_clicks_with_caption_experiment_attribution"], 12)
+        self.assertEqual(report["tracked_clicks_without_caption_experiment_attribution"], 0)
+        self.assertTrue(report["caption_experiment_attribution_supported_by_worker"])
+        self.assertTrue(report["caption_experiment_attribution_active"])
         self.assertEqual(report["published_product_count"], 3)
         self.assertEqual(report["published_experiment_posts"], 2)
         self.assertEqual(report["unassigned_published_posts"], 1)
@@ -6634,8 +6677,11 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(report["unassigned_published_posts"], 1)
         self.assertEqual(report["tracked_clicks_with_experiment_attribution"], 0)
         self.assertEqual(report["tracked_clicks_without_experiment_attribution"], 5)
+        self.assertFalse(report["caption_experiment_attribution_supported_by_worker"])
+        self.assertEqual(report["caption_experiment_publication_status"], "awaiting_first_tagged_publication")
+        self.assertEqual(report["caption_experiment_measurement_status"], "worker_unavailable")
 
-    def test_visual_experiment_variants_preserve_the_approved_caption(self):
+    def test_visual_and_caption_experiments_are_independent(self):
         product_url = "https://www.digikala.com/product/dkp-990001/"
         product = {
             "title": "گوشی نمونه",
@@ -6646,10 +6692,24 @@ class AffilioRadarTests(unittest.TestCase):
             "discount_percent": 17,
         }
         affiliate = build_affilio_tracking_link(product_url)
-        variant_a = build_caption(product, affiliate, experiment_variant="A")
-        variant_b = build_caption(product, affiliate, experiment_variant="B")
-        self.assertEqual(variant_a, variant_b)
-        self.assertTrue(variant_a.startswith(radar_module.SALE_TITLE_PREFIX))
+        visual_a_copy_a = build_caption(
+            product, affiliate, experiment_variant="A", caption_variant="A"
+        )
+        visual_b_copy_a = build_caption(
+            product, affiliate, experiment_variant="B", caption_variant="A"
+        )
+        visual_a_copy_b = build_caption(
+            product, affiliate, experiment_variant="A", caption_variant="B"
+        )
+        self.assertEqual(visual_a_copy_a, visual_b_copy_a)
+        self.assertNotEqual(visual_a_copy_a, visual_a_copy_b)
+        self.assertTrue(visual_a_copy_a.startswith(radar_module.SALE_TITLE_PREFIX))
+        self.assertTrue(visual_a_copy_b.startswith(radar_module.CAPTION_VARIANT_B_PREFIX))
+        self.assertEqual(
+            visual_a_copy_a.splitlines()[1:],
+            visual_a_copy_b.splitlines()[1:],
+            "A/B copy may change its headline only; product facts and CTAs stay fixed",
+        )
 
 
 if __name__ == "__main__":

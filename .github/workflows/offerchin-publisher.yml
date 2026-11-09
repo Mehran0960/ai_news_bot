@@ -120,8 +120,9 @@ jobs:
             test_affilio.AffilioRadarTests.test_lifetime_reviews_and_rating_are_weak_demand_context_when_direct_signals_are_absent \
             test_affilio.AffilioRadarTests.test_demand_context_precedes_discount_but_clicks_and_synthetic_scores_are_ignored \
             test_affilio.AffilioRadarTests.test_creative_assignment_is_stable_and_balanced_over_product_ids \
+            test_affilio.AffilioRadarTests.test_caption_experiment_assignment_is_stable_balanced_and_independent \
             test_affilio.AffilioRadarTests.test_performance_report_never_infers_ctr_sales_or_commission_from_clicks \
-            test_affilio.AffilioRadarTests.test_visual_experiment_variants_preserve_the_approved_caption \
+            test_affilio.AffilioRadarTests.test_visual_and_caption_experiments_are_independent \
             test_affilio.AffilioRadarTests.test_click_tracker_wraps_only_same_product_affiliate_destinations \
             test_affilio.AffilioRadarTests.test_click_tracker_preserves_supported_affilio_template_and_adds_experiment_labels \
             test_affilio.AffilioRadarTests.test_click_tracker_supports_channel_attribution_and_rejects_unknown_source_names \
@@ -132,6 +133,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_public_aparat_upload_stays_blocked_without_verified_expiry \
             test_affilio.AffilioRadarTests.test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record -v
           python -m unittest test_selection_evidence -v
+          node --test test_affiliate_deal_radar_worker.mjs
 
       - name: Validate permanent YouTube retention policy
         run: |
