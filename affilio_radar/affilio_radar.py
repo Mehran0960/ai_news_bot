@@ -6552,7 +6552,7 @@ def pending_queue_sort_key(
     queue_record: dict | None = None,
     now: datetime | None = None,
 ) -> tuple:
-    """Use only discount %, savings, and the optional exact-tie review-growth proxy."""
+    """Use native DigiKala demand evidence before deal value in the pending publication queue."""
     return deal_sort_key(product, now=now)
 
 
@@ -7333,7 +7333,7 @@ def _order_candidates_by_primary_rank(
     now: datetime | None = None,
     allow_family_repeat: bool = False,
 ) -> list[dict]:
-    """Return strict global discount order; do not reorder by category/brand/family."""
+    """Return global market-demand order; repeat guards may suppress but never reorder candidates."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -7464,9 +7464,10 @@ def _filter_recent_publication_repeats(
     limit: int | None = None,
     label: str = "PUBLISH",
 ) -> list[dict]:
-    """Keep global discount order while enforcing 24-hour family, brand and similarity guards.
+    """Keep global demand order while enforcing 24-hour family, brand and similarity guards.
 
-    Candidates are expected in descending discount_percent / savings_toman order.
+    Candidates are expected in descending DigiKala demand-evidence order, with discount
+    percentage and cash savings used only after demand evidence is tied.
     A candidate published within any of the repeat windows is skipped, then the
     next highest-ranked candidate is considered. Already-selected candidates are
     also added to the rolling guard history so one batch cannot violate the same
@@ -7632,7 +7633,7 @@ def select_publish_candidates(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> list[dict]:
-    """Return ready publication candidates in strict percentage-then-saving order."""
+    """Return ready publication candidates in global DigiKala demand-evidence order."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -7658,16 +7659,18 @@ def select_publish_candidates(
     if deferred:
         print(f"PUBLISH_QUEUE_BACKOFF skipped_deferred={deferred} ready={sum(map(len, selected_by_floor.values()))}")
 
-    # Discovery has already ranked by discount percentage, then cash savings.
-    # Keep that exact order at final publication instead of applying proxy-based re-ranking.
-    ordered: list[dict] = []
-    for floor in sorted(selected_by_floor, reverse=True):
-        tier = sorted(
-            selected_by_floor[floor],
-            key=lambda record: deal_sort_key(record, now=current),
-            reverse=True,
-        )
-        ordered.extend(tier)
+    # A discount floor is an eligibility label, not a ranking tier. Merge every
+    # ready band before sorting so a lower-discount high-demand product can outrank
+    # a weak-demand item with a larger markdown.
+    ordered = sorted(
+        (
+            product
+            for tier in selected_by_floor.values()
+            for product in tier
+        ),
+        key=lambda record: deal_sort_key(record, now=current),
+        reverse=True,
+    )
     return _filter_recent_publication_repeats(
         ordered, published, recent_publications, current,
         label="PUBLISH_SELECTION",
@@ -8090,91 +8093,83 @@ def select_discount_fallback_candidates(
         f"fallback_mode={fallback_mode}"
     )
 
-    first_floor: int | None = None
-    fallback_pool: list[dict] = []
-    for index, floor in enumerate(DISCOUNT_FALLBACK_FLOORS):
-        upper = DISCOUNT_FALLBACK_FLOORS[index - 1] if index > 0 else None
-        band = [
-            product for product in fresh_candidates
-            if int(product.get("discount_percent") or 0) >= floor
-            and (upper is None or int(product.get("discount_percent") or 0) < upper)
-        ]
-        if not band:
-            continue
-        ranked = sorted(
-            band,
-            key=lambda record: deal_sort_key(record, now=current),
-            reverse=True,
+    if not fresh_candidates:
+        print(
+            "PUBLICATION_CANDIDATES_EXHAUSTED "
+            f"products_seen={len(products or [])} hard_eligible={len(quality_eligible)} "
+            "reason=no_fresh_or_reusable_candidate_after_cooldown"
         )
-        if not ranked:
-            continue
+        return [], None, quality_eligible
 
-        label = discount_fallback_band_label(floor, upper)
-        handoff = []
-        for product in ranked:
-            selected = dict(product)
-            selected["selection_discount_floor"] = int(floor)
-            selected["selection_discount_band"] = label
-            selected["publication_policy"] = "digikala_demand_first_bestseller_review_quality_discount_v1"
-            bestseller_evidence = _fresh_digikala_bestseller_evidence(product, now=current)
-            selected["selection_demand_evidence"] = (
-                "digikala_native_bestseller_rank" if bestseller_evidence
-                else "digikala_recent_review_growth_proxy" if has_current_demand_signal(product, now=current)
-                else "digiKala_lifetime_reviews_and_rating_context" if (
-                    product.get("review_count") or product.get("rating")
-                ) else "no_current_demand_evidence"
-            )
-            selected["selection_demand_quality"] = (
-                bestseller_evidence.get("evidence_quality") if bestseller_evidence
-                else "indirect_review_growth_proxy_not_sales" if has_current_demand_signal(product, now=current)
-                else "historical_quality_context_only"
-            )
-            selected["selection_bestseller_rank"] = bestseller_evidence.get("best_rank_across_categories")
-            selected["selection_bestseller_category_count"] = bestseller_evidence.get("fresh_category_count", 0)
-            selected["selection_bestseller_rank_improvement"] = bestseller_evidence.get("rank_improvement", 0)
-            selected["selection_review_growth_evidence"] = (
-                "verified_indirect_proxy_not_sales" if has_current_demand_signal(product, now=current)
-                else "none"
-            )
-            selected["selection_value_evidence"] = (
-                "independently_verified" if has_attractive_discount_value(product, current)
-                else "retailer_listed_markdown_only"
-            )
-            selected["selection_fallback_mode"] = fallback_mode
-            handoff.append(selected)
-
-        if first_floor is None:
-            first_floor = floor
-            print(
-                f"PUBLICATION_CANDIDATES_READY band={label} hard_eligible={len(quality_eligible)} "
-                f"ranked={len(handoff)} fallback_mode={fallback_mode}"
-            )
-        if not include_fallback_bands:
-            safe_handoff = _filter_recent_publication_repeats(
-                handoff, published_records, state.get("recent_publications", []),
-                current, label="SELECTION_PREPRIMARY",
-            )
-            if safe_handoff:
-                return safe_handoff, floor, quality_eligible
-            continue
-        fallback_pool.extend({**candidate, "selection_discount_floor": floor} for candidate in handoff)
-
-    if fallback_pool:
-        safe_fallback_pool = _filter_recent_publication_repeats(
-            fallback_pool, published_records, state.get("recent_publications", []),
-            current, label="SELECTION_ALL_FALLBACKS",
-        )
-        safe_floor = (
-            int(safe_fallback_pool[0].get("selection_discount_floor") or first_floor)
-            if safe_fallback_pool else None
-        )
-        return safe_fallback_pool, safe_floor, quality_eligible
-    print(
-        "PUBLICATION_CANDIDATES_EXHAUSTED "
-        f"products_seen={len(products or [])} hard_eligible={len(quality_eligible)} "
-        "reason=no_live_positive_markdown_with_stock_price_and_valid_affiliate"
+    ranked = sorted(
+        fresh_candidates,
+        key=lambda record: deal_sort_key(record, now=current),
+        reverse=True,
     )
-    return [], None, quality_eligible
+    handoff = []
+    for product in ranked:
+        selected = dict(product)
+        discount = _discount_percentage_sort_value(product)
+        # Preserve the strongest applicable floor for last-mile validation,
+        # but never use floor bands to promote a lower-demand product.
+        floor = max(
+            (value for value in DISCOUNT_FALLBACK_FLOORS if discount >= value),
+            default=MIN_DISCOUNT_FALLBACK_PERCENT,
+        )
+        selected["selection_discount_floor"] = int(floor)
+        selected["selection_discount_band"] = discount_fallback_band_label(int(floor), None)
+        selected["publication_policy"] = "digikala_demand_first_bestseller_review_quality_discount_v1"
+        bestseller_evidence = _fresh_digikala_bestseller_evidence(product, now=current)
+        selected["selection_demand_evidence"] = (
+            "digikala_native_bestseller_rank" if bestseller_evidence
+            else "digikala_recent_review_growth_proxy" if has_current_demand_signal(product, now=current)
+            else "digiKala_lifetime_reviews_and_rating_context" if (
+                product.get("review_count") or product.get("rating")
+            ) else "no_current_demand_evidence"
+        )
+        selected["selection_demand_quality"] = (
+            bestseller_evidence.get("evidence_quality") if bestseller_evidence
+            else "indirect_review_growth_proxy_not_sales" if has_current_demand_signal(product, now=current)
+            else "historical_quality_context_only"
+        )
+        selected["selection_bestseller_rank"] = bestseller_evidence.get("best_rank_across_categories")
+        selected["selection_bestseller_category_count"] = bestseller_evidence.get("fresh_category_count", 0)
+        selected["selection_bestseller_rank_improvement"] = bestseller_evidence.get("rank_improvement", 0)
+        selected["selection_review_growth_evidence"] = (
+            "verified_indirect_proxy_not_sales" if has_current_demand_signal(product, now=current)
+            else "none"
+        )
+        selected["selection_value_evidence"] = (
+            "independently_verified" if has_attractive_discount_value(product, current)
+            else "retailer_listed_markdown_only"
+        )
+        selected["selection_fallback_mode"] = fallback_mode
+        handoff.append(selected)
+
+    safe_handoff = _filter_recent_publication_repeats(
+        handoff, published_records, state.get("recent_publications", []),
+        current, label="SELECTION_PREPRIMARY",
+    )
+    if not safe_handoff:
+        return [], None, quality_eligible
+
+    experiment_counts = {"A": 0, "B": 0}
+    for selected in safe_handoff:
+        pid = str(selected.get("product_id") or product_id(selected.get("product_url") or ""))
+        experiment_id, variant = creative_experiment_assignment(pid)
+        selected["creative_experiment_id"] = experiment_id
+        selected["creative_variant"] = variant
+        if variant in experiment_counts:
+            experiment_counts[variant] += 1
+
+    print(
+        f"PUBLICATION_CANDIDATES_READY demand_ranked={len(safe_handoff)} "
+        f"top_bestseller_rank={safe_handoff[0].get('selection_bestseller_rank')} "
+        f"top_discount={safe_handoff[0].get('discount_percent')} "
+        f"variant_counts={experiment_counts} fallback_mode={fallback_mode}"
+    )
+    selected_floor = int(safe_handoff[0].get("selection_discount_floor") or MIN_DISCOUNT_FALLBACK_PERCENT)
+    return safe_handoff, selected_floor, quality_eligible
 
 
 
@@ -10020,6 +10015,11 @@ def run(publish=False, selection_only=False):
                     "catalog_best_selling_rank",
                     "catalog_best_selling_category_id",
                     "catalog_best_selling_category_name",
+                    "catalog_category_id",
+                    "catalog_category_name",
+                    "catalog_category_ids",
+                    "catalog_category_path",
+                    "catalog_best_selling_ranks_by_category",
                     "catalog_rank_observed_at",
                     "catalog_cycle_completed_at",
                     "catalog_cycle_snapshot_rank",
