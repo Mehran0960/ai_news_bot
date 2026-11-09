@@ -7944,7 +7944,7 @@ def select_discount_fallback_candidates(
             if safe_handoff:
                 return safe_handoff, floor, quality_eligible
             continue
-        fallback_pool.extend(handoff)
+        fallback_pool.extend({**candidate, "selection_discount_floor": floor} for candidate in handoff)
 
     if fallback_pool:
         safe_fallback_pool = _filter_recent_publication_repeats(
