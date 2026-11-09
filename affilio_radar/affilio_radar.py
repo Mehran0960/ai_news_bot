@@ -7121,10 +7121,15 @@ def _publication_rank_diagnostics(ordered: list[dict], fallback_events: list[dic
     for item in (ordered or [])[:10]:
         category = _publication_diversity_group(item)[0]
         top10_category_counts[category] = top10_category_counts.get(category, 0) + 1
+    previous_rejections = (
+        list(_LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS.get("rejection_events") or [])
+        if isinstance(_LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS, dict) else []
+    )
     return {
         "candidate_count": max(0, int(candidate_count)),
         "top10_category_counts": dict(sorted(top10_category_counts.items(), key=lambda row: (-row[1], row[0]))),
         "fallback_events": list(fallback_events or []),
+        "rejection_events": previous_rejections[-100:],
     }
 
 
