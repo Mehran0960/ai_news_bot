@@ -2887,7 +2887,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(tiered[0]['selection_discount_floor'], 1)
         self.assertEqual([item['product_id'] for item in quality], ['dkp-95004'])
 
-    def test_recent_family_does_not_block_a_higher_demand_larger_discount_offer(self):
+    def test_recent_family_blocks_repeated_offer_even_when_its_demand_is_higher(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-95101": {
@@ -2928,10 +2928,10 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(floor, 1)
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-95102", "dkp-95103"],
+            ["dkp-95103"],
         )
 
-    def test_top_ranked_offer_is_not_blocked_by_recent_family_history(self):
+    def test_recent_family_history_blocks_repeat_and_keeps_other_top_ranked_offer(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-95201": {
@@ -2985,7 +2985,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(floor, 1)
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-95203", "dkp-95204", "dkp-95205"],
+            ["dkp-95205"],
         )
 
     def test_market_price_and_savings_hard_gates_still_apply_above_50_percent(self):
@@ -3017,6 +3017,7 @@ class AffilioRadarTests(unittest.TestCase):
         small_saving = _with_verified_current_demand({
             **lower_discount,
             "product_id": "dkp-95303",
+            "title": "اسپیکر بلوتوث مدل کوچک",
             "current_price": 33_333,
             "original_price": 83_333,
             "discount_percent": 60,
@@ -3165,6 +3166,7 @@ class AffilioRadarTests(unittest.TestCase):
         recent_ranked = {
             **base,
             "product_id": "dkp-95502",
+            "title": "لپ تاپ سبک مدل VivoBook",
             "catalog_sort_mode": "best_selling",
             "catalog_best_selling_rank": 12,
             "catalog_rank_observed_at": now.isoformat(),
@@ -3173,6 +3175,7 @@ class AffilioRadarTests(unittest.TestCase):
         weak_discount = {
             **recent_ranked,
             "product_id": "dkp-95503",
+            "title": "ماوس بی سیم لاجیتک",
             "current_price": 900_000,
             "original_price": 1_000_000,
             "discount_percent": 10,
