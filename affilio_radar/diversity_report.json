@@ -3,7 +3,7 @@
     "all_time_count": 5307,
     "current_selection_count": 0,
     "current_selection_events": [],
-    "last_7_days_count": 2,
+    "last_7_days_count": 0,
     "recent_events": [
       {
         "at": "2026-11-02T15:48:34.018426+00:00",
@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T16:40:24.821509+00:00",
+  "generated_at": "2026-11-09T17:12:46.081320+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آرایش چشم": 1,
@@ -106,8 +106,7 @@
       "محصولات بومی و محلی": 2,
       "مکمل غذایی": 1,
       "ورزش های توپی": 1,
-      "کتاب رمان و ادبیات داستانی و نمایشی": 1,
-      "کتاب روانشناسی": 1
+      "کتاب رمان و ادبیات داستانی و نمایشی": 1
     },
     "category_post_counts": {
       "audio_wearables": 1,
@@ -115,9 +114,9 @@
       "books_stationery": 1,
       "digital_accessories": 1,
       "fashion": 1,
-      "other": 14,
+      "other": 15,
       "personal_care": 3,
-      "sports_outdoor": 2
+      "sports_outdoor": 1
     },
     "category_share_percent": {
       "audio_wearables": 4.2,
@@ -125,13 +124,13 @@
       "books_stationery": 4.2,
       "digital_accessories": 4.2,
       "fashion": 4.2,
-      "other": 58.3,
+      "other": 62.5,
       "personal_care": 12.5,
-      "sports_outdoor": 8.3
+      "sports_outdoor": 4.2
     },
-    "distinct_catalog_categories": 8,
+    "distinct_catalog_categories": 7,
     "distinct_categories": 8,
-    "distinct_families": 15,
+    "distinct_families": 14,
     "distinct_retailers": 1,
     "distinct_use_cases": 11,
     "known_brand_posts": 3,
@@ -146,9 +145,9 @@
     },
     "use_case_post_counts": {
       "audio_visual": 1,
-      "books_learning": 2,
+      "books_learning": 1,
       "fashion_lifestyle": 1,
-      "general": 7,
+      "general": 8,
       "grocery_food": 1,
       "health_wellness": 1,
       "kitchen_food": 1,
@@ -302,7 +301,6 @@
       "کافی میت": 1,
       "کالای خوراکی و اساسی": 1,
       "کالای دیجیتال": 3,
-      "کاندوم": 1,
       "کاور پوشاک": 1,
       "کتاب رمان و ادبیات داستانی و نمایشی": 3,
       "کتاب روانشناسی": 2,
@@ -364,9 +362,9 @@
       "sports_outdoor": 8.6,
       "tv_audio_video": 0.6
     },
-    "distinct_catalog_categories": 159,
+    "distinct_catalog_categories": 158,
     "distinct_categories": 20,
-    "distinct_families": 194,
+    "distinct_families": 193,
     "distinct_retailers": 1,
     "distinct_use_cases": 25,
     "known_brand_posts": 62,
@@ -395,11 +393,11 @@
       "automotive": 35,
       "baby_care": 6,
       "books_learning": 13,
-      "catalog_taxonomy_other": 16,
+      "catalog_taxonomy_other": 15,
       "events_decor": 3,
       "fashion_lifestyle": 35,
       "gaming": 3,
-      "general": 17,
+      "general": 18,
       "grocery_food": 12,
       "health_wellness": 4,
       "home_cleaning": 11,
@@ -430,82 +428,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 128,
-    "last_7_days_count": 128,
+    "all_time_count": 132,
+    "last_7_days_count": 132,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 128,
-      "similarity_repeat": 128
+      "family_repeat": 132,
+      "similarity_repeat": 132
     },
     "recent_events": [
-      {
-        "at": "2026-11-09T10:49:04.444986+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-10622826",
-        "family": "fashion:eyewear",
-        "product_id": "dkp-22166156",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "عینک آفتابی بایکر اوکلی مدل 3338 C3",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T11:21:33.131912+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-5927887",
-        "family": "fashion:socks",
-        "product_id": "dkp-5692029",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "جوراب ساق کوتاه مردانه پالوته مدل PM-NNN مجموعه 3 عددی",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T11:21:33.131912+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-1901503",
-        "family": "beauty_fragrance:fragrance",
-        "product_id": "dkp-22700244",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم زنانه زدفون مدل ویکتوریا سکرت بامب شل با رایحه خنک حجم 30 میلی لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-09T11:21:33.131912+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-5927887",
-        "family": "fashion:socks",
-        "product_id": "dkp-22403708",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "جوراب ساق بلند مردانه پالوته مدل PLT-3COL-LN بسته 3 عددی",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-09T11:55:27.144970+00:00",
         "brand": "muzik_apollo",
@@ -779,6 +709,74 @@
           "similarity_repeat"
         ],
         "title": "ست تی شرت و شلوارک مردانه مدل 14",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T17:12:46.081320+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "computer_network",
+        "compared_to_product_id": "dkp-13804774",
+        "family": "computer_network:mice",
+        "product_id": "dkp-20914795",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ماوس گیمینگ پی های تک مدل RG315 Max Edition",
+        "use_case": "gaming"
+      },
+      {
+        "at": "2026-11-09T17:12:46.081320+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-15924722",
+        "family": "fashion:footwear",
+        "product_id": "dkp-20865598",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش روزمره مردانه سارزی مدل p.u.m.-p.l.u.s-9871 با رویه چرم مصنوعی، زیره پلی اورتان انعطاف‌پذیر و قابلیت ارتجاعی، کفی قابل تعویض، طراحی بندی و کاهش فشارهای وارده در پیاده‌روی‌های ط",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-09T17:12:46.081320+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-15924722",
+        "family": "fashion:footwear",
+        "product_id": "dkp-4877073",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش روزمره مردانه شوپا مدل Br - 300636",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T17:12:46.081320+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-22521078",
+        "family": "fashion:apparel",
+        "product_id": "dkp-21037922",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست 3 تکه لباس راحتی بچگانه مدل دخترک کد 2",
         "use_case": "fashion_lifestyle"
       }
     ]
