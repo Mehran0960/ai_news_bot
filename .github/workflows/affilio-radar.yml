@@ -173,6 +173,30 @@ jobs:
           trap restore_live_files EXIT
           cd affilio_radar
           python -m unittest -v test_affilio.py test_selection_evidence.py test_catalog_sweep.py test_parallel_catalog_sweep.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py test_aparat_upload_schedule.py test_filo_uploader.py test_filo_upload_schedule.py test_content_delivery.py test_integrity_audit.py
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import test_affilio
+
+          workflow = Path("../.github/workflows/offerchin-publisher.yml").read_text(encoding="utf-8")
+          referenced = set(re.findall(
+              r"test_affilio\.AffilioRadarTests\.(test_[A-Za-z0-9_]+)",
+              workflow,
+          ))
+          missing = sorted(
+              name for name in referenced
+              if not callable(getattr(test_affilio.AffilioRadarTests, name, None))
+          )
+          if missing:
+              raise SystemExit(
+                  "OFFERCHIN_PUBLISHER_WORKFLOW_TEST_REFERENCE_MISSING "
+                  + ",".join(missing)
+              )
+          print(
+              "OFFERCHIN_PUBLISHER_WORKFLOW_TEST_REFERENCES_OK "
+              f"count={len(referenced)}"
+          )
+          PY
 
       - name: Smoke-test the deployed click tracker (diagnostic only)
         if: ${{ github.event_name == 'push' }}

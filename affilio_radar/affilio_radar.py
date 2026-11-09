@@ -6914,42 +6914,51 @@ def _publication_catalog_category_context(product_or_title) -> dict:
 
 
 def _publication_use_case_group(product_or_title) -> str:
-    """Classify a product's practical use from its title and DigiKala leaf taxonomy."""
+    """Classify product use from title and DigiKala taxonomy; reserve general for missing taxonomy."""
     category = _publication_catalog_category_context(product_or_title)
     title = (
         str(product_or_title.get("title") or "")
         if isinstance(product_or_title, dict) else str(product_or_title or "")
     )
-    text = " ".join((title, category.get("name", ""), category.get("path", ""))).lower()
-    text = text.replace("\u200c", " ")
+    raw_text = " ".join((title, category.get("name", ""), category.get("path", ""))).lower()
+    # DigiKala category labels can mix Arabic/Persian glyphs, ZWNJ and punctuation.
+    text = raw_text.replace("\u200c", " ").replace("\u200f", " ").replace("ي", "ی").replace("ك", "ک")
+    text = re.sub(r"[\u064b-\u065f\u0670ـ]", "", text)
+    text = re.sub(r"[\s،,:;؛|/_\-]+", " ", text).strip()
+
+    # Prefer specific DigiKala taxonomy/use-case signals over broad title keywords.
     patterns = (
-        ("automotive", r"خودرو|ماشین|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو|فیلتر کابین|روغن موتور|لوازم یدکی"),
-        ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت|ماهیگیری|کیف و کوله سفری"),
+        ("automotive", r"خودرو|ماشین|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو|فیلتر کابین|روغن موتور|ضد یخ خودرو|لوازم خودرو|جانبی خودرو|تجهیزات راحتی سرنشین"),
+        ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت|ماهیگیری|لوازم ماهیگیری|کیف و کوله سفری|تجهیزات اسکان"),
+        ("tabletop_games", r"بوردگیم|بازی فکری|بازی رومیزی|اوریگامی"),
         ("gaming", r"گیمینگ|بازی رایانه|کنسول بازی|پلی استیشن|ایکس باکس|\bxbox\b|دسته بازی"),
-        ("office_study", r"اداری|میز کار|مطالعه|تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار"),
-        ("books_learning", r"کتاب|رمان|روانشناسی|داستان|مجله|آموزشی|زبان آموزی"),
-        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک"),
+        ("office_study", r"اداری|لوازم اداری|میز کار|مطالعه|تحریر|لوازم تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار|مهر و استامپ"),
+        ("books_learning", r"کتاب|(?<!د)رمان(?:\s|$)|روانشناسی|داستان|مجله|آموزشی|زبان آموزی"),
+        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک|دهان شویه کودک|خمیردندان کودک|مکمل کمک درمانی کودک"),
         ("pet_care", r"حیوان خانگی|گربه|سگ|خاک گربه|غذای حیوان|قلاده|آکواریوم"),
-        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو|قابلمه|تابه|چای ساز"),
-        ("grocery_food", r"خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای ارگانیک|قهوه ارگانیک|شکلات|تنقلات|غلات|کنسرو|ادویه"),
-        ("home_cleaning", r"نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو|اسکاچ|دستمال نظافت"),
-        ("personal_care", r"مراقبت پوست|مراقبت مو|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب"),
-        ("sports_fitness", r"ورزشی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی"),
+        ("home_cleaning", r"اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی|دستمال نظافت|شوینده سطوح|نظافت خانه"),
+        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو|قابلمه|تابه|چای ساز|سرویس کفگیر|کفگیر|ملاقه|قاشق|چنگال|ظروف غذاخوری"),
+        ("local_goods", r"محصولات بومی|محصولات محلی|سوغات محلی"),
+        ("grocery_food", r"خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای ارگانیک|قهوه ارگانیک|شکلات|تنقلات|غلات|کنسرو|ادویه|کالای خوراکی"),
+        ("home_cleaning", r"نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو|اسکاچ|سیم ظرفشویی|دستمال نظافت"),
+        ("personal_care", r"مراقبت پوست|مراقبت از پوست|مراقبت مو|آرایش|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب|ماسک صورت|ماسک بدن|شانه مو|مداد چشم"),
+        ("sports_fitness", r"ورزشی|ورزش های توپی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی|لوازم جانبی راکت"),
+        ("health_wellness", r"سلامت|پزشکی|مکمل غذایی|مکمل|کمک درمانی|تجهیزات پزشکی|ارتوپدی"),
         ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|رم|مانیتور|کیبورد|ماوس|مودم"),
         ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین عکاسی|پروژکتور|سینما خانگی"),
-        ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب|پتو|ملحفه|کوسن|پرده"),
-        ("fashion_lifestyle", r"پوشاک|لباس|تی شرت|تیشرت|شلوار|کفش|بوت|کیف پول|عینک آفتابی|جوراب|مانتو|اکسسوری زنانه"),
-        ("tools_industrial", r"ابزار|هویه|مته|پیچ و مهره|کمپرسور|تجهیزات ایمنی|لوازم یدکی ابزار|باغبانی|کشاورزی"),
-        ("arts_crafts", r"صنایع دستی|دست بافته|رودوزی|بافتنی|خیاطی|نقاشی|رنگ آمیزی|اوریگامی|کاردستی"),
-        ("lighting_electrical", r"روشنایی|لامپ|چراغ قوه|چراغ اضطراری|لامپ|الکتریکی|سیم و کابل برق"),
+        ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب|خواب|پتو|ملحفه|کوسن|پرده"),
+        ("fashion_lifestyle", r"پوشاک|لباس|تی شرت|تیشرت|شلوار|کفش|بوت|کیف پول|عینک آفتابی|جوراب|مانتو|اکسسوری زنانه|لباس کار"),
+        ("tools_industrial", r"ابزار|هویه|مته|پیچ و مهره|کمپرسور|تجهیزات ایمنی|ایمنی|لوازم یدکی ابزار|باغبانی|کشاورزی"),
+        ("arts_crafts", r"صنایع دستی|دست بافته|رودوزی|بافتنی|خیاطی|نقاشی|رنگ آمیزی|کاردستی"),
+        ("lighting_electrical", r"روشنایی|لامپ|چراغ قوه|چراغ اضطراری|الکتریکی|سیم و کابل برق"),
+        ("events_decor", r"پرچم|لوازم تزئینی|وسایل جشن"),
     )
     matched = next((name for name, pattern in patterns if re.search(pattern, text, re.I)), None)
     if matched:
         return matched
 
-    # When the title is ambiguous, use DigiKala's official broad category instead
-    # of collapsing every unmatched leaf into "general".
-    broad = classify_category(" ".join((title, category.get("name", ""), category.get("path", ""))))
+    # Broad DigiKala taxonomy is a second fallback; do not call a known category general.
+    broad = classify_category(text)
     broad_use_cases = {
         "automotive": "automotive",
         "sports_outdoor": "sports_fitness",
@@ -6978,7 +6987,6 @@ def _publication_use_case_group(product_or_title) -> str:
     if category.get("id") and category.get("name"):
         return "catalog_taxonomy_other"
     return "general"
-
 
 def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     """Return a broad category, narrower product family, and known brand hint."""
