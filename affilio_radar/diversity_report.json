@@ -97,11 +97,10 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T20:21:53.126472+00:00",
+  "generated_at": "2026-11-09T20:53:29.683627+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
-      "تی شرت مردانه": 1,
-      "مکمل غذایی": 1
+      "تی شرت مردانه": 1
     },
     "category_post_counts": {
       "audio_wearables": 2,
@@ -123,11 +122,11 @@
       "power_backup": 4.3,
       "sports_outdoor": 8.7
     },
-    "distinct_catalog_categories": 2,
+    "distinct_catalog_categories": 1,
     "distinct_categories": 8,
-    "distinct_families": 13,
+    "distinct_families": 12,
     "distinct_retailers": 1,
-    "distinct_use_cases": 9,
+    "distinct_use_cases": 8,
     "known_brand_posts": 3,
     "posts": 23,
     "repeated_brand_count": 0,
@@ -141,8 +140,7 @@
     "use_case_post_counts": {
       "audio_visual": 2,
       "fashion_lifestyle": 2,
-      "general": 8,
-      "health_wellness": 1,
+      "general": 9,
       "kitchen_food": 1,
       "mobile_productivity": 5,
       "office_study": 1,
@@ -266,7 +264,6 @@
       "مراقبت پوست": 1,
       "مسواک": 1,
       "مقنعه و پوشیه": 1,
-      "ملحفه": 1,
       "مهر و استامپ": 1,
       "مکمل غذایی": 1,
       "مکمل کمک درمانی کودک": 1,
@@ -355,9 +352,9 @@
       "sports_outdoor": 8.8,
       "tv_audio_video": 0.6
     },
-    "distinct_catalog_categories": 158,
+    "distinct_catalog_categories": 157,
     "distinct_categories": 20,
-    "distinct_families": 193,
+    "distinct_families": 192,
     "distinct_retailers": 1,
     "distinct_use_cases": 25,
     "known_brand_posts": 62,
@@ -390,11 +387,11 @@
       "events_decor": 3,
       "fashion_lifestyle": 36,
       "gaming": 3,
-      "general": 18,
+      "general": 19,
       "grocery_food": 12,
       "health_wellness": 4,
       "home_cleaning": 11,
-      "home_living": 15,
+      "home_living": 14,
       "kitchen_food": 4,
       "lighting_electrical": 10,
       "local_goods": 2,
@@ -421,50 +418,16 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 174,
-    "last_7_days_count": 174,
+    "all_time_count": 190,
+    "last_7_days_count": 190,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 174,
-      "similarity_repeat": 174
+      "family_repeat": 190,
+      "similarity_repeat": 190
     },
     "recent_events": [
       {
-        "at": "2026-11-09T19:49:48.053805+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-5927887",
-        "family": "fashion:socks",
-        "product_id": "dkp-21766843",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "جوراب ساق بلند مردانه سیرداش مدل N111 بسته 6 عددی",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T19:49:48.053805+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "power_backup",
-        "compared_to_product_id": "dkp-21536870",
-        "family": "power_backup:charger",
-        "product_id": "dkp-20927368",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "شارژر دیواری 20 وات نوکسو مدل CHN-5 به همراه کابل USB-C / لایتنینگ",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-09T19:49:48.053805+00:00",
+        "at": "2026-11-09T20:21:53.126472+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -481,7 +444,7 @@
         "use_case": "fashion_lifestyle"
       },
       {
-        "at": "2026-11-09T19:49:48.053805+00:00",
+        "at": "2026-11-09T20:21:53.126472+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -498,7 +461,7 @@
         "use_case": "gaming"
       },
       {
-        "at": "2026-11-09T19:49:48.053805+00:00",
+        "at": "2026-11-09T20:21:53.126472+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -515,24 +478,7 @@
         "use_case": "lighting_electrical"
       },
       {
-        "at": "2026-11-09T19:49:48.053805+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-21470422",
-        "family": "fashion:eyewear",
-        "product_id": "dkp-22572279",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "عینک آفتابی آلبرت وگ مدل S32234C1 Avantgarde Visionary",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T19:49:48.053805+00:00",
+        "at": "2026-11-09T20:21:53.126472+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -549,7 +495,7 @@
         "use_case": "fashion_lifestyle"
       },
       {
-        "at": "2026-11-09T20:21:53.126472+00:00",
+        "at": "2026-11-09T20:53:29.683627+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -566,24 +512,7 @@
         "use_case": "mobile_productivity"
       },
       {
-        "at": "2026-11-09T20:21:53.126472+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-18369481",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-09T20:21:53.126472+00:00",
+        "at": "2026-11-09T20:53:29.683627+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -600,7 +529,75 @@
         "use_case": "mobile_productivity"
       },
       {
-        "at": "2026-11-09T20:21:53.126472+00:00",
+        "at": "2026-11-09T20:53:29.683627+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-18369481",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-09T20:53:29.683627+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-1002646",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم نرم کننده مو پرایم مدل Kera Moist حجم 120 میلی لیتر1002646",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-09T20:53:29.683627+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-11192935",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل شستشوی صورت ویتالیر مدل وایت ویت مناسب برای پوست‌های لک‌دار حجم 200 میلی لیتر",
+        "use_case": "home_cleaning"
+      },
+      {
+        "at": "2026-11-09T20:53:29.683627+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-6267904",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم ضدآفتاب رنگی پیکسل 50 SPFمدل LIGHT BEIGE مناسب برای پوست‌های چرب، حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-09T20:53:29.683627+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -617,7 +614,24 @@
         "use_case": "audio_visual"
       },
       {
-        "at": "2026-11-09T20:21:53.126472+00:00",
+        "at": "2026-11-09T20:53:29.683627+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "audio_wearables",
+        "compared_to_product_id": "dkp-23000078",
+        "family": "audio_wearables:headphones",
+        "product_id": "dkp-16471977",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "هدفون بلوتوثی شیائومی مدل Redmi Buds 6 Active با نویز کنسلینگ میکروفون (ENC)، درگاه شارژ USB Type-C، دارای دو میکروفون با قابلیت حذف نویز، پشتیبانی از فرمان لمسی، مقاوم در برابر رط",
+        "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-09T20:53:29.683627+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -634,41 +648,24 @@
         "use_case": "fashion_lifestyle"
       },
       {
-        "at": "2026-11-09T20:21:53.126472+00:00",
+        "at": "2026-11-09T20:53:29.683627+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-5927887",
-        "family": "fashion:socks",
-        "product_id": "dkp-20317543",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-6400535",
         "reason": "family_repeat,similarity_repeat",
         "reasons": [
           "family_repeat",
           "similarity_repeat"
         ],
-        "title": "جوراب ساق بلند مردانه سیرداش مدل 195 بسته 6 عددی",
-        "use_case": "fashion_lifestyle"
+        "title": "لوسیون بدن وازلین مدل INTENSIVE CARE حجم 400 میلی‌لیتر نرم‌کننده و آبرسان قوی با عصاره کاکائو، جذب سریع، مرطوب‌کننده 24 ساعته، ضد التهاب و مناسب انواع پوست",
+        "use_case": "mobile_productivity"
       },
       {
-        "at": "2026-11-09T20:21:53.126472+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "power_backup",
-        "compared_to_product_id": "dkp-19967154",
-        "family": "power_backup:power_bank",
-        "product_id": "dkp-20328532",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "پاوربانک 22.5 وات نوکسو مدل PN-1 ظرفیت 10000 میلی آمپر ساعت",
-        "use_case": "lighting_electrical"
-      },
-      {
-        "at": "2026-11-09T20:21:53.126472+00:00",
+        "at": "2026-11-09T20:53:29.683627+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -685,7 +682,7 @@
         "use_case": "fashion_lifestyle"
       },
       {
-        "at": "2026-11-09T20:21:53.126472+00:00",
+        "at": "2026-11-09T20:53:29.683627+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -702,24 +699,7 @@
         "use_case": "mobile_productivity"
       },
       {
-        "at": "2026-11-09T20:21:53.126472+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-5927887",
-        "family": "fashion:socks",
-        "product_id": "dkp-22403708",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "جوراب ساق بلند مردانه پالوته مدل PLT-3COL-LN بسته 3 عددی",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T20:21:53.126472+00:00",
+        "at": "2026-11-09T20:53:29.683627+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -736,7 +716,7 @@
         "use_case": "gaming"
       },
       {
-        "at": "2026-11-09T20:21:53.126472+00:00",
+        "at": "2026-11-09T20:53:29.683627+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -753,7 +733,24 @@
         "use_case": "lighting_electrical"
       },
       {
-        "at": "2026-11-09T20:21:53.126472+00:00",
+        "at": "2026-11-09T20:53:29.683627+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-4877073",
+        "family": "fashion:footwear",
+        "product_id": "dkp-9930981",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش زنانه مدل چرم طبیعی کد 0222",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-09T20:53:29.683627+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
