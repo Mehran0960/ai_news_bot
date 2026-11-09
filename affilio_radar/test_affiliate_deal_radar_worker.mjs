@@ -45,6 +45,7 @@ test("health advertises experiment attribution support", async () => {
   assert.equal(body.ok, true);
   assert.equal(body.clickStoreReady, true);
   assert.equal(body.experimentAttribution, true);
+  assert.equal(body.captionExperimentAttribution, true);
 });
 
 test("product redirects store source and A/B attribution and expose it in stats", async () => {
@@ -55,7 +56,7 @@ test("product redirects store source and A/B attribution and expose it in stats"
   const request = new Request(
     "https://worker.example/p/" + productId +
       "?u=" + encodeURIComponent(affiliateUrl) +
-      "&src=telegram&exp=creative-test-1&variant=b",
+      "&src=telegram&exp=creative-test-1&variant=b&cexp=caption-test-1&cvariant=a",
     { headers: { "user-agent": "Mozilla/5.0 test browser" } },
   );
   const response = await worker.fetch(request, { CLICKS });
@@ -64,12 +65,14 @@ test("product redirects store source and A/B attribution and expose it in stats"
 
   const keys = [...CLICKS.values.keys()].filter((key) => key.startsWith("click:"));
   assert.equal(keys.length, 1);
-  assert.match(keys[0], /:dkp-123456:telegram:creative-test-1:b:/);
+  assert.match(keys[0], /:dkp-123456:telegram:v:creative-test-1:b:c:caption-test-1:a:/);
   const event = JSON.parse(CLICKS.values.get(keys[0]));
   assert.equal(event.product_id, productId);
   assert.equal(event.channel, "telegram");
   assert.equal(event.experiment, "creative-test-1");
   assert.equal(event.variant, "B");
+  assert.equal(event.caption_experiment, "caption-test-1");
+  assert.equal(event.caption_variant, "A");
 
   const statsResponse = await worker.fetch(
     new Request("https://worker.example/stats"),
@@ -81,6 +84,9 @@ test("product redirects store source and A/B attribution and expose it in stats"
   assert.equal(stats.products[productId], 1);
   assert.equal(stats.sources.telegram, 1);
   assert.equal(stats.experimentVariants["creative-test-1:B"], 1);
+  assert.equal(stats.visualExperimentVariants["creative-test-1:B"], 1);
+  assert.equal(stats.captionExperimentVariants["caption-test-1:A"], 1);
+  assert.equal(stats.productCaptionExperimentVariants[productId]["caption-test-1:A"], 1);
 });
 
 test("HEAD validation does not create a click event", async () => {

@@ -219,7 +219,8 @@ jobs:
           assert status.get("ok") is True, status
           assert status.get("clickStoreReady") is True, status
           assert status.get("experimentAttribution") is True, status
-          print("CLICK_TRACKER_HEALTH_AND_EXPERIMENT_ATTRIBUTION_OK")
+          assert status.get("captionExperimentAttribution") is True, status
+          print("CLICK_TRACKER_HEALTH_AND_DUAL_EXPERIMENT_ATTRIBUTION_OK")
 
           # Click analytics are for measurement only; DigiKala bestseller rank and product
           # metadata drive demand ranking. This checks that product/source/experiment clicks
@@ -276,6 +277,8 @@ jobs:
                       "src": source,
                       "exp": "offerchin-smoke-test",
                       "variant": "a" if source == "telegram" else "b",
+                      "cexp": "offerchin-caption-smoke",
+                      "cvariant": "b" if source == "telegram" else "a",
                   },
                   headers=headers,
                   allow_redirects=False,
@@ -298,6 +301,8 @@ jobs:
                       "src": source,
                       "exp": "offerchin-smoke-test",
                       "variant": "a" if source == "telegram" else "b",
+                      "cexp": "offerchin-caption-smoke",
+                      "cvariant": "b" if source == "telegram" else "a",
                   },
                   headers={"User-Agent": "OfferChinClickTrackerProbe/1.0"},
                   allow_redirects=False,
@@ -321,8 +326,11 @@ jobs:
           assert isinstance(analytics.get("productSources"), dict), analytics
           assert isinstance(analytics.get("experimentVariants"), dict), analytics
           assert isinstance(analytics.get("productExperimentVariants"), dict), analytics
+          assert isinstance(analytics.get("captionExperimentVariants"), dict), analytics
+          assert isinstance(analytics.get("productCaptionExperimentVariants"), dict), analytics
+          assert isinstance(analytics.get("visualExperimentVariants"), dict), analytics
           assert "channels" not in analytics and "productChannels" not in analytics, analytics
-          print("CLICK_TRACKER_AGGREGATE_STATS_OK_PRODUCT_SOURCE_EXPERIMENT_BREAKDOWN")
+          print("CLICK_TRACKER_AGGREGATE_STATS_OK_PRODUCT_SOURCE_VISUAL_AND_CAPTION_EXPERIMENT_BREAKDOWN")
           PY
       # [repair-all-captions] Repairs every surviving caption without timers and restores its verified purchase button.
       # [repair-all-captions] Remove obsolete expiry labels from every tracked live caption in place.
