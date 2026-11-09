@@ -60,6 +60,7 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         self.candidates = {
             "schema_version": 1,
             "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
+            "candidate_order_policy": "catalog_demand_first_v1",
             "cycle_status": "complete",
             "cycle_started_at": self.started_at,
             "cycle_completed_at": self.completed_at,
@@ -213,6 +214,75 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
                 "completed_candidates_snapshot_valid"
             ]
         )
+
+    def test_demand_first_snapshot_accepts_non_monotonic_discount_order(self):
+        changed = {
+            **self.candidates,
+            "candidates": [
+                {
+                    **self.candidates["candidates"][0],
+                    "discount_percent": 10,
+                    "savings_toman": 100_000,
+                },
+                {
+                    **self.candidates["candidates"][1],
+                    "discount_percent": 80,
+                    "savings_toman": 800_000,
+                },
+            ],
+        }
+        status = build_status_snapshot(self.state, completed_candidates=changed)
+        self.assertTrue(status["completed_candidates_snapshot_valid"])
+
+    def test_unknown_candidate_order_policy_is_rejected(self):
+        changed = {**self.candidates, "candidate_order_policy": "unknown_policy"}
+        status = build_status_snapshot(self.state, completed_candidates=changed)
+        self.assertFalse(status["completed_candidates_snapshot_valid"])
+
+    def test_valid_demand_first_snapshot_exposes_compact_preview(self):
+        status = build_status_snapshot(
+            self.state,
+            "2026-11-06T16:01:00+00:00",
+            completed_candidates=self.candidates,
+        )
+        self.assertTrue(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["completed_candidates_order_policy"], "catalog_demand_first_v1")
+        self.assertEqual(status["top_candidates_preview_count"], 2)
+        self.assertEqual(
+            [row["product_id"] for row in status["top_candidates_preview"]],
+            ["dkp-100", "dkp-200"],
+        )
+        self.assertEqual(
+            [row["snapshot_rank"] for row in status["top_candidates_preview"]],
+            [1, 2],
+        )
+
+    def test_invalid_or_legacy_snapshot_exposes_no_demand_first_preview(self):
+        invalid = {**self.candidates, "candidates": []}
+        status = build_status_snapshot(
+            self.state,
+            "2026-11-06T16:01:00+00:00",
+            completed_candidates=invalid,
+        )
+        self.assertFalse(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["top_candidates_preview_count"], 0)
+        self.assertEqual(status["top_candidates_preview"], [])
+
+        legacy = {key: value for key, value in self.candidates.items() if key != "candidate_order_policy"}
+        legacy_status = build_status_snapshot(
+            self.state,
+            "2026-11-06T16:01:00+00:00",
+            completed_candidates=legacy,
+        )
+        self.assertTrue(legacy_status["completed_candidates_snapshot_valid"])
+        self.assertEqual(legacy_status["top_candidates_preview_count"], 0)
+        self.assertEqual(legacy_status["top_candidates_preview"], [])
+
+    def test_sweep_writer_declares_the_demand_first_order_policy(self):
+        scanner = (
+            Path(__file__).resolve().parent / "parallel_catalog_sweep.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn('"candidate_order_policy": "catalog_demand_first_v1"', scanner)
 
     def test_loader_accepts_small_new_category_additions_without_weakening_hash_checks(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -1455,3 +1455,36 @@
 **ریسک/بازگشت:** متن B باید از نظر نگارش و اثر بر اعتماد/کلیک پایش شود؛ بدنهٔ factual و CTA عمداً ثابت مانده است. در صورت شکست آزمایش، می‌توان فقط تخصیص کپشن را به A برگرداند یا commit مربوط را revert کرد؛ schema قدیمی Worker و داده‌های کلیک قبلی حذف نمی‌شوند. CTR بدون impression و فروش/کمیسیون بدون گزارش رسمی افیلیو محاسبه نمی‌شوند.
 
 **وضعیت:** کد، تست‌ها و مستندات در شاخهٔ کاری ثبت شده‌اند. CI، merge به `main` و deploy نسخهٔ Worker دو‌بُعدی هنوز pending هستند؛ تا آن زمان قابلیت جدید در production فعال تلقی نمی‌شود.
+
+## ۲۰۲۶-۱۱-۰۹ — قرارداد snapshot تقاضامحور و پیش‌نمایش آفر ممتاز روزانه
+
+**هدف:** هم‌راستاسازی validator با ترتیب تقاضامحور اسکنر، و فراهم‌کردن shortlist فشرده برای معرفی حداکثر یک آفر ممتاز در روز.
+
+**تغییر/اقدام:** snapshotهای جدید اسکنر موازی با `candidate_order_policy=catalog_demand_first_v1` علامت‌گذاری می‌شوند. validator برای این policy ترتیب فهرست را بر اساس تخفیف بازتفسیر نمی‌کند؛ برای snapshotهای قدیمی فاقد policy، قرارداد legacy تخفیف‌محور حفظ می‌شود. فایل وضعیت، در صورت snapshot کامل، تازه و hash-verified با policy صریح demand-first، پیش‌نمایش حداکثر ۱۰۰ نامزد اول را در `top_candidates_preview` ارائه می‌کند؛ در snapshot نامعتبر/legacy این پیش‌نمایش خالی است. سند جداگانهٔ آفر ممتاز روزانه اضافه شد: یک گزینهٔ استثنایی یا اعلام نبود گزینه، تحویل ساعت ۱۸:۰۰ تهران و زمان انتشار آزمایشی جداگانه.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/catalog_status_snapshot.py`، `affilio_radar/parallel_catalog_sweep.py`، `affilio_radar/test_catalog_status_snapshot.py`، `README.md`، `docs/OFFERCHIN_DAILY_FEATURED_OFFER_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** تست‌های رگرسیون برای non-monotonic discount زیر policy demand-first، رد policy ناشناخته، preview فقط از snapshot معتبر و عدم نمایش preview از snapshot نامعتبر/legacy اضافه شدند؛ اجرای CI در انتظار است.
+
+**شواهد/شناسه:** شاخهٔ `feat/offerchin-daily-featured-offer-current-main-20261109`؛ PR و SHA پس از ایجاد ثبت می‌شوند.
+
+**ریسک/بازگشت:** snapshot legacy برای گیت عضویت کاتالوگ قابل ارزیابی می‌ماند اما preview تقاضامحور از آن صادر نمی‌شود. انتشار آگهی بیرونی و publisher کانال‌ها تغییر نکرده‌اند. بازگشت با revert همین PR ممکن است.
+
+**وضعیت:** تغییرات شاخه ثبت شده؛ CI در انتظار اجرا.
+
+## ۲۰۲۶-۱۱-۰۹ — جداسازی قفل CI اعتبارسنجی PR از اسکن زندهٔ کاتالوگ
+
+**هدف:** جلوگیری از قرارگرفتن تست‌های code-only یک PR پشت اجرای طولانی اسکن read-only کاتالوگ.
+
+**تغییر/اقدام:** در workflow اسکن کاتالوگ، PR validation اکنون از concurrency group مستقل `offerchin-digikala-catalog-sweep-pr-v1` استفاده می‌کند؛ اجرای main و workflow_dispatch همچنان در گروه عملیاتی موجود `offerchin-digikala-catalog-sweep-v3` سریالی می‌مانند. صف، workerها، cadence، retry و منطق crawler تغییر نکرده‌اند.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-digikala-catalog-sweep.yml`، این changelog و handbook.
+
+**آزمون و نتیجه:** اجرای PR قبلی در گروه مشترک pending بود؛ اجرای مجدد پس از جداسازی گروه در انتظار GitHub Actions است.
+
+**شواهد/شناسه:** PR #142، branch `feat/offerchin-daily-featured-offer-current-main-20261109`.
+
+**ریسک/بازگشت:** فقط قفل‌های validation و crawler از هم جدا شده‌اند؛ PR همچنان py_compile و regression tests را اجرا می‌کند. بازگشت با revert تغییر concurrency block ممکن است.
+
+**وضعیت:** تغییر شاخه ثبت شد؛ CI مجدد در انتظار.
+
