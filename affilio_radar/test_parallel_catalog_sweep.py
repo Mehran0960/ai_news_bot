@@ -51,6 +51,30 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual(sweep._next_worker_limit(12, 16, 0, 3), 6)
         self.assertEqual(sweep._next_worker_limit(2, 16, 3, 3), 2)
 
+    def test_single_isolated_5xx_holds_capacity_but_repeated_5xx_backs_off(self):
+        self.assertEqual(
+            sweep._next_worker_limit(6, 16, 0, 1, http_5xx_retry_count=1),
+            6,
+        )
+        self.assertEqual(
+            sweep._next_worker_limit(12, 16, 0, 2, http_5xx_retry_count=2),
+            11,
+        )
+        self.assertEqual(
+            sweep._next_worker_limit(12, 16, 0, 3, http_5xx_retry_count=3),
+            6,
+        )
+
+    def test_timeout_still_triggers_backoff_even_when_a_5xx_is_also_seen(self):
+        self.assertEqual(
+            sweep._next_worker_limit(
+                12, 16, 0, 2,
+                timeout_retry_count=1,
+                http_5xx_retry_count=1,
+            ),
+            11,
+        )
+
     def test_request_latency_percentiles_use_nearest_rank(self):
         self.assertEqual(sweep._percentile([0.25, 1.25], 0.50), 0.25)
         self.assertEqual(sweep._percentile([0.25, 1.25], 0.95), 1.25)

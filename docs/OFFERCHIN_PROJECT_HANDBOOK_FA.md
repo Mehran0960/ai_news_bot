@@ -133,8 +133,8 @@ Registry مرکزی: `affilio_radar/platform_registry.py`. مقصدهای فعل
 | `affilio_radar/catalog_sweep.py` | دریافت دسته‌ها، استخراج کارت‌ها و رتبه‌بندی تخفیف |
 | `affilio_radar/parallel_catalog_sweep.py` | صف صفحه‌ها، concurrency، retry و آمار چرخه |
 | `affilio_radar/catalog_sweep_state.json` | دسته‌ها، صف صفحه‌های مانده و آمار چرخه |
-| `affilio_radar/catalog_sweep_candidates.json` | shortlist ۳٬۰۰۰ کارت اخیر برتر از نظر تخفیف |
-| `affilio_radar/affilio_radar.py` | کشف، اعتبارسنجی و انتخاب discount-first |
+| `affilio_radar/catalog_sweep_candidates.json` | بافر حداکثر ۳٬۰۰۰ کارت ورودی اسکن؛ snapshot کامل و رتبه‌بندی‌شده در `catalog_sweep_completed_candidates.json` نگهداری می‌شود |
+| `affilio_radar/affilio_radar.py` | اعتبارسنجی و انتخاب تقاضامحور با گیت snapshot کامل کاتالوگ |
 | `affilio_radar/state.json` | صف کشف/انتشار و وضعیت مقصدها؛ `catalog_sweep_handoff.seen_ids` اثر انگشت قیمت/موجودی آخرین hand-off را نگه می‌دارد |
 | `affilio_radar/content_delivery.py` | صف تحویل و وضعیت per-platform |
 | `affilio_radar/platform_registry.py` | فهرست مرکزی مقصدها |
@@ -1045,3 +1045,12 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 - هر نتیجهٔ صفحه، زمان end-to-end دریافت و parse را نگه می‌دارد. p50، p95، بیشینهٔ تأخیر، تعداد درخواست‌های اندازه‌گیری‌شده، timeout، HTTP 5xx، Workerهای واقعاً استفاده‌شده و ظرفیت اجرای بعدی در state، status snapshot و لاگ خلاصه ثبت می‌شوند.
 - در صورت مشاهدهٔ افت پایدار throughput یا افزایش خطا، افزایش ظرفیت متوقف و کنترل به‌صورت خودکار عقب‌نشینی می‌کند. تقسیم اسکن میان چند Runner فقط بعد از اثبات پایداری سقف ۱۶ و بررسی اثر آن بر نرخ محدودسازی منبع قابل بررسی است.
 - این اصلاح فقط کنترل ظرفیت و مشاهده‌پذیری را تغییر می‌دهد؛ ترتیب تقاضامحور، پوشش همهٔ صفحات/دسته‌ها، retry queue، checkpoint، snapshot و انتشار را تغییر نمی‌دهد.
+
+## افزایش بهره‌وری اجرای اسکن بدون افزایش فشار هم‌زمان — ۹ نوامبر ۲۰۲۶
+
+- هر اجرای workflow حداکثر سه microbatch مستقل و متوالی اجرا می‌کند؛ اندازهٔ هر batch همان ۴۸۰ صفحه باقی می‌ماند و سقف Worker همان ۱۶ است. بنابراین سقف اسمی هر اجرای workflow برابر ۱٬۴۴۰ تلاش صفحه است، نه یک batch بزرگ‌تر یا سه Runner موازی.
+- کنترل تطبیقی Worker در هر microbatch جداگانه اعمال می‌شود و state محلی پس از هر microbatch ثبت می‌شود؛ snapshot وضعیت و commit نهایی پس از پایان پنجره انجام می‌شوند. اگر یک microbatch شکست بخورد، پنجره متوقف می‌شود و مرحلهٔ persistence با `if: always()` state آخرین batch موفق را ذخیره می‌کند.
+- مکث میان batchها بر اساس telemetry آخرین اجراست: batch پاک ۳ ثانیه، retry بدون 429 برابر ۱۰ ثانیه، وجود 429 برابر ۲۰ ثانیه و سه یا بیشتر retry/429 یا نبود telemetry برابر ۳۰ ثانیه. این مکث، backoff است و افزایش ظرفیت ایجاد نمی‌کند.
+- هدف این تغییر کاهش راه‌اندازی تکراری Runner و دفعات commit state، با حفظ سقف درخواست هم‌زمان و سیاست backoff است. گروه concurrency عملیاتی و dispatcher یک‌دقیقه‌ای بدون تغییر می‌مانند؛ انتشار و گیت snapshot نیز تغییر نمی‌کنند.
+- کنترل‌گر ظرفیت در خطاها تفکیک‌شده عمل می‌کند: 429 باعث کاهش دو Worker، timeout یا خطای گذرای غیر 5xx باعث کاهش یک Worker، ۲ یا بیشتر خطای 5xx نیز باعث کاهش یک Worker، و ۳ یا بیشتر retry باعث نصف‌شدن ظرفیت می‌شود. یک 5xx منفرد، وقتی 429/timeout یا خطای دیگری همراهش نیست، فقط ظرفیت فعلی را حفظ می‌کند؛ همان صفحه همچنان در صف retry می‌ماند و تا موفقیت از شمار پوشش حذف نمی‌شود.
+- timeout workflow همچنان ۱۲ دقیقه است. پیش از هر افزایش batch size یا concurrency، throughput و نرخ 429 در اجرای چندبچی باید بررسی شوند.
