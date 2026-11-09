@@ -44283,13 +44283,13 @@
   "last_cycle_status": "complete",
   "last_cycle_unqueryable_category_ids": [],
   "last_error": "",
-  "last_successful_category_id": "9653",
-  "last_successful_category_name": "جوراب و ساق دخترانه",
+  "last_successful_category_id": "9380",
+  "last_successful_category_name": "اکسسوری زنانه",
   "last_successful_page": 500,
-  "last_successful_page_at": "2026-11-09T11:06:30.035335+00:00",
+  "last_successful_page_at": "2026-11-09T11:07:25.009669+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 492,
+  "page": 493,
   "parallel_cycle_completed_category_ids": [
     "1",
     "2",
@@ -47508,6 +47508,7 @@
     "9376",
     "9378",
     "9379",
+    "9380",
     "9381",
     "9382",
     "9383",
@@ -49200,8 +49201,8 @@
     "11797",
     "214186"
   ],
-  "parallel_cycle_pages_success": 321195,
-  "parallel_cycle_product_rows_success": 6356004,
+  "parallel_cycle_pages_success": 321205,
+  "parallel_cycle_product_rows_success": 6356204,
   "parallel_cycle_started_at": "2026-11-08T07:56:20.016124+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -54128,19 +54129,19 @@
     "214158",
     "214186"
   ],
-  "parallel_last_batch_at": "2026-11-09T11:06:30.128623+00:00",
+  "parallel_last_batch_at": "2026-11-09T11:07:25.122117+00:00",
   "parallel_last_batch_candidate_file_bytes": 3969755,
-  "parallel_last_batch_candidate_write_seconds": 0.062,
+  "parallel_last_batch_candidate_write_seconds": 0.075,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 4.242,
+  "parallel_last_batch_fetch_seconds": 3.351,
   "parallel_last_batch_nonempty_product_pages": 10,
-  "parallel_last_batch_pages": 11,
-  "parallel_last_batch_pages_per_second": 2.59,
-  "parallel_last_batch_processing_seconds": 0.033,
+  "parallel_last_batch_pages": 10,
+  "parallel_last_batch_pages_per_second": 2.98,
+  "parallel_last_batch_processing_seconds": 0.041,
   "parallel_last_batch_product_rows": 200,
-  "parallel_last_batch_rate_limited": 1,
-  "parallel_last_batch_retries": 1,
-  "parallel_last_batch_rows_per_second": 46.11,
+  "parallel_last_batch_rate_limited": 0,
+  "parallel_last_batch_retries": 0,
+  "parallel_last_batch_rows_per_second": 57.69,
   "parallel_last_batch_successes": 10,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4671,
@@ -54149,80 +54150,73 @@
       "attempts": 0,
       "category_id": "11362",
       "category_name": "لوازم موتورسیکلت",
-      "page": 492
+      "page": 493
     },
     {
-      "attempts": 1,
+      "attempts": 0,
       "category_id": "9457",
       "category_name": "لباس ورزشی مردانه",
-      "last_error": "http_429",
-      "page": 493
+      "page": 494
     },
     {
       "attempts": 0,
       "category_id": "6951",
       "category_name": "تابلو فرش",
-      "page": 495
+      "page": 496
     },
     {
       "attempts": 0,
       "category_id": "6949",
       "category_name": "فرش دستبافت",
-      "page": 496
+      "page": 497
     },
     {
       "attempts": 0,
       "category_id": "9638",
       "category_name": "ست لباس دخترانه",
-      "page": 496
+      "page": 497
     },
     {
       "attempts": 0,
       "category_id": "9906",
       "category_name": "کفش روزمره مردانه",
-      "page": 496
+      "page": 497
     },
     {
       "attempts": 0,
       "category_id": "9337",
       "category_name": "لباس زیر زنانه",
-      "page": 497
+      "page": 498
     },
     {
       "attempts": 0,
       "category_id": "9391",
       "category_name": "گوشواره طلا زنانه",
-      "page": 497
+      "page": 498
     },
     {
       "attempts": 0,
       "category_id": "9749",
       "category_name": "لباس پسرانه",
-      "page": 498
-    },
-    {
-      "attempts": 0,
-      "category_id": "9380",
-      "category_name": "اکسسوری زنانه",
-      "page": 500
+      "page": 499
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 7,
-  "parallel_workers_used": 8,
-  "pending_page_count": 10,
+  "parallel_worker_limit": 8,
+  "parallel_workers_used": 7,
+  "pending_page_count": 9,
   "schema_version": 1,
   "stats": {
     "api_failures_total": 48728,
-    "catalog_candidate_cards_found_total": 20776913,
+    "catalog_candidate_cards_found_total": 20777113,
     "completed_cycles": 2,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 4774895,
+    "discounted_candidates_found_total": 4774933,
     "empty_product_pages_total": 26370,
-    "nonempty_product_pages_total": 1048350,
-    "pages_scanned_total": 1073928,
-    "product_rows_scanned_total": 20776953,
+    "nonempty_product_pages_total": 1048360,
+    "pages_scanned_total": 1073938,
+    "product_rows_scanned_total": 20777153,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
