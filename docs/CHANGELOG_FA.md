@@ -1346,3 +1346,24 @@
 **ریسک/بازگشت:** رتبهٔ پرفروش، رتبهٔ نسبی در دسته است، نه تعداد فروش. نبود رتبهٔ تازه به‌صورت شواهد ناموجود/ضعیف تلقی می‌شود و باعث توقف سراسری نمی‌شود. کلیک، impression یا فروش یکسان نیستند. در صورت deploy نشدن یا ناسالم بودن Worker، لینک خرید مستقیم Affilio حفظ می‌شود. بازگشت کد با revert همین PR/commitها ممکن است؛ Worker فقط پس از آزمون redirect و stats در محیط production deploy شود.
 
 **وضعیت:** پیاده‌سازی روی شاخهٔ مستقل انجام شده؛ CI/PR، ادغام در `main` و deploy Worker در انتظارند. رفتار تولیدی تا پیش از این مراحل تغییر نکرده است.
+
+## ۲۰۲۶-۱۱-۰۹ — ادغام و استقرار تولیدی رتبه‌بندی تقاضامحور و انتساب کلیک
+
+**هدف:** تکمیل rollout سیاست تقاضامحور دیجی‌کالا و زیرساخت آزمایش/انتساب، هماهنگ‌سازی اسناد مرجع و تأیید رفتار Worker در محیط production.
+
+**تغییر/اقدام:**
+- PR شمارهٔ ۱۳۵ با عنوان «OfferChin: demand-first DigiKala selection and performance attribution» در ساعت 04:56:20 UTC در `main` ادغام شد؛ merge commit برابر `10ad29a03771702137c7f51c32b694484bcad307` است.
+- کد رتبه‌بندی تقاضامحور، تاریخچهٔ رتبه، حفظ ترتیب تا صف انتشار، طبقه‌بندی کاربرد، تخصیص A/B برای تصویر/کپشن/ویدئو، گزارش عملکرد و تست‌های مرتبط در main قرار گرفتند.
+- Worker `affiliate-deal-radar` با Cloudflare API deploy شد؛ deployment ID برابر `ab6ae47e9f204c91bfd823caca497682` است. binding موجود KV با نام `CLICKS` و تنظیمات observability و redact کردن query string حفظ شدند.
+- Workflow smoke به‌روزرسانی شد تا وجود `experimentAttribution` را در health، redirect امن لینک‌های Digikala/SnappShop، مسیر HEAD غیرشمارشی و schema تفکیک‌شدهٔ /stats را کنترل کند.
+- Handbook، پکیج بهینه‌سازی و READMEهای ریشه و radar با سیاست جاری هماهنگ شدند. سیاست تخفیف‌محور قبلی به‌عنوان سابقهٔ تاریخی/منسوخ مشخص شد.
+
+**فایل‌ها/سامانه‌ها:** `README.md`، `affilio_radar/README.md`، `docs/OFFERCHIN_OPTIMIZATION_PACKAGE_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`، `.github/workflows/affilio-radar.yml`، `.github/workflows/offerchin-publisher.yml`، Cloudflare Worker `affiliate-deal-radar`.
+
+**آزمون و نتیجه:** تست‌های Python و Node برای رتبه‌بندی، صف، fallback، A/B و attribution در CI مربوط به PR موفق شدند. Documentation Gate، Catalog Sweep، Platform Logo Regression، Messenger Adapter Regression و Product Radar روی merge commit موفق بودند. اجرای پس از deploy Product Radar در run `42564719064` با نتیجهٔ success، smoke check جدید health/experiment flag، redirect و آمار را با موفقیت گذراند. اسکن کاتالوگ پس از ادغام نیز در run `42564479942` موفق شد.
+
+**شواهد/شناسه:** [PR #135](https://github.com/Mehran0960/ai_news_bot/pull/135)، merge commit `10ad29a03771702137c7f51c32b694484bcad307`، Cloudflare deployment `ab6ae47e9f204c91bfd823caca497682`، production smoke run `42564719064`. Documentation Gate روی merge commit در run `42564479969` موفق شد.
+
+**ریسک/بازگشت:** رتبهٔ پرفروش سیگنال نسبی دسته است، نه تعداد قطعی واحدهای فروش. CTR به impression نیاز دارد و سفارش/فروش/کمیسیون فقط با خروجی رسمی افیلیو قابل ثبت‌اند؛ هیچ‌کدام از روی کلیک تخمین زده نمی‌شوند. در صورت ناسالم شدن Worker، health probe ناشر را به لینک مستقیم معتبر Affilio برمی‌گرداند. rollback کد با revert کردن merge commit/PR و rollback Worker با بازگرداندن نسخهٔ قبلی Worker انجام می‌شود؛ stateهای تاریخی و گزارش کلیک نباید پاک شوند.
+
+**وضعیت:** PR ادغام شده، Worker مستقر و smoke test production موفق است. پایش عملکرد A/B، اتصال impression و دادهٔ رسمی سفارش/کمیسیون، کارهای بعدی‌اند.
