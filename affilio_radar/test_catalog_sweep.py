@@ -247,7 +247,7 @@ class CatalogSweepTests(unittest.TestCase):
             path = Path(temp) / "candidates.json"
             path.write_text(json.dumps({"candidates": [
                 {"product_id": "dkp-1", "product_url": "https://www.digikala.com/product/dkp-1/", "title": "هدفون بلوتوثی نمونه", "current_price": 250_000, "original_price": 500_000, "discount_percent": 50, "availability": "in_stock"},
-                {"product_id": "dkp-2", "product_url": "https://www.digikala.com/product/dkp-2/", "title": "پاوربانک مدل نمونه", "discount_percent": 70},
+                {"product_id": "dkp-2", "product_url": "https://www.digikala.com/product/dkp-2/", "title": "پاوربانک مدل نمونه", "current_price": 300_000, "original_price": 1_000_000, "discount_percent": 70, "savings_toman": 700_000, "availability": "in_stock"},
             ]}, ensure_ascii=False), encoding="utf-8")
             state = {}
             fixed_now = datetime(2026, 11, 2, 0, 0, tzinfo=timezone.utc)
@@ -298,6 +298,7 @@ class CatalogSweepTests(unittest.TestCase):
             "current_price": 500_000,
             "original_price": 1_000_000,
             "discount_percent": 50,
+            "savings_toman": 500_000,
             "availability": "in_stock",
             "last_seen_at": now.isoformat(),
         }
@@ -355,6 +356,7 @@ class CatalogSweepTests(unittest.TestCase):
             "current_price": 500_000,
             "original_price": 1_000_000,
             "discount_percent": 50,
+            "savings_toman": 500_000,
             "availability": "in_stock",
             "last_seen_at": now.isoformat(),
         }
@@ -387,6 +389,7 @@ class CatalogSweepTests(unittest.TestCase):
                 "current_price": 500_000,
                 "original_price": 1_000_000,
                 "discount_percent": 50,
+                "savings_toman": 500_000,
                 "availability": "in_stock",
             }
             state = {}
@@ -400,7 +403,7 @@ class CatalogSweepTests(unittest.TestCase):
                 load_catalog_candidates_for_handoff(path, state, now=now + timedelta(hours=1)),
                 [],
             )
-            changed = dict(original, current_price=400_000, discount_percent=60)
+            changed = dict(original, current_price=400_000, discount_percent=60, savings_toman=600_000)
             path.write_text(json.dumps({"candidates": [changed]}, ensure_ascii=False), encoding="utf-8")
             selected = load_catalog_candidates_for_handoff(
                 path, state, now=now + timedelta(hours=1)
@@ -417,6 +420,7 @@ class CatalogSweepTests(unittest.TestCase):
                 "current_price": 500_000,
                 "original_price": 1_000_000,
                 "discount_percent": 50,
+                "savings_toman": 500_000,
                 "availability": "in_stock",
             }
             state = {}
@@ -429,7 +433,7 @@ class CatalogSweepTests(unittest.TestCase):
                 load_catalog_candidates_for_handoff(path, state, now=now + timedelta(hours=1)),
                 [],
             )
-            changed_price = dict(original, current_price=400_000, discount_percent=60)
+            changed_price = dict(original, current_price=400_000, discount_percent=60, savings_toman=600_000)
             path.write_text(json.dumps({"candidates": [changed_price]}, ensure_ascii=False), encoding="utf-8")
             selected = load_catalog_candidates_for_handoff(
                 path, state, now=now + timedelta(hours=1)
@@ -458,6 +462,7 @@ class CatalogSweepTests(unittest.TestCase):
                     "review_count": 10000 - index,
                     "rating": 4.7,
                     "discount_percent": 25,
+                    "savings_toman": 250_000,
                 }
                 for index in range(1, 6)
             ]
@@ -471,6 +476,7 @@ class CatalogSweepTests(unittest.TestCase):
                     "review_count": 100,
                     "rating": 4.5,
                     "discount_percent": 20,
+                    "savings_toman": 200_000,
                 },
                 {
                     "product_id": "dkp-30",
@@ -481,6 +487,7 @@ class CatalogSweepTests(unittest.TestCase):
                     "review_count": 90,
                     "rating": 4.4,
                     "discount_percent": 30,
+                    "savings_toman": 300_000,
                 },
                 {
                     "product_id": "dkp-40",
@@ -491,6 +498,7 @@ class CatalogSweepTests(unittest.TestCase):
                     "review_count": 80,
                     "rating": 4.3,
                     "discount_percent": 40,
+                    "savings_toman": 400_000,
                 },
             ])
             path.write_text(
@@ -599,18 +607,15 @@ class CatalogSweepTests(unittest.TestCase):
             candidates = json.loads(candidates_path.read_text(encoding="utf-8"))
             self.assertEqual(state["stats"]["pages_scanned_total"], 1)
             self.assertEqual(state["stats"]["product_rows_scanned_total"], 3)
-            self.assertEqual(candidates["candidate_count"], 3)
+            self.assertEqual(candidates["candidate_count"], 1)
             self.assertEqual(state["stats"]["catalog_candidate_cards_found_total"], 3)
             self.assertEqual(state["stats"]["discounted_candidates_found_total"], 1)
             self.assertEqual(dict(session.calls[1][1]).get("sort"), 7)
             by_id = {row["product_id"]: row for row in candidates["candidates"]}
-            self.assertIn("dkp-778", by_id)
-            self.assertEqual(by_id["dkp-778"]["discount_percent"], 0)
+            self.assertEqual(set(by_id), {"dkp-777"})
             self.assertEqual(by_id["dkp-777"]["catalog_sort_mode"], "best_selling")
             self.assertEqual(by_id["dkp-777"]["catalog_best_selling_rank"], 1)
-            self.assertEqual(by_id["dkp-778"]["catalog_best_selling_rank"], 2)
-            self.assertEqual(by_id["dkp-779"]["catalog_best_selling_rank"], 3)
-            self.assertEqual(by_id["dkp-779"]["title"], "محصول دیجی‌کالا dkp-779")
+            self.assertEqual(by_id["dkp-777"]["discount_percent"], 30)
             self.assertEqual(state["completed_cycles"], 1)
 
 
