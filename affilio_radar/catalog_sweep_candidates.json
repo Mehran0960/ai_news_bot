@@ -6561,9 +6561,9 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "5970",
-      "catalog_best_selling_category_name": "لوازم تحریر",
-      "catalog_best_selling_rank": 3552,
+      "catalog_best_selling_category_id": "8",
+      "catalog_best_selling_category_name": "آرایشی بهداشتی",
+      "catalog_best_selling_rank": 6090,
       "catalog_best_selling_ranks_by_category": {
         "5970": {
           "category_name": "لوازم تحریر",
@@ -6579,21 +6579,27 @@
           "category_name": "خودکار و روان نویس",
           "observed_at": "2026-11-08T11:49:46.434488+00:00",
           "rank": 300
+        },
+        "8": {
+          "category_name": "آرایشی بهداشتی",
+          "observed_at": "2026-11-09T03:25:17.788642+00:00",
+          "rank": 6090
         }
       },
-      "catalog_category_id": "5970",
+      "catalog_category_id": "8",
       "catalog_category_ids": [
+        "8",
         "5970",
         "5971",
         "5980"
       ],
-      "catalog_category_name": "لوازم تحریر",
-      "catalog_rank_observed_at": "2026-11-08T21:03:18.315444+00:00",
+      "catalog_category_name": "آرایشی بهداشتی",
+      "catalog_rank_observed_at": "2026-11-09T03:25:17.788642+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 33000,
       "discount_percent": 85,
       "first_seen_at": "2026-11-08T11:49:46.434488+00:00",
-      "last_seen_at": "2026-11-08T21:03:01.731099+00:00",
+      "last_seen_at": "2026-11-09T03:24:36.211434+00:00",
       "original_price": 220000,
       "product_id": "dkp-21909204",
       "product_url": "https://www.digikala.com/product/dkp-21909204/",
@@ -58381,44 +58387,6 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "8517",
-      "catalog_best_selling_category_name": "کرم، اسپری و شامپو رنگ مو",
-      "catalog_best_selling_rank": 21,
-      "catalog_best_selling_ranks_by_category": {
-        "5700": {
-          "category_name": "لوازم آرایشی",
-          "observed_at": "2026-11-08T18:39:39.964238+00:00",
-          "rank": 2693
-        },
-        "8517": {
-          "category_name": "کرم، اسپری و شامپو رنگ مو",
-          "observed_at": "2026-11-08T09:23:10.057713+00:00",
-          "rank": 21
-        }
-      },
-      "catalog_category_id": "5700",
-      "catalog_category_ids": [
-        "5700",
-        "8517"
-      ],
-      "catalog_category_name": "لوازم آرایشی",
-      "catalog_rank_observed_at": "2026-11-08T09:23:10.057713+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 152490,
-      "discount_percent": 72,
-      "first_seen_at": "2026-11-08T09:23:10.057713+00:00",
-      "last_seen_at": "2026-11-08T18:39:08.907911+00:00",
-      "original_price": 550000,
-      "product_id": "dkp-9422950",
-      "product_url": "https://www.digikala.com/product/dkp-9422950/",
-      "rating": 3.5,
-      "review_count": 133,
-      "savings_toman": 397510,
-      "source": "digikala_catalog_sweep",
-      "title": "شامپو رنگ مو مارال مدل 05 حجم 80 میلی لیتر رنگ فیروزه ای"
-    },
-    {
-      "availability": "unknown",
       "catalog_best_selling_category_id": "8161",
       "catalog_best_selling_category_name": "گلدان باغبانی",
       "catalog_best_selling_rank": 875,
@@ -70581,6 +70549,38 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "5857",
+      "catalog_best_selling_category_name": "سایر لوازم خودرو",
+      "catalog_best_selling_rank": 6118,
+      "catalog_best_selling_ranks_by_category": {
+        "5857": {
+          "category_name": "سایر لوازم خودرو",
+          "observed_at": "2026-11-09T03:25:17.794047+00:00",
+          "rank": 6118
+        }
+      },
+      "catalog_category_id": "5857",
+      "catalog_category_ids": [
+        "5857"
+      ],
+      "catalog_category_name": "سایر لوازم خودرو",
+      "catalog_rank_observed_at": "2026-11-09T03:25:17.794047+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 735000,
+      "discount_percent": 70,
+      "first_seen_at": "2026-11-09T03:25:17.794047+00:00",
+      "last_seen_at": "2026-11-09T03:24:39.585269+00:00",
+      "original_price": 2450000,
+      "product_id": "dkp-21898878",
+      "product_url": "https://www.digikala.com/product/dkp-21898878/",
+      "rating": 0.0,
+      "review_count": 0,
+      "savings_toman": 1715000,
+      "source": "digikala_catalog_sweep",
+      "title": "دستگیره تنظیم ارتفاع صندلی خودرو مدل BS مناسب برای ام وی ام X22 و پرو"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "6513",
       "catalog_best_selling_category_name": "بهداشت دهان و دندان",
       "catalog_best_selling_rank": 798,
@@ -76097,12 +76097,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "10486",
       "catalog_best_selling_category_name": "کتاب",
-      "catalog_best_selling_rank": 6057,
+      "catalog_best_selling_rank": 6095,
       "catalog_best_selling_ranks_by_category": {
         "10486": {
           "category_name": "کتاب",
-          "observed_at": "2026-11-09T03:19:51.662534+00:00",
-          "rank": 6057
+          "observed_at": "2026-11-09T03:25:17.777337+00:00",
+          "rank": 6095
         },
         "11599": {
           "category_name": "کتاب موفقیت و رشد فردی",
@@ -76116,12 +76116,12 @@
         "11599"
       ],
       "catalog_category_name": "کتاب",
-      "catalog_rank_observed_at": "2026-11-09T03:19:51.662534+00:00",
+      "catalog_rank_observed_at": "2026-11-09T03:25:17.777337+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 250000,
       "discount_percent": 70,
       "first_seen_at": "2026-11-08T11:35:20.652644+00:00",
-      "last_seen_at": "2026-11-09T03:19:33.398496+00:00",
+      "last_seen_at": "2026-11-09T03:24:26.466139+00:00",
       "original_price": 840000,
       "product_id": "dkp-17858080",
       "product_url": "https://www.digikala.com/product/dkp-17858080/",
@@ -101335,12 +101335,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9347",
       "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 6088,
+      "catalog_best_selling_rank": 6116,
       "catalog_best_selling_ranks_by_category": {
         "9347": {
           "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-09T03:23:24.745808+00:00",
-          "rank": 6088
+          "observed_at": "2026-11-09T03:25:17.834644+00:00",
+          "rank": 6116
         }
       },
       "catalog_category_id": "9347",
@@ -101348,12 +101348,12 @@
         "9347"
       ],
       "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-09T03:23:24.745808+00:00",
+      "catalog_rank_observed_at": "2026-11-09T03:25:17.834644+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1192000,
       "discount_percent": 67,
       "first_seen_at": "2026-11-08T13:30:08.342624+00:00",
-      "last_seen_at": "2026-11-09T03:23:10.706314+00:00",
+      "last_seen_at": "2026-11-09T03:25:13.532595+00:00",
       "original_price": 3580000,
       "product_id": "dkp-18892281",
       "product_url": "https://www.digikala.com/product/dkp-18892281/",
@@ -105583,27 +105583,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9470",
-      "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 1040,
+      "catalog_best_selling_category_id": "9435",
+      "catalog_best_selling_category_name": "لباس مردانه",
+      "catalog_best_selling_rank": 6104,
       "catalog_best_selling_ranks_by_category": {
+        "9435": {
+          "category_name": "لباس مردانه",
+          "observed_at": "2026-11-09T03:25:17.840059+00:00",
+          "rank": 6104
+        },
         "9470": {
           "category_name": "تی شرت مردانه",
           "observed_at": "2026-11-08T14:41:11.175993+00:00",
           "rank": 1040
         }
       },
-      "catalog_category_id": "9470",
+      "catalog_category_id": "9435",
       "catalog_category_ids": [
+        "9435",
         "9470"
       ],
-      "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-08T14:41:11.175993+00:00",
+      "catalog_category_name": "لباس مردانه",
+      "catalog_rank_observed_at": "2026-11-09T03:25:17.840059+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1192000,
       "discount_percent": 67,
       "first_seen_at": "2026-11-08T14:41:11.175993+00:00",
-      "last_seen_at": "2026-11-08T14:40:51.435858+00:00",
+      "last_seen_at": "2026-11-09T03:25:16.885474+00:00",
       "original_price": 3580000,
       "product_id": "dkp-21814914",
       "product_url": "https://www.digikala.com/product/dkp-21814914/",
@@ -106935,12 +106941,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "9347",
       "catalog_best_selling_category_name": "تی شرت زنانه",
-      "catalog_best_selling_rank": 1108,
+      "catalog_best_selling_rank": 6114,
       "catalog_best_selling_ranks_by_category": {
         "9347": {
           "category_name": "تی شرت زنانه",
-          "observed_at": "2026-11-08T14:49:12.563621+00:00",
-          "rank": 1108
+          "observed_at": "2026-11-09T03:25:17.834644+00:00",
+          "rank": 6114
         }
       },
       "catalog_category_id": "9347",
@@ -106948,12 +106954,12 @@
         "9347"
       ],
       "catalog_category_name": "تی شرت زنانه",
-      "catalog_rank_observed_at": "2026-11-08T14:49:12.563621+00:00",
+      "catalog_rank_observed_at": "2026-11-09T03:25:17.834644+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1192000,
       "discount_percent": 67,
       "first_seen_at": "2026-11-08T14:49:12.563621+00:00",
-      "last_seen_at": "2026-11-08T14:48:46.300571+00:00",
+      "last_seen_at": "2026-11-09T03:25:13.532508+00:00",
       "original_price": 3580000,
       "product_id": "dkp-15074990",
       "product_url": "https://www.digikala.com/product/dkp-15074990/",
@@ -108053,27 +108059,33 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9470",
-      "catalog_best_selling_category_name": "تی شرت مردانه",
-      "catalog_best_selling_rank": 2059,
+      "catalog_best_selling_category_id": "9435",
+      "catalog_best_selling_category_name": "لباس مردانه",
+      "catalog_best_selling_rank": 6108,
       "catalog_best_selling_ranks_by_category": {
+        "9435": {
+          "category_name": "لباس مردانه",
+          "observed_at": "2026-11-09T03:25:17.840059+00:00",
+          "rank": 6108
+        },
         "9470": {
           "category_name": "تی شرت مردانه",
           "observed_at": "2026-11-08T17:03:06.794670+00:00",
           "rank": 2059
         }
       },
-      "catalog_category_id": "9470",
+      "catalog_category_id": "9435",
       "catalog_category_ids": [
+        "9435",
         "9470"
       ],
-      "catalog_category_name": "تی شرت مردانه",
-      "catalog_rank_observed_at": "2026-11-08T17:03:06.794670+00:00",
+      "catalog_category_name": "لباس مردانه",
+      "catalog_rank_observed_at": "2026-11-09T03:25:17.840059+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1192000,
       "discount_percent": 67,
       "first_seen_at": "2026-11-08T14:57:44.986688+00:00",
-      "last_seen_at": "2026-11-08T17:02:36.558255+00:00",
+      "last_seen_at": "2026-11-09T03:25:16.885629+00:00",
       "original_price": 3580000,
       "product_id": "dkp-21778059",
       "product_url": "https://www.digikala.com/product/dkp-21778059/",
@@ -109180,5 +109192,5 @@
   ],
   "cycle_started_at": "2026-11-08T07:56:20.016124+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-09T03:23:24.789003+00:00"
+  "updated_at": "2026-11-09T03:25:17.871630+00:00"
 }
