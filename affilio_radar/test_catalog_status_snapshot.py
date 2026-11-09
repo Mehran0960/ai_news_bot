@@ -54,6 +54,18 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
             "parallel_cycle_unqueryable_category_ids": [],
             "parallel_pending_pages": [{"category_id": "1", "page": 3, "attempts": 0}],
             "parallel_known_category_ids": ["1", "2", "3"],
+            "parallel_last_batch_pages": 480,
+            "parallel_workers_used": 12,
+            "parallel_worker_limit": 14,
+            "parallel_last_batch_pages_per_second": 15.5,
+            "parallel_last_batch_request_count": 480,
+            "parallel_last_batch_request_p50_seconds": 0.55,
+            "parallel_last_batch_request_p95_seconds": 1.8,
+            "parallel_last_batch_request_max_seconds": 7.2,
+            "parallel_last_batch_retries": 0,
+            "parallel_last_batch_rate_limited": 0,
+            "parallel_last_batch_timeout_retries": 0,
+            "parallel_last_batch_http_5xx_retries": 0,
             "categories": [{"id": "1"}, {"id": "2"}, {"id": "3"}],
             "stats": {"completed_cycles": 1},
         }
@@ -116,6 +128,16 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         self.assertEqual(status["completed_candidates_count"], 2)
         self.assertEqual(status["last_cycle_status"], "in_progress")
         self.assertEqual(status["pending_page_count"], 1)
+        self.assertEqual(status["last_batch_pages"], 480)
+        self.assertEqual(status["last_batch_workers_used"], 12)
+        self.assertEqual(status["next_worker_limit"], 14)
+        self.assertEqual(status["last_batch_pages_per_second"], 15.5)
+        self.assertEqual(status["last_batch_request_count"], 480)
+        self.assertEqual(status["last_batch_request_p50_seconds"], 0.55)
+        self.assertEqual(status["last_batch_request_p95_seconds"], 1.8)
+        self.assertEqual(status["last_batch_request_max_seconds"], 7.2)
+        self.assertEqual(status["last_batch_retries"], 0)
+        self.assertEqual(status["last_batch_rate_limited"], 0)
 
     def test_failed_new_cycle_does_not_erase_last_known_good_snapshot(self):
         failed = {
