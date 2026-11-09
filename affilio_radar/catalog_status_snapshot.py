@@ -16,6 +16,7 @@ COMPLETED_CANDIDATES_PATH = ROOT / "catalog_sweep_completed_candidates.json"
 SCAN_POLICY_VERSION = "all_categories_all_pages_v3_cycle_snapshot"
 MAX_CATALOG_SNAPSHOT_AGE_HOURS = 96
 MAX_UNSCANNED_CATEGORY_ADDITIONS = 50
+TOP_CANDIDATES_PREVIEW_LIMIT = 100
 
 
 def _integer(value: Any, default: int = 0) -> int:
@@ -107,7 +108,7 @@ def is_initial_catalog_warmup(status: Any) -> bool:
 
 
 def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
-    """Validate a frozen snapshot on its own, not against the scan currently in progress."""
+    """Validate the frozen snapshot without recomputing its time-sensitive ranking."""
     empty = {
         "present": isinstance(payload, dict),
         "valid": False,
@@ -125,6 +126,7 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
         "category_coverage_percent": 0.0,
         "pages_success": 0,
         "product_rows_success": 0,
+        "order_policy": "",
     }
     if not isinstance(payload, dict):
         return empty
@@ -146,8 +148,15 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
     product_rows_success = _integer(payload.get("product_rows_success"))
 
     candidate_ids: list[str] = []
+    candidate_order_policy = str(
+        payload.get("candidate_order_policy") or "discount_value_desc"
+    )
+    supported_order_policies = {
+        "discount_value_desc",
+        "catalog_demand_first_v1",
+    }
     previous_sort_key: tuple[int, int] | None = None
-    rows_valid = True
+    rows_valid = candidate_order_policy in supported_order_policies
     for rank, row in enumerate(rows, start=1):
         if not isinstance(row, dict):
             rows_valid = False
@@ -167,11 +176,15 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
         if discount < 1:
             rows_valid = False
             break
-        sort_key = (discount, savings)
-        if previous_sort_key is not None and sort_key > previous_sort_key:
-            rows_valid = False
-            break
-        previous_sort_key = sort_key
+        if candidate_order_policy == "discount_value_desc":
+            sort_key = (discount, savings)
+            if previous_sort_key is not None and sort_key > previous_sort_key:
+                rows_valid = False
+                break
+            previous_sort_key = sort_key
+        # catalog_demand_first_v1 freezes the producer's native demand-first order.
+        # Never reinterpret it as a global markdown sort during validation.
+        # Snapshot-rank continuity and the status-file hash still protect this order.
         candidate_ids.append(product_id)
 
     valid = bool(
@@ -210,7 +223,52 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
         "category_coverage_percent": coverage,
         "pages_success": pages_success,
         "product_rows_success": product_rows_success,
+        "order_policy": candidate_order_policy,
     }
+
+
+def _top_candidates_preview(completed_candidates: Any, valid: bool) -> list[dict[str, Any]]:
+    """Expose a compact demand-first shortlist only from a valid, explicitly ranked snapshot.
+
+    Prices and availability are listing observations, never substitutes for live checks.
+    """
+    if not valid or not isinstance(completed_candidates, dict):
+        return []
+    if str(completed_candidates.get("candidate_order_policy") or "") != "catalog_demand_first_v1":
+        return []
+    rows = completed_candidates.get("candidates")
+    if not isinstance(rows, list):
+        return []
+
+    preview: list[dict[str, Any]] = []
+    for row in rows[:TOP_CANDIDATES_PREVIEW_LIMIT]:
+        if not isinstance(row, dict):
+            continue
+        raw_brand = row.get("brand") or row.get("brand_name") or ""
+        if isinstance(raw_brand, dict):
+            raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
+        category_ids = _sorted_ids(row.get("catalog_category_ids"))
+        preview.append({
+            "snapshot_rank": _integer(row.get("catalog_cycle_snapshot_rank")),
+            "product_id": str(row.get("product_id") or ""),
+            "product_url": str(row.get("product_url") or ""),
+            "title": str(row.get("title") or "")[:180],
+            "brand": str(raw_brand or "")[:100],
+            "current_price": max(0, _integer(row.get("current_price"))),
+            "original_price": max(0, _integer(row.get("original_price"))),
+            "discount_percent": max(0, _integer(row.get("discount_percent"))),
+            "savings_toman": max(0, _integer(row.get("savings_toman"))),
+            "listing_availability": str(row.get("availability") or ""),
+            "rating": _number(row.get("rating")),
+            "review_count": max(0, _integer(row.get("review_count"))),
+            "best_selling_rank": max(0, _integer(row.get("catalog_best_selling_rank"))),
+            "best_selling_category_id": str(row.get("catalog_best_selling_category_id") or ""),
+            "best_selling_category_name": str(row.get("catalog_best_selling_category_name") or "")[:120],
+            "best_selling_rank_observed_at": str(row.get("catalog_rank_observed_at") or ""),
+            "category_ids": category_ids[:12],
+            "category_count": len(category_ids),
+        })
+    return preview
 
 
 def build_status_snapshot(
@@ -242,6 +300,7 @@ def build_status_snapshot(
         and _category_ids_compatible_with_current_catalog(snapshot["category_ids"], current_ids)
         and _snapshot_is_fresh(snapshot["cycle_completed_at"], status_time)
     )
+    top_candidates_preview = _top_candidates_preview(completed_candidates, snapshot_valid)
     cycles = _integer(stats.get("completed_cycles", state.get("completed_cycles")))
     latest_cycle_status = str(state.get("last_cycle_status") or "in_progress")
     latest_completed_at = str(state.get("last_cycle_completed_at") or "")
@@ -297,6 +356,9 @@ def build_status_snapshot(
         ),
         "completed_candidates_ids": snapshot["candidate_ids"] if snapshot_valid else [],
         "completed_candidates_sha256": snapshot["sha256"] if snapshot_valid else "",
+        "completed_candidates_order_policy": snapshot["order_policy"] if snapshot_valid else "",
+        "top_candidates_preview_count": len(top_candidates_preview),
+        "top_candidates_preview": top_candidates_preview,
         "current_cycle_started_at": state.get("parallel_cycle_started_at"),
         "current_cycle_pages_success": _integer(state.get("parallel_cycle_pages_success")),
         "current_cycle_categories_complete": len(state.get("parallel_cycle_completed_category_ids", [])),
