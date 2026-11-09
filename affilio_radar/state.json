@@ -1,7 +1,7 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-09T03:47:09.561394+00:00",
-  "aparat_last_upload_success_at": "2026-11-09T03:47:12.909559+00:00",
-  "aparat_next_upload_at": "2026-11-09T06:47:12.909559+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-09T21:28:30.448589+00:00",
+  "aparat_last_upload_success_at": "2026-11-09T21:28:34.505520+00:00",
+  "aparat_next_upload_at": "2026-11-10T00:28:34.505520+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {
       "dkp-10583616": {
@@ -374649,7 +374649,13 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-2299236": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-09T21:28:30.448589+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-09T21:28:34.505520+00:00",
+      "aparat_video_hash": "abfv6i1",
+      "aparat_video_record_id": "74148199",
+      "aparat_video_url": "https://www.aparat.com/v/abfv6i1",
+      "aparat_visibility": "public",
       "bale_message_id": 1848,
       "bale_posted_at": "2026-11-09T21:24:52.378568+00:00",
       "brand": "",
@@ -374736,9 +374742,10 @@
       "ts": 1794259482.463567,
       "video_file_name": "offerchin-dkp-2299236.mp4",
       "video_file_names": {
+        "aparat": "offerchin-dkp-2299236.mp4",
         "youtube": "offerchin-dkp-2299236.mp4"
       },
-      "video_generated_at": "2026-11-09T21:26:46.556034+00:00",
+      "video_generated_at": "2026-11-09T21:28:23.850988+00:00",
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_description_version": 5,
