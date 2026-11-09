@@ -314,6 +314,7 @@ def build_vertical_poster(
     original_price: object = None,
     merchant: str = "دیجی‌کالا",
     destination_platform: str = "youtube",
+    experiment_variant: str = "A",
 ) -> bytes:
     """Build a self-contained 9:16 product card with other-platform IDs only."""
     with Image.open(BytesIO(image_bytes)) as raw:
@@ -432,7 +433,12 @@ def build_vertical_poster(
         radius=30,
         fill=(0, 0, 0, 76),
     )
-    draw.rounded_rectangle(card, radius=30, fill=(250, 250, 248, 255))
+    variant = str(experiment_variant or "A").strip().upper()
+    card_outline = (28, 126, 61, 255) if variant == "B" else None
+    draw.rounded_rectangle(
+        card, radius=30, fill=(250, 250, 248, 255),
+        outline=card_outline, width=4 if card_outline else 1,
+    )
     inner = (card[2] - card[0] - 32, card[3] - card[1] - 32)
     fitted = ImageOps.contain(product, inner, method=Image.Resampling.LANCZOS)
     x = (WIDTH - fitted.width) // 2
@@ -596,6 +602,7 @@ def render_short_video(
     original_price: object = None,
     merchant: str = "دیجی‌کالا",
     destination_platform: str = "youtube",
+    experiment_variant: str = "A",
     ffmpeg_binary: str | None = None,
     duration_seconds: int = DURATION_SECONDS,
     fps: int = FPS,
@@ -616,6 +623,7 @@ def render_short_video(
         original_price=original_price,
         merchant=merchant,
         destination_platform=destination_platform,
+        experiment_variant=experiment_variant,
     )
     target.parent.mkdir(parents=True, exist_ok=True)
 

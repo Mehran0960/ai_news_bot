@@ -8,6 +8,7 @@ This program deliberately does not invent affiliate tracking parameters or log i
 from __future__ import annotations
 
 import argparse
+import hashlib
 import html
 import json
 import math
@@ -97,6 +98,11 @@ AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
     "https://affiliate-deal-radar.m-hoseyni-6966.workers.dev",
 ).strip().rstrip("/")
 _CLICK_TRACKER_HEALTH_CACHE: bool | None = None
+_LAST_CLICK_STATISTICS_SNAPSHOT: dict | None = None
+CREATIVE_EXPERIMENT_ID = re.sub(
+    r"[^a-z0-9_-]", "-", os.getenv("AFFILIO_CREATIVE_EXPERIMENT_ID", "offerchin-creative-v1").strip().lower()
+)[:32] or "offerchin-creative-v1"
+PERFORMANCE_REPORT = ROOT / "performance_report.json"
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
 FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "false").strip().lower() in {"1", "true", "yes", "on"}
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
@@ -156,8 +162,14 @@ MIN_DISCOUNT_PERCENT = max(1, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCE
 DISCOUNT_FALLBACK_FLOORS = (1,)
 MIN_DISCOUNT_FALLBACK_PERCENT = 1
 MIN_SAVINGS_TOMAN = 1
-# Fresh rolling review-count growth is an optional indirect proxy, used only
-# after exact equality on discount percentage and cash savings. It is not sales data.
+# DigiKala's native "پرفروش‌ترین" order is the primary demand signal. It is a
+# within-category ordinal, not an absolute unit-sales count. Only fresh top-60
+# observations are treated as strong demand evidence.
+DIGIKALA_BESTSELLER_MAX_AGE_HOURS = 24
+DIGIKALA_BESTSELLER_TOP_RANK = 10
+DIGIKALA_BESTSELLER_MID_RANK = 30
+DIGIKALA_BESTSELLER_MAX_RANK = 60
+# Fresh rolling review-count growth is a secondary indirect proxy, never unit sales.
 CURRENT_DEMAND_WINDOW_DAYS = max(1, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "1"))))
 CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "3"))))
 VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT = 5
@@ -455,13 +467,44 @@ def build_click_tracking_link(
     affiliate_url: str,
     base_url: str | None = None,
     source: str = "unknown",
+    experiment_id: str = "",
+    variant: str = "",
 ) -> str:
-    """Return the official Affilio URL unchanged; never insert an OfferChin redirect."""
+    """Wrap only a matching, verified Affilio URL in the healthy OfferChin click tracker."""
     original = str(affiliate_url or "").strip()
     canonical = safe_product_url(product_url)
-    if canonical and _affiliate_destination_matches_product(original, canonical):
+    if not canonical or not _is_valid_affilio_tracking_url(original):
         return original
-    return original
+    if not _affiliate_destination_matches_product(original, canonical):
+        return original
+
+    base = str(base_url or AFFILIO_CLICK_TRACKER_BASE_URL).strip().rstrip("/")
+    try:
+        parsed_base = urlsplit(base)
+        if (
+            parsed_base.scheme != "https"
+            or not parsed_base.hostname
+            or parsed_base.query
+            or parsed_base.fragment
+            or parsed_base.username
+            or parsed_base.password
+            or parsed_base.port not in (None, 443)
+        ):
+            return original
+    except (TypeError, ValueError):
+        return original
+
+    allowed_sources = {"telegram", "bale", "youtube", "aparat"}
+    source_value = str(source or "unknown").strip().lower()
+    if source_value not in allowed_sources:
+        source_value = "unknown"
+    query = {"u": original, "src": source_value}
+    experiment = re.sub(r"[^a-z0-9_-]", "-", str(experiment_id or "").strip().lower())[:32]
+    selected_variant = str(variant or "").strip().upper()
+    if experiment and re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,31}", experiment) and selected_variant in {"A", "B"}:
+        query["exp"] = experiment
+        query["variant"] = selected_variant.lower()
+    return f"{base}/p/{product_id(canonical)}?{urlencode(query)}"
 
 
 def _click_tracker_is_healthy() -> bool:
@@ -490,8 +533,12 @@ def _click_tracker_is_healthy() -> bool:
         )
         health.raise_for_status()
         health_payload = health.json()
-        if health_payload.get("ok") is not True or health_payload.get("clickStoreReady") is not True:
-            raise RuntimeError("tracker_health_not_ready")
+        if (
+            health_payload.get("ok") is not True
+            or health_payload.get("clickStoreReady") is not True
+            or health_payload.get("experimentAttribution") is not True
+        ):
+            raise RuntimeError("tracker_health_or_experiment_attribution_not_ready")
 
         # HEAD never writes a click event. Both retailer paths must validate before tracking is enabled.
         probes = (
@@ -526,10 +573,49 @@ def _click_tracker_is_healthy() -> bool:
     return _CLICK_TRACKER_HEALTH_CACHE
 
 
-def tracked_affiliate_button_url(affiliate_url: str, source: str) -> str:
-    """Return the verified Affilio purchase URL unchanged; click-tracker redirects are disabled."""
+def _affiliate_product_destination(affiliate_url: str) -> str:
+    """Extract the one canonical product URL from the confirmed Affilio public template."""
+    if not _is_valid_affilio_tracking_url(affiliate_url):
+        return ""
+    try:
+        parsed = urlsplit(str(affiliate_url or "").strip())
+        destinations = parse_qs(parsed.query, keep_blank_values=True).get("p", [])
+    except Exception:
+        return ""
+    return safe_product_url(destinations[0]) if len(destinations) == 1 else ""
+
+
+def tracked_affiliate_button_url(
+    affiliate_url: str,
+    source: str,
+    experiment_id: str = "",
+    variant: str = "",
+) -> str:
+    """Use the tracker only after health/capability probes; otherwise preserve direct Affilio."""
     original = str(affiliate_url or "").strip()
-    return original if _is_valid_affilio_tracking_url(original) else ""
+    if not _is_valid_affilio_tracking_url(original):
+        return ""
+    canonical = _affiliate_product_destination(original)
+    if not canonical or not _click_tracker_is_healthy():
+        return original
+    wrapped = build_click_tracking_link(
+        canonical,
+        original,
+        AFFILIO_CLICK_TRACKER_BASE_URL,
+        source=source,
+        experiment_id=experiment_id,
+        variant=variant,
+    )
+    return wrapped or original
+
+
+def creative_experiment_assignment(product_id_value: str) -> tuple[str, str]:
+    """Assign one stable A/B creative treatment per product without using affiliate income."""
+    pid = str(product_id_value or "").strip().lower()
+    if not re.fullmatch(r"(?:dkp-\d{1,12}|snp-\d{1,20})", pid):
+        return "", "A"
+    digest = hashlib.sha256(f"{CREATIVE_EXPERIMENT_ID}:{pid}".encode("utf-8")).digest()
+    return CREATIVE_EXPERIMENT_ID, ("A", "B")[digest[0] & 1]
 
 
 def _walk_dicts(value):
@@ -2893,12 +2979,157 @@ def _deal_primary_sort_key(record: dict, now: datetime | None = None) -> tuple:
         savings = 0
     return (_discount_percentage_sort_value(candidate), savings)
 
+def _fresh_digikala_bestseller_evidence(
+    record: dict,
+    now: datetime | None = None,
+) -> dict:
+    """Return fresh native DigiKala bestseller evidence without pretending it is unit sales."""
+    if not isinstance(record, dict):
+        return {}
+    product_id_value = str(record.get("product_id") or "").strip().lower()
+    if not product_id_value.startswith("dkp-") or record.get("catalog_sort_mode") != "best_selling":
+        return {}
+
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
+    def parsed_time(value):
+        try:
+            parsed = datetime.fromisoformat(str(value or "").replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            return parsed.astimezone(timezone.utc)
+        except (TypeError, ValueError, OverflowError):
+            return None
+
+    ranks = record.get("catalog_best_selling_ranks_by_category")
+    ranks = ranks if isinstance(ranks, dict) else {}
+    observations = []
+    for category_id, entry in ranks.items():
+        if not isinstance(entry, dict) or not str(category_id).isdigit():
+            continue
+        try:
+            rank = int(entry.get("rank") or 0)
+        except (TypeError, ValueError, OverflowError):
+            continue
+        observed = parsed_time(entry.get("observed_at"))
+        if not 1 <= rank <= DIGIKALA_BESTSELLER_MAX_RANK or observed is None:
+            continue
+        age_hours = (current - observed).total_seconds() / 3600
+        if not 0 <= age_hours <= DIGIKALA_BESTSELLER_MAX_AGE_HOURS:
+            continue
+
+        improvement = 0
+        history = entry.get("rank_history")
+        history = history if isinstance(history, list) else []
+        previous = []
+        for sample in history:
+            if not isinstance(sample, dict):
+                continue
+            old_observed = parsed_time(sample.get("observed_at"))
+            try:
+                old_rank = int(sample.get("rank") or 0)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if old_observed is None or not 1 <= old_rank <= DIGIKALA_BESTSELLER_MAX_RANK:
+                continue
+            elapsed = (observed - old_observed).total_seconds() / 3600
+            if 6 <= elapsed <= 24 * 7 and old_observed < observed:
+                previous.append((old_observed, old_rank))
+        if previous:
+            _old_at, old_rank = max(previous, key=lambda item: item[0])
+            improvement = max(-DIGIKALA_BESTSELLER_MAX_RANK, min(
+                DIGIKALA_BESTSELLER_MAX_RANK, old_rank - rank
+            ))
+        observations.append({
+            "rank": rank,
+            "category_id": str(category_id),
+            "category_name": str(entry.get("category_name") or ""),
+            "observed_at": observed.isoformat(),
+            "age_hours": round(age_hours, 2),
+            "rank_improvement": improvement,
+        })
+
+    # Backward-compatible top-level rank for older snapshots that lack per-category rows.
+    if not observations:
+        try:
+            rank = int(record.get("catalog_best_selling_rank") or 0)
+        except (TypeError, ValueError, OverflowError):
+            rank = 0
+        observed = parsed_time(record.get("catalog_rank_observed_at"))
+        category_id = str(record.get("catalog_best_selling_category_id") or record.get("catalog_category_id") or "")
+        if (
+            1 <= rank <= DIGIKALA_BESTSELLER_MAX_RANK
+            and observed is not None
+            and 0 <= (current - observed).total_seconds() / 3600 <= DIGIKALA_BESTSELLER_MAX_AGE_HOURS
+        ):
+            observations.append({
+                "rank": rank,
+                "category_id": category_id,
+                "category_name": str(record.get("catalog_best_selling_category_name") or record.get("catalog_category_name") or ""),
+                "observed_at": observed.isoformat(),
+                "age_hours": round((current - observed).total_seconds() / 3600, 2),
+                "rank_improvement": 0,
+            })
+
+    if not observations:
+        return {}
+    best = min(observations, key=lambda item: (item["rank"], item["age_hours"]))
+    best_rank = int(best["rank"])
+    tier = (
+        3 if best_rank <= DIGIKALA_BESTSELLER_TOP_RANK
+        else 2 if best_rank <= DIGIKALA_BESTSELLER_MID_RANK
+        else 1
+    )
+    return {
+        **best,
+        "tier": tier,
+        "fresh_category_count": len({item["category_id"] for item in observations if item["category_id"]}),
+        "best_rank_across_categories": best_rank,
+        "rank_improvement": max(item["rank_improvement"] for item in observations),
+        "evidence_source": "digikala_native_bestseller_rank",
+        "evidence_quality": "direct_relative_sales_rank_not_units_sold",
+    }
+
+
+def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tuple:
+    """Demand-first order: fresh DigiKala bestseller rank, review momentum, quality, then deal value."""
+    candidate = record if isinstance(record, dict) else {}
+    bestseller = _fresh_digikala_bestseller_evidence(candidate, now=now)
+    rank = int(bestseller.get("best_rank_across_categories") or 0)
+    tier = int(bestseller.get("tier") or 0)
+    rank_strength = (DIGIKALA_BESTSELLER_MAX_RANK + 1 - rank) if rank else 0
+    category_coverage = min(10, int(bestseller.get("fresh_category_count") or 0))
+    rank_momentum = int(bestseller.get("rank_improvement") or 0)
+    review_growth = _verified_review_growth_sort_key(candidate, now=now)
+    try:
+        review_count = max(0, int(candidate.get("review_count") or 0))
+        rating = max(0.0, min(5.0, float(candidate.get("rating") or 0)))
+    except (TypeError, ValueError, OverflowError):
+        review_count, rating = 0, 0.0
+    # Lifetime reviews and rating are weak, historical quality context only.
+    # Fresh bestseller rank and measured review growth always precede them.
+    review_volume_context = min(100, round(math.log1p(review_count) * 5)) if review_count else 0
+    return (
+        tier,
+        rank_strength,
+        category_coverage,
+        rank_momentum,
+        review_growth[0],
+        review_growth[1],
+        review_volume_context,
+        round(rating, 2),
+    )
+
+
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Strict discount/savings order; fresh review growth is an optional exact-tie proxy."""
+    """Order candidates by DigiKala demand evidence before discount and cash savings."""
     candidate = record if isinstance(record, dict) else {}
     return (
+        *_digikala_demand_sort_key(candidate, now=now),
         *_deal_primary_sort_key(candidate, now=now),
-        *_verified_review_growth_sort_key(candidate, now=now),
     )
 
 
@@ -4150,16 +4381,18 @@ def _verified_review_growth_sort_key(
 
 
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank by discount %, then savings; fresh review growth breaks exact ties only."""
+    """Rank by DigiKala demand evidence first, then discount percentage and cash savings."""
     candidate = p if isinstance(p, dict) else {}
     return (
+        *_digikala_demand_sort_key(candidate, now=now),
         *_deal_primary_sort_key(candidate, now=now),
-        *_verified_review_growth_sort_key(candidate, now=now),
     )
 
 
 def _fetch_click_statistics_snapshot() -> dict:
     """Fetch a complete aggregate 30-day click snapshot; analytics outages never block publication."""
+    global _LAST_CLICK_STATISTICS_SNAPSHOT
+    _LAST_CLICK_STATISTICS_SNAPSHOT = {}
     base = AFFILIO_CLICK_TRACKER_BASE_URL.strip().rstrip("/")
     if not base.startswith("https://"):
         print("CLICK_STATS_UNAVAILABLE reason=tracker_url_not_https")
@@ -4176,6 +4409,7 @@ def _fetch_click_statistics_snapshot() -> dict:
         if payload.get("ok") is not True or payload.get("complete") is not True or not isinstance(products, dict):
             print("CLICK_STATS_UNAVAILABLE reason=incomplete_or_invalid_snapshot")
             return {}
+        _LAST_CLICK_STATISTICS_SNAPSHOT = payload
         return payload
     except Exception as exc:
         print(f"CLICK_STATS_UNAVAILABLE error={type(exc).__name__}")
@@ -4212,11 +4446,150 @@ def fetch_click_statistics() -> dict[str, int]:
 
 
 def enrich_click_statistics(products: list[dict]) -> None:
-    """Attach aggregate 30-day click counts; source-level click details stay private in Cloudflare KV."""
+    """Attach aggregate 30-day clicks for reporting only; clicks never affect demand ranking."""
     counts = fetch_click_statistics()
     for product in products:
         pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
         product["click_count_30d"] = counts.get(pid, 0)
+
+
+def build_performance_report(
+    state: dict,
+    now: datetime | None = None,
+    click_snapshot: dict | None = None,
+) -> dict:
+    """Report attributable clicks and A/B outcomes without inventing CTR, orders or sales."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    snapshot = click_snapshot if isinstance(click_snapshot, dict) else (
+        _LAST_CLICK_STATISTICS_SNAPSHOT if isinstance(_LAST_CLICK_STATISTICS_SNAPSHOT, dict) else {}
+    )
+    complete = (
+        snapshot.get("ok") is True
+        and snapshot.get("complete") is True
+        and isinstance(snapshot.get("products"), dict)
+    )
+
+    def safe_count(value):
+        try:
+            return max(0, int(value or 0))
+        except (TypeError, ValueError, OverflowError):
+            return 0
+
+    posts_by_variant: dict[str, int] = {}
+    posts_by_platform: dict[str, int] = {}
+    posts_by_product: dict[str, dict] = {}
+    published = state.get("published") if isinstance(state, dict) else {}
+    published = published if isinstance(published, dict) else {}
+    for pid, record in published.items():
+        if not isinstance(record, dict):
+            continue
+        experiment = str(record.get("creative_experiment_id") or "")
+        variant = str(record.get("creative_variant") or "").upper()
+        if experiment and variant in {"A", "B"}:
+            key = f"{experiment}:{variant}"
+            posts_by_variant[key] = posts_by_variant.get(key, 0) + 1
+        statuses = record.get("delivery_status")
+        statuses = statuses if isinstance(record.get("delivery_status"), dict) else {}
+        for platform in ("telegram", "bale", "youtube", "aparat"):
+            if (
+                record.get(f"{platform}_message_id")
+                or record.get(f"{platform}_video_id")
+                or statuses.get(platform) == "sent"
+            ):
+                posts_by_platform[platform] = posts_by_platform.get(platform, 0) + 1
+        posts_by_product[str(pid)] = {
+            "creative_experiment_id": experiment,
+            "creative_variant": variant,
+            "selection_demand_evidence": record.get("selection_demand_evidence"),
+            "selection_demand_quality": record.get("selection_demand_quality"),
+            "bestseller_rank": record.get("selection_bestseller_rank"),
+            "bestseller_category_count": safe_count(record.get("selection_bestseller_category_count")),
+            "discount_percent": safe_count(record.get("posted_discount_percent")),
+            "delivery_status": statuses,
+        }
+
+    clicks_by_variant = {}
+    clicks_by_source = {}
+    clicks_by_product = {}
+    clicks_by_product_source = {}
+    clicks_by_product_variant = {}
+    if complete:
+        clicks_by_variant = {
+            str(key): safe_count(value)
+            for key, value in (snapshot.get("experimentVariants") or {}).items()
+            if isinstance(key, str)
+        }
+        clicks_by_source = {
+            str(key): safe_count(value)
+            for key, value in (snapshot.get("sources") or {}).items()
+            if isinstance(key, str)
+        }
+        clicks_by_product = {
+            str(key): safe_count(value)
+            for key, value in (snapshot.get("products") or {}).items()
+            if isinstance(key, str)
+        }
+        clicks_by_product_source = {
+            str(pid): {
+                str(source): safe_count(count)
+                for source, count in (sources or {}).items()
+            }
+            for pid, sources in (snapshot.get("productSources") or {}).items()
+            if isinstance(pid, str) and isinstance(sources, dict)
+        }
+        clicks_by_product_variant = {
+            str(pid): {
+                str(variant): safe_count(count)
+                for variant, count in (variants or {}).items()
+            }
+            for pid, variants in (snapshot.get("productExperimentVariants") or {}).items()
+            if isinstance(pid, str) and isinstance(variants, dict)
+        }
+    comparisons = {}
+    for key in sorted(set(posts_by_variant) | set(clicks_by_variant)):
+        post_count = posts_by_variant.get(key, 0)
+        click_count = clicks_by_variant.get(key)
+        comparisons[key] = {
+            "published_posts": post_count,
+            "tracked_clicks_30d": click_count,
+            "clicks_per_published_post": (
+                round(click_count / post_count, 3)
+                if click_count is not None and post_count > 0 else None
+            ),
+            "ctr": None,
+            "orders": None,
+            "sales_amount": None,
+            "approved_commission": None,
+        }
+    return {
+        "generated_at": current.isoformat(),
+        "window_days": 30,
+        "click_data_status": "complete" if complete else "unavailable_or_legacy_worker",
+        "source_attribution_available": bool(complete and snapshot.get("sources") is not None),
+        "experiment_attribution_available": bool(complete and snapshot.get("experimentVariants") is not None),
+        "published_posts_by_variant": posts_by_variant,
+        "published_posts_by_platform": posts_by_platform,
+        "published_posts_by_product": posts_by_product,
+        "tracked_clicks_by_product": clicks_by_product,
+        "tracked_clicks_by_source": clicks_by_source,
+        "tracked_clicks_by_product_source": clicks_by_product_source,
+        "tracked_clicks_by_experiment_variant": clicks_by_variant,
+        "tracked_clicks_by_product_variant": clicks_by_product_variant,
+        "creative_variant_comparison": comparisons,
+        "impressions": None,
+        "ctr": None,
+        "orders": None,
+        "sales_amount": None,
+        "approved_commission": None,
+        "sales_data_status": "unavailable_until_official_Affilio_report_or_export_is_connected",
+        "interpretation": (
+            "Tracked clicks and clicks per published post are descriptive signals, not CTR or causal lift. "
+            "Impressions, orders, sales and commission are not inferred from clicks."
+        ),
+    }
 
 
 def load_catalog() -> list[dict]:
@@ -4561,6 +4934,7 @@ def build_caption(
     affiliate_url: str,
     channel_label: str = TELEGRAM_CHANNEL_URL,
     use_unicode_strikethrough: bool = False,
+    experiment_variant: str = "A",
 ) -> str:
     """Build a concise cross-platform caption with a clear price hierarchy and channel CTA."""
     is_bale = use_unicode_strikethrough
@@ -4588,8 +4962,10 @@ def build_caption(
 
     merchant = p.get("merchant") or product_merchant(p.get("product_url") or affiliate_url)
     merchant_marker = "🟣" if "اسنپ" in str(merchant) or "snapp" in str(merchant).lower() else "🔴"
+    variant = str(experiment_variant or p.get("creative_variant") or "A").strip().upper()
+    caption_prefix = SALE_TITLE_PREFIX if variant != "B" else "🛒 پیشنهاد خرید"
     parts = [
-        f"{SALE_TITLE_PREFIX} {merchant} {merchant_marker}",
+        f"{caption_prefix} {merchant} {merchant_marker}",
         "",
         f"{PRODUCT_TITLE_PREFIX}{title}",
     ]
@@ -4661,6 +5037,7 @@ def build_discount_image(
     merchant: str = "دیجی‌کالا",
     extra_watermarks: list[tuple[str, str]] | None = None,
     destination_platform: str | None = None,
+    experiment_variant: str = "A",
 ) -> bytes:
     """Prepare a product image with store identity, discount badge, and OfferChin channel watermark."""
     from io import BytesIO
@@ -4670,6 +5047,16 @@ def build_discount_image(
     image.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
     width, height = image.size
     min_dim = min(width, height)
+    # Variant B uses a restrained green frame. The official retailer/DigiPay logos,
+    # discount tile, product pixels and their relative geometry remain unchanged.
+    if str(experiment_variant or "A").strip().upper() == "B":
+        frame_draw = ImageDraw.Draw(image)
+        frame_width = max(2, min(5, min_dim // 400))
+        frame_draw.rectangle(
+            (0, 0, width - 1, height - 1),
+            outline=(28, 126, 61),
+            width=frame_width,
+        )
     brand_margin = max(10, int(min_dim * 0.025))
     # Both top-corner tiles share one width. Reserve half the available canvas
     # width for each so equal-sized tiles cannot overlap on small source images.
@@ -4857,14 +5244,22 @@ def _fetch_image(url: str) -> bytes:
     raise RuntimeError("product image fetch failed after bounded retry")
 
 
-def _send_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
+def _send_photo(
+    photo_bytes: bytes,
+    caption: str,
+    affiliate_url: str = "",
+    experiment_id: str = "",
+    experiment_variant: str = "",
+):
     if not BOT_TOKEN:
         raise RuntimeError("Missing TELEGRAM_BOT_TOKEN secret; no post sent")
     endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
     data = {"chat_id": TARGET_CHAT, "caption": caption, "parse_mode": "HTML"}
     if not _is_valid_affilio_tracking_url(affiliate_url):
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
-    button_url = tracked_affiliate_button_url(affiliate_url, "telegram")
+    button_url = tracked_affiliate_button_url(
+        affiliate_url, "telegram", experiment_id, experiment_variant
+    )
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
             "text": purchase_button_label(affiliate_url),
@@ -4884,7 +5279,13 @@ def _send_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     return payload["result"]
 
 
-def _send_bale_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
+def _send_bale_photo(
+    photo_bytes: bytes,
+    caption: str,
+    affiliate_url: str = "",
+    experiment_id: str = "",
+    experiment_variant: str = "",
+):
     """Send a photo post through Bale's Bot API, independently of Telegram delivery."""
     if not BALE_BOT_TOKEN:
         raise RuntimeError("Missing BALE_BOT_TOKEN secret")
@@ -4894,7 +5295,9 @@ def _send_bale_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     data = {"chat_id": BALE_CHANNEL_ID, "caption": caption}
     if not _is_valid_affilio_tracking_url(affiliate_url):
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
-    button_url = tracked_affiliate_button_url(affiliate_url, "bale")
+    button_url = tracked_affiliate_button_url(
+        affiliate_url, "bale", experiment_id, experiment_variant
+    )
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
             "text": purchase_button_label(affiliate_url),
@@ -4959,18 +5362,35 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
             image_bytes, item.get("discount_percent"),
             watermark="T.me/OfferChin", merchant=item.get("merchant") or "دیجی‌کالا",
             destination_platform="telegram",
+            experiment_variant=item.get("creative_variant", "A"),
         )
-        return _send_photo(photo, build_caption(item, affiliate_url, TELEGRAM_CHANNEL_URL), affiliate_url)
+        return _send_photo(
+            photo,
+            build_caption(
+                item, affiliate_url, TELEGRAM_CHANNEL_URL,
+                experiment_variant=item.get("creative_variant", "A"),
+            ),
+            affiliate_url,
+            item.get("creative_experiment_id", ""),
+            item.get("creative_variant", "A"),
+        )
     if platform == "bale":
         photo = build_discount_image(
             image_bytes, item.get("discount_percent"),
             watermark="ble.ir/OfferChin", merchant=item.get("merchant") or "دیجی‌کالا",
             destination_platform="bale",
+            experiment_variant=item.get("creative_variant", "A"),
         )
         return _send_bale_photo(
             photo,
-            build_caption(item, affiliate_url, BALE_CHANNEL_URL, use_unicode_strikethrough=True),
+            build_caption(
+                item, affiliate_url, BALE_CHANNEL_URL,
+                use_unicode_strikethrough=True,
+                experiment_variant=item.get("creative_variant", "A"),
+            ),
             affiliate_url,
+            item.get("creative_experiment_id", ""),
+            item.get("creative_variant", "A"),
         )
     raise ValueError("Unsupported publication platform")
 
@@ -6401,7 +6821,7 @@ def pending_queue_sort_key(
     queue_record: dict | None = None,
     now: datetime | None = None,
 ) -> tuple:
-    """Use only discount %, savings, and the optional exact-tie review-growth proxy."""
+    """Use native DigiKala demand evidence before deal value in the pending publication queue."""
     return deal_sort_key(product, now=now)
 
 
@@ -6494,7 +6914,7 @@ def _publication_catalog_category_context(product_or_title) -> dict:
 
 
 def _publication_use_case_group(product_or_title) -> str:
-    """Classify the practical context of a product using title and DigiKala taxonomy."""
+    """Classify a product's practical use from its title and DigiKala leaf taxonomy."""
     category = _publication_catalog_category_context(product_or_title)
     title = (
         str(product_or_title.get("title") or "")
@@ -6503,20 +6923,61 @@ def _publication_use_case_group(product_or_title) -> str:
     text = " ".join((title, category.get("name", ""), category.get("path", ""))).lower()
     text = text.replace("\u200c", " ")
     patterns = (
-        ("automotive", r"خودرو|ماشین|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو"),
-        ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت"),
-        ("gaming", r"گیمینگ|بازی رایانه|کنسول بازی|پلی استیشن|ایکس باکس|\bxbox\b"),
-        ("office_study", r"اداری|میز کار|مطالعه|تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه"),
-        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک"),
-        ("pet_care", r"حیوان خانگی|گربه|سگ|خاک گربه|غذای حیوان"),
-        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو"),
-        ("home_cleaning", r"نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی"),
-        ("personal_care", r"مراقبت پوست|مراقبت مو|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن"),
-        ("sports_fitness", r"ورزشی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس"),
-        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه"),
-        ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب"),
+        ("automotive", r"خودرو|ماشین|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو|فیلتر کابین|روغن موتور|لوازم یدکی"),
+        ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت|ماهیگیری|کیف و کوله سفری"),
+        ("gaming", r"گیمینگ|بازی رایانه|کنسول بازی|پلی استیشن|ایکس باکس|\bxbox\b|دسته بازی"),
+        ("office_study", r"اداری|میز کار|مطالعه|تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار"),
+        ("books_learning", r"کتاب|رمان|روانشناسی|داستان|مجله|آموزشی|زبان آموزی"),
+        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک"),
+        ("pet_care", r"حیوان خانگی|گربه|سگ|خاک گربه|غذای حیوان|قلاده|آکواریوم"),
+        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو|قابلمه|تابه|چای ساز"),
+        ("grocery_food", r"خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای ارگانیک|قهوه ارگانیک|شکلات|تنقلات|غلات|کنسرو|ادویه"),
+        ("home_cleaning", r"نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو|اسکاچ|دستمال نظافت"),
+        ("personal_care", r"مراقبت پوست|مراقبت مو|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب"),
+        ("sports_fitness", r"ورزشی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی"),
+        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|رم|مانیتور|کیبورد|ماوس|مودم"),
+        ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین عکاسی|پروژکتور|سینما خانگی"),
+        ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب|پتو|ملحفه|کوسن|پرده"),
+        ("fashion_lifestyle", r"پوشاک|لباس|تی شرت|تیشرت|شلوار|کفش|بوت|کیف پول|عینک آفتابی|جوراب|مانتو|اکسسوری زنانه"),
+        ("tools_industrial", r"ابزار|هویه|مته|پیچ و مهره|کمپرسور|تجهیزات ایمنی|لوازم یدکی ابزار|باغبانی|کشاورزی"),
+        ("arts_crafts", r"صنایع دستی|دست بافته|رودوزی|بافتنی|خیاطی|نقاشی|رنگ آمیزی|اوریگامی|کاردستی"),
+        ("lighting_electrical", r"روشنایی|لامپ|چراغ قوه|چراغ اضطراری|لامپ|الکتریکی|سیم و کابل برق"),
     )
-    return next((name for name, pattern in patterns if re.search(pattern, text, re.I)), "general")
+    matched = next((name for name, pattern in patterns if re.search(pattern, text, re.I)), None)
+    if matched:
+        return matched
+
+    # When the title is ambiguous, use DigiKala's official broad category instead
+    # of collapsing every unmatched leaf into "general".
+    broad = classify_category(" ".join((title, category.get("name", ""), category.get("path", ""))))
+    broad_use_cases = {
+        "automotive": "automotive",
+        "sports_outdoor": "sports_fitness",
+        "gaming": "gaming",
+        "books_stationery": "books_learning",
+        "fashion": "fashion_lifestyle",
+        "personal_care": "personal_care",
+        "beauty_fragrance": "personal_care",
+        "pet_supplies": "pet_care",
+        "kids_sports": "baby_care",
+        "home_cleaning": "home_cleaning",
+        "home": "home_living",
+        "computer_network": "mobile_productivity",
+        "digital_accessories": "mobile_productivity",
+        "mobile_devices": "mobile_productivity",
+        "audio_wearables": "audio_visual",
+        "tv_audio_video": "audio_visual",
+        "power_backup": "lighting_electrical",
+        "lighting": "lighting_electrical",
+        "large_appliances": "home_living",
+        "arts_crafts": "arts_crafts",
+        "presentation_tools": "office_study",
+    }
+    if broad in broad_use_cases:
+        return broad_use_cases[broad]
+    if category.get("id") and category.get("name"):
+        return "catalog_taxonomy_other"
+    return "general"
 
 
 def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
@@ -7141,7 +7602,7 @@ def _order_candidates_by_primary_rank(
     now: datetime | None = None,
     allow_family_repeat: bool = False,
 ) -> list[dict]:
-    """Return strict global discount order; do not reorder by category/brand/family."""
+    """Return global market-demand order; repeat guards may suppress but never reorder candidates."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -7272,9 +7733,10 @@ def _filter_recent_publication_repeats(
     limit: int | None = None,
     label: str = "PUBLISH",
 ) -> list[dict]:
-    """Keep global discount order while enforcing 24-hour family, brand and similarity guards.
+    """Keep global demand order while enforcing 24-hour family, brand and similarity guards.
 
-    Candidates are expected in descending discount_percent / savings_toman order.
+    Candidates are expected in descending DigiKala demand-evidence order, with discount
+    percentage and cash savings used only after demand evidence is tied.
     A candidate published within any of the repeat windows is skipped, then the
     next highest-ranked candidate is considered. Already-selected candidates are
     also added to the rolling guard history so one batch cannot violate the same
@@ -7440,7 +7902,7 @@ def select_publish_candidates(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> list[dict]:
-    """Return ready publication candidates in strict percentage-then-saving order."""
+    """Return ready publication candidates in global DigiKala demand-evidence order."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -7466,16 +7928,18 @@ def select_publish_candidates(
     if deferred:
         print(f"PUBLISH_QUEUE_BACKOFF skipped_deferred={deferred} ready={sum(map(len, selected_by_floor.values()))}")
 
-    # Discovery has already ranked by discount percentage, then cash savings.
-    # Keep that exact order at final publication instead of applying proxy-based re-ranking.
-    ordered: list[dict] = []
-    for floor in sorted(selected_by_floor, reverse=True):
-        tier = sorted(
-            selected_by_floor[floor],
-            key=lambda record: deal_sort_key(record, now=current),
-            reverse=True,
-        )
-        ordered.extend(tier)
+    # A discount floor is an eligibility label, not a ranking tier. Merge every
+    # ready band before sorting so a lower-discount high-demand product can outrank
+    # a weak-demand item with a larger markdown.
+    ordered = sorted(
+        (
+            product
+            for tier in selected_by_floor.values()
+            for product in tier
+        ),
+        key=lambda record: deal_sort_key(record, now=current),
+        reverse=True,
+    )
     return _filter_recent_publication_repeats(
         ordered, published, recent_publications, current,
         label="PUBLISH_SELECTION",
@@ -7883,85 +8347,98 @@ def select_discount_fallback_candidates(
     review_growth_tiebreaks = sum(
         bool(has_current_demand_signal(product, now=current)) for product in fresh_candidates
     )
+    bestseller_ranked = sum(
+        bool(_fresh_digikala_bestseller_evidence(product, now=current)) for product in fresh_candidates
+    )
     print(
-        "SELECTION_POLICY rank=discount_percent_desc,savings_toman_desc,"
-        "verified_review_growth_desc_on_exact_tie "
-        "review_growth_proxy_verified=" + str(review_growth_tiebreaks) +
-        " review_growth_is_sales_data=false "
+        "SELECTION_POLICY rank=digikala_bestseller_tier_desc,rank_strength_desc,"
+        "rank_momentum_desc,review_growth_proxy_desc,review_quality_context_desc,"
+        "discount_percent_desc,savings_toman_desc "
+        f"digikala_bestseller_ranked={bestseller_ranked} "
+        f"review_growth_proxy_verified={review_growth_tiebreaks} "
+        "unit_sales_count_available=false review_growth_is_sales_data=false "
         f"hard_eligible={len(quality_eligible)} fresh={len(fresh_candidates)} "
-        "demand_filter=false popularity_filter=false bestseller_filter=false category_demand_filter=false "
+        "demand_gate=false click_count_used=false "
         f"fallback_mode={fallback_mode}"
     )
 
-    first_floor: int | None = None
-    fallback_pool: list[dict] = []
-    for index, floor in enumerate(DISCOUNT_FALLBACK_FLOORS):
-        upper = DISCOUNT_FALLBACK_FLOORS[index - 1] if index > 0 else None
-        band = [
-            product for product in fresh_candidates
-            if int(product.get("discount_percent") or 0) >= floor
-            and (upper is None or int(product.get("discount_percent") or 0) < upper)
-        ]
-        if not band:
-            continue
-        ranked = sorted(
-            band,
-            key=lambda record: deal_sort_key(record, now=current),
-            reverse=True,
+    if not fresh_candidates:
+        print(
+            "PUBLICATION_CANDIDATES_EXHAUSTED "
+            f"products_seen={len(products or [])} hard_eligible={len(quality_eligible)} "
+            "reason=no_fresh_or_reusable_candidate_after_cooldown"
         )
-        if not ranked:
-            continue
+        return [], None, quality_eligible
 
-        label = discount_fallback_band_label(floor, upper)
-        handoff = []
-        for product in ranked:
-            selected = dict(product)
-            selected["selection_discount_floor"] = int(floor)
-            selected["selection_discount_band"] = label
-            selected["publication_policy"] = "discount_first_review_growth_tiebreak_v3"
-            selected["selection_review_growth_evidence"] = (
-                "verified_indirect_proxy_not_sales" if has_current_demand_signal(product, now=current)
-                else "none"
-            )
-            selected["selection_value_evidence"] = (
-                "independently_verified" if has_attractive_discount_value(product, current)
-                else "retailer_listed_markdown_only"
-            )
-            selected["selection_fallback_mode"] = fallback_mode
-            handoff.append(selected)
-
-        if first_floor is None:
-            first_floor = floor
-            print(
-                f"PUBLICATION_CANDIDATES_READY band={label} hard_eligible={len(quality_eligible)} "
-                f"ranked={len(handoff)} fallback_mode={fallback_mode}"
-            )
-        if not include_fallback_bands:
-            safe_handoff = _filter_recent_publication_repeats(
-                handoff, published_records, state.get("recent_publications", []),
-                current, label="SELECTION_PREPRIMARY",
-            )
-            if safe_handoff:
-                return safe_handoff, floor, quality_eligible
-            continue
-        fallback_pool.extend({**candidate, "selection_discount_floor": floor} for candidate in handoff)
-
-    if fallback_pool:
-        safe_fallback_pool = _filter_recent_publication_repeats(
-            fallback_pool, published_records, state.get("recent_publications", []),
-            current, label="SELECTION_ALL_FALLBACKS",
-        )
-        safe_floor = (
-            int(safe_fallback_pool[0].get("selection_discount_floor") or first_floor)
-            if safe_fallback_pool else None
-        )
-        return safe_fallback_pool, safe_floor, quality_eligible
-    print(
-        "PUBLICATION_CANDIDATES_EXHAUSTED "
-        f"products_seen={len(products or [])} hard_eligible={len(quality_eligible)} "
-        "reason=no_live_positive_markdown_with_stock_price_and_valid_affiliate"
+    ranked = sorted(
+        fresh_candidates,
+        key=lambda record: deal_sort_key(record, now=current),
+        reverse=True,
     )
-    return [], None, quality_eligible
+    handoff = []
+    for product in ranked:
+        selected = dict(product)
+        discount = _discount_percentage_sort_value(product)
+        # Preserve the strongest applicable floor for last-mile validation,
+        # but never use floor bands to promote a lower-demand product.
+        floor = max(
+            (value for value in DISCOUNT_FALLBACK_FLOORS if discount >= value),
+            default=MIN_DISCOUNT_FALLBACK_PERCENT,
+        )
+        selected["selection_discount_floor"] = int(floor)
+        selected["selection_discount_band"] = discount_fallback_band_label(int(floor), None)
+        selected["publication_policy"] = "digikala_demand_first_bestseller_review_quality_discount_v1"
+        bestseller_evidence = _fresh_digikala_bestseller_evidence(product, now=current)
+        selected["selection_demand_evidence"] = (
+            "digikala_native_bestseller_rank" if bestseller_evidence
+            else "digikala_recent_review_growth_proxy" if has_current_demand_signal(product, now=current)
+            else "digiKala_lifetime_reviews_and_rating_context" if (
+                product.get("review_count") or product.get("rating")
+            ) else "no_current_demand_evidence"
+        )
+        selected["selection_demand_quality"] = (
+            bestseller_evidence.get("evidence_quality") if bestseller_evidence
+            else "indirect_review_growth_proxy_not_sales" if has_current_demand_signal(product, now=current)
+            else "historical_quality_context_only"
+        )
+        selected["selection_bestseller_rank"] = bestseller_evidence.get("best_rank_across_categories")
+        selected["selection_bestseller_category_count"] = bestseller_evidence.get("fresh_category_count", 0)
+        selected["selection_bestseller_rank_improvement"] = bestseller_evidence.get("rank_improvement", 0)
+        selected["selection_review_growth_evidence"] = (
+            "verified_indirect_proxy_not_sales" if has_current_demand_signal(product, now=current)
+            else "none"
+        )
+        selected["selection_value_evidence"] = (
+            "independently_verified" if has_attractive_discount_value(product, current)
+            else "retailer_listed_markdown_only"
+        )
+        selected["selection_fallback_mode"] = fallback_mode
+        handoff.append(selected)
+
+    safe_handoff = _filter_recent_publication_repeats(
+        handoff, published_records, state.get("recent_publications", []),
+        current, label="SELECTION_PREPRIMARY",
+    )
+    if not safe_handoff:
+        return [], None, quality_eligible
+
+    experiment_counts = {"A": 0, "B": 0}
+    for selected in safe_handoff:
+        pid = str(selected.get("product_id") or product_id(selected.get("product_url") or ""))
+        experiment_id, variant = creative_experiment_assignment(pid)
+        selected["creative_experiment_id"] = experiment_id
+        selected["creative_variant"] = variant
+        if variant in experiment_counts:
+            experiment_counts[variant] += 1
+
+    print(
+        f"PUBLICATION_CANDIDATES_READY demand_ranked={len(safe_handoff)} "
+        f"top_bestseller_rank={safe_handoff[0].get('selection_bestseller_rank')} "
+        f"top_discount={safe_handoff[0].get('discount_percent')} "
+        f"variant_counts={experiment_counts} fallback_mode={fallback_mode}"
+    )
+    selected_floor = int(safe_handoff[0].get("selection_discount_floor") or MIN_DISCOUNT_FALLBACK_PERCENT)
+    return safe_handoff, selected_floor, quality_eligible
 
 
 
@@ -7969,12 +8446,10 @@ def restore_selection_discount_tiers(
     selected_candidates: list[dict],
     tiered_candidates: list[dict],
 ) -> int:
-    """Restore the selected discount floor after publication ranking.
+    """Restore each candidate's own hard-validation floor and demand evidence.
 
-    The tier selector ranks copies annotated with their own allowed minimum.
-    The publication ranker operates on the original quality records, so this
-    metadata must be copied back before the queue hand-off or the publisher
-    incorrectly falls back to the legacy 50% floor for every product.
+    Discount floors are eligibility metadata only; this helper must not alter the
+    global market-demand order chosen by DigiKala bestseller evidence.
     """
     tiers_by_id: dict[str, dict] = {}
     for candidate in tiered_candidates or []:
@@ -7993,12 +8468,16 @@ def restore_selection_discount_tiers(
         tier = {"selection_discount_floor": floor}
         for field in (
             "selection_discount_band", "publication_policy",
+            "selection_demand_evidence", "selection_demand_quality",
+            "selection_bestseller_rank", "selection_bestseller_category_count",
+            "selection_bestseller_rank_improvement",
             "selection_review_growth_evidence", "selection_value_evidence",
-            "selection_fallback_mode",
+            "selection_fallback_mode", "creative_experiment_id", "creative_variant",
         ):
-            value = str(candidate.get(field) or "").strip()
-            if value:
-                tier[field] = value
+            value = candidate.get(field)
+            if value is None or value == "":
+                continue
+            tier[field] = value
         tiers_by_id[pid] = tier
 
     restored = 0
@@ -9212,6 +9691,7 @@ def process_pending_short_video(
             original_price=record.get("posted_original_price"),
             merchant="اسنپ‌شاپ" if product_id(record.get("product_url", "")).startswith("snp-") else "دیجی‌کالا",
             destination_platform=platform,
+            experiment_variant=record.get("creative_variant", "A"),
         )
         rendered_video_paths[platform] = output
         file_names = record.get("video_file_names")
@@ -9807,6 +10287,11 @@ def run(publish=False, selection_only=False):
                     "catalog_best_selling_rank",
                     "catalog_best_selling_category_id",
                     "catalog_best_selling_category_name",
+                    "catalog_category_id",
+                    "catalog_category_name",
+                    "catalog_category_ids",
+                    "catalog_category_path",
+                    "catalog_best_selling_ranks_by_category",
                     "catalog_rank_observed_at",
                     "catalog_cycle_completed_at",
                     "catalog_cycle_snapshot_rank",
@@ -9879,8 +10364,9 @@ def run(publish=False, selection_only=False):
 
     # Repeated retailer observations are required to distinguish recent interest from lifetime popularity.
     update_current_demand_signals(state, products, now=datetime.now(timezone.utc))
-    # Do not fetch click-worker statistics: they are not affiliate conversions and
-    # new purchase buttons now go directly to Affilio to preserve attribution.
+    # Click analytics are fetched only for reporting. They are never ranking inputs,
+    # never treated as orders, and never allowed to block product selection/publication.
+    enrich_click_statistics(products)
     products.sort(key=deal_sort_key, reverse=True)
     state.setdefault("published", {})
     if publish and CLEAR_PREVIOUS_CHANNEL_POSTS and BATCH_OPERATION_KEY and state.get("completed_batch_operation") == BATCH_OPERATION_KEY:
@@ -10106,6 +10592,7 @@ def run(publish=False, selection_only=False):
         state.get("recent_publications"),
     )
     record_publication_diversity_report(state, now=queue_now)
+    save_json(PERFORMANCE_REPORT, build_performance_report(state, now=queue_now))
     save_json(STATE, state)
     market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
@@ -10116,8 +10603,9 @@ def run(publish=False, selection_only=False):
     )
     for rank, item in enumerate(products[:12], start=1):
         print(
-            f"RANK {rank}: discount={item['discount_percent']}% saving={item['savings_toman']} "
-            f"promo_score={item['promo_score']} review_growth_proxy_verified={has_current_demand_signal(item, queue_now)} "
+            f"RANK {rank}: demand={_fresh_digikala_bestseller_evidence(item, queue_now).get('best_rank_across_categories', 'proxy/none')} "
+            f"discount={item['discount_percent']}% saving={item['savings_toman']} "
+            f"review_growth_proxy_verified={has_current_demand_signal(item, queue_now)} "
             f"clicks_30d={item.get('click_count_30d', 0)} "
             f"stock={item['availability']} linked={item['has_affiliate_link']} "
             f"market={item.get('market_status')} market_price={item.get('market_reference_price_toman')} "
@@ -10128,15 +10616,28 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "The scanner traverses every queryable DigiKala category page and retains the globally highest observed markdown cards. Live candidates are ranked strictly by discount percentage descending, then cash savings descending; only when both are equal may fresh verified rolling review-count growth act as an optional indirect proxy tiebreaker. Review growth is not unit sales. Lifetime reviews, ratings, category bestseller rank, general popularity, category demand, category/brand preference, trends and clicks never gate or reorder the selection. Independent positive market/history confirmation is not mandatory; only fresh verified evidence that contradicts the markdown may veto it. Detail checks continue across cycles. Publication requires verified product identity, in-stock status, current price, arithmetic-consistent positive markdown, usable title/image, valid Affilio tracking link, live/non-expired offer, duplicate protection, and safety checks.",
+        "ranking_note": "The scanner traverses every queryable DigiKala category page ordered by DigiKala's native bestseller sort (sort id 7). Candidates are ranked first by fresh within-category bestseller evidence (top 10, 11-30, then 31-60), then observed rank momentum and the number of fresh categories in which the product ranks, then fresh review-count growth as an indirect proxy, then lifetime review count/rating as weak quality context, and only then discount percentage and cash savings. DigiKala's public data available to this integration does not expose a verified absolute unit-sales count, so bestseller rank is a relative sales-demand signal, not a unit count; review growth is not sales. Clicks never influence market-demand ranking. SnappShop and other sources remain supplementary and cannot outrank a fresh DigiKala bestseller signal. Price, stock, product identity, affiliate URL, offer validity, duplicate and safety checks remain hard publication controls.",
+        "demand_ranking_policy": {
+            "version": "digikala_demand_first_bestseller_review_quality_discount_v1",
+            "primary_source": "DigiKala native bestseller sort id=7",
+            "primary_rank_window": "top 60 per DigiKala category",
+            "rank_max_age_hours": DIGIKALA_BESTSELLER_MAX_AGE_HOURS,
+            "rank_tiers": {"top_10": 3, "rank_11_30": 2, "rank_31_60": 1},
+            "rank_is_absolute_unit_sales": False,
+            "absolute_unit_sales_count_available": False,
+            "secondary_signal": "fresh review-count growth; indirect proxy only",
+            "tertiary_context": ["lifetime_review_count", "rating"],
+            "discount_order": ["discount_percent_desc", "savings_toman_desc"],
+            "clicks_affect_demand_rank": False,
+        },
         "review_growth_tiebreak_policy": {
-            "use": "optional_tertiary_tiebreak_only",
-            "ranking_effect": "only_after_equal_discount_percent_and_savings_toman",
-            "source": "fresh rolling retailer review-count growth",
+            "use": "secondary_indirect_proxy",
+            "ranking_effect": "after_fresh_digikala_bestseller_rank_and_rank_momentum",
+            "source": "fresh rolling review-count growth (DigiKala primary; SnappShop secondary)",
             "interpretation": "indirect proxy only; not sales volume",
             "unverified_blocks_new_publication": False,
-            "lifetime_review_count_or_rating_used": False,
-            "category_bestseller_rank_used": False,
+            "lifetime_review_count_or_rating_used": True,
+            "category_bestseller_rank_used": True,
             "window_days": CURRENT_DEMAND_WINDOW_DAYS,
             "minimum_growth": CURRENT_DEMAND_MIN_REVIEW_GROWTH,
             "minimum_observation_hours": CURRENT_DEMAND_MIN_OBSERVATION_HOURS,

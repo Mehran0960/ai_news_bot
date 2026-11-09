@@ -219,6 +219,13 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
             item.get("selection_discount_floor") or radar.DISCOUNT_FALLBACK_FLOORS[0]
         ),
         "selection_discount_band": str(item.get("selection_discount_band") or ""),
+        "creative_experiment_id": str(item.get("creative_experiment_id") or ""),
+        "creative_variant": str(item.get("creative_variant") or "A").upper(),
+        "selection_demand_evidence": str(item.get("selection_demand_evidence") or "none"),
+        "selection_demand_quality": str(item.get("selection_demand_quality") or "unknown"),
+        "selection_bestseller_rank": item.get("selection_bestseller_rank"),
+        "selection_bestseller_category_count": int(item.get("selection_bestseller_category_count") or 0),
+        "selection_bestseller_rank_improvement": int(item.get("selection_bestseller_rank_improvement") or 0),
         "posted_current_price": int(item.get("current_price") or 0),
         "posted_original_price": int(item.get("original_price") or 0),
         "selection_review_growth_evidence": str(item.get("selection_review_growth_evidence") or "none"),
@@ -342,8 +349,11 @@ def _fresh_selected_item(
         "catalog_category_ids", "catalog_category_path", "catalog_best_selling_ranks_by_category",
         "catalog_best_selling_category_id", "catalog_best_selling_category_name",
         "catalog_rank_observed_at", "catalog_cycle_completed_at", "catalog_cycle_snapshot_rank",
-        "publication_policy", "selection_review_growth_evidence", "selection_value_evidence",
-        "selection_fallback_mode",
+        "publication_policy", "selection_demand_evidence", "selection_demand_quality",
+        "selection_bestseller_rank", "selection_bestseller_category_count",
+        "selection_bestseller_rank_improvement", "selection_review_growth_evidence",
+        "selection_value_evidence", "selection_fallback_mode",
+        "creative_experiment_id", "creative_variant",
     ):
         if key in payload:
             fresh[key] = payload[key]

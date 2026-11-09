@@ -102,6 +102,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         self.assertFalse(radar.has_actionable_demand_signal(stale, now=self.now))
 
         lifetime_reviews_only = {
+            "product_id": "dkp-lifetime",
             "review_count": 250_000,
             "rating": 4.9,
             "historical_popularity_score": 100,
@@ -111,8 +112,12 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "catalog_rank_observed_at": self.now.isoformat(),
         }
         self.assertFalse(radar.has_actionable_demand_signal(lifetime_reviews_only, now=self.now))
+        self.assertEqual(
+            radar._fresh_digikala_bestseller_evidence(lifetime_reviews_only, self.now)["best_rank_across_categories"],
+            1,
+        )
 
-    def test_discount_and_savings_always_beat_review_growth_proxy(self):
+    def test_fresh_review_growth_outranks_a_larger_markdown_when_no_bestseller_rank_exists(self):
         high_discount_without_growth = {
             "product_id": "dkp-high-discount",
             "discount_percent": 85,
@@ -127,43 +132,118 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             **self._verified_review_growth(),
         }
         self.assertGreater(
-            radar.deal_sort_key(high_discount_without_growth, now=self.now),
             radar.deal_sort_key(lower_discount_with_growth, now=self.now),
+            radar.deal_sort_key(high_discount_without_growth, now=self.now),
         )
         self.assertGreater(
-            radar.discovery_queue_sort_key(high_discount_without_growth, now=self.now),
             radar.discovery_queue_sort_key(lower_discount_with_growth, now=self.now),
+            radar.discovery_queue_sort_key(high_discount_without_growth, now=self.now),
         )
 
-    def test_fresh_review_growth_is_used_only_after_both_discount_keys_tie(self):
-        no_growth = {
-            "product_id": "dkp-no-growth",
-            "discount_percent": 70,
-            "savings_toman": 700_000,
-            "review_count": 900_000,
-            "rating": 5.0,
-            "demand_score": 999,
+    def test_direct_bestseller_rank_precedes_review_growth_and_deal_value(self):
+        top_seller = {
+            "product_id": "dkp-top-seller",
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 2,
+            "catalog_rank_observed_at": self.now.isoformat(),
+            "discount_percent": 10,
+            "savings_toman": 100_000,
+            "review_count": 25,
+            "rating": 4.0,
         }
-        with_growth = {
-            "product_id": "dkp-growth",
-            "discount_percent": 70,
-            "savings_toman": 700_000,
-            "review_count": 1,
+        review_spike = {
+            "product_id": "dkp-review-spike",
+            "discount_percent": 90,
+            "savings_toman": 9_000_000,
+            "review_count": 100,
             **self._verified_review_growth(),
         }
         self.assertGreater(
-            radar.deal_sort_key(with_growth, now=self.now),
-            radar.deal_sort_key(no_growth, now=self.now),
+            radar.deal_sort_key(top_seller, now=self.now),
+            radar.deal_sort_key(review_spike, now=self.now),
         )
 
-        lower_savings_even_with_growth = {
-            **with_growth,
-            "product_id": "dkp-lower-savings",
-            "savings_toman": 699_999,
+        stale_bestseller = {
+            **top_seller,
+            "catalog_rank_observed_at": (
+                self.now - timedelta(hours=radar.DIGIKALA_BESTSELLER_MAX_AGE_HOURS + 1)
+            ).isoformat(),
         }
+        self.assertFalse(radar._fresh_digikala_bestseller_evidence(stale_bestseller, self.now))
         self.assertGreater(
-            radar.deal_sort_key(no_growth, now=self.now),
-            radar.deal_sort_key(lower_savings_even_with_growth, now=self.now),
+            radar.deal_sort_key(review_spike, now=self.now),
+            radar.deal_sort_key(stale_bestseller, now=self.now),
+        )
+
+    def test_global_demand_order_survives_selection_and_publication_across_discount_bands(self):
+        products = [
+            {
+                "product_id": "dkp-popular-low-discount",
+                "product_url": "https://www.digikala.com/product/dkp-popular-low-discount/",
+                "title": "لپ تاپ اداری مدل نمونه",
+                "brand": "Brand A",
+                "availability": "in_stock",
+                "current_price": 900_000,
+                "original_price": 1_000_000,
+                "discount_percent": 10,
+                "savings_toman": 100_000,
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 1,
+                "catalog_rank_observed_at": self.now.isoformat(),
+                "catalog_best_selling_category_id": "101",
+                "catalog_best_selling_category_name": "لپ تاپ",
+            },
+            {
+                "product_id": "dkp-weak-high-discount",
+                "product_url": "https://www.digikala.com/product/dkp-weak-high-discount/",
+                "title": "هدفون بلوتوثی مدل نمونه",
+                "brand": "Brand B",
+                "availability": "in_stock",
+                "current_price": 200_000,
+                "original_price": 1_000_000,
+                "discount_percent": 80,
+                "savings_toman": 800_000,
+                "review_count": 2,
+                "rating": 3.5,
+            },
+        ]
+        state = {"published": {}, "recent_publications": []}
+        with (
+            patch.object(radar, "is_product_suppressed", return_value=False),
+            patch.object(radar, "is_discount_publish_eligible", return_value=True),
+            patch.object(radar, "has_publishable_expiry_or_open_offer", return_value=True),
+            patch.object(radar, "is_selection_candidate_rejected", return_value=False),
+            patch.object(radar, "is_fresh_selection_candidate", return_value=True),
+        ):
+            selected, _floor, quality = radar.select_discount_fallback_candidates(
+                products, state, now=self.now, include_fallback_bands=True
+            )
+
+        self.assertEqual(len(quality), 2)
+        self.assertEqual(
+            [row["product_id"] for row in selected],
+            ["dkp-popular-low-discount", "dkp-weak-high-discount"],
+        )
+        queue = {row["product_id"]: {} for row in selected}
+        by_id = {row["product_id"]: row for row in selected}
+        published = radar.select_publish_candidates(queue, by_id, self.now)
+        self.assertEqual(
+            [row["product_id"] for row in published],
+            ["dkp-popular-low-discount", "dkp-weak-high-discount"],
+        )
+
+    def test_discount_is_the_final_tiebreak_after_equal_demand_evidence(self):
+        base = {
+            "product_id": "dkp-equal-demand",
+            "review_count": 500,
+            "rating": 4.5,
+            **self._verified_review_growth(),
+        }
+        larger_discount = {**base, "discount_percent": 70, "savings_toman": 700_000}
+        smaller_discount = {**base, "discount_percent": 20, "savings_toman": 200_000}
+        self.assertGreater(
+            radar.deal_sort_key(larger_discount, now=self.now),
+            radar.deal_sort_key(smaller_discount, now=self.now),
         )
 
     def test_fresh_bestseller_rank_never_counts_as_review_growth_or_sales(self):
