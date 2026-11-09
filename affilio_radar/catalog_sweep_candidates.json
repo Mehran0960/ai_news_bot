@@ -40675,21 +40675,28 @@
               "rank": 1
             }
           ]
+        },
+        "5702": {
+          "category_name": "سلامت و پزشکی",
+          "observed_at": "2026-11-09T18:40:17.860372+00:00",
+          "rank": 639,
+          "rank_history": []
         }
       },
-      "catalog_category_id": "10119",
+      "catalog_category_id": "5702",
       "catalog_category_ids": [
+        "5702",
         "10119",
         "11342",
         "11404"
       ],
-      "catalog_category_name": "مکمل غذایی و ورزشی",
+      "catalog_category_name": "سلامت و پزشکی",
       "catalog_rank_observed_at": "2026-11-09T12:31:07.498979+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 245000,
       "discount_percent": 9,
       "first_seen_at": "2026-11-09T12:31:07.498979+00:00",
-      "last_seen_at": "2026-11-09T17:52:39.052945+00:00",
+      "last_seen_at": "2026-11-09T18:40:12.613035+00:00",
       "original_price": 270000,
       "product_id": "dkp-19103854",
       "product_url": "https://www.digikala.com/product/dkp-19103854/",
@@ -51472,6 +51479,12 @@
           "rank": 91,
           "rank_history": []
         },
+        "4": {
+          "category_name": "مد و پوشاک",
+          "observed_at": "2026-11-09T18:40:17.837243+00:00",
+          "rank": 618,
+          "rank_history": []
+        },
         "6888": {
           "category_name": "مادربرد",
           "observed_at": "2026-11-09T11:53:00.926049+00:00",
@@ -51485,18 +51498,19 @@
           ]
         }
       },
-      "catalog_category_id": "31",
+      "catalog_category_id": "4",
       "catalog_category_ids": [
+        "4",
         "31",
         "6888"
       ],
-      "catalog_category_name": "گوشی جی ال ایکس",
+      "catalog_category_name": "مد و پوشاک",
       "catalog_rank_observed_at": "2026-11-09T11:53:00.926049+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 24827470,
       "discount_percent": 30,
       "first_seen_at": "2026-11-09T11:53:00.926049+00:00",
-      "last_seen_at": "2026-11-09T13:33:03.030958+00:00",
+      "last_seen_at": "2026-11-09T18:40:07.313020+00:00",
       "original_price": 35600000,
       "product_id": "dkp-8416624",
       "product_url": "https://www.digikala.com/product/dkp-8416624/",
@@ -58167,6 +58181,59 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "8291",
+      "catalog_best_selling_category_name": "آب مرکبات گیر",
+      "catalog_best_selling_rank": 1,
+      "catalog_best_selling_ranks_by_category": {
+        "5753": {
+          "category_name": "لوازم خانگی برقی",
+          "observed_at": "2026-11-09T18:40:17.862165+00:00",
+          "rank": 627,
+          "rank_history": []
+        },
+        "5854": {
+          "category_name": "نوشیدنی ساز",
+          "observed_at": "2026-11-09T13:33:28.896136+00:00",
+          "rank": 92,
+          "rank_history": []
+        },
+        "8291": {
+          "category_name": "آب مرکبات گیر",
+          "observed_at": "2026-11-09T11:53:00.969159+00:00",
+          "rank": 1,
+          "rank_history": [
+            {
+              "category_name": "آب مرکبات گیر",
+              "observed_at": "2026-11-09T11:53:00.969159+00:00",
+              "rank": 1
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "5753",
+      "catalog_category_ids": [
+        "5753",
+        "5854",
+        "8291"
+      ],
+      "catalog_category_name": "لوازم خانگی برقی",
+      "catalog_rank_observed_at": "2026-11-09T11:53:00.969159+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 3599500,
+      "discount_percent": 4,
+      "first_seen_at": "2026-11-09T11:53:00.969159+00:00",
+      "last_seen_at": "2026-11-09T18:40:13.168511+00:00",
+      "original_price": 3732400,
+      "product_id": "dkp-26672",
+      "product_url": "https://www.digikala.com/product/dkp-26672/",
+      "rating": 4.17,
+      "review_count": 1873,
+      "savings_toman": 132900,
+      "source": "digikala_catalog_sweep",
+      "title": "آب مرکبات گیری پارس خزر مدل Limonade"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "10906",
       "catalog_best_selling_category_name": "قهوه عربیکا",
       "catalog_best_selling_rank": 1,
@@ -58210,52 +58277,6 @@
       "savings_toman": 95000,
       "source": "digikala_catalog_sweep",
       "title": "پودر قهوه عربیکا پانتیل - 350 گرم"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "8291",
-      "catalog_best_selling_category_name": "آب مرکبات گیر",
-      "catalog_best_selling_rank": 1,
-      "catalog_best_selling_ranks_by_category": {
-        "5854": {
-          "category_name": "نوشیدنی ساز",
-          "observed_at": "2026-11-09T13:33:28.896136+00:00",
-          "rank": 92,
-          "rank_history": []
-        },
-        "8291": {
-          "category_name": "آب مرکبات گیر",
-          "observed_at": "2026-11-09T11:53:00.969159+00:00",
-          "rank": 1,
-          "rank_history": [
-            {
-              "category_name": "آب مرکبات گیر",
-              "observed_at": "2026-11-09T11:53:00.969159+00:00",
-              "rank": 1
-            }
-          ]
-        }
-      },
-      "catalog_category_id": "5854",
-      "catalog_category_ids": [
-        "5854",
-        "8291"
-      ],
-      "catalog_category_name": "نوشیدنی ساز",
-      "catalog_rank_observed_at": "2026-11-09T11:53:00.969159+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 3616200,
-      "discount_percent": 3,
-      "first_seen_at": "2026-11-09T11:53:00.969159+00:00",
-      "last_seen_at": "2026-11-09T13:33:25.547955+00:00",
-      "original_price": 3732400,
-      "product_id": "dkp-26672",
-      "product_url": "https://www.digikala.com/product/dkp-26672/",
-      "rating": 4.17,
-      "review_count": 1873,
-      "savings_toman": 116200,
-      "source": "digikala_catalog_sweep",
-      "title": "آب مرکبات گیری پارس خزر مدل Limonade"
     },
     {
       "availability": "unknown",
@@ -81336,6 +81357,12 @@
       "catalog_best_selling_category_name": "هود",
       "catalog_best_selling_rank": 2,
       "catalog_best_selling_ranks_by_category": {
+        "5753": {
+          "category_name": "لوازم خانگی برقی",
+          "observed_at": "2026-11-09T18:40:17.862165+00:00",
+          "rank": 632,
+          "rank_history": []
+        },
         "8281": {
           "category_name": "لوازم توکار",
           "observed_at": "2026-11-09T11:53:00.967959+00:00",
@@ -81361,23 +81388,24 @@
           ]
         }
       },
-      "catalog_category_id": "8282",
+      "catalog_category_id": "5753",
       "catalog_category_ids": [
+        "5753",
         "8281",
         "8282"
       ],
-      "catalog_category_name": "هود",
+      "catalog_category_name": "لوازم خانگی برقی",
       "catalog_rank_observed_at": "2026-11-09T11:53:00.968123+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 9600000,
       "discount_percent": 4,
       "first_seen_at": "2026-11-09T11:53:00.967959+00:00",
-      "last_seen_at": "2026-11-09T11:50:46.201901+00:00",
+      "last_seen_at": "2026-11-09T18:40:13.168699+00:00",
       "original_price": 10000000,
       "product_id": "dkp-21671191",
       "product_url": "https://www.digikala.com/product/dkp-21671191/",
-      "rating": 4.6,
-      "review_count": 15,
+      "rating": 4.56,
+      "review_count": 16,
       "savings_toman": 400000,
       "source": "digikala_catalog_sweep",
       "title": "هود مخفی پرایم مدل am 600 سایز 70"
@@ -130059,6 +130087,12 @@
       "catalog_best_selling_category_name": "سپر",
       "catalog_best_selling_rank": 3,
       "catalog_best_selling_ranks_by_category": {
+        "10688": {
+          "category_name": "خودرو و موتورسیکلت",
+          "observed_at": "2026-11-09T18:40:17.765317+00:00",
+          "rank": 602,
+          "rank_history": []
+        },
         "11006": {
           "category_name": "لوازم بدنه خودرو",
           "observed_at": "2026-11-09T13:28:36.524384+00:00",
@@ -130084,19 +130118,20 @@
           ]
         }
       },
-      "catalog_category_id": "8182",
+      "catalog_category_id": "10688",
       "catalog_category_ids": [
         "8182",
         "8502",
+        "10688",
         "11006"
       ],
-      "catalog_category_name": "لوازم یدکی خودرو",
+      "catalog_category_name": "خودرو و موتورسیکلت",
       "catalog_rank_observed_at": "2026-11-09T11:59:56.411876+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1399000,
       "discount_percent": 13,
       "first_seen_at": "2026-11-09T11:59:56.411876+00:00",
-      "last_seen_at": "2026-11-09T14:54:32.597173+00:00",
+      "last_seen_at": "2026-11-09T18:39:48.444630+00:00",
       "original_price": 1600000,
       "product_id": "dkp-11331752",
       "product_url": "https://www.digikala.com/product/dkp-11331752/",
@@ -133549,6 +133584,12 @@
           "rank": 561,
           "rank_history": []
         },
+        "2": {
+          "category_name": "کالای دیجیتال",
+          "observed_at": "2026-11-09T18:40:17.836775+00:00",
+          "rank": 603,
+          "rank_history": []
+        },
         "89": {
           "category_name": "mini pc",
           "observed_at": "2026-11-09T11:19:44.693665+00:00",
@@ -133562,18 +133603,19 @@
           ]
         }
       },
-      "catalog_category_id": "17",
+      "catalog_category_id": "2",
       "catalog_category_ids": [
+        "2",
         "17",
         "89"
       ],
-      "catalog_category_name": "رزولوشن عکس",
+      "catalog_category_name": "کالای دیجیتال",
       "catalog_rank_observed_at": "2026-11-09T11:19:44.693665+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 15580000,
       "discount_percent": 5,
       "first_seen_at": "2026-11-09T11:19:44.693665+00:00",
-      "last_seen_at": "2026-11-09T18:11:29.534533+00:00",
+      "last_seen_at": "2026-11-09T18:40:07.176230+00:00",
       "original_price": 16400000,
       "product_id": "dkp-21335007",
       "product_url": "https://www.digikala.com/product/dkp-21335007/",
@@ -143952,6 +143994,12 @@
       "catalog_best_selling_category_name": "فیلتر هوا",
       "catalog_best_selling_rank": 4,
       "catalog_best_selling_ranks_by_category": {
+        "10688": {
+          "category_name": "خودرو و موتورسیکلت",
+          "observed_at": "2026-11-09T18:40:17.765317+00:00",
+          "rank": 605,
+          "rank_history": []
+        },
         "11010": {
           "category_name": "قطعات سرویس دوره ای",
           "observed_at": "2026-11-09T13:40:56.042860+00:00",
@@ -143995,21 +144043,22 @@
           ]
         }
       },
-      "catalog_category_id": "8182",
+      "catalog_category_id": "10688",
       "catalog_category_ids": [
         "8182",
         "8192",
         "8451",
         "8452",
+        "10688",
         "11010"
       ],
-      "catalog_category_name": "لوازم یدکی خودرو",
+      "catalog_category_name": "خودرو و موتورسیکلت",
       "catalog_rank_observed_at": "2026-11-09T11:53:00.959834+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 410000,
       "discount_percent": 53,
       "first_seen_at": "2026-11-09T11:53:00.959834+00:00",
-      "last_seen_at": "2026-11-09T14:54:32.597220+00:00",
+      "last_seen_at": "2026-11-09T18:39:48.444759+00:00",
       "original_price": 870000,
       "product_id": "dkp-17632534",
       "product_url": "https://www.digikala.com/product/dkp-17632534/",
@@ -148139,6 +148188,12 @@
           "rank": 66,
           "rank_history": []
         },
+        "11018": {
+          "category_name": "مواد غذایی",
+          "observed_at": "2026-11-09T18:40:17.792704+00:00",
+          "rank": 610,
+          "rank_history": []
+        },
         "11036": {
           "category_name": "غلات و حبوبات ارگانیک",
           "observed_at": "2026-11-09T14:12:55.519348+00:00",
@@ -148164,21 +148219,22 @@
           "rank_history": []
         }
       },
-      "catalog_category_id": "8899",
+      "catalog_category_id": "11018",
       "catalog_category_ids": [
         "8899",
         "10736",
         "10766",
+        "11018",
         "11036",
         "11543"
       ],
-      "catalog_category_name": "کالاهای اساسی و خواربار",
+      "catalog_category_name": "مواد غذایی",
       "catalog_rank_observed_at": "2026-11-09T12:31:07.518890+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 364800,
       "discount_percent": 24,
       "first_seen_at": "2026-11-09T12:18:28.977664+00:00",
-      "last_seen_at": "2026-11-09T17:30:41.762968+00:00",
+      "last_seen_at": "2026-11-09T18:39:55.701055+00:00",
       "original_price": 480000,
       "product_id": "dkp-10002228",
       "product_url": "https://www.digikala.com/product/dkp-10002228/",
@@ -164586,6 +164642,12 @@
       "catalog_best_selling_category_name": "مکمل تسکین درد",
       "catalog_best_selling_rank": 4,
       "catalog_best_selling_ranks_by_category": {
+        "11196": {
+          "category_name": "مکمل غذایی",
+          "observed_at": "2026-11-09T18:40:17.809137+00:00",
+          "rank": 604,
+          "rank_history": []
+        },
         "11208": {
           "category_name": "مکمل کمک درمانی",
           "observed_at": "2026-11-09T18:13:20.992238+00:00",
@@ -164605,18 +164667,19 @@
           ]
         }
       },
-      "catalog_category_id": "11208",
+      "catalog_category_id": "11196",
       "catalog_category_ids": [
+        "11196",
         "11208",
         "11213"
       ],
-      "catalog_category_name": "مکمل کمک درمانی",
+      "catalog_category_name": "مکمل غذایی",
       "catalog_rank_observed_at": "2026-11-09T12:18:29.077048+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 197580,
       "discount_percent": 18,
       "first_seen_at": "2026-11-09T12:18:29.077048+00:00",
-      "last_seen_at": "2026-11-09T18:11:22.015890+00:00",
+      "last_seen_at": "2026-11-09T18:39:59.734624+00:00",
       "original_price": 240000,
       "product_id": "dkp-7791934",
       "product_url": "https://www.digikala.com/product/dkp-7791934/",
@@ -167678,6 +167741,12 @@
       "catalog_best_selling_category_name": "سپر",
       "catalog_best_selling_rank": 4,
       "catalog_best_selling_ranks_by_category": {
+        "10688": {
+          "category_name": "خودرو و موتورسیکلت",
+          "observed_at": "2026-11-09T18:40:17.765317+00:00",
+          "rank": 611,
+          "rank_history": []
+        },
         "11006": {
           "category_name": "لوازم بدنه خودرو",
           "observed_at": "2026-11-09T13:28:36.524384+00:00",
@@ -167703,19 +167772,20 @@
           ]
         }
       },
-      "catalog_category_id": "8182",
+      "catalog_category_id": "10688",
       "catalog_category_ids": [
         "8182",
         "8502",
+        "10688",
         "11006"
       ],
-      "catalog_category_name": "لوازم یدکی خودرو",
+      "catalog_category_name": "خودرو و موتورسیکلت",
       "catalog_rank_observed_at": "2026-11-09T11:59:56.411876+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1420000,
       "discount_percent": 11,
       "first_seen_at": "2026-11-09T11:59:56.411876+00:00",
-      "last_seen_at": "2026-11-09T14:54:32.597288+00:00",
+      "last_seen_at": "2026-11-09T18:39:48.444977+00:00",
       "original_price": 1600000,
       "product_id": "dkp-16287405",
       "product_url": "https://www.digikala.com/product/dkp-16287405/",
@@ -168803,6 +168873,12 @@
           "rank": 302,
           "rank_history": []
         },
+        "11574": {
+          "category_name": "گربه",
+          "observed_at": "2026-11-09T18:40:17.820893+00:00",
+          "rank": 601,
+          "rank_history": []
+        },
         "11619": {
           "category_name": "سگ و گربه",
           "observed_at": "2026-11-09T14:44:23.471351+00:00",
@@ -168822,20 +168898,21 @@
           ]
         }
       },
-      "catalog_category_id": "11548",
+      "catalog_category_id": "11574",
       "catalog_category_ids": [
         "11091",
         "11548",
+        "11574",
         "11619",
         "11620"
       ],
-      "catalog_category_name": "سگ",
+      "catalog_category_name": "گربه",
       "catalog_rank_observed_at": "2026-11-09T12:31:07.530029+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 301000,
       "discount_percent": 9,
       "first_seen_at": "2026-11-09T12:31:07.530029+00:00",
-      "last_seen_at": "2026-11-09T15:59:39.588442+00:00",
+      "last_seen_at": "2026-11-09T18:40:02.884218+00:00",
       "original_price": 329310,
       "product_id": "dkp-15589613",
       "product_url": "https://www.digikala.com/product/dkp-15589613/",
@@ -170435,8 +170512,8 @@
       "catalog_best_selling_ranks_by_category": {
         "11134": {
           "category_name": "زیورآلات طلا بچگانه",
-          "observed_at": "2026-11-09T17:28:00.659639+00:00",
-          "rank": 466,
+          "observed_at": "2026-11-09T18:40:17.805159+00:00",
+          "rank": 608,
           "rank_history": []
         },
         "9710": {
@@ -170463,7 +170540,7 @@
       "current_price": 10790050,
       "discount_percent": 5,
       "first_seen_at": "2026-11-09T12:03:24.776326+00:00",
-      "last_seen_at": "2026-11-09T17:27:43.229346+00:00",
+      "last_seen_at": "2026-11-09T18:39:58.669004+00:00",
       "original_price": 11344440,
       "product_id": "dkp-21764044",
       "product_url": "https://www.digikala.com/product/dkp-21764044/",
@@ -189190,5 +189267,5 @@
   ],
   "cycle_started_at": "2026-11-09T11:16:23.329744+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-09T18:39:31.606991+00:00"
+  "updated_at": "2026-11-09T18:40:17.982984+00:00"
 }
