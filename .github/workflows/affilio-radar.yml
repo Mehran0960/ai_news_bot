@@ -194,10 +194,12 @@ jobs:
           status = health.json()
           assert status.get("ok") is True, status
           assert status.get("clickStoreReady") is True, status
-          print("CLICK_TRACKER_HEALTH_OK")
+          assert status.get("experimentAttribution") is True, status
+          print("CLICK_TRACKER_HEALTH_AND_EXPERIMENT_ATTRIBUTION_OK")
 
-          # Product-level demand ranking depends on a complete, parseable 30-day snapshot.
-          # This catches regressions where stored click keys are written but never aggregated.
+          # Click analytics are for measurement only; DigiKala bestseller rank and product
+          # metadata drive demand ranking. This checks that product/source/experiment clicks
+          # are aggregated without pretending that clicks are orders or sales.
           stats_response = requests.get(f"{base}/stats", timeout=30, headers=headers)
           if stats_response.status_code == 503:
               # KV may temporarily exhaust its daily list allowance; this must not
@@ -245,7 +247,12 @@ jobs:
               publisher_link = "https://aflo.ir/QekEYTRg?p=" + quote(product_url, safe="")
               good = requests.get(
                   f"{base}/p/{product_id}",
-                  params={"u": publisher_link, "src": source},
+                  params={
+                      "u": publisher_link,
+                      "src": source,
+                      "exp": "offerchin-smoke-test",
+                      "variant": "a" if source == "telegram" else "b",
+                  },
                   headers=headers,
                   allow_redirects=False,
                   timeout=20,
@@ -262,7 +269,12 @@ jobs:
               # The production Python publisher uses the same non-counting HEAD probe before wrapping buttons.
               probe = requests.head(
                   f"{base}/p/{product_id}",
-                  params={"u": publisher_link, "src": source},
+                  params={
+                      "u": publisher_link,
+                      "src": source,
+                      "exp": "offerchin-smoke-test",
+                      "variant": "a" if source == "telegram" else "b",
+                  },
                   headers={"User-Agent": "OfferChinClickTrackerProbe/1.0"},
                   allow_redirects=False,
                   timeout=20,
@@ -281,8 +293,12 @@ jobs:
           assert isinstance(analytics.get("products"), dict), analytics
           assert isinstance(analytics.get("totalClicks"), int), analytics
           assert analytics.get("complete") is True, analytics
+          assert isinstance(analytics.get("sources"), dict), analytics
+          assert isinstance(analytics.get("productSources"), dict), analytics
+          assert isinstance(analytics.get("experimentVariants"), dict), analytics
+          assert isinstance(analytics.get("productExperimentVariants"), dict), analytics
           assert "channels" not in analytics and "productChannels" not in analytics, analytics
-          print("CLICK_TRACKER_AGGREGATE_STATS_OK_SOURCE_BREAKDOWN_NOT_PUBLIC")
+          print("CLICK_TRACKER_AGGREGATE_STATS_OK_PRODUCT_SOURCE_EXPERIMENT_BREAKDOWN")
           PY
       # [repair-all-captions] Repairs every surviving caption without timers and restores its verified purchase button.
       # [repair-all-captions] Remove obsolete expiry labels from every tracked live caption in place.
