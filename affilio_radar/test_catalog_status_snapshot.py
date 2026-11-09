@@ -12,6 +12,7 @@ try:
         load_completed_candidates_snapshot,
         load_publication_catalog_context,
         is_initial_catalog_warmup,
+        is_degraded_live_fallback_available,
         candidate_allowed_by_publication_context,
         _category_addition_budget,
     )
@@ -22,6 +23,7 @@ except ImportError:
         load_completed_candidates_snapshot,
         load_publication_catalog_context,
         is_initial_catalog_warmup,
+        is_degraded_live_fallback_available,
         candidate_allowed_by_publication_context,
         _category_addition_budget,
     )
@@ -323,9 +325,58 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
                 self.candidates["candidates"][1],
             ]}
             candidates_path.write_text(json.dumps(tampered), encoding="utf-8")
-            blocked = load_publication_catalog_context(status_path, candidates_path)
-            self.assertEqual(blocked["mode"], "blocked")
-            self.assertFalse(candidate_allowed_by_publication_context(outside, blocked))
+            degraded = load_publication_catalog_context(status_path, candidates_path)
+            self.assertEqual(degraded["mode"], "degraded_live_fallback")
+            self.assertFalse(candidate_allowed_by_publication_context(outside, degraded))
+
+    def test_degraded_live_fallback_requires_a_complete_numeric_taxonomy_registry(self):
+        status = {
+            "schema_version": 2,
+            "full_catalog_mode": "all_categories_all_pages",
+            "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
+            "last_clean_cycle_status": "unavailable",
+            "completed_candidates_snapshot_present": True,
+            "completed_candidates_snapshot_valid": False,
+            "last_clean_cycle_completed_at": None,
+            "catalog_category_count": 3,
+            "catalog_category_ids": ["1", "2", "3"],
+        }
+        self.assertTrue(is_degraded_live_fallback_available(status))
+        self.assertFalse(is_degraded_live_fallback_available({
+            **status, "catalog_category_ids": ["1", "2"]
+        }))
+        self.assertFalse(is_degraded_live_fallback_available({
+            **status, "catalog_category_ids": ["1", "2", "2"]
+        }))
+        self.assertFalse(is_degraded_live_fallback_available({
+            **status, "catalog_category_ids": ["1", "2", "x"]
+        }))
+        self.assertFalse(is_degraded_live_fallback_available({
+            **status, "scan_policy_version": "unknown"
+        }))
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            status_path = root / "status.json"
+            candidates_path = root / "missing-candidates.json"
+            status_path.write_text(json.dumps(status), encoding="utf-8")
+            context = load_publication_catalog_context(status_path, candidates_path)
+            self.assertEqual(context["mode"], "degraded_live_fallback")
+            self.assertTrue(candidate_allowed_by_publication_context({
+                "product_id": "dkp-123",
+                "product_url": "https://www.digikala.com/product/dkp-123/",
+            }, context))
+            self.assertFalse(candidate_allowed_by_publication_context({
+                "product_id": "dkp-123",
+                "product_url": "https://example.com/product/dkp-123/",
+            }, context))
+            self.assertTrue(candidate_allowed_by_publication_context({
+                "product_id": "snp-456",
+                "product_url": "https://snappshop.ir/product/snp-456/",
+            }, context))
+            self.assertFalse(candidate_allowed_by_publication_context({
+                "product_id": "other-789",
+                "product_url": "https://example.com/product/789/",
+            }, context))
 
     def test_catalog_snapshot_expires_after_96_hours(self):
         status = build_status_snapshot(
