@@ -520,9 +520,53 @@ def _fresh_best_selling_rank(row: dict, now: datetime | None = None) -> int | No
 
 
 def _candidate_demand(row: dict) -> int:
-    explicit = max(0, _normal_int(row.get("demand_score")))
-    if explicit:
-        return min(200, explicit)
+    """Build a conservative DigiKala-first demand key; never accept a synthetic demand_score."""
+    rank = _fresh_best_selling_rank(row)
+    if rank is not None:
+        tier = 3 if rank <= 10 else 2 if rank <= 30 else 1
+        category_rows = row.get("catalog_best_selling_ranks_by_category")
+        category_count = 0
+        momentum = 0
+        if isinstance(category_rows, dict):
+            for category_id, entry in category_rows.items():
+                if not str(category_id).isdigit() or not isinstance(entry, dict):
+                    continue
+                observed = str(entry.get("observed_at") or "")
+                try:
+                    parsed = datetime.fromisoformat(observed.replace("Z", "+00:00"))
+                    if parsed.tzinfo is None:
+                        parsed = parsed.replace(tzinfo=timezone.utc)
+                    age_hours = (utc_now() - parsed.astimezone(timezone.utc)).total_seconds() / 3600
+                    saved_rank = _normal_int(entry.get("rank"))
+                except (TypeError, ValueError, OverflowError):
+                    continue
+                if 0 <= age_hours <= BEST_SELLING_MAX_AGE_HOURS and 1 <= saved_rank <= BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY:
+                    category_count += 1
+                    history = entry.get("rank_history")
+                    if isinstance(history, list):
+                        prior = []
+                        for sample in history:
+                            if not isinstance(sample, dict):
+                                continue
+                            try:
+                                prior_rank = _normal_int(sample.get("rank"))
+                                prior_at = datetime.fromisoformat(
+                                    str(sample.get("observed_at") or "").replace("Z", "+00:00")
+                                )
+                                if prior_at.tzinfo is None:
+                                    prior_at = prior_at.replace(tzinfo=timezone.utc)
+                                elapsed = (parsed.astimezone(timezone.utc) - prior_at.astimezone(timezone.utc)).total_seconds() / 3600
+                                if 6 <= elapsed <= 24 * 7 and 1 <= prior_rank <= BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY:
+                                    prior.append((prior_at, prior_rank))
+                            except (TypeError, ValueError, OverflowError):
+                                continue
+                        if prior:
+                            _prior_at, prior_rank = max(prior, key=lambda item: item[0])
+                            momentum = max(momentum, prior_rank - saved_rank)
+        # Native bestseller rank is stronger than lifetime review volume or a markdown.
+        return 10_000 + tier * 1_000 + (BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY + 1 - rank) * 10 + min(10, category_count) * 5 + max(-60, min(60, momentum))
+
+    # Fallback only: review volume and rating are historical quality context, not sales.
     reviews = max(0, _normal_int(row.get("review_count")))
     rating = _normal_float(row.get("rating"))
     review_proxy = min(30, round(3.5 * math.log1p(reviews))) if reviews else 0
@@ -530,11 +574,17 @@ def _candidate_demand(row: dict) -> int:
     return review_proxy + rating_proxy
 
 
-
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Rank by discount percentage, then saving; demand and category are diagnostics only."""
+    """Demand first: DigiKala bestseller evidence, weak review context, then deal value."""
+    rank = _fresh_best_selling_rank(row)
+    rank_strength = (
+        BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY + 1 - rank
+        if rank is not None else 0
+    )
     return (
-        max(0, min(100, _normal_int(row.get("discount_percent")))),
+        _candidate_demand(row),
+        rank_strength,
+        max(0, _normal_int(row.get("discount_percent"))),
         max(0, _normal_int(row.get("savings_toman"))),
     )
 
@@ -546,11 +596,16 @@ def retain_diverse_candidates(
 ) -> list[dict]:
     """Compatibility wrapper: retain global top markdowns without category balancing."""
     cap = max(0, int(limit))
-    ranked = sorted(
-        (row for row in rows or [] if isinstance(row, dict) and row.get("product_id")),
-        key=catalog_candidate_sort_key,
-        reverse=True,
+    # The rolling candidate shortlist exists to find publishable offers, not to keep
+    # undiscounted bestsellers that can never pass the last-mile publication gate.
+    eligible = (
+        row for row in rows or []
+        if isinstance(row, dict)
+        and row.get("product_id")
+        and _normal_int(row.get("discount_percent")) >= MIN_CANDIDATE_DISCOUNT
+        and _normal_int(row.get("savings_toman")) > 0
     )
+    ranked = sorted(eligible, key=catalog_candidate_sort_key, reverse=True)
     return ranked[:cap]
 
 def _category_page_url(category_id: str, page: int) -> tuple[str, dict]:
