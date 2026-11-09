@@ -6555,5 +6555,22 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIsNone(report["approved_commission"])
 
 
+    def test_visual_experiment_variants_preserve_the_approved_caption(self):
+        product_url = "https://www.digikala.com/product/dkp-990001/"
+        product = {
+            "title": "گوشی نمونه",
+            "product_url": product_url,
+            "merchant": "دیجی‌کالا",
+            "current_price": 10_000_000,
+            "original_price": 12_000_000,
+            "discount_percent": 17,
+        }
+        affiliate = build_affilio_tracking_link(product_url)
+        variant_a = build_caption(product, affiliate, experiment_variant="A")
+        variant_b = build_caption(product, affiliate, experiment_variant="B")
+        self.assertEqual(variant_a, variant_b)
+        self.assertTrue(variant_a.startswith(radar_module.SALE_TITLE_PREFIX))
+
+
 if __name__ == "__main__":
     unittest.main()
