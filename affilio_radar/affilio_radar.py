@@ -4367,7 +4367,7 @@ def _verified_review_growth_sort_key(
     record: dict,
     now: datetime | None = None,
 ) -> tuple[int, float]:
-    """Optional indirect review-growth proxy; used only after discount and savings tie."""
+    """Return a fresh indirect DigiKala review-growth proxy after native bestseller evidence and before deal value."""
     if not has_current_demand_signal(record, now=now):
         return (0, 0.0)
     try:
@@ -4564,12 +4564,59 @@ def build_performance_report(
             "sales_amount": None,
             "approved_commission": None,
         }
+
+    # Worker capability is not the same as actual experiment coverage. Legacy posts
+    # without an assignment remain unassigned; never fabricate a historical A/B arm.
+    published_product_count = len(posts_by_product)
+    assigned_experiment_posts = sum(posts_by_variant.values())
+    unassigned_published_posts = max(0, published_product_count - assigned_experiment_posts)
+    experiment_assignment_coverage = (
+        round(100.0 * assigned_experiment_posts / published_product_count, 2)
+        if published_product_count else None
+    )
+    experiment_click_total = sum(clicks_by_variant.values())
+    tracked_click_total = (
+        safe_count(snapshot.get("totalClicks"))
+        if complete and snapshot.get("totalClicks") is not None
+        else sum(clicks_by_product.values()) if complete else None
+    )
+    unattributed_click_total = (
+        max(0, tracked_click_total - experiment_click_total)
+        if tracked_click_total is not None else None
+    )
+    experiment_supported = bool(
+        complete and snapshot.get("experimentVariants") is not None
+    )
+    experiment_publication_status = (
+        "no_published_products" if published_product_count == 0
+        else "awaiting_first_tagged_publication" if assigned_experiment_posts == 0
+        else "partially_assigned" if unassigned_published_posts > 0
+        else "fully_assigned"
+    )
+    experiment_measurement_status = (
+        "worker_unavailable" if not experiment_supported
+        else "awaiting_first_tagged_click" if experiment_click_total == 0
+        else "clicks_observed"
+    )
     return {
         "generated_at": current.isoformat(),
         "window_days": 30,
         "click_data_status": "complete" if complete else "unavailable_or_legacy_worker",
         "source_attribution_available": bool(complete and snapshot.get("sources") is not None),
-        "experiment_attribution_available": bool(complete and snapshot.get("experimentVariants") is not None),
+        # Kept for compatibility: this means the Worker supports the field, not that
+        # any live post has actually been assigned or measured in an experiment.
+        "experiment_attribution_available": experiment_supported,
+        "experiment_attribution_supported_by_worker": experiment_supported,
+        "experiment_publication_status": experiment_publication_status,
+        "experiment_measurement_status": experiment_measurement_status,
+        "experiment_attribution_active": bool(experiment_supported and assigned_experiment_posts > 0),
+        "published_product_count": published_product_count,
+        "published_experiment_posts": assigned_experiment_posts,
+        "unassigned_published_posts": unassigned_published_posts,
+        "experiment_assignment_coverage_percent": experiment_assignment_coverage,
+        "tracked_clicks_total": tracked_click_total,
+        "tracked_clicks_with_experiment_attribution": experiment_click_total if complete else None,
+        "tracked_clicks_without_experiment_attribution": unattributed_click_total,
         "published_posts_by_variant": posts_by_variant,
         "published_posts_by_platform": posts_by_platform,
         "published_posts_by_product": posts_by_product,
@@ -8291,12 +8338,13 @@ def select_discount_fallback_candidates(
     now: datetime | None = None,
     include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Select all live-valid markdowns by discount %, savings, then optional review-growth proxy.
+    """Rank live-valid candidates by DigiKala demand evidence, then verified deal value.
 
-    Fresh review-count growth is an indirect signal, never verified sales and never a gate.
-    Lifetime review totals, ratings, bestseller rank, category demand, popularity and clicks
-    are not selection inputs. Positive external market/history confirmation is not required.
-    Fresh verified contradictory market/history evidence may veto a candidate.
+    Fresh native bestseller rank is the primary relative-demand signal. Fresh review growth is
+    a secondary indirect proxy; lifetime review totals and rating are weak historical context.
+    None of these values is represented as absolute unit sales. Clicks, commissions and affiliate
+    income never affect ranking. Positive external market/history confirmation is not required;
+    fresh verified contradictory evidence may still veto an otherwise eligible offer.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
