@@ -85,7 +85,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         self.assertEqual(radar._publication_use_case_group(travel), "outdoor_travel")
         auto_category, auto_family, _ = radar._publication_diversity_group(automotive)
         travel_category, travel_family, _ = radar._publication_diversity_group(travel)
-        self.assertEqual(auto_category, travel_category)
+        self.assertNotEqual(auto_category, travel_category)
         self.assertNotEqual(auto_family, travel_family)
         self.assertIn("digikala_category:91", auto_family)
         self.assertIn("digikala_category:92", travel_family)
