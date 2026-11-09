@@ -15,10 +15,14 @@ except ImportError:  # unittest discovery from the workflow's affilio_radar work
 
 class ParallelCatalogSweepTests(unittest.TestCase):
     def test_clean_worker_ramp_uses_the_12_14_16_trial_points(self):
+        # The preceding legacy run may have left the saved limit at 11.
+        self.assertEqual(sweep._next_worker_limit(11, 16, 0, 0), 12)
         self.assertEqual(sweep._next_worker_limit(12, 16, 0, 0), 14)
         self.assertEqual(sweep._next_worker_limit(14, 16, 0, 0), 16)
         self.assertEqual(sweep._next_worker_limit(16, 16, 0, 0), 16)
+        self.assertEqual(sweep._next_worker_limit(10, 14, 0, 0), 12)
         self.assertEqual(sweep._next_worker_limit(12, 14, 0, 0), 14)
+        self.assertEqual(sweep._next_worker_limit(12, 12, 0, 0), 12)
 
     def test_worker_controller_backs_off_on_rate_limits_and_transient_failures(self):
         self.assertEqual(sweep._next_worker_limit(12, 16, 1, 1), 10)
