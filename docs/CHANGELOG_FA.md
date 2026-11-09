@@ -1552,3 +1552,17 @@
 **ریسک/بازگشت:** فقط مقدار شروع یک‌بارهٔ کنترل تطبیقی و marker نسخه تغییر می‌کند؛ queue، retry، pagination، checkpoint صفحات، رتبه‌بندی، snapshot و مسیر انتشار دست‌نخورده‌اند. با revert همین PR می‌توان بازگشت کرد.
 
 **وضعیت:** روی شاخهٔ مستقل ثبت شد؛ CI و ادغام در انتظارند.
+
+## ۲۰۲۶-۱۱-۰۹ — پنجرهٔ سه‌مرحله‌ای برای افزایش بهره‌وری اسکن کاتالوگ
+
+**هدف:** کاهش فاصله‌های ناشی از راه‌اندازی دوبارهٔ GitHub Actions و کاهش دفعات commit وضعیت، بدون بالا بردن اندازهٔ هر batch، سقف Worker یا اجرای چند Runner موازی.
+
+**تغییر/اقدام:** workflow اکنون از runner پنجره‌ای استفاده می‌کند که حداکثر سه batch مستقلِ ۴۸۰صفحه‌ای را به‌ترتیب اجرا می‌کند. کنترل تطبیقی Worker در هر batch دوباره ارزیابی می‌شود. مکث بین batchها از telemetry قبلی تعیین می‌شود: ۳ ثانیه پس از batch پاک، ۱۰ ثانیه برای retry موقت، ۲۰ ثانیه در حضور 429، و ۳۰ ثانیه در شرایط شدید یا telemetry ناموجود. در اولین خطای batch، پنجره متوقف می‌شود؛ state batchهای موفق قبلی همچنان در workspace باقی می‌ماند و مرحلهٔ persistence همواره اجرا می‌شود.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-digikala-catalog-sweep.yml`، `affilio_radar/catalog_sweep_batch_window.py`، `affilio_radar/test_catalog_sweep_batch_window.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md` و `docs/CHANGELOG_FA.md`.
+
+**آزمون:** تست‌های جدید تعداد batchها، cooldown تمیز، backoff پس از 429/retry، توقف در خطا و سقف سه batch را پوشش می‌دهند. اجرای CI روی PR باید پیش از ادغام سبز شود.
+
+**ریسک/بازگشت:** اندازهٔ هر batch (۴۸۰)، سقف Worker (۱۶)، گروه concurrency، صف retry، pagination، checkpoint، رتبه‌بندی و گیت انتشار ثابت‌اند. اگر زمان اجرای پنجره به سقف ۱۲ دقیقه نزدیک شود یا خطاها افزایش یابند، می‌توان تعداد batchها را به ۱ یا ۲ کاهش داد یا PR را revert کرد.
+
+**وضعیت:** روی شاخهٔ مستقل `feat/catalog-batch-window-3x480` آمادهٔ CI و بازبینی است.
