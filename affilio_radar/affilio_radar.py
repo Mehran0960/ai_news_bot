@@ -9930,6 +9930,12 @@ def run(publish=False, selection_only=False):
         eligible = []
         quality_eligible = []
         print("CATALOG_PUBLICATION_FILTER blocked=true reason=no_verified_full_catalog_snapshot")
+    elif catalog_context.get("mode") == "degraded_live_fallback":
+        print(
+            "CATALOG_PUBLICATION_FILTER mode=degraded_live_fallback "
+            "taxonomy_registry_valid=true live_product_revalidation_required=true "
+            "full_catalog_snapshot_valid=false"
+        )
     else:
         print("CATALOG_PUBLICATION_FILTER mode=initial_warmup live_discovery_fallback=true")
     observed_product_ids = {
