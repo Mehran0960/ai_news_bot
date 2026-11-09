@@ -180,23 +180,35 @@ def _next_worker_limit(
     requested: int,
     rate_limited_count: int,
     retry_count: int,
+    *,
+    timeout_retry_count: int = 0,
+    http_5xx_retry_count: int = 0,
 ) -> int:
-    """Ramp through 12, 14, 16 on clean batches; back off on failures.
+    """Ramp on clean batches; distinguish isolated 5xx from congestion signals.
 
-    Below 12 workers, increase by two but stop at 12. Then test 14 and 16
-    explicitly. A single 429 backs off by two workers; three or more rate
-    limits, or three or more transient failures, halve concurrency. Any other
-    retry backs off by one. The requested worker count remains a hard ceiling.
+    Below 12 workers, increase by two but stop at 12. Then test 14 and 16.
+    Any 429 backs off by two; three or more retries/429s halve concurrency.
+    Timeouts and non-5xx transient failures back off by one. A single isolated
+    5xx holds the current limit (it is retried and checkpointed); repeated 5xx
+    failures back off by one. The requested count remains a hard ceiling.
     """
     ceiling = max(1, min(32, base._normal_int(requested, 1)))
     current_limit = max(1, min(ceiling, base._normal_int(current, ceiling)))
     floor = min(2, ceiling)
-    if rate_limited_count >= 3 or retry_count >= 3:
+    retries = max(0, base._normal_int(retry_count))
+    rate_limits = max(0, base._normal_int(rate_limited_count))
+    timeouts = max(0, base._normal_int(timeout_retry_count))
+    server_errors = min(retries, max(0, base._normal_int(http_5xx_retry_count)))
+    if rate_limits >= 3 or retries >= 3:
         return max(floor, current_limit // 2)
-    if rate_limited_count:
+    if rate_limits:
         return max(floor, current_limit - 2)
-    if retry_count:
+    if timeouts or retries > server_errors:
         return max(floor, current_limit - 1)
+    if server_errors >= 2:
+        return max(floor, current_limit - 1)
+    if server_errors == 1:
+        return current_limit
     if current_limit < 12:
         return min(ceiling, 12, current_limit + 2)
     if current_limit < 14:
@@ -753,6 +765,8 @@ def run_parallel_sweep(
         requested_workers,
         rate_limited_count,
         retry_count,
+        timeout_retry_count=timeout_retry_count,
+        http_5xx_retry_count=http_5xx_retry_count,
     )
     state["parallel_worker_limit"] = worker_limit
 
