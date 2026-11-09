@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T22:59:36.936544+00:00",
+  "generated_at": "2026-11-09T23:35:55.643229+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "تی شرت مردانه": 1
@@ -107,7 +107,7 @@
       "beauty_fragrance": 1,
       "books_stationery": 1,
       "digital_accessories": 1,
-      "fashion": 2,
+      "fashion": 3,
       "mobile_devices": 1,
       "other": 14,
       "personal_care": 2,
@@ -115,28 +115,28 @@
       "sports_outdoor": 2
     },
     "category_share_percent": {
-      "audio_wearables": 7.4,
-      "beauty_fragrance": 3.7,
-      "books_stationery": 3.7,
-      "digital_accessories": 3.7,
-      "fashion": 7.4,
-      "mobile_devices": 3.7,
-      "other": 51.9,
-      "personal_care": 7.4,
-      "power_backup": 3.7,
-      "sports_outdoor": 7.4
+      "audio_wearables": 7.1,
+      "beauty_fragrance": 3.6,
+      "books_stationery": 3.6,
+      "digital_accessories": 3.6,
+      "fashion": 10.7,
+      "mobile_devices": 3.6,
+      "other": 50.0,
+      "personal_care": 7.1,
+      "power_backup": 3.6,
+      "sports_outdoor": 7.1
     },
     "distinct_catalog_categories": 1,
     "distinct_categories": 10,
-    "distinct_families": 14,
+    "distinct_families": 15,
     "distinct_retailers": 1,
     "distinct_use_cases": 9,
     "known_brand_posts": 3,
-    "posts": 27,
+    "posts": 28,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 27
+      "digikala": 28
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -144,7 +144,7 @@
     "use_case_post_counts": {
       "audio_visual": 2,
       "books_learning": 1,
-      "fashion_lifestyle": 2,
+      "fashion_lifestyle": 3,
       "general": 9,
       "kitchen_food": 1,
       "mobile_productivity": 8,
@@ -171,7 +171,6 @@
       "ابزار نقاشی و رنگ آمیزی": 1,
       "اجاق گاز": 1,
       "اسباب بازی شانسی": 1,
-      "اسپری": 1,
       "اسکاچ و سیم ظرفشویی": 6,
       "اکسسوری دخترانه": 2,
       "اکسسوری زنانه": 1,
@@ -316,7 +315,7 @@
       "books_stationery": 16,
       "computer_network": 4,
       "digital_accessories": 4,
-      "fashion": 51,
+      "fashion": 52,
       "gaming": 2,
       "home": 11,
       "home_cleaning": 11,
@@ -324,7 +323,7 @@
       "kids_sports": 7,
       "large_appliances": 9,
       "mobile_devices": 3,
-      "other": 111,
+      "other": 110,
       "personal_care": 32,
       "pet_supplies": 1,
       "power_backup": 10,
@@ -338,7 +337,7 @@
       "books_stationery": 4.5,
       "computer_network": 1.1,
       "digital_accessories": 1.1,
-      "fashion": 14.5,
+      "fashion": 14.8,
       "gaming": 0.6,
       "home": 3.1,
       "home_cleaning": 3.1,
@@ -346,16 +345,16 @@
       "kids_sports": 2.0,
       "large_appliances": 2.6,
       "mobile_devices": 0.9,
-      "other": 31.5,
+      "other": 31.2,
       "personal_care": 9.1,
       "pet_supplies": 0.3,
       "power_backup": 2.8,
       "sports_outdoor": 8.8,
       "tv_audio_video": 0.6
     },
-    "distinct_catalog_categories": 153,
+    "distinct_catalog_categories": 152,
     "distinct_categories": 20,
-    "distinct_families": 188,
+    "distinct_families": 187,
     "distinct_retailers": 1,
     "distinct_use_cases": 25,
     "known_brand_posts": 62,
@@ -384,9 +383,9 @@
       "automotive": 33,
       "baby_care": 6,
       "books_learning": 14,
-      "catalog_taxonomy_other": 15,
+      "catalog_taxonomy_other": 14,
       "events_decor": 3,
-      "fashion_lifestyle": 35,
+      "fashion_lifestyle": 36,
       "gaming": 3,
       "general": 19,
       "grocery_food": 12,
@@ -419,16 +418,33 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 263,
-    "last_7_days_count": 263,
+    "all_time_count": 283,
+    "last_7_days_count": 283,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 263,
-      "similarity_repeat": 263
+      "family_repeat": 283,
+      "similarity_repeat": 283
     },
     "recent_events": [
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-708421",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 02 مناسب پوست‌های معمولی و مختلط حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -445,7 +461,7 @@
         "use_case": "mobile_productivity"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -462,7 +478,7 @@
         "use_case": "personal_care"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -479,7 +495,7 @@
         "use_case": "personal_care"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -496,7 +512,7 @@
         "use_case": "mobile_productivity"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -513,7 +529,7 @@
         "use_case": "home_cleaning"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -530,7 +546,41 @@
         "use_case": "personal_care"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "audio_wearables",
+        "compared_to_product_id": "dkp-16026610",
+        "family": "audio_wearables:smartwatch",
+        "product_id": "dkp-17359131",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ساعت هوشمند شیائومی مدل Redmi Watch 5 Lite دارای قابلیت های قابلیت مکالمه از طریق بلوتوث بند سیلیکون",
+        "use_case": "audio_visual"
+      },
+      {
+        "at": "2026-11-09T23:35:55.643229+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "audio_wearables",
+        "compared_to_product_id": "dkp-23000078",
+        "family": "audio_wearables:headphones",
+        "product_id": "dkp-16471977",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "هدفون بلوتوثی شیائومی مدل Redmi Buds 6 Active با نویز کنسلینگ میکروفون (ENC)، درگاه شارژ USB Type-C، دارای دو میکروفون با قابلیت حذف نویز، پشتیبانی از فرمان لمسی، مقاوم در برابر رط",
+        "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -547,7 +597,7 @@
         "use_case": "audio_visual"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -564,7 +614,7 @@
         "use_case": "fashion_lifestyle"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -581,24 +631,7 @@
         "use_case": "mobile_productivity"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "mobile_devices",
-        "compared_to_product_id": "dkp-17918956",
-        "family": "mobile_devices:smartphones",
-        "product_id": "dkp-21660239",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "گوشی موبایل سامسونگ مدل Galaxy A57 دو سیم‌کارت ظرفیت 256 گیگابایت و رم 8 گیگابایت - ویتنام",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -615,24 +648,7 @@
         "use_case": "mobile_productivity"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-22800872",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "خرما شکلاتی با مغزی کرم کنجد ورسادو - 200 گرم",
-        "use_case": "grocery_food"
-      },
-      {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -649,7 +665,7 @@
         "use_case": "gaming"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -666,7 +682,7 @@
         "use_case": "fashion_lifestyle"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -683,7 +699,7 @@
         "use_case": "mobile_productivity"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -700,7 +716,7 @@
         "use_case": "grocery_food"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -717,7 +733,7 @@
         "use_case": "gaming"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -734,24 +750,7 @@
         "use_case": "lighting_electrical"
       },
       {
-        "at": "2026-11-09T22:59:36.936544+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "kids_sports",
-        "compared_to_product_id": "dkp-1590506",
-        "family": "kids_sports:baby",
-        "product_id": "dkp-22078844",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرهمی نوزادی ابوکو مدل مینا",
-        "use_case": "baby_care"
-      },
-      {
-        "at": "2026-11-09T22:59:36.936544+00:00",
+        "at": "2026-11-09T23:35:55.643229+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
