@@ -5674,6 +5674,12 @@
             }
           ]
         },
+        "8895": {
+          "category_name": "کالای خوراکی و اساسی",
+          "observed_at": "2026-11-09T21:44:21.608959+00:00",
+          "rank": 1052,
+          "rank_history": []
+        },
         "8897": {
           "category_name": "خشکبار و شیرینی",
           "observed_at": "2026-11-09T11:59:56.442157+00:00",
@@ -5687,8 +5693,9 @@
           ]
         }
       },
-      "catalog_category_id": "10170",
+      "catalog_category_id": "8895",
       "catalog_category_ids": [
+        "8895",
         "8897",
         "10170",
         "10852",
@@ -5697,13 +5704,13 @@
         "11029",
         "11137"
       ],
-      "catalog_category_name": "محصولات بومی و محلی",
+      "catalog_category_name": "کالای خوراکی و اساسی",
       "catalog_rank_observed_at": "2026-11-09T12:18:29.004717+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 510000,
       "discount_percent": 20,
       "first_seen_at": "2026-11-09T11:59:56.442157+00:00",
-      "last_seen_at": "2026-11-09T13:38:46.732496+00:00",
+      "last_seen_at": "2026-11-09T21:43:34.633558+00:00",
       "original_price": 640000,
       "product_id": "dkp-21513239",
       "product_url": "https://www.digikala.com/product/dkp-21513239/",
@@ -53973,6 +53980,59 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "8611",
+      "catalog_best_selling_category_name": "لوازم جانبی فشارسنج",
+      "catalog_best_selling_rank": 1,
+      "catalog_best_selling_ranks_by_category": {
+        "5702": {
+          "category_name": "سلامت و پزشکی",
+          "observed_at": "2026-11-09T21:44:21.747915+00:00",
+          "rank": 1069,
+          "rank_history": []
+        },
+        "8573": {
+          "category_name": "تجهیزات پزشکی",
+          "observed_at": "2026-11-09T14:09:21.463676+00:00",
+          "rank": 121,
+          "rank_history": []
+        },
+        "8611": {
+          "category_name": "لوازم جانبی فشارسنج",
+          "observed_at": "2026-11-09T11:59:56.420860+00:00",
+          "rank": 1,
+          "rank_history": [
+            {
+              "category_name": "لوازم جانبی فشارسنج",
+              "observed_at": "2026-11-09T11:59:56.420860+00:00",
+              "rank": 1
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "5702",
+      "catalog_category_ids": [
+        "5702",
+        "8573",
+        "8611"
+      ],
+      "catalog_category_name": "سلامت و پزشکی",
+      "catalog_rank_observed_at": "2026-11-09T11:59:56.420860+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 2106500,
+      "discount_percent": 20,
+      "first_seen_at": "2026-11-09T11:59:56.420860+00:00",
+      "last_seen_at": "2026-11-09T21:44:12.585321+00:00",
+      "original_price": 2630000,
+      "product_id": "dkp-9442758",
+      "product_url": "https://www.digikala.com/product/dkp-9442758/",
+      "rating": 4.48,
+      "review_count": 669,
+      "savings_toman": 523500,
+      "source": "digikala_catalog_sweep",
+      "title": "آداپتور فشارسنج 6 ولت 700 میلی آمپر امرن مدل HHP-CM01"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "10254",
       "catalog_best_selling_category_name": "شکلات خوری سنتی",
       "catalog_best_selling_rank": 1,
@@ -58050,52 +58110,6 @@
       "savings_toman": 800000,
       "source": "digikala_catalog_sweep",
       "title": "مخزن آب حجیم پلاست ماهرو لرستان مدل F25-502 ظرفیت 500 لیتر"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "8611",
-      "catalog_best_selling_category_name": "لوازم جانبی فشارسنج",
-      "catalog_best_selling_rank": 1,
-      "catalog_best_selling_ranks_by_category": {
-        "8573": {
-          "category_name": "تجهیزات پزشکی",
-          "observed_at": "2026-11-09T14:09:21.463676+00:00",
-          "rank": 121,
-          "rank_history": []
-        },
-        "8611": {
-          "category_name": "لوازم جانبی فشارسنج",
-          "observed_at": "2026-11-09T11:59:56.420860+00:00",
-          "rank": 1,
-          "rank_history": [
-            {
-              "category_name": "لوازم جانبی فشارسنج",
-              "observed_at": "2026-11-09T11:59:56.420860+00:00",
-              "rank": 1
-            }
-          ]
-        }
-      },
-      "catalog_category_id": "8573",
-      "catalog_category_ids": [
-        "8573",
-        "8611"
-      ],
-      "catalog_category_name": "تجهیزات پزشکی",
-      "catalog_rank_observed_at": "2026-11-09T11:59:56.420860+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 2472200,
-      "discount_percent": 6,
-      "first_seen_at": "2026-11-09T11:59:56.420860+00:00",
-      "last_seen_at": "2026-11-09T14:06:01.291352+00:00",
-      "original_price": 2630000,
-      "product_id": "dkp-9442758",
-      "product_url": "https://www.digikala.com/product/dkp-9442758/",
-      "rating": 4.48,
-      "review_count": 668,
-      "savings_toman": 157800,
-      "source": "digikala_catalog_sweep",
-      "title": "آداپتور فشارسنج 6 ولت 700 میلی آمپر امرن مدل HHP-CM01"
     },
     {
       "availability": "unknown",
@@ -82027,6 +82041,12 @@
             }
           ]
         },
+        "11133": {
+          "category_name": "زیورآلات طلا",
+          "observed_at": "2026-11-09T21:44:21.688595+00:00",
+          "rank": 1057,
+          "rank_history": []
+        },
         "11134": {
           "category_name": "زیورآلات طلا بچگانه",
           "observed_at": "2026-11-09T12:42:59.841634+00:00",
@@ -82040,24 +82060,25 @@
           ]
         }
       },
-      "catalog_category_id": "11134",
+      "catalog_category_id": "11133",
       "catalog_category_ids": [
         "10981",
+        "11133",
         "11134"
       ],
-      "catalog_category_name": "زیورآلات طلا بچگانه",
+      "catalog_category_name": "زیورآلات طلا",
       "catalog_rank_observed_at": "2026-11-09T12:18:29.031733+00:00",
       "catalog_sort_mode": "best_selling",
-      "current_price": 20683980,
+      "current_price": 20586600,
       "discount_percent": 5,
       "first_seen_at": "2026-11-09T12:18:29.031733+00:00",
-      "last_seen_at": "2026-11-09T12:42:49.136983+00:00",
-      "original_price": 21772890,
+      "last_seen_at": "2026-11-09T21:43:52.423991+00:00",
+      "original_price": 21670390,
       "product_id": "dkp-8387781",
       "product_url": "https://www.digikala.com/product/dkp-8387781/",
       "rating": 4.45,
       "review_count": 33,
-      "savings_toman": 1088910,
+      "savings_toman": 1083790,
       "source": "digikala_catalog_sweep",
       "title": "سنجاق سینه طلا 18 عیار دخترانه و پسرانه مایا ماهک مدل MP0034 طرح چشم نظر"
     },
@@ -102960,8 +102981,8 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "8947",
-      "catalog_best_selling_category_name": "آب معدنی",
+      "catalog_best_selling_category_id": "10854",
+      "catalog_best_selling_category_name": "آب و آب معدنی",
       "catalog_best_selling_rank": 3,
       "catalog_best_selling_ranks_by_category": {
         "10854": {
@@ -102975,6 +102996,12 @@
               "rank": 3
             }
           ]
+        },
+        "8895": {
+          "category_name": "کالای خوراکی و اساسی",
+          "observed_at": "2026-11-09T21:44:21.608959+00:00",
+          "rank": 1049,
+          "rank_history": []
         },
         "8907": {
           "category_name": "نوشیدنی‌های سرد",
@@ -103001,19 +103028,20 @@
           ]
         }
       },
-      "catalog_category_id": "10854",
+      "catalog_category_id": "8895",
       "catalog_category_ids": [
+        "8895",
         "8907",
         "8947",
         "10854"
       ],
-      "catalog_category_name": "آب و آب معدنی",
-      "catalog_rank_observed_at": "2026-11-09T11:59:56.448250+00:00",
+      "catalog_category_name": "کالای خوراکی و اساسی",
+      "catalog_rank_observed_at": "2026-11-09T12:18:29.005170+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 278000,
       "discount_percent": 23,
       "first_seen_at": "2026-11-09T11:59:56.443776+00:00",
-      "last_seen_at": "2026-11-09T12:14:13.551451+00:00",
+      "last_seen_at": "2026-11-09T21:43:34.633415+00:00",
       "original_price": 360000,
       "product_id": "dkp-3593760",
       "product_url": "https://www.digikala.com/product/dkp-3593760/",
@@ -193689,5 +193717,5 @@
   ],
   "cycle_started_at": "2026-11-09T11:16:23.329744+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-09T21:42:39.989762+00:00"
+  "updated_at": "2026-11-09T21:44:21.884091+00:00"
 }
