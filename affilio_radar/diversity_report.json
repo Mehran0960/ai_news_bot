@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T10:17:03.580496+00:00",
+  "generated_at": "2026-11-09T10:49:04.444986+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آرایش چشم": 1,
@@ -114,7 +114,6 @@
       "مداد چشم": 1,
       "مهر و استامپ": 1,
       "مکمل غذایی": 1,
-      "مکمل کمک درمانی کودک": 1,
       "ورزش های توپی": 1,
       "پرچم": 1,
       "کتاب رمان و ادبیات داستانی و نمایشی": 1,
@@ -124,26 +123,26 @@
       "audio_wearables": 1,
       "books_stationery": 2,
       "fashion": 1,
-      "kids_sports": 2,
+      "kids_sports": 1,
       "other": 13,
-      "personal_care": 4,
+      "personal_care": 5,
       "sports_outdoor": 1
     },
     "category_share_percent": {
       "audio_wearables": 4.2,
       "books_stationery": 8.3,
       "fashion": 4.2,
-      "kids_sports": 8.3,
+      "kids_sports": 4.2,
       "other": 54.2,
-      "personal_care": 16.7,
+      "personal_care": 20.8,
       "sports_outdoor": 4.2
     },
-    "distinct_catalog_categories": 19,
+    "distinct_catalog_categories": 18,
     "distinct_categories": 7,
     "distinct_families": 22,
     "distinct_retailers": 1,
-    "distinct_use_cases": 16,
-    "known_brand_posts": 3,
+    "distinct_use_cases": 15,
+    "known_brand_posts": 2,
     "posts": 24,
     "repeated_brand_count": 0,
     "repeated_brands": {},
@@ -155,7 +154,6 @@
     },
     "use_case_post_counts": {
       "audio_visual": 1,
-      "baby_care": 1,
       "books_learning": 3,
       "events_decor": 1,
       "fashion_lifestyle": 1,
@@ -164,7 +162,7 @@
       "health_wellness": 1,
       "home_living": 1,
       "local_goods": 2,
-      "mobile_productivity": 1,
+      "mobile_productivity": 2,
       "office_study": 2,
       "personal_care": 3,
       "sports_fitness": 1,
@@ -338,7 +336,7 @@
       "audio_wearables": 20,
       "automotive": 23,
       "beauty_fragrance": 5,
-      "books_stationery": 16,
+      "books_stationery": 15,
       "computer_network": 6,
       "digital_accessories": 4,
       "fashion": 52,
@@ -349,8 +347,8 @@
       "kids_sports": 7,
       "large_appliances": 10,
       "mobile_devices": 3,
-      "other": 102,
-      "personal_care": 35,
+      "other": 101,
+      "personal_care": 36,
       "pet_supplies": 1,
       "power_backup": 9,
       "sports_outdoor": 29,
@@ -358,9 +356,9 @@
     },
     "category_share_percent": {
       "audio_wearables": 5.7,
-      "automotive": 6.5,
+      "automotive": 6.6,
       "beauty_fragrance": 1.4,
-      "books_stationery": 4.5,
+      "books_stationery": 4.3,
       "computer_network": 1.7,
       "digital_accessories": 1.1,
       "fashion": 14.8,
@@ -371,11 +369,11 @@
       "kids_sports": 2.0,
       "large_appliances": 2.8,
       "mobile_devices": 0.9,
-      "other": 29.0,
-      "personal_care": 9.9,
+      "other": 28.8,
+      "personal_care": 10.3,
       "pet_supplies": 0.3,
       "power_backup": 2.6,
-      "sports_outdoor": 8.2,
+      "sports_outdoor": 8.3,
       "tv_audio_video": 0.6
     },
     "distinct_catalog_categories": 159,
@@ -384,7 +382,7 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 25,
     "known_brand_posts": 61,
-    "posts": 352,
+    "posts": 351,
     "repeated_brand_count": 48,
     "repeated_brands": {
       "ai_javaher": 8,
@@ -397,7 +395,7 @@
       "ufc": 12
     },
     "retailer_post_counts": {
-      "digikala": 352
+      "digikala": 351
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -407,12 +405,12 @@
       "audio_visual": 20,
       "automotive": 38,
       "baby_care": 6,
-      "books_learning": 14,
+      "books_learning": 13,
       "catalog_taxonomy_other": 16,
       "events_decor": 3,
       "fashion_lifestyle": 35,
       "gaming": 5,
-      "general": 13,
+      "general": 12,
       "grocery_food": 12,
       "health_wellness": 4,
       "home_cleaning": 11,
@@ -420,7 +418,7 @@
       "kitchen_food": 3,
       "lighting_electrical": 10,
       "local_goods": 2,
-      "mobile_productivity": 44,
+      "mobile_productivity": 45,
       "office_study": 9,
       "outdoor_travel": 6,
       "personal_care": 34,
@@ -443,48 +441,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 107,
-    "last_7_days_count": 107,
+    "all_time_count": 109,
+    "last_7_days_count": 109,
     "reason_counts_in_retained_history": {
       "brand_repeat": 6,
-      "family_repeat": 107,
-      "similarity_repeat": 107
+      "family_repeat": 109,
+      "similarity_repeat": 109
     },
     "recent_events": [
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-708421",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 02 مناسب پوست‌های معمولی و مختلط حجم 75 میلی‌لیتر",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-18369481",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
-        "use_case": "general"
-      },
       {
         "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
@@ -789,6 +753,40 @@
           "similarity_repeat"
         ],
         "title": "ست تی شرت و شلوارک آستین کوتاه راحتی زنانه مدل میکا کد 23",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T10:49:04.444986+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-15385068",
+        "family": "fashion:apparel_tops",
+        "product_id": "dkp-4571555",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "تیشرت آستین کوتاه مردانه طرح گودال کد T501",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T10:49:04.444986+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-10622826",
+        "family": "fashion:eyewear",
+        "product_id": "dkp-22166156",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "عینک آفتابی بایکر اوکلی مدل 3338 C3",
         "use_case": "fashion_lifestyle"
       }
     ]
