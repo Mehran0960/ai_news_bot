@@ -5,6 +5,8 @@ on:
     paths:
       - "affilio_radar/catalog_sweep.py"
       - "affilio_radar/parallel_catalog_sweep.py"
+      - "affilio_radar/catalog_sweep_batch_window.py"
+      - "affilio_radar/test_catalog_sweep_batch_window.py"
       - "affilio_radar/test_catalog_sweep.py"
       - "affilio_radar/test_parallel_catalog_sweep.py"
       - "affilio_radar/affilio_radar.py"
@@ -17,6 +19,8 @@ on:
     paths:
       - "affilio_radar/catalog_sweep.py"
       - "affilio_radar/parallel_catalog_sweep.py"
+      - "affilio_radar/catalog_sweep_batch_window.py"
+      - "affilio_radar/test_catalog_sweep_batch_window.py"
       - "affilio_radar/test_catalog_sweep.py"
       - "affilio_radar/test_parallel_catalog_sweep.py"
       - "affilio_radar/affilio_radar.py"
@@ -37,6 +41,6 @@ jobs:
       - run: python -m pip install --disable-pip-version-check requests beautifulsoup4
       - name: Compile OfferChin discovery and crawler
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/catalog_sweep.py affilio_radar/parallel_catalog_sweep.py affilio_radar/product_quality.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/catalog_sweep.py affilio_radar/parallel_catalog_sweep.py affilio_radar/catalog_sweep_batch_window.py affilio_radar/product_quality.py
       - name: Run catalog crawler regressions
-        run: python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_parallel_catalog_sweep -v
+        run: python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_parallel_catalog_sweep affilio_radar.test_catalog_sweep_batch_window -v
