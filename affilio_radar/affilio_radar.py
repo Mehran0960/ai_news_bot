@@ -4716,9 +4716,12 @@ def build_performance_report(
         "tracked_clicks_total": tracked_click_total,
         "tracked_clicks_with_experiment_attribution": experiment_click_total if complete else None,
         "tracked_clicks_without_experiment_attribution": unattributed_click_total,
-        "tracked_clicks_with_caption_experiment_attribution": caption_click_total if complete else None,
+        "tracked_clicks_with_caption_experiment_attribution": (
+            caption_click_total if caption_experiment_supported else None
+        ),
         "tracked_clicks_without_caption_experiment_attribution": (
-            max(0, tracked_click_total - caption_click_total) if tracked_click_total is not None else None
+            max(0, tracked_click_total - caption_click_total)
+            if tracked_click_total is not None and caption_experiment_supported else None
         ),
         "published_posts_by_variant": posts_by_variant,
         "published_posts_by_caption_variant": posts_by_caption_variant,
