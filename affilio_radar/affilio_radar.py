@@ -4480,9 +4480,10 @@ def build_performance_report(
 
     posts_by_variant: dict[str, int] = {}
     posts_by_platform: dict[str, int] = {}
+    posts_by_product: dict[str, dict] = {}
     published = state.get("published") if isinstance(state, dict) else {}
     published = published if isinstance(published, dict) else {}
-    for record in published.values():
+    for pid, record in published.items():
         if not isinstance(record, dict):
             continue
         experiment = str(record.get("creative_experiment_id") or "")
@@ -4491,7 +4492,7 @@ def build_performance_report(
             key = f"{experiment}:{variant}"
             posts_by_variant[key] = posts_by_variant.get(key, 0) + 1
         statuses = record.get("delivery_status")
-        statuses = statuses if isinstance(statuses, dict) else {}
+        statuses = statuses if isinstance(record.get("delivery_status"), dict) else {}
         for platform in ("telegram", "bale", "youtube", "aparat"):
             if (
                 record.get(f"{platform}_message_id")
@@ -4499,9 +4500,22 @@ def build_performance_report(
                 or statuses.get(platform) == "sent"
             ):
                 posts_by_platform[platform] = posts_by_platform.get(platform, 0) + 1
+        posts_by_product[str(pid)] = {
+            "creative_experiment_id": experiment,
+            "creative_variant": variant,
+            "selection_demand_evidence": record.get("selection_demand_evidence"),
+            "selection_demand_quality": record.get("selection_demand_quality"),
+            "bestseller_rank": record.get("selection_bestseller_rank"),
+            "bestseller_category_count": safe_count(record.get("selection_bestseller_category_count")),
+            "discount_percent": safe_count(record.get("posted_discount_percent")),
+            "delivery_status": statuses,
+        }
 
     clicks_by_variant = {}
     clicks_by_source = {}
+    clicks_by_product = {}
+    clicks_by_product_source = {}
+    clicks_by_product_variant = {}
     if complete:
         clicks_by_variant = {
             str(key): safe_count(value)
@@ -4512,6 +4526,27 @@ def build_performance_report(
             str(key): safe_count(value)
             for key, value in (snapshot.get("sources") or {}).items()
             if isinstance(key, str)
+        }
+        clicks_by_product = {
+            str(key): safe_count(value)
+            for key, value in (snapshot.get("products") or {}).items()
+            if isinstance(key, str)
+        }
+        clicks_by_product_source = {
+            str(pid): {
+                str(source): safe_count(count)
+                for source, count in (sources or {}).items()
+            }
+            for pid, sources in (snapshot.get("productSources") or {}).items()
+            if isinstance(pid, str) and isinstance(sources, dict)
+        }
+        clicks_by_product_variant = {
+            str(pid): {
+                str(variant): safe_count(count)
+                for variant, count in (variants or {}).items()
+            }
+            for pid, variants in (snapshot.get("productExperimentVariants") or {}).items()
+            if isinstance(pid, str) and isinstance(variants, dict)
         }
     comparisons = {}
     for key in sorted(set(posts_by_variant) | set(clicks_by_variant)):
@@ -4537,8 +4572,12 @@ def build_performance_report(
         "experiment_attribution_available": bool(complete and snapshot.get("experimentVariants") is not None),
         "published_posts_by_variant": posts_by_variant,
         "published_posts_by_platform": posts_by_platform,
+        "published_posts_by_product": posts_by_product,
+        "tracked_clicks_by_product": clicks_by_product,
         "tracked_clicks_by_source": clicks_by_source,
+        "tracked_clicks_by_product_source": clicks_by_product_source,
         "tracked_clicks_by_experiment_variant": clicks_by_variant,
+        "tracked_clicks_by_product_variant": clicks_by_product_variant,
         "creative_variant_comparison": comparisons,
         "impressions": None,
         "ctr": None,
