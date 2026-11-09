@@ -3,7 +3,7 @@
     "all_time_count": 5307,
     "current_selection_count": 0,
     "current_selection_events": [],
-    "last_7_days_count": 294,
+    "last_7_days_count": 206,
     "recent_events": [
       {
         "at": "2026-11-02T15:48:34.018426+00:00",
@@ -97,13 +97,12 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T14:02:30.985816+00:00",
+  "generated_at": "2026-11-09T14:33:54.714348+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آرایش چشم": 1,
       "ابزار آلات و تجهیزات": 1,
       "تی شرت مردانه": 1,
-      "خواب": 1,
       "صبحانه": 1,
       "لوازم یدکی ابزار برقی": 2,
       "محصولات بومی و محلی": 2,
@@ -131,11 +130,11 @@
       "personal_care": 12.5,
       "sports_outdoor": 8.3
     },
-    "distinct_catalog_categories": 12,
+    "distinct_catalog_categories": 11,
     "distinct_categories": 7,
-    "distinct_families": 18,
+    "distinct_families": 17,
     "distinct_retailers": 1,
-    "distinct_use_cases": 13,
+    "distinct_use_cases": 12,
     "known_brand_posts": 2,
     "posts": 24,
     "repeated_brand_count": 0,
@@ -150,10 +149,9 @@
       "audio_visual": 1,
       "books_learning": 2,
       "fashion_lifestyle": 1,
-      "general": 4,
+      "general": 5,
       "grocery_food": 1,
       "health_wellness": 1,
-      "home_living": 1,
       "kitchen_food": 1,
       "local_goods": 2,
       "mobile_productivity": 2,
@@ -332,37 +330,37 @@
       "computer_network": 5,
       "digital_accessories": 4,
       "fashion": 51,
-      "gaming": 3,
+      "gaming": 2,
       "home": 11,
       "home_cleaning": 11,
       "jewelry": 3,
       "kids_sports": 7,
       "large_appliances": 9,
       "mobile_devices": 2,
-      "other": 104,
-      "personal_care": 35,
+      "other": 105,
+      "personal_care": 34,
       "pet_supplies": 1,
       "power_backup": 9,
       "sports_outdoor": 30,
       "tv_audio_video": 2
     },
     "category_share_percent": {
-      "audio_wearables": 5.4,
+      "audio_wearables": 5.5,
       "automotive": 6.3,
       "beauty_fragrance": 1.7,
       "books_stationery": 4.3,
       "computer_network": 1.4,
       "digital_accessories": 1.1,
-      "fashion": 14.6,
-      "gaming": 0.9,
+      "fashion": 14.7,
+      "gaming": 0.6,
       "home": 3.2,
       "home_cleaning": 3.2,
       "jewelry": 0.9,
       "kids_sports": 2.0,
       "large_appliances": 2.6,
       "mobile_devices": 0.6,
-      "other": 29.8,
-      "personal_care": 10.0,
+      "other": 30.2,
+      "personal_care": 9.8,
       "pet_supplies": 0.3,
       "power_backup": 2.6,
       "sports_outdoor": 8.6,
@@ -370,11 +368,11 @@
     },
     "distinct_catalog_categories": 159,
     "distinct_categories": 20,
-    "distinct_families": 196,
+    "distinct_families": 195,
     "distinct_retailers": 1,
     "distinct_use_cases": 25,
     "known_brand_posts": 61,
-    "posts": 349,
+    "posts": 348,
     "repeated_brand_count": 48,
     "repeated_brands": {
       "ai_javaher": 8,
@@ -387,7 +385,7 @@
       "ufc": 12
     },
     "retailer_post_counts": {
-      "digikala": 349
+      "digikala": 348
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -401,8 +399,8 @@
       "catalog_taxonomy_other": 16,
       "events_decor": 3,
       "fashion_lifestyle": 35,
-      "gaming": 5,
-      "general": 14,
+      "gaming": 4,
+      "general": 15,
       "grocery_food": 12,
       "health_wellness": 4,
       "home_cleaning": 11,
@@ -413,7 +411,7 @@
       "mobile_productivity": 43,
       "office_study": 9,
       "outdoor_travel": 6,
-      "personal_care": 34,
+      "personal_care": 33,
       "pet_care": 1,
       "sports_fitness": 31,
       "tabletop_games": 1,
@@ -433,65 +431,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 122,
-    "last_7_days_count": 122,
+    "all_time_count": 125,
+    "last_7_days_count": 125,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 122,
-      "similarity_repeat": 122
+      "family_repeat": 125,
+      "similarity_repeat": 125
     },
     "recent_events": [
-      {
-        "at": "2026-11-09T09:44:39.104379+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-5927887",
-        "family": "fashion:socks",
-        "product_id": "dkp-6996140",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "جوراب واریس طب پوش مدل AD بسته 2 عددی",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T10:17:03.580496+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-16597859",
-        "family": "personal_care:haircare",
-        "product_id": "dkp-17906660",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "شانه مو‌ مدل دو شاخه بسته 3 عددی",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-09T10:17:03.580496+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-1901503",
-        "family": "beauty_fragrance:fragrance",
-        "product_id": "dkp-22700244",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم زنانه زدفون مدل ویکتوریا سکرت بامب شل با رایحه خنک حجم 30 میلی لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-09T10:17:03.580496+00:00",
         "brand": "",
@@ -783,6 +730,57 @@
         ],
         "title": "بذر کدو پوست کاغذی آذر سبزینه مدل A49",
         "use_case": "office_study"
+      },
+      {
+        "at": "2026-11-09T14:33:54.714348+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-15385068",
+        "family": "fashion:apparel_tops",
+        "product_id": "dkp-19188296",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "پولوشرت آستین کوتاه مردانه تکنیک+07 مدل TS-165-ME",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T14:33:54.714348+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-15385068",
+        "family": "fashion:apparel_tops",
+        "product_id": "dkp-22264549",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "پیراهن راحتی زنانه ویسکوز گل‌دار افراتین مدل 9616",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T14:33:54.714348+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-22572279",
+        "family": "fashion:eyewear",
+        "product_id": "dkp-10622826",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "عینک ایمنی کد 2S به همراه ماسک ایمنی",
+        "use_case": "tools_industrial"
       }
     ]
   }
