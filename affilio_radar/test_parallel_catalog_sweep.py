@@ -14,6 +14,23 @@ except ImportError:  # unittest discovery from the workflow's affilio_radar work
 
 
 class ParallelCatalogSweepTests(unittest.TestCase):
+    def test_clean_worker_ramp_uses_the_12_14_16_trial_points(self):
+        self.assertEqual(sweep._next_worker_limit(12, 16, 0, 0), 14)
+        self.assertEqual(sweep._next_worker_limit(14, 16, 0, 0), 16)
+        self.assertEqual(sweep._next_worker_limit(16, 16, 0, 0), 16)
+        self.assertEqual(sweep._next_worker_limit(12, 14, 0, 0), 14)
+
+    def test_worker_controller_backs_off_on_rate_limits_and_transient_failures(self):
+        self.assertEqual(sweep._next_worker_limit(12, 16, 1, 1), 10)
+        self.assertEqual(sweep._next_worker_limit(12, 16, 3, 3), 6)
+        self.assertEqual(sweep._next_worker_limit(12, 16, 0, 1), 11)
+        self.assertEqual(sweep._next_worker_limit(12, 16, 0, 3), 6)
+        self.assertEqual(sweep._next_worker_limit(2, 16, 3, 3), 2)
+
+    def test_request_latency_percentiles_use_nearest_rank(self):
+        self.assertEqual(sweep._percentile([0.25, 1.25], 0.50), 0.25)
+        self.assertEqual(sweep._percentile([0.25, 1.25], 0.95), 1.25)
+        self.assertEqual(sweep._percentile([], 0.95), 0.0)
     def test_parallel_candidate_buffer_keeps_demand_context_before_discount(self):
         rows = [
             {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i, "discount_percent": 20, "savings_toman": 200_000}
@@ -290,12 +307,14 @@ class ParallelCatalogSweepTests(unittest.TestCase):
                             "last_seen_at": datetime.now(timezone.utc).isoformat(),
                         }],
                         "total_pages": 2,
+                        "elapsed_seconds": 0.25,
                     }
                 return {
                     "kind": "retry",
                     "rows": [],
                     "status_code": 429,
                     "error": "rate_limited",
+                    "elapsed_seconds": 1.25,
                 }
 
             result = sweep.run_parallel_sweep(
@@ -329,12 +348,22 @@ class ParallelCatalogSweepTests(unittest.TestCase):
                 "parallel_last_batch_pages_per_second",
                 "parallel_last_batch_rows_per_second",
                 "parallel_last_batch_candidate_file_bytes",
+                "parallel_last_batch_request_count",
+                "parallel_last_batch_request_p50_seconds",
+                "parallel_last_batch_request_p95_seconds",
+                "parallel_last_batch_request_max_seconds",
+                "parallel_last_batch_timeout_retries",
+                "parallel_last_batch_http_5xx_retries",
             ):
                 self.assertIn(metric, saved)
                 self.assertGreaterEqual(saved[metric], 0)
             self.assertGreater(saved["parallel_last_batch_pages_per_second"], 0)
             self.assertGreater(saved["parallel_last_batch_rows_per_second"], 0)
             self.assertGreater(saved["parallel_last_batch_candidate_file_bytes"], 0)
+            self.assertEqual(saved["parallel_last_batch_request_count"], 2)
+            self.assertEqual(saved["parallel_last_batch_request_p50_seconds"], 0.25)
+            self.assertEqual(saved["parallel_last_batch_request_p95_seconds"], 1.25)
+            self.assertEqual(saved["parallel_last_batch_request_max_seconds"], 1.25)
 
 
     def test_clean_batch_records_actual_workers_and_increases_next_limit(self):
@@ -378,7 +407,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             self.assertEqual(result, 0)
             saved = json.loads(state_path.read_text(encoding="utf-8"))
             self.assertEqual(saved["parallel_workers_used"], 2)
-            self.assertEqual(saved["parallel_worker_limit"], 3)
+            self.assertEqual(saved["parallel_worker_limit"], 4)
 
     def test_terminal_deep_page_is_a_catalog_gap_not_a_clean_completion(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -472,7 +501,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             saved = json.loads(state_path.read_text(encoding="utf-8"))
             self.assertEqual(saved["parallel_last_batch_rate_limited"], 1)
             self.assertEqual(saved["parallel_workers_used"], 4)
-            self.assertEqual(saved["parallel_worker_limit"], 3)
+            self.assertEqual(saved["parallel_worker_limit"], 2)
 
 
 if __name__ == "__main__":
