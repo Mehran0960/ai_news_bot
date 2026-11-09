@@ -6536,6 +6536,10 @@ class AffilioRadarTests(unittest.TestCase):
         }
         report = radar_module.build_performance_report(state, click_snapshot=snapshot)
         self.assertEqual(report["tracked_clicks_by_source"], {"telegram": 8, "bale": 4})
+        self.assertEqual(report["tracked_clicks_by_product"], {"dkp-123": 12})
+        self.assertEqual(report["tracked_clicks_by_product_source"]["dkp-123"], {"telegram": 8})
+        self.assertEqual(report["tracked_clicks_by_product_variant"]["dkp-123"], {"creative-test-1:A": 8})
+        self.assertEqual(report["published_posts_by_product"]["dkp-123"]["selection_demand_evidence"], None)
         self.assertEqual(report["tracked_clicks_by_experiment_variant"], {
             "creative-test-1:A": 8, "creative-test-1:B": 4
         })
