@@ -1032,3 +1032,7 @@ RUBIKA_CHANNEL_ID می‌تواند آن را override کند. Secret توکن R
 - گیت یکپارچگی همچنان شناسهٔ یکتا، رتبهٔ متوالی، timestamp چرخه، پوشش کامل دسته‌ها و تطبیق hash را الزام می‌کند.
 - این مسیر مستقل از صف انتشار کانال‌های OfferChin است و نباید نرخ یا cadence فعلی Telegram/Bale را تغییر دهد.
 
+### جداسازی concurrency برای PR و اسکن عملیاتی کاتالوگ — ۹ نوامبر ۲۰۲۶
+
+PR validation در workflow اسکن کاتالوگ از گروه concurrency مستقل `offerchin-digikala-catalog-sweep-pr-v1` استفاده می‌کند تا compile و regression tests پشت اسکن read-only زمان‌بندی‌شده صف نشوند. main و workflow_dispatch همچنان در گروه عملیاتی `offerchin-digikala-catalog-sweep-v3` سریالی می‌مانند. این تغییر رفتار crawler، worker limit، pagination، retry یا state تولیدی را تغییر نمی‌دهد.
+
