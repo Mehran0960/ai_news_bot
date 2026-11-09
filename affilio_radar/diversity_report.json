@@ -97,11 +97,10 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T18:46:19.749366+00:00",
+  "generated_at": "2026-11-09T19:18:30.022669+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "تی شرت مردانه": 1,
-      "صبحانه": 1,
       "محصولات بومی و محلی": 1,
       "مکمل غذایی": 1,
       "کتاب رمان و ادبیات داستانی و نمایشی": 1
@@ -111,8 +110,8 @@
       "beauty_fragrance": 1,
       "books_stationery": 1,
       "digital_accessories": 1,
-      "fashion": 1,
-      "other": 13,
+      "fashion": 2,
+      "other": 12,
       "personal_care": 2,
       "power_backup": 1,
       "sports_outdoor": 2
@@ -122,17 +121,17 @@
       "beauty_fragrance": 4.3,
       "books_stationery": 4.3,
       "digital_accessories": 4.3,
-      "fashion": 4.3,
-      "other": 56.5,
+      "fashion": 8.7,
+      "other": 52.2,
       "personal_care": 8.7,
       "power_backup": 4.3,
       "sports_outdoor": 8.7
     },
-    "distinct_catalog_categories": 5,
+    "distinct_catalog_categories": 4,
     "distinct_categories": 9,
     "distinct_families": 14,
     "distinct_retailers": 1,
-    "distinct_use_cases": 11,
+    "distinct_use_cases": 10,
     "known_brand_posts": 3,
     "posts": 23,
     "repeated_brand_count": 0,
@@ -146,9 +145,8 @@
     "use_case_post_counts": {
       "audio_visual": 1,
       "books_learning": 1,
-      "fashion_lifestyle": 1,
+      "fashion_lifestyle": 2,
       "general": 8,
-      "grocery_food": 1,
       "health_wellness": 1,
       "kitchen_food": 1,
       "local_goods": 1,
@@ -325,7 +323,7 @@
       "books_stationery": 15,
       "computer_network": 4,
       "digital_accessories": 4,
-      "fashion": 51,
+      "fashion": 52,
       "gaming": 2,
       "home": 11,
       "home_cleaning": 11,
@@ -342,12 +340,12 @@
     },
     "category_share_percent": {
       "audio_wearables": 5.4,
-      "automotive": 6.3,
+      "automotive": 6.2,
       "beauty_fragrance": 1.4,
       "books_stationery": 4.3,
       "computer_network": 1.1,
       "digital_accessories": 1.1,
-      "fashion": 14.5,
+      "fashion": 14.8,
       "gaming": 0.6,
       "home": 3.1,
       "home_cleaning": 3.1,
@@ -355,7 +353,7 @@
       "kids_sports": 2.0,
       "large_appliances": 2.6,
       "mobile_devices": 0.6,
-      "other": 30.8,
+      "other": 30.7,
       "personal_care": 9.7,
       "pet_supplies": 0.3,
       "power_backup": 2.8,
@@ -368,7 +366,7 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 25,
     "known_brand_posts": 62,
-    "posts": 351,
+    "posts": 352,
     "repeated_brand_count": 49,
     "repeated_brands": {
       "ai_javaher": 8,
@@ -382,7 +380,7 @@
       "ufc": 12
     },
     "retailer_post_counts": {
-      "digikala": 351
+      "digikala": 352
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -395,7 +393,7 @@
       "books_learning": 13,
       "catalog_taxonomy_other": 15,
       "events_decor": 3,
-      "fashion_lifestyle": 35,
+      "fashion_lifestyle": 36,
       "gaming": 3,
       "general": 18,
       "grocery_food": 12,
@@ -428,218 +426,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 137,
-    "last_7_days_count": 137,
+    "all_time_count": 149,
+    "last_7_days_count": 149,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 137,
-      "similarity_repeat": 137
+      "family_repeat": 149,
+      "similarity_repeat": 149
     },
     "recent_events": [
-      {
-        "at": "2026-11-09T12:27:28.575582+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-5927887",
-        "family": "fashion:socks",
-        "product_id": "dkp-22403708",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "جوراب ساق بلند مردانه پالوته مدل PLT-3COL-LN بسته 3 عددی",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T12:58:06.382402+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-5927887",
-        "family": "fashion:socks",
-        "product_id": "dkp-5692029",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "جوراب ساق کوتاه مردانه پالوته مدل PM-NNN مجموعه 3 عددی",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T12:58:06.382402+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-1901503",
-        "family": "beauty_fragrance:fragrance",
-        "product_id": "dkp-22700244",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم زنانه زدفون مدل ویکتوریا سکرت بامب شل با رایحه خنک حجم 30 میلی لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-09T13:30:52.283071+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-15385068",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-14857780",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست تی شرت و شلوارک مردانه مدل 14",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T14:02:30.985816+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-860339",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "بذر کدو پوست کاغذی آذر سبزینه مدل A49",
-        "use_case": "office_study"
-      },
-      {
-        "at": "2026-11-09T14:33:54.714348+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-15385068",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-19188296",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "پولوشرت آستین کوتاه مردانه تکنیک+07 مدل TS-165-ME",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T14:33:54.714348+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-15385068",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-22264549",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "پیراهن راحتی زنانه ویسکوز گل‌دار افراتین مدل 9616",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T14:33:54.714348+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22572279",
-        "family": "fashion:eyewear",
-        "product_id": "dkp-10622826",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "عینک ایمنی کد 2S به همراه ماسک ایمنی",
-        "use_case": "tools_industrial"
-      },
-      {
-        "at": "2026-11-09T15:05:42.750607+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "audio_wearables",
-        "compared_to_product_id": "dkp-23000078",
-        "family": "audio_wearables:headphones",
-        "product_id": "dkp-8164895",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "هدفون بلوتوثی مدل M10 newest",
-        "use_case": "audio_visual"
-      },
-      {
-        "at": "2026-11-09T15:05:42.750607+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-15385068",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-14857780",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست تی شرت و شلوارک مردانه مدل 14",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T16:08:43.436629+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-15385068",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-14857780",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست تی شرت و شلوارک مردانه مدل 14",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T17:12:46.081320+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "computer_network",
-        "compared_to_product_id": "dkp-13804774",
-        "family": "computer_network:mice",
-        "product_id": "dkp-20914795",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ماوس گیمینگ پی های تک مدل RG315 Max Edition",
-        "use_case": "gaming"
-      },
       {
         "at": "2026-11-09T17:12:46.081320+00:00",
         "brand": "",
@@ -775,6 +569,210 @@
         ],
         "title": "ست تی شرت آستین کوتاه و شلوارک راحتی مردانه مدل لبخند کد A113",
         "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T19:18:30.022669+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-1053744",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم پوست پرایم مدل C_Prime حجم 30 میلی لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-09T19:18:30.022669+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-09T19:18:30.022669+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-18369481",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-09T19:18:30.022669+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-5692029",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "جوراب ساق کوتاه مردانه پالوته مدل PM-NNN مجموعه 3 عددی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T19:18:30.022669+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "audio_wearables",
+        "compared_to_product_id": "dkp-16026610",
+        "family": "audio_wearables:smartwatch",
+        "product_id": "dkp-11764760",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ساعت هوشمند مدل Ultra به همراه بند اضافی",
+        "use_case": "audio_visual"
+      },
+      {
+        "at": "2026-11-09T19:18:30.022669+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-20317543",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "جوراب ساق بلند مردانه سیرداش مدل 195 بسته 6 عددی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T19:18:30.022669+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "power_backup",
+        "compared_to_product_id": "dkp-19967154",
+        "family": "power_backup:power_bank",
+        "product_id": "dkp-20328532",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "پاوربانک 22.5 وات نوکسو مدل PN-1 ظرفیت 10000 میلی آمپر ساعت",
+        "use_case": "lighting_electrical"
+      },
+      {
+        "at": "2026-11-09T19:18:30.022669+00:00",
+        "brand": "panbineh",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-15385068",
+        "family": "fashion:apparel_tops",
+        "product_id": "dkp-21749737",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "تی‌شرت آستین کوتاه یقه گرد مردانه پنبینه مدل نخ پنبه اکونومی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T19:18:30.022669+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-1901503",
+        "family": "beauty_fragrance:fragrance",
+        "product_id": "dkp-22700244",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم زنانه زدفون مدل ویکتوریا سکرت بامب شل با رایحه خنک حجم 30 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-09T19:18:30.022669+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-21766843",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "جوراب ساق بلند مردانه سیرداش مدل N111 بسته 6 عددی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T19:18:30.022669+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-22403708",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "جوراب ساق بلند مردانه پالوته مدل PLT-3COL-LN بسته 3 عددی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T19:18:30.022669+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "computer_network",
+        "compared_to_product_id": "dkp-22109767",
+        "family": "computer_network:keyboards",
+        "product_id": "dkp-21372366",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کیبورد گیمینگ هیسکا مدل HX-KEG460",
+        "use_case": "gaming"
       }
     ]
   }
