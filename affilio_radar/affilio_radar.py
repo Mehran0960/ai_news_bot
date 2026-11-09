@@ -8,6 +8,7 @@ This program deliberately does not invent affiliate tracking parameters or log i
 from __future__ import annotations
 
 import argparse
+import hashlib
 import html
 import json
 import math
@@ -97,6 +98,11 @@ AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
     "https://affiliate-deal-radar.m-hoseyni-6966.workers.dev",
 ).strip().rstrip("/")
 _CLICK_TRACKER_HEALTH_CACHE: bool | None = None
+_LAST_CLICK_STATISTICS_SNAPSHOT: dict | None = None
+CREATIVE_EXPERIMENT_ID = re.sub(
+    r"[^a-z0-9_-]", "-", os.getenv("AFFILIO_CREATIVE_EXPERIMENT_ID", "offerchin-creative-v1").strip().lower()
+)[:32] or "offerchin-creative-v1"
+PERFORMANCE_REPORT = ROOT / "performance_report.json"
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
 FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "false").strip().lower() in {"1", "true", "yes", "on"}
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
@@ -461,13 +467,44 @@ def build_click_tracking_link(
     affiliate_url: str,
     base_url: str | None = None,
     source: str = "unknown",
+    experiment_id: str = "",
+    variant: str = "",
 ) -> str:
-    """Return the official Affilio URL unchanged; never insert an OfferChin redirect."""
+    """Wrap only a matching, verified Affilio URL in the healthy OfferChin click tracker."""
     original = str(affiliate_url or "").strip()
     canonical = safe_product_url(product_url)
-    if canonical and _affiliate_destination_matches_product(original, canonical):
+    if not canonical or not _is_valid_affilio_tracking_url(original):
         return original
-    return original
+    if not _affiliate_destination_matches_product(original, canonical):
+        return original
+
+    base = str(base_url or AFFILIO_CLICK_TRACKER_BASE_URL).strip().rstrip("/")
+    try:
+        parsed_base = urlsplit(base)
+        if (
+            parsed_base.scheme != "https"
+            or not parsed_base.hostname
+            or parsed_base.query
+            or parsed_base.fragment
+            or parsed_base.username
+            or parsed_base.password
+            or parsed_base.port not in (None, 443)
+        ):
+            return original
+    except (TypeError, ValueError):
+        return original
+
+    allowed_sources = {"telegram", "bale", "youtube", "aparat"}
+    source_value = str(source or "unknown").strip().lower()
+    if source_value not in allowed_sources:
+        source_value = "unknown"
+    query = {"u": original, "src": source_value}
+    experiment = re.sub(r"[^a-z0-9_-]", "-", str(experiment_id or "").strip().lower())[:32]
+    selected_variant = str(variant or "").strip().upper()
+    if experiment and re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,31}", experiment) and selected_variant in {"A", "B"}:
+        query["exp"] = experiment
+        query["variant"] = selected_variant.lower()
+    return f"{base}/p/{product_id(canonical)}?{urlencode(query)}"
 
 
 def _click_tracker_is_healthy() -> bool:
@@ -496,8 +533,12 @@ def _click_tracker_is_healthy() -> bool:
         )
         health.raise_for_status()
         health_payload = health.json()
-        if health_payload.get("ok") is not True or health_payload.get("clickStoreReady") is not True:
-            raise RuntimeError("tracker_health_not_ready")
+        if (
+            health_payload.get("ok") is not True
+            or health_payload.get("clickStoreReady") is not True
+            or health_payload.get("experimentAttribution") is not True
+        ):
+            raise RuntimeError("tracker_health_or_experiment_attribution_not_ready")
 
         # HEAD never writes a click event. Both retailer paths must validate before tracking is enabled.
         probes = (
@@ -532,10 +573,49 @@ def _click_tracker_is_healthy() -> bool:
     return _CLICK_TRACKER_HEALTH_CACHE
 
 
-def tracked_affiliate_button_url(affiliate_url: str, source: str) -> str:
-    """Return the verified Affilio purchase URL unchanged; click-tracker redirects are disabled."""
+def _affiliate_product_destination(affiliate_url: str) -> str:
+    """Extract the one canonical product URL from the confirmed Affilio public template."""
+    if not _is_valid_affilio_tracking_url(affiliate_url):
+        return ""
+    try:
+        parsed = urlsplit(str(affiliate_url or "").strip())
+        destinations = parse_qs(parsed.query, keep_blank_values=True).get("p", [])
+    except Exception:
+        return ""
+    return safe_product_url(destinations[0]) if len(destinations) == 1 else ""
+
+
+def tracked_affiliate_button_url(
+    affiliate_url: str,
+    source: str,
+    experiment_id: str = "",
+    variant: str = "",
+) -> str:
+    """Use the tracker only after health/capability probes; otherwise preserve direct Affilio."""
     original = str(affiliate_url or "").strip()
-    return original if _is_valid_affilio_tracking_url(original) else ""
+    if not _is_valid_affilio_tracking_url(original):
+        return ""
+    canonical = _affiliate_product_destination(original)
+    if not canonical or not _click_tracker_is_healthy():
+        return original
+    wrapped = build_click_tracking_link(
+        canonical,
+        original,
+        AFFILIO_CLICK_TRACKER_BASE_URL,
+        source=source,
+        experiment_id=experiment_id,
+        variant=variant,
+    )
+    return wrapped or original
+
+
+def creative_experiment_assignment(product_id_value: str) -> tuple[str, str]:
+    """Assign one stable A/B creative treatment per product without using affiliate income."""
+    pid = str(product_id_value or "").strip().lower()
+    if not re.fullmatch(r"(?:dkp-\d{1,12}|snp-\d{1,20})", pid):
+        return "", "A"
+    digest = hashlib.sha256(f"{CREATIVE_EXPERIMENT_ID}:{pid}".encode("utf-8")).digest()
+    return CREATIVE_EXPERIMENT_ID, ("A", "B")[digest[0] & 1]
 
 
 def _walk_dicts(value):
@@ -4311,6 +4391,8 @@ def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
 
 def _fetch_click_statistics_snapshot() -> dict:
     """Fetch a complete aggregate 30-day click snapshot; analytics outages never block publication."""
+    global _LAST_CLICK_STATISTICS_SNAPSHOT
+    _LAST_CLICK_STATISTICS_SNAPSHOT = {}
     base = AFFILIO_CLICK_TRACKER_BASE_URL.strip().rstrip("/")
     if not base.startswith("https://"):
         print("CLICK_STATS_UNAVAILABLE reason=tracker_url_not_https")
@@ -4327,6 +4409,7 @@ def _fetch_click_statistics_snapshot() -> dict:
         if payload.get("ok") is not True or payload.get("complete") is not True or not isinstance(products, dict):
             print("CLICK_STATS_UNAVAILABLE reason=incomplete_or_invalid_snapshot")
             return {}
+        _LAST_CLICK_STATISTICS_SNAPSHOT = payload
         return payload
     except Exception as exc:
         print(f"CLICK_STATS_UNAVAILABLE error={type(exc).__name__}")
@@ -4363,11 +4446,111 @@ def fetch_click_statistics() -> dict[str, int]:
 
 
 def enrich_click_statistics(products: list[dict]) -> None:
-    """Attach aggregate 30-day click counts; source-level click details stay private in Cloudflare KV."""
+    """Attach aggregate 30-day clicks for reporting only; clicks never affect demand ranking."""
     counts = fetch_click_statistics()
     for product in products:
         pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
         product["click_count_30d"] = counts.get(pid, 0)
+
+
+def build_performance_report(
+    state: dict,
+    now: datetime | None = None,
+    click_snapshot: dict | None = None,
+) -> dict:
+    """Report attributable clicks and A/B outcomes without inventing CTR, orders or sales."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    snapshot = click_snapshot if isinstance(click_snapshot, dict) else (
+        _LAST_CLICK_STATISTICS_SNAPSHOT if isinstance(_LAST_CLICK_STATISTICS_SNAPSHOT, dict) else {}
+    )
+    complete = (
+        snapshot.get("ok") is True
+        and snapshot.get("complete") is True
+        and isinstance(snapshot.get("products"), dict)
+    )
+
+    def safe_count(value):
+        try:
+            return max(0, int(value or 0))
+        except (TypeError, ValueError, OverflowError):
+            return 0
+
+    posts_by_variant: dict[str, int] = {}
+    posts_by_platform: dict[str, int] = {}
+    published = state.get("published") if isinstance(state, dict) else {}
+    published = published if isinstance(published, dict) else {}
+    for record in published.values():
+        if not isinstance(record, dict):
+            continue
+        experiment = str(record.get("creative_experiment_id") or "")
+        variant = str(record.get("creative_variant") or "").upper()
+        if experiment and variant in {"A", "B"}:
+            key = f"{experiment}:{variant}"
+            posts_by_variant[key] = posts_by_variant.get(key, 0) + 1
+        statuses = record.get("delivery_status")
+        statuses = statuses if isinstance(statuses, dict) else {}
+        for platform in ("telegram", "bale", "youtube", "aparat"):
+            if (
+                record.get(f"{platform}_message_id")
+                or record.get(f"{platform}_video_id")
+                or statuses.get(platform) == "sent"
+            ):
+                posts_by_platform[platform] = posts_by_platform.get(platform, 0) + 1
+
+    clicks_by_variant = {}
+    clicks_by_source = {}
+    if complete:
+        clicks_by_variant = {
+            str(key): safe_count(value)
+            for key, value in (snapshot.get("experimentVariants") or {}).items()
+            if isinstance(key, str)
+        }
+        clicks_by_source = {
+            str(key): safe_count(value)
+            for key, value in (snapshot.get("sources") or {}).items()
+            if isinstance(key, str)
+        }
+    comparisons = {}
+    for key in sorted(set(posts_by_variant) | set(clicks_by_variant)):
+        post_count = posts_by_variant.get(key, 0)
+        click_count = clicks_by_variant.get(key)
+        comparisons[key] = {
+            "published_posts": post_count,
+            "tracked_clicks_30d": click_count,
+            "clicks_per_published_post": (
+                round(click_count / post_count, 3)
+                if click_count is not None and post_count > 0 else None
+            ),
+            "ctr": None,
+            "orders": None,
+            "sales_amount": None,
+            "approved_commission": None,
+        }
+    return {
+        "generated_at": current.isoformat(),
+        "window_days": 30,
+        "click_data_status": "complete" if complete else "unavailable_or_legacy_worker",
+        "source_attribution_available": bool(complete and snapshot.get("sources") is not None),
+        "experiment_attribution_available": bool(complete and snapshot.get("experimentVariants") is not None),
+        "published_posts_by_variant": posts_by_variant,
+        "published_posts_by_platform": posts_by_platform,
+        "tracked_clicks_by_source": clicks_by_source,
+        "tracked_clicks_by_experiment_variant": clicks_by_variant,
+        "creative_variant_comparison": comparisons,
+        "impressions": None,
+        "ctr": None,
+        "orders": None,
+        "sales_amount": None,
+        "approved_commission": None,
+        "sales_data_status": "unavailable_until_official_Affilio_report_or_export_is_connected",
+        "interpretation": (
+            "Tracked clicks and clicks per published post are descriptive signals, not CTR or causal lift. "
+            "Impressions, orders, sales and commission are not inferred from clicks."
+        ),
+    }
 
 
 def load_catalog() -> list[dict]:
@@ -4712,6 +4895,7 @@ def build_caption(
     affiliate_url: str,
     channel_label: str = TELEGRAM_CHANNEL_URL,
     use_unicode_strikethrough: bool = False,
+    experiment_variant: str = "A",
 ) -> str:
     """Build a concise cross-platform caption with a clear price hierarchy and channel CTA."""
     is_bale = use_unicode_strikethrough
@@ -4739,8 +4923,10 @@ def build_caption(
 
     merchant = p.get("merchant") or product_merchant(p.get("product_url") or affiliate_url)
     merchant_marker = "🟣" if "اسنپ" in str(merchant) or "snapp" in str(merchant).lower() else "🔴"
+    variant = str(experiment_variant or p.get("creative_variant") or "A").strip().upper()
+    caption_prefix = SALE_TITLE_PREFIX if variant != "B" else "🛒 پیشنهاد خرید"
     parts = [
-        f"{SALE_TITLE_PREFIX} {merchant} {merchant_marker}",
+        f"{caption_prefix} {merchant} {merchant_marker}",
         "",
         f"{PRODUCT_TITLE_PREFIX}{title}",
     ]
@@ -4812,6 +4998,7 @@ def build_discount_image(
     merchant: str = "دیجی‌کالا",
     extra_watermarks: list[tuple[str, str]] | None = None,
     destination_platform: str | None = None,
+    experiment_variant: str = "A",
 ) -> bytes:
     """Prepare a product image with store identity, discount badge, and OfferChin channel watermark."""
     from io import BytesIO
@@ -4821,6 +5008,16 @@ def build_discount_image(
     image.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
     width, height = image.size
     min_dim = min(width, height)
+    # Variant B uses a restrained green frame. The official retailer/DigiPay logos,
+    # discount tile, product pixels and their relative geometry remain unchanged.
+    if str(experiment_variant or "A").strip().upper() == "B":
+        frame_draw = ImageDraw.Draw(image)
+        frame_width = max(2, min(5, min_dim // 400))
+        frame_draw.rectangle(
+            (0, 0, width - 1, height - 1),
+            outline=(28, 126, 61),
+            width=frame_width,
+        )
     brand_margin = max(10, int(min_dim * 0.025))
     # Both top-corner tiles share one width. Reserve half the available canvas
     # width for each so equal-sized tiles cannot overlap on small source images.
@@ -5008,14 +5205,22 @@ def _fetch_image(url: str) -> bytes:
     raise RuntimeError("product image fetch failed after bounded retry")
 
 
-def _send_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
+def _send_photo(
+    photo_bytes: bytes,
+    caption: str,
+    affiliate_url: str = "",
+    experiment_id: str = "",
+    experiment_variant: str = "",
+):
     if not BOT_TOKEN:
         raise RuntimeError("Missing TELEGRAM_BOT_TOKEN secret; no post sent")
     endpoint = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
     data = {"chat_id": TARGET_CHAT, "caption": caption, "parse_mode": "HTML"}
     if not _is_valid_affilio_tracking_url(affiliate_url):
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
-    button_url = tracked_affiliate_button_url(affiliate_url, "telegram")
+    button_url = tracked_affiliate_button_url(
+        affiliate_url, "telegram", experiment_id, experiment_variant
+    )
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
             "text": purchase_button_label(affiliate_url),
@@ -5035,7 +5240,13 @@ def _send_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     return payload["result"]
 
 
-def _send_bale_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
+def _send_bale_photo(
+    photo_bytes: bytes,
+    caption: str,
+    affiliate_url: str = "",
+    experiment_id: str = "",
+    experiment_variant: str = "",
+):
     """Send a photo post through Bale's Bot API, independently of Telegram delivery."""
     if not BALE_BOT_TOKEN:
         raise RuntimeError("Missing BALE_BOT_TOKEN secret")
@@ -5045,7 +5256,9 @@ def _send_bale_photo(photo_bytes: bytes, caption: str, affiliate_url: str = ""):
     data = {"chat_id": BALE_CHANNEL_ID, "caption": caption}
     if not _is_valid_affilio_tracking_url(affiliate_url):
         raise RuntimeError("Refusing to publish or edit a post without a verified Affilio purchase button")
-    button_url = tracked_affiliate_button_url(affiliate_url, "bale")
+    button_url = tracked_affiliate_button_url(
+        affiliate_url, "bale", experiment_id, experiment_variant
+    )
     data["reply_markup"] = json.dumps({
         "inline_keyboard": [[{
             "text": purchase_button_label(affiliate_url),
@@ -5110,18 +5323,35 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
             image_bytes, item.get("discount_percent"),
             watermark="T.me/OfferChin", merchant=item.get("merchant") or "دیجی‌کالا",
             destination_platform="telegram",
+            experiment_variant=item.get("creative_variant", "A"),
         )
-        return _send_photo(photo, build_caption(item, affiliate_url, TELEGRAM_CHANNEL_URL), affiliate_url)
+        return _send_photo(
+            photo,
+            build_caption(
+                item, affiliate_url, TELEGRAM_CHANNEL_URL,
+                experiment_variant=item.get("creative_variant", "A"),
+            ),
+            affiliate_url,
+            item.get("creative_experiment_id", ""),
+            item.get("creative_variant", "A"),
+        )
     if platform == "bale":
         photo = build_discount_image(
             image_bytes, item.get("discount_percent"),
             watermark="ble.ir/OfferChin", merchant=item.get("merchant") or "دیجی‌کالا",
             destination_platform="bale",
+            experiment_variant=item.get("creative_variant", "A"),
         )
         return _send_bale_photo(
             photo,
-            build_caption(item, affiliate_url, BALE_CHANNEL_URL, use_unicode_strikethrough=True),
+            build_caption(
+                item, affiliate_url, BALE_CHANNEL_URL,
+                use_unicode_strikethrough=True,
+                experiment_variant=item.get("creative_variant", "A"),
+            ),
             affiliate_url,
+            item.get("creative_experiment_id", ""),
+            item.get("creative_variant", "A"),
         )
     raise ValueError("Unsupported publication platform")
 
@@ -10092,8 +10322,9 @@ def run(publish=False, selection_only=False):
 
     # Repeated retailer observations are required to distinguish recent interest from lifetime popularity.
     update_current_demand_signals(state, products, now=datetime.now(timezone.utc))
-    # Do not fetch click-worker statistics: they are not affiliate conversions and
-    # new purchase buttons now go directly to Affilio to preserve attribution.
+    # Click analytics are fetched only for reporting. They are never ranking inputs,
+    # never treated as orders, and never allowed to block product selection/publication.
+    enrich_click_statistics(products)
     products.sort(key=deal_sort_key, reverse=True)
     state.setdefault("published", {})
     if publish and CLEAR_PREVIOUS_CHANNEL_POSTS and BATCH_OPERATION_KEY and state.get("completed_batch_operation") == BATCH_OPERATION_KEY:
@@ -10319,6 +10550,7 @@ def run(publish=False, selection_only=False):
         state.get("recent_publications"),
     )
     record_publication_diversity_report(state, now=queue_now)
+    save_json(PERFORMANCE_REPORT, build_performance_report(state, now=queue_now))
     save_json(STATE, state)
     market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
