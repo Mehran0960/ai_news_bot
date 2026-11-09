@@ -364,6 +364,19 @@ def load_completed_candidates_snapshot(
 
 
 
+def is_degraded_live_fallback_available(status: Any) -> bool:
+    """Allow live-verified discovery only when DigiKala's taxonomy registry is intact."""
+    if not isinstance(status, dict) or _integer(status.get("schema_version")) != 2:
+        return False
+    if status.get("full_catalog_mode") != "all_categories_all_pages":
+        return False
+    if status.get("scan_policy_version") != SCAN_POLICY_VERSION:
+        return False
+    category_count = _integer(status.get("catalog_category_count"))
+    category_ids = _sorted_ids(status.get("catalog_category_ids"))
+    return category_count > 0 and len(category_ids) == category_count
+
+
 def load_publication_catalog_context(
     status_path: Path = STATUS_PATH,
     candidates_path: Path = COMPLETED_CANDIDATES_PATH,
@@ -378,6 +391,8 @@ def load_publication_catalog_context(
         status = None
     if is_initial_catalog_warmup(status):
         return {"mode": "initial_warmup", "snapshot": None}
+    if is_degraded_live_fallback_available(status):
+        return {"mode": "degraded_live_fallback", "snapshot": None}
     return {"mode": "blocked", "snapshot": None}
 
 
@@ -391,6 +406,17 @@ def candidate_allowed_by_publication_context(
     mode = str(context.get("mode") or "")
     if mode == "initial_warmup":
         return True
+    if mode == "degraded_live_fallback":
+        product_id = str(candidate.get("product_id") or "").lower()
+        product_url = str(candidate.get("product_url") or "").strip().lower()
+        if product_id.startswith("dkp-"):
+            return bool(re.search(
+                r"https?://(?:www\.|m\.)?digikala\.com/product/" + re.escape(product_id) + r"(?:/|[?#]|$)",
+                product_url,
+            ))
+        if product_id.startswith("snp-"):
+            return bool(re.search(r"https?://(?:www\.)?snappshop\.ir/product/", product_url))
+        return False
     if mode != "full_catalog":
         return False
     product_id = str(candidate.get("product_id") or "").lower()

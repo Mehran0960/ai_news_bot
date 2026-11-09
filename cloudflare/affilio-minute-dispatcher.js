@@ -186,6 +186,18 @@ export function isUsableCleanCatalogSnapshot(status) {
   return true;
 }
 
+export function isDegradedLiveFallbackAvailable(status) {
+  if (!status || typeof status !== "object" || Number(status.schema_version) !== 2) return false;
+  if (status.full_catalog_mode !== "all_categories_all_pages") return false;
+  if (status.scan_policy_version !== "all_categories_all_pages_v3_cycle_snapshot") return false;
+  const count = Number(status.catalog_category_count);
+  const ids = Array.isArray(status.catalog_category_ids)
+    ? status.catalog_category_ids.map(value => String(value)) : [];
+  if (!Number.isInteger(count) || count < 1 || ids.length !== count) return false;
+  if (new Set(ids).size !== ids.length || ids.some(id => !/^\d+$/.test(id))) return false;
+  return true;
+}
+
 export function isInitialCatalogWarmup(status) {
   if (!status || typeof status !== "object" || Number(status.schema_version) !== 2) return false;
   if (status.full_catalog_mode !== "all_categories_all_pages") return false;
@@ -287,8 +299,21 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     readCatalogSweepStatus(env.GITHUB_TOKEN),
   ]);
   const lastPublishedAt = readLastChannelPublicationAt(state);
+  let degradedLiveFallback = false;
   if (!isUsableCleanCatalogSnapshot(catalogStatus)) {
-    if (!isInitialCatalogWarmup(catalogStatus)) {
+    if (isInitialCatalogWarmup(catalogStatus)) {
+      // Initial bootstrap: live discovery remains available until the first full snapshot.
+      console.log("OFFERCHIN_PUBLISHER_WARMUP_FALLBACK reason=no_clean_snapshot_yet");
+    } else if (isDegradedLiveFallbackAvailable(catalogStatus)) {
+      // Do not represent partial scanning as a clean snapshot. The Python publisher
+      // restricts this mode to canonical DigiKala/SnappShop IDs and rechecks price,
+      // stock, expiry, product identity and affiliate URL before delivery.
+      degradedLiveFallback = true;
+      console.warn(
+        "OFFERCHIN_PUBLISHER_DEGRADED_LIVE_FALLBACK taxonomy_registry_valid=true" +
+        " full_catalog_snapshot_valid=false; live_product_revalidation_required=true"
+      );
+    } else {
       console.log(
         "OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=no_valid_clean_catalog_snapshot" +
         " latest_attempt_status=" + String(catalogStatus && catalogStatus.last_cycle_status || "unknown") +
@@ -296,9 +321,6 @@ async function dispatchPublisherWhenDue(env, tick, state) {
       );
       return;
     }
-    // Initial bootstrap only: retain the existing live-offer/search discovery path
-    // until the first complete full-catalog snapshot has been produced.
-    console.log("OFFERCHIN_PUBLISHER_WARMUP_FALLBACK reason=no_clean_snapshot_yet");
   } else {
     // Reuse the last immutable clean snapshot while the next full scan runs.
     // A new full scan is not required between two 27-minute publication slots.
@@ -320,9 +342,10 @@ async function dispatchPublisherWhenDue(env, tick, state) {
   const attemptAt = Date.parse(String(
     latestAttempt && (latestAttempt.updated_at || latestAttempt.run_started_at || latestAttempt.created_at) || ""
   ));
-  if (Number.isFinite(attemptAt) && now - attemptAt < PUBLISHER_RETRY_GAP_MS) {
+  const retryGap = degradedLiveFallback ? PUBLISHER_INTERVAL_MS : PUBLISHER_RETRY_GAP_MS;
+  if (Number.isFinite(attemptAt) && now - attemptAt < retryGap) {
     console.log("OFFERCHIN_PUBLISHER_RETRY_WINDOW seconds_remaining=" +
-      Math.ceil((PUBLISHER_RETRY_GAP_MS - (now - attemptAt)) / 1000));
+      Math.ceil((retryGap - (now - attemptAt)) / 1000));
     return;
   }
 
