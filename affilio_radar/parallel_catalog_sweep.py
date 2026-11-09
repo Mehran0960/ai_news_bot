@@ -391,6 +391,7 @@ def run_parallel_sweep(
                 base._write_json(completed_candidates_path, {
                     "schema_version": 1,
                     "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
+                    "candidate_order_policy": "catalog_demand_first_v1",
                     "cycle_status": "complete",
                     "cycle_started_at": completed_cycle_started_at,
                     "cycle_completed_at": finished_at,
