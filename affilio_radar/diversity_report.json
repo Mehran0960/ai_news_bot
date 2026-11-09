@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T09:44:39.104379+00:00",
+  "generated_at": "2026-11-09T10:17:03.580496+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آرایش چشم": 1,
@@ -108,7 +108,6 @@
       "خواب": 1,
       "صبحانه": 1,
       "لوازم اداری": 1,
-      "لوازم تحریر": 1,
       "لوازم یدکی ابزار برقی": 2,
       "ماسک صورت و بدن": 1,
       "محصولات بومی و محلی": 2,
@@ -123,27 +122,27 @@
     },
     "category_post_counts": {
       "audio_wearables": 1,
-      "books_stationery": 3,
+      "books_stationery": 2,
       "fashion": 1,
       "kids_sports": 2,
-      "other": 12,
+      "other": 13,
       "personal_care": 4,
       "sports_outdoor": 1
     },
     "category_share_percent": {
       "audio_wearables": 4.2,
-      "books_stationery": 12.5,
+      "books_stationery": 8.3,
       "fashion": 4.2,
       "kids_sports": 8.3,
-      "other": 50.0,
+      "other": 54.2,
       "personal_care": 16.7,
       "sports_outdoor": 4.2
     },
-    "distinct_catalog_categories": 20,
+    "distinct_catalog_categories": 19,
     "distinct_categories": 7,
     "distinct_families": 22,
     "distinct_retailers": 1,
-    "distinct_use_cases": 15,
+    "distinct_use_cases": 16,
     "known_brand_posts": 3,
     "posts": 24,
     "repeated_brand_count": 0,
@@ -160,12 +159,13 @@
       "books_learning": 3,
       "events_decor": 1,
       "fashion_lifestyle": 1,
+      "general": 1,
       "grocery_food": 1,
       "health_wellness": 1,
       "home_living": 1,
       "local_goods": 2,
       "mobile_productivity": 1,
-      "office_study": 3,
+      "office_study": 2,
       "personal_care": 3,
       "sports_fitness": 1,
       "tabletop_games": 1,
@@ -342,14 +342,14 @@
       "computer_network": 6,
       "digital_accessories": 4,
       "fashion": 52,
-      "gaming": 4,
+      "gaming": 3,
       "home": 11,
       "home_cleaning": 11,
       "jewelry": 3,
       "kids_sports": 7,
-      "large_appliances": 11,
+      "large_appliances": 10,
       "mobile_devices": 3,
-      "other": 101,
+      "other": 102,
       "personal_care": 35,
       "pet_supplies": 1,
       "power_backup": 9,
@@ -363,28 +363,28 @@
       "books_stationery": 4.5,
       "computer_network": 1.7,
       "digital_accessories": 1.1,
-      "fashion": 14.7,
-      "gaming": 1.1,
+      "fashion": 14.8,
+      "gaming": 0.9,
       "home": 3.1,
       "home_cleaning": 3.1,
-      "jewelry": 0.8,
+      "jewelry": 0.9,
       "kids_sports": 2.0,
-      "large_appliances": 3.1,
-      "mobile_devices": 0.8,
-      "other": 28.6,
+      "large_appliances": 2.8,
+      "mobile_devices": 0.9,
+      "other": 29.0,
       "personal_care": 9.9,
       "pet_supplies": 0.3,
-      "power_backup": 2.5,
+      "power_backup": 2.6,
       "sports_outdoor": 8.2,
       "tv_audio_video": 0.6
     },
     "distinct_catalog_categories": 159,
     "distinct_categories": 20,
-    "distinct_families": 196,
+    "distinct_families": 195,
     "distinct_retailers": 1,
     "distinct_use_cases": 25,
     "known_brand_posts": 61,
-    "posts": 353,
+    "posts": 352,
     "repeated_brand_count": 48,
     "repeated_brands": {
       "ai_javaher": 8,
@@ -397,7 +397,7 @@
       "ufc": 12
     },
     "retailer_post_counts": {
-      "digikala": 353
+      "digikala": 352
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -411,12 +411,12 @@
       "catalog_taxonomy_other": 16,
       "events_decor": 3,
       "fashion_lifestyle": 35,
-      "gaming": 6,
-      "general": 12,
+      "gaming": 5,
+      "general": 13,
       "grocery_food": 12,
       "health_wellness": 4,
       "home_cleaning": 11,
-      "home_living": 16,
+      "home_living": 15,
       "kitchen_food": 3,
       "lighting_electrical": 10,
       "local_goods": 2,
@@ -443,82 +443,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 103,
-    "last_7_days_count": 103,
+    "all_time_count": 107,
+    "last_7_days_count": 107,
     "reason_counts_in_retained_history": {
       "brand_repeat": 6,
-      "family_repeat": 103,
-      "similarity_repeat": 103
+      "family_repeat": 107,
+      "similarity_repeat": 107
     },
     "recent_events": [
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-5927887",
-        "family": "fashion:socks",
-        "product_id": "dkp-20317543",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "جوراب ساق بلند مردانه سیرداش مدل 195 بسته 6 عددی",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-20830896",
-        "family": "beauty_fragrance:fragrance",
-        "product_id": "dkp-10479648",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم مردانه نیفتی مدل بلو شنل با رایحه معتدل حجم 100 میلی لیتر",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12114980",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "آبرسان راکوتن مدل پوست خشک حجم 50 میلی‌لیتر",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "audio_wearables",
-        "compared_to_product_id": "dkp-23000078",
-        "family": "audio_wearables:headphones",
-        "product_id": "dkp-21777776",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "هدفون بلوتوثی ام کی اچ مدل MK4 ANC",
-        "use_case": "general"
-      },
       {
         "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
@@ -789,6 +721,74 @@
           "similarity_repeat"
         ],
         "title": "جوراب واریس طب پوش مدل AD بسته 2 عددی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T10:17:03.580496+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-16597859",
+        "family": "personal_care:haircare",
+        "product_id": "dkp-17906660",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "شانه مو‌ مدل دو شاخه بسته 3 عددی",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-09T10:17:03.580496+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-1901503",
+        "family": "beauty_fragrance:fragrance",
+        "product_id": "dkp-22700244",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم زنانه زدفون مدل ویکتوریا سکرت بامب شل با رایحه خنک حجم 30 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-09T10:17:03.580496+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-1901503",
+        "family": "beauty_fragrance:fragrance",
+        "product_id": "dkp-22619335",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "بادی اسپلش ولورا مدل فورمن حجم ۱۵۰میلی لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-09T10:17:03.580496+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-15385068",
+        "family": "fashion:apparel_tops",
+        "product_id": "dkp-23168191",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست تی شرت و شلوارک آستین کوتاه راحتی زنانه مدل میکا کد 23",
         "use_case": "fashion_lifestyle"
       }
     ]
