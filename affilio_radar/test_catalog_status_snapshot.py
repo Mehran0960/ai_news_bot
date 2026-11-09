@@ -236,6 +236,34 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         self.assertTrue(status["completed_candidates_snapshot_valid"])
         self.assertEqual(status["completed_candidates_ids"], ["dkp-100", "dkp-200"])
 
+    def test_verified_snapshot_exposes_compact_demand_first_candidate_preview(self):
+        status = build_status_snapshot(
+            self.state,
+            "2026-11-06T16:01:00+00:00",
+            completed_candidates=self.candidates,
+        )
+        self.assertTrue(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["top_candidates_preview_count"], 2)
+        self.assertEqual(
+            [row["product_id"] for row in status["top_candidates_preview"]],
+            ["dkp-100", "dkp-200"],
+        )
+        self.assertEqual(
+            [row["snapshot_rank"] for row in status["top_candidates_preview"]],
+            [1, 2],
+        )
+
+    def test_invalid_snapshot_never_exposes_candidate_preview(self):
+        invalid = {**self.candidates, "candidates": []}
+        status = build_status_snapshot(
+            self.state,
+            "2026-11-06T16:01:00+00:00",
+            completed_candidates=invalid,
+        )
+        self.assertFalse(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["top_candidates_preview_count"], 0)
+        self.assertEqual(status["top_candidates_preview"], [])
+
     def test_loader_accepts_small_new_category_additions_without_weakening_hash_checks(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
