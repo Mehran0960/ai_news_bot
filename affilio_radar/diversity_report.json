@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T21:24:38.214459+00:00",
+  "generated_at": "2026-11-09T21:56:45.712194+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "تی شرت مردانه": 1
@@ -105,6 +105,7 @@
     "category_post_counts": {
       "audio_wearables": 2,
       "beauty_fragrance": 1,
+      "books_stationery": 1,
       "digital_accessories": 1,
       "fashion": 2,
       "other": 13,
@@ -113,32 +114,34 @@
       "sports_outdoor": 2
     },
     "category_share_percent": {
-      "audio_wearables": 8.3,
-      "beauty_fragrance": 4.2,
-      "digital_accessories": 4.2,
-      "fashion": 8.3,
-      "other": 54.2,
-      "personal_care": 8.3,
-      "power_backup": 4.2,
-      "sports_outdoor": 8.3
+      "audio_wearables": 8.0,
+      "beauty_fragrance": 4.0,
+      "books_stationery": 4.0,
+      "digital_accessories": 4.0,
+      "fashion": 8.0,
+      "other": 52.0,
+      "personal_care": 8.0,
+      "power_backup": 4.0,
+      "sports_outdoor": 8.0
     },
     "distinct_catalog_categories": 1,
-    "distinct_categories": 8,
-    "distinct_families": 12,
+    "distinct_categories": 9,
+    "distinct_families": 13,
     "distinct_retailers": 1,
-    "distinct_use_cases": 8,
+    "distinct_use_cases": 9,
     "known_brand_posts": 3,
-    "posts": 24,
+    "posts": 25,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 24
+      "digikala": 25
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
       "audio_visual": 2,
+      "books_learning": 1,
       "fashion_lifestyle": 2,
       "general": 9,
       "kitchen_food": 1,
@@ -271,7 +274,6 @@
       "نظافت و نگهداری خودرو": 1,
       "نوشیدنی ساز": 2,
       "نوک": 1,
-      "نیم بوت مردانه": 1,
       "هدفون، هدست و هندزفری": 3,
       "ورزش های توپی": 1,
       "ورزشی مردانه": 2,
@@ -312,10 +314,10 @@
       "audio_wearables": 20,
       "automotive": 20,
       "beauty_fragrance": 5,
-      "books_stationery": 15,
+      "books_stationery": 16,
       "computer_network": 4,
       "digital_accessories": 4,
-      "fashion": 52,
+      "fashion": 51,
       "gaming": 2,
       "home": 11,
       "home_cleaning": 11,
@@ -334,10 +336,10 @@
       "audio_wearables": 5.7,
       "automotive": 5.7,
       "beauty_fragrance": 1.4,
-      "books_stationery": 4.2,
+      "books_stationery": 4.5,
       "computer_network": 1.1,
       "digital_accessories": 1.1,
-      "fashion": 14.7,
+      "fashion": 14.4,
       "gaming": 0.6,
       "home": 3.1,
       "home_cleaning": 3.1,
@@ -352,9 +354,9 @@
       "sports_outdoor": 8.8,
       "tv_audio_video": 0.6
     },
-    "distinct_catalog_categories": 157,
+    "distinct_catalog_categories": 156,
     "distinct_categories": 20,
-    "distinct_families": 192,
+    "distinct_families": 191,
     "distinct_retailers": 1,
     "distinct_use_cases": 25,
     "known_brand_posts": 62,
@@ -382,10 +384,10 @@
       "audio_visual": 21,
       "automotive": 33,
       "baby_care": 6,
-      "books_learning": 13,
+      "books_learning": 14,
       "catalog_taxonomy_other": 15,
       "events_decor": 3,
-      "fashion_lifestyle": 36,
+      "fashion_lifestyle": 35,
       "gaming": 3,
       "general": 19,
       "grocery_food": 12,
@@ -418,269 +420,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 208,
-    "last_7_days_count": 208,
+    "all_time_count": 223,
+    "last_7_days_count": 223,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 208,
-      "similarity_repeat": 208
+      "family_repeat": 223,
+      "similarity_repeat": 223
     },
     "recent_events": [
-      {
-        "at": "2026-11-09T20:53:29.683627+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-4877073",
-        "family": "fashion:footwear",
-        "product_id": "dkp-9930981",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش زنانه مدل چرم طبیعی کد 0222",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-09T20:53:29.683627+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-4877073",
-        "family": "fashion:footwear",
-        "product_id": "dkp-22741809",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "صندلی سفری تاشو دورنا کمپ مدل pluas ارتفاع پایه 50 سانتی متر",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-708421",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 02 مناسب پوست‌های معمولی و مختلط حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-1053744",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم پوست پرایم مدل C_Prime حجم 30 میلی لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-18369481",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-11192935",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ژل شستشوی صورت ویتالیر مدل وایت ویت مناسب برای پوست‌های لک‌دار حجم 200 میلی لیتر",
-        "use_case": "home_cleaning"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-6267904",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم ضدآفتاب رنگی پیکسل 50 SPFمدل LIGHT BEIGE مناسب برای پوست‌های چرب، حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "audio_wearables",
-        "compared_to_product_id": "dkp-16026610",
-        "family": "audio_wearables:smartwatch",
-        "product_id": "dkp-17359131",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ساعت هوشمند شیائومی مدل Redmi Watch 5 Lite دارای قابلیت های قابلیت مکالمه از طریق بلوتوث بند سیلیکون",
-        "use_case": "audio_visual"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "audio_wearables",
-        "compared_to_product_id": "dkp-23000078",
-        "family": "audio_wearables:headphones",
-        "product_id": "dkp-16471977",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "هدفون بلوتوثی شیائومی مدل Redmi Buds 6 Active با نویز کنسلینگ میکروفون (ENC)، درگاه شارژ USB Type-C، دارای دو میکروفون با قابلیت حذف نویز، پشتیبانی از فرمان لمسی، مقاوم در برابر رط",
-        "use_case": "books_learning"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "audio_wearables",
-        "compared_to_product_id": "dkp-23000078",
-        "family": "audio_wearables:headphones",
-        "product_id": "dkp-13834993",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "هدفون بلوتوثی شیائومی مدل Redmi Buds 5 با نویز کنسلینگ فعال (ANC)، درگاه شارژ USB Type-C، دارای نشانگر روی محفظه شارژ",
-        "use_case": "audio_visual"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-5927887",
-        "family": "fashion:socks",
-        "product_id": "dkp-5692029",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "جوراب ساق کوتاه مردانه پالوته مدل PM-NNN مجموعه 3 عددی",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-6400535",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "لوسیون بدن وازلین مدل INTENSIVE CARE حجم 400 میلی‌لیتر نرم‌کننده و آبرسان قوی با عصاره کاکائو، جذب سریع، مرطوب‌کننده 24 ساعته، ضد التهاب و مناسب انواع پوست",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-16597859",
-        "family": "personal_care:haircare",
-        "product_id": "dkp-22295226",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "برس حرارتی بخاردار شیگلم مدل Hydra Shot Steam straightening brush Pro وزن 775 گرم با مخزن بخار داخلی و سیستم یون‌ساز",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-09T21:24:38.214459+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "computer_network",
-        "compared_to_product_id": "dkp-20177660",
-        "family": "computer_network:laptops",
-        "product_id": "dkp-14789603",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "لپ‌تاپ گیمینگ لنوو مدل LOQ 15IRX9، پردازنده Core i7-13650HX، گرافیک GeForce RTX 3050 با حافظه اختصاصی 6GB GDDR6، رم 16GB DDR5 با فرکانس 4800 مگاهرتز، حافظه 512GB SSD، نمایشگر 15.6 ",
-        "use_case": "gaming"
-      },
       {
         "at": "2026-11-09T21:24:38.214459+00:00",
         "brand": "",
@@ -751,6 +498,261 @@
       },
       {
         "at": "2026-11-09T21:24:38.214459+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-4877073",
+        "family": "fashion:footwear",
+        "product_id": "dkp-22741809",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "صندلی سفری تاشو دورنا کمپ مدل pluas ارتفاع پایه 50 سانتی متر",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-708421",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 02 مناسب پوست‌های معمولی و مختلط حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-1053744",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم پوست پرایم مدل C_Prime حجم 30 میلی لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-18369481",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-1002646",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم نرم کننده مو پرایم مدل Kera Moist حجم 120 میلی لیتر1002646",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-11192935",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل شستشوی صورت ویتالیر مدل وایت ویت مناسب برای پوست‌های لک‌دار حجم 200 میلی لیتر",
+        "use_case": "home_cleaning"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "audio_wearables",
+        "compared_to_product_id": "dkp-16026610",
+        "family": "audio_wearables:smartwatch",
+        "product_id": "dkp-17359131",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ساعت هوشمند شیائومی مدل Redmi Watch 5 Lite دارای قابلیت های قابلیت مکالمه از طریق بلوتوث بند سیلیکون",
+        "use_case": "audio_visual"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "audio_wearables",
+        "compared_to_product_id": "dkp-23000078",
+        "family": "audio_wearables:headphones",
+        "product_id": "dkp-16471977",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "هدفون بلوتوثی شیائومی مدل Redmi Buds 6 Active با نویز کنسلینگ میکروفون (ENC)، درگاه شارژ USB Type-C، دارای دو میکروفون با قابلیت حذف نویز، پشتیبانی از فرمان لمسی، مقاوم در برابر رط",
+        "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-5692029",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "جوراب ساق کوتاه مردانه پالوته مدل PM-NNN مجموعه 3 عددی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-6400535",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "لوسیون بدن وازلین مدل INTENSIVE CARE حجم 400 میلی‌لیتر نرم‌کننده و آبرسان قوی با عصاره کاکائو، جذب سریع، مرطوب‌کننده 24 ساعته، ضد التهاب و مناسب انواع پوست",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-21766843",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "جوراب ساق بلند مردانه سیرداش مدل N111 بسته 6 عددی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "power_backup",
+        "compared_to_product_id": "dkp-21536870",
+        "family": "power_backup:charger",
+        "product_id": "dkp-20927368",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "شارژر دیواری 20 وات نوکسو مدل CHN-5 به همراه کابل USB-C / لایتنینگ",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "computer_network",
+        "compared_to_product_id": "dkp-22109767",
+        "family": "computer_network:keyboards",
+        "product_id": "dkp-21372366",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کیبورد گیمینگ هیسکا مدل HX-KEG460",
+        "use_case": "gaming"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "power_backup",
+        "compared_to_product_id": "dkp-19967154",
+        "family": "power_backup:power_bank",
+        "product_id": "dkp-20381864",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "پاوربانک نوکسو مدل PN-4 ظرفیت 10 هزار میلی‌آمپر ساعت",
+        "use_case": "lighting_electrical"
+      },
+      {
+        "at": "2026-11-09T21:56:45.712194+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
