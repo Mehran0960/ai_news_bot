@@ -210,25 +210,27 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(params["page"], 2)
         self.assertEqual(params["sort"], 7)
 
-    def test_discount_rank_ignores_bestseller_and_review_popularity(self):
-        now = datetime(2026, 11, 2, 12, 0, tzinfo=timezone.utc)
+    def test_fresh_digikala_bestseller_rank_outranks_a_larger_discount(self):
+        now = datetime.now(timezone.utc)
         popular_low_discount = {
+            "product_id": "dkp-101",
             "catalog_sort_mode": "best_selling", "catalog_best_selling_rank": 1,
             "catalog_rank_observed_at": now.isoformat(), "review_count": 250_000,
             "rating": 4.9, "discount_percent": 15, "savings_toman": 150_000,
         }
         obscure_high_discount = {
-            "catalog_sort_mode": "best_selling", "catalog_best_selling_rank": 200,
+            "product_id": "dkp-102",
+            "catalog_sort_mode": "best_selling", "catalog_best_selling_rank": 60,
             "catalog_rank_observed_at": now.isoformat(), "review_count": 1,
             "rating": 3.1, "discount_percent": 85, "savings_toman": 850_000,
         }
         self.assertEqual(_fresh_best_selling_rank(popular_low_discount, now), 1)
         self.assertGreater(
-            catalog_candidate_sort_key(obscure_high_discount),
             catalog_candidate_sort_key(popular_low_discount),
+            catalog_candidate_sort_key(obscure_high_discount),
         )
 
-    def test_candidate_retention_keeps_global_top_discounts_without_category_balancing(self):
+    def test_candidate_retention_keeps_demand_context_before_markdown_value(self):
         rows = [
             {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i, "discount_percent": 50, "savings_toman": 500_000}
             for i in range(1, 6)
@@ -238,7 +240,7 @@ class CatalogSweepTests(unittest.TestCase):
             {"product_id": "dkp-40", "catalog_category_id": "40", "catalog_category_ids": ["40"], "review_count": 1, "discount_percent": 85, "savings_toman": 850_000},
         ]
         retained = retain_diverse_candidates(rows, limit=4, rotation=0)
-        self.assertEqual([row["product_id"] for row in retained], ["dkp-20", "dkp-30", "dkp-40", "dkp-1"])
+        self.assertEqual([row["product_id"] for row in retained], ["dkp-1", "dkp-2", "dkp-3", "dkp-4"])
 
     def test_handoff_acknowledges_only_after_queue_retention_and_rotates_overflow(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -443,7 +445,7 @@ class CatalogSweepTests(unittest.TestCase):
             )
             self.assertEqual([row["product_id"] for row in selected_stock], ["dkp-55"])
 
-    def test_handoff_batch_is_global_discount_order_without_category_rotation(self):
+    def test_handoff_batch_is_demand_then_discount_order_without_category_rotation(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "candidates.json"
             rows = [
@@ -501,7 +503,7 @@ class CatalogSweepTests(unittest.TestCase):
                 max_count=4,
                 now=datetime(2026, 11, 2, 0, 0, tzinfo=timezone.utc),
             )
-            self.assertEqual([row["product_id"] for row in selected], ["dkp-40", "dkp-30", "dkp-1", "dkp-2"])
+            self.assertEqual([row["product_id"] for row in selected], ["dkp-1", "dkp-2", "dkp-3", "dkp-4"])
 
     def test_legacy_serial_sweep_does_not_skip_page_four_or_later(self):
         page_payload = {
