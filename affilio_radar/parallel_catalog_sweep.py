@@ -545,10 +545,50 @@ def run_parallel_sweep(
             ranks_by_category = old.get("catalog_best_selling_ranks_by_category", {})
             ranks_by_category = dict(ranks_by_category) if isinstance(ranks_by_category, dict) else {}
             category_rank = page_start_rank + row_index + 1
+            previous_rank_record = ranks_by_category.get(category_id, {})
+            previous_rank_record = previous_rank_record if isinstance(previous_rank_record, dict) else {}
+            rank_history = previous_rank_record.get("rank_history")
+            rank_history = list(rank_history) if isinstance(rank_history, list) else []
+            if not rank_history:
+                legacy_rank = base._normal_int(previous_rank_record.get("rank"))
+                legacy_observed = str(previous_rank_record.get("observed_at") or "")
+                if legacy_rank > 0 and legacy_observed:
+                    rank_history.append({
+                        "rank": legacy_rank,
+                        "observed_at": legacy_observed,
+                        "category_name": str(previous_rank_record.get("category_name") or category_name),
+                    })
+            last_sample = rank_history[-1] if rank_history and isinstance(rank_history[-1], dict) else {}
+            last_rank = base._normal_int(last_sample.get("rank"))
+            try:
+                last_observed = base.datetime.fromisoformat(
+                    str(last_sample.get("observed_at") or "").replace("Z", "+00:00")
+                )
+                if last_observed.tzinfo is None:
+                    last_observed = last_observed.replace(tzinfo=base.timezone.utc)
+                history_age_hours = (
+                    now.astimezone(base.timezone.utc) - last_observed.astimezone(base.timezone.utc)
+                ).total_seconds() / 3600
+            except (TypeError, ValueError, OverflowError):
+                history_age_hours = 999999
+            # Record a sample when rank changes or at least six hours have elapsed.
+            # The bounded per-category history allows later ranking by actual rank movement.
+            if not rank_history or last_rank != category_rank or history_age_hours >= 6:
+                rank_history.append({
+                    "rank": category_rank,
+                    "observed_at": page_observed_at,
+                    "category_name": category_name,
+                })
+            rank_history = [
+                item for item in rank_history[-8:]
+                if isinstance(item, dict)
+                and 1 <= base._normal_int(item.get("rank")) <= base.BEST_SELLING_PAGE_SIZE * base.BEST_SELLING_MAX_PAGES_PER_CATEGORY
+            ]
             ranks_by_category[category_id] = {
                 "rank": category_rank,
                 "observed_at": page_observed_at,
                 "category_name": category_name,
+                "rank_history": rank_history,
             }
             valid_ranks = []
             for rank_category_id, rank_record in ranks_by_category.items():
