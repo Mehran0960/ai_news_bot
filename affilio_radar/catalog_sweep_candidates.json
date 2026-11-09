@@ -71345,58 +71345,6 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6892",
-      "catalog_best_selling_category_name": "زانو بند طبی",
-      "catalog_best_selling_rank": 2,
-      "catalog_best_selling_ranks_by_category": {
-        "6891": {
-          "category_name": "ارتوپدی و کمک درمانی",
-          "observed_at": "2026-11-09T11:53:00.926586+00:00",
-          "rank": 4,
-          "rank_history": [
-            {
-              "category_name": "ارتوپدی و کمک درمانی",
-              "observed_at": "2026-11-09T11:53:00.926586+00:00",
-              "rank": 4
-            }
-          ]
-        },
-        "6892": {
-          "category_name": "زانو بند طبی",
-          "observed_at": "2026-11-09T11:53:00.926774+00:00",
-          "rank": 2,
-          "rank_history": [
-            {
-              "category_name": "زانو بند طبی",
-              "observed_at": "2026-11-09T11:53:00.926774+00:00",
-              "rank": 2
-            }
-          ]
-        }
-      },
-      "catalog_category_id": "6892",
-      "catalog_category_ids": [
-        "6891",
-        "6892"
-      ],
-      "catalog_category_name": "زانو بند طبی",
-      "catalog_rank_observed_at": "2026-11-09T11:53:00.926774+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 765710,
-      "discount_percent": 41,
-      "first_seen_at": "2026-11-09T11:53:00.926586+00:00",
-      "last_seen_at": "2026-11-09T11:48:04.628041+00:00",
-      "original_price": 1300000,
-      "product_id": "dkp-15361916",
-      "product_url": "https://www.digikala.com/product/dkp-15361916/",
-      "rating": 4.24,
-      "review_count": 168,
-      "savings_toman": 534290,
-      "source": "digikala_catalog_sweep",
-      "title": "زانوبند طبی سما طب پاکان کد 5031"
-    },
-    {
-      "availability": "unknown",
       "catalog_best_selling_category_id": "10556",
       "catalog_best_selling_category_name": "کتاب تاریخ و جغرافیا",
       "catalog_best_selling_rank": 2,
@@ -71793,6 +71741,65 @@
       "savings_toman": 310000,
       "source": "digikala_catalog_sweep",
       "title": "عناب نرم صادراتی زرگل - 1 کیلوگرم"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "6892",
+      "catalog_best_selling_category_name": "زانو بند طبی",
+      "catalog_best_selling_rank": 2,
+      "catalog_best_selling_ranks_by_category": {
+        "5702": {
+          "category_name": "سلامت و پزشکی",
+          "observed_at": "2026-11-09T20:10:18.493446+00:00",
+          "rank": 848,
+          "rank_history": []
+        },
+        "6891": {
+          "category_name": "ارتوپدی و کمک درمانی",
+          "observed_at": "2026-11-09T11:53:00.926586+00:00",
+          "rank": 4,
+          "rank_history": [
+            {
+              "category_name": "ارتوپدی و کمک درمانی",
+              "observed_at": "2026-11-09T11:53:00.926586+00:00",
+              "rank": 4
+            }
+          ]
+        },
+        "6892": {
+          "category_name": "زانو بند طبی",
+          "observed_at": "2026-11-09T11:53:00.926774+00:00",
+          "rank": 2,
+          "rank_history": [
+            {
+              "category_name": "زانو بند طبی",
+              "observed_at": "2026-11-09T11:53:00.926774+00:00",
+              "rank": 2
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "5702",
+      "catalog_category_ids": [
+        "5702",
+        "6891",
+        "6892"
+      ],
+      "catalog_category_name": "سلامت و پزشکی",
+      "catalog_rank_observed_at": "2026-11-09T11:53:00.926774+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 793160,
+      "discount_percent": 39,
+      "first_seen_at": "2026-11-09T11:53:00.926586+00:00",
+      "last_seen_at": "2026-11-09T20:10:13.222575+00:00",
+      "original_price": 1300000,
+      "product_id": "dkp-15361916",
+      "product_url": "https://www.digikala.com/product/dkp-15361916/",
+      "rating": 4.24,
+      "review_count": 168,
+      "savings_toman": 506840,
+      "source": "digikala_catalog_sweep",
+      "title": "زانوبند طبی سما طب پاکان کد 5031"
     },
     {
       "availability": "unknown",
@@ -151395,6 +151402,12 @@
       "catalog_best_selling_category_name": "هود",
       "catalog_best_selling_rank": 4,
       "catalog_best_selling_ranks_by_category": {
+        "5753": {
+          "category_name": "لوازم خانگی برقی",
+          "observed_at": "2026-11-09T20:10:18.495652+00:00",
+          "rank": 852,
+          "rank_history": []
+        },
         "8281": {
           "category_name": "لوازم توکار",
           "observed_at": "2026-11-09T11:53:00.967959+00:00",
@@ -151420,18 +151433,19 @@
           ]
         }
       },
-      "catalog_category_id": "8282",
+      "catalog_category_id": "5753",
       "catalog_category_ids": [
+        "5753",
         "8281",
         "8282"
       ],
-      "catalog_category_name": "هود",
+      "catalog_category_name": "لوازم خانگی برقی",
       "catalog_rank_observed_at": "2026-11-09T11:53:00.968123+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 15900000,
       "discount_percent": 18,
       "first_seen_at": "2026-11-09T11:53:00.967959+00:00",
-      "last_seen_at": "2026-11-09T11:50:46.201953+00:00",
+      "last_seen_at": "2026-11-09T20:10:13.929955+00:00",
       "original_price": 19400000,
       "product_id": "dkp-18810655",
       "product_url": "https://www.digikala.com/product/dkp-18810655/",
@@ -167090,6 +167104,12 @@
       "catalog_best_selling_category_name": "دوربین دو چشمی و تک چشمی",
       "catalog_best_selling_rank": 4,
       "catalog_best_selling_ranks_by_category": {
+        "11107": {
+          "category_name": "لوازم کمپینگ",
+          "observed_at": "2026-11-09T20:10:18.426474+00:00",
+          "rank": 833,
+          "rank_history": []
+        },
         "11110": {
           "category_name": "تجهیزات کمپینگ",
           "observed_at": "2026-11-09T18:32:52.830492+00:00",
@@ -167109,18 +167129,19 @@
           ]
         }
       },
-      "catalog_category_id": "11110",
+      "catalog_category_id": "11107",
       "catalog_category_ids": [
         "174",
+        "11107",
         "11110"
       ],
-      "catalog_category_name": "تجهیزات کمپینگ",
+      "catalog_category_name": "لوازم کمپینگ",
       "catalog_rank_observed_at": "2026-11-09T11:38:34.552522+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 2000000,
       "discount_percent": 17,
       "first_seen_at": "2026-11-09T11:38:34.552522+00:00",
-      "last_seen_at": "2026-11-09T18:32:31.672995+00:00",
+      "last_seen_at": "2026-11-09T20:09:46.244813+00:00",
       "original_price": 2420000,
       "product_id": "dkp-16826893",
       "product_url": "https://www.digikala.com/product/dkp-16826893/",
@@ -173523,6 +173544,12 @@
       "catalog_best_selling_category_name": "میز پینگ پنگ",
       "catalog_best_selling_rank": 4,
       "catalog_best_selling_ranks_by_category": {
+        "10659": {
+          "category_name": "تجهیزات ورزش های توپی",
+          "observed_at": "2026-11-09T20:10:18.381346+00:00",
+          "rank": 833,
+          "rank_history": []
+        },
         "8613": {
           "category_name": "میز پینگ پنگ",
           "observed_at": "2026-11-09T11:59:56.421163+00:00",
@@ -173536,17 +173563,18 @@
           ]
         }
       },
-      "catalog_category_id": "8613",
+      "catalog_category_id": "10659",
       "catalog_category_ids": [
-        "8613"
+        "8613",
+        "10659"
       ],
-      "catalog_category_name": "میز پینگ پنگ",
+      "catalog_category_name": "تجهیزات ورزش های توپی",
       "catalog_rank_observed_at": "2026-11-09T11:59:56.421163+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 54320000,
       "discount_percent": 3,
       "first_seen_at": "2026-11-09T11:59:56.421163+00:00",
-      "last_seen_at": "2026-11-09T11:55:26.647960+00:00",
+      "last_seen_at": "2026-11-09T20:09:30.939457+00:00",
       "original_price": 56000000,
       "product_id": "dkp-7211837",
       "product_url": "https://www.digikala.com/product/dkp-7211837/",
@@ -180234,6 +180262,12 @@
       "catalog_best_selling_category_name": "سس فلفل",
       "catalog_best_selling_rank": 5,
       "catalog_best_selling_ranks_by_category": {
+        "10571": {
+          "category_name": "افزودنی ها",
+          "observed_at": "2026-11-09T20:10:18.372263+00:00",
+          "rank": 825,
+          "rank_history": []
+        },
         "10580": {
           "category_name": "سس",
           "observed_at": "2026-11-09T12:42:03.132962+00:00",
@@ -180259,23 +180293,24 @@
           ]
         }
       },
-      "catalog_category_id": "10580",
+      "catalog_category_id": "10571",
       "catalog_category_ids": [
+        "10571",
         "10580",
         "10777"
       ],
-      "catalog_category_name": "سس",
+      "catalog_category_name": "افزودنی ها",
       "catalog_rank_observed_at": "2026-11-09T12:18:28.987350+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1940400,
       "discount_percent": 34,
       "first_seen_at": "2026-11-09T12:18:28.987350+00:00",
-      "last_seen_at": "2026-11-09T12:41:55.808365+00:00",
+      "last_seen_at": "2026-11-09T20:09:27.305883+00:00",
       "original_price": 2940000,
       "product_id": "dkp-13065922",
       "product_url": "https://www.digikala.com/product/dkp-13065922/",
-      "rating": 4.56,
-      "review_count": 41,
+      "rating": 4.57,
+      "review_count": 42,
       "savings_toman": 999600,
       "source": "digikala_catalog_sweep",
       "title": "سس گوجه فرنگی فلفل تند همدانیان - 450 گرم بسته 12 عددی"
@@ -181626,6 +181661,12 @@
       "catalog_best_selling_category_name": "آبلیمو",
       "catalog_best_selling_rank": 5,
       "catalog_best_selling_ranks_by_category": {
+        "10571": {
+          "category_name": "افزودنی ها",
+          "observed_at": "2026-11-09T20:10:18.372263+00:00",
+          "rank": 836,
+          "rank_history": []
+        },
         "10577": {
           "category_name": "چاشنی‌های مایع ترش",
           "observed_at": "2026-11-09T12:11:28.020315+00:00",
@@ -181651,18 +181692,19 @@
           ]
         }
       },
-      "catalog_category_id": "10577",
+      "catalog_category_id": "10571",
       "catalog_category_ids": [
         "8940",
+        "10571",
         "10577"
       ],
-      "catalog_category_name": "چاشنی‌های مایع ترش",
+      "catalog_category_name": "افزودنی ها",
       "catalog_rank_observed_at": "2026-11-09T11:59:56.447297+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 351550,
       "discount_percent": 21,
       "first_seen_at": "2026-11-09T11:59:56.447297+00:00",
-      "last_seen_at": "2026-11-09T12:10:03.314355+00:00",
+      "last_seen_at": "2026-11-09T20:09:27.306375+00:00",
       "original_price": 445000,
       "product_id": "dkp-10454950",
       "product_url": "https://www.digikala.com/product/dkp-10454950/",
@@ -190280,6 +190322,39 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "10830",
+      "catalog_best_selling_category_name": "روغن",
+      "catalog_best_selling_rank": 822,
+      "catalog_best_selling_ranks_by_category": {
+        "10830": {
+          "category_name": "روغن",
+          "observed_at": "2026-11-09T20:10:18.398244+00:00",
+          "rank": 822,
+          "rank_history": []
+        }
+      },
+      "catalog_category_id": "10830",
+      "catalog_category_ids": [
+        "10830"
+      ],
+      "catalog_category_name": "روغن",
+      "catalog_rank_observed_at": "2026-11-09T20:10:18.398244+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 2050000,
+      "discount_percent": 3,
+      "first_seen_at": "2026-11-09T20:10:18.398244+00:00",
+      "last_seen_at": "2026-11-09T20:09:36.055767+00:00",
+      "original_price": 2112790,
+      "product_id": "dkp-8511508",
+      "product_url": "https://www.digikala.com/product/dkp-8511508/",
+      "rating": 4.51,
+      "review_count": 12825,
+      "savings_toman": 62790,
+      "source": "digikala_catalog_sweep",
+      "title": "روغن نیمه جامد لادن - 5 کیلوگرم"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "10119",
       "catalog_best_selling_category_name": "مکمل غذایی و ورزشی",
       "catalog_best_selling_rank": 121,
@@ -191976,42 +192051,9 @@
       "savings_toman": 91800,
       "source": "digikala_catalog_sweep",
       "title": "لاک پاک کن ناژه بسته‌ی 30 عددی"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "5824",
-      "catalog_best_selling_category_name": "لوازم بهداشتی",
-      "catalog_best_selling_rank": 760,
-      "catalog_best_selling_ranks_by_category": {
-        "5824": {
-          "category_name": "لوازم بهداشتی",
-          "observed_at": "2026-11-09T19:28:05.722648+00:00",
-          "rank": 760,
-          "rank_history": []
-        }
-      },
-      "catalog_category_id": "5824",
-      "catalog_category_ids": [
-        "5824"
-      ],
-      "catalog_category_name": "لوازم بهداشتی",
-      "catalog_rank_observed_at": "2026-11-09T19:28:05.722648+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 270000,
-      "discount_percent": 17,
-      "first_seen_at": "2026-11-09T19:28:05.722648+00:00",
-      "last_seen_at": "2026-11-09T19:22:37.260157+00:00",
-      "original_price": 325800,
-      "product_id": "dkp-81218",
-      "product_url": "https://www.digikala.com/product/dkp-81218/",
-      "rating": 4.33,
-      "review_count": 6636,
-      "savings_toman": 55800,
-      "source": "digikala_catalog_sweep",
-      "title": "کرم مرطوب‌کننده قوی ویتامین E و هیالورونیک مای حجم 50 میلی‌لیتر"
     }
   ],
   "cycle_started_at": "2026-11-09T11:16:23.329744+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-09T20:09:00.282811+00:00"
+  "updated_at": "2026-11-09T20:10:18.633272+00:00"
 }
