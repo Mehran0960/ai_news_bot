@@ -9650,6 +9650,7 @@ def process_pending_short_video(
             original_price=record.get("posted_original_price"),
             merchant="اسنپ‌شاپ" if product_id(record.get("product_url", "")).startswith("snp-") else "دیجی‌کالا",
             destination_platform=platform,
+            experiment_variant=record.get("creative_variant", "A"),
         )
         rendered_video_paths[platform] = output
         file_names = record.get("video_file_names")
