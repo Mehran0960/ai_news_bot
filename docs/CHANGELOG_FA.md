@@ -1432,3 +1432,26 @@
 **ریسک/بازگشت:** رتبهٔ پرفروش دیجی‌کالا رتبهٔ نسبی دسته است، نه تعداد مطلق واحد فروش. impression، CTR، سفارش، فروش و کمیسیون فقط با دادهٔ رسمی متناظر قابل محاسبه‌اند. هیچ سابقهٔ click یا پست قدیمی به نسخهٔ آزمایشی منتسب نمی‌شود. rollback کد با revert کردن PR این شاخه ممکن است؛ دادهٔ تاریخی حفظ می‌شود.
 
 **وضعیت:** PR #138 باز است؛ تست‌های کد موفق‌اند و گیت مستندات/CI نهایی و merge همچنان pending است.
+
+
+## ۲۰۲۶-۱۱-۰۹ — آزمایش مستقل کپشن A/B و انتساب دوگانهٔ Worker
+
+**هدف:** سنجش جداگانهٔ اثر تصویر/ویدئو و اثر متن کپشن، بدون مخلوط کردن دو متغیر و بدون دست‌کاری قیمت، تخفیف یا سایر واقعیت‌های پیشنهاد.
+
+**تغییر/اقدام:**
+- شناسه و تخصیص پایدار جدا برای آزمایش کپشن اضافه شد؛ تخصیص بصری قبلی بدون تغییر معنایی حفظ شد.
+- نسخهٔ B کپشن فقط تیتر آغازین را از «🔥 فروش ویژه» به «✨ پیشنهاد ویژه» تغییر می‌دهد. نام محصول، قیمت جاری، درصد تخفیف، عبارت DigiPay، عضویت و دکمهٔ خرید در دو نسخه ثابت‌اند.
+- لینک رهگیری دو بُعد مستقل `exp/variant` و `cexp/cvariant` را منتقل می‌کند. Telegram، Bale و لینک خرید توضیحات ویدئو هر دو tag را حفظ می‌کنند.
+- Worker نسخهٔ جدید رویدادهای دوگانه را می‌خواند و در `/stats` شمارش بصری و کپشن را جدا برمی‌گرداند؛ کلیک هر رویداد در total فقط یک بار شمرده می‌شود و schema قدیمی برای legacy clicks حفظ شده است.
+- گزارش عملکرد پوشش پست و کلیک‌های tagشده/بدون tag را برای آزمایش بصری و متنی به‌صورت مستقل گزارش می‌کند. پست‌های قدیمی backfill یا حدس زده نمی‌شوند.
+- health probe و smoke workflow وجود هر دو قابلیت Worker را کنترل می‌کنند؛ در صورت عدم سلامت Tracker، لینک مستقیم معتبر Affilio همچنان مسیر fallback است.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/publisher.py`، `affilio_radar/affiliate-deal-radar-worker.js`، `affilio_radar/test_affilio.py`، `affilio_radar/test_affiliate_deal_radar_worker.mjs`، `.github/workflows/offerchin-publisher.yml`، `.github/workflows/affilio-radar.yml`، `docs/OFFERCHIN_OPTIMIZATION_PACKAGE_FA.md` و `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** تست‌های جدید Python و Node به گیت ناشر اضافه شدند؛ smoke workflow health flags، redirect امن و breakdownهای جداگانهٔ `visualExperimentVariants` و `captionExperimentVariants` را بررسی می‌کند. تا زمان اجرای CI روی آخرین SHA، نتیجه هنوز تأییدشده نیست.
+
+**شواهد/شناسه:** شاخهٔ کاری `feat/offerchin-caption-attribution-dual-ab`. commitهای اصلی پیاده‌سازی: `6e56eb5351d47efcd0c3d9242025520ecefd0032` (Worker dual attribution)، `2c57c2164065a92ba4e8ee8d72044b4cf124a8f8` (Python assignment/report)، `e394be08de96a55f38a4e1ed6a05ca0de5a49780` (queue persistence).
+
+**ریسک/بازگشت:** متن B باید از نظر نگارش و اثر بر اعتماد/کلیک پایش شود؛ بدنهٔ factual و CTA عمداً ثابت مانده است. در صورت شکست آزمایش، می‌توان فقط تخصیص کپشن را به A برگرداند یا commit مربوط را revert کرد؛ schema قدیمی Worker و داده‌های کلیک قبلی حذف نمی‌شوند. CTR بدون impression و فروش/کمیسیون بدون گزارش رسمی افیلیو محاسبه نمی‌شوند.
+
+**وضعیت:** کد، تست‌ها و مستندات در شاخهٔ کاری ثبت شده‌اند. CI، merge به `main` و deploy نسخهٔ Worker دو‌بُعدی هنوز pending هستند؛ تا آن زمان قابلیت جدید در production فعال تلقی نمی‌شود.
