@@ -8,6 +8,7 @@ A failed page is requeued and cannot silently advance the sweep.
 from __future__ import annotations
 
 import argparse
+import math
 import sys
 import threading
 import time
@@ -91,11 +92,22 @@ def _next_page_task(task: dict, total_pages: int | None, product_count: int) -> 
     }
 
 def _fetch_page(task: dict) -> dict:
-    """Fetch one page. 400/404 close an unqueryable category/page; other
-    failures are retryable and remain in the persisted queue.
+    """Fetch one page and attach end-to-end request/parse latency telemetry.
+
+    400/404 close an unqueryable category/page; other failures are retryable
+    and remain in the persisted queue.
     """
+    request_started = time.monotonic()
     category_id = str(task.get("category_id") or "")
     page = max(1, base._normal_int(task.get("page"), 1))
+
+    def timed_result(kind: str, **fields: object) -> dict:
+        return {
+            "kind": kind,
+            **fields,
+            "elapsed_seconds": round(time.monotonic() - request_started, 3),
+        }
+
     try:
         response = _session().get(
             base.SEARCH_URL,
@@ -107,9 +119,9 @@ def _fetch_page(task: dict) -> dict:
             timeout=base.REQUEST_TIMEOUT,
         )
         if response.status_code in (400, 404):
-            return {"kind": "terminal", "status_code": response.status_code, "rows": []}
+            return timed_result("terminal", status_code=response.status_code, rows=[])
         if response.status_code == 429:
-            return {"kind": "retry", "status_code": 429, "rows": []}
+            return timed_result("retry", status_code=429, rows=[], error="rate_limited")
         response.raise_for_status()
         if len(response.content) > 8_000_000:
             raise base.CatalogSweepError("api_response_exceeded_8mb")
@@ -121,17 +133,53 @@ def _fetch_page(task: dict) -> dict:
             raise base.CatalogSweepError("api_payload_not_object")
         rows = base.extract_product_rows(payload)
         total_pages = base.extract_total_pages(payload, page, len(rows))
-        return {
-            "kind": "ok", "rows": rows, "total_pages": total_pages,
-            "status_code": response.status_code,
-        }
+        return timed_result(
+            "ok",
+            rows=rows,
+            total_pages=total_pages,
+            status_code=response.status_code,
+        )
     except Exception as exc:  # keep the cursor safe on all transient/schema failures
-        return {
-            "kind": "retry", "rows": [],
-            "error": f"{type(exc).__name__}:{str(exc)[:140]}",
-            "status_code": getattr(getattr(exc, "response", None), "status_code", None),
-        }
+        return timed_result(
+            "retry",
+            rows=[],
+            error=f"{type(exc).__name__}:{str(exc)[:140]}",
+            status_code=getattr(getattr(exc, "response", None), "status_code", None),
+        )
 
+
+def _percentile(values: list[float], percentile: float) -> float:
+    """Return a stable nearest-rank percentile rounded to milliseconds."""
+    if not values:
+        return 0.0
+    ordered = sorted(max(0.0, float(value)) for value in values)
+    quantile = min(1.0, max(0.0, float(percentile)))
+    index = max(0, min(len(ordered) - 1, math.ceil(quantile * len(ordered)) - 1))
+    return round(ordered[index], 3)
+
+
+def _next_worker_limit(
+    current: int,
+    requested: int,
+    rate_limited_count: int,
+    retry_count: int,
+) -> int:
+    """AIMD-style controller: +2 on clean batches, faster decrease on failures.
+
+    A single 429 backs off by two workers; three or more rate limits, or three
+    or more transient failures, halve concurrency. Any other retry backs off
+    by one. The requested worker count remains a hard ceiling.
+    """
+    ceiling = max(1, min(32, base._normal_int(requested, 1)))
+    current_limit = max(1, min(ceiling, base._normal_int(current, ceiling)))
+    floor = min(2, ceiling)
+    if rate_limited_count >= 3 or retry_count >= 3:
+        return max(floor, current_limit // 2)
+    if rate_limited_count:
+        return max(floor, current_limit - 2)
+    if retry_count:
+        return max(floor, current_limit - 1)
+    return min(ceiling, current_limit + 2)
 
 def _ensure_parallel_state(state: dict) -> list[dict]:
     categories = state.get("categories", [])
@@ -449,6 +497,7 @@ def run_parallel_sweep(
         worker_limit = max(1, min(requested_workers, saved_limit))
     # Persist the capacity actually assigned to this batch separately from the
     # next batch's adaptive limit; otherwise telemetry reports the future limit.
+    worker_limit_before = worker_limit
     workers_used = min(worker_limit, len(batch) or 1)
 
     fetch_started = time.monotonic()
@@ -465,6 +514,17 @@ def run_parallel_sweep(
     page_row_count = 0
     empty_product_pages = 0
     nonempty_product_pages = 0
+    timeout_retry_count = 0
+    http_5xx_retry_count = 0
+    request_latencies = [
+        float(result["elapsed_seconds"])
+        for result in results
+        if isinstance(result, dict)
+        and isinstance(result.get("elapsed_seconds"), (int, float))
+    ]
+    request_latency_p50 = _percentile(request_latencies, 0.50)
+    request_latency_p95 = _percentile(request_latencies, 0.95)
+    request_latency_max = round(max(request_latencies), 3) if request_latencies else 0.0
     pending_keys = {_task_key(task) for task in remaining if isinstance(task, dict)}
 
     for task, result in zip(batch, results):
@@ -481,6 +541,15 @@ def run_parallel_sweep(
             status_code = result.get("status_code")
             if status_code == 429:
                 rate_limited_count += 1
+            error_text = str(result.get("error") or "").lower()
+            if "timeout" in error_text or "timed out" in error_text:
+                timeout_retry_count += 1
+            try:
+                numeric_status = int(status_code)
+            except (TypeError, ValueError, OverflowError):
+                numeric_status = 0
+            if 500 <= numeric_status <= 599:
+                http_5xx_retry_count += 1
             retry_task = dict(task)
             retry_task["attempts"] = base._normal_int(task.get("attempts")) + 1
             retry_task["last_error"] = str(
@@ -652,16 +721,14 @@ def run_parallel_sweep(
         state["last_successful_page_at"] = base.iso_now()
         state["last_error"] = ""
 
-    # Treat every HTTP 429 as a rate-limit signal. Isolated events reduce
-    # concurrency by one; a cluster of three or more halves it. Clean batches
-    # add one worker per run, never exceeding the configured ceiling.
-    if rate_limited_count >= 3:
-        worker_limit = max(2, worker_limit // 2)
-    elif rate_limited_count:
-        worker_limit = max(2, worker_limit - 1)
-    elif retry_count == 0 and worker_limit < requested_workers:
-        worker_limit += 1
-    worker_limit = min(requested_workers, max(1, worker_limit))
+    # Increase quickly through the explicit 12 -> 14 -> 16 trial points,
+    # while backing off on 429s, timeouts, and server-side failures.
+    worker_limit = _next_worker_limit(
+        worker_limit,
+        requested_workers,
+        rate_limited_count,
+        retry_count,
+    )
     state["parallel_worker_limit"] = worker_limit
 
     ordered_candidates = base.retain_diverse_candidates(
@@ -705,6 +772,14 @@ def run_parallel_sweep(
         page_row_count / max(fetch_seconds + processing_seconds + candidate_write_seconds, 0.001), 2
     )
     state["parallel_last_batch_candidate_file_bytes"] = candidate_file_bytes
+    state["parallel_last_batch_worker_limit_before"] = worker_limit_before
+    state["parallel_last_batch_worker_limit_next"] = worker_limit
+    state["parallel_last_batch_request_count"] = len(request_latencies)
+    state["parallel_last_batch_request_p50_seconds"] = request_latency_p50
+    state["parallel_last_batch_request_p95_seconds"] = request_latency_p95
+    state["parallel_last_batch_request_max_seconds"] = request_latency_max
+    state["parallel_last_batch_timeout_retries"] = timeout_retry_count
+    state["parallel_last_batch_http_5xx_retries"] = http_5xx_retry_count
     state["unacknowledged_candidate_count"] = len(ordered_candidates)
     state["stats"] = stats
     state["category_count"] = len(categories)
@@ -723,6 +798,12 @@ def run_parallel_sweep(
         f"terminal_pages={terminal_count} retries={retry_count} "
         f"empty_product_pages={empty_product_pages} nonempty_product_pages={nonempty_product_pages} "
         f"rate_limited={rate_limited_count} workers={state['parallel_workers_used']} "
+        f"next_workers={worker_limit} "
+        f"request_latency_count={len(request_latencies)} "
+        f"request_latency_p50_s={request_latency_p50:.3f} "
+        f"request_latency_p95_s={request_latency_p95:.3f} "
+        f"request_latency_max_s={request_latency_max:.3f} "
+        f"timeout_retries={timeout_retry_count} http_5xx_retries={http_5xx_retry_count} "
         f"products={page_row_count} categories={len(categories)} leaf_categories={state.get('parallel_leaf_category_count', 0)} "
         f"pending_pages={len(remaining)} candidates={len(ordered_candidates)} "
         f"pages_total={stats['pages_scanned_total']} "

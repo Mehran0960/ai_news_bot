@@ -367,6 +367,18 @@ def build_status_snapshot(
         "pending_retry_pages": retries,
         "known_category_count": len(state.get("parallel_known_category_ids", [])),
         "last_batch_at": state.get("parallel_last_batch_at"),
+        "last_batch_pages": _integer(state.get("parallel_last_batch_pages")),
+        "last_batch_workers_used": _integer(state.get("parallel_workers_used")),
+        "next_worker_limit": _integer(state.get("parallel_worker_limit")),
+        "last_batch_pages_per_second": _number(state.get("parallel_last_batch_pages_per_second")),
+        "last_batch_request_count": _integer(state.get("parallel_last_batch_request_count")),
+        "last_batch_request_p50_seconds": _number(state.get("parallel_last_batch_request_p50_seconds")),
+        "last_batch_request_p95_seconds": _number(state.get("parallel_last_batch_request_p95_seconds")),
+        "last_batch_request_max_seconds": _number(state.get("parallel_last_batch_request_max_seconds")),
+        "last_batch_retries": _integer(state.get("parallel_last_batch_retries")),
+        "last_batch_rate_limited": _integer(state.get("parallel_last_batch_rate_limited")),
+        "last_batch_timeout_retries": _integer(state.get("parallel_last_batch_timeout_retries")),
+        "last_batch_http_5xx_retries": _integer(state.get("parallel_last_batch_http_5xx_retries")),
         "last_error": str(state.get("last_error") or "")[:240],
     }
 
