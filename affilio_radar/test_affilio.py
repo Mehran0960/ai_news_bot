@@ -3143,6 +3143,38 @@ class AffilioRadarTests(unittest.TestCase):
             deal_sort_key(same_best_seller_different_clicks, now),
         )
 
+        # Affiliate revenue fields are intentionally ignored by market-demand ranking.
+        high_commission_only = {
+            **base,
+            "affiliate_commission_toman": 999_999_999,
+            "commission_toman": 999_999_999,
+            "commission_rate_percent": 99,
+        }
+        self.assertEqual(
+            deal_sort_key(base, now),
+            deal_sort_key(high_commission_only, now),
+        )
+        lower_rank_high_commission = {
+            **base,
+            "catalog_best_selling_rank": 55,
+            "catalog_best_selling_ranks_by_category": {
+                "100": {"rank": 55, "observed_at": now.isoformat()},
+            },
+            "affiliate_commission_toman": 999_999_999,
+            "commission_toman": 999_999_999,
+            "commission_rate_percent": 99,
+        }
+        top_rank_zero_commission = {
+            **very_high_bestseller,
+            "affiliate_commission_toman": 0,
+            "commission_toman": 0,
+            "commission_rate_percent": 0,
+        }
+        self.assertGreater(
+            deal_sort_key(top_rank_zero_commission, now),
+            deal_sort_key(lower_rank_high_commission, now),
+        )
+
     def test_discount_value_gate_rejects_unverified_markdowns_and_accepts_fresh_evidence(self):
         now = datetime.now(timezone.utc)
         unverified_10_percent = {
@@ -6518,6 +6550,7 @@ class AffilioRadarTests(unittest.TestCase):
             "ok": True,
             "complete": True,
             "products": {"dkp-123": 12},
+            "totalClicks": 12,
             "sources": {"telegram": 8, "bale": 4},
             "experimentVariants": {"creative-test-1:A": 8, "creative-test-1:B": 4},
             "productSources": {"dkp-123": {"telegram": 8}},
@@ -6537,6 +6570,11 @@ class AffilioRadarTests(unittest.TestCase):
                     "bale_message_id": 456,
                     "delivery_status": {"bale": "sent"},
                 },
+                # Legacy public posts are deliberately not assigned to a guessed A/B arm.
+                "dkp-789": {
+                    "telegram_message_id": 789,
+                    "delivery_status": {"telegram": "sent"},
+                },
             }
         }
         report = radar_module.build_performance_report(state, click_snapshot=snapshot)
@@ -6549,11 +6587,53 @@ class AffilioRadarTests(unittest.TestCase):
             "creative-test-1:A": 8, "creative-test-1:B": 4
         })
         self.assertEqual(report["creative_variant_comparison"]["creative-test-1:A"]["published_posts"], 1)
+        self.assertEqual(report["published_product_count"], 3)
+        self.assertEqual(report["published_experiment_posts"], 2)
+        self.assertEqual(report["unassigned_published_posts"], 1)
+        self.assertEqual(report["experiment_assignment_coverage_percent"], 66.67)
+        self.assertEqual(report["experiment_publication_status"], "partially_assigned")
+        self.assertEqual(report["experiment_measurement_status"], "clicks_observed")
+        self.assertTrue(report["experiment_attribution_supported_by_worker"])
+        self.assertTrue(report["experiment_attribution_active"])
+        self.assertEqual(report["tracked_clicks_total"], 12)
+        self.assertEqual(report["tracked_clicks_with_experiment_attribution"], 12)
+        self.assertEqual(report["tracked_clicks_without_experiment_attribution"], 0)
         self.assertIsNone(report["ctr"])
         self.assertIsNone(report["orders"])
         self.assertIsNone(report["sales_amount"])
         self.assertIsNone(report["approved_commission"])
 
+
+
+
+    def test_performance_report_separates_worker_support_from_actual_experiment_activation(self):
+        snapshot = {
+            "ok": True,
+            "complete": True,
+            "products": {"dkp-legacy": 5},
+            "totalClicks": 5,
+            "sources": {"telegram": 5},
+            "experimentVariants": {},
+            "productSources": {"dkp-legacy": {"telegram": 5}},
+            "productExperimentVariants": {},
+        }
+        state = {
+            "published": {
+                "dkp-legacy": {
+                    "telegram_message_id": 123,
+                    "delivery_status": {"telegram": "sent"},
+                }
+            }
+        }
+        report = radar_module.build_performance_report(state, click_snapshot=snapshot)
+        self.assertTrue(report["experiment_attribution_supported_by_worker"])
+        self.assertFalse(report["experiment_attribution_active"])
+        self.assertEqual(report["experiment_publication_status"], "awaiting_first_tagged_publication")
+        self.assertEqual(report["experiment_measurement_status"], "awaiting_first_tagged_click")
+        self.assertEqual(report["experiment_assignment_coverage_percent"], 0.0)
+        self.assertEqual(report["unassigned_published_posts"], 1)
+        self.assertEqual(report["tracked_clicks_with_experiment_attribution"], 0)
+        self.assertEqual(report["tracked_clicks_without_experiment_attribution"], 5)
 
     def test_visual_experiment_variants_preserve_the_approved_caption(self):
         product_url = "https://www.digikala.com/product/dkp-990001/"
