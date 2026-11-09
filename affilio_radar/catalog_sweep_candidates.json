@@ -50036,6 +50036,12 @@
             }
           ]
         },
+        "9625": {
+          "category_name": "دخترانه",
+          "observed_at": "2026-11-09T20:09:00.115207+00:00",
+          "rank": 831,
+          "rank_history": []
+        },
         "9626": {
           "category_name": "لباس دخترانه",
           "observed_at": "2026-11-09T16:05:55.416902+00:00",
@@ -50043,18 +50049,19 @@
           "rank_history": []
         }
       },
-      "catalog_category_id": "9626",
+      "catalog_category_id": "9625",
       "catalog_category_ids": [
+        "9625",
         "9626",
         "10166"
       ],
-      "catalog_category_name": "لباس دخترانه",
+      "catalog_category_name": "دخترانه",
       "catalog_rank_observed_at": "2026-11-09T12:11:27.938808+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 499010,
       "discount_percent": 64,
       "first_seen_at": "2026-11-09T12:11:27.938808+00:00",
-      "last_seen_at": "2026-11-09T16:05:37.235589+00:00",
+      "last_seen_at": "2026-11-09T20:08:42.422674+00:00",
       "original_price": 1390000,
       "product_id": "dkp-21733262",
       "product_url": "https://www.digikala.com/product/dkp-21733262/",
@@ -50702,45 +50709,6 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "6557",
-      "catalog_best_selling_category_name": "روغن آفتاب",
-      "catalog_best_selling_rank": 1,
-      "catalog_best_selling_ranks_by_category": {
-        "6557": {
-          "category_name": "روغن آفتاب",
-          "observed_at": "2026-11-09T11:53:00.895937+00:00",
-          "rank": 1,
-          "rank_history": [
-            {
-              "category_name": "روغن آفتاب",
-              "observed_at": "2026-11-09T11:53:00.895937+00:00",
-              "rank": 1
-            }
-          ]
-        }
-      },
-      "catalog_category_id": "6557",
-      "catalog_category_ids": [
-        "6557"
-      ],
-      "catalog_category_name": "روغن آفتاب",
-      "catalog_rank_observed_at": "2026-11-09T11:53:00.895937+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 507300,
-      "discount_percent": 47,
-      "first_seen_at": "2026-11-09T11:53:00.895937+00:00",
-      "last_seen_at": "2026-11-09T11:45:48.365506+00:00",
-      "original_price": 950000,
-      "product_id": "dkp-118205",
-      "product_url": "https://www.digikala.com/product/dkp-118205/",
-      "rating": 4.24,
-      "review_count": 2162,
-      "savings_toman": 442700,
-      "source": "digikala_catalog_sweep",
-      "title": "روغن آفتاب سی گل مدل Shimmer Sun Oil حجم 250 میلی لیتر"
-    },
-    {
-      "availability": "unknown",
       "catalog_best_selling_category_id": "10727",
       "catalog_best_selling_category_name": "غذای آماده",
       "catalog_best_selling_rank": 1,
@@ -51346,6 +51314,52 @@
       "savings_toman": 385000,
       "source": "digikala_catalog_sweep",
       "title": "سافت ژل امگا 3 کارن بسته 60 عددی"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "6557",
+      "catalog_best_selling_category_name": "روغن آفتاب",
+      "catalog_best_selling_rank": 1,
+      "catalog_best_selling_ranks_by_category": {
+        "10050": {
+          "category_name": "مراقبت از پوست و مو",
+          "observed_at": "2026-11-09T20:09:00.150855+00:00",
+          "rank": 839,
+          "rank_history": []
+        },
+        "6557": {
+          "category_name": "روغن آفتاب",
+          "observed_at": "2026-11-09T11:53:00.895937+00:00",
+          "rank": 1,
+          "rank_history": [
+            {
+              "category_name": "روغن آفتاب",
+              "observed_at": "2026-11-09T11:53:00.895937+00:00",
+              "rank": 1
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "10050",
+      "catalog_category_ids": [
+        "6557",
+        "10050"
+      ],
+      "catalog_category_name": "مراقبت از پوست و مو",
+      "catalog_rank_observed_at": "2026-11-09T11:53:00.895937+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 576400,
+      "discount_percent": 39,
+      "first_seen_at": "2026-11-09T11:53:00.895937+00:00",
+      "last_seen_at": "2026-11-09T20:08:52.281931+00:00",
+      "original_price": 950000,
+      "product_id": "dkp-118205",
+      "product_url": "https://www.digikala.com/product/dkp-118205/",
+      "rating": 4.24,
+      "review_count": 2162,
+      "savings_toman": 373600,
+      "source": "digikala_catalog_sweep",
+      "title": "روغن آفتاب سی گل مدل Shimmer Sun Oil حجم 250 میلی لیتر"
     },
     {
       "availability": "unknown",
@@ -76040,6 +76054,12 @@
       "catalog_best_selling_category_name": "صندل نوزاد",
       "catalog_best_selling_rank": 2,
       "catalog_best_selling_ranks_by_category": {
+        "9562": {
+          "category_name": "نوزاد",
+          "observed_at": "2026-11-09T20:09:00.107285+00:00",
+          "rank": 832,
+          "rank_history": []
+        },
         "9611": {
           "category_name": "کفش نوزاد",
           "observed_at": "2026-11-09T12:40:06.761611+00:00",
@@ -76065,18 +76085,19 @@
           ]
         }
       },
-      "catalog_category_id": "9611",
+      "catalog_category_id": "9562",
       "catalog_category_ids": [
+        "9562",
         "9611",
         "9616"
       ],
-      "catalog_category_name": "کفش نوزاد",
+      "catalog_category_name": "نوزاد",
       "catalog_rank_observed_at": "2026-11-09T12:03:24.750466+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 960000,
       "discount_percent": 20,
       "first_seen_at": "2026-11-09T12:03:24.750466+00:00",
-      "last_seen_at": "2026-11-09T12:39:50.944966+00:00",
+      "last_seen_at": "2026-11-09T20:08:40.744822+00:00",
       "original_price": 1200000,
       "product_id": "dkp-19417372",
       "product_url": "https://www.digikala.com/product/dkp-19417372/",
@@ -92663,6 +92684,12 @@
       "catalog_best_selling_category_name": "پیاله و جام سنتی",
       "catalog_best_selling_rank": 2,
       "catalog_best_selling_ranks_by_category": {
+        "10171": {
+          "category_name": "خانه و کاشانه",
+          "observed_at": "2026-11-09T20:09:00.159804+00:00",
+          "rank": 840,
+          "rank_history": []
+        },
         "10176": {
           "category_name": "ظروف سنتی",
           "observed_at": "2026-11-09T15:52:58.304983+00:00",
@@ -92682,18 +92709,19 @@
           ]
         }
       },
-      "catalog_category_id": "10176",
+      "catalog_category_id": "10171",
       "catalog_category_ids": [
+        "10171",
         "10176",
         "10240"
       ],
-      "catalog_category_name": "ظروف سنتی",
+      "catalog_category_name": "خانه و کاشانه",
       "catalog_rank_observed_at": "2026-11-09T12:11:27.957904+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 2240000,
       "discount_percent": 20,
       "first_seen_at": "2026-11-09T12:11:27.957904+00:00",
-      "last_seen_at": "2026-11-09T15:52:44.289025+00:00",
+      "last_seen_at": "2026-11-09T20:08:54.647868+00:00",
       "original_price": 2800000,
       "product_id": "dkp-18498657",
       "product_url": "https://www.digikala.com/product/dkp-18498657/",
@@ -185530,6 +185558,12 @@
       "catalog_best_selling_category_name": "سویشرت و هودی ورزشی مردانه",
       "catalog_best_selling_rank": 5,
       "catalog_best_selling_ranks_by_category": {
+        "10168": {
+          "category_name": "ورزشی مردانه",
+          "observed_at": "2026-11-09T20:09:00.159154+00:00",
+          "rank": 825,
+          "rank_history": []
+        },
         "11144": {
           "category_name": "لباس ورزشی مردانه",
           "observed_at": "2026-11-09T15:53:59.019087+00:00",
@@ -185561,20 +185595,21 @@
           ]
         }
       },
-      "catalog_category_id": "6816",
+      "catalog_category_id": "10168",
       "catalog_category_ids": [
         "6816",
         "9457",
         "9463",
+        "10168",
         "11144"
       ],
-      "catalog_category_name": "پوشاک ورزشی",
+      "catalog_category_name": "ورزشی مردانه",
       "catalog_rank_observed_at": "2026-11-09T12:03:24.702150+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1998000,
       "discount_percent": 71,
       "first_seen_at": "2026-11-09T12:03:24.702150+00:00",
-      "last_seen_at": "2026-11-09T18:33:54.725264+00:00",
+      "last_seen_at": "2026-11-09T20:08:54.159584+00:00",
       "original_price": 6998000,
       "product_id": "dkp-16242207",
       "product_url": "https://www.digikala.com/product/dkp-16242207/",
@@ -191978,5 +192013,5 @@
   ],
   "cycle_started_at": "2026-11-09T11:16:23.329744+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-09T20:07:07.084336+00:00"
+  "updated_at": "2026-11-09T20:09:00.282811+00:00"
 }
