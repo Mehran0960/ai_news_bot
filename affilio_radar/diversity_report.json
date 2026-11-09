@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T04:17:49.782121+00:00",
+  "generated_at": "2026-11-09T04:51:10.710849+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آرایش چشم": 1,
@@ -107,6 +107,7 @@
       "ابزار مراقبت از پوست": 1,
       "اسکاچ و سیم ظرفشویی": 1,
       "بوردگیم، اوریگامی و بازی فکری": 1,
+      "تی شرت مردانه": 1,
       "خواب": 1,
       "دهان‌شویه و خمیردندان کودک و نوزاد": 1,
       "سایر لوازم خودرو": 1,
@@ -121,7 +122,6 @@
       "ماسک صورت و بدن": 1,
       "محصولات بومی و محلی": 2,
       "مداد چشم": 1,
-      "مراقبت پوست": 1,
       "مهر و استامپ": 1,
       "مکمل غذایی": 1,
       "مکمل کمک درمانی کودک": 1,
@@ -134,24 +134,26 @@
       "audio_wearables": 1,
       "automotive": 1,
       "books_stationery": 3,
+      "fashion": 1,
       "kids_sports": 3,
       "large_appliances": 1,
       "other": 16,
-      "personal_care": 6,
+      "personal_care": 5,
       "sports_outdoor": 1
     },
     "category_share_percent": {
       "audio_wearables": 3.1,
       "automotive": 3.1,
       "books_stationery": 9.4,
+      "fashion": 3.1,
       "kids_sports": 9.4,
       "large_appliances": 3.1,
       "other": 50.0,
-      "personal_care": 18.8,
+      "personal_care": 15.6,
       "sports_outdoor": 3.1
     },
     "distinct_catalog_categories": 29,
-    "distinct_categories": 8,
+    "distinct_categories": 9,
     "distinct_families": 30,
     "distinct_retailers": 1,
     "distinct_use_cases": 6,
@@ -168,10 +170,10 @@
     "use_case_post_counts": {
       "automotive": 1,
       "baby_care": 2,
-      "general": 24,
+      "general": 25,
       "kitchen_food": 1,
       "office_study": 2,
-      "personal_care": 2
+      "personal_care": 1
     }
   },
   "last_7_days": {
@@ -210,7 +212,7 @@
       "تلویزیون": 1,
       "تنیس، بدمینتون، اسکواش": 1,
       "توپ": 1,
-      "تی شرت مردانه": 2,
+      "تی شرت مردانه": 3,
       "تی شرت ورزشی مردانه": 10,
       "جارو و خاک‌انداز": 1,
       "جامدادی": 1,
@@ -343,7 +345,7 @@
       "books_stationery": 16,
       "computer_network": 7,
       "digital_accessories": 4,
-      "fashion": 53,
+      "fashion": 54,
       "gaming": 4,
       "home": 12,
       "home_cleaning": 11,
@@ -351,7 +353,7 @@
       "kids_sports": 8,
       "large_appliances": 13,
       "mobile_devices": 4,
-      "other": 103,
+      "other": 102,
       "personal_care": 35,
       "pet_supplies": 1,
       "power_backup": 10,
@@ -366,7 +368,7 @@
       "books_stationery": 4.4,
       "computer_network": 1.9,
       "digital_accessories": 1.1,
-      "fashion": 14.5,
+      "fashion": 14.8,
       "gaming": 1.1,
       "home": 3.3,
       "home_cleaning": 3.0,
@@ -374,7 +376,7 @@
       "kids_sports": 2.2,
       "large_appliances": 3.6,
       "mobile_devices": 1.1,
-      "other": 28.1,
+      "other": 27.9,
       "personal_care": 9.6,
       "pet_supplies": 0.3,
       "power_backup": 2.7,
@@ -434,101 +436,16 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 69,
-    "last_7_days_count": 69,
+    "all_time_count": 100,
+    "last_7_days_count": 100,
     "reason_counts_in_retained_history": {
       "brand_repeat": 6,
-      "family_repeat": 69,
-      "similarity_repeat": 69
+      "family_repeat": 100,
+      "similarity_repeat": 100
     },
     "recent_events": [
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
-        "brand": "zanama",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22264549",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-21911537",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "تی‌شرت آستین کوتاه یقه گرد مردانه زاناما مدل 031426",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:17:49.782121+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22264549",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-21676213",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "پیراهن آستین بلند یقه برگردان با تنخور معمولی (regular fit) مردانه توریور مدل 8010200001",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:17:49.782121+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-18516760",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم پودر لاکچری کوین شماره 552 حجم 30 میلی لیتر",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:17:49.782121+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-20830896",
-        "family": "beauty_fragrance:fragrance",
-        "product_id": "dkp-22700166",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم زنانه زدفون مدل زرجوف مور دن ووردز با رایحه معتدل حجم 30 میلی لیتر",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:17:49.782121+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-20830896",
-        "family": "beauty_fragrance:fragrance",
-        "product_id": "dkp-22700244",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم زنانه زدفون مدل ویکتوریا سکرت بامب شل با رایحه خنک حجم 30 میلی لیتر",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -545,7 +462,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -562,7 +479,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -579,7 +496,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -596,7 +513,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -613,7 +530,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -630,7 +547,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -647,7 +564,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -664,7 +581,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -681,7 +598,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -698,7 +615,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -715,7 +632,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -732,7 +649,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -749,7 +666,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -766,7 +683,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T04:17:49.782121+00:00",
+        "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -780,6 +697,91 @@
           "similarity_repeat"
         ],
         "title": "کرم مرطوب‌کننده پرایم سری Matex مدل Moist-24 حجم 50 میلی‌لیتر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:51:10.710849+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-1002646",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم نرم کننده مو پرایم مدل Kera Moist حجم 120 میلی لیتر1002646",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:51:10.710849+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-22921454",
+        "family": "fashion:footwear",
+        "product_id": "dkp-22741809",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "صندلی سفری تاشو دورنا کمپ مدل pluas ارتفاع پایه 50 سانتی متر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:51:10.710849+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "audio_wearables",
+        "compared_to_product_id": "dkp-23000078",
+        "family": "audio_wearables:headphones",
+        "product_id": "dkp-16796346",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "هدفون بلوتوثی تی سی اچ مدل D6 Sound Hunt",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:51:10.710849+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-17079013",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب کننده دست و صورت نئودرم مدل Optimal مناسب برای پوست های نرمال تا خشک حجم 150 میلی لیتر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:51:10.710849+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "computer_network",
+        "compared_to_product_id": "dkp-21372366",
+        "family": "computer_network:keyboards",
+        "product_id": "dkp-22109767",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کیبورد و ماوس بی‌سیم هیسکا مدل H-MK25",
         "use_case": "general"
       }
     ]
