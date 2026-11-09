@@ -1561,6 +1561,8 @@
 
 **فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-digikala-catalog-sweep.yml`، `affilio_radar/catalog_sweep_batch_window.py`، `affilio_radar/test_catalog_sweep_batch_window.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md` و `docs/CHANGELOG_FA.md`.
 
+**شواهد/شناسه:** PR #147 روی شاخهٔ `feat/catalog-batch-window-3x480`؛ سقف ثابت ۴۸۰ صفحه و ۱۶ Worker در هر microbatch؛ اجرای سه microbatch متوالی هنوز در production اندازه‌گیری نشده است.
+
 **آزمون:** تست‌های جدید تعداد batchها، cooldown تمیز، backoff پس از 429/retry، توقف در خطا و سقف سه batch را پوشش می‌دهند. اجرای CI روی PR باید پیش از ادغام سبز شود.
 
 **ریسک/بازگشت:** اندازهٔ هر batch (۴۸۰)، سقف Worker (۱۶)، گروه concurrency، صف retry، pagination، checkpoint، رتبه‌بندی و گیت انتشار ثابت‌اند. اگر زمان اجرای پنجره به سقف ۱۲ دقیقه نزدیک شود یا خطاها افزایش یابند، می‌توان تعداد batchها را به ۱ یا ۲ کاهش داد یا PR را revert کرد.
