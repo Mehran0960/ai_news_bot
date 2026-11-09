@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T03:45:33.630613+00:00",
+  "generated_at": "2026-11-09T04:17:49.782121+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آرایش چشم": 1,
@@ -125,36 +125,37 @@
       "مهر و استامپ": 1,
       "مکمل غذایی": 1,
       "مکمل کمک درمانی کودک": 1,
-      "نوشیدنی ساز": 1,
       "ورزش های توپی": 1,
       "پرچم": 1,
       "کتاب رمان و ادبیات داستانی و نمایشی": 1,
       "کتاب روانشناسی": 1
     },
     "category_post_counts": {
+      "audio_wearables": 1,
       "automotive": 1,
       "books_stationery": 3,
       "kids_sports": 3,
       "large_appliances": 1,
-      "other": 17,
+      "other": 16,
       "personal_care": 6,
       "sports_outdoor": 1
     },
     "category_share_percent": {
+      "audio_wearables": 3.1,
       "automotive": 3.1,
       "books_stationery": 9.4,
       "kids_sports": 9.4,
       "large_appliances": 3.1,
-      "other": 53.1,
+      "other": 50.0,
       "personal_care": 18.8,
       "sports_outdoor": 3.1
     },
-    "distinct_catalog_categories": 30,
-    "distinct_categories": 7,
+    "distinct_catalog_categories": 29,
+    "distinct_categories": 8,
     "distinct_families": 30,
     "distinct_retailers": 1,
     "distinct_use_cases": 6,
-    "known_brand_posts": 2,
+    "known_brand_posts": 3,
     "posts": 32,
     "repeated_brand_count": 0,
     "repeated_brands": {},
@@ -336,8 +337,8 @@
       "گیمینگ": 1
     },
     "category_post_counts": {
-      "audio_wearables": 19,
-      "automotive": 24,
+      "audio_wearables": 20,
+      "automotive": 23,
       "beauty_fragrance": 5,
       "books_stationery": 16,
       "computer_network": 7,
@@ -359,8 +360,8 @@
       "tv_audio_video": 3
     },
     "category_share_percent": {
-      "audio_wearables": 5.2,
-      "automotive": 6.6,
+      "audio_wearables": 5.5,
+      "automotive": 6.3,
       "beauty_fragrance": 1.4,
       "books_stationery": 4.4,
       "computer_network": 1.9,
@@ -386,14 +387,14 @@
     "distinct_families": 201,
     "distinct_retailers": 1,
     "distinct_use_cases": 13,
-    "known_brand_posts": 59,
+    "known_brand_posts": 60,
     "posts": 366,
-    "repeated_brand_count": 46,
+    "repeated_brand_count": 47,
     "repeated_brands": {
       "ai_javaher": 8,
       "avergrip": 5,
       "hoye_sazan": 3,
-      "muzik_apollo": 10,
+      "muzik_apollo": 11,
       "reolink": 3,
       "sangboo_climy": 12,
       "ufc": 12
@@ -405,10 +406,10 @@
       "digikala": 100.0
     },
     "use_case_post_counts": {
-      "automotive": 39,
+      "automotive": 38,
       "baby_care": 6,
       "gaming": 5,
-      "general": 245,
+      "general": 246,
       "home_cleaning": 4,
       "home_living": 7,
       "kitchen_food": 8,
@@ -433,276 +434,21 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 35,
-    "last_7_days_count": 35,
+    "all_time_count": 69,
+    "last_7_days_count": 69,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 3,
-      "family_repeat": 35,
-      "similarity_repeat": 35
+      "brand_repeat": 6,
+      "family_repeat": 69,
+      "similarity_repeat": 69
     },
     "recent_events": [
       {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-21546044",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-22264549",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "پیراهن راحتی زنانه ویسکوز گل‌دار افراتین مدل 9616",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "one_by_one",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-21546044",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-21151752",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست تاپ و شلوارک راحتی پسرانه وان بای وان مدل كيهان",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22921454",
-        "family": "fashion:footwear",
-        "product_id": "dkp-19790236",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش روزمره مردانه چرم یلسان مدل فریان با رویه تمام چرم طبیعی و زیره ترمو مقاوم، سبک و طبی، دارای کفی قابل تعویض و ضد لغزش برای استفاده راحت و دوام بالا",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-21546044",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-18065749",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست تی شرت و شلوارک زنانه افراتین مدل زرپران کد 6595",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22921454",
-        "family": "fashion:footwear",
-        "product_id": "dkp-19740668",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "صندل دخترانه کروماکی مدل km552",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22572279",
-        "family": "fashion:eyewear",
-        "product_id": "dkp-22903989",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "عینک آفتابی آلبرت وگ مدل 99019C19 Avantgarde Visionary",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22572279",
-        "family": "fashion:eyewear",
-        "product_id": "dkp-22719314",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "عینک آفتابی آلبرت وگ مدل SZ8807 Mahogany Moss",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22572279",
-        "family": "fashion:eyewear",
-        "product_id": "dkp-22782253",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "عینک شب آلبرت وگ مدل SZ8805 Obsidian Carolina",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "easydo",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-21546044",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-21756369",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "تی‌شرت آستین کوتاه یقه گرد مردانه ایزی دو مدل 01",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22572279",
-        "family": "fashion:eyewear",
-        "product_id": "dkp-22046831",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فریم عینک طبی مستطیلی مدل 2028C6 مناسب برای صورت مستطیل، مربع، مثلث، لوزی، گرد، قلب، بیضی",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22572279",
-        "family": "fashion:eyewear",
-        "product_id": "dkp-21470422",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "عینک آفتابی ویفرر (Wayfarer) مورل مدل P55286C1",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22921454",
-        "family": "fashion:footwear",
-        "product_id": "dkp-16210955",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش مردانه چرم مشهد مدل J6190-001",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22921454",
-        "family": "fashion:footwear",
-        "product_id": "dkp-17795019",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش روزمره مردانه کروماکی مدل km394",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22921454",
-        "family": "fashion:footwear",
-        "product_id": "dkp-21919315",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش روزمره مردانه شوپا مدل 6001",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22921454",
-        "family": "fashion:footwear",
-        "product_id": "dkp-4877073",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش روزمره مردانه شوپا مدل Br - 300636",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T03:45:33.630613+00:00",
+        "at": "2026-11-09T04:17:49.782121+00:00",
         "brand": "zanama",
         "catalog_category_id": "",
         "catalog_category_name": "",
         "category": "fashion",
-        "compared_to_product_id": "dkp-21546044",
+        "compared_to_product_id": "dkp-22264549",
         "family": "fashion:apparel_tops",
         "product_id": "dkp-21911537",
         "reason": "family_repeat,similarity_repeat",
@@ -714,12 +460,12 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T03:45:33.630613+00:00",
+        "at": "2026-11-09T04:17:49.782121+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
         "category": "fashion",
-        "compared_to_product_id": "dkp-21546044",
+        "compared_to_product_id": "dkp-22264549",
         "family": "fashion:apparel_tops",
         "product_id": "dkp-21676213",
         "reason": "family_repeat,similarity_repeat",
@@ -731,7 +477,7 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T03:45:33.630613+00:00",
+        "at": "2026-11-09T04:17:49.782121+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -748,7 +494,24 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T03:45:33.630613+00:00",
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-20830896",
+        "family": "beauty_fragrance:fragrance",
+        "product_id": "dkp-22700166",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم زنانه زدفون مدل زرجوف مور دن ووردز با رایحه معتدل حجم 30 میلی لیتر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
@@ -765,20 +528,258 @@
         "use_case": "general"
       },
       {
-        "at": "2026-11-09T03:45:33.630613+00:00",
+        "at": "2026-11-09T04:17:49.782121+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
         "category": "fashion",
-        "compared_to_product_id": "dkp-21546044",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-14857780",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-5692029",
         "reason": "family_repeat,similarity_repeat",
         "reasons": [
           "family_repeat",
           "similarity_repeat"
         ],
-        "title": "ست تی شرت و شلوارک مردانه مدل 14",
+        "title": "جوراب ساق کوتاه مردانه پالوته مدل PM-NNN مجموعه 3 عددی",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-22403708",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "جوراب ساق بلند مردانه پالوته مدل PLT-3COL-LN بسته 3 عددی",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-21766843",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "جوراب ساق بلند مردانه سیرداش مدل N111 بسته 6 عددی",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-20317543",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "جوراب ساق بلند مردانه سیرداش مدل 195 بسته 6 عددی",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-20830896",
+        "family": "beauty_fragrance:fragrance",
+        "product_id": "dkp-10479648",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم مردانه نیفتی مدل بلو شنل با رایحه معتدل حجم 100 میلی لیتر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12114980",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "آبرسان راکوتن مدل پوست خشک حجم 50 میلی‌لیتر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "audio_wearables",
+        "compared_to_product_id": "dkp-23000078",
+        "family": "audio_wearables:headphones",
+        "product_id": "dkp-21777776",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "هدفون بلوتوثی ام کی اچ مدل MK4 ANC",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-708421",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 02 مناسب پوست‌های معمولی و مختلط حجم 75 میلی‌لیتر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-18369481",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-5664292",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مدل Sensitive، مناسب پوست‌های خشک و حساس، حجم 50 میلی‌لیتر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-11387942",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "تونر صورت ویتالیر مدل وایت ویت حجم 200 میلی لیتر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-1053744",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم پوست پرایم مدل C_Prime حجم 30 میلی لیتر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "power_backup",
+        "compared_to_product_id": "dkp-23127308",
+        "family": "power_backup:power_bank",
+        "product_id": "dkp-20328532",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "پاوربانک 22.5 وات نوکسو مدل PN-1 ظرفیت 10000 میلی آمپر ساعت",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-09T04:17:49.782121+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-116180",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده پرایم سری Matex مدل Moist-24 حجم 50 میلی‌لیتر",
         "use_case": "general"
       }
     ]
