@@ -6520,6 +6520,8 @@ class AffilioRadarTests(unittest.TestCase):
             "products": {"dkp-123": 12},
             "sources": {"telegram": 8, "bale": 4},
             "experimentVariants": {"creative-test-1:A": 8, "creative-test-1:B": 4},
+            "productSources": {"dkp-123": {"telegram": 8}},
+            "productExperimentVariants": {"dkp-123": {"creative-test-1:A": 8}},
         }
         state = {
             "published": {
