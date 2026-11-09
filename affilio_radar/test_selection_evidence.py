@@ -90,6 +90,59 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         self.assertIn("digikala_category:91", auto_family)
         self.assertIn("digikala_category:92", travel_family)
 
+
+    def test_live_digikala_taxonomy_categories_do_not_collapse_into_general(self):
+        samples = [
+            ("آرایش چشم", "personal_care"),
+            ("آرایشی بهداشتی", "personal_care"),
+            ("ابزار آلات و تجهیزات", "tools_industrial"),
+            ("ابزار ایمنی", "tools_industrial"),
+            ("ابزار مراقبت از پوست", "personal_care"),
+            ("اسکاچ و سیم ظرفشویی", "home_cleaning"),
+            ("بوردگیم، اوریگامی و بازی فکری", "tabletop_games"),
+            ("تی شرت مردانه", "fashion_lifestyle"),
+            ("خواب", "home_living"),
+            ("دهان‌شویه و خمیردندان کودک و نوزاد", "baby_care"),
+            ("سایر لوازم خودرو", "automotive"),
+            ("سرویس کفگیر و ملاقه", "kitchen_food"),
+            ("سلامت و پزشکی", "health_wellness"),
+            ("شانه مو", "personal_care"),
+            ("صبحانه", "grocery_food"),
+            ("لوازم اداری", "office_study"),
+            ("لوازم تحریر", "office_study"),
+            ("لوازم ماهیگیری", "outdoor_travel"),
+            ("لوازم یدکی ابزار برقی", "tools_industrial"),
+            ("ماسک صورت و بدن", "personal_care"),
+            ("محصولات بومی و محلی", "local_goods"),
+            ("مداد چشم", "personal_care"),
+            ("مهر و استامپ", "office_study"),
+            ("مکمل غذایی", "health_wellness"),
+            ("مکمل کمک درمانی کودک", "baby_care"),
+            ("ورزش های توپی", "sports_fitness"),
+            ("پرچم", "events_decor"),
+            ("کتاب رمان و ادبیات داستانی و نمایشی", "books_learning"),
+            ("کتاب روانشناسی", "books_learning"),
+        ]
+        for index, (category_name, expected) in enumerate(samples, start=9000):
+            with self.subTest(category=category_name):
+                product = {
+                    "product_id": f"dkp-{index}",
+                    "catalog_best_selling_category_id": str(index),
+                    "catalog_best_selling_category_name": category_name,
+                }
+                actual = radar._publication_use_case_group(product)
+                self.assertEqual(actual, expected)
+                self.assertNotIn(actual, {"general", "catalog_taxonomy_other"})
+
+    def test_unknown_digikala_taxonomy_is_distinguished_from_missing_taxonomy(self):
+        known_but_unmapped = {
+            "product_id": "dkp-999991",
+            "catalog_best_selling_category_id": "999991",
+            "catalog_best_selling_category_name": "رده آزمایشی نامتعارف",
+        }
+        self.assertEqual(radar._publication_use_case_group(known_but_unmapped), "catalog_taxonomy_other")
+        self.assertEqual(radar._publication_use_case_group({"title": ""}), "general")
+
     def test_review_growth_is_only_an_indirect_fresh_proxy_not_sales(self):
         record = self._verified_review_growth()
         self.assertTrue(radar.has_current_demand_signal(record, now=self.now))
