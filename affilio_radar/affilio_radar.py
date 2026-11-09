@@ -6686,9 +6686,8 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         family_tokens = sorted(_publication_similarity_tokens(product_or_title))
         if family_tokens:
             family = f"{category}:tokens_{'_'.join(family_tokens[:3])}"
-    use_case = _publication_use_case_group(product_or_title)
-    if use_case != "general" and family not in {"", "other", "unknown"}:
-        family = f"{family}:use:{use_case}"
+    # Keep use-case as an independent dimension in history/reporting; do not let
+    # it split one DigiKala family into separate cooldown buckets.
     brand_hints = [
         ("ufc", r"\bUFC\b|یو\s*اف\s*سی"),
         ("ai_javaher", r"آی\s*جواهر"),
