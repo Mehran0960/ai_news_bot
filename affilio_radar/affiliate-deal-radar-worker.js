@@ -78,13 +78,13 @@ export default {
         ok: true,
         service: "affiliate-deal-radar",
         clickStoreReady: !!env.CLICKS,
-        routes: ["/health", "/stats", "/p/<dkp-or-snp-product-id>?u=<verified-aflo-link>&src=<telegram|bale|youtube|aparat>"],
+        routes: ["/health", "/stats", "/p/<dkp-or-snp-product-id>?u=<verified-aflo-link>&src=<telegram|bale|youtube|aparat>&exp=<experiment>&variant=<a|b>"],
         stats: "Aggregated product and source click counts for the last 30 days only"
       });
     }
     if (url.pathname === "/stats") {
       if (!env.CLICKS) return jsonResponse({ok:false,error:"click_store_unavailable"},503);
-      const cacheKey = "analytics:clicks:30d:v2";
+      const cacheKey = "analytics:clicks:30d:v3";
       try {
         const cached = await env.CLICKS.get(cacheKey, "json");
         const cacheAgeMs = cached && cached.updatedAt
@@ -105,6 +105,12 @@ export default {
       const now = new Date();
       const today = now.toISOString().slice(0, 10);
       const products = Object.create(null);
+      const sources = Object.create(null);
+      const variants = Object.create(null);
+      const experiments = Object.create(null);
+      const experimentVariants = Object.create(null);
+      const productSources = Object.create(null);
+      const productExperimentVariants = Object.create(null);
       let complete = true;
       try {
         // Day-scoped prefixes avoid scanning old keys first as the namespace grows.
@@ -118,10 +124,27 @@ export default {
         for (let index = 0; index < pages.length; index++) {
           const page = pages[index];
           for (const key of page.keys || []) {
-            const match = String(key.name || "").match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20}))(?::(?:telegram|bale|youtube|aparat|unknown))?:/);
-            if (match) {
-              const productId = match[2];
+            const keyName = String(key.name || "");
+            const current = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20})):((?:telegram|bale|youtube|aparat|unknown)):([a-z0-9][a-z0-9_-]{0,31}):([ab]):/);
+            const legacy = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20}))(?::(telegram|bale|youtube|aparat|unknown))?:/);
+            if (current || legacy) {
+              const productId = current ? current[2] : legacy[2];
+              const source = current ? current[3] : (legacy[3] || "unknown");
               products[productId] = (products[productId] || 0) + 1;
+              sources[source] = (sources[source] || 0) + 1;
+              productSources[productId] = productSources[productId] || Object.create(null);
+              productSources[productId][source] = (productSources[productId][source] || 0) + 1;
+              if (current) {
+                const experiment = current[4];
+                const variant = current[5].toUpperCase();
+                const experimentKey = experiment + ":" + variant;
+                variants[variant] = (variants[variant] || 0) + 1;
+                experiments[experiment] = (experiments[experiment] || 0) + 1;
+                experimentVariants[experimentKey] = (experimentVariants[experimentKey] || 0) + 1;
+                productExperimentVariants[productId] = productExperimentVariants[productId] || Object.create(null);
+                productExperimentVariants[productId][experimentKey] =
+                  (productExperimentVariants[productId][experimentKey] || 0) + 1;
+              }
             }
           }
           if (page.list_complete === false) complete = false;
@@ -138,7 +161,13 @@ export default {
         updatedAt: now.toISOString(),
         complete,
         totalClicks: Object.values(products).reduce((sum, count) => sum + count, 0),
-        products
+        products,
+        sources,
+        variants,
+        experiments,
+        experimentVariants,
+        productSources,
+        productExperimentVariants
       };
       try {
         await env.CLICKS.put(cacheKey, JSON.stringify(result), {expirationTtl:7200});
@@ -156,6 +185,10 @@ export default {
     const allowedSources = new Set(["telegram", "bale", "youtube", "aparat"]);
     const requestedSource = String(url.searchParams.get("src") || "unknown").toLowerCase();
     const source = allowedSources.has(requestedSource) ? requestedSource : "unknown";
+    const rawExperiment = String(url.searchParams.get("exp") || "").toLowerCase();
+    const experiment = /^[a-z0-9][a-z0-9_-]{0,31}$/.test(rawExperiment) ? rawExperiment : "";
+    const rawVariant = String(url.searchParams.get("variant") || "").toLowerCase();
+    const variant = experiment && (rawVariant === "a" || rawVariant === "b") ? rawVariant : "";
 
     const ua = request.headers.get("user-agent") || "";
     const likelyPreviewBot = /(telegrambot|facebookexternalhit|whatsapp|slackbot|discordbot|twitterbot|linkedinbot|googlebot|bingbot|yandexbot|crawler|spider|\bbot\b)/i.test(ua);
@@ -163,13 +196,17 @@ export default {
       const now = new Date();
       const stamp = now.toISOString();
       const day = stamp.slice(0, 10);
-      const eventKey = "click:" + day + ":" + productId + ":" + source + ":" + now.getTime() + "-" + crypto.randomUUID();
+      const attribution = experiment && variant ? ":" + experiment + ":" + variant : "";
+      const eventKey = "click:" + day + ":" + productId + ":" + source + attribution + ":" + now.getTime() + "-" + crypto.randomUUID();
       try {
-        // Store only product ID, timestamp and a fixed source label; no IPs, referrers or full affiliate URLs.
+        // Store only product ID, timestamp, fixed source and optional A/B labels;
+        // no IPs, referrers or full affiliate URLs are retained.
         await env.CLICKS.put(eventKey, JSON.stringify({
           product_id: productId,
           clicked_at: stamp,
-          channel: source
+          channel: source,
+          experiment: experiment || "",
+          variant: variant ? variant.toUpperCase() : ""
         }), {expirationTtl:15552000});
       } catch (error) {
         console.error("CLICK_WRITE_FAILED", productId, String(error).slice(0,100));
