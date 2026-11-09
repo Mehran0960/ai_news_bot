@@ -60,6 +60,7 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         self.candidates = {
             "schema_version": 1,
             "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
+            "candidate_order_policy": "catalog_demand_first_v1",
             "cycle_status": "complete",
             "cycle_started_at": self.started_at,
             "cycle_completed_at": self.completed_at,
@@ -178,6 +179,38 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
                     self.state, completed_candidates=changed
                 )
                 self.assertFalse(status["completed_candidates_snapshot_valid"])
+
+    def test_demand_first_snapshot_accepts_high_demand_before_larger_markdown(self):
+        rows = [
+            {
+                **self.candidates["candidates"][1],
+                "discount_percent": 15,
+                "savings_toman": 150000,
+                "catalog_cycle_snapshot_rank": 1,
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 2,
+            },
+            {
+                **self.candidates["candidates"][0],
+                "discount_percent": 90,
+                "savings_toman": 900000,
+                "catalog_cycle_snapshot_rank": 2,
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 45,
+            },
+        ]
+        demand_first = {**self.candidates, "candidates": rows}
+        status = build_status_snapshot(
+            self.state,
+            generated_at="2026-11-06T16:01:00+00:00",
+            completed_candidates=demand_first,
+        )
+        self.assertTrue(status["completed_candidates_snapshot_valid"])
+
+    def test_unknown_candidate_order_policy_is_rejected(self):
+        changed = {**self.candidates, "candidate_order_policy": "unknown_policy"}
+        status = build_status_snapshot(self.state, completed_candidates=changed)
+        self.assertFalse(status["completed_candidates_snapshot_valid"])
 
     def test_candidate_snapshot_must_have_matching_ids_timestamps_and_rank_order(self):
         stale = {**self.candidates, "cycle_completed_at": "2026-11-06T15:00:00+00:00"}
@@ -386,6 +419,16 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         )
         self.assertFalse(status["completed_candidates_snapshot_valid"])
         self.assertEqual(status["last_clean_cycle_status"], "unavailable")
+
+    def test_sweep_writer_declares_the_demand_first_candidate_order_policy(self):
+        scanner_path = (
+            Path(__file__).resolve().parent / "parallel_catalog_sweep.py"
+        )
+        scanner = scanner_path.read_text(encoding="utf-8")
+        self.assertIn(
+            '"candidate_order_policy": "catalog_demand_first_v1"',
+            scanner,
+        )
 
     def test_sweep_workflow_persists_the_immutable_candidate_snapshot(self):
         workflow_path = (
