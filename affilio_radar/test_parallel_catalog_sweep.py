@@ -25,6 +25,45 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         retained = sweep.base.retain_diverse_candidates(rows, limit=4)
         self.assertEqual([row["product_id"] for row in retained], ["dkp-1", "dkp-2", "dkp-3", "dkp-4"])
 
+    def test_fresh_digikala_bestseller_rank_precedes_a_larger_discount_in_shortlist(self):
+        now = datetime.now(timezone.utc)
+        rows = [
+            {
+                "product_id": "dkp-native-rank-4",
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 4,
+                "catalog_rank_observed_at": now.isoformat(),
+                "catalog_best_selling_ranks_by_category": {
+                    "10": {"rank": 4, "observed_at": now.isoformat(), "category_name": "گوشی"},
+                },
+                "discount_percent": 12,
+                "savings_toman": 120_000,
+            },
+            {
+                "product_id": "dkp-native-rank-55",
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 55,
+                "catalog_rank_observed_at": now.isoformat(),
+                "catalog_best_selling_ranks_by_category": {
+                    "20": {"rank": 55, "observed_at": now.isoformat(), "category_name": "خانه"},
+                },
+                "discount_percent": 35,
+                "savings_toman": 350_000,
+            },
+            {
+                "product_id": "dkp-no-fresh-rank",
+                "review_count": 100,
+                "rating": 4.0,
+                "discount_percent": 99,
+                "savings_toman": 990_000,
+            },
+        ]
+        retained = sweep.base.retain_diverse_candidates(rows, limit=3)
+        self.assertEqual(
+            [row["product_id"] for row in retained],
+            ["dkp-native-rank-4", "dkp-native-rank-55", "dkp-no-fresh-rank"],
+        )
+
     def test_initial_queue_starts_every_category_at_page_one_even_with_old_cursor(self):
         categories = [
             {"id": "1", "name": "mobile"},
