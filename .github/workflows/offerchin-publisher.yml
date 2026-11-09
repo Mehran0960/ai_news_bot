@@ -160,8 +160,8 @@ jobs:
           AFFILIO_MARKET_RECHECK_HOURS: "24"
           AFFILIO_MARKET_CHALLENGE_COOLDOWN_HOURS: "6"
           AFFILIO_MARKET_GLOBAL_PAUSE_MINUTES: "20"
-          # Fresh review-count growth is only an indirect proxy tie-break after equal
-          # discount percentage and cash savings; it is not sales data and never a gate.
+          # Native DigiKala bestseller rank is primary; fresh review growth is a weaker
+          # demand proxy before historical review context and markdown value. It is not unit-sales data.
           AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "1"
           AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "3"
           AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS: "6"
