@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   isUsableCleanCatalogSnapshot,
   isInitialCatalogWarmup,
+  isDegradedLiveFallbackAvailable,
   hasDueVideoRecord,
   isFiloLoginVerified,
   PUBLISHER_INTERVAL_MS,
@@ -143,6 +144,31 @@ test("allows legacy discovery only during the first catalog warm-up", () => {
   assert.equal(isInitialCatalogWarmup({ ...warmup, completed_candidates_snapshot_present: true }), false);
   assert.equal(isInitialCatalogWarmup({ ...warmup, completed_cycles: 1 }), false);
   assert.equal(isInitialCatalogWarmup(null), false);
+});
+
+test("degraded live fallback requires a complete numeric DigiKala taxonomy registry", () => {
+  const degraded = {
+    schema_version: 2,
+    full_catalog_mode: "all_categories_all_pages",
+    scan_policy_version: "all_categories_all_pages_v3_cycle_snapshot",
+    last_clean_cycle_status: "unavailable",
+    completed_candidates_snapshot_present: true,
+    completed_candidates_snapshot_valid: false,
+    catalog_category_count: 3,
+    catalog_category_ids: ["1", "2", "3"],
+  };
+  assert.equal(isUsableCleanCatalogSnapshot(degraded), false);
+  assert.equal(isDegradedLiveFallbackAvailable(degraded), true);
+  assert.equal(isDegradedLiveFallbackAvailable({
+    ...degraded, catalog_category_ids: ["1", "2"]
+  }), false);
+  assert.equal(isDegradedLiveFallbackAvailable({
+    ...degraded, catalog_category_ids: ["1", "2", "2"]
+  }), false);
+  assert.equal(isDegradedLiveFallbackAvailable({
+    ...degraded, catalog_category_ids: ["1", "2", "x"]
+  }), false);
+  assert.equal(isDegradedLiveFallbackAvailable(null), false);
 });
 
 test("fails closed on missing, stale-schema, or partial-scan status", () => {
