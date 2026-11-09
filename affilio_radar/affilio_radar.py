@@ -8407,12 +8407,10 @@ def restore_selection_discount_tiers(
     selected_candidates: list[dict],
     tiered_candidates: list[dict],
 ) -> int:
-    """Restore the selected discount floor after publication ranking.
+    """Restore each candidate's own hard-validation floor and demand evidence.
 
-    The tier selector ranks copies annotated with their own allowed minimum.
-    The publication ranker operates on the original quality records, so this
-    metadata must be copied back before the queue hand-off or the publisher
-    incorrectly falls back to the legacy 50% floor for every product.
+    Discount floors are eligibility metadata only; this helper must not alter the
+    global market-demand order chosen by DigiKala bestseller evidence.
     """
     tiers_by_id: dict[str, dict] = {}
     for candidate in tiered_candidates or []:
@@ -8431,12 +8429,16 @@ def restore_selection_discount_tiers(
         tier = {"selection_discount_floor": floor}
         for field in (
             "selection_discount_band", "publication_policy",
+            "selection_demand_evidence", "selection_demand_quality",
+            "selection_bestseller_rank", "selection_bestseller_category_count",
+            "selection_bestseller_rank_improvement",
             "selection_review_growth_evidence", "selection_value_evidence",
-            "selection_fallback_mode",
+            "selection_fallback_mode", "creative_experiment_id", "creative_variant",
         ):
-            value = str(candidate.get(field) or "").strip()
-            if value:
-                tier[field] = value
+            value = candidate.get(field)
+            if value is None or value == "":
+                continue
+            tier[field] = value
         tiers_by_id[pid] = tier
 
     restored = 0
