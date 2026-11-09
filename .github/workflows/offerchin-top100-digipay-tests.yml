@@ -68,6 +68,9 @@ jobs:
       - name: Run OfferChin regression suite
         working-directory: affilio_radar
         run: python -m unittest -v test_affilio test_content_delivery test_selection_evidence
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
       - name: Test click Worker source and A/B attribution
         working-directory: affilio_radar
         run: node --test test_affiliate_deal_radar_worker.mjs
