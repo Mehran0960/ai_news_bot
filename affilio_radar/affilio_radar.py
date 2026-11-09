@@ -4962,10 +4962,10 @@ def build_caption(
 
     merchant = p.get("merchant") or product_merchant(p.get("product_url") or affiliate_url)
     merchant_marker = "🟣" if "اسنپ" in str(merchant) or "snapp" in str(merchant).lower() else "🔴"
-    variant = str(experiment_variant or p.get("creative_variant") or "A").strip().upper()
-    caption_prefix = SALE_TITLE_PREFIX if variant != "B" else "🛒 پیشنهاد خرید"
+    # The approved sales caption stays identical in both visual experiment arms.
+    # A/B variation is limited to image/video treatment, not approved sales wording.
     parts = [
-        f"{caption_prefix} {merchant} {merchant_marker}",
+        f"{SALE_TITLE_PREFIX} {merchant} {merchant_marker}",
         "",
         f"{PRODUCT_TITLE_PREFIX}{title}",
     ]
