@@ -175,6 +175,63 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             radar.deal_sort_key(stale_bestseller, now=self.now),
         )
 
+    def test_global_demand_order_survives_selection_and_publication_across_discount_bands(self):
+        products = [
+            {
+                "product_id": "dkp-popular-low-discount",
+                "product_url": "https://www.digikala.com/product/dkp-popular-low-discount/",
+                "title": "لپ تاپ اداری مدل نمونه",
+                "brand": "Brand A",
+                "availability": "in_stock",
+                "current_price": 900_000,
+                "original_price": 1_000_000,
+                "discount_percent": 10,
+                "savings_toman": 100_000,
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 1,
+                "catalog_rank_observed_at": self.now.isoformat(),
+                "catalog_best_selling_category_id": "101",
+                "catalog_best_selling_category_name": "لپ تاپ",
+            },
+            {
+                "product_id": "dkp-weak-high-discount",
+                "product_url": "https://www.digikala.com/product/dkp-weak-high-discount/",
+                "title": "هدفون بلوتوثی مدل نمونه",
+                "brand": "Brand B",
+                "availability": "in_stock",
+                "current_price": 200_000,
+                "original_price": 1_000_000,
+                "discount_percent": 80,
+                "savings_toman": 800_000,
+                "review_count": 2,
+                "rating": 3.5,
+            },
+        ]
+        state = {"published": {}, "recent_publications": []}
+        with (
+            patch.object(radar, "is_product_suppressed", return_value=False),
+            patch.object(radar, "is_discount_publish_eligible", return_value=True),
+            patch.object(radar, "has_publishable_expiry_or_open_offer", return_value=True),
+            patch.object(radar, "is_selection_candidate_rejected", return_value=False),
+            patch.object(radar, "is_fresh_selection_candidate", return_value=True),
+        ):
+            selected, _floor, quality = radar.select_discount_fallback_candidates(
+                products, state, now=self.now, include_fallback_bands=True
+            )
+
+        self.assertEqual(len(quality), 2)
+        self.assertEqual(
+            [row["product_id"] for row in selected],
+            ["dkp-popular-low-discount", "dkp-weak-high-discount"],
+        )
+        queue = {row["product_id"]: {} for row in selected}
+        by_id = {row["product_id"]: row for row in selected}
+        published = radar.select_publish_candidates(queue, by_id, self.now)
+        self.assertEqual(
+            [row["product_id"] for row in published],
+            ["dkp-popular-low-discount", "dkp-weak-high-discount"],
+        )
+
     def test_discount_is_the_final_tiebreak_after_equal_demand_evidence(self):
         base = {
             "product_id": "dkp-equal-demand",
