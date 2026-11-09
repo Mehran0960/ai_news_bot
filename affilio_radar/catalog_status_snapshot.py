@@ -107,7 +107,11 @@ def is_initial_catalog_warmup(status: Any) -> bool:
 
 
 def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
-    """Validate a frozen snapshot on its own, not against the scan currently in progress."""
+    """Validate snapshot integrity without recomputing its time-sensitive producer ranking.
+
+    The scanner's frozen rank is demand-first and category-local; markdown size is
+    only a later tie-breaker. Re-sorting or validating by discount alone is invalid.
+    """
     empty = {
         "present": isinstance(payload, dict),
         "valid": False,
@@ -146,7 +150,6 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
     product_rows_success = _integer(payload.get("product_rows_success"))
 
     candidate_ids: list[str] = []
-    previous_sort_key: tuple[int, int] | None = None
     rows_valid = True
     for rank, row in enumerate(rows, start=1):
         if not isinstance(row, dict):
@@ -162,16 +165,13 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
         if _integer(row.get("catalog_cycle_snapshot_rank")) != rank:
             rows_valid = False
             break
-        discount = _integer(row.get("discount_percent"))
-        savings = max(0, _integer(row.get("savings_toman")))
-        if discount < 1:
+        # The scanner freezes its demand-first, category-local ordering into
+        # catalog_cycle_snapshot_rank. Do not reinterpret that order as a
+        # discount/savings sort here: doing so rejects valid high-demand rows
+        # whose markdown is smaller than a lower-demand candidate's markdown.
+        if _integer(row.get("discount_percent")) < 1:
             rows_valid = False
             break
-        sort_key = (discount, savings)
-        if previous_sort_key is not None and sort_key > previous_sort_key:
-            rows_valid = False
-            break
-        previous_sort_key = sort_key
         candidate_ids.append(product_id)
 
     valid = bool(
