@@ -734,7 +734,7 @@ def run_parallel_sweep(
         f"total_s={total_run_seconds:.3f} fetch_pages_per_s={state['parallel_last_batch_pages_per_second']:.2f} "
         f"rows_per_s={state['parallel_last_batch_rows_per_second']:.2f} "
         f"candidate_bytes={candidate_file_bytes} "
-        f"sort=discount_percent_desc,savings_toman_desc full_pages=true "
+        f"sort=demand_score,bestseller_rank,discount_percent,savings_toman full_pages=true "
         f"completed_cycles={stats['completed_cycles']}"
     )
     return 0

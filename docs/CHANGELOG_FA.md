@@ -1488,3 +1488,19 @@
 
 **وضعیت:** تغییر شاخه ثبت شد؛ CI مجدد در انتظار.
 
+## ۲۰۲۶-۱۱-۰۹ — اصلاح برچسب ترتیب رتبه‌بندی در گزارش اسکنر
+
+**هدف:** یکسان‌سازی telemetry و handbook با رفتار واقعی رتبه‌بندی کاتالوگ.
+
+**تغییر/اقدام:** برچسب انتهای `PARALLEL_CATALOG_SWEEP_SUMMARY` از `discount_percent_desc,savings_toman_desc` به `demand_score,bestseller_rank,discount_percent,savings_toman` تغییر کرد. کد واقعی `catalog_candidate_sort_key` و `retain_diverse_candidates` پیش از این demand-first بود؛ این اصلاح الگوریتم را تغییر نمی‌دهد و صرفاً جلوی گزارش گمراه‌کننده را می‌گیرد. بندهای جاری handbook که هنوز discount-first می‌گفتند با سیاست ۹ نوامبر هم‌راستا شدند. تست منبع‌سطحی جدید مانع بازگشت برچسب قدیمی می‌شود.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/parallel_catalog_sweep.py`، `affilio_radar/test_parallel_catalog_sweep.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** تست Catalog Sweep Regression برای label واقعی اضافه شد؛ اجرای CI در انتظار است.
+
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-demand-first-sort-telemetry-docs-20261109`؛ PR و SHA پس از ایجاد ثبت می‌شوند. اجرای عملیاتی پیشین run `42666232145`، پس از پردازش ۴۸۰ صفحه، برچسب قدیمی را در لاگ نشان داد؛ کد مرتب‌سازی در `catalog_sweep.py:catalog_candidate_sort_key` و `retain_diverse_candidates` demand-first بود.
+
+**ریسک/بازگشت:** فقط telemetry و متن سیاستی مستندات عوض می‌شوند؛ صف، رتبه‌بندی واقعی، snapshotها، publisher و cadence کانال‌ها تغییر نمی‌کنند. بازگشت با revert همین PR ممکن است.
+
+**وضعیت:** شاخهٔ اصلاحی آمادهٔ CI؛ merge و اجرای عملیاتی پس از آن در انتظار.
+
