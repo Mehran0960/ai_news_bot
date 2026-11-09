@@ -674,10 +674,13 @@ class AffilioRadarTests(unittest.TestCase):
     def test_click_tracker_wraps_only_same_product_affiliate_destinations(self):
         product = "https://www.digikala.com/product/dkp-15970075/"
         affiliate = build_affilio_tracking_link(product)
-        self.assertEqual(
-            build_click_tracking_link(product, affiliate, "https://tracker.example"),
-            affiliate,
+        wrapped = build_click_tracking_link(
+            product, affiliate, "https://tracker.example", source="telegram"
         )
+        self.assertEqual(urlsplit(wrapped).path, "/p/dkp-15970075")
+        query = parse_qs(urlsplit(wrapped).query)
+        self.assertEqual(query.get("u"), [affiliate])
+        self.assertEqual(query.get("src"), ["telegram"])
 
         wrong_product = build_click_tracking_link(
             "https://www.digikala.com/product/dkp-999/",
@@ -686,11 +689,20 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(wrong_product, affiliate)
 
-    def test_click_tracker_preserves_supported_affilio_template(self):
+    def test_click_tracker_preserves_supported_affilio_template_and_adds_experiment_labels(self):
         product = "https://www.digikala.com/product/dkp-1234567/"
         affiliate = build_affilio_tracking_link(product)
+        wrapped = build_click_tracking_link(
+            product, affiliate, "https://tracker.example",
+            source="bale", experiment_id="creative-test-1", variant="B",
+        )
+        query = parse_qs(urlsplit(wrapped).query)
+        self.assertEqual(query.get("u"), [affiliate])
+        self.assertEqual(query.get("src"), ["bale"])
+        self.assertEqual(query.get("exp"), ["creative-test-1"])
+        self.assertEqual(query.get("variant"), ["b"])
         self.assertEqual(
-            build_click_tracking_link(product, affiliate, "https://tracker.example"),
+            build_click_tracking_link(product, affiliate, "http://tracker.example"),
             affiliate,
         )
 
@@ -699,10 +711,10 @@ class AffilioRadarTests(unittest.TestCase):
         affiliate = build_affilio_tracking_link(product)
         telegram = build_click_tracking_link(product, affiliate, "https://tracker.example", source="telegram")
         bale = build_click_tracking_link(product, affiliate, "https://tracker.example", source="bale")
-        self.assertEqual(telegram, affiliate)
-        self.assertEqual(bale, affiliate)
+        self.assertEqual(parse_qs(urlsplit(telegram).query).get("src"), ["telegram"])
+        self.assertEqual(parse_qs(urlsplit(bale).query).get("src"), ["bale"])
         unsafe = build_click_tracking_link(product, affiliate, "https://tracker.example", source="unknown-user-input")
-        self.assertEqual(unsafe, affiliate)
+        self.assertEqual(parse_qs(urlsplit(unsafe).query).get("src"), ["unknown"])
 
     def test_superseded_youtube_short_is_retained_after_replacement_upload(self):
         now = datetime(2026, 11, 3, 5, 0, tzinfo=timezone.utc)
@@ -721,16 +733,18 @@ class AffilioRadarTests(unittest.TestCase):
             radar_module._retain_superseded_youtube_video(record, "dkp-123", now)
         )
 
-    def test_purchase_button_always_uses_direct_affilio_url_without_tracker_probe(self):
+    def test_purchase_button_uses_tracker_only_when_healthy_and_fails_open_to_affilio(self):
         product = "https://snappshop.ir/product/snp-2097083854"
         affiliate = build_affilio_tracking_link(product)
-        with patch(
-            "affilio_radar._click_tracker_is_healthy",
-            side_effect=AssertionError("purchase path must not contact the click tracker"),
-        ) as health_probe:
-            self.assertEqual(tracked_affiliate_button_url(affiliate, "bale"), affiliate)
-            self.assertEqual(tracked_affiliate_button_url(affiliate, "telegram"), affiliate)
-            health_probe.assert_not_called()
+        with patch("affilio_radar._click_tracker_is_healthy", return_value=False):
+            self.assertEqual(tracked_affiliate_button_url(affiliate, "bale", "creative-test-1", "B"), affiliate)
+        with patch("affilio_radar._click_tracker_is_healthy", return_value=True):
+            wrapped = tracked_affiliate_button_url(affiliate, "telegram", "creative-test-1", "B")
+        query = parse_qs(urlsplit(wrapped).query)
+        self.assertEqual(urlsplit(wrapped).path, "/p/snp-2097083854")
+        self.assertEqual(query.get("u"), [affiliate])
+        self.assertEqual(query.get("exp"), ["creative-test-1"])
+        self.assertEqual(query.get("variant"), ["b"])
         self.assertEqual(tracked_affiliate_button_url("https://example.com/not-affiliate", "bale"), "")
 
     def test_click_statistics_include_aggregate_counts_for_both_stores(self):
@@ -6486,3 +6500,50 @@ class AffilioRadarTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_creative_assignment_is_stable_and_balanced_over_product_ids(self):
+        assignments = {
+            radar_module.creative_experiment_assignment(f"dkp-{index}")[1]
+            for index in range(1, 101)
+        }
+        self.assertEqual(assignments, {"A", "B"})
+        self.assertEqual(
+            radar_module.creative_experiment_assignment("dkp-123"),
+            radar_module.creative_experiment_assignment("dkp-123"),
+        )
+        self.assertEqual(radar_module.creative_experiment_assignment("not-a-product"), ("", "A"))
+
+    def test_performance_report_never_infers_ctr_sales_or_commission_from_clicks(self):
+        snapshot = {
+            "ok": True,
+            "complete": True,
+            "products": {"dkp-123": 12},
+            "sources": {"telegram": 8, "bale": 4},
+            "experimentVariants": {"creative-test-1:A": 8, "creative-test-1:B": 4},
+        }
+        state = {
+            "published": {
+                "dkp-123": {
+                    "creative_experiment_id": "creative-test-1",
+                    "creative_variant": "A",
+                    "telegram_message_id": 123,
+                    "delivery_status": {"telegram": "sent"},
+                },
+                "dkp-456": {
+                    "creative_experiment_id": "creative-test-1",
+                    "creative_variant": "B",
+                    "bale_message_id": 456,
+                    "delivery_status": {"bale": "sent"},
+                },
+            }
+        }
+        report = radar_module.build_performance_report(state, click_snapshot=snapshot)
+        self.assertEqual(report["tracked_clicks_by_source"], {"telegram": 8, "bale": 4})
+        self.assertEqual(report["tracked_clicks_by_experiment_variant"], {
+            "creative-test-1:A": 8, "creative-test-1:B": 4
+        })
+        self.assertEqual(report["creative_variant_comparison"]["creative-test-1:A"]["published_posts"], 1)
+        self.assertIsNone(report["ctr"])
+        self.assertIsNone(report["orders"])
+        self.assertIsNone(report["sales_amount"])
+        self.assertIsNone(report["approved_commission")
