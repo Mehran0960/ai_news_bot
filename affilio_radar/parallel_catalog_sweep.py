@@ -164,11 +164,12 @@ def _next_worker_limit(
     rate_limited_count: int,
     retry_count: int,
 ) -> int:
-    """AIMD-style controller: +2 on clean batches, faster decrease on failures.
+    """Ramp through 12, 14, 16 on clean batches; back off on failures.
 
-    A single 429 backs off by two workers; three or more rate limits, or three
-    or more transient failures, halve concurrency. Any other retry backs off
-    by one. The requested worker count remains a hard ceiling.
+    Below 12 workers, increase by two but stop at 12. Then test 14 and 16
+    explicitly. A single 429 backs off by two workers; three or more rate
+    limits, or three or more transient failures, halve concurrency. Any other
+    retry backs off by one. The requested worker count remains a hard ceiling.
     """
     ceiling = max(1, min(32, base._normal_int(requested, 1)))
     current_limit = max(1, min(ceiling, base._normal_int(current, ceiling)))
@@ -179,7 +180,13 @@ def _next_worker_limit(
         return max(floor, current_limit - 2)
     if retry_count:
         return max(floor, current_limit - 1)
-    return min(ceiling, current_limit + 2)
+    if current_limit < 12:
+        return min(ceiling, 12, current_limit + 2)
+    if current_limit < 14:
+        return min(ceiling, 14)
+    if current_limit < 16:
+        return min(ceiling, 16)
+    return min(ceiling, current_limit)
 
 def _ensure_parallel_state(state: dict) -> list[dict]:
     categories = state.get("categories", [])
