@@ -29,7 +29,24 @@ CANDIDATES_PATH = ROOT / "catalog_sweep_candidates.json"
 PUBLISHER_STATE_PATH = ROOT / "state.json"
 DEFAULT_PAGES_PER_RUN = 480
 DEFAULT_WORKERS = 16
+WORKER_RAMP_POLICY_VERSION = "explicit_12_14_16_v1"
 _thread_local = threading.local()
+
+
+def _apply_worker_ramp_policy(state: dict, current: int, requested: int) -> int:
+    """Normalize one legacy checkpoint to the explicit 12/14/16 trial ladder.
+
+    Older adaptive runs could leave 13, 15, or 16 as the next limit. On the
+    first run with this policy, restart any legacy value above 12 at 12.
+    Once the policy marker is persisted, later 14/16 steps remain intact.
+    """
+    ceiling = max(1, min(32, base._normal_int(requested, 1)))
+    limit = max(1, min(ceiling, base._normal_int(current, ceiling)))
+    if state.get("parallel_worker_ramp_policy_version") != WORKER_RAMP_POLICY_VERSION:
+        if limit > 12 and ceiling >= 12:
+            limit = 12
+        state["parallel_worker_ramp_policy_version"] = WORKER_RAMP_POLICY_VERSION
+    return limit
 
 
 def _session() -> requests.Session:
@@ -502,6 +519,7 @@ def run_parallel_sweep(
     saved_limit = base._normal_int(state.get("parallel_worker_limit"), requested_workers)
     if saved_limit > 0:
         worker_limit = max(1, min(requested_workers, saved_limit))
+    worker_limit = _apply_worker_ramp_policy(state, worker_limit, requested_workers)
     # Persist the capacity actually assigned to this batch separately from the
     # next batch's adaptive limit; otherwise telemetry reports the future limit.
     worker_limit_before = worker_limit

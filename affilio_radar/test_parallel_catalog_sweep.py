@@ -14,6 +14,26 @@ except ImportError:  # unittest discovery from the workflow's affilio_radar work
 
 
 class ParallelCatalogSweepTests(unittest.TestCase):
+    def test_legacy_worker_checkpoint_is_normalized_to_the_first_trial_level_once(self):
+        legacy = {}
+        self.assertEqual(sweep._apply_worker_ramp_policy(legacy, 13, 16), 12)
+        self.assertEqual(
+            legacy["parallel_worker_ramp_policy_version"],
+            sweep.WORKER_RAMP_POLICY_VERSION,
+        )
+        # The marker prevents the one-time reset from undoing later 14/16 steps.
+        self.assertEqual(sweep._apply_worker_ramp_policy(legacy, 14, 16), 14)
+        self.assertEqual(sweep._apply_worker_ramp_policy(legacy, 16, 16), 16)
+
+    def test_legacy_checkpoint_below_12_is_preserved_for_gradual_ramp(self):
+        state = {}
+        self.assertEqual(sweep._apply_worker_ramp_policy(state, 9, 16), 9)
+        self.assertEqual(sweep._apply_worker_ramp_policy(state, 11, 16), 11)
+
+    def test_legacy_checkpoint_respects_a_lower_requested_ceiling(self):
+        state = {}
+        self.assertEqual(sweep._apply_worker_ramp_policy(state, 13, 10), 10)
+
     def test_clean_worker_ramp_uses_the_12_14_16_trial_points(self):
         # The preceding legacy run may have left the saved limit at 11.
         self.assertEqual(sweep._next_worker_limit(11, 16, 0, 0), 12)
