@@ -3,7 +3,7 @@
     "all_time_count": 5307,
     "current_selection_count": 0,
     "current_selection_events": [],
-    "last_7_days_count": 500,
+    "last_7_days_count": 476,
     "recent_events": [
       {
         "at": "2026-11-02T15:48:34.018426+00:00",
@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T12:27:28.575582+00:00",
+  "generated_at": "2026-11-09T12:58:06.382402+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آرایش چشم": 1,
@@ -110,7 +110,6 @@
       "ماسک صورت و بدن": 1,
       "محصولات بومی و محلی": 2,
       "مداد چشم": 1,
-      "مهر و استامپ": 1,
       "مکمل غذایی": 1,
       "ورزش های توپی": 1,
       "کتاب رمان و ادبیات داستانی و نمایشی": 1,
@@ -118,27 +117,29 @@
     },
     "category_post_counts": {
       "audio_wearables": 1,
+      "beauty_fragrance": 1,
       "books_stationery": 2,
       "fashion": 1,
       "kids_sports": 1,
-      "other": 13,
+      "other": 12,
       "personal_care": 4,
       "sports_outdoor": 2
     },
     "category_share_percent": {
       "audio_wearables": 4.2,
+      "beauty_fragrance": 4.2,
       "books_stationery": 8.3,
       "fashion": 4.2,
       "kids_sports": 4.2,
-      "other": 54.2,
+      "other": 50.0,
       "personal_care": 16.7,
       "sports_outdoor": 8.3
     },
-    "distinct_catalog_categories": 15,
-    "distinct_categories": 7,
+    "distinct_catalog_categories": 14,
+    "distinct_categories": 8,
     "distinct_families": 20,
     "distinct_retailers": 1,
-    "distinct_use_cases": 14,
+    "distinct_use_cases": 13,
     "known_brand_posts": 2,
     "posts": 24,
     "repeated_brand_count": 0,
@@ -159,8 +160,7 @@
       "home_living": 1,
       "local_goods": 2,
       "mobile_productivity": 2,
-      "office_study": 1,
-      "personal_care": 3,
+      "personal_care": 4,
       "sports_fitness": 2,
       "tabletop_games": 1,
       "tools_industrial": 3
@@ -331,7 +331,7 @@
     "category_post_counts": {
       "audio_wearables": 19,
       "automotive": 22,
-      "beauty_fragrance": 5,
+      "beauty_fragrance": 6,
       "books_stationery": 15,
       "computer_network": 5,
       "digital_accessories": 4,
@@ -344,7 +344,7 @@
       "large_appliances": 10,
       "mobile_devices": 2,
       "other": 102,
-      "personal_care": 36,
+      "personal_care": 35,
       "pet_supplies": 1,
       "power_backup": 9,
       "sports_outdoor": 30,
@@ -353,7 +353,7 @@
     "category_share_percent": {
       "audio_wearables": 5.4,
       "automotive": 6.3,
-      "beauty_fragrance": 1.4,
+      "beauty_fragrance": 1.7,
       "books_stationery": 4.3,
       "computer_network": 1.4,
       "digital_accessories": 1.1,
@@ -366,7 +366,7 @@
       "large_appliances": 2.9,
       "mobile_devices": 0.6,
       "other": 29.2,
-      "personal_care": 10.3,
+      "personal_care": 10.0,
       "pet_supplies": 0.3,
       "power_backup": 2.6,
       "sports_outdoor": 8.6,
@@ -437,48 +437,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 118,
-    "last_7_days_count": 118,
+    "all_time_count": 120,
+    "last_7_days_count": 120,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 118,
-      "similarity_repeat": 118
+      "family_repeat": 120,
+      "similarity_repeat": 120
     },
     "recent_events": [
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-17079013",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب کننده دست و صورت نئودرم مدل Optimal مناسب برای پوست های نرمال تا خشک حجم 150 میلی لیتر",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "computer_network",
-        "compared_to_product_id": "dkp-21372366",
-        "family": "computer_network:keyboards",
-        "product_id": "dkp-22109767",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کیبورد و ماوس بی‌سیم هیسکا مدل H-MK25",
-        "use_case": "general"
-      },
       {
         "at": "2026-11-09T09:44:39.104379+00:00",
         "brand": "",
@@ -787,6 +753,40 @@
         ],
         "title": "جوراب ساق بلند مردانه پالوته مدل PLT-3COL-LN بسته 3 عددی",
         "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T12:58:06.382402+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-5692029",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "جوراب ساق کوتاه مردانه پالوته مدل PM-NNN مجموعه 3 عددی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T12:58:06.382402+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-1901503",
+        "family": "beauty_fragrance:fragrance",
+        "product_id": "dkp-22700244",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم زنانه زدفون مدل ویکتوریا سکرت بامب شل با رایحه خنک حجم 30 میلی لیتر",
+        "use_case": "personal_care"
       }
     ]
   }
