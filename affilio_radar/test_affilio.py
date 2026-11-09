@@ -3143,6 +3143,38 @@ class AffilioRadarTests(unittest.TestCase):
             deal_sort_key(same_best_seller_different_clicks, now),
         )
 
+        # Affiliate revenue fields are intentionally ignored by market-demand ranking.
+        high_commission_only = {
+            **base,
+            "affiliate_commission_toman": 999_999_999,
+            "commission_toman": 999_999_999,
+            "commission_rate_percent": 99,
+        }
+        self.assertEqual(
+            deal_sort_key(base, now),
+            deal_sort_key(high_commission_only, now),
+        )
+        lower_rank_high_commission = {
+            **base,
+            "catalog_best_selling_rank": 55,
+            "catalog_best_selling_ranks_by_category": {
+                "100": {"rank": 55, "observed_at": now.isoformat()},
+            },
+            "affiliate_commission_toman": 999_999_999,
+            "commission_toman": 999_999_999,
+            "commission_rate_percent": 99,
+        }
+        top_rank_zero_commission = {
+            **very_high_bestseller,
+            "affiliate_commission_toman": 0,
+            "commission_toman": 0,
+            "commission_rate_percent": 0,
+        }
+        self.assertGreater(
+            deal_sort_key(top_rank_zero_commission, now),
+            deal_sort_key(lower_rank_high_commission, now),
+        )
+
     def test_discount_value_gate_rejects_unverified_markdowns_and_accepts_fresh_evidence(self):
         now = datetime.now(timezone.utc)
         unverified_10_percent = {
