@@ -277,5 +277,5 @@
 - تغییرات از طریق PR شمارهٔ ۱۳۵ در `main` ادغام شده‌اند؛ head نهایی PR با SHA کوتاه `323d0e42` و merge commit در شاخهٔ اصلی ثبت شده است.
 - گیت‌های Python regression، Node Worker attribution، catalog regression، Documentation Gate، Platform Logo و Messenger Adapter در PR موفق شدند.
 - Worker `affiliate-deal-radar` در Cloudflare با deployment ID `ab6ae47e9f204c91bfd823caca497682` به‌روزرسانی شد؛ binding اصلی KV با نام `CLICKS` و تنظیمات redaction/observability حفظ شدند.
-- Workflow smoke جدید اکنون `experimentAttribution` و قالب‌های A/B را نیز در محیط production بررسی می‌کند. نتیجهٔ نهایی همین اجرا باید قبل از اعلام تأیید کامل زنده ثبت شود.
+- Workflow smoke جدید در run `42564719064` با نتیجهٔ success، `experimentAttribution`، redirect امن و تفکیک محصول/منبع/نسخه در /stats را در محیط production تأیید کرد.
 - پس از تأیید smoke، مرحلهٔ عملیاتی بعدی پایش چرخه‌های واقعی انتخاب و انتشار و تحلیل عملکرد A/B است.
