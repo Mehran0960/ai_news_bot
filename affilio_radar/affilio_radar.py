@@ -6540,10 +6540,10 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     normalized = title.lower().replace("\u200c", " ")
     family_match_text = (normalized + " " + catalog_text.lower()).strip()
     brand_search_text = (family_match_text + " " + explicit_brand.lower()).strip()
-    category = classify_category(normalized)
+    title_category = classify_category(normalized)
     catalog_category = classify_category(catalog_text.lower()) if catalog_text else "other"
-    if category == "other" and catalog_category != "other":
-        category = catalog_category
+    # Official DigiKala taxonomy has priority over heuristic title classification.
+    category = catalog_category if catalog_category != "other" else title_category
     family_patterns = {
         "lighting": [
             ("desk_lighting", r"چراغ مطالعه|چراغ خواب"),
@@ -6682,10 +6682,6 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     catalog_category_id = str(catalog_context.get("id") or "").strip()
     if catalog_category_id:
         family = f"digikala_category:{catalog_category_id}"
-    elif family == category:
-        family_tokens = sorted(_publication_similarity_tokens(product_or_title))
-        if family_tokens:
-            family = f"{category}:tokens_{'_'.join(family_tokens[:3])}"
     # Keep use-case as an independent dimension in history/reporting; do not let
     # it split one DigiKala family into separate cooldown buckets.
     brand_hints = [
@@ -7225,10 +7221,12 @@ def _publication_similarity_tokens(product_or_title) -> set[str]:
 
 def _publication_family_guard_key(product_or_record) -> str:
     """Return a stable family key using the real taxonomy where available."""
-    _, family, _ = _publication_diversity_group(product_or_record)
-    if family in {"", "other", "unknown"}:
-        return ""
-    return family
+    category, family, _ = _publication_diversity_group(product_or_record)
+    if family.startswith("digikala_category:"):
+        return family
+    if _is_specific_product_family(category, family):
+        return family
+    return ""
 
 
 def _publication_products_are_similar(left, right) -> bool:
