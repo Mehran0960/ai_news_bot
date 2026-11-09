@@ -78,6 +78,7 @@ export default {
         ok: true,
         service: "affiliate-deal-radar",
         clickStoreReady: !!env.CLICKS,
+        experimentAttribution: true,
         routes: ["/health", "/stats", "/p/<dkp-or-snp-product-id>?u=<verified-aflo-link>&src=<telegram|bale|youtube|aparat>&exp=<experiment>&variant=<a|b>"],
         stats: "Aggregated product and source click counts for the last 30 days only"
       });
