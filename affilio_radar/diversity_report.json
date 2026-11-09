@@ -97,10 +97,9 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T17:12:46.081320+00:00",
+  "generated_at": "2026-11-09T17:45:40.012412+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
-      "آرایش چشم": 1,
       "تی شرت مردانه": 1,
       "صبحانه": 1,
       "محصولات بومی و محلی": 2,
@@ -115,8 +114,8 @@
       "digital_accessories": 1,
       "fashion": 1,
       "other": 15,
-      "personal_care": 3,
-      "sports_outdoor": 1
+      "personal_care": 2,
+      "sports_outdoor": 2
     },
     "category_share_percent": {
       "audio_wearables": 4.2,
@@ -125,10 +124,10 @@
       "digital_accessories": 4.2,
       "fashion": 4.2,
       "other": 62.5,
-      "personal_care": 12.5,
-      "sports_outdoor": 4.2
+      "personal_care": 8.3,
+      "sports_outdoor": 8.3
     },
-    "distinct_catalog_categories": 7,
+    "distinct_catalog_categories": 6,
     "distinct_categories": 8,
     "distinct_families": 14,
     "distinct_retailers": 1,
@@ -153,8 +152,8 @@
       "kitchen_food": 1,
       "local_goods": 2,
       "mobile_productivity": 4,
-      "personal_care": 2,
-      "sports_fitness": 2
+      "personal_care": 1,
+      "sports_fitness": 3
     }
   },
   "last_7_days": {
@@ -337,7 +336,7 @@
       "personal_care": 34,
       "pet_supplies": 1,
       "power_backup": 9,
-      "sports_outdoor": 30,
+      "sports_outdoor": 31,
       "tv_audio_video": 2
     },
     "category_share_percent": {
@@ -349,8 +348,8 @@
       "digital_accessories": 1.1,
       "fashion": 14.6,
       "gaming": 0.6,
-      "home": 3.2,
-      "home_cleaning": 3.2,
+      "home": 3.1,
+      "home_cleaning": 3.1,
       "jewelry": 0.9,
       "kids_sports": 2.0,
       "large_appliances": 2.6,
@@ -359,7 +358,7 @@
       "personal_care": 9.7,
       "pet_supplies": 0.3,
       "power_backup": 2.6,
-      "sports_outdoor": 8.6,
+      "sports_outdoor": 8.9,
       "tv_audio_video": 0.6
     },
     "distinct_catalog_categories": 158,
@@ -368,7 +367,7 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 25,
     "known_brand_posts": 62,
-    "posts": 349,
+    "posts": 350,
     "repeated_brand_count": 49,
     "repeated_brands": {
       "ai_javaher": 8,
@@ -382,7 +381,7 @@
       "ufc": 12
     },
     "retailer_post_counts": {
-      "digikala": 349
+      "digikala": 350
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -410,7 +409,7 @@
       "outdoor_travel": 6,
       "personal_care": 32,
       "pet_care": 1,
-      "sports_fitness": 31,
+      "sports_fitness": 32,
       "tabletop_games": 1,
       "tools_industrial": 18
     }
@@ -428,50 +427,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 132,
-    "last_7_days_count": 132,
+    "all_time_count": 134,
+    "last_7_days_count": 134,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 132,
-      "similarity_repeat": 132
+      "family_repeat": 134,
+      "similarity_repeat": 134
     },
     "recent_events": [
-      {
-        "at": "2026-11-09T11:55:27.144970+00:00",
-        "brand": "muzik_apollo",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "audio_wearables",
-        "compared_to_product_id": "dkp-23000078",
-        "family": "audio_wearables:headphones",
-        "product_id": "dkp-23096756",
-        "reason": "family_repeat,brand_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "brand_repeat",
-          "similarity_repeat"
-        ],
-        "title": "هدفون بلوتوثی موزیک آپولو مدل KOT/39",
-        "use_case": "audio_visual"
-      },
-      {
-        "at": "2026-11-09T11:55:27.144970+00:00",
-        "brand": "muzik_apollo",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "audio_wearables",
-        "compared_to_product_id": "dkp-23000078",
-        "family": "audio_wearables:headphones",
-        "product_id": "dkp-22938123",
-        "reason": "family_repeat,brand_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "brand_repeat",
-          "similarity_repeat"
-        ],
-        "title": "هدفون بلوتوثی موزیک آپولو مدل CCD--K2",
-        "use_case": "audio_visual"
-      },
       {
         "at": "2026-11-09T11:55:27.144970+00:00",
         "brand": "muzik_apollo",
@@ -777,6 +740,40 @@
           "similarity_repeat"
         ],
         "title": "ست 3 تکه لباس راحتی بچگانه مدل دخترک کد 2",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T17:45:40.012412+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "computer_network",
+        "compared_to_product_id": "dkp-13804774",
+        "family": "computer_network:mice",
+        "product_id": "dkp-20914795",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ماوس گیمینگ پی های تک مدل RG315 Max Edition",
+        "use_case": "gaming"
+      },
+      {
+        "at": "2026-11-09T17:45:40.012412+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-15924722",
+        "family": "fashion:footwear",
+        "product_id": "dkp-4877073",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش روزمره مردانه شوپا مدل Br - 300636",
         "use_case": "fashion_lifestyle"
       }
     ]
