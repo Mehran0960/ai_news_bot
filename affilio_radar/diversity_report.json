@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T11:55:27.144970+00:00",
+  "generated_at": "2026-11-09T12:27:28.575582+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آرایش چشم": 1,
@@ -106,7 +106,6 @@
       "تی شرت مردانه": 1,
       "خواب": 1,
       "صبحانه": 1,
-      "لوازم اداری": 1,
       "لوازم یدکی ابزار برقی": 2,
       "ماسک صورت و بدن": 1,
       "محصولات بومی و محلی": 2,
@@ -135,9 +134,9 @@
       "personal_care": 16.7,
       "sports_outdoor": 8.3
     },
-    "distinct_catalog_categories": 16,
+    "distinct_catalog_categories": 15,
     "distinct_categories": 7,
-    "distinct_families": 21,
+    "distinct_families": 20,
     "distinct_retailers": 1,
     "distinct_use_cases": 14,
     "known_brand_posts": 2,
@@ -154,13 +153,13 @@
       "audio_visual": 1,
       "books_learning": 2,
       "fashion_lifestyle": 1,
-      "general": 2,
+      "general": 3,
       "grocery_food": 1,
       "health_wellness": 1,
       "home_living": 1,
       "local_goods": 2,
       "mobile_productivity": 2,
-      "office_study": 2,
+      "office_study": 1,
       "personal_care": 3,
       "sports_fitness": 2,
       "tabletop_games": 1,
@@ -330,8 +329,8 @@
       "گیمینگ": 1
     },
     "category_post_counts": {
-      "audio_wearables": 20,
-      "automotive": 23,
+      "audio_wearables": 19,
+      "automotive": 22,
       "beauty_fragrance": 5,
       "books_stationery": 15,
       "computer_network": 5,
@@ -344,7 +343,7 @@
       "kids_sports": 7,
       "large_appliances": 10,
       "mobile_devices": 2,
-      "other": 101,
+      "other": 102,
       "personal_care": 36,
       "pet_supplies": 1,
       "power_backup": 9,
@@ -352,21 +351,21 @@
       "tv_audio_video": 2
     },
     "category_share_percent": {
-      "audio_wearables": 5.7,
-      "automotive": 6.6,
+      "audio_wearables": 5.4,
+      "automotive": 6.3,
       "beauty_fragrance": 1.4,
       "books_stationery": 4.3,
       "computer_network": 1.4,
       "digital_accessories": 1.1,
       "fashion": 14.9,
       "gaming": 0.9,
-      "home": 3.1,
-      "home_cleaning": 3.1,
+      "home": 3.2,
+      "home_cleaning": 3.2,
       "jewelry": 0.9,
       "kids_sports": 2.0,
       "large_appliances": 2.9,
       "mobile_devices": 0.6,
-      "other": 28.9,
+      "other": 29.2,
       "personal_care": 10.3,
       "pet_supplies": 0.3,
       "power_backup": 2.6,
@@ -379,7 +378,7 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 25,
     "known_brand_posts": 61,
-    "posts": 350,
+    "posts": 349,
     "repeated_brand_count": 48,
     "repeated_brands": {
       "ai_javaher": 8,
@@ -392,7 +391,7 @@
       "ufc": 12
     },
     "retailer_post_counts": {
-      "digikala": 350
+      "digikala": 349
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -400,14 +399,14 @@
     "use_case_post_counts": {
       "arts_crafts": 1,
       "audio_visual": 20,
-      "automotive": 38,
+      "automotive": 36,
       "baby_care": 6,
       "books_learning": 13,
       "catalog_taxonomy_other": 16,
       "events_decor": 3,
       "fashion_lifestyle": 35,
       "gaming": 5,
-      "general": 12,
+      "general": 13,
       "grocery_food": 12,
       "health_wellness": 4,
       "home_cleaning": 11,
@@ -438,65 +437,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 115,
-    "last_7_days_count": 115,
+    "all_time_count": 118,
+    "last_7_days_count": 118,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 115,
-      "similarity_repeat": 115
+      "family_repeat": 118,
+      "similarity_repeat": 118
     },
     "recent_events": [
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-1002646",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم نرم کننده مو پرایم مدل Kera Moist حجم 120 میلی لیتر1002646",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22921454",
-        "family": "fashion:footwear",
-        "product_id": "dkp-22741809",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "صندلی سفری تاشو دورنا کمپ مدل pluas ارتفاع پایه 50 سانتی متر",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-09T04:51:10.710849+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "audio_wearables",
-        "compared_to_product_id": "dkp-23000078",
-        "family": "audio_wearables:headphones",
-        "product_id": "dkp-16796346",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "هدفون بلوتوثی تی سی اچ مدل D6 Sound Hunt",
-        "use_case": "general"
-      },
       {
         "at": "2026-11-09T04:51:10.710849+00:00",
         "brand": "",
@@ -788,6 +736,57 @@
         ],
         "title": "هدفون بلوتوثی موزیک آپولو مدل YRB/22",
         "use_case": "audio_visual"
+      },
+      {
+        "at": "2026-11-09T12:27:28.575582+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-5692029",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "جوراب ساق کوتاه مردانه پالوته مدل PM-NNN مجموعه 3 عددی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T12:27:28.575582+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-1901503",
+        "family": "beauty_fragrance:fragrance",
+        "product_id": "dkp-22700244",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم زنانه زدفون مدل ویکتوریا سکرت بامب شل با رایحه خنک حجم 30 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-09T12:27:28.575582+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-5927887",
+        "family": "fashion:socks",
+        "product_id": "dkp-22403708",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "جوراب ساق بلند مردانه پالوته مدل PLT-3COL-LN بسته 3 عددی",
+        "use_case": "fashion_lifestyle"
       }
     ]
   }
