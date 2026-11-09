@@ -175,6 +175,19 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "ts": now.timestamp(),
         "title": str(item.get("title") or "پیشنهاد منتخب آفرچین"),
         "brand": str(item.get("brand") or item.get("brand_name") or ""),
+        "publication_category": radar._publication_diversity_group(item)[0],
+        "publication_family": radar._publication_diversity_group(item)[1],
+        "publication_use_case": radar._publication_use_case_group(item),
+        "catalog_category_id": str(item.get("catalog_category_id") or ""),
+        "catalog_category_name": str(item.get("catalog_category_name") or ""),
+        "catalog_category_ids": list(item.get("catalog_category_ids") or []),
+        "catalog_category_path": item.get("catalog_category_path") or item.get("category_path") or "",
+        "catalog_best_selling_category_id": str(item.get("catalog_best_selling_category_id") or ""),
+        "catalog_best_selling_category_name": str(item.get("catalog_best_selling_category_name") or ""),
+        "catalog_best_selling_ranks_by_category": (
+            dict(item.get("catalog_best_selling_ranks_by_category"))
+            if isinstance(item.get("catalog_best_selling_ranks_by_category"), dict) else {}
+        ),
         "product_url": str(item.get("product_url") or ""),
         "image_url": str(item.get("image_url") or ""),
         "video_generation_status": "pending",
@@ -325,9 +338,10 @@ def _fresh_selected_item(
         "click_count_30d", "market_status", "market_reference_kind",
         "market_reference_price_toman", "market_price_advantage_pct", "market_price_checked_at",
         "market_match_score", "market_seller_count", "catalog_sort_mode",
-        "catalog_best_selling_rank", "catalog_best_selling_category_id",
-        "catalog_best_selling_category_name", "catalog_rank_observed_at",
-        "catalog_cycle_completed_at", "catalog_cycle_snapshot_rank",
+        "catalog_best_selling_rank", "catalog_category_id", "catalog_category_name",
+        "catalog_category_ids", "catalog_category_path", "catalog_best_selling_ranks_by_category",
+        "catalog_best_selling_category_id", "catalog_best_selling_category_name",
+        "catalog_rank_observed_at", "catalog_cycle_completed_at", "catalog_cycle_snapshot_rank",
         "publication_policy", "selection_review_growth_evidence", "selection_value_evidence",
         "selection_fallback_mode",
     ):
