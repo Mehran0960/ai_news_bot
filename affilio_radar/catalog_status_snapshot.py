@@ -146,8 +146,15 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
     product_rows_success = _integer(payload.get("product_rows_success"))
 
     candidate_ids: list[str] = []
+    candidate_order_policy = str(
+        payload.get("candidate_order_policy") or "discount_value_desc"
+    )
+    supported_order_policies = {
+        "discount_value_desc",
+        "catalog_demand_first_v1",
+    }
     previous_sort_key: tuple[int, int] | None = None
-    rows_valid = True
+    rows_valid = candidate_order_policy in supported_order_policies
     for rank, row in enumerate(rows, start=1):
         if not isinstance(row, dict):
             rows_valid = False
@@ -167,11 +174,16 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
         if discount < 1:
             rows_valid = False
             break
-        sort_key = (discount, savings)
-        if previous_sort_key is not None and sort_key > previous_sort_key:
-            rows_valid = False
-            break
-        previous_sort_key = sort_key
+        if candidate_order_policy == "discount_value_desc":
+            sort_key = (discount, savings)
+            if previous_sort_key is not None and sort_key > previous_sort_key:
+                rows_valid = False
+                break
+            previous_sort_key = sort_key
+        # catalog_demand_first_v1 is intentionally not re-sorted or checked
+        # against discount: native category bestseller evidence is primary.
+        # Snapshot rank continuity, source-cycle timestamps, unique IDs and
+        # the status-file SHA-256 still protect the immutable candidate order.
         candidate_ids.append(product_id)
 
     valid = bool(
