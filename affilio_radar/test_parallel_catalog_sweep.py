@@ -64,6 +64,17 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             ["dkp-native-rank-4", "dkp-native-rank-55", "dkp-no-fresh-rank"],
         )
 
+    def test_parallel_scan_summary_reports_the_real_demand_first_order(self):
+        source = Path(sweep.__file__).read_text(encoding="utf-8")
+        self.assertIn(
+            "sort=demand_score,bestseller_rank,discount_percent,savings_toman",
+            source,
+        )
+        self.assertNotIn(
+            "sort=discount_percent_desc,savings_toman_desc",
+            source,
+        )
+
     def test_initial_queue_starts_every_category_at_page_one_even_with_old_cursor(self):
         categories = [
             {"id": "1", "name": "mobile"},
