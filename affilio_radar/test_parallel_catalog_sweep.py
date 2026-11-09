@@ -14,7 +14,7 @@ except ImportError:  # unittest discovery from the workflow's affilio_radar work
 
 
 class ParallelCatalogSweepTests(unittest.TestCase):
-    def test_parallel_candidate_buffer_keeps_global_highest_discounts(self):
+    def test_parallel_candidate_buffer_keeps_demand_context_before_discount(self):
         rows = [
             {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i, "discount_percent": 20, "savings_toman": 200_000}
             for i in range(1, 6)
@@ -23,7 +23,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             {"product_id": "dkp-30", "catalog_category_id": "30", "catalog_category_ids": ["30"], "review_count": 1, "discount_percent": 95, "savings_toman": 950_000},
         ]
         retained = sweep.base.retain_diverse_candidates(rows, limit=4)
-        self.assertEqual([row["product_id"] for row in retained], ["dkp-20", "dkp-30", "dkp-1", "dkp-2"])
+        self.assertEqual([row["product_id"] for row in retained], ["dkp-1", "dkp-2", "dkp-3", "dkp-4"])
 
     def test_initial_queue_starts_every_category_at_page_one_even_with_old_cursor(self):
         categories = [
