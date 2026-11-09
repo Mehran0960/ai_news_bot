@@ -138,7 +138,7 @@ def annotate_shadow_demand_evidence(
             "maximum_age_hours": DIGIKALA_BESTSELLER_MAX_AGE_HOURS,
         },
         "cross_category_comparability": (
-            "not_comparable: raw bestseller ranks are valid only inside the same DigiKala category"
+            "not comparable: raw bestseller ranks are valid only inside the same DigiKala category"
         ),
         "excluded_sources": ["Torob trends", "SnappShop", "Google Trends", "review-growth proxy"],
         "generated_at": current.isoformat(),
