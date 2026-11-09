@@ -6573,7 +6573,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(radar_module.caption_experiment_assignment("not-a-product"), ("", "A"))
 
-    def test_performance_report_never_infers_ctr_sales_or_commission_from_clicks):
+    def test_performance_report_never_infers_ctr_sales_or_commission_from_clicks(self):
         snapshot = {
             "ok": True,
             "complete": True,
