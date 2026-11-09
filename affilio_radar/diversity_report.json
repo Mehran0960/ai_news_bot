@@ -3,7 +3,7 @@
     "all_time_count": 5307,
     "current_selection_count": 0,
     "current_selection_events": [],
-    "last_7_days_count": 206,
+    "last_7_days_count": 116,
     "recent_events": [
       {
         "at": "2026-11-02T15:48:34.018426+00:00",
@@ -97,11 +97,10 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T14:33:54.714348+00:00",
+  "generated_at": "2026-11-09T15:05:42.750607+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آرایش چشم": 1,
-      "ابزار آلات و تجهیزات": 1,
       "تی شرت مردانه": 1,
       "صبحانه": 1,
       "لوازم یدکی ابزار برقی": 2,
@@ -130,9 +129,9 @@
       "personal_care": 12.5,
       "sports_outdoor": 8.3
     },
-    "distinct_catalog_categories": 11,
+    "distinct_catalog_categories": 10,
     "distinct_categories": 7,
-    "distinct_families": 17,
+    "distinct_families": 16,
     "distinct_retailers": 1,
     "distinct_use_cases": 12,
     "known_brand_posts": 2,
@@ -149,7 +148,7 @@
       "audio_visual": 1,
       "books_learning": 2,
       "fashion_lifestyle": 1,
-      "general": 5,
+      "general": 6,
       "grocery_food": 1,
       "health_wellness": 1,
       "kitchen_food": 1,
@@ -157,7 +156,7 @@
       "mobile_productivity": 2,
       "personal_care": 3,
       "sports_fitness": 2,
-      "tools_industrial": 3
+      "tools_industrial": 2
     }
   },
   "last_7_days": {
@@ -327,7 +326,7 @@
       "automotive": 22,
       "beauty_fragrance": 6,
       "books_stationery": 15,
-      "computer_network": 5,
+      "computer_network": 4,
       "digital_accessories": 4,
       "fashion": 51,
       "gaming": 2,
@@ -337,7 +336,7 @@
       "kids_sports": 7,
       "large_appliances": 9,
       "mobile_devices": 2,
-      "other": 105,
+      "other": 106,
       "personal_care": 34,
       "pet_supplies": 1,
       "power_backup": 9,
@@ -349,7 +348,7 @@
       "automotive": 6.3,
       "beauty_fragrance": 1.7,
       "books_stationery": 4.3,
-      "computer_network": 1.4,
+      "computer_network": 1.1,
       "digital_accessories": 1.1,
       "fashion": 14.7,
       "gaming": 0.6,
@@ -359,7 +358,7 @@
       "kids_sports": 2.0,
       "large_appliances": 2.6,
       "mobile_devices": 0.6,
-      "other": 30.2,
+      "other": 30.5,
       "personal_care": 9.8,
       "pet_supplies": 0.3,
       "power_backup": 2.6,
@@ -368,7 +367,7 @@
     },
     "distinct_catalog_categories": 159,
     "distinct_categories": 20,
-    "distinct_families": 195,
+    "distinct_families": 194,
     "distinct_retailers": 1,
     "distinct_use_cases": 25,
     "known_brand_posts": 61,
@@ -399,8 +398,8 @@
       "catalog_taxonomy_other": 16,
       "events_decor": 3,
       "fashion_lifestyle": 35,
-      "gaming": 4,
-      "general": 15,
+      "gaming": 3,
+      "general": 16,
       "grocery_food": 12,
       "health_wellness": 4,
       "home_cleaning": 11,
@@ -431,48 +430,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 125,
-    "last_7_days_count": 125,
+    "all_time_count": 127,
+    "last_7_days_count": 127,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 125,
-      "similarity_repeat": 125
+      "family_repeat": 127,
+      "similarity_repeat": 127
     },
     "recent_events": [
-      {
-        "at": "2026-11-09T10:17:03.580496+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-1901503",
-        "family": "beauty_fragrance:fragrance",
-        "product_id": "dkp-22619335",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "بادی اسپلش ولورا مدل فورمن حجم ۱۵۰میلی لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-09T10:17:03.580496+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-15385068",
-        "family": "fashion:apparel_tops",
-        "product_id": "dkp-23168191",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست تی شرت و شلوارک آستین کوتاه راحتی زنانه مدل میکا کد 23",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-09T10:49:04.444986+00:00",
         "brand": "",
@@ -781,6 +746,40 @@
         ],
         "title": "عینک ایمنی کد 2S به همراه ماسک ایمنی",
         "use_case": "tools_industrial"
+      },
+      {
+        "at": "2026-11-09T15:05:42.750607+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "audio_wearables",
+        "compared_to_product_id": "dkp-23000078",
+        "family": "audio_wearables:headphones",
+        "product_id": "dkp-8164895",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "هدفون بلوتوثی مدل M10 newest",
+        "use_case": "audio_visual"
+      },
+      {
+        "at": "2026-11-09T15:05:42.750607+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-15385068",
+        "family": "fashion:apparel_tops",
+        "product_id": "dkp-14857780",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست تی شرت و شلوارک مردانه مدل 14",
+        "use_case": "fashion_lifestyle"
       }
     ]
   }
