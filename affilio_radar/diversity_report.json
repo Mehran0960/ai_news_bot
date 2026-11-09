@@ -3,7 +3,7 @@
     "all_time_count": 5307,
     "current_selection_count": 0,
     "current_selection_events": [],
-    "last_7_days_count": 371,
+    "last_7_days_count": 294,
     "recent_events": [
       {
         "at": "2026-11-02T15:48:34.018426+00:00",
@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-09T13:30:52.283071+00:00",
+  "generated_at": "2026-11-09T14:02:30.985816+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آرایش چشم": 1,
@@ -106,7 +106,6 @@
       "خواب": 1,
       "صبحانه": 1,
       "لوازم یدکی ابزار برقی": 2,
-      "ماسک صورت و بدن": 1,
       "محصولات بومی و محلی": 2,
       "مداد چشم": 1,
       "مکمل غذایی": 1,
@@ -119,8 +118,8 @@
       "beauty_fragrance": 1,
       "books_stationery": 2,
       "fashion": 1,
-      "other": 13,
-      "personal_care": 4,
+      "other": 14,
+      "personal_care": 3,
       "sports_outdoor": 2
     },
     "category_share_percent": {
@@ -128,13 +127,13 @@
       "beauty_fragrance": 4.2,
       "books_stationery": 8.3,
       "fashion": 4.2,
-      "other": 54.2,
-      "personal_care": 16.7,
+      "other": 58.3,
+      "personal_care": 12.5,
       "sports_outdoor": 8.3
     },
-    "distinct_catalog_categories": 13,
+    "distinct_catalog_categories": 12,
     "distinct_categories": 7,
-    "distinct_families": 19,
+    "distinct_families": 18,
     "distinct_retailers": 1,
     "distinct_use_cases": 13,
     "known_brand_posts": 2,
@@ -151,14 +150,14 @@
       "audio_visual": 1,
       "books_learning": 2,
       "fashion_lifestyle": 1,
-      "general": 3,
+      "general": 4,
       "grocery_food": 1,
       "health_wellness": 1,
       "home_living": 1,
       "kitchen_food": 1,
       "local_goods": 2,
       "mobile_productivity": 2,
-      "personal_care": 4,
+      "personal_care": 3,
       "sports_fitness": 2,
       "tools_industrial": 3
     }
@@ -338,9 +337,9 @@
       "home_cleaning": 11,
       "jewelry": 3,
       "kids_sports": 7,
-      "large_appliances": 10,
+      "large_appliances": 9,
       "mobile_devices": 2,
-      "other": 103,
+      "other": 104,
       "personal_care": 35,
       "pet_supplies": 1,
       "power_backup": 9,
@@ -360,9 +359,9 @@
       "home_cleaning": 3.2,
       "jewelry": 0.9,
       "kids_sports": 2.0,
-      "large_appliances": 2.9,
+      "large_appliances": 2.6,
       "mobile_devices": 0.6,
-      "other": 29.5,
+      "other": 29.8,
       "personal_care": 10.0,
       "pet_supplies": 0.3,
       "power_backup": 2.6,
@@ -396,14 +395,14 @@
     "use_case_post_counts": {
       "arts_crafts": 1,
       "audio_visual": 20,
-      "automotive": 36,
+      "automotive": 35,
       "baby_care": 6,
       "books_learning": 13,
       "catalog_taxonomy_other": 16,
       "events_decor": 3,
       "fashion_lifestyle": 35,
       "gaming": 5,
-      "general": 13,
+      "general": 14,
       "grocery_food": 12,
       "health_wellness": 4,
       "home_cleaning": 11,
@@ -434,31 +433,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 121,
-    "last_7_days_count": 121,
+    "all_time_count": 122,
+    "last_7_days_count": 122,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 121,
-      "similarity_repeat": 121
+      "family_repeat": 122,
+      "similarity_repeat": 122
     },
     "recent_events": [
-      {
-        "at": "2026-11-09T09:44:39.104379+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-1901503",
-        "family": "beauty_fragrance:fragrance",
-        "product_id": "dkp-20830896",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادوپرفیوم زنانه لا ریو مدل IN Woman با رایحه گرم حجم 90 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-09T09:44:39.104379+00:00",
         "brand": "",
@@ -784,6 +766,23 @@
         ],
         "title": "ست تی شرت و شلوارک مردانه مدل 14",
         "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-09T14:02:30.985816+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-8720946",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-860339",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "بذر کدو پوست کاغذی آذر سبزینه مدل A49",
+        "use_case": "office_study"
       }
     ]
   }
