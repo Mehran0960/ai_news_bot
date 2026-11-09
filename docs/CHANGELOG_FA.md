@@ -1472,3 +1472,19 @@
 
 **وضعیت:** تغییرات شاخه ثبت شده؛ CI در انتظار اجرا.
 
+## ۲۰۲۶-۱۱-۰۹ — جداسازی قفل CI اعتبارسنجی PR از اسکن زندهٔ کاتالوگ
+
+**هدف:** جلوگیری از قرارگرفتن تست‌های code-only یک PR پشت اجرای طولانی اسکن read-only کاتالوگ.
+
+**تغییر/اقدام:** در workflow اسکن کاتالوگ، PR validation اکنون از concurrency group مستقل `offerchin-digikala-catalog-sweep-pr-v1` استفاده می‌کند؛ اجرای main و workflow_dispatch همچنان در گروه عملیاتی موجود `offerchin-digikala-catalog-sweep-v3` سریالی می‌مانند. صف، workerها، cadence، retry و منطق crawler تغییر نکرده‌اند.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-digikala-catalog-sweep.yml`، این changelog و handbook.
+
+**آزمون و نتیجه:** اجرای PR قبلی در گروه مشترک pending بود؛ اجرای مجدد پس از جداسازی گروه در انتظار GitHub Actions است.
+
+**شواهد/شناسه:** PR #142، branch `feat/offerchin-daily-featured-offer-current-main-20261109`.
+
+**ریسک/بازگشت:** فقط قفل‌های validation و crawler از هم جدا شده‌اند؛ PR همچنان py_compile و regression tests را اجرا می‌کند. بازگشت با revert تغییر concurrency block ممکن است.
+
+**وضعیت:** تغییر شاخه ثبت شد؛ CI مجدد در انتظار.
+
