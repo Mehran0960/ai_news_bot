@@ -554,6 +554,7 @@ def _click_tracker_is_healthy() -> bool:
             health_payload.get("ok") is not True
             or health_payload.get("clickStoreReady") is not True
             or health_payload.get("experimentAttribution") is not True
+            or health_payload.get("captionExperimentAttribution") is not True
         ):
             raise RuntimeError("tracker_health_or_experiment_attribution_not_ready")
 
