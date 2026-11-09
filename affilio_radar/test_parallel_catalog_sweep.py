@@ -145,6 +145,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
                 "current_price": 500_000,
                 "original_price": 1_000_000,
                 "discount_percent": 50,
+                "savings_toman": 500_000,
                 "availability": "in_stock",
                 "last_seen_at": now.isoformat(),
             }
@@ -152,6 +153,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
                 **original,
                 "current_price": 400_000,
                 "discount_percent": 60,
+                "savings_toman": 600_000,
                 "last_seen_at": now.isoformat(),
             }
             state_path.write_text(json.dumps({
@@ -229,7 +231,10 @@ class ParallelCatalogSweepTests(unittest.TestCase):
                         "rows": [{
                             "product_id": "dkp-1",
                             "title": "نمونه محصول معتبر",
+                            "current_price": 400_000,
+                            "original_price": 1_000_000,
                             "discount_percent": 60,
+                            "savings_toman": 600_000,
                             "review_count": 100,
                             "first_seen_at": datetime.now(timezone.utc).isoformat(),
                             "last_seen_at": datetime.now(timezone.utc).isoformat(),
