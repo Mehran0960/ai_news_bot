@@ -156,8 +156,14 @@ MIN_DISCOUNT_PERCENT = max(1, min(100, int(os.getenv("AFFILIO_MIN_DISCOUNT_PERCE
 DISCOUNT_FALLBACK_FLOORS = (1,)
 MIN_DISCOUNT_FALLBACK_PERCENT = 1
 MIN_SAVINGS_TOMAN = 1
-# Fresh rolling review-count growth is an optional indirect proxy, used only
-# after exact equality on discount percentage and cash savings. It is not sales data.
+# DigiKala's native "پرفروش‌ترین" order is the primary demand signal. It is a
+# within-category ordinal, not an absolute unit-sales count. Only fresh top-60
+# observations are treated as strong demand evidence.
+DIGIKALA_BESTSELLER_MAX_AGE_HOURS = 24
+DIGIKALA_BESTSELLER_TOP_RANK = 10
+DIGIKALA_BESTSELLER_MID_RANK = 30
+DIGIKALA_BESTSELLER_MAX_RANK = 60
+# Fresh rolling review-count growth is a secondary indirect proxy, never unit sales.
 CURRENT_DEMAND_WINDOW_DAYS = max(1, min(14, int(os.getenv("AFFILIO_CURRENT_DEMAND_WINDOW_DAYS", "1"))))
 CURRENT_DEMAND_MIN_REVIEW_GROWTH = max(1, min(20, int(os.getenv("AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH", "3"))))
 VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT = 5
@@ -2893,12 +2899,157 @@ def _deal_primary_sort_key(record: dict, now: datetime | None = None) -> tuple:
         savings = 0
     return (_discount_percentage_sort_value(candidate), savings)
 
+def _fresh_digikala_bestseller_evidence(
+    record: dict,
+    now: datetime | None = None,
+) -> dict:
+    """Return fresh native DigiKala bestseller evidence without pretending it is unit sales."""
+    if not isinstance(record, dict):
+        return {}
+    product_id_value = str(record.get("product_id") or "").strip().lower()
+    if not product_id_value.startswith("dkp-") or record.get("catalog_sort_mode") != "best_selling":
+        return {}
+
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
+    def parsed_time(value):
+        try:
+            parsed = datetime.fromisoformat(str(value or "").replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            return parsed.astimezone(timezone.utc)
+        except (TypeError, ValueError, OverflowError):
+            return None
+
+    ranks = record.get("catalog_best_selling_ranks_by_category")
+    ranks = ranks if isinstance(ranks, dict) else {}
+    observations = []
+    for category_id, entry in ranks.items():
+        if not isinstance(entry, dict) or not str(category_id).isdigit():
+            continue
+        try:
+            rank = int(entry.get("rank") or 0)
+        except (TypeError, ValueError, OverflowError):
+            continue
+        observed = parsed_time(entry.get("observed_at"))
+        if not 1 <= rank <= DIGIKALA_BESTSELLER_MAX_RANK or observed is None:
+            continue
+        age_hours = (current - observed).total_seconds() / 3600
+        if not 0 <= age_hours <= DIGIKALA_BESTSELLER_MAX_AGE_HOURS:
+            continue
+
+        improvement = 0
+        history = entry.get("rank_history")
+        history = history if isinstance(history, list) else []
+        previous = []
+        for sample in history:
+            if not isinstance(sample, dict):
+                continue
+            old_observed = parsed_time(sample.get("observed_at"))
+            try:
+                old_rank = int(sample.get("rank") or 0)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if old_observed is None or not 1 <= old_rank <= DIGIKALA_BESTSELLER_MAX_RANK:
+                continue
+            elapsed = (observed - old_observed).total_seconds() / 3600
+            if 6 <= elapsed <= 24 * 7 and old_observed < observed:
+                previous.append((old_observed, old_rank))
+        if previous:
+            _old_at, old_rank = max(previous, key=lambda item: item[0])
+            improvement = max(-DIGIKALA_BESTSELLER_MAX_RANK, min(
+                DIGIKALA_BESTSELLER_MAX_RANK, old_rank - rank
+            ))
+        observations.append({
+            "rank": rank,
+            "category_id": str(category_id),
+            "category_name": str(entry.get("category_name") or ""),
+            "observed_at": observed.isoformat(),
+            "age_hours": round(age_hours, 2),
+            "rank_improvement": improvement,
+        })
+
+    # Backward-compatible top-level rank for older snapshots that lack per-category rows.
+    if not observations:
+        try:
+            rank = int(record.get("catalog_best_selling_rank") or 0)
+        except (TypeError, ValueError, OverflowError):
+            rank = 0
+        observed = parsed_time(record.get("catalog_rank_observed_at"))
+        category_id = str(record.get("catalog_best_selling_category_id") or record.get("catalog_category_id") or "")
+        if (
+            1 <= rank <= DIGIKALA_BESTSELLER_MAX_RANK
+            and observed is not None
+            and 0 <= (current - observed).total_seconds() / 3600 <= DIGIKALA_BESTSELLER_MAX_AGE_HOURS
+        ):
+            observations.append({
+                "rank": rank,
+                "category_id": category_id,
+                "category_name": str(record.get("catalog_best_selling_category_name") or record.get("catalog_category_name") or ""),
+                "observed_at": observed.isoformat(),
+                "age_hours": round((current - observed).total_seconds() / 3600, 2),
+                "rank_improvement": 0,
+            })
+
+    if not observations:
+        return {}
+    best = min(observations, key=lambda item: (item["rank"], item["age_hours"]))
+    best_rank = int(best["rank"])
+    tier = (
+        3 if best_rank <= DIGIKALA_BESTSELLER_TOP_RANK
+        else 2 if best_rank <= DIGIKALA_BESTSELLER_MID_RANK
+        else 1
+    )
+    return {
+        **best,
+        "tier": tier,
+        "fresh_category_count": len({item["category_id"] for item in observations if item["category_id"]}),
+        "best_rank_across_categories": best_rank,
+        "rank_improvement": max(item["rank_improvement"] for item in observations),
+        "evidence_source": "digikala_native_bestseller_rank",
+        "evidence_quality": "direct_relative_sales_rank_not_units_sold",
+    }
+
+
+def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tuple:
+    """Demand-first order: fresh DigiKala bestseller rank, review momentum, quality, then deal value."""
+    candidate = record if isinstance(record, dict) else {}
+    bestseller = _fresh_digikala_bestseller_evidence(candidate, now=now)
+    rank = int(bestseller.get("best_rank_across_categories") or 0)
+    tier = int(bestseller.get("tier") or 0)
+    rank_strength = (DIGIKALA_BESTSELLER_MAX_RANK + 1 - rank) if rank else 0
+    category_coverage = min(10, int(bestseller.get("fresh_category_count") or 0))
+    rank_momentum = int(bestseller.get("rank_improvement") or 0)
+    review_growth = _verified_review_growth_sort_key(candidate, now=now)
+    try:
+        review_count = max(0, int(candidate.get("review_count") or 0))
+        rating = max(0.0, min(5.0, float(candidate.get("rating") or 0)))
+    except (TypeError, ValueError, OverflowError):
+        review_count, rating = 0, 0.0
+    # Lifetime reviews and rating are weak, historical quality context only.
+    # Fresh bestseller rank and measured review growth always precede them.
+    review_volume_context = min(100, round(math.log1p(review_count) * 5)) if review_count else 0
+    return (
+        tier,
+        rank_strength,
+        category_coverage,
+        rank_momentum,
+        review_growth[0],
+        review_growth[1],
+        review_volume_context,
+        round(rating, 2),
+    )
+
+
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Strict discount/savings order; fresh review growth is an optional exact-tie proxy."""
+    """Order candidates by DigiKala demand evidence before discount and cash savings."""
     candidate = record if isinstance(record, dict) else {}
     return (
+        *_digikala_demand_sort_key(candidate, now=now),
         *_deal_primary_sort_key(candidate, now=now),
-        *_verified_review_growth_sort_key(candidate, now=now),
     )
 
 
@@ -4150,11 +4301,11 @@ def _verified_review_growth_sort_key(
 
 
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank by discount %, then savings; fresh review growth breaks exact ties only."""
+    """Rank by DigiKala demand evidence first, then discount percentage and cash savings."""
     candidate = p if isinstance(p, dict) else {}
     return (
+        *_digikala_demand_sort_key(candidate, now=now),
         *_deal_primary_sort_key(candidate, now=now),
-        *_verified_review_growth_sort_key(candidate, now=now),
     )
 
 
@@ -6494,7 +6645,7 @@ def _publication_catalog_category_context(product_or_title) -> dict:
 
 
 def _publication_use_case_group(product_or_title) -> str:
-    """Classify the practical context of a product using title and DigiKala taxonomy."""
+    """Classify a product's practical use from its title and DigiKala leaf taxonomy."""
     category = _publication_catalog_category_context(product_or_title)
     title = (
         str(product_or_title.get("title") or "")
@@ -6503,20 +6654,61 @@ def _publication_use_case_group(product_or_title) -> str:
     text = " ".join((title, category.get("name", ""), category.get("path", ""))).lower()
     text = text.replace("\u200c", " ")
     patterns = (
-        ("automotive", r"خودرو|ماشین|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو"),
-        ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت"),
-        ("gaming", r"گیمینگ|بازی رایانه|کنسول بازی|پلی استیشن|ایکس باکس|\bxbox\b"),
-        ("office_study", r"اداری|میز کار|مطالعه|تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه"),
-        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک"),
-        ("pet_care", r"حیوان خانگی|گربه|سگ|خاک گربه|غذای حیوان"),
-        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو"),
-        ("home_cleaning", r"نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی"),
-        ("personal_care", r"مراقبت پوست|مراقبت مو|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن"),
-        ("sports_fitness", r"ورزشی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس"),
-        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه"),
-        ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب"),
+        ("automotive", r"خودرو|ماشین|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو|فیلتر کابین|روغن موتور|لوازم یدکی"),
+        ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت|ماهیگیری|کیف و کوله سفری"),
+        ("gaming", r"گیمینگ|بازی رایانه|کنسول بازی|پلی استیشن|ایکس باکس|\bxbox\b|دسته بازی"),
+        ("office_study", r"اداری|میز کار|مطالعه|تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار"),
+        ("books_learning", r"کتاب|رمان|روانشناسی|داستان|مجله|آموزشی|زبان آموزی"),
+        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک"),
+        ("pet_care", r"حیوان خانگی|گربه|سگ|خاک گربه|غذای حیوان|قلاده|آکواریوم"),
+        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو|قابلمه|تابه|چای ساز"),
+        ("grocery_food", r"خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای ارگانیک|قهوه ارگانیک|شکلات|تنقلات|غلات|کنسرو|ادویه"),
+        ("home_cleaning", r"نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو|اسکاچ|دستمال نظافت"),
+        ("personal_care", r"مراقبت پوست|مراقبت مو|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب"),
+        ("sports_fitness", r"ورزشی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی"),
+        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|رم|مانیتور|کیبورد|ماوس|مودم"),
+        ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین عکاسی|پروژکتور|سینما خانگی"),
+        ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب|پتو|ملحفه|کوسن|پرده"),
+        ("fashion_lifestyle", r"پوشاک|لباس|تی شرت|تیشرت|شلوار|کفش|بوت|کیف پول|عینک آفتابی|جوراب|مانتو|اکسسوری زنانه"),
+        ("tools_industrial", r"ابزار|هویه|مته|پیچ و مهره|کمپرسور|تجهیزات ایمنی|لوازم یدکی ابزار|باغبانی|کشاورزی"),
+        ("arts_crafts", r"صنایع دستی|دست بافته|رودوزی|بافتنی|خیاطی|نقاشی|رنگ آمیزی|اوریگامی|کاردستی"),
+        ("lighting_electrical", r"روشنایی|لامپ|چراغ قوه|چراغ اضطراری|لامپ|الکتریکی|سیم و کابل برق"),
     )
-    return next((name for name, pattern in patterns if re.search(pattern, text, re.I)), "general")
+    matched = next((name for name, pattern in patterns if re.search(pattern, text, re.I)), None)
+    if matched:
+        return matched
+
+    # When the title is ambiguous, use DigiKala's official broad category instead
+    # of collapsing every unmatched leaf into "general".
+    broad = classify_category(" ".join((title, category.get("name", ""), category.get("path", ""))))
+    broad_use_cases = {
+        "automotive": "automotive",
+        "sports_outdoor": "sports_fitness",
+        "gaming": "gaming",
+        "books_stationery": "books_learning",
+        "fashion": "fashion_lifestyle",
+        "personal_care": "personal_care",
+        "beauty_fragrance": "personal_care",
+        "pet_supplies": "pet_care",
+        "kids_sports": "baby_care",
+        "home_cleaning": "home_cleaning",
+        "home": "home_living",
+        "computer_network": "mobile_productivity",
+        "digital_accessories": "mobile_productivity",
+        "mobile_devices": "mobile_productivity",
+        "audio_wearables": "audio_visual",
+        "tv_audio_video": "audio_visual",
+        "power_backup": "lighting_electrical",
+        "lighting": "lighting_electrical",
+        "large_appliances": "home_living",
+        "arts_crafts": "arts_crafts",
+        "presentation_tools": "office_study",
+    }
+    if broad in broad_use_cases:
+        return broad_use_cases[broad]
+    if category.get("id") and category.get("name"):
+        return "catalog_taxonomy_other"
+    return "general"
 
 
 def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
@@ -7883,13 +8075,18 @@ def select_discount_fallback_candidates(
     review_growth_tiebreaks = sum(
         bool(has_current_demand_signal(product, now=current)) for product in fresh_candidates
     )
+    bestseller_ranked = sum(
+        bool(_fresh_digikala_bestseller_evidence(product, now=current)) for product in fresh_candidates
+    )
     print(
-        "SELECTION_POLICY rank=discount_percent_desc,savings_toman_desc,"
-        "verified_review_growth_desc_on_exact_tie "
-        "review_growth_proxy_verified=" + str(review_growth_tiebreaks) +
-        " review_growth_is_sales_data=false "
+        "SELECTION_POLICY rank=digikala_bestseller_tier_desc,rank_strength_desc,"
+        "rank_momentum_desc,review_growth_proxy_desc,review_quality_context_desc,"
+        "discount_percent_desc,savings_toman_desc "
+        f"digikala_bestseller_ranked={bestseller_ranked} "
+        f"review_growth_proxy_verified={review_growth_tiebreaks} "
+        "unit_sales_count_available=false review_growth_is_sales_data=false "
         f"hard_eligible={len(quality_eligible)} fresh={len(fresh_candidates)} "
-        "demand_filter=false popularity_filter=false bestseller_filter=false category_demand_filter=false "
+        "demand_gate=false click_count_used=false "
         f"fallback_mode={fallback_mode}"
     )
 
@@ -7918,7 +8115,23 @@ def select_discount_fallback_candidates(
             selected = dict(product)
             selected["selection_discount_floor"] = int(floor)
             selected["selection_discount_band"] = label
-            selected["publication_policy"] = "discount_first_review_growth_tiebreak_v3"
+            selected["publication_policy"] = "digikala_demand_first_bestseller_review_quality_discount_v1"
+            bestseller_evidence = _fresh_digikala_bestseller_evidence(product, now=current)
+            selected["selection_demand_evidence"] = (
+                "digikala_native_bestseller_rank" if bestseller_evidence
+                else "digikala_recent_review_growth_proxy" if has_current_demand_signal(product, now=current)
+                else "digiKala_lifetime_reviews_and_rating_context" if (
+                    product.get("review_count") or product.get("rating")
+                ) else "no_current_demand_evidence"
+            )
+            selected["selection_demand_quality"] = (
+                bestseller_evidence.get("evidence_quality") if bestseller_evidence
+                else "indirect_review_growth_proxy_not_sales" if has_current_demand_signal(product, now=current)
+                else "historical_quality_context_only"
+            )
+            selected["selection_bestseller_rank"] = bestseller_evidence.get("best_rank_across_categories")
+            selected["selection_bestseller_category_count"] = bestseller_evidence.get("fresh_category_count", 0)
+            selected["selection_bestseller_rank_improvement"] = bestseller_evidence.get("rank_improvement", 0)
             selected["selection_review_growth_evidence"] = (
                 "verified_indirect_proxy_not_sales" if has_current_demand_signal(product, now=current)
                 else "none"
@@ -10116,8 +10329,9 @@ def run(publish=False, selection_only=False):
     )
     for rank, item in enumerate(products[:12], start=1):
         print(
-            f"RANK {rank}: discount={item['discount_percent']}% saving={item['savings_toman']} "
-            f"promo_score={item['promo_score']} review_growth_proxy_verified={has_current_demand_signal(item, queue_now)} "
+            f"RANK {rank}: demand={_fresh_digikala_bestseller_evidence(item, queue_now).get('best_rank_across_categories', 'proxy/none')} "
+            f"discount={item['discount_percent']}% saving={item['savings_toman']} "
+            f"review_growth_proxy_verified={has_current_demand_signal(item, queue_now)} "
             f"clicks_30d={item.get('click_count_30d', 0)} "
             f"stock={item['availability']} linked={item['has_affiliate_link']} "
             f"market={item.get('market_status')} market_price={item.get('market_reference_price_toman')} "
@@ -10128,15 +10342,28 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "The scanner traverses every queryable DigiKala category page and retains the globally highest observed markdown cards. Live candidates are ranked strictly by discount percentage descending, then cash savings descending; only when both are equal may fresh verified rolling review-count growth act as an optional indirect proxy tiebreaker. Review growth is not unit sales. Lifetime reviews, ratings, category bestseller rank, general popularity, category demand, category/brand preference, trends and clicks never gate or reorder the selection. Independent positive market/history confirmation is not mandatory; only fresh verified evidence that contradicts the markdown may veto it. Detail checks continue across cycles. Publication requires verified product identity, in-stock status, current price, arithmetic-consistent positive markdown, usable title/image, valid Affilio tracking link, live/non-expired offer, duplicate protection, and safety checks.",
+        "ranking_note": "The scanner traverses every queryable DigiKala category page ordered by DigiKala's native bestseller sort (sort id 7). Candidates are ranked first by fresh within-category bestseller evidence (top 10, 11-30, then 31-60), then observed rank momentum and the number of fresh categories in which the product ranks, then fresh review-count growth as an indirect proxy, then lifetime review count/rating as weak quality context, and only then discount percentage and cash savings. DigiKala's public data available to this integration does not expose a verified absolute unit-sales count, so bestseller rank is a relative sales-demand signal, not a unit count; review growth is not sales. Clicks never influence market-demand ranking. SnappShop and other sources remain supplementary and cannot outrank a fresh DigiKala bestseller signal. Price, stock, product identity, affiliate URL, offer validity, duplicate and safety checks remain hard publication controls.",
+        "demand_ranking_policy": {
+            "version": "digikala_demand_first_bestseller_review_quality_discount_v1",
+            "primary_source": "DigiKala native bestseller sort id=7",
+            "primary_rank_window": "top 60 per DigiKala category",
+            "rank_max_age_hours": DIGIKALA_BESTSELLER_MAX_AGE_HOURS,
+            "rank_tiers": {"top_10": 3, "rank_11_30": 2, "rank_31_60": 1},
+            "rank_is_absolute_unit_sales": False,
+            "absolute_unit_sales_count_available": False,
+            "secondary_signal": "fresh review-count growth; indirect proxy only",
+            "tertiary_context": ["lifetime_review_count", "rating"],
+            "discount_order": ["discount_percent_desc", "savings_toman_desc"],
+            "clicks_affect_demand_rank": False,
+        },
         "review_growth_tiebreak_policy": {
-            "use": "optional_tertiary_tiebreak_only",
-            "ranking_effect": "only_after_equal_discount_percent_and_savings_toman",
-            "source": "fresh rolling retailer review-count growth",
+            "use": "secondary_indirect_proxy",
+            "ranking_effect": "after_fresh_digikala_bestseller_rank_and_rank_momentum",
+            "source": "fresh rolling review-count growth (DigiKala primary; SnappShop secondary)",
             "interpretation": "indirect proxy only; not sales volume",
             "unverified_blocks_new_publication": False,
-            "lifetime_review_count_or_rating_used": False,
-            "category_bestseller_rank_used": False,
+            "lifetime_review_count_or_rating_used": True,
+            "category_bestseller_rank_used": True,
             "window_days": CURRENT_DEMAND_WINDOW_DAYS,
             "minimum_growth": CURRENT_DEMAND_MIN_REVIEW_GROWTH,
             "minimum_observation_hours": CURRENT_DEMAND_MIN_OBSERVATION_HOURS,
