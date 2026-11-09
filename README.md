@@ -10,6 +10,7 @@
 - [دسترسی و گزارش‌گیری افیلیو](affilio_radar/AFFILIO_REPORTING_ACCESS.md)
 - [استاندارد برندینگ تصویر/ویدئو](affilio_radar/VISUAL_BRANDING.md)
 - [پکیج بهینه‌سازی OfferChin — سیاست و وضعیت اجرایی](docs/OFFERCHIN_OPTIMIZATION_PACKAGE_FA.md)
+- [طرح یک آفر ممتاز روزانه برای دیوار](docs/OFFERCHIN_DAILY_FEATURED_OFFER_FA.md) — یک گزینهٔ واقعاً قوی، بدون اجبار به انتخاب روزانه و بدون انتشار خودکار تا تأیید رسمی
 
 ## پکیج بهینه‌سازی
 
