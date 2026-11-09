@@ -77469,6 +77469,72 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "11015",
+      "catalog_best_selling_category_name": "لوازم آتشنشانی",
+      "catalog_best_selling_rank": 2,
+      "catalog_best_selling_ranks_by_category": {
+        "11015": {
+          "category_name": "لوازم آتشنشانی",
+          "observed_at": "2026-11-09T12:18:29.038274+00:00",
+          "rank": 2,
+          "rank_history": [
+            {
+              "category_name": "لوازم آتشنشانی",
+              "observed_at": "2026-11-09T12:18:29.038274+00:00",
+              "rank": 2
+            }
+          ]
+        },
+        "8241": {
+          "category_name": "ابزار ایمنی",
+          "observed_at": "2026-11-09T13:10:13.252503+00:00",
+          "rank": 64,
+          "rank_history": []
+        },
+        "8255": {
+          "category_name": "کپسول آتش‌نشانی",
+          "observed_at": "2026-11-09T11:53:00.965909+00:00",
+          "rank": 2,
+          "rank_history": [
+            {
+              "category_name": "کپسول آتش‌نشانی",
+              "observed_at": "2026-11-09T11:53:00.965909+00:00",
+              "rank": 2
+            }
+          ]
+        },
+        "8450": {
+          "category_name": "ابزار آلات و تجهیزات",
+          "observed_at": "2026-11-09T21:22:58.238159+00:00",
+          "rank": 1002,
+          "rank_history": []
+        }
+      },
+      "catalog_category_id": "8450",
+      "catalog_category_ids": [
+        "8241",
+        "8255",
+        "8450",
+        "11015"
+      ],
+      "catalog_category_name": "ابزار آلات و تجهیزات",
+      "catalog_rank_observed_at": "2026-11-09T12:18:29.038274+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 1935000,
+      "discount_percent": 16,
+      "first_seen_at": "2026-11-09T11:53:00.965909+00:00",
+      "last_seen_at": "2026-11-09T21:22:53.344004+00:00",
+      "original_price": 2300000,
+      "product_id": "dkp-11401553",
+      "product_url": "https://www.digikala.com/product/dkp-11401553/",
+      "rating": 4.33,
+      "review_count": 314,
+      "savings_toman": 365000,
+      "source": "digikala_catalog_sweep",
+      "title": "کپسول آتش نشانی دریا مدل A-344 وزن 1 کیلوگرم"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "9612",
       "catalog_best_selling_category_name": "بوت نوزاد",
       "catalog_best_selling_rank": 2,
@@ -78112,65 +78178,6 @@
       "savings_toman": 397500,
       "source": "digikala_catalog_sweep",
       "title": "سِت جاکارتی آکاردوئونی و سرکلیدی کراواتی جِی چرم تبریز مدل دومان"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "11015",
-      "catalog_best_selling_category_name": "لوازم آتشنشانی",
-      "catalog_best_selling_rank": 2,
-      "catalog_best_selling_ranks_by_category": {
-        "11015": {
-          "category_name": "لوازم آتشنشانی",
-          "observed_at": "2026-11-09T12:18:29.038274+00:00",
-          "rank": 2,
-          "rank_history": [
-            {
-              "category_name": "لوازم آتشنشانی",
-              "observed_at": "2026-11-09T12:18:29.038274+00:00",
-              "rank": 2
-            }
-          ]
-        },
-        "8241": {
-          "category_name": "ابزار ایمنی",
-          "observed_at": "2026-11-09T13:10:13.252503+00:00",
-          "rank": 64,
-          "rank_history": []
-        },
-        "8255": {
-          "category_name": "کپسول آتش‌نشانی",
-          "observed_at": "2026-11-09T11:53:00.965909+00:00",
-          "rank": 2,
-          "rank_history": [
-            {
-              "category_name": "کپسول آتش‌نشانی",
-              "observed_at": "2026-11-09T11:53:00.965909+00:00",
-              "rank": 2
-            }
-          ]
-        }
-      },
-      "catalog_category_id": "8241",
-      "catalog_category_ids": [
-        "8241",
-        "8255",
-        "11015"
-      ],
-      "catalog_category_name": "ابزار ایمنی",
-      "catalog_rank_observed_at": "2026-11-09T12:18:29.038274+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1926500,
-      "discount_percent": 15,
-      "first_seen_at": "2026-11-09T11:53:00.965909+00:00",
-      "last_seen_at": "2026-11-09T13:09:45.794400+00:00",
-      "original_price": 2268500,
-      "product_id": "dkp-11401553",
-      "product_url": "https://www.digikala.com/product/dkp-11401553/",
-      "rating": 4.33,
-      "review_count": 314,
-      "savings_toman": 342000,
-      "source": "digikala_catalog_sweep",
-      "title": "کپسول آتش نشانی دریا مدل A-344 وزن 1 کیلوگرم"
     },
     {
       "availability": "unknown",
@@ -81677,6 +81684,12 @@
             }
           ]
         },
+        "6308": {
+          "category_name": "دکوراتیو",
+          "observed_at": "2026-11-09T21:22:58.119549+00:00",
+          "rank": 1008,
+          "rank_history": []
+        },
         "6312": {
           "category_name": "شمعدان",
           "observed_at": "2026-11-09T12:50:53.268363+00:00",
@@ -81690,20 +81703,21 @@
           ]
         }
       },
-      "catalog_category_id": "10171",
+      "catalog_category_id": "6308",
       "catalog_category_ids": [
+        "6308",
         "6312",
         "10171",
         "10174",
         "10202"
       ],
-      "catalog_category_name": "خانه و کاشانه",
+      "catalog_category_name": "دکوراتیو",
       "catalog_rank_observed_at": "2026-11-09T12:11:27.948070+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 359080,
       "discount_percent": 6,
       "first_seen_at": "2026-11-09T12:11:27.948070+00:00",
-      "last_seen_at": "2026-11-09T14:24:50.667083+00:00",
+      "last_seen_at": "2026-11-09T21:22:29.364607+00:00",
       "original_price": 382000,
       "product_id": "dkp-20339891",
       "product_url": "https://www.digikala.com/product/dkp-20339891/",
@@ -93181,19 +93195,26 @@
               "rank": 2
             }
           ]
+        },
+        "6916": {
+          "category_name": "آینه دکوراتیو",
+          "observed_at": "2026-11-09T21:22:58.188862+00:00",
+          "rank": 1008,
+          "rank_history": []
         }
       },
-      "catalog_category_id": "10455",
+      "catalog_category_id": "6916",
       "catalog_category_ids": [
+        "6916",
         "10455"
       ],
-      "catalog_category_name": "آینه سنتی",
+      "catalog_category_name": "آینه دکوراتیو",
       "catalog_rank_observed_at": "2026-11-09T12:11:28.007114+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1440000,
       "discount_percent": 20,
       "first_seen_at": "2026-11-09T12:11:28.007114+00:00",
-      "last_seen_at": "2026-11-09T12:09:22.835558+00:00",
+      "last_seen_at": "2026-11-09T21:22:44.288211+00:00",
       "original_price": 1800000,
       "product_id": "dkp-20884526",
       "product_url": "https://www.digikala.com/product/dkp-20884526/",
@@ -136225,6 +136246,12 @@
       "catalog_best_selling_category_name": "ترمه",
       "catalog_best_selling_rank": 3,
       "catalog_best_selling_ranks_by_category": {
+        "6451": {
+          "category_name": "صنایع دستی",
+          "observed_at": "2026-11-09T21:22:58.139914+00:00",
+          "rank": 1008,
+          "rank_history": []
+        },
         "6466": {
           "category_name": "دست بافته‌ ها، رودوزی و محصولات پارچه ای و چرمی",
           "observed_at": "2026-11-09T14:16:01.606410+00:00",
@@ -136244,23 +136271,24 @@
           ]
         }
       },
-      "catalog_category_id": "6466",
+      "catalog_category_id": "6451",
       "catalog_category_ids": [
+        "6451",
         "6466",
         "6813"
       ],
-      "catalog_category_name": "دست بافته‌ ها، رودوزی و محصولات پارچه ای و چرمی",
+      "catalog_category_name": "صنایع دستی",
       "catalog_rank_observed_at": "2026-11-09T11:53:00.920989+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1282500,
       "discount_percent": 5,
       "first_seen_at": "2026-11-09T11:53:00.920989+00:00",
-      "last_seen_at": "2026-11-09T14:15:54.577422+00:00",
+      "last_seen_at": "2026-11-09T21:22:33.477790+00:00",
       "original_price": 1350000,
       "product_id": "dkp-7742276",
       "product_url": "https://www.digikala.com/product/dkp-7742276/",
       "rating": 4.44,
-      "review_count": 183,
+      "review_count": 184,
       "savings_toman": 67500,
       "source": "digikala_catalog_sweep",
       "title": "رومیزی ترمه نگین خاتم یزد طرح افشاری کد LMAB"
@@ -149896,21 +149924,28 @@
               "rank": 4
             }
           ]
+        },
+        "8450": {
+          "category_name": "ابزار آلات و تجهیزات",
+          "observed_at": "2026-11-09T21:22:58.238159+00:00",
+          "rank": 1016,
+          "rank_history": []
         }
       },
-      "catalog_category_id": "6075",
+      "catalog_category_id": "8450",
       "catalog_category_ids": [
         "6075",
         "6166",
+        "8450",
         "10703"
       ],
-      "catalog_category_name": "باغبانی و کشاورزی",
+      "catalog_category_name": "ابزار آلات و تجهیزات",
       "catalog_rank_observed_at": "2026-11-09T11:44:42.721809+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 29925000,
       "discount_percent": 25,
       "first_seen_at": "2026-11-09T11:44:42.721809+00:00",
-      "last_seen_at": "2026-11-09T13:07:33.865254+00:00",
+      "last_seen_at": "2026-11-09T21:22:53.344661+00:00",
       "original_price": 39900000,
       "product_id": "dkp-22926465",
       "product_url": "https://www.digikala.com/product/dkp-22926465/",
@@ -165715,20 +165750,27 @@
               "rank": 4
             }
           ]
+        },
+        "8573": {
+          "category_name": "تجهیزات پزشکی",
+          "observed_at": "2026-11-09T21:22:58.247731+00:00",
+          "rank": 1007,
+          "rank_history": []
         }
       },
-      "catalog_category_id": "11249",
+      "catalog_category_id": "8573",
       "catalog_category_ids": [
+        "8573",
         "11249",
         "11253"
       ],
-      "catalog_category_name": "کنترل دیابت",
+      "catalog_category_name": "تجهیزات پزشکی",
       "catalog_rank_observed_at": "2026-11-09T12:18:29.087627+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 595000,
       "discount_percent": 23,
       "first_seen_at": "2026-11-09T12:18:29.087627+00:00",
-      "last_seen_at": "2026-11-09T13:50:41.404703+00:00",
+      "last_seen_at": "2026-11-09T21:22:56.087884+00:00",
       "original_price": 770000,
       "product_id": "dkp-15757600",
       "product_url": "https://www.digikala.com/product/dkp-15757600/",
@@ -171478,6 +171520,12 @@
       "catalog_best_selling_category_name": "هارنس",
       "catalog_best_selling_rank": 4,
       "catalog_best_selling_ranks_by_category": {
+        "8241": {
+          "category_name": "ابزار ایمنی",
+          "observed_at": "2026-11-09T21:22:58.210077+00:00",
+          "rank": 1020,
+          "rank_history": []
+        },
         "8247": {
           "category_name": "هارنس",
           "observed_at": "2026-11-09T12:03:24.676789+00:00",
@@ -171491,17 +171539,18 @@
           ]
         }
       },
-      "catalog_category_id": "8247",
+      "catalog_category_id": "8241",
       "catalog_category_ids": [
+        "8241",
         "8247"
       ],
-      "catalog_category_name": "هارنس",
+      "catalog_category_name": "ابزار ایمنی",
       "catalog_rank_observed_at": "2026-11-09T12:03:24.676789+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 22977500,
       "discount_percent": 9,
       "first_seen_at": "2026-11-09T12:03:24.676789+00:00",
-      "last_seen_at": "2026-11-09T12:00:29.057979+00:00",
+      "last_seen_at": "2026-11-09T21:22:48.188120+00:00",
       "original_price": 25250000,
       "product_id": "dkp-22298873",
       "product_url": "https://www.digikala.com/product/dkp-22298873/",
@@ -192655,28 +192704,35 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "11760",
-      "catalog_best_selling_category_name": "پاک‌کننده و شوینده صورت",
-      "catalog_best_selling_rank": 178,
+      "catalog_best_selling_category_id": "6486",
+      "catalog_best_selling_category_name": "مراقبت پوست",
+      "catalog_best_selling_rank": 1013,
       "catalog_best_selling_ranks_by_category": {
         "11760": {
           "category_name": "پاک‌کننده و شوینده صورت",
           "observed_at": "2026-11-09T14:44:23.481918+00:00",
           "rank": 178,
           "rank_history": []
+        },
+        "6486": {
+          "category_name": "مراقبت پوست",
+          "observed_at": "2026-11-09T21:22:58.147346+00:00",
+          "rank": 1013,
+          "rank_history": []
         }
       },
-      "catalog_category_id": "11760",
+      "catalog_category_id": "6486",
       "catalog_category_ids": [
+        "6486",
         "11760"
       ],
-      "catalog_category_name": "پاک‌کننده و شوینده صورت",
-      "catalog_rank_observed_at": "2026-11-09T14:44:23.481918+00:00",
+      "catalog_category_name": "مراقبت پوست",
+      "catalog_rank_observed_at": "2026-11-09T21:22:58.147346+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 367220,
       "discount_percent": 38,
       "first_seen_at": "2026-11-09T14:44:23.481918+00:00",
-      "last_seen_at": "2026-11-09T14:43:34.510888+00:00",
+      "last_seen_at": "2026-11-09T21:22:35.178275+00:00",
       "original_price": 592370,
       "product_id": "dkp-2764528",
       "product_url": "https://www.digikala.com/product/dkp-2764528/",
@@ -193206,39 +193262,39 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "5824",
-      "catalog_best_selling_category_name": "لوازم بهداشتی",
-      "catalog_best_selling_rank": 1017,
+      "catalog_best_selling_category_id": "6932",
+      "catalog_best_selling_category_name": "شوینده لباس",
+      "catalog_best_selling_rank": 1005,
       "catalog_best_selling_ranks_by_category": {
-        "5824": {
-          "category_name": "لوازم بهداشتی",
-          "observed_at": "2026-11-09T21:21:23.789884+00:00",
-          "rank": 1017,
+        "6932": {
+          "category_name": "شوینده لباس",
+          "observed_at": "2026-11-09T21:22:58.191196+00:00",
+          "rank": 1005,
           "rank_history": []
         }
       },
-      "catalog_category_id": "5824",
+      "catalog_category_id": "6932",
       "catalog_category_ids": [
-        "5824"
+        "6932"
       ],
-      "catalog_category_name": "لوازم بهداشتی",
-      "catalog_rank_observed_at": "2026-11-09T21:21:23.789884+00:00",
+      "catalog_category_name": "شوینده لباس",
+      "catalog_rank_observed_at": "2026-11-09T21:22:58.191196+00:00",
       "catalog_sort_mode": "best_selling",
-      "current_price": 321600,
-      "discount_percent": 30,
-      "first_seen_at": "2026-11-09T21:21:23.789884+00:00",
-      "last_seen_at": "2026-11-09T21:20:42.192800+00:00",
-      "original_price": 459000,
-      "product_id": "dkp-4184167",
-      "product_url": "https://www.digikala.com/product/dkp-4184167/",
-      "rating": 4.33,
-      "review_count": 3813,
-      "savings_toman": 137400,
+      "current_price": 162740,
+      "discount_percent": 18,
+      "first_seen_at": "2026-11-09T21:22:58.191196+00:00",
+      "last_seen_at": "2026-11-09T21:22:44.642891+00:00",
+      "original_price": 198460,
+      "product_id": "dkp-2873857",
+      "product_url": "https://www.digikala.com/product/dkp-2873857/",
+      "rating": 4.39,
+      "review_count": 5244,
+      "savings_toman": 35720,
       "source": "digikala_catalog_sweep",
-      "title": "ژل شستشوی صورت دیپ سنس مدل میوه های استوایی حجم 250 میلی‌ لیتر"
+      "title": "مایع نرم کننده حوله و لباس سافتلن مدل طلایی حجم 1 لیتر"
     }
   ],
   "cycle_started_at": "2026-11-09T11:16:23.329744+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-09T21:21:23.934994+00:00"
+  "updated_at": "2026-11-09T21:22:58.382534+00:00"
 }
