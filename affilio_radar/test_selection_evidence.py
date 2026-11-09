@@ -1,5 +1,6 @@
 import unittest
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 import affilio_radar as radar
 from publisher import _eligible_fallback_candidates
@@ -20,6 +21,74 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         }
         record.update(overrides)
         return record
+
+    def test_same_family_candidates_are_blocked_before_primary_and_backup_selection(self):
+        products = [
+            {
+                "product_id": f"dkp-family-{index}",
+                "product_url": f"https://www.digikala.com/product/dkp-family-{index}/",
+                "title": title,
+                "brand": brand,
+                "availability": "in_stock",
+                "current_price": 500_000,
+                "original_price": 1_000_000,
+                "discount_percent": discount,
+                "savings_toman": 500_000,
+                "catalog_category_id": "812",
+                "catalog_category_name": "پاوربانک",
+                "catalog_category_ids": ["812"],
+                "catalog_best_selling_category_id": "812",
+                "catalog_best_selling_category_name": "پاوربانک",
+            }
+            for index, (title, brand, discount) in enumerate((
+                ("پاوربانک ۲۰۰۰۰ میلی آمپر مدل A", "Brand A", 90),
+                ("شارژر همراه ۱۰۰۰۰ میلی آمپر مدل B", "Brand B", 85),
+                ("پاوربانک باریک ۵۰۰۰ میلی آمپر مدل C", "Brand C", 80),
+            ), start=1)
+        ]
+        state = {"published": {}, "recent_publications": []}
+        with (
+            patch.object(radar, "is_product_suppressed", return_value=False),
+            patch.object(radar, "is_discount_publish_eligible", return_value=True),
+            patch.object(radar, "has_publishable_expiry_or_open_offer", return_value=True),
+            patch.object(radar, "is_selection_candidate_rejected", return_value=False),
+            patch.object(radar, "is_fresh_selection_candidate", return_value=True),
+        ):
+            selected, floor, quality = radar.select_discount_fallback_candidates(
+                products, state, now=self.now, include_fallback_bands=True
+            )
+        self.assertEqual(floor, 1)
+        self.assertEqual(len(quality), 3)
+        self.assertEqual(
+            [row["product_id"] for row in selected],
+            ["dkp-family-1"],
+            "only the highest-ranked family member may pass as primary or backup",
+        )
+        rejected = radar._LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS["rejection_events"]
+        self.assertEqual(len(rejected), 2)
+        self.assertTrue(all("family_repeat" in row["reasons"] for row in rejected))
+        self.assertEqual({row["catalog_category_id"] for row in rejected}, {"812"})
+        self.assertTrue(all(row["catalog_category_name"] == "پاوربانک" for row in rejected))
+
+    def test_publication_classifier_uses_digikala_category_and_application(self):
+        automotive = {
+            "title": "چراغ شارژی مدل آزمایشی",
+            "catalog_best_selling_category_id": "91",
+            "catalog_best_selling_category_name": "چراغ خودرو و تجهیزات روشنایی",
+        }
+        travel = {
+            "title": "چراغ شارژی مدل آزمایشی",
+            "catalog_best_selling_category_id": "92",
+            "catalog_best_selling_category_name": "چراغ کمپینگ و کوهنوردی",
+        }
+        self.assertEqual(radar._publication_use_case_group(automotive), "automotive")
+        self.assertEqual(radar._publication_use_case_group(travel), "outdoor_travel")
+        auto_category, auto_family, _ = radar._publication_diversity_group(automotive)
+        travel_category, travel_family, _ = radar._publication_diversity_group(travel)
+        self.assertEqual(auto_category, travel_category)
+        self.assertNotEqual(auto_family, travel_family)
+        self.assertIn("digikala_category:91", auto_family)
+        self.assertIn("digikala_category:92", travel_family)
 
     def test_review_growth_is_only_an_indirect_fresh_proxy_not_sales(self):
         record = self._verified_review_growth()
