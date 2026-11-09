@@ -214,6 +214,28 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
             ]
         )
 
+    def test_demand_first_snapshot_order_is_not_rejected_for_non_monotonic_discounts(self):
+        # Snapshot rank is frozen from the catalog scanner's demand-first order.
+        # A lower-discount higher-demand item can legitimately precede a larger markdown.
+        changed = {
+            **self.candidates,
+            "candidates": [
+                {
+                    **self.candidates["candidates"][0],
+                    "discount_percent": 10,
+                    "savings_toman": 100_000,
+                },
+                {
+                    **self.candidates["candidates"][1],
+                    "discount_percent": 80,
+                    "savings_toman": 800_000,
+                },
+            ],
+        }
+        status = build_status_snapshot(self.state, completed_candidates=changed)
+        self.assertTrue(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["completed_candidates_ids"], ["dkp-100", "dkp-200"])
+
     def test_loader_accepts_small_new_category_additions_without_weakening_hash_checks(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
