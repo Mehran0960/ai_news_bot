@@ -218,7 +218,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [[ -f affilio_radar/state.json ]] && { ! git diff --quiet -- affilio_radar/state.json || ! git diff --quiet -- affilio_radar/diversity_report.json; }; then
+          if [[ -f affilio_radar/state.json ]] && { ! git diff --quiet -- affilio_radar/state.json || ! git diff --quiet -- affilio_radar/diversity_report.json || ! git diff --quiet -- affilio_radar/performance_report.json; }; then
             git add affilio_radar/state.json
             if [[ -f affilio_radar/video_upload_dispatch_state.json ]]; then
               git add affilio_radar/video_upload_dispatch_state.json
@@ -226,7 +226,10 @@ jobs:
             if [[ -f affilio_radar/diversity_report.json ]]; then
               git add affilio_radar/diversity_report.json
             fi
-            git commit -m "chore: persist OfferChin delivery state and diversity report [skip ci]"
+            if [[ -f affilio_radar/performance_report.json ]]; then
+              git add affilio_radar/performance_report.json
+            fi
+            git commit -m "chore: persist OfferChin delivery and performance reports [skip ci]"
             # Keep this state commit, but discard transient artifacts left modified by discovery.
             # Without this reset, rebase aborts on unstaged candidates.json and sent IDs are lost.
             git reset --hard HEAD
