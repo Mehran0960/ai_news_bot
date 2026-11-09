@@ -44285,11 +44285,11 @@
   "last_error": "",
   "last_successful_category_id": "9749",
   "last_successful_category_name": "لباس پسرانه",
-  "last_successful_page": 499,
-  "last_successful_page_at": "2026-11-09T11:08:31.206452+00:00",
+  "last_successful_page": 500,
+  "last_successful_page_at": "2026-11-09T11:09:28.172549+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 494,
+  "page": 495,
   "parallel_cycle_completed_category_ids": [
     "1",
     "2",
@@ -47810,6 +47810,7 @@
     "9746",
     "9747",
     "9748",
+    "9749",
     "9750",
     "9751",
     "9752",
@@ -49201,8 +49202,8 @@
     "11797",
     "214186"
   ],
-  "parallel_cycle_pages_success": 321214,
-  "parallel_cycle_product_rows_success": 6356384,
+  "parallel_cycle_pages_success": 321223,
+  "parallel_cycle_product_rows_success": 6356564,
   "parallel_cycle_started_at": "2026-11-08T07:56:20.016124+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -54129,19 +54130,19 @@
     "214158",
     "214186"
   ],
-  "parallel_last_batch_at": "2026-11-09T11:08:31.334138+00:00",
-  "parallel_last_batch_candidate_file_bytes": 3969755,
-  "parallel_last_batch_candidate_write_seconds": 0.087,
+  "parallel_last_batch_at": "2026-11-09T11:09:28.297911+00:00",
+  "parallel_last_batch_candidate_file_bytes": 3969733,
+  "parallel_last_batch_candidate_write_seconds": 0.085,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 4.346,
+  "parallel_last_batch_fetch_seconds": 4.583,
   "parallel_last_batch_nonempty_product_pages": 9,
   "parallel_last_batch_pages": 9,
-  "parallel_last_batch_pages_per_second": 2.07,
-  "parallel_last_batch_processing_seconds": 0.042,
+  "parallel_last_batch_pages_per_second": 1.96,
+  "parallel_last_batch_processing_seconds": 0.044,
   "parallel_last_batch_product_rows": 180,
   "parallel_last_batch_rate_limited": 0,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 40.21,
+  "parallel_last_batch_rows_per_second": 38.2,
   "parallel_last_batch_successes": 9,
   "parallel_last_batch_terminals": 0,
   "parallel_leaf_category_count": 4671,
@@ -54150,73 +54151,67 @@
       "attempts": 0,
       "category_id": "11362",
       "category_name": "لوازم موتورسیکلت",
-      "page": 494
+      "page": 495
     },
     {
       "attempts": 0,
       "category_id": "9457",
       "category_name": "لباس ورزشی مردانه",
-      "page": 495
+      "page": 496
     },
     {
       "attempts": 0,
       "category_id": "6951",
       "category_name": "تابلو فرش",
-      "page": 497
+      "page": 498
     },
     {
       "attempts": 0,
       "category_id": "6949",
       "category_name": "فرش دستبافت",
-      "page": 498
+      "page": 499
     },
     {
       "attempts": 0,
       "category_id": "9638",
       "category_name": "ست لباس دخترانه",
-      "page": 498
+      "page": 499
     },
     {
       "attempts": 0,
       "category_id": "9906",
       "category_name": "کفش روزمره مردانه",
-      "page": 498
+      "page": 499
     },
     {
       "attempts": 0,
       "category_id": "9337",
       "category_name": "لباس زیر زنانه",
-      "page": 499
+      "page": 500
     },
     {
       "attempts": 0,
       "category_id": "9391",
       "category_name": "گوشواره طلا زنانه",
-      "page": 499
-    },
-    {
-      "attempts": 0,
-      "category_id": "9749",
-      "category_name": "لباس پسرانه",
       "page": 500
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 9,
-  "parallel_workers_used": 8,
-  "pending_page_count": 9,
+  "parallel_worker_limit": 10,
+  "parallel_workers_used": 9,
+  "pending_page_count": 8,
   "schema_version": 1,
   "stats": {
     "api_failures_total": 48728,
-    "catalog_candidate_cards_found_total": 20777293,
+    "catalog_candidate_cards_found_total": 20777473,
     "completed_cycles": 2,
     "cycles_with_gaps_total": 0,
-    "discounted_candidates_found_total": 4774970,
+    "discounted_candidates_found_total": 4774988,
     "empty_product_pages_total": 26370,
-    "nonempty_product_pages_total": 1048369,
-    "pages_scanned_total": 1073947,
-    "product_rows_scanned_total": 20777333,
+    "nonempty_product_pages_total": 1048378,
+    "pages_scanned_total": 1073956,
+    "product_rows_scanned_total": 20777513,
     "unqueryable_categories_total": 1755
   },
   "unacknowledged_candidate_count": 3000
