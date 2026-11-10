@@ -2738,7 +2738,18 @@ def enrich_torob_trends(
     trends = cache.get("trends", []) if cache_fresh else []
     if not cache_fresh:
         if "torob_trends" not in _TOROB_AVAILABLE_TOOLS:
-            print("TOROB_TRENDS_SKIPPED reason=optional_tool_not_discovered")
+            # Price comparisons may all be cached/skipped; discover Torob capabilities
+            # here as well so demand trends remain an independent optional source.
+            try:
+                _prepare_torob_mcp()
+            except Exception as exc:
+                print(
+                    f"TOROB_TRENDS_UNAVAILABLE reason=tool_discovery_{type(exc).__name__}; "
+                    "continuing_without_external_demand"
+                )
+                return
+        if "torob_trends" not in _TOROB_AVAILABLE_TOOLS:
+            print("TOROB_TRENDS_SKIPPED reason=optional_tool_not_advertised")
             return
         try:
             response = _torob_tool("torob_trends", {"limit": 30}, request_id=40)
