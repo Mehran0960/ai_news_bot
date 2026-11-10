@@ -36615,58 +36615,6 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "10897",
-      "catalog_best_selling_category_name": "چای سبز کیسه‌ای",
-      "catalog_best_selling_rank": 1,
-      "catalog_best_selling_ranks_by_category": {
-        "10894": {
-          "category_name": "چای",
-          "observed_at": "2026-11-09T12:42:59.783073+00:00",
-          "rank": 35,
-          "rank_history": [
-            {
-              "category_name": "چای",
-              "observed_at": "2026-11-09T12:42:59.783073+00:00",
-              "rank": 35
-            }
-          ]
-        },
-        "10897": {
-          "category_name": "چای سبز کیسه‌ای",
-          "observed_at": "2026-11-09T12:18:29.015130+00:00",
-          "rank": 1,
-          "rank_history": [
-            {
-              "category_name": "چای سبز کیسه‌ای",
-              "observed_at": "2026-11-09T12:18:29.015130+00:00",
-              "rank": 1
-            }
-          ]
-        }
-      },
-      "catalog_category_id": "10894",
-      "catalog_category_ids": [
-        "10894",
-        "10897"
-      ],
-      "catalog_category_name": "چای",
-      "catalog_rank_observed_at": "2026-11-09T12:18:29.015130+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 139900,
-      "discount_percent": 25,
-      "first_seen_at": "2026-11-09T12:18:29.015130+00:00",
-      "last_seen_at": "2026-11-09T12:42:37.704021+00:00",
-      "original_price": 186700,
-      "product_id": "dkp-20836028",
-      "product_url": "https://www.digikala.com/product/dkp-20836028/",
-      "rating": 3.96,
-      "review_count": 127,
-      "savings_toman": 46800,
-      "source": "digikala_catalog_sweep",
-      "title": "چای سبز کیسه ای شاهسوند بسته 25 عددی"
-    },
-    {
-      "availability": "unknown",
       "catalog_best_selling_category_id": "6659",
       "catalog_best_selling_category_name": "سوهان و سنباده",
       "catalog_best_selling_rank": 1,
@@ -93755,6 +93703,12 @@
           "rank": 69,
           "rank_history": []
         },
+        "6089": {
+          "category_name": "لوازم ورزشی",
+          "observed_at": "2026-11-10T01:38:21.965994+00:00",
+          "rank": 1840,
+          "rank_history": []
+        },
         "6291": {
           "category_name": "اسکیت و اسکوتر",
           "observed_at": "2026-11-09T13:08:09.607018+00:00",
@@ -93774,20 +93728,21 @@
           ]
         }
       },
-      "catalog_category_id": "10667",
+      "catalog_category_id": "6089",
       "catalog_category_ids": [
+        "6089",
         "6291",
         "8215",
         "10667",
         "10668"
       ],
-      "catalog_category_name": "ورزش های سواری",
+      "catalog_category_name": "لوازم ورزشی",
       "catalog_rank_observed_at": "2026-11-09T11:53:00.962316+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 395000,
       "discount_percent": 21,
       "first_seen_at": "2026-11-09T11:53:00.962316+00:00",
-      "last_seen_at": "2026-11-09T16:58:46.164695+00:00",
+      "last_seen_at": "2026-11-10T01:37:58.870671+00:00",
       "original_price": 500000,
       "product_id": "dkp-18058204",
       "product_url": "https://www.digikala.com/product/dkp-18058204/",
@@ -99264,8 +99219,8 @@
       "catalog_best_selling_ranks_by_category": {
         "11134": {
           "category_name": "زیورآلات طلا بچگانه",
-          "observed_at": "2026-11-09T19:15:07.237619+00:00",
-          "rank": 716,
+          "observed_at": "2026-11-10T01:37:34.676287+00:00",
+          "rank": 1806,
           "rank_history": []
         },
         "9710": {
@@ -99292,7 +99247,7 @@
       "current_price": 9859550,
       "discount_percent": 5,
       "first_seen_at": "2026-11-09T12:03:24.776326+00:00",
-      "last_seen_at": "2026-11-09T19:15:03.198456+00:00",
+      "last_seen_at": "2026-11-10T01:37:29.485866+00:00",
       "original_price": 10366170,
       "product_id": "dkp-21764421",
       "product_url": "https://www.digikala.com/product/dkp-21764421/",
@@ -160031,6 +159986,12 @@
             }
           ]
         },
+        "8895": {
+          "category_name": "کالای خوراکی و اساسی",
+          "observed_at": "2026-11-10T01:36:39.082228+00:00",
+          "rank": 1804,
+          "rank_history": []
+        },
         "8899": {
           "category_name": "کالاهای اساسی و خواربار",
           "observed_at": "2026-11-09T13:38:03.669127+00:00",
@@ -160038,24 +159999,25 @@
           "rank_history": []
         }
       },
-      "catalog_category_id": "8899",
+      "catalog_category_id": "8895",
       "catalog_category_ids": [
+        "8895",
         "8899",
         "10830",
         "10833"
       ],
-      "catalog_category_name": "کالاهای اساسی و خواربار",
+      "catalog_category_name": "کالای خوراکی و اساسی",
       "catalog_rank_observed_at": "2026-11-09T12:18:28.999715+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 2028270,
       "discount_percent": 4,
       "first_seen_at": "2026-11-09T12:18:28.998942+00:00",
-      "last_seen_at": "2026-11-09T13:37:28.839704+00:00",
+      "last_seen_at": "2026-11-10T01:36:12.865774+00:00",
       "original_price": 2112790,
       "product_id": "dkp-15893939",
       "product_url": "https://www.digikala.com/product/dkp-15893939/",
       "rating": 4.64,
-      "review_count": 1009,
+      "review_count": 1010,
       "savings_toman": 84520,
       "source": "digikala_catalog_sweep",
       "title": "روغن جامد زیرو ترانس غنچه - 5 کیلوگرم"
@@ -164062,8 +164024,8 @@
         },
         "8752": {
           "category_name": "مردانه",
-          "observed_at": "2026-11-10T01:32:45.072815+00:00",
-          "rank": 1799,
+          "observed_at": "2026-11-10T01:36:39.081138+00:00",
+          "rank": 1811,
           "rank_history": []
         },
         "9435": {
@@ -164085,7 +164047,7 @@
       "current_price": 1891240,
       "discount_percent": 64,
       "first_seen_at": "2026-11-09T12:11:27.971008+00:00",
-      "last_seen_at": "2026-11-10T01:32:41.296908+00:00",
+      "last_seen_at": "2026-11-10T01:36:12.341467+00:00",
       "original_price": 5300000,
       "product_id": "dkp-22695047",
       "product_url": "https://www.digikala.com/product/dkp-22695047/",
@@ -173838,8 +173800,8 @@
       "catalog_best_selling_ranks_by_category": {
         "10174": {
           "category_name": "دکوراتیو سنتی",
-          "observed_at": "2026-11-10T01:33:58.466339+00:00",
-          "rank": 1793,
+          "observed_at": "2026-11-10T01:37:34.629656+00:00",
+          "rank": 1806,
           "rank_history": []
         },
         "10200": {
@@ -173866,7 +173828,7 @@
       "current_price": 810000,
       "discount_percent": 10,
       "first_seen_at": "2026-11-09T12:11:27.947869+00:00",
-      "last_seen_at": "2026-11-10T01:33:48.042933+00:00",
+      "last_seen_at": "2026-11-10T01:37:10.631976+00:00",
       "original_price": 900000,
       "product_id": "dkp-21666875",
       "product_url": "https://www.digikala.com/product/dkp-21666875/",
@@ -193811,8 +193773,8 @@
         },
         "9435": {
           "category_name": "لباس مردانه",
-          "observed_at": "2026-11-10T01:33:58.426870+00:00",
-          "rank": 1798,
+          "observed_at": "2026-11-10T01:36:39.114217+00:00",
+          "rank": 1808,
           "rank_history": []
         }
       },
@@ -193828,7 +193790,7 @@
       "current_price": 799000,
       "discount_percent": 60,
       "first_seen_at": "2026-11-09T12:50:53.226741+00:00",
-      "last_seen_at": "2026-11-10T01:33:24.814773+00:00",
+      "last_seen_at": "2026-11-10T01:36:33.747110+00:00",
       "original_price": 1990000,
       "product_id": "dkp-3627760",
       "product_url": "https://www.digikala.com/product/dkp-3627760/",
@@ -196530,28 +196492,35 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "5824",
-      "catalog_best_selling_category_name": "لوازم بهداشتی",
-      "catalog_best_selling_rank": 1344,
+      "catalog_best_selling_category_id": "5968",
+      "catalog_best_selling_category_name": "آرایشی و بهداشتی",
+      "catalog_best_selling_rank": 1829,
       "catalog_best_selling_ranks_by_category": {
         "5824": {
           "category_name": "لوازم بهداشتی",
           "observed_at": "2026-11-09T23:49:05.411480+00:00",
           "rank": 1344,
           "rank_history": []
+        },
+        "5968": {
+          "category_name": "آرایشی و بهداشتی",
+          "observed_at": "2026-11-10T01:38:21.914322+00:00",
+          "rank": 1829,
+          "rank_history": []
         }
       },
-      "catalog_category_id": "5824",
+      "catalog_category_id": "5968",
       "catalog_category_ids": [
-        "5824"
+        "5824",
+        "5968"
       ],
-      "catalog_category_name": "لوازم بهداشتی",
-      "catalog_rank_observed_at": "2026-11-09T23:49:05.411480+00:00",
+      "catalog_category_name": "آرایشی و بهداشتی",
+      "catalog_rank_observed_at": "2026-11-10T01:38:21.914322+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 373800,
       "discount_percent": 17,
       "first_seen_at": "2026-11-09T23:49:05.411480+00:00",
-      "last_seen_at": "2026-11-09T23:37:29.872243+00:00",
+      "last_seen_at": "2026-11-10T01:37:53.283964+00:00",
       "original_price": 450000,
       "product_id": "dkp-12946500",
       "product_url": "https://www.digikala.com/product/dkp-12946500/",
@@ -197062,9 +197031,42 @@
       "savings_toman": 219200,
       "source": "digikala_catalog_sweep",
       "title": "خمیر دندان میسویک مدل Zero Sensitive حجم 100 میلی لیتر"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "5824",
+      "catalog_best_selling_category_name": "لوازم بهداشتی",
+      "catalog_best_selling_rank": 1834,
+      "catalog_best_selling_ranks_by_category": {
+        "5824": {
+          "category_name": "لوازم بهداشتی",
+          "observed_at": "2026-11-10T01:38:21.907599+00:00",
+          "rank": 1834,
+          "rank_history": []
+        }
+      },
+      "catalog_category_id": "5824",
+      "catalog_category_ids": [
+        "5824"
+      ],
+      "catalog_category_name": "لوازم بهداشتی",
+      "catalog_rank_observed_at": "2026-11-10T01:38:21.907599+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 257800,
+      "discount_percent": 29,
+      "first_seen_at": "2026-11-10T01:38:21.907599+00:00",
+      "last_seen_at": "2026-11-10T01:37:50.340568+00:00",
+      "original_price": 361600,
+      "product_id": "dkp-81215",
+      "product_url": "https://www.digikala.com/product/dkp-81215/",
+      "rating": 4.07,
+      "review_count": 6682,
+      "savings_toman": 103800,
+      "source": "digikala_catalog_sweep",
+      "title": "رول ضد تعریق مردانه مای مدل فرش اکت حجم 50 میلی لیتر"
     }
   ],
   "cycle_started_at": "2026-11-09T11:16:23.329744+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-10T01:34:38.078766+00:00"
+  "updated_at": "2026-11-10T01:38:22.120211+00:00"
 }
