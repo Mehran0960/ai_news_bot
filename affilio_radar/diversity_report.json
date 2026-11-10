@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-10T20:38:58.882980+00:00",
+  "generated_at": "2026-11-10T20:47:57.504831+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "سایر محصولات بهداشت جنسی": 1,
@@ -179,7 +179,6 @@
       "بوردگیم، اوریگامی و بازی فکری": 1,
       "تاپ و تی‌شرت راحتی زنانه": 2,
       "تجهیزات آرایشی چشم و ابرو": 1,
-      "تشک خوشخواب": 1,
       "تنیس، بدمینتون، اسکواش": 1,
       "توپ": 1,
       "تی شرت مردانه": 3,
@@ -290,7 +289,7 @@
       "kids_sports": 6,
       "large_appliances": 9,
       "mobile_devices": 3,
-      "other": 92,
+      "other": 91,
       "personal_care": 32,
       "power_backup": 9,
       "sports_outdoor": 29,
@@ -303,28 +302,28 @@
       "books_stationery": 3.2,
       "computer_network": 1.3,
       "digital_accessories": 1.0,
-      "fashion": 14.0,
+      "fashion": 14.1,
       "gaming": 0.3,
       "grocery_food": 3.8,
-      "home": 2.5,
-      "home_cleaning": 2.5,
+      "home": 2.6,
+      "home_cleaning": 2.6,
       "jewelry": 1.0,
       "kids_sports": 1.9,
       "large_appliances": 2.9,
       "mobile_devices": 1.0,
-      "other": 29.3,
+      "other": 29.1,
       "personal_care": 10.2,
       "power_backup": 2.9,
-      "sports_outdoor": 9.2,
+      "sports_outdoor": 9.3,
       "tv_audio_video": 0.3
     },
-    "distinct_catalog_categories": 117,
+    "distinct_catalog_categories": 116,
     "distinct_categories": 20,
-    "distinct_families": 156,
+    "distinct_families": 155,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
     "known_brand_posts": 64,
-    "posts": 314,
+    "posts": 313,
     "repeated_brand_count": 50,
     "repeated_brands": {
       "ai_javaher": 8,
@@ -338,7 +337,7 @@
       "ufc": 12
     },
     "retailer_post_counts": {
-      "digikala": 314
+      "digikala": 313
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -357,7 +356,7 @@
       "grocery_food": 10,
       "health_wellness": 5,
       "home_cleaning": 7,
-      "home_living": 10,
+      "home_living": 9,
       "kitchen_food": 3,
       "lighting_electrical": 9,
       "local_goods": 2,
@@ -383,30 +382,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 786,
+    "all_time_count": 787,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T19:11:16.157649+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-11192935",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ژل شستشوی صورت ویتالیر مدل وایت ویت مناسب برای پوست‌های لک‌دار حجم 200 میلی لیتر",
-        "use_case": "home_cleaning"
-      },
       {
         "at": "2026-11-10T19:19:51.025198+00:00",
         "brand": "",
@@ -715,6 +697,23 @@
       },
       {
         "at": "2026-11-10T20:38:58.882980+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-5664135",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مدل Oily Acne-Prone Skin، مناسب پوست‌های چرب، حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-10T20:47:57.504831+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
