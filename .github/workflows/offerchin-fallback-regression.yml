@@ -1,6 +1,14 @@
 name: OfferChin Fallback Regression Tests
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "affilio_radar/content_delivery.py"
+      - "affilio_radar/publisher.py"
+      - "affilio_radar/platform_registry.py"
+      - "affilio_radar/test_content_delivery.py"
+      - ".github/workflows/offerchin-fallback-regression.yml"
   push:
     branches:
       - fix/offerchin-continuous-fallback-20261031
