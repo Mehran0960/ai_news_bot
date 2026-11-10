@@ -8,6 +8,7 @@ from pathlib import Path
 try:
     from .catalog_status_snapshot import (
         build_status_snapshot,
+        upgrade_legacy_demand_first_snapshot,
         candidate_matches_completed_snapshot,
         load_completed_candidates_snapshot,
         load_publication_catalog_context,
@@ -19,6 +20,7 @@ try:
 except ImportError:
     from catalog_status_snapshot import (
         build_status_snapshot,
+        upgrade_legacy_demand_first_snapshot,
         candidate_matches_completed_snapshot,
         load_completed_candidates_snapshot,
         load_publication_catalog_context,
@@ -185,6 +187,86 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
 
     def test_new_category_addition_budget_is_capped_at_fifty(self):
         self.assertEqual(_category_addition_budget(10000), 50)
+
+
+    def test_legacy_full_demand_first_snapshot_is_migrated_without_resorting(self):
+        rows = [
+            {
+                "product_id": "dkp-100",
+                "source": "digikala_catalog_sweep",
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 1,
+                "catalog_rank_observed_at": self.completed_at,
+                "catalog_best_selling_ranks_by_category": {
+                    "1": {"rank": 1, "observed_at": self.completed_at}
+                },
+                "discount_percent": 10,
+                "savings_toman": 10000,
+                "catalog_cycle_completed_at": self.completed_at,
+                "catalog_cycle_snapshot_rank": 1,
+            },
+            {
+                "product_id": "dkp-200",
+                "source": "digikala_catalog_sweep",
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 45,
+                "catalog_rank_observed_at": self.completed_at,
+                "catalog_best_selling_ranks_by_category": {
+                    "2": {"rank": 45, "observed_at": self.completed_at}
+                },
+                "discount_percent": 90,
+                "savings_toman": 900000,
+                "catalog_cycle_completed_at": self.completed_at,
+                "catalog_cycle_snapshot_rank": 2,
+            },
+        ]
+        legacy = {**self.candidates, "candidates": rows}
+        legacy.pop("candidate_order_policy", None)
+
+        upgraded, changed = upgrade_legacy_demand_first_snapshot(legacy)
+        self.assertTrue(changed)
+        self.assertEqual(upgraded["candidate_order_policy"], "catalog_demand_first_v1")
+        self.assertEqual(
+            [row["product_id"] for row in upgraded["candidates"]],
+            ["dkp-100", "dkp-200"],
+            "migration must preserve the historical bestseller-first order",
+        )
+        self.assertEqual(
+            [row["catalog_cycle_snapshot_rank"] for row in upgraded["candidates"]],
+            [1, 2],
+        )
+        status = build_status_snapshot(
+            self.state, self.completed_at, completed_candidates=upgraded
+        )
+        self.assertTrue(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["completed_candidates_count"], 2)
+
+    def test_legacy_snapshot_migration_refuses_incomplete_or_unproven_rows(self):
+        rows = []
+        for index, source in enumerate(("digikala_catalog_sweep", "unknown_source"), start=1):
+            rows.append({
+                "product_id": f"dkp-{index * 100}",
+                "source": source,
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": index,
+                "catalog_rank_observed_at": self.completed_at,
+                "catalog_best_selling_ranks_by_category": {
+                    "1": {"rank": index, "observed_at": self.completed_at}
+                },
+                "discount_percent": 10,
+                "savings_toman": 10000,
+                "catalog_cycle_completed_at": self.completed_at,
+                "catalog_cycle_snapshot_rank": index,
+            })
+        legacy = {**self.candidates, "candidates": rows}
+        legacy.pop("candidate_order_policy", None)
+        upgraded, changed = upgrade_legacy_demand_first_snapshot(legacy)
+        self.assertFalse(changed)
+        self.assertEqual(upgraded, legacy)
+
+        incomplete = {**legacy, "categories_complete": 2}
+        _unchanged, changed = upgrade_legacy_demand_first_snapshot(incomplete)
+        self.assertFalse(changed)
 
     def test_candidate_snapshot_metadata_must_prove_full_coverage(self):
         for key, value in (
