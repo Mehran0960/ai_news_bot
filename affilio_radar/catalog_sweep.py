@@ -20,14 +20,18 @@ from typing import Any
 import requests
 
 try:
-    from .product_quality import is_publishable_product_title
+    from .product_quality import is_prohibited_product_title, is_publishable_product_title
 except ImportError:
     try:
-        from product_quality import is_publishable_product_title
-    except ImportError:  # pragma: no cover - defensive standalone fallback
+        from product_quality import is_prohibited_product_title, is_publishable_product_title
+    except ImportError:  # pragma: no cover - fail closed if safety policy is unavailable
         def is_publishable_product_title(value: object) -> bool:
             text = re.sub(r"\s+", " ", str(value or "")).strip()
             return len(text) >= 5 and len(text.split()) >= 2
+
+        def is_prohibited_product_title(value: object) -> bool:
+            # Never make the catalog permissive when its safety policy is unavailable.
+            return True
 
 
 ROOT = Path(__file__).resolve().parent
@@ -604,6 +608,7 @@ def retain_diverse_candidates(
         and row.get("product_id")
         and _normal_int(row.get("discount_percent")) >= MIN_CANDIDATE_DISCOUNT
         and _normal_int(row.get("savings_toman")) > 0
+        and not is_prohibited_product_title(row.get("title"))
     )
     ranked = sorted(eligible, key=catalog_candidate_sort_key, reverse=True)
     return ranked[:cap]
@@ -726,7 +731,7 @@ def load_catalog_candidates_for_handoff(
     max_count: int = 100,
     now: datetime | None = None,
 ) -> list[dict]:
-    """Select new or materially changed cards; unchanged fingerprints wait for TTL."""
+    """Select new, changed, safe cards and persist explicit rejection diagnostics."""
     current = now or utc_now()
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -736,6 +741,18 @@ def load_catalog_candidates_for_handoff(
     if not isinstance(handoff, dict):
         handoff = {}
         publisher_state["catalog_sweep_handoff"] = handoff
+
+    diagnostics = {
+        "rows_seen": len(rows),
+        "invalid_product_id": 0,
+        "invalid_product_url": 0,
+        "title_fallback_used": 0,
+        "prohibited_health_title": 0,
+        "unchanged_recently_seen": 0,
+        "deferred_unchanged": 0,
+        "fresh_eligible": 0,
+        "selected": 0,
+    }
 
     seen = handoff.setdefault("seen_ids", {})
     if not isinstance(seen, dict):
@@ -775,7 +792,23 @@ def load_catalog_candidates_for_handoff(
         pid = str(row.get("product_id") or "")
         url = str(row.get("product_url") or "")
         if not re.fullmatch(r"dkp-\d{1,12}", pid):
+            diagnostics["invalid_product_id"] += 1
             continue
+        if not url.endswith(f"/{pid}/"):
+            diagnostics["invalid_product_url"] += 1
+            continue
+
+        # Weak listing titles are replaced by a synthetic label; final publication
+        # still fetches the canonical product page and validates the real title.
+        if not is_publishable_product_title(row.get("title", "")):
+            row = {**row, "title": f"محصول دیجی‌کالا {pid}"}
+            diagnostics["title_fallback_used"] += 1
+        # Apply the same hard exclusion as the final publisher before finite
+        # shortlist capacity is consumed by cards that cannot be published.
+        if is_prohibited_product_title(row.get("title", "")):
+            diagnostics["prohibited_health_title"] += 1
+            continue
+
         fingerprint = catalog_handoff_fingerprint(row)
         previous = seen.get(pid)
         previous_fingerprint = (
@@ -802,23 +835,24 @@ def load_catalog_candidates_for_handoff(
         changed_since_deferred = bool(
             deferred_fingerprint and deferred_fingerprint != fingerprint
         )
-        # Existing discovery-queue entries must be refreshed when a listing
-        # fingerprint changes; merge_discovery_queue updates them in place and
-        # makes them due for live validation. A deferral only suppresses the
-        # same unchanged card, never a materially changed listing.
-        if unchanged_recently_seen or (deferred_active and not changed_since_deferred):
+        # Existing discovery-queue entries are refreshed when a listing changes;
+        # deferral suppresses only the same unchanged card.
+        if unchanged_recently_seen:
+            diagnostics["unchanged_recently_seen"] += 1
             continue
-        if not url.endswith(f"/{pid}/"):
+        if deferred_active and not changed_since_deferred:
+            diagnostics["deferred_unchanged"] += 1
             continue
-        if not is_publishable_product_title(row.get("title", "")):
-            row = {**row, "title": f"محصول دیجی‌کالا {pid}"}
         fresh.append(row)
 
+    diagnostics["fresh_eligible"] = len(fresh)
     selected = retain_diverse_candidates(
         fresh,
         limit=max(0, int(max_count)),
         rotation=int(current.timestamp() // 300),
     )
+    diagnostics["selected"] = len(selected)
+    handoff["last_selection_diagnostics"] = diagnostics
     handoff["last_selection_at"] = current.isoformat() if selected else handoff.get("last_selection_at", "")
     handoff["last_selection_count"] = len(selected)
     return selected
