@@ -1620,3 +1620,14 @@
 
 **ریسک/بازگشت:** افزایش ظرفیت به ۲۵۰، بار درخواست‌های live را نسبت به ۱۰۰ افزایش می‌دهد؛ سقف سخت، timeout و صف چرخشی حفظ شده‌اند. مهاجرت snapshot تنها یک‌بار و فقط با provenance کامل انجام می‌شود. برای بازگشت، PR یکپارچه revert شود؛ در صورت شکست مهاجرت، snapshot دست‌نخورده و گیت انتشار بسته می‌ماند.
 **وضعیت:** تغییرات روی شاخهٔ مستقل offerchin/reliability-catalog-sweep-20261110؛ ادغام و فعال‌سازی production منوط به سبزشدن آزمون‌ها و Documentation Gate است.
+
+
+## ۲۰۲۶-۱۱-۱۰ — حذف واسطهٔ رهگیری از CTA فروشگاه
+
+- **هدف:** اطمینان از اینکه همهٔ CTAهای خرید storefront مستقیماً URL اصلی Affilio را باز می‌کنند و هیچ سرویس OfferChin/Cloudflare بین کاربر و لینک خرید قرار نمی‌گیرد؛ حذف کلیک از معیار رتبه‌بندی storefront.
+- **تغییر/اقدام:** ثبت سورس Worker فعال در مخزن؛ جایگزینی مسیر `affiliate-deal-radar/p` با URL مستقیم `aflo.ir/QekEYTRg?p=...` پس از اعتبارسنجی مقصد همان محصول؛ سخت‌سازی validator در Pages؛ حذف `click_count_30d` از مرتب‌سازی.
+- **فایل‌ها/سامانه‌ها:** `cloudflare/offerchin-site-worker.mjs`، `cloudflare/offerchin-site-worker.test.mjs`، `cloudflare/wrangler-offerchin-site.toml`، `offerchin-site/build.py`، `offerchin-site/assets/site.js`، `offerchin-site/test_build.py`، `offerchin-site/README.md`، workflow regression و اسناد پروژه.
+- **آزمون و نتیجه:** آزمون‌های جدید، بررسی syntax و CI در شاخهٔ مستقل اجرا می‌شوند؛ نتیجهٔ نهایی پس از تکمیل Actions ثبت خواهد شد. هیچ deployment تولیدی در این تغییر انجام نشده است.
+- **شواهد/شناسه:** Worker عمومی `offerchin-site` دارای workers.dev فعال و نسخهٔ فعال `3624cb5e-0a37-428b-99fd-8418f55577e6` با زمان deployment برابر ۲۰۲۶-۱۰-۱۸T17:25:01Z بود؛ سورس همان Worker مسیر `TRACKER + "/p/"` را در CTA داشت.
+- **ریسک/بازگشت:** تا زمان merge و deploy، Worker عمومی قدیمی ممکن است همچنان مسیر واسط را استفاده کند؛ در صورت بروز مشکل در نسخهٔ مستقیم، rollback به deployment قبلی Worker ممکن است، اما نسخهٔ قدیمی با سیاست خرید مستقیم سازگار نیست و فقط برای بازیابی موقت قابل استفاده است.
+- **وضعیت:** فقط شاخهٔ مستقل و PR باز؛ merge و deploy نشده؛ نیازمند بازبینی و مجوز جداگانه برای انتشار.
