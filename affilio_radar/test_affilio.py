@@ -190,6 +190,11 @@ class AffilioRadarTests(unittest.TestCase):
         self._click_tracker_health_patch = patch("affilio_radar._click_tracker_is_healthy", return_value=False)
         self._click_tracker_health_patch.start()
         self.addCleanup(self._click_tracker_health_patch.stop)
+        # Most tests here cover ranking/diversity mechanics, not the strict demand gate.
+        # Dedicated tests in test_selection_evidence exercise the real gate.
+        self._demand_gate_patch = patch("affilio_radar.has_verified_market_demand", return_value=True)
+        self._demand_gate_patch.start()
+        self.addCleanup(self._demand_gate_patch.stop)
 
     def test_demand_context_precedes_discount_but_clicks_and_synthetic_scores_are_ignored(self):
         now = datetime(2026, 10, 28, tzinfo=timezone.utc)
@@ -276,6 +281,14 @@ class AffilioRadarTests(unittest.TestCase):
         tracked_query = parse_qs(parsed.query)
         self.assertEqual(tracked_query.get("u"), [affiliate])
         self.assertEqual(tracked_query.get("src"), ["bale"])
+
+        # Public purchase buttons must never route through our own tracking domain,
+        # even when the tracking service reports healthy.
+        with (
+            patch.object(radar_module, "_click_tracker_is_healthy", return_value=True),
+            patch.object(radar_module, "build_click_tracking_link", side_effect=AssertionError("tracker must not be called")),
+        ):
+            self.assertEqual(radar_module.tracked_affiliate_button_url(affiliate, "bale"), affiliate)
 
 
     def test_fetch_product_record_uses_snappshop_internal_api_id_mapping(self):
@@ -739,22 +752,19 @@ class AffilioRadarTests(unittest.TestCase):
             radar_module._retain_superseded_youtube_video(record, "dkp-123", now)
         )
 
-    def test_purchase_button_uses_tracker_only_when_healthy_and_fails_open_to_affilio(self):
+    def test_purchase_button_always_opens_direct_affilio_url_without_tracker(self):
         product = "https://snappshop.ir/product/snp-2097083854"
         affiliate = build_affilio_tracking_link(product)
-        with patch("affilio_radar._click_tracker_is_healthy", return_value=False):
-            self.assertEqual(tracked_affiliate_button_url(affiliate, "bale", "creative-test-1", "B"), affiliate)
-        with patch("affilio_radar._click_tracker_is_healthy", return_value=True):
-            wrapped = tracked_affiliate_button_url(
-                affiliate, "telegram", "creative-test-1", "B", "caption-test-1", "A"
+        with (
+            patch("affilio_radar._click_tracker_is_healthy", return_value=True),
+            patch("affilio_radar.build_click_tracking_link", side_effect=AssertionError("purchase CTA must bypass tracker")),
+        ):
+            self.assertEqual(
+                tracked_affiliate_button_url(
+                    affiliate, "telegram", "creative-test-1", "B", "caption-test-1", "A"
+                ),
+                affiliate,
             )
-        query = parse_qs(urlsplit(wrapped).query)
-        self.assertEqual(urlsplit(wrapped).path, "/p/snp-2097083854")
-        self.assertEqual(query.get("u"), [affiliate])
-        self.assertEqual(query.get("exp"), ["creative-test-1"])
-        self.assertEqual(query.get("variant"), ["b"])
-        self.assertEqual(query.get("cexp"), ["caption-test-1"])
-        self.assertEqual(query.get("cvariant"), ["a"])
         self.assertEqual(tracked_affiliate_button_url("https://example.com/not-affiliate", "bale"), "")
 
     def test_click_statistics_include_aggregate_counts_for_both_stores(self):
