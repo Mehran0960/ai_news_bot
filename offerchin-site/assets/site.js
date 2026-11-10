@@ -34,12 +34,12 @@ function canonicalProductUrl(raw, id) {
  try {
   const u = new URL(raw), productId = String(id || "").toLowerCase(), host = u.hostname.toLowerCase();
   if (u.protocol !== "https:" || u.username || u.password) return "";
-  if (/^dkp-\\d+$/.test(productId) && (host === "digikala.com" || host.endsWith(".digikala.com"))) {
-   const match = u.pathname.match(/\\/product\\/(dkp-\\d+)/i);
+  if (/^dkp-\d+$/.test(productId) && (host === "digikala.com" || host.endsWith(".digikala.com"))) {
+   const match = u.pathname.match(/\/product\/(dkp-\d+)/i);
    return match && match[1].toLowerCase() === productId ? "https://www.digikala.com/product/" + productId + "/" : "";
   }
-  if (/^snp-\\d+$/.test(productId) && (host === "snappshop.ir" || host.endsWith(".snappshop.ir"))) {
-   const match = u.pathname.match(/^\\/product\\/(snp-\\d+)\\/?$/i);
+  if (/^snp-\d+$/.test(productId) && (host === "snappshop.ir" || host.endsWith(".snappshop.ir"))) {
+   const match = u.pathname.match(/^\/product\/(snp-\d+)\/?$/i);
    return match && match[1].toLowerCase() === productId ? "https://snappshop.ir/product/" + productId : "";
   }
   return "";
