@@ -1483,6 +1483,25 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(classify_category("لیزر پوینتر ارائه مدل نمونه"), "presentation_tools")
         self.assertEqual(classify_category("لوازم نقاشی و طراحی مدل نمونه"), "arts_crafts")
 
+    def test_sesame_cream_sweets_are_not_misclassified_as_skincare(self):
+        food = {
+            "product_id": "dkp-sesame-date-sweet",
+            "title": "خرما شکلاتی با مغزی کرم کنجد ورسادو - 200 گرم",
+        }
+        skincare = {
+            "product_id": "dkp-face-sunscreen",
+            "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مناسب پوست‌های چرب",
+        }
+
+        self.assertEqual(classify_category(food["title"]), "grocery_food")
+        food_category, food_family, _ = radar_module._publication_diversity_group(food)
+        skincare_category, skincare_family, _ = radar_module._publication_diversity_group(skincare)
+        self.assertEqual(food_category, "grocery_food")
+        self.assertEqual(food_family, "grocery_food:sweets_and_spreads")
+        self.assertEqual(skincare_category, "personal_care")
+        self.assertEqual(skincare_family, "personal_care:skincare")
+        self.assertFalse(radar_module._publication_products_are_similar(food, skincare))
+
     def test_discovery_budget_protects_rotating_category_search_slots(self):
         self.assertEqual(_discovery_candidate_budgets(60), (40, 20))
         self.assertEqual(_discovery_candidate_budgets(40), (27, 13))
