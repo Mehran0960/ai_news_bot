@@ -268,7 +268,7 @@ async function handleConversionStats(request, env) {
   const since = Date.now() - 30 * 86400000;
   const salesWhere = "timestamp_ms >= ? AND conversion_type='sale' AND status='approved'";
   const aggregateSql = (groupBy, whereExtra = "") =>
-    "SELECT " + groupBy + ",COUNT(*) AS confirmedOrderCount," +
+    "SELECT " + groupBy + " AS group_key,COUNT(*) AS confirmedOrderCount," +
     "COALESCE(SUM(units_sold),0) AS unitsSold," +
     "COALESCE(SUM(amount_toman),0) AS salesAmountToman," +
     "COALESCE(SUM(payout_toman),0) AS approvedCommissionToman " +
