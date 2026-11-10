@@ -78910,6 +78910,12 @@
           "rank": 122,
           "rank_history": []
         },
+        "8752": {
+          "category_name": "مردانه",
+          "observed_at": "2026-11-10T00:56:36.134020+00:00",
+          "rank": 1614,
+          "rank_history": []
+        },
         "9435": {
           "category_name": "لباس مردانه",
           "observed_at": "2026-11-09T16:57:56.199317+00:00",
@@ -78923,22 +78929,23 @@
           "rank_history": []
         }
       },
-      "catalog_category_id": "9435",
+      "catalog_category_id": "8752",
       "catalog_category_ids": [
         "6816",
+        "8752",
         "9435",
         "9457",
         "10168",
         "11144",
         "11154"
       ],
-      "catalog_category_name": "لباس مردانه",
+      "catalog_category_name": "مردانه",
       "catalog_rank_observed_at": "2026-11-09T12:18:29.066599+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 2999000,
       "discount_percent": 15,
       "first_seen_at": "2026-11-09T12:18:29.066599+00:00",
-      "last_seen_at": "2026-11-09T16:57:40.642891+00:00",
+      "last_seen_at": "2026-11-10T00:54:53.188625+00:00",
       "original_price": 3538080,
       "product_id": "dkp-2255270",
       "product_url": "https://www.digikala.com/product/dkp-2255270/",
@@ -102434,6 +102441,78 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "8942",
+      "catalog_best_selling_category_name": "زردچوبه",
+      "catalog_best_selling_rank": 3,
+      "catalog_best_selling_ranks_by_category": {
+        "10571": {
+          "category_name": "افزودنی ها",
+          "observed_at": "2026-11-09T12:42:03.131119+00:00",
+          "rank": 29,
+          "rank_history": [
+            {
+              "category_name": "افزودنی ها",
+              "observed_at": "2026-11-09T12:42:03.131119+00:00",
+              "rank": 29
+            }
+          ]
+        },
+        "10579": {
+          "category_name": "ادویه و چاشنی",
+          "observed_at": "2026-11-09T12:42:03.132511+00:00",
+          "rank": 24,
+          "rank_history": [
+            {
+              "category_name": "ادویه و چاشنی",
+              "observed_at": "2026-11-09T12:42:03.132511+00:00",
+              "rank": 24
+            }
+          ]
+        },
+        "8895": {
+          "category_name": "کالای خوراکی و اساسی",
+          "observed_at": "2026-11-10T00:56:36.136654+00:00",
+          "rank": 1609,
+          "rank_history": []
+        },
+        "8942": {
+          "category_name": "زردچوبه",
+          "observed_at": "2026-11-09T11:59:56.447607+00:00",
+          "rank": 3,
+          "rank_history": [
+            {
+              "category_name": "زردچوبه",
+              "observed_at": "2026-11-09T11:59:56.447607+00:00",
+              "rank": 3
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "8895",
+      "catalog_category_ids": [
+        "8895",
+        "8942",
+        "10571",
+        "10579"
+      ],
+      "catalog_category_name": "کالای خوراکی و اساسی",
+      "catalog_rank_observed_at": "2026-11-09T11:59:56.447607+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 860280,
+      "discount_percent": 35,
+      "first_seen_at": "2026-11-09T11:59:56.447607+00:00",
+      "last_seen_at": "2026-11-10T00:54:58.710264+00:00",
+      "original_price": 1323500,
+      "product_id": "dkp-19628203",
+      "product_url": "https://www.digikala.com/product/dkp-19628203/",
+      "rating": 4.53,
+      "review_count": 463,
+      "savings_toman": 463220,
+      "source": "digikala_catalog_sweep",
+      "title": "پودر زردچوبه ممتاز شاهسوند - 600 گرم"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "9239",
       "catalog_best_selling_category_name": "زیتون هسته دار",
       "catalog_best_selling_rank": 3,
@@ -103604,71 +103683,6 @@
       "savings_toman": 374500,
       "source": "digikala_catalog_sweep",
       "title": "چای سیاه خارجی معطر ارل گری شاهسوند - 450 گرم"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "8942",
-      "catalog_best_selling_category_name": "زردچوبه",
-      "catalog_best_selling_rank": 3,
-      "catalog_best_selling_ranks_by_category": {
-        "10571": {
-          "category_name": "افزودنی ها",
-          "observed_at": "2026-11-09T12:42:03.131119+00:00",
-          "rank": 29,
-          "rank_history": [
-            {
-              "category_name": "افزودنی ها",
-              "observed_at": "2026-11-09T12:42:03.131119+00:00",
-              "rank": 29
-            }
-          ]
-        },
-        "10579": {
-          "category_name": "ادویه و چاشنی",
-          "observed_at": "2026-11-09T12:42:03.132511+00:00",
-          "rank": 24,
-          "rank_history": [
-            {
-              "category_name": "ادویه و چاشنی",
-              "observed_at": "2026-11-09T12:42:03.132511+00:00",
-              "rank": 24
-            }
-          ]
-        },
-        "8942": {
-          "category_name": "زردچوبه",
-          "observed_at": "2026-11-09T11:59:56.447607+00:00",
-          "rank": 3,
-          "rank_history": [
-            {
-              "category_name": "زردچوبه",
-              "observed_at": "2026-11-09T11:59:56.447607+00:00",
-              "rank": 3
-            }
-          ]
-        }
-      },
-      "catalog_category_id": "10579",
-      "catalog_category_ids": [
-        "8942",
-        "10571",
-        "10579"
-      ],
-      "catalog_category_name": "ادویه و چاشنی",
-      "catalog_rank_observed_at": "2026-11-09T11:59:56.447607+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 999000,
-      "discount_percent": 25,
-      "first_seen_at": "2026-11-09T11:59:56.447607+00:00",
-      "last_seen_at": "2026-11-09T12:41:55.619244+00:00",
-      "original_price": 1323500,
-      "product_id": "dkp-19628203",
-      "product_url": "https://www.digikala.com/product/dkp-19628203/",
-      "rating": 4.53,
-      "review_count": 463,
-      "savings_toman": 324500,
-      "source": "digikala_catalog_sweep",
-      "title": "پودر زردچوبه ممتاز شاهسوند - 600 گرم"
     },
     {
       "availability": "unknown",
@@ -122230,6 +122244,12 @@
       "catalog_best_selling_category_name": "آویز ساعت طلا",
       "catalog_best_selling_rank": 3,
       "catalog_best_selling_ranks_by_category": {
+        "11133": {
+          "category_name": "زیورآلات طلا",
+          "observed_at": "2026-11-10T00:52:58.848358+00:00",
+          "rank": 1585,
+          "rank_history": []
+        },
         "11670": {
           "category_name": "اکسسوری طلا",
           "observed_at": "2026-11-09T12:31:07.534896+00:00",
@@ -122255,24 +122275,25 @@
           ]
         }
       },
-      "catalog_category_id": "11670",
+      "catalog_category_id": "11133",
       "catalog_category_ids": [
         "9397",
+        "11133",
         "11670"
       ],
-      "catalog_category_name": "اکسسوری طلا",
+      "catalog_category_name": "زیورآلات طلا",
       "catalog_rank_observed_at": "2026-11-09T12:03:24.684292+00:00",
       "catalog_sort_mode": "best_selling",
-      "current_price": 10200480,
+      "current_price": 10151350,
       "discount_percent": 2,
       "first_seen_at": "2026-11-09T12:03:24.684292+00:00",
-      "last_seen_at": "2026-11-09T12:24:52.396409+00:00",
-      "original_price": 10416330,
+      "last_seen_at": "2026-11-10T00:52:53.594149+00:00",
+      "original_price": 10366170,
       "product_id": "dkp-22063048",
       "product_url": "https://www.digikala.com/product/dkp-22063048/",
       "rating": 0.0,
       "review_count": 0,
-      "savings_toman": 215850,
+      "savings_toman": 214820,
       "source": "digikala_catalog_sweep",
       "title": "آویز ساعت طلا 18 عیار زنانه نیکان گلد مدل ستاره ۸۶"
     },
@@ -135566,8 +135587,8 @@
       "catalog_best_selling_ranks_by_category": {
         "8754": {
           "category_name": "بچگانه",
-          "observed_at": "2026-11-10T00:51:59.511874+00:00",
-          "rank": 1585,
+          "observed_at": "2026-11-10T00:56:36.134506+00:00",
+          "rank": 1612,
           "rank_history": []
         },
         "9748": {
@@ -135608,7 +135629,7 @@
       "current_price": 823500,
       "discount_percent": 10,
       "first_seen_at": "2026-11-09T12:03:24.785482+00:00",
-      "last_seen_at": "2026-11-10T00:51:38.308433+00:00",
+      "last_seen_at": "2026-11-10T00:54:53.630196+00:00",
       "original_price": 915000,
       "product_id": "dkp-19159838",
       "product_url": "https://www.digikala.com/product/dkp-19159838/",
@@ -135624,6 +135645,12 @@
       "catalog_best_selling_category_name": "جلیقه پاییزه مردانه",
       "catalog_best_selling_rank": 3,
       "catalog_best_selling_ranks_by_category": {
+        "9435": {
+          "category_name": "لباس مردانه",
+          "observed_at": "2026-11-10T00:56:36.173647+00:00",
+          "rank": 1601,
+          "rank_history": []
+        },
         "9449": {
           "category_name": "پالتو، بارانی و کاپشن مردانه",
           "observed_at": "2026-11-09T14:21:37.181935+00:00",
@@ -135643,18 +135670,19 @@
           ]
         }
       },
-      "catalog_category_id": "9449",
+      "catalog_category_id": "9435",
       "catalog_category_ids": [
+        "9435",
         "9449",
         "9452"
       ],
-      "catalog_category_name": "پالتو، بارانی و کاپشن مردانه",
+      "catalog_category_name": "لباس مردانه",
       "catalog_rank_observed_at": "2026-11-09T12:03:24.698874+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 720000,
       "discount_percent": 10,
       "first_seen_at": "2026-11-09T12:03:24.698874+00:00",
-      "last_seen_at": "2026-11-09T14:19:05.904847+00:00",
+      "last_seen_at": "2026-11-10T00:56:24.906495+00:00",
       "original_price": 800000,
       "product_id": "dkp-6410084",
       "product_url": "https://www.digikala.com/product/dkp-6410084/",
@@ -144507,28 +144535,35 @@
               "rank": 4
             }
           ]
+        },
+        "6124": {
+          "category_name": "ورزش و سفر",
+          "observed_at": "2026-11-10T00:53:30.582421+00:00",
+          "rank": 1607,
+          "rank_history": []
         }
       },
-      "catalog_category_id": "6089",
+      "catalog_category_id": "6124",
       "catalog_category_ids": [
         "6089",
         "6111",
         "6118",
+        "6124",
         "10665"
       ],
-      "catalog_category_name": "لوازم ورزشی",
+      "catalog_category_name": "ورزش و سفر",
       "catalog_rank_observed_at": "2026-11-09T11:44:42.715164+00:00",
       "catalog_sort_mode": "best_selling",
-      "current_price": 5832700,
-      "discount_percent": 7,
+      "current_price": 5762700,
+      "discount_percent": 9,
       "first_seen_at": "2026-11-09T11:44:42.715164+00:00",
-      "last_seen_at": "2026-11-09T19:39:35.755057+00:00",
+      "last_seen_at": "2026-11-10T00:53:15.319741+00:00",
       "original_price": 6300000,
       "product_id": "dkp-12872244",
       "product_url": "https://www.digikala.com/product/dkp-12872244/",
       "rating": 4.38,
       "review_count": 122,
-      "savings_toman": 467300,
+      "savings_toman": 537300,
       "source": "digikala_catalog_sweep",
       "title": "کیسه بوکس 120 کانتینری دیکمپ مدل SPORT-120-007"
     },
@@ -168520,6 +168555,12 @@
           "rank": 802,
           "rank_history": []
         },
+        "9748": {
+          "category_name": "پسرانه",
+          "observed_at": "2026-11-10T00:52:58.761982+00:00",
+          "rank": 1586,
+          "rank_history": []
+        },
         "9800": {
           "category_name": "اکسسوری پسرانه",
           "observed_at": "2026-11-09T16:57:56.250058+00:00",
@@ -168527,21 +168568,22 @@
           "rank_history": []
         }
       },
-      "catalog_category_id": "10012",
+      "catalog_category_id": "9748",
       "catalog_category_ids": [
         "9692",
+        "9748",
         "9800",
         "10012",
         "10088",
         "11023"
       ],
-      "catalog_category_name": "دخترانه و پسرانه",
+      "catalog_category_name": "پسرانه",
       "catalog_rank_observed_at": "2026-11-09T12:11:27.922799+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 129000,
       "discount_percent": 21,
       "first_seen_at": "2026-11-09T12:11:27.922799+00:00",
-      "last_seen_at": "2026-11-09T20:40:43.568812+00:00",
+      "last_seen_at": "2026-11-10T00:52:29.646035+00:00",
       "original_price": 164000,
       "product_id": "dkp-13744065",
       "product_url": "https://www.digikala.com/product/dkp-13744065/",
@@ -173897,23 +173939,30 @@
               "rank": 4
             }
           ]
+        },
+        "8428": {
+          "category_name": "پت شاپ",
+          "observed_at": "2026-11-10T00:56:36.092089+00:00",
+          "rank": 1613,
+          "rank_history": []
         }
       },
-      "catalog_category_id": "11574",
+      "catalog_category_id": "8428",
       "catalog_category_ids": [
+        "8428",
         "11091",
         "11548",
         "11574",
         "11619",
         "11620"
       ],
-      "catalog_category_name": "گربه",
+      "catalog_category_name": "پت شاپ",
       "catalog_rank_observed_at": "2026-11-09T12:31:07.530029+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 301000,
       "discount_percent": 9,
       "first_seen_at": "2026-11-09T12:31:07.530029+00:00",
-      "last_seen_at": "2026-11-09T18:40:02.884218+00:00",
+      "last_seen_at": "2026-11-10T00:54:07.105461+00:00",
       "original_price": 329310,
       "product_id": "dkp-15589613",
       "product_url": "https://www.digikala.com/product/dkp-15589613/",
@@ -192494,6 +192543,12 @@
             }
           ]
         },
+        "5824": {
+          "category_name": "لوازم بهداشتی",
+          "observed_at": "2026-11-10T00:53:30.552860+00:00",
+          "rank": 1610,
+          "rank_history": []
+        },
         "6486": {
           "category_name": "مراقبت پوست",
           "observed_at": "2026-11-09T19:20:01.625403+00:00",
@@ -192519,8 +192574,9 @@
           "rank_history": []
         }
       },
-      "catalog_category_id": "8895",
+      "catalog_category_id": "5824",
       "catalog_category_ids": [
+        "5824",
         "6486",
         "6537",
         "8895",
@@ -192532,13 +192588,13 @@
         "11041",
         "11059"
       ],
-      "catalog_category_name": "کالای خوراکی و اساسی",
+      "catalog_category_name": "لوازم بهداشتی",
       "catalog_rank_observed_at": "2026-11-09T12:42:59.813101+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 225000,
       "discount_percent": 25,
       "first_seen_at": "2026-11-09T12:42:59.813101+00:00",
-      "last_seen_at": "2026-11-09T21:04:00.435671+00:00",
+      "last_seen_at": "2026-11-10T00:53:08.577053+00:00",
       "original_price": 299000,
       "product_id": "dkp-20663775",
       "product_url": "https://www.digikala.com/product/dkp-20663775/",
@@ -196052,6 +196108,39 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "5702",
+      "catalog_best_selling_category_name": "سلامت و پزشکی",
+      "catalog_best_selling_rank": 1606,
+      "catalog_best_selling_ranks_by_category": {
+        "5702": {
+          "category_name": "سلامت و پزشکی",
+          "observed_at": "2026-11-10T00:53:30.549220+00:00",
+          "rank": 1606,
+          "rank_history": []
+        }
+      },
+      "catalog_category_id": "5702",
+      "catalog_category_ids": [
+        "5702"
+      ],
+      "catalog_category_name": "سلامت و پزشکی",
+      "catalog_rank_observed_at": "2026-11-10T00:53:30.549220+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 189000,
+      "discount_percent": 67,
+      "first_seen_at": "2026-11-10T00:53:30.549220+00:00",
+      "last_seen_at": "2026-11-10T00:53:07.771854+00:00",
+      "original_price": 572000,
+      "product_id": "dkp-6261252",
+      "product_url": "https://www.digikala.com/product/dkp-6261252/",
+      "rating": 4.33,
+      "review_count": 3880,
+      "savings_toman": 383000,
+      "source": "digikala_catalog_sweep",
+      "title": "قرص ویتامین دی 1000 میلی گرمی  بسته 60 عددی"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "10486",
       "catalog_best_selling_category_name": "کتاب",
       "catalog_best_selling_rank": 1517,
@@ -196320,42 +196409,9 @@
       "savings_toman": 334700,
       "source": "digikala_catalog_sweep",
       "title": "بادی اسپلش زنانه مای مدل Silky Touch حجم 200 میلی لیتر"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "8749",
-      "catalog_best_selling_category_name": "مد و پوشاک",
-      "catalog_best_selling_rank": 1576,
-      "catalog_best_selling_ranks_by_category": {
-        "8749": {
-          "category_name": "مد و پوشاک",
-          "observed_at": "2026-11-10T00:45:53.938035+00:00",
-          "rank": 1576,
-          "rank_history": []
-        }
-      },
-      "catalog_category_id": "8749",
-      "catalog_category_ids": [
-        "8749"
-      ],
-      "catalog_category_name": "مد و پوشاک",
-      "catalog_rank_observed_at": "2026-11-10T00:45:53.938035+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1596000,
-      "discount_percent": 34,
-      "first_seen_at": "2026-11-10T00:45:53.938035+00:00",
-      "last_seen_at": "2026-11-10T00:45:30.151426+00:00",
-      "original_price": 2400000,
-      "product_id": "dkp-702401",
-      "product_url": "https://www.digikala.com/product/dkp-702401/",
-      "rating": 4.29,
-      "review_count": 5202,
-      "savings_toman": 804000,
-      "source": "digikala_catalog_sweep",
-      "title": "شورت مردانه آریان نخ باف کد 1314 مجموعه 3 عددی"
     }
   ],
   "cycle_started_at": "2026-11-09T11:16:23.329744+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-10T00:51:59.701606+00:00"
+  "updated_at": "2026-11-10T00:56:36.305154+00:00"
 }
