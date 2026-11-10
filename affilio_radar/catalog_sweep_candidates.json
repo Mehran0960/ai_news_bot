@@ -32212,6 +32212,12 @@
             }
           ]
         },
+        "8895": {
+          "category_name": "کالای خوراکی و اساسی",
+          "observed_at": "2026-11-10T09:14:45.660597+00:00",
+          "rank": 4434,
+          "rank_history": []
+        },
         "8907": {
           "category_name": "نوشیدنی‌های سرد",
           "observed_at": "2026-11-09T13:45:54.123878+00:00",
@@ -32219,19 +32225,20 @@
           "rank_history": []
         }
       },
-      "catalog_category_id": "8907",
+      "catalog_category_id": "8895",
       "catalog_category_ids": [
+        "8895",
         "8907",
         "10841",
         "10847"
       ],
-      "catalog_category_name": "نوشیدنی‌های سرد",
+      "catalog_category_name": "کالای خوراکی و اساسی",
       "catalog_rank_observed_at": "2026-11-09T12:18:29.001580+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 730000,
       "discount_percent": 59,
       "first_seen_at": "2026-11-09T12:18:29.001580+00:00",
-      "last_seen_at": "2026-11-09T13:45:49.711656+00:00",
+      "last_seen_at": "2026-11-10T09:13:21.385209+00:00",
       "original_price": 1800000,
       "product_id": "dkp-22063398",
       "product_url": "https://www.digikala.com/product/dkp-22063398/",
@@ -80640,58 +80647,6 @@
       "savings_toman": 66000,
       "source": "digikala_catalog_sweep",
       "title": "جامدادی توریث مدل KH-5400"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "10855",
-      "catalog_best_selling_category_name": "کشمش و مویز",
-      "catalog_best_selling_rank": 2,
-      "catalog_best_selling_ranks_by_category": {
-        "10855": {
-          "category_name": "کشمش و مویز",
-          "observed_at": "2026-11-09T12:18:29.005432+00:00",
-          "rank": 2,
-          "rank_history": [
-            {
-              "category_name": "کشمش و مویز",
-              "observed_at": "2026-11-09T12:18:29.005432+00:00",
-              "rank": 2
-            }
-          ]
-        },
-        "8897": {
-          "category_name": "خشکبار و شیرینی",
-          "observed_at": "2026-11-09T13:01:33.204312+00:00",
-          "rank": 53,
-          "rank_history": [
-            {
-              "category_name": "خشکبار و شیرینی",
-              "observed_at": "2026-11-09T13:01:33.204312+00:00",
-              "rank": 53
-            }
-          ]
-        }
-      },
-      "catalog_category_id": "8897",
-      "catalog_category_ids": [
-        "8897",
-        "10855"
-      ],
-      "catalog_category_name": "خشکبار و شیرینی",
-      "catalog_rank_observed_at": "2026-11-09T12:18:29.005432+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 395600,
-      "discount_percent": 14,
-      "first_seen_at": "2026-11-09T12:18:29.005432+00:00",
-      "last_seen_at": "2026-11-09T12:57:48.444945+00:00",
-      "original_price": 460000,
-      "product_id": "dkp-22368914",
-      "product_url": "https://www.digikala.com/product/dkp-22368914/",
-      "rating": 4.71,
-      "review_count": 7,
-      "savings_toman": 64400,
-      "source": "digikala_catalog_sweep",
-      "title": "کشمش پلویی سرزمین گلهان - 400 گرم"
     },
     {
       "availability": "unknown",
@@ -130154,45 +130109,6 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "9584",
-      "catalog_best_selling_category_name": "شلوارک نوزاد",
-      "catalog_best_selling_rank": 3,
-      "catalog_best_selling_ranks_by_category": {
-        "9584": {
-          "category_name": "شلوارک نوزاد",
-          "observed_at": "2026-11-09T12:03:24.742423+00:00",
-          "rank": 3,
-          "rank_history": [
-            {
-              "category_name": "شلوارک نوزاد",
-              "observed_at": "2026-11-09T12:03:24.742423+00:00",
-              "rank": 3
-            }
-          ]
-        }
-      },
-      "catalog_category_id": "9584",
-      "catalog_category_ids": [
-        "9584"
-      ],
-      "catalog_category_name": "شلوارک نوزاد",
-      "catalog_rank_observed_at": "2026-11-09T12:03:24.742423+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1699000,
-      "discount_percent": 29,
-      "first_seen_at": "2026-11-09T12:03:24.742423+00:00",
-      "last_seen_at": "2026-11-09T12:02:56.467510+00:00",
-      "original_price": 2400000,
-      "product_id": "dkp-21918638",
-      "product_url": "https://www.digikala.com/product/dkp-21918638/",
-      "rating": 5.0,
-      "review_count": 1,
-      "savings_toman": 701000,
-      "source": "digikala_catalog_sweep",
-      "title": "شلوارک نوزادی مدل 01"
-    },
-    {
-      "availability": "unknown",
       "catalog_best_selling_category_id": "6203",
       "catalog_best_selling_category_name": "قایق، کشتی و مدل",
       "catalog_best_selling_rank": 3,
@@ -131566,21 +131482,28 @@
               "rank": 3
             }
           ]
+        },
+        "8895": {
+          "category_name": "کالای خوراکی و اساسی",
+          "observed_at": "2026-11-10T09:14:45.660597+00:00",
+          "rank": 4429,
+          "rank_history": []
         }
       },
-      "catalog_category_id": "10571",
+      "catalog_category_id": "8895",
       "catalog_category_ids": [
+        "8895",
         "10571",
         "10579",
         "10755"
       ],
-      "catalog_category_name": "افزودنی ها",
+      "catalog_category_name": "کالای خوراکی و اساسی",
       "catalog_rank_observed_at": "2026-11-09T12:18:28.982174+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 113000,
       "discount_percent": 25,
       "first_seen_at": "2026-11-09T12:18:28.982174+00:00",
-      "last_seen_at": "2026-11-09T14:12:33.505709+00:00",
+      "last_seen_at": "2026-11-10T09:13:21.384976+00:00",
       "original_price": 150900,
       "product_id": "dkp-1765148",
       "product_url": "https://www.digikala.com/product/dkp-1765148/",
@@ -163606,6 +163529,12 @@
       "catalog_best_selling_category_name": "بادی نوزاد",
       "catalog_best_selling_rank": 5,
       "catalog_best_selling_ranks_by_category": {
+        "8749": {
+          "category_name": "مد و پوشاک",
+          "observed_at": "2026-11-10T09:14:45.659113+00:00",
+          "rank": 4424,
+          "rank_history": []
+        },
         "8754": {
           "category_name": "بچگانه",
           "observed_at": "2026-11-09T16:22:45.603700+00:00",
@@ -163661,21 +163590,22 @@
           ]
         }
       },
-      "catalog_category_id": "8754",
+      "catalog_category_id": "8749",
       "catalog_category_ids": [
+        "8749",
         "8754",
         "9562",
         "9563",
         "9608",
         "9609"
       ],
-      "catalog_category_name": "بچگانه",
+      "catalog_category_name": "مد و پوشاک",
       "catalog_rank_observed_at": "2026-11-09T12:03:24.748835+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 1911000,
       "discount_percent": 30,
       "first_seen_at": "2026-11-09T12:03:24.748511+00:00",
-      "last_seen_at": "2026-11-09T16:19:57.113081+00:00",
+      "last_seen_at": "2026-11-10T09:13:21.094094+00:00",
       "original_price": 2730000,
       "product_id": "dkp-15197899",
       "product_url": "https://www.digikala.com/product/dkp-15197899/",
@@ -182445,6 +182375,12 @@
       "catalog_best_selling_category_name": "سرپوش نوزاد",
       "catalog_best_selling_rank": 5,
       "catalog_best_selling_ranks_by_category": {
+        "8749": {
+          "category_name": "مد و پوشاک",
+          "observed_at": "2026-11-10T09:14:45.659113+00:00",
+          "rank": 4439,
+          "rank_history": []
+        },
         "8754": {
           "category_name": "بچگانه",
           "observed_at": "2026-11-09T16:22:45.603700+00:00",
@@ -182488,20 +182424,21 @@
           ]
         }
       },
-      "catalog_category_id": "8754",
+      "catalog_category_id": "8749",
       "catalog_category_ids": [
+        "8749",
         "8754",
         "9562",
         "9620",
         "9623"
       ],
-      "catalog_category_name": "بچگانه",
+      "catalog_category_name": "مد و پوشاک",
       "catalog_rank_observed_at": "2026-11-09T12:03:24.752256+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 357000,
       "discount_percent": 15,
       "first_seen_at": "2026-11-09T12:03:24.751320+00:00",
-      "last_seen_at": "2026-11-09T16:19:57.112872+00:00",
+      "last_seen_at": "2026-11-10T09:13:21.094784+00:00",
       "original_price": 420000,
       "product_id": "dkp-20772719",
       "product_url": "https://www.digikala.com/product/dkp-20772719/",
@@ -185153,6 +185090,12 @@
             }
           ]
         },
+        "8753": {
+          "category_name": "زنانه",
+          "observed_at": "2026-11-10T09:14:45.659793+00:00",
+          "rank": 4440,
+          "rank_history": []
+        },
         "9282": {
           "category_name": "لباس زنانه",
           "observed_at": "2026-11-09T22:16:56.730439+00:00",
@@ -185160,19 +185103,20 @@
           "rank_history": []
         }
       },
-      "catalog_category_id": "9282",
+      "catalog_category_id": "8753",
       "catalog_category_ids": [
+        "8753",
         "9282",
         "11391",
         "11392"
       ],
-      "catalog_category_name": "لباس زنانه",
+      "catalog_category_name": "زنانه",
       "catalog_rank_observed_at": "2026-11-09T12:31:07.504618+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 590000,
       "discount_percent": 41,
       "first_seen_at": "2026-11-09T12:31:07.504427+00:00",
-      "last_seen_at": "2026-11-09T22:16:09.081237+00:00",
+      "last_seen_at": "2026-11-10T09:13:21.002391+00:00",
       "original_price": 1000000,
       "product_id": "dkp-6833050",
       "product_url": "https://www.digikala.com/product/dkp-6833050/",
@@ -200668,9 +200612,75 @@
       "savings_toman": 186530,
       "source": "digikala_catalog_sweep",
       "title": "لامپ ال ای دی 20 وات سایروکس مدل T80 پایه E27"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "6249",
+      "catalog_best_selling_category_name": "دکوراسیون و دکوراتیو",
+      "catalog_best_selling_rank": 4421,
+      "catalog_best_selling_ranks_by_category": {
+        "6249": {
+          "category_name": "دکوراسیون و دکوراتیو",
+          "observed_at": "2026-11-10T09:12:55.523516+00:00",
+          "rank": 4421,
+          "rank_history": []
+        }
+      },
+      "catalog_category_id": "6249",
+      "catalog_category_ids": [
+        "6249"
+      ],
+      "catalog_category_name": "دکوراسیون و دکوراتیو",
+      "catalog_rank_observed_at": "2026-11-10T09:12:55.523516+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 395880,
+      "discount_percent": 32,
+      "first_seen_at": "2026-11-10T09:12:55.523516+00:00",
+      "last_seen_at": "2026-11-10T09:12:50.881140+00:00",
+      "original_price": 578500,
+      "product_id": "dkp-729949",
+      "product_url": "https://www.digikala.com/product/dkp-729949/",
+      "rating": 3.92,
+      "review_count": 4283,
+      "savings_toman": 182620,
+      "source": "digikala_catalog_sweep",
+      "title": "نظم دهنده کشو مدل Lakeland بسته 6 عددی"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "5968",
+      "catalog_best_selling_category_name": "آرایشی و بهداشتی",
+      "catalog_best_selling_rank": 4414,
+      "catalog_best_selling_ranks_by_category": {
+        "5968": {
+          "category_name": "آرایشی و بهداشتی",
+          "observed_at": "2026-11-10T09:12:00.805452+00:00",
+          "rank": 4414,
+          "rank_history": []
+        }
+      },
+      "catalog_category_id": "5968",
+      "catalog_category_ids": [
+        "5968"
+      ],
+      "catalog_category_name": "آرایشی و بهداشتی",
+      "catalog_rank_observed_at": "2026-11-10T09:12:00.805452+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 370000,
+      "discount_percent": 23,
+      "first_seen_at": "2026-11-10T09:12:00.805452+00:00",
+      "last_seen_at": "2026-11-10T09:10:28.956557+00:00",
+      "original_price": 482100,
+      "product_id": "dkp-979835",
+      "product_url": "https://www.digikala.com/product/dkp-979835/",
+      "rating": 4.29,
+      "review_count": 3339,
+      "savings_toman": 112100,
+      "source": "digikala_catalog_sweep",
+      "title": "شامپو بدن ضد قارچ ایروکس مدل Octopirox حجم 200 میلی لیتر"
     }
   ],
   "cycle_started_at": "2026-11-09T11:16:23.329744+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-10T09:09:58.673548+00:00"
+  "updated_at": "2026-11-10T09:14:45.867712+00:00"
 }
