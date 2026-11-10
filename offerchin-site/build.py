@@ -73,7 +73,7 @@ def canonical_product_destination(value: str, product_id: str) -> str:
         return ""
     identifier = str(product_id or "").casefold()
     host = (parsed.hostname or "").casefold()
-    if parsed.scheme not in {"http", "https"} or parsed.username or parsed.password:
+    if parsed.scheme != "https" or parsed.username or parsed.password or parsed.query or parsed.fragment:
         return ""
     if identifier.startswith("dkp-") and (host == "digikala.com" or host.endswith(".digikala.com")):
         match = re.search(r"/product/(dkp-\d+)", parsed.path, re.IGNORECASE)
