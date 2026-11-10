@@ -99,6 +99,8 @@ AFFILIO_CLICK_TRACKER_BASE_URL = os.getenv(
 ).strip().rstrip("/")
 _CLICK_TRACKER_HEALTH_CACHE: bool | None = None
 _LAST_CLICK_STATISTICS_SNAPSHOT: dict | None = None
+_LAST_CONVERSION_STATISTICS_SNAPSHOT: dict | None = None
+_TOROB_AVAILABLE_TOOLS: set[str] = set()
 CREATIVE_EXPERIMENT_ID = re.sub(
     r"[^a-z0-9_-]", "-", os.getenv("AFFILIO_CREATIVE_EXPERIMENT_ID", "offerchin-creative-v1").strip().lower()
 )[:32] or "offerchin-creative-v1"
@@ -107,6 +109,7 @@ CAPTION_EXPERIMENT_ID = re.sub(
 )[:32] or "offerchin-caption-v1"
 CAPTION_VARIANT_B_PREFIX = "✨ پیشنهاد ویژه"
 PERFORMANCE_REPORT = ROOT / "performance_report.json"
+AFFILIO_POSTBACK_TOKEN = os.getenv("AFFILIO_POSTBACK_TOKEN", "").strip()
 AUTOPUBLISH = os.getenv("AFFILIO_AUTOPUBLISH", "false").strip().lower() in {"1", "true", "yes", "on"}
 FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "false").strip().lower() in {"1", "true", "yes", "on"}
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
@@ -603,6 +606,41 @@ def _affiliate_product_destination(affiliate_url: str) -> str:
     return safe_product_url(destinations[0]) if len(destinations) == 1 else ""
 
 
+def _build_affilio_sub_id(
+    affiliate_url: str,
+    source: str = "unknown",
+    experiment_id: str = "",
+    variant: str = "",
+    caption_experiment_id: str = "",
+    caption_variant: str = "",
+) -> str:
+    """Build an Affilio-supported aff_sub id without inserting a click-tracking redirect."""
+    canonical = _affiliate_product_destination(affiliate_url)
+    pid = product_id(canonical) if canonical else ""
+    if not re.fullmatch(r"(?:dkp-\\d{1,12}|snp-\\d{1,20})", pid):
+        return ""
+    source_value = str(source or "unknown").strip().lower()
+    if source_value not in {"telegram", "bale", "youtube", "aparat"}:
+        source_value = "unknown"
+    parts = ["oc1", pid, source_value]
+    experiment = re.sub(r"[^a-z0-9_-]", "-", str(experiment_id or "").strip().lower())[:32]
+    selected_variant = str(variant or "").strip().upper()
+    if experiment and re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,31}", experiment) and selected_variant in {"A", "B"}:
+        parts.extend(["v", experiment, selected_variant.lower()])
+    caption_experiment = re.sub(
+        r"[^a-z0-9_-]", "-", str(caption_experiment_id or "").strip().lower()
+    )[:32]
+    selected_caption_variant = str(caption_variant or "").strip().upper()
+    if (
+        caption_experiment
+        and re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,31}", caption_experiment)
+        and selected_caption_variant in {"A", "B"}
+    ):
+        parts.extend(["c", caption_experiment, selected_caption_variant.lower()])
+    value = "-".join(parts)
+    return value if len(value) <= 255 and re.fullmatch(r"[A-Za-z0-9_-]+", value) else ""
+
+
 def tracked_affiliate_button_url(
     affiliate_url: str,
     source: str = "unknown",
@@ -611,15 +649,30 @@ def tracked_affiliate_button_url(
     caption_experiment_id: str = "",
     caption_variant: str = "",
 ) -> str:
-    """Return the verified Affilio URL unchanged; purchase clicks never visit an intermediary.
+    """Keep the purchase route direct while adding Affilio's documented conversion sub-id.
 
-    The tracking parameters remain in the signature for backwards compatibility with
-    callers, but click analytics, experiment attribution, and tracker health are not
-    allowed to alter the user's purchase route. This keeps the CTA independent of
-    OfferChin/Cloudflare availability and resilient to an Iran-wide internet split.
+    aff_sub stays on the official aflo.ir link and identifies product, platform and
+    creative/caption variants. It never routes through the OfferChin click worker.
     """
     original = str(affiliate_url or "").strip()
-    return original if _is_valid_affilio_tracking_url(original) else ""
+    if not _is_valid_affilio_tracking_url(original):
+        return ""
+    sub_id = _build_affilio_sub_id(
+        original, source, experiment_id, variant, caption_experiment_id, caption_variant
+    )
+    if not sub_id:
+        return original
+    try:
+        parsed = urlsplit(original)
+        query = parse_qs(parsed.query, keep_blank_values=True)
+        query["aff_sub"] = [sub_id]
+        return urlunsplit((
+            parsed.scheme, parsed.netloc, parsed.path,
+            urlencode(query, doseq=True), parsed.fragment,
+        ))
+    except Exception:
+        # Attribution is additive; malformed attribution must never break a valid buy link.
+        return original
 
 
 def creative_experiment_assignment(product_id_value: str) -> tuple[str, str]:
