@@ -1610,6 +1610,7 @@
 - fallback روبیکا پس از پاسخ صریح INVALID_INPUT از تلاش مجدد با keypad/metadata صرف‌نظر می‌کند و یک sendFile حداقلی با کپشن ساده و URLهای واقعی خرید/عضویت می‌فرستد. خطاهای مبهم شبکه/سرور همچنان بدون retry مجدد باقی می‌مانند تا خطر ارسال تکراری ایجاد نشود.
 - snapshot قدیمی فقط در صورت اثبات چرخهٔ کامل، پوشش ۱۰۰٪ دسته‌ها، نبود دستهٔ غیرقابل‌خواندن، صفحات و ردیف‌های موفق، ۳٬۰۰۰ یا کمتر نامزد یکتا و منشأ digikala_catalog_sweep با رتبهٔ بومی bestseller قابل مهاجرت است. مهاجرت ترتیب ثبت‌شده را بازمرتب نمی‌کند؛ فقط برچسب صریح catalog_demand_first_v1 را اضافه و رتبه‌های snapshot را پیوسته می‌کند.
 - سقف بررسی زنده، handoff کاتالوگ، بررسی صف کشف و تلاش نهایی نامزد از ۱۰۰/۶۴ به حداکثر ۲۵۰ مورد در هر اجرا افزایش یافت. فهرست نامزدهای کاتالوگ همچنان چرخشی و محدود است؛ این تغییر ادعای راستی‌آزمایی هم‌زمان تمام محصولات دیجی‌کالا نیست.
+- workflow رگرسیون fallback از نام تست‌های حذف‌شدهٔ قدیمی به تست‌های موجود و همسو با سیاست جاری تقاضامحور تغییر کرد؛ مسیر تست صف تحویل هم برای Pull Request فعال است.
 
 **فایل‌ها/سامانه‌ها:** affilio_radar/platform_registry.py، affilio_radar/publisher.py، affilio_radar/messenger_adapters.py، affilio_radar/catalog_status_snapshot.py، affilio_radar/affilio_radar.py، affilio_radar/test_messenger_adapters.py، affilio_radar/test_content_delivery.py، affilio_radar/test_catalog_status_snapshot.py، .github/workflows/offerchin-publisher.yml و .github/workflows/offerchin-fallback-regression.yml.
 
