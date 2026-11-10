@@ -1618,3 +1618,4 @@
 **شواهد/شناسه:** شاخهٔ offerchin/reliability-catalog-sweep-20261110؛ commitهای شاخه در GitHub Actions/PR ثبت خواهند شد.
 
 **ریسک/بازگشت:** افزایش ظرفیت به ۲۵۰، بار درخواست‌های live را نسبت به ۱۰۰ افزایش می‌دهد؛ سقف سخت، timeout و صف چرخشی حفظ شده‌اند. مهاجرت snapshot تنها یک‌بار و فقط با provenance کامل انجام می‌شود. برای بازگشت، PR یکپارچه revert شود؛ در صورت شکست مهاجرت، snapshot دست‌نخورده و گیت انتشار بسته می‌ماند.
+**وضعیت:** تغییرات روی شاخهٔ مستقل offerchin/reliability-catalog-sweep-20261110؛ ادغام و فعال‌سازی production منوط به سبزشدن آزمون‌ها و Documentation Gate است.
