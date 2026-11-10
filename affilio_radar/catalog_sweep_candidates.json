@@ -46717,6 +46717,12 @@
       "catalog_best_selling_category_name": "سرهمی زمستانی نوزاد",
       "catalog_best_selling_rank": 2,
       "catalog_best_selling_ranks_by_category": {
+        "8749": {
+          "category_name": "مد و پوشاک",
+          "observed_at": "2026-11-10T10:19:13.698362+00:00",
+          "rank": 4835,
+          "rank_history": []
+        },
         "8754": {
           "category_name": "بچگانه",
           "observed_at": "2026-11-09T16:36:17.614793+00:00",
@@ -46772,21 +46778,22 @@
           ]
         }
       },
-      "catalog_category_id": "8754",
+      "catalog_category_id": "8749",
       "catalog_category_ids": [
+        "8749",
         "8754",
         "9562",
         "9563",
         "9575",
         "9581"
       ],
-      "catalog_category_name": "بچگانه",
+      "catalog_category_name": "مد و پوشاک",
       "catalog_rank_observed_at": "2026-11-09T12:03:24.741801+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 2350000,
       "discount_percent": 24,
       "first_seen_at": "2026-11-09T12:03:24.739851+00:00",
-      "last_seen_at": "2026-11-09T16:35:39.233614+00:00",
+      "last_seen_at": "2026-11-10T10:19:05.967274+00:00",
       "original_price": 3100000,
       "product_id": "dkp-22821100",
       "product_url": "https://www.digikala.com/product/dkp-22821100/",
@@ -62914,8 +62921,8 @@
         },
         "8749": {
           "category_name": "مد و پوشاک",
-          "observed_at": "2026-11-10T10:13:51.606824+00:00",
-          "rank": 4820,
+          "observed_at": "2026-11-10T10:19:13.698362+00:00",
+          "rank": 4831,
           "rank_history": []
         },
         "9282": {
@@ -62951,7 +62958,7 @@
       "current_price": 1598000,
       "discount_percent": 34,
       "first_seen_at": "2026-11-09T12:18:29.034321+00:00",
-      "last_seen_at": "2026-11-10T10:10:43.932250+00:00",
+      "last_seen_at": "2026-11-10T10:19:05.967053+00:00",
       "original_price": 2428000,
       "product_id": "dkp-21456552",
       "product_url": "https://www.digikala.com/product/dkp-21456552/",
@@ -96652,59 +96659,6 @@
     },
     {
       "availability": "unknown",
-      "catalog_best_selling_category_id": "10837",
-      "catalog_best_selling_category_name": "سایر روغن‌ها",
-      "catalog_best_selling_rank": 2,
-      "catalog_best_selling_ranks_by_category": {
-        "10830": {
-          "category_name": "روغن",
-          "observed_at": "2026-11-09T13:28:36.498752+00:00",
-          "rank": 63,
-          "rank_history": []
-        },
-        "10837": {
-          "category_name": "سایر روغن‌ها",
-          "observed_at": "2026-11-09T12:18:29.000826+00:00",
-          "rank": 2,
-          "rank_history": [
-            {
-              "category_name": "سایر روغن‌ها",
-              "observed_at": "2026-11-09T12:18:29.000826+00:00",
-              "rank": 2
-            }
-          ]
-        },
-        "8899": {
-          "category_name": "کالاهای اساسی و خواربار",
-          "observed_at": "2026-11-09T15:44:57.643340+00:00",
-          "rank": 266,
-          "rank_history": []
-        }
-      },
-      "catalog_category_id": "8899",
-      "catalog_category_ids": [
-        "8899",
-        "10830",
-        "10837"
-      ],
-      "catalog_category_name": "کالاهای اساسی و خواربار",
-      "catalog_rank_observed_at": "2026-11-09T12:18:29.000826+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 1989000,
-      "discount_percent": 15,
-      "first_seen_at": "2026-11-09T12:18:29.000826+00:00",
-      "last_seen_at": "2026-11-09T15:44:41.635460+00:00",
-      "original_price": 2340000,
-      "product_id": "dkp-5723774",
-      "product_url": "https://www.digikala.com/product/dkp-5723774/",
-      "rating": 4.31,
-      "review_count": 279,
-      "savings_toman": 351000,
-      "source": "digikala_catalog_sweep",
-      "title": "روغن سبوس برنج مری کینگ - 2 لیتر"
-    },
-    {
-      "availability": "unknown",
       "catalog_best_selling_category_id": "11735",
       "catalog_best_selling_category_name": "لنز طبی",
       "catalog_best_selling_rank": 2,
@@ -98437,6 +98391,66 @@
       "savings_toman": 310000,
       "source": "digikala_catalog_sweep",
       "title": "فوتبال دستی آی بال مدل i108Kpl"
+    },
+    {
+      "availability": "unknown",
+      "catalog_best_selling_category_id": "10837",
+      "catalog_best_selling_category_name": "سایر روغن‌ها",
+      "catalog_best_selling_rank": 2,
+      "catalog_best_selling_ranks_by_category": {
+        "10830": {
+          "category_name": "روغن",
+          "observed_at": "2026-11-09T13:28:36.498752+00:00",
+          "rank": 63,
+          "rank_history": []
+        },
+        "10837": {
+          "category_name": "سایر روغن‌ها",
+          "observed_at": "2026-11-09T12:18:29.000826+00:00",
+          "rank": 2,
+          "rank_history": [
+            {
+              "category_name": "سایر روغن‌ها",
+              "observed_at": "2026-11-09T12:18:29.000826+00:00",
+              "rank": 2
+            }
+          ]
+        },
+        "8895": {
+          "category_name": "کالای خوراکی و اساسی",
+          "observed_at": "2026-11-10T10:19:13.699931+00:00",
+          "rank": 4836,
+          "rank_history": []
+        },
+        "8899": {
+          "category_name": "کالاهای اساسی و خواربار",
+          "observed_at": "2026-11-09T15:44:57.643340+00:00",
+          "rank": 266,
+          "rank_history": []
+        }
+      },
+      "catalog_category_id": "8895",
+      "catalog_category_ids": [
+        "8895",
+        "8899",
+        "10830",
+        "10837"
+      ],
+      "catalog_category_name": "کالای خوراکی و اساسی",
+      "catalog_rank_observed_at": "2026-11-09T12:18:29.000826+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 2106000,
+      "discount_percent": 10,
+      "first_seen_at": "2026-11-09T12:18:29.000826+00:00",
+      "last_seen_at": "2026-11-10T10:19:08.082532+00:00",
+      "original_price": 2340000,
+      "product_id": "dkp-5723774",
+      "product_url": "https://www.digikala.com/product/dkp-5723774/",
+      "rating": 4.3,
+      "review_count": 280,
+      "savings_toman": 234000,
+      "source": "digikala_catalog_sweep",
+      "title": "روغن سبوس برنج مری کینگ - 2 لیتر"
     },
     {
       "availability": "unknown",
@@ -134698,19 +134712,26 @@
               "rank": 3
             }
           ]
+        },
+        "8113": {
+          "category_name": "لوازم مصرفی",
+          "observed_at": "2026-11-10T10:19:13.676988+00:00",
+          "rank": 4826,
+          "rank_history": []
         }
       },
-      "catalog_category_id": "10063",
+      "catalog_category_id": "8113",
       "catalog_category_ids": [
+        "8113",
         "10063"
       ],
-      "catalog_category_name": "داکت و ترانکینگ",
+      "catalog_category_name": "لوازم مصرفی",
       "catalog_rank_observed_at": "2026-11-09T12:11:27.918467+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 462830,
       "discount_percent": 15,
       "first_seen_at": "2026-11-09T12:11:27.918467+00:00",
-      "last_seen_at": "2026-11-09T12:05:02.755464+00:00",
+      "last_seen_at": "2026-11-10T10:18:21.464599+00:00",
       "original_price": 544500,
       "product_id": "dkp-22373144",
       "product_url": "https://www.digikala.com/product/dkp-22373144/",
@@ -168310,6 +168331,12 @@
             }
           ]
         },
+        "8752": {
+          "category_name": "مردانه",
+          "observed_at": "2026-11-10T10:19:13.698760+00:00",
+          "rank": 4831,
+          "rank_history": []
+        },
         "9487": {
           "category_name": "اکسسوری مردانه",
           "observed_at": "2026-11-10T03:20:31.301587+00:00",
@@ -168317,21 +168344,22 @@
           "rank_history": []
         }
       },
-      "catalog_category_id": "10170",
+      "catalog_category_id": "8752",
       "catalog_category_ids": [
+        "8752",
         "9487",
         "10170",
         "10171",
         "10174",
         "10218"
       ],
-      "catalog_category_name": "محصولات بومی و محلی",
+      "catalog_category_name": "مردانه",
       "catalog_rank_observed_at": "2026-11-09T12:11:27.951753+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 4998000,
       "discount_percent": 38,
       "first_seen_at": "2026-11-09T12:11:27.951753+00:00",
-      "last_seen_at": "2026-11-10T03:26:46.977488+00:00",
+      "last_seen_at": "2026-11-10T10:19:06.823720+00:00",
       "original_price": 8000000,
       "product_id": "dkp-20893963",
       "product_url": "https://www.digikala.com/product/dkp-20893963/",
@@ -194921,6 +194949,12 @@
           "rank": 3381,
           "rank_history": []
         },
+        "5968": {
+          "category_name": "آرایشی و بهداشتی",
+          "observed_at": "2026-11-10T10:19:13.608872+00:00",
+          "rank": 4836,
+          "rank_history": []
+        },
         "6486": {
           "category_name": "مراقبت پوست",
           "observed_at": "2026-11-09T23:28:45.684409+00:00",
@@ -194940,19 +194974,20 @@
           ]
         }
       },
-      "catalog_category_id": "5824",
+      "catalog_category_id": "5968",
       "catalog_category_ids": [
         "5824",
+        "5968",
         "6486",
         "8146"
       ],
-      "catalog_category_name": "لوازم بهداشتی",
+      "catalog_category_name": "آرایشی و بهداشتی",
       "catalog_rank_observed_at": "2026-11-09T11:53:00.954417+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 3140000,
       "discount_percent": 27,
       "first_seen_at": "2026-11-09T11:53:00.954417+00:00",
-      "last_seen_at": "2026-11-10T06:09:58.750224+00:00",
+      "last_seen_at": "2026-11-10T10:15:23.393823+00:00",
       "original_price": 4300000,
       "product_id": "dkp-10891647",
       "product_url": "https://www.digikala.com/product/dkp-10891647/",
@@ -200959,12 +200994,12 @@
       "availability": "unknown",
       "catalog_best_selling_category_id": "8450",
       "catalog_best_selling_category_name": "ابزار آلات و تجهیزات",
-      "catalog_best_selling_rank": 4808,
+      "catalog_best_selling_rank": 4824,
       "catalog_best_selling_ranks_by_category": {
         "8450": {
           "category_name": "ابزار آلات و تجهیزات",
-          "observed_at": "2026-11-10T10:13:51.602062+00:00",
-          "rank": 4808,
+          "observed_at": "2026-11-10T10:19:13.691615+00:00",
+          "rank": 4824,
           "rank_history": []
         }
       },
@@ -200973,12 +201008,12 @@
         "8450"
       ],
       "catalog_category_name": "ابزار آلات و تجهیزات",
-      "catalog_rank_observed_at": "2026-11-10T10:13:51.602062+00:00",
+      "catalog_rank_observed_at": "2026-11-10T10:19:13.691615+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 692000,
       "discount_percent": 4,
       "first_seen_at": "2026-11-10T10:13:51.602062+00:00",
-      "last_seen_at": "2026-11-10T10:10:18.946465+00:00",
+      "last_seen_at": "2026-11-10T10:18:52.755091+00:00",
       "original_price": 720000,
       "product_id": "dkp-324692",
       "product_url": "https://www.digikala.com/product/dkp-324692/",
@@ -200991,5 +201026,5 @@
   ],
   "cycle_started_at": "2026-11-09T11:16:23.329744+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-10T10:13:51.811448+00:00"
+  "updated_at": "2026-11-10T10:19:13.827054+00:00"
 }
