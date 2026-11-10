@@ -22,6 +22,57 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         record.update(overrides)
         return record
 
+    def test_torob_trends_are_optional_and_never_block_selection(self):
+        product = {
+            "product_id": "dkp-trend-optional",
+            "title": "هدفون بلوتوثی QCY T13",
+        }
+        original_tools = set(radar._TOROB_AVAILABLE_TOOLS)
+        try:
+            radar._TOROB_AVAILABLE_TOOLS.clear()
+            with patch.object(radar, "_prepare_torob_mcp", side_effect=RuntimeError("Torob unavailable")):
+                radar.enrich_torob_trends([product], state={}, now=self.now)
+            self.assertEqual(product["torob_trend_match_count"], 0)
+            self.assertEqual(product["torob_trend_queries"], [])
+        finally:
+            radar._TOROB_AVAILABLE_TOOLS.clear()
+            radar._TOROB_AVAILABLE_TOOLS.update(original_tools)
+
+    def test_torob_trend_matching_is_cached_and_only_a_supplementary_rank_signal(self):
+        product = {"product_id": "dkp-trend-match", "title": "هدفون بلوتوثی QCY T13"}
+        state = {}
+        original_tools = set(radar._TOROB_AVAILABLE_TOOLS)
+        try:
+            radar._TOROB_AVAILABLE_TOOLS.clear()
+            radar._TOROB_AVAILABLE_TOOLS.add("torob_trends")
+            with patch.object(radar, "_torob_tool", return_value={
+                "trends": [
+                    {"query": "هدفون بلوتوثی QCY", "category_id": "audio"},
+                    {"query": "ماشین لباسشویی", "category_id": "home"},
+                ]
+            }) as call:
+                radar.enrich_torob_trends([product], state=state, now=self.now)
+                self.assertEqual(call.call_count, 1)
+                self.assertEqual(product["torob_trend_match_count"], 1)
+                self.assertGreaterEqual(product["torob_trend_best_match_score"], 60)
+                self.assertEqual(product["torob_trend_queries"], ["هدفون بلوتوثی QCY"])
+                radar.enrich_torob_trends([product], state=state, now=self.now + timedelta(minutes=10))
+                self.assertEqual(call.call_count, 1, "fresh trend snapshot should be reused from cache")
+
+            demand_only = {
+                "product_id": "dkp-demand-only",
+                "title": "هدفون بلوتوثی QCY T13",
+                "torob_trend_match_count": 0,
+                "torob_trend_best_match_score": 0,
+            }
+            self.assertGreater(
+                radar._digikala_demand_sort_key(product),
+                radar._digikala_demand_sort_key(demand_only),
+            )
+        finally:
+            radar._TOROB_AVAILABLE_TOOLS.clear()
+            radar._TOROB_AVAILABLE_TOOLS.update(original_tools)
+
     def test_same_family_candidates_are_blocked_before_primary_and_backup_selection(self):
         products = [
             {
