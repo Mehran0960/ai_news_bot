@@ -56,6 +56,18 @@ def _safe_delivery_error(exc: Exception) -> str:
     return detail[:150] or type(exc).__name__
 
 
+def _has_successful_destination(entry: dict) -> bool:
+    """Allow an already-started multi-platform delivery to finish after evidence ages out."""
+    platforms = entry.get("platforms")
+    if not isinstance(platforms, dict):
+        return False
+    return any(
+        isinstance(target, dict)
+        and str(target.get("status") or "").lower() in {"sent", "success", "published"}
+        for target in platforms.values()
+    )
+
+
 def _eligible_fallback_candidates(candidates: Any, now: datetime, catalog_context: dict | None = None) -> list[dict]:
     """Keep backups with a genuine current markdown; ranked backups share the primary policy."""
     if not isinstance(candidates, list):
@@ -298,7 +310,13 @@ def _fresh_selected_item(
     payload = entry.get("payload")
     if not isinstance(payload, dict):
         return None, "missing_selection_payload"
-    if not radar.has_verified_market_demand(payload, now=now):
+    # New products need fresh demand evidence. Once any destination has been
+    # successfully delivered, retries only finish that same publication; do not
+    # strand already-sent Telegram/Bale posts because the evidence later ages out.
+    if (
+        not radar.has_verified_market_demand(payload, now=now)
+        and not _has_successful_destination(entry)
+    ):
         return None, "selection_demand_evidence_missing_or_stale"
     if require_catalog_membership and catalog_context is not None and not radar.catalog_candidate_is_publishable(payload, catalog_context):
         return None, "catalog_snapshot_candidate_stale"
