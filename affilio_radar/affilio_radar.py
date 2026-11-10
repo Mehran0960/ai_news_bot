@@ -112,7 +112,7 @@ FORCE_POST_COOLDOWN_BYPASS = os.getenv("AFFILIO_FORCE_POST_COOLDOWN_BYPASS", "fa
 CLEAR_PREVIOUS_CHANNEL_POSTS = os.getenv("AFFILIO_CLEAR_PREVIOUS_CHANNEL_POSTS", "false").strip().lower() in {"1", "true", "yes", "on"}
 BATCH_OPERATION_KEY = os.getenv("AFFILIO_BATCH_KEY", "").strip()
 MAX_PER_QUERY = max(1, min(20, int(os.getenv("AFFILIO_MAX_PER_QUERY", "12"))))
-MAX_PRODUCT_CHECKS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "100"))))
+MAX_PRODUCT_CHECKS = max(1, min(250, int(os.getenv("AFFILIO_MAX_PRODUCT_CHECKS", "250"))))
 # The live detail-check budget is bounded per run; unprocessed catalog candidates remain queued for later cycles.
 SNAPPSHOP_RESERVED_CANDIDATES = max(4, min(12, MAX_PRODUCT_CHECKS // 7))
 SNAPPSHOP_QUERIES_PER_SCAN = max(1, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN", "4"))))
@@ -128,7 +128,7 @@ FILO_UPLOAD_INTERVAL_HOURS = max(1 / 60, min(24.0, float(os.getenv("AFFILIO_FILO
 FILO_UPLOAD_INTERVAL_POLICY_VERSION = 2
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
-MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(100, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "100"))))
+MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(250, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "250"))))
 MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.45")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
@@ -137,7 +137,7 @@ MAX_QUEUED_RECHECKS = max(0, min(16, int(os.getenv("AFFILIO_MAX_QUEUED_RECHECKS"
 # Preserve the complete 3,000-card catalog shortlist while it rotates through live checks.
 DISCOVERY_QUEUE_LIMIT = max(100, min(5000, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_LIMIT", "5000"))))
 DISCOVERY_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_DISCOVERY_QUEUE_TTL_HOURS", "24"))))
-MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(64, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "48"))))
+MAX_DISCOVERY_QUEUE_CHECKS = max(1, min(250, int(os.getenv("AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS", "250"))))
 # Never publish an offer that gives the audience less than this much time to act.
 MIN_PUBLICATION_RUNWAY_MINUTES = max(0, min(360, int(os.getenv("AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES", "0"))))
 # The same ten-minute safety buffer gates publication and removal; captions remain static.
@@ -294,7 +294,7 @@ SEARCH_TERMS = [
     "گیاه آپارتمانی و گلدان",
 ]
 MAX_INCREDIBLE_OFFER_CANDIDATES = max(
-    1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "90")))
+    1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "250")))
 )
 EXCLUDED_HEALTH_PRODUCT_RE = re.compile(
     r"(?:قرص|کپسول|دارو(?:یی)?|مکمل|ویتامین|زینک|منیزیم|"
@@ -3620,7 +3620,7 @@ def discover_product_urls(
         try:
             catalog_context = publication_catalog_context()
             handoff_limit = max(
-                1, min(80, int(os.getenv("AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN", "40")))
+                1, min(250, int(os.getenv("AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN", "250")))
             )
             catalog_batch = (
                 load_catalog_candidates_for_handoff(
