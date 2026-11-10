@@ -2747,7 +2747,7 @@ def enrich_torob_trends(
             for row in raw_trends if isinstance(raw_trends, list) else []:
                 if not isinstance(row, dict):
                     continue
-                query = re.sub(r"\\s+", " ", str(row.get("query") or "")).strip()[:120]
+                query = re.sub(r"\s+", " ", str(row.get("query") or "")).strip()[:120]
                 if len(query) < 3:
                     continue
                 trends.append({
@@ -3268,9 +3268,22 @@ def _fresh_digikala_bestseller_evidence(
     }
 
 
-def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Demand-first order: fresh DigiKala bestseller rank, review momentum, quality, then deal value."""
+def _purchase_outcome_sort_key(record: dict) -> tuple[int]:
+    """Directly observed, Affilio-approved sale orders; payout and click metrics are excluded."""
     candidate = record if isinstance(record, dict) else {}
+    if candidate.get("purchase_outcome_verified") is not True:
+        return (0,)
+    try:
+        orders = max(0, int(candidate.get("approved_order_count_30d") or 0))
+    except (TypeError, ValueError, OverflowError):
+        orders = 0
+    return (orders,)
+
+
+def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tuple:
+    """Rank eligible products first by confirmed purchases, then fresh market-demand evidence."""
+    candidate = record if isinstance(record, dict) else {}
+    purchase_outcome = _purchase_outcome_sort_key(candidate)
     bestseller = _fresh_digikala_bestseller_evidence(candidate, now=now)
     rank = int(bestseller.get("best_rank_across_categories") or 0)
     tier = int(bestseller.get("tier") or 0)
@@ -3292,6 +3305,7 @@ def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tupl
     # Fresh bestseller rank and measured review growth always precede them.
     review_volume_context = min(100, round(math.log1p(review_count) * 5)) if review_count else 0
     return (
+        *purchase_outcome,
         tier,
         rank_strength,
         category_coverage,
@@ -4612,6 +4626,87 @@ def _fetch_click_statistics_snapshot() -> dict:
         return {}
 
 
+def _fetch_conversion_statistics_snapshot() -> dict:
+    """Fetch verified 30-day Affilio conversion counts; analytics outages never block publishing."""
+    global _LAST_CONVERSION_STATISTICS_SNAPSHOT
+    _LAST_CONVERSION_STATISTICS_SNAPSHOT = {}
+    base = AFFILIO_CLICK_TRACKER_BASE_URL.strip().rstrip("/")
+    if not AFFILIO_POSTBACK_TOKEN:
+        print("PURCHASE_STATS_UNAVAILABLE reason=AFFILIO_POSTBACK_TOKEN_not_configured")
+        return {}
+    if not base.startswith("https://"):
+        print("PURCHASE_STATS_UNAVAILABLE reason=tracker_url_not_https")
+        return {}
+    try:
+        response = SESSION.get(
+            f"{base}/conversions/stats",
+            headers={
+                "Accept": "application/json",
+                "X-Affilio-Token": AFFILIO_POSTBACK_TOKEN,
+                "User-Agent": "OfferChinConversionAnalytics/1.0",
+            },
+            timeout=(4, 8),
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if (
+            not isinstance(payload, dict)
+            or payload.get("ok") is not True
+            or payload.get("complete") is not True
+            or not isinstance(payload.get("summary"), dict)
+            or not isinstance(payload.get("byProduct"), dict)
+        ):
+            print("PURCHASE_STATS_UNAVAILABLE reason=incomplete_or_invalid_snapshot")
+            return {}
+        valid_products = {}
+        for pid, record in payload["byProduct"].items():
+            if not re.fullmatch(r"(?:dkp-\\d{1,12}|snp-\\d{1,20})", str(pid)) or not isinstance(record, dict):
+                continue
+            valid_products[str(pid)] = {
+                "confirmedOrderCount": max(0, int(record.get("confirmedOrderCount") or 0)),
+                "unitsSold": max(0, int(record.get("unitsSold") or 0)),
+                "salesAmountToman": max(0, int(record.get("salesAmountToman") or 0)),
+                "approvedCommissionToman": max(0, int(record.get("approvedCommissionToman") or 0)),
+            }
+        payload["byProduct"] = valid_products
+        _LAST_CONVERSION_STATISTICS_SNAPSHOT = payload
+        summary = payload.get("summary", {})
+        print(
+            f"PURCHASE_STATS_LOADED days={payload.get('days', 30)} "
+            f"approved_orders={int(summary.get('confirmedOrderCount') or 0)} "
+            f"attributed_products={len(valid_products)} updated_at={payload.get('updatedAt', 'unknown')}"
+        )
+        return payload
+    except Exception as exc:
+        print(f"PURCHASE_STATS_UNAVAILABLE error={type(exc).__name__}")
+        return {}
+
+
+def enrich_purchase_outcomes(products: list[dict]) -> None:
+    """Attach actual approved Affilio sale counts for ranking; never infer orders from clicks."""
+    snapshot = _fetch_conversion_statistics_snapshot()
+    complete = bool(
+        snapshot.get("ok") is True and snapshot.get("complete") is True
+        and isinstance(snapshot.get("byProduct"), dict)
+    )
+    by_product = snapshot.get("byProduct", {}) if complete else {}
+    for product in products or []:
+        if not isinstance(product, dict):
+            continue
+        pid = str(product.get("product_id") or product_id(product.get("product_url", "")))
+        outcome = by_product.get(pid, {}) if isinstance(by_product, dict) else {}
+        product["purchase_outcome_verified"] = complete
+        product["approved_order_count_30d"] = (
+            max(0, int(outcome.get("confirmedOrderCount") or 0))
+            if complete and isinstance(outcome, dict) else 0
+        )
+        product["approved_units_sold_30d"] = (
+            max(0, int(outcome.get("unitsSold") or 0))
+            if complete and isinstance(outcome, dict) else 0
+        )
+        product["purchase_outcome_observed_at"] = str(snapshot.get("updatedAt") or "") if complete else ""
+
+
 def _valid_click_counts(raw_counts) -> dict[str, int]:
     if not isinstance(raw_counts, dict):
         return {}
@@ -4653,8 +4748,9 @@ def build_performance_report(
     state: dict,
     now: datetime | None = None,
     click_snapshot: dict | None = None,
+    conversion_snapshot: dict | None = None,
 ) -> dict:
-    """Report attributable clicks and A/B outcomes without inventing CTR, orders or sales."""
+    """Report clicks separately from actual Affilio postback conversions and approved sales."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -4667,6 +4763,20 @@ def build_performance_report(
         and snapshot.get("complete") is True
         and isinstance(snapshot.get("products"), dict)
     )
+    conversion_data = conversion_snapshot if isinstance(conversion_snapshot, dict) else (
+        _LAST_CONVERSION_STATISTICS_SNAPSHOT
+        if isinstance(_LAST_CONVERSION_STATISTICS_SNAPSHOT, dict) else {}
+    )
+    conversion_complete = bool(
+        conversion_data.get("ok") is True
+        and conversion_data.get("complete") is True
+        and isinstance(conversion_data.get("summary"), dict)
+        and isinstance(conversion_data.get("byProduct"), dict)
+    )
+    conversion_summary = conversion_data.get("summary", {}) if conversion_complete else {}
+    conversion_by_product = conversion_data.get("byProduct", {}) if conversion_complete else {}
+    conversion_by_creative = conversion_data.get("byCreativeVariant", {}) if conversion_complete else {}
+    conversion_by_caption = conversion_data.get("byCaptionVariant", {}) if conversion_complete else {}
 
     def safe_count(value):
         try:
@@ -4714,6 +4824,21 @@ def build_performance_report(
             "discount_percent": safe_count(record.get("posted_discount_percent")),
             "delivery_status": statuses,
         }
+
+    for pid, published_record in posts_by_product.items():
+        conversion_row = conversion_by_product.get(pid, {}) if conversion_complete else {}
+        posts_by_product[pid]["approved_order_count_30d"] = (
+            safe_count(conversion_row.get("confirmedOrderCount")) if conversion_complete else None
+        )
+        posts_by_product[pid]["approved_units_sold_30d"] = (
+            safe_count(conversion_row.get("unitsSold")) if conversion_complete else None
+        )
+        posts_by_product[pid]["sales_amount_toman_30d"] = (
+            safe_count(conversion_row.get("salesAmountToman")) if conversion_complete else None
+        )
+        posts_by_product[pid]["approved_commission_toman_30d"] = (
+            safe_count(conversion_row.get("approvedCommissionToman")) if conversion_complete else None
+        )
 
     clicks_by_variant = {}
     clicks_by_source = {}
@@ -4779,9 +4904,18 @@ def build_performance_report(
                 if click_count is not None and post_count > 0 else None
             ),
             "ctr": None,
-            "orders": None,
-            "sales_amount": None,
-            "approved_commission": None,
+            "orders": (
+                safe_count((conversion_by_creative.get(key) or {}).get("confirmedOrderCount"))
+                if conversion_complete else None
+            ),
+            "sales_amount_toman": (
+                safe_count((conversion_by_creative.get(key) or {}).get("salesAmountToman"))
+                if conversion_complete else None
+            ),
+            "approved_commission_toman": (
+                safe_count((conversion_by_creative.get(key) or {}).get("approvedCommissionToman"))
+                if conversion_complete else None
+            ),
         }
 
     caption_comparisons = {}
@@ -4796,9 +4930,18 @@ def build_performance_report(
                 if click_count is not None and post_count > 0 else None
             ),
             "ctr": None,
-            "orders": None,
-            "sales_amount": None,
-            "approved_commission": None,
+            "orders": (
+                safe_count((conversion_by_caption.get(key) or {}).get("confirmedOrderCount"))
+                if conversion_complete else None
+            ),
+            "sales_amount_toman": (
+                safe_count((conversion_by_caption.get(key) or {}).get("salesAmountToman"))
+                if conversion_complete else None
+            ),
+            "approved_commission_toman": (
+                safe_count((conversion_by_caption.get(key) or {}).get("approvedCommissionToman"))
+                if conversion_complete else None
+            ),
         }
 
     # Worker capability is not the same as actual experiment coverage. Legacy posts
@@ -4903,13 +5046,30 @@ def build_performance_report(
         "caption_variant_comparison": caption_comparisons,
         "impressions": None,
         "ctr": None,
-        "orders": None,
-        "sales_amount": None,
-        "approved_commission": None,
-        "sales_data_status": "unavailable_until_official_Affilio_report_or_export_is_connected",
+        "orders": safe_count(conversion_summary.get("confirmedOrderCount")) if conversion_complete else None,
+        "sales_amount": safe_count(conversion_summary.get("salesAmountToman")) if conversion_complete else None,
+        "approved_commission": safe_count(conversion_summary.get("approvedCommissionToman")) if conversion_complete else None,
+        "conversion_data_status": "complete" if conversion_complete else "unavailable_until_Affilio_postback_token_and_D1_are_configured",
+        "conversion_window_days": safe_count(conversion_data.get("days", 30)) if conversion_complete else 30,
+        "conversion_updated_at": conversion_data.get("updatedAt") if conversion_complete else None,
+        "confirmed_purchases_30d": safe_count(conversion_summary.get("confirmedOrderCount")) if conversion_complete else None,
+        "units_sold_30d": safe_count(conversion_summary.get("unitsSold")) if conversion_complete else None,
+        "sales_amount_toman_30d": safe_count(conversion_summary.get("salesAmountToman")) if conversion_complete else None,
+        "approved_commission_toman_30d": safe_count(conversion_summary.get("approvedCommissionToman")) if conversion_complete else None,
+        "pending_sale_count_30d": safe_count(conversion_summary.get("pendingSaleCount")) if conversion_complete else None,
+        "declined_sale_count_30d": safe_count(conversion_summary.get("declinedSaleCount")) if conversion_complete else None,
+        "approved_lead_count_30d": safe_count(conversion_summary.get("approvedLeadCount")) if conversion_complete else None,
+        "approved_action_count_30d": safe_count(conversion_summary.get("approvedActionCount")) if conversion_complete else None,
+        "confirmed_purchases_by_product": conversion_by_product if conversion_complete else None,
+        "confirmed_purchases_by_channel": conversion_data.get("byChannel") if conversion_complete else None,
+        "confirmed_purchases_by_creative_variant": conversion_by_creative if conversion_complete else None,
+        "confirmed_purchases_by_caption_variant": conversion_by_caption if conversion_complete else None,
+        "sales_data_status": "complete" if conversion_complete else "awaiting_Affilio_postback_configuration_or_first_conversion",
         "interpretation": (
-            "Tracked clicks and clicks per published post are descriptive signals, not CTR or causal lift. "
-            "Impressions, orders, sales and commission are not inferred from clicks."
+            "Only Affilio sale conversions whose latest status is approved count as purchases. "
+            "Pending and declined conversions are reported separately. Purchase counts can influence "
+            "ranking; payout and sale amount never do. Clicks do not imply orders, and CTR remains "
+            "unavailable without verified impression counts."
         ),
     }
 
@@ -10737,9 +10897,10 @@ def run(publish=False, selection_only=False):
 
     # Repeated retailer observations are required to distinguish recent interest from lifetime popularity.
     update_current_demand_signals(state, products, now=datetime.now(timezone.utc))
-    # Click analytics are fetched only for reporting. They are never ranking inputs,
-    # never treated as orders, and never allowed to block product selection/publication.
+    # Click analytics remain reporting-only. Approved Affilio sale postbacks are the
+    # only direct purchase outcome used as a ranking feedback signal.
     enrich_click_statistics(products)
+    enrich_purchase_outcomes(products)
     products.sort(key=deal_sort_key, reverse=True)
     state.setdefault("published", {})
     if publish and CLEAR_PREVIOUS_CHANNEL_POSTS and BATCH_OPERATION_KEY and state.get("completed_batch_operation") == BATCH_OPERATION_KEY:
@@ -10749,6 +10910,10 @@ def run(publish=False, selection_only=False):
     # Historical proof affects ranking only, not a fixed displayed-discount threshold.
     enrich_price_history(products, state)
     enrich_market_prices(products, state)
+    # Torob's live search-trend tool is optional; absence, pause or rate limit is non-blocking.
+    enrich_torob_trends(products, state)
+    # Use the same validated 30-day conversion snapshot for selection and reporting.
+    enrich_purchase_outcomes(products)
     products.sort(key=deal_sort_key, reverse=True)
     queue_now = datetime.now(timezone.utc)
     # Independent market/history evidence is diagnostic; it cannot filter a live markdown.
@@ -10965,7 +11130,7 @@ def run(publish=False, selection_only=False):
         state.get("recent_publications"),
     )
     record_publication_diversity_report(state, now=queue_now)
-    save_json(PERFORMANCE_REPORT, build_performance_report(state, now=queue_now))
+    save_json(PERFORMANCE_REPORT, build_performance_report(state, now=queue_now, conversion_snapshot=_LAST_CONVERSION_STATISTICS_SNAPSHOT))
     save_json(STATE, state)
     market_verified = sum(p.get("market_status") == "verified" for p in products)
     print(
