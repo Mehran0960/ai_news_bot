@@ -76,11 +76,11 @@ def canonical_product_destination(value: str, product_id: str) -> str:
     if parsed.scheme not in {"http", "https"} or parsed.username or parsed.password:
         return ""
     if identifier.startswith("dkp-") and (host == "digikala.com" or host.endswith(".digikala.com")):
-        match = re.search(r"/product/(dkp-\\d+)", parsed.path, re.IGNORECASE)
+        match = re.search(r"/product/(dkp-\d+)", parsed.path, re.IGNORECASE)
         if match and match.group(1).casefold() == identifier:
             return f"https://www.digikala.com/product/{identifier}/"
     if identifier.startswith("snp-") and (host == "snappshop.ir" or host.endswith(".snappshop.ir")):
-        match = re.fullmatch(r"/product/(snp-\\d+)/?", parsed.path, re.IGNORECASE)
+        match = re.fullmatch(r"/product/(snp-\d+)/?", parsed.path, re.IGNORECASE)
         if match and match.group(1).casefold() == identifier:
             return f"https://snappshop.ir/product/{identifier}"
     return ""
