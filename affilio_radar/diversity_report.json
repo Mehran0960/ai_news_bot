@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-10T19:28:07.953841+00:00",
+  "generated_at": "2026-11-10T19:37:20.617871+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ویتامین‌ها و مواد معدنی": 1,
@@ -385,47 +385,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 780,
+    "all_time_count": 782,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T19:02:44.505962+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "grocery_food",
-        "compared_to_product_id": "dkp-22800872",
-        "family": "grocery_food:sweets_and_spreads",
-        "product_id": "dkp-22800974",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "خرما شکلاتی با مغزی کرم کنجد ورسادو - ۳۵۰ گرم",
-        "use_case": "grocery_food"
-      },
-      {
-        "at": "2026-11-10T19:02:44.505962+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-11192935",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ژل شستشوی صورت ویتالیر مدل وایت ویت مناسب برای پوست‌های لک‌دار حجم 200 میلی لیتر",
-        "use_case": "home_cleaning"
-      },
       {
         "at": "2026-11-10T19:11:16.157649+00:00",
         "brand": "",
@@ -731,6 +697,40 @@
         ],
         "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 02 مناسب پوست‌های معمولی و مختلط حجم 75 میلی‌لیتر",
         "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-10T19:37:20.617871+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-5664135",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مدل Oily Acne-Prone Skin، مناسب پوست‌های چرب، حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-10T19:37:20.617871+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "grocery_food",
+        "compared_to_product_id": "dkp-22800872",
+        "family": "grocery_food:sweets_and_spreads",
+        "product_id": "dkp-22800974",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "خرما شکلاتی با مغزی کرم کنجد ورسادو - ۳۵۰ گرم",
+        "use_case": "grocery_food"
       }
     ]
   }
