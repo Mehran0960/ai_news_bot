@@ -34,7 +34,7 @@
   "experiment_attribution_supported_by_worker": true,
   "experiment_measurement_status": "awaiting_first_tagged_click",
   "experiment_publication_status": "partially_assigned",
-  "generated_at": "2026-11-10T10:21:34.181762+00:00",
+  "generated_at": "2026-11-10T10:28:48.193729+00:00",
   "impressions": null,
   "interpretation": "Tracked clicks and clicks per published post are descriptive signals, not CTR or causal lift. Impressions, orders, sales and commission are not inferred from clicks.",
   "orders": null,
@@ -1312,13 +1312,10 @@
       "creative_experiment_id": "offerchin-creative-v1",
       "creative_variant": "B",
       "delivery_status": {
-        "aparat": "pending",
         "bale": "sent",
         "eitaa": "not_connected",
-        "filo": "pending",
-        "rubika": "failed",
-        "telegram": "sent",
-        "youtube": "pending"
+        "rubika": "sent",
+        "telegram": "sent"
       },
       "discount_percent": 70,
       "selection_demand_evidence": "digiKala_lifetime_reviews_and_rating_context",
