@@ -297,14 +297,25 @@ def send_rubika_photo(token: str, channel_id: str, item: dict, image_bytes: byte
         # network/server failures are never retried to avoid duplicate posts.
         if "INVALID_INPUT" not in str(exc).upper():
             raise
-        print("RUBIKA_CAPTION_METADATA_REJECTED fallback=dual_link_keypad")
+        # INVALID_INPUT also rejects the previous keypad shape on some Rubika
+        # channels. Fall back to the smallest sendFile payload and place the exact
+        # affiliate URL in the caption as a directly clickable URL. Never route it
+        # through an OfferChin/Cloudflare redirect or rely on keypad support.
+        print("RUBIKA_CAPTION_METADATA_REJECTED fallback=plain_caption_direct_affiliate_url")
+        label_builder = getattr(renderer, "purchase_button_label", None)
+        purchase_label = (
+            str(label_builder(affiliate_url))
+            if callable(label_builder)
+            else purchase_action_label(item.get("merchant") or "دیجی‌کالا")
+        )
+        direct_caption = (
+            rubika_caption.rstrip()
+            + f"\n\n{purchase_label}\n{affiliate_url}"
+        )[:3800]
         sent = _rubika_call(token, "sendFile", {
             "chat_id": channel_id,
             "file_id": file_id,
-            "text": rubika_caption,
-            "inline_keypad": _rubika_inline_keypad(
-                renderer, item, affiliate_url, include_membership=True
-            ),
+            "text": direct_caption,
         })
     message_id = str(sent.get("message_id") or "").strip()
     if not message_id:
