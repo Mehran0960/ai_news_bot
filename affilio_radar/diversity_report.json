@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-10T10:45:35.669073+00:00",
+  "generated_at": "2026-11-10T10:54:11.494267+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {},
     "category_post_counts": {
@@ -111,32 +111,32 @@
       "other": 17,
       "personal_care": 2,
       "power_backup": 1,
-      "sports_outdoor": 3
+      "sports_outdoor": 2
     },
     "category_share_percent": {
-      "audio_wearables": 6.2,
-      "beauty_fragrance": 3.1,
-      "books_stationery": 3.1,
-      "digital_accessories": 3.1,
-      "fashion": 6.2,
-      "kids_sports": 3.1,
-      "mobile_devices": 3.1,
-      "other": 53.1,
-      "personal_care": 6.2,
-      "power_backup": 3.1,
-      "sports_outdoor": 9.4
+      "audio_wearables": 6.5,
+      "beauty_fragrance": 3.2,
+      "books_stationery": 3.2,
+      "digital_accessories": 3.2,
+      "fashion": 6.5,
+      "kids_sports": 3.2,
+      "mobile_devices": 3.2,
+      "other": 54.8,
+      "personal_care": 6.5,
+      "power_backup": 3.2,
+      "sports_outdoor": 6.5
     },
     "distinct_catalog_categories": 0,
     "distinct_categories": 11,
-    "distinct_families": 15,
+    "distinct_families": 14,
     "distinct_retailers": 1,
     "distinct_use_cases": 11,
     "known_brand_posts": 1,
-    "posts": 32,
+    "posts": 31,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 32
+      "digikala": 31
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -152,7 +152,7 @@
       "mobile_productivity": 6,
       "office_study": 1,
       "personal_care": 3,
-      "sports_fitness": 3
+      "sports_fitness": 2
     }
   },
   "last_7_days": {
@@ -402,100 +402,15 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 463,
-    "last_7_days_count": 463,
+    "all_time_count": 468,
+    "last_7_days_count": 468,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 463,
-      "similarity_repeat": 463
+      "family_repeat": 468,
+      "similarity_repeat": 468
     },
     "recent_events": [
       {
-        "at": "2026-11-10T10:21:34.181762+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-5664135",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مدل Oily Acne-Prone Skin، مناسب پوست‌های چرب، حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-10T10:21:34.181762+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-22800872",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "خرما شکلاتی با مغزی کرم کنجد ورسادو - 200 گرم",
-        "use_case": "grocery_food"
-      },
-      {
-        "at": "2026-11-10T10:21:34.181762+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-22800974",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "خرما شکلاتی با مغزی کرم کنجد ورسادو - ۳۵۰ گرم",
-        "use_case": "grocery_food"
-      },
-      {
-        "at": "2026-11-10T10:21:34.181762+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-10T10:21:34.181762+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-18369481",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
-        "use_case": "personal_care"
-      },
-      {
         "at": "2026-11-10T10:28:48.193729+00:00",
         "brand": "",
         "catalog_category_id": "",
@@ -735,6 +650,91 @@
       },
       {
         "at": "2026-11-10T10:45:35.669073+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-10T10:54:11.494267+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-5664135",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مدل Oily Acne-Prone Skin، مناسب پوست‌های چرب، حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-10T10:54:11.494267+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-22800872",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "خرما شکلاتی با مغزی کرم کنجد ورسادو - 200 گرم",
+        "use_case": "grocery_food"
+      },
+      {
+        "at": "2026-11-10T10:54:11.494267+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-22800974",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "خرما شکلاتی با مغزی کرم کنجد ورسادو - ۳۵۰ گرم",
+        "use_case": "grocery_food"
+      },
+      {
+        "at": "2026-11-10T10:54:11.494267+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-18369481",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-10T10:54:11.494267+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
