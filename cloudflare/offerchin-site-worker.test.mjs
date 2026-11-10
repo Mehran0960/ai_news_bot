@@ -3,9 +3,9 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const source = readFileSync(new URL("./offerchin-site-worker.mjs", import.meta.url), "utf8");
+const newline = String.fromCharCode(10);
 const htmlStart = source.indexOf("const PAGE_HTML = String.raw`");
-const htmlEnd = source.indexOf("`;
-const ROBOTS", htmlStart);
+const htmlEnd = source.indexOf("`;" + newline + "const ROBOTS", htmlStart);
 assert.ok(htmlStart >= 0 && htmlEnd > htmlStart, "Worker must keep the storefront HTML in PAGE_HTML");
 const page = source.slice(htmlStart + "const PAGE_HTML = String.raw`".length, htmlEnd);
 
