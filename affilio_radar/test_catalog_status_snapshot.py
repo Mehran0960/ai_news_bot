@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta, timezone
 import tempfile
 import unittest
 from pathlib import Path
@@ -33,8 +34,9 @@ except ImportError:
 
 class CatalogStatusSnapshotTests(unittest.TestCase):
     def setUp(self):
-        self.started_at = "2026-11-06T12:00:00+00:00"
-        self.completed_at = "2026-11-06T16:00:00+00:00"
+        self.status_time = datetime.now(timezone.utc)
+        self.started_at = (self.status_time - timedelta(hours=4)).isoformat()
+        self.completed_at = (self.status_time - timedelta(hours=1)).isoformat()
         self.state = {
             "parallel_full_catalog_mode": "all_categories_all_pages",
             "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
@@ -50,7 +52,7 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
             "last_cycle_category_coverage_percent": 100,
             "last_cycle_pages_success": 120,
             "last_cycle_product_rows_success": 2400,
-            "parallel_cycle_started_at": "2026-11-06T16:00:00+00:00",
+            "parallel_cycle_started_at": self.completed_at,
             "parallel_cycle_pages_success": 2,
             "parallel_cycle_completed_category_ids": ["1"],
             "parallel_cycle_unqueryable_category_ids": [],
@@ -114,7 +116,7 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
             "last_cycle_categories_total": 3,
             "last_cycle_categories_complete": 1,
             "last_cycle_categories_unqueryable": 0,
-            "parallel_cycle_started_at": "2026-11-06T16:00:00+00:00",
+            "parallel_cycle_started_at": self.completed_at,
             "parallel_cycle_pages_success": 2,
             "parallel_cycle_completed_category_ids": ["1"],
             "parallel_pending_pages": [{"category_id": "1", "page": 3, "attempts": 0}],
@@ -122,7 +124,7 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         }
         status = build_status_snapshot(
             state,
-            "2026-11-06T16:01:00+00:00",
+            self.status_time.isoformat(),
             completed_candidates=self.candidates,
         )
         self.assertTrue(status["completed_candidates_snapshot_valid"])
@@ -285,7 +287,15 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
                 self.assertFalse(status["completed_candidates_snapshot_valid"])
 
     def test_candidate_snapshot_must_have_matching_ids_timestamps_and_rank_order(self):
-        stale = {**self.candidates, "cycle_completed_at": "2026-11-06T15:00:00+00:00"}
+        stale_at = (self.status_time - timedelta(days=5)).isoformat()
+        stale = {
+            **self.candidates,
+            "cycle_completed_at": stale_at,
+            "candidates": [
+                {**row, "catalog_cycle_completed_at": stale_at}
+                for row in self.candidates["candidates"]
+            ],
+        }
         self.assertFalse(
             build_status_snapshot(self.state, completed_candidates=stale)[
                 "completed_candidates_snapshot_valid"
@@ -346,7 +356,7 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
     def test_valid_demand_first_snapshot_exposes_compact_preview(self):
         status = build_status_snapshot(
             self.state,
-            "2026-11-06T16:01:00+00:00",
+            self.status_time.isoformat(),
             completed_candidates=self.candidates,
         )
         self.assertTrue(status["completed_candidates_snapshot_valid"])
@@ -365,7 +375,7 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         invalid = {**self.candidates, "candidates": []}
         status = build_status_snapshot(
             self.state,
-            "2026-11-06T16:01:00+00:00",
+            self.status_time.isoformat(),
             completed_candidates=invalid,
         )
         self.assertFalse(status["completed_candidates_snapshot_valid"])
@@ -375,7 +385,7 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         legacy = {key: value for key, value in self.candidates.items() if key != "candidate_order_policy"}
         legacy_status = build_status_snapshot(
             self.state,
-            "2026-11-06T16:01:00+00:00",
+            self.status_time.isoformat(),
             completed_candidates=legacy,
         )
         self.assertTrue(legacy_status["completed_candidates_snapshot_valid"])
