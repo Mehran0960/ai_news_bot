@@ -12,9 +12,9 @@ function isActive(p) {
   && Number(p.current_price) > 0
   && Number(p.original_price) > Number(p.current_price)
   && Number(p.discount_percent) > 0
-  && buyUrl(p.affiliate_url) !== "#"
-  && buyUrl(p.product_url) !== "#"
-  && buyUrl(p.image_url) !== "#";
+  && buyUrl(p.affiliate_url, p.product_id, p.product_url) !== "#"
+  && safeHttpsUrl(p.product_url) !== "#"
+  && safeHttpsUrl(p.image_url) !== "#";
 }
 function esc(v) { return String(v ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch])); }
 function toman(v) { return fa.format(Math.max(0, Math.round(Number(v) || 0))); }
@@ -27,9 +27,36 @@ function remaining(until) {
  if (hours > 0) return fa.format(hours) + " ساعت و " + fa.format(mins) + " دقیقه";
  return fa.format(minutes) + " دقیقه";
 }
-function buyUrl(raw) { try { const u = new URL(raw); return u.protocol === "https:" ? u.href : "#"; } catch { return "#"; } }
+function safeHttpsUrl(raw) {
+ try { const u = new URL(raw); return u.protocol === "https:" && !u.username && !u.password ? u.href : "#"; } catch { return "#"; }
+}
+function canonicalProductUrl(raw, id) {
+ try {
+  const u = new URL(raw), productId = String(id || "").toLowerCase(), host = u.hostname.toLowerCase();
+  if (u.protocol !== "https:" || u.username || u.password) return "";
+  if (/^dkp-\\d+$/.test(productId) && (host === "digikala.com" || host.endsWith(".digikala.com"))) {
+   const match = u.pathname.match(/\\/product\\/(dkp-\\d+)/i);
+   return match && match[1].toLowerCase() === productId ? "https://www.digikala.com/product/" + productId + "/" : "";
+  }
+  if (/^snp-\\d+$/.test(productId) && (host === "snappshop.ir" || host.endsWith(".snappshop.ir"))) {
+   const match = u.pathname.match(/^\\/product\\/(snp-\\d+)\\/?$/i);
+   return match && match[1].toLowerCase() === productId ? "https://snappshop.ir/product/" + productId : "";
+  }
+  return "";
+ } catch { return ""; }
+}
+function buyUrl(raw, productId, productUrl) {
+ try {
+  const u = new URL(raw);
+  if (u.protocol !== "https:" || u.hostname.toLowerCase() !== "aflo.ir" || u.pathname !== "/QekEYTRg" || u.username || u.password || u.hash) return "#";
+  const destinations = u.searchParams.getAll("p");
+  const destination = destinations.length === 1 ? canonicalProductUrl(destinations[0], productId) : "";
+  const expected = canonicalProductUrl(productUrl, productId);
+  return destination && expected && destination === expected ? u.href : "#";
+ } catch { return "#"; }
+}
 function card(p) {
- const id=esc(p.product_id), title=esc(p.title), img=esc(p.image_url), url=esc(buyUrl(p.affiliate_url)), until=esc(p.active_until);
+ const id=esc(p.product_id), title=esc(p.title), img=esc(p.image_url), url=esc(buyUrl(p.affiliate_url, p.product_id, p.product_url)), until=esc(p.active_until);
  const retailer=esc(p.retailer_name||"فروشگاه"), retailerKey=esc(p.retailer_key||"other"), category=esc(p.category||"سایر");
  const detail="/products/"+encodeURIComponent(p.product_id)+"/";
  return '<article class="deal-card" data-product-id="'+id+'" data-category="'+category+'" data-retailer="'+retailerKey+'" data-active-until="'+until+'">'+
@@ -74,7 +101,7 @@ function renderCatalog() {
   if(sort==="discount") return (Number(b.discount_percent)||0)-(Number(a.discount_percent)||0)||(Number(b.demand_score)||0)-(Number(a.demand_score)||0);
   if(sort==="saving") return (Number(b.savings_toman)||0)-(Number(a.savings_toman)||0)||(Number(b.demand_score)||0)-(Number(a.demand_score)||0);
   if(sort==="promo") return (Number(b.promo_score)||0)-(Number(a.promo_score)||0)||(Number(b.demand_score)||0)-(Number(a.demand_score)||0);
-  return (Number(b.demand_score)||0)-(Number(a.demand_score)||0)||(Number(b.click_count_30d)||0)-(Number(a.click_count_30d)||0)||(Number(b.promo_score)||0)-(Number(a.promo_score)||0)||(Number(b.review_count)||0)-(Number(a.review_count)||0);
+  return (Number(b.demand_score)||0)-(Number(a.demand_score)||0)||(Number(b.promo_score)||0)-(Number(a.promo_score)||0)||(Number(b.review_count)||0)-(Number(a.review_count)||0);
  });
  grid.innerHTML=visible.length?visible.map(card).join(""):'<div class="empty-state"><strong>'+(search||category||retailer?"پیشنهادی با این فیلترها پیدا نشد":"فعلاً پیشنهاد فعالی نداریم")+'</strong>'+(search||category||retailer?"فیلترها را تغییر دهید یا جست‌وجوی دیگری امتحان کنید.":"پیشنهادهای واجد شرایط به‌صورت خودکار در همین صفحه ظاهر می‌شوند.")+'</div>';
  const count=$("#offerCount"); if(count) count.textContent=fa.format(visible.length);
@@ -100,7 +127,7 @@ function updateDetail(p) {
  if(badge) badge.textContent=toman(p.discount_percent)+"٪ تخفیف";
  if(image && image.src!==p.image_url) image.src=p.image_url;
  if(retailer) retailer.textContent="فروشگاه: "+(p.retailer_name||"فروشگاه");
- if(buy){buy.href=buyUrl(p.affiliate_url);buy.textContent="مشاهده و خرید در "+(p.retailer_name||"فروشگاه")+" ↗";}
+ if(buy){buy.href=buyUrl(p.affiliate_url, p.product_id, p.product_url);buy.textContent="مشاهده و خرید در "+(p.retailer_name||"فروشگاه")+" ↗";}
  if(timer){timer.dataset.countdown=p.active_until;timer.textContent=remaining(p.active_until);}
 }
 async function refreshFeed() {
