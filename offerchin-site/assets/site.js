@@ -33,7 +33,7 @@ function safeHttpsUrl(raw) {
 function canonicalProductUrl(raw, id) {
  try {
   const u = new URL(raw), productId = String(id || "").toLowerCase(), host = u.hostname.toLowerCase();
-  if (u.protocol !== "https:" || u.username || u.password) return "";
+  if (u.protocol !== "https:" || u.username || u.password || u.search || u.hash) return "";
   if (/^dkp-\d+$/.test(productId) && (host === "digikala.com" || host.endsWith(".digikala.com"))) {
    const match = u.pathname.match(/\/product\/(dkp-\d+)/i);
    return match && match[1].toLowerCase() === productId ? "https://www.digikala.com/product/" + productId + "/" : "";
