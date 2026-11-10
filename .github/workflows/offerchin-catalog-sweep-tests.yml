@@ -47,4 +47,4 @@ jobs:
       - name: Run catalog crawler regressions
         run: python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_parallel_catalog_sweep affilio_radar.test_catalog_sweep_batch_window -v
       - name: Run food versus skincare publisher regression
-        run: python -m unittest affilio_radar.test_affilio.AffilioRadarTests.test_sesame_cream_sweets_are_not_misclassified_as_skincare -v
+        run: cd affilio_radar && python -m unittest test_affilio.AffilioRadarTests.test_sesame_cream_sweets_are_not_misclassified_as_skincare -v
