@@ -1611,7 +1611,7 @@
 - snapshot قدیمی فقط در صورت اثبات چرخهٔ کامل، پوشش ۱۰۰٪ دسته‌ها، نبود دستهٔ غیرقابل‌خواندن، صفحات و ردیف‌های موفق، ۳٬۰۰۰ یا کمتر نامزد یکتا و منشأ digikala_catalog_sweep با رتبهٔ بومی bestseller قابل مهاجرت است. مهاجرت ترتیب ثبت‌شده را بازمرتب نمی‌کند؛ فقط برچسب صریح catalog_demand_first_v1 را اضافه و رتبه‌های snapshot را پیوسته می‌کند.
 - سقف بررسی زنده، handoff کاتالوگ، بررسی صف کشف و تلاش نهایی نامزد از ۱۰۰/۶۴ به حداکثر ۲۵۰ مورد در هر اجرا افزایش یافت. فهرست نامزدهای کاتالوگ همچنان چرخشی و محدود است؛ این تغییر ادعای راستی‌آزمایی هم‌زمان تمام محصولات دیجی‌کالا نیست.
 
-**فایل‌ها/سامانه‌ها:** affilio_radar/platform_registry.py، affilio_radar/publisher.py، affilio_radar/messenger_adapters.py، affilio_radar/catalog_status_snapshot.py، affilio_radar/affilio_radar.py، affilio_radar/test_messenger_adapters.py، affilio_radar/test_content_delivery.py، affilio_radar/test_catalog_status_snapshot.py، .github/workflows/offerchin-publisher.yml.
+**فایل‌ها/سامانه‌ها:** affilio_radar/platform_registry.py، affilio_radar/publisher.py، affilio_radar/messenger_adapters.py، affilio_radar/catalog_status_snapshot.py، affilio_radar/affilio_radar.py، affilio_radar/test_messenger_adapters.py، affilio_radar/test_content_delivery.py، affilio_radar/test_catalog_status_snapshot.py، .github/workflows/offerchin-publisher.yml و .github/workflows/offerchin-fallback-regression.yml.
 
 **آزمون و نتیجه:** آزمون‌های رگرسیون برای خطای روبیکا و non-blocking بودن مقصد اختیاری، و مهاجرت امن snapshot افزوده شدند. اجرای CI و نتیجهٔ نهایی پس از ثبت این ورودی باید در همین شاخه و PR درج شود؛ تا پیش از سبزشدن گیت‌ها این تغییرات production تلقی نمی‌شوند.
 
