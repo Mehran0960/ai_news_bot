@@ -311,6 +311,37 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         }
         self.assertFalse(radar.has_actionable_demand_signal(bestseller_only, now=self.now))
 
+    def test_primary_selection_and_publish_queue_reject_discount_without_fresh_demand(self):
+        no_demand = {
+            "product_id": "dkp-no-demand",
+            "product_url": "https://www.digikala.com/product/dkp-no-demand/",
+            "title": "پاوربانک تخفیف‌دار آزمایشی",
+            "availability": "in_stock",
+            "current_price": 900_000,
+            "original_price": 1_000_000,
+            "discount_percent": 10,
+            "savings_toman": 100_000,
+            "image_url": "https://example.com/product.webp",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-no-demand%2F",
+        }
+        state = {"published": {}, "recent_publications": []}
+        with (
+            patch.object(radar, "is_product_suppressed", return_value=False),
+            patch.object(radar, "is_discount_publish_eligible", return_value=True),
+            patch.object(radar, "has_publishable_expiry_or_open_offer", return_value=True),
+            patch.object(radar, "is_selection_candidate_rejected", return_value=False),
+            patch.object(radar, "is_fresh_selection_candidate", return_value=True),
+        ):
+            selected, _floor, quality = radar.select_discount_fallback_candidates(
+                [no_demand], state, now=self.now
+            )
+            queued = radar.select_publish_candidates(
+                {"dkp-no-demand": {}}, {"dkp-no-demand": no_demand}, now=self.now
+            )
+        self.assertEqual(selected, [])
+        self.assertEqual(quality, [])
+        self.assertEqual(queued, [])
+
     def test_demand_is_required_but_positive_market_or_history_confirmation_is_not(self):
         product = {
             "product_id": "dkp-1234567",
