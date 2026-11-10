@@ -565,7 +565,7 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
     def test_catalog_snapshot_expires_after_96_hours(self):
         status = build_status_snapshot(
             self.state,
-            generated_at="2026-11-10T17:00:00+00:00",
+            generated_at=(datetime.fromisoformat(self.completed_at) + timedelta(hours=97)).isoformat(),
             completed_candidates=self.candidates,
         )
         self.assertFalse(status["completed_candidates_snapshot_valid"])
