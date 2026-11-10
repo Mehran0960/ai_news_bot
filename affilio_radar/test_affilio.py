@@ -752,19 +752,28 @@ class AffilioRadarTests(unittest.TestCase):
             radar_module._retain_superseded_youtube_video(record, "dkp-123", now)
         )
 
-    def test_purchase_button_always_opens_direct_affilio_url_without_tracker(self):
+    def test_purchase_button_keeps_direct_affilio_route_and_adds_conversion_sub_id(self):
         product = "https://snappshop.ir/product/snp-2097083854"
         affiliate = build_affilio_tracking_link(product)
         with (
             patch("affilio_radar._click_tracker_is_healthy", return_value=True),
             patch("affilio_radar.build_click_tracking_link", side_effect=AssertionError("purchase CTA must bypass tracker")),
         ):
-            self.assertEqual(
-                tracked_affiliate_button_url(
-                    affiliate, "telegram", "creative-test-1", "B", "caption-test-1", "A"
-                ),
-                affiliate,
+            purchase_url = tracked_affiliate_button_url(
+                affiliate, "telegram", "creative-test-1", "B", "caption-test-1", "A"
             )
+        parsed = urlsplit(purchase_url)
+        query = parse_qs(parsed.query)
+        self.assertEqual(parsed.scheme, "https")
+        self.assertEqual(parsed.hostname, "aflo.ir")
+        self.assertEqual(parsed.path, "/QekEYTRg")
+        self.assertEqual(query.get("p"), [product])
+        self.assertEqual(
+            query.get("aff_sub"),
+            ["oc1-snp-2097083854-telegram-v-creative-test-1-b-c-caption-test-1-a"],
+        )
+        self.assertNotIn("/p/", parsed.path)
+        self.assertTrue(radar_module._is_valid_affilio_tracking_url(purchase_url))
         self.assertEqual(tracked_affiliate_button_url("https://example.com/not-affiliate", "bale"), "")
 
     def test_click_statistics_include_aggregate_counts_for_both_stores(self):
@@ -6658,6 +6667,101 @@ class AffilioRadarTests(unittest.TestCase):
 
 
 
+
+    def test_performance_report_records_only_affilio_approved_purchases(self):
+        state = {
+            "published": {
+                "dkp-123": {
+                    "creative_experiment_id": "creative-test-1",
+                    "creative_variant": "A",
+                    "caption_experiment_id": "caption-test-1",
+                    "caption_variant": "A",
+                    "telegram_message_id": 123,
+                    "delivery_status": {"telegram": "sent"},
+                }
+            }
+        }
+        clicks = {
+            "ok": True, "complete": True, "products": {"dkp-123": 999},
+            "totalClicks": 999, "sources": {"telegram": 999},
+            "experimentVariants": {"creative-test-1:A": 999},
+            "captionExperimentVariants": {"caption-test-1:A": 999},
+        }
+        conversions = {
+            "ok": True, "complete": True, "days": 30, "updatedAt": "2026-11-10T00:00:00Z",
+            "summary": {
+                "confirmedOrderCount": 2, "unitsSold": 3,
+                "salesAmountToman": 250000, "approvedCommissionToman": 18000,
+                "pendingSaleCount": 4, "declinedSaleCount": 1,
+                "approvedLeadCount": 7, "approvedActionCount": 2,
+            },
+            "byProduct": {
+                "dkp-123": {
+                    "confirmedOrderCount": 2, "unitsSold": 3,
+                    "salesAmountToman": 250000, "approvedCommissionToman": 18000,
+                }
+            },
+            "byChannel": {"telegram": {
+                "confirmedOrderCount": 2, "unitsSold": 3,
+                "salesAmountToman": 250000, "approvedCommissionToman": 18000,
+            }},
+            "byCreativeVariant": {"creative-test-1:A": {
+                "confirmedOrderCount": 2, "unitsSold": 3,
+                "salesAmountToman": 250000, "approvedCommissionToman": 18000,
+            }},
+            "byCaptionVariant": {"caption-test-1:A": {
+                "confirmedOrderCount": 2, "unitsSold": 3,
+                "salesAmountToman": 250000, "approvedCommissionToman": 18000,
+            }},
+        }
+        report = radar_module.build_performance_report(
+            state, click_snapshot=clicks, conversion_snapshot=conversions
+        )
+        self.assertEqual(report["confirmed_purchases_30d"], 2)
+        self.assertEqual(report["orders"], 2)
+        self.assertEqual(report["units_sold_30d"], 3)
+        self.assertEqual(report["sales_amount_toman_30d"], 250000)
+        self.assertEqual(report["approved_commission_toman_30d"], 18000)
+        self.assertEqual(report["pending_sale_count_30d"], 4)
+        self.assertEqual(report["declined_sale_count_30d"], 1)
+        self.assertEqual(report["approved_lead_count_30d"], 7)
+        self.assertEqual(report["approved_action_count_30d"], 2)
+        self.assertEqual(report["published_posts_by_product"]["dkp-123"]["approved_order_count_30d"], 2)
+        self.assertEqual(report["creative_variant_comparison"]["creative-test-1:A"]["orders"], 2)
+        self.assertEqual(report["caption_variant_comparison"]["caption-test-1:A"]["orders"], 2)
+        self.assertEqual(report["tracked_clicks_total"], 999)
+        self.assertIsNone(report["ctr"])
+        self.assertEqual(report["sales_data_status"], "complete")
+
+    def test_purchase_outcomes_rank_before_demand_proxies_and_deal_value(self):
+        confirmed = {
+            "product_id": "dkp-123",
+            "purchase_outcome_verified": True,
+            "approved_order_count_30d": 1,
+            "approved_commission_toman_30d": 100,
+            "click_count_30d": 0,
+            "discount_percent": 5,
+            "savings_toman": 5000,
+        }
+        no_confirmed_orders = {
+            "product_id": "dkp-456",
+            "purchase_outcome_verified": True,
+            "approved_order_count_30d": 0,
+            "approved_commission_toman_30d": 999999999,
+            "click_count_30d": 999999,
+            "discount_percent": 90,
+            "savings_toman": 9000000,
+        }
+        self.assertGreater(
+            radar_module.deal_sort_key(confirmed),
+            radar_module.deal_sort_key(no_confirmed_orders),
+        )
+        unavailable = dict(confirmed, purchase_outcome_verified=False, approved_order_count_30d=999)
+        self.assertEqual(
+            radar_module._purchase_outcome_sort_key(unavailable),
+            (0,),
+            "unverified conversion data must never influence ranking",
+        )
 
     def test_performance_report_separates_worker_support_from_actual_experiment_activation(self):
         snapshot = {
