@@ -18,7 +18,7 @@ test("legacy Worker purchase CTA uses the original Affilio URL, not a tracker", 
 
 test("embedded validator accepts only the public Affilio link for the matching product", () => {
   const helperStart = page.indexOf("function canonicalProductUrl");
-  const helperEnd = page.indexOf("function imageOrEmoji", helperStart);
+  const helperEnd = page.indexOf("function money", helperStart);
   assert.ok(helperStart >= 0 && helperEnd > helperStart, "canonical destination and Affilio validators must be present");
   const helper = page.slice(helperStart, helperEnd);
   const validAffilioUrl = new Function(`${helper}; return validAffilioUrl;`)();
