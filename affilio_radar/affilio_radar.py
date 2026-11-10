@@ -8161,7 +8161,8 @@ def ensure_publication_ledger(state: dict) -> bool:
 
     Expiration cleanup and one-time user-requested removals keep this durable cooldown
     record, so a fresh discovery run cannot immediately repost a just-removed product.
-    Candidates retain their discount-first order; repeat guards only suppress duplicates.
+    Candidates must first pass the fresh-demand publication gate and are ranked demand-first;
+    this ledger only suppresses exact-SKU and repeat deliveries.
     """
     if not isinstance(state, dict):
         return False
@@ -10431,10 +10432,12 @@ def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(
-        "Ranking mode=full-catalog discount_percent_desc then savings_toman_desc; "
-        "demand, popularity, category, brand, market evidence and clicks are diagnostics only. "
-        "Every genuine markdown from 1% competes; live stock, price, title, image, "
-        "affiliate link, expiry, duplicate and safety checks remain active."
+        "Ranking mode=full-catalog demand-first; fresh DigiKala bestseller rank or verified "
+        "recent review-growth proxy is required before publication. Rank momentum and fresh "
+        "category coverage precede review-growth/quality context; discount_percent_desc and "
+        "savings_toman_desc are tie-breakers only. Clicks and affiliate revenue never rank demand. "
+        "Live stock, price, product identity, direct Affilio URL, expiry, 24h family/brand/similarity "
+        "guards and safety checks remain hard publication controls."
     )
     catalog = load_catalog()
     approved = link_map(catalog)

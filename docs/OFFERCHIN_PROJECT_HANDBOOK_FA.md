@@ -119,7 +119,7 @@ Registry مرکزی: `affilio_radar/platform_registry.py`. مقصدهای فعل
 - Worker هر دقیقه بررسی می‌شود؛ scanner در هر tick، اگر اجرای قبلی آزاد باشد، dispatch می‌شود. Integrity Audit همچنان در offset مستقل پنج‌دقیقه‌ای اجرا می‌شود؛ Filo و publisher نیز زمان‌بندی مستقل دارند.
 - Workflow اسکن: `.github/workflows/offerchin-digikala-catalog-sweep.yml`.
 - برای کاهش سربار fetch تاریخچهٔ بزرگ مخزن، checkout اسکنر به ۲۰ commit اخیر محدود شده است. **آزمون واقعی پس از merge PR #80 موفق بود:** checkout در run `42188770582` از `08:36:43` تا `08:36:45.736 UTC`، حدود ۲٫۶۵ ثانیه طول کشید (در run پیشین `42188254294` با تاریخچهٔ کامل، حدود ۴۳ ثانیه). اسکن ۲۸۰/۲۸۰ صفحه را با ۷ worker، صفر retry و صفر 429 انجام داد؛ `git pull --rebase origin main` و push checkpoint نیز در تلاش اول موفق و `CATALOG_SWEEP_STATE_PERSISTED attempt=1` ثبت شد. منطق سه تلاش retry حفظ است. در صورت مشاهدهٔ شکست shallow-history در آینده، fetch-depth به ۰ برگردد.
-- ظرفیت scanner: ۴۸۰ صفحه/اجرا، سقف درخواستی ۱۶ worker، backoff تطبیقی برای هر HTTP 429، retry پایدار و timeout برابر ۱۲ دقیقه؛ پوشش تمام دسته‌ها و صفحات و رتبه‌بندی تخفیف‌محور بدون تغییر حفظ می‌شوند.
+- ظرفیت scanner: ۴۸۰ صفحه در هر microbatch، حداکثر سه microbatch متوالی در هر اجرا، سقف درخواستی ۱۶ worker، backoff تطبیقی برای HTTP 429، retry پایدار و timeout برابر ۱۲ دقیقه. پوشش تمام دسته‌ها/صفحه‌های قابل‌دسترسی حفظ می‌شود؛ shortlist و انتشار demand-first هستند و تخفیف فقط پس از تساوی شواهد تقاضا tie-breaker است.
 - **Rollout واقعی Cloudflare در ۶ نوامبر ۲۰۲۶، ساعت ۰۸:۲۲:۲۱ UTC:** Worker `affilio-minute-dispatcher` با deployment ID `a20fdab9edea4cbaab00c2eecc9a0cba` به نسخهٔ dispatch یک‌دقیقه‌ایِ idle-only ارتقا یافت. cron همچنان `* * * * *` است؛ secret bindingهای `GITHUB_TOKEN` و `FILO_GITHUB_TOKEN` حفظ شدند و observability/logging روشن باقی ماند. slot پنج‌دقیقه‌ای Integrity Audit، Filo، publisher و ویدئوها تغییر نکرد. این Rollout هیچ اسکن هم‌زمانی ایجاد نمی‌کند؛ dispatch فقط پس از آزادشدن workflow و با قفل concurrency انجام می‌شود.
 - **اولین اندازه‌گیری موفق پس از rollout:** run `42187132905` در ۶ نوامبر موفق شد؛ ۲۸۴/۲۸۴ صفحه، ۸ worker واقعی، صفر retry، صفر HTTP 429، ۵٬۶۷۳ ردیف محصول و ۲۸۳ صفحهٔ pending؛ job از `08:22:47` تا `08:24:16 UTC` یعنی ۸۹ ثانیه اجرا شد. صف لحظهٔ اجرا فقط ۲۸۴ صفحه داشت؛ بنابراین batch limit=۴۸۰ تنظیم شده بود اما هنوز batch کامل ۴۸۰تایی آزمایش نشده است. `completed_cycles=0` و چرخهٔ کامل هنوز تأیید نشده.
 - **تأیید رفتار dispatch یک‌دقیقه‌ای:** پس از پایان job اول در `08:24:16 UTC`، Worker در tick بعدی run `42187536920` را در `08:25:11 UTC` dispatch کرد؛ فاصلهٔ بیکاری ۵۵ ثانیه بود. اجرای دوم نیز موفق شد: ۲۸۳/۲۸۳ صفحه، ۹ worker، صفر retry/429، ۵٬۶۴۹ ردیف محصول و ۲۸۲ صفحهٔ pending؛ job از `08:25:15` تا `08:26:27 UTC`، یعنی ۷۲ ثانیه طول کشید. در مجموع دو batch پس از rollout، ۵۶۷ صفحه را بدون retry/429 در ۱۶۱ ثانیهٔ کاری پردازش کردند؛ فاصلهٔ شروع batchها ۱۴۴ ثانیه بود. این هنوز آزمایش batch کامل ۴۸۰تایی نیست و full-cycle هم کامل نشده است.
@@ -131,7 +131,7 @@ Registry مرکزی: `affilio_radar/platform_registry.py`. مقصدهای فعل
 
 | مسیر | نقش |
 |---|---|
-| `affilio_radar/catalog_sweep.py` | دریافت دسته‌ها، استخراج کارت‌ها و رتبه‌بندی تخفیف |
+| `affilio_radar/catalog_sweep.py` | اسکن pagination همهٔ دسته‌ها، استخراج کارت‌ها، ثبت رتبهٔ بومی پرفروش و ساخت shortlist تقاضامحور |
 | `affilio_radar/parallel_catalog_sweep.py` | صف صفحه‌ها، concurrency، retry و آمار چرخه |
 | `affilio_radar/catalog_sweep_state.json` | دسته‌ها، صف صفحه‌های مانده و آمار چرخه |
 | `affilio_radar/catalog_sweep_candidates.json` | بافر حداکثر ۳٬۰۰۰ کارت ورودی اسکن؛ snapshot کامل و رتبه‌بندی‌شده در `catalog_sweep_completed_candidates.json` نگهداری می‌شود |
@@ -229,7 +229,7 @@ NaN
 1. ابتدا [منشور پروژه](PROJECT_CHARTER_FA.md)، این handbook، [دفتر تغییرات](CHANGELOG_FA.md)، آخرین commit `main) و آخرین Actions را بررسی کن.
 2. میان «هدف محصول»، «رفتار فعلی کد» و «کارِ برنامه‌ریزی‌شده» تمایز صریح بگذار؛ هیچ‌کدام را به جای دیگری گزارش نکن.
 3. اسکن جامع یعنی ادامهٔ pagination همهٔ دسته‌ها و صفحه‌های قابل‌دسترسی با retry؛ تا وقتی صف خالی و checkpoint تکمیل ثبت نشده، ادعای full cycle نکن.
-4. رتبه‌بندی زنده در میان گزینه‌های مجاز فقط discount_percent DESC و سپس savings_toman DESC است. هر سه گارد خانواده/برند/شباهت ۲۴ساعته باید در final selector اعمال شوند و هرگز با fallback relax نشوند. تست تغییر ranking باید block شدن در هر guard، انقضای guard پس از ۲۴ ساعت، انتخاب بهترین گزینهٔ بعدی، تکرار درون batch، exact-SKU cooldown و idempotency مقصدها را پوشش دهد؛ demand/value/diversity score رتبه نیست.
+4. **سیاست جاری ۱۰ نوامبر:** پیش از ورود به صف، کاندیدا باید مدرک تقاضای تازه داشته باشد: رتبهٔ معتبر ۱ تا ۶۰ در bestseller بومی دیجی‌کالا، یا رشد تازه و راستی‌آزمایی‌شدهٔ تعداد بررسی‌ها به‌عنوان پروکسی غیرمستقیم. فقدان هر دو یعنی رد، حتی با تخفیف بالا. پس از عبور از گیت، رتبهٔ bestseller/حرکت رتبه/پوشش دسته و سپس رشد بررسی‌ها و زمینهٔ تاریخی ضعیف مرتب می‌کنند؛ تخفیف و saving فقط tie-breaker هستند. کلیک و کمیسیون هیچ اثر رتبه‌ای ندارند. خانواده/برند/شباهت هرکدام veto مستقل ۲۴ساعته‌اند و در محصول اصلی، backup، صف و آخرین revalidation الزاماً اجرا می‌شوند؛ fallback حق relax کردن گیت تقاضا یا guardها را ندارد.
 5. قیمت جاری، موجودی، لینک افیلیت معتبر، تخفیف واقعی، deadline و ایمنی را دور نزن.
 6. خطای یک مقصد نباید مقصدهای دیگر یا scanner را متوقف کند؛ ارسال موفق نباید دوباره ارسال شود.
 7. YouTube توسط کد خود OfferChin حذف/private نشود.
