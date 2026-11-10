@@ -1600,3 +1600,24 @@
 **ریسک/بازگشت:** ریسک اجرایی پایین است؛ حذف پیام قدیمی مانع تفسیر غلط telemetry می‌شود. برای بازگشت، همین PR revert می‌شود؛ سیاست اصلی نباید به discount-first برگردد.
 
 **وضعیت:** روی شاخهٔ fix/policy-log-and-charter-alignment-20261110؛ ادغام پس از سبزشدن گیت‌ها.
+
+
+## ۲۰۲۶-۱۱-۱۰ — پیاده‌سازی اولیهٔ حلقهٔ خرید نهایی و سیگنال اختیاری ترب (شاخه؛ هنوز ادغام/استقرار نشده)
+
+**هدف:** انتقال شاخص موفقیت OfferChin از کلیک به خرید نهایی تأییدشده و افزودن شواهد مکمل بازار بدون وابسته‌کردن چرخه به سرویس‌های بیرونی.
+
+**تغییر/اقدام انجام‌شده در شاخه:**
+- اضافه‌شدن endpointهای `POST /affilio/postback` و `GET /conversions/stats` به Worker با احراز هویت `X-Affilio-Token`، اعتبارسنجی payload، ذخیرهٔ event با کلید `conversion_id + status` و نگهداری آخرین وضعیت هر conversion.
+- اضافه‌شدن migration دو جدول D1 برای eventهای تغییر وضعیت و snapshot وضعیت جاری تبدیل.
+- افزودن `aff_sub` به لینک مستقیم Affilio برای انتساب product ID، رسانه و A/B تصویر/کپشن؛ CTA همچنان مستقیم به `aflo.ir` می‌رود و هیچ redirect واسط جدیدی در مسیر خرید ایجاد نمی‌شود.
+- افزودن گزارش سفارش، واحد فروخته‌شده، مبلغ فروش و کمیسیون تأییدشدهٔ ۳۰روزه؛ فقط `sale/approved` خرید قطعی است. کلیک، مبلغ سفارش و payout ورودی رتبه‌بندی نیستند؛ تعداد سفارش تأییدشده فقط سیگنال بازخورد رتبه‌بندی است.
+- افزودن adapter اختیاری `torob_trends` با cache ۴۵ دقیقه‌ای و تطبیق نام محصول؛ نبود ابزار، خطا یا rate-limit آن نباید اسکن، انتخاب یا انتشار را متوقف کند.
+- رشد بررسی‌های اسنپ‌شاپ در منطق موجود فقط پروکسی غیرمستقیم باقی می‌ماند؛ اتصال مستقل دادهٔ فروش/ترند آن یا Google Trends در این تغییر ادعا نشده است.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affiliate-deal-radar-worker.js`، `affilio_radar/affilio_radar.py`، `affilio_radar/migrations/0001_affilio_conversion_attribution.sql`، تست‌های Worker و selection evidence، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/PROJECT_CHARTER_FA.md`.
+
+**آزمون و نتیجه:** تست‌های unit/regression به‌روزرسانی یا اضافه شده‌اند؛ اجرای آن‌ها و نتیجهٔ CI هنوز تأیید نشده است. D1 migration و Worker production deploy نیز هنوز اجرا نشده‌اند. وجود کد تست به معنی قبولی تست نیست.
+
+**موانع فعال‌سازی:** دیتابیس D1 `affiliate-deal-radar` در Cloudflare موجود است اما در زمان ثبت این ورودی ۰ جدول دارد؛ Worker فقط binding `CLICKS` دارد و binding `CONVERSIONS` تنظیم نشده است. باید migration روی D1 اجرا و binding جدید به Worker اضافه شود. همچنین URL عمومی postback باید از طریق پشتیبانی Affilio ثبت و token اشتراکی `X-Affilio-Token` دریافت و در Cloudflare Secret ذخیره شود. پس از آن smoke test end-to-end با postback واقعی/آزمایشی لازم است.
+
+**وضعیت:** روی شاخهٔ مستقل؛ PR هنوز ساخته نشده، merge نشده و production فعال نیست. هیچ ادعایی دربارهٔ خریدهای دریافت‌شده یا افزایش فروش واقعی مجاز نیست.
