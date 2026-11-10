@@ -605,30 +605,21 @@ def _affiliate_product_destination(affiliate_url: str) -> str:
 
 def tracked_affiliate_button_url(
     affiliate_url: str,
-    source: str,
+    source: str = "unknown",
     experiment_id: str = "",
     variant: str = "",
     caption_experiment_id: str = "",
     caption_variant: str = "",
 ) -> str:
-    """Use the tracker only after health/capability probes; otherwise preserve direct Affilio."""
+    """Return the verified Affilio URL unchanged; purchase clicks never visit an intermediary.
+
+    The tracking parameters remain in the signature for backwards compatibility with
+    callers, but click analytics, experiment attribution, and tracker health are not
+    allowed to alter the user's purchase route. This keeps the CTA independent of
+    OfferChin/Cloudflare availability and resilient to an Iran-wide internet split.
+    """
     original = str(affiliate_url or "").strip()
-    if not _is_valid_affilio_tracking_url(original):
-        return ""
-    canonical = _affiliate_product_destination(original)
-    if not canonical or not _click_tracker_is_healthy():
-        return original
-    wrapped = build_click_tracking_link(
-        canonical,
-        original,
-        AFFILIO_CLICK_TRACKER_BASE_URL,
-        source=source,
-        experiment_id=experiment_id,
-        variant=variant,
-        caption_experiment_id=caption_experiment_id,
-        caption_variant=caption_variant,
-    )
-    return wrapped or original
+    return original if _is_valid_affilio_tracking_url(original) else ""
 
 
 def creative_experiment_assignment(product_id_value: str) -> tuple[str, str]:
@@ -3152,6 +3143,21 @@ def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tupl
         review_growth[1],
         review_volume_context,
         round(rating, 2),
+    )
+
+
+def has_verified_market_demand(record: dict, now: datetime | None = None) -> bool:
+    """Require recent category bestseller rank or fresh review-count growth before publication.
+
+    Bestseller rank is direct relative sales-rank evidence, not unit counts. Review growth
+    is an explicitly indirect proxy, never sales. Lifetime review volume, rating, discounts,
+    clicks, synthetic scores, and affiliate income cannot satisfy this publication gate.
+    """
+    if not isinstance(record, dict):
+        return False
+    return bool(
+        _fresh_digikala_bestseller_evidence(record, now=now)
+        or has_current_demand_signal(record, now=now)
     )
 
 
@@ -8089,9 +8095,13 @@ def select_publish_candidates(
     current = current.astimezone(timezone.utc)
     selected_by_floor: dict[int, list[dict]] = {}
     deferred = 0
+    demand_rejected = 0
     for pid, record in (pending_queue.items() if isinstance(pending_queue, dict) else []):
         product = eligible_by_id.get(str(pid)) if isinstance(eligible_by_id, dict) else None
         if not isinstance(record, dict) or not isinstance(product, dict):
+            continue
+        if not has_verified_market_demand(product, now=current):
+            demand_rejected += 1
             continue
         retry_at = _parse_utc_datetime(record.get("next_publish_attempt_at"))
         if retry_at and retry_at > current:
@@ -8105,8 +8115,12 @@ def select_publish_candidates(
         if floor not in DISCOUNT_FALLBACK_FLOORS:
             continue
         selected_by_floor.setdefault(floor, []).append(product)
-    if deferred:
-        print(f"PUBLISH_QUEUE_BACKOFF skipped_deferred={deferred} ready={sum(map(len, selected_by_floor.values()))}")
+    if deferred or demand_rejected:
+        print(
+            f"PUBLISH_QUEUE_FILTER demand_rejected={demand_rejected} "
+            f"skipped_deferred={deferred} ready={sum(map(len, selected_by_floor.values()))} "
+            "demand_gate=true"
+        )
 
     # A discount floor is an eligibility label, not a ranking tier. Merge every
     # ready band before sorting so a lower-discount high-demand product can outrank
@@ -8486,6 +8500,7 @@ def select_discount_fallback_candidates(
     quality_eligible: list[dict] = []
     fresh_candidates: list[dict] = []
     seen_ids: set[str] = set()
+    demand_rejected = 0
     published_records = state.get("published", {})
     published_records = published_records if isinstance(published_records, dict) else {}
 
@@ -8500,6 +8515,9 @@ def select_discount_fallback_candidates(
         ):
             continue
         if not has_publishable_expiry_or_open_offer(product, current):
+            continue
+        if not has_verified_market_demand(product, now=current):
+            demand_rejected += 1
             continue
         seen_ids.add(pid)
         quality_eligible.append(product)
@@ -8538,8 +8556,9 @@ def select_discount_fallback_candidates(
         f"digikala_bestseller_ranked={bestseller_ranked} "
         f"review_growth_proxy_verified={review_growth_tiebreaks} "
         "unit_sales_count_available=false review_growth_is_sales_data=false "
-        f"hard_eligible={len(quality_eligible)} fresh={len(fresh_candidates)} "
-        "demand_gate=false click_count_used=false "
+        f"hard_eligible={len(quality_eligible)} demand_rejected={demand_rejected} "
+        f"fresh={len(fresh_candidates)} "
+        "demand_gate=true click_count_used=false "
         f"fallback_mode={fallback_mode}"
     )
 
