@@ -24,7 +24,7 @@ from urllib.parse import parse_qs, quote, urlencode, urljoin, urlsplit, urlunspl
 
 import requests
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
-from product_quality import is_publishable_product_title
+from product_quality import is_prohibited_product_title, is_publishable_product_title
 try:
     from .catalog_sweep import (
         load_catalog_candidates_for_handoff,
@@ -296,19 +296,6 @@ SEARCH_TERMS = [
 MAX_INCREDIBLE_OFFER_CANDIDATES = max(
     1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "250")))
 )
-EXCLUDED_HEALTH_PRODUCT_RE = re.compile(
-    r"(?:قرص|کپسول|دارو(?:یی)?|مکمل|ویتامین|زینک|منیزیم|"
-    r"ب[\s\u200c-]*کمپلکس|بی[\s\u200c-]*کمپلکس|امگا[\s\u200c-]*3|"
-    r"کلاژن|کلسیم|کلسی[\s\u200c-]*کید|آرژنین|ال[\s\u200c-]*آرژنین|"
-    r"ال[\s\u200c-]*کارنیتین|کارنیتین|پروبیوتیک|کلروفیل|اسپیرولینا|"
-    r"کراتین|گینر|پودر[\s\u200c]+پروتئین|پروتئین[\s\u200c]+وی|"
-    r"چربی[\s\u200c-]*سوز|شربت[\s\u200c]+(?:خوراکی|ویتامین|مولتی)|"
-    r"قطره[\s\u200c]+(?:خوراکی|ویتامین|آهن)|آمپول|ویال[\s\u200c]*(?:خوراکی)?|"
-    r"ساشه|مسکن|آنتی[\s\u200c-]*بیوتیک|سرماخوردگی|داروخانه|"
-    r"(?i:\b(?:supplement|vitamin|zinc|magnesium|collagen|creatine|probiotic|"
-    r"l[- ]?carnitine|omega[- ]?3|protein powder)\b))",
-    re.IGNORECASE,
-)
 SESSION = requests.Session()
 SESSION.headers.update({
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36",
@@ -323,15 +310,6 @@ SNAPPSHOP_API_IDS_BY_URL: dict[str, str] = {}
 SNAPPSHOP_SEARCH_CARDS_BY_URL: dict[str, dict] = {}
 SNAPPSHOP_LATITUDE = 35.77331
 SNAPPSHOP_LONGITUDE = 51.418591
-
-
-def is_prohibited_product_title(title: str) -> bool:
-    """Reject medicines, pharmacy items, vitamins, and dietary supplements from affiliate posts."""
-    normalized = str(title or "").lower()
-    normalized = re.sub(r"[\u200b-\u200f\ufeff]", "", normalized)
-    normalized = normalized.replace("ي", "ی").replace("ك", "ک").replace("\u200c", " ")
-    normalized = re.sub(r"\s+", " ", normalized).strip()
-    return bool(EXCLUDED_HEALTH_PRODUCT_RE.search(normalized))
 
 
 def normalize_digits(value: str) -> str:
@@ -3639,13 +3617,30 @@ def discover_product_urls(
             retained_ids = set()
             acknowledged = 0
             deferred_count = 0
+            merge_rejections = {
+                "invalid_product_url": 0,
+                "invalid_title": 0,
+                "prohibited_health_title": 0,
+            }
+            valid_batch_ids = set()
             if catalog_batch:
+                for row in catalog_batch:
+                    url = safe_product_url(str(row.get("product_url") or row.get("url") or ""))
+                    pid = product_id(url)
+                    title = str(row.get("title") or row.get("title_fa") or "").strip()[:180]
+                    if not url or not pid:
+                        merge_rejections["invalid_product_url"] += 1
+                    elif not is_publishable_product_title(title):
+                        merge_rejections["invalid_title"] += 1
+                    elif is_prohibited_product_title(title):
+                        merge_rejections["prohibited_health_title"] += 1
+                    else:
+                        valid_batch_ids.add(pid)
+
                 merge_discovery_queue(discovery_queue, catalog_batch, queue_now)
-                retained_ids = {
-                    str(row.get("product_id") or "")
-                    for row in catalog_batch
-                    if str(row.get("product_id") or "") in discovery_queue
-                }
+                # Do not acknowledge a rejected candidate merely because an older
+                # queue entry with the same product_id happens to exist.
+                retained_ids = valid_batch_ids.intersection(discovery_queue)
                 acknowledged = acknowledge_catalog_candidates_handoff(
                     state_to_persist,
                     retained_ids,
@@ -3665,10 +3660,20 @@ def discover_product_urls(
                     candidates=catalog_batch,
                 )
                 state_to_persist["discovery_queue"] = discovery_queue
+            selection_diagnostics = (
+                state_to_persist.get("catalog_sweep_handoff", {}).get("last_selection_diagnostics", {})
+                if isinstance(state_to_persist.get("catalog_sweep_handoff"), dict) else {}
+            )
             print(
                 f"CATALOG_SWEEP_HANDOFF selected={len(catalog_batch)} "
                 f"retained={len(retained_ids)} acknowledged={acknowledged} "
                 f"deferred={deferred_count} limit={handoff_limit} "
+                f"snapshot_rows={selection_diagnostics.get('rows_seen', 0)} "
+                f"fresh={selection_diagnostics.get('fresh_eligible', 0)} "
+                f"health_filtered={selection_diagnostics.get('prohibited_health_title', 0)} "
+                f"invalid_id={selection_diagnostics.get('invalid_product_id', 0)} "
+                f"invalid_url={selection_diagnostics.get('invalid_product_url', 0)} "
+                f"merge_reject_health={merge_rejections['prohibited_health_title']} "
                 f"backlog_source={CATALOG_SWEEP_CANDIDATES.name}"
             )
         except Exception as exc:
@@ -4360,6 +4365,8 @@ def classify_category(title: str) -> str:
         ("jewelry", r"زیورآلات|بدلیجات|گوشواره|انگشتر|دستبند|گردنبند|نقره زنانه|نقره مردانه|پرسته"),
         ("books_stationery", r"کتاب|دفتر|خودکار|مداد|لوازم التحریر|لوازم‌التحریر|نوشت افزار"),
         ("beauty_fragrance", r"عطر|ادکلن|ادو\s*پرفیوم|ادوپرفیوم|ادو\s*تویلت|ادوتویلت|تستر\s*ادو|بادی\s*اسپلش"),
+        # Food cues must precede the broad skincare word «کرم» (e.g. sesame cream).
+        ("grocery_food", r"خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|آجیل|خشکبار|غلات|کالای خوراکی|خوراکی|مواد غذایی|کنسرو|ادویه|برنج|جو پرک|گندم|آرد|حبوبات|نبات|چای ارگانیک|قهوه ارگانیک|دمنوش"),
         ("personal_care", r"پوست|(?<!\w)مو(?!\w)|کرم|سرم|آبرسان|اصلاح|ماساژور|بهداشت|آرایش|ضدآفتاب|مسواک|دندان|سشوار|برس حرارتی|اتو مو|ریش.?تراش|موزن|اپیلاتور|دستگاه بخور|تونر|پاک کننده آرایش|سنگ پا|پاشنه کش|سوهان پا"),
         ("automotive", r"خودرو|ماشین|موتور سیکلت|داشبورد|کمپرسور باد|لوازم خودرو|شارژر فندکی|روکش صندلی|کفپوش خودرو|مراقبت خودرو"),
         ("home", r"آشپزخانه|نظم دهنده|ارگانایزر|خردکن|ظرف|ابزار آشپزخانه|خانه|قهوه ساز|فلاسک|ماگ|قمقمه|بطری آب|ظروف|حمام|سرویس بهداشتی|باغبانی|گلدان"),
@@ -7279,6 +7286,12 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             ("car_electronics", r"شارژر\s*فندکی|دوربین\s*خودرو|مانیتور\s*خودرو|کمپرسور\s*باد"),
             ("car_care", r"مراقبت\s*خودرو|واکس\s*بدنه|تمیزکننده\s*خودرو"),
             ("car_accessories", r"روکش\s*صندلی|کفپوش\s*خودرو|داشبورد|لوازم\s*یدکی"),
+        ],
+        "grocery_food": [
+            ("sweets_and_spreads", r"خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|نبات"),
+            ("nuts_and_dried_fruit", r"آجیل|خشکبار|پسته|بادام|گردو|فندق"),
+            ("grains_and_staples", r"غلات|برنج|جو|گندم|آرد|حبوبات"),
+            ("tea_and_coffee", r"چای|دمنوش|قهوه"),
         ],
         "personal_care": [
             ("hair_accessories", r"کش\s*مو|گیره\s*مو|تل\s*مو|کلیپس\s*مو|سنجاق\s*مو"),

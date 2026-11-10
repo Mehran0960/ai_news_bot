@@ -42,4 +42,30 @@ def is_publishable_product_title(value: object) -> bool:
     if len(tokens) < 2:
         return False
 
+
     return tokens[-1].casefold() not in _INCOMPLETE_FINAL_TOKENS
+
+
+# Keep prohibited-health policy shared by discovery, catalog retention, and
+# final publication. The scanner must not fill its finite shortlist with items
+# that the publisher is guaranteed to reject later.
+_EXCLUDED_HEALTH_PRODUCT_RE = re.compile(
+    r"(?:قرص|کپسول|دارو(?:یی)?|مکمل|ویتامین|زینک|منیزیم|"
+    r"ب[\s\u200c-]*کمپلکس|بی[\s\u200c-]*کمپلکس|امگا[\s\u200c-]*3|"
+    r"کلاژن|کلسیم|کلسی[\s\u200c-]*کید|آرژنین|ال[\s\u200c-]*آرژنین|"
+    r"ال[\s\u200c-]*کارنیتین|کارنیتین|پروبیوتیک|کلروفیل|اسپیرولینا|"
+    r"کراتین|گینر|پودر[\s\u200c]+پروتئین|پروتئین[\s\u200c]+وی|"
+    r"چربی[\s\u200c-]*سوز|شربت[\s\u200c]+(?:خوراکی|ویتامین|مولتی)|"
+    r"قطره[\s\u200c]+(?:خوراکی|ویتامین|آهن)|آمپول|ویال[\s\u200c]*(?:خوراکی)?|"
+    r"ساشه|مسکن|آنتی[\s\u200c-]*بیوتیک|سرماخوردگی|داروخانه|"
+    r"(?i:\b(?:supplement|vitamin|zinc|magnesium|collagen|creatine|probiotic|"
+    r"l[- ]?carnitine|omega[- ]?3|protein powder)\b))",
+    re.IGNORECASE,
+)
+
+
+def is_prohibited_product_title(value: object) -> bool:
+    """Return True for medicines, pharmacy items, vitamins, and supplements."""
+    normalized = normalize_product_title(value).lower()
+    return bool(_EXCLUDED_HEALTH_PRODUCT_RE.search(normalized))
+

@@ -619,5 +619,65 @@ class CatalogSweepTests(unittest.TestCase):
             self.assertEqual(state["completed_cycles"], 1)
 
 
+    def test_candidate_retention_filters_prohibited_health_products_before_shortlist_cap(self):
+        rows = [
+            {
+                "product_id": "dkp-health",
+                "title": "قرص ویتامین D3-1000 واحدی بسته 60 عددی",
+                "discount_percent": 80,
+                "savings_toman": 800_000,
+            },
+            {
+                "product_id": "dkp-book",
+                "title": "کتاب سه دقیقه در قیامت اثر جمعی از نویسندگان",
+                "discount_percent": 45,
+                "savings_toman": 250_000,
+            },
+            {
+                "product_id": "dkp-earbuds",
+                "title": "هدفون بی‌سیم بلوتوثی مدل نمونه",
+                "discount_percent": 35,
+                "savings_toman": 300_000,
+            },
+        ]
+        retained = retain_diverse_candidates(rows, limit=3)
+        retained_ids = {row["product_id"] for row in retained}
+        self.assertEqual(retained_ids, {"dkp-book", "dkp-earbuds"})
+        self.assertNotIn("dkp-health", retained_ids)
+
+    def test_catalog_handoff_counts_prohibited_health_title_rejections(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "candidates.json"
+            path.write_text(json.dumps({"candidates": [
+                {
+                    "product_id": "dkp-501",
+                    "product_url": "https://www.digikala.com/product/dkp-501/",
+                    "title": "قرص زینک پلاس پابا یوروویتال بسته 60 عددی",
+                    "discount_percent": 40,
+                    "savings_toman": 400_000,
+                },
+                {
+                    "product_id": "dkp-502",
+                    "product_url": "https://www.digikala.com/product/dkp-502/",
+                    "title": "کتاب سه دقیقه در قیامت اثر جمعی از نویسندگان",
+                    "discount_percent": 30,
+                    "savings_toman": 150_000,
+                },
+            ]}, ensure_ascii=False), encoding="utf-8")
+            state = {}
+            selected = load_catalog_candidates_for_handoff(
+                path,
+                state,
+                max_count=10,
+                now=datetime(2026, 11, 10, 18, 0, tzinfo=timezone.utc),
+            )
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-502"])
+        diagnostics = state["catalog_sweep_handoff"]["last_selection_diagnostics"]
+        self.assertEqual(diagnostics["rows_seen"], 2)
+        self.assertEqual(diagnostics["prohibited_health_title"], 1)
+        self.assertEqual(diagnostics["fresh_eligible"], 1)
+        self.assertEqual(diagnostics["selected"], 1)
+
+
 if __name__ == "__main__":
     unittest.main()
