@@ -342,7 +342,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(fresh["selection_discount_floor"], 1)
         self.assertEqual(fresh["selection_discount_band"], "1%+")
 
-    def test_publisher_accepts_old_queue_item_without_review_growth_or_demand_scores(self):
+    def test_publisher_rejects_old_queue_item_without_fresh_demand_evidence(self):
         entry = {
             "product_id": "dkp-95045",
             "payload": {
@@ -356,33 +356,11 @@ class ContentDeliveryQueueTests(unittest.TestCase):
                 "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95045%2F",
             },
         }
-        from unittest.mock import patch
-        fresh_record = {
-            "title": "شارژر سریع تست",
-            "image_url": "https://example.com/product.webp",
-            "current_price": 500_000,
-            "original_price": 520_000,
-            "discount_percent": 4,
-            "savings_toman": 20_000,
-            "availability": "in_stock",
-            "deal_expires_at": "",
-        }
-        with (
-            patch("publisher.radar.fetch_product_record", return_value=dict(fresh_record)),
-            patch("publisher.radar.is_prohibited_product_title", return_value=False),
-            patch("publisher.radar.is_publishable_product_title", return_value=True),
-            patch("publisher.radar._is_valid_affilio_tracking_url", return_value=True),
-            patch("publisher.radar.score_product", side_effect=lambda item: item),
-            patch("publisher.radar.verify_live_page_price", return_value={"ok": True, "page_price": 500_000}),
-            patch("publisher.radar.is_discount_publish_eligible", return_value=True),
-            patch("publisher.radar.is_market_value_publish_eligible", return_value=True),
-            patch("publisher.radar.has_publishable_expiry_or_open_offer", return_value=True),
-        ):
-            fresh, reason = _fresh_selected_item(entry, self.now)
-        self.assertIsNotNone(fresh)
-        self.assertEqual(reason, "")
+        fresh, reason = _fresh_selected_item(entry, self.now)
+        self.assertIsNone(fresh)
+        self.assertEqual(reason, "selection_demand_evidence_missing_or_stale")
 
-    def test_final_publisher_gate_accepts_discount_first_offers_and_protects_legacy_and_partial_retry(self):
+    def test_final_publisher_gate_requires_demand_but_allows_partial_delivery_resume(self):
         from unittest.mock import patch
 
         base = self.item("dkp-990101")
@@ -441,8 +419,8 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "market_price_checked_at": "",
         }
         fresh, reason = evaluate(no_demand)
-        self.assertIsNotNone(fresh)
-        self.assertEqual(reason, "")
+        self.assertIsNone(fresh)
+        self.assertEqual(reason, "selection_demand_evidence_missing_or_stale")
 
         weak_value = {
             **base,
@@ -459,8 +437,8 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertIsNotNone(fresh)
         self.assertEqual(reason, "")
 
-        # A partial delivery must be allowed to finish other destinations even
-        # after its original demand/value evidence has expired or become unavailable.
+        # A partial delivery may finish already-started destinations even
+        # after demand evidence ages out; this is not a new product selection.
         partial_retry = {
             **weak_value,
             "product_id": "dkp-990104",
@@ -750,7 +728,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "active_publication_exists",
         )
 
-    def test_fallback_filter_does_not_gate_on_demand_and_normalizes_legacy_discount_tiers(self):
+    def test_fallback_filter_requires_demand_and_normalizes_legacy_discount_tiers(self):
         low_discount = self.item("dkp-99008", demand=95)
         low_discount.update({
             "current_price": 110_000,
@@ -777,7 +755,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
 
         self.assertEqual(
             {item["product_id"] for item in filtered},
-            {"dkp-99008", "dkp-99009", "dkp-99010", "dkp-99011"},
+            {"dkp-99008", "dkp-99010", "dkp-99011"},
         )
         self.assertTrue(all(item["selection_discount_floor"] == 1 for item in filtered))
 
