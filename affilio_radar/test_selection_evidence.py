@@ -258,8 +258,8 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
                 "discount_percent": 80,
                 "savings_toman": 800_000,
                 "review_count": 2,
-                "rating": 3.5,,
-                **self._verified_review_growth()
+                "rating": 3.5,
+                **self._verified_review_growth(),
             },
         ]
         state = {"published": {}, "recent_publications": []}
