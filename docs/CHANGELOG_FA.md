@@ -1632,10 +1632,10 @@
 
 **فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/test_affilio.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
 
-**آزمون و نتیجه:** تست regression جدید به مجموعهٔ تست اضافه شده است؛ اجرای CI روی PR هنوز در انتظار است. نتیجهٔ موفق تا مشاهدهٔ لاگ CI اعلام نمی‌شود.
+**آزمون و نتیجه:** CI در PR #153 سبز شد: مجموعهٔ اصلی ۲۹۰ تست، regression اسکن کاتالوگ ۴۷ تست، adapter tests، platform-logo tests و Documentation Gate همگی موفق شدند. تست مشخص `test_sesame_cream_sweets_are_not_misclassified_as_skincare` نیز `ok` ثبت شد؛ runهای اصلی: `42802675802`، `42802675792`، `42802676024`، `42802675820` و `42802675883`.
 
 **شواهد/شناسه:** Publisher run `42801236086`، job `129778995571`، شمارهٔ اجرا 3131: `ranked_products=250`، `current_demand_verified=15`، `hard_eligible=5`، `publish_eligible=0` و `CONTENT_SELECTION_HANDOFF queued=0`. لاگ repeat guard محصول «خرما شکلاتی با مغزی کرم کنجد» را به‌اشتباه `personal_care:skincare` و در تضاد با محصول `dkp-6267904` ثبت کرده است.
 
 **ریسک/بازگشت:** تغییر فقط طبقه‌بندی و خانوادهٔ تنوع است و نباید معیار تقاضا، تخفیف، قیمت، موجودی یا cooldown را تغییر دهد. اگر تست‌های دیگر نشان دهند خوراکی‌ها بیش‌ازحد گسترده دسته‌بندی شده‌اند، همین commit قابل revert است.
 
-**وضعیت:** روی شاخهٔ مستقل `fix/offerchin-food-skincare-classification-20261110`؛ هنوز PR، merge یا deploy نشده است.
+**وضعیت:** روی شاخهٔ مستقل `fix/offerchin-food-skincare-classification-20261110` و PR draft #153؛ CI کامل سبز است، اما merge و deploy نشده و بدون مجوز جداگانه انجام نمی‌شود.
