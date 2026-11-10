@@ -257,11 +257,11 @@ def _rubika_plain_fallback_caption(
         use_unicode_strikethrough=True,
     )
     caption = re.sub(
-        r"\\[([^\\]]+)\\]\\(([^)]+)\\)",
-        lambda match: f"{match.group(1)}\\n{match.group(2)}",
+        r"\[([^\]]+)\]\(([^)]+)\)",
+        lambda match: f"{match.group(1)}\n{match.group(2)}",
         caption,
     )
-    caption = re.sub(r"\\\\([\\\\_*()\\[\\]])", r"\\1", caption)
+    caption = re.sub(r"\\([\\_*()\[\]])", r"\1", caption)
     caption = caption.replace("*", "").strip()
     label_builder = getattr(renderer, "purchase_button_label", None)
     purchase_label = (
@@ -270,7 +270,7 @@ def _rubika_plain_fallback_caption(
         else purchase_action_label(item.get("merchant") or "دیجی‌کالا")
     )
     if affiliate_url and affiliate_url not in caption:
-        caption = caption.rstrip() + f"\\n\\n{purchase_label}\\n{affiliate_url}"
+        caption = caption.rstrip() + f"\n\n{purchase_label}\n{affiliate_url}"
     return caption[:3800]
 
 def send_rubika_photo(token: str, channel_id: str, item: dict, image_bytes: bytes,
