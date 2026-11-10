@@ -66,6 +66,8 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime, catalog_contex
             continue
         if catalog_context is not None and not radar.catalog_candidate_is_publishable(candidate, catalog_context):
             continue
+        if not radar.has_verified_market_demand(candidate, now=now):
+            continue
         raw_floor = candidate.get("selection_discount_floor")
         if raw_floor is None:
             selected_floor = radar.DISCOUNT_FALLBACK_FLOORS[0]
@@ -78,9 +80,8 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime, catalog_contex
         candidate = dict(candidate)
         candidate["selection_discount_floor"] = selected_floor
         candidate["selection_discount_band"] = "1%+"
-        # A missing demand/review-growth or positive market/history signal never blocks
-        # a genuine discount. Fresh verified contradictory price evidence is checked
-        # inside is_discount_publish_eligible; positive external proof is optional.
+        # Demand evidence is a hard gate; a markdown alone is never enough.
+        # Fresh verified contradictory price evidence is checked independently.
         if radar.is_discount_publish_eligible(
             candidate, minimum_discount_percent=selected_floor, now=now
         ):
@@ -297,6 +298,8 @@ def _fresh_selected_item(
     payload = entry.get("payload")
     if not isinstance(payload, dict):
         return None, "missing_selection_payload"
+    if not radar.has_verified_market_demand(payload, now=now):
+        return None, "selection_demand_evidence_missing_or_stale"
     if require_catalog_membership and catalog_context is not None and not radar.catalog_candidate_is_publishable(payload, catalog_context):
         return None, "catalog_snapshot_candidate_stale"
     product_url = radar.safe_product_url(str(payload.get("product_url") or ""))
