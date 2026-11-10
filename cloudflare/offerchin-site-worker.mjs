@@ -289,13 +289,13 @@ const PAGE_HTML = String.raw`<!doctype html>
           var productId = String(id || "").toLowerCase();
           var host = parsed.hostname.toLowerCase();
           if(parsed.protocol !== "https:" || parsed.username || parsed.password) return "";
-          if(/^dkp-\\d+$/.test(productId) && (host === "digikala.com" || host.endsWith(".digikala.com"))){
-            var dkpMatch = parsed.pathname.match(/\\/product\\/(dkp-\\d+)/i);
+          if(/^dkp-\d+$/.test(productId) && (host === "digikala.com" || host.endsWith(".digikala.com"))){
+            var dkpMatch = parsed.pathname.match(/\/product\/(dkp-\d+)/i);
             return dkpMatch && dkpMatch[1].toLowerCase() === productId
               ? "https://www.digikala.com/product/" + productId + "/" : "";
           }
-          if(/^snp-\\d+$/.test(productId) && (host === "snappshop.ir" || host.endsWith(".snappshop.ir"))){
-            var snpMatch = parsed.pathname.match(/^\\/product\\/(snp-\\d+)\\/?$/i);
+          if(/^snp-\d+$/.test(productId) && (host === "snappshop.ir" || host.endsWith(".snappshop.ir"))){
+            var snpMatch = parsed.pathname.match(/^\/product\/(snp-\d+)\/?$/i);
             return snpMatch && snpMatch[1].toLowerCase() === productId
               ? "https://snappshop.ir/product/" + productId : "";
           }
