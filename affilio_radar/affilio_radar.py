@@ -4660,7 +4660,7 @@ def _fetch_conversion_statistics_snapshot() -> dict:
             return {}
         valid_products = {}
         for pid, record in payload["byProduct"].items():
-            if not re.fullmatch(r"(?:dkp-\\d{1,12}|snp-\\d{1,20})", str(pid)) or not isinstance(record, dict):
+            if not re.fullmatch(r"(?:dkp-\d{1,12}|snp-\d{1,20})", str(pid)) or not isinstance(record, dict):
                 continue
             valid_products[str(pid)] = {
                 "confirmedOrderCount": max(0, int(record.get("confirmedOrderCount") or 0)),
@@ -10912,8 +10912,6 @@ def run(publish=False, selection_only=False):
     enrich_market_prices(products, state)
     # Torob's live search-trend tool is optional; absence, pause or rate limit is non-blocking.
     enrich_torob_trends(products, state)
-    # Use the same validated 30-day conversion snapshot for selection and reporting.
-    enrich_purchase_outcomes(products)
     products.sort(key=deal_sort_key, reverse=True)
     queue_now = datetime.now(timezone.utc)
     # Independent market/history evidence is diagnostic; it cannot filter a live markdown.
