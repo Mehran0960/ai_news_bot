@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-10T10:05:20.196841+00:00",
+  "generated_at": "2026-11-10T10:13:00.110012+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {},
     "category_post_counts": {
@@ -403,99 +403,14 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 438,
-    "last_7_days_count": 438,
+    "all_time_count": 443,
+    "last_7_days_count": 443,
     "reason_counts_in_retained_history": {
       "brand_repeat": 9,
-      "family_repeat": 438,
-      "similarity_repeat": 438
+      "family_repeat": 443,
+      "similarity_repeat": 443
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T02:46:16.955519+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "computer_network",
-        "compared_to_product_id": "dkp-22109767",
-        "family": "computer_network:keyboards",
-        "product_id": "dkp-21372366",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کیبورد گیمینگ هیسکا مدل HX-KEG460",
-        "use_case": "gaming"
-      },
-      {
-        "at": "2026-11-10T02:46:16.955519+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "power_backup",
-        "compared_to_product_id": "dkp-19967154",
-        "family": "power_backup:power_bank",
-        "product_id": "dkp-20381864",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "پاوربانک نوکسو مدل PN-4 ظرفیت 10 هزار میلی‌آمپر ساعت",
-        "use_case": "lighting_electrical"
-      },
-      {
-        "at": "2026-11-10T02:46:16.955519+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-4877073",
-        "family": "fashion:footwear",
-        "product_id": "dkp-22741809",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "صندلی سفری تاشو دورنا کمپ مدل pluas ارتفاع پایه 50 سانتی متر",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-10T03:18:18.592196+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-708421",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 02 مناسب پوست‌های معمولی و مختلط حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-10T03:18:18.592196+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-8720946",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-1053744",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم پوست پرایم مدل C_Prime حجم 30 میلی لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-10T03:18:18.592196+00:00",
         "brand": "",
@@ -736,6 +651,91 @@
       },
       {
         "at": "2026-11-10T10:05:20.196841+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-18369481",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-10T10:13:00.110012+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-5664135",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مدل Oily Acne-Prone Skin، مناسب پوست‌های چرب، حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-10T10:13:00.110012+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-22800872",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "خرما شکلاتی با مغزی کرم کنجد ورسادو - 200 گرم",
+        "use_case": "grocery_food"
+      },
+      {
+        "at": "2026-11-10T10:13:00.110012+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-22800974",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "خرما شکلاتی با مغزی کرم کنجد ورسادو - ۳۵۰ گرم",
+        "use_case": "grocery_food"
+      },
+      {
+        "at": "2026-11-10T10:13:00.110012+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-10T10:13:00.110012+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
