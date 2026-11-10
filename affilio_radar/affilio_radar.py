@@ -617,7 +617,7 @@ def _build_affilio_sub_id(
     """Build an Affilio-supported aff_sub id without inserting a click-tracking redirect."""
     canonical = _affiliate_product_destination(affiliate_url)
     pid = product_id(canonical) if canonical else ""
-    if not re.fullmatch(r"(?:dkp-\\d{1,12}|snp-\\d{1,20})", pid):
+    if not re.fullmatch(r"(?:dkp-\d{1,12}|snp-\d{1,20})", pid):
         return ""
     source_value = str(source or "unknown").strip().lower()
     if source_value not in {"telegram", "bale", "youtube", "aparat"}:
