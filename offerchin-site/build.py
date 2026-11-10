@@ -7,7 +7,7 @@ import json
 import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 import xml.etree.ElementTree as ET
 
 HERE = Path(__file__).resolve().parent
@@ -64,6 +64,47 @@ def safe_https(value: str) -> bool:
         return parsed.scheme == "https" and bool(parsed.hostname)
     except ValueError:
         return False
+
+def canonical_product_destination(value: str, product_id: str) -> str:
+    """Return the canonical supported retailer URL only when it matches the product ID."""
+    try:
+        parsed = urlparse(str(value or "").strip())
+    except ValueError:
+        return ""
+    identifier = str(product_id or "").casefold()
+    host = (parsed.hostname or "").casefold()
+    if parsed.scheme not in {"http", "https"} or parsed.username or parsed.password:
+        return ""
+    if identifier.startswith("dkp-") and (host == "digikala.com" or host.endswith(".digikala.com")):
+        match = re.search(r"/product/(dkp-\\d+)", parsed.path, re.IGNORECASE)
+        if match and match.group(1).casefold() == identifier:
+            return f"https://www.digikala.com/product/{identifier}/"
+    if identifier.startswith("snp-") and (host == "snappshop.ir" or host.endswith(".snappshop.ir")):
+        match = re.fullmatch(r"/product/(snp-\\d+)/?", parsed.path, re.IGNORECASE)
+        if match and match.group(1).casefold() == identifier:
+            return f"https://snappshop.ir/product/{identifier}"
+    return ""
+
+
+def valid_affilio_url(value: str, product_id: str, product_url: str) -> bool:
+    """Accept only the public Affilio URL whose embedded destination is this exact product."""
+    try:
+        parsed = urlparse(str(value or "").strip())
+        destinations = parse_qs(parsed.query, keep_blank_values=True).get("p", [])
+    except ValueError:
+        return False
+    expected = canonical_product_destination(product_url, product_id)
+    actual = canonical_product_destination(destinations[0], product_id) if len(destinations) == 1 else ""
+    return bool(
+        parsed.scheme == "https"
+        and (parsed.hostname or "").casefold() == "aflo.ir"
+        and parsed.path == "/QekEYTRg"
+        and not parsed.username
+        and not parsed.password
+        and not parsed.fragment
+        and expected
+        and actual == expected
+    )
 
 
 def valid_product_id(value: object) -> bool:
@@ -129,7 +170,9 @@ def build_products(candidates: dict, state: dict, now: datetime) -> list[dict]:
         affiliate_url = str(source.get("affiliate_url") or "")
         product_url = str(source.get("product_url") or "")
         image_url = str(source.get("image_url") or "")
-        if not safe_https(affiliate_url) or not safe_https(product_url) or not safe_https(image_url):
+        if not valid_affilio_url(affiliate_url, product_id, product_url):
+            continue
+        if not safe_https(product_url) or not safe_https(image_url):
             continue
         try:
             product_path = urlparse(product_url).path.casefold()
@@ -184,7 +227,7 @@ def build_products(candidates: dict, state: dict, now: datetime) -> list[dict]:
 
     # Demand/popularity leads; deal appeal is a secondary signal.
     result.sort(
-        key=lambda p: (p["demand_score"], p["click_count_30d"], p["promo_score"], p["review_count"]),
+        key=lambda p: (p["demand_score"], p["promo_score"], p["review_count"]),
         reverse=True,
     )
     return result
