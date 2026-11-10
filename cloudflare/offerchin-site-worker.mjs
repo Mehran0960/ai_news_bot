@@ -288,7 +288,7 @@ const PAGE_HTML = String.raw`<!doctype html>
           var parsed = new URL(String(raw || ""));
           var productId = String(id || "").toLowerCase();
           var host = parsed.hostname.toLowerCase();
-          if(parsed.protocol !== "https:" || parsed.username || parsed.password) return "";
+          if(parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.search || parsed.hash) return "";
           if(/^dkp-\d+$/.test(productId) && (host === "digikala.com" || host.endsWith(".digikala.com"))){
             var dkpMatch = parsed.pathname.match(/\/product\/(dkp-\d+)/i);
             return dkpMatch && dkpMatch[1].toLowerCase() === productId
