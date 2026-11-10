@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import unittest
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
 import build
@@ -112,6 +113,57 @@ class StorefrontConversionTests(unittest.TestCase):
         self.assertTrue(build.valid_product_id("dkp-7832807"))
         self.assertFalse(build.valid_product_id("../snp-2097083854"))
         self.assertFalse(build.valid_product_id("id/with/slash"))
+
+
+    def test_storefront_requires_the_original_affilio_url_for_the_same_product(self):
+        product = self.product()
+        result = self.build_one(product)
+        self.assertEqual(result[0]["affiliate_url"], product["affiliate_url"])
+
+        tracked = dict(
+            product,
+            affiliate_url=(
+                "https://affiliate-deal-radar.m-hoseyni-6966.workers.dev/"
+                "p/snp-2097083854?u=" + product["affiliate_url"]
+            ),
+        )
+        self.assertEqual(self.build_one(tracked), [])
+
+        wrong_destination = dict(
+            product,
+            affiliate_url=(
+                "https://aflo.ir/QekEYTRg?p="
+                "https%3A%2F%2Fsnappshop.ir%2Fproduct%2Fsnp-9999999999"
+            ),
+        )
+        self.assertEqual(self.build_one(wrong_destination), [])
+
+    def test_click_counts_do_not_rank_storefront_products(self):
+        high_clicks = self.product("snp-2097083854")
+        lower_clicks = self.product("dkp-1234567", "دیجی‌کالا")
+        high_clicks["demand_score"] = lower_clicks["demand_score"] = 75
+        high_clicks["promo_score"] = 10
+        lower_clicks["promo_score"] = 20
+        high_clicks["click_count_30d"] = 9999
+        lower_clicks["click_count_30d"] = 0
+
+        state = {"published": {}}
+        for product in (high_clicks, lower_clicks):
+            state["published"][product["product_id"]] = {
+                "delivery_status": {"telegram": "sent"},
+                "expiry_status": "tracked",
+                "expires_at": self.deadline.isoformat(),
+                "ts": self.now.timestamp(),
+            }
+        result = build.build_products({"products": [high_clicks, lower_clicks]}, state, self.now)
+        self.assertEqual(result[0]["product_id"], lower_clicks["product_id"])
+
+    def test_browser_purchase_links_are_direct_affilio_only(self):
+        source = (Path(build.__file__).resolve().parent / "assets" / "site.js").read_text(encoding="utf-8")
+        self.assertIn('u.hostname.toLowerCase() !== "aflo.ir"', source)
+        self.assertNotIn("affiliate-deal-radar", source)
+        self.assertNotIn("click_count_30d", source)
+
 
 
 if __name__ == "__main__":
