@@ -97,10 +97,11 @@
       }
     ]
   },
-  "generated_at": "2026-11-10T18:03:08.818052+00:00",
+  "generated_at": "2026-11-10T18:36:36.032148+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
-      "ویتامین‌ها و مواد معدنی": 1
+      "ویتامین‌ها و مواد معدنی": 1,
+      "کرم آبرسان و مرطوب کننده": 1
     },
     "category_post_counts": {
       "audio_wearables": 2,
@@ -110,31 +111,31 @@
       "kids_sports": 1,
       "mobile_devices": 1,
       "other": 7,
-      "personal_care": 2,
+      "personal_care": 3,
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "audio_wearables": 10.5,
-      "books_stationery": 5.3,
-      "fashion": 10.5,
-      "grocery_food": 10.5,
-      "kids_sports": 5.3,
-      "mobile_devices": 5.3,
-      "other": 36.8,
-      "personal_care": 10.5,
-      "sports_outdoor": 5.3
+      "audio_wearables": 10.0,
+      "books_stationery": 5.0,
+      "fashion": 10.0,
+      "grocery_food": 10.0,
+      "kids_sports": 5.0,
+      "mobile_devices": 5.0,
+      "other": 35.0,
+      "personal_care": 15.0,
+      "sports_outdoor": 5.0
     },
-    "distinct_catalog_categories": 1,
+    "distinct_catalog_categories": 2,
     "distinct_categories": 9,
-    "distinct_families": 14,
+    "distinct_families": 15,
     "distinct_retailers": 1,
     "distinct_use_cases": 11,
-    "known_brand_posts": 0,
-    "posts": 19,
+    "known_brand_posts": 1,
+    "posts": 20,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 19
+      "digikala": 20
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -147,7 +148,7 @@
       "fashion_lifestyle": 2,
       "general": 4,
       "health_wellness": 1,
-      "mobile_productivity": 3,
+      "mobile_productivity": 4,
       "office_study": 1,
       "personal_care": 2,
       "sports_fitness": 1
@@ -261,7 +262,6 @@
       "پولوشرت مردانه": 1,
       "پیچ و مهره، رول پلاک، میخ و پرچ": 1,
       "چادر خودرو": 1,
-      "چای ساز": 1,
       "کابل صوتی و تصویری": 1,
       "کافی میت": 1,
       "کالای خوراکی و اساسی": 1,
@@ -270,6 +270,7 @@
       "کتاب رمان و ادبیات داستانی و نمایشی": 2,
       "کتاب روانشناسی": 1,
       "کراوات سنتی مردانه": 1,
+      "کرم آبرسان و مرطوب کننده": 1,
       "کفش ورزشی": 1,
       "کلاه مردانه": 1,
       "کنسرو و غذای آماده": 1,
@@ -294,8 +295,8 @@
       "kids_sports": 7,
       "large_appliances": 9,
       "mobile_devices": 3,
-      "other": 94,
-      "personal_care": 30,
+      "other": 93,
+      "personal_care": 31,
       "power_backup": 9,
       "sports_outdoor": 31,
       "tv_audio_video": 1
@@ -316,8 +317,8 @@
       "kids_sports": 2.2,
       "large_appliances": 2.8,
       "mobile_devices": 0.9,
-      "other": 29.5,
-      "personal_care": 9.4,
+      "other": 29.2,
+      "personal_care": 9.7,
       "power_backup": 2.8,
       "sports_outdoor": 9.7,
       "tv_audio_video": 0.3
@@ -327,7 +328,7 @@
     "distinct_families": 161,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
-    "known_brand_posts": 62,
+    "known_brand_posts": 63,
     "posts": 319,
     "repeated_brand_count": 49,
     "repeated_brands": {
@@ -362,10 +363,10 @@
       "health_wellness": 5,
       "home_cleaning": 7,
       "home_living": 10,
-      "kitchen_food": 4,
+      "kitchen_food": 3,
       "lighting_electrical": 9,
       "local_goods": 2,
-      "mobile_productivity": 40,
+      "mobile_productivity": 41,
       "office_study": 10,
       "outdoor_travel": 5,
       "personal_care": 31,
@@ -387,47 +388,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 745,
+    "all_time_count": 747,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T17:39:21.963792+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-22800974",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "خرما شکلاتی با مغزی کرم کنجد ورسادو - ۳۵۰ گرم",
-        "use_case": "grocery_food"
-      },
-      {
-        "at": "2026-11-10T17:39:21.963792+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-18369481",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-10T17:39:21.963792+00:00",
         "brand": "",
@@ -719,6 +686,40 @@
       },
       {
         "at": "2026-11-10T18:03:08.818052+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-11192935",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل شستشوی صورت ویتالیر مدل وایت ویت مناسب برای پوست‌های لک‌دار حجم 200 میلی لیتر",
+        "use_case": "home_cleaning"
+      },
+      {
+        "at": "2026-11-10T18:36:36.032148+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-18369481",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-10T18:36:36.032148+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
