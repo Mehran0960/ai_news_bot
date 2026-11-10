@@ -1088,3 +1088,13 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 - تغییرات روی شاخهٔ مستقل offerchin/reliability-catalog-sweep-20261110 انجام شده‌اند. workflow آزمون صف تحویل نیز برای Pull Requestهای مرتبط فعال شده تا test_content_delivery روی هر تغییر delivery اجرا شود. workflow رگرسیون cross-band نیز از نام تست‌های قدیمی و حذف‌شده به تست‌های موجود و مطابق سیاست تقاضامحور تغییر یافت.
 - merge یا production activation تا سبزشدن آزمون‌های adapter، delivery، catalog snapshot، crawler و Documentation Gate انجام‌شده تلقی نمی‌شود.
 - پس از ادغام، snapshot legacy فعلی باید یک‌بار از طریق workflow اسکن/وضعیت کاتالوگ عبور کند؛ خروجی مورد انتظار، valid شدن snapshot کامل قبلی بدون درخواست مجدد ۶.۳ میلیون ردیف است. اگر migration رد شود، انتشار جدید همچنان مسدود می‌ماند تا یک چرخهٔ تمیز جدید ساخته شود.
+
+
+## ۱۴۰۵/۰۸/۱۹ — storefront و مسیر مستقیم خرید افیلیت
+
+- بررسی Cloudflare در ۲۰۲۶-۱۱-۱۰ نشان داد Worker عمومی `offerchin-site` با workers.dev فعال است؛ آخرین deployment مشاهده‌شده در ۲۰۲۶-۱۰-۱۸ و نسخهٔ فعال `3624cb5e-0a37-428b-99fd-8418f55577e6` است.
+- کد Worker فعال هنوز `TRACKER` و تابع `trackedUrl` را به `affiliate-deal-radar` متصل می‌کند؛ وقتی دادهٔ محصول معتبر باشد، CTA فروشگاه قدیمی به جای URL اصلی Affilio از مسیر واسط عبور می‌کند. در زمان بررسی، صفحهٔ Worker و Pages هر دو قابل دسترسی بودند، اما هیچ آفر فعالی برای نمایش نداشتند؛ بنابراین این مورد از مسیر کد تأیید شد، نه از کلیک زنده روی یک محصول.
+- سورس فعلی Pages در `offerchin-site/assets/site.js` لینک `affiliate_url` را بدون ریدایرکت استفاده می‌کرد، اما فقط HTTPS عمومی را می‌پذیرفت و در مرتب‌سازی از `click_count_30d` به‌عنوان tie-break استفاده می‌کرد.
+- شاخهٔ `fix/offerchin-storefront-direct-affilio-20261110` سورس Worker فعال را به مخزن اضافه می‌کند، CTA آن را به URL اصلی و راستی‌آزمایی‌شدهٔ `aflo.ir/QekEYTRg?p=...` تغییر می‌دهد، اعتبارسنجی همان محصول را در Pages سخت‌گیرانه می‌کند و کلیک را از رتبه‌بندی storefront حذف می‌کند.
+- فایل Wrangler مستقل برای Worker و آزمون‌های regression اضافه شده‌اند. این شاخه هنوز merge یا deploy نشده است؛ Worker عمومی فعال همچنان نسخهٔ قبلی را اجرا می‌کند تا مجوز جداگانه برای انتشار داده شود.
+- Worker آماری `affiliate-deal-radar` می‌تواند برای گزارش تشخیصی باقی بماند، اما نباید در href یا CTA خرید هیچ رسانه‌ای قرار گیرد.
