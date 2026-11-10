@@ -60548,8 +60548,8 @@
       "catalog_best_selling_ranks_by_category": {
         "11133": {
           "category_name": "زیورآلات طلا",
-          "observed_at": "2026-11-10T07:34:39.283284+00:00",
-          "rank": 3792,
+          "observed_at": "2026-11-10T07:45:22.628288+00:00",
+          "rank": 3870,
           "rank_history": []
         },
         "11134": {
@@ -60583,7 +60583,7 @@
       "current_price": 18418630,
       "discount_percent": 2,
       "first_seen_at": "2026-11-09T12:03:24.776048+00:00",
-      "last_seen_at": "2026-11-10T07:33:43.083407+00:00",
+      "last_seen_at": "2026-11-10T07:45:05.464623+00:00",
       "original_price": 18814050,
       "product_id": "dkp-8387711",
       "product_url": "https://www.digikala.com/product/dkp-8387711/",
@@ -65680,24 +65680,31 @@
           "observed_at": "2026-11-09T16:31:01.827269+00:00",
           "rank": 372,
           "rank_history": []
+        },
+        "9534": {
+          "category_name": "اکسسوری زنانه و مردانه",
+          "observed_at": "2026-11-10T07:42:10.132720+00:00",
+          "rank": 3854,
+          "rank_history": []
         }
       },
-      "catalog_category_id": "9504",
+      "catalog_category_id": "9534",
       "catalog_category_ids": [
         "9399",
         "9504",
+        "9534",
         "10173",
         "10182",
         "10385",
         "10387"
       ],
-      "catalog_category_name": "سرپوش مردانه",
+      "catalog_category_name": "اکسسوری زنانه و مردانه",
       "catalog_rank_observed_at": "2026-11-09T12:11:27.993991+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 680000,
       "discount_percent": 15,
       "first_seen_at": "2026-11-09T12:11:27.993991+00:00",
-      "last_seen_at": "2026-11-09T16:28:15.703507+00:00",
+      "last_seen_at": "2026-11-10T07:41:35.658582+00:00",
       "original_price": 800000,
       "product_id": "dkp-20788710",
       "product_url": "https://www.digikala.com/product/dkp-20788710/",
@@ -172026,6 +172033,12 @@
           "rank": 811,
           "rank_history": []
         },
+        "5966": {
+          "category_name": "کالای دیجیتال",
+          "observed_at": "2026-11-10T07:44:14.141628+00:00",
+          "rank": 3863,
+          "rank_history": []
+        },
         "8694": {
           "category_name": "باتری UPS",
           "observed_at": "2026-11-09T11:59:56.429260+00:00",
@@ -172039,19 +172052,20 @@
           ]
         }
       },
-      "catalog_category_id": "4",
+      "catalog_category_id": "5966",
       "catalog_category_ids": [
         "4",
         "21",
+        "5966",
         "8694"
       ],
-      "catalog_category_name": "مد و پوشاک",
+      "catalog_category_name": "کالای دیجیتال",
       "catalog_rank_observed_at": "2026-11-09T11:59:56.429260+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 3071000,
       "discount_percent": 17,
       "first_seen_at": "2026-11-09T11:59:56.429260+00:00",
-      "last_seen_at": "2026-11-09T20:03:33.163658+00:00",
+      "last_seen_at": "2026-11-10T07:42:44.022616+00:00",
       "original_price": 3700000,
       "product_id": "dkp-9499440",
       "product_url": "https://www.digikala.com/product/dkp-9499440/",
@@ -200020,6 +200034,39 @@
     },
     {
       "availability": "unknown",
+      "catalog_best_selling_category_id": "8898",
+      "catalog_best_selling_category_name": "تنقلات",
+      "catalog_best_selling_rank": 3878,
+      "catalog_best_selling_ranks_by_category": {
+        "8898": {
+          "category_name": "تنقلات",
+          "observed_at": "2026-11-10T07:44:14.245793+00:00",
+          "rank": 3878,
+          "rank_history": []
+        }
+      },
+      "catalog_category_id": "8898",
+      "catalog_category_ids": [
+        "8898"
+      ],
+      "catalog_category_name": "تنقلات",
+      "catalog_rank_observed_at": "2026-11-10T07:44:14.245793+00:00",
+      "catalog_sort_mode": "best_selling",
+      "current_price": 672000,
+      "discount_percent": 30,
+      "first_seen_at": "2026-11-10T07:44:14.245793+00:00",
+      "last_seen_at": "2026-11-10T07:43:54.525706+00:00",
+      "original_price": 960000,
+      "product_id": "dkp-9829481",
+      "product_url": "https://www.digikala.com/product/dkp-9829481/",
+      "rating": 4.5,
+      "review_count": 3386,
+      "savings_toman": 288000,
+      "source": "digikala_catalog_sweep",
+      "title": "کیک وانیلی با مغزی کرم وانیل هانیپرز - 36 گرم بسته 24 عددی"
+    },
+    {
+      "availability": "unknown",
       "catalog_best_selling_category_id": "5968",
       "catalog_best_selling_category_name": "آرایشی و بهداشتی",
       "catalog_best_selling_rank": 2022,
@@ -200189,42 +200236,9 @@
       "savings_toman": 95000,
       "source": "digikala_catalog_sweep",
       "title": "آب معدنی VIP آکوا پرایم -450 میلی لیتر بسته 12 عددی"
-    },
-    {
-      "availability": "unknown",
-      "catalog_best_selling_category_id": "8",
-      "catalog_best_selling_category_name": "آرایشی بهداشتی",
-      "catalog_best_selling_rank": 3731,
-      "catalog_best_selling_ranks_by_category": {
-        "8": {
-          "category_name": "آرایشی بهداشتی",
-          "observed_at": "2026-11-10T07:22:57.444124+00:00",
-          "rank": 3731,
-          "rank_history": []
-        }
-      },
-      "catalog_category_id": "8",
-      "catalog_category_ids": [
-        "8"
-      ],
-      "catalog_category_name": "آرایشی بهداشتی",
-      "catalog_rank_observed_at": "2026-11-10T07:22:57.444124+00:00",
-      "catalog_sort_mode": "best_selling",
-      "current_price": 240000,
-      "discount_percent": 20,
-      "first_seen_at": "2026-11-10T07:17:19.336262+00:00",
-      "last_seen_at": "2026-11-10T07:21:53.164832+00:00",
-      "original_price": 300000,
-      "product_id": "dkp-9071599",
-      "product_url": "https://www.digikala.com/product/dkp-9071599/",
-      "rating": 4.37,
-      "review_count": 2877,
-      "savings_toman": 60000,
-      "source": "digikala_catalog_sweep",
-      "title": "دفتر مشق 50 برگ مستر راد مدل شیمی کد 1716"
     }
   ],
   "cycle_started_at": "2026-11-09T11:16:23.329744+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-10T07:40:20.851824+00:00"
+  "updated_at": "2026-11-10T07:45:22.778376+00:00"
 }
