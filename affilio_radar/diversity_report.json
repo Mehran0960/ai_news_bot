@@ -97,9 +97,11 @@
       }
     ]
   },
-  "generated_at": "2026-11-10T16:19:56.951268+00:00",
+  "generated_at": "2026-11-10T16:53:07.346758+00:00",
   "last_24_hours": {
-    "catalog_category_post_counts": {},
+    "catalog_category_post_counts": {
+      "ویتامین‌ها و مواد معدنی": 1
+    },
     "category_post_counts": {
       "audio_wearables": 2,
       "books_stationery": 1,
@@ -122,11 +124,11 @@
       "power_backup": 4.8,
       "sports_outdoor": 9.5
     },
-    "distinct_catalog_categories": 0,
+    "distinct_catalog_categories": 1,
     "distinct_categories": 9,
-    "distinct_families": 12,
+    "distinct_families": 13,
     "distinct_retailers": 1,
-    "distinct_use_cases": 10,
+    "distinct_use_cases": 11,
     "known_brand_posts": 0,
     "posts": 21,
     "repeated_brand_count": 0,
@@ -141,8 +143,9 @@
       "audio_visual": 2,
       "baby_care": 1,
       "books_learning": 1,
+      "catalog_taxonomy_other": 1,
       "fashion_lifestyle": 2,
-      "general": 5,
+      "general": 4,
       "health_wellness": 1,
       "mobile_productivity": 4,
       "office_study": 1,
@@ -157,7 +160,7 @@
       "آرایش چشم": 1,
       "آرایشی بهداشتی": 3,
       "آرایشی و بهداشتی": 1,
-      "آچار": 4,
+      "آچار": 3,
       "ابزار آشپزی": 1,
       "ابزار آلات و تجهیزات": 2,
       "ابزار ایمنی": 1,
@@ -250,6 +253,7 @@
       "هدفون، هدست و هندزفری": 3,
       "ورزش های توپی": 1,
       "ورزشی مردانه": 2,
+      "ویتامین‌ها و مواد معدنی": 1,
       "پد و دستمال نظافت خودرو": 5,
       "پرچم": 3,
       "پودر جوانه": 1,
@@ -273,11 +277,10 @@
       "کیسه زباله": 1,
       "کیف و کوله سفری": 1,
       "گرمکن و ست ورزشی مردانه": 1,
-      "گوشی 128 گیگابایت": 1,
-      "گوشی ردتون": 1
+      "گوشی 128 گیگابایت": 1
     },
     "category_post_counts": {
-      "audio_wearables": 20,
+      "audio_wearables": 19,
       "automotive": 18,
       "beauty_fragrance": 4,
       "books_stationery": 11,
@@ -298,7 +301,7 @@
       "tv_audio_video": 1
     },
     "category_share_percent": {
-      "audio_wearables": 6.2,
+      "audio_wearables": 5.9,
       "automotive": 5.6,
       "beauty_fragrance": 1.2,
       "books_stationery": 3.4,
@@ -312,10 +315,10 @@
       "kids_sports": 2.2,
       "large_appliances": 2.8,
       "mobile_devices": 0.9,
-      "other": 33.2,
-      "personal_care": 9.6,
+      "other": 33.3,
+      "personal_care": 9.7,
       "power_backup": 2.8,
-      "sports_outdoor": 9.6,
+      "sports_outdoor": 9.7,
       "tv_audio_video": 0.3
     },
     "distinct_catalog_categories": 123,
@@ -324,7 +327,7 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
     "known_brand_posts": 62,
-    "posts": 322,
+    "posts": 321,
     "repeated_brand_count": 49,
     "repeated_brands": {
       "ai_javaher": 8,
@@ -338,7 +341,7 @@
       "ufc": 12
     },
     "retailer_post_counts": {
-      "digikala": 322
+      "digikala": 321
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -361,7 +364,7 @@
       "kitchen_food": 4,
       "lighting_electrical": 9,
       "local_goods": 2,
-      "mobile_productivity": 42,
+      "mobile_productivity": 41,
       "office_study": 10,
       "outdoor_travel": 5,
       "personal_care": 31,
@@ -383,47 +386,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 697,
+    "all_time_count": 699,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T15:52:45.710421+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-11192935",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ژل شستشوی صورت ویتالیر مدل وایت ویت مناسب برای پوست‌های لک‌دار حجم 200 میلی لیتر",
-        "use_case": "home_cleaning"
-      },
-      {
-        "at": "2026-11-10T16:01:11.391224+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-5664135",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مدل Oily Acne-Prone Skin، مناسب پوست‌های چرب، حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-10T16:01:11.391224+00:00",
         "brand": "",
@@ -715,6 +684,40 @@
       },
       {
         "at": "2026-11-10T16:19:56.951268+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-11192935",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل شستشوی صورت ویتالیر مدل وایت ویت مناسب برای پوست‌های لک‌دار حجم 200 میلی لیتر",
+        "use_case": "home_cleaning"
+      },
+      {
+        "at": "2026-11-10T16:53:07.346758+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-18369481",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-10T16:53:07.346758+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
