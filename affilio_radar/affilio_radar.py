@@ -2165,7 +2165,9 @@ def _is_market_challenge_error(exc: Exception) -> bool:
     )
 
 
-def _prepare_torob_mcp() -> None:
+def _prepare_torob_mcp() -> set[str]:
+    """Discover Torob capabilities; optional tools never become hard dependencies."""
+    global _TOROB_AVAILABLE_TOOLS
     initialized = _torob_rpc(
         "initialize",
         {
@@ -2178,9 +2180,6 @@ def _prepare_torob_mcp() -> None:
     if not initialized.get("result", {}).get("serverInfo"):
         raise RuntimeError("Torob MCP initialization did not confirm serverInfo")
     time.sleep(TOROB_MCP_GAP_SECONDS)
-    # Some hosted MCP demos do not dispatch notification methods even though
-    # they accept initialize/tools/list. Ignore only this specific unsupported
-    # notification; all real tool/list errors still fail closed.
     try:
         _torob_rpc("notifications/initialized", {}, request_id=2)
     except Exception as exc:
@@ -2196,8 +2195,14 @@ def _prepare_torob_mcp() -> None:
     }
     missing = {"search_products", "product_details"} - names
     if missing:
-        raise RuntimeError("Torob MCP is missing required tools: " + ", ".join(sorted(missing)))
+        raise RuntimeError("Torob MCP is missing required price-comparison tools: " + ", ".join(sorted(missing)))
+    _TOROB_AVAILABLE_TOOLS = names
+    if "torob_trends" in names:
+        print("TOROB_OPTIONAL_DEMAND_SIGNAL=available tool=torob_trends")
+    else:
+        print("TOROB_OPTIONAL_DEMAND_SIGNAL=unavailable; price comparison remains independent")
     time.sleep(TOROB_MCP_GAP_SECONDS)
+    return names
 
 
 def _torob_tool(name: str, arguments: dict, request_id: int) -> dict:
@@ -2704,6 +2709,100 @@ def enrich_market_prices(
         if item.get("market_status") == "not_checked":
             item["market_status"] = "unavailable"
 
+def enrich_torob_trends(
+    products: list[dict],
+    state: dict | None = None,
+    now: datetime | None = None,
+) -> None:
+    """Attach optional Torob search-trend matches; missing/rate-limited data never gates publishing."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    state = state if isinstance(state, dict) else {}
+    for product in products or []:
+        if isinstance(product, dict):
+            product["torob_trend_match_count"] = 0
+            product["torob_trend_best_match_score"] = 0
+            product["torob_trend_queries"] = []
+            product["torob_trend_source"] = ""
+            product["torob_trend_observed_at"] = ""
+
+    cache = state.get("torob_trends_snapshot")
+    cache = cache if isinstance(cache, dict) else {}
+    observed_at = _parse_utc_datetime(cache.get("observed_at"))
+    cache_fresh = bool(
+        observed_at and 0 <= (current - observed_at).total_seconds() <= 45 * 60
+        and isinstance(cache.get("trends"), list)
+    )
+    trends = cache.get("trends", []) if cache_fresh else []
+    if not cache_fresh:
+        if "torob_trends" not in _TOROB_AVAILABLE_TOOLS:
+            print("TOROB_TRENDS_SKIPPED reason=optional_tool_not_discovered")
+            return
+        try:
+            response = _torob_tool("torob_trends", {"limit": 30}, request_id=40)
+            raw_trends = response.get("trends", [])
+            trends = []
+            for row in raw_trends if isinstance(raw_trends, list) else []:
+                if not isinstance(row, dict):
+                    continue
+                query = re.sub(r"\\s+", " ", str(row.get("query") or "")).strip()[:120]
+                if len(query) < 3:
+                    continue
+                trends.append({
+                    "query": query,
+                    "category_id": str(row.get("category_id") or "")[:40],
+                })
+            observed_at = current
+            state["torob_trends_snapshot"] = {
+                "observed_at": current.isoformat(),
+                "source": "torob_trends",
+                "trends": trends[:30],
+            }
+            print(f"TOROB_TRENDS_LOADED count={len(trends)}")
+        except Exception as exc:
+            print(f"TOROB_TRENDS_UNAVAILABLE error={type(exc).__name__}; continuing_without_external_demand")
+            return
+
+    if not trends:
+        print("TOROB_TRENDS_EMPTY; continuing_without_external_demand")
+        return
+
+    matched_products = 0
+    for product in products or []:
+        if not isinstance(product, dict):
+            continue
+        title = str(product.get("title") or "")
+        title_tokens = _market_tokens(title)
+        title_numbers = _market_identity_numbers(title)
+        matches = []
+        for trend in trends:
+            query = str(trend.get("query") or "")
+            query_tokens = _market_tokens(query)
+            if len(query_tokens) < 2 or not title_tokens:
+                continue
+            query_numbers = _market_identity_numbers(query)
+            if query_numbers and not query_numbers.issubset(title_numbers):
+                continue
+            overlap = query_tokens & title_tokens
+            score = round(100 * len(overlap) / len(query_tokens)) if query_tokens else 0
+            if len(overlap) >= 2 and score >= 60:
+                matches.append((score, query))
+        matches.sort(key=lambda item: (item[0], item[1]), reverse=True)
+        product["torob_trend_match_count"] = len(matches)
+        product["torob_trend_best_match_score"] = matches[0][0] if matches else 0
+        product["torob_trend_queries"] = [query for _, query in matches[:3]]
+        product["torob_trend_source"] = "torob_search_trends" if matches else ""
+        product["torob_trend_observed_at"] = observed_at.isoformat() if matches and observed_at else ""
+        if matches:
+            matched_products += 1
+    print(
+        f"TOROB_TRENDS_MATCH_SUMMARY products={len(products)} matched={matched_products} "
+        f"trend_queries={len(trends)} optional=true"
+    )
+
+
 def select_queued_records_for_recheck(
     queued_records: dict[str, dict],
     now: datetime | None = None,
@@ -3180,6 +3279,11 @@ def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tupl
     rank_momentum = int(bestseller.get("rank_improvement") or 0)
     review_growth = _verified_review_growth_sort_key(candidate, now=now)
     try:
+        torob_trend_count = max(0, int(candidate.get("torob_trend_match_count") or 0))
+        torob_trend_score = max(0, min(100, int(candidate.get("torob_trend_best_match_score") or 0)))
+    except (TypeError, ValueError, OverflowError):
+        torob_trend_count, torob_trend_score = 0, 0
+    try:
         review_count = max(0, int(candidate.get("review_count") or 0))
         rating = max(0.0, min(5.0, float(candidate.get("rating") or 0)))
     except (TypeError, ValueError, OverflowError):
@@ -3194,6 +3298,8 @@ def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tupl
         rank_momentum,
         review_growth[0],
         review_growth[1],
+        torob_trend_count,
+        torob_trend_score,
         review_volume_context,
         round(rating, 2),
     )
