@@ -1085,6 +1085,6 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 - ترتیب تصمیم همچنان: شواهد تقاضای تازه و رتبهٔ پرفروش بومی، سپس کیفیت/رشد review، و در تساوی شواهد، درصد/مبلغ تخفیف. رتبهٔ دیجی‌کالا تعداد واقعی فروش نیست؛ گزارش تعداد سفارش/فروش فقط با دادهٔ رسمی فروشگاه/افیلیو مجاز است.
 
 ### وضعیت تغییر در ۱۰ نوامبر
-- تغییرات روی شاخهٔ مستقل offerchin/reliability-catalog-sweep-20261110 انجام شده‌اند. workflow آزمون صف تحویل نیز برای Pull Requestهای مرتبط فعال شده تا test_content_delivery روی هر تغییر delivery اجرا شود.
+- تغییرات روی شاخهٔ مستقل offerchin/reliability-catalog-sweep-20261110 انجام شده‌اند. workflow آزمون صف تحویل نیز برای Pull Requestهای مرتبط فعال شده تا test_content_delivery روی هر تغییر delivery اجرا شود. workflow رگرسیون cross-band نیز از نام تست‌های قدیمی و حذف‌شده به تست‌های موجود و مطابق سیاست تقاضامحور تغییر یافت.
 - merge یا production activation تا سبزشدن آزمون‌های adapter، delivery، catalog snapshot، crawler و Documentation Gate انجام‌شده تلقی نمی‌شود.
 - پس از ادغام، snapshot legacy فعلی باید یک‌بار از طریق workflow اسکن/وضعیت کاتالوگ عبور کند؛ خروجی مورد انتظار، valid شدن snapshot کامل قبلی بدون درخواست مجدد ۶.۳ میلیون ردیف است. اگر migration رد شود، انتشار جدید همچنان مسدود می‌ماند تا یک چرخهٔ تمیز جدید ساخته شود.
