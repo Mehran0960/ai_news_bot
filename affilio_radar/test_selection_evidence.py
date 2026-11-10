@@ -39,6 +39,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
                 "catalog_category_ids": ["812"],
                 "catalog_best_selling_category_id": "812",
                 "catalog_best_selling_category_name": "پاوربانک",
+                **self._verified_review_growth(),
             }
             for index, (title, brand, discount) in enumerate((
                 ("پاوربانک ۲۰۰۰۰ میلی آمپر مدل A", "Brand A", 90),
@@ -257,7 +258,8 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
                 "discount_percent": 80,
                 "savings_toman": 800_000,
                 "review_count": 2,
-                "rating": 3.5,
+                "rating": 3.5,,
+                **self._verified_review_growth()
             },
         ]
         state = {"published": {}, "recent_publications": []}
@@ -309,7 +311,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         }
         self.assertFalse(radar.has_actionable_demand_signal(bestseller_only, now=self.now))
 
-    def test_positive_market_or_history_confirmation_is_not_required(self):
+    def test_demand_is_required_but_positive_market_or_history_confirmation_is_not(self):
         product = {
             "product_id": "dkp-1234567",
             "product_url": "https://www.digikala.com/product/dkp-1234567/",
@@ -322,12 +324,50 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "image_url": "https://example.com/product.webp",
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1234567%2F",
             "selection_discount_floor": 1,
-            "publication_policy": "discount_first_review_growth_tiebreak_v3",
+            "publication_policy": "digikala_demand_first_bestseller_review_quality_discount_v1",
+            **self._verified_review_growth(),
         }
-        # No review-growth or independent market/history evidence is present.
+        # A recent review-growth proxy qualifies; external market/history confirmation is optional.
         self.assertTrue(radar.is_discount_publish_eligible(product, minimum_discount_percent=1, now=self.now))
-        eligible = _eligible_fallback_candidates([product], self.now)
-        self.assertEqual([row["product_id"] for row in eligible], ["dkp-1234567"])
+        self.assertEqual(
+            [row["product_id"] for row in _eligible_fallback_candidates([product], self.now)],
+            ["dkp-1234567"],
+        )
+
+        # A large discount without fresh demand evidence cannot pass the publication fallback.
+        no_demand = {
+            key: value for key, value in product.items()
+            if key not in {
+                "current_demand_verified", "recent_review_growth_window",
+                "recent_review_growth_7d", "demand_window_hours",
+                "demand_observed_at", "demand_signal_source",
+            }
+        }
+        self.assertTrue(radar.is_discount_publish_eligible(no_demand, minimum_discount_percent=1, now=self.now))
+        self.assertEqual(_eligible_fallback_candidates([no_demand], self.now), [])
+
+    def test_native_bestseller_rank_is_a_valid_hard_demand_signal(self):
+        product = {
+            "product_id": "dkp-best-seller",
+            "product_url": "https://www.digikala.com/product/dkp-1234567/",
+            "title": "پاوربانک پرفروش آزمایشی",
+            "availability": "in_stock",
+            "current_price": 900_000,
+            "original_price": 1_000_000,
+            "discount_percent": 10,
+            "savings_toman": 100_000,
+            "image_url": "https://example.com/product.webp",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1234567%2F",
+            "selection_discount_floor": 1,
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 3,
+            "catalog_rank_observed_at": self.now.isoformat(),
+        }
+        self.assertTrue(radar.has_verified_market_demand(product, now=self.now))
+        self.assertEqual(
+            [row["product_id"] for row in _eligible_fallback_candidates([product], self.now)],
+            ["dkp-best-seller"],
+        )
 
     def test_fresh_verified_contradictory_history_can_veto_but_stale_history_cannot(self):
         base = {
