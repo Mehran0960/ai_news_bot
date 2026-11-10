@@ -27,6 +27,11 @@ PHOTO_PLATFORMS = tuple(
     name for name, config in PLATFORM_REGISTRY.items()
     if config["media"] == "photo"
 )
+# Telegram and Bale are the primary publication destinations. Optional messengers
+# may retry independently and must never reserve the next core publication slot.
+CORE_PHOTO_PLATFORMS = tuple(
+    name for name in ("telegram", "bale") if name in PHOTO_PLATFORMS
+)
 VIDEO_PLATFORMS = tuple(
     name for name, config in PLATFORM_REGISTRY.items()
     if config["media"] == "video"

@@ -246,6 +246,33 @@ def _render(renderer: Any, item: dict, image_bytes: bytes, channel: str) -> byte
     )
 
 
+def _rubika_plain_fallback_caption(
+    renderer: Any,
+    item: dict,
+    affiliate_url: str,
+) -> str:
+    """Build a no-metadata/no-keypad caption for conservative sendFile compatibility."""
+    caption = renderer.build_caption(
+        item, affiliate_url, channel_label=RUBIKA_CHANNEL_URL,
+        use_unicode_strikethrough=True,
+    )
+    caption = re.sub(
+        r"\[([^\]]+)\]\(([^)]+)\)",
+        lambda match: f"{match.group(1)}\n{match.group(2)}",
+        caption,
+    )
+    caption = re.sub(r"\\([\\_*()\[\]])", r"\1", caption)
+    caption = caption.replace("*", "").strip()
+    label_builder = getattr(renderer, "purchase_button_label", None)
+    purchase_label = (
+        str(label_builder(affiliate_url))
+        if callable(label_builder)
+        else purchase_action_label(item.get("merchant") or "دیجی‌کالا")
+    )
+    if affiliate_url and affiliate_url not in caption:
+        caption = caption.rstrip() + f"\n\n{purchase_label}\n{affiliate_url}"
+    return caption[:3800]
+
 def send_rubika_photo(token: str, channel_id: str, item: dict, image_bytes: bytes,
                       affiliate_url: str, renderer: Any) -> dict:
     if not token or not channel_id:
@@ -292,19 +319,16 @@ def send_rubika_photo(token: str, channel_id: str, item: dict, image_bytes: byte
     try:
         sent = _rubika_call(token, "sendFile", send_payload)
     except RuntimeError as exc:
-        # An explicit INVALID_INPUT response proves the first send was rejected.
-        # Retry without text metadata, using two direct Link buttons; ambiguous
-        # network/server failures are never retried to avoid duplicate posts.
+        # INVALID_INPUT confirms the first request was rejected. The second attempt
+        # deliberately uses only documented sendFile fields: no metadata or keypad.
+        # Ambiguous network/server failures are never retried to avoid duplicate posts.
         if "INVALID_INPUT" not in str(exc).upper():
             raise
-        print("RUBIKA_CAPTION_METADATA_REJECTED fallback=dual_link_keypad")
+        print("RUBIKA_SEND_FILE_REJECTED fallback=plain_caption_link_urls")
         sent = _rubika_call(token, "sendFile", {
             "chat_id": channel_id,
             "file_id": file_id,
-            "text": rubika_caption,
-            "inline_keypad": _rubika_inline_keypad(
-                renderer, item, affiliate_url, include_membership=True
-            ),
+            "text": _rubika_plain_fallback_caption(renderer, item, affiliate_url),
         })
     message_id = str(sent.get("message_id") or "").strip()
     if not message_id:

@@ -17,7 +17,10 @@ from content_delivery import (
     _active_publication, due_content, enforce_queue_limit, finish_queue_item,
     promote_fallback_selection,
 )
-from platform_registry import PLATFORM_NAMES, PHOTO_PLATFORMS, VIDEO_PLATFORMS, validate_registry
+from platform_registry import (
+    CORE_PHOTO_PLATFORMS, PLATFORM_NAMES, PHOTO_PLATFORMS,
+    VIDEO_PLATFORMS, validate_registry,
+)
 from integrity_audit_state import apply_integrity_audit_ledger
 
 
@@ -804,12 +807,19 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
 
         platforms = {name: str(_target(entry, name).get("status") or "pending") for name in PLATFORM_NAMES}
         photo_platforms = {name: platforms.get(name, "pending") for name in PHOTO_PLATFORMS}
+        core_photo_platforms = {
+            name: photo_platforms.get(name, "pending") for name in CORE_PHOTO_PLATFORMS
+        }
+        core_complete = all(
+            status in TERMINAL_PLATFORM for status in core_photo_platforms.values()
+        )
+        core_success = any(status == "sent" for status in core_photo_platforms.values())
         completed = all(status in TERMINAL_PLATFORM for status in photo_platforms.values())
         any_success = any(status == "sent" for status in photo_platforms.values())
         unresolved = [name for name, status in photo_platforms.items() if status not in TERMINAL_PLATFORM]
         new_public_delivery = any(
             prior_public_status.get(name) != "sent" and platforms.get(name) == "sent"
-            for name in PHOTO_PLATFORMS
+            for name in CORE_PHOTO_PLATFORMS
         )
         if new_public_delivery:
             public_posted_at = _now().isoformat()
@@ -825,7 +835,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         if existing_same_delivery:
             sent_epochs = [
                 dt.timestamp()
-                for name in PHOTO_PLATFORMS
+                for name in CORE_PHOTO_PLATFORMS
                 if _target(entry, name).get("status") == "sent"
                 and (dt := _utc(_target(entry, name).get("updated_at"))) is not None
             ]
@@ -863,10 +873,25 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
                 elif t.get("status") in {"pending", "failed", "retry"}:
                     retry_times.append(now + timedelta(minutes=15))
             entry["next_attempt_at"] = (min(retry_times) if retry_times else now + timedelta(minutes=15)).isoformat()
-            entry["last_detail"] = "unresolved=" + ",".join(unresolved)
-            if any_success:
+            if core_complete and core_success:
+                # Telegram/Bale have completed this publication. Keep optional messenger
+                # retries bounded in the background queue, but never hold the next core slot.
+                optional_unresolved = [
+                    name for name in unresolved if name not in CORE_PHOTO_PLATFORMS
+                ]
+                entry["last_detail"] = "optional_unresolved=" + ",".join(optional_unresolved)
                 state.get("pending_queue", {}).pop(product_id, None)
-            print(f"CONTENT_CHANNEL_DELIVERY_PARTIAL product_id={product_id} photo_platforms={photo_platforms} retry_at={entry['next_attempt_at']}")
+                sent_content += 1
+                print(
+                    f"CONTENT_CHANNEL_CORE_COMPLETE_OPTIONAL_PENDING product_id={product_id} "
+                    f"core={core_photo_platforms} optional_unresolved={optional_unresolved} "
+                    f"retry_at={entry['next_attempt_at']}"
+                )
+            else:
+                entry["last_detail"] = "unresolved=" + ",".join(unresolved)
+                if core_success:
+                    state.get("pending_queue", {}).pop(product_id, None)
+                print(f"CONTENT_CHANNEL_DELIVERY_PARTIAL product_id={product_id} photo_platforms={photo_platforms} retry_at={entry['next_attempt_at']}")
         _save(state)
 
     if fallback_promoted:

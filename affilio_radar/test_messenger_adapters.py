@@ -136,7 +136,7 @@ class MessengerAdapterTests(unittest.TestCase):
         self.assertEqual(self.renderer.destinations, ["rubika"])
 
     @patch("messenger_adapters.requests.post")
-    def test_rubika_invalid_metadata_or_keypad_falls_back_to_dual_link_buttons(self, post):
+    def test_rubika_invalid_metadata_or_keypad_falls_back_to_plain_caption_links(self, post):
         post.side_effect = [
             FakeResponse({"status": "OK", "data": {"upload_url": "https://upload.rubika.ir/upload/abc"}}),
             FakeResponse({"status": "OK", "data": {"file_id": "FILE-1"}}),
@@ -153,17 +153,11 @@ class MessengerAdapterTests(unittest.TestCase):
         self.assertIn("metadata", first_send)
         self.assertIn("inline_keypad", first_send)
         self.assertNotIn("metadata", fallback_send)
-        self.assertIn("inline_keypad", fallback_send)
+        self.assertNotIn("inline_keypad", fallback_send)
         self.assertIn(RUBIKA_MEMBERSHIP_BUTTON_TEXT, fallback_send["text"])
-        self.assertNotIn(RUBIKA_CHANNEL_URL, fallback_send["text"])
-
-        keypad = fallback_send["inline_keypad"]
-        self.assertEqual(len(keypad["rows"]), 2)
-        buy_button = keypad["rows"][0]["buttons"][0]
-        join_button = keypad["rows"][1]["buttons"][0]
-        self.assertEqual(buy_button["button_link"]["link_url"], self.affiliate)
-        self.assertEqual(join_button["button_text"], MEMBERSHIP_BUTTON_TEXT)
-        self.assertEqual(join_button["button_link"]["link_url"], RUBIKA_CHANNEL_URL)
+        self.assertIn(RUBIKA_CHANNEL_URL, fallback_send["text"])
+        self.assertIn(self.affiliate, fallback_send["text"])
+        self.assertIn(purchase_action_label("دیجی‌کالا"), fallback_send["text"])
 
     @patch("messenger_adapters.requests.post")
     def test_rubika_does_not_retry_ambiguous_or_non_validation_errors(self, post):

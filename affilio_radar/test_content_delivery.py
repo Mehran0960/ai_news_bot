@@ -8,7 +8,7 @@ from content_delivery import (
     promote_fallback_selection,
     refresh_unpublished_selections, selection_cadence_anchor,
 )
-from platform_registry import PHOTO_PLATFORMS, PLATFORM_NAMES
+from platform_registry import CORE_PHOTO_PLATFORMS, PHOTO_PLATFORMS, PLATFORM_NAMES
 from publisher import (
     publish_due_queue, _fresh_selected_item, _eligible_fallback_candidates,
 )
@@ -890,6 +890,62 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(entry["last_detail"], "verified_full_catalog_snapshot_unavailable")
         self.assertEqual(entry["next_attempt_at"], (self.now + timedelta(minutes=5)).isoformat())
 
+
+    def test_rubika_failure_is_optional_after_telegram_and_bale_delivery(self):
+        import publisher
+
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-rubika-retry")], now=self.now,
+            interval_seconds=1200, max_items=1,
+        )
+
+        def fake_photo(state_arg, entry, record, item, image_bytes, destination, now):
+            target = entry["platforms"][destination]
+            if destination in CORE_PHOTO_PLATFORMS:
+                target.update(status="sent", attempts=1, updated_at=now.isoformat())
+                record.setdefault("delivery_status", {})[destination] = "sent"
+                record[f"{destination}_message_id"] = 100 + len(destination)
+            elif destination == "rubika":
+                target.update(
+                    status="failed", attempts=1,
+                    next_attempt_at=(now + timedelta(minutes=30)).isoformat(),
+                )
+                record.setdefault("delivery_status", {})[destination] = "failed"
+            else:
+                target.update(status="not_connected", attempts=0)
+                record.setdefault("delivery_status", {})[destination] = "not_connected"
+
+        with (
+            patch("publisher._now", return_value=self.now),
+            patch("publisher.radar.load_state", return_value=state),
+            patch("publisher.radar.publication_catalog_context", return_value={"mode": "initial_warmup", "snapshot": None}),
+            patch("publisher._save"),
+            patch("publisher._fresh_selected_item", return_value=(self.item("dkp-rubika-retry"), "")),
+            patch("publisher.radar._fetch_image", return_value=b"image"),
+            patch("publisher._process_photo_destination", side_effect=fake_photo),
+            patch("publisher._process_video_destinations"),
+        ):
+            self.assertEqual(publisher.publish_due_queue(), 0)
+
+        entry = state["content_delivery_queue"]["dkp-rubika-retry"]
+        self.assertEqual(entry["status"], "partial")
+        self.assertIn("optional_unresolved=rubika", entry["last_detail"])
+        self.assertEqual(entry["platforms"]["telegram"]["status"], "sent")
+        self.assertEqual(entry["platforms"]["bale"]["status"], "sent")
+        self.assertEqual(entry["platforms"]["rubika"]["status"], "failed")
+        self.assertNotIn("dkp-rubika-retry", state.get("pending_queue", {}))
+        self.assertEqual(state["last_channel_published_at"], self.now.isoformat())
+
+        # The partial optional retry remains bounded but does not stop a new selection.
+        fresh = enqueue_selected_content(
+            state, [self.item("dkp-after-rubika")],
+            now=self.now + timedelta(minutes=1), interval_seconds=1200,
+            max_items=1,
+        )
+        self.assertEqual(fresh["added"], 1)
+        due = due_content(state, now=self.now + timedelta(minutes=21), limit=1)
+        self.assertEqual([product_id for product_id, _entry in due], ["dkp-after-rubika"])
 
     def test_terminal_queue_item_moves_to_bounded_history(self):
         state = {}

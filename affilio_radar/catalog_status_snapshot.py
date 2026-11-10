@@ -10,6 +10,11 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent
+
+try:
+    from .catalog_sweep import MAX_RETAINED_CANDIDATES
+except ImportError:  # pragma: no cover - direct script execution
+    from catalog_sweep import MAX_RETAINED_CANDIDATES
 STATE_PATH = ROOT / "catalog_sweep_state.json"
 STATUS_PATH = ROOT / "catalog_sweep_status.json"
 COMPLETED_CANDIDATES_PATH = ROOT / "catalog_sweep_completed_candidates.json"
@@ -519,6 +524,95 @@ def candidate_matches_completed_snapshot(
     )
 
 
+
+def upgrade_legacy_demand_first_snapshot(payload: Any) -> tuple[dict[str, Any], bool]:
+    """Tag a pre-policy snapshot only when its full-catalog demand-first provenance is provable.
+
+    The previous writer used catalog_sweep.retain_diverse_candidates(), whose
+    ordering was already demand-first, but did not persist candidate_order_policy.
+    Re-sorting now would be unsafe because bestseller ranks age with time. This
+    migration preserves the recorded order and only adds its explicit policy marker
+    after verifying the full cycle and every row's provenance.
+    """
+    if not isinstance(payload, dict) or payload.get("candidate_order_policy"):
+        return (payload if isinstance(payload, dict) else {}), False
+
+    rows = payload.get("candidates")
+    if not isinstance(rows, list) or not rows:
+        return payload, False
+
+    category_ids = _sorted_ids(payload.get("category_ids"))
+    completed_ids = _sorted_ids(payload.get("completed_category_ids"))
+    unqueryable_ids = payload.get("unqueryable_category_ids")
+    cycle_started = str(payload.get("cycle_started_at") or "")
+    cycle_completed = str(payload.get("cycle_completed_at") or "")
+    total = _integer(payload.get("categories_total"))
+    complete = _integer(payload.get("categories_complete"))
+    unqueryable_count = _integer(payload.get("categories_unqueryable"))
+    coverage = _number(payload.get("category_coverage_percent"))
+    pages_success = _integer(payload.get("pages_success"))
+    product_rows = _integer(payload.get("product_rows_success"))
+    full_cycle_proven = bool(
+        payload.get("schema_version") == 1
+        and payload.get("scan_policy_version") == SCAN_POLICY_VERSION
+        and payload.get("cycle_status") == "complete"
+        and _valid_timestamp(cycle_started)
+        and _valid_timestamp(cycle_completed)
+        and category_ids
+        and completed_ids == category_ids
+        and isinstance(unqueryable_ids, list)
+        and not unqueryable_ids
+        and total == len(category_ids)
+        and complete == total
+        and unqueryable_count == 0
+        and coverage >= 100
+        and pages_success > 0
+        and product_rows > 0
+        and _integer(payload.get("candidate_count"), -1) == len(rows)
+        and len(rows) <= MAX_RETAINED_CANDIDATES
+    )
+    if not full_cycle_proven:
+        return payload, False
+
+    candidate_ids: set[str] = set()
+    for rank, row in enumerate(rows, start=1):
+        if not isinstance(row, dict):
+            return payload, False
+        product_id = str(row.get("product_id") or "")
+        if (
+            not re.fullmatch(r"dkp-\d{1,12}", product_id)
+            or product_id in candidate_ids
+            or row.get("source") != "digikala_catalog_sweep"
+            or row.get("catalog_sort_mode") != "best_selling"
+            or str(row.get("catalog_cycle_completed_at") or "") != cycle_completed
+            or _integer(row.get("catalog_cycle_snapshot_rank")) != rank
+            or _integer(row.get("catalog_best_selling_rank")) <= 0
+            or not _valid_timestamp(row.get("catalog_rank_observed_at"))
+            or _integer(row.get("discount_percent")) < 1
+            or _integer(row.get("savings_toman")) <= 0
+        ):
+            return payload, False
+        ranks = row.get("catalog_best_selling_ranks_by_category")
+        if not isinstance(ranks, dict) or not ranks:
+            return payload, False
+        candidate_ids.add(product_id)
+
+    upgraded_rows = [
+        {
+            **row,
+            "catalog_cycle_completed_at": cycle_completed,
+            "catalog_cycle_snapshot_rank": rank,
+        }
+        for rank, row in enumerate(rows, start=1)
+    ]
+    upgraded = {
+        **payload,
+        "candidate_order_policy": "catalog_demand_first_v1",
+        "candidate_count": len(upgraded_rows),
+        "candidates": upgraded_rows,
+    }
+    return upgraded, True
+
 def write_status_snapshot(
     state_path: Path = STATE_PATH,
     status_path: Path = STATUS_PATH,
@@ -534,6 +628,23 @@ def write_status_snapshot(
         completed_candidates = None
     if not isinstance(state, dict):
         raise RuntimeError("catalog_state_not_object")
+
+    upgraded_candidates, migrated = upgrade_legacy_demand_first_snapshot(completed_candidates)
+    if migrated:
+        temporary_path = completed_candidates_path.with_suffix(
+            completed_candidates_path.suffix + ".tmp"
+        )
+        temporary_path.write_text(
+            json.dumps(upgraded_candidates, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        temporary_path.replace(completed_candidates_path)
+        completed_candidates = upgraded_candidates
+        print(
+            "OFFERCHIN_CATALOG_SNAPSHOT_LEGACY_ORDER_UPGRADED "
+            f"candidates={len(upgraded_candidates['candidates'])} "
+            "policy=catalog_demand_first_v1; original order preserved"
+        )
 
     snapshot = build_status_snapshot(state, completed_candidates=completed_candidates)
     status_path.write_text(
