@@ -277,6 +277,14 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(tracked_query.get("u"), [affiliate])
         self.assertEqual(tracked_query.get("src"), ["bale"])
 
+        # Public purchase buttons must never route through our own tracking domain,
+        # even when the tracking service reports healthy.
+        with (
+            patch.object(radar_module, "_click_tracker_is_healthy", return_value=True),
+            patch.object(radar_module, "build_click_tracking_link", side_effect=AssertionError("tracker must not be called")),
+        ):
+            self.assertEqual(radar_module.tracked_affiliate_button_url(affiliate, "bale"), affiliate)
+
 
     def test_fetch_product_record_uses_snappshop_internal_api_id_mapping(self):
         url = "https://snappshop.ir/product/snp-25751584"
