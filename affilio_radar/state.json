@@ -358905,12 +358905,12 @@
     "unchanged": 9,
     "updated": 0
   },
-  "filo_last_upload_attempt_at": "2026-11-11T22:58:32.144441+00:00",
-  "filo_last_upload_success_at": "2026-11-11T22:59:04.369870+00:00",
+  "filo_last_upload_attempt_at": "2026-11-11T23:34:37.871251+00:00",
+  "filo_last_upload_success_at": "2026-11-11T23:35:11.892484+00:00",
   "filo_login_verification_attempted_at": "2026-11-11T19:32:22.917376+00:00",
   "filo_login_verification_status": "verified",
   "filo_login_verified_at": "2026-11-11T19:32:22.917376+00:00",
-  "filo_next_upload_at": "2026-11-11T23:25:32.144441+00:00",
+  "filo_next_upload_at": "2026-11-12T00:01:37.871251+00:00",
   "filo_upload_interval_policy_version": 2,
   "growth_tracking": {
     "daily_member_counts": {
@@ -458613,7 +458613,14 @@
       "expiry_estimated": false,
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
-      "filo_upload_status": "pending",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-11T23:35:11.892484+00:00",
+      "filo_upload_started_at": "2026-11-11T23:34:37.871251+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "iQKTebl",
+      "filo_video_url": "https://ifilo.net/v/iQKTebl",
+      "filo_visibility": "pending_review",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-11T12:40:04.027089+00:00",
       "history_days": 2,
@@ -458654,9 +458661,10 @@
       "ts": 1794400819.40873,
       "video_file_name": "offerchin-dkp-19742140.mp4",
       "video_file_names": {
+        "filo": "offerchin-dkp-19742140.mp4",
         "youtube": "offerchin-dkp-19742140.mp4"
       },
-      "video_generated_at": "2026-11-11T16:36:44.561255+00:00",
+      "video_generated_at": "2026-11-11T23:34:29.236458+00:00",
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_description_version": 5,
