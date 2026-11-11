@@ -25,7 +25,7 @@ class FiloUploaderUnitTests(unittest.TestCase):
         self.assertTrue(filo_credentials_available({"FILO_USER": " user ", "FILO_PASS": " pass "}))
 
     def test_success_flag_accepts_supported_api_truthy_values(self):
-        for value in (True, 1, "1", "true", "YES"):
+        for value in (True, 1, "1", "true", "YES", "success", "OK"):
             self.assertTrue(_success_flag(value))
         for value in (False, 0, "0", "false", "", None):
             self.assertFalse(_success_flag(value))
