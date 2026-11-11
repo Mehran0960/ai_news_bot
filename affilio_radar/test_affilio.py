@@ -196,6 +196,16 @@ class AffilioRadarTests(unittest.TestCase):
         self._demand_gate_patch.start()
         self.addCleanup(self._demand_gate_patch.stop)
 
+    def test_generality_separates_electrical_cables_from_mobile_accessories(self):
+        self.assertEqual(
+            radar_module._publication_use_case_group("کابل برق افشان ساختمان"),
+            "lighting_electrical",
+        )
+        self.assertEqual(
+            radar_module._publication_use_case_group("کابل شارژ USB گوشی موبایل"),
+            "mobile_productivity",
+        )
+
     def test_four_factor_policy_balances_all_signals_and_ignores_clicks_and_synthetic_scores(self):
         now = datetime(2026, 11, 11, 12, 0, tzinfo=timezone.utc)
         strongest_demand_expensive = {
