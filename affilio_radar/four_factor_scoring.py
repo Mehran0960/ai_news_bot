@@ -19,7 +19,6 @@ FACTOR_WEIGHTS = {
     "generality": 0.25,
     "discount_attractiveness": 0.25,
 }
-AFFORDABILITY_PRICE_ANCHOR_TOMAN = 250_000
 DEMAND_MAX_RANK = 60
 DEMAND_MAX_AGE_HOURS = 24
 REVIEW_MIN_WINDOW_HOURS = 6
@@ -230,11 +229,23 @@ def _price_percentile_score(prices: list[int], price: int) -> int:
     return max(0, min(100, round(100 * (1 - mid_rank / (len(ordered) - 1)))))
 
 
-def _absolute_price_score(price: int) -> int:
-    if price <= 0:
+def _median_price(values: list[int]) -> int:
+    ordered = sorted(value for value in values if value > 0)
+    if not ordered:
         return 0
-    relative = price / AFFORDABILITY_PRICE_ANCHOR_TOMAN
-    return max(0, min(100, round(100 - 20 * math.log10(relative))))
+    middle = len(ordered) // 2
+    if len(ordered) % 2:
+        return ordered[middle]
+    return round((ordered[middle - 1] + ordered[middle]) / 2)
+
+
+def _absolute_price_score(price: int, reference_price: int) -> int:
+    # Use this scoring cycle's median, not a fixed Toman anchor that decays with inflation.
+    # A missing price is unknown, not proof that the product is unaffordable.
+    if price <= 0 or reference_price <= 0:
+        return 50
+    relative = price / reference_price
+    return max(0, min(100, round(50 - 20 * math.log10(relative))))
 
 
 def _infer_use_case(record: dict) -> str:
@@ -341,22 +352,22 @@ def score_candidates(
             all_prices.append(price)
             prices_by_use_case.setdefault(use_case, []).append(price)
 
+    pool_median_price = _median_price(all_prices)
     scored = []
     for index, row in enumerate(source_rows):
         candidate = dict(row)
         use_case = use_cases[index]
         price = _int(candidate.get("current_price") or candidate.get("listed_current_price") or candidate.get("last_checked_price"))
-        global_percentile = _price_percentile_score(all_prices, price) if price > 0 else 0
+        global_percentile = _price_percentile_score(all_prices, price) if price > 0 else 50
         local_prices = prices_by_use_case.get(use_case, [])
         local_percentile = (
             _price_percentile_score(local_prices, price)
             if price > 0 and len(local_prices) >= 3
             else 50
         )
-        absolute = _absolute_price_score(price)
-        affordability = (
-            round(0.50 * absolute + 0.25 * global_percentile + 0.25 * local_percentile)
-            if price > 0 else 0
+        absolute = _absolute_price_score(price, pool_median_price)
+        affordability = round(
+            0.50 * absolute + 0.25 * global_percentile + 0.25 * local_percentile
         )
         demand = _demand_score(candidate, current)
         generality = _generality_score(use_case)
@@ -382,8 +393,9 @@ def score_candidates(
         candidate["selection_discount_attractiveness_score"] = discount
         candidate["selection_four_factor_score"] = combined
         candidate["selection_use_case_group"] = use_case
-        candidate["selection_affordability_basis"] = "absolute_log_price_plus_pool_percentiles"
-        candidate["selection_affordability_reference"] = "current_candidate_pool_not_household_income"
+        candidate["selection_affordability_basis"] = "pool_median_log_price_plus_global_and_use_case_percentiles"
+        candidate["selection_affordability_reference"] = "median_of_current_candidate_pool_not_household_income"
+        candidate["selection_affordability_price_status"] = "available" if price > 0 else "missing_neutral"
         candidate["selection_generality_basis"] = "retail_taxonomy_use_case_proxy_not_population_measure"
         history_verified, market_verified, _ = _verified_discount_evidence(candidate, current)
         candidate["selection_discount_evidence"] = (
