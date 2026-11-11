@@ -131,6 +131,17 @@ def _visible_first(page, selectors):
             return locator
     return None
 
+def _find_login_captcha_field(page):
+    """Return Filo's visible login CAPTCHA field, if the account requires one."""
+    return _visible_first(
+        page,
+        [
+            'input[placeholder*="کد امنیتی"]',
+            'input[name*="captcha" i]',
+        ],
+    )
+
+
 def _visible_enabled_first(page, selectors):
     """Return the first visible, enabled matching control, not a disabled decoy."""
     for selector in selectors:
@@ -302,6 +313,8 @@ def _login(page, username: str, password: str) -> None:
     # The login page is server-rendered, but its form is controlled by Vue v-model.
     # Filling before Vue attaches its input handler lets hydration erase the values.
     _wait_for_filo_login_form_hydration(page)
+    if _find_login_captcha_field(page) is not None:
+        raise FiloUploadError("filo_login_challenge_required")
     username_field.fill(username)
     password_field.fill(password)
 
