@@ -333,6 +333,26 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     );
   }
   const now = tick.getTime();
+  const adaptiveIntervalSeconds = Number(state.publisher_interval_seconds);
+  const poolAvailabilityKnown = Object.prototype.hasOwnProperty.call(state, "publisher_available_count");
+  const poolAvailableCount = Number(state.publisher_available_count);
+  if (poolAvailabilityKnown && Number.isFinite(poolAvailableCount) && poolAvailableCount <= 0) {
+    // This workflow also refreshes selection/pool state. Never suppress it when the
+    // pool is empty, or the system cannot discover replacement offers.
+    console.log(
+      "OFFERCHIN_POOL_EMPTY_REFRESH_ONLY cycle=" + String(state.publisher_cycle_completed_at || "none")
+    );
+  } else if (Number.isFinite(adaptiveIntervalSeconds) && adaptiveIntervalSeconds > 0) {
+    console.log(
+      "OFFERCHIN_ADAPTIVE_PUBLICATION_POLICY interval_seconds=" +
+      Math.max(Math.round(PUBLISHER_INTERVAL_MS / 1000), Math.round(adaptiveIntervalSeconds)) +
+      " available=" + (Number.isFinite(poolAvailableCount) ? poolAvailableCount : "legacy") +
+      "; discovery_refresh_uses_base_interval=true"
+    );
+  }
+  // Dispatch the worker on the base interval even when the adaptive post interval
+  // is longer. It refreshes the pool every base slot; Python queues a public post
+  // only when the adaptive cadence has elapsed.
   if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
     console.log("OFFERCHIN_PUBLISHER_NOT_DUE seconds_remaining=" +
       Math.ceil((PUBLISHER_INTERVAL_MS - (now - lastPublishedAt)) / 1000));
