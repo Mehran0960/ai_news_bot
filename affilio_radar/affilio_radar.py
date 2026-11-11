@@ -10694,8 +10694,11 @@ def run(publish=False, selection_only=False):
     # Historical proof affects ranking only, not a fixed displayed-discount threshold.
     enrich_price_history(products, state)
     enrich_market_prices(products, state)
-    products.sort(key=deal_sort_key, reverse=True)
     queue_now = datetime.now(timezone.utc)
+    # Score the comparable live-checked product cohort together so category-relative
+    # affordability is computed from its peers, not from isolated one-item calls.
+    _apply_offerchin_four_factor_scores(products, now=queue_now)
+    products.sort(key=deal_sort_key, reverse=True)
     # Independent market/history evidence is diagnostic; it cannot filter a live markdown.
     listed_eligible_count = sum(
         bool(
