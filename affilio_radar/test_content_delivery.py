@@ -41,6 +41,8 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "market_reference_kind": "seller_median",
             "market_price_advantage_pct": 6,
             "market_price_checked_at": self.now.isoformat(),
+            "market_available_offer_count": 3,
+            "market_reported_seller_count": 3,
             "selection_discount_floor": 50,
             "deal_expires_at": deadline.isoformat() if deadline else "",
         }
