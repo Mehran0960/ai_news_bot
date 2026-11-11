@@ -323,7 +323,8 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     }
   } else {
     // Reuse the last immutable clean snapshot while the next full scan runs.
-    // A new full scan is not required between two 27-minute publication slots.
+    // The Python selector derives each next slot from qualified pool size; 27 minutes
+    // is a floor, not a promise to publish when the pool is weak or empty.
     console.log(
       "OFFERCHIN_PUBLISHER_USING_CLEAN_SNAPSHOT cycle=" +
       String(catalogStatus.last_clean_cycle_completed_at) +
