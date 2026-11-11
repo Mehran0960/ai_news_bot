@@ -4936,7 +4936,7 @@ def is_discount_publish_eligible(
     minimum_discount_percent: int | None = None,
     now: datetime | None = None,
 ) -> bool:
-    """Require verified stock/price/image, a valid product, and a genuine markdown."""
+    """Require live product validity plus fresh independently verified discount value."""
     return bool(
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
@@ -8515,13 +8515,14 @@ def select_discount_fallback_candidates(
     now: datetime | None = None,
     include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Rank live-valid candidates by DigiKala demand evidence, then verified deal value.
+    """Require fresh demand and price-value proof, then rank by demand, affordability and value.
 
     Fresh native bestseller rank is the primary relative-demand signal. Fresh review growth is
     a secondary indirect proxy; lifetime review totals and rating are weak historical context.
     None of these values is represented as absolute unit sales. Clicks, commissions and affiliate
-    income never affect ranking. Positive external market/history confirmation is not required;
-    fresh verified contradictory evidence may still veto an otherwise eligible offer.
+    income never affect ranking. Publication requires either fresh verified positive price history
+    or a fresh same-product seller-median comparison showing at least the configured market edge.
+    Relative price accessibility is a ranking tie-breaker, never a substitute for demand or value.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -8590,7 +8591,7 @@ def select_discount_fallback_candidates(
     print(
         "SELECTION_POLICY rank=digikala_bestseller_tier_desc,rank_strength_desc,"
         "rank_momentum_desc,review_growth_proxy_desc,review_quality_context_desc,"
-        "discount_percent_desc,savings_toman_desc "
+        "affordability_percentile_desc,verified_discount_value_desc "
         f"digikala_bestseller_ranked={bestseller_ranked} "
         f"review_growth_proxy_verified={review_growth_tiebreaks} "
         "unit_sales_count_available=false review_growth_is_sales_data=false "
@@ -8625,7 +8626,7 @@ def select_discount_fallback_candidates(
         )
         selected["selection_discount_floor"] = int(floor)
         selected["selection_discount_band"] = discount_fallback_band_label(int(floor), None)
-        selected["publication_policy"] = "digikala_demand_first_bestseller_review_quality_discount_v1"
+        selected["publication_policy"] = "digikala_demand_affordability_verified_value_v2"
         bestseller_evidence = _fresh_digikala_bestseller_evidence(product, now=current)
         selected["selection_demand_evidence"] = (
             "digikala_native_bestseller_rank" if bestseller_evidence
@@ -10867,7 +10868,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "The scanner traverses every queryable DigiKala category page ordered by DigiKala's native bestseller sort (sort id 7). Candidates are ranked first by fresh within-category bestseller evidence (top 10, 11-30, then 31-60), then observed rank momentum and the number of fresh categories in which the product ranks, then fresh review-count growth as an indirect proxy, then lifetime review count/rating as weak quality context, and only then discount percentage and cash savings. DigiKala's public data available to this integration does not expose a verified absolute unit-sales count, so bestseller rank is a relative sales-demand signal, not a unit count; review growth is not sales. Clicks never influence market-demand ranking. SnappShop and other sources remain supplementary and cannot outrank a fresh DigiKala bestseller signal. Price, stock, product identity, affiliate URL, offer validity, duplicate and safety checks remain hard publication controls.",
+        "ranking_note": "The scanner traverses every queryable DigiKala category page ordered by DigiKala's native bestseller sort (sort id 7). Candidates are ranked first by fresh within-category bestseller evidence (top 10, 11-30, then 31-60), then observed rank momentum and the number of fresh categories in which the product ranks, then fresh review-count growth as an indirect proxy and lifetime review count/rating as weak quality context, then a blended global/category affordability percentile, and only then independently verified discount value. DigiKala's public data available to this integration does not expose a verified absolute unit-sales count, so bestseller rank is a relative sales-demand signal, not a unit count; review growth is not sales. Clicks never influence market-demand ranking. SnappShop and other sources remain supplementary and cannot outrank a fresh DigiKala bestseller signal. Price, stock, product identity, affiliate URL, offer validity, duplicate and safety checks remain hard publication controls.",
         "demand_ranking_policy": {
             "version": "digikala_demand_affordability_verified_value_v2",
             "primary_source": "DigiKala native bestseller sort id=7",
