@@ -46,7 +46,7 @@ jobs:
         run: |
           python -m unittest -v \
             test_affilio.AffilioRadarTests.test_all_real_discount_bands_compete_without_a_percentage_or_saving_floor \
-            test_affilio.AffilioRadarTests.test_demand_context_precedes_discount_but_clicks_and_synthetic_scores_are_ignored \
+            test_affilio.AffilioRadarTests.test_four_factor_policy_balances_all_signals_and_ignores_clicks_and_synthetic_scores \
             test_affilio.AffilioRadarTests.test_live_page_price_verification_rejects_mismatched_site_price \
             test_affilio.AffilioRadarTests.test_fresh_bestseller_demand_outranks_deadline_urgency_and_a_larger_discount \
             test_affilio.AffilioRadarTests.test_discovery_checks_prioritize_bestseller_demand_before_deadline_and_discount
