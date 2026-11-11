@@ -333,16 +333,33 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     );
   }
   const now = tick.getTime();
-  if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
-    console.log("OFFERCHIN_PUBLISHER_NOT_DUE seconds_remaining=" +
-      Math.ceil((PUBLISHER_INTERVAL_MS - (now - lastPublishedAt)) / 1000));
+  const configuredIntervalSeconds = Number(state.publisher_interval_seconds);
+  const publisherIntervalMs = Number.isFinite(configuredIntervalSeconds) && configuredIntervalSeconds > 0
+    ? Math.max(PUBLISHER_INTERVAL_MS, configuredIntervalSeconds * 1000)
+    : PUBLISHER_INTERVAL_MS;
+  const hasPoolAvailability = Object.prototype.hasOwnProperty.call(state, "publisher_available_count");
+  const availableCount = Number(state.publisher_available_count);
+  if (hasPoolAvailability && Number.isFinite(availableCount) && availableCount <= 0) {
+    console.log(
+      "OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=no_qualified_cycle_offer_or_pending_delivery " +
+      "cycle=" + String(state.publisher_cycle_completed_at || "none")
+    );
+    return;
+  }
+  if (lastPublishedAt !== null && now - lastPublishedAt < publisherIntervalMs) {
+    console.log(
+      "OFFERCHIN_PUBLISHER_NOT_DUE seconds_remaining=" +
+      Math.ceil((publisherIntervalMs - (now - lastPublishedAt)) / 1000) +
+      " interval_seconds=" + Math.round(publisherIntervalMs / 1000) +
+      " cycle_offers_available=" + (Number.isFinite(availableCount) ? availableCount : "legacy")
+    );
     return;
   }
 
   const attemptAt = Date.parse(String(
     latestAttempt && (latestAttempt.updated_at || latestAttempt.run_started_at || latestAttempt.created_at) || ""
   ));
-  const retryGap = degradedLiveFallback ? PUBLISHER_INTERVAL_MS : PUBLISHER_RETRY_GAP_MS;
+  const retryGap = degradedLiveFallback ? publisherIntervalMs : PUBLISHER_RETRY_GAP_MS;
   if (Number.isFinite(attemptAt) && now - attemptAt < retryGap) {
     console.log("OFFERCHIN_PUBLISHER_RETRY_WINDOW seconds_remaining=" +
       Math.ceil((retryGap - (now - attemptAt)) / 1000));
