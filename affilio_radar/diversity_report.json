@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T06:19:50.483414+00:00",
+  "generated_at": "2026-11-11T06:32:01.850463+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "بوگیر و خوشبو کننده هوا": 1,
@@ -361,30 +361,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 799,
+    "all_time_count": 800,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T19:28:07.953841+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-708421",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 02 مناسب پوست‌های معمولی و مختلط حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-10T19:37:20.617871+00:00",
         "brand": "",
@@ -693,6 +676,23 @@
       },
       {
         "at": "2026-11-11T06:19:50.483414+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12935579",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-11T06:32:01.850463+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
