@@ -2642,7 +2642,7 @@ def select_queued_records_for_recheck(
     now: datetime | None = None,
     max_count: int | None = None,
 ) -> list[tuple[str, dict]]:
-    """Select queued offers by discount/savings priority, rotating the remainder for coverage."""
+    """Select queued offers by the shared four-factor score, rotating the remainder for coverage."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -2669,11 +2669,15 @@ def select_queued_records_for_recheck(
             continue
         eligible.append((pid, record))
 
-    # Re-establish discount/savings priority before slicing, independent of JSON key order.
-    eligible.sort(
-        key=lambda pair: pending_queue_sort_key(pair[1], pair[1], current),
-        reverse=True,
+    # Score the whole eligible recheck pool together so affordability percentiles
+    # use the same comparison set instead of a misleading one-record neutral score.
+    scored = score_four_factor_candidates(
+        [{**record, "product_id": pid} for pid, record in eligible],
+        now=current,
     )
+    scored_by_id = {str(row.get("product_id") or ""): row for row in scored}
+    eligible = [(pid, scored_by_id[pid]) for pid, _record in eligible if pid in scored_by_id]
+    eligible.sort(key=lambda pair: _four_factor_sort_key(pair[1]), reverse=True)
     if len(eligible) <= limit:
         return eligible
 
