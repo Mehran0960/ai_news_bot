@@ -3177,6 +3177,10 @@ def _apply_offerchin_four_factor_scores(records: list[dict], now: datetime | Non
         records,
         live_demand_score_fn=lambda row: _offerchin_live_demand_score(row, now=current),
         use_case_group_fn=_publication_use_case_group,
+        price_group_fn=lambda row: str(
+            row.get("catalog_category_id") or row.get("catalog_best_selling_category_id")
+            or _publication_use_case_group(row)
+        ),
         discount_verified_fn=lambda row: has_attractive_discount_value(row, now=current),
         now=current,
     )
