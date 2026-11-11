@@ -196,54 +196,67 @@ class AffilioRadarTests(unittest.TestCase):
         self._demand_gate_patch.start()
         self.addCleanup(self._demand_gate_patch.stop)
 
-    def test_demand_context_precedes_discount_but_clicks_and_synthetic_scores_are_ignored(self):
-        now = datetime(2026, 10, 28, tzinfo=timezone.utc)
-        stronger_quality_context = {
-            "product_id": "dkp-101",
-            "discount_percent": 35,
-            "savings_toman": 150_000,
-            "demand_score": 100,
-            "current_demand_score": 100,
-            "click_count_30d": 90_000,
-            "review_count": 1_000_000,
-            "rating": 5.0,
+    def test_four_factor_policy_balances_all_signals_and_ignores_clicks_and_synthetic_scores(self):
+        now = datetime(2026, 11, 11, 12, 0, tzinfo=timezone.utc)
+        strongest_demand_expensive = {
+            "product_id": "dkp-101", "title": "دستگاه تصفیه هوا خانگی",
+            "catalog_sort_mode": "best_selling", "catalog_best_selling_rank": 1,
+            "catalog_best_selling_category_id": "100",
+            "catalog_best_selling_category_name": "لوازم خانگی",
+            "catalog_rank_observed_at": now.isoformat(),
+            "current_price": 2_500_000, "original_price": 2_900_000,
+            "discount_percent": 14, "savings_toman": 400_000,
+            "market_status": "verified", "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": 8, "market_price_checked_at": now.isoformat(),
+            "demand_score": 100, "current_demand_score": 100,
+            "click_count_30d": 90_000, "review_count": 1_000_000, "rating": 5.0,
         }
-        weaker_quality_context = {
-            "product_id": "dkp-102",
-            "discount_percent": 40,
-            "savings_toman": 180_000,
-            "demand_score": 0,
-            "current_demand_score": 0,
-            "click_count_30d": 0,
-            "review_count": 0,
-            "rating": 0,
+        lower_demand_affordable = {
+            "product_id": "dkp-102", "title": "شامپو مو مصرف روزانه",
+            "catalog_sort_mode": "best_selling", "catalog_best_selling_rank": 40,
+            "catalog_best_selling_category_id": "200",
+            "catalog_best_selling_category_name": "شامپو مو",
+            "catalog_rank_observed_at": now.isoformat(),
+            "current_price": 300_000, "original_price": 600_000,
+            "discount_percent": 50, "savings_toman": 300_000,
+            "market_status": "verified", "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": 8, "market_price_checked_at": now.isoformat(),
+            "demand_score": 0, "current_demand_score": 0,
+            "click_count_30d": 0, "review_count": 0, "rating": 0,
         }
-        self.assertGreater(
-            deal_sort_key(stronger_quality_context, now),
-            deal_sort_key(weaker_quality_context, now),
+        scored = radar_module.score_four_factor_candidates(
+            [strongest_demand_expensive, lower_demand_affordable], now=now
         )
-
-        # Clicks and legacy synthetic scores never alter market-demand rank.
-        changed_clicks = {
-            **stronger_quality_context,
-            "click_count_30d": 0,
-            "demand_score": 0,
-            "current_demand_score": 0,
-        }
+        self.assertGreater(
+            scored[0]["selection_demand_score"],
+            scored[1]["selection_demand_score"],
+        )
+        self.assertGreater(
+            scored[1]["selection_affordability_score"],
+            scored[0]["selection_affordability_score"],
+        )
         self.assertEqual(
-            deal_sort_key(stronger_quality_context, now),
-            deal_sort_key(changed_clicks, now),
+            set(scored[0]["selection_factor_scores"]),
+            {"live_demand", "affordability", "generality", "discount_attractiveness", "combined"},
         )
+        # The balanced composite can favor the affordable, useful, independently verified offer.
+        self.assertGreater(deal_sort_key(scored[1], now), deal_sort_key(scored[0], now))
 
-        # Discount and savings are the final tie-break after demand context is equal.
-        same_context_more_savings = {
-            **weaker_quality_context,
-            "discount_percent": 40,
-            "savings_toman": 200_000,
+        # Clicks, commission and old synthetic fields are not any of the four inputs.
+        changed_clicks = {
+            **strongest_demand_expensive,
+            "click_count_30d": 0,
+            "demand_score": 0,
+            "current_demand_score": 0,
+            "commission_toman": 999_999_999,
+            "commission_rate_percent": 99,
         }
-        self.assertGreater(
-            deal_sort_key(same_context_more_savings, now),
-            deal_sort_key(weaker_quality_context, now),
+        changed = radar_module.score_four_factor_candidates(
+            [changed_clicks, lower_demand_affordable], now=now
+        )[0]
+        self.assertEqual(
+            scored[0]["selection_factor_scores"],
+            changed["selection_factor_scores"],
         )
 
     def test_product_url_accepts_only_digikala_product_pages(self):
