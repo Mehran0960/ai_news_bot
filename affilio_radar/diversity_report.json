@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T12:40:15.171817+00:00",
+  "generated_at": "2026-11-11T13:13:55.478808+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ارگانایزر آشپزخانه": 1,
@@ -113,6 +113,7 @@
       "لوازم سفر و کمپینگ": 1,
       "ویتامین‌ها و مواد معدنی": 1,
       "پتو": 1,
+      "ژل و صابون ابرو": 1,
       "کرم آبرسان و مرطوب کننده": 1,
       "کرم دور چشم": 1,
       "کرم ضد آفتاب": 1,
@@ -124,38 +125,38 @@
       "automotive": 1,
       "fashion": 1,
       "home": 1,
-      "other": 5,
+      "other": 6,
       "personal_care": 9,
       "power_backup": 1,
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "automotive": 5.3,
-      "fashion": 5.3,
-      "home": 5.3,
-      "other": 26.3,
-      "personal_care": 47.4,
-      "power_backup": 5.3,
-      "sports_outdoor": 5.3
+      "automotive": 5.0,
+      "fashion": 5.0,
+      "home": 5.0,
+      "other": 30.0,
+      "personal_care": 45.0,
+      "power_backup": 5.0,
+      "sports_outdoor": 5.0
     },
-    "distinct_catalog_categories": 19,
+    "distinct_catalog_categories": 20,
     "distinct_categories": 7,
-    "distinct_families": 19,
+    "distinct_families": 20,
     "distinct_retailers": 1,
     "distinct_use_cases": 8,
     "known_brand_posts": 2,
-    "posts": 19,
+    "posts": 20,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 19
+      "digikala": 20
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
       "automotive": 2,
-      "catalog_taxonomy_other": 4,
+      "catalog_taxonomy_other": 5,
       "home_living": 1,
       "kitchen_food": 1,
       "lighting_electrical": 1,
@@ -189,7 +190,6 @@
       "بوت زنانه": 1,
       "بوردگیم، اوریگامی و بازی فکری": 1,
       "بوگیر و خوشبو کننده هوا": 1,
-      "تجهیزات آرایشی چشم و ابرو": 1,
       "تریمر و شیور فویلی": 1,
       "توپ": 1,
       "تی شرت مردانه": 3,
@@ -264,6 +264,7 @@
       "پولوشرت مردانه": 1,
       "پیچ و مهره، رول پلاک، میخ و پرچ": 1,
       "چادر خودرو": 1,
+      "ژل و صابون ابرو": 1,
       "کابل صوتی و تصویری": 1,
       "کالای خوراکی و اساسی": 1,
       "کالای دیجیتال": 2,
@@ -297,8 +298,8 @@
       "kids_sports": 6,
       "large_appliances": 9,
       "mobile_devices": 3,
-      "other": 86,
-      "personal_care": 38,
+      "other": 87,
+      "personal_care": 37,
       "power_backup": 6,
       "sports_outdoor": 23,
       "tv_audio_video": 1
@@ -319,8 +320,8 @@
       "kids_sports": 2.1,
       "large_appliances": 3.1,
       "mobile_devices": 1.0,
-      "other": 29.9,
-      "personal_care": 13.2,
+      "other": 30.2,
+      "personal_care": 12.8,
       "power_backup": 2.1,
       "sports_outdoor": 8.0,
       "tv_audio_video": 0.3
@@ -354,7 +355,7 @@
       "automotive": 31,
       "baby_care": 5,
       "books_learning": 8,
-      "catalog_taxonomy_other": 10,
+      "catalog_taxonomy_other": 11,
       "events_decor": 3,
       "fashion_lifestyle": 26,
       "gaming": 2,
@@ -369,7 +370,7 @@
       "mobile_productivity": 39,
       "office_study": 10,
       "outdoor_travel": 6,
-      "personal_care": 34,
+      "personal_care": 33,
       "sports_fitness": 23,
       "tabletop_games": 1,
       "tools_industrial": 16
@@ -388,30 +389,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 810,
+    "all_time_count": 811,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-11T03:06:03.725079+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12935579",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-11T03:15:51.617356+00:00",
         "brand": "",
@@ -725,6 +709,23 @@
         "catalog_category_name": "",
         "category": "personal_care",
         "compared_to_product_id": "dkp-12935579",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12564010",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضدآفتاب بی‌رنگ ویتالیر SPF50 مدل Whitevit مناسب انواع پوست، حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-11T13:13:55.478808+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-708421",
         "family": "personal_care:skincare",
         "product_id": "dkp-12564010",
         "reason": "family_repeat,similarity_repeat",
