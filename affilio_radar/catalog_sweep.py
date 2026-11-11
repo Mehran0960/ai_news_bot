@@ -666,7 +666,7 @@ def _annotate_catalog_affordability(rows: list[dict]) -> list[dict]:
 
 
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Rank fresh demand first, then public breadth, affordability, and deal arithmetic."""
+    """Rank current demand, then relative affordability, public breadth, and deal arithmetic."""
     rank = _fresh_best_selling_rank(row)
     rank_strength = (
         BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY + 1 - rank
@@ -675,8 +675,8 @@ def catalog_candidate_sort_key(row: dict) -> tuple:
     return (
         _candidate_demand(row),
         rank_strength,
-        max(0, min(100, _normal_int(row.get("catalog_public_generality_score")))),
         max(0, min(100, _normal_int(row.get("catalog_affordability_percentile")))),
+        max(0, min(100, _normal_int(row.get("catalog_public_generality_score")))),
         max(0, _normal_int(row.get("discount_percent"))),
         max(0, _normal_int(row.get("savings_toman"))),
     )

@@ -198,7 +198,7 @@ class AffilioRadarTests(unittest.TestCase):
         self._demand_gate_patch.start()
         self.addCleanup(self._demand_gate_patch.stop)
 
-    def test_demand_context_precedes_discount_but_clicks_and_synthetic_scores_are_ignored(self):
+    def test_historical_review_context_cannot_outrank_deal_value_and_clicks_are_ignored(self):
         now = datetime(2026, 10, 28, tzinfo=timezone.utc)
         stronger_quality_context = {
             "product_id": "dkp-101",
@@ -220,9 +220,10 @@ class AffilioRadarTests(unittest.TestCase):
             "review_count": 0,
             "rating": 0,
         }
+        # Lifetime review volume/rating are weak historical context, not current demand.
         self.assertGreater(
-            deal_sort_key(stronger_quality_context, now),
             deal_sort_key(weaker_quality_context, now),
+            deal_sort_key(stronger_quality_context, now),
         )
 
         # Clicks and legacy synthetic scores never alter market-demand rank.
@@ -6756,6 +6757,74 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(scored["savings_toman"], 150_000)
         self.assertFalse(is_discount_publish_eligible(scored))
         self.assertTrue(is_discount_publish_eligible(_with_verified_market_value(scored, advantage=6)))
+
+    def test_four_factor_priority_is_demand_affordability_generality_then_discount(self):
+        now = datetime.now(timezone.utc)
+
+        def candidate(pid, rank, affordability, generality, discount, savings):
+            return {
+                "product_id": pid,
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_ranks_by_category": {
+                    "700": {"rank": rank, "observed_at": now.isoformat()},
+                },
+                "selection_affordability_percentile": affordability,
+                "selection_generality_score": generality,
+                "discount_percent": discount,
+                "savings_toman": savings,
+            }
+
+        affordable_narrow = candidate("dkp-priority-1", 15, 95, 20, 20, 100_000)
+        premium_broad = candidate("dkp-priority-2", 15, 10, 100, 80, 800_000)
+        self.assertGreater(deal_sort_key(affordable_narrow, now), deal_sort_key(premium_broad, now))
+        same_factors_better_discount = candidate("dkp-priority-3", 15, 95, 20, 45, 250_000)
+        self.assertGreater(deal_sort_key(same_factors_better_discount, now), deal_sort_key(affordable_narrow, now))
+
+    def test_snappshop_recent_review_growth_is_a_valid_distinct_market_demand_source(self):
+        now = datetime.now(timezone.utc)
+        baseline = now - timedelta(hours=8)
+        state = {
+            "current_demand_observations": {
+                "snp-99003": {
+                    "samples": [{"observed_at": baseline.isoformat(), "review_count": 100}],
+                    "last_observed_at": baseline.isoformat(),
+                }
+            }
+        }
+        product = {"product_id": "snp-99003", "review_count": 105}
+        summary = radar_module.update_current_demand_signals(state, [product], now=now)
+        self.assertEqual(summary["verified"], 1)
+        self.assertTrue(radar_module.has_current_demand_signal(product, now))
+        self.assertEqual(product["demand_signal_source"], "snappshop_recent_review_growth")
+        self.assertEqual(product["recent_review_growth_window"], 5)
+
+    def test_verified_discount_edge_precedes_larger_displayed_markdown(self):
+        now = datetime.now(timezone.utc)
+
+        def candidate(pid, market_edge, discount, savings):
+            return {
+                "product_id": pid,
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_ranks_by_category": {
+                    "700": {"rank": 8, "observed_at": now.isoformat()},
+                },
+                "selection_affordability_percentile": 70,
+                "selection_generality_score": 40,
+                "market_status": "verified",
+                "market_reference_kind": "seller_median",
+                "market_available_offer_count": 4,
+                "market_price_advantage_pct": market_edge,
+                "market_price_checked_at": now.isoformat(),
+                "discount_percent": discount,
+                "savings_toman": savings,
+            }
+
+        independently_better = candidate("dkp-value-1", 22, 20, 40_000)
+        display_only_bigger = candidate("dkp-value-2", 6, 75, 600_000)
+        self.assertGreater(
+            deal_sort_key(independently_better, now),
+            deal_sort_key(display_only_bigger, now),
+        )
 
 if __name__ == "__main__":
     unittest.main()

@@ -703,5 +703,47 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(retained[0]["catalog_affordability_tier"], "accessible")
         self.assertEqual(retained[-1]["catalog_affordability_tier"], "premium")
 
+    def test_catalog_affordability_precedes_public_generality_when_demand_ties(self):
+        now = datetime.now(timezone.utc)
+        rows = [
+            {
+                "product_id": "dkp-catalog-accessible",
+                "title": "کالای پرتقاضای عمومی مدل اول",
+                "catalog_category_id": "700",
+                "catalog_category_ids": ["700"],
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 5,
+                "catalog_rank_observed_at": now.isoformat(),
+                "catalog_best_selling_ranks_by_category": {
+                    "700": {"rank": 5, "observed_at": now.isoformat()},
+                },
+                "current_price": 100_000,
+                "original_price": 125_000,
+                "discount_percent": 20,
+                "savings_toman": 25_000,
+            },
+            {
+                "product_id": "dkp-catalog-broad-premium",
+                "title": "کالای پرتقاضای عمومی مدل دوم",
+                "catalog_category_id": "701",
+                "catalog_category_ids": ["701", "702", "703", "704"],
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 5,
+                "catalog_rank_observed_at": now.isoformat(),
+                "catalog_best_selling_ranks_by_category": {
+                    str(category): {"rank": 5, "observed_at": now.isoformat()}
+                    for category in (701, 702, 703, 704)
+                },
+                "current_price": 800_000,
+                "original_price": 1_000_000,
+                "discount_percent": 20,
+                "savings_toman": 200_000,
+            },
+        ]
+        retained = retain_diverse_candidates(rows, limit=2)
+        self.assertEqual(retained[0]["product_id"], "dkp-catalog-accessible")
+        self.assertGreater(retained[0]["catalog_affordability_percentile"], retained[1]["catalog_affordability_percentile"])
+        self.assertGreater(retained[1]["catalog_public_generality_score"], retained[0]["catalog_public_generality_score"])
+
 if __name__ == "__main__":
     unittest.main()

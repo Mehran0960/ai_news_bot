@@ -1,0 +1,51 @@
+{
+  "pages": [
+    {
+      "id": "radservic_package_tehransar",
+      "label": "راد سرویس - تعمیر و سرویس پکیج تهرانسر",
+      "type": "supplier_offer",
+      "topic": "package_service_tehran",
+      "url": "https://radservic.com/package-repair/"
+    },
+    {
+      "id": "sanjagh_package_market_tehran",
+      "label": "سنجاق - بازار سرویس و تعمیر پکیج تهران",
+      "type": "market_signal",
+      "topic": "package_service_tehran",
+      "url": "https://sanjaghapp.com/order/%D8%AA%D9%87%D8%B1%D8%A7%D9%86/%D8%B3%D8%B1%D9%88%DB%8C%D8%B3-%D9%88-%D8%AA%D8%B9%D9%85%DB%8C%D8%B1-%D9%BE%DA%A9%DB%8C%D8%AC"
+    },
+    {
+      "id": "sanjagh_package_price_tehran",
+      "label": "سنجاق - بنچمارک قیمت سرویس پکیج",
+      "type": "price_benchmark",
+      "topic": "package_service_tehran",
+      "url": "https://sanjaghapp.com/price/%D8%B3%D8%B1%D9%88%DB%8C%D8%B3-%D9%88-%D8%AA%D8%B9%D9%85%DB%8C%D8%B1-%D9%BE%DA%A9%DB%8C%D8%AC"
+    }
+  ],
+  "opportunity_groups": [
+    {
+      "id": "package-service-tehran-west-001",
+      "title": "سرویس و تعمیر پکیج با پیشنهاد ۱۰٪ تخفیف در تهرانسر و غرب تهران",
+      "market": "ایران",
+      "city_or_area": "تهرانسر و مناطق ۲۲، ۲۱، ۵ و ۲ تهران",
+      "source_ids": [
+        "radservic_package_tehransar",
+        "sanjagh_package_market_tehran",
+        "sanjagh_package_price_tehran"
+      ]
+    }
+  ],
+  "rss_feeds": [
+    {
+      "id": "takhfifbazaar_recent_deals",
+      "url": "https://takhfifbazaar.ir/feed.xml",
+      "limit": 80
+    }
+  ],
+  "google_news_queries": [
+    {"id": "news_clearance_sales", "query": "ایران (فروش فوری OR تخلیه انبار OR فروش ویژه) کالا"},
+    {"id": "news_service_capacity", "query": "ایران (ظرفیت خالی OR تخفیف خدمات OR قیمت ویژه) خدمات"},
+    {"id": "news_heating_service", "query": "تهران (سرویس پکیج OR تعمیر پکیج OR خدمات گرمایشی)"}
+  ],
+  "telegram_channels": ["memarket", "myrefah"]
+}

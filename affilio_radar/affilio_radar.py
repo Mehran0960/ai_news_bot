@@ -2999,6 +2999,64 @@ def _deal_primary_sort_key(record: dict, now: datetime | None = None) -> tuple:
         savings = 0
     return (_discount_percentage_sort_value(candidate), savings)
 
+def _verified_discount_value_sort_key(record: dict, now: datetime | None = None) -> tuple[int, int, int, int]:
+    """Rank independently verified price edge before retailer-displayed markdown."""
+    candidate = record if isinstance(record, dict) else {}
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
+    def fresh(field: str, max_age_hours: int) -> bool:
+        observed = _parse_utc_datetime(candidate.get(field))
+        if observed is None:
+            return False
+        age = (current - observed.astimezone(timezone.utc)).total_seconds() / 3600
+        return -0.1 <= age <= max(0, int(max_age_hours))
+
+    history_verified = bool(
+        candidate.get("history_status") == "verified"
+        and candidate.get("historical_deal_eligible") is True
+        and fresh("history_checked_at", PRICE_HISTORY_RECHECK_HOURS)
+    )
+    history_advantage = 0
+    if history_verified:
+        try:
+            history_advantage = max(0, int(candidate.get("discount_vs_30d_median_pct") or 0))
+        except (TypeError, ValueError, OverflowError):
+            history_advantage = 0
+        if history_advantage <= 0:
+            try:
+                median = int(candidate.get("history_median_toman") or 0)
+                price = int(candidate.get("current_price") or 0)
+                if median > price > 0:
+                    history_advantage = round(100 * (median - price) / median)
+            except (TypeError, ValueError, OverflowError):
+                pass
+
+    market_verified = bool(
+        candidate.get("market_status") == "verified"
+        and candidate.get("market_reference_kind") == "seller_median"
+        and fresh("market_price_checked_at", MARKET_PRICE_RECHECK_HOURS)
+    )
+    market_advantage = 0
+    if market_verified:
+        try:
+            market_verified = int(candidate.get("market_available_offer_count") or 0) >= 3
+            market_advantage = max(0, int(candidate.get("market_price_advantage_pct") or 0))
+        except (TypeError, ValueError, OverflowError):
+            market_verified = False
+            market_advantage = 0
+
+    independent_advantage = max(history_advantage, market_advantage if market_verified else 0)
+    independent_sources = int(history_verified) + int(market_verified)
+    try:
+        savings = max(0, int(candidate.get("savings_toman") or 0))
+    except (TypeError, ValueError, OverflowError):
+        savings = 0
+    return independent_advantage, independent_sources, _discount_percentage_sort_value(candidate), savings
+
+
 def _fresh_digikala_bestseller_evidence(
     record: dict,
     now: datetime | None = None,
@@ -3115,7 +3173,7 @@ def _fresh_digikala_bestseller_evidence(
 
 
 def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Rank only current demand evidence: fresh bestseller rank and recent review momentum."""
+    """Rank current demand: DigiKala native bestseller rank, then fresh DigiKala/SnappShop review growth."""
     candidate = record if isinstance(record, dict) else {}
     bestseller = _fresh_digikala_bestseller_evidence(candidate, now=now)
     rank = int(bestseller.get("best_rank_across_categories") or 0)
@@ -3162,12 +3220,19 @@ def has_verified_market_demand(record: dict, now: datetime | None = None) -> boo
 
 
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Order candidates by DigiKala demand evidence before discount and cash savings."""
+    """Order discovery by current demand, relative affordability, breadth, and independently checked value."""
     candidate = record if isinstance(record, dict) else {}
+    try:
+        affordability = max(0, min(100, int(candidate.get("selection_affordability_percentile", candidate.get("catalog_affordability_percentile", 50)) or 0)))
+        generality = max(0, min(100, int(candidate.get("selection_generality_score", candidate.get("catalog_public_generality_score", 0)) or 0)))
+    except (TypeError, ValueError, OverflowError):
+        affordability, generality = 50, 0
     return (
         *_digikala_demand_sort_key(candidate, now=now),
+        affordability,
+        generality,
+        *_verified_discount_value_sort_key(candidate, now=now),
         *_historical_quality_sort_key(candidate),
-        *_deal_primary_sort_key(candidate, now=now),
     )
 
 
@@ -4434,7 +4499,7 @@ def _verified_review_growth_sort_key(
     record: dict,
     now: datetime | None = None,
 ) -> tuple[int, float]:
-    """Return a fresh indirect DigiKala review-growth proxy after native bestseller evidence and before deal value."""
+    """Return fresh indirect review-growth evidence from DigiKala or SnappShop; never sales."""
     if not has_current_demand_signal(record, now=now):
         return (0, 0.0)
     try:
@@ -4448,19 +4513,19 @@ def _verified_review_growth_sort_key(
 
 
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank current demand, public breadth and accessibility before historical context and deal size."""
+    """Rank current demand, then relative affordability, public breadth, and verified deal value."""
     candidate = p if isinstance(p, dict) else {}
     try:
-        generality = max(0, min(100, int(candidate.get("selection_generality_score", 0) or 0)))
-        affordability = max(0, min(100, int(candidate.get("selection_affordability_percentile", 50) or 0)))
+        affordability = max(0, min(100, int(candidate.get("selection_affordability_percentile", candidate.get("catalog_affordability_percentile", 50)) or 0)))
+        generality = max(0, min(100, int(candidate.get("selection_generality_score", candidate.get("catalog_public_generality_score", 0)) or 0)))
     except (TypeError, ValueError, OverflowError):
-        generality, affordability = 0, 50
+        affordability, generality = 50, 0
     return (
         *_digikala_demand_sort_key(candidate, now=now),
-        generality,
         affordability,
+        generality,
+        *_verified_discount_value_sort_key(candidate, now=now),
         *_historical_quality_sort_key(candidate),
-        *_deal_primary_sort_key(candidate, now=now),
     )
 
 
@@ -8605,9 +8670,9 @@ def select_discount_fallback_candidates(
     )
     print(
         "SELECTION_POLICY rank=fresh_bestseller_tier_desc,rank_strength_desc,"
-        "rank_momentum_desc,review_growth_proxy_desc,cross_category_generality_desc,"
-        "relative_affordability_desc,lifetime_review_rating_context_desc,"
-        "verified_price_value_desc,discount_percent_desc,savings_toman_desc "
+        "rank_momentum_desc,review_growth_proxy_desc,relative_affordability_desc,"
+        "cross_category_generality_desc,verified_price_value_desc,"
+        "discount_percent_desc,savings_toman_desc,lifetime_review_rating_context_desc "
         f"digikala_bestseller_ranked={bestseller_ranked} "
         f"review_growth_proxy_verified={review_growth_tiebreaks} "
         "unit_sales_count_available=false review_growth_is_sales_data=false "
@@ -8642,12 +8707,18 @@ def select_discount_fallback_candidates(
         )
         selected["selection_discount_floor"] = int(floor)
         selected["selection_discount_band"] = discount_fallback_band_label(int(floor), None)
-        selected["publication_policy"] = "digikala_demand_first_bestseller_review_quality_discount_v1"
+        selected["publication_policy"] = "multi_retailer_current_demand_affordability_generality_verified_value_v2"
         bestseller_evidence = _fresh_digikala_bestseller_evidence(product, now=current)
+        review_growth_source = str(product.get("demand_signal_source") or "")
+        review_growth_evidence = (
+            "snappshop_recent_review_growth_proxy"
+            if review_growth_source == "snappshop_recent_review_growth"
+            else "digikala_recent_review_growth_proxy"
+        )
         selected["selection_demand_evidence"] = (
             "digikala_native_bestseller_rank" if bestseller_evidence
-            else "digikala_recent_review_growth_proxy" if has_current_demand_signal(product, now=current)
-            else "digiKala_lifetime_reviews_and_rating_context" if (
+            else review_growth_evidence if has_current_demand_signal(product, now=current)
+            else "lifetime_reviews_and_rating_historical_context" if (
                 product.get("review_count") or product.get("rating")
             ) else "no_current_demand_evidence"
         )
@@ -10899,9 +10970,9 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "The scanner traverses every queryable DigiKala category page. Hard gates require fresh demand (native bestseller rank <=60 and <=24h old, or verified recent review growth), independently verified discount value (fresh positive price history or same-product seller median with at least 5% advantage), current price/stock, identity, direct affiliate URL, offer validity, duplicate and safety checks. After demand tier/rank/momentum, equal-demand offers are ranked by fresh bestseller breadth across categories (public generality), then 70% catalog-wide and 30% within-category price accessibility, then verified history/market advantage and displayed markdown/savings. Bestseller rank is relative category evidence, not unit sales; review growth is not sales. Clicks and affiliate income never rank demand.",
+        "ranking_note": "The scanner traverses every queryable DigiKala category page. Hard gates require fresh current demand (DigiKala native bestseller rank <=60 and <=24h old, or measured review growth from DigiKala/SnappShop in the valid window), independently verified discount value (fresh positive price history or same-product seller median with at least 5% advantage), current price/stock, identity, direct affiliate URL, offer validity, duplicate and safety checks. After current-demand tier/rank/momentum, equal-demand offers are ranked by 70% catalog-wide and 30% within-category relative price accessibility, then fresh bestseller breadth across categories (public generality), then independent price-value strength, discount percentage and cash savings. Bestseller rank is relative category evidence, not unit sales; review growth is an indirect proxy, not sales. Clicks and affiliate income never rank demand.",
         "demand_ranking_policy": {
-            "version": "digikala_demand_generality_affordability_verified_value_v2",
+            "version": "multi_retailer_demand_affordability_generality_verified_value_v2",
             "primary_source": "DigiKala native bestseller sort id=7",
             "primary_rank_window": "top 60 per DigiKala category",
             "rank_max_age_hours": DIGIKALA_BESTSELLER_MAX_AGE_HOURS,
@@ -10955,7 +11026,7 @@ def run(publish=False, selection_only=False):
             "endpoint": TOROB_MCP_URL,
         },
         "affordability_policy": {
-            "use": "ranking_tiebreaker_after_fresh_demand_and_public_generality",
+            "use": "ranking_tiebreaker_after_fresh_demand_and_before_public_generality",
             "global_price_percentile_weight": 0.70,
             "category_price_percentile_weight": 0.30,
             "higher_percentile_means_more_accessible_price": True,

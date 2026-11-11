@@ -218,15 +218,37 @@ def _annotate_generality(items: list[dict]) -> None:
         item["selection_generality_evidence"] = evidence
 
 
-def _value_sort_key(item: dict) -> tuple[int, int, int, int]:
-    history = int(
+def _value_sort_key(item: dict, now: datetime) -> tuple[int, int, int, int]:
+    """Compare verified price advantage first; evidence-source count is only a confidence tie-break."""
+    history_at = _utc(item.get("history_checked_at"))
+    history_fresh = bool(
+        history_at is not None
+        and -0.1 <= (now - history_at).total_seconds() / 3600 <= 24
+    )
+    history_verified = bool(
         item.get("history_status") == "verified"
         and item.get("historical_deal_eligible") is True
+        and history_fresh
     )
-    advantage = _int(item.get("market_price_advantage_pct"))
+    history_advantage = max(0, _int(item.get("discount_vs_30d_median_pct"))) if history_verified else 0
+
+    market_at = _utc(item.get("market_price_checked_at"))
+    market_fresh = bool(
+        market_at is not None
+        and -0.1 <= (now - market_at).total_seconds() / 3600 <= 24
+    )
+    market_verified = bool(
+        item.get("market_status") == "verified"
+        and item.get("market_reference_kind") == "seller_median"
+        and _int(item.get("market_available_offer_count")) >= 3
+        and market_fresh
+    )
+    market_advantage = max(0, _int(item.get("market_price_advantage_pct")) if market_verified else 0)
+    independent_advantage = max(history_advantage, market_advantage)
+    independent_sources = int(history_verified) + int(market_verified)
     discount = max(0, min(100, _int(item.get("discount_percent"))))
     savings = max(0, _int(item.get("savings_toman")))
-    return history, advantage, discount, savings
+    return independent_advantage, independent_sources, discount, savings
 
 
 def _sort_key(item: dict, now: datetime) -> tuple:
@@ -236,9 +258,9 @@ def _sort_key(item: dict, now: datetime) -> tuple:
         demand_tier,
         rank_strength,
         growth,
-        generality,
         _int(item.get("selection_affordability_percentile"), 50),
-        *_value_sort_key(item),
+        generality,
+        *_value_sort_key(item, now),
         str(item.get("product_id") or ""),
     )
 

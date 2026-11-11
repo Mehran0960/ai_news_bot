@@ -160,18 +160,38 @@ class CycleOfferPoolTests(unittest.TestCase):
         ranked = cycle_offer_candidates(state, now=self.now)
         self.assertEqual(ranked[0]["product_id"], "dkp-10201")
 
-    def test_cross_category_bestseller_breadth_precedes_affordability_and_markdown(self):
+    def test_affordability_precedes_cross_category_bestseller_breadth(self):
         state = {}
-        narrow = self.item("dkp-10311", 100_000, rank=5, category="101")
-        broad = self.item("dkp-10312", 300_000, rank=5, category="102")
-        narrow["selection_bestseller_category_count"] = 1
-        broad["selection_bestseller_category_count"] = 4
-        # Both have the same fresh rank; the broader demand footprint is the next signal.
-        self.merge(state, [narrow, broad])
+        narrow_accessible = self.item("dkp-10311", 100_000, rank=5, category="101")
+        broad_premium = self.item("dkp-10312", 300_000, rank=5, category="102")
+        narrow_accessible["selection_bestseller_category_count"] = 1
+        broad_premium["selection_bestseller_category_count"] = 4
+        # Equal live demand: an accessible price wins before public breadth is used as a tie-break.
+        self.merge(state, [narrow_accessible, broad_premium])
         ranked = cycle_offer_candidates(state, now=self.now)
-        self.assertEqual(ranked[0]["product_id"], "dkp-10312")
-        self.assertEqual(ranked[0]["selection_generality_tier"], "broad")
-        self.assertEqual(ranked[1]["selection_generality_tier"], "single_category")
+        self.assertEqual(ranked[0]["product_id"], "dkp-10311")
+        by_id = {row["product_id"]: row for row in ranked}
+        self.assertEqual(by_id["dkp-10312"]["selection_generality_tier"], "broad")
+        self.assertEqual(by_id["dkp-10311"]["selection_generality_tier"], "single_category")
+
+    def test_verified_market_advantage_outranks_displayed_markdown_size(self):
+        state = {}
+        stronger_market_edge = self.item("dkp-10315", 200_000, rank=5, category="103")
+        weaker_market_edge = self.item("dkp-10316", 200_000, rank=5, category="103")
+        stronger_market_edge.update({
+            "market_price_advantage_pct": 22,
+            "discount_percent": 20,
+            "savings_toman": 40_000,
+        })
+        weaker_market_edge.update({
+            "market_price_advantage_pct": 6,
+            "discount_percent": 75,
+            "savings_toman": 600_000,
+        })
+        self.merge(state, [stronger_market_edge, weaker_market_edge])
+        ranked = cycle_offer_candidates(state, now=self.now)
+        # The independently verified same-product market edge beats a larger retailer markdown.
+        self.assertEqual(ranked[0]["product_id"], "dkp-10315")
 
     def test_taxonomy_breadth_is_only_weak_generality_context(self):
         state = {}

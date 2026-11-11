@@ -1,0 +1,76 @@
+{
+  "schema_version": "0.1.0",
+  "execution_type": "MANUAL_LIVE_RESEARCH_SNAPSHOT",
+  "scanned_at_utc": "2026-11-11T16:15:00+00:00",
+  "scope": "Iran | all goods and services; this first pilot is narrow and not exhaustive",
+  "source_summary": {
+    "manual_evidence_pages": 3,
+    "automated_fetches_in_chat_runtime": 0,
+    "note": "This snapshot is reconstructed from current web research, not a GitHub Actions execution."
+  },
+  "candidate": {
+    "id": "package-service-tehran-west-001",
+    "title": "سرویس و تعمیر پکیج با پیشنهاد ۱۰٪ تخفیف در تهرانسر و غرب تهران",
+    "score": 63,
+    "score_type": "exploratory_not_sales_probability",
+    "status": "PROMISING_BUT_UNVERIFIED",
+    "publish_ready": false,
+    "score_breakdown": {
+      "demand": 17,
+      "offer_value": 18,
+      "supplier_reliability": 16,
+      "monetization": 3,
+      "execution_ease": 7,
+      "low_risk": 2
+    },
+    "claimed_discount_percent": 10,
+    "supplier_offer": {
+      "source": "https://radservic.com/package-repair/",
+      "claim": "10% discount on services and one-year service/parts warranty",
+      "service_area": "تهرانسر و مناطق ۲۲، ۲۱، ۵ و ۲ تهران",
+      "verification": "seller-page claim; validity, expiry, eligible scope and exact customer price not confirmed"
+    },
+    "market_signal": {
+      "source": "https://sanjaghapp.com/order/%D8%AA%D9%87%D8%B1%D8%A7%D9%86/%D8%B3%D8%B1%D9%88%DB%8C%D8%B3-%D9%88-%D8%AA%D8%B9%D9%85%DB%8C%D8%B1-%D9%BE%DA%A9%DB%8C%D8%AC",
+      "active_service_listings": 926,
+      "cumulative_reviews": 4717,
+      "average_rating": 4.7,
+      "recent_review_dates_jalali": ["1405/08/15", "1405/08/16", "1405/08/17"],
+      "interpretation": "active listings indicate supply/competition, not buyers; cumulative reviews are historical; three recent dated reviews are only a weak activity signal"
+    },
+    "price_benchmark": {
+      "source": "https://sanjaghapp.com/price/%D8%B3%D8%B1%D9%88%DB%8C%D8%B3-%D9%88-%D8%AA%D8%B9%D9%85%DB%8C%D8%B1-%D9%BE%DA%A9%DB%8C%D8%AC",
+      "labor_price_range_toman": [2500000, 3900000],
+      "note": "labor-only benchmark; parts and consumables are additional; not the supplier's final quote"
+    },
+    "revenue_models_to_negotiate": ["lead_fee", "commission"],
+    "monetization_status": "NO_AGREEMENT_VERIFIED",
+    "blocking_gates": [
+      "offer_terms_confirmed_with_supplier",
+      "final_customer_price_confirmed",
+      "commission_or_lead_fee_agreed",
+      "permission_to_advertise_verified",
+      "availability_and_capacity_confirmed"
+    ]
+  },
+  "false_positive_watchlist": [
+    {
+      "source": "https://takhfifbazaar.ir/",
+      "note": "The source flags some advertised 91–95% discount claims as unrealistic or unreliable. No individual listing was treated as a confirmed deal."
+    }
+  ],
+  "limitations": [
+    "The offer and warranty are seller-page claims; current validity and scope require supplier confirmation.",
+    "The active provider/listing count is not a buyer count.",
+    "The price benchmark covers labor only.",
+    "No independent cross-platform buyer-demand count is verified.",
+    "No supplier capacity, commercial agreement, final quote or permission to advertise is verified.",
+    "No product opportunity passed exact variant/price/stock verification in this first sample."
+  ],
+  "safety": {
+    "ads_published": 0,
+    "seller_contacted": 0,
+    "payments_made": 0,
+    "note": "Research only. No seller has been contacted and no ad is authorized."
+  }
+}
