@@ -20,6 +20,11 @@ from typing import Any
 import requests
 
 try:
+    from .four_factor_scoring import score_candidates as _score_four_factor_candidates, sort_key as _four_factor_sort_key
+except ImportError:
+    from four_factor_scoring import score_candidates as _score_four_factor_candidates, sort_key as _four_factor_sort_key
+
+try:
     from .product_quality import is_prohibited_product_title, is_publishable_product_title
 except ImportError:
     try:
@@ -579,18 +584,11 @@ def _candidate_demand(row: dict) -> int:
 
 
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Demand first: DigiKala bestseller evidence, weak review context, then deal value."""
-    rank = _fresh_best_selling_rank(row)
-    rank_strength = (
-        BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY + 1 - rank
-        if rank is not None else 0
-    )
-    return (
-        _candidate_demand(row),
-        rank_strength,
-        max(0, _normal_int(row.get("discount_percent"))),
-        max(0, _normal_int(row.get("savings_toman"))),
-    )
+    """Return the shared four-factor key; pool-relative affordability is added by retention."""
+    candidate = row if isinstance(row, dict) else {}
+    if candidate.get("four_factor_score_version") != "four-factor-equal-weight-v1":
+        candidate = _score_four_factor_candidates([candidate])[0] if candidate else {}
+    return _four_factor_sort_key(candidate)
 
 
 def retain_diverse_candidates(
@@ -598,19 +596,18 @@ def retain_diverse_candidates(
     limit: int = MAX_RETAINED_CANDIDATES,
     rotation: int = 0,
 ) -> list[dict]:
-    """Retain the global demand-first shortlist; do not impose category quotas or promote markdowns."""
+    """Retain the shared equal-weight four-factor shortlist without category quotas."""
     cap = max(0, int(limit))
-    # The rolling candidate shortlist exists to find publishable offers, not to keep
-    # undiscounted bestsellers that can never pass the last-mile publication gate.
-    eligible = (
+    eligible = [
         row for row in rows or []
         if isinstance(row, dict)
         and row.get("product_id")
         and _normal_int(row.get("discount_percent")) >= MIN_CANDIDATE_DISCOUNT
         and _normal_int(row.get("savings_toman")) > 0
         and not is_prohibited_product_title(row.get("title"))
-    )
-    ranked = sorted(eligible, key=catalog_candidate_sort_key, reverse=True)
+    ]
+    scored = _score_four_factor_candidates(eligible)
+    ranked = sorted(scored, key=_four_factor_sort_key, reverse=True)
     return ranked[:cap]
 
 def _category_page_url(category_id: str, page: int) -> tuple[str, dict]:
