@@ -11,6 +11,7 @@ import {
 } from "./affilio-minute-dispatcher.mjs";
 
 const categoryIds = Array.from({ length: 4917 }, (_, index) => String(index + 1));
+const cleanCycleCompletedAt = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 const cleanStatus = {
   schema_version: 2,
   full_catalog_mode: "all_categories_all_pages",
@@ -19,11 +20,11 @@ const cleanStatus = {
   last_clean_cycle_status: "complete",
   completed_candidates_snapshot_present: true,
   completed_candidates_snapshot_valid: true,
-  completed_candidates_cycle_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+  completed_candidates_cycle_at: cleanCycleCompletedAt,
   completed_candidates_count: 3000,
   completed_candidates_sha256: "a".repeat(64),
   last_clean_cycle_started_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-  last_clean_cycle_completed_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+  last_clean_cycle_completed_at: cleanCycleCompletedAt,
   last_clean_cycle_categories_total: 4917,
   last_clean_cycle_categories_complete: 4917,
   last_clean_cycle_categories_unqueryable: 0,
