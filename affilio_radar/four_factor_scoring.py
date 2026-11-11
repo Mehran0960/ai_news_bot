@@ -296,9 +296,9 @@ def _verified_discount_evidence(record: dict, now: datetime) -> tuple[bool, bool
         and advantage >= 5
     )
     if record.get("history_status") == "verified" and history_fresh and record.get("historical_deal_eligible") is False:
-        return False, False, 0.0
+        return False, False, -999.0
     if record.get("market_status") == "verified" and market_fresh and record.get("market_reference_kind") == "seller_median" and advantage <= -5:
-        return False, False, 0.0
+        return False, False, -999.0
     return history_verified, market_verified, max(0.0, advantage if market_verified else 0.0)
 
 
@@ -318,6 +318,9 @@ def _discount_score(record: dict, now: datetime) -> int:
         return 0
 
     history_verified, market_verified, advantage = _verified_discount_evidence(record, now)
+    if advantage < 0:
+        # Fresh verified history/market contradiction is affirmative evidence against this deal.
+        return 0
     percent_component = min(75.0, discount * 1.5)
     savings_component = min(15.0, 5.0 * math.log10(1 + savings / 100_000))
     verification_bonus = (42.0 if history_verified else 0.0) + (8.0 if market_verified and history_verified else 42.0 if market_verified else 0.0)
@@ -399,7 +402,9 @@ def score_candidates(
         candidate["selection_generality_basis"] = "retail_taxonomy_use_case_proxy_not_population_measure"
         history_verified, market_verified, _ = _verified_discount_evidence(candidate, current)
         candidate["selection_discount_evidence"] = (
-            "verified_history_and_or_market"
+            "fresh_contradictory_evidence_score_zero"
+            if _ < 0
+            else "verified_history_and_or_market"
             if history_verified or market_verified
             else "unverified_list_price_capped"
         )
