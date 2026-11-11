@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T09:01:23.353848+00:00",
+  "generated_at": "2026-11-11T09:38:59.381959+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "بوگیر و خوشبو کننده هوا": 1,
@@ -107,6 +107,7 @@
       "سرم و اسپری مراقبت مو": 1,
       "سرم پوست": 1,
       "شامپو مو": 1,
+      "ضدیخ و آب رادیاتور": 1,
       "لوازم خانگی برقی": 1,
       "ویتامین‌ها و مواد معدنی": 1,
       "کرم آبرسان و مرطوب کننده": 1,
@@ -115,24 +116,22 @@
       "کفش زنانه": 1
     },
     "category_post_counts": {
-      "audio_wearables": 1,
       "automotive": 1,
       "fashion": 1,
-      "other": 3,
+      "other": 4,
       "personal_care": 8
     },
     "category_share_percent": {
-      "audio_wearables": 7.1,
       "automotive": 7.1,
       "fashion": 7.1,
-      "other": 21.4,
+      "other": 28.6,
       "personal_care": 57.1
     },
-    "distinct_catalog_categories": 13,
-    "distinct_categories": 5,
+    "distinct_catalog_categories": 14,
+    "distinct_categories": 4,
     "distinct_families": 14,
     "distinct_retailers": 1,
-    "distinct_use_cases": 5,
+    "distinct_use_cases": 4,
     "known_brand_posts": 2,
     "posts": 14,
     "repeated_brand_count": 0,
@@ -144,9 +143,8 @@
       "digikala": 100.0
     },
     "use_case_post_counts": {
-      "audio_visual": 1,
       "automotive": 2,
-      "catalog_taxonomy_other": 3,
+      "catalog_taxonomy_other": 4,
       "mobile_productivity": 4,
       "personal_care": 4
     }
@@ -209,6 +207,7 @@
       "شورت زنانه": 1,
       "صبحانه": 2,
       "صنایع دستی": 1,
+      "ضدیخ و آب رادیاتور": 1,
       "عطر و ادکلن": 1,
       "عطر و ادکلن زنانه": 1,
       "عینک آفتابی زنانه": 1,
@@ -219,7 +218,7 @@
       "لوازم اداری": 5,
       "لوازم بهداشتی": 1,
       "لوازم تحریر": 2,
-      "لوازم جانبی راکت": 5,
+      "لوازم جانبی راکت": 4,
       "لوازم جانبی کمپرسور هوا": 1,
       "لوازم خانگی برقی": 2,
       "لوازم ماهیگیری": 3,
@@ -278,10 +277,10 @@
       "kids_sports": 6,
       "large_appliances": 9,
       "mobile_devices": 3,
-      "other": 85,
+      "other": 86,
       "personal_care": 38,
       "power_backup": 5,
-      "sports_outdoor": 27,
+      "sports_outdoor": 26,
       "tv_audio_video": 1
     },
     "category_share_percent": {
@@ -300,23 +299,23 @@
       "kids_sports": 2.1,
       "large_appliances": 3.1,
       "mobile_devices": 1.0,
-      "other": 29.3,
+      "other": 29.7,
       "personal_care": 13.1,
       "power_backup": 1.7,
-      "sports_outdoor": 9.3,
+      "sports_outdoor": 9.0,
       "tv_audio_video": 0.3
     },
-    "distinct_catalog_categories": 108,
+    "distinct_catalog_categories": 109,
     "distinct_categories": 20,
-    "distinct_families": 146,
+    "distinct_families": 147,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
-    "known_brand_posts": 53,
+    "known_brand_posts": 52,
     "posts": 290,
-    "repeated_brand_count": 40,
+    "repeated_brand_count": 39,
     "repeated_brands": {
       "ai_javaher": 8,
-      "avergrip": 4,
+      "avergrip": 3,
       "eurovital": 2,
       "habsan": 3,
       "hoye_sazan": 3,
@@ -336,7 +335,7 @@
       "automotive": 31,
       "baby_care": 5,
       "books_learning": 8,
-      "catalog_taxonomy_other": 10,
+      "catalog_taxonomy_other": 11,
       "events_decor": 3,
       "fashion_lifestyle": 26,
       "gaming": 2,
@@ -352,7 +351,7 @@
       "office_study": 10,
       "outdoor_travel": 5,
       "personal_care": 35,
-      "sports_fitness": 28,
+      "sports_fitness": 27,
       "tabletop_games": 1,
       "tools_industrial": 16
     }
@@ -370,30 +369,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 803,
+    "all_time_count": 804,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T20:30:39.279449+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-5664135",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مدل Oily Acne-Prone Skin، مناسب پوست‌های چرب، حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-10T20:30:39.279449+00:00",
         "brand": "",
@@ -702,6 +684,23 @@
       },
       {
         "at": "2026-11-11T09:01:23.353848+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-12935579",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12564010",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضدآفتاب بی‌رنگ ویتالیر SPF50 مدل Whitevit مناسب انواع پوست، حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-11T09:38:59.381959+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
