@@ -182,6 +182,27 @@ class FourFactorScoringTests(unittest.TestCase):
             "verified_history_and_or_market",
         )
 
+    def test_fresh_contradictory_history_or_market_sets_discount_score_to_zero(self):
+        history_conflict = self._ranked(1)
+        history_conflict.update({
+            "history_status": "verified",
+            "historical_deal_eligible": False,
+            "history_checked_at": self.now.isoformat(),
+        })
+        market_conflict = self._ranked(2)
+        market_conflict.update({
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": -8,
+            "market_price_checked_at": self.now.isoformat(),
+        })
+        scored = score_candidates([history_conflict, market_conflict], now=self.now)
+        self.assertTrue(all(row["selection_discount_attractiveness_score"] == 0 for row in scored))
+        self.assertTrue(all(
+            row["selection_discount_evidence"] == "fresh_contradictory_evidence_score_zero"
+            for row in scored
+        ))
+
     def test_discount_score_rejects_inconsistent_price_arithmetic(self):
         candidate = self._verified_discount(self._ranked(1))
         candidate["savings_toman"] += 1
