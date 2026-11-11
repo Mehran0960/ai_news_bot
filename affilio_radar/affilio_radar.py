@@ -3350,7 +3350,14 @@ def select_discovery_records_for_check(
         if next_check and next_check > current:
             continue
         due.append((pid, record))
-    due.sort(key=lambda pair: discovery_queue_sort_key(pair[1], current), reverse=True)
+    # Compare affordability against the complete due pool, not one candidate at a time.
+    scored_due = score_four_factor_candidates(
+        [{**record, "product_id": pid} for pid, record in due],
+        now=current,
+    )
+    due_by_id = {str(row.get("product_id") or ""): row for row in scored_due}
+    due = [(pid, due_by_id[pid]) for pid, _record in due if pid in due_by_id]
+    due.sort(key=lambda pair: _four_factor_sort_key(pair[1]), reverse=True)
 
     # Apply the exact same rolling 24-hour family/brand/similarity guards to the
     # complete due pool BEFORE consuming scarce live-detail slots. Previously the
@@ -8152,15 +8159,13 @@ def select_publish_candidates(
     # A discount floor is an eligibility label, not a ranking tier. Merge every
     # ready band before sorting so a lower-discount high-demand product can outrank
     # a weak-demand item with a larger markdown.
-    ordered = sorted(
-        (
-            product
-            for tier in selected_by_floor.values()
-            for product in tier
-        ),
-        key=lambda record: deal_sort_key(record, now=current),
-        reverse=True,
-    )
+    ready_products = [
+        product
+        for tier in selected_by_floor.values()
+        for product in tier
+    ]
+    scored_ready_products = score_four_factor_candidates(ready_products, now=current)
+    ordered = sorted(scored_ready_products, key=_four_factor_sort_key, reverse=True)
     return _filter_recent_publication_repeats(
         ordered, published, recent_publications, current,
         label="PUBLISH_SELECTION",
