@@ -235,6 +235,32 @@ test("video dispatcher sees an older pending upload beyond the newest six record
   assert.equal(hasDueVideoRecord({ published }, "youtube", now), true);
 });
 
+test("video destinations accept the canonical selected product without waiting for a photo-channel success", () => {
+  const now = Date.now();
+  const record = {
+    ts: (now - 60_000) / 1000,
+    video_dispatch_eligible: true,
+    distribution_queue_id: "dkp-selected:2026-11-11T20:00:00Z",
+    delivery_status: { telegram: "pending", bale: "pending", rubika: "pending", eitaa: "pending" },
+    youtube_upload_status: "pending",
+    aparat_upload_status: "pending",
+    filo_upload_status: "pending",
+    video_generation_status: "pending",
+    expiry_deadline_verified_directly: true,
+    expires_at: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
+  };
+  const state = { published: { "dkp-selected": record } };
+  for (const platform of ["youtube", "aparat", "filo"]) {
+    assert.equal(videoRecordDue(record, platform, now), true, platform);
+    assert.equal(hasDueVideoRecord(state, platform, now), true, platform);
+  }
+  assert.equal(videoRecordDue({
+    ...record,
+    video_dispatch_eligible: false,
+    distribution_queue_id: "",
+  }, "youtube", now), false);
+});
+
 test("Filo login must be explicitly verified and no older than seven days", () => {
   const now = Date.now();
   assert.equal(isFiloLoginVerified({}, now), false);
