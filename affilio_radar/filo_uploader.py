@@ -420,11 +420,57 @@ def _login(page, username: str, password: str) -> None:
 
     if login_response is not None:
         payload = _response_payload(login_response)
-        if login_response.status >= 400 or (
-            any(key in payload for key in ("success", "status", "s"))
-            and not _success_flag(payload.get("s", payload.get("success", payload.get("status"))))
-        ):
-            raise FiloUploadError("filo_login_rejected")
+        success_keys = ("success", "status", "s")
+        success_present = any(key in payload for key in success_keys)
+        success_value = payload.get("s", payload.get("success", payload.get("status")))
+        rejected = login_response.status >= 400 or (
+            success_present and not _success_flag(success_value)
+        )
+        if rejected:
+            # Log only an allowlisted category and HTTP status. Never log the
+            # response body: it may contain account identifiers or session data.
+            message_parts = []
+            for key in ("message", "error", "detail", "reason", "description", "msg"):
+                value = payload.get(key)
+                if isinstance(value, str):
+                    message_parts.append(value[:300])
+                elif isinstance(value, dict):
+                    for nested_key in ("message", "detail", "reason", "code"):
+                        nested = value.get(nested_key)
+                        if isinstance(nested, str):
+                            message_parts.append(nested[:200])
+            hint = " ".join(message_parts).casefold()
+            if login_response.status == 429 or re.search(r"too many|rate.?limit|تعداد درخواست|محدودیت درخواست", hint):
+                category = "rate_limited"
+            elif re.search(r"captcha|کپچا|تایید هویت|تأیید هویت", hint):
+                category = "captcha_required"
+            elif re.search(r"کد.?تایید|کد.?تأیید|رمز یکبار مصرف|one.?time.?password|otp", hint):
+                category = "otp_required"
+            elif re.search(r"نام کاربری|شماره موبایل|شماره تلفن|رمز عبور|گذرواژه|incorrect password|invalid credentials|wrong password|invalid username", hint):
+                category = "credentials_rejected"
+            elif re.search(r"مسدود|تعلیق|غیرفعال|غیر فعال|suspend|disabled|locked", hint):
+                category = "account_restricted"
+            elif login_response.status >= 500:
+                category = "service_error"
+            elif login_response.status == 403:
+                category = "access_forbidden"
+            elif login_response.status == 401:
+                category = "credentials_rejected"
+            elif login_response.status >= 400:
+                category = "request_rejected"
+            else:
+                category = "api_rejected"
+            print(
+                "FILO_LOGIN_API_DIAGNOSTIC "
+                + json.dumps({
+                    "http_status": int(login_response.status),
+                    "response_keys": sorted(str(key) for key in payload.keys())[:20],
+                    "success_flag_present": success_present,
+                    "success_flag": _success_flag(success_value) if success_present else None,
+                    "category": category,
+                }, ensure_ascii=False, sort_keys=True)
+            )
+            raise FiloUploadError("filo_login_" + category)
 
     time.sleep(1.5)
     body = page.locator("body").inner_text(timeout=5_000)
