@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T21:07:51.899144+00:00",
+  "generated_at": "2026-11-11T21:46:11.854689+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار آشپزی": 1,
@@ -106,6 +106,7 @@
       "اصلاح موی صورت": 1,
       "بوگیر و خوشبو کننده هوا": 1,
       "تریمر و شیور فویلی": 1,
+      "تونر": 1,
       "خمیر دندان": 1,
       "خودرو و موتورسیکلت": 1,
       "سرم و اسپری مراقبت مو": 1,
@@ -122,7 +123,6 @@
       "پیچ گوشتی و فازمتر": 1,
       "ژل و صابون ابرو": 1,
       "کرم دور چشم": 1,
-      "کرم ضد آفتاب": 1,
       "کرم ضد چروک": 1,
       "کرم، اسپری و پودر موبر": 1,
       "کفش زنانه": 1,
@@ -207,6 +207,7 @@
       "بوردگیم، اوریگامی و بازی فکری": 1,
       "بوگیر و خوشبو کننده هوا": 1,
       "تریمر و شیور فویلی": 1,
+      "تونر": 1,
       "توپ": 1,
       "تی شرت مردانه": 3,
       "تی شرت ورزشی مردانه": 4,
@@ -220,7 +221,6 @@
       "دستگاه هویه": 3,
       "دهان‌شویه و خمیردندان کودک و نوزاد": 1,
       "دوربین کنون": 1,
-      "رم ریدر": 1,
       "روشنایی و الکتریکی": 2,
       "زانو بند طبی": 1,
       "زنانه": 1,
@@ -298,7 +298,7 @@
       "گرمکن و ست ورزشی مردانه": 1
     },
     "category_post_counts": {
-      "audio_wearables": 11,
+      "audio_wearables": 10,
       "automotive": 18,
       "beauty_fragrance": 4,
       "books_stationery": 10,
@@ -314,15 +314,15 @@
       "large_appliances": 8,
       "lighting": 1,
       "mobile_devices": 3,
-      "other": 88,
-      "personal_care": 39,
+      "other": 87,
+      "personal_care": 40,
       "power_backup": 6,
       "sports_outdoor": 17,
       "tv_audio_video": 1
     },
     "category_share_percent": {
-      "audio_wearables": 3.9,
-      "automotive": 6.4,
+      "audio_wearables": 3.6,
+      "automotive": 6.5,
       "beauty_fragrance": 1.4,
       "books_stationery": 3.6,
       "computer_network": 1.4,
@@ -331,15 +331,15 @@
       "gaming": 0.4,
       "grocery_food": 3.6,
       "home": 2.9,
-      "home_cleaning": 2.1,
+      "home_cleaning": 2.2,
       "jewelry": 0.7,
       "kids_sports": 1.8,
       "large_appliances": 2.9,
       "lighting": 0.4,
       "mobile_devices": 1.1,
-      "other": 31.4,
-      "personal_care": 13.9,
-      "power_backup": 2.1,
+      "other": 31.2,
+      "personal_care": 14.3,
+      "power_backup": 2.2,
       "sports_outdoor": 6.1,
       "tv_audio_video": 0.4
     },
@@ -348,27 +348,27 @@
     "distinct_families": 151,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
-    "known_brand_posts": 38,
-    "posts": 280,
-    "repeated_brand_count": 27,
+    "known_brand_posts": 37,
+    "posts": 279,
+    "repeated_brand_count": 26,
     "repeated_brands": {
       "ai_javaher": 6,
       "eurovital": 2,
       "habsan": 3,
       "hoye_sazan": 3,
-      "muzik_apollo": 3,
+      "muzik_apollo": 2,
       "sangboo_climy": 11,
       "ufc": 6
     },
     "retailer_post_counts": {
-      "digikala": 280
+      "digikala": 279
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
       "arts_crafts": 1,
-      "audio_visual": 12,
+      "audio_visual": 11,
       "automotive": 32,
       "baby_care": 4,
       "books_learning": 8,
@@ -384,10 +384,10 @@
       "kitchen_food": 5,
       "lighting_electrical": 7,
       "local_goods": 2,
-      "mobile_productivity": 40,
+      "mobile_productivity": 39,
       "office_study": 11,
       "outdoor_travel": 6,
-      "personal_care": 32,
+      "personal_care": 33,
       "sports_fitness": 15,
       "tabletop_games": 1,
       "tools_industrial": 15
@@ -406,47 +406,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 831,
+    "all_time_count": 833,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-11T15:11:30.890346+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-12564010",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-20682942",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-11T15:11:30.890346+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-12564010",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-14194589",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم پوست ویتالیر مدل گلایکولیک اسید ٪7 مناسب برای پوست مختلط حجم 30 میلی لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-11T15:46:54.196330+00:00",
         "brand": "",
@@ -752,6 +718,40 @@
         ],
         "title": "سرم پوست ویتالیر مدل گلایکولیک اسید ٪7 مناسب برای پوست مختلط حجم 30 میلی لیتر",
         "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-11T21:46:11.854689+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-515367",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-477175",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم تقویت کننده ابرو سریتا مدل Enhancer Cream حجم 20 گرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-11T21:46:11.854689+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-515367",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-2714932",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم اصلاح کاسپین مدل کامفورت مناسب پوست های معمولی حجم 200 میلی لیتر",
+        "use_case": "personal_care"
       }
     ]
   }
