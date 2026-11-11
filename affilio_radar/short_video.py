@@ -30,6 +30,9 @@ WIDTH = 720
 HEIGHT = 1280
 FPS = 24
 DURATION_SECONDS = 12
+# Leave two title-line pitches of clean top space before the product headline.
+VIDEO_TITLE_TOP = 128
+VIDEO_LAYOUT_Y_SHIFT = VIDEO_TITLE_TOP - 34
 TITLE_FONT_PATH = Path(__file__).resolve().parent / "assets" / "fonts" / "Lalezar-Regular.ttf"
 VIDEO_LOGO_COLUMN_WIDTH = 112
 VIDEO_LOGO_TEXT_GAP = 12
@@ -336,7 +339,7 @@ def build_vertical_poster(
 
     # Keep the top clear of channel IDs; the product title leads the frame.
     # Product name is readable without opening the caption.
-    title_panel = (34, 34, WIDTH - 34, 150)
+    title_panel = (34, 34 + VIDEO_LAYOUT_Y_SHIFT, WIDTH - 34, 150 + VIDEO_LAYOUT_Y_SHIFT)
     draw.rounded_rectangle(
         (title_panel[0] + 4, title_panel[1] + 6, title_panel[2] + 4, title_panel[3] + 6),
         radius=24,
@@ -357,7 +360,7 @@ def build_vertical_poster(
         max_width=574,
         max_lines=2,
     )
-    line_y = 73 if len(title_lines) == 1 else 65
+    line_y = (73 if len(title_lines) == 1 else 65) + VIDEO_LAYOUT_Y_SHIFT
     for line in title_lines:
         draw.text(
             (WIDTH // 2, line_y),
@@ -373,7 +376,7 @@ def build_vertical_poster(
 
     # List every verified public destination except the platform receiving this video.
     # A separate poster is rendered per platform so a destination never lists itself.
-    cta_panel = (34, 160, WIDTH - 34, 314)
+    cta_panel = (34, 160 + VIDEO_LAYOUT_Y_SHIFT, WIDTH - 34, 314 + VIDEO_LAYOUT_Y_SHIFT)
     draw.rounded_rectangle(
         cta_panel,
         radius=19,
@@ -391,7 +394,7 @@ def build_vertical_poster(
             cta_font_size -= 1
             cta_font = _title_font(cta_font_size)
         draw.text(
-            (WIDTH // 2, 175),
+            (WIDTH // 2, 175 + VIDEO_LAYOUT_Y_SHIFT),
             _shape_rtl(purchase_cta),
             font=cta_font,
             fill=channel_color,
@@ -402,7 +405,7 @@ def build_vertical_poster(
     for index, (platform, url) in enumerate(video_channels):
         # Twenty-pixel icon marks plus their padding require a 26px row pitch;
         # this keeps all four destinations separated inside the safe panel.
-        row_top = 210 + index * 26
+        row_top = 210 + VIDEO_LAYOUT_Y_SHIFT + index * 26
         expected_logo_width, _expected_logo_height = offerchin_visuals.platform_logo_dimensions(
             platform, 20, VIDEO_LOGO_MAX_WIDTH
         )
@@ -427,7 +430,7 @@ def build_vertical_poster(
         )
 
     # Product photo gets its own clean card; the CTA strip above remains outside it.
-    card = (34, 320, WIDTH - 34, 726)
+    card = (34, 320 + VIDEO_LAYOUT_Y_SHIFT, WIDTH - 34, 726 + VIDEO_LAYOUT_Y_SHIFT)
     draw.rounded_rectangle(
         (card[0] + 5, card[1] + 9, card[2] + 5, card[3] + 9),
         radius=30,
@@ -501,7 +504,7 @@ def build_vertical_poster(
 
     # Keep the current price as the primary amount. The discount is shown once,
     # in the upper-right badge that matches the channel-image layout.
-    price_panel = (34, 743, WIDTH - 34, 996)
+    price_panel = (34, 743 + VIDEO_LAYOUT_Y_SHIFT, WIDTH - 34, 996 + VIDEO_LAYOUT_Y_SHIFT)
     draw.rounded_rectangle(
         (price_panel[0] + 4, price_panel[1] + 7, price_panel[2] + 4, price_panel[3] + 7),
         radius=26,
@@ -515,7 +518,7 @@ def build_vertical_poster(
         width=3,
     )
     draw.text(
-        (WIDTH // 2, 773),
+        (WIDTH // 2, 773 + VIDEO_LAYOUT_Y_SHIFT),
         _shape_rtl(f"قیمت ویژه در {merchant}"),
         font=_title_font(25),
         fill=(24, 111, 54, 255),
@@ -525,7 +528,7 @@ def build_vertical_poster(
     current_text = format_persian_price(current_price)
     if current_text:
         draw.text(
-            (WIDTH // 2, 831),
+            (WIDTH // 2, 831 + VIDEO_LAYOUT_Y_SHIFT),
             _shape_rtl(f"{current_text} تومان"),
             font=_title_font(43),
             fill=(10, 79, 40, 255),
@@ -536,7 +539,7 @@ def build_vertical_poster(
         )
     else:
         draw.text(
-            (WIDTH // 2, 866),
+            (WIDTH // 2, 866 + VIDEO_LAYOUT_Y_SHIFT),
             _shape_rtl(f"مشاهده قیمت روز در {merchant}"),
             font=_title_font(28),
             fill=(10, 79, 40, 255),
