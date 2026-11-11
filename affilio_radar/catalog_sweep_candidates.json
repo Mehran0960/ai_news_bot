@@ -58309,6 +58309,12 @@
       "catalog_best_selling_category_name": "انگشتر طلا بچگانه",
       "catalog_best_selling_rank": 1,
       "catalog_best_selling_ranks_by_category": {
+        "11133": {
+          "category_name": "زیورآلات طلا",
+          "observed_at": "2026-11-11T10:31:04.698520+00:00",
+          "rank": 3615,
+          "rank_history": []
+        },
         "11134": {
           "category_name": "زیورآلات طلا بچگانه",
           "observed_at": "2026-11-10T21:57:01.653432+00:00",
@@ -58328,24 +58334,25 @@
           ]
         }
       },
-      "catalog_category_id": "11134",
+      "catalog_category_id": "11133",
       "catalog_category_ids": [
         "9709",
+        "11133",
         "11134"
       ],
-      "catalog_category_name": "زیورآلات طلا بچگانه",
+      "catalog_category_name": "زیورآلات طلا",
       "catalog_rank_observed_at": "2026-11-10T21:20:42.151873+00:00",
       "catalog_sort_mode": "best_selling",
-      "current_price": 18125440,
+      "current_price": 18339110,
       "discount_percent": 2,
       "first_seen_at": "2026-11-10T21:20:42.151873+00:00",
-      "last_seen_at": "2026-11-10T21:57:00.706378+00:00",
-      "original_price": 18514580,
+      "last_seen_at": "2026-11-11T10:31:01.528951+00:00",
+      "original_price": 18732850,
       "product_id": "dkp-8387711",
       "product_url": "https://www.digikala.com/product/dkp-8387711/",
       "rating": 4.0,
       "review_count": 1,
-      "savings_toman": 389140,
+      "savings_toman": 393740,
       "source": "digikala_catalog_sweep",
       "title": "انگشتر طلا 18 عیار دخترانه مایا ماهک مدل MR0771"
     },
@@ -61270,6 +61277,12 @@
             }
           ]
         },
+        "8895": {
+          "category_name": "کالای خوراکی و اساسی",
+          "observed_at": "2026-11-11T10:29:57.775002+00:00",
+          "rank": 3616,
+          "rank_history": []
+        },
         "8897": {
           "category_name": "خشکبار و شیرینی",
           "observed_at": "2026-11-10T21:33:06.262933+00:00",
@@ -61283,21 +61296,22 @@
           ]
         }
       },
-      "catalog_category_id": "10170",
+      "catalog_category_id": "8895",
       "catalog_category_ids": [
+        "8895",
         "8897",
         "10170",
         "10318",
         "10322",
         "11371"
       ],
-      "catalog_category_name": "محصولات بومی و محلی",
+      "catalog_category_name": "کالای خوراکی و اساسی",
       "catalog_rank_observed_at": "2026-11-10T21:29:12.034310+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 198100,
       "discount_percent": 30,
       "first_seen_at": "2026-11-10T21:29:12.034310+00:00",
-      "last_seen_at": "2026-11-10T23:50:39.999975+00:00",
+      "last_seen_at": "2026-11-11T10:29:56.922138+00:00",
       "original_price": 283000,
       "product_id": "dkp-20834783",
       "product_url": "https://www.digikala.com/product/dkp-20834783/",
@@ -112444,6 +112458,12 @@
           "rank": 163,
           "rank_history": []
         },
+        "8": {
+          "category_name": "آرایشی بهداشتی",
+          "observed_at": "2026-11-11T10:29:57.630253+00:00",
+          "rank": 3594,
+          "rank_history": []
+        },
         "8171": {
           "category_name": "تجهیزات استودیویی",
           "observed_at": "2026-11-10T21:33:06.147552+00:00",
@@ -112469,24 +112489,25 @@
           ]
         }
       },
-      "catalog_category_id": "6153",
+      "catalog_category_id": "8",
       "catalog_category_ids": [
+        "8",
         "6153",
         "8171",
         "8172"
       ],
-      "catalog_category_name": "آلات موسیقی",
+      "catalog_category_name": "آرایشی بهداشتی",
       "catalog_rank_observed_at": "2026-11-10T21:15:42.869070+00:00",
       "catalog_sort_mode": "best_selling",
       "current_price": 12000000,
       "discount_percent": 18,
       "first_seen_at": "2026-11-10T21:15:42.869070+00:00",
-      "last_seen_at": "2026-11-10T22:14:43.706830+00:00",
+      "last_seen_at": "2026-11-11T10:28:56.571234+00:00",
       "original_price": 14700000,
       "product_id": "dkp-3897702",
       "product_url": "https://www.digikala.com/product/dkp-3897702/",
-      "rating": 4.43,
-      "review_count": 47,
+      "rating": 4.44,
+      "review_count": 48,
       "savings_toman": 2700000,
       "source": "digikala_catalog_sweep",
       "title": "هدفون مانیتورینگ مدل HD7"
@@ -200727,5 +200748,5 @@
   ],
   "cycle_started_at": "2026-11-10T21:00:41.647254+00:00",
   "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "updated_at": "2026-11-11T10:26:19.922446+00:00"
+  "updated_at": "2026-11-11T10:31:04.850520+00:00"
 }
