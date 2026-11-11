@@ -144,6 +144,8 @@ def _with_verified_market_value(product, now=None, advantage=None):
             if advantage is None else advantage
         ),
         "market_price_checked_at": observed.isoformat(),
+        "market_available_offer_count": 3,
+        "market_reported_seller_count": 3,
     })
     return product
 
