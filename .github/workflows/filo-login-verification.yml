@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/filo-login-verification.yml"
+      - "affilio_radar/filo_uploader.py"
   # Re-run isolated verification whenever this workflow's policy is intentionally refreshed.
   workflow_dispatch:
 
