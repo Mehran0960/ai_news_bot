@@ -633,6 +633,11 @@ def _score_catalog_candidate_cohort(rows: list[dict]) -> None:
         use_case_group_fn=lambda row: _infer_use_case_group(
             row.get("title"), row.get("catalog_category_name") or row.get("catalog_category_path")
         ),
+        # Compare prices within the same taxonomy node, not across unrelated use cases.
+        price_group_fn=lambda row: str(
+            row.get("catalog_category_id") or row.get("catalog_best_selling_category_id")
+            or _infer_use_case_group(row.get("title"), row.get("catalog_category_name"))
+        ),
         # The listing stage has not independently verified price history or market median.
         discount_verified_fn=lambda _row: False,
         now=utc_now(),
