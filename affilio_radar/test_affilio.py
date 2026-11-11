@@ -3243,6 +3243,7 @@ class AffilioRadarTests(unittest.TestCase):
             "market_reference_kind": "seller_median",
             "market_price_advantage_pct": 5,
             "market_price_checked_at": now.isoformat(),
+            "market_available_offer_count": 3,
         }
         market_parity = {
             **verified_market_5_percent,
@@ -3265,6 +3266,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertFalse(radar_module.has_attractive_discount_value(unverified_10_percent, now=now))
         self.assertFalse(radar_module.has_attractive_discount_value(unverified_15_percent, now=now))
         self.assertTrue(radar_module.has_attractive_discount_value(verified_market_5_percent, now=now))
+        self.assertFalse(radar_module.has_attractive_discount_value(
+            {**verified_market_5_percent, "market_available_offer_count": 2}, now=now
+        ), "two sellers are insufficient for a verified median")
         self.assertFalse(radar_module.has_attractive_discount_value(market_parity, now=now))
         self.assertTrue(radar_module.has_attractive_discount_value(historical_value, now=now))
         self.assertFalse(radar_module.has_attractive_discount_value(verified_bad_history, now=now))
