@@ -392,11 +392,12 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         self.assertEqual(legacy_status["top_candidates_preview_count"], 0)
         self.assertEqual(legacy_status["top_candidates_preview"], [])
 
-    def test_sweep_writer_declares_the_demand_first_order_policy(self):
+    def test_sweep_writer_declares_the_four_factor_order_policy(self):
         scanner = (
             Path(__file__).resolve().parent / "parallel_catalog_sweep.py"
         ).read_text(encoding="utf-8")
-        self.assertIn('"candidate_order_policy": "catalog_demand_first_v1"', scanner)
+        self.assertIn('"candidate_order_policy": "catalog_four_factor_equal_weight_v1"', scanner)
+        self.assertIn("sort=four_factor_equal_weight_v1", scanner)
 
     def test_loader_accepts_small_new_category_additions_without_weakening_hash_checks(self):
         with tempfile.TemporaryDirectory() as temp:
