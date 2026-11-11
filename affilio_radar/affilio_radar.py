@@ -2777,14 +2777,17 @@ def has_attractive_discount_value(
     if (
         record.get("market_status") == "verified"
         and record.get("market_reference_kind") == "seller_median"
-        and _safe_int(record.get("market_available_offer_count"), 0) >= 3
         and market_fresh
     ):
         try:
             advantage = int(record.get("market_price_advantage_pct") or 0)
+            available_seller_count = int(record.get("market_available_offer_count") or 0)
         except (TypeError, ValueError, OverflowError):
             return False
-        return advantage >= VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT
+        return (
+            available_seller_count >= 3
+            and advantage >= VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT
+        )
 
     # No percentage-only fallback: without fresh 30-day history or comparable-market
     # proof, even an impressive displayed markdown remains unverified.
