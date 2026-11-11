@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T06:07:52.345361+00:00",
+  "generated_at": "2026-11-11T06:19:50.483414+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "بوگیر و خوشبو کننده هوا": 1,
@@ -254,7 +254,7 @@
       "گرمکن و ست ورزشی مردانه": 1
     },
     "category_post_counts": {
-      "audio_wearables": 16,
+      "audio_wearables": 15,
       "automotive": 16,
       "beauty_fragrance": 4,
       "books_stationery": 10,
@@ -276,22 +276,22 @@
       "tv_audio_video": 1
     },
     "category_share_percent": {
-      "audio_wearables": 5.4,
+      "audio_wearables": 5.1,
       "automotive": 5.4,
       "beauty_fragrance": 1.4,
       "books_stationery": 3.4,
       "computer_network": 1.4,
       "digital_accessories": 1.0,
-      "fashion": 12.8,
+      "fashion": 12.9,
       "gaming": 0.3,
-      "grocery_food": 3.0,
+      "grocery_food": 3.1,
       "home": 2.4,
       "home_cleaning": 2.4,
       "jewelry": 1.0,
       "kids_sports": 2.0,
-      "large_appliances": 3.0,
+      "large_appliances": 3.1,
       "mobile_devices": 1.0,
-      "other": 28.7,
+      "other": 28.8,
       "personal_care": 12.5,
       "power_backup": 2.7,
       "sports_outdoor": 9.8,
@@ -302,28 +302,28 @@
     "distinct_families": 146,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
-    "known_brand_posts": 60,
-    "posts": 296,
-    "repeated_brand_count": 47,
+    "known_brand_posts": 59,
+    "posts": 295,
+    "repeated_brand_count": 46,
     "repeated_brands": {
       "ai_javaher": 8,
       "avergrip": 5,
       "eurovital": 2,
       "habsan": 3,
       "hoye_sazan": 3,
-      "muzik_apollo": 10,
+      "muzik_apollo": 9,
       "sangboo_climy": 12,
       "ufc": 12
     },
     "retailer_post_counts": {
-      "digikala": 296
+      "digikala": 295
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
       "arts_crafts": 1,
-      "audio_visual": 17,
+      "audio_visual": 16,
       "automotive": 30,
       "baby_care": 5,
       "books_learning": 8,
@@ -361,30 +361,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 798,
+    "all_time_count": 799,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T19:28:07.953841+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-11192935",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ژل شستشوی صورت ویتالیر مدل وایت ویت مناسب برای پوست‌های لک‌دار حجم 200 میلی لیتر",
-        "use_case": "home_cleaning"
-      },
       {
         "at": "2026-11-10T19:28:07.953841+00:00",
         "brand": "",
@@ -693,6 +676,23 @@
       },
       {
         "at": "2026-11-11T06:07:52.345361+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12935579",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-11T06:19:50.483414+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
