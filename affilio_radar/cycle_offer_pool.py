@@ -131,9 +131,9 @@ def _sort_key(item: dict, now: datetime) -> tuple:
     demand_tier, rank_strength, growth = _demand_sort_key(item, now)
     return (
         demand_tier,
-        _int(item.get("selection_affordability_percentile"), 50),
         rank_strength,
         growth,
+        _int(item.get("selection_affordability_percentile"), 50),
         *_value_sort_key(item),
         str(item.get("product_id") or ""),
     )
@@ -234,6 +234,8 @@ def merge_cycle_offers(
         items = [item for item in items if str(item.get("product_id") or "") in keep_ids]
     pool["items"] = items
     pool["updated_at"] = current.isoformat()
+    pool.pop("dispatchable_count", None)
+    pool.pop("dispatchable_updated_at", None)
     return {
         "added": added,
         "updated": updated,
@@ -351,6 +353,20 @@ def pool_remaining_count(state: dict) -> int:
     return count
 
 
+def set_pool_dispatchable_count(
+    state: dict,
+    count: int,
+    *,
+    now: datetime | None = None,
+) -> None:
+    """Store the count that passed the current demand/value/cooldown selector."""
+    pool = state.get("cycle_offer_pool")
+    if not isinstance(pool, dict):
+        return
+    pool["dispatchable_count"] = max(0, int(count))
+    pool["dispatchable_updated_at"] = (_utc(now) or datetime.now(timezone.utc)).isoformat()
+
+
 def pool_runtime_projection(
     state: dict,
     *,
@@ -369,7 +385,11 @@ def pool_runtime_projection(
             "cycle_completed_at": "",
         }
     consumed = len({str(value).lower() for value in pool.get("consumed_ids", [])})
-    if remaining <= 0 or consumed == 0:
+    dispatchable = remaining
+    dispatchable_at = _utc(pool.get("dispatchable_updated_at"))
+    if dispatchable_at is not None and 0 <= (current - dispatchable_at).total_seconds() <= 45 * 60:
+        dispatchable = max(0, min(remaining, _int(pool.get("dispatchable_count"), remaining)))
+    if remaining <= 0 or dispatchable <= 0 or consumed == 0:
         interval = base
     else:
         target = _utc(pool.get("target_next_cycle_at"))
@@ -378,9 +398,10 @@ def pool_runtime_projection(
         if remaining_window <= 0:
             remaining_window = duration
             pool["target_next_cycle_at"] = (current + timedelta(seconds=duration)).isoformat()
-        interval = max(base, int(math.ceil(remaining_window / max(1, remaining))))
+        interval = max(base, int(math.ceil(remaining_window / max(1, dispatchable))))
     return {
-        "available_count": remaining,
+        "available_count": dispatchable,
+        "remaining_count": remaining,
         "interval_seconds": interval,
         "cycle_completed_at": str(pool.get("cycle_completed_at") or ""),
         "cycle_duration_seconds": _int(pool.get("cycle_duration_seconds"), DEFAULT_CYCLE_DURATION_SECONDS),
