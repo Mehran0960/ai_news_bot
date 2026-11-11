@@ -68,6 +68,7 @@ jobs:
           assert "--aparat-upload-only" in source
           assert 'destinations={"aparat"}' in source
           print("APARAT_ONLY_PATH_VALIDATED")
+          PYTHONPATH=affilio_radar python -m unittest -v affilio_radar.test_shared_selection_media_routing
           PY
 
       - name: Process only the Aparat video queue
