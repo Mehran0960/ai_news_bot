@@ -159,8 +159,10 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
     supported_order_policies = {
         "discount_value_desc",
         "catalog_demand_first_v1",
+        "catalog_four_factor_equal_weight_v1",
     }
     previous_sort_key: tuple[int, int] | None = None
+    previous_four_factor_sort_key: tuple[int, ...] | None = None
     rows_valid = candidate_order_policy in supported_order_policies
     for rank, row in enumerate(rows, start=1):
         if not isinstance(row, dict):
@@ -187,9 +189,55 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
                 rows_valid = False
                 break
             previous_sort_key = sort_key
-        # catalog_demand_first_v1 freezes the producer's native demand-first order.
-        # Never reinterpret it as a global markdown sort during validation.
-        # Snapshot-rank continuity and the status-file hash still protect this order.
+        elif candidate_order_policy == "catalog_four_factor_equal_weight_v1":
+            factors = row.get("selection_factor_scores")
+            if (
+                row.get("four_factor_score_version") != "four-factor-equal-weight-v1"
+                or not isinstance(factors, dict)
+            ):
+                rows_valid = False
+                break
+            factor_names = (
+                "live_demand",
+                "affordability",
+                "generality",
+                "discount_attractiveness",
+            )
+            component_scores = [_integer(factors.get(name), -1) for name in factor_names]
+            combined_score = _integer(factors.get("combined"), -1)
+            if (
+                any(not 0 <= value <= 100 for value in component_scores)
+                or not 0 <= combined_score <= 100
+                or combined_score != round(sum(component_scores) / 4)
+            ):
+                rows_valid = False
+                break
+            flat_fields = (
+                ("selection_demand_score", component_scores[0]),
+                ("selection_affordability_score", component_scores[1]),
+                ("selection_generality_score", component_scores[2]),
+                ("selection_discount_attractiveness_score", component_scores[3]),
+                ("selection_four_factor_score", combined_score),
+            )
+            if any(_integer(row.get(field), -1) != value for field, value in flat_fields):
+                rows_valid = False
+                break
+            sort_key = (
+                combined_score,
+                component_scores[0],
+                component_scores[1],
+                component_scores[2],
+                component_scores[3],
+                discount,
+                savings,
+                -max(0, _integer(row.get("current_price"))),
+            )
+            if previous_four_factor_sort_key is not None and sort_key > previous_four_factor_sort_key:
+                rows_valid = False
+                break
+            previous_four_factor_sort_key = sort_key
+        # The demand-first and four-factor policies freeze their producer's order.
+        # Rank continuity plus the status-file hash protects the exact snapshot.
         candidate_ids.append(product_id)
 
     valid = bool(
@@ -239,7 +287,10 @@ def _top_candidates_preview(completed_candidates: Any, valid: bool) -> list[dict
     """
     if not valid or not isinstance(completed_candidates, dict):
         return []
-    if str(completed_candidates.get("candidate_order_policy") or "") != "catalog_demand_first_v1":
+    if str(completed_candidates.get("candidate_order_policy") or "") not in {
+        "catalog_demand_first_v1",
+        "catalog_four_factor_equal_weight_v1",
+    }:
         return []
     rows = completed_candidates.get("candidates")
     if not isinstance(rows, list):
@@ -272,6 +323,21 @@ def _top_candidates_preview(completed_candidates: Any, valid: bool) -> list[dict
             "best_selling_rank_observed_at": str(row.get("catalog_rank_observed_at") or ""),
             "category_ids": category_ids[:12],
             "category_count": len(category_ids),
+            "four_factor_score_version": str(row.get("four_factor_score_version") or ""),
+            "selection_factor_scores": (
+                dict(row.get("selection_factor_scores"))
+                if isinstance(row.get("selection_factor_scores"), dict) else {}
+            ),
+            "selection_demand_score": _integer(row.get("selection_demand_score"), -1),
+            "selection_affordability_score": _integer(row.get("selection_affordability_score"), -1),
+            "selection_generality_score": _integer(row.get("selection_generality_score"), -1),
+            "selection_discount_attractiveness_score": _integer(row.get("selection_discount_attractiveness_score"), -1),
+            "selection_four_factor_score": _integer(row.get("selection_four_factor_score"), -1),
+            "selection_use_case_group": str(row.get("selection_use_case_group") or ""),
+            "selection_affordability_basis": str(row.get("selection_affordability_basis") or ""),
+            "selection_affordability_reference": str(row.get("selection_affordability_reference") or ""),
+            "selection_generality_basis": str(row.get("selection_generality_basis") or ""),
+            "selection_discount_evidence": str(row.get("selection_discount_evidence") or ""),
         })
     return preview
 
