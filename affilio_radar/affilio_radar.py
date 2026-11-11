@@ -3115,7 +3115,7 @@ def _fresh_digikala_bestseller_evidence(
 
 
 def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Demand-first order: fresh DigiKala bestseller rank, review momentum, quality, then deal value."""
+    """Rank only current demand evidence: fresh bestseller rank and recent review momentum."""
     candidate = record if isinstance(record, dict) else {}
     bestseller = _fresh_digikala_bestseller_evidence(candidate, now=now)
     rank = int(bestseller.get("best_rank_across_categories") or 0)
@@ -3124,14 +3124,6 @@ def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tupl
     category_coverage = min(10, int(bestseller.get("fresh_category_count") or 0))
     rank_momentum = int(bestseller.get("rank_improvement") or 0)
     review_growth = _verified_review_growth_sort_key(candidate, now=now)
-    try:
-        review_count = max(0, int(candidate.get("review_count") or 0))
-        rating = max(0.0, min(5.0, float(candidate.get("rating") or 0)))
-    except (TypeError, ValueError, OverflowError):
-        review_count, rating = 0, 0.0
-    # Lifetime reviews and rating are weak, historical quality context only.
-    # Fresh bestseller rank and measured review growth always precede them.
-    review_volume_context = min(100, round(math.log1p(review_count) * 5)) if review_count else 0
     return (
         tier,
         rank_strength,
@@ -3139,9 +3131,19 @@ def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tupl
         rank_momentum,
         review_growth[0],
         review_growth[1],
-        review_volume_context,
-        round(rating, 2),
     )
+
+
+def _historical_quality_sort_key(record: dict) -> tuple[int, float]:
+    """Weak lifetime review/rating context; never substitutes for current demand."""
+    candidate = record if isinstance(record, dict) else {}
+    try:
+        review_count = max(0, int(candidate.get("review_count") or 0))
+        rating = max(0.0, min(5.0, float(candidate.get("rating") or 0)))
+    except (TypeError, ValueError, OverflowError):
+        review_count, rating = 0, 0.0
+    review_volume_context = min(100, round(math.log1p(review_count) * 5)) if review_count else 0
+    return review_volume_context, round(rating, 2)
 
 
 def has_verified_market_demand(record: dict, now: datetime | None = None) -> bool:
@@ -3164,6 +3166,7 @@ def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple
     candidate = record if isinstance(record, dict) else {}
     return (
         *_digikala_demand_sort_key(candidate, now=now),
+        *_historical_quality_sort_key(candidate),
         *_deal_primary_sort_key(candidate, now=now),
     )
 
@@ -4445,7 +4448,7 @@ def _verified_review_growth_sort_key(
 
 
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank fresh demand first, then public breadth, accessibility, and verified deal value."""
+    """Rank current demand, public breadth and accessibility before historical context and deal size."""
     candidate = p if isinstance(p, dict) else {}
     try:
         generality = max(0, min(100, int(candidate.get("selection_generality_score", 0) or 0)))
@@ -4456,6 +4459,7 @@ def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
         *_digikala_demand_sort_key(candidate, now=now),
         generality,
         affordability,
+        *_historical_quality_sort_key(candidate),
         *_deal_primary_sort_key(candidate, now=now),
     )
 
@@ -8525,13 +8529,15 @@ def select_discount_fallback_candidates(
     now: datetime | None = None,
     include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Rank live-valid candidates by DigiKala demand evidence, then verified deal value.
+    """Select candidates only when current demand and independent discount value are verified.
 
-    Fresh native bestseller rank is the primary relative-demand signal. Fresh review growth is
-    a secondary indirect proxy; lifetime review totals and rating are weak historical context.
-    None of these values is represented as absolute unit sales. Clicks, commissions and affiliate
-    income never affect ranking. Positive external market/history confirmation is not required;
-    fresh verified contradictory evidence may still veto an otherwise eligible offer.
+    Fresh native bestseller rank is the primary relative-demand signal; fresh review growth is an
+    explicitly indirect secondary proxy. A positive, fresh price-history verdict or a same-product
+    seller median supported by at least three offers and a 5% price advantage is mandatory. A
+    fresh negative history verdict vetoes the candidate. Final ordering is current demand, verified
+    cross-category breadth, relative price accessibility, weak lifetime review/rating context, and
+    then verified deal value/markdown. Rank is not unit sales; review growth is not sales. Clicks,
+    commissions, and affiliate income never affect demand ranking.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -8598,9 +8604,10 @@ def select_discount_fallback_candidates(
         bool(_fresh_digikala_bestseller_evidence(product, now=current)) for product in fresh_candidates
     )
     print(
-        "SELECTION_POLICY rank=digikala_bestseller_tier_desc,rank_strength_desc,"
-        "rank_momentum_desc,review_growth_proxy_desc,review_quality_context_desc,"
-        "discount_percent_desc,savings_toman_desc "
+        "SELECTION_POLICY rank=fresh_bestseller_tier_desc,rank_strength_desc,"
+        "rank_momentum_desc,review_growth_proxy_desc,cross_category_generality_desc,"
+        "relative_affordability_desc,lifetime_review_rating_context_desc,"
+        "verified_price_value_desc,discount_percent_desc,savings_toman_desc "
         f"digikala_bestseller_ranked={bestseller_ranked} "
         f"review_growth_proxy_verified={review_growth_tiebreaks} "
         "unit_sales_count_available=false review_growth_is_sales_data=false "

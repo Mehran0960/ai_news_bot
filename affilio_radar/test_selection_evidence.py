@@ -312,6 +312,39 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             radar.deal_sort_key(smaller_discount, now=self.now),
         )
 
+    def test_generality_and_affordability_outrank_lifetime_review_volume_and_rating(self):
+        common = {
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 5,
+            "catalog_rank_observed_at": self.now.isoformat(),
+            "catalog_best_selling_ranks_by_category": {
+                "100": {"rank": 5, "observed_at": self.now.isoformat()},
+            },
+            "discount_percent": 20,
+            "savings_toman": 100_000,
+        }
+        broad_and_accessible = {
+            **common,
+            "product_id": "dkp-broad-accessible",
+            "selection_generality_score": 80,
+            "selection_affordability_percentile": 90,
+            "review_count": 100,
+            "rating": 4.0,
+        }
+        narrow_and_premium = {
+            **common,
+            "product_id": "dkp-historically-popular",
+            "selection_generality_score": 20,
+            "selection_affordability_percentile": 20,
+            "review_count": 1_000_000,
+            "rating": 5.0,
+        }
+        self.assertGreater(
+            radar.deal_sort_key(broad_and_accessible, now=self.now),
+            radar.deal_sort_key(narrow_and_premium, now=self.now),
+            "historic review volume/rating must not override cross-category breadth or accessibility",
+        )
+
     def test_fresh_bestseller_rank_never_counts_as_review_growth_or_sales(self):
         bestseller_only = {
             "catalog_sort_mode": "best_selling",
