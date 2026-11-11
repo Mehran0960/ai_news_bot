@@ -434,6 +434,9 @@ async function readLatestWorkflowAttempt(api, token) {
   }
 }
 
+// A successful channel delivery is the content event: its canonical product record
+// becomes video-eligible immediately. The rolling platform slot below is only a
+// target-side rate limiter; it must never trigger an independent product selection.
 async function dispatchVideoPlatformWhenDue(env, tick, state, platform) {
   const config = platform === "youtube"
     ? { api: YOUTUBE_VIDEO_API, workflow: YOUTUBE_VIDEO_WORKFLOW, slot: "youtube_next_upload_at", pause: "youtube_uploads_paused_until" }
@@ -533,8 +536,8 @@ async function runScheduledCheck(env, scheduledTime) {
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 
-  // Video destinations are dispatched from their own saved upload clocks.
-  // Neither media schedule reads or reserves the Telegram/Bale posting interval.
+  // Inspect the channel-created video queue on every minute tick. The product event
+  // is immediate; each destination's own rolling safety slot controls actual dispatch.
   await dispatchVideoUploadsWhenDue(env, tick, state);
 }
 
