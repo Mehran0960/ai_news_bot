@@ -367,29 +367,59 @@ def set_pool_dispatchable_count(
     pool["dispatchable_updated_at"] = (_utc(now) or datetime.now(timezone.utc)).isoformat()
 
 
+def _active_queue_ids(state: dict) -> set[str]:
+    queue = state.get("content_delivery_queue")
+    if not isinstance(queue, dict):
+        return set()
+    terminal = {"published", "cancelled", "stale_selection", "expired"}
+    return {
+        str(pid).lower()
+        for pid, entry in queue.items()
+        if isinstance(entry, dict) and entry.get("status") not in terminal
+    }
+
+
 def pool_runtime_projection(
     state: dict,
     *,
     now: datetime | None = None,
     base_interval_seconds: int = BASE_PUBLICATION_INTERVAL_SECONDS,
 ) -> dict[str, Any]:
-    """Compute the slot interval that Cloudflare reads from the compact state sidecar."""
+    """Compute the adaptive slot and pending-work count for Cloudflare's compact sidecar."""
     current = _utc(now) or datetime.now(timezone.utc)
-    base = max(60, int(base_interval_seconds))
+    base = max(BASE_PUBLICATION_INTERVAL_SECONDS, int(base_interval_seconds))
     pool = state.get("cycle_offer_pool")
-    remaining = pool_remaining_count(state)
-    if not isinstance(pool, dict):
+    active_ids = _active_queue_ids(state)
+    if not isinstance(pool, dict) or not isinstance(pool.get("items"), list):
+        # Complete legacy one-item hand-offs during rollout even before a cycle pool exists.
         return {
-            "available_count": 0,
+            "available_count": len(active_ids),
+            "remaining_count": 0,
             "interval_seconds": base,
             "cycle_completed_at": "",
         }
-    consumed = len({str(value).lower() for value in pool.get("consumed_ids", [])})
+
+    remaining = pool_remaining_count(state)
+    pool_ids = {
+        str(item.get("product_id") or "").lower()
+        for item in pool["items"] if isinstance(item, dict)
+    }
+    consumed_ids = {str(value).lower() for value in pool.get("consumed_ids", [])}
+    rejected_ids = {str(value).lower() for value in (pool.get("rejected_ids") or {})}
+    active_pool_ids = active_ids.intersection(pool_ids - consumed_ids - rejected_ids)
+    legacy_active_count = len(active_ids - pool_ids)
+    consumed = len(consumed_ids)
+
+    # A recent selector count represents candidates which passed fresh demand,
+    # price-value, and cooldown checks. Queue reservations are added separately
+    # because a subsequent selector run intentionally excludes already queued IDs.
     dispatchable = remaining
     dispatchable_at = _utc(pool.get("dispatchable_updated_at"))
     if dispatchable_at is not None and 0 <= (current - dispatchable_at).total_seconds() <= 45 * 60:
         dispatchable = max(0, min(remaining, _int(pool.get("dispatchable_count"), remaining)))
-    if remaining <= 0 or dispatchable <= 0 or consumed == 0:
+    available = min(remaining, dispatchable + len(active_pool_ids)) + legacy_active_count
+
+    if available <= 0 or consumed == 0:
         interval = base
     else:
         target = _utc(pool.get("target_next_cycle_at"))
@@ -398,9 +428,9 @@ def pool_runtime_projection(
         if remaining_window <= 0:
             remaining_window = duration
             pool["target_next_cycle_at"] = (current + timedelta(seconds=duration)).isoformat()
-        interval = max(base, int(math.ceil(remaining_window / max(1, dispatchable))))
+        interval = max(base, int(math.ceil(remaining_window / max(1, available))))
     return {
-        "available_count": dispatchable,
+        "available_count": available,
         "remaining_count": remaining,
         "interval_seconds": interval,
         "cycle_completed_at": str(pool.get("cycle_completed_at") or ""),
