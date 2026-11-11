@@ -4879,10 +4879,16 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         raw = state.get(key) if isinstance(state, dict) else None
         return raw if isinstance(raw, (str, int, float, bool)) or raw is None else None
 
+    pool_projection = pool_runtime_projection(
+        state, now=current, base_interval_seconds=BASE_PUBLICATION_INTERVAL_SECONDS
+    )
     return {
         "schema_version": 1,
         "generated_at": current.isoformat(),
         "last_channel_published_at": value("last_channel_published_at"),
+        "publisher_interval_seconds": int(pool_projection["interval_seconds"]),
+        "publisher_available_count": int(pool_projection["available_count"]),
+        "publisher_cycle_completed_at": str(pool_projection.get("cycle_completed_at") or ""),
         "youtube_next_upload_at": value("youtube_next_upload_at"),
         "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
         "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
