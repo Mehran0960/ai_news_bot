@@ -332,9 +332,8 @@ def _fresh_selected_item(
     product_id = str(payload.get("product_id") or "").lower()
     if not product_url or radar.product_id(product_url) != product_id:
         return None, "invalid_product_identity"
-    # Older persisted selections may carry the former 35–50% tiers and
-    # review-growth requirements. The current policy accepts every real markdown;
-    # the live product read below is authoritative for stock, price and contents.
+    # Legacy selection tiers are metadata only. Publication still requires current
+    # stock/price/page validation and fresh independent history or same-product market proof.
     minimum_discount_percent = radar.MIN_DISCOUNT_FALLBACK_PERCENT
 
     try:
