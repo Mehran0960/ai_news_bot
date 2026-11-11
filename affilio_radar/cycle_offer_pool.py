@@ -62,10 +62,23 @@ def _category_key(item: dict) -> str:
 
 
 def _fresh_bestseller_rank(item: dict, now: datetime) -> int:
-    rank = _int(item.get("selection_bestseller_rank") or item.get("catalog_best_selling_rank"))
-    observed = _utc(
-        item.get("catalog_rank_observed_at")
-    )
+    source = str(item.get("selection_demand_evidence") or "")
+    if source == "digikala_native_bestseller_rank":
+        rank = _int(item.get("selection_bestseller_rank"))
+        observed = _utc(item.get("selection_bestseller_observed_at"))
+        if not 1 <= rank <= 60 or observed is None:
+            return 0
+        age = (now - observed).total_seconds() / 3600
+        return rank if -0.1 <= age <= 24 else 0
+
+    # Compatibility for candidates which reached the pool without selection
+    # metadata: require the catalog's explicit native bestseller sort mode.
+    if item.get("catalog_sort_mode") != "best_selling":
+        return 0
+    if not str(item.get("product_id") or "").lower().startswith("dkp-"):
+        return 0
+    rank = _int(item.get("catalog_best_selling_rank"))
+    observed = _utc(item.get("catalog_rank_observed_at"))
     if not 1 <= rank <= 60 or observed is None:
         return 0
     age = (now - observed).total_seconds() / 3600
@@ -122,13 +135,14 @@ def _apply_affordability_percentiles(items: list[dict]) -> None:
 def _has_fresh_demand(item: dict, now: datetime) -> bool:
     if _fresh_bestseller_rank(item, now) > 0:
         return True
-    growth = _int(item.get("recent_review_growth_7d"))
+    growth = _int(item.get("recent_review_growth_window", item.get("recent_review_growth_7d")))
     window = _int(item.get("demand_window_hours"))
     observed = _utc(item.get("demand_observed_at"))
     source = str(item.get("demand_signal_source") or "")
     age = (now - observed).total_seconds() / 3600 if observed else 999999
     return bool(
-        growth >= 3
+        item.get("current_demand_verified") is True
+        and growth >= 3
         and 6 <= window <= 24
         and source in {"digikala_recent_review_growth", "snappshop_recent_review_growth"}
         and -0.1 <= age <= 12
