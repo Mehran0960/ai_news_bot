@@ -230,17 +230,41 @@ class CatalogSweepTests(unittest.TestCase):
             catalog_candidate_sort_key(obscure_high_discount),
         )
 
-    def test_candidate_retention_keeps_demand_context_before_markdown_value(self):
+    def test_candidate_retention_uses_all_four_factors_after_fresh_demand_evidence(self):
+        now = datetime.now(timezone.utc)
         rows = [
-            {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i, "discount_percent": 50, "savings_toman": 500_000}
+            {
+                "product_id": f"dkp-{i}", "catalog_category_id": "10",
+                "catalog_category_ids": ["10"], "title": "هدفون بلوتوثی مدل نمونه",
+                "catalog_sort_mode": "best_selling", "catalog_best_selling_rank": i,
+                "catalog_rank_observed_at": now.isoformat(),
+                "current_price": 500_000, "original_price": 1_000_000,
+                "discount_percent": 50, "savings_toman": 500_000,
+            }
             for i in range(1, 6)
         ] + [
-            {"product_id": "dkp-20", "catalog_category_id": "20", "catalog_category_ids": ["20"], "review_count": 1, "discount_percent": 95, "savings_toman": 950_000},
-            {"product_id": "dkp-30", "catalog_category_id": "30", "catalog_category_ids": ["30"], "review_count": 1, "discount_percent": 90, "savings_toman": 900_000},
-            {"product_id": "dkp-40", "catalog_category_id": "40", "catalog_category_ids": ["40"], "review_count": 1, "discount_percent": 85, "savings_toman": 850_000},
+            {
+                "product_id": "dkp-20", "catalog_category_id": "20", "catalog_category_ids": ["20"],
+                "title": "چراغ اضطراری نمونه", "current_price": 50_000,
+                "original_price": 1_000_000, "discount_percent": 95, "savings_toman": 950_000,
+            },
+            {
+                "product_id": "dkp-30", "catalog_category_id": "30", "catalog_category_ids": ["30"],
+                "title": "کفش روزمره نمونه", "current_price": 50_000,
+                "original_price": 1_000_000, "discount_percent": 95, "savings_toman": 950_000,
+            },
+            {
+                "product_id": "dkp-40", "catalog_category_id": "40", "catalog_category_ids": ["40"],
+                "title": "عطر روزمره نمونه", "current_price": 50_000,
+                "original_price": 1_000_000, "discount_percent": 95, "savings_toman": 950_000,
+            },
         ]
         retained = retain_diverse_candidates(rows, limit=4, rotation=0)
-        self.assertEqual([row["product_id"] for row in retained], ["dkp-1", "dkp-2", "dkp-3", "dkp-4"])
+        self.assertEqual([row["product_id"] for row in retained], [f"dkp-{i}" for i in range(1, 5)])
+        self.assertEqual(retained[0]["four_factor_score_version"], "four-factor-equal-weight-v1")
+        self.assertEqual(set(retained[0]["selection_factor_scores"]), {
+            "live_demand", "affordability", "generality", "discount_attractiveness", "combined"
+        })
 
     def test_handoff_acknowledges_only_after_queue_retention_and_rotates_overflow(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -461,6 +485,8 @@ class CatalogSweepTests(unittest.TestCase):
                     "catalog_category_ids": ["10"],
                     "review_count": 10000 - index,
                     "rating": 4.7,
+                    "current_price": 750_000,
+                    "original_price": 1_000_000,
                     "discount_percent": 25,
                     "savings_toman": 250_000,
                 }
@@ -475,6 +501,8 @@ class CatalogSweepTests(unittest.TestCase):
                     "catalog_category_ids": ["20"],
                     "review_count": 100,
                     "rating": 4.5,
+                    "current_price": 800_000,
+                    "original_price": 1_000_000,
                     "discount_percent": 20,
                     "savings_toman": 200_000,
                 },
@@ -486,6 +514,8 @@ class CatalogSweepTests(unittest.TestCase):
                     "catalog_category_ids": ["30"],
                     "review_count": 90,
                     "rating": 4.4,
+                    "current_price": 700_000,
+                    "original_price": 1_000_000,
                     "discount_percent": 30,
                     "savings_toman": 300_000,
                 },
@@ -497,6 +527,8 @@ class CatalogSweepTests(unittest.TestCase):
                     "catalog_category_ids": ["40"],
                     "review_count": 80,
                     "rating": 4.3,
+                    "current_price": 600_000,
+                    "original_price": 1_000_000,
                     "discount_percent": 40,
                     "savings_toman": 400_000,
                 },
@@ -511,7 +543,9 @@ class CatalogSweepTests(unittest.TestCase):
                 max_count=4,
                 now=datetime(2026, 11, 2, 0, 0, tzinfo=timezone.utc),
             )
-            self.assertEqual([row["product_id"] for row in selected], ["dkp-1", "dkp-2", "dkp-3", "dkp-4"])
+            self.assertEqual([row["product_id"] for row in selected], ["dkp-40", "dkp-30", "dkp-20", "dkp-1"])
+            self.assertEqual(selected[0]["selection_generality_score"], 86)
+            self.assertEqual(selected[0]["four_factor_score_version"], "four-factor-equal-weight-v1")
 
     def test_legacy_serial_sweep_does_not_skip_page_four_or_later(self):
         page_payload = {
