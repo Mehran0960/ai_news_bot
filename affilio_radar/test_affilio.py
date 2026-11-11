@@ -2679,16 +2679,23 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://example.com/image.jpg",
             "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
         }
-        ten_percent = score_product(dict(base))
-        self.assertEqual(ten_percent["discount_percent"], 10)
+        # A retailer's own crossed-out price is not enough; independent evidence is mandatory.
+        ten_percent_unverified = score_product(dict(base))
+        self.assertEqual(ten_percent_unverified["discount_percent"], 10)
+        self.assertFalse(is_discount_publish_eligible(ten_percent_unverified))
+
+        ten_percent = _with_verified_market_value(score_product(dict(base)), advantage=6)
         self.assertTrue(is_discount_publish_eligible(ten_percent))
 
         just_below_floor = score_product({**base, "current_price": 510_000})
         self.assertEqual(just_below_floor["discount_percent"], 49)
+        self.assertFalse(is_discount_publish_eligible(just_below_floor))
+        just_below_floor = _with_verified_market_value(just_below_floor, advantage=6)
         self.assertTrue(is_discount_publish_eligible(just_below_floor))
 
-        strong_discount = _with_verified_current_demand(
-            score_product({**base, "current_price": 500_000})
+        strong_discount = _with_verified_market_value(
+            _with_verified_current_demand(score_product({**base, "current_price": 500_000})),
+            advantage=6,
         )
         self.assertEqual(strong_discount["discount_percent"], 50)
         self.assertGreaterEqual(strong_discount["savings_toman"], 100_000)
@@ -2696,9 +2703,13 @@ class AffilioRadarTests(unittest.TestCase):
 
         small_saving = score_product({**base, "current_price": 990_000})
         self.assertEqual(small_saving["discount_percent"], 1)
-        self.assertTrue(is_discount_publish_eligible(small_saving))
+        self.assertFalse(is_discount_publish_eligible(small_saving))
+        self.assertFalse(is_discount_publish_eligible(_with_verified_market_value(small_saving, advantage=4)))
+        # A tiny retailer markdown can only pass when the actual comparable-market edge is strong.
+        self.assertTrue(is_discount_publish_eligible(_with_verified_market_value(small_saving, advantage=6)))
+
         no_real_drop = score_product({**base, "current_price": 1_000_000})
-        self.assertFalse(is_discount_publish_eligible(no_real_drop))
+        self.assertFalse(is_discount_publish_eligible(_with_verified_market_value(no_real_drop, advantage=20)))
         missing_stock = dict(strong_discount, availability="unknown")
         self.assertFalse(is_discount_publish_eligible(missing_stock))
 
@@ -2716,17 +2727,19 @@ class AffilioRadarTests(unittest.TestCase):
         })
         self.assertEqual(high_ticket_11_percent["discount_percent"], 11)
         self.assertEqual(high_ticket_11_percent["savings_toman"], 2_000_000)
-        self.assertTrue(is_discount_publish_eligible(high_ticket_11_percent))
+        self.assertFalse(is_discount_publish_eligible(high_ticket_11_percent))
 
-        high_ticket_50_percent = _with_verified_current_demand(
-            score_product({
-                **high_ticket_11_percent,
-                "current_price": 9_000_000,
-                "original_price": 18_000_000,
-            })
-        )
+        # Price alone and historical popularity do not grant a quality exception.
+        high_ticket_50_percent = score_product({
+            **high_ticket_11_percent,
+            "current_price": 9_000_000,
+            "original_price": 18_000_000,
+        })
         self.assertEqual(high_ticket_50_percent["discount_percent"], 50)
-        self.assertGreaterEqual(high_ticket_50_percent["savings_toman"], 100_000)
+        self.assertFalse(is_discount_publish_eligible(high_ticket_50_percent))
+
+        # A premium product may still be an exceptional deal, but must prove it independently.
+        high_ticket_50_percent = _with_verified_market_value(high_ticket_50_percent, advantage=8)
         self.assertTrue(is_discount_publish_eligible(high_ticket_50_percent))
 
     def test_all_real_discount_bands_compete_without_a_percentage_or_saving_floor(self):
@@ -3101,7 +3114,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(floor, 1)
         # Fresh verified market evidence shows dkp-95301 is 8% above the
         # comparable seller median, so it is vetoed. Missing positive evidence
-        # is not a veto; the low-savings but math-consistent 60% offer remains.
+        # is a hard gate; only the remaining offers with independent market proof survive.
         self.assertEqual(
             {item["product_id"] for item in selected},
             {"dkp-95302", "dkp-95303"},
@@ -3254,60 +3267,6 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(radar_module.has_attractive_discount_value(historical_value, now=now))
         self.assertFalse(radar_module.has_attractive_discount_value(verified_bad_history, now=now))
 
-    def test_new_selection_prefers_native_bestseller_demand_and_keeps_live_markdowns(self):
-        now = datetime.now(timezone.utc)
-        base = {
-            "product_id": "dkp-95501",
-            "title": "محصول پرنظر اما بدون تقاضای تازه",
-            "availability": "in_stock",
-            "availability_source": "digikala_api",
-            "current_price": 850_000,
-            "original_price": 1_000_000,
-            "discount_percent": 15,
-            "savings_toman": 150_000,
-            "review_count": 250_000,
-            "rating": 4.9,
-            "image_url": "https://example.com/product.webp",
-            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95501%2F",
-            "has_affiliate_link": True,
-            "deal_expires_at": "",
-            "expiry_source": "unavailable",
-        }
-        recent_ranked = {
-            **base,
-            "product_id": "dkp-95502",
-            "title": "لپ تاپ سبک مدل VivoBook",
-            "catalog_sort_mode": "best_selling",
-            "catalog_best_selling_rank": 12,
-            "catalog_rank_observed_at": now.isoformat(),
-        }
-        _with_verified_market_value(recent_ranked, now)
-        weak_discount = {
-            **recent_ranked,
-            "product_id": "dkp-95503",
-            "title": "ماوس بی سیم لاجیتک",
-            "current_price": 900_000,
-            "original_price": 1_000_000,
-            "discount_percent": 10,
-            "savings_toman": 100_000,
-            "market_status": "not_checked",
-            "market_reference_kind": "",
-            "market_price_checked_at": "",
-        }
-        selected, _, quality = radar_module.select_discount_fallback_candidates(
-            [base, recent_ranked, weak_discount],
-            {"published": {}},
-            now,
-        )
-        self.assertEqual(
-            [row["product_id"] for row in selected],
-            ["dkp-95502", "dkp-95503", "dkp-95501"],
-        )
-        self.assertEqual(
-            {row["product_id"] for row in quality},
-            {"dkp-95501", "dkp-95502", "dkp-95503"},
-        )
-
     def test_open_ended_discovery_candidates_are_not_rejected_before_live_detail_check(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
         queue = {
@@ -3329,22 +3288,6 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual([pid for pid, _ in queued_rechecks], ["dkp-95401"])
 
-
-    def test_fifteen_percent_discount_is_rejected_by_fifty_percent_floor(self):
-        product = {
-            "title": "چراغ مطالعه مدل تست",
-            "current_price": 850_000,
-            "original_price": 1_000_000,
-            "availability": "in_stock",
-            "image_url": "https://example.com/product.webp",
-            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12345%2F",
-            "review_count": 100,
-            "rating": 4.5,
-        }
-        scored = score_product(product)
-        self.assertEqual(scored["discount_percent"], 15)
-        self.assertEqual(scored["savings_toman"], 150_000)
-        self.assertTrue(is_discount_publish_eligible(scored))
 
 
     def test_discovery_ranks_market_demand_before_discount(self):
@@ -6740,6 +6683,72 @@ class AffilioRadarTests(unittest.TestCase):
             "A/B copy may change its headline only; product facts and CTAs stay fixed",
         )
 
+
+    def test_selection_requires_fresh_demand_and_independent_discount_value(self):
+        now = datetime.now(timezone.utc)
+        base = {
+            "product_id": "dkp-95501",
+            "title": "محصول پرنظر اما بدون تقاضای تازه",
+            "availability": "in_stock",
+            "availability_source": "digikala_api",
+            "current_price": 850_000,
+            "original_price": 1_000_000,
+            "discount_percent": 15,
+            "savings_toman": 150_000,
+            "review_count": 250_000,
+            "rating": 4.9,
+            "image_url": "https://example.com/product.webp",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-95501%2F",
+            "has_affiliate_link": True,
+            "deal_expires_at": "",
+            "expiry_source": "unavailable",
+        }
+        recent_ranked = {
+            **base,
+            "product_id": "dkp-95502",
+            "title": "لپ تاپ سبک مدل VivoBook",
+            "catalog_sort_mode": "best_selling",
+            "catalog_best_selling_rank": 12,
+            "catalog_rank_observed_at": now.isoformat(),
+        }
+        _with_verified_market_value(recent_ranked, now)
+        weak_discount = {
+            **recent_ranked,
+            "product_id": "dkp-95503",
+            "title": "ماوس بی سیم لاجیتک",
+            "current_price": 900_000,
+            "original_price": 1_000_000,
+            "discount_percent": 10,
+            "savings_toman": 100_000,
+            "market_status": "not_checked",
+            "market_reference_kind": "",
+            "market_price_checked_at": "",
+        }
+        selected, _, quality = radar_module.select_discount_fallback_candidates(
+            [base, recent_ranked, weak_discount],
+            {"published": {}},
+            now,
+        )
+        # The fresh bestseller rank plus verified market edge is the only fully qualified offer.
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-95502"])
+        self.assertEqual({row["product_id"] for row in quality}, {"dkp-95502"})
+
+    def test_fifteen_percent_discount_requires_verified_market_or_history_value(self):
+        product = {
+            "title": "چراغ مطالعه مدل تست",
+            "current_price": 850_000,
+            "original_price": 1_000_000,
+            "availability": "in_stock",
+            "image_url": "https://example.com/product.webp",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12345%2F",
+            "review_count": 100,
+            "rating": 4.5,
+        }
+        scored = score_product(product)
+        self.assertEqual(scored["discount_percent"], 15)
+        self.assertEqual(scored["savings_toman"], 150_000)
+        self.assertFalse(is_discount_publish_eligible(scored))
+        self.assertTrue(is_discount_publish_eligible(_with_verified_market_value(scored, advantage=6)))
 
 if __name__ == "__main__":
     unittest.main()
