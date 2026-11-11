@@ -90,10 +90,19 @@ def _demand_sort_key(item: dict, now: datetime) -> tuple[int, int, int]:
     if rank:
         tier = 3 if rank <= 10 else 2 if rank <= 30 else 1
         return tier, 61 - rank, 0
-    growth = max(0, _int(item.get("recent_review_growth_7d")))
+    growth = _int(item.get("recent_review_growth_window", item.get("recent_review_growth_7d")))
+    window = _int(item.get("demand_window_hours"))
+    source = str(item.get("demand_signal_source") or "")
     observed = _utc(item.get("demand_observed_at"))
     age = (now - observed).total_seconds() / 3600 if observed else 999999
-    if growth >= 3 and 0 <= age <= 12:
+    verified = (
+        item.get("current_demand_verified") is True
+        and growth >= 3
+        and 6 <= window <= 24
+        and source in {"digikala_recent_review_growth", "snappshop_recent_review_growth"}
+        and -0.1 <= age <= 12
+    )
+    if verified:
         return 0, 0, min(20, growth)
     return 0, 0, 0
 
