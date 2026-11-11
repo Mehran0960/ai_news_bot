@@ -475,7 +475,7 @@ def run_parallel_sweep(
                 base._write_json(completed_candidates_path, {
                     "schema_version": 1,
                     "scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-                    "candidate_order_policy": "catalog_demand_first_v1",
+                    "candidate_order_policy": "catalog_four_factor_equal_weight_v1",
                     "cycle_status": "complete",
                     "cycle_started_at": completed_cycle_started_at,
                     "cycle_completed_at": finished_at,
@@ -854,7 +854,7 @@ def run_parallel_sweep(
         f"total_s={total_run_seconds:.3f} fetch_pages_per_s={state['parallel_last_batch_pages_per_second']:.2f} "
         f"rows_per_s={state['parallel_last_batch_rows_per_second']:.2f} "
         f"candidate_bytes={candidate_file_bytes} "
-        f"sort=demand_score,bestseller_rank,discount_percent,savings_toman full_pages=true "
+        f"sort=four_factor_equal_weight_v1(live_demand_25,affordability_25,generality_25,discount_attractiveness_25) full_pages=true "
         f"completed_cycles={stats['completed_cycles']}"
     )
     return 0
