@@ -93,8 +93,32 @@ class FourFactorScoringTests(unittest.TestCase):
         )
         self.assertEqual(
             by_id[cheap["product_id"]]["selection_affordability_reference"],
-            "current_candidate_pool_not_household_income",
+            "median_of_current_candidate_pool_not_household_income",
         )
+
+    def test_affordability_reference_adapts_to_pool_scale_and_missing_price_is_neutral(self):
+        low_scale = [
+            self._ranked(1, price=100_000),
+            self._ranked(2, price=1_000_000),
+            self._ranked(3, price=10_000_000),
+        ]
+        high_scale = [
+            self._ranked(4, price=1_000_000),
+            self._ranked(5, price=10_000_000),
+            self._ranked(6, price=100_000_000),
+        ]
+        first = score_candidates(low_scale, now=self.now)
+        second = score_candidates(high_scale, now=self.now)
+        self.assertEqual(
+            [row["selection_affordability_score"] for row in first],
+            [row["selection_affordability_score"] for row in second],
+        )
+        missing = self._ranked(7)
+        missing.pop("current_price")
+        missing.pop("original_price")
+        scored_missing = score_candidates([missing], now=self.now)[0]
+        self.assertEqual(scored_missing["selection_affordability_score"], 50)
+        self.assertEqual(scored_missing["selection_affordability_price_status"], "missing_neutral")
 
     def test_affordability_uses_same_use_case_comparison_when_sample_is_large_enough(self):
         rows = [
