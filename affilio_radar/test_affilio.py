@@ -1407,9 +1407,8 @@ class AffilioRadarTests(unittest.TestCase):
                     "ts": now.timestamp(),
                     "title": "عنوان کامل و غیرلازم برای زمان‌بند",
                     "image_url": "https://example.invalid/large-image.jpg",
-                    "telegram_message_id": 2001,
-                    "bale_message_id": 3001,
-                    "delivery_status": {"telegram": "sent", "bale": "sent"},
+                    "distribution_queue_id": "dkp-video-ready:2026-11-05T12:00:00Z",
+                    "delivery_status": {"telegram": "pending", "bale": "pending"},
                     "youtube_upload_status": "pending",
                     "aparat_upload_status": "pending",
                     "video_generation_status": "pending",
@@ -1430,7 +1429,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("dkp-video-ready", compact["published"])
         self.assertNotIn("dkp-not-delivered", compact["published"])
         item = compact["published"]["dkp-video-ready"]
-        self.assertEqual(item["telegram_message_id"], 2001)
+        self.assertTrue(item["video_dispatch_eligible"])
+        self.assertEqual(item["distribution_queue_id"], "dkp-video-ready:2026-11-05T12:00:00Z")
+        self.assertEqual(item["delivery_status"], {"telegram": "pending", "bale": "pending"})
         self.assertEqual(item["youtube_upload_status"], "pending")
         self.assertNotIn("title", item)
         self.assertNotIn("image_url", item)
