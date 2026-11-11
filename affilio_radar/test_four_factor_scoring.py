@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from four_factor_scoring import (
     FACTOR_WEIGHTS,
     SCORE_VERSION,
+    _infer_use_case,
     score_candidates,
     sort_key,
 )
@@ -126,6 +127,16 @@ class FourFactorScoringTests(unittest.TestCase):
         self.assertGreater(
             by_id["dkp-1"]["selection_generality_score"],
             by_id["dkp-2"]["selection_generality_score"],
+        )
+
+    def test_mobile_titles_are_not_misclassified_as_hair_care(self):
+        self.assertEqual(
+            _infer_use_case({"title": "گوشی موبایل اقتصادی", "catalog_category_name": "گوشی موبایل"}),
+            "mobile_productivity",
+        )
+        self.assertEqual(
+            _infer_use_case({"title": "شامپو مو برای مراقبت مو", "catalog_category_name": "مراقبت شخصی"}),
+            "personal_care",
         )
 
     def test_verified_history_or_market_evidence_outweighs_unverified_list_price(self):
