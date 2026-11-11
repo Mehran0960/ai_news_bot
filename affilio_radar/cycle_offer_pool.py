@@ -142,6 +142,8 @@ def _has_verified_discount_value(item: dict, now: datetime) -> bool:
         and -0.1 <= (now - history_at).total_seconds() / 3600 <= 24
     )
     if item.get("history_status") == "verified" and history_fresh:
+        # A fresh negative history verdict is a hard contradiction; market proof
+        # must not be used to wash it out.
         return item.get("historical_deal_eligible") is True
     market_at = _utc(item.get("market_price_checked_at"))
     market_fresh = bool(
