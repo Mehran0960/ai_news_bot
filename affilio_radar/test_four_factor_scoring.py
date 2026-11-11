@@ -129,47 +129,21 @@ class FourFactorScoringTests(unittest.TestCase):
         )
 
     def test_verified_history_or_market_evidence_outweighs_unverified_list_price(self):
-        unverified = self._ranked(1, price=900_000, discount=50, savings=900_000)
-        unverified["original_price"] = 1_800_000
-        unverified["discount_percent"] = 50
-        verified = self._verified_discount(dict(unverified), market=True)
+        unverified = self._ranked(1, price=900_000, savings=900_000)
+        unverified["product_id"] = "dkp-101"
+        verified = self._verified_discount(self._ranked(2, price=900_000, savings=900_000), market=True)
         scored = score_candidates([unverified, verified], now=self.now)
         by_id = {row["product_id"]: row for row in scored}
-        self.assertGreater(
-            by_id["dkp-1"]["selection_discount_attractiveness_score"],
-            40,
-        )
         self.assertLessEqual(
-            by_id["dkp-1"]["selection_discount_attractiveness_score"],
+            by_id["dkp-101"]["selection_discount_attractiveness_score"],
             40,
-        ) if False else None
-        self.assertGreater(
-            by_id["dkp-1"]["selection_discount_attractiveness_score"],
-            by_id["dkp-1"]["selection_discount_attractiveness_score"] - 1,
         )
         self.assertGreater(
-            by_id["dkp-1"]["selection_discount_attractiveness_score"],
-            0,
-        )
-        self.assertGreater(
-            by_id["dkp-1"]["selection_discount_attractiveness_score"],
-            by_id["dkp-1"]["selection_discount_attractiveness_score"] - 1,
-        )
-        self.assertGreater(
-            by_id["dkp-1"]["selection_discount_attractiveness_score"],
-            0,
-        )
-        # The verified evidence bonus must move the score above the unverified 40-point cap.
-        self.assertGreater(
-            by_id["dkp-1"]["selection_discount_attractiveness_score"],
-            by_id["dkp-1"]["selection_discount_attractiveness_score"] - 1,
-        )
-        self.assertGreater(
-            by_id["dkp-1"]["selection_discount_attractiveness_score"],
-            0,
+            by_id["dkp-2"]["selection_discount_attractiveness_score"],
+            by_id["dkp-101"]["selection_discount_attractiveness_score"],
         )
         self.assertEqual(
-            by_id["dkp-1"]["selection_discount_evidence"],
+            by_id["dkp-2"]["selection_discount_evidence"],
             "verified_history_and_or_market",
         )
 
