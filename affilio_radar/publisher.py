@@ -799,9 +799,10 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         }
         for destination in PHOTO_PLATFORMS:
             _process_photo_destination(state, entry, record, fresh, image_bytes, destination, now)
-        # Persist the channel post record, then leave YouTube and Aparat to their
-        # own independently scheduled upload workflows. A video quota or slow upload
-        # must never hold the Telegram/Bale publication queue open.
+        # The canonical selected-product record already exists in state.json.
+        # The video dispatcher consumes that same record independently: no photo
+        # destination needs to report "sent" before YouTube/Aparat/Filo can start.
+        # Each video workflow applies only its own rate, quota, credential and expiry gates.
         state.setdefault("published", {})[product_id] = record
         _save(state)
 
