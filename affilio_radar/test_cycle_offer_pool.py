@@ -79,6 +79,21 @@ class CycleOfferPoolTests(unittest.TestCase):
         self.assertEqual(result["added"], 1)
         self.assertEqual(pool_remaining_count(state), 1)
 
+    def test_fresh_negative_history_verdict_cannot_be_overridden_by_market_proof(self):
+        contradicted = self.item("dkp-10005", 100_000)
+        contradicted.update({
+            "history_status": "verified",
+            "historical_deal_eligible": False,
+            "history_checked_at": self.now.isoformat(),
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": 15,
+            "market_price_checked_at": self.now.isoformat(),
+        })
+        state = {}
+        self.merge(state, [contradicted])
+        self.assertEqual(pool_remaining_count(state), 0)
+
     def test_affordability_percentile_prefers_lower_price_within_category(self):
         state = {}
         items = [
