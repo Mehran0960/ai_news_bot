@@ -204,11 +204,12 @@ def _fresh_review_growth(record: dict, now: datetime) -> tuple[bool, float]:
 def _demand_score(record: dict, now: datetime) -> int:
     evidence = _fresh_bestseller_evidence(record, now)
     if evidence:
+        # Keep native bestseller positions distinct. Saturating freshness/category
+        # bonuses made ranks 1, 2 and 5 collapse to 100, erasing the direct signal.
+        # Category breadth, freshness and momentum remain auditable metadata, not
+        # hidden score inflation. Even rank 60 remains above the review-growth proxy.
         rank_score = 100.0 - ((evidence["rank"] - 1) / (DEMAND_MAX_RANK - 1)) * 32.0
-        freshness_bonus = 3.0 * (1.0 - evidence["age_hours"] / DEMAND_MAX_AGE_HOURS)
-        category_bonus = min(4.0, max(0, evidence["category_count"] - 1) * 2.0)
-        momentum_bonus = min(6.0, evidence["max_momentum"] * 0.5)
-        return max(0, min(100, round(rank_score + freshness_bonus + category_bonus + momentum_bonus)))
+        return max(68, min(100, round(rank_score)))
 
     is_fresh, growth_per_day = _fresh_review_growth(record, now)
     if not is_fresh:
