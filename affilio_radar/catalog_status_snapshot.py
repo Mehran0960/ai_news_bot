@@ -159,6 +159,7 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
     supported_order_policies = {
         "discount_value_desc",
         "catalog_demand_first_v1",
+        "catalog_demand_affordability_v2",
     }
     previous_sort_key: tuple[int, int] | None = None
     rows_valid = candidate_order_policy in supported_order_policies
@@ -187,7 +188,12 @@ def _candidate_snapshot_details(payload: Any) -> dict[str, Any]:
                 rows_valid = False
                 break
             previous_sort_key = sort_key
-        # catalog_demand_first_v1 freezes the producer's native demand-first order.
+        if candidate_order_policy == "catalog_demand_affordability_v2":
+            affordability = _integer(row.get("catalog_affordability_percentile"), -1)
+            if not 0 <= affordability <= 100:
+                rows_valid = False
+                break
+        # Demand/affordability producer order is immutable in the snapshot.
         # Never reinterpret it as a global markdown sort during validation.
         # Snapshot-rank continuity and the status-file hash still protect this order.
         candidate_ids.append(product_id)
@@ -239,7 +245,9 @@ def _top_candidates_preview(completed_candidates: Any, valid: bool) -> list[dict
     """
     if not valid or not isinstance(completed_candidates, dict):
         return []
-    if str(completed_candidates.get("candidate_order_policy") or "") != "catalog_demand_first_v1":
+    if str(completed_candidates.get("candidate_order_policy") or "") not in {
+        "catalog_demand_first_v1", "catalog_demand_affordability_v2"
+    }:
         return []
     rows = completed_candidates.get("candidates")
     if not isinstance(rows, list):
@@ -270,6 +278,8 @@ def _top_candidates_preview(completed_candidates: Any, valid: bool) -> list[dict
             "best_selling_category_id": str(row.get("catalog_best_selling_category_id") or ""),
             "best_selling_category_name": str(row.get("catalog_best_selling_category_name") or "")[:120],
             "best_selling_rank_observed_at": str(row.get("catalog_rank_observed_at") or ""),
+            "affordability_percentile": max(0, min(100, _integer(row.get("catalog_affordability_percentile")))),
+            "affordability_tier": str(row.get("catalog_affordability_tier") or "unknown"),
             "category_ids": category_ids[:12],
             "category_count": len(category_ids),
         })
