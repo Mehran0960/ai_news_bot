@@ -101,7 +101,9 @@ def _eligible_fallback_candidates(candidates: Any, now: datetime, catalog_contex
             candidate, minimum_discount_percent=selected_floor, now=now
         ):
             eligible.append(candidate)
-    return eligible
+    # Backups must use the same pool-relative four-factor ranking as the primary.
+    scored = radar.score_four_factor_candidates(eligible, now=now)
+    return sorted(scored, key=lambda item: radar.deal_sort_key(item, now=now), reverse=True)
 
 
 
@@ -235,6 +237,21 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
             item.get("selection_discount_floor") or radar.DISCOUNT_FALLBACK_FLOORS[0]
         ),
         "selection_discount_band": str(item.get("selection_discount_band") or ""),
+        "four_factor_score_version": str(item.get("four_factor_score_version") or ""),
+        "selection_factor_scores": (
+            dict(item.get("selection_factor_scores"))
+            if isinstance(item.get("selection_factor_scores"), dict) else {}
+        ),
+        "selection_demand_score": item.get("selection_demand_score"),
+        "selection_affordability_score": item.get("selection_affordability_score"),
+        "selection_generality_score": item.get("selection_generality_score"),
+        "selection_discount_attractiveness_score": item.get("selection_discount_attractiveness_score"),
+        "selection_four_factor_score": item.get("selection_four_factor_score"),
+        "selection_use_case_group": str(item.get("selection_use_case_group") or ""),
+        "selection_affordability_basis": str(item.get("selection_affordability_basis") or ""),
+        "selection_affordability_reference": str(item.get("selection_affordability_reference") or ""),
+        "selection_generality_basis": str(item.get("selection_generality_basis") or ""),
+        "selection_discount_evidence": str(item.get("selection_discount_evidence") or ""),
         "creative_experiment_id": str(item.get("creative_experiment_id") or ""),
         "creative_variant": str(item.get("creative_variant") or "A").upper(),
         "caption_experiment_id": str(item.get("caption_experiment_id") or ""),
@@ -376,6 +393,12 @@ def _fresh_selected_item(
         "catalog_best_selling_category_id", "catalog_best_selling_category_name",
         "catalog_rank_observed_at", "catalog_cycle_completed_at", "catalog_cycle_snapshot_rank",
         "publication_policy", "selection_demand_evidence", "selection_demand_quality",
+        "four_factor_score_version", "selection_factor_scores",
+        "selection_demand_score", "selection_affordability_score",
+        "selection_generality_score", "selection_discount_attractiveness_score",
+        "selection_four_factor_score", "selection_use_case_group",
+        "selection_affordability_basis", "selection_affordability_reference",
+        "selection_generality_basis", "selection_discount_evidence",
         "selection_bestseller_rank", "selection_bestseller_category_count",
         "selection_bestseller_rank_improvement", "selection_review_growth_evidence",
         "selection_value_evidence", "selection_fallback_mode",
