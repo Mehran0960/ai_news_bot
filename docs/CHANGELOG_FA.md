@@ -1683,10 +1683,10 @@
 
 **فایل‌ها/سامانه‌ها:** `affilio_radar/cycle_offer_pool.py`، `affilio_radar/affilio_radar.py`، `affilio_radar/catalog_sweep.py`، `affilio_radar/parallel_catalog_sweep.py`، `affilio_radar/catalog_status_snapshot.py`، `affilio_radar/publisher.py`، `cloudflare/affilio-minute-dispatcher.js`، تست‌های مرتبط و سه سند مرجع پروژه.
 
-**آزمون و نتیجه:** روی commit قبلی همین شاخه، Python/JavaScript syntax و suite رگرسیون رادار با ۵۳۹ تست (۲ مورد skipped) موفق شد. CI بعدی دو ایراد integration در parse تعداد فروشنده و یک fixture زمان‌ثابت را آشکار کرد؛ parse اصلاح شده، fixture به زمان جاری وابسته شده و اجرای کامل روی HEAD جدید در حال تکرار است. اعتبارسنجی Worker روی commit شامل fixture زمان‌محور موفق شده و deploy job صریحاً skipped بوده است.
+**آزمون و نتیجه:** روی HEAD شاخه `7ddcf09395a28f440c19de25a9445834f1d0501a`، Python syntax، JavaScript syntax و مجموعهٔ رگرسیون رادار موفق شدند: ۵۳۹ تست اجرا شد و ۲ تست به‌صورت اعلام‌شده skipped بود. گیت‌های Documentation، fallback، Top-100/DigiPay، Catalog Sweep، Messenger Adapters و Platform Logos نیز همگی موفق شدند. اعتبارسنجی Cloudflare Worker در PR موفق شد و job استقرار Production صریحاً skipped بود.
 
-**شواهد/شناسه:** شاخهٔ `feature/cycle-offer-pool-quality-gates-20261111`؛ PR پیش‌نویس #156؛ اجرای موفق رادار روی commit `fa5e4e599029e0244c824530e915812d4e6c6eab`؛ اجرای موفق اعتبارسنجی Worker در run `43044738645`؛ لینک PR: https://github.com/Mehran0960/ai_news_bot/pull/156.
+**شواهد/شناسه:** شاخهٔ `feature/cycle-offer-pool-quality-gates-20261111`؛ PR پیش‌نویس #156؛ اجرای رادار ۵۳۹ تستی: run `43045123013`؛ Documentation Gate: `43045136998`؛ Fallback: `43045137193`؛ Top-100/DigiPay: `43045137079`؛ Catalog Sweep: `43045136996`؛ Messenger: `43045137054`؛ Platform Logos: `43045137041`؛ Cloudflare validation: `43045136904`؛ لینک PR: https://github.com/Mehran0960/ai_news_bot/pull/156.
 
 **ریسک/بازگشت:** اگر Torob/منبع تاریخچه در دسترس نباشد، نامزدهای فاقد مدرک مثبت مستقل رد می‌شوند و ممکن است تعداد آفرها کاهش یابد؛ این رفتار عمدی است و نباید با markdown اسمی دور زده شود. صدک استطاعت توان خرید واقعی خانوار را اندازه نمی‌گیرد. رتبهٔ پرفروش، فروش واحدی نیست. برای بازگشت، PR #156 قابل revert است؛ هیچ تغییر runtime در Production اعمال نشده است.
 
-**وضعیت:** پیاده‌سازی روی شاخهٔ مستقل و PR پیش‌نویس #156 قرار دارد. merge و deploy انجام نشده است. نتیجهٔ نهایی CI روی آخرین HEAD باید قبل از آمادهٔ ادغام دانستن تغییر تأیید شود.
+**وضعیت:** پیاده‌سازی و همهٔ گیت‌های CI مرتبط روی HEAD فوق موفق‌اند؛ PR #156 همچنان Draft است. merge و deploy انجام نشده‌اند. پیش از تبدیل PR به Ready یا merge، وضعیت ۱۳ commit عملیاتی جدیدتر main و فایل‌های state باید بازبینی شوند؛ همچنین یک اجرای shadow با دادهٔ زنده لازم است.
