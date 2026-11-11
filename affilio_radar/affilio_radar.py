@@ -3333,7 +3333,7 @@ def select_discovery_records_for_check(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> list[tuple[str, dict]]:
-    """Select due candidates in strict discount-percentage, then savings order."""
+    """Select due candidates by the shared equal-weight four-factor score after hard eligibility guards."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -8517,13 +8517,14 @@ def select_discount_fallback_candidates(
     now: datetime | None = None,
     include_fallback_bands: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
-    """Rank live-valid candidates by DigiKala demand evidence, then verified deal value.
+    """Rank live-valid offers on four equal factors: demand, affordability, generality and deal value.
 
-    Fresh native bestseller rank is the primary relative-demand signal. Fresh review growth is
-    a secondary indirect proxy; lifetime review totals and rating are weak historical context.
-    None of these values is represented as absolute unit sales. Clicks, commissions and affiliate
-    income never affect ranking. Positive external market/history confirmation is not required;
-    fresh verified contradictory evidence may still veto an otherwise eligible offer.
+    Fresh native DigiKala bestseller rank is the strongest available direct relative-demand input;
+    fresh review growth from DigiKala or SnapShop is a weaker proxy only. Review growth is not unit
+    sales, and native cross-retailer sales ranks are not yet integrated. Affordability is pool-relative,
+    generality is a taxonomy proxy, and unverified markdowns are capped in the discount score.
+    The live-demand gate and independent price/stock/link/expiry/safety/repeat controls remain mandatory.
+    Clicks, lifetime review totals, ratings, commissions and affiliate income never affect the score.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -10873,33 +10874,43 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "The scanner traverses every queryable DigiKala category page ordered by DigiKala's native bestseller sort (sort id 7). Candidates are ranked first by fresh within-category bestseller evidence (top 10, 11-30, then 31-60), then observed rank momentum and the number of fresh categories in which the product ranks, then fresh review-count growth as an indirect proxy, then lifetime review count/rating as weak quality context, and only then discount percentage and cash savings. DigiKala's public data available to this integration does not expose a verified absolute unit-sales count, so bestseller rank is a relative sales-demand signal, not a unit count; review growth is not sales. Clicks never influence market-demand ranking. SnappShop and other sources remain supplementary and cannot outrank a fresh DigiKala bestseller signal. Price, stock, product identity, affiliate URL, offer validity, duplicate and safety checks remain hard publication controls.",
+        "ranking_note": "Every publication-ready candidate is ranked on four equally weighted factors (25% each): live demand, affordability, generality and discount attractiveness. The live-demand score uses a fresh DigiKala native bestseller rank (1-60, at most 24h old) when available; otherwise a verified rolling review-count increase from DigiKala or SnapShop is a weaker proxy, not unit sales. This integration does not yet ingest verified native sales ranks or unit counts across all Iranian retailers; demand coverage is therefore partial, not a complete cross-market demand index. Affordability is measured against the dynamic median and percentiles of the current candidate pool; missing price is neutral. Generality is a retail-taxonomy/use-case proxy. Discount attractiveness requires consistent price arithmetic and receives a stronger score only with fresh independent history or comparable-market evidence; unverified markdowns are capped at 40/100. Live demand remains a hard publication gate; live price, stock, URL, expiry, safety and rolling 24h duplicate controls remain separate hard gates. Clicks, lifetime review totals, ratings, commission and affiliate income are not score inputs.",
         "demand_ranking_policy": {
-            "version": "digikala_demand_first_bestseller_review_quality_discount_v1",
-            "primary_source": "DigiKala native bestseller sort id=7",
+            "version": "four-factor-equal-weight-v1",
+            "factor_weights": {"live_demand": 0.25, "affordability": 0.25, "generality": 0.25, "discount_attractiveness": 0.25},
+            "direct_signal": "DigiKala native bestseller sort id=7, rank 1-60, max age 24h",
+            "direct_signal_score": {"rank_1": 100, "rank_60": 68},
+            "weaker_proxy_signals": ["DigiKala fresh review-count growth", "SnapShop fresh review-count growth"],
+            "cross_retailer_native_sales_rank_integrated": False,
             "primary_rank_window": "top 60 per DigiKala category",
             "rank_max_age_hours": DIGIKALA_BESTSELLER_MAX_AGE_HOURS,
-            "rank_tiers": {"top_10": 3, "rank_11_30": 2, "rank_31_60": 1},
             "rank_is_absolute_unit_sales": False,
             "absolute_unit_sales_count_available": False,
-            "secondary_signal": "fresh review-count growth; indirect proxy only",
-            "tertiary_context": ["lifetime_review_count", "rating"],
-            "discount_order": ["discount_percent_desc", "savings_toman_desc"],
+            "review_growth_is_sales": False,
+            "lifetime_review_count_or_rating_used_in_factor_score": False,
+            "demand_gate_required": True,
             "clicks_affect_demand_rank": False,
         },
-        "review_growth_tiebreak_policy": {
-            "use": "secondary_indirect_proxy",
-            "ranking_effect": "after_fresh_digikala_bestseller_rank_and_rank_momentum",
-            "source": "fresh rolling review-count growth (DigiKala primary; SnappShop secondary)",
+        "review_growth_policy": {
+            "use": "weaker_fallback_proxy_when_native_bestseller_rank_is_absent",
+            "ranking_effect": "live_demand_factor_only; capped at 65/100 and below native rank",
+            "source": "fresh rolling review-count growth from DigiKala or SnapShop",
             "interpretation": "indirect proxy only; not sales volume",
-            "unverified_blocks_new_publication": False,
-            "lifetime_review_count_or_rating_used": True,
-            "category_bestseller_rank_used": True,
+            "lifetime_review_count_or_rating_used_in_factor_score": False,
             "window_days": CURRENT_DEMAND_WINDOW_DAYS,
             "minimum_growth": CURRENT_DEMAND_MIN_REVIEW_GROWTH,
             "minimum_observation_hours": CURRENT_DEMAND_MIN_OBSERVATION_HOURS,
             "sample_interval_hours": CURRENT_DEMAND_SAMPLE_INTERVAL_HOURS,
             "maximum_signal_age_hours": CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS,
+        },
+        "four_factor_scoring": {
+            "version": "four-factor-equal-weight-v1",
+            "weights": {"live_demand": 25, "affordability": 25, "generality": 25, "discount_attractiveness": 25},
+            "affordability_reference": "median_of_current_candidate_pool",
+            "missing_price_score": 50,
+            "generality_reference": "DigiKala taxonomy and product use-case proxy",
+            "unverified_discount_score_cap": 40,
+            "discount_verification": ["fresh verified price history", "fresh comparable seller-median market price"],
         },
         "discount_value_policy": {
             "use": "diagnostics_plus_fresh_contradiction_veto",
