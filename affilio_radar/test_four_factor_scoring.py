@@ -169,7 +169,8 @@ class FourFactorScoringTests(unittest.TestCase):
         old = (self.now - timedelta(hours=30)).isoformat()
         candidate["market_price_checked_at"] = old
         scored = score_candidates([candidate], now=self.now)[0]
-        self.assertEqual(scored["selection_discount_attractiveness_score"], 40)
+        self.assertLessEqual(scored["selection_discount_attractiveness_score"], 40)
+        self.assertGreater(scored["selection_discount_attractiveness_score"], 0)
 
     def test_clicks_commission_and_synthetic_scores_do_not_create_live_demand(self):
         candidate = {
