@@ -4,6 +4,7 @@ from unittest.mock import Mock
 
 from filo_uploader import (
     FiloUploadError,
+    _find_login_captcha_field,
     _find_publish_button,
     _visible_enabled_first,
     _wait_for_filo_login_form_hydration,
@@ -69,6 +70,17 @@ class FiloUploaderUnitTests(unittest.TestCase):
         page.locator.return_value = collection
 
         self.assertIs(_visible_enabled_first(page, ["button[type='submit']"]), enabled)
+
+    def test_login_captcha_field_is_detected_before_submit(self):
+        page = Mock()
+        collection = Mock()
+        captcha = Mock()
+        collection.first = captcha
+        captcha.count.return_value = 1
+        captcha.is_visible.return_value = True
+        page.locator.return_value = collection
+
+        self.assertIs(_find_login_captcha_field(page), captcha)
 
     def test_login_waits_for_vue_v_model_handlers_before_fill(self):
         page = Mock()
