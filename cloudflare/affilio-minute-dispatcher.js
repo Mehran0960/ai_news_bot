@@ -373,8 +373,19 @@ function hasChannelDelivery(record) {
       .some(field => /^\d+$/.test(String(record[field] || "")));
 }
 
+function hasVideoDispatchEligibility(record) {
+  return Boolean(
+    record && typeof record === "object" &&
+    (
+      record.video_dispatch_eligible === true ||
+      String(record.distribution_queue_id || "").trim() ||
+      hasChannelDelivery(record)
+    )
+  );
+}
+
 export function videoRecordDue(record, platform, now) {
-  if (!record || typeof record !== "object" || !hasChannelDelivery(record)) return false;
+  if (!hasVideoDispatchEligibility(record)) return false;
   const publishedAt = Number(record.ts || 0) * 1000;
   if (!Number.isFinite(publishedAt) || publishedAt <= 0 || now - publishedAt > VIDEO_UPLOAD_MAX_AGE_MS) return false;
   const status = String(record[platform + "_upload_status"] || "pending");
@@ -417,7 +428,7 @@ export function hasDueVideoRecord(state, platform, now) {
   const published = state && state.published && typeof state.published === "object"
     ? state.published : {};
   // The compact dispatcher sidecar already caps this at the 250 most recent
-  // channel-delivered records. Do not inspect only the newest six: that can
+  // selected-product records. Do not inspect only the newest six: that can
   // hide an older pending upload behind six newer completed uploads.
   return Object.values(published).some(record => videoRecordDue(record, platform, now));
 }
@@ -434,6 +445,9 @@ async function readLatestWorkflowAttempt(api, token) {
   }
 }
 
+// A successful channel delivery is the content event: its canonical product record
+// becomes video-eligible immediately. The rolling platform slot below is only a
+// target-side rate limiter; it must never trigger an independent product selection.
 async function dispatchVideoPlatformWhenDue(env, tick, state, platform) {
   const config = platform === "youtube"
     ? { api: YOUTUBE_VIDEO_API, workflow: YOUTUBE_VIDEO_WORKFLOW, slot: "youtube_next_upload_at", pause: "youtube_uploads_paused_until" }
@@ -533,8 +547,8 @@ async function runScheduledCheck(env, scheduledTime) {
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 
-  // Video destinations are dispatched from their own saved upload clocks.
-  // Neither media schedule reads or reserves the Telegram/Bale posting interval.
+  // Inspect the channel-created video queue on every minute tick. The product event
+  // is immediate; each destination's own rolling safety slot controls actual dispatch.
   await dispatchVideoUploadsWhenDue(env, tick, state);
 }
 

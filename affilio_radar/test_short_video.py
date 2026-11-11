@@ -17,6 +17,8 @@ from short_video import (
     TITLE_FONT_PATH,
     VIDEO_LOGO_COLUMN_WIDTH,
     VIDEO_LOGO_TEXT_GAP,
+    VIDEO_TITLE_TOP,
+    VIDEO_LAYOUT_Y_SHIFT,
     _title_font,
     format_persian_price,
     format_persian_discount,
@@ -289,7 +291,7 @@ class ShortVideoTests(unittest.TestCase):
         self.assertNotIn("youtube", drawn_platforms, "a YouTube Short must not list its own channel")
         # Official artwork and its backing fit cleanly into four non-overlapping
         # rows within the channel identity panel.
-        self.assertEqual([call.args[3] for call in draw_logo.call_args_list], [210, 236, 262, 288])
+        self.assertEqual([call.args[3] for call in draw_logo.call_args_list], [304, 330, 356, 382])
         self.assertEqual([call.args[4] for call in draw_logo.call_args_list], [20, 20, 20, 20])
         self.assertEqual([call.kwargs["max_width"] for call in draw_logo.call_args_list], [96, 96, 96, 96])
 
@@ -498,11 +500,10 @@ class ShortVideoTests(unittest.TestCase):
             stream.getvalue(), 50, merchant="اسنپ‌شاپ",
         ))).convert("RGB")
 
-        # The extra blank line below the purchase CTA shifts the product card
-        # and its retailer/discount tiles down by 22 pixels.
-        retailer_crop = digikala.crop((220, 346, 344, 394))
-        digikala_discount_crop = digikala.crop((375, 346, 499, 394))
-        snappshop_discount_crop = snappshop.crop((375, 346, 499, 394))
+        # The two-line top safe space shifts the entire content stack down by 94 pixels.
+        retailer_crop = digikala.crop((220, 440, 344, 488))
+        digikala_discount_crop = digikala.crop((375, 440, 499, 488))
+        snappshop_discount_crop = snappshop.crop((375, 440, 499, 488))
         red_pixels = sum(1 for red, green, blue in retailer_crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
         digikala_discount_pixels = sum(1 for red, green, blue in digikala_discount_crop.getdata() if red > 150 and red > green * 1.7 and red > blue * 1.5)
         snappshop_discount_pixels = sum(1 for red, green, blue in snappshop_discount_crop.getdata() if blue > 90 and red > green * 1.6 and blue > green * 1.6)
@@ -523,7 +524,7 @@ class ShortVideoTests(unittest.TestCase):
         # The DigiPay tile now follows the actual retailer-logo bounds at upper-left.
         blue_points = [
             (x, y)
-            for y in range(370, 445)
+            for y in range(464, 539)
             for x in range(198, 340)
             if (lambda p: p[2] > 150 and p[2] > p[0] * 1.8 and p[2] > p[1] * 1.2)(
                 poster.getpixel((x, y))
@@ -665,7 +666,7 @@ class ShortVideoTests(unittest.TestCase):
         background_sample = poster.getpixel((680, 1150))
         self.assertGreater(min(background_sample), 45)
         self.assertNotEqual(background_sample, (14, 28, 22))
-        price_panel = poster.getpixel((80, 770))
+        price_panel = poster.getpixel((80, 864))
         self.assertGreater(price_panel[1], price_panel[0])
         self.assertEqual(poster.size, (720, 1280))
 
@@ -708,11 +709,14 @@ class ShortVideoTests(unittest.TestCase):
                 f"Persian overlay must use the product-title font: {item['text']!r}",
             )
 
-        title_draws = [item for item in persian_draws if item["xy"][1] in (65, 73)]
+        title_draws = [item for item in persian_draws if item["xy"][1] in (159, 167)]
         self.assertTrue(title_draws, "product title must be drawn")
+        self.assertEqual(VIDEO_TITLE_TOP, 128)
+        self.assertEqual(VIDEO_LAYOUT_Y_SHIFT, 94)
+        self.assertGreaterEqual(min(item["xy"][1] for item in title_draws), VIDEO_TITLE_TOP + 31)
         self.assertTrue(all(item["stroke_width"] == 1 for item in title_draws))
 
-        price_draw = next(item for item in persian_draws if item["xy"][1] == 831)
+        price_draw = next(item for item in persian_draws if item["xy"][1] == 925)
         self.assertEqual(price_draw["stroke_width"], 1)
 
         cta_draw = next(

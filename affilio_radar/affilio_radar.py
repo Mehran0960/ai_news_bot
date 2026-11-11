@@ -4906,12 +4906,8 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             if not isinstance(raw, dict):
                 continue
             delivery = raw.get("delivery_status") if isinstance(raw.get("delivery_status"), dict) else {}
-            has_channel_delivery = (
-                any(delivery.get(name) == "sent" for name in ("telegram", "bale", "rubika", "eitaa"))
-                or any(str(raw.get(key) or "").isdigit()
-                       for key in ("telegram_message_id", "bale_message_id", "rubika_message_id", "eitaa_message_id"))
-            )
-            if not has_channel_delivery:
+            video_dispatch_eligible = _has_video_dispatch_eligibility(raw)
+            if not video_dispatch_eligible:
                 continue
             try:
                 ts = float(raw.get("ts") or 0)
@@ -4924,6 +4920,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
 
     fields = (
         "youtube_upload_status", "aparat_upload_status", "filo_upload_status", "video_generation_status",
+        "distribution_queue_id",
         "video_generation_next_attempt_at", "youtube_next_attempt_at",
         "aparat_next_attempt_at", "filo_next_attempt_at", "expires_at", "expiry_source", "expiry_estimated",
         "expiry_deadline_verified_directly", "expiry_deadline_verified_from_site_card",
@@ -4932,6 +4929,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     for ts, product_id_value, raw, delivery in candidates[:VIDEO_DISPATCH_STATE_RECORD_LIMIT]:
         item = {
             "ts": ts,
+            "video_dispatch_eligible": True,
             "delivery_status": {
                 key: value for key, value in delivery.items()
                 if key in {"telegram", "bale", "rubika", "eitaa"}
@@ -9346,8 +9344,17 @@ def video_deadline_allows_upload(platform: str, verified_expiry: bool) -> bool:
     return bool(verified_expiry) if str(platform or "").strip().lower() == "aparat" else True
 
 
-def _has_channel_delivery_for_video(record: dict) -> bool:
-    """Only create video companions for content already sent through a photo channel."""
+def _has_video_dispatch_eligibility(record: dict) -> bool:
+    """Accept a canonical selected-product event without waiting for a photo destination.
+
+    Legacy records that predate the canonical hand-off remain eligible only when a
+    confirmed photo-channel receipt exists. New publisher records carry a non-empty
+    distribution_queue_id before any destination network call begins.
+    """
+    if not isinstance(record, dict):
+        return False
+    if str(record.get("distribution_queue_id") or "").strip():
+        return True
     delivery = record.get("delivery_status") if isinstance(record.get("delivery_status"), dict) else {}
     return (
         any(delivery.get(name) == "sent" for name in ("telegram", "bale", "rubika", "eitaa"))
@@ -9359,11 +9366,11 @@ def _has_channel_delivery_for_video(record: dict) -> bool:
 
 
 def _video_upload_candidate_sort_key(row: tuple) -> tuple:
-    """Preserve the canonical channel-selection order on every video destination.
+    """Preserve the canonical product-selection order on every video destination.
 
-    The channel publisher has already made the discovery, four-factor ranking,
-    diversity choice and last-mile live validation. Video destinations consume
-    that same published hand-off FIFO; markdown must not reorder it independently.
+    The publisher has already made the discovery, four-factor ranking, diversity
+    choice and last-mile live validation. Every destination consumes the same selected
+    hand-off FIFO; markdown must not reorder it independently.
     """
     timestamp = float(row[0]) if isinstance(row, tuple) and row else 0.0
     product_id_value = str(row[1]) if isinstance(row, tuple) and len(row) > 1 else ""
@@ -9861,9 +9868,10 @@ def process_pending_short_video(
             record["filo_upload_status"] = "pending"
             state_changed = True
 
-        # Youtube may proceed without an official retailer timer after a successful
-        # Telegram/Bale delivery and last-mile price/stock validation. The independent
-        # integrity audit continues to remove posts when the live offer changes.
+        # The shared publisher already completed last-mile price/stock/discount
+        # validation before creating this canonical record. YouTube does not wait for
+        # Telegram/Bale success; the independent integrity audit continues to invalidate
+        # videos when the live offer changes.
         # Public Aparat still requires a directly verified expiry because its current
         # cleanup path has weaker recovery guarantees.
         if expiry is None:
@@ -9873,14 +9881,14 @@ def process_pending_short_video(
         else:
             expiry_for_sort = expiry
 
-        has_channel_delivery = _has_channel_delivery_for_video(record)
-        if not force_due and not has_channel_delivery:
+        video_dispatch_eligible = _has_video_dispatch_eligibility(record)
+        if not force_due and not video_dispatch_eligible:
             continue
         if (
             not verified_expiry and upload_status in pending_youtube
-            and has_channel_delivery and youtube_ready
+            and video_dispatch_eligible and youtube_ready
         ):
-            print(f"YOUTUBE_UNVERIFIED_DEADLINE_ALLOWED id={pid} policy=last_mile_checks_plus_integrity_audit")
+            print(f"YOUTUBE_UNVERIFIED_DEADLINE_ALLOWED id={pid} policy=publisher_last_mile_checks_plus_integrity_audit")
 
         yt_need = (
             youtube_upload_due and upload_status in pending_youtube

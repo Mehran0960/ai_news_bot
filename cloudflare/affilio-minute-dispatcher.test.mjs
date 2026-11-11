@@ -5,12 +5,16 @@ import {
   isInitialCatalogWarmup,
   isDegradedLiveFallbackAvailable,
   hasDueVideoRecord,
+  videoRecordDue,
   isFiloLoginVerified,
   PUBLISHER_INTERVAL_MS,
   readLastChannelPublicationAt,
 } from "./affilio-minute-dispatcher.mjs";
 
 const categoryIds = Array.from({ length: 4917 }, (_, index) => String(index + 1));
+// Keep the canonical clean fixture inside the rolling 96-hour freshness window.
+const cleanCycleCompletedAt = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+const cleanCycleStartedAt = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString();
 const cleanStatus = {
   schema_version: 2,
   full_catalog_mode: "all_categories_all_pages",
@@ -19,11 +23,11 @@ const cleanStatus = {
   last_clean_cycle_status: "complete",
   completed_candidates_snapshot_present: true,
   completed_candidates_snapshot_valid: true,
-  completed_candidates_cycle_at: "2026-11-06T16:00:00Z",
+  completed_candidates_cycle_at: cleanCycleCompletedAt,
   completed_candidates_count: 3000,
   completed_candidates_sha256: "a".repeat(64),
-  last_clean_cycle_started_at: "2026-11-06T12:00:00Z",
-  last_clean_cycle_completed_at: "2026-11-06T16:00:00Z",
+  last_clean_cycle_started_at: cleanCycleStartedAt,
+  last_clean_cycle_completed_at: cleanCycleCompletedAt,
   last_clean_cycle_categories_total: 4917,
   last_clean_cycle_categories_complete: 4917,
   last_clean_cycle_categories_unqueryable: 0,
@@ -58,7 +62,7 @@ test("reuses the same clean snapshot after a publication while the next scan is 
     ...cleanStatus,
     last_cycle_status: "in_progress",
     last_cycle_completed_at: null,
-    last_channel_published_at: "2026-11-06T17:00:00Z",
+    last_channel_published_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
   };
   assert.equal(isUsableCleanCatalogSnapshot(status), true);
 });
@@ -231,6 +235,32 @@ test("video dispatcher sees an older pending upload beyond the newest six record
   assert.equal(hasDueVideoRecord({ published }, "youtube", now), true);
 });
 
+test("video destinations accept the canonical selected product without waiting for a photo-channel success", () => {
+  const now = Date.now();
+  const record = {
+    ts: (now - 60_000) / 1000,
+    video_dispatch_eligible: true,
+    distribution_queue_id: "dkp-selected:2026-11-11T20:00:00Z",
+    delivery_status: { telegram: "pending", bale: "pending", rubika: "pending", eitaa: "pending" },
+    youtube_upload_status: "pending",
+    aparat_upload_status: "pending",
+    filo_upload_status: "pending",
+    video_generation_status: "pending",
+    expiry_deadline_verified_directly: true,
+    expires_at: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
+  };
+  const state = { published: { "dkp-selected": record } };
+  for (const platform of ["youtube", "aparat", "filo"]) {
+    assert.equal(videoRecordDue(record, platform, now), true, platform);
+    assert.equal(hasDueVideoRecord(state, platform, now), true, platform);
+  }
+  assert.equal(videoRecordDue({
+    ...record,
+    video_dispatch_eligible: false,
+    distribution_queue_id: "",
+  }, "youtube", now), false);
+});
+
 test("Filo login must be explicitly verified and no older than seven days", () => {
   const now = Date.now();
   assert.equal(isFiloLoginVerified({}, now), false);
@@ -246,6 +276,25 @@ test("Filo login must be explicitly verified and no older than seven days", () =
     filo_login_verification_status: "failed",
     filo_login_verified_at: new Date(now).toISOString(),
   }, now), false);
+});
+
+test("a successful channel post immediately makes the same product eligible for every video destination", () => {
+  const now = Date.now();
+  const record = {
+    ts: (now - 60_000) / 1000,
+    delivery_status: { telegram: "sent" },
+    youtube_upload_status: "pending",
+    aparat_upload_status: "pending",
+    filo_upload_status: "pending",
+    video_generation_status: "pending",
+    expiry_deadline_verified_directly: true,
+    expires_at: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
+  };
+  const state = { published: { "dkp-channel-event": record } };
+  for (const platform of ["youtube", "aparat", "filo"]) {
+    assert.equal(videoRecordDue(record, platform, now), true, platform);
+    assert.equal(hasDueVideoRecord(state, platform, now), true, platform);
+  }
 });
 
 test("Filo accepts every confirmed channel delivery without requiring a retailer expiry timer", () => {
