@@ -49,7 +49,7 @@ _TEXT_GROUP_PATTERNS = (
     ("grocery_food", r"مواد غذایی|خوراکی|نوشیدنی|چای|قهوه|شکلات|تنقلات|ادویه|کنسرو"),
     ("kitchen_food", r"آشپزخانه|آشپزی|قابلمه|تابه|کتری|چای ساز|قهوه ساز|ظروف غذا"),
     ("personal_care", r"بهداشتی|آرایشی|مراقبت پوست|مراقبت مو|مسواک|ضدآفتاب|عطر"),
-    ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ.?تاپ|کامپیوتر|شارژر|کابل|حافظه|مودم"),
+    ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ.?تاپ|کامپیوتر|شارژر|کابل|حافظه|مودم|ماوس|موس|کیبورد|صفحه کلید|مانیتور|وبکم|فلش مموری"),
     ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|کالای خواب|پتو|ملحفه|پرده"),
     ("lighting_electrical", r"روشنایی|لامپ|چراغ|الکتریکی|سیم برق"),
     ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین"),
@@ -244,7 +244,10 @@ def four_factor_sort_key(row: dict) -> tuple:
     score = score if isinstance(score, dict) else {}
     # Incomplete legacy/test cards must fall back to the pre-existing demand/deal
     # order rather than being spuriously rearranged by partial four-factor data.
-    if _number(score.get("affordability")) <= 0 or _number(score.get("discount_attractiveness")) <= 0:
+    if any(
+        _number(score.get(key)) <= 0
+        for key in ("live_demand", "affordability", "generality", "discount_attractiveness")
+    ):
         return (0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     return (
         _number(score.get("balanced_score")),
