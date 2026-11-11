@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T10:53:28.107099+00:00",
+  "generated_at": "2026-11-11T11:27:03.458998+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "بوگیر و خوشبو کننده هوا": 1,
@@ -112,6 +112,7 @@
       "لوازم سفر و کمپینگ": 1,
       "ویتامین‌ها و مواد معدنی": 1,
       "کرم آبرسان و مرطوب کننده": 1,
+      "کرم دور چشم": 1,
       "کرم ضد آفتاب": 1,
       "کرم، اسپری و پودر موبر": 1,
       "کفش زنانه": 1,
@@ -121,29 +122,29 @@
       "automotive": 1,
       "fashion": 1,
       "other": 4,
-      "personal_care": 8,
+      "personal_care": 9,
       "power_backup": 1,
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "automotive": 6.2,
-      "fashion": 6.2,
-      "other": 25.0,
-      "personal_care": 50.0,
-      "power_backup": 6.2,
-      "sports_outdoor": 6.2
+      "automotive": 5.9,
+      "fashion": 5.9,
+      "other": 23.5,
+      "personal_care": 52.9,
+      "power_backup": 5.9,
+      "sports_outdoor": 5.9
     },
-    "distinct_catalog_categories": 16,
+    "distinct_catalog_categories": 17,
     "distinct_categories": 6,
-    "distinct_families": 16,
+    "distinct_families": 17,
     "distinct_retailers": 1,
     "distinct_use_cases": 6,
     "known_brand_posts": 2,
-    "posts": 16,
+    "posts": 17,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 16
+      "digikala": 17
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -152,7 +153,7 @@
       "automotive": 2,
       "catalog_taxonomy_other": 4,
       "lighting_electrical": 1,
-      "mobile_productivity": 4,
+      "mobile_productivity": 5,
       "outdoor_travel": 1,
       "personal_care": 4
     }
@@ -163,7 +164,7 @@
       "آرایش چشم": 1,
       "آرایشی بهداشتی": 3,
       "آرایشی و بهداشتی": 1,
-      "آچار": 3,
+      "آچار": 2,
       "ابزار آشپزی": 1,
       "ابزار آلات و تجهیزات": 2,
       "ابزار ایمنی": 1,
@@ -262,6 +263,7 @@
       "کتاب روانشناسی": 1,
       "کراوات سنتی مردانه": 1,
       "کرم آبرسان و مرطوب کننده": 1,
+      "کرم دور چشم": 1,
       "کرم ضد آفتاب": 1,
       "کرم، اسپری و پودر موبر": 1,
       "کفش زنانه": 1,
@@ -287,8 +289,8 @@
       "kids_sports": 6,
       "large_appliances": 9,
       "mobile_devices": 3,
-      "other": 86,
-      "personal_care": 38,
+      "other": 85,
+      "personal_care": 39,
       "power_backup": 6,
       "sports_outdoor": 24,
       "tv_audio_video": 1
@@ -309,15 +311,15 @@
       "kids_sports": 2.1,
       "large_appliances": 3.1,
       "mobile_devices": 1.0,
-      "other": 29.8,
-      "personal_care": 13.1,
+      "other": 29.4,
+      "personal_care": 13.5,
       "power_backup": 2.1,
       "sports_outdoor": 8.3,
       "tv_audio_video": 0.3
     },
-    "distinct_catalog_categories": 111,
+    "distinct_catalog_categories": 112,
     "distinct_categories": 20,
-    "distinct_families": 149,
+    "distinct_families": 150,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
     "known_brand_posts": 49,
@@ -344,7 +346,7 @@
       "automotive": 31,
       "baby_care": 5,
       "books_learning": 8,
-      "catalog_taxonomy_other": 11,
+      "catalog_taxonomy_other": 10,
       "events_decor": 3,
       "fashion_lifestyle": 26,
       "gaming": 2,
@@ -356,7 +358,7 @@
       "kitchen_food": 3,
       "lighting_electrical": 6,
       "local_goods": 2,
-      "mobile_productivity": 38,
+      "mobile_productivity": 39,
       "office_study": 10,
       "outdoor_travel": 6,
       "personal_care": 35,
@@ -378,47 +380,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 806,
+    "all_time_count": 808,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T20:47:57.504831+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-5664135",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مدل Oily Acne-Prone Skin، مناسب پوست‌های چرب، حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-10T21:04:11.466377+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-5664135",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مدل Oily Acne-Prone Skin، مناسب پوست‌های چرب، حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-11T02:44:26.262601+00:00",
         "brand": "",
@@ -710,6 +678,40 @@
       },
       {
         "at": "2026-11-11T10:53:28.107099+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-12935579",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12564010",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضدآفتاب بی‌رنگ ویتالیر SPF50 مدل Whitevit مناسب انواع پوست، حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-11T11:27:03.458998+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-12935579",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-708421",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 02 مناسب پوست‌های معمولی و مختلط حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-11T11:27:03.458998+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
