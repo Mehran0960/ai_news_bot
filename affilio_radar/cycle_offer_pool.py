@@ -65,8 +65,6 @@ def _fresh_bestseller_rank(item: dict, now: datetime) -> int:
     rank = _int(item.get("selection_bestseller_rank") or item.get("catalog_best_selling_rank"))
     observed = _utc(
         item.get("catalog_rank_observed_at")
-        or item.get("demand_observed_at")
-        or item.get("catalog_cycle_completed_at")
     )
     if not 1 <= rank <= 60 or observed is None:
         return 0
@@ -114,6 +112,43 @@ def _apply_affordability_percentiles(items: list[dict]) -> None:
             else "midrange" if percentile >= 34
             else "premium"
         )
+
+
+def _has_fresh_demand(item: dict, now: datetime) -> bool:
+    if _fresh_bestseller_rank(item, now) > 0:
+        return True
+    growth = _int(item.get("recent_review_growth_7d"))
+    window = _int(item.get("demand_window_hours"))
+    observed = _utc(item.get("demand_observed_at"))
+    source = str(item.get("demand_signal_source") or "")
+    age = (now - observed).total_seconds() / 3600 if observed else 999999
+    return bool(
+        growth >= 3
+        and 6 <= window <= 24
+        and source in {"digikala_recent_review_growth", "snappshop_recent_review_growth"}
+        and -0.1 <= age <= 12
+    )
+
+
+def _has_verified_discount_value(item: dict, now: datetime) -> bool:
+    history_at = _utc(item.get("history_checked_at"))
+    history_fresh = bool(
+        history_at is not None
+        and -0.1 <= (now - history_at).total_seconds() / 3600 <= 24
+    )
+    if item.get("history_status") == "verified" and history_fresh:
+        return item.get("historical_deal_eligible") is True
+    market_at = _utc(item.get("market_price_checked_at"))
+    market_fresh = bool(
+        market_at is not None
+        and -0.1 <= (now - market_at).total_seconds() / 3600 <= 24
+    )
+    return bool(
+        item.get("market_status") == "verified"
+        and item.get("market_reference_kind") == "seller_median"
+        and market_fresh
+        and _int(item.get("market_price_advantage_pct")) >= 5
+    )
 
 
 def _value_sort_key(item: dict) -> tuple[int, int, int, int]:
@@ -204,6 +239,10 @@ def merge_cycle_offers(
             continue
         price = _int(candidate.get("current_price"))
         if price <= 0 or _int(candidate.get("discount_percent")) <= 0:
+            continue
+        if not _has_fresh_demand(candidate, current):
+            continue
+        if not _has_verified_discount_value(candidate, current):
             continue
         value = dict(candidate)
         value["product_id"] = pid
