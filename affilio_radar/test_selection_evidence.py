@@ -22,6 +22,16 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         record.update(overrides)
         return record
 
+    def _verified_market_value(self, product, advantage=6):
+        product.update({
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_price_advantage_pct": advantage,
+            "market_price_checked_at": self.now.isoformat(),
+            "market_verified_seller_count": 3,
+        })
+        return product
+
     def test_same_family_candidates_are_blocked_before_primary_and_backup_selection(self):
         products = [
             {
@@ -342,7 +352,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         self.assertEqual(quality, [])
         self.assertEqual(queued, [])
 
-    def test_demand_is_required_but_positive_market_or_history_confirmation_is_not(self):
+    def test_demand_and_independent_value_are_separate_publication_gates(self):
         product = {
             "product_id": "dkp-1234567",
             "product_url": "https://www.digikala.com/product/dkp-1234567/",
@@ -358,7 +368,9 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "publication_policy": "digikala_demand_first_bestseller_review_quality_discount_v1",
             **self._verified_review_growth(),
         }
-        # A recent review-growth proxy qualifies; external market/history confirmation is optional.
+        # Fresh review growth does not turn a retailer's displayed markdown into verified value.
+        self.assertFalse(radar.is_discount_publish_eligible(product, minimum_discount_percent=1, now=self.now))
+        self._verified_market_value(product)
         self.assertTrue(radar.is_discount_publish_eligible(product, minimum_discount_percent=1, now=self.now))
         self.assertEqual(
             [row["product_id"] for row in _eligible_fallback_candidates([product], self.now)],
@@ -395,6 +407,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "catalog_rank_observed_at": self.now.isoformat(),
         }
         self.assertTrue(radar.has_verified_market_demand(product, now=self.now))
+        self._verified_market_value(product)
         self.assertEqual(
             [row["product_id"] for row in _eligible_fallback_candidates([product], self.now)],
             ["dkp-best-seller"],
@@ -427,6 +440,9 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "historical_deal_eligible": False,
             "history_checked_at": (self.now - timedelta(hours=radar.PRICE_HISTORY_RECHECK_HOURS + 1)).isoformat(),
         }
+        # Stale negative history is not a veto, but a fresh independent market comparison is still required.
+        self.assertFalse(radar.is_discount_publish_eligible(stale_reject, minimum_discount_percent=1, now=self.now))
+        self._verified_market_value(stale_reject)
         self.assertTrue(radar.is_discount_publish_eligible(stale_reject, minimum_discount_percent=1, now=self.now))
 
     def test_price_math_must_match_and_default_floor_is_any_positive_markdown(self):
