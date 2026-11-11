@@ -4916,7 +4916,20 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             if ts <= 0:
                 continue
             candidates.append((ts, str(product_id_value), raw, delivery))
-    candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    # Keep the oldest unfinished canonical hand-offs first. This is a FIFO queue,
+    # not a rolling "newest 250" sample; later products must never hide an older
+    # pending product from the dispatcher.
+    candidates = [
+        item for item in candidates
+        if not _video_fanout_record_complete(item[2])
+    ]
+    candidates.sort(
+        key=lambda item: (
+            item[0],
+            str(item[2].get("distribution_queue_id") or ""),
+            item[1],
+        )
+    )
 
     fields = (
         "youtube_upload_status", "aparat_upload_status", "filo_upload_status", "video_generation_status",
@@ -4946,7 +4959,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         return raw if isinstance(raw, (str, int, float, bool)) or raw is None else None
 
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": current.isoformat(),
         "last_channel_published_at": value("last_channel_published_at"),
         "youtube_next_upload_at": value("youtube_next_upload_at"),
@@ -9044,6 +9057,9 @@ APARAT_UPLOAD_ENABLED = str(os.getenv("AFFILIO_APARAT_UPLOAD_ENABLED", "true")).
 MAX_SHORT_VIDEOS_PER_RUN = max(1, min(4, int(os.getenv("AFFILIO_MAX_SHORT_VIDEOS_PER_RUN", "2"))))
 VIDEO_UPLOAD_CANDIDATE_LIMIT = max(1, min(VIDEO_DISPATCH_STATE_RECORD_LIMIT, int(os.getenv("AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT", str(VIDEO_DISPATCH_STATE_RECORD_LIMIT)))))
 VIDEO_UPLOAD_MAX_AGE_HOURS = max(1, min(72, int(os.getenv("AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS", "24"))))
+# The unified video fan-out consumes canonical items FIFO. This is only a per-run
+# batch size for GitHub Actions runtime safety, never a per-platform spacing limit.
+MAX_VIDEO_FANOUT_ITEMS_PER_RUN = max(1, min(50, int(os.getenv("AFFILIO_MAX_VIDEO_FANOUT_ITEMS_PER_RUN", "8"))))
 
 
 def _retain_superseded_youtube_video(
@@ -9374,7 +9390,34 @@ def _video_upload_candidate_sort_key(row: tuple) -> tuple:
     """
     timestamp = float(row[0]) if isinstance(row, tuple) and row else 0.0
     product_id_value = str(row[1]) if isinstance(row, tuple) and len(row) > 1 else ""
-    return (timestamp, product_id_value)
+    record = row[2] if isinstance(row, tuple) and len(row) > 2 and isinstance(row[2], dict) else {}
+    queue_id = str(record.get("distribution_queue_id") or "")
+    return (timestamp, queue_id, product_id_value)
+
+
+def _video_fanout_record_complete(record: dict) -> bool:
+    """True only when the same canonical item reached all three video destinations.
+
+    Filo's accepted/submitted states are distinct from public visibility but represent
+    a confirmed hand-off to Filo. An unknown, rejected, missing-credential, or pending
+    result deliberately blocks later products so no destination silently skips ahead.
+    """
+    if not isinstance(record, dict):
+        return False
+    youtube = str(record.get("youtube_upload_status") or "pending")
+    aparat = str(record.get("aparat_upload_status") or "pending")
+    filo = str(record.get("filo_upload_status") or "pending")
+    if (
+        str(record.get("video_generation_status") or "") == "skipped_expiring_soon"
+        and youtube == aparat == filo == "skipped_expiring_soon"
+    ):
+        # The same expired item is terminally skipped on every video destination.
+        return True
+    return (
+        youtube == "uploaded"
+        and aparat == "uploaded"
+        and filo in {"published", "submitted_pending_approval", "submitted_unconfirmed"}
+    )
 
 
 def process_pending_short_video(
@@ -11500,6 +11543,96 @@ def run_aparat_uploads_only() -> int:
     return 0
 
 
+def run_video_fanout_only() -> int:
+    """Publish the canonical FIFO head to YouTube, Aparat and Filo as one unit.
+
+    Each product is attempted on all three destinations before moving to the next.
+    A quota pause, missing credential, unverified Aparat deadline, retryable error or
+    outcome-unknown status keeps the same item at the head. No destination may skip it.
+    Cross-platform upload spacing and the old 24-hour queue age cap are not applied here;
+    actual platform quotas and live offer-expiry safety remain enforced by the uploader.
+    """
+    processed = 0
+    blocked_product_id = ""
+    while processed < MAX_VIDEO_FANOUT_ITEMS_PER_RUN:
+        state = load_state()
+        published = state.get("published") if isinstance(state.get("published"), dict) else {}
+        ordered = []
+        for product_id_value, record in published.items():
+            if not isinstance(record, dict) or not _has_video_dispatch_eligibility(record):
+                continue
+            try:
+                timestamp = float(record.get("ts") or 0)
+            except (TypeError, ValueError, OverflowError):
+                timestamp = 0.0
+            if timestamp <= 0 or _video_fanout_record_complete(record):
+                continue
+            ordered.append((
+                timestamp,
+                str(record.get("distribution_queue_id") or ""),
+                str(product_id_value),
+            ))
+        ordered.sort()
+        if not ordered:
+            print(f"VIDEO_FANOUT_QUEUE_EMPTY processed={processed}")
+            break
+
+        _, _, product_id_value = ordered[0]
+        before = published.get(product_id_value, {})
+        before_status = {
+            name: str(before.get(name + "_upload_status") or "pending")
+            for name in ("youtube", "aparat", "filo")
+        }
+        attempted = process_pending_short_video(
+            state,
+            output_dir="video_artifacts",
+            destinations={"youtube", "aparat", "filo"},
+            force_due=True,
+            only_product_id=product_id_value,
+            candidate_limit=None,
+            max_age_hours=None,
+        )
+
+        # Persist the compact FIFO head projection together with the full state. The
+        # GitHub workflow commits both files once, under the shared state-writer lock.
+        refreshed = load_state()
+        refreshed_published = (
+            refreshed.get("published") if isinstance(refreshed.get("published"), dict) else {}
+        )
+        record = refreshed_published.get(product_id_value, {})
+        save_json(VIDEO_DISPATCH_STATE, build_video_upload_dispatch_state(refreshed))
+        if _video_fanout_record_complete(record):
+            processed += 1
+            print(
+                f"VIDEO_FANOUT_ITEM_COMPLETE product_id={product_id_value} "
+                f"youtube={record.get('youtube_upload_status')} "
+                f"aparat={record.get('aparat_upload_status')} "
+                f"filo={record.get('filo_upload_status')}"
+            )
+            continue
+
+        blocked_product_id = product_id_value
+        after_status = {
+            name: str(record.get(name + "_upload_status") or "pending")
+            for name in ("youtube", "aparat", "filo")
+        }
+        print(
+            f"VIDEO_FANOUT_FIFO_BLOCKED product_id={product_id_value} "
+            f"attempted={attempted} before={before_status} after={after_status} "
+            "later_products_held=true"
+        )
+        break
+
+    final_state = load_state()
+    save_json(VIDEO_DISPATCH_STATE, build_video_upload_dispatch_state(final_state))
+    print(
+        f"VIDEO_FANOUT_RUN_SUMMARY completed_items={processed} "
+        f"blocked_product_id={blocked_product_id or 'none'} "
+        f"batch_limit={MAX_VIDEO_FANOUT_ITEMS_PER_RUN}"
+    )
+    return 0
+
+
 def _persist_filo_login_state(state: dict, recorded_at: datetime) -> None:
     """Persist login verification to both the full state and Worker sidecar."""
     sidecar = build_video_upload_dispatch_state(state, now=recorded_at)
@@ -11571,6 +11704,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--publish", action="store_true", help="publish at most one eligible item if all checks pass")
     parser.add_argument("--select-only", action="store_true", help="discover, validate and queue selected content without publishing to any platform")
+    parser.add_argument(
+        "--video-fanout-only",
+        action="store_true",
+        help="publish the same canonical FIFO item to YouTube, Aparat and Filo; do not select or publish photos",
+    )
     parser.add_argument(
         "--youtube-upload-only",
         action="store_true",
@@ -11648,6 +11786,12 @@ def main():
         help="safely replace the two recent YouTube Shorts whose Persian text layout was broken",
     )
     args = parser.parse_args()
+    if args.video_fanout_only:
+        try:
+            sys.exit(run_video_fanout_only())
+        except Exception as exc:
+            print(f"VIDEO_FANOUT_RUN_FAILED error={type(exc).__name__}: {str(exc)[:240]}")
+            sys.exit(1)
     if args.youtube_upload_only:
         try:
             sys.exit(run_youtube_uploads_only())
