@@ -54,6 +54,102 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --filo-login-check-only
 
+      - name: Stage verified login state for serialized persistence
+        if: success()
+        run: |
+          mkdir -p login-verification-state
+          cp affilio_radar/state.json login-verification-state/state.json
+
+      - name: Upload verified login state artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: filo-login-verification-state-${{ github.run_id }}
+          path: login-verification-state/state.json
+          if-no-files-found: error
+          retention-days: 1
+
       - name: State explicitly that this was a credentials-only test
         if: always()
         run: echo "FILO_ISOLATED_LOGIN_TEST_ONLY public_video_upload_performed=false shared_publisher_lock_used=false repository_state_persisted=false"
+
+  persist-login-verification:
+    needs: verify-login
+    if: needs.verify-login.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      # Merge the small verification delta only after the content publisher releases state.json.
+      group: offerchin-content-publisher
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the latest main state
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: affilio_radar/requirements.txt
+
+      - name: Install project dependencies
+        run: python -m pip install -r affilio_radar/requirements.txt
+
+      - name: Download successful verification result
+        uses: actions/download-artifact@v4
+        with:
+          name: filo-login-verification-state-${{ github.run_id }}
+          path: login-verification-state
+
+      - name: Merge only the verified login fields into current state
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          from datetime import datetime
+          from pathlib import Path
+
+          sys.path.insert(0, "affilio_radar")
+          import affilio_radar as radar
+
+          verified = json.loads(
+              Path("login-verification-state/state.json").read_text(encoding="utf-8")
+          )
+          latest = radar.load_state()
+          fields = (
+              "filo_login_verification_status",
+              "filo_login_verified_at",
+              "filo_login_verification_attempted_at",
+          )
+          for field in fields:
+              if field not in verified:
+                  raise SystemExit(f"verified state is missing {field}")
+              latest[field] = verified[field]
+
+          if latest.get("filo_login_verification_status") != "verified":
+              raise SystemExit("refusing to persist a non-verified Filo login")
+          recorded_at = datetime.fromisoformat(
+              str(latest["filo_login_verified_at"]).replace("Z", "+00:00")
+          )
+          radar._persist_filo_login_state(latest, recorded_at)
+          print("FILO_LOGIN_VERIFICATION_PERSISTED status=verified public_video_upload_performed=false")
+          PY
+
+      - name: Commit only login verification state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(filo): persist verified login state [skip ci]"
+            git pull --rebase origin main
+            git push
+          else
+            echo "Filo login verification state was already current."
+          fi
