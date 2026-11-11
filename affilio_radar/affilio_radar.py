@@ -26,6 +26,18 @@ import requests
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from product_quality import is_prohibited_product_title, is_publishable_product_title
 try:
+    from .offerchin_four_factor import (
+        POLICY_VERSION as OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
+        apply_four_factor_scores as _apply_four_factor_scores,
+        four_factor_sort_key as _four_factor_sort_key,
+    )
+except ImportError:
+    from offerchin_four_factor import (
+        POLICY_VERSION as OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
+        apply_four_factor_scores as _apply_four_factor_scores,
+        four_factor_sort_key as _four_factor_sort_key,
+    )
+try:
     from .catalog_sweep import (
         load_catalog_candidates_for_handoff,
         acknowledge_catalog_candidates_handoff,
@@ -3124,6 +3136,73 @@ def _digikala_demand_sort_key(record: dict, now: datetime | None = None) -> tupl
     )
 
 
+def _offerchin_live_demand_score(record: dict, now: datetime | None = None) -> float:
+    """Score only fresh, attributable demand evidence; never clicks or lifetime reviews."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
+    bestseller = _fresh_digikala_bestseller_evidence(record, now=current)
+    if bestseller:
+        rank = int(bestseller.get("best_rank_across_categories") or 0)
+        age = max(0.0, float(bestseller.get("age_hours") or 0))
+        base_score = 100.0 if rank <= DIGIKALA_BESTSELLER_TOP_RANK else (
+            85.0 if rank <= DIGIKALA_BESTSELLER_MID_RANK else 70.0
+        )
+        coverage_bonus = min(8.0, 2.0 * max(0, int(bestseller.get("fresh_category_count") or 0) - 1))
+        momentum_bonus = min(8.0, 0.5 * max(0, int(bestseller.get("rank_improvement") or 0)))
+        freshness_multiplier = max(0.78, 1.0 - 0.22 * age / DIGIKALA_BESTSELLER_MAX_AGE_HOURS)
+        return round(min(100.0, (base_score + coverage_bonus + momentum_bonus) * freshness_multiplier), 2)
+
+    if has_current_demand_signal(record, now=current):
+        growth = max(0, int(record.get("recent_review_growth_window", record.get("recent_review_growth_7d")) or 0))
+        window_hours = max(0.1, float(record.get("demand_window_hours") or 0))
+        observed = _parse_utc_datetime(record.get("demand_observed_at"))
+        age_hours = max(0.0, (current - observed.astimezone(timezone.utc)).total_seconds() / 3600) if observed else CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS
+        growth_per_day = growth * 24.0 / window_hours
+        base_score = 55.0 + min(25.0, growth_per_day * 1.5)
+        freshness_multiplier = max(0.78, 1.0 - 0.22 * age_hours / CURRENT_DEMAND_MAX_SIGNAL_AGE_HOURS)
+        return round(base_score * freshness_multiplier, 2)
+    return 0.0
+
+
+def _apply_offerchin_four_factor_scores(records: list[dict], now: datetime | None = None) -> list[dict]:
+    """Annotate a comparable candidate cohort with the shared four-factor policy."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    return _apply_four_factor_scores(
+        records,
+        live_demand_score_fn=lambda row: _offerchin_live_demand_score(row, now=current),
+        use_case_group_fn=_publication_use_case_group,
+        discount_verified_fn=lambda row: has_attractive_discount_value(row, now=current),
+        now=current,
+    )
+
+
+def _offerchin_factor_sort_key(record: dict, now: datetime | None = None) -> tuple:
+    """Use a recent cohort score or compute a safe single-item fallback."""
+    score = record.get("offerchin_four_factor") if isinstance(record, dict) else None
+    scored_at = _parse_utc_datetime(score.get("scored_at")) if isinstance(score, dict) else None
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    age_minutes = (
+        (current - scored_at.astimezone(timezone.utc)).total_seconds() / 60
+        if scored_at is not None else float("inf")
+    )
+    if (
+        not isinstance(score, dict)
+        or score.get("policy_version") != OFFERCHIN_FOUR_FACTOR_POLICY_VERSION
+        or not -0.1 <= age_minutes <= 15
+    ):
+        _apply_offerchin_four_factor_scores([record], now=current)
+    return _four_factor_sort_key(record)
+
+
 def has_verified_market_demand(record: dict, now: datetime | None = None) -> bool:
     """Require recent category bestseller rank or fresh review-count growth before publication.
 
@@ -3140,9 +3219,10 @@ def has_verified_market_demand(record: dict, now: datetime | None = None) -> boo
 
 
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Order candidates by DigiKala demand evidence before discount and cash savings."""
+    """Use the four-factor balance when live price and markdown data are available."""
     candidate = record if isinstance(record, dict) else {}
     return (
+        *_offerchin_factor_sort_key(candidate, now=now),
         *_digikala_demand_sort_key(candidate, now=now),
         *_deal_primary_sort_key(candidate, now=now),
     )
@@ -4425,9 +4505,10 @@ def _verified_review_growth_sort_key(
 
 
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank by DigiKala demand evidence first, then discount percentage and cash savings."""
+    """Rank valid offers by the balanced live-demand/affordability/generality/value index."""
     candidate = p if isinstance(p, dict) else {}
     return (
+        *_offerchin_factor_sort_key(candidate, now=now),
         *_digikala_demand_sort_key(candidate, now=now),
         *_deal_primary_sort_key(candidate, now=now),
     )
@@ -8074,8 +8155,10 @@ def select_urgent_publication_candidate(
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
+    eligible_rows = [product for product in (eligible or []) if isinstance(product, dict)]
+    _apply_offerchin_four_factor_scores(eligible_rows, now=current)
     ranked = sorted(
-        (product for product in (eligible or []) if isinstance(product, dict)),
+        eligible_rows,
         key=lambda record: deal_sort_key(record, now=current),
         reverse=True,
     )
@@ -8138,12 +8221,14 @@ def select_publish_candidates(
     # A discount floor is an eligibility label, not a ranking tier. Merge every
     # ready band before sorting so a lower-discount high-demand product can outrank
     # a weak-demand item with a larger markdown.
+    ready_products = [
+        product
+        for tier in selected_by_floor.values()
+        for product in tier
+    ]
+    _apply_offerchin_four_factor_scores(ready_products, now=current)
     ordered = sorted(
-        (
-            product
-            for tier in selected_by_floor.values()
-            for product in tier
-        ),
+        ready_products,
         key=lambda record: deal_sort_key(record, now=current),
         reverse=True,
     )
@@ -8584,6 +8669,7 @@ def select_discount_fallback_candidates(
         )
         return [], None, quality_eligible
 
+    _apply_offerchin_four_factor_scores(fresh_candidates, now=current)
     ranked = sorted(
         fresh_candidates,
         key=lambda record: deal_sort_key(record, now=current),
@@ -8601,7 +8687,11 @@ def select_discount_fallback_candidates(
         )
         selected["selection_discount_floor"] = int(floor)
         selected["selection_discount_band"] = discount_fallback_band_label(int(floor), None)
-        selected["publication_policy"] = "digikala_demand_first_bestseller_review_quality_discount_v1"
+        selected["publication_policy"] = OFFERCHIN_FOUR_FACTOR_POLICY_VERSION
+        selected["selection_four_factor"] = dict(
+            selected.get("offerchin_four_factor")
+            if isinstance(selected.get("offerchin_four_factor"), dict) else {}
+        )
         bestseller_evidence = _fresh_digikala_bestseller_evidence(product, now=current)
         selected["selection_demand_evidence"] = (
             "digikala_native_bestseller_rank" if bestseller_evidence
@@ -8652,7 +8742,8 @@ def select_discount_fallback_candidates(
             caption_experiment_counts[caption_variant] += 1
 
     print(
-        f"PUBLICATION_CANDIDATES_READY demand_ranked={len(safe_handoff)} "
+        f"PUBLICATION_CANDIDATES_READY four_factor_ranked={len(safe_handoff)} "
+        f"top_four_factor={safe_handoff[0].get('offerchin_four_factor', {}).get('balanced_score')} "
         f"top_bestseller_rank={safe_handoff[0].get('selection_bestseller_rank')} "
         f"top_discount={safe_handoff[0].get('discount_percent')} "
         f"visual_variants={experiment_counts} caption_variants={caption_experiment_counts} "
@@ -10445,12 +10536,12 @@ def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(
-        "Ranking mode=full-catalog demand-first; fresh DigiKala bestseller rank or verified "
-        "recent review-growth proxy is required before publication. Rank momentum and fresh "
-        "category coverage precede review-growth/quality context; discount_percent_desc and "
-        "savings_toman_desc are tie-breakers only. Clicks and affiliate revenue never rank demand. "
-        "Live stock, price, product identity, direct Affilio URL, expiry, 24h family/brand/similarity "
-        "guards and safety checks remain hard publication controls."
+        "Ranking mode=full-catalog four-factor-balanced; fresh DigiKala bestseller rank or verified "
+        "recent review-growth proxy is a hard demand gate. Eligible candidates are ranked by the "
+        "harmonic mean of live demand, cash-ticket affordability, use-case generality and discount "
+        "attractiveness; the weakest factor is a tie-break. Missing price/evidence is never invented. "
+        "Clicks and affiliate revenue never rank demand. Live stock, price, product identity, direct "
+        "Affilio URL, expiry, 24h family/brand/similarity guards and safety checks remain hard controls."
     )
     catalog = load_catalog()
     approved = link_map(catalog)
@@ -10843,7 +10934,20 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "The scanner traverses every queryable DigiKala category page ordered by DigiKala's native bestseller sort (sort id 7). Candidates are ranked first by fresh within-category bestseller evidence (top 10, 11-30, then 31-60), then observed rank momentum and the number of fresh categories in which the product ranks, then fresh review-count growth as an indirect proxy, then lifetime review count/rating as weak quality context, and only then discount percentage and cash savings. DigiKala's public data available to this integration does not expose a verified absolute unit-sales count, so bestseller rank is a relative sales-demand signal, not a unit count; review growth is not sales. Clicks never influence market-demand ranking. SnappShop and other sources remain supplementary and cannot outrank a fresh DigiKala bestseller signal. Price, stock, product identity, affiliate URL, offer validity, duplicate and safety checks remain hard publication controls.",
+        "ranking_note": "The full-catalog scanner requires fresh market-demand evidence before publication. The final offer order balances four equally important dimensions with a harmonic mean: live demand, cash-ticket affordability (with only explicitly verified installment down-payment terms eligible as an entry-price proxy), generality of use, and discount attractiveness. Category-relative cash prices are used only when at least eight comparable candidates exist. A weak dimension cannot be hidden by a strong one. DigiKala bestseller rank is relative within-category evidence, not unit sales; review growth is an indirect proxy, not sales. Clicks never rank market demand. Missing data remains missing.",
+        "four_factor_ranking_policy": {
+            "version": OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
+            "aggregation": "equal_weight_harmonic_mean",
+            "dimensions": ["live_demand", "affordability", "generality", "discount_attractiveness"],
+            "affordability": "cash_ticket_absolute_proxy_plus_within_use_case_price_percentile_when_cohort_size_at_least_8",
+            "verified_installment_terms_required": True,
+            "generality": "taxonomy_and_use_case_reach_heuristic; unknown_taxonomy_scored_low",
+            "discount_attractiveness": "verified_percent_and_cash_savings_plus_fresh_history_or_market_evidence_confidence",
+            "missing_factor_behavior": "no_invented_values; incomplete legacy cards retain prior fallback order",
+            "demand_gate_remains_hard": True,
+            "clicks_affect_demand_or_four_factor_score": False,
+            "score_is_conversion_probability": False,
+        },
         "demand_ranking_policy": {
             "version": "digikala_demand_first_bestseller_review_quality_discount_v1",
             "primary_source": "DigiKala native bestseller sort id=7",
