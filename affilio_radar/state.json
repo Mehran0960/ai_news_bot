@@ -588632,6 +588632,7 @@
     },
     "dkp-15606932": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 1892,
       "bale_posted_at": "2026-11-11T10:16:39.159075+00:00",
       "brand": "",
@@ -588727,6 +588728,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-11T10:16:14.842112+00:00",
@@ -588766,8 +588768,22 @@
       "telegram_posted_at": "2026-11-11T10:16:35.607413+00:00",
       "title": "شارژر دیواری 25 وات سامسونگ مدل EP-T2510",
       "ts": 1794392189.514337,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-15606932.mp4",
+      "video_file_names": {
+        "youtube": "offerchin-dkp-15606932.mp4"
+      },
+      "video_generated_at": "2026-11-11T10:22:56.182381+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-11T10:23:06.439416+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-11T10:23:09.383703+00:00",
+      "youtube_video_id": "ACL6mW3OVkw",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/ACL6mW3OVkw",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-15626828": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -598886,7 +598902,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-20109389": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-11T09:13:26.989467+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1885,
@@ -598966,7 +598982,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
-      "filo_upload_status": "pending",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-11T07:44:08.088397+00:00",
       "history_days": 2,
@@ -599021,8 +599037,8 @@
       "telegram_posted_at": "2026-11-11T07:44:31.861955+00:00",
       "title": "گوشی موبایل سامسونگ مدل Galaxy A07 دو سیم کارت ظرفیت 64 گیگابایت و رم 4 گیگابایت",
       "ts": 1794383064.654546,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-20176433": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -630967,8 +630983,8 @@
       "video_style_version": 5,
       "youtube_deleted_at": "2026-10-27T20:37:55.563200+00:00",
       "youtube_description_last_error": "RuntimeError",
-      "youtube_description_next_attempt_at": "2026-11-11T08:20:20.377486+00:00",
-      "youtube_description_update_attempts": 33,
+      "youtube_description_next_attempt_at": "2026-11-11T11:22:56.182381+00:00",
+      "youtube_description_update_attempts": 34,
       "youtube_description_version": 3,
       "youtube_expiry_status": "deleted",
       "youtube_review_required": false,
@@ -657631,7 +657647,7 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 14,
   "snappshop_retry_after": "2026-11-12T10:13:56.919109+00:00",
-  "youtube_last_upload_success_at": "2026-11-11T07:20:33.132496+00:00",
-  "youtube_next_upload_at": "2026-11-11T10:20:33.132496+00:00",
+  "youtube_last_upload_success_at": "2026-11-11T10:23:09.383703+00:00",
+  "youtube_next_upload_at": "2026-11-11T13:23:09.383703+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
