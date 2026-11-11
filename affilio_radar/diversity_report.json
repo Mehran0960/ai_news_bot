@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T16:30:12.187563+00:00",
+  "generated_at": "2026-11-11T17:07:09.674850+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ارگانایزر آشپزخانه": 1,
@@ -123,37 +123,40 @@
       "کرم ضد آفتاب": 1,
       "کرم، اسپری و پودر موبر": 1,
       "کفش زنانه": 1,
-      "کلمبیا": 1
+      "کلمبیا": 1,
+      "کوه‌ نوردی و صخره نوردی": 1
     },
     "category_post_counts": {
       "automotive": 2,
       "fashion": 1,
       "home": 1,
+      "lighting": 1,
       "other": 8,
       "personal_care": 10,
       "power_backup": 1,
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "automotive": 8.3,
-      "fashion": 4.2,
-      "home": 4.2,
-      "other": 33.3,
-      "personal_care": 41.7,
-      "power_backup": 4.2,
-      "sports_outdoor": 4.2
+      "automotive": 8.0,
+      "fashion": 4.0,
+      "home": 4.0,
+      "lighting": 4.0,
+      "other": 32.0,
+      "personal_care": 40.0,
+      "power_backup": 4.0,
+      "sports_outdoor": 4.0
     },
-    "distinct_catalog_categories": 24,
-    "distinct_categories": 7,
-    "distinct_families": 24,
+    "distinct_catalog_categories": 25,
+    "distinct_categories": 8,
+    "distinct_families": 25,
     "distinct_retailers": 1,
     "distinct_use_cases": 10,
     "known_brand_posts": 2,
-    "posts": 24,
+    "posts": 25,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 24
+      "digikala": 25
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -164,7 +167,7 @@
       "home_cleaning": 1,
       "home_living": 1,
       "kitchen_food": 1,
-      "lighting_electrical": 1,
+      "lighting_electrical": 2,
       "mobile_productivity": 5,
       "office_study": 1,
       "outdoor_travel": 1,
@@ -225,7 +228,7 @@
       "سرویس کفگیر و ملاقه": 1,
       "سلامت و پزشکی": 1,
       "شامپو مو": 1,
-      "شانه مو": 2,
+      "شانه مو": 1,
       "شلوارک ورزشی مردانه": 1,
       "شورت زنانه": 1,
       "صبحانه": 2,
@@ -283,6 +286,7 @@
       "کفش زنانه": 1,
       "کلاه مردانه": 1,
       "کلمبیا": 1,
+      "کوه‌ نوردی و صخره نوردی": 1,
       "کیسه زباله": 1,
       "کیف و کوله سفری": 1,
       "گرمکن و ست ورزشی مردانه": 1
@@ -302,9 +306,10 @@
       "jewelry": 3,
       "kids_sports": 6,
       "large_appliances": 9,
+      "lighting": 1,
       "mobile_devices": 3,
       "other": 88,
-      "personal_care": 38,
+      "personal_care": 37,
       "power_backup": 6,
       "sports_outdoor": 19,
       "tv_audio_video": 1
@@ -324,16 +329,17 @@
       "jewelry": 1.0,
       "kids_sports": 2.1,
       "large_appliances": 3.1,
+      "lighting": 0.3,
       "mobile_devices": 1.0,
       "other": 30.8,
-      "personal_care": 13.3,
+      "personal_care": 12.9,
       "power_backup": 2.1,
       "sports_outdoor": 6.6,
       "tv_audio_video": 0.3
     },
-    "distinct_catalog_categories": 113,
-    "distinct_categories": 20,
-    "distinct_families": 151,
+    "distinct_catalog_categories": 114,
+    "distinct_categories": 21,
+    "distinct_families": 152,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
     "known_brand_posts": 42,
@@ -370,12 +376,12 @@
       "home_cleaning": 7,
       "home_living": 9,
       "kitchen_food": 4,
-      "lighting_electrical": 6,
+      "lighting_electrical": 7,
       "local_goods": 2,
       "mobile_productivity": 39,
       "office_study": 11,
       "outdoor_travel": 6,
-      "personal_care": 33,
+      "personal_care": 32,
       "sports_fitness": 18,
       "tabletop_games": 1,
       "tools_industrial": 15
@@ -394,30 +400,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 818,
+    "all_time_count": 819,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-11T06:19:50.483414+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12935579",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-11T06:32:01.850463+00:00",
         "brand": "",
@@ -739,6 +728,23 @@
           "similarity_repeat"
         ],
         "title": "سرم پوست ویتالیر مدل گلایکولیک اسید ٪7 مناسب برای پوست مختلط حجم 30 میلی لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-11T17:07:09.674850+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-12564010",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-20682942",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
         "use_case": "mobile_productivity"
       }
     ]
