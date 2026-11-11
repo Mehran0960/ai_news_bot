@@ -85,7 +85,7 @@ jobs:
 
       - name: Validate the delivery-only path
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/messenger_adapters.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/cycle_offer_pool.py affilio_radar/catalog_status_snapshot.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/messenger_adapters.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
           python - <<'PY'
           from pathlib import Path
           source = Path("affilio_radar/publisher.py").read_text(encoding="utf-8")
@@ -104,6 +104,9 @@ jobs:
             test_affilio.AffilioRadarTests.test_three_recent_reviews_in_active_window_qualify_current_demand \
             test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit \
             test_affilio.AffilioRadarTests.test_discount_publishing_requires_a_valuable_deal \
+            test_affilio.AffilioRadarTests.test_selection_requires_fresh_demand_and_independent_discount_value \
+            test_affilio.AffilioRadarTests.test_fifteen_percent_discount_requires_verified_market_or_history_value \
+            test_affilio.AffilioRadarTests.test_high_ticket_products_have_no_discount_floor_exception \
             test_affilio.AffilioRadarTests.test_selection_uses_market_demand_before_discount_and_savings \
             test_affilio.AffilioRadarTests.test_discovery_check_budget_applies_24h_family_guard_before_budget \
             test_affilio.AffilioRadarTests.test_publish_ranking_uses_market_demand_before_discount \
@@ -133,6 +136,9 @@ jobs:
             test_affilio.AffilioRadarTests.test_public_aparat_upload_stays_blocked_without_verified_expiry \
             test_affilio.AffilioRadarTests.test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record -v
           python -m unittest test_selection_evidence -v
+          python -m unittest test_cycle_offer_pool -v
+          python -m unittest test_catalog_status_snapshot -v
+          python -m unittest test_catalog_sweep.CatalogSweepTests.test_catalog_shortlist_uses_relative_affordability_after_demand_ties -v
           node --test test_affiliate_deal_radar_worker.mjs
 
       - name: Validate permanent YouTube retention policy
