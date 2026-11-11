@@ -2783,7 +2783,7 @@ class AffilioRadarTests(unittest.TestCase):
         published_order = radar_module.select_publish_candidates(publish_queue, eligible, now)
         expected_order = sorted(
             published_order,
-            key=radar_module.deal_sort_key,
+            key=lambda row: radar_module.deal_sort_key(row, now=now),
             reverse=True,
         )
         self.assertEqual(
