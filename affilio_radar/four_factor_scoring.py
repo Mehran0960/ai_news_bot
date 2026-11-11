@@ -291,8 +291,8 @@ def _verified_discount_evidence(record: dict, now: datetime) -> tuple[bool, bool
 def _discount_score(record: dict, now: datetime) -> int:
     discount = _int(record.get("discount_percent"))
     savings = _int(record.get("savings_toman"))
-    current_price = _int(record.get("current_price"))
-    original_price = _int(record.get("original_price"))
+    current_price = _int(record.get("current_price") or record.get("listed_current_price") or record.get("last_checked_price"))
+    original_price = _int(record.get("original_price") or record.get("listed_original_price") or record.get("last_checked_original_price"))
     if (
         not 1 <= discount <= 100
         or savings <= 0
@@ -333,7 +333,7 @@ def score_candidates(
             if use_case_resolver else _infer_use_case(row)
         )
         use_cases[index] = use_case
-        price = _int(row.get("current_price"))
+        price = _int(row.get("current_price") or row.get("listed_current_price") or row.get("last_checked_price"))
         if price > 0:
             all_prices.append(price)
             prices_by_use_case.setdefault(use_case, []).append(price)
@@ -342,7 +342,7 @@ def score_candidates(
     for index, row in enumerate(source_rows):
         candidate = dict(row)
         use_case = use_cases[index]
-        price = _int(candidate.get("current_price"))
+        price = _int(candidate.get("current_price") or candidate.get("listed_current_price") or candidate.get("last_checked_price"))
         global_percentile = _price_percentile_score(all_prices, price) if price > 0 else 0
         local_prices = prices_by_use_case.get(use_case, [])
         local_percentile = (
