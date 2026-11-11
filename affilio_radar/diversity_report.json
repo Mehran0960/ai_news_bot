@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T02:44:26.262601+00:00",
+  "generated_at": "2026-11-11T02:56:51.539580+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "سایر محصولات بهداشت جنسی": 1,
@@ -109,26 +109,24 @@
     "category_post_counts": {
       "audio_wearables": 1,
       "other": 1,
-      "personal_care": 5,
-      "sports_outdoor": 1
+      "personal_care": 5
     },
     "category_share_percent": {
-      "audio_wearables": 12.5,
-      "other": 12.5,
-      "personal_care": 62.5,
-      "sports_outdoor": 12.5
+      "audio_wearables": 14.3,
+      "other": 14.3,
+      "personal_care": 71.4
     },
     "distinct_catalog_categories": 5,
-    "distinct_categories": 4,
-    "distinct_families": 8,
+    "distinct_categories": 3,
+    "distinct_families": 7,
     "distinct_retailers": 1,
-    "distinct_use_cases": 5,
+    "distinct_use_cases": 4,
     "known_brand_posts": 2,
-    "posts": 8,
+    "posts": 7,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 8
+      "digikala": 7
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -137,8 +135,7 @@
       "audio_visual": 1,
       "catalog_taxonomy_other": 1,
       "mobile_productivity": 1,
-      "personal_care": 4,
-      "sports_fitness": 1
+      "personal_care": 4
     }
   },
   "last_7_days": {
@@ -359,30 +356,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 789,
+    "all_time_count": 790,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T19:19:51.025198+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-18369481",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فلوئید ضد آفتاب بی رنگ شون مدل invisible محافظ UVA ،UVB و PA+++، ضد حساسیت، بدون چربی، مناسب انواع پوست‌ حجم 50 میلی لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-10T19:19:51.025198+00:00",
         "brand": "",
@@ -691,6 +671,23 @@
       },
       {
         "at": "2026-11-11T02:44:26.262601+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12935579",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-11T02:56:51.539580+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
