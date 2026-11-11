@@ -248,6 +248,25 @@ test("Filo login must be explicitly verified and no older than seven days", () =
   }, now), false);
 });
 
+test("a successful channel post immediately makes the same product eligible for every video destination", () => {
+  const now = Date.now();
+  const record = {
+    ts: (now - 60_000) / 1000,
+    delivery_status: { telegram: "sent" },
+    youtube_upload_status: "pending",
+    aparat_upload_status: "pending",
+    filo_upload_status: "pending",
+    video_generation_status: "pending",
+    expiry_deadline_verified_directly: true,
+    expires_at: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
+  };
+  const state = { published: { "dkp-channel-event": record } };
+  for (const platform of ["youtube", "aparat", "filo"]) {
+    assert.equal(videoRecordDue(record, platform, now), true, platform);
+    assert.equal(hasDueVideoRecord(state, platform, now), true, platform);
+  }
+});
+
 test("Filo accepts every confirmed channel delivery without requiring a retailer expiry timer", () => {
   const now = Date.now();
   const base = {
