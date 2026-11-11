@@ -2679,16 +2679,23 @@ class AffilioRadarTests(unittest.TestCase):
             "image_url": "https://example.com/image.jpg",
             "affiliate_url": "https://www.digikala.com/product/dkp-1234567/?utm_source=19166",
         }
-        ten_percent = score_product(dict(base))
-        self.assertEqual(ten_percent["discount_percent"], 10)
+        # A retailer's own crossed-out price is not enough; independent evidence is mandatory.
+        ten_percent_unverified = score_product(dict(base))
+        self.assertEqual(ten_percent_unverified["discount_percent"], 10)
+        self.assertFalse(is_discount_publish_eligible(ten_percent_unverified))
+
+        ten_percent = _with_verified_market_value(score_product(dict(base)), advantage=6)
         self.assertTrue(is_discount_publish_eligible(ten_percent))
 
         just_below_floor = score_product({**base, "current_price": 510_000})
         self.assertEqual(just_below_floor["discount_percent"], 49)
+        self.assertFalse(is_discount_publish_eligible(just_below_floor))
+        just_below_floor = _with_verified_market_value(just_below_floor, advantage=6)
         self.assertTrue(is_discount_publish_eligible(just_below_floor))
 
-        strong_discount = _with_verified_current_demand(
-            score_product({**base, "current_price": 500_000})
+        strong_discount = _with_verified_market_value(
+            _with_verified_current_demand(score_product({**base, "current_price": 500_000})),
+            advantage=6,
         )
         self.assertEqual(strong_discount["discount_percent"], 50)
         self.assertGreaterEqual(strong_discount["savings_toman"], 100_000)
@@ -2696,12 +2703,15 @@ class AffilioRadarTests(unittest.TestCase):
 
         small_saving = score_product({**base, "current_price": 990_000})
         self.assertEqual(small_saving["discount_percent"], 1)
-        self.assertTrue(is_discount_publish_eligible(small_saving))
+        self.assertFalse(is_discount_publish_eligible(small_saving))
+        self.assertFalse(is_discount_publish_eligible(_with_verified_market_value(small_saving, advantage=4)))
+        # A tiny retailer markdown can only pass when the actual comparable-market edge is strong.
+        self.assertTrue(is_discount_publish_eligible(_with_verified_market_value(small_saving, advantage=6)))
+
         no_real_drop = score_product({**base, "current_price": 1_000_000})
-        self.assertFalse(is_discount_publish_eligible(no_real_drop))
+        self.assertFalse(is_discount_publish_eligible(_with_verified_market_value(no_real_drop, advantage=20)))
         missing_stock = dict(strong_discount, availability="unknown")
         self.assertFalse(is_discount_publish_eligible(missing_stock))
-
 
     def test_high_ticket_products_have_no_discount_floor_exception(self):
         high_ticket_11_percent = score_product({
@@ -2716,17 +2726,19 @@ class AffilioRadarTests(unittest.TestCase):
         })
         self.assertEqual(high_ticket_11_percent["discount_percent"], 11)
         self.assertEqual(high_ticket_11_percent["savings_toman"], 2_000_000)
-        self.assertTrue(is_discount_publish_eligible(high_ticket_11_percent))
+        self.assertFalse(is_discount_publish_eligible(high_ticket_11_percent))
 
-        high_ticket_50_percent = _with_verified_current_demand(
-            score_product({
-                **high_ticket_11_percent,
-                "current_price": 9_000_000,
-                "original_price": 18_000_000,
-            })
-        )
+        # Price alone and historical popularity do not grant a quality exception.
+        high_ticket_50_percent = score_product({
+            **high_ticket_11_percent,
+            "current_price": 9_000_000,
+            "original_price": 18_000_000,
+        })
         self.assertEqual(high_ticket_50_percent["discount_percent"], 50)
-        self.assertGreaterEqual(high_ticket_50_percent["savings_toman"], 100_000)
+        self.assertFalse(is_discount_publish_eligible(high_ticket_50_percent))
+
+        # A premium product may still be an exceptional deal, but must prove it independently.
+        high_ticket_50_percent = _with_verified_market_value(high_ticket_50_percent, advantage=8)
         self.assertTrue(is_discount_publish_eligible(high_ticket_50_percent))
 
     def test_all_real_discount_bands_compete_without_a_percentage_or_saving_floor(self):
