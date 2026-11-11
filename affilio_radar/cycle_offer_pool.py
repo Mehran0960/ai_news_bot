@@ -263,7 +263,7 @@ def merge_cycle_offers(
         if not isinstance(candidate, dict):
             continue
         pid = str(candidate.get("product_id") or "").strip().lower()
-        if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", pid):
+        if not re.fullmatch(r"(?:dkp-\d{1,12}|snp-\d{1,20})", pid):
             continue
         if pid in consumed or pid in rejected:
             continue
