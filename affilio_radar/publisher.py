@@ -242,6 +242,10 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "caption_variant": str(item.get("caption_variant") or "A").upper(),
         "selection_demand_evidence": str(item.get("selection_demand_evidence") or "none"),
         "selection_demand_quality": str(item.get("selection_demand_quality") or "unknown"),
+        "selection_affordability_percentile": max(0, min(100, int(item.get("selection_affordability_percentile", 0) or 0))),
+        "selection_affordability_tier": str(item.get("selection_affordability_tier") or "unknown"),
+        "selection_global_affordability_percentile": max(0, min(100, int(item.get("selection_global_affordability_percentile", 0) or 0))),
+        "selection_category_affordability_percentile": max(0, min(100, int(item.get("selection_category_affordability_percentile", 0) or 0))),
         "selection_bestseller_rank": item.get("selection_bestseller_rank"),
         "selection_bestseller_category_count": int(item.get("selection_bestseller_category_count") or 0),
         "selection_bestseller_rank_improvement": int(item.get("selection_bestseller_rank_improvement") or 0),
@@ -380,6 +384,8 @@ def _fresh_selected_item(
         "selection_bestseller_rank", "selection_bestseller_category_count",
         "selection_bestseller_rank_improvement", "selection_review_growth_evidence",
         "selection_value_evidence", "selection_fallback_mode",
+        "selection_affordability_percentile", "selection_affordability_tier",
+        "selection_global_affordability_percentile", "selection_category_affordability_percentile",
         "creative_experiment_id", "creative_variant",
         "caption_experiment_id", "caption_variant",
     ):
@@ -452,9 +458,9 @@ def _fresh_selected_item(
     ):
         return None, "live_discount_no_longer_eligible"
 
-    # Demand/review-growth and independent positive market/history signals never
-    # gate an already selected live markdown. Fresh verified contradictions were
-    # already applied by is_discount_publish_eligible above.
+    # The pool admitted this item only after fresh demand and independent price-value
+    # proof. Reapply those hard gates after the live product read; affordability is
+    # retained as ranking/audit metadata, not a fabricated absolute budget cutoff.
     if not radar.has_publishable_expiry_or_open_offer(fresh, now):
         return None, "live_offer_expired_or_unverified"
     expiry = _utc(fresh.get("deal_expires_at"))
