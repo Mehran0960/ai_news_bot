@@ -10859,12 +10859,17 @@ def run(publish=False, selection_only=False):
         f"market_verified={market_verified} market_price_rejected={market_blocked_count} "
         f"publish_eligible={len(eligible)}"
     )
-    for rank, item in enumerate(products[:12], start=1):
+    report_scored_products = score_four_factor_candidates(products, now=queue_now)
+    report_scored_products.sort(key=_four_factor_sort_key, reverse=True)
+    for rank, item in enumerate(report_scored_products[:12], start=1):
+        factors = item.get("selection_factor_scores", {})
         print(
-            f"RANK {rank}: demand={_fresh_digikala_bestseller_evidence(item, queue_now).get('best_rank_across_categories', 'proxy/none')} "
+            f"RANK {rank}: four_factor={factors.get('combined', 0)} "
+            f"demand={factors.get('live_demand', 0)} affordability={factors.get('affordability', 0)} "
+            f"generality={factors.get('generality', 0)} discount_value={factors.get('discount_attractiveness', 0)} "
+            f"native_bestseller_rank={_fresh_digikala_bestseller_evidence(item, queue_now).get('best_rank_across_categories', 'proxy/none')} "
             f"discount={item['discount_percent']}% saving={item['savings_toman']} "
             f"review_growth_proxy_verified={has_current_demand_signal(item, queue_now)} "
-            f"clicks_30d={item.get('click_count_30d', 0)} "
             f"stock={item['availability']} linked={item['has_affiliate_link']} "
             f"market={item.get('market_status')} market_price={item.get('market_reference_price_toman')} "
             f"market_advantage={item.get('market_price_advantage_pct')}% "
@@ -10936,7 +10941,7 @@ def run(publish=False, selection_only=False):
             "endpoint": TOROB_MCP_URL,
         },
         "search_diagnostics": search_diagnostics,
-        "products": products[:40],
+        "products": report_scored_products[:40],
     }
     save_json(REPORT, report)
     if selection_only:
