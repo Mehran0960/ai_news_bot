@@ -79,16 +79,27 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual(sweep._percentile([0.25, 1.25], 0.50), 0.25)
         self.assertEqual(sweep._percentile([0.25, 1.25], 0.95), 1.25)
         self.assertEqual(sweep._percentile([], 0.95), 0.0)
-    def test_parallel_candidate_buffer_keeps_demand_context_before_discount(self):
+    def test_parallel_candidate_buffer_uses_shared_four_factor_ranking(self):
+        now = datetime.now(timezone.utc)
         rows = [
-            {"product_id": f"dkp-{i}", "catalog_category_id": "10", "catalog_category_ids": ["10"], "review_count": 10000-i, "discount_percent": 20, "savings_toman": 200_000}
+            {
+                "product_id": f"dkp-{i}", "catalog_category_id": "10",
+                "catalog_category_ids": ["10"], "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": i, "catalog_rank_observed_at": now.isoformat(),
+                "current_price": 500_000, "original_price": 625_000,
+                "discount_percent": 20, "savings_toman": 125_000,
+                "review_count": 10000-i,
+            }
             for i in range(1, 6)
         ] + [
-            {"product_id": "dkp-20", "catalog_category_id": "20", "catalog_category_ids": ["20"], "review_count": 1, "discount_percent": 99, "savings_toman": 990_000},
-            {"product_id": "dkp-30", "catalog_category_id": "30", "catalog_category_ids": ["30"], "review_count": 1, "discount_percent": 95, "savings_toman": 950_000},
+            {"product_id": "dkp-20", "catalog_category_id": "20", "catalog_category_ids": ["20"],
+             "current_price": 100_000, "original_price": 10_000_000, "discount_percent": 99, "savings_toman": 9_900_000},
+            {"product_id": "dkp-30", "catalog_category_id": "30", "catalog_category_ids": ["30"],
+             "current_price": 100_000, "original_price": 2_000_000, "discount_percent": 95, "savings_toman": 1_900_000},
         ]
         retained = sweep.base.retain_diverse_candidates(rows, limit=4)
         self.assertEqual([row["product_id"] for row in retained], ["dkp-1", "dkp-2", "dkp-3", "dkp-4"])
+        self.assertEqual(retained[0]["four_factor_score_version"], "four-factor-equal-weight-v1")
 
     def test_fresh_digikala_bestseller_rank_precedes_a_larger_discount_in_shortlist(self):
         now = datetime.now(timezone.utc)
@@ -129,16 +140,11 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             ["dkp-native-rank-4", "dkp-native-rank-55", "dkp-no-fresh-rank"],
         )
 
-    def test_parallel_scan_summary_reports_the_real_demand_first_order(self):
+    def test_parallel_scan_summary_reports_the_shared_four_factor_order(self):
         source = Path(sweep.__file__).read_text(encoding="utf-8")
-        self.assertIn(
-            "sort=demand_score,bestseller_rank,discount_percent,savings_toman",
-            source,
-        )
-        self.assertNotIn(
-            "sort=discount_percent_desc,savings_toman_desc",
-            source,
-        )
+        self.assertIn("catalog_four_factor_equal_weight_v1", source)
+        self.assertIn("sort=four_factor_equal_weight_v1", source)
+        self.assertIn("live_demand_25,affordability_25,generality_25,discount_attractiveness_25", source)
 
     def test_initial_queue_starts_every_category_at_page_one_even_with_old_cursor(self):
         categories = [
