@@ -1,0 +1,66 @@
+name: OfferChin Four-Factor Ranking
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "affilio_radar/offerchin_four_factor.py"
+      - "affilio_radar/affilio_radar.py"
+      - "affilio_radar/catalog_sweep.py"
+      - "affilio_radar/parallel_catalog_sweep.py"
+      - "affilio_radar/test_offerchin_four_factor.py"
+      - "affilio_radar/test_catalog_sweep.py"
+      - "affilio_radar/test_parallel_catalog_sweep.py"
+      - ".github/workflows/offerchin-four-factor-validation.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "affilio_radar/offerchin_four_factor.py"
+      - "affilio_radar/affilio_radar.py"
+      - "affilio_radar/catalog_sweep.py"
+      - "affilio_radar/parallel_catalog_sweep.py"
+      - "affilio_radar/test_offerchin_four_factor.py"
+      - "affilio_radar/test_catalog_sweep.py"
+      - "affilio_radar/test_parallel_catalog_sweep.py"
+      - ".github/workflows/offerchin-four-factor-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: affilio_radar/requirements.txt
+
+      - name: Install project test dependencies
+        run: python -m pip install -r affilio_radar/requirements.txt
+
+      - name: Compile changed ranking modules
+        run: |
+          python -m py_compile \
+            affilio_radar/offerchin_four_factor.py \
+            affilio_radar/affilio_radar.py \
+            affilio_radar/catalog_sweep.py \
+            affilio_radar/parallel_catalog_sweep.py
+
+      - name: Run four-factor and catalog regressions
+        run: |
+          cd affilio_radar
+          python -m unittest \
+            test_offerchin_four_factor \
+            test_catalog_sweep \
+            test_parallel_catalog_sweep \
+            test_catalog_sweep_batch_window \
+            test_catalog_status_snapshot -v
