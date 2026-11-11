@@ -60,6 +60,8 @@ jobs:
           cd affilio_radar
           python -m unittest \
             test_offerchin_four_factor \
+            test_affilio \
+            test_selection_evidence \
             test_catalog_sweep \
             test_parallel_catalog_sweep \
             test_catalog_status_snapshot -v
