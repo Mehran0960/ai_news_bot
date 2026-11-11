@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T18:15:57.294625+00:00",
+  "generated_at": "2026-11-11T18:51:53.902001+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ارگانایزر آشپزخانه": 1,
@@ -112,6 +112,7 @@
       "سرم پوست": 1,
       "شامپو مو": 1,
       "ضدیخ و آب رادیاتور": 1,
+      "لایه بردار پوست و اسکراب": 1,
       "لوازم اتو": 1,
       "لوازم اداری": 1,
       "لوازم خانگی برقی": 1,
@@ -133,31 +134,31 @@
       "home": 1,
       "lighting": 1,
       "other": 9,
-      "personal_care": 10,
+      "personal_care": 11,
       "power_backup": 1,
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "automotive": 7.7,
-      "fashion": 3.8,
-      "home": 3.8,
-      "lighting": 3.8,
-      "other": 34.6,
-      "personal_care": 38.5,
-      "power_backup": 3.8,
-      "sports_outdoor": 3.8
+      "automotive": 7.4,
+      "fashion": 3.7,
+      "home": 3.7,
+      "lighting": 3.7,
+      "other": 33.3,
+      "personal_care": 40.7,
+      "power_backup": 3.7,
+      "sports_outdoor": 3.7
     },
-    "distinct_catalog_categories": 26,
+    "distinct_catalog_categories": 27,
     "distinct_categories": 8,
-    "distinct_families": 26,
+    "distinct_families": 27,
     "distinct_retailers": 1,
     "distinct_use_cases": 10,
     "known_brand_posts": 1,
-    "posts": 26,
+    "posts": 27,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 26
+      "digikala": 27
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -169,7 +170,7 @@
       "home_living": 1,
       "kitchen_food": 1,
       "lighting_electrical": 2,
-      "mobile_productivity": 4,
+      "mobile_productivity": 5,
       "office_study": 1,
       "outdoor_travel": 1,
       "personal_care": 5
@@ -241,6 +242,7 @@
       "عینک آفتابی زنانه": 1,
       "عینک محافظ چشم": 1,
       "فیلتر کابین": 1,
+      "لایه بردار پوست و اسکراب": 1,
       "لباس زنانه": 1,
       "لوازم آرایشی": 1,
       "لوازم اتو": 1,
@@ -250,7 +252,7 @@
       "لوازم خانگی برقی": 2,
       "لوازم سفر و کمپینگ": 1,
       "لوازم ماهیگیری": 3,
-      "لوازم یدکی ابزار برقی": 5,
+      "لوازم یدکی ابزار برقی": 4,
       "ماسک صورت و بدن": 1,
       "مته و سری": 2,
       "محصولات بومی و محلی": 2,
@@ -290,7 +292,6 @@
       "کلاه مردانه": 1,
       "کلمبیا": 1,
       "کوه‌ نوردی و صخره نوردی": 1,
-      "کیسه زباله": 1,
       "کیف و کوله سفری": 1,
       "گرمکن و ست ورزشی مردانه": 1
     },
@@ -311,8 +312,8 @@
       "large_appliances": 9,
       "lighting": 1,
       "mobile_devices": 3,
-      "other": 89,
-      "personal_care": 38,
+      "other": 87,
+      "personal_care": 39,
       "power_backup": 6,
       "sports_outdoor": 18,
       "tv_audio_video": 1
@@ -324,7 +325,7 @@
       "books_stationery": 3.5,
       "computer_network": 1.4,
       "digital_accessories": 1.1,
-      "fashion": 12.6,
+      "fashion": 12.7,
       "gaming": 0.4,
       "grocery_food": 3.2,
       "home": 2.8,
@@ -334,8 +335,8 @@
       "large_appliances": 3.2,
       "lighting": 0.4,
       "mobile_devices": 1.1,
-      "other": 31.2,
-      "personal_care": 13.3,
+      "other": 30.6,
+      "personal_care": 13.7,
       "power_backup": 2.1,
       "sports_outdoor": 6.3,
       "tv_audio_video": 0.4
@@ -346,7 +347,7 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
     "known_brand_posts": 40,
-    "posts": 285,
+    "posts": 284,
     "repeated_brand_count": 29,
     "repeated_brands": {
       "ai_javaher": 7,
@@ -358,7 +359,7 @@
       "ufc": 6
     },
     "retailer_post_counts": {
-      "digikala": 285
+      "digikala": 284
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -369,7 +370,7 @@
       "automotive": 33,
       "baby_care": 5,
       "books_learning": 8,
-      "catalog_taxonomy_other": 13,
+      "catalog_taxonomy_other": 12,
       "events_decor": 3,
       "fashion_lifestyle": 25,
       "gaming": 2,
@@ -403,64 +404,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 825,
+    "all_time_count": 828,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-11T10:53:28.107099+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-12935579",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12564010",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فلوئید ضدآفتاب بی‌رنگ ویتالیر SPF50 مدل Whitevit مناسب انواع پوست، حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-11T11:27:03.458998+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-12935579",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-708421",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 02 مناسب پوست‌های معمولی و مختلط حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-11T11:27:03.458998+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-12935579",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12564010",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فلوئید ضدآفتاب بی‌رنگ ویتالیر SPF50 مدل Whitevit مناسب انواع پوست، حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-11T12:03:01.695945+00:00",
         "brand": "",
@@ -748,6 +698,57 @@
           "similarity_repeat"
         ],
         "title": "سرم پوست ویتالیر مدل گلایکولیک اسید ٪7 مناسب برای پوست مختلط حجم 30 میلی لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-11T18:51:53.902001+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-12935579",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12564010",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضدآفتاب بی‌رنگ ویتالیر SPF50 مدل Whitevit مناسب انواع پوست، حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-11T18:51:53.902001+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-12935579",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-14194589",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم پوست ویتالیر مدل گلایکولیک اسید ٪7 مناسب برای پوست مختلط حجم 30 میلی لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-11T18:51:53.902001+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-12935579",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-20682942",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
         "use_case": "mobile_productivity"
       }
     ]
