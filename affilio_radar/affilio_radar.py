@@ -64,6 +64,20 @@ from offerchin_copy import (
     normalize_brand_display_name,
 )
 from integrity_audit_state import apply_integrity_audit_ledger
+try:
+    from .cycle_offer_pool import (
+        BASE_PUBLICATION_INTERVAL_SECONDS,
+        merge_cycle_offers,
+        cycle_offer_candidates,
+        pool_runtime_projection,
+    )
+except ImportError:
+    from cycle_offer_pool import (
+        BASE_PUBLICATION_INTERVAL_SECONDS,
+        merge_cycle_offers,
+        cycle_offer_candidates,
+        pool_runtime_projection,
+    )
 import arabic_reshaper
 from bidi.algorithm import get_display
 
@@ -4425,10 +4439,12 @@ def _verified_review_growth_sort_key(
 
 
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank by DigiKala demand evidence first, then discount percentage and cash savings."""
+    """Rank by fresh demand, then affordability, then verified discount value."""
     candidate = p if isinstance(p, dict) else {}
+    affordability = max(0, min(100, int(candidate.get("selection_affordability_percentile", 50) or 0)))
     return (
         *_digikala_demand_sort_key(candidate, now=now),
+        affordability,
         *_deal_primary_sort_key(candidate, now=now),
     )
 
@@ -4919,6 +4935,7 @@ def is_discount_publish_eligible(
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
         and has_meaningful_discount(product, minimum_discount_percent)
+        and has_attractive_discount_value(product, now=now)
         and is_market_value_publish_eligible(product, now=now)
         and not is_fresh_verified_history_contradiction(product, now=now)
     )
