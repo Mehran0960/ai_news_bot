@@ -1,5 +1,5 @@
 name: OfferChin Selected Content Publisher
-# New posts use exhaustive DigiKala discovery and global market-demand-first ranking; live safety checks remain.
+# New posts use exhaustive DigiKala discovery and equal-weight live-demand/affordability/generality/discount ranking; all hard gates remain.
 # [publisher-run-now] Verify preserved discount floors after merge.
 # [publisher-run-now] Verify final demand and value ranking after regression suite passes.
 # [publisher-run-now] One-time quality-gate verification after current-demand and best-selling rollout.
@@ -85,7 +85,7 @@ jobs:
 
       - name: Validate the delivery-only path
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/messenger_adapters.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
+          python -m py_compile affilio_radar/four_factor_scoring.py affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/messenger_adapters.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
           python - <<'PY'
           from pathlib import Path
           source = Path("affilio_radar/publisher.py").read_text(encoding="utf-8")
@@ -97,7 +97,7 @@ jobs:
           print("OFFERCHIN_STATE_PERSISTENCE_WORKTREE_RESET_VALIDATED")
           PY
 
-      - name: Validate DigiKala demand-first ranking and publication gates
+      - name: Validate equal-weight four-factor ranking and publication gates
         run: |
           cd affilio_radar
           python -m unittest \
@@ -118,7 +118,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_fresh_bestseller_rank_changes_demand_ranking_but_clicks_do_not \
             test_affilio.AffilioRadarTests.test_scoring_does_not_generate_popularity_or_demand_scores \
             test_affilio.AffilioRadarTests.test_lifetime_reviews_and_rating_are_weak_demand_context_when_direct_signals_are_absent \
-            test_affilio.AffilioRadarTests.test_demand_context_precedes_discount_but_clicks_and_synthetic_scores_are_ignored \
+            test_affilio.AffilioRadarTests.test_four_factor_policy_balances_all_signals_and_ignores_clicks_and_synthetic_scores \
             test_affilio.AffilioRadarTests.test_creative_assignment_is_stable_and_balanced_over_product_ids \
             test_affilio.AffilioRadarTests.test_caption_experiment_assignment_is_stable_balanced_and_independent \
             test_affilio.AffilioRadarTests.test_performance_report_never_infers_ctr_sales_or_commission_from_clicks \
@@ -133,6 +133,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_public_aparat_upload_stays_blocked_without_verified_expiry \
             test_affilio.AffilioRadarTests.test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record -v
           python -m unittest test_selection_evidence -v
+          python -m unittest test_four_factor_scoring -v
           node --test test_affiliate_deal_radar_worker.mjs
 
       - name: Validate permanent YouTube retention policy
@@ -162,8 +163,8 @@ jobs:
           AFFILIO_MARKET_RECHECK_HOURS: "24"
           AFFILIO_MARKET_CHALLENGE_COOLDOWN_HOURS: "6"
           AFFILIO_MARKET_GLOBAL_PAUSE_MINUTES: "20"
-          # Native DigiKala bestseller rank is primary; fresh review growth is a weaker
-          # demand proxy before historical review context and markdown value. It is not unit-sales data.
+          # Live bestseller/review-growth evidence is a hard gate; the four score factors are equally weighted.
+          # Review growth is an indirect proxy, never unit-sales data.
           AFFILIO_CURRENT_DEMAND_WINDOW_DAYS: "1"
           AFFILIO_CURRENT_DEMAND_MIN_REVIEW_GROWTH: "3"
           AFFILIO_CURRENT_DEMAND_MIN_OBSERVATION_HOURS: "6"
