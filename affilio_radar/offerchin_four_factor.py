@@ -189,19 +189,25 @@ def apply_four_factor_scores(
     use_case_group_fn: Callable[[dict], str],
     discount_verified_fn: Callable[[dict], bool],
     now: datetime | None = None,
+    price_group_fn: Callable[[dict], str] | None = None,
 ) -> list[dict]:
     """Annotate a candidate cohort in place and return it, preserving input order."""
     rows = [row for row in records if isinstance(row, dict)]
     groups = [str(use_case_group_fn(row) or "unknown") for row in rows]
-    relative_prices = _relative_price_scores(rows, groups)
+    price_groups = [
+        str((price_group_fn(row) if price_group_fn else groups[index]) or groups[index])
+        for index, row in enumerate(rows)
+    ]
+    relative_prices = _relative_price_scores(rows, price_groups)
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current_iso = current.astimezone(timezone.utc).isoformat()
 
     cohort_sizes = {
-        group: sum(1 for candidate in rows if groups[index] == group and _number(candidate.get("current_price")) > 0)
-        for index, group in enumerate(groups)
+        group: sum(1 for index, candidate in enumerate(rows)
+                   if price_groups[index] == group and _number(candidate.get("current_price")) > 0)
+        for group in price_groups
     }
     for index, row in enumerate(rows):
         demand = _clamp(_number(live_demand_score_fn(row)))
@@ -225,7 +231,8 @@ def apply_four_factor_scores(
             "weakest_factor_score": round(min(components), 2),
             "generality_group": groups[index],
             "affordability_basis": affordability_basis,
-            "price_cohort_size": cohort_sizes.get(groups[index], 0) if relative is not None else 0,
+            "price_cohort_size": cohort_sizes.get(price_groups[index], 0) if relative is not None else 0,
+            "price_cohort_key": price_groups[index],
             "discount_evidence": discount_evidence,
             "score_interpretation": "heuristic_priority_index_not_conversion_probability",
         }
