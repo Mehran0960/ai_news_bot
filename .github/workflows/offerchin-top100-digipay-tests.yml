@@ -11,6 +11,11 @@ on:
       - "affilio_radar/test_affiliate_deal_radar_worker.mjs"
       - "affilio_radar/test_selection_evidence.py"
       - "affilio_radar/catalog_sweep.py"
+      - "affilio_radar/four_factor_scoring.py"
+      - "affilio_radar/test_four_factor_scoring.py"
+      - "affilio_radar/parallel_catalog_sweep.py"
+      - "affilio_radar/test_parallel_catalog_sweep.py"
+      - "affilio_radar/test_catalog_sweep.py"
       - "affilio_radar/test_affilio.py"
       - ".github/workflows/offerchin-publisher.yml"
       - ".github/workflows/offerchin-top100-digipay-tests.yml"
@@ -40,6 +45,7 @@ jobs:
       - name: Compile OfferChin discovery, visuals and publisher
         run: |
           python -m py_compile \
+            affilio_radar/four_factor_scoring.py \
             affilio_radar/affilio_radar.py \
             affilio_radar/offerchin_visuals.py \
             affilio_radar/catalog_sweep.py \
@@ -67,7 +73,7 @@ jobs:
           PY
       - name: Run OfferChin regression suite
         working-directory: affilio_radar
-        run: python -m unittest -v test_affilio test_content_delivery test_selection_evidence
+        run: python -m unittest -v test_four_factor_scoring test_affilio test_content_delivery test_selection_evidence test_catalog_sweep test_parallel_catalog_sweep
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
