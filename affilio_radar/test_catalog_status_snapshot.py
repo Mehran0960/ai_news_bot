@@ -396,7 +396,7 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         scanner = (
             Path(__file__).resolve().parent / "parallel_catalog_sweep.py"
         ).read_text(encoding="utf-8")
-        self.assertIn('"candidate_order_policy": "catalog_demand_first_v1"', scanner)
+        self.assertIn('"candidate_order_policy": "catalog_demand_affordability_v2"', scanner)
 
     def test_loader_accepts_small_new_category_additions_without_weakening_hash_checks(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -583,6 +583,38 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
             workflow,
         )
 
+
+    def test_affordability_aware_snapshot_accepts_frozen_ranked_order_and_preview(self):
+        rows = [
+            {
+                **self.candidates["candidates"][0],
+                "catalog_affordability_percentile": 90,
+                "catalog_affordability_tier": "accessible",
+                "catalog_public_generality_score": 80,
+            },
+            {
+                **self.candidates["candidates"][1],
+                "catalog_affordability_percentile": 20,
+                "catalog_affordability_tier": "premium",
+                "catalog_public_generality_score": 20,
+            },
+        ]
+        changed = {
+            **self.candidates,
+            "candidate_order_policy": "catalog_demand_affordability_v2",
+            "candidates": rows,
+        }
+        status = build_status_snapshot(
+            self.state,
+            self.status_time.isoformat(),
+            completed_candidates=changed,
+        )
+        self.assertTrue(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["completed_candidates_order_policy"], "catalog_demand_affordability_v2")
+        self.assertEqual(
+            [row["affordability_percentile"] for row in status["top_candidates_preview"]],
+            [90, 20],
+        )
 
 if __name__ == "__main__":
     unittest.main()
