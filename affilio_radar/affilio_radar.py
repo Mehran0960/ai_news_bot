@@ -2777,6 +2777,7 @@ def has_attractive_discount_value(
     if (
         record.get("market_status") == "verified"
         and record.get("market_reference_kind") == "seller_median"
+        and _safe_int(record.get("market_available_offer_count"), 0) >= 3
         and market_fresh
     ):
         try:
