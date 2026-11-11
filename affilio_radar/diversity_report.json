@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T10:16:25.937685+00:00",
+  "generated_at": "2026-11-11T10:53:28.107099+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "بوگیر و خوشبو کننده هوا": 1,
@@ -114,33 +114,36 @@
       "کرم آبرسان و مرطوب کننده": 1,
       "کرم ضد آفتاب": 1,
       "کرم، اسپری و پودر موبر": 1,
-      "کفش زنانه": 1
+      "کفش زنانه": 1,
+      "کلمبیا": 1
     },
     "category_post_counts": {
       "automotive": 1,
       "fashion": 1,
       "other": 4,
       "personal_care": 8,
+      "power_backup": 1,
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "automotive": 6.7,
-      "fashion": 6.7,
-      "other": 26.7,
-      "personal_care": 53.3,
-      "sports_outdoor": 6.7
+      "automotive": 6.2,
+      "fashion": 6.2,
+      "other": 25.0,
+      "personal_care": 50.0,
+      "power_backup": 6.2,
+      "sports_outdoor": 6.2
     },
-    "distinct_catalog_categories": 15,
-    "distinct_categories": 5,
-    "distinct_families": 15,
+    "distinct_catalog_categories": 16,
+    "distinct_categories": 6,
+    "distinct_families": 16,
     "distinct_retailers": 1,
-    "distinct_use_cases": 5,
+    "distinct_use_cases": 6,
     "known_brand_posts": 2,
-    "posts": 15,
+    "posts": 16,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 15
+      "digikala": 16
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -148,6 +151,7 @@
     "use_case_post_counts": {
       "automotive": 2,
       "catalog_taxonomy_other": 4,
+      "lighting_electrical": 1,
       "mobile_productivity": 4,
       "outdoor_travel": 1,
       "personal_care": 4
@@ -222,7 +226,7 @@
       "لوازم اداری": 5,
       "لوازم بهداشتی": 1,
       "لوازم تحریر": 2,
-      "لوازم جانبی راکت": 2,
+      "لوازم جانبی راکت": 1,
       "لوازم جانبی کمپرسور هوا": 1,
       "لوازم خانگی برقی": 2,
       "لوازم سفر و کمپینگ": 1,
@@ -262,6 +266,7 @@
       "کرم، اسپری و پودر موبر": 1,
       "کفش زنانه": 1,
       "کلاه مردانه": 1,
+      "کلمبیا": 1,
       "کیسه زباله": 1,
       "کیف و کوله سفری": 1,
       "گرمکن و ست ورزشی مردانه": 1
@@ -284,8 +289,8 @@
       "mobile_devices": 3,
       "other": 86,
       "personal_care": 38,
-      "power_backup": 5,
-      "sports_outdoor": 25,
+      "power_backup": 6,
+      "sports_outdoor": 24,
       "tv_audio_video": 1
     },
     "category_share_percent": {
@@ -306,16 +311,16 @@
       "mobile_devices": 1.0,
       "other": 29.8,
       "personal_care": 13.1,
-      "power_backup": 1.7,
-      "sports_outdoor": 8.7,
+      "power_backup": 2.1,
+      "sports_outdoor": 8.3,
       "tv_audio_video": 0.3
     },
-    "distinct_catalog_categories": 110,
+    "distinct_catalog_categories": 111,
     "distinct_categories": 20,
-    "distinct_families": 148,
+    "distinct_families": 149,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
-    "known_brand_posts": 50,
+    "known_brand_posts": 49,
     "posts": 289,
     "repeated_brand_count": 37,
     "repeated_brands": {
@@ -349,13 +354,13 @@
       "home_cleaning": 6,
       "home_living": 8,
       "kitchen_food": 3,
-      "lighting_electrical": 5,
+      "lighting_electrical": 6,
       "local_goods": 2,
       "mobile_productivity": 38,
       "office_study": 10,
       "outdoor_travel": 6,
       "personal_care": 35,
-      "sports_fitness": 25,
+      "sports_fitness": 24,
       "tabletop_games": 1,
       "tools_industrial": 16
     }
@@ -373,30 +378,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 805,
+    "all_time_count": 806,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T20:38:58.882980+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-5664135",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مدل Oily Acne-Prone Skin، مناسب پوست‌های چرب، حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-10T20:47:57.504831+00:00",
         "brand": "",
@@ -705,6 +693,23 @@
       },
       {
         "at": "2026-11-11T10:16:25.937685+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-12935579",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12564010",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضدآفتاب بی‌رنگ ویتالیر SPF50 مدل Whitevit مناسب انواع پوست، حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-11T10:53:28.107099+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
