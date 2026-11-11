@@ -176,6 +176,7 @@ def _has_verified_discount_value(item: dict, now: datetime) -> bool:
     return bool(
         item.get("market_status") == "verified"
         and item.get("market_reference_kind") == "seller_median"
+        and _int(item.get("market_available_offer_count")) >= 3
         and market_fresh
         and _int(item.get("market_price_advantage_pct")) >= 5
     )
