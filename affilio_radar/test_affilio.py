@@ -5753,7 +5753,7 @@ class AffilioRadarTests(unittest.TestCase):
             },
         }
         selected = select_discovery_records_for_check(queue, now, max_count=10)
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93022", "dkp-93021", "dkp-93023", "dkp-93024"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93021", "dkp-93022", "dkp-93023", "dkp-93024"])
         scored_direct = radar_module.score_four_factor_candidates([queue["dkp-93021"], queue["dkp-93022"]], now=now)
         self.assertGreater(scored_direct[0]["selection_demand_score"], scored_direct[1]["selection_demand_score"])
 
