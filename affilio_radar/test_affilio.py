@@ -2904,7 +2904,7 @@ class AffilioRadarTests(unittest.TestCase):
         ))
 
 
-    def test_video_upload_queue_uses_global_discount_before_repair_priority(self):
+    def test_video_upload_queue_preserves_channel_publication_order(self):
         now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
         lower_discount_repair = (
             now.timestamp(),
@@ -2938,7 +2938,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(
             [row[1] for row in ranked],
-            ["dkp-video-best-deal", "dkp-video-repair"],
+            ["dkp-video-repair", "dkp-video-best-deal"],
         )
 
 
@@ -6345,7 +6345,8 @@ class AffilioRadarTests(unittest.TestCase):
         no_timer_id = "dkp-youtube-first-choice"
         verified_id = "dkp-aparat-lower-demand"
         no_timer = {
-            "ts": now.timestamp(),
+            # First channel hand-off: FIFO keeps this item ahead of later posts.
+            "ts": now.timestamp() - 1,
             "title": "پیشنهاد با تقاضای بیشتر و بدون تایمر رسمی",
             "product_url": f"https://www.digikala.com/product/{no_timer_id}/",
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
@@ -6358,7 +6359,7 @@ class AffilioRadarTests(unittest.TestCase):
             "aparat_upload_status": "pending",
         }
         verified_lower_demand = {
-            "ts": now.timestamp() - 1,
+            "ts": now.timestamp(),
             "title": "پیشنهاد دارای تایمر معتبر اما تقاضای کمتر",
             "product_url": f"https://www.digikala.com/product/{verified_id}/",
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
