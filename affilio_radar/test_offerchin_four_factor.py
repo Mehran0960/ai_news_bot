@@ -35,6 +35,22 @@ class OfferChinFourFactorTests(unittest.TestCase):
         self.assertAlmostEqual(balanced, 30.77, places=2)
         self.assertLess(balanced, sum([100, 100, 100, 10]) / 4)
 
+    def test_incomplete_four_factor_data_falls_back_without_discount_tiebreak(self):
+        row = {
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "discount_percent": 80,
+            "savings_toman": 800_000,
+        }
+        apply_four_factor_scores(
+            [row],
+            live_demand_score_fn=lambda _row: 0,
+            use_case_group_fn=lambda _row: "kitchen_food",
+            discount_verified_fn=lambda _row: True,
+            now=self.now,
+        )
+        self.assertEqual(four_factor_sort_key(row), (0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
+
     def test_affordability_uses_transparent_cash_ticket_anchors(self):
         self.assertEqual(affordability_absolute_score(100_000), 100)
         self.assertEqual(affordability_absolute_score(1_000_000), 85)
