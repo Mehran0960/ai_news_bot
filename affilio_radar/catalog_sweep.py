@@ -578,8 +578,59 @@ def _candidate_demand(row: dict) -> int:
     return review_proxy + rating_proxy
 
 
+def _candidate_category_key(row: dict) -> str:
+    values = row.get("catalog_category_ids")
+    if isinstance(values, list):
+        numeric = [str(value) for value in values if str(value).isdigit()]
+        if numeric:
+            return "id:" + numeric[-1]
+    value = str(row.get("catalog_category_id") or "").strip()
+    return "id:" + value if value.isdigit() else "unknown"
+
+
+def _annotate_catalog_affordability(rows: list[dict]) -> list[dict]:
+    """Blend global and same-category price percentiles; never impose a fixed toman cap."""
+    prices = [
+        _normal_int(row.get("current_price")) for row in rows
+        if _normal_int(row.get("current_price")) > 0
+    ]
+    categories: dict[str, list[int]] = {}
+    for row in rows:
+        price = _normal_int(row.get("current_price"))
+        if price > 0:
+            categories.setdefault(_candidate_category_key(row), []).append(price)
+    annotated = []
+    for source in rows:
+        row = dict(source)
+        price = _normal_int(row.get("current_price"))
+        if price <= 0 or not prices:
+            row["catalog_global_affordability_percentile"] = 0
+            row["catalog_category_affordability_percentile"] = 0
+            row["catalog_affordability_percentile"] = 0
+            row["catalog_affordability_tier"] = "unknown"
+            annotated.append(row)
+            continue
+        global_percentile = round(100 * sum(value >= price for value in prices) / len(prices))
+        peers = categories.get(_candidate_category_key(row), [])
+        if len(peers) < 5:
+            category_percentile = global_percentile
+        else:
+            category_percentile = round(100 * sum(value >= price for value in peers) / len(peers))
+        percentile = max(0, min(100, round(global_percentile * 0.70 + category_percentile * 0.30)))
+        row["catalog_global_affordability_percentile"] = global_percentile
+        row["catalog_category_affordability_percentile"] = category_percentile
+        row["catalog_affordability_percentile"] = percentile
+        row["catalog_affordability_tier"] = (
+            "accessible" if percentile >= 67
+            else "midrange" if percentile >= 34
+            else "premium"
+        )
+        annotated.append(row)
+    return annotated
+
+
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Demand first: DigiKala bestseller evidence, weak review context, then deal value."""
+    """Demand first, then blended global/category affordability, then deal value."""
     rank = _fresh_best_selling_rank(row)
     rank_strength = (
         BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY + 1 - rank
@@ -587,6 +638,7 @@ def catalog_candidate_sort_key(row: dict) -> tuple:
     )
     return (
         _candidate_demand(row),
+        max(0, min(100, _normal_int(row.get("catalog_affordability_percentile"), 50))),
         rank_strength,
         max(0, _normal_int(row.get("discount_percent"))),
         max(0, _normal_int(row.get("savings_toman"))),
@@ -598,19 +650,21 @@ def retain_diverse_candidates(
     limit: int = MAX_RETAINED_CANDIDATES,
     rotation: int = 0,
 ) -> list[dict]:
-    """Retain the global demand-first shortlist; do not impose category quotas or promote markdowns."""
+    """Retain a demand-first shortlist with a relative affordability tie-breaker."""
     cap = max(0, int(limit))
-    # The rolling candidate shortlist exists to find publishable offers, not to keep
-    # undiscounted bestsellers that can never pass the last-mile publication gate.
-    eligible = (
+    eligible = [
         row for row in rows or []
         if isinstance(row, dict)
         and row.get("product_id")
         and _normal_int(row.get("discount_percent")) >= MIN_CANDIDATE_DISCOUNT
         and _normal_int(row.get("savings_toman")) > 0
         and not is_prohibited_product_title(row.get("title"))
+    ]
+    ranked = sorted(
+        _annotate_catalog_affordability(eligible),
+        key=catalog_candidate_sort_key,
+        reverse=True,
     )
-    ranked = sorted(eligible, key=catalog_candidate_sort_key, reverse=True)
     return ranked[:cap]
 
 def _category_page_url(category_id: str, page: int) -> tuple[str, dict]:
