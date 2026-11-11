@@ -78,6 +78,7 @@ except ImportError:
         merge_cycle_offers,
         cycle_offer_candidates,
         pool_runtime_projection,
+        set_pool_dispatchable_count,
     )
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -8641,6 +8642,7 @@ def select_discount_fallback_candidates(
             else "historical_quality_context_only"
         )
         selected["selection_bestseller_rank"] = bestseller_evidence.get("best_rank_across_categories")
+        selected["selection_bestseller_observed_at"] = bestseller_evidence.get("observed_at") or ""
         selected["selection_bestseller_category_count"] = bestseller_evidence.get("fresh_category_count", 0)
         selected["selection_bestseller_rank_improvement"] = bestseller_evidence.get("rank_improvement", 0)
         selected["selection_review_growth_evidence"] = (
@@ -8715,7 +8717,8 @@ def restore_selection_discount_tiers(
         for field in (
             "selection_discount_band", "publication_policy",
             "selection_demand_evidence", "selection_demand_quality",
-            "selection_bestseller_rank", "selection_bestseller_category_count",
+            "selection_bestseller_rank", "selection_bestseller_observed_at",
+            "selection_bestseller_category_count",
             "selection_bestseller_rank_improvement",
             "selection_review_growth_evidence", "selection_value_evidence",
             "selection_fallback_mode", "creative_experiment_id", "creative_variant",
