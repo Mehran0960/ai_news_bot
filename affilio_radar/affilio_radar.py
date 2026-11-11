@@ -64,6 +64,22 @@ from offerchin_copy import (
     normalize_brand_display_name,
 )
 from integrity_audit_state import apply_integrity_audit_ledger
+try:
+    from .cycle_offer_pool import (
+        BASE_PUBLICATION_INTERVAL_SECONDS,
+        merge_cycle_offers,
+        cycle_offer_candidates,
+        pool_runtime_projection,
+        set_pool_dispatchable_count,
+    )
+except ImportError:
+    from cycle_offer_pool import (
+        BASE_PUBLICATION_INTERVAL_SECONDS,
+        merge_cycle_offers,
+        cycle_offer_candidates,
+        pool_runtime_projection,
+        set_pool_dispatchable_count,
+    )
 import arabic_reshaper
 from bidi.algorithm import get_display
 
@@ -4425,10 +4441,17 @@ def _verified_review_growth_sort_key(
 
 
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank by DigiKala demand evidence first, then discount percentage and cash savings."""
+    """Rank fresh demand first, then public breadth, accessibility, and verified deal value."""
     candidate = p if isinstance(p, dict) else {}
+    try:
+        generality = max(0, min(100, int(candidate.get("selection_generality_score", 0) or 0)))
+        affordability = max(0, min(100, int(candidate.get("selection_affordability_percentile", 50) or 0)))
+    except (TypeError, ValueError, OverflowError):
+        generality, affordability = 0, 50
     return (
         *_digikala_demand_sort_key(candidate, now=now),
+        generality,
+        affordability,
         *_deal_primary_sort_key(candidate, now=now),
     )
 
@@ -4862,10 +4885,16 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         raw = state.get(key) if isinstance(state, dict) else None
         return raw if isinstance(raw, (str, int, float, bool)) or raw is None else None
 
+    pool_projection = pool_runtime_projection(
+        state, now=current, base_interval_seconds=BASE_PUBLICATION_INTERVAL_SECONDS
+    )
     return {
         "schema_version": 1,
         "generated_at": current.isoformat(),
         "last_channel_published_at": value("last_channel_published_at"),
+        "publisher_interval_seconds": int(pool_projection["interval_seconds"]),
+        "publisher_available_count": int(pool_projection["available_count"]),
+        "publisher_cycle_completed_at": str(pool_projection.get("cycle_completed_at") or ""),
         "youtube_next_upload_at": value("youtube_next_upload_at"),
         "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
         "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
@@ -4919,6 +4948,7 @@ def is_discount_publish_eligible(
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
         and has_meaningful_discount(product, minimum_discount_percent)
+        and has_attractive_discount_value(product, now=now)
         and is_market_value_publish_eligible(product, now=now)
         and not is_fresh_verified_history_contradiction(product, now=now)
     )
@@ -8616,7 +8646,22 @@ def select_discount_fallback_candidates(
             else "historical_quality_context_only"
         )
         selected["selection_bestseller_rank"] = bestseller_evidence.get("best_rank_across_categories")
+        selected["selection_bestseller_observed_at"] = bestseller_evidence.get("observed_at") or ""
         selected["selection_bestseller_category_count"] = bestseller_evidence.get("fresh_category_count", 0)
+        try:
+            breadth = max(0, min(10, int(bestseller_evidence.get("fresh_category_count") or 0)))
+        except (TypeError, ValueError, OverflowError):
+            breadth = 0
+        selected["selection_generality_score"] = min(100, breadth * 20)
+        selected["selection_generality_tier"] = (
+            "broad" if breadth >= 3 else "multi_category" if breadth == 2
+            else "single_category" if breadth == 1 else "limited_evidence"
+        )
+        selected["selection_generality_evidence"] = (
+            "fresh_bestseller_presence_across_multiple_categories" if breadth >= 2
+            else "fresh_bestseller_presence_in_one_category" if breadth == 1
+            else "no_verified_cross_category_breadth"
+        )
         selected["selection_bestseller_rank_improvement"] = bestseller_evidence.get("rank_improvement", 0)
         selected["selection_review_growth_evidence"] = (
             "verified_indirect_proxy_not_sales" if has_current_demand_signal(product, now=current)
@@ -8690,8 +8735,8 @@ def restore_selection_discount_tiers(
         for field in (
             "selection_discount_band", "publication_policy",
             "selection_demand_evidence", "selection_demand_quality",
-            "selection_bestseller_rank", "selection_bestseller_category_count",
-            "selection_bestseller_rank_improvement",
+            "selection_bestseller_rank", "selection_bestseller_observed_at",
+            "selection_bestseller_category_count", "selection_bestseller_rank_improvement",
             "selection_review_growth_evidence", "selection_value_evidence",
             "selection_fallback_mode", "creative_experiment_id", "creative_variant",
         ):
@@ -10843,7 +10888,7 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "The scanner traverses every queryable DigiKala category page ordered by DigiKala's native bestseller sort (sort id 7). Candidates are ranked first by fresh within-category bestseller evidence (top 10, 11-30, then 31-60), then observed rank momentum and the number of fresh categories in which the product ranks, then fresh review-count growth as an indirect proxy, then lifetime review count/rating as weak quality context, and only then discount percentage and cash savings. DigiKala's public data available to this integration does not expose a verified absolute unit-sales count, so bestseller rank is a relative sales-demand signal, not a unit count; review growth is not sales. Clicks never influence market-demand ranking. SnappShop and other sources remain supplementary and cannot outrank a fresh DigiKala bestseller signal. Price, stock, product identity, affiliate URL, offer validity, duplicate and safety checks remain hard publication controls.",
+        "ranking_note": "The scanner traverses every queryable DigiKala category page. Hard gates require fresh demand (native bestseller rank <=60 and <=24h old, or verified recent review growth), independently verified discount value (fresh positive price history or same-product seller median with at least 5% advantage), current price/stock, identity, direct affiliate URL, offer validity, duplicate and safety checks. After demand tier/rank/momentum, equal-demand offers are ranked by fresh bestseller breadth across categories (public generality), then 70% catalog-wide and 30% within-category price accessibility, then verified history/market advantage and displayed markdown/savings. Bestseller rank is relative category evidence, not unit sales; review growth is not sales. Clicks and affiliate income never rank demand.",
         "demand_ranking_policy": {
             "version": "digikala_demand_first_bestseller_review_quality_discount_v1",
             "primary_source": "DigiKala native bestseller sort id=7",
@@ -10885,22 +10930,43 @@ def run(publish=False, selection_only=False):
         },
         "price_market_policy": {
             "source": "Torob public price comparison via Torob MCP",
-            "use": "optional_diagnostics_only",
-            "market_data_required_when_history_unverified": False,
-            "blocks_publication": False,
+            "use": "mandatory_when_fresh_positive_history_proof_is_absent",
+            "market_data_required_when_history_unverified": True,
+            "blocks_publication": True,
             "checked_candidates_per_run": MARKET_PRICE_CHECK_LIMIT,
             "minimum_name_match_score": MIN_MARKET_MATCH_SCORE,
             "minimum_sellers_for_verified_median": 3,
             "minimum_discount_vs_current_market_median_percent": 5,
             "endpoint": TOROB_MCP_URL,
         },
+        "affordability_policy": {
+            "use": "ranking_tiebreaker_after_fresh_demand_and_public_generality",
+            "global_price_percentile_weight": 0.70,
+            "category_price_percentile_weight": 0.30,
+            "higher_percentile_means_more_accessible_price": True,
+            "fixed_absolute_toman_cap": None,
+            "premium_offers_remain_eligible_when_demand_and_value_gates_pass": True,
+        },
+        "public_generality_policy": {
+            "primary_evidence": "fresh_bestseller_presence_across_distinct_digikala_categories",
+            "taxonomy_breadth_only": "weak_context_not_verified_demand",
+            "minimum_fresh_category_rank_age_hours": 24,
+            "score_max": 100,
+        },
+        "cycle_offer_pool_policy": {
+            "requires_verified_completed_full_catalog_cycle": True,
+            "pool_source": "live candidates passing fresh demand and independent discount-value gates",
+            "base_publication_interval_seconds": BASE_PUBLICATION_INTERVAL_SECONDS,
+            "adaptive_interval": "remaining_cycle_window_divided_by_dispatchable_qualified_offers; never below base",
+            "empty_pool_behavior": "continue discovery refresh; pause publication",
+            "new_completed_cycle_replaces_previous_pool": True,
+            "live_last_mile_revalidation": True,
+        },
         "search_diagnostics": search_diagnostics,
         "products": products[:40],
     }
     save_json(REPORT, report)
     if selection_only:
-        # Keep discovery live on every scan, but only select a new product when a
-        # publication slot is due. Never build a long queue of products chosen early.
         from content_delivery import (
             enqueue_selected_content,
             get_last_channel_published_at,
@@ -10909,18 +10975,89 @@ def run(publish=False, selection_only=False):
             selection_cadence_anchor,
         )
         selection_now = datetime.now(timezone.utc)
+        # The queue is only a one-item delivery hand-off. The larger cycle pool
+        # remains separately persisted so a long adaptive interval cannot erase it.
+        stale_selection_minutes = 180
         replaced = refresh_unpublished_selections(
-            state, now=selection_now, stale_after_minutes=8
+            state, now=selection_now, stale_after_minutes=stale_selection_minutes
         )
-        interval_seconds = max(60, int(MIN_POST_INTERVAL_HOURS * 3600))
 
-        # Cadence follows the last selection and an actual Telegram/Bale send.
-        # Retries to YouTube/Aparat cannot move the public-channel slot forward.
-        # The helper also recovers older state from immutable per-platform send times.
+        snapshot = catalog_context.get("snapshot") if isinstance(catalog_context, dict) else None
+        cycle_completed_at = snapshot.get("cycle_completed_at") if isinstance(snapshot, dict) else ""
+        cycle_started_at = snapshot.get("cycle_started_at") if isinstance(snapshot, dict) else ""
+        if catalog_context.get("mode") == "full_catalog" and cycle_completed_at:
+            merge_stats = merge_cycle_offers(
+                state,
+                eligible,
+                cycle_completed_at=cycle_completed_at,
+                cycle_started_at=cycle_started_at,
+                now=selection_now,
+            )
+            cycle_candidates = cycle_offer_candidates(state, now=selection_now, limit=500)
+            pool_eligible, _pool_floor, _pool_quality = select_discount_fallback_candidates(
+                cycle_candidates,
+                state,
+                now=selection_now,
+                include_fallback_bands=True,
+            )
+            pool_eligible = [
+                item for item in pool_eligible
+                if catalog_candidate_is_publishable(item, catalog_context)
+            ]
+            state["cycle_offer_pool"]["last_selector_run_at"] = selection_now.isoformat()
+            state["cycle_offer_pool"]["last_selector_candidate_count"] = len(cycle_candidates)
+            state["cycle_offer_pool"]["last_selector_eligible_count"] = len(pool_eligible)
+            set_pool_dispatchable_count(state, len(pool_eligible), now=selection_now)
+            print(
+                "CYCLE_OFFER_POOL_REFRESH "
+                f"cycle={cycle_completed_at} merged={merge_stats.get('added', 0)} "
+                f"updated={merge_stats.get('updated', 0)} retained={merge_stats.get('retained', 0)} "
+                f"raw_remaining={merge_stats.get('remaining', 0)} "
+                f"live_demand_value_eligible={len(pool_eligible)}"
+            )
+        else:
+            pool_eligible = []
+            print(
+                "CYCLE_OFFER_POOL_BLOCKED "
+                f"catalog_mode={catalog_context.get('mode') or 'unknown'} "
+                "reason=verified_completed_full_catalog_cycle_required"
+            )
+
+        base_interval_seconds = max(
+            BASE_PUBLICATION_INTERVAL_SECONDS,
+            int(MIN_POST_INTERVAL_HOURS * 3600),
+        )
+        projection = pool_runtime_projection(
+            state,
+            now=selection_now,
+            base_interval_seconds=base_interval_seconds,
+        )
+        interval_seconds = max(base_interval_seconds, int(projection["interval_seconds"]))
+
+        # A daily cap or an unexpired cooldown is a normal no-op, not a failed scan.
+        if projection["available_count"] <= 0:
+            save_json(STATE, state)
+            print(
+                "CYCLE_OFFER_POOL_EMPTY "
+                f"raw_remaining={projection.get('remaining_count', 0)} "
+                f"dispatchable={projection['available_count']} "
+                f"current_scan_eligible={len(eligible)}; weak_offer_fallback=disabled"
+            )
+            return 0
+        if daily_channel_posts_count(state, selection_now) >= MAX_DAILY_CHANNEL_POSTS:
+            save_json(STATE, state)
+            print(
+                "CONTENT_SELECTION_DAILY_CAP_REACHED "
+                f"limit={MAX_DAILY_CHANNEL_POSTS} cycle_pool={projection['available_count']}"
+            )
+            return 0
+
+        # Cadence is calculated from the current pool's genuinely dispatchable
+        # candidates; an active queue item still reserves its original slot.
         last_selected = _parse_utc_datetime(state.get("last_content_selection_at"))
         last_channel_published = get_last_channel_published_at(state)
         fresh_unpublished_selection = has_fresh_unpublished_selection(
-            state, now=selection_now, stale_after_minutes=8
+            state, now=selection_now, stale_after_minutes=stale_selection_minutes
         )
         last_slot_anchor = selection_cadence_anchor(
             last_selected,
@@ -10932,28 +11069,19 @@ def run(publish=False, selection_only=False):
             if last_slot_anchor is not None else interval_seconds
         )
         remaining = max(0, interval_seconds - int(elapsed))
-
-        # A daily cap or an unexpired cooldown is a normal no-op, not a failed scan.
         if remaining > 0:
             save_json(STATE, state)
             print(
                 "CONTENT_SELECTION_SLOT_NOT_DUE "
-                f"seconds_remaining={remaining} live_candidates={len(eligible)} "
+                f"seconds_remaining={remaining} adaptive_interval_seconds={interval_seconds} "
+                f"cycle_pool={projection['available_count']} live_candidates={len(eligible)} "
                 f"replaced_stale={replaced}"
             )
             return 0
-        if daily_channel_posts_count(state, selection_now) >= MAX_DAILY_CHANNEL_POSTS:
-            save_json(STATE, state)
-            print(
-                "CONTENT_SELECTION_DAILY_CAP_REACHED "
-                f"limit={MAX_DAILY_CHANNEL_POSTS} live_candidates={len(eligible)}"
-            )
-            return 0
 
-        # Store one due primary plus a compact ranked backup pool.
-        # Backups preserve global discount/savings order. The publisher
-        # repeats live stock, price, identity, title, and affiliate checks.
-        primary = eligible[:1]
+        # The primary and backups are drawn only from this completed cycle's
+        # demand/value/affordability-ranked pool; no weak live-feed fallback exists.
+        primary = pool_eligible[:1]
         summary = enqueue_selected_content(
             state,
             primary,
@@ -10968,19 +11096,23 @@ def run(publish=False, selection_only=False):
             primary_entry = state.get("content_delivery_queue", {}).get(primary_id)
             if isinstance(primary_entry, dict):
                 primary_entry["fallback_candidates"] = [
-                    dict(candidate) for candidate in eligible[1:51]
+                    dict(candidate) for candidate in pool_eligible[1:51]
                     if isinstance(candidate, dict)
                 ]
                 fallback_count = len(primary_entry["fallback_candidates"])
             state["last_content_selection_at"] = selection_now.isoformat()
+        # The projection includes any queued primary and the remaining unqueued pool.
+        projection = pool_runtime_projection(
+            state, now=selection_now, base_interval_seconds=base_interval_seconds
+        )
         save_json(STATE, state)
         print(
             "CONTENT_SELECTION_HANDOFF "
             f"queued={summary['added']} skipped={summary['skipped']} "
-            f"queue_size={summary['queue_size']} live_candidates={len(eligible)} "
-            f"fallback_pool={fallback_count} replaced_stale={replaced} publisher_invoked=false"
+            f"queue_size={summary['queue_size']} cycle_pool_remaining={projection['available_count']} "
+            f"adaptive_interval_seconds={interval_seconds} fallback_pool={fallback_count} "
+            f"current_scan_eligible={len(eligible)} replaced_stale={replaced} publisher_invoked=false"
         )
-        # No eligible offer is a normal outcome. The next scan refreshes the pool.
         return 0
 
     state.setdefault("published", {})
