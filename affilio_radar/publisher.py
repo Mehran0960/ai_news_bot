@@ -22,6 +22,7 @@ from platform_registry import (
     VIDEO_PLATFORMS, validate_registry,
 )
 from integrity_audit_state import apply_integrity_audit_ledger
+from cycle_offer_pool import mark_cycle_offer_consumed, mark_cycle_offer_rejected
 
 
 RETRY_BASE_SECONDS = max(60, int(os.getenv("AFFILIO_PUBLISH_RETRY_BASE_SECONDS", "300")))
@@ -704,6 +705,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
                     label="PUBLISHER_FALLBACK",
                 )
                 reason = "recent_product_family_or_brand_cooldown"
+                mark_cycle_offer_rejected(state, product_id, reason, now=now)
                 entry["status"] = "stale_selection"
                 entry["last_detail"] = reason
                 finish_queue_item(state, product_id, "stale_selection", now=now, detail=reason)
@@ -744,6 +746,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
                 "insufficient_publication_runway",
             }:
                 radar.mark_selection_candidate_rejected(state, payload, reason, now=now)
+                mark_cycle_offer_rejected(state, product_id, reason, now=now)
                 raw_fallback_candidates = list(entry.get("fallback_candidates") or [])
                 fallback_candidates = _eligible_fallback_candidates(raw_fallback_candidates, now, catalog_context)
                 rejected_fallbacks = len(raw_fallback_candidates) - len(fallback_candidates)
@@ -857,10 +860,12 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
                 }
                 state.get("pending_queue", {}).pop(product_id, None)
                 finish_queue_item(state, product_id, "published", now=_now(), detail=",".join(f"{k}={v}" for k, v in photo_platforms.items()))
+                mark_cycle_offer_consumed(state, product_id, now=_now())
                 sent_content += 1
                 print(f"CONTENT_CHANNEL_DELIVERY_COMPLETE product_id={product_id} photo_platforms={photo_platforms} video_uploads=independent_workflows")
             else:
                 finish_queue_item(state, product_id, "cancelled", now=_now(), detail="no_connected_platform_delivered")
+                mark_cycle_offer_rejected(state, product_id, "no_connected_platform_delivered", now=_now())
                 print(f"CONTENT_CHANNEL_DELIVERY_CANCELLED product_id={product_id} photo_platforms={photo_platforms}")
         else:
             entry["status"] = "partial"
@@ -881,6 +886,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
                 ]
                 entry["last_detail"] = "optional_unresolved=" + ",".join(optional_unresolved)
                 state.get("pending_queue", {}).pop(product_id, None)
+                mark_cycle_offer_consumed(state, product_id, now=_now())
                 sent_content += 1
                 print(
                     f"CONTENT_CHANNEL_CORE_COMPLETE_OPTIONAL_PENDING product_id={product_id} "
