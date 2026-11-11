@@ -48,21 +48,27 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
             ["dkp-older", "dkp-newer"],
         )
 
-    def test_video_companion_requires_a_successful_photo_channel_delivery(self):
-        self.assertFalse(radar._has_channel_delivery_for_video({
-            "delivery_status": {"youtube": "sent", "aparat": "sent", "filo": "submitted_pending_approval"}
-        }))
-        self.assertFalse(radar._has_channel_delivery_for_video({
+    def test_selected_product_video_dispatch_does_not_wait_for_photo_channel_success(self):
+        selected = {
+            "distribution_queue_id": "dkp-selected:2026-11-11T20:00:00Z",
+            "delivery_status": {
+                "telegram": "pending", "bale": "pending",
+                "rubika": "pending", "eitaa": "pending",
+            },
+        }
+        self.assertTrue(radar._has_video_dispatch_eligibility(selected))
+        self.assertFalse(radar._has_video_dispatch_eligibility({
             "delivery_status": {"telegram": "failed", "bale": "not_connected"}
         }))
-        self.assertTrue(radar._has_channel_delivery_for_video({
+        # Legacy published records stay eligible when a photo platform has a real receipt.
+        self.assertTrue(radar._has_video_dispatch_eligibility({
             "delivery_status": {"telegram": "sent"}
         }))
-        self.assertTrue(radar._has_channel_delivery_for_video({
+        self.assertTrue(radar._has_video_dispatch_eligibility({
             "delivery_status": {"bale": "failed"},
             "telegram_message_id": 12345,
         }))
-        self.assertTrue(radar._has_channel_delivery_for_video({
+        self.assertTrue(radar._has_video_dispatch_eligibility({
             "delivery_status": {"rubika": "sent"}
         }))
 
