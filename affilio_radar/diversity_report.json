@@ -97,10 +97,11 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T15:11:30.890346+00:00",
+  "generated_at": "2026-11-11T15:46:54.196330+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ارگانایزر آشپزخانه": 1,
+      "اصلاح موی صورت": 1,
       "بوگیر و خوشبو کننده هوا": 1,
       "تریمر و شیور فویلی": 1,
       "خودرو و موتورسیکلت": 1,
@@ -129,36 +130,36 @@
       "fashion": 1,
       "home": 1,
       "other": 8,
-      "personal_care": 9,
+      "personal_care": 10,
       "power_backup": 1,
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "automotive": 8.7,
-      "fashion": 4.3,
-      "home": 4.3,
-      "other": 34.8,
-      "personal_care": 39.1,
-      "power_backup": 4.3,
-      "sports_outdoor": 4.3
+      "automotive": 8.3,
+      "fashion": 4.2,
+      "home": 4.2,
+      "other": 33.3,
+      "personal_care": 41.7,
+      "power_backup": 4.2,
+      "sports_outdoor": 4.2
     },
-    "distinct_catalog_categories": 23,
+    "distinct_catalog_categories": 24,
     "distinct_categories": 7,
-    "distinct_families": 23,
+    "distinct_families": 24,
     "distinct_retailers": 1,
     "distinct_use_cases": 9,
     "known_brand_posts": 2,
-    "posts": 23,
+    "posts": 24,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 23
+      "digikala": 24
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
-      "automotive": 3,
+      "automotive": 4,
       "catalog_taxonomy_other": 6,
       "home_living": 1,
       "kitchen_food": 1,
@@ -186,6 +187,7 @@
       "ارگانایزر آشپزخانه": 1,
       "اسباب بازی شانسی": 1,
       "اسکاچ و سیم ظرفشویی": 6,
+      "اصلاح موی صورت": 1,
       "اکسسوری دخترانه": 1,
       "اکسسوری زنانه": 1,
       "اکسسوری مو زنانه": 5,
@@ -216,7 +218,6 @@
       "ساختنی": 1,
       "سایر لوازم خودرو": 7,
       "سایر محصولات بهداشت جنسی": 1,
-      "ست لباس راحتی زنانه": 1,
       "سرم و اسپری مراقبت مو": 1,
       "سرم پوست": 1,
       "سرویس کفگیر و ملاقه": 1,
@@ -292,7 +293,7 @@
       "books_stationery": 10,
       "computer_network": 4,
       "digital_accessories": 3,
-      "fashion": 38,
+      "fashion": 37,
       "gaming": 1,
       "grocery_food": 9,
       "home": 8,
@@ -302,7 +303,7 @@
       "large_appliances": 9,
       "mobile_devices": 3,
       "other": 88,
-      "personal_care": 37,
+      "personal_care": 38,
       "power_backup": 6,
       "sports_outdoor": 19,
       "tv_audio_video": 1
@@ -314,7 +315,7 @@
       "books_stationery": 3.5,
       "computer_network": 1.4,
       "digital_accessories": 1.0,
-      "fashion": 13.3,
+      "fashion": 12.9,
       "gaming": 0.3,
       "grocery_food": 3.1,
       "home": 2.8,
@@ -324,7 +325,7 @@
       "large_appliances": 3.1,
       "mobile_devices": 1.0,
       "other": 30.8,
-      "personal_care": 12.9,
+      "personal_care": 13.3,
       "power_backup": 2.1,
       "sports_outdoor": 6.6,
       "tv_audio_video": 0.3
@@ -334,7 +335,7 @@
     "distinct_families": 151,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
-    "known_brand_posts": 43,
+    "known_brand_posts": 42,
     "posts": 286,
     "repeated_brand_count": 31,
     "repeated_brands": {
@@ -355,12 +356,12 @@
     "use_case_post_counts": {
       "arts_crafts": 1,
       "audio_visual": 13,
-      "automotive": 32,
+      "automotive": 33,
       "baby_care": 5,
       "books_learning": 8,
       "catalog_taxonomy_other": 12,
       "events_decor": 3,
-      "fashion_lifestyle": 26,
+      "fashion_lifestyle": 25,
       "gaming": 2,
       "general": 21,
       "grocery_food": 8,
@@ -392,64 +393,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 813,
+    "all_time_count": 816,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-11T03:36:58.891620+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12935579",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-11T04:15:24.532061+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12935579",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-11T04:53:38.327560+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12935579",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-11T05:31:23.831373+00:00",
         "brand": "",
@@ -729,6 +679,57 @@
         "catalog_category_name": "",
         "category": "personal_care",
         "compared_to_product_id": "dkp-12564010",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-14194589",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم پوست ویتالیر مدل گلایکولیک اسید ٪7 مناسب برای پوست مختلط حجم 30 میلی لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-11T15:46:54.196330+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-708421",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12564010",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضدآفتاب بی‌رنگ ویتالیر SPF50 مدل Whitevit مناسب انواع پوست، حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-11T15:46:54.196330+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-708421",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-20682942",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-11T15:46:54.196330+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-708421",
         "family": "personal_care:skincare",
         "product_id": "dkp-14194589",
         "reason": "family_repeat,similarity_repeat",
