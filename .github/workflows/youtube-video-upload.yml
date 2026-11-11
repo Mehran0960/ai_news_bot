@@ -66,8 +66,9 @@ jobs:
           assert "--youtube-upload-only" in source
           assert 'destinations={"youtube"}' in source
           print("YOUTUBE_ONLY_UPLOAD_PATH_VALIDATED")
-          PYTHONPATH=affilio_radar python -m unittest -v affilio_radar.test_shared_selection_media_routing
           PY
+          cd affilio_radar
+          python -m unittest -v test_shared_selection_media_routing.py
 
       - name: Process only the YouTube video queue
         env:
