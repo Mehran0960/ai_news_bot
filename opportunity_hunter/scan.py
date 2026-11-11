@@ -137,8 +137,11 @@ def parse_feed(src):
 
 def classify(text):
     t = norm(text).lower()
-    if any(w in t for w in ("تعمیر", "سرویس", "نصب", "لوله کشی", "حمل بار", "نظافت", "آموزش", "مشاوره", "خدمات")): return "service"
+    # Product bundles can contain "service" (سرویس); don't tag kitchenware sets as services.
+    product_bundle_markers = ("سرویس پخت و پز", "سرویس قابلمه", "سرویس غذاخوری", "سرویس قاشق", "سرویس چایخوری")
+    if any(w in t for w in product_bundle_markers): return "product"
     if any(w in t for w in ("عمده", "تخلیه انبار", "موجودی مازاد", "تولیدکننده", "تأمین کننده", "تامین کننده")): return "wholesale_or_surplus"
+    if any(w in t for w in ("تعمیر", "سرویس", "نصب", "لوله کشی", "حمل بار", "نظافت", "آموزش", "مشاوره", "خدمات")): return "service"
     return "product"
 
 
@@ -188,7 +191,7 @@ def build_service_opportunity(group, records, now):
     supplier = next((r for r in records if r["type"] == "supplier_offer"), {})
     market = next((r for r in records if r["type"] == "market_signal"), {})
     price = next((r for r in records if r["type"] == "price_benchmark"), {})
-    reasons, demand, value = [], 8, 7
+    reasons, demand, value = [], 4, 7
     recent = 0
     for stamp in market.get("visible_recent_review_dates_jalali", []):
         try:
@@ -197,12 +200,12 @@ def build_service_opportunity(group, records, now):
             if 0 <= age <= 7: recent += 1
         except Exception: pass
     if recent:
-        demand += min(5, recent * 2); reasons.append(f"{recent} نظر تاریخ‌دار در ۷ روز اخیر؛ سیگنال فعالیت بازار، نه شمار خریدار")
+        demand += min(6, recent * 2); reasons.append(f"{recent} نظر تاریخ‌دار در ۷ روز اخیر؛ سیگنال ضعیف فعالیت بازار، نه شمار خریدار")
     if market.get("review_count", 0) >= 1000:
-        demand += 3; reasons.append(f"{market['review_count']} نظر تجمعی؛ سابقه بازار، نه تقاضای لحظه‌ای")
+        demand += 2; reasons.append(f"{market['review_count']} نظر تجمعی؛ سابقه بازار، نه تقاضای لحظه‌ای")
     competition = int(market.get("active_service_listings", 0) or 0)
     if competition:
-        demand += 1; reasons.append(f"{competition} خدمت فعال؛ شاخص عرضه/رقابت، نه تعداد مشتری")
+        reasons.append(f"{competition} خدمت فعال؛ شاخص عرضه/رقابت و بدون امتیاز تقاضا")
     discount = supplier.get("discount_percent_claimed")
     if isinstance(discount, (int,float)) and 0 < discount <= 25:
         value += min(8, round(discount * .6)); reasons.append(f"ادعای {discount:g}٪ تخفیف؛ اعتبار و قیمت پایه هنوز تأیید نشده")
@@ -239,6 +242,17 @@ def unreliable_discount(item):
     return any(w in t for w in ("غیرواقعی","قیمت قبلی نامعتبر","تخفیف نامطمئن","قیمت‌سازی"))
 
 
+def quarantine_reason(item):
+    if unreliable_discount(item):
+        return "منبع، ادعای تخفیف را غیرواقعی/نامطمئن علامت زده است."
+    discount = item.get("discount_percent_claimed")
+    if discount is None:
+        discount = discount_claim(item.get("text", ""))
+    if isinstance(discount, (int,float)) and discount >= 80:
+        return "ادعای تخفیف ۸۰٪ یا بیشتر؛ قرنطینه تا تطبیق قیمت پایه، تاریخچه و حداقل سه مرجع همسان. این ادعا به‌تنهایی تخفیف واقعی نیست."
+    return ""
+
+
 def run(config):
     now = dt.datetime.now(dt.timezone.utc)
     pages, leads, errors = [], [], []
@@ -262,8 +276,9 @@ def run(config):
     rejected, discovery = [], []
     for item in raw_items:
         if not item.get("title"): continue
-        if unreliable_discount(item):
-            rejected.append({"title":item["title"],"url":item.get("url"),"reason":"منبع، ادعای تخفیف را غیرواقعی/نامطمئن علامت زده است."}); continue
+        hold_reason = quarantine_reason(item)
+        if hold_reason:
+            rejected.append({"title":item["title"],"url":item.get("url"),"discount_percent_claimed":item.get("discount_percent_claimed"),"reason":hold_reason}); continue
         try: pub = dt.datetime.fromisoformat(item["published_at"].replace("Z","+00:00")) if item.get("published_at") else None
         except Exception: pub = None
         if pub and pub < cutoff: continue

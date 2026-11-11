@@ -64,6 +64,17 @@ class OpportunityHunterTests(unittest.TestCase):
     def test_jalali_date_conversion(self):
         self.assertEqual(scan.jalali_to_gregorian(1405, 8, 17), dt.date(2026, 11, 8))
 
+    def test_kitchenware_service_bundle_is_product(self):
+        self.assertEqual(scan.classify("سرویس پخت و پز ۹ پارچه زولینگ"), "product")
+
+    def test_extreme_discount_is_quarantined(self):
+        item = {"title": "ابزار شارژی", "text": "ادعای ۹۱٪ تخفیف", "discount_percent_claimed": 91}
+        self.assertIn("قرنطینه", scan.quarantine_reason(item))
+
+    def test_normal_discount_is_not_automatically_quarantined(self):
+        item = {"title": "کالا", "text": "۳۵٪ تخفیف", "discount_percent_claimed": 35}
+        self.assertEqual(scan.quarantine_reason(item), "")
+
 
 if __name__ == "__main__":
     unittest.main()
