@@ -7027,7 +7027,7 @@ def pending_queue_sort_key(
     queue_record: dict | None = None,
     now: datetime | None = None,
 ) -> tuple:
-    """Use native DigiKala demand evidence before deal value in the pending publication queue."""
+    """Use the shared four-factor composite key in the pending publication queue."""
     return deal_sort_key(product, now=now)
 
 
@@ -8095,11 +8095,11 @@ def select_urgent_publication_candidate(
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    ranked = sorted(
-        (product for product in (eligible or []) if isinstance(product, dict)),
-        key=lambda record: deal_sort_key(record, now=current),
-        reverse=True,
+    scored_eligible = score_four_factor_candidates(
+        [product for product in (eligible or []) if isinstance(product, dict)],
+        now=current,
     )
+    ranked = sorted(scored_eligible, key=_four_factor_sort_key, reverse=True)
     ranked = _filter_recent_publication_repeats(
         ranked, published, recent_publications, current, limit=1,
         label="URGENT_PUBLICATION",
@@ -8122,7 +8122,7 @@ def select_publish_candidates(
     published: dict | None = None,
     recent_publications: list | None = None,
 ) -> list[dict]:
-    """Return ready publication candidates in global DigiKala demand-evidence order."""
+    """Return ready publication candidates in equal-weight four-factor order."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -8157,8 +8157,7 @@ def select_publish_candidates(
         )
 
     # A discount floor is an eligibility label, not a ranking tier. Merge every
-    # ready band before sorting so a lower-discount high-demand product can outrank
-    # a weak-demand item with a larger markdown.
+    # ready band before recalculating the four factor scores over the full ready pool.
     ready_products = [
         product
         for tier in selected_by_floor.values()
