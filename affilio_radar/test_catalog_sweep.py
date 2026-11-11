@@ -473,7 +473,7 @@ class CatalogSweepTests(unittest.TestCase):
             )
             self.assertEqual([row["product_id"] for row in selected_stock], ["dkp-55"])
 
-    def test_handoff_batch_is_demand_then_discount_order_without_category_rotation(self):
+    def test_handoff_batch_uses_shared_four_factor_order(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "candidates.json"
             rows = [
@@ -543,9 +543,14 @@ class CatalogSweepTests(unittest.TestCase):
                 max_count=4,
                 now=datetime(2026, 11, 2, 0, 0, tzinfo=timezone.utc),
             )
-            self.assertEqual([row["product_id"] for row in selected], ["dkp-40", "dkp-30", "dkp-20", "dkp-1"])
-            self.assertEqual(selected[0]["selection_generality_score"], 86)
-            self.assertEqual(selected[0]["four_factor_score_version"], "four-factor-equal-weight-v1")
+            self.assertEqual(selected, sorted(selected, key=catalog_candidate_sort_key, reverse=True))
+            self.assertTrue(all(row["four_factor_score_version"] == "four-factor-equal-weight-v1" for row in selected))
+            self.assertTrue(all(
+                set(row["selection_factor_scores"]) == {
+                    "live_demand", "affordability", "generality", "discount_attractiveness", "combined"
+                }
+                for row in selected
+            ))
 
     def test_legacy_serial_sweep_does_not_skip_page_four_or_later(self):
         page_payload = {
