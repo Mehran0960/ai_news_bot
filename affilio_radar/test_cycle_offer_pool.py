@@ -175,6 +175,7 @@ class CycleOfferPoolTests(unittest.TestCase):
         state = {}
         taxonomy_only = self.item("dkp-10321", 100_000, rank=5)
         taxonomy_only["catalog_category_ids"] = ["101", "102", "103", "104"]
+        taxonomy_only.pop("selection_bestseller_category_count", None)
         verified_single = self.item("dkp-10322", 100_000, rank=5)
         verified_single["selection_bestseller_category_count"] = 1
         self.merge(state, [taxonomy_only, verified_single])
