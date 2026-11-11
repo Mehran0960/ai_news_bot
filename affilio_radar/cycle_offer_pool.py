@@ -94,19 +94,24 @@ def _apply_affordability_percentiles(items: list[dict]) -> None:
             categories.setdefault(_category_key(row), []).append(price)
     for row in items:
         price = _int(row.get("current_price"))
-        if price <= 0:
+        if price <= 0 or not prices:
+            row["selection_global_affordability_percentile"] = 0
+            row["selection_category_affordability_percentile"] = 0
             row["selection_affordability_percentile"] = 0
             row["selection_affordability_tier"] = "unknown"
             continue
-        peers = categories.get(_category_key(row), [])
-        if len(peers) < MIN_CATEGORY_PEERS:
-            peers = prices
-        if not peers:
-            percentile = 50
-        else:
-            # A lower relative price receives a higher affordability percentile.
-            percentile = round(100 * sum(1 for peer in peers if peer >= price) / len(peers))
-        row["selection_affordability_percentile"] = max(0, min(100, percentile))
+        global_percentile = round(100 * sum(peer >= price for peer in prices) / len(prices))
+        category_peers = categories.get(_category_key(row), [])
+        category_percentile = (
+            round(100 * sum(peer >= price for peer in category_peers) / len(category_peers))
+            if len(category_peers) >= MIN_CATEGORY_PEERS else global_percentile
+        )
+        # Global purchase accessibility has the larger weight; category position
+        # prevents expensive categories from being discarded automatically.
+        percentile = max(0, min(100, round(global_percentile * 0.70 + category_percentile * 0.30)))
+        row["selection_global_affordability_percentile"] = global_percentile
+        row["selection_category_affordability_percentile"] = category_percentile
+        row["selection_affordability_percentile"] = percentile
         row["selection_affordability_tier"] = (
             "accessible" if percentile >= 67
             else "midrange" if percentile >= 34
