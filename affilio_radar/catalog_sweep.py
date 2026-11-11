@@ -578,8 +578,95 @@ def _candidate_demand(row: dict) -> int:
     return review_proxy + rating_proxy
 
 
+
+def _candidate_category_key(row: dict) -> str:
+    values = row.get("catalog_category_ids")
+    if isinstance(values, list):
+        numeric = [str(value) for value in values if str(value).isdigit()]
+        if numeric:
+            return "id:" + numeric[-1]
+    value = str(row.get("catalog_category_id") or "").strip()
+    return "id:" + value if value.isdigit() else "unknown"
+
+
+def _fresh_bestselling_category_count(row: dict) -> int:
+    """Count distinct categories with a fresh (<=24h), top-60 native bestseller rank."""
+    ranks = row.get("catalog_best_selling_ranks_by_category")
+    if not isinstance(ranks, dict):
+        return 0
+    current = utc_now().astimezone(timezone.utc)
+    count = 0
+    for category_id, entry in ranks.items():
+        if not str(category_id).isdigit() or not isinstance(entry, dict):
+            continue
+        try:
+            observed = datetime.fromisoformat(
+                str(entry.get("observed_at") or "").replace("Z", "+00:00")
+            )
+            if observed.tzinfo is None:
+                observed = observed.replace(tzinfo=timezone.utc)
+            age = (current - observed.astimezone(timezone.utc)).total_seconds() / 3600
+            rank = _normal_int(entry.get("rank"))
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if -0.1 <= age <= BEST_SELLING_MAX_AGE_HOURS and 1 <= rank <= 60:
+            count += 1
+    return count
+
+
+def _annotate_catalog_affordability(rows: list[dict]) -> list[dict]:
+    """Blend catalog-wide (70%) and same-category (30%) price accessibility."""
+    prices = [
+        _normal_int(row.get("current_price")) for row in rows
+        if _normal_int(row.get("current_price")) > 0
+    ]
+    categories: dict[str, list[int]] = {}
+    for row in rows:
+        price = _normal_int(row.get("current_price"))
+        if price > 0:
+            categories.setdefault(_candidate_category_key(row), []).append(price)
+    annotated = []
+    for source in rows:
+        row = dict(source)
+        price = _normal_int(row.get("current_price"))
+        if price <= 0 or not prices:
+            global_percentile = category_percentile = percentile = 0
+            tier = "unknown"
+        else:
+            global_percentile = round(100 * sum(peer >= price for peer in prices) / len(prices))
+            peers = categories.get(_candidate_category_key(row), [])
+            category_percentile = (
+                round(100 * sum(peer >= price for peer in peers) / len(peers))
+                if len(peers) >= 5 else global_percentile
+            )
+            percentile = max(0, min(100, round(
+                global_percentile * 0.70 + category_percentile * 0.30
+            )))
+            tier = "accessible" if percentile >= 67 else "midrange" if percentile >= 34 else "premium"
+        breadth = _fresh_bestselling_category_count(row)
+        taxonomy = row.get("catalog_category_ids")
+        taxonomy_count = len({
+            str(value) for value in taxonomy
+            if isinstance(taxonomy, list) and str(value).isdigit()
+        }) if isinstance(taxonomy, list) else 0
+        generality = min(100, breadth * 20 + min(10, max(0, taxonomy_count - 1) * 2))
+        row["catalog_global_affordability_percentile"] = global_percentile
+        row["catalog_category_affordability_percentile"] = category_percentile
+        row["catalog_affordability_percentile"] = percentile
+        row["catalog_affordability_tier"] = tier
+        row["catalog_fresh_bestseller_category_count"] = breadth
+        row["catalog_public_generality_score"] = generality
+        row["catalog_public_generality_tier"] = (
+            "broad" if breadth >= 3 else "multi_category" if breadth == 2
+            else "single_category" if breadth == 1
+            else "taxonomy_only" if taxonomy_count >= 2 else "limited_evidence"
+        )
+        annotated.append(row)
+    return annotated
+
+
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Demand first: DigiKala bestseller evidence, weak review context, then deal value."""
+    """Rank fresh demand first, then public breadth, affordability, and deal arithmetic."""
     rank = _fresh_best_selling_rank(row)
     rank_strength = (
         BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY + 1 - rank
@@ -588,6 +675,8 @@ def catalog_candidate_sort_key(row: dict) -> tuple:
     return (
         _candidate_demand(row),
         rank_strength,
+        max(0, min(100, _normal_int(row.get("catalog_public_generality_score")))),
+        max(0, min(100, _normal_int(row.get("catalog_affordability_percentile")))),
         max(0, _normal_int(row.get("discount_percent"))),
         max(0, _normal_int(row.get("savings_toman"))),
     )
@@ -602,15 +691,16 @@ def retain_diverse_candidates(
     cap = max(0, int(limit))
     # The rolling candidate shortlist exists to find publishable offers, not to keep
     # undiscounted bestsellers that can never pass the last-mile publication gate.
-    eligible = (
+    eligible = [
         row for row in rows or []
         if isinstance(row, dict)
         and row.get("product_id")
         and _normal_int(row.get("discount_percent")) >= MIN_CANDIDATE_DISCOUNT
         and _normal_int(row.get("savings_toman")) > 0
         and not is_prohibited_product_title(row.get("title"))
-    )
-    ranked = sorted(eligible, key=catalog_candidate_sort_key, reverse=True)
+    ]
+    annotated = _annotate_catalog_affordability(eligible)
+    ranked = sorted(annotated, key=catalog_candidate_sort_key, reverse=True)
     return ranked[:cap]
 
 def _category_page_url(category_id: str, page: int) -> tuple[str, dict]:
