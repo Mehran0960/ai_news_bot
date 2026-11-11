@@ -17,6 +17,8 @@ from short_video import (
     TITLE_FONT_PATH,
     VIDEO_LOGO_COLUMN_WIDTH,
     VIDEO_LOGO_TEXT_GAP,
+    VIDEO_TITLE_TOP,
+    VIDEO_LAYOUT_Y_SHIFT,
     _title_font,
     format_persian_price,
     format_persian_discount,
