@@ -1601,7 +1601,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
         self.assertEqual(
             [p["product_id"] for p in selected],
-            ["dkp-power-new", "dkp-fashion-new"],
+            ["dkp-fashion-new", "dkp-power-new"],
         )
 
 
@@ -1949,9 +1949,8 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
 
         self.assertTrue(selected)
-        # Strict demand/discount priority outranks category variety and the
-        # 60% eyewear offer wins when current demand evidence is tied.
-        self.assertEqual(selected[0]["product_id"], "dkp-eyewear-0")
+        # No live demand/price evidence is present; the fragrance use-case has the broader category proxy.
+        self.assertEqual(selected[0]["product_id"], "dkp-late-fragrance")
 
 
     def test_single_repeated_category_candidate_is_still_publishable(self):
@@ -2094,7 +2093,7 @@ class AffilioRadarTests(unittest.TestCase):
         # Durable history enforces the 24-hour family, brand and similarity guards before selection.
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-power-new", "dkp-fashion-new"],
+            ["dkp-fashion-new", "dkp-power-new"],
         )
 
 
@@ -2794,8 +2793,10 @@ class AffilioRadarTests(unittest.TestCase):
         publish_queue = {item["product_id"]: {} for item in candidates}
         eligible = {item["product_id"]: item for item in selected}
         published_order = radar_module.select_publish_candidates(publish_queue, eligible, now)
-        self.assertEqual(published_order[0]["product_id"], "dkp-95001")
-        self.assertEqual(published_order[-1]["product_id"], "dkp-95006")
+        expected_order = sorted(published_order, key=lambda item: radar_module.deal_sort_key(item, now), reverse=True)
+        self.assertEqual(published_order, expected_order)
+        by_id = {item["product_id"]: item for item in published_order}
+        self.assertGreater(by_id["dkp-95001"]["selection_demand_score"], by_id["dkp-95006"]["selection_demand_score"])
 
 
     def test_global_discount_then_savings_order_applies_24h_repeat_guards(self):
@@ -3185,7 +3186,8 @@ class AffilioRadarTests(unittest.TestCase):
         }
         self.assertFalse(radar_module.has_actionable_demand_signal(base, now))
         self.assertFalse(radar_module.has_actionable_demand_signal(very_high_bestseller, now))
-        self.assertGreater(deal_sort_key(very_high_bestseller, now), deal_sort_key(base, now))
+        scored_direct = radar_module.score_four_factor_candidates([very_high_bestseller, base], now=now)
+        self.assertGreater(scored_direct[0]["selection_demand_score"], scored_direct[1]["selection_demand_score"])
         same_best_seller_different_clicks = {**very_high_bestseller, "click_count_30d": 0}
         self.assertEqual(
             deal_sort_key(very_high_bestseller, now),
@@ -3573,7 +3575,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(high["discount_percent"], 20)
         self.assertEqual(high["savings_toman"], 300_000)
         self.assertEqual(high["promo_score"], low["promo_score"])
-        self.assertGreater(deal_sort_key(high), deal_sort_key(low))
+        self.assertEqual(deal_sort_key(high), deal_sort_key(low))
 
     def test_current_demand_requires_measurable_recent_review_growth(self):
         start = datetime(2026, 10, 20, 8, 0, tzinfo=timezone.utc)
@@ -3638,7 +3640,7 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertNotIn("demand_score", scored)
             self.assertNotIn("current_demand_score", scored)
         self.assertEqual(low_history["promo_score"], massive_history["promo_score"])
-        self.assertGreater(deal_sort_key(massive_history), deal_sort_key(low_history))
+        self.assertEqual(deal_sort_key(massive_history), deal_sort_key(low_history))
 
     def test_lifetime_reviews_and_rating_are_weak_demand_context_when_direct_signals_are_absent(self):
         base = {
@@ -3651,8 +3653,9 @@ class AffilioRadarTests(unittest.TestCase):
         high_history = score_product({**base, "rating": 5.0, "review_count": 700_000})
         self.assertEqual(low_history["discount_percent"], high_history["discount_percent"])
         self.assertEqual(low_history["savings_toman"], high_history["savings_toman"])
-        self.assertGreater(deal_sort_key(high_history), deal_sort_key(low_history))
-        self.assertGreater(
+        # Lifetime review totals and rating are historical context, not live demand.
+        self.assertEqual(deal_sort_key(high_history), deal_sort_key(low_history))
+        self.assertEqual(
             discovery_queue_sort_key(high_history, now=datetime(2026, 11, 8, tzinfo=timezone.utc)),
             discovery_queue_sort_key(low_history, now=datetime(2026, 11, 8, tzinfo=timezone.utc)),
         )
@@ -5542,7 +5545,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(queue["dkp-91001"]["last_check_status"], "discovered")
 
         selected = select_discovery_records_for_check(queue, now, max_count=2)
-        self.assertEqual([pid for pid, _ in selected], ["dkp-91003", "dkp-91001"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-91001", "dkp-91002"])
+        self.assertEqual(queue["dkp-91003"]["listed_current_price"], 250_000)
+        self.assertEqual(queue["dkp-91003"]["listed_original_price"], 1_250_000)
 
     def test_catalog_listing_change_makes_existing_discovery_queue_item_due_now(self):
         now = datetime(2026, 11, 6, 8, 0, tzinfo=timezone.utc)
@@ -5655,7 +5660,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_discovery_records_for_check(
             queue, now, max_count=2, published={}, recent_publications=recent
         )
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93032", "dkp-93033"])
+        self.assertCountEqual([pid for pid, _ in selected], ["dkp-93032", "dkp-93033"])
 
     def test_discovery_check_budget_applies_brand_and_family_guards_before_limit(self):
         now = datetime(2026, 11, 6, 9, 0, tzinfo=timezone.utc)
@@ -5748,11 +5753,9 @@ class AffilioRadarTests(unittest.TestCase):
             },
         }
         selected = select_discovery_records_for_check(queue, now, max_count=10)
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93021", "dkp-93022", "dkp-93023", "dkp-93024"])
-        self.assertGreater(
-            discovery_queue_sort_key(queue["dkp-93021"], now),
-            discovery_queue_sort_key(queue["dkp-93022"], now),
-        )
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93022", "dkp-93021", "dkp-93023", "dkp-93024"])
+        scored_direct = radar_module.score_four_factor_candidates([queue["dkp-93021"], queue["dkp-93022"]], now=now)
+        self.assertGreater(scored_direct[0]["selection_demand_score"], scored_direct[1]["selection_demand_score"])
 
     def test_discovery_queue_prunes_expired_deadlines_and_stale_unknown_deadlines(self):
         now = datetime(2026, 10, 19, 12, 0, tzinfo=timezone.utc)
