@@ -399,6 +399,92 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         self.assertIn('"candidate_order_policy": "catalog_four_factor_equal_weight_v1"', scanner)
         self.assertIn("sort=four_factor_equal_weight_v1", scanner)
 
+    def test_four_factor_snapshot_is_validated_and_exposed_with_all_factor_scores(self):
+        rows = []
+        factor_sets = (
+            {"live_demand": 96, "affordability": 88, "generality": 80, "discount_attractiveness": 92},
+            {"live_demand": 75, "affordability": 70, "generality": 70, "discount_attractiveness": 75},
+        )
+        for index, factors in enumerate(factor_sets, start=1):
+            combined = round(sum(factors.values()) / 4)
+            rows.append({
+                **self.candidates["candidates"][index - 1],
+                "current_price": 300_000 * index,
+                "four_factor_score_version": "four-factor-equal-weight-v1",
+                "selection_factor_scores": {**factors, "combined": combined},
+                "selection_demand_score": factors["live_demand"],
+                "selection_affordability_score": factors["affordability"],
+                "selection_generality_score": factors["generality"],
+                "selection_discount_attractiveness_score": factors["discount_attractiveness"],
+                "selection_four_factor_score": combined,
+                "selection_use_case_group": "grocery_food" if index == 1 else "home_living",
+                "selection_affordability_basis": "pool_median_log_price_plus_global_and_use_case_percentiles",
+                "selection_affordability_reference": "median_of_current_candidate_pool_not_household_income",
+                "selection_generality_basis": "retail_taxonomy_use_case_proxy_not_population_measure",
+                "selection_discount_evidence": "verified_history_and_or_market",
+            })
+        snapshot = {
+            **self.candidates,
+            "candidate_order_policy": "catalog_four_factor_equal_weight_v1",
+            "candidates": rows,
+        }
+        status = build_status_snapshot(
+            self.state,
+            self.status_time.isoformat(),
+            completed_candidates=snapshot,
+        )
+        self.assertTrue(status["completed_candidates_snapshot_valid"])
+        self.assertEqual(status["completed_candidates_order_policy"], "catalog_four_factor_equal_weight_v1")
+        self.assertEqual(status["top_candidates_preview_count"], 2)
+        preview = status["top_candidates_preview"]
+        self.assertEqual(preview[0]["selection_four_factor_score"], 89)
+        self.assertEqual(preview[0]["selection_factor_scores"]["live_demand"], 96)
+        self.assertEqual(preview[1]["selection_four_factor_score"], 72)
+        self.assertEqual(preview[0]["four_factor_score_version"], "four-factor-equal-weight-v1")
+
+    def test_four_factor_snapshot_rejects_inconsistent_or_unsorted_scores(self):
+        rows = []
+        factor_sets = (
+            {"live_demand": 90, "affordability": 80, "generality": 70, "discount_attractiveness": 90},
+            {"live_demand": 70, "affordability": 70, "generality": 70, "discount_attractiveness": 70},
+        )
+        for index, factors in enumerate(factor_sets, start=1):
+            combined = round(sum(factors.values()) / 4)
+            rows.append({
+                **self.candidates["candidates"][index - 1],
+                "current_price": 300_000 * index,
+                "four_factor_score_version": "four-factor-equal-weight-v1",
+                "selection_factor_scores": {**factors, "combined": combined},
+                "selection_demand_score": factors["live_demand"],
+                "selection_affordability_score": factors["affordability"],
+                "selection_generality_score": factors["generality"],
+                "selection_discount_attractiveness_score": factors["discount_attractiveness"],
+                "selection_four_factor_score": combined,
+            })
+        snapshot = {
+            **self.candidates,
+            "candidate_order_policy": "catalog_four_factor_equal_weight_v1",
+            "candidates": rows,
+        }
+        corrupted = {**snapshot, "candidates": [
+            {**rows[0], "selection_four_factor_score": 1}, rows[1]
+        ]}
+        invalid_status = build_status_snapshot(
+            self.state,
+            self.status_time.isoformat(),
+            completed_candidates=corrupted,
+        )
+        self.assertFalse(invalid_status["completed_candidates_snapshot_valid"])
+        self.assertEqual(invalid_status["top_candidates_preview"], [])
+
+        unsorted = {**snapshot, "candidates": list(reversed(rows))}
+        unsorted_status = build_status_snapshot(
+            self.state,
+            self.status_time.isoformat(),
+            completed_candidates=unsorted,
+        )
+        self.assertFalse(unsorted_status["completed_candidates_snapshot_valid"])
+
     def test_loader_accepts_small_new_category_additions_without_weakening_hash_checks(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
