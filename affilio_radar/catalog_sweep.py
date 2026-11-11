@@ -20,6 +20,19 @@ from typing import Any
 import requests
 
 try:
+    from .offerchin_four_factor import (
+        apply_four_factor_scores as _apply_four_factor_scores,
+        four_factor_sort_key as _four_factor_sort_key,
+        infer_use_case_group as _infer_use_case_group,
+    )
+except ImportError:
+    from offerchin_four_factor import (
+        apply_four_factor_scores as _apply_four_factor_scores,
+        four_factor_sort_key as _four_factor_sort_key,
+        infer_use_case_group as _infer_use_case_group,
+    )
+
+try:
     from .product_quality import is_prohibited_product_title, is_publishable_product_title
 except ImportError:
     try:
@@ -578,14 +591,70 @@ def _candidate_demand(row: dict) -> int:
     return review_proxy + rating_proxy
 
 
+def _catalog_live_demand_score(row: dict) -> float:
+    """Only fresh native bestseller rank counts as live demand in the raw listing stage."""
+    rank = _fresh_best_selling_rank(row)
+    if rank is None:
+        return 0.0
+    observed_raw = str(row.get("catalog_rank_observed_at") or "")
+    try:
+        observed = datetime.fromisoformat(observed_raw.replace("Z", "+00:00"))
+        if observed.tzinfo is None:
+            observed = observed.replace(tzinfo=timezone.utc)
+        age_hours = max(0.0, (utc_now() - observed.astimezone(timezone.utc)).total_seconds() / 3600)
+    except (TypeError, ValueError, OverflowError):
+        return 0.0
+    base_score = 100.0 if rank <= 10 else 85.0 if rank <= 30 else 70.0
+    category_rows = row.get("catalog_best_selling_ranks_by_category")
+    fresh_categories = 0
+    if isinstance(category_rows, dict):
+        for entry in category_rows.values():
+            if not isinstance(entry, dict):
+                continue
+            try:
+                stamp = datetime.fromisoformat(str(entry.get("observed_at") or "").replace("Z", "+00:00"))
+                if stamp.tzinfo is None:
+                    stamp = stamp.replace(tzinfo=timezone.utc)
+                rank_value = _normal_int(entry.get("rank"))
+                age = (utc_now() - stamp.astimezone(timezone.utc)).total_seconds() / 3600
+                if 1 <= rank_value <= BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY and 0 <= age <= BEST_SELLING_MAX_AGE_HOURS:
+                    fresh_categories += 1
+            except (TypeError, ValueError, OverflowError):
+                continue
+    coverage_bonus = min(8.0, 2.0 * max(0, fresh_categories - 1))
+    freshness = max(0.78, 1.0 - 0.22 * age_hours / BEST_SELLING_MAX_AGE_HOURS)
+    return round(min(100.0, (base_score + coverage_bonus) * freshness), 2)
+
+
+def _score_catalog_candidate_cohort(rows: list[dict]) -> None:
+    _apply_four_factor_scores(
+        rows,
+        live_demand_score_fn=_catalog_live_demand_score,
+        use_case_group_fn=lambda row: _infer_use_case_group(
+            row.get("title"), row.get("catalog_category_name") or row.get("catalog_category_path")
+        ),
+        # Compare prices within the same taxonomy node, not across unrelated use cases.
+        price_group_fn=lambda row: str(
+            row.get("catalog_category_id") or row.get("catalog_best_selling_category_id")
+            or _infer_use_case_group(row.get("title"), row.get("catalog_category_name"))
+        ),
+        # The listing stage has not independently verified price history or market median.
+        discount_verified_fn=lambda _row: False,
+        now=utc_now(),
+    )
+
+
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Demand first: DigiKala bestseller evidence, weak review context, then deal value."""
+    """Use balanced four-factor priority; retain demand/value order for incomplete cards."""
+    if not isinstance(row.get("offerchin_four_factor"), dict):
+        _score_catalog_candidate_cohort([row])
     rank = _fresh_best_selling_rank(row)
     rank_strength = (
         BEST_SELLING_PAGE_SIZE * BEST_SELLING_MAX_PAGES_PER_CATEGORY + 1 - rank
         if rank is not None else 0
     )
     return (
+        *_four_factor_sort_key(row),
         _candidate_demand(row),
         rank_strength,
         max(0, _normal_int(row.get("discount_percent"))),
@@ -602,14 +671,15 @@ def retain_diverse_candidates(
     cap = max(0, int(limit))
     # The rolling candidate shortlist exists to find publishable offers, not to keep
     # undiscounted bestsellers that can never pass the last-mile publication gate.
-    eligible = (
+    eligible = [
         row for row in rows or []
         if isinstance(row, dict)
         and row.get("product_id")
         and _normal_int(row.get("discount_percent")) >= MIN_CANDIDATE_DISCOUNT
         and _normal_int(row.get("savings_toman")) > 0
         and not is_prohibited_product_title(row.get("title"))
-    )
+    ]
+    _score_catalog_candidate_cohort(eligible)
     ranked = sorted(eligible, key=catalog_candidate_sort_key, reverse=True)
     return ranked[:cap]
 

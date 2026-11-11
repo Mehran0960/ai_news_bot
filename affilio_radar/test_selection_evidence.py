@@ -229,7 +229,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             radar.deal_sort_key(stale_bestseller, now=self.now),
         )
 
-    def test_global_demand_order_survives_selection_and_publication_across_discount_bands(self):
+    def test_four_factor_balance_can_trade_off_live_demand_against_affordability_and_discount(self):
         products = [
             {
                 "product_id": "dkp-popular-low-discount",
@@ -275,17 +275,35 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             )
 
         self.assertEqual(len(quality), 2)
-        self.assertEqual(
-            [row["product_id"] for row in selected],
-            ["dkp-popular-low-discount", "dkp-weak-high-discount"],
+        scores = {
+            row["product_id"]: row["offerchin_four_factor"]
+            for row in selected
+        }
+        self.assertGreater(
+            scores["dkp-popular-low-discount"]["live_demand"],
+            scores["dkp-weak-high-discount"]["live_demand"],
+        )
+        self.assertGreater(
+            scores["dkp-weak-high-discount"]["affordability"],
+            scores["dkp-popular-low-discount"]["affordability"],
+        )
+        self.assertGreater(
+            scores["dkp-weak-high-discount"]["discount_attractiveness"],
+            scores["dkp-popular-low-discount"]["discount_attractiveness"],
+        )
+        self.assertGreater(
+            scores["dkp-weak-high-discount"]["balanced_score"],
+            scores["dkp-popular-low-discount"]["balanced_score"],
         )
         queue = {row["product_id"]: {} for row in selected}
         by_id = {row["product_id"]: row for row in selected}
         published = radar.select_publish_candidates(queue, by_id, self.now)
+        expected = sorted(selected, key=radar.deal_sort_key, reverse=True)
         self.assertEqual(
             [row["product_id"] for row in published],
-            ["dkp-popular-low-discount", "dkp-weak-high-discount"],
+            [row["product_id"] for row in expected],
         )
+        self.assertEqual(published[0]["product_id"], "dkp-weak-high-discount")
 
     def test_discount_is_the_final_tiebreak_after_equal_demand_evidence(self):
         base = {

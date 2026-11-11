@@ -2781,8 +2781,23 @@ class AffilioRadarTests(unittest.TestCase):
         publish_queue = {item["product_id"]: {} for item in candidates}
         eligible = {item["product_id"]: item for item in selected}
         published_order = radar_module.select_publish_candidates(publish_queue, eligible, now)
-        self.assertEqual(published_order[0]["product_id"], "dkp-95001")
-        self.assertEqual(published_order[-1]["product_id"], "dkp-95006")
+        expected_order = sorted(
+            published_order,
+            key=lambda row: radar_module.deal_sort_key(row, now=now),
+            reverse=True,
+        )
+        self.assertEqual(
+            [row["product_id"] for row in published_order],
+            [row["product_id"] for row in expected_order],
+        )
+        self.assertTrue(all(
+            row.get("offerchin_four_factor", {}).get("policy_version") == "offerchin_four_factor_harmonic_v1"
+            for row in published_order
+        ))
+        self.assertGreater(
+            len({row["offerchin_four_factor"]["balanced_score"] for row in published_order}),
+            1,
+        )
 
 
     def test_global_discount_then_savings_order_applies_24h_repeat_guards(self):
