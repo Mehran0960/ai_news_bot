@@ -242,6 +242,30 @@ class CatalogSweepTests(unittest.TestCase):
         retained = retain_diverse_candidates(rows, limit=4, rotation=0)
         self.assertEqual([row["product_id"] for row in retained], ["dkp-1", "dkp-2", "dkp-3", "dkp-4"])
 
+    def test_catalog_shortlist_uses_relative_affordability_after_demand_ties(self):
+        rows = [
+            {
+                "product_id": f"dkp-afford-{index}",
+                "catalog_category_id": "700",
+                "catalog_category_ids": ["700"],
+                "review_count": 5_000,
+                "rating": 4.5,
+                "current_price": index * 100_000,
+                "original_price": index * 125_000,
+                "discount_percent": 20,
+                "savings_toman": index * 25_000,
+            }
+            for index in range(1, 6)
+        ]
+        retained = retain_diverse_candidates(rows, limit=5)
+        self.assertEqual(retained[0]["product_id"], "dkp-afford-1")
+        self.assertGreater(
+            retained[0]["catalog_affordability_percentile"],
+            retained[-1]["catalog_affordability_percentile"],
+        )
+        self.assertEqual(retained[0]["catalog_affordability_tier"], "accessible")
+        self.assertEqual(retained[-1]["catalog_affordability_tier"], "premium")
+
     def test_handoff_acknowledges_only_after_queue_retention_and_rotates_overflow(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "candidates.json"
