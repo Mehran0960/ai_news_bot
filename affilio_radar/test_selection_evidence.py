@@ -28,7 +28,8 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "market_reference_kind": "seller_median",
             "market_price_advantage_pct": advantage,
             "market_price_checked_at": self.now.isoformat(),
-            "market_verified_seller_count": 3,
+            "market_available_offer_count": 3,
+            "market_reported_seller_count": 3,
         })
         return product
 
