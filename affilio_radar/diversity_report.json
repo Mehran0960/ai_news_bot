@@ -97,10 +97,11 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T05:31:23.831373+00:00",
+  "generated_at": "2026-11-11T06:07:52.345361+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "بوگیر و خوشبو کننده هوا": 1,
+      "تریمر و شیور فویلی": 1,
       "سایر محصولات بهداشت جنسی": 1,
       "سرم و اسپری مراقبت مو": 1,
       "سرم پوست": 1,
@@ -112,30 +113,31 @@
     "category_post_counts": {
       "audio_wearables": 1,
       "other": 2,
-      "personal_care": 7
+      "personal_care": 8
     },
     "category_share_percent": {
-      "audio_wearables": 10.0,
-      "other": 20.0,
-      "personal_care": 70.0
+      "audio_wearables": 9.1,
+      "other": 18.2,
+      "personal_care": 72.7
     },
-    "distinct_catalog_categories": 8,
+    "distinct_catalog_categories": 9,
     "distinct_categories": 3,
-    "distinct_families": 10,
+    "distinct_families": 11,
     "distinct_retailers": 1,
-    "distinct_use_cases": 4,
+    "distinct_use_cases": 5,
     "known_brand_posts": 2,
-    "posts": 10,
+    "posts": 11,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 10
+      "digikala": 11
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
       "audio_visual": 1,
+      "automotive": 1,
       "catalog_taxonomy_other": 2,
       "mobile_productivity": 2,
       "personal_care": 5
@@ -166,6 +168,7 @@
       "بوردگیم، اوریگامی و بازی فکری": 1,
       "بوگیر و خوشبو کننده هوا": 1,
       "تجهیزات آرایشی چشم و ابرو": 1,
+      "تریمر و شیور فویلی": 1,
       "توپ": 1,
       "تی شرت مردانه": 3,
       "تی شرت ورزشی مردانه": 10,
@@ -251,7 +254,7 @@
       "گرمکن و ست ورزشی مردانه": 1
     },
     "category_post_counts": {
-      "audio_wearables": 17,
+      "audio_wearables": 16,
       "automotive": 16,
       "beauty_fragrance": 4,
       "books_stationery": 10,
@@ -267,13 +270,13 @@
       "large_appliances": 9,
       "mobile_devices": 3,
       "other": 85,
-      "personal_care": 36,
+      "personal_care": 37,
       "power_backup": 8,
       "sports_outdoor": 29,
       "tv_audio_video": 1
     },
     "category_share_percent": {
-      "audio_wearables": 5.7,
+      "audio_wearables": 5.4,
       "automotive": 5.4,
       "beauty_fragrance": 1.4,
       "books_stationery": 3.4,
@@ -289,19 +292,19 @@
       "large_appliances": 3.0,
       "mobile_devices": 1.0,
       "other": 28.7,
-      "personal_care": 12.2,
+      "personal_care": 12.5,
       "power_backup": 2.7,
       "sports_outdoor": 9.8,
       "tv_audio_video": 0.3
     },
-    "distinct_catalog_categories": 106,
+    "distinct_catalog_categories": 107,
     "distinct_categories": 20,
-    "distinct_families": 145,
+    "distinct_families": 146,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
-    "known_brand_posts": 61,
+    "known_brand_posts": 60,
     "posts": 296,
-    "repeated_brand_count": 48,
+    "repeated_brand_count": 47,
     "repeated_brands": {
       "ai_javaher": 8,
       "avergrip": 5,
@@ -309,7 +312,6 @@
       "habsan": 3,
       "hoye_sazan": 3,
       "muzik_apollo": 10,
-      "reolink": 2,
       "sangboo_climy": 12,
       "ufc": 12
     },
@@ -321,8 +323,8 @@
     },
     "use_case_post_counts": {
       "arts_crafts": 1,
-      "audio_visual": 18,
-      "automotive": 29,
+      "audio_visual": 17,
+      "automotive": 30,
       "baby_care": 5,
       "books_learning": 8,
       "catalog_taxonomy_other": 10,
@@ -359,30 +361,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 797,
+    "all_time_count": 798,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T19:28:07.953841+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "grocery_food",
-        "compared_to_product_id": "dkp-22800872",
-        "family": "grocery_food:sweets_and_spreads",
-        "product_id": "dkp-22800974",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "خرما شکلاتی با مغزی کرم کنجد ورسادو - ۳۵۰ گرم",
-        "use_case": "grocery_food"
-      },
       {
         "at": "2026-11-10T19:28:07.953841+00:00",
         "brand": "",
@@ -691,6 +676,23 @@
       },
       {
         "at": "2026-11-11T05:31:23.831373+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12935579",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-11T06:07:52.345361+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
