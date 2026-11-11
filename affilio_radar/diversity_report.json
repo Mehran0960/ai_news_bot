@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T03:25:12.352016+00:00",
+  "generated_at": "2026-11-11T03:36:58.891620+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "سایر محصولات بهداشت جنسی": 1,
@@ -177,7 +177,6 @@
       "دوربین کنون": 1,
       "رم ریدر": 1,
       "روشنایی و الکتریکی": 2,
-      "روغن و ضد یخ خودرو": 1,
       "زانو بند طبی": 2,
       "زنانه": 1,
       "زیور آلات مو دخترانه": 2,
@@ -249,7 +248,7 @@
     },
     "category_post_counts": {
       "audio_wearables": 18,
-      "automotive": 17,
+      "automotive": 16,
       "beauty_fragrance": 4,
       "books_stationery": 10,
       "computer_network": 4,
@@ -271,7 +270,7 @@
     },
     "category_share_percent": {
       "audio_wearables": 6.0,
-      "automotive": 5.7,
+      "automotive": 5.4,
       "beauty_fragrance": 1.3,
       "books_stationery": 3.3,
       "computer_network": 1.3,
@@ -285,19 +284,19 @@
       "kids_sports": 2.0,
       "large_appliances": 3.0,
       "mobile_devices": 1.0,
-      "other": 28.3,
-      "personal_care": 11.3,
+      "other": 28.4,
+      "personal_care": 11.4,
       "power_backup": 2.7,
       "sports_outdoor": 9.7,
       "tv_audio_video": 0.3
     },
-    "distinct_catalog_categories": 106,
+    "distinct_catalog_categories": 105,
     "distinct_categories": 20,
-    "distinct_families": 145,
+    "distinct_families": 144,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
     "known_brand_posts": 62,
-    "posts": 300,
+    "posts": 299,
     "repeated_brand_count": 49,
     "repeated_brands": {
       "ai_javaher": 8,
@@ -311,7 +310,7 @@
       "ufc": 12
     },
     "retailer_post_counts": {
-      "digikala": 300
+      "digikala": 299
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -319,7 +318,7 @@
     "use_case_post_counts": {
       "arts_crafts": 1,
       "audio_visual": 19,
-      "automotive": 30,
+      "automotive": 29,
       "baby_care": 5,
       "books_learning": 8,
       "catalog_taxonomy_other": 9,
@@ -356,30 +355,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 793,
+    "all_time_count": 794,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-10T19:28:07.953841+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-5664135",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم ضدآفتاب بی‌رنگ پیکسل SPF50 مدل Oily Acne-Prone Skin، مناسب پوست‌های چرب، حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-10T19:28:07.953841+00:00",
         "brand": "",
@@ -688,6 +670,23 @@
       },
       {
         "at": "2026-11-11T03:25:12.352016+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-6267904",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12935579",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-11T03:36:58.891620+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
