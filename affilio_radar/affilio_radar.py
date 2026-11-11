@@ -70,6 +70,7 @@ try:
         merge_cycle_offers,
         cycle_offer_candidates,
         pool_runtime_projection,
+        set_pool_dispatchable_count,
     )
 except ImportError:
     from cycle_offer_pool import (
