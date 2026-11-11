@@ -1,0 +1,47 @@
+name: Opportunity Hunter
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'opportunity_hunter/**'
+      - '.github/workflows/opportunity-hunter.yml'
+  schedule:
+    - cron: '15 5 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: opportunity-hunter-scan
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run automated tests
+        run: python -m unittest discover -s opportunity_hunter/tests -v
+
+      - name: Scan public sources
+        run: python opportunity_hunter/scan.py
+
+      - name: Upload scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opportunity-hunter-${{ github.run_id }}
+          path: |
+            opportunity_hunter/output/latest.json
+            opportunity_hunter/output/latest.md
+          if-no-files-found: warn
+          retention-days: 14
