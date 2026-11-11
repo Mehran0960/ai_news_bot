@@ -26,6 +26,10 @@ import requests
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from product_quality import is_prohibited_product_title, is_publishable_product_title
 try:
+    from .four_factor_scoring import score_candidates as _score_four_factor_candidates, sort_key as _four_factor_sort_key
+except ImportError:
+    from four_factor_scoring import score_candidates as _score_four_factor_candidates, sort_key as _four_factor_sort_key
+try:
     from .catalog_sweep import (
         load_catalog_candidates_for_handoff,
         acknowledge_catalog_candidates_handoff,
@@ -3140,12 +3144,11 @@ def has_verified_market_demand(record: dict, now: datetime | None = None) -> boo
 
 
 def discovery_queue_sort_key(record: dict, now: datetime | None = None) -> tuple:
-    """Order candidates by DigiKala demand evidence before discount and cash savings."""
+    """Use the same four-factor ordering as the completed selection and publisher fallback."""
     candidate = record if isinstance(record, dict) else {}
-    return (
-        *_digikala_demand_sort_key(candidate, now=now),
-        *_deal_primary_sort_key(candidate, now=now),
-    )
+    if now is not None and candidate.get("four_factor_score_version") != "four-factor-equal-weight-v1":
+        candidate = score_four_factor_candidates([candidate], now=now)[0]
+    return _four_factor_sort_key(candidate)
 
 
 def merge_discovery_queue(
@@ -4424,13 +4427,24 @@ def _verified_review_growth_sort_key(
     return (1, round(growth * 24.0 / window_hours, 4))
 
 
-def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank by DigiKala demand evidence first, then discount percentage and cash savings."""
-    candidate = p if isinstance(p, dict) else {}
-    return (
-        *_digikala_demand_sort_key(candidate, now=now),
-        *_deal_primary_sort_key(candidate, now=now),
+def score_four_factor_candidates(
+    products: list[dict],
+    now: datetime | None = None,
+) -> list[dict]:
+    """Apply one shared 25/25/25/25 score using DigiKala's taxonomy-aware use-case groups."""
+    return _score_four_factor_candidates(
+        products,
+        now=now,
+        use_case_resolver=_publication_use_case_group,
     )
+
+
+def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
+    """Rank by the equal-weight live-demand, affordability, generality and discount score."""
+    candidate = p if isinstance(p, dict) else {}
+    if now is not None and candidate.get("four_factor_score_version") != "four-factor-equal-weight-v1":
+        candidate = score_four_factor_candidates([candidate], now=now)[0]
+    return _four_factor_sort_key(candidate)
 
 
 def _fetch_click_statistics_snapshot() -> dict:
@@ -8557,22 +8571,26 @@ def select_discount_fallback_candidates(
             fresh_candidates = reusable
             fallback_mode = "cooldown_relaxed"
 
-    review_growth_tiebreaks = sum(
+    review_growth_proxy_count = sum(
         bool(has_current_demand_signal(product, now=current)) for product in fresh_candidates
     )
     bestseller_ranked = sum(
         bool(_fresh_digikala_bestseller_evidence(product, now=current)) for product in fresh_candidates
     )
+    scored_candidates = score_four_factor_candidates(fresh_candidates, now=current)
+    score_preview = (
+        scored_candidates[0].get("selection_factor_scores", {})
+        if scored_candidates else {}
+    )
     print(
-        "SELECTION_POLICY rank=digikala_bestseller_tier_desc,rank_strength_desc,"
-        "rank_momentum_desc,review_growth_proxy_desc,review_quality_context_desc,"
-        "discount_percent_desc,savings_toman_desc "
+        "SELECTION_POLICY version=four-factor-equal-weight-v1 "
+        "weights=live_demand:25,affordability:25,generality:25,discount_attractiveness:25 "
         f"digikala_bestseller_ranked={bestseller_ranked} "
-        f"review_growth_proxy_verified={review_growth_tiebreaks} "
+        f"review_growth_proxy_verified={review_growth_proxy_count} "
         "unit_sales_count_available=false review_growth_is_sales_data=false "
         f"hard_eligible={len(quality_eligible)} demand_rejected={demand_rejected} "
-        f"fresh={len(fresh_candidates)} "
-        "demand_gate=true click_count_used=false "
+        f"fresh={len(scored_candidates)} demand_gate=true click_count_used=false "
+        f"top_factor_scores={json.dumps(score_preview, ensure_ascii=False, sort_keys=True)} "
         f"fallback_mode={fallback_mode}"
     )
 
@@ -8585,8 +8603,8 @@ def select_discount_fallback_candidates(
         return [], None, quality_eligible
 
     ranked = sorted(
-        fresh_candidates,
-        key=lambda record: deal_sort_key(record, now=current),
+        scored_candidates,
+        key=_four_factor_sort_key,
         reverse=True,
     )
     handoff = []
@@ -8601,7 +8619,7 @@ def select_discount_fallback_candidates(
         )
         selected["selection_discount_floor"] = int(floor)
         selected["selection_discount_band"] = discount_fallback_band_label(int(floor), None)
-        selected["publication_policy"] = "digikala_demand_first_bestseller_review_quality_discount_v1"
+        selected["publication_policy"] = "four_factor_equal_weight_demand_affordability_generality_discount_v1"
         bestseller_evidence = _fresh_digikala_bestseller_evidence(product, now=current)
         selected["selection_demand_evidence"] = (
             "digikala_native_bestseller_rank" if bestseller_evidence
