@@ -430,17 +430,64 @@ def _login(page, username: str, password: str) -> None:
             # Log only an allowlisted category and HTTP status. Never log the
             # response body: it may contain account identifiers or session data.
             message_parts = []
-            for key in ("message", "error", "detail", "reason", "description", "msg"):
-                value = payload.get(key)
-                if isinstance(value, str):
-                    message_parts.append(value[:300])
-                elif isinstance(value, dict):
-                    for nested_key in ("message", "detail", "reason", "code"):
-                        nested = value.get(nested_key)
-                        if isinstance(nested, str):
-                            message_parts.append(nested[:200])
+            hint_keys = {"message", "error", "detail", "reason", "description", "msg", "code"}
+            def collect_safe_hints(value, depth=0):
+                if depth > 3:
+                    return
+                if isinstance(value, dict):
+                    for key, nested in value.items():
+                        if str(key).casefold() in hint_keys and isinstance(nested, str):
+                            message_parts.append(nested[:300])
+                        elif isinstance(nested, (dict, list)):
+                            collect_safe_hints(nested, depth + 1)
+                elif isinstance(value, list):
+                    for nested in value[:8]:
+                        collect_safe_hints(nested, depth + 1)
+            collect_safe_hints(payload)
             hint = " ".join(message_parts).casefold()
-            if login_response.status == 429 or re.search(r"too many|rate.?limit|تعداد درخواست|محدودیت درخواست", hint):
+            status_code_value = payload.get("status_code")
+            status_code_hint = re.sub(r"[^a-zA-Z0-9_.-]", "", str(status_code_value or ""))[:48]
+            code_suggests_bad_credentials = bool(re.search(
+                r"invalid|incorrect|wrong|credential|password|username|unauthor|not.?found|auth",
+                status_code_hint, re.I
+            ))
+            if code_suggests_bad_credentials or re.search(
+                r"نام کاربری.{0,20}(اشتباه|نادرست|نامعتبر|صحیح)|شماره موبایل.{0,20}(اشتباه|نادرست|نامعتبر)|"
+                r"رمز.{0,20}(اشتباه|نادرست|نامعتبر|صحیح)|گذرواژه.{0,20}(اشتباه|نادرست|نامعتبر)|"
+                r"اطلاعات.{0,20}(اشتباه|نادرست|نامعتبر|صحیح)|اعتبارنامه|invalid credentials|incorrect password|wrong password",
+                hint
+            ):
+                category = "credentials_rejected"
+            elif re.search(r"captcha|کپچا|تایید هویت|تأیید هویت", hint):
+                category = "captcha_required"
+            elif re.search(r"کد.?تایید|کد.?تأیید|رمز یکبار مصرف|one.?time.?password|otp", hint):
+                category = "otp_required"
+            elif re.search(r"too many|rate.?limit|تعداد درخواست|محدودیت درخواست", hint) or login_response.status == 429:
+                category = "rate_limited"
+            elif re.search(r"مسدود|تعلیق|غیرفعال|غیر فعال|suspend|disabled|locked", hint):
+                category = "account_restricted"
+            elif login_response.status >= 500:
+                category = "service_error"
+            elif login_response.status == 403:
+                category = "access_forbidden"
+            elif login_response.status == 401:
+                category = "credentials_rejected"
+            elif login_response.status >= 400:
+                category = "request_rejected"
+            else:
+                category = "api_rejected"
+            print(
+                "FILO_LOGIN_API_DIAGNOSTIC "
+                + json.dumps({
+                    "http_status": int(login_response.status),
+                    "response_keys": sorted(str(key) for key in payload.keys())[:20],
+                    "success_flag_present": success_present,
+                    "success_flag": _success_flag(success_value) if success_present else None,
+                    "status_code_hint": status_code_hint or None,
+                    "message_category": category,
+                }, ensure_ascii=False, sort_keys=True)
+            )
+            raise FiloUploadError("filo_login_" + category)            if login_response.status == 429 or re.search(r"too many|rate.?limit|تعداد درخواست|محدودیت درخواست", hint):
                 category = "rate_limited"
             elif re.search(r"captcha|کپچا|تایید هویت|تأیید هویت", hint):
                 category = "captcha_required"
