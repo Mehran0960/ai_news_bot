@@ -97,9 +97,10 @@
       }
     ]
   },
-  "generated_at": "2026-11-11T12:03:01.695945+00:00",
+  "generated_at": "2026-11-11T12:40:15.171817+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
+      "ارگانایزر آشپزخانه": 1,
       "بوگیر و خوشبو کننده هوا": 1,
       "تریمر و شیور فویلی": 1,
       "خودرو و موتورسیکلت": 1,
@@ -122,30 +123,32 @@
     "category_post_counts": {
       "automotive": 1,
       "fashion": 1,
+      "home": 1,
       "other": 5,
       "personal_care": 9,
       "power_backup": 1,
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "automotive": 5.6,
-      "fashion": 5.6,
-      "other": 27.8,
-      "personal_care": 50.0,
-      "power_backup": 5.6,
-      "sports_outdoor": 5.6
+      "automotive": 5.3,
+      "fashion": 5.3,
+      "home": 5.3,
+      "other": 26.3,
+      "personal_care": 47.4,
+      "power_backup": 5.3,
+      "sports_outdoor": 5.3
     },
-    "distinct_catalog_categories": 18,
-    "distinct_categories": 6,
-    "distinct_families": 18,
+    "distinct_catalog_categories": 19,
+    "distinct_categories": 7,
+    "distinct_families": 19,
     "distinct_retailers": 1,
-    "distinct_use_cases": 7,
+    "distinct_use_cases": 8,
     "known_brand_posts": 2,
-    "posts": 18,
+    "posts": 19,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 18
+      "digikala": 19
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -154,6 +157,7 @@
       "automotive": 2,
       "catalog_taxonomy_other": 4,
       "home_living": 1,
+      "kitchen_food": 1,
       "lighting_electrical": 1,
       "mobile_productivity": 5,
       "outdoor_travel": 1,
@@ -174,6 +178,7 @@
       "ابزار مراقبت از پوست": 1,
       "ابزار نقاشی و رنگ آمیزی": 1,
       "اجاق گاز": 1,
+      "ارگانایزر آشپزخانه": 1,
       "اسباب بازی شانسی": 1,
       "اسکاچ و سیم ظرفشویی": 6,
       "اکسسوری دخترانه": 1,
@@ -188,7 +193,7 @@
       "تریمر و شیور فویلی": 1,
       "توپ": 1,
       "تی شرت مردانه": 3,
-      "تی شرت ورزشی مردانه": 9,
+      "تی شرت ورزشی مردانه": 8,
       "جانبی خودرو": 1,
       "جوراب مردانه": 2,
       "خانه و آشپزخانه": 1,
@@ -286,7 +291,7 @@
       "fashion": 38,
       "gaming": 1,
       "grocery_food": 9,
-      "home": 7,
+      "home": 8,
       "home_cleaning": 7,
       "jewelry": 3,
       "kids_sports": 6,
@@ -295,7 +300,7 @@
       "other": 86,
       "personal_care": 38,
       "power_backup": 6,
-      "sports_outdoor": 24,
+      "sports_outdoor": 23,
       "tv_audio_video": 1
     },
     "category_share_percent": {
@@ -308,7 +313,7 @@
       "fashion": 13.2,
       "gaming": 0.3,
       "grocery_food": 3.1,
-      "home": 2.4,
+      "home": 2.8,
       "home_cleaning": 2.4,
       "jewelry": 1.0,
       "kids_sports": 2.1,
@@ -317,17 +322,17 @@
       "other": 29.9,
       "personal_care": 13.2,
       "power_backup": 2.1,
-      "sports_outdoor": 8.3,
+      "sports_outdoor": 8.0,
       "tv_audio_video": 0.3
     },
-    "distinct_catalog_categories": 113,
+    "distinct_catalog_categories": 114,
     "distinct_categories": 20,
-    "distinct_families": 151,
+    "distinct_families": 152,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
-    "known_brand_posts": 47,
+    "known_brand_posts": 46,
     "posts": 288,
-    "repeated_brand_count": 35,
+    "repeated_brand_count": 34,
     "repeated_brands": {
       "ai_javaher": 7,
       "eurovital": 2,
@@ -335,7 +340,7 @@
       "hoye_sazan": 3,
       "muzik_apollo": 4,
       "sangboo_climy": 12,
-      "ufc": 11
+      "ufc": 10
     },
     "retailer_post_counts": {
       "digikala": 288
@@ -358,14 +363,14 @@
       "health_wellness": 4,
       "home_cleaning": 6,
       "home_living": 9,
-      "kitchen_food": 3,
+      "kitchen_food": 4,
       "lighting_electrical": 6,
       "local_goods": 2,
       "mobile_productivity": 39,
       "office_study": 10,
       "outdoor_travel": 6,
       "personal_care": 34,
-      "sports_fitness": 24,
+      "sports_fitness": 23,
       "tabletop_games": 1,
       "tools_industrial": 16
     }
@@ -383,30 +388,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 809,
+    "all_time_count": 810,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-11T02:56:51.539580+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-6267904",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12935579",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-11T03:06:03.725079+00:00",
         "brand": "",
@@ -715,6 +703,23 @@
       },
       {
         "at": "2026-11-11T12:03:01.695945+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-12935579",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12564010",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فلوئید ضدآفتاب بی‌رنگ ویتالیر SPF50 مدل Whitevit مناسب انواع پوست، حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-11T12:40:15.171817+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
