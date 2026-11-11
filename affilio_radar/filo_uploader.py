@@ -53,7 +53,7 @@ def filo_credentials_available(env: Mapping[str, str] | None = None) -> bool:
 
 
 def _success_flag(value: object) -> bool:
-    return value is True or value == 1 or str(value).strip().lower() in {"1", "true", "yes"}
+    return value is True or value == 1 or str(value).strip().lower() in {"1", "true", "yes", "success", "ok"}
 
 
 def _response_payload(response) -> dict:
@@ -282,6 +282,16 @@ def _login(page, username: str, password: str) -> None:
           return a ? a.href : '';
         }"""
     )
+    login_bind_data_responses = []
+    def capture_login_bind_data(response):
+        parsed = urlparse(response.url)
+        if (
+            parsed.hostname == "ifilo.net"
+            and parsed.path == "/api/v1/users/login-bind-data"
+            and response.request.method == "POST"
+        ):
+            login_bind_data_responses.append(response)
+    page.on("response", capture_login_bind_data)
     page.goto(sign_in_href or FILO_ORIGIN + FILO_LOGIN_PATH,
               wait_until="domcontentloaded", timeout=30_000)
     password_field = page.locator("input[type='password']").first
@@ -313,6 +323,20 @@ def _login(page, username: str, password: str) -> None:
     # The login page is server-rendered, but its form is controlled by Vue v-model.
     # Filling before Vue attaches its input handler lets hydration erase the values.
     _wait_for_filo_login_form_hydration(page)
+    # Filo fetches login_failed_count asynchronously and reveals a CAPTCHA
+    # after three failed attempts. Wait for that response before submitting.
+    bind_deadline = time.monotonic() + 6
+    while not login_bind_data_responses and time.monotonic() < bind_deadline:
+        time.sleep(0.2)
+    if login_bind_data_responses:
+        bind_payload = _response_payload(login_bind_data_responses[-1])
+        bind_data = bind_payload.get("data")
+        fail_count = bind_data.get("login_failed_count") if isinstance(bind_data, dict) else None
+        try:
+            if int(fail_count or 0) >= 3:
+                raise FiloUploadError("filo_login_challenge_required")
+        except (TypeError, ValueError):
+            pass
     if _find_login_captcha_field(page) is not None:
         raise FiloUploadError("filo_login_challenge_required")
     username_field.fill(username)
@@ -464,7 +488,17 @@ def _login(page, username: str, password: str) -> None:
                 r"invalid|incorrect|wrong|credential|password|username|unauthor|not.?found|auth",
                 status_code_hint, re.I
             ))
-            if code_suggests_bad_credentials or re.search(
+            login_data = payload.get("data")
+            fail_count = None
+            if isinstance(login_data, dict):
+                fail_count = login_data.get("loginFailCount", login_data.get("login_failed_count"))
+            try:
+                captcha_required = int(fail_count or 0) >= 3
+            except (TypeError, ValueError):
+                captcha_required = False
+            if captcha_required:
+                category = "captcha_required"
+            elif code_suggests_bad_credentials or re.search(
                 r"نام کاربری.{0,20}(اشتباه|نادرست|نامعتبر|صحیح)|شماره موبایل.{0,20}(اشتباه|نادرست|نامعتبر)|"
                 r"رمز.{0,20}(اشتباه|نادرست|نامعتبر|صحیح)|گذرواژه.{0,20}(اشتباه|نادرست|نامعتبر)|"
                 r"اطلاعات.{0,20}(اشتباه|نادرست|نامعتبر|صحیح)|اعتبارنامه|invalid credentials|incorrect password|wrong password",
@@ -497,6 +531,7 @@ def _login(page, username: str, password: str) -> None:
                     "success_flag_present": success_present,
                     "success_flag": _success_flag(success_value) if success_present else None,
                     "status_code_hint": status_code_hint or None,
+                    "login_fail_count": fail_count,
                     "message_category": category,
                 }, ensure_ascii=False, sort_keys=True)
             )
