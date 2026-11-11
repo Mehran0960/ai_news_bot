@@ -42,9 +42,9 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
                 **self._verified_review_growth(),
             }
             for index, (title, brand, discount) in enumerate((
-                ("پاوربانک ۲۰۰۰۰ میلی آمپر مدل A", "Brand A", 90),
-                ("شارژر همراه ۱۰۰۰۰ میلی آمپر مدل B", "Brand B", 85),
-                ("پاوربانک باریک ۵۰۰۰ میلی آمپر مدل C", "Brand C", 80),
+                ("پاوربانک ۲۰۰۰۰ میلی آمپر مدل A", "Brand A", 50),
+                ("شارژر همراه ۱۰۰۰۰ میلی آمپر مدل B", "Brand B", 50),
+                ("پاوربانک باریک ۵۰۰۰ میلی آمپر مدل C", "Brand C", 50),
             ), start=1)
         ]
         state = {"published": {}, "recent_publications": []}
@@ -62,8 +62,8 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         self.assertEqual(len(quality), 3)
         self.assertEqual(
             [row["product_id"] for row in selected],
-            ["dkp-family-1"],
-            "only the highest-ranked family member may pass as primary or backup",
+            ["dkp-family-2"],
+            "only one member of the repeating product family may pass; the survivor is ordered by the current four-factor rank",
         )
         rejected = radar._LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS["rejection_events"]
         self.assertEqual(len(rejected), 2)
@@ -277,14 +277,23 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         self.assertEqual(len(quality), 2)
         self.assertEqual(
             [row["product_id"] for row in selected],
-            ["dkp-popular-low-discount", "dkp-weak-high-discount"],
+            ["dkp-weak-high-discount", "dkp-popular-low-discount"],
+        )
+        by_id = {row["product_id"]: row for row in selected}
+        self.assertGreater(
+            by_id["dkp-popular-low-discount"]["selection_demand_score"],
+            by_id["dkp-weak-high-discount"]["selection_demand_score"],
+        )
+        self.assertGreater(
+            by_id["dkp-weak-high-discount"]["selection_affordability_score"],
+            by_id["dkp-popular-low-discount"]["selection_affordability_score"],
         )
         queue = {row["product_id"]: {} for row in selected}
         by_id = {row["product_id"]: row for row in selected}
         published = radar.select_publish_candidates(queue, by_id, self.now)
         self.assertEqual(
             [row["product_id"] for row in published],
-            ["dkp-popular-low-discount", "dkp-weak-high-discount"],
+            ["dkp-weak-high-discount", "dkp-popular-low-discount"],
         )
 
     def test_discount_is_the_final_tiebreak_after_equal_demand_evidence(self):
