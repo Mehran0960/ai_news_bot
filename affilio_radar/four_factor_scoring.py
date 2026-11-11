@@ -306,7 +306,7 @@ def _discount_score(record: dict, now: datetime) -> int:
     history_verified, market_verified, advantage = _verified_discount_evidence(record, now)
     percent_component = min(75.0, discount * 1.5)
     savings_component = min(15.0, 5.0 * math.log10(1 + savings / 100_000))
-    verification_bonus = (15.0 if history_verified else 0.0) + (15.0 if market_verified else 0.0)
+    verification_bonus = (42.0 if history_verified else 0.0) + (8.0 if market_verified and history_verified else 42.0 if market_verified else 0.0)
     market_bonus = min(5.0, advantage * 0.2) if market_verified else 0.0
     score = min(100.0, percent_component + savings_component + verification_bonus + market_bonus)
     if not (history_verified or market_verified):
@@ -382,9 +382,10 @@ def score_candidates(
         candidate["selection_affordability_basis"] = "absolute_log_price_plus_pool_percentiles"
         candidate["selection_affordability_reference"] = "current_candidate_pool_not_household_income"
         candidate["selection_generality_basis"] = "retail_taxonomy_use_case_proxy_not_population_measure"
+        history_verified, market_verified, _ = _verified_discount_evidence(candidate, current)
         candidate["selection_discount_evidence"] = (
             "verified_history_and_or_market"
-            if _verified_discount_evidence(candidate, current)[:2] != (False, False)
+            if history_verified or market_verified
             else "unverified_list_price_capped"
         )
         scored.append(candidate)
