@@ -30,6 +30,7 @@ class CycleOfferPoolTests(unittest.TestCase):
             "discount_percent": 20,
             "savings_toman": original - price,
             "catalog_category_ids": [category],
+            "catalog_sort_mode": "best_selling",
             "catalog_best_selling_rank": rank,
             "catalog_rank_observed_at": observed.isoformat(),
             "market_status": "verified",
@@ -62,6 +63,40 @@ class CycleOfferPoolTests(unittest.TestCase):
         state = {}
         result = self.merge(state, [no_value, no_demand, stale_value])
         self.assertEqual(result["added"], 0)
+        self.assertEqual(pool_remaining_count(state), 0)
+
+    def test_verified_fresh_review_growth_can_satisfy_demand_without_bestseller_rank(self):
+        item = self.item("dkp-10006", 100_000)
+        item.pop("catalog_best_selling_rank")
+        item.pop("catalog_rank_observed_at")
+        item.update({
+            "current_demand_verified": True,
+            "recent_review_growth_window": 5,
+            "recent_review_growth_7d": 5,
+            "demand_window_hours": 8,
+            "demand_observed_at": self.now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth",
+        })
+        state = {}
+        result = self.merge(state, [item])
+        self.assertEqual(result["added"], 1)
+        ranked = cycle_offer_candidates(state, now=self.now)
+        self.assertEqual(ranked[0]["product_id"], "dkp-10006")
+
+    def test_unverified_review_growth_cannot_satisfy_demand(self):
+        item = self.item("dkp-10007", 100_000)
+        item.pop("catalog_best_selling_rank")
+        item.pop("catalog_rank_observed_at")
+        item.update({
+            "current_demand_verified": False,
+            "recent_review_growth_window": 10,
+            "recent_review_growth_7d": 10,
+            "demand_window_hours": 8,
+            "demand_observed_at": self.now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth",
+        })
+        state = {}
+        self.merge(state, [item])
         self.assertEqual(pool_remaining_count(state), 0)
 
     def test_fresh_historical_price_proof_also_qualifies(self):
