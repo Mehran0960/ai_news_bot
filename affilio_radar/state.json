@@ -523643,7 +523643,7 @@
       "youtube_upload_status": "skipped_unverified_deadline"
     },
     "dkp-14038099": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-11T15:23:32.967132+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1890,
@@ -523759,7 +523759,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
-      "filo_upload_status": "pending",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-11T09:38:50.590823+00:00",
       "history_days": 2,
@@ -523811,8 +523811,8 @@
       "telegram_posted_at": "2026-11-11T09:39:09.834079+00:00",
       "title": "اسپرسوساز سفری استارسو مدل Mini",
       "ts": 1794389942.958275,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-14038168": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -536422,8 +536422,22 @@
       "telegram_posted_at": "2026-11-11T12:40:29.448097+00:00",
       "title": "ژل ابرو برانوس مدل 102",
       "ts": 1794400819.40873,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-19742140.mp4",
+      "video_file_names": {
+        "youtube": "offerchin-dkp-19742140.mp4"
+      },
+      "video_generated_at": "2026-11-11T16:36:44.561255+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-11T16:36:52.634825+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-11T16:36:54.742364+00:00",
+      "youtube_video_id": "H554euPTJaA",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/H554euPTJaA",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-19913246": {
       "aparat_upload_status": "pending",
@@ -545636,7 +545650,7 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-2132057": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-11T14:43:45.940972+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1899,
@@ -545734,7 +545748,7 @@
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
       "expiry_status": "deleted",
-      "filo_upload_status": "pending",
+      "filo_upload_status": "skipped_expiring_soon",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-11T13:13:36.567849+00:00",
       "history_days": 2,
@@ -545790,8 +545804,8 @@
       "telegram_posted_at": "2026-11-11T13:14:03.483955+00:00",
       "title": "پیچ گوشتی ساعتی مدل HS25 مجموعه 25 عددی",
       "ts": 1794402837.962078,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "skipped_expiring_soon",
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21329866": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -563761,8 +563775,12 @@
     },
     "dkp-22841182": {
       "aparat_upload_status": "pending",
-      "bale_expiry_status": "deleted",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 1466,
+      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_status": "deleted",
       "brand": "",
       "caption_deadline_format_version": 14,
       "catalog_best_selling_category_id": "6098",
@@ -563821,16 +563839,16 @@
       "title": "اور گریپ زارسیا مدل مارین با قابلیت ضد لغزش",
       "ts": 1793784178.187836,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending",
-      "bale_retention_status": "deleted",
-      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00"
+      "youtube_upload_status": "pending"
     },
     "dkp-22841216": {
       "aparat_upload_status": "pending",
-      "bale_expiry_status": "deleted",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 1467,
+      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_status": "deleted",
       "brand": "",
       "caption_deadline_format_version": 14,
       "catalog_best_selling_category_id": "6098",
@@ -563889,16 +563907,16 @@
       "title": "اور گریپ مدل تنیس با ابعاد 8x4x2 و خاصیت ضد لغزش",
       "ts": 1793785646.346421,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending",
-      "bale_retention_status": "deleted",
-      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00"
+      "youtube_upload_status": "pending"
     },
     "dkp-22841237": {
       "aparat_upload_status": "pending",
-      "bale_expiry_status": "deleted",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 1468,
+      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_status": "deleted",
       "brand": "",
       "caption_deadline_format_version": 14,
       "catalog_best_selling_category_id": "6098",
@@ -563957,16 +563975,16 @@
       "title": "اور گریپ مدل چشم نظر با خاصیت ضد لغزش و ابعاد 8x4x2 سانتی‌متر",
       "ts": 1793787267.510191,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending",
-      "bale_retention_status": "deleted",
-      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00"
+      "youtube_upload_status": "pending"
     },
     "dkp-22841451": {
       "aparat_upload_status": "pending",
-      "bale_expiry_status": "deleted",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 1469,
+      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_status": "deleted",
       "brand": "",
       "caption_deadline_format_version": 14,
       "catalog_best_selling_category_id": "6098",
@@ -564025,11 +564043,7 @@
       "title": "اور گریپ مدل چهارخونه با خاصیت ضد لغزش و ابعاد 8x4x2 سانتی‌متر",
       "ts": 1793789064.315447,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending",
-      "bale_retention_status": "deleted",
-      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00"
+      "youtube_upload_status": "pending"
     },
     "dkp-22841932": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -564077,8 +564091,12 @@
     },
     "dkp-22845762": {
       "aparat_upload_status": "pending",
-      "bale_expiry_status": "deleted",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 1480,
+      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_status": "deleted",
       "brand": "",
       "caption_deadline_format_version": 14,
       "catalog_best_selling_category_id": "6098",
@@ -564135,11 +564153,7 @@
       "title": "کاور راکت ناکس مدل شمعی با ابعاد 50x30x10 سانتی‌متر",
       "ts": 1793801744.391488,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending",
-      "bale_retention_status": "deleted",
-      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00"
+      "youtube_upload_status": "pending"
     },
     "dkp-22847300": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -569517,8 +569531,8 @@
       "video_style_version": 5,
       "youtube_deleted_at": "2026-10-27T20:37:55.563200+00:00",
       "youtube_description_last_error": "RuntimeError",
-      "youtube_description_next_attempt_at": "2026-11-11T14:25:58.850710+00:00",
-      "youtube_description_update_attempts": 35,
+      "youtube_description_next_attempt_at": "2026-11-11T17:36:44.561255+00:00",
+      "youtube_description_update_attempts": 36,
       "youtube_description_version": 3,
       "youtube_expiry_status": "deleted",
       "youtube_review_required": false,
@@ -575567,8 +575581,12 @@
     },
     "dkp-3977438": {
       "aparat_upload_status": "pending",
-      "bale_expiry_status": "deleted",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 1477,
+      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_status": "deleted",
       "brand": "",
       "caption_deadline_format_version": 14,
       "catalog_best_selling_category_id": "6510",
@@ -575627,11 +575645,7 @@
       "title": "برس ابرو مدل v2 مجموعه 2 عددی",
       "ts": 1793796899.228816,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending",
-      "bale_retention_status": "deleted",
-      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00"
+      "youtube_upload_status": "pending"
     },
     "dkp-3986553": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -585445,8 +585459,12 @@
     },
     "dkp-9688582": {
       "aparat_upload_status": "pending",
-      "bale_expiry_status": "deleted",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 1472,
+      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
+      "bale_retention_status": "deleted",
       "brand": "",
       "caption_deadline_format_version": 14,
       "catalog_best_selling_category_id": "9711",
@@ -585516,11 +585534,7 @@
       "youtube_video_id": "-td_B6cIhtE",
       "youtube_video_renderer_version": 2,
       "youtube_video_url": "https://www.youtube.com/shorts/-td_B6cIhtE",
-      "youtube_visual_repair_completed_at": "",
-      "bale_retention_status": "deleted",
-      "bale_retention_started_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_deleted_at": "2026-11-11T16:32:33.314066+00:00",
-      "bale_retention_last_attempt_at": "2026-11-11T16:32:33.314066+00:00"
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-9713997": {
       "aparat_upload_status": "pending",
@@ -596942,7 +596956,7 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 14,
   "snappshop_retry_after": "2026-11-12T10:13:56.919109+00:00",
-  "youtube_last_upload_success_at": "2026-11-11T13:26:10.492254+00:00",
-  "youtube_next_upload_at": "2026-11-11T16:26:10.492254+00:00",
+  "youtube_last_upload_success_at": "2026-11-11T16:36:54.742364+00:00",
+  "youtube_next_upload_at": "2026-11-11T19:36:54.742364+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
