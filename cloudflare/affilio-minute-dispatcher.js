@@ -373,8 +373,19 @@ function hasChannelDelivery(record) {
       .some(field => /^\d+$/.test(String(record[field] || "")));
 }
 
+function hasVideoDispatchEligibility(record) {
+  return Boolean(
+    record && typeof record === "object" &&
+    (
+      record.video_dispatch_eligible === true ||
+      String(record.distribution_queue_id || "").trim() ||
+      hasChannelDelivery(record)
+    )
+  );
+}
+
 export function videoRecordDue(record, platform, now) {
-  if (!record || typeof record !== "object" || !hasChannelDelivery(record)) return false;
+  if (!hasVideoDispatchEligibility(record)) return false;
   const publishedAt = Number(record.ts || 0) * 1000;
   if (!Number.isFinite(publishedAt) || publishedAt <= 0 || now - publishedAt > VIDEO_UPLOAD_MAX_AGE_MS) return false;
   const status = String(record[platform + "_upload_status"] || "pending");
@@ -417,7 +428,7 @@ export function hasDueVideoRecord(state, platform, now) {
   const published = state && state.published && typeof state.published === "object"
     ? state.published : {};
   // The compact dispatcher sidecar already caps this at the 250 most recent
-  // channel-delivered records. Do not inspect only the newest six: that can
+  // selected-product records. Do not inspect only the newest six: that can
   // hide an older pending upload behind six newer completed uploads.
   return Object.values(published).some(record => videoRecordDue(record, platform, now));
 }
