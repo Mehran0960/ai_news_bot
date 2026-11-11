@@ -1959,7 +1959,8 @@ def enrich_price_history(products: list[dict], state: dict) -> None:
             checks.pop(pid, None)
 
     pause_until = _parse_utc_datetime(state.get("price_history_api_pause_until"))
-    ranked = sorted(products, key=deal_sort_key, reverse=True)
+    # History checks gather independent evidence; preserve upstream candidate order.
+    ranked = list(products)
     due = []
     if PRICE_HISTORY_CHECK_LIMIT > 0 and not (pause_until and pause_until > current):
         for product in ranked:
@@ -2422,7 +2423,10 @@ def enrich_market_prices(
         product.setdefault("market_value_status", "unknown")
 
     pause_until = _parse_utc_datetime(state.get("market_price_api_pause_until"))
-    ranked = sorted(products, key=deal_sort_key, reverse=True)
+    # Market enrichment is a bounded evidence-acquisition queue, not publication
+    # selection. Preserve the upstream scan order so an incomplete score cannot
+    # monopolize the check budget and retries rotate fairly across candidates.
+    ranked = list(products)
     due: list[dict] = []
     skipped_retry = 0
     cached_count = 0
