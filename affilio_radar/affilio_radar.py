@@ -9346,28 +9346,28 @@ def video_deadline_allows_upload(platform: str, verified_expiry: bool) -> bool:
     return bool(verified_expiry) if str(platform or "").strip().lower() == "aparat" else True
 
 
-def _video_upload_candidate_sort_key(row: tuple) -> tuple:
-    """Keep Filo in channel-post order; rank other video queues by markdown."""
-    record = row[2] if isinstance(row, tuple) and len(row) > 2 and isinstance(row[2], dict) else {}
-    destinations = row[6] if isinstance(row, tuple) and len(row) > 6 and isinstance(row[6], list) else []
-    if "filo" in destinations:
-        # Filo is the one-to-one channel companion: consume the oldest eligible
-        # channel hand-off first so a newer product cannot leapfrog it.
-        return (0, row[0], str(row[1]))
-    discount = max(
-        0,
-        _int_value(record.get("posted_discount_percent") or record.get("discount_percent")) or 0,
-    )
-    original = _int_value(record.get("posted_original_price")) or 0
-    current_price = _int_value(record.get("posted_current_price")) or 0
-    savings = max(0, original - current_price)
+def _has_channel_delivery_for_video(record: dict) -> bool:
+    """Only create video companions for content already sent through a photo channel."""
+    delivery = record.get("delivery_status") if isinstance(record.get("delivery_status"), dict) else {}
     return (
-        -discount,
-        -savings,
-        0 if record.get("video_repair_priority") else 1,
-        row[3],
-        row[0],
+        any(delivery.get(name) == "sent" for name in ("telegram", "bale", "rubika", "eitaa"))
+        or any(
+            str(record.get(field) or "").isdigit()
+            for field in ("telegram_message_id", "bale_message_id", "rubika_message_id", "eitaa_message_id")
+        )
     )
+
+
+def _video_upload_candidate_sort_key(row: tuple) -> tuple:
+    """Preserve the canonical channel-selection order on every video destination.
+
+    The channel publisher has already made the discovery, four-factor ranking,
+    diversity choice and last-mile live validation. Video destinations consume
+    that same published hand-off FIFO; markdown must not reorder it independently.
+    """
+    timestamp = float(row[0]) if isinstance(row, tuple) and row else 0.0
+    product_id_value = str(row[1]) if isinstance(row, tuple) and len(row) > 1 else ""
+    return (timestamp, product_id_value)
 
 
 def process_pending_short_video(
@@ -9873,8 +9873,7 @@ def process_pending_short_video(
         else:
             expiry_for_sort = expiry
 
-        delivery = record.get("delivery_status") if isinstance(record.get("delivery_status"), dict) else {}
-        has_channel_delivery = any(value == "sent" for value in delivery.values())
+        has_channel_delivery = _has_channel_delivery_for_video(record)
         if not force_due and not has_channel_delivery:
             continue
         if (
