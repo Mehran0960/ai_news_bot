@@ -10916,8 +10916,6 @@ def run(publish=False, selection_only=False):
     }
     save_json(REPORT, report)
     if selection_only:
-        # Keep discovery live on every scan, but only select a new product when a
-        # publication slot is due. Never build a long queue of products chosen early.
         from content_delivery import (
             enqueue_selected_content,
             get_last_channel_published_at,
@@ -10926,18 +10924,89 @@ def run(publish=False, selection_only=False):
             selection_cadence_anchor,
         )
         selection_now = datetime.now(timezone.utc)
+        # The queue is only a one-item delivery hand-off. The larger cycle pool
+        # remains separately persisted so a long adaptive interval cannot erase it.
+        stale_selection_minutes = 180
         replaced = refresh_unpublished_selections(
-            state, now=selection_now, stale_after_minutes=8
+            state, now=selection_now, stale_after_minutes=stale_selection_minutes
         )
-        interval_seconds = max(60, int(MIN_POST_INTERVAL_HOURS * 3600))
 
-        # Cadence follows the last selection and an actual Telegram/Bale send.
-        # Retries to YouTube/Aparat cannot move the public-channel slot forward.
-        # The helper also recovers older state from immutable per-platform send times.
+        snapshot = catalog_context.get("snapshot") if isinstance(catalog_context, dict) else None
+        cycle_completed_at = snapshot.get("cycle_completed_at") if isinstance(snapshot, dict) else ""
+        cycle_started_at = snapshot.get("cycle_started_at") if isinstance(snapshot, dict) else ""
+        if catalog_context.get("mode") == "full_catalog" and cycle_completed_at:
+            merge_stats = merge_cycle_offers(
+                state,
+                eligible,
+                cycle_completed_at=cycle_completed_at,
+                cycle_started_at=cycle_started_at,
+                now=selection_now,
+            )
+            cycle_candidates = cycle_offer_candidates(state, now=selection_now, limit=500)
+            pool_eligible, _pool_floor, _pool_quality = select_discount_fallback_candidates(
+                cycle_candidates,
+                state,
+                now=selection_now,
+                include_fallback_bands=True,
+            )
+            pool_eligible = [
+                item for item in pool_eligible
+                if catalog_candidate_is_publishable(item, catalog_context)
+            ]
+            state["cycle_offer_pool"]["last_selector_run_at"] = selection_now.isoformat()
+            state["cycle_offer_pool"]["last_selector_candidate_count"] = len(cycle_candidates)
+            state["cycle_offer_pool"]["last_selector_eligible_count"] = len(pool_eligible)
+            set_pool_dispatchable_count(state, len(pool_eligible), now=selection_now)
+            print(
+                "CYCLE_OFFER_POOL_REFRESH "
+                f"cycle={cycle_completed_at} merged={merge_stats.get('added', 0)} "
+                f"updated={merge_stats.get('updated', 0)} retained={merge_stats.get('retained', 0)} "
+                f"raw_remaining={merge_stats.get('remaining', 0)} "
+                f"live_demand_value_eligible={len(pool_eligible)}"
+            )
+        else:
+            pool_eligible = []
+            print(
+                "CYCLE_OFFER_POOL_BLOCKED "
+                f"catalog_mode={catalog_context.get('mode') or 'unknown'} "
+                "reason=verified_completed_full_catalog_cycle_required"
+            )
+
+        base_interval_seconds = max(
+            BASE_PUBLICATION_INTERVAL_SECONDS,
+            int(MIN_POST_INTERVAL_HOURS * 3600),
+        )
+        projection = pool_runtime_projection(
+            state,
+            now=selection_now,
+            base_interval_seconds=base_interval_seconds,
+        )
+        interval_seconds = max(base_interval_seconds, int(projection["interval_seconds"]))
+
+        # A daily cap or an unexpired cooldown is a normal no-op, not a failed scan.
+        if projection["available_count"] <= 0:
+            save_json(STATE, state)
+            print(
+                "CYCLE_OFFER_POOL_EMPTY "
+                f"raw_remaining={projection.get('remaining_count', 0)} "
+                f"dispatchable={projection['available_count']} "
+                f"current_scan_eligible={len(eligible)}; weak_offer_fallback=disabled"
+            )
+            return 0
+        if daily_channel_posts_count(state, selection_now) >= MAX_DAILY_CHANNEL_POSTS:
+            save_json(STATE, state)
+            print(
+                "CONTENT_SELECTION_DAILY_CAP_REACHED "
+                f"limit={MAX_DAILY_CHANNEL_POSTS} cycle_pool={projection['available_count']}"
+            )
+            return 0
+
+        # Cadence is calculated from the current pool's genuinely dispatchable
+        # candidates; an active queue item still reserves its original slot.
         last_selected = _parse_utc_datetime(state.get("last_content_selection_at"))
         last_channel_published = get_last_channel_published_at(state)
         fresh_unpublished_selection = has_fresh_unpublished_selection(
-            state, now=selection_now, stale_after_minutes=8
+            state, now=selection_now, stale_after_minutes=stale_selection_minutes
         )
         last_slot_anchor = selection_cadence_anchor(
             last_selected,
@@ -10949,28 +11018,19 @@ def run(publish=False, selection_only=False):
             if last_slot_anchor is not None else interval_seconds
         )
         remaining = max(0, interval_seconds - int(elapsed))
-
-        # A daily cap or an unexpired cooldown is a normal no-op, not a failed scan.
         if remaining > 0:
             save_json(STATE, state)
             print(
                 "CONTENT_SELECTION_SLOT_NOT_DUE "
-                f"seconds_remaining={remaining} live_candidates={len(eligible)} "
+                f"seconds_remaining={remaining} adaptive_interval_seconds={interval_seconds} "
+                f"cycle_pool={projection['available_count']} live_candidates={len(eligible)} "
                 f"replaced_stale={replaced}"
             )
             return 0
-        if daily_channel_posts_count(state, selection_now) >= MAX_DAILY_CHANNEL_POSTS:
-            save_json(STATE, state)
-            print(
-                "CONTENT_SELECTION_DAILY_CAP_REACHED "
-                f"limit={MAX_DAILY_CHANNEL_POSTS} live_candidates={len(eligible)}"
-            )
-            return 0
 
-        # Store one due primary plus a compact ranked backup pool.
-        # Backups preserve global discount/savings order. The publisher
-        # repeats live stock, price, identity, title, and affiliate checks.
-        primary = eligible[:1]
+        # The primary and backups are drawn only from this completed cycle's
+        # demand/value/affordability-ranked pool; no weak live-feed fallback exists.
+        primary = pool_eligible[:1]
         summary = enqueue_selected_content(
             state,
             primary,
@@ -10985,19 +11045,23 @@ def run(publish=False, selection_only=False):
             primary_entry = state.get("content_delivery_queue", {}).get(primary_id)
             if isinstance(primary_entry, dict):
                 primary_entry["fallback_candidates"] = [
-                    dict(candidate) for candidate in eligible[1:51]
+                    dict(candidate) for candidate in pool_eligible[1:51]
                     if isinstance(candidate, dict)
                 ]
                 fallback_count = len(primary_entry["fallback_candidates"])
             state["last_content_selection_at"] = selection_now.isoformat()
+        # The projection includes any queued primary and the remaining unqueued pool.
+        projection = pool_runtime_projection(
+            state, now=selection_now, base_interval_seconds=base_interval_seconds
+        )
         save_json(STATE, state)
         print(
             "CONTENT_SELECTION_HANDOFF "
             f"queued={summary['added']} skipped={summary['skipped']} "
-            f"queue_size={summary['queue_size']} live_candidates={len(eligible)} "
-            f"fallback_pool={fallback_count} replaced_stale={replaced} publisher_invoked=false"
+            f"queue_size={summary['queue_size']} cycle_pool_remaining={projection['available_count']} "
+            f"adaptive_interval_seconds={interval_seconds} fallback_pool={fallback_count} "
+            f"current_scan_eligible={len(eligible)} replaced_stale={replaced} publisher_invoked=false"
         )
-        # No eligible offer is a normal outcome. The next scan refreshes the pool.
         return 0
 
     state.setdefault("published", {})
