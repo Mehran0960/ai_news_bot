@@ -3606,6 +3606,7 @@ class AffilioRadarTests(unittest.TestCase):
             "demand_observed_at": now.isoformat(),
             "demand_signal_source": "digikala_recent_review_growth",
         }
+        _with_verified_market_value(item, now, advantage=6)
         with (
             patch("affilio_radar.build_discount_image", return_value=b"rendered") as build_image,
             patch("affilio_radar._send_photo", return_value={"message_id": 1}) as send_photo,
