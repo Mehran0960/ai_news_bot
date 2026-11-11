@@ -261,6 +261,7 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "market_price_checked_at": str(item.get("market_price_checked_at") or ""),
         "market_status": str(item.get("market_status") or ""),
         "market_reference_kind": str(item.get("market_reference_kind") or ""),
+        "market_available_offer_count": int(item.get("market_available_offer_count") or 0),
         "market_price_advantage_pct": item.get("market_price_advantage_pct"),
         "catalog_sort_mode": str(item.get("catalog_sort_mode") or ""),
         "catalog_best_selling_rank": item.get("catalog_best_selling_rank"),
@@ -371,7 +372,8 @@ def _fresh_selected_item(
         "discount_vs_30d_median_pct", "history_days", "history_checked_at", "promo_score",
         "click_count_30d", "market_status", "market_reference_kind",
         "market_reference_price_toman", "market_price_advantage_pct", "market_price_checked_at",
-        "market_match_score", "market_seller_count", "catalog_sort_mode",
+        "market_available_offer_count", "market_reported_seller_count", "market_match_score",
+        "market_seller_count", "catalog_sort_mode",
         "catalog_best_selling_rank", "catalog_category_id", "catalog_category_name",
         "catalog_category_ids", "catalog_category_path", "catalog_best_selling_ranks_by_category",
         "catalog_best_selling_category_id", "catalog_best_selling_category_name",
@@ -452,9 +454,8 @@ def _fresh_selected_item(
     ):
         return None, "live_discount_no_longer_eligible"
 
-    # Demand/review-growth and independent positive market/history signals never
-    # gate an already selected live markdown. Fresh verified contradictions were
-    # already applied by is_discount_publish_eligible above.
+    # Selected evidence is copied onto the fresh product record and the full
+    # independent discount-value gate is re-applied after the live price/stock check.
     if not radar.has_publishable_expiry_or_open_offer(fresh, now):
         return None, "live_offer_expired_or_unverified"
     expiry = _utc(fresh.get("deal_expires_at"))
