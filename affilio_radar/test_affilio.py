@@ -3113,7 +3113,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(floor, 1)
         # Fresh verified market evidence shows dkp-95301 is 8% above the
         # comparable seller median, so it is vetoed. Missing positive evidence
-        # is not a veto; the low-savings but math-consistent 60% offer remains.
+        # is a hard gate; only the remaining offers with independent market proof survive.
         self.assertEqual(
             {item["product_id"] for item in selected},
             {"dkp-95302", "dkp-95303"},
@@ -3266,7 +3266,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(radar_module.has_attractive_discount_value(historical_value, now=now))
         self.assertFalse(radar_module.has_attractive_discount_value(verified_bad_history, now=now))
 
-    def test_new_selection_prefers_native_bestseller_demand_and_keeps_live_markdowns(self):
+    def test_selection_requires_fresh_demand_and_independent_discount_value(self):
         now = datetime.now(timezone.utc)
         base = {
             "product_id": "dkp-95501",
@@ -3311,14 +3311,9 @@ class AffilioRadarTests(unittest.TestCase):
             {"published": {}},
             now,
         )
-        self.assertEqual(
-            [row["product_id"] for row in selected],
-            ["dkp-95502", "dkp-95503", "dkp-95501"],
-        )
-        self.assertEqual(
-            {row["product_id"] for row in quality},
-            {"dkp-95501", "dkp-95502", "dkp-95503"},
-        )
+        # The fresh bestseller rank plus verified market edge is the only fully qualified offer.
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-95502"])
+        self.assertEqual({row["product_id"] for row in quality}, {"dkp-95502"})
 
     def test_open_ended_discovery_candidates_are_not_rejected_before_live_detail_check(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
@@ -3342,7 +3337,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual([pid for pid, _ in queued_rechecks], ["dkp-95401"])
 
 
-    def test_fifteen_percent_discount_is_rejected_by_fifty_percent_floor(self):
+    def test_fifteen_percent_discount_requires_verified_market_or_history_value(self):
         product = {
             "title": "چراغ مطالعه مدل تست",
             "current_price": 850_000,
@@ -3356,7 +3351,8 @@ class AffilioRadarTests(unittest.TestCase):
         scored = score_product(product)
         self.assertEqual(scored["discount_percent"], 15)
         self.assertEqual(scored["savings_toman"], 150_000)
-        self.assertTrue(is_discount_publish_eligible(scored))
+        self.assertFalse(is_discount_publish_eligible(scored))
+        self.assertTrue(is_discount_publish_eligible(_with_verified_market_value(scored, advantage=6)))
 
 
     def test_discovery_ranks_market_demand_before_discount(self):
