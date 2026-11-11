@@ -1770,6 +1770,8 @@
 
 **آزمون و نتیجه:** آزمون جدید eligibility رویدادمحور اضافه شد. اجرای CI/Worker test در PR باید بررسی شود؛ تا پیش از نتیجهٔ واقعی CI، موفقیت آزمون یا انتشار عمومی ادعا نمی‌شود.
 
+**شواهد/شناسه:** PR #160؛ commits `8c3a3d9689d3a2f8d54138e354a714f16c6bf367` و `ff88df6194f96090ff6f3e7b1e20df02aabf50d4` در شاخهٔ `feature/offerchin-event-driven-video-sync-20261111`؛ این شناسه‌ها مسیر Worker eligibility و آزمون مربوط را مشخص می‌کنند.
+
 **ریسک/بازگشت:** افزایش cadence بدون رفع واقعی محدودیت‌های مقصد می‌تواند باعث خطا، توقف روزانه یا محتوای منقضی شود. هیچ صف، state یا slot runtime reset نشد؛ rollback با revert همین تغییر مستندات/تست/توضیحات ممکن است.
 
 **وضعیت:** تغییرات مستندات و آزمون در شاخهٔ مستقل؛ PR و CI در انتظار.
@@ -1791,6 +1793,8 @@
 **فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/test_shared_selection_media_routing.py`، `affilio_radar/test_affilio.py`، `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `affilio_radar/short_video.py`، `affilio_radar/test_short_video.py`، `docs/OFFERCHIN_SHARED_SELECTION_MEDIA_ROUTING_FA.md` و همین changelog.
 
 **آزمون و نتیجه:** آزمون جدید Worker برای واجدشرایط‌بودن محصول بدون تحویل تصویری اضافه شد؛ آزمون Python برای sidecar و compatibility رکوردهای قدیمی اصلاح شد؛ آزمون چیدمان title-space و مختصات CTA/لوگو/پنل قیمت اصلاح شد. نتیجهٔ CI کامل و تست رندر پس از اجرای workflowهای PR باید ثبت شود؛ پیش از آن موفقیت نهایی ادعا نمی‌شود.
+
+**شواهد/شناسه:** PR #160؛ head commit `fb7c93626ca671ef44cccdaba452f117c8877df5`؛ Worker validation run `43098874123` موفق؛ Documentation Gate run `43098874143` و Platform Logo Regression run `43098874345` در نخستین اجرا به‌ترتیب به علت تکمیل‌نبودن مستندات و import نشدن ثابت‌های layout شکست خوردند. این نتایج هنوز تأیید نهایی کل تغییر نیستند.
 
 **ریسک/بازگشت:** fan-out ویدئو حتی در صورت شکست همهٔ کانال‌های تصویری ممکن است ادامه یابد؛ این مطابق سیاست استقلال است، مشروط به اینکه رکورد canonical و گیت‌های زنده معتبر باشند. بازگشت با revert تغییر helper واجدشرایط‌بودن، projection Worker، تست‌ها و layout ویدئو انجام می‌شود؛ state/صف موجود reset یا migrate نمی‌شود.
 
