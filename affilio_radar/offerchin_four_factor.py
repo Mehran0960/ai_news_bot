@@ -199,6 +199,10 @@ def apply_four_factor_scores(
         current = current.replace(tzinfo=timezone.utc)
     current_iso = current.astimezone(timezone.utc).isoformat()
 
+    cohort_sizes = {
+        group: sum(1 for candidate in rows if groups[index] == group and _number(candidate.get("current_price")) > 0)
+        for index, group in enumerate(groups)
+    }
     for index, row in enumerate(rows):
         demand = _clamp(_number(live_demand_score_fn(row)))
         entry_price, affordability_basis = _entry_price_toman(row)
@@ -221,7 +225,7 @@ def apply_four_factor_scores(
             "weakest_factor_score": round(min(components), 2),
             "generality_group": groups[index],
             "affordability_basis": affordability_basis,
-            "price_cohort_size": sum(1 for group in groups if group == groups[index] and _number(rows[groups.index(group)].get("current_price")) > 0) if relative is not None else 0,
+            "price_cohort_size": cohort_sizes.get(groups[index], 0) if relative is not None else 0,
             "discount_evidence": discount_evidence,
             "score_interpretation": "heuristic_priority_index_not_conversion_probability",
         }
@@ -231,6 +235,10 @@ def apply_four_factor_scores(
 def four_factor_sort_key(row: dict) -> tuple:
     score = row.get("offerchin_four_factor") if isinstance(row, dict) else None
     score = score if isinstance(score, dict) else {}
+    # Incomplete legacy/test cards must fall back to the pre-existing demand/deal
+    # order rather than being spuriously rearranged by partial four-factor data.
+    if _number(score.get("affordability")) <= 0 or _number(score.get("discount_attractiveness")) <= 0:
+        return (0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     return (
         _number(score.get("balanced_score")),
         _number(score.get("weakest_factor_score")),
