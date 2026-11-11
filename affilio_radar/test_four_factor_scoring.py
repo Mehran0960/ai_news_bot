@@ -77,6 +77,23 @@ class FourFactorScoringTests(unittest.TestCase):
             scored[1]["selection_demand_score"],
         )
 
+    def test_recent_review_growth_proxy_accepts_seven_day_window_but_not_older(self):
+        candidate = {
+            "product_id": "dkp-review-window",
+            "current_demand_verified": True,
+            "recent_review_growth_window": 14,
+            "demand_window_hours": 168,
+            "demand_observed_at": self.now.isoformat(),
+            "demand_signal_source": "snappshop_recent_review_growth",
+            "current_price": 500_000,
+        }
+        within_window = score_candidates([candidate], now=self.now)[0]
+        self.assertGreater(within_window["selection_demand_score"], 0)
+        self.assertLessEqual(within_window["selection_demand_score"], 65)
+        too_old = {**candidate, "demand_window_hours": 168.1}
+        outside_window = score_candidates([too_old], now=self.now)[0]
+        self.assertEqual(outside_window["selection_demand_score"], 0)
+
     def test_affordability_rewards_lower_actual_prices_within_candidate_pool(self):
         cheap = self._ranked(1, price=100_000, discount=20, savings=20_000)
         medium = self._ranked(2, price=1_000_000, discount=20, savings=200_000)
