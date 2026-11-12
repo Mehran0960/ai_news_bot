@@ -310,7 +310,13 @@ class OfferChinFourFactorTests(unittest.TestCase):
             "savings_toman": 500_000,
             "history_status": "verified",
             "historical_deal_eligible": True,
-            "history_checked_at": self.now.isoformat()
+            "history_checked_at": self.now.isoformat(),
+            "current_demand_verified": True,
+            "recent_review_growth_window": 6,
+            "recent_review_growth_7d": 6,
+            "demand_window_hours": 6,
+            "demand_observed_at": self.now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth"
         }
         with patch.object(radar, "is_product_suppressed", return_value=False), \
              patch.object(radar, "is_discount_publish_eligible", return_value=True), \
@@ -356,7 +362,13 @@ class OfferChinFourFactorTests(unittest.TestCase):
             "savings_toman": 500_000,
             "history_status": "verified",
             "historical_deal_eligible": True,
-            "history_checked_at": self.now.isoformat()
+            "history_checked_at": self.now.isoformat(),
+            "current_demand_verified": True,
+            "recent_review_growth_window": 6,
+            "recent_review_growth_7d": 6,
+            "demand_window_hours": 6,
+            "demand_observed_at": self.now.isoformat(),
+            "demand_signal_source": "digikala_recent_review_growth"
         }
         with patch.object(radar, "has_attractive_discount_value", return_value=True), \
              patch.object(radar, "_publication_use_case_group", return_value="kitchen_food"), \
