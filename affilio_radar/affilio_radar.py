@@ -4896,8 +4896,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
     if isinstance(state, dict):
-        # Migrate the legacy three-hour Filo slot while building the sidecar;
-        # Cloudflare reads this projection before dispatching the Python workflow.
+        # Delete legacy interval state before projecting the age-free FIFO to Cloudflare.
         _initialize_filo_upload_slot(state)
     published = state.get("published") if isinstance(state, dict) else {}
     candidates = []
@@ -9332,13 +9331,14 @@ def process_pending_short_video(
     candidate_limit: int | None = None,
     max_age_hours: int | None = None,
 ) -> bool:
-    """Generate and publish a vertical artifact for a selected product.
+    """Generate or upload a vertical artifact for one canonical selected product.
 
-    Normal queue scans respect each platform's upload schedule. force_due=True bypasses
-    cross-item spacing only; it never bypasses quotas, credentials, destination isolation,
-    or expiry safety. YouTube may use the last-mile channel price/stock checks plus the
-    independent integrity audit when no retailer expiry timer exists. Public Aparat uploads
-    continue to require a directly verified expiry deadline.
+    Video destinations consume their own FIFO without artificial spacing or queue-age
+    limits. force_due remains a compatibility argument; it does not bypass real quotas,
+    credentials, destination isolation, uncertain-outcome protection or offer expiry.
+    YouTube uses last-mile price/stock validation plus the independent integrity audit
+    when no retailer expiry timer exists. Public Aparat uploads still require a verified
+    expiry deadline.
     """
     selected_destinations = (
         {"youtube", "aparat"} if destinations is None
