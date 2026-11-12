@@ -23,6 +23,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: write
   contents: write
 
 concurrency:
@@ -221,6 +222,7 @@ jobs:
       # Cleanup has its own scheduled workflow and audit ledger; it never
       # occupies this publisher's execution window or competes for state.json.
       - name: Persist independent per-platform results
+        id: persist_delivery_state
         if: always()
         run: |
           git config user.name "github-actions[bot]"
@@ -256,3 +258,12 @@ jobs:
           else
             echo "No delivery-state changes to persist."
           fi
+      - name: Dispatch unified video fan-out for the canonical product queue
+        if: ${{ always() && steps.persist_delivery_state.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/actions/workflows/offerchin-video-publisher.yml/dispatches" \
+            -f ref=main
+          echo "OFFERCHIN_VIDEO_FANOUT_DISPATCHED source=selected_content_publisher"
