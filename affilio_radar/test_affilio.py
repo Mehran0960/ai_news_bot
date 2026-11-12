@@ -104,7 +104,6 @@ from affilio_radar import (
     process_pending_short_video,
     _retain_superseded_youtube_video,
     VIDEO_STYLE_VERSION,
-    YOUTUBE_UPLOAD_INTERVAL_HOURS,
     MIN_POST_INTERVAL_HOURS,
     VIDEO_DISPATCH_STATE_RECORD_LIMIT,
     VIDEO_UPLOAD_CANDIDATE_LIMIT,
@@ -6117,12 +6116,7 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(record["youtube_upload_status"], "uploaded")
             self.assertEqual(record["youtube_video_id"], "yt_test_123")
             self.assertEqual(record["youtube_video_url"], "https://www.youtube.com/shorts/yt_test_123")
-            uploaded_at = datetime.fromisoformat(record["youtube_uploaded_at"])
-            next_upload_at = datetime.fromisoformat(state["youtube_next_upload_at"])
-            self.assertEqual(
-                next_upload_at,
-                uploaded_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS),
-            )
+            self.assertNotIn("youtube_next_upload_at", state)
             self.assertEqual(state["youtube_last_upload_success_at"], record["youtube_uploaded_at"])
 
 
@@ -6175,7 +6169,6 @@ class AffilioRadarTests(unittest.TestCase):
             patch("affilio_radar._fetch_image", return_value=b"fake-image"),
             patch("affilio_radar.save_json"),
             patch("affilio_radar.APARAT_SHORTS_ONLY", False),
-            patch("affilio_radar._aparat_upload_slot_due", return_value=True),
             patch("short_video.youtube_credentials_available", return_value=True),
             patch("short_video.render_short_video", side_effect=fake_render),
             patch("short_video.upload_youtube_video", side_effect=fake_youtube_upload),
@@ -6410,11 +6403,11 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(no_timer["video_generation_status"], "generated")
         self.assertEqual(verified_lower_demand["aparat_upload_status"], "pending")
 
-    def test_youtube_upload_waits_three_hours_after_previous_success_and_selects_late(self):
+    def test_youtube_upload_is_event_driven_without_a_three_hour_slot(self):
         now = datetime.now(timezone.utc)
         prior_uploaded_at = now - timedelta(hours=1)
         prior_id = "dkp-previous-youtube-success"
-        pending_id = "dkp-youtube-waiting-slot"
+        pending_id = "dkp-youtube-event-driven"
         prior = {
             "title": "ویدئوی قبلی",
             "youtube_upload_status": "uploaded",
@@ -6424,7 +6417,7 @@ class AffilioRadarTests(unittest.TestCase):
         }
         pending = {
             "ts": now.timestamp(),
-            "title": "پیشنهاد بهتر برای اسلات بعدی",
+            "title": "پیشنهاد منتخب آمادهٔ انتشار",
             "product_url": f"https://www.digikala.com/product/{pending_id}/",
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
             "expires_at": (now + timedelta(hours=4)).isoformat(),
@@ -6439,24 +6432,31 @@ class AffilioRadarTests(unittest.TestCase):
             "youtube_upload_status": "pending",
         }
         state = {"published": {prior_id: prior, pending_id: pending}}
-        expected_next = prior_uploaded_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS)
+
+        def fake_render(image_bytes, discount, path, **kwargs):
+            output = Path(path)
+            output.write_bytes(b"event-driven-video")
+            return output
 
         with (
             TemporaryDirectory() as output_dir,
-            patch("affilio_radar._fetch_image") as fetch_image,
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
             patch("affilio_radar.save_json"),
             patch("short_video.youtube_credentials_available", return_value=True),
             patch("aparat_uploader.aparat_credentials_available", return_value=False),
             patch("short_video.telegram_video_review_available", return_value=False),
-            patch("short_video.render_short_video") as render,
-            patch("short_video.upload_youtube_video") as upload,
+            patch("short_video.render_short_video", side_effect=fake_render),
+            patch("short_video.upload_youtube_video", return_value={
+                "video_id": "yt_event_driven",
+                "url": "https://www.youtube.com/shorts/yt_event_driven",
+            }) as upload,
         ):
-            self.assertFalse(process_pending_short_video(state, now=now, output_dir=output_dir))
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
 
-        self.assertEqual(state["youtube_next_upload_at"], expected_next.isoformat())
-        fetch_image.assert_not_called()
-        render.assert_not_called()
-        upload.assert_not_called()
+        upload.assert_called_once()
+        self.assertEqual(pending["youtube_upload_status"], "uploaded")
+        self.assertEqual(pending["youtube_video_id"], "yt_event_driven")
+        self.assertNotIn("youtube_next_upload_at", state)
 
     def test_youtube_upload_failure_preserves_http_diagnostic_for_retry(self):
         now = datetime.now(timezone.utc)
