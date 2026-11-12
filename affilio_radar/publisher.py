@@ -156,6 +156,12 @@ def _target_ready(name: str) -> bool:
             return bool(radar.APARAT_UPLOAD_ENABLED and aparat_credentials_available())
         except Exception:
             return False
+    if name == "filo":
+        try:
+            from filo_uploader import filo_credentials_available
+            return bool(filo_credentials_available())
+        except Exception:
+            return False
     return False
 
 
@@ -548,84 +554,85 @@ def _process_photo_destination(
 
 
 def _process_video_destinations(state: dict, entry: dict, record: dict, now: datetime) -> None:
+    """Fan out the exact selected product to every video outlet, in canonical queue order.
+
+    The main publisher is the single state writer. Each outlet is attempted once, then
+    retried once immediately if the outcome is definitely retryable. Unknown submission
+    outcomes are never replayed automatically; exhausted/unsupported destinations are
+    marked skipped so the next selected product can advance the common sequence.
+    """
     product_id = str(entry.get("product_id") or "")
-    for target_name in VIDEO_PLATFORMS:
-        target = _target(entry, target_name)
-        if target.get("status") == "sent":
-            continue
-        if not _target_ready(target_name):
-            _set_target(entry, target_name, "not_connected", now, "credentials_not_configured")
-            _save(state)
-        elif target.get("status") == "not_connected":
-            # A later-added platform becomes eligible without rerunning discovery.
+    if not product_id:
+        return
+
+    for destination in VIDEO_PLATFORMS:
+        target = _target(entry, destination)
+        if target.get("status") == "not_connected" and _target_ready(destination):
             target["status"] = "pending"
             target.pop("last_error", None)
-            _save(state)
-    if any(_target(entry, name).get("status") in {"pending", "failed", "retry", "sending"} for name in VIDEO_PLATFORMS):
+        elif not _target_ready(destination):
+            record[f"{destination}_upload_status"] = "pending_credentials"
+            _set_target(entry, destination, "not_connected", now, "credentials_not_configured")
+
+    # Run all connected video outlets for this exact product. process_pending_short_video
+    # catches each platform's upload failure locally, so one outlet cannot suppress another.
+    for attempt_index in range(2):
+        connected_pending = {
+            name for name in VIDEO_PLATFORMS
+            if _target_ready(name)
+            and str(record.get(f"{name}_upload_status") or "pending") in {
+                "pending", "pending_credentials", "retry"
+            }
+        }
+        if not connected_pending:
+            break
         try:
-            # The same selected product is processed immediately. The video processor
-            # bypasses only its normal cross-item time slot, not platform quotas or errors.
             radar.process_pending_short_video(
                 state,
-                now=now,
-                destinations={"youtube", "aparat"},
-                # Respect each video platform's own quota/cadence. The selected
-                # content remains queued for that destination until its next slot.
-                force_due=False,
+                now=_now(),
+                destinations=connected_pending,
+                force_due=True,
+                retry_immediately=attempt_index > 0,
                 only_product_id=product_id,
+                max_age_hours=None,
             )
         except Exception as exc:
-            print(f"VIDEO_DESTINATION_DISPATCH_FAILED product_id={product_id} error={type(exc).__name__}")
-            record["video_delivery_last_error"] = type(exc).__name__
+            record["video_delivery_last_error"] = f"{type(exc).__name__}: {str(exc)[:180]}"
+            print(
+                f"VIDEO_DESTINATION_DISPATCH_FAILED product_id={product_id} "
+                f"attempt={attempt_index + 1} error={type(exc).__name__}"
+            )
             _save(state)
 
-    youtube_status = str(record.get("youtube_upload_status") or "pending")
-    if youtube_status == "uploaded":
-        _set_target(entry, "youtube", "sent", _now())
-    elif not _target_ready("youtube"):
-        _set_target(entry, "youtube", "not_connected", _now(), "credentials_not_configured")
-    elif youtube_status == "upload_result_unknown":
-        _set_target(entry, "youtube", "manual_review", _now(), str(record.get("youtube_last_error") or "upload_result_unknown"))
-    elif youtube_status == "skipped_unverified_deadline":
-        _target(entry, "youtube")["status"] = "pending"
-        _target(entry, "youtube")["last_error"] = "waiting_for_verified_deadline"
-    elif youtube_status in {"retry", "pending", "pending_credentials", "uploading"}:
-        t = _target(entry, "youtube")
-        t["status"] = "failed" if youtube_status == "retry" else "pending"
-        t["last_error"] = str(record.get("youtube_last_error") or youtube_status)
-        next_slot = (
-            _utc(record.get("youtube_next_attempt_at"))
-            or _utc(state.get("youtube_uploads_paused_until"))
-            or _utc(state.get("youtube_next_upload_at"))
-        )
-        t["next_attempt_at"] = (
-            next_slot if next_slot and next_slot > now else now + timedelta(minutes=15)
-        ).isoformat()
-    else:
-        _target(entry, "youtube")["status"] = "pending"
-
-    aparat_status = str(record.get("aparat_upload_status") or "pending")
-    if aparat_status == "uploaded":
-        _set_target(entry, "aparat", "sent", _now())
-    elif not _target_ready("aparat"):
-        _set_target(entry, "aparat", "not_connected", _now(), "credentials_not_configured")
-    elif aparat_status == "upload_result_unknown":
-        _set_target(entry, "aparat", "manual_review", _now(), str(record.get("aparat_last_error") or "upload_result_unknown"))
-    elif aparat_status == "waiting_shorts_uploader":
-        _set_target(entry, "aparat", "manual_review", _now(), "shorts_uploader_not_supported_by_current_path")
-    elif aparat_status == "skipped_unverified_deadline":
-        _target(entry, "aparat")["status"] = "pending"
-        _target(entry, "aparat")["last_error"] = "waiting_for_verified_deadline"
-    elif aparat_status in {"retry", "pending", "pending_credentials", "uploading"}:
-        t = _target(entry, "aparat")
-        t["status"] = "failed" if aparat_status == "retry" else "pending"
-        t["last_error"] = str(record.get("aparat_last_error") or aparat_status)
-        next_slot = _utc(record.get("aparat_next_attempt_at")) or _utc(state.get("aparat_next_upload_at"))
-        t["next_attempt_at"] = (
-            next_slot if next_slot and next_slot > now else now + timedelta(minutes=15)
-        ).isoformat()
-    else:
-        _target(entry, "aparat")["status"] = "pending"
+    completed_statuses = {
+        "uploaded", "published", "submitted_pending_approval", "submitted_unconfirmed",
+    }
+    skipped_statuses = {
+        "skipped_expiring_soon", "skipped_platform_quota", "skipped_after_retries",
+        "skipped_generation_failed", "skipped_unverified_deadline",
+        "waiting_shorts_uploader", "rejected_by_filo",
+    }
+    for destination in VIDEO_PLATFORMS:
+        status = str(record.get(f"{destination}_upload_status") or "pending")
+        if status in completed_statuses:
+            _set_target(entry, destination, "sent", _now())
+        elif not _target_ready(destination):
+            record[f"{destination}_upload_status"] = "pending_credentials"
+            _set_target(entry, destination, "not_connected", _now(), "credentials_not_configured")
+        elif status in {"upload_result_unknown", "uploading"}:
+            _set_target(
+                entry, destination, "manual_review", _now(),
+                str(record.get(f"{destination}_last_error") or status),
+            )
+        elif status in skipped_statuses:
+            _set_target(entry, destination, "skipped", _now(), status)
+        elif status in {"pending", "pending_credentials", "retry"}:
+            # Two immediate attempts have already been made. Do not let a failed
+            # destination hold later products hostage.
+            record[f"{destination}_upload_status"] = "skipped_after_retries"
+            _set_target(entry, destination, "skipped", _now(), "retry_budget_exhausted")
+        else:
+            _set_target(entry, destination, "skipped", _now(), status or "unsupported_status")
     _save(state)
 
 
@@ -781,6 +788,10 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         record = _record_from_item(fresh, old, now, delivery_id)
         state.setdefault("published", {})[product_id] = record
         _save(state)
+
+        # The same selection event fans out to YouTube, Aparat and Filo immediately.
+        # This runs before photo delivery and is independent of Telegram/Bale outcomes.
+        _process_video_destinations(state, entry, record, now)
 
         try:
             image_bytes = radar._fetch_image(str(fresh.get("image_url") or ""))
