@@ -4909,11 +4909,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             video_dispatch_eligible = _has_video_dispatch_eligibility(raw)
             if not video_dispatch_eligible:
                 continue
-            if not any(
-                str(raw.get(f"{platform}_upload_status") or "pending").strip().lower()
-                in VIDEO_DESTINATION_PENDING_STATUSES
-                for platform in ("youtube", "aparat", "filo")
-            ):
+            if not _has_pending_video_destination(raw):
                 continue
             try:
                 ts = float(raw.get("ts") or 0)
@@ -9318,6 +9314,24 @@ def _has_video_dispatch_eligibility(record: dict) -> bool:
     )
 
 
+def _has_pending_video_destination(
+    record: dict,
+    destinations: set[str] | None = None,
+) -> bool:
+    """Return whether this canonical product still needs an attempted video delivery."""
+    if not isinstance(record, dict):
+        return False
+    selected = {"youtube", "aparat", "filo"} if destinations is None else {
+        str(item).strip().lower() for item in destinations
+    }
+    return any(
+        platform in selected
+        and str(record.get(f"{platform}_upload_status") or "pending").strip().lower()
+        in VIDEO_DESTINATION_PENDING_STATUSES
+        for platform in ("youtube", "aparat", "filo")
+    )
+
+
 def _video_upload_candidate_sort_key(row: tuple) -> tuple:
     """Preserve the canonical product-selection order on every video destination.
 
@@ -9614,7 +9628,15 @@ def process_pending_short_video(
                 print(f"APARAT_VIDEO_RECONCILE_FAILED id={pid} error={type(exc).__name__}")
             break  # One lookup per scan; other posting and video tasks remain independent.
 
-    candidate_records = list(published.items())
+    candidate_records = [
+        (pid, record)
+        for pid, record in published.items()
+        if isinstance(record, dict)
+        and (
+            _has_pending_video_destination(record, selected_destinations)
+            or (review_ready and not record.get("video_review_sent"))
+        )
+    ]
     if candidate_limit is not None and only_product_id is None:
         limit = max(1, min(VIDEO_DISPATCH_STATE_RECORD_LIMIT, int(candidate_limit)))
         candidate_records.sort(
