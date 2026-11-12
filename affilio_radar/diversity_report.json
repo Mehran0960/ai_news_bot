@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-12T08:56:55.589591+00:00",
+  "generated_at": "2026-11-12T09:04:20.264027+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار آشپزی": 1,
@@ -110,7 +110,6 @@
       "ساعت هوشمند": 1,
       "سمپاش": 1,
       "سکه پارسیان (گرمی)": 1,
-      "ضدیخ و آب رادیاتور": 1,
       "عطر و ادکلن زنانه": 1,
       "لایه بردار پوست و اسکراب": 1,
       "لوازم اتو": 1,
@@ -136,42 +135,42 @@
       "home": 2,
       "lighting": 1,
       "mobile_devices": 1,
-      "other": 10,
+      "other": 9,
       "personal_care": 7,
       "power_backup": 1,
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "audio_wearables": 3.7,
-      "automotive": 3.7,
-      "beauty_fragrance": 3.7,
-      "grocery_food": 3.7,
-      "home": 7.4,
-      "lighting": 3.7,
-      "mobile_devices": 3.7,
-      "other": 37.0,
-      "personal_care": 25.9,
-      "power_backup": 3.7,
-      "sports_outdoor": 3.7
+      "audio_wearables": 3.8,
+      "automotive": 3.8,
+      "beauty_fragrance": 3.8,
+      "grocery_food": 3.8,
+      "home": 7.7,
+      "lighting": 3.8,
+      "mobile_devices": 3.8,
+      "other": 34.6,
+      "personal_care": 26.9,
+      "power_backup": 3.8,
+      "sports_outdoor": 3.8
     },
-    "distinct_catalog_categories": 27,
+    "distinct_catalog_categories": 26,
     "distinct_categories": 11,
-    "distinct_families": 27,
+    "distinct_families": 26,
     "distinct_retailers": 1,
     "distinct_use_cases": 12,
     "known_brand_posts": 0,
-    "posts": 27,
+    "posts": 26,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 27
+      "digikala": 26
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
       "automotive": 3,
-      "catalog_taxonomy_other": 5,
+      "catalog_taxonomy_other": 4,
       "grocery_food": 1,
       "home_cleaning": 1,
       "home_living": 1,
@@ -405,30 +404,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 846,
+    "all_time_count": 847,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-11T18:51:53.902001+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-12935579",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-14194589",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم پوست ویتالیر مدل گلایکولیک اسید ٪7 مناسب برای پوست مختلط حجم 30 میلی لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-11T18:51:53.902001+00:00",
         "brand": "",
@@ -751,6 +733,23 @@
         ],
         "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
         "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-12T09:04:20.264027+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4184133",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
       }
     ]
   }
