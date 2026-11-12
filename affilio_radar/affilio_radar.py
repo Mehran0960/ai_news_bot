@@ -8658,6 +8658,7 @@ def select_discount_fallback_candidates(
         else:
             for gap in gaps:
                 evidence_rejections[gap] = evidence_rejections.get(gap, 0) + 1
+    evidence_candidate_count = len(quality_eligible)
     quality_eligible = evidence_passed
     eligible_ids = {
         str(item.get("product_id") or product_id(item.get("product_url") or ""))
@@ -8670,7 +8671,7 @@ def select_discount_fallback_candidates(
     if evidence_rejections:
         print(
             "FOUR_FACTOR_SELECTION_GATE "
-            f"passed={len(quality_eligible)} rejected={sum(evidence_rejections.values())} "
+            f"passed={len(quality_eligible)} rejected={evidence_candidate_count - len(quality_eligible)} "
             f"reasons={json.dumps(evidence_rejections, ensure_ascii=False, sort_keys=True)} "
             "legacy_public_fallback=false"
         )
