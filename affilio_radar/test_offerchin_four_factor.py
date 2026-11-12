@@ -302,7 +302,7 @@ class OfferChinFourFactorTests(unittest.TestCase):
                 now=self.now,
             )
         self.assertEqual([row["product_id"] for row in selected], ["dkp-fallback-901"])
-        self.assertEqual(floor, 50)
+        self.assertEqual(floor, radar.MIN_DISCOUNT_FALLBACK_PERCENT)
         self.assertEqual(len(quality), 1)
 
     def test_live_publication_selector_blocks_unverified_store_markdown(self):
