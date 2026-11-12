@@ -73,11 +73,15 @@ jobs:
           source = Path("affilio_radar/affilio_radar.py").read_text(encoding="utf-8")
           worker = Path("cloudflare/affilio-minute-dispatcher.js").read_text(encoding="utf-8")
           publisher = Path(".github/workflows/offerchin-publisher.yml").read_text(encoding="utf-8")
+          emergency = Path(".github/workflows/affilio-publisher.yml").read_text(encoding="utf-8")
           unified = Path(".github/workflows/offerchin-video-publisher.yml").read_text(encoding="utf-8")
 
           assert "--all-video-upload-only" in source
           assert "run_all_video_uploads_only" in source
           assert "offerchin-video-publisher.yml" in publisher
+          assert "offerchin-video-publisher.yml" in emergency
+          assert "actions: write" in publisher
+          assert "actions: write" in emergency
           assert "--all-video-upload-only" in unified
           assert "VIDEO_WORKFLOW_RETRY_GAP_MS" not in worker
           assert "VIDEO_UPLOAD_MAX_AGE_MS" not in worker
