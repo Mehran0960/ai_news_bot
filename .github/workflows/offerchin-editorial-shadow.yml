@@ -1,6 +1,15 @@
 name: OfferChin Editorial Shadow Diagnostics
 
 on:
+  # Run an immediate read-only report when the editorial contract or bank changes.
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/offerchin-editorial-shadow.yml"
+      - "affilio_radar/editorial_bank.json"
+      - "affilio_radar/editorial_content.py"
+      - "affilio_radar/editorial_publisher.py"
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch:
