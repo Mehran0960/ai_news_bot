@@ -192,30 +192,34 @@ def _active_queue_entries(queue: Any) -> list[tuple[str, dict]]:
     ]
 
 
-def _evict_oldest_active_queue_item(state: dict, now: datetime) -> bool:
-    """Drop the oldest unresolved hand-off when the bounded queue needs a slot."""
-    queue = state.get("content_delivery_queue")
-    entries = _active_queue_entries(queue)
+def _evict_newest_unstarted_queue_item(state: dict, now: datetime) -> bool:
+    """Trim legacy overflow without discarding an older item already in delivery."""
+    entries = _active_queue_entries(state.get("content_delivery_queue"))
     if not entries:
         return False
-
     minimum_time = datetime.min.replace(tzinfo=timezone.utc)
-
-    def selected_time(pair: tuple[str, dict]) -> datetime:
-        entry = pair[1]
-        return (
+    candidates = []
+    for product_id, entry in entries:
+        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+        reached_any = any(
+            isinstance(target, dict) and target.get("status") == "sent"
+            for target in platforms.values()
+        )
+        if reached_any or entry.get("status") == "partial":
+            continue
+        selected = (
             _utc(entry.get("selected_at"))
             or _utc(entry.get("scheduled_at"))
             or minimum_time
         )
-
-    product_id, _entry = min(entries, key=selected_time)
+        candidates.append((selected, product_id))
+    if not candidates:
+        return False
+    # Evict the newest unstarted item, never an older partial delivery.
+    _selected, product_id = max(candidates, key=lambda item: item[0])
     finish_queue_item(
-        state,
-        product_id,
-        "cancelled",
-        now=now,
-        detail="bounded_retry_queue_eviction: oldest unresolved selection dropped to protect fresh slots",
+        state, product_id, "cancelled", now=now,
+        detail="bounded_retry_queue_eviction: newest unstarted selection dropped to preserve FIFO",
     )
     return True
 
@@ -226,7 +230,7 @@ def enforce_queue_limit(
     now: datetime | None = None,
     max_active_items: int | None = None,
 ) -> int:
-    """Keep the hand-off/retry queue bounded; never replay a long publication backlog."""
+    """Trim overflow only from newest unstarted items; preserve FIFO retries."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -234,7 +238,7 @@ def enforce_queue_limit(
     limit = _configured_queue_limit(max_active_items)
     evicted = 0
     while len(_active_queue_entries(state.get("content_delivery_queue"))) > limit:
-        if not _evict_oldest_active_queue_item(state, current):
+        if not _evict_newest_unstarted_queue_item(state, current):
             break
         evicted += 1
     return evicted
@@ -382,13 +386,11 @@ def enqueue_selected_content(
             skipped += 1
             continue
 
-        # Make room for the fresh selection rather than building a long retry backlog.
-        # Partial deliveries remain retryable until evicted by this bound or rejected
-        # by live price/stock/deadline validation in the publisher.
-        while len(_active_queue_entries(queue)) >= queue_limit:
-            if not _evict_oldest_active_queue_item(state, now):
-                break
-            queue_evicted += 1
+        # Never evict an older unresolved/partially delivered selection to admit a newer
+        # one. When full, skip this candidate and let the next scan retry admission.
+        if len(_active_queue_entries(queue)) >= queue_limit:
+            skipped += 1
+            continue
 
         # Keep only JSON-compatible fields in the hand-off record. New platform
         # adapters can consume this contract without importing the discovery module.
@@ -425,7 +427,7 @@ def enqueue_selected_content(
 
 
 def due_content(state: dict, *, now: datetime | None = None, limit: int = 1) -> list[tuple[str, dict]]:
-    """Return scheduled items due for delivery in stable schedule/priority order."""
+    """Return due items in strict FIFO order; a retrying item blocks all newer items."""
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
@@ -433,31 +435,33 @@ def due_content(state: dict, *, now: datetime | None = None, limit: int = 1) -> 
     queue = state.get("content_delivery_queue")
     if not isinstance(queue, dict):
         return []
-    due = []
+
+    ordered = []
     for product_id, entry in queue.items():
         if not isinstance(entry, dict) or entry.get("status") in TERMINAL_QUEUE_STATUSES:
             continue
         scheduled = _utc(entry.get("scheduled_at"))
-        retry_at = _utc(entry.get("next_attempt_at"), scheduled)
-        if scheduled is None or scheduled > now or (retry_at and retry_at > now):
+        if scheduled is None:
             continue
-        # New content with zero successful deliveries must outrank old partial items.
-        # A slow/broken platform therefore cannot monopolize the publisher's single-item run.
-        has_success = _has_any_delivery_success(state, str(product_id), entry)
-        # Preserve queue/schedule order; demand or popularity telemetry must never
-        # reorder items after the discount-first selector has already ranked them.
-        due.append((
-            1 if has_success else 0,
-            scheduled,
-            str(product_id),
-            entry,
-        ))
-    # Python's stable sort retains queue insertion (selection) order on an exact schedule tie.
-    due.sort(key=lambda row: (row[0], row[1]))
-    return [
-        (product_id, entry)
-        for _partial, _scheduled, product_id, entry in due[:max(1, int(limit))]
-    ]
+        ordered.append((scheduled, str(product_id), entry))
+
+    # Python's stable sort preserves the original selector/dict insertion order on
+    # identical scheduled_at timestamps; product IDs must not break a genuine tie.
+    ordered.sort(key=lambda row: row[0])
+    due = []
+    for scheduled, product_id, entry in ordered:
+        if scheduled > now:
+            break
+        retry_at = _utc(entry.get("next_attempt_at"), scheduled)
+        if retry_at is not None and retry_at > now:
+            # Preserve the same content sequence across every channel. The current
+            # product gets its bounded retries; later products wait, then may proceed
+            # once this entry succeeds or reaches a terminal skip state.
+            break
+        due.append((product_id, entry))
+        if len(due) >= max(1, int(limit)):
+            break
+    return due
 
 
 def finish_queue_item(state: dict, product_id: str, status: str, *, now: datetime | None = None, detail: str = "") -> None:

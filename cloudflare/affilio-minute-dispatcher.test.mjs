@@ -5,6 +5,7 @@ import {
   isInitialCatalogWarmup,
   isDegradedLiveFallbackAvailable,
   hasDueVideoRecord,
+  hasDueVideoFanout,
   videoRecordDue,
   isFiloLoginVerified,
   PUBLISHER_INTERVAL_MS,
@@ -259,6 +260,53 @@ test("video destinations accept the canonical selected product without waiting f
     video_dispatch_eligible: false,
     distribution_queue_id: "",
   }, "youtube", now), false);
+});
+
+test("combined fan-out is due for any ready destination and respects Filo login readiness", () => {
+  const now = Date.now();
+  const videoRecord = {
+    ts: (now - 60_000) / 1000,
+    video_dispatch_eligible: true,
+    distribution_queue_id: "dkp-shared-1",
+    delivery_status: { telegram: "sent" },
+    youtube_upload_status: "uploaded",
+    aparat_upload_status: "uploaded",
+    filo_upload_status: "pending",
+    video_generation_status: "generated",
+    expires_at: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
+  };
+  const filoOnly = { published: { "dkp-shared-1": videoRecord } };
+  assert.equal(hasDueVideoFanout(filoOnly, now), false, "Filo alone waits for explicit login verification");
+
+  const readyFilo = {
+    ...filoOnly,
+    filo_login_verification_status: "verified",
+    filo_login_verified_at: new Date(now - 60 * 60 * 1000).toISOString(),
+  };
+  assert.equal(hasDueVideoFanout(readyFilo, now), true, "verified Filo queue starts the common workflow");
+
+  const youtubeReady = {
+    published: {
+      "dkp-shared-2": {
+        ...videoRecord,
+        youtube_upload_status: "pending",
+        filo_upload_status: "uploaded",
+      },
+    },
+  };
+  assert.equal(hasDueVideoFanout(youtubeReady, now), true, "YouTube queue also starts the same workflow");
+
+  const allComplete = {
+    published: {
+      "dkp-shared-3": {
+        ...videoRecord,
+        youtube_upload_status: "uploaded",
+        aparat_upload_status: "uploaded",
+        filo_upload_status: "uploaded",
+      },
+    },
+  };
+  assert.equal(hasDueVideoFanout(allComplete, now), false);
 });
 
 test("Filo login must be explicitly verified and no older than seven days", () => {

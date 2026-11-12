@@ -1,76 +1,42 @@
 import unittest
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
-from affilio_radar import (
-    APARAT_UPLOAD_INTERVAL_HOURS,
-    _aparat_upload_slot_due,
-    _initialize_aparat_upload_slot,
-)
+import affilio_radar as radar
+from platform_registry import PLATFORM_REGISTRY, VIDEO_PLATFORMS
 
 
-class AparatUploadScheduleTests(unittest.TestCase):
+class AparatVideoPolicyTests(unittest.TestCase):
     def setUp(self):
-        self.now = datetime(2026, 10, 24, 12, 0, tzinfo=timezone.utc)
+        self.now = datetime(2026, 11, 12, 12, 0, tzinfo=timezone.utc)
 
-    def test_first_upload_is_due_without_aparat_history(self):
-        state = {}
-        self.assertTrue(_aparat_upload_slot_due(state, self.now, credentials_ready=True))
-        self.assertFalse(_aparat_upload_slot_due(state, self.now, credentials_ready=False))
-        self.assertNotIn("aparat_next_upload_at", state)
-
-    def test_migrates_next_slot_from_latest_successful_aparat_upload(self):
-        last_upload = self.now - timedelta(hours=1)
+    def test_artificial_upload_slots_are_not_exported_to_the_dispatch_sidecar(self):
         state = {
-            "published": {
-                "older": {
-                    "aparat_upload_status": "uploaded",
-                    "aparat_uploaded_at": (self.now - timedelta(hours=9)).isoformat(),
-                },
-                "latest": {
-                    "aparat_upload_status": "uploaded",
-                    "aparat_uploaded_at": last_upload.isoformat(),
-                },
-                "youtube-only": {
-                    "youtube_upload_status": "uploaded",
-                    "youtube_uploaded_at": (self.now - timedelta(minutes=1)).isoformat(),
-                },
-            }
+            "youtube_next_upload_at": "2026-11-14T12:00:00+00:00",
+            "aparat_next_upload_at": "2026-11-15T12:00:00+00:00",
+            "filo_next_upload_at": "2026-11-16T12:00:00+00:00",
+            "published": {},
         }
-        expected = last_upload + timedelta(hours=APARAT_UPLOAD_INTERVAL_HOURS)
-        self.assertEqual(_initialize_aparat_upload_slot(state), expected)
-        self.assertEqual(state["aparat_next_upload_at"], expected.isoformat())
-        self.assertFalse(_aparat_upload_slot_due(state, self.now, credentials_ready=True))
+        sidecar = radar.build_video_upload_dispatch_state(state, now=self.now)
+        for legacy_slot in (
+            "youtube_next_upload_at",
+            "aparat_next_upload_at",
+            "filo_next_upload_at",
+        ):
+            self.assertNotIn(legacy_slot, sidecar)
 
-    def test_persisted_aparat_slot_takes_precedence_and_is_due_at_boundary(self):
-        next_slot = self.now + timedelta(minutes=1)
-        state = {
-            "aparat_next_upload_at": next_slot.isoformat(),
-            "aparat_last_upload_success_at": (self.now - timedelta(days=1)).isoformat(),
-        }
-        self.assertFalse(_aparat_upload_slot_due(state, self.now, credentials_ready=True))
-        self.assertTrue(_aparat_upload_slot_due(state, next_slot, credentials_ready=True))
-        self.assertEqual(state["aparat_next_upload_at"], next_slot.isoformat())
+    def test_aparat_requires_directly_verified_expiry_but_filo_does_not(self):
+        self.assertFalse(radar.video_deadline_allows_upload("aparat", False))
+        self.assertTrue(radar.video_deadline_allows_upload("aparat", True))
+        self.assertTrue(radar.video_deadline_allows_upload("filo", False))
+        self.assertTrue(radar.video_deadline_allows_upload("youtube", False))
 
-    def test_unknown_upload_outcome_reserves_its_own_aparat_slot(self):
-        unknown_at = self.now - timedelta(minutes=20)
-        state = {"aparat_last_upload_outcome_unknown_at": unknown_at.isoformat()}
-        expected = unknown_at + timedelta(hours=APARAT_UPLOAD_INTERVAL_HOURS)
-        self.assertEqual(_initialize_aparat_upload_slot(state), expected)
-        self.assertFalse(_aparat_upload_slot_due(state, self.now, credentials_ready=True))
+    def test_aparat_remains_a_registered_video_destination(self):
+        self.assertEqual(PLATFORM_REGISTRY["aparat"]["media"], "video")
+        self.assertIn("aparat", VIDEO_PLATFORMS)
 
-    def test_youtube_history_and_pause_do_not_delay_first_aparat_slot(self):
-        state = {
-            "youtube_next_upload_at": (self.now + timedelta(days=2)).isoformat(),
-            "youtube_uploads_paused_until": (self.now + timedelta(days=1)).isoformat(),
-            "published": {
-                "youtube-only": {
-                    "youtube_upload_status": "uploaded",
-                    "youtube_uploaded_at": (self.now - timedelta(minutes=10)).isoformat(),
-                }
-            },
-        }
-        self.assertTrue(_aparat_upload_slot_due(state, self.now, credentials_ready=True))
-        self.assertNotIn("aparat_next_upload_at", state)
+    def test_retry_policy_is_bounded(self):
+        self.assertGreaterEqual(radar.MAX_VIDEO_UPLOAD_ATTEMPTS, 1)
+        self.assertLessEqual(radar.MAX_VIDEO_UPLOAD_ATTEMPTS, 5)
 
 
 if __name__ == "__main__":

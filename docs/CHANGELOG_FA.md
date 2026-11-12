@@ -1799,3 +1799,26 @@
 **ریسک/بازگشت:** fan-out ویدئو حتی در صورت شکست همهٔ کانال‌های تصویری ممکن است ادامه یابد؛ این مطابق سیاست استقلال است، مشروط به اینکه رکورد canonical و گیت‌های زنده معتبر باشند. بازگشت با revert تغییر helper واجدشرایط‌بودن، projection Worker، تست‌ها و layout ویدئو انجام می‌شود؛ state/صف موجود reset یا migrate نمی‌شود.
 
 **وضعیت:** تغییرات در شاخهٔ `feature/offerchin-event-driven-video-sync-20261111` و PR شمارهٔ ۱۶۰؛ تا زمان CI سبز و ادغام، production فعال اعلام نمی‌شود.
+
+
+## ۲۰۲۶-۱۱-۱۲ — fan-out واحد ویدئو، حذف cadence مصنوعی و FIFO سراسری
+
+**هدف:** هم‌ترازشدن ترتیب محصول در Telegram/Bale و رسانه‌های ویدئویی؛ حذف فاصله‌های ثابت YouTube/Aparat/Filo؛ امکان عبور از یک مقصد پس از retry محدود بدون جلو افتادن محصول جدیدتر.
+
+**تغییر/اقدام:**
+- cadenceهای مصنوعی ۳ساعتهٔ YouTube، ۳ساعتهٔ Aparat و ۲۷دقیقه‌ای Filo از منطق Python/sidecar حذف شدند. محدودیت واقعی سهمیهٔ YouTube، credential/نشست مقصدها، deadline تأییدشدهٔ Aparat، تازگی ۲۴ساعته و گیت‌های ایمنی حفظ شدند.
+- runner واحد `--video-fanout-only` برای YouTube، Aparat و Filo افزوده شد. Workflow جدید `.github/workflows/offerchin-video-fanout.yml` با رویداد `workflow_run` پس از پایان ناشر اصلی اجرا می‌شود؛ اجرای دستی recovery نیز با `workflow_dispatch` ممکن است.
+- Worker دقیقه‌ای از dispatch مجدد همین fan-out منع شد تا برای یک رویداد دو اجرای مستقل نسازد.
+- صف ویدئو و صف کانال به FIFO سخت تغییر یافتند: retry محصول قدیمی، محصول جدیدتر را مسدود می‌کند تا قدیمی‌تر موفق یا terminal/skip شود. اگر صف پر باشد، انتخاب جدید پذیرفته نمی‌شود؛ مورد قدیمی partial برای جا باز کردن حذف نمی‌شود.
+- retry خطاهای قابل‌تکرار در مقصدهای ویدئویی و کانالی سه تلاش پیش‌فرض دارد. پس از پایان تلاش‌ها، همان مقصد به `skipped_after_retries` یا `manual_review` می‌رود؛ خطای مبهم ارسال بدون retry کور در manual review باقی می‌ماند.
+- تست‌های صف FIFO، retry کانال، eligibility fan-out، حذف intervalهای قدیمی و حفظ وضعیت Filo به CI افزوده شدند. سند routing و handbook مطابق منطق جدید به‌روز شدند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/publisher.py`، `affilio_radar/content_delivery.py`، تست‌های `test_aparat_upload_schedule.py`، `test_filo_upload_schedule.py`، `test_content_delivery.py` و `test_delivery_retry_policy.py`، `cloudflare/affilio-minute-dispatcher.js`، تست Worker، دو workflow ناشر و fan-out ویدئو، `docs/OFFERCHIN_SHARED_SELECTION_MEDIA_ROUTING_FA.md` و handbook.
+
+**آزمون و نتیجه:** تست‌های Python/Node به GitHub Actions متصل شده‌اند؛ نتیجهٔ اجرای واقعی CI هنوز باید از PR خوانده شود. هیچ انتشار واقعی در YouTube، Aparat یا Filo از این شاخه اجرا نشده است.
+
+**شواهد/شناسه:** شاخهٔ `feat/offerchin-unified-video-fanout-20261112`. PR و head SHA پس از ایجاد ثبت می‌شوند.
+
+**ریسک/بازگشت:** قفل مشترک GitHub Actions برای جلوگیری از lost update حفظ می‌شود؛ در نتیجه workflow ویدئویی بعد از اتمام workflow اصلی شروع می‌شود، نه هم‌زمان در همان process. quota واقعی YouTube ممکن است انتشار همان محصول در YouTube را skip کند، اما Aparat/Filo را متوقف نمی‌کند. rollback با revert PR انجام می‌شود؛ state جاری نباید reset شود.
+
+**وضعیت:** تغییرات در شاخهٔ مستقل؛ CI، review و merge در انتظار. Production فعال اعلام نمی‌شود.

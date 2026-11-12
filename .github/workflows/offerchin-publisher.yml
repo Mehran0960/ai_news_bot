@@ -133,7 +133,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_public_aparat_upload_stays_blocked_without_verified_expiry \
             test_affilio.AffilioRadarTests.test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record -v
           python -m unittest test_selection_evidence -v
-          python -m unittest -v test_shared_selection_media_routing.py
+          python -m unittest -v test_shared_selection_media_routing.py test_content_delivery.py test_delivery_retry_policy.py
           node --test test_affiliate_deal_radar_worker.mjs
 
       - name: Validate permanent YouTube retention policy

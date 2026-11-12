@@ -1,0 +1,129 @@
+name: OfferChin Unified Video Fan-out
+
+on:
+  workflow_run:
+    workflows:
+      - OfferChin Selected Content Publisher
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "affilio_radar/**"
+      - "cloudflare/**"
+      - ".github/workflows/offerchin-video-fanout.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: offerchin-content-publisher
+  cancel-in-progress: false
+
+jobs:
+  fanout:
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion != 'cancelled' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out the latest canonical product and delivery state
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: affilio_radar/requirements.txt
+
+      - name: Install project dependencies
+        run: |
+          for attempt in 1 2 3; do
+            python -m pip install -r affilio_radar/requirements.txt && break
+            if [[ "$attempt" -lt 3 ]]; then
+              echo "Dependency install attempt $attempt failed; retrying."
+              sleep $((attempt * 3))
+            else
+              exit 1
+            fi
+          done
+
+      - name: Install Filo browser runtime
+        run: |
+          python -m pip install "playwright>=1.48,<2"
+          python -m playwright install --with-deps chromium
+
+      - name: Stage official DigiPay logo for shared video cards
+        continue-on-error: true
+        run: |
+          mkdir -p affilio_radar/assets/retailer-logos
+          curl --fail --silent --show-error --retry 2 --connect-timeout 8 --max-time 30 "https://www.mydigipay.com/bck-assets/images/logos/dp-logo.svg" -o affilio_radar/assets/retailer-logos/digipay-official.svg
+          test -s affilio_radar/assets/retailer-logos/digipay-official.svg
+          PYTHONPATH=affilio_radar python -c "import offerchin_visuals; logo=offerchin_visuals._load_digipay_logo(); assert logo is not None and logo.width > 0 and logo.height > 0; print('DIGIPAY_OFFICIAL_LOGO_READY_FOR_SHARED_VIDEO_RENDER')"
+
+      - name: Validate shared video fan-out and FIFO policy
+        run: |
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py affilio_radar/filo_uploader.py affilio_radar/offerchin_visuals.py
+          python -c "from pathlib import Path; s=Path('affilio_radar/affilio_radar.py').read_text(encoding='utf-8'); assert '--video-fanout-only' in s; assert 'destinations = {' + chr(34) + 'youtube' + chr(34) + ', ' + chr(34) + 'aparat' + chr(34) + ', ' + chr(34) + 'filo' + chr(34) + '}' in s; assert 'YOUTUBE_UPLOAD_INTERVAL_HOURS' not in s; assert 'APARAT_UPLOAD_INTERVAL_HOURS' not in s; assert 'FILO_UPLOAD_INTERVAL_HOURS' not in s; w=Path('cloudflare/affilio-minute-dispatcher.js').read_text(encoding='utf-8'); assert 'offerchin-video-fanout.yml' in w; assert 'dispatchVideoPlatformWhenDue' not in w; print('OFFERCHIN_UNIFIED_VIDEO_FANOUT_SOURCE_VALIDATED')"
+          cd affilio_radar
+          python -m unittest -v test_aparat_upload_schedule.py test_filo_upload_schedule.py test_filo_uploader.py test_shared_selection_media_routing.py test_short_video.py test_content_delivery.py test_delivery_retry_policy.py
+          cd ..
+          node --test cloudflare/affilio-minute-dispatcher.test.mjs
+
+      - name: Publish all configured video destinations from one shared FIFO
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_PRIVACY_STATUS: "public"
+          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
+          AFFILIO_APARAT_UPLOAD_ENABLED: "true"
+          APARAT_SHORTS_ONLY: "false"
+          APARAT_VIDEO_PASS: "0"
+          APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
+          FILO_USER: ${{ secrets.FILO_USER }}
+          FILO_PASS: ${{ secrets.FILO_PASS }}
+          AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT: "250"
+          AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS: "24"
+          AFFILIO_MAX_SHORT_VIDEOS_PER_RUN: "2"
+          AFFILIO_MAX_VIDEO_UPLOAD_ATTEMPTS: "3"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/affilio_radar.py --video-fanout-only
+
+      - name: Preserve generated MP4s for short-term diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offerchin-unified-video-${{ github.run_id }}
+          path: video_artifacts/*.mp4
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Persist unified video delivery state
+        if: ${{ always() && github.event_name != 'pull_request' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [[ -f affilio_radar/state.json ]] && { ! git diff --quiet -- affilio_radar/state.json || ! git diff --quiet -- affilio_radar/video_upload_dispatch_state.json; }; then
+            git add affilio_radar/state.json
+            if [[ -f affilio_radar/video_upload_dispatch_state.json ]]; then git add affilio_radar/video_upload_dispatch_state.json; fi
+            git commit -m "chore: persist unified OfferChin video fan-out state [skip ci]"
+            git reset --hard HEAD
+            for attempt in 1 2 3; do
+              if git pull --rebase origin main && git push; then
+                echo "OFFERCHIN_VIDEO_FANOUT_STATE_PERSISTED attempt=$attempt"
+                exit 0
+              fi
+              git rebase --abort 2>/dev/null || true
+              echo "Video fan-out persistence attempt $attempt failed; retrying."
+              sleep $((attempt * 2))
+            done
+            echo "OFFERCHIN_VIDEO_FANOUT_STATE_PERSIST_FAILED"
+            exit 1
+          else
+            echo "No shared video delivery-state changes to persist."
+          fi

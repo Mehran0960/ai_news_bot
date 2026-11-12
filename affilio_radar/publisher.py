@@ -26,6 +26,9 @@ from integrity_audit_state import apply_integrity_audit_ledger
 
 RETRY_BASE_SECONDS = max(60, int(os.getenv("AFFILIO_PUBLISH_RETRY_BASE_SECONDS", "300")))
 MAX_ITEMS_PER_RUN = max(1, min(3, int(os.getenv("AFFILIO_PUBLISHER_BATCH_SIZE", "1"))))
+MAX_PLATFORM_DELIVERY_ATTEMPTS = max(
+    1, min(5, int(os.getenv("AFFILIO_MAX_PLATFORM_DELIVERY_ATTEMPTS", "3")))
+)
 MAX_INLINE_FALLBACK_ATTEMPTS = 50
 TERMINAL_PLATFORM = {"sent", "not_connected", "manual_review"}
 
@@ -173,15 +176,26 @@ def _set_target(entry: dict, name: str, status: str, now: datetime, detail: str 
 def _target_retry(entry: dict, name: str, now: datetime, detail: str = "") -> None:
     target = _target(entry, name)
     try:
-        attempts = int(target.get("attempts") or 0) + 1
+        attempts = int(target.get("attempts") or 0)
     except (TypeError, ValueError, OverflowError):
-        attempts = 1
+        attempts = 0
+    # _process_photo_destination increments before the network call. A target still
+    # marked "sending" has already consumed that attempt; revalidation failures have not.
+    if target.get("status") != "sending":
+        attempts += 1
+    attempts = max(1, attempts)
     target["attempts"] = attempts
-    target["status"] = "failed"
     target["last_error"] = str(detail or "delivery_failed")[:300]
-    target["next_attempt_at"] = (
-        now + timedelta(seconds=min(3600, RETRY_BASE_SECONDS * (2 ** min(attempts - 1, 4))))
-    ).isoformat()
+    if attempts >= MAX_PLATFORM_DELIVERY_ATTEMPTS:
+        target["status"] = "manual_review"
+        target["resolved_at"] = now.isoformat()
+        target["skip_reason"] = "max_delivery_attempts_reached"
+        target.pop("next_attempt_at", None)
+    else:
+        target["status"] = "failed"
+        target["next_attempt_at"] = (
+            now + timedelta(seconds=min(3600, RETRY_BASE_SECONDS * (2 ** min(attempts - 1, 4))))
+        ).isoformat()
 
 
 def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: str) -> dict:
@@ -474,7 +488,7 @@ def _process_photo_destination(
     target = _target(entry, destination)
     record_status = record.setdefault("delivery_status", {})
     status = str(target.get("status") or "pending")
-    if status == "sent":
+    if status in {"sent", "manual_review"}:
         return
     if status == "sending":
         started = _utc(target.get("attempt_started_at"))
@@ -536,97 +550,22 @@ def _process_photo_destination(
         )
     except Exception as exc:
         safe_detail = _safe_delivery_error(exc)
-        _target_retry(entry, destination, _now(), f"{type(exc).__name__}: {safe_detail}"[:180])
-        record_status[destination] = "failed"
+        failed_at = _now()
+        _target_retry(entry, destination, failed_at, f"{type(exc).__name__}: {safe_detail}"[:180])
+        record_status[destination] = str(target.get("status") or "failed")
         record.setdefault("delivery_attempts", {})[destination] = target["attempts"]
-        record["delivery_last_attempt_at"] = _now().isoformat()
+        record["delivery_last_attempt_at"] = failed_at.isoformat()
         _save(state)
-        print(
-            f"PLATFORM_DELIVERY_FAILED product_id={entry['product_id']} platform={destination} "
-            f"error={type(exc).__name__} detail={safe_detail}"
-        )
-
-
-def _process_video_destinations(state: dict, entry: dict, record: dict, now: datetime) -> None:
-    product_id = str(entry.get("product_id") or "")
-    for target_name in VIDEO_PLATFORMS:
-        target = _target(entry, target_name)
-        if target.get("status") == "sent":
-            continue
-        if not _target_ready(target_name):
-            _set_target(entry, target_name, "not_connected", now, "credentials_not_configured")
-            _save(state)
-        elif target.get("status") == "not_connected":
-            # A later-added platform becomes eligible without rerunning discovery.
-            target["status"] = "pending"
-            target.pop("last_error", None)
-            _save(state)
-    if any(_target(entry, name).get("status") in {"pending", "failed", "retry", "sending"} for name in VIDEO_PLATFORMS):
-        try:
-            # The same selected product is processed immediately. The video processor
-            # bypasses only its normal cross-item time slot, not platform quotas or errors.
-            radar.process_pending_short_video(
-                state,
-                now=now,
-                destinations={"youtube", "aparat"},
-                # Respect each video platform's own quota/cadence. The selected
-                # content remains queued for that destination until its next slot.
-                force_due=False,
-                only_product_id=product_id,
+        if target.get("status") == "manual_review":
+            print(
+                f"PLATFORM_DELIVERY_SKIPPED product_id={entry['product_id']} platform={destination} "
+                f"attempts={target['attempts']} reason=max_delivery_attempts detail={safe_detail}"
             )
-        except Exception as exc:
-            print(f"VIDEO_DESTINATION_DISPATCH_FAILED product_id={product_id} error={type(exc).__name__}")
-            record["video_delivery_last_error"] = type(exc).__name__
-            _save(state)
-
-    youtube_status = str(record.get("youtube_upload_status") or "pending")
-    if youtube_status == "uploaded":
-        _set_target(entry, "youtube", "sent", _now())
-    elif not _target_ready("youtube"):
-        _set_target(entry, "youtube", "not_connected", _now(), "credentials_not_configured")
-    elif youtube_status == "upload_result_unknown":
-        _set_target(entry, "youtube", "manual_review", _now(), str(record.get("youtube_last_error") or "upload_result_unknown"))
-    elif youtube_status == "skipped_unverified_deadline":
-        _target(entry, "youtube")["status"] = "pending"
-        _target(entry, "youtube")["last_error"] = "waiting_for_verified_deadline"
-    elif youtube_status in {"retry", "pending", "pending_credentials", "uploading"}:
-        t = _target(entry, "youtube")
-        t["status"] = "failed" if youtube_status == "retry" else "pending"
-        t["last_error"] = str(record.get("youtube_last_error") or youtube_status)
-        next_slot = (
-            _utc(record.get("youtube_next_attempt_at"))
-            or _utc(state.get("youtube_uploads_paused_until"))
-            or _utc(state.get("youtube_next_upload_at"))
-        )
-        t["next_attempt_at"] = (
-            next_slot if next_slot and next_slot > now else now + timedelta(minutes=15)
-        ).isoformat()
-    else:
-        _target(entry, "youtube")["status"] = "pending"
-
-    aparat_status = str(record.get("aparat_upload_status") or "pending")
-    if aparat_status == "uploaded":
-        _set_target(entry, "aparat", "sent", _now())
-    elif not _target_ready("aparat"):
-        _set_target(entry, "aparat", "not_connected", _now(), "credentials_not_configured")
-    elif aparat_status == "upload_result_unknown":
-        _set_target(entry, "aparat", "manual_review", _now(), str(record.get("aparat_last_error") or "upload_result_unknown"))
-    elif aparat_status == "waiting_shorts_uploader":
-        _set_target(entry, "aparat", "manual_review", _now(), "shorts_uploader_not_supported_by_current_path")
-    elif aparat_status == "skipped_unverified_deadline":
-        _target(entry, "aparat")["status"] = "pending"
-        _target(entry, "aparat")["last_error"] = "waiting_for_verified_deadline"
-    elif aparat_status in {"retry", "pending", "pending_credentials", "uploading"}:
-        t = _target(entry, "aparat")
-        t["status"] = "failed" if aparat_status == "retry" else "pending"
-        t["last_error"] = str(record.get("aparat_last_error") or aparat_status)
-        next_slot = _utc(record.get("aparat_next_attempt_at")) or _utc(state.get("aparat_next_upload_at"))
-        t["next_attempt_at"] = (
-            next_slot if next_slot and next_slot > now else now + timedelta(minutes=15)
-        ).isoformat()
-    else:
-        _target(entry, "aparat")["status"] = "pending"
-    _save(state)
+        else:
+            print(
+                f"PLATFORM_DELIVERY_FAILED product_id={entry['product_id']} platform={destination} "
+                f"attempts={target['attempts']} error={type(exc).__name__} detail={safe_detail}"
+            )
 
 
 def publish_due_queue(_fallback_depth: int = 0) -> int:
@@ -799,10 +738,10 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         }
         for destination in PHOTO_PLATFORMS:
             _process_photo_destination(state, entry, record, fresh, image_bytes, destination, now)
-        # The canonical selected-product record already exists in state.json.
-        # The video dispatcher consumes that same record independently: no photo
-        # destination needs to report "sent" before YouTube/Aparat/Filo can start.
-        # Each video workflow applies only its own rate, quota, credential and expiry gates.
+        # The canonical selected-product record is the shared content event.
+        # offerchin-video-fanout.yml starts from this publisher workflow's completion
+        # and consumes this same FIFO for YouTube, Aparat and Filo; photo send order
+        # and video send order are therefore tied to the same selected product ID.
         state.setdefault("published", {})[product_id] = record
         _save(state)
 
