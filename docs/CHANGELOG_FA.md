@@ -1799,3 +1799,26 @@
 **ریسک/بازگشت:** fan-out ویدئو حتی در صورت شکست همهٔ کانال‌های تصویری ممکن است ادامه یابد؛ این مطابق سیاست استقلال است، مشروط به اینکه رکورد canonical و گیت‌های زنده معتبر باشند. بازگشت با revert تغییر helper واجدشرایط‌بودن، projection Worker، تست‌ها و layout ویدئو انجام می‌شود؛ state/صف موجود reset یا migrate نمی‌شود.
 
 **وضعیت:** تغییرات در شاخهٔ `feature/offerchin-event-driven-video-sync-20261111` و PR شمارهٔ ۱۶۰؛ تا زمان CI سبز و ادغام، production فعال اعلام نمی‌شود.
+
+
+## ۲۰۲۶-۱۱-۱۲ — fan-out واحد و ترتیب مشترک همهٔ رسانه‌های انتشار ویدئو
+
+**هدف:** هر محصولی که برای انتشار کانال‌ها انتخاب و نهایی می‌شود، همان لحظه برای YouTube، Aparat و Filo نیز dispatch شود؛ همهٔ رسانه‌ها ترتیب یکسان محصول‌ها را حفظ کنند و خطای یک مقصد بقیه را معطل نکند.
+
+**تغییر/اقدام:**
+- تابع `_process_video_destinations` در `publisher.py` اکنون بلافاصله پس از ثبت رکورد canonical فراخوانی می‌شود؛ از همان product_id برای هر سه مقصد ویدئویی استفاده می‌کند و قبل از ارسال عکس کانال‌ها اجرا می‌شود.
+- YouTube/Aparat/Filo در همان publisher واحد و با یک state writer پردازش می‌شوند؛ workflowهای جداگانهٔ قدیمی و dispatch ویدئویی Worker حذف شده‌اند تا مسیر موازی/ارسال تکراری وجود نداشته باشد.
+- محدودیت‌های داخلی slot سه‌ساعته/۲۷دقیقه‌ای، pause زمان‌دار YouTube، سقف تازگی ۲۴ساعته و فاصلهٔ پنج‌دقیقه‌ای retry حذف شدند.
+- یک retry فوری برای هر خطای قطعی قابل‌تکرار مجاز است. مقصدی که پس از retry شکست بخورد، برای همان آیتم `skipped_after_retries` می‌شود و ترتیب بقیهٔ صف را نگه نمی‌دارد. نتیجهٔ نامعلوم ارسال به `manual_review` می‌رود و کور retry نمی‌شود.
+- retryهای مقصدهای تصویری نیز محدود به دو تلاش شدند؛ دریافت تصویر مشترک پس از دو تلاش ناموفق، مقصدهای تصویری را skip می‌کند و صف را نامحدود نگه نمی‌دارد.
+- گیت واقعی اعتبار قیمت، موجودی، تخفیف و مهلت عرضه حفظ شد. quota واقعی پلتفرم ثالث قابل حذف نیست؛ quota response به‌عنوان skip همان مقصد ثبت می‌شود.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/publisher.py`, `affilio_radar/affilio_radar.py`, `affilio_radar/content_delivery.py`, `.github/workflows/offerchin-publisher.yml`, `cloudflare/affilio-minute-dispatcher.js`, `cloudflare/affilio-minute-dispatcher.test.mjs`, `affilio_radar/test_shared_selection_media_routing.py`, handbook، قرارداد routing و سه workflow مستقل ویدئو.
+
+**آزمون و نتیجه:** دو تست برای fan-out سه‌مقصدی با retry مستقل و عدم retry نتیجهٔ نامعلوم افزوده شد. CI تازه و اجرای واقعی end-to-end هنوز باید بررسی شود؛ در این مرحله نه انتشار عمومی موفق و نه فعال‌شدن production ادعا نمی‌شود.
+
+**شواهد/شناسه:** branch `feature/offerchin-unified-video-fanout-ordered-20261112`; commits: `83b3d7aefe3175f3f1d868b89891457564e3a368` (publisher fan-out), `7b7d057354444fdf448f57865cea7c26fbfe4c78` (video clocks/retries), `daa7d7dfc7a999ce3bb6b551becbe3056fbdb3ef` (unified publisher workflow), `17c7a5f1e18b78d66e38c525904873b522e4825e` (Worker video dispatch removal), `797cecd2d9a9ca769a06f19a31f17c345229c23c` (fan-out tests), `4dbf7d0090c4c88192f996a3378cb479d5acc60f` (routing contract v3).
+
+**ریسک/بازگشت:** YouTube/Aparat/Filo ممکن است quota، احراز هویت یا رد محتوای پلتفرم را اعمال کنند؛ این محدودیت‌ها از بیرون کنترل می‌شوند. workflow واحد ممکن است از اجرای قبلی طولانی‌تر شود؛ timeout job و stale-run guard افزایش یافته‌اند. rollback با revert PR؛ state و صف reset نمی‌شوند.
+
+**وضعیت:** آمادهٔ CI/بازبینی در شاخهٔ مستقل؛ هنوز PR/merge/تأیید انتشار واقعی ندارد.
