@@ -11,6 +11,7 @@ from offerchin_four_factor import (
     apply_four_factor_scores,
     discount_attractiveness_score,
     four_factor_sort_key,
+    four_factor_evidence_gate,
     generality_score,
     harmonic_mean,
 )
@@ -50,6 +51,48 @@ class OfferChinFourFactorTests(unittest.TestCase):
             now=self.now,
         )
         self.assertEqual(four_factor_sort_key(row), (0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
+
+    def test_four_factor_gate_requires_verified_evidence_for_all_dimensions(self):
+        verified = {
+            "product_id": "dkp-verified",
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+            "test_live_demand": 80,
+            "test_group": "kitchen_food",
+        }
+        unverified_discount = {**verified, "product_id": "dkp-unverified"}
+        unclassified = {**verified, "product_id": "dkp-unclassified", "test_group": "general"}
+        self._score([verified, unverified_discount, unclassified], independent={"dkp-verified", "dkp-unclassified"})
+
+        self.assertEqual(four_factor_evidence_gate(verified), (True, []))
+        allowed, gaps = four_factor_evidence_gate(unverified_discount)
+        self.assertFalse(allowed)
+        self.assertIn("independent_discount_proof_missing", gaps)
+        allowed, gaps = four_factor_evidence_gate(unclassified)
+        self.assertFalse(allowed)
+        self.assertIn("generality_taxonomy_unclassified", gaps)
+
+    def test_factor_evidence_records_source_quality_and_price_basis(self):
+        row = {
+            "product_id": "dkp-77",
+            "current_price": 1_000_000,
+            "original_price": 1_500_000,
+            "discount_percent": 33,
+            "savings_toman": 500_000,
+            "catalog_best_selling_rank": 12,
+            "catalog_rank_observed_at": self.now.isoformat(),
+            "history_status": "verified",
+            "historical_deal_eligible": True,
+            "history_checked_at": self.now.isoformat(),
+        }
+        self._score([row], independent={"dkp-77"})
+        evidence = row["offerchin_four_factor"]["factor_evidence"]
+        self.assertEqual(evidence["live_demand"]["source"], "digikala_native_bestseller_rank")
+        self.assertEqual(evidence["live_demand"]["quality"], "direct_relative_sales_rank_not_units_sold")
+        self.assertEqual(evidence["affordability"]["source"], "cash_price")
+        self.assertEqual(evidence["discount_attractiveness"]["source"], "verified_same_product_price_history")
 
     def test_affordability_uses_transparent_cash_ticket_anchors(self):
         self.assertEqual(affordability_absolute_score(100_000), 100)
@@ -203,6 +246,54 @@ class OfferChinFourFactorTests(unittest.TestCase):
             selected[0]["offerchin_four_factor"]["policy_version"],
             POLICY_VERSION,
         )
+
+    def test_live_publication_selector_blocks_unverified_store_markdown(self):
+        product = {
+            "product_id": "dkp-900",
+            "title": "چای ساز کاربردی مدل معتبر",
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+            "selection_discount_floor": 1,
+            "test_group": "kitchen_food",
+            "test_live_demand": 80,
+        }
+        with patch.object(radar, "has_verified_market_demand", return_value=True), \
+             patch.object(radar, "has_attractive_discount_value", return_value=False), \
+             patch.object(radar, "_publication_use_case_group", return_value="kitchen_food"), \
+             patch.object(radar, "_offerchin_live_demand_score", return_value=80):
+            selected = radar.select_publish_candidates(
+                {"dkp-900": {}},
+                {"dkp-900": product},
+                now=self.now,
+                published={},
+                recent_publications=[],
+            )
+        self.assertEqual(selected, [])
+
+    def test_live_publication_selector_blocks_unclassified_generality(self):
+        product = {
+            "product_id": "dkp-901",
+            "title": "کالای بدون کاربرد مشخص",
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+            "selection_discount_floor": 1,
+        }
+        with patch.object(radar, "has_verified_market_demand", return_value=True), \
+             patch.object(radar, "has_attractive_discount_value", return_value=True), \
+             patch.object(radar, "_publication_use_case_group", return_value="general"), \
+             patch.object(radar, "_offerchin_live_demand_score", return_value=80):
+            selected = radar.select_publish_candidates(
+                {"dkp-901": {}},
+                {"dkp-901": product},
+                now=self.now,
+                published={},
+                recent_publications=[],
+            )
+        self.assertEqual(selected, [])
 
 
 if __name__ == "__main__":
