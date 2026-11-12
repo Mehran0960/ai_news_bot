@@ -10278,6 +10278,7 @@ def process_pending_short_video(
                     "daily video upload limit",
                 ))
                 failure_time = datetime.now(timezone.utc)
+                http_status = getattr(getattr(exc, "response", None), "status_code", None)
                 if daily_upload_limit:
                     next_attempt = _next_youtube_daily_upload_retry_at(failure_time)
                     state["youtube_uploads_paused_until"] = next_attempt.isoformat()
@@ -10292,6 +10293,10 @@ def process_pending_short_video(
                             queued_record["youtube_upload_status"] = "skipped_platform_limit"
                             queued_record["youtube_skip_reason"] = "youtube_daily_quota_pause"
                             queued_record.pop("youtube_next_attempt_at", None)
+                elif http_status == 429:
+                    record["youtube_upload_status"] = "skipped_platform_limit"
+                    record["youtube_skip_reason"] = "youtube_http_429_rate_limited"
+                    record.pop("youtube_next_attempt_at", None)
                 elif attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS:
                     record["youtube_upload_status"] = "skipped_after_retries"
                     record["youtube_skip_reason"] = "retry_budget_exhausted"
@@ -10299,7 +10304,6 @@ def process_pending_short_video(
                 else:
                     record["youtube_upload_status"] = "retry"
                     record["youtube_next_attempt_at"] = failure_time.isoformat()
-                http_status = getattr(getattr(exc, "response", None), "status_code", None)
                 print(
                     f"YOUTUBE_UPLOAD_FAILED id={pid} error={type(exc).__name__} "
                     f"http_status={http_status or 'unknown'} detail={error_detail!r} "
