@@ -9564,6 +9564,24 @@ def process_pending_short_video(
         upload_status = str(record.get("youtube_upload_status") or "pending_credentials")
         aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
         filo_status = str(record.get("filo_upload_status") or "pending_credentials")
+        if force_due:
+            # The unified fan-out must not create an ever-growing backlog when a
+            # platform's secret or verified session is unavailable.
+            if "youtube" in selected_destinations and not youtube_ready and upload_status in pending_youtube:
+                record["youtube_upload_status"] = "skipped_credentials_unavailable"
+                record["youtube_skip_reason"] = "youtube_oauth_credentials_missing"
+                upload_status = "skipped_credentials_unavailable"
+                state_changed = True
+            if "aparat" in selected_destinations and not aparat_ready and aparat_status in PENDING_APARAT_STATUSES:
+                record["aparat_upload_status"] = "skipped_credentials_unavailable"
+                record["aparat_skip_reason"] = "aparat_upload_credentials_missing_or_disabled"
+                aparat_status = "skipped_credentials_unavailable"
+                state_changed = True
+            if "filo" in selected_destinations and not filo_ready and filo_status in pending_filo:
+                record["filo_upload_status"] = "skipped_login_unverified_or_credentials_unavailable"
+                record["filo_skip_reason"] = "filo_login_not_verified_or_credentials_missing"
+                filo_status = "skipped_login_unverified_or_credentials_unavailable"
+                state_changed = True
         if youtube_pause_active and upload_status in pending_youtube:
             record["youtube_upload_status"] = "skipped_platform_quota"
             record["youtube_skip_reason"] = "provider_daily_upload_quota_pause"
@@ -9800,10 +9818,23 @@ def process_pending_short_video(
             break
 
         if not str(record.get("image_url") or "").strip():
-            record["video_generation_status"] = "pending"
+            try:
+                attempts = int(record.get("video_generation_attempts", 0) or 0) + 1
+            except (TypeError, ValueError, OverflowError):
+                attempts = 1
+            record["video_generation_attempts"] = attempts
             record["video_generation_last_error"] = "missing_image_url"
-            record["video_generation_next_attempt_at"] = (current + timedelta(minutes=30)).isoformat()
+            if attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS:
+                record["video_generation_status"] = "skipped_after_retries"
+                record.pop("video_generation_next_attempt_at", None)
+                print(f"SHORT_VIDEO_GENERATION_SKIPPED id={pid} attempts={attempts} reason=missing_image_url")
+            else:
+                record["video_generation_status"] = "pending"
+                record["video_generation_next_attempt_at"] = (
+                    current + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
+                ).isoformat()
             state_changed = True
+            save_json(STATE, state)
             continue
         render_destinations = []
         if yt_need:
@@ -9939,8 +9970,8 @@ def process_pending_short_video(
             print(f"TELEGRAM_VIDEO_REVIEW_FAILED id={pid} error={type(exc).__name__}")
         save_json(STATE, state)
 
-    # Aparat public uploads use their own slot and status fields; all errors are caught
-    # locally so they cannot interrupt the YouTube publication attempt below.
+    # Aparat uses the same product event as YouTube and Filo; destination failures are
+    # isolated so one platform cannot abort the others.
     aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
     if (
         aparat_ready and aparat_upload_due
