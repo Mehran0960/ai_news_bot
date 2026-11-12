@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-12T13:58:03.941276+00:00",
+  "generated_at": "2026-11-12T14:05:59.708052+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار آشپزی": 1,
@@ -199,7 +199,6 @@
       "خواب": 1,
       "خودرو و موتورسیکلت": 1,
       "دست بافته‌ ها، رودوزی و محصولات پارچه ای و چرمی": 2,
-      "دستگاه هویه": 1,
       "دهان‌شویه و خمیردندان کودک و نوزاد": 1,
       "روشنایی و الکتریکی": 2,
       "زنانه": 1,
@@ -293,14 +292,14 @@
       "large_appliances": 4,
       "lighting": 1,
       "mobile_devices": 4,
-      "other": 81,
+      "other": 80,
       "personal_care": 36,
       "power_backup": 6,
       "sports_outdoor": 11,
       "tv_audio_video": 1
     },
     "category_share_percent": {
-      "audio_wearables": 3.3,
+      "audio_wearables": 3.4,
       "automotive": 6.7,
       "beauty_fragrance": 1.3,
       "books_stationery": 3.8,
@@ -316,19 +315,19 @@
       "large_appliances": 1.7,
       "lighting": 0.4,
       "mobile_devices": 1.7,
-      "other": 33.9,
+      "other": 33.6,
       "personal_care": 15.1,
       "power_backup": 2.5,
       "sports_outdoor": 4.6,
       "tv_audio_video": 0.4
     },
-    "distinct_catalog_categories": 105,
+    "distinct_catalog_categories": 104,
     "distinct_categories": 21,
-    "distinct_families": 143,
+    "distinct_families": 142,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
-    "known_brand_posts": 18,
-    "posts": 239,
+    "known_brand_posts": 17,
+    "posts": 238,
     "repeated_brand_count": 8,
     "repeated_brands": {
       "ai_javaher": 2,
@@ -338,7 +337,7 @@
       "ufc": 2
     },
     "retailer_post_counts": {
-      "digikala": 239
+      "digikala": 238
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -367,7 +366,7 @@
       "personal_care": 28,
       "sports_fitness": 8,
       "tabletop_games": 1,
-      "tools_industrial": 13
+      "tools_industrial": 12
     }
   },
   "policy": {
@@ -383,64 +382,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 958,
+    "all_time_count": 961,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-12T13:17:44.725835+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4996879",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4184133",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ژل شستشوی صورت دیپ سنس مدل درخت چای و بامبو مناسب پوست‌های چرب حجم 250 میلی‌ لیتر",
-        "use_case": "home_cleaning"
-      },
-      {
-        "at": "2026-11-12T13:17:44.725835+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4996879",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-6808740",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-12T13:17:44.725835+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4996879",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-20682942",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-12T13:17:44.725835+00:00",
         "brand": "",
@@ -715,6 +663,57 @@
       },
       {
         "at": "2026-11-12T13:58:03.941276+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-11776655",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل آبرسان پرایم مدل Ultra-Hydrating حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-12T14:05:59.708052+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4184133",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل شستشوی صورت دیپ سنس مدل درخت چای و بامبو مناسب پوست‌های چرب حجم 250 میلی‌ لیتر",
+        "use_case": "home_cleaning"
+      },
+      {
+        "at": "2026-11-12T14:05:59.708052+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-6808740",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-12T14:05:59.708052+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
