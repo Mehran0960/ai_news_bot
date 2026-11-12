@@ -120,25 +120,36 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
         self.assertEqual(sidecar["published"]["oldest_pending"]["ts"], 100)
         self.assertEqual(sidecar["published"]["newer_pending"]["ts"], 200)
 
-    def test_unified_video_run_dispatches_all_platform_fifo_workers_in_order(self):
-        called = []
+    def test_unified_video_run_fans_out_each_product_before_advancing(self):
+        calls = []
+        outcomes = iter([True, False])
         with (
-            patch.object(radar, "run_youtube_uploads_only", side_effect=lambda: called.append("youtube") or 0),
-            patch.object(radar, "run_aparat_uploads_only", side_effect=lambda: called.append("aparat") or 0),
-            patch.object(radar, "run_filo_uploads_only", side_effect=lambda: called.append("filo") or 0),
+            patch.object(radar, "load_state", return_value={"published": {}}),
+            patch.object(
+                radar,
+                "process_pending_short_video",
+                side_effect=lambda state, **kwargs: calls.append(kwargs) or next(outcomes),
+            ),
         ):
             self.assertEqual(radar.run_all_video_uploads_only(), 0)
-        self.assertEqual(called, ["youtube", "aparat", "filo"])
+        self.assertEqual(len(calls), 2)
+        for call in calls:
+            self.assertEqual(call["destinations"], {"youtube", "aparat", "filo"})
+            self.assertIsNone(call["max_age_hours"])
 
-    def test_unified_video_run_continues_after_one_destination_error(self):
-        called = []
+    def test_unified_runner_uses_a_bounded_fifo_batch(self):
+        calls = []
         with (
-            patch.object(radar, "run_youtube_uploads_only", side_effect=RuntimeError("quota")),
-            patch.object(radar, "run_aparat_uploads_only", side_effect=lambda: called.append("aparat") or 0),
-            patch.object(radar, "run_filo_uploads_only", side_effect=lambda: called.append("filo") or 0),
+            patch.object(radar, "load_state", return_value={"published": {}}),
+            patch.object(
+                radar,
+                "process_pending_short_video",
+                side_effect=lambda state, **kwargs: calls.append(kwargs) or True,
+            ),
+            patch.object(radar, "MAX_SHORT_VIDEOS_PER_RUN", 3),
         ):
             self.assertEqual(radar.run_all_video_uploads_only(), 0)
-        self.assertEqual(called, ["aparat", "filo"])
+        self.assertEqual(len(calls), 3)
 
     def test_video_retry_budget_is_bounded(self):
         self.assertEqual(radar.MAX_VIDEO_UPLOAD_ATTEMPTS, 3)
