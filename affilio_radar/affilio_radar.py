@@ -9040,10 +9040,9 @@ PERSIAN_TEXT_REPAIR_PRODUCT_IDS = ("dkp-19336870", "dkp-21887319")
 APARAT_SHORTS_ONLY = str(os.getenv("APARAT_SHORTS_ONLY", "false")).strip().lower() in {"1", "true", "yes", "on"}
 # The main radar and the dedicated Aparat workflow can independently enable this destination.
 APARAT_UPLOAD_ENABLED = str(os.getenv("AFFILIO_APARAT_UPLOAD_ENABLED", "true")).strip().lower() in {"1", "true", "yes", "on"}
-# Each platform still obeys its own upload slot and 24-hour freshness guard; scan the full compact hand-off window so pending items are not hidden behind the newest six.
+# The main publisher fans out one selected product to every configured video destination.
 MAX_SHORT_VIDEOS_PER_RUN = max(1, min(4, int(os.getenv("AFFILIO_MAX_SHORT_VIDEOS_PER_RUN", "2"))))
 VIDEO_UPLOAD_CANDIDATE_LIMIT = max(1, min(VIDEO_DISPATCH_STATE_RECORD_LIMIT, int(os.getenv("AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT", str(VIDEO_DISPATCH_STATE_RECORD_LIMIT)))))
-VIDEO_UPLOAD_MAX_AGE_HOURS = max(1, min(72, int(os.getenv("AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS", "24"))))
 
 
 def _retain_superseded_youtube_video(
@@ -9340,8 +9339,8 @@ def _filo_upload_slot_due(
 
 
 def video_deadline_allows_upload(platform: str, verified_expiry: bool) -> bool:
-    """Aparat's generic public feed needs a verified timer; Filo can use a fresh channel offer."""
-    return bool(verified_expiry) if str(platform or "").strip().lower() == "aparat" else True
+    """Allow every outlet to use the same live-validated selection; real expiry is checked separately."""
+    return True
 
 
 def _has_video_dispatch_eligibility(record: dict) -> bool:
@@ -9383,20 +9382,18 @@ def process_pending_short_video(
     output_dir: str | Path = "video_artifacts",
     destinations: set[str] | None = None,
     force_due: bool = False,
+    retry_immediately: bool = False,
     only_product_id: str | None = None,
     candidate_limit: int | None = None,
     max_age_hours: int | None = None,
 ) -> bool:
-    """Generate and publish a vertical artifact for a selected product.
+    """Generate and submit a vertical artifact for the requested video destinations.
 
-    Normal queue scans respect each platform's upload schedule. force_due=True bypasses
-    cross-item spacing only; it never bypasses quotas, credentials, destination isolation,
-    or expiry safety. YouTube may use the last-mile channel price/stock checks plus the
-    independent integrity audit when no retailer expiry timer exists. Public Aparat uploads
-    continue to require a directly verified expiry deadline.
+    The main publisher calls this for each canonical selection event. No outlet-specific
+    clock or media-age cap is imposed here; the caller limits retries and preserves order.
     """
     selected_destinations = (
-        {"youtube", "aparat"} if destinations is None
+        {"youtube", "aparat", "filo"} if destinations is None
         else {str(item).strip().lower() for item in destinations}
     )
     try:
@@ -9460,16 +9457,12 @@ def process_pending_short_video(
     except Exception as exc:
         aparat_ready = False
         print(f"APARAT_CREDENTIAL_CHECK_FAILED error={type(exc).__name__}; other destinations continue")
-    filo_login_verified = _filo_login_verified(state, current)
     try:
         filo_ready = (
             "filo" in selected_destinations
             and filo_credentials_available()
             and upload_filo_video is not None
-            and filo_login_verified
         )
-        if "filo" in selected_destinations and not filo_login_verified:
-            print("FILO_UPLOAD_BLOCKED reason=login_not_verified")
     except Exception as exc:
         filo_ready = False
         print(f"FILO_CREDENTIAL_CHECK_FAILED error={type(exc).__name__}; other destinations continue")
@@ -9479,90 +9472,11 @@ def process_pending_short_video(
     candidates = []
     state_changed = False
 
-    youtube_pause_until = _parse_utc_datetime(state.get("youtube_uploads_paused_until"))
-
-    # One-time migration: earlier runs saved the channel-limit error per video
-    # before the global cooldown existed. Promote that persisted evidence into a
-    # channel-wide pause to prevent wasting another upload request after deployment.
-    if state.get("youtube_upload_pause_diagnostic_migrated") is not True:
-        if youtube_pause_until is None:
-            daily_limit_markers = (
-                "uploadlimitexceeded",
-                "video uploads per day",
-                "daily video upload limit",
-            )
-            for existing_pid, existing_record in published.items():
-                if not isinstance(existing_record, dict):
-                    continue
-                existing_error = str(existing_record.get("youtube_last_error") or "").casefold()
-                if any(marker in existing_error for marker in daily_limit_markers):
-                    youtube_pause_until = _next_youtube_daily_upload_retry_at(current)
-                    state["youtube_uploads_paused_until"] = youtube_pause_until.isoformat()
-                    state["youtube_upload_pause_reason"] = "daily_upload_limit"
-                    print(
-                        f"YOUTUBE_DAILY_LIMIT_PAUSE_MIGRATED product_id={existing_pid} "
-                        f"until={youtube_pause_until.isoformat()}"
-                    )
-                    break
-        state["youtube_upload_pause_diagnostic_migrated"] = True
-        state_changed = True
-
-    if youtube_pause_until and current >= youtube_pause_until:
-        state.pop("youtube_uploads_paused_until", None)
-        state.pop("youtube_upload_pause_reason", None)
-        youtube_pause_until = None
-        state_changed = True
-
-    # Migrate existing uploads into a durable three-hour spacing schedule. The radar
-    # still refreshes candidates every five minutes, but only chooses/renders a public
-    # YouTube Short when a publication slot is due.
-    youtube_next_upload_at = _parse_utc_datetime(state.get("youtube_next_upload_at"))
-    if youtube_next_upload_at is None:
-        last_successful_uploads = []
-        for existing_record in published.values():
-            if not isinstance(existing_record, dict):
-                continue
-            if str(existing_record.get("youtube_upload_status") or "") != "uploaded":
-                continue
-            uploaded_at = _parse_utc_datetime(existing_record.get("youtube_uploaded_at"))
-            if uploaded_at is not None:
-                last_successful_uploads.append(uploaded_at)
-        last_upload_at = max(last_successful_uploads) if last_successful_uploads else None
-        if last_upload_at is not None:
-            youtube_next_upload_at = last_upload_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS)
-            state["youtube_next_upload_at"] = youtube_next_upload_at.isoformat()
-            state_changed = True
-
-    youtube_pause_active = bool(youtube_pause_until and current < youtube_pause_until)
-    youtube_upload_due = (
-        youtube_ready
-        and not youtube_pause_active
-        and (force_due or youtube_next_upload_at is None or current >= youtube_next_upload_at)
-    )
-    if youtube_pause_active:
-        print(
-            f"YOUTUBE_UPLOADS_PAUSED reason={state.get('youtube_upload_pause_reason', 'daily_upload_limit')} "
-            f"until={youtube_pause_until.isoformat()}"
-        )
-    elif youtube_ready and not youtube_upload_due and youtube_next_upload_at is not None:
-        print(f"YOUTUBE_UPLOAD_SLOT_WAIT next_at={youtube_next_upload_at.isoformat()}")
-
-    # Aparat's upload clock is independent: a YouTube pause/cadence must not postpone it.
-    aparat_schedule_before = str(state.get("aparat_next_upload_at") or "")
-    aparat_upload_due = bool(force_due and aparat_ready) or _aparat_upload_slot_due(state, current, aparat_ready)
-    aparat_next_upload_at = _parse_utc_datetime(state.get("aparat_next_upload_at"))
-    if str(state.get("aparat_next_upload_at") or "") != aparat_schedule_before:
-        state_changed = True
-    if aparat_ready and not aparat_upload_due and aparat_next_upload_at is not None:
-        print(f"APARAT_UPLOAD_SLOT_WAIT next_at={aparat_next_upload_at.isoformat()}")
-
-    filo_schedule_before = str(state.get("filo_next_upload_at") or "")
-    filo_upload_due = bool(force_due and filo_ready) or _filo_upload_slot_due(state, current, filo_ready)
-    filo_next_upload_at = _parse_utc_datetime(state.get("filo_next_upload_at"))
-    if str(state.get("filo_next_upload_at") or "") != filo_schedule_before:
-        state_changed = True
-    if filo_ready and not filo_upload_due and filo_next_upload_at is not None:
-        print(f"FILO_UPLOAD_SLOT_WAIT next_at={filo_next_upload_at.isoformat()}")
+    # All configured destinations are due as soon as this selected product is handed off.
+    # This removes our own cadence timers; platform-imposed quotas are handled as per-item skips.
+    youtube_upload_due = youtube_ready
+    aparat_upload_due = aparat_ready
+    filo_upload_due = filo_ready
 
     if youtube_ready:
         for existing_pid, existing_record in published.items():
@@ -9857,7 +9771,7 @@ def process_pending_short_video(
             upload_status = "pending"
             record["youtube_upload_status"] = "pending"
             state_changed = True
-        if verified_expiry and aparat_status in {"skipped_unverified_deadline", "skipped_expiring_soon"}:
+        if aparat_status in {"skipped_unverified_deadline", "skipped_expiring_soon"}:
             aparat_status = "pending"
             record["aparat_upload_status"] = "pending"
             state_changed = True
@@ -9896,13 +9810,13 @@ def process_pending_short_video(
         )
         aparat_pending = aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not aparat_in_flight
         aparat_need = aparat_pending and (
-            APARAT_SHORTS_ONLY or (aparat_upload_due and video_deadline_allows_upload("aparat", verified_expiry))
+            APARAT_SHORTS_ONLY or aparat_upload_due
         )
         public_aparat_need = aparat_need and not APARAT_SHORTS_ONLY
         shorts_queue_need = aparat_pending and APARAT_SHORTS_ONLY
         filo_need = (
             filo_ready and filo_upload_due and filo_status in pending_filo
-            and not filo_in_flight and video_deadline_allows_upload("filo", verified_expiry)
+            and not filo_in_flight
         )
         manual_artifact_need = (
             # A manual MP4 artifact is a YouTube fallback, not an Aparat destination.
@@ -9917,11 +9831,6 @@ def process_pending_short_video(
         review_need = review_ready and not record.get("video_review_sent") and not (
             review_next and current < review_next
         )
-        if youtube_pause_active and not (public_aparat_need or shorts_queue_need or filo_need or review_need):
-            # A YouTube daily limit suppresses only YouTube uploads; public Aparat uploads,
-            # the separately queued Aparat Shorts path, and an explicitly configured private
-            # review destination remain eligible.
-            continue
         if not (yt_need or public_aparat_need or shorts_queue_need or filo_need or review_need or manual_artifact_need):
             # Don't render/select public YouTube content before its next scheduled slot.
             continue
@@ -9940,7 +9849,7 @@ def process_pending_short_video(
             retry_at = _parse_utc_datetime(value) if value else None
             if needed and retry_at:
                 retry_values.append(retry_at)
-        if retry_values and current < max(retry_values):
+        if retry_values and current < max(retry_values) and not retry_immediately:
             continue
 
         if not str(record.get("image_url") or "").strip():
@@ -10091,10 +10000,6 @@ def process_pending_short_video(
         record["aparat_upload_status"] = "uploading"
         record["aparat_upload_started_at"] = aparat_started_at.isoformat()
         state["aparat_last_upload_attempt_at"] = aparat_started_at.isoformat()
-        # Reserve the next slot before uploading so failures cannot cause a five-minute burst.
-        state["aparat_next_upload_at"] = (
-            aparat_started_at + timedelta(hours=APARAT_UPLOAD_INTERVAL_HOURS)
-        ).isoformat()
         save_json(STATE, state)
         try:
             aparat_result = upload_aparat_video(
@@ -10112,9 +10017,6 @@ def process_pending_short_video(
             aparat_uploaded_at = datetime.now(timezone.utc)
             record["aparat_uploaded_at"] = aparat_uploaded_at.isoformat()
             state["aparat_last_upload_success_at"] = aparat_uploaded_at.isoformat()
-            state["aparat_next_upload_at"] = (
-                aparat_uploaded_at + timedelta(hours=APARAT_UPLOAD_INTERVAL_HOURS)
-            ).isoformat()
             state.pop("aparat_last_upload_outcome_unknown_at", None)
             record.pop("aparat_next_attempt_at", None)
             record.pop("aparat_last_error", None)
@@ -10124,9 +10026,6 @@ def process_pending_short_video(
             )
         except Exception as exc:
             aparat_failure_at = datetime.now(timezone.utc)
-            state["aparat_next_upload_at"] = (
-                aparat_failure_at + timedelta(hours=APARAT_UPLOAD_INTERVAL_HOURS)
-            ).isoformat()
             if isinstance(exc, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)):
                 record["aparat_upload_status"] = "upload_result_unknown"
                 record["aparat_review_required"] = True
@@ -10139,12 +10038,14 @@ def process_pending_short_video(
                 except (TypeError, ValueError, OverflowError):
                     attempts = 1
                 record["aparat_upload_attempts"] = attempts
-                record["aparat_upload_status"] = "retry"
+                record["aparat_upload_status"] = (
+                    "retry" if attempts < 2 else "skipped_after_retries"
+                )
                 record["aparat_last_error"] = type(exc).__name__
-                record["aparat_next_attempt_at"] = (
-                    datetime.now(timezone.utc)
-                    + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
-                ).isoformat()
+                if attempts < 2:
+                    record["aparat_next_attempt_at"] = datetime.now(timezone.utc).isoformat()
+                else:
+                    record.pop("aparat_next_attempt_at", None)
                 status_code = getattr(getattr(exc, "response", None), "status_code", None)
                 print(f"APARAT_UPLOAD_FAILED id={pid} error={type(exc).__name__} http_status={status_code or 'unknown'} retry_attempt={attempts}")
         save_json(STATE, state)
@@ -10168,10 +10069,6 @@ def process_pending_short_video(
         record["filo_upload_status"] = "uploading"
         record["filo_upload_started_at"] = filo_started_at.isoformat()
         state["filo_last_upload_attempt_at"] = filo_started_at.isoformat()
-        # Reserve the independent slot before interacting with Filo to prevent bursts.
-        state["filo_next_upload_at"] = (
-            filo_started_at + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
-        ).isoformat()
         save_json(STATE, state)
         try:
             filo_result = upload_filo_video(
@@ -10211,10 +10108,11 @@ def process_pending_short_video(
                 except (TypeError, ValueError, OverflowError):
                     attempts = 1
                 record["filo_upload_attempts"] = attempts
-                record["filo_next_attempt_at"] = (
-                    datetime.now(timezone.utc)
-                    + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
-                ).isoformat()
+                if attempts >= 2:
+                    record["filo_upload_status"] = "skipped_after_retries"
+                    record.pop("filo_next_attempt_at", None)
+                else:
+                    record["filo_next_attempt_at"] = datetime.now(timezone.utc).isoformat()
                 print(f"FILO_UPLOAD_RETRY id={pid} error={record['filo_last_error'] or 'retryable_failure'} attempts={attempts}")
             else:
                 record["filo_review_required"] = True
@@ -10233,12 +10131,14 @@ def process_pending_short_video(
                 except (TypeError, ValueError, OverflowError):
                     attempts = 1
                 record["filo_upload_attempts"] = attempts
-                record["filo_upload_status"] = "retry"
+                record["filo_upload_status"] = (
+                    "retry" if attempts < 2 else "skipped_after_retries"
+                )
                 record["filo_last_error"] = str(getattr(exc, "code", type(exc).__name__))[:160]
-                record["filo_next_attempt_at"] = (
-                    datetime.now(timezone.utc)
-                    + timedelta(seconds=min(3600, 300 * (2 ** min(attempts - 1, 4))))
-                ).isoformat()
+                if attempts < 2:
+                    record["filo_next_attempt_at"] = datetime.now(timezone.utc).isoformat()
+                else:
+                    record.pop("filo_next_attempt_at", None)
                 print(f"FILO_UPLOAD_FAILED id={pid} error={type(exc).__name__} retry_attempt={attempts}")
         save_json(STATE, state)
 
@@ -10261,9 +10161,6 @@ def process_pending_short_video(
             uploaded_at = datetime.now(timezone.utc)
             record["youtube_uploaded_at"] = uploaded_at.isoformat()
             state["youtube_last_upload_success_at"] = uploaded_at.isoformat()
-            state["youtube_next_upload_at"] = (
-                uploaded_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS)
-            ).isoformat()
             record["youtube_description_version"] = YOUTUBE_DESCRIPTION_VERSION
             record["youtube_video_renderer_version"] = PERSIAN_TEXT_RENDERER_VERSION
             record["youtube_visual_repair_completed_at"] = datetime.now(timezone.utc).isoformat() if record.get("youtube_previous_video_id") else record.get("youtube_visual_repair_completed_at", "")
@@ -10281,12 +10178,9 @@ def process_pending_short_video(
                 record["youtube_last_error"] = type(exc).__name__
                 unknown_at = datetime.now(timezone.utc)
                 state["youtube_last_upload_outcome_unknown_at"] = unknown_at.isoformat()
-                state["youtube_next_upload_at"] = (
-                    unknown_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS)
-                ).isoformat()
                 print(
                     f"YOUTUBE_UPLOAD_RESULT_UNKNOWN id={pid} error={type(exc).__name__}; "
-                    f"next slot reserved at {state['youtube_next_upload_at']}; no automatic duplicate retry"
+                    "no automatic duplicate retry"
                 )
             else:
                 try:
@@ -10308,24 +10202,21 @@ def process_pending_short_video(
                 ))
                 failure_time = datetime.now(timezone.utc)
                 if daily_upload_limit:
-                    next_attempt = _next_youtube_daily_upload_retry_at(failure_time)
-                    state["youtube_uploads_paused_until"] = next_attempt.isoformat()
-                    state["youtube_upload_pause_reason"] = "daily_upload_limit"
-                    state["youtube_upload_pause_diagnostic_migrated"] = True
-                    youtube_pause_until = next_attempt
-                    youtube_pause_active = True
+                    # Google's account quota is externally imposed and cannot be bypassed.
+                    # Skip this YouTube item; other outlets continue with the same product.
+                    record["youtube_upload_status"] = "skipped_platform_quota"
+                    record.pop("youtube_next_attempt_at", None)
+                elif attempts < 2:
+                    record["youtube_upload_status"] = "retry"
+                    record["youtube_next_attempt_at"] = failure_time.isoformat()
                 else:
-                    next_attempt = failure_time + timedelta(
-                        seconds=min(3600, 300 * (2 ** min(attempts - 1, 4)))
-                    )
-                record["youtube_next_attempt_at"] = next_attempt.isoformat()
+                    record["youtube_upload_status"] = "skipped_after_retries"
+                    record.pop("youtube_next_attempt_at", None)
                 http_status = getattr(getattr(exc, "response", None), "status_code", None)
                 print(
                     f"YOUTUBE_UPLOAD_FAILED id={pid} error={type(exc).__name__} "
                     f"http_status={http_status or 'unknown'} detail={error_detail!r} "
-                    f"retry_attempt={attempts} "
-                    f"deferred_for_24h={daily_upload_limit} "
-                    f"next_attempt_at={next_attempt.isoformat()}"
+                    f"retry_attempt={attempts} status={record['youtube_upload_status']}"
                 )
     elif not youtube_ready and upload_status in pending_youtube:
         record["youtube_upload_status"] = "pending_credentials"
@@ -11469,8 +11360,7 @@ def run_youtube_uploads_only() -> int:
             output_dir="video_artifacts",
             destinations={"youtube"},
             candidate_limit=VIDEO_UPLOAD_CANDIDATE_LIMIT,
-            max_age_hours=VIDEO_UPLOAD_MAX_AGE_HOURS,
-        ):
+                    ):
             break
         processed += 1
         # Each attempt persists state. Reload before selecting another item.
@@ -11489,8 +11379,7 @@ def run_aparat_uploads_only() -> int:
             output_dir="video_artifacts",
             destinations={"aparat"},
             candidate_limit=VIDEO_UPLOAD_CANDIDATE_LIMIT,
-            max_age_hours=VIDEO_UPLOAD_MAX_AGE_HOURS,
-        ):
+                    ):
             break
         processed += 1
         # Each attempt persists state. Reload it so the next item sees the latest
@@ -11558,8 +11447,7 @@ def run_filo_uploads_only() -> int:
             output_dir="video_artifacts",
             destinations={"filo"},
             candidate_limit=VIDEO_UPLOAD_CANDIDATE_LIMIT,
-            max_age_hours=VIDEO_UPLOAD_MAX_AGE_HOURS,
-        ):
+                    ):
             break
         processed += 1
         state = load_state()
