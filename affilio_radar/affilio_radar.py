@@ -30,12 +30,14 @@ try:
         POLICY_VERSION as OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
         apply_four_factor_scores as _apply_four_factor_scores,
         four_factor_sort_key as _four_factor_sort_key,
+        four_factor_evidence_gate as _four_factor_evidence_gate,
     )
 except ImportError:
     from offerchin_four_factor import (
         POLICY_VERSION as OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
         apply_four_factor_scores as _apply_four_factor_scores,
         four_factor_sort_key as _four_factor_sort_key,
+        four_factor_evidence_gate as _four_factor_evidence_gate,
     )
 try:
     from .catalog_sweep import (
@@ -8221,16 +8223,31 @@ def select_publish_candidates(
         )
 
     # A discount floor is an eligibility label, not a ranking tier. Merge every
-    # ready band before sorting so a lower-discount high-demand product can outrank
-    # a weak-demand item with a larger markdown.
+    # ready band before scoring so all candidates share the same affordability cohort.
     ready_products = [
         product
         for tier in selected_by_floor.values()
         for product in tier
     ]
     _apply_offerchin_four_factor_scores(ready_products, now=current)
+    evidence_rejections: dict[str, int] = {}
+    evidence_passed = []
+    for product in ready_products:
+        allowed, gaps = _four_factor_evidence_gate(product)
+        if allowed:
+            evidence_passed.append(product)
+        else:
+            for gap in gaps:
+                evidence_rejections[gap] = evidence_rejections.get(gap, 0) + 1
+    if evidence_rejections:
+        print(
+            "FOUR_FACTOR_PUBLICATION_GATE "
+            f"passed={len(evidence_passed)} rejected={len(ready_products) - len(evidence_passed)} "
+            f"reasons={json.dumps(evidence_rejections, ensure_ascii=False, sort_keys=True)} "
+            "legacy_public_fallback=false"
+        )
     ordered = sorted(
-        ready_products,
+        evidence_passed,
         key=lambda record: deal_sort_key(record, now=current),
         reverse=True,
     )
@@ -8628,6 +8645,36 @@ def select_discount_fallback_candidates(
         ):
             fresh_candidates.append(product)
 
+    # Score the entire live-validated quality cohort before cooldown filtering.
+    # Public selection is fail-closed: all four factors need current evidence.
+    if quality_eligible:
+        _apply_offerchin_four_factor_scores(quality_eligible, now=current)
+    evidence_rejections: dict[str, int] = {}
+    evidence_passed = []
+    for product in quality_eligible:
+        allowed, gaps = _four_factor_evidence_gate(product)
+        if allowed:
+            evidence_passed.append(product)
+        else:
+            for gap in gaps:
+                evidence_rejections[gap] = evidence_rejections.get(gap, 0) + 1
+    quality_eligible = evidence_passed
+    eligible_ids = {
+        str(item.get("product_id") or product_id(item.get("product_url") or ""))
+        for item in quality_eligible
+    }
+    fresh_candidates = [
+        item for item in fresh_candidates
+        if str(item.get("product_id") or product_id(item.get("product_url") or "")) in eligible_ids
+    ]
+    if evidence_rejections:
+        print(
+            "FOUR_FACTOR_SELECTION_GATE "
+            f"passed={len(quality_eligible)} rejected={sum(evidence_rejections.values())} "
+            f"reasons={json.dumps(evidence_rejections, ensure_ascii=False, sort_keys=True)} "
+            "legacy_public_fallback=false"
+        )
+
     fallback_mode = "normal"
     if not fresh_candidates:
         # Reuse a product only after every prior Telegram/Bale post is confirmed
@@ -8671,7 +8718,6 @@ def select_discount_fallback_candidates(
         )
         return [], None, quality_eligible
 
-    _apply_offerchin_four_factor_scores(fresh_candidates, now=current)
     ranked = sorted(
         fresh_candidates,
         key=lambda record: deal_sort_key(record, now=current),
