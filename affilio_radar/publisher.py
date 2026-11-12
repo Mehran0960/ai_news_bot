@@ -27,7 +27,7 @@ from integrity_audit_state import apply_integrity_audit_ledger
 RETRY_BASE_SECONDS = max(60, int(os.getenv("AFFILIO_PUBLISH_RETRY_BASE_SECONDS", "300")))
 MAX_ITEMS_PER_RUN = max(1, min(3, int(os.getenv("AFFILIO_PUBLISHER_BATCH_SIZE", "1"))))
 MAX_INLINE_FALLBACK_ATTEMPTS = 50
-TERMINAL_PLATFORM = {"sent", "not_connected", "manual_review"}
+TERMINAL_PLATFORM = {"sent", "not_connected", "manual_review", "skipped"}
 
 
 def _now() -> datetime:
@@ -480,7 +480,7 @@ def _process_photo_destination(
     target = _target(entry, destination)
     record_status = record.setdefault("delivery_status", {})
     status = str(target.get("status") or "pending")
-    if status == "sent":
+    if status in {"sent", "skipped"}:
         return
     if status == "sending":
         started = _utc(target.get("attempt_started_at"))
@@ -542,14 +542,20 @@ def _process_photo_destination(
         )
     except Exception as exc:
         safe_detail = _safe_delivery_error(exc)
-        _target_retry(entry, destination, _now(), f"{type(exc).__name__}: {safe_detail}"[:180])
-        record_status[destination] = "failed"
+        failure_at = _now()
+        _target_retry(entry, destination, failure_at, f"{type(exc).__name__}: {safe_detail}"[:180])
+        if int(target.get("attempts") or 0) >= 2:
+            _set_target(entry, destination, "skipped", failure_at, "retry_budget_exhausted")
+            record_status[destination] = "skipped"
+        else:
+            record_status[destination] = "failed"
         record.setdefault("delivery_attempts", {})[destination] = target["attempts"]
-        record["delivery_last_attempt_at"] = _now().isoformat()
+        record["delivery_last_attempt_at"] = failure_at.isoformat()
         _save(state)
         print(
             f"PLATFORM_DELIVERY_FAILED product_id={entry['product_id']} platform={destination} "
-            f"error={type(exc).__name__} detail={safe_detail}"
+            f"error={type(exc).__name__} detail={safe_detail} "
+            f"status={target.get('status')}"
         )
 
 
@@ -612,6 +618,13 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
         "skipped_generation_failed", "skipped_unverified_deadline",
         "waiting_shorts_uploader", "rejected_by_filo",
     }
+    try:
+        generation_attempts = int(record.get("video_generation_attempts") or 0)
+    except (TypeError, ValueError, OverflowError):
+        generation_attempts = 0
+    if generation_attempts >= 2 and str(record.get("video_generation_status") or "") == "pending":
+        record["video_generation_status"] = "skipped_generation_failed"
+
     for destination in VIDEO_PLATFORMS:
         status = str(record.get(f"{destination}_upload_status") or "pending")
         if status in completed_statuses:
@@ -797,11 +810,31 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             image_bytes = radar._fetch_image(str(fresh.get("image_url") or ""))
         except Exception as exc:
             reason = f"image_fetch_{type(exc).__name__}"
-            entry["status"] = "queued"
+            try:
+                image_attempts = int(entry.get("photo_image_fetch_attempts") or 0) + 1
+            except (TypeError, ValueError, OverflowError):
+                image_attempts = 1
+            entry["photo_image_fetch_attempts"] = image_attempts
             entry["last_detail"] = reason
-            entry["next_attempt_at"] = (now + timedelta(seconds=RETRY_BASE_SECONDS)).isoformat()
-            _save(state)
-            print(f"CONTENT_IMAGE_UNAVAILABLE product_id={product_id} error={type(exc).__name__}")
+            if image_attempts >= 2:
+                for destination in PHOTO_PLATFORMS:
+                    _set_target(entry, destination, "skipped", _now(), "image_fetch_retry_budget_exhausted")
+                    record.setdefault("delivery_status", {})[destination] = "skipped"
+                state.get("pending_queue", {}).pop(product_id, None)
+                finish_queue_item(
+                    state, product_id, "cancelled", now=_now(),
+                    detail="photo_image_fetch_retry_budget_exhausted",
+                )
+                _save(state)
+                print(
+                    f"CONTENT_IMAGE_SKIPPED product_id={product_id} attempts={image_attempts} "
+                    "video_destinations_already_processed=true"
+                )
+            else:
+                entry["status"] = "queued"
+                entry["next_attempt_at"] = (now + timedelta(seconds=RETRY_BASE_SECONDS)).isoformat()
+                _save(state)
+                print(f"CONTENT_IMAGE_UNAVAILABLE product_id={product_id} error={type(exc).__name__} retry=1")
             continue
 
         prior_public_status = {
