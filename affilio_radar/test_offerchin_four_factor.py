@@ -234,7 +234,7 @@ class OfferChinFourFactorTests(unittest.TestCase):
         queue = {row["product_id"]: {} for row in products}
         eligible = {row["product_id"]: row for row in products}
         with patch.object(radar, "has_verified_market_demand", return_value=True), \
-             patch.object(radar, "has_attractive_discount_value", return_value=False), \
+             patch.object(radar, "has_attractive_discount_value", return_value=True), \
              patch.object(radar, "_publication_use_case_group", side_effect=lambda row: row["test_group"]), \
              patch.object(radar, "_offerchin_live_demand_score", side_effect=lambda row, now=None: row["test_live_demand"]):
             selected = radar.select_publish_candidates(
