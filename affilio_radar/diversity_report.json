@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-12T09:04:20.264027+00:00",
+  "generated_at": "2026-11-12T09:12:15.901726+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار آشپزی": 1,
@@ -250,7 +250,7 @@
       "لوازم تحریر": 2,
       "لوازم خانگی برقی": 2,
       "لوازم سفر و کمپینگ": 1,
-      "لوازم ماهیگیری": 2,
+      "لوازم ماهیگیری": 1,
       "لوازم یدکی ابزار برقی": 2,
       "ماسک صورت و بدن": 1,
       "مته و سری": 2,
@@ -312,7 +312,7 @@
       "large_appliances": 6,
       "lighting": 1,
       "mobile_devices": 4,
-      "other": 83,
+      "other": 82,
       "personal_care": 38,
       "power_backup": 6,
       "sports_outdoor": 12,
@@ -335,10 +335,10 @@
       "large_appliances": 2.4,
       "lighting": 0.4,
       "mobile_devices": 1.6,
-      "other": 32.8,
-      "personal_care": 15.0,
+      "other": 32.5,
+      "personal_care": 15.1,
       "power_backup": 2.4,
-      "sports_outdoor": 4.7,
+      "sports_outdoor": 4.8,
       "tv_audio_video": 0.4
     },
     "distinct_catalog_categories": 109,
@@ -347,7 +347,7 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
     "known_brand_posts": 25,
-    "posts": 253,
+    "posts": 252,
     "repeated_brand_count": 15,
     "repeated_brands": {
       "ai_javaher": 4,
@@ -359,7 +359,7 @@
       "ufc": 3
     },
     "retailer_post_counts": {
-      "digikala": 253
+      "digikala": 252
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -384,7 +384,7 @@
       "local_goods": 2,
       "mobile_productivity": 37,
       "office_study": 11,
-      "outdoor_travel": 5,
+      "outdoor_travel": 4,
       "personal_care": 31,
       "sports_fitness": 10,
       "tabletop_games": 1,
@@ -404,47 +404,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 847,
+    "all_time_count": 849,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-11T18:51:53.902001+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-12935579",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-20682942",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-11T19:29:22.360737+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-12935579",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12564010",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فلوئید ضدآفتاب بی‌رنگ ویتالیر SPF50 مدل Whitevit مناسب انواع پوست، حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-11T19:29:22.360737+00:00",
         "brand": "",
@@ -749,6 +715,40 @@
           "similarity_repeat"
         ],
         "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-12T09:12:15.901726+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4184133",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-12T09:12:15.901726+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4184133",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12935579",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
         "use_case": "personal_care"
       }
     ]
