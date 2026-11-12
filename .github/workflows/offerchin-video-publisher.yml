@@ -80,6 +80,14 @@ jobs:
             test_filo_uploader.py \
             test_short_video.py
 
+      - name: Verify Filo login without publishing
+        continue-on-error: true
+        env:
+          FILO_USER: ${{ secrets.FILO_USER }}
+          FILO_PASS: ${{ secrets.FILO_PASS }}
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/affilio_radar.py --filo-login-check-only
+
       - name: Fan out the same FIFO to YouTube, Aparat and Filo
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
