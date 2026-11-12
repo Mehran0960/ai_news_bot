@@ -11583,20 +11583,31 @@ def run_filo_uploads_only() -> int:
 
 
 def run_all_video_uploads_only() -> int:
-    """Run each video destination against the same canonical FIFO in one workflow event."""
-    results = {}
-    for name, runner in (
-        ("youtube", run_youtube_uploads_only),
-        ("aparat", run_aparat_uploads_only),
-        ("filo", run_filo_uploads_only),
-    ):
-        try:
-            results[name] = runner()
-        except Exception as exc:
-            results[name] = 1
-            print(f"ALL_VIDEO_DESTINATION_FAILED platform={name} error={type(exc).__name__}")
-    print(f"ALL_VIDEO_DESTINATIONS_RUN_SUMMARY results={results}")
-    return 0 if any(code == 0 for code in results.values()) else 1
+    """Process one canonical product at a time across every video destination."""
+    destinations = {"youtube", "aparat", "filo"}
+    state = load_state()
+    processed_products = 0
+    while processed_products < MAX_SHORT_VIDEOS_PER_RUN:
+        did_work = process_pending_short_video(
+            state,
+            output_dir="video_artifacts",
+            destinations=destinations,
+            candidate_limit=VIDEO_UPLOAD_CANDIDATE_LIMIT,
+            max_age_hours=None,
+        )
+        if not did_work:
+            break
+        processed_products += 1
+        # Re-read after each product/attempt so the next call sees every platform outcome.
+        # A retriable failure remains the oldest pending item and is retried immediately;
+        # after its bounded attempts become terminal, all platforms advance to the next SKU.
+        state = load_state()
+    print(
+        f"ALL_VIDEO_DESTINATIONS_RUN_SUMMARY processed={processed_products} "
+        f"destinations={','.join(sorted(destinations))} "
+        f"max_per_run={MAX_SHORT_VIDEOS_PER_RUN}"
+    )
+    return 0
 
 
 def main():
