@@ -1159,7 +1159,7 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 
 **وضعیت منبع:** پیاده‌سازی در شاخهٔ `feature/offerchin-video-fanout-no-throttle-20261112` انجام شده؛ تا ادغام PR و اجرای deploy workflow روی `main`، production هنوز رفتار شاخهٔ قبلی را دارد.
 
-- ناشر کانالی پس از persist شدن رکورد canonical، یک بار Workflow `offerchin-video-publisher.yml` را dispatch می‌کند. Cloudflare `affilio-minute-dispatcher` نیز هر دقیقه فقط همین Workflow واحد را برای بازیابی صف pending فراخوانی می‌کند.
+- ناشر اصلی `offerchin-publisher.yml` و ناشر اضطراری دستی `affilio-publisher.yml` پس از persist شدن رکورد canonical، یک بار Workflow `offerchin-video-publisher.yml` را dispatch می‌کنند. Cloudflare `affilio-minute-dispatcher` نیز هر دقیقه فقط همین Workflow واحد را برای بازیابی صف pending فراخوانی می‌کند. مسیر کمپین دستی بدون SKU از این قرارداد محصولی خارج است.
 - Workflow واحد، تابع مشترک را روی قدیمی‌ترین محصول pending اجرا می‌کند و همان SKU را پیش از حرکت به محصول بعدی به YouTube، Aparat و Filo fan-out می‌کند. خطاهای هر مقصد مستقل ثبت می‌شوند. sidecar و اسکن Python ابتدا موارد terminal را حذف می‌کنند و سپس قدیمی‌ترین pendingها را در پنجرهٔ ۲۵۰تایی قرار می‌دهند؛ backlog قدیمی پشت رکوردهای تازه یا terminal پنهان نمی‌ماند. این به معنی ارسال هم‌زمان واقعی در یک لحظه نیست؛ هدف، یکسانی ترتیب و شناسهٔ محصول است.
 - زمان‌بندی‌های داخلی ۳ ساعت YouTube، ۳ ساعت Aparat و ۲۷ دقیقه Filo، فاصلهٔ retry و سقف عمر ۲۴ساعتهٔ رکورد ویدئو حذف شده‌اند. تاریخ انقضا و اعتبار زندهٔ کالا حذف نشده‌اند.
 - حداکثر تلاش خطای قابل‌تکرار برای هر مقصد ۳ بار است؛ سپس وضعیت آن مقصد terminal skip می‌شود و صف آن جلو می‌رود. نتیجهٔ نامعلوم پس از شروع upload همچنان manual review است و retry کور مجاز نیست.
