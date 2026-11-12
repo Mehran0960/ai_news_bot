@@ -5978,7 +5978,8 @@ class AffilioRadarTests(unittest.TestCase):
         ):
             self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
             self.assertEqual(record["video_generation_status"], "generated")
-            self.assertEqual(record["youtube_upload_status"], "pending_credentials")
+            self.assertEqual(record["youtube_upload_status"], "skipped_unavailable")
+            self.assertEqual(record["youtube_skip_reason"], "credentials_not_configured")
             self.assertEqual(record["video_style_version"], VIDEO_STYLE_VERSION)
             self.assertTrue((Path(output_dir) / f"offerchin-{pid}.mp4").is_file())
             upload.assert_not_called()
@@ -6118,12 +6119,10 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(record["youtube_video_id"], "yt_test_123")
             self.assertEqual(record["youtube_video_url"], "https://www.youtube.com/shorts/yt_test_123")
             uploaded_at = datetime.fromisoformat(record["youtube_uploaded_at"])
-            next_upload_at = datetime.fromisoformat(state["youtube_next_upload_at"])
-            self.assertEqual(
-                next_upload_at,
-                uploaded_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS),
-            )
+            self.assertNotIn("youtube_next_upload_at", state)
+            self.assertEqual(YOUTUBE_UPLOAD_INTERVAL_HOURS, 0)
             self.assertEqual(state["youtube_last_upload_success_at"], record["youtube_uploaded_at"])
+            self.assertGreaterEqual(uploaded_at, now)
 
 
 
@@ -6262,12 +6261,15 @@ class AffilioRadarTests(unittest.TestCase):
             patch("short_video.render_short_video") as render,
             patch("aparat_uploader.upload_aparat_video") as upload_aparat,
         ):
-            self.assertFalse(process_pending_short_video(state, now=now, output_dir=output_dir))
+            self.assertFalse(process_pending_short_video(
+                state, now=now, output_dir=output_dir, destinations={"aparat"}
+            ))
 
         fetch_image.assert_not_called()
         render.assert_not_called()
         upload_aparat.assert_not_called()
-        self.assertEqual(record["aparat_upload_status"], "pending")
+        self.assertEqual(record["aparat_upload_status"], "skipped_unverified_deadline")
+        self.assertEqual(record["aparat_skip_reason"], "verified_expiry_required")
 
     def test_aparat_only_run_skips_manual_youtube_artifact_candidates_and_uses_verified_expiry(self):
         now = datetime.now(timezone.utc)
@@ -6336,7 +6338,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(render.call_args.kwargs["title"], verified["title"])
         upload_aparat.assert_called_once()
         self.assertEqual(unverified["video_generation_status"], "pending")
-        self.assertEqual(unverified["aparat_upload_status"], "pending")
+        self.assertEqual(unverified["aparat_upload_status"], "skipped_unverified_deadline")
+        self.assertEqual(unverified["aparat_skip_reason"], "verified_expiry_required")
         self.assertEqual(verified["video_generation_status"], "generated")
         self.assertEqual(verified["aparat_upload_status"], "uploaded")
         self.assertEqual(verified["aparat_video_url"], "https://www.aparat.com/v/aparatverified123")
@@ -6419,7 +6422,10 @@ class AffilioRadarTests(unittest.TestCase):
             "title": "ویدئوی قبلی",
             "youtube_upload_status": "uploaded",
             "youtube_uploaded_at": prior_uploaded_at.isoformat(),
+            "aparat_upload_status": "skipped_unavailable",
+            "filo_upload_status": "skipped_unavailable",
             "video_generation_status": "generated",
+            "video_style_version": VIDEO_STYLE_VERSION,
             "delivery_status": {"telegram": "sent"},
         }
         pending = {
@@ -6439,24 +6445,25 @@ class AffilioRadarTests(unittest.TestCase):
             "youtube_upload_status": "pending",
         }
         state = {"published": {prior_id: prior, pending_id: pending}}
-        expected_next = prior_uploaded_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS)
-
         with (
             TemporaryDirectory() as output_dir,
-            patch("affilio_radar._fetch_image") as fetch_image,
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
             patch("affilio_radar.save_json"),
             patch("short_video.youtube_credentials_available", return_value=True),
             patch("aparat_uploader.aparat_credentials_available", return_value=False),
             patch("short_video.telegram_video_review_available", return_value=False),
             patch("short_video.render_short_video") as render,
-            patch("short_video.upload_youtube_video") as upload,
+            patch("short_video.upload_youtube_video", return_value={
+                "video_id": "yt_now_123", "url": "https://www.youtube.com/shorts/yt_now_123"
+            }) as upload,
         ):
-            self.assertFalse(process_pending_short_video(state, now=now, output_dir=output_dir))
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
 
-        self.assertEqual(state["youtube_next_upload_at"], expected_next.isoformat())
-        fetch_image.assert_not_called()
-        render.assert_not_called()
-        upload.assert_not_called()
+        self.assertNotIn("youtube_next_upload_at", state)
+        self.assertEqual(YOUTUBE_UPLOAD_INTERVAL_HOURS, 0)
+        render.assert_called_once()
+        upload.assert_called_once()
+        self.assertEqual(pending["youtube_upload_status"], "uploaded")
 
     def test_youtube_upload_failure_preserves_http_diagnostic_for_retry(self):
         now = datetime.now(timezone.utc)
@@ -6497,15 +6504,15 @@ class AffilioRadarTests(unittest.TestCase):
         ):
             self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
 
-        self.assertEqual(record["youtube_upload_status"], "retry")
+        self.assertEqual(record["youtube_upload_status"], "skipped_platform_limit")
+        self.assertEqual(record["youtube_skip_reason"], "youtube_daily_quota_pause")
         self.assertIn("HTTP 429", record["youtube_last_error"])
         self.assertIn("rateLimitExceeded", record["youtube_last_error"])
         self.assertIn("Video Uploads per day", record["youtube_last_error"])
-        self.assertIsNotNone(record.get("youtube_next_attempt_at"))
-        retry_at = datetime.fromisoformat(record["youtube_next_attempt_at"])
-        self.assertGreaterEqual(retry_at, now + timedelta(hours=24))
-        self.assertLess(retry_at, now + timedelta(hours=25))
-        self.assertEqual(state["youtube_uploads_paused_until"], record["youtube_next_attempt_at"])
+        self.assertNotIn("youtube_next_attempt_at", record)
+        pause_until = datetime.fromisoformat(state["youtube_uploads_paused_until"])
+        self.assertGreaterEqual(pause_until, now + timedelta(hours=24))
+        self.assertLess(pause_until, now + timedelta(hours=25))
         self.assertEqual(state["youtube_upload_pause_reason"], "daily_upload_limit")
 
     def test_youtube_daily_limit_pause_does_not_block_aparat_shorts_queue(self):
