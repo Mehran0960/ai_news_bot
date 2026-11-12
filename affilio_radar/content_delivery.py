@@ -425,7 +425,7 @@ def enqueue_selected_content(
 
 
 def due_content(state: dict, *, now: datetime | None = None, limit: int = 1) -> list[tuple[str, dict]]:
-    """Return scheduled items due for delivery in stable schedule/priority order."""
+    """Return due items in strict FIFO order; a retrying item blocks all newer items."""
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
@@ -433,31 +433,33 @@ def due_content(state: dict, *, now: datetime | None = None, limit: int = 1) -> 
     queue = state.get("content_delivery_queue")
     if not isinstance(queue, dict):
         return []
-    due = []
+
+    ordered = []
     for product_id, entry in queue.items():
         if not isinstance(entry, dict) or entry.get("status") in TERMINAL_QUEUE_STATUSES:
             continue
         scheduled = _utc(entry.get("scheduled_at"))
-        retry_at = _utc(entry.get("next_attempt_at"), scheduled)
-        if scheduled is None or scheduled > now or (retry_at and retry_at > now):
+        if scheduled is None:
             continue
-        # New content with zero successful deliveries must outrank old partial items.
-        # A slow/broken platform therefore cannot monopolize the publisher's single-item run.
-        has_success = _has_any_delivery_success(state, str(product_id), entry)
-        # Preserve queue/schedule order; demand or popularity telemetry must never
-        # reorder items after the discount-first selector has already ranked them.
-        due.append((
-            1 if has_success else 0,
-            scheduled,
-            str(product_id),
-            entry,
-        ))
-    # Python's stable sort retains queue insertion (selection) order on an exact schedule tie.
-    due.sort(key=lambda row: (row[0], row[1]))
-    return [
-        (product_id, entry)
-        for _partial, _scheduled, product_id, entry in due[:max(1, int(limit))]
-    ]
+        ordered.append((scheduled, str(product_id), entry))
+
+    # Selection order is canonical: no platform success, popularity signal, or retry
+    # can promote a newer product ahead of an older unresolved product.
+    ordered.sort(key=lambda row: (row[0], row[1]))
+    due = []
+    for scheduled, product_id, entry in ordered:
+        if scheduled > now:
+            break
+        retry_at = _utc(entry.get("next_attempt_at"), scheduled)
+        if retry_at is not None and retry_at > now:
+            # Preserve the same content sequence across every channel. The current
+            # product gets its bounded retries; later products wait, then may proceed
+            # once this entry succeeds or reaches a terminal skip state.
+            break
+        due.append((product_id, entry))
+        if len(due) >= max(1, int(limit)):
+            break
+    return due
 
 
 def finish_queue_item(state: dict, product_id: str, status: str, *, now: datetime | None = None, detail: str = "") -> None:
