@@ -413722,7 +413722,7 @@
       },
       "delivery_version": 1,
       "demand_score": 48,
-      "expires_at": "2026-11-13T20:30:01.099316+00:00",
+      "expires_at": "2026-11-13T20:35:00.789846+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -427674,7 +427674,7 @@
       },
       "delivery_version": 1,
       "demand_score": 49,
-      "expires_at": "2026-11-13T20:30:01.099316+00:00",
+      "expires_at": "2026-11-13T20:35:00.789846+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -444944,7 +444944,7 @@
       "delivery_version": 1,
       "demand_score": 38,
       "distribution_queue_id": "dkp-22998731:2026-10-27T16:16:08.788270+00:00",
-      "expires_at": "2026-11-12T12:00:01.099316+00:00",
+      "expires_at": "2026-11-12T12:05:00.789846+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -444989,8 +444989,8 @@
       "video_style_version": 5,
       "youtube_deleted_at": "2026-10-27T20:37:55.563200+00:00",
       "youtube_description_last_error": "RuntimeError",
-      "youtube_description_next_attempt_at": "2026-11-12T08:50:56.941831+00:00",
-      "youtube_description_update_attempts": 41,
+      "youtube_description_next_attempt_at": "2026-11-12T11:53:14.637853+00:00",
+      "youtube_description_update_attempts": 42,
       "youtube_description_version": 3,
       "youtube_expiry_status": "deleted",
       "youtube_review_required": false,
@@ -451807,7 +451807,7 @@
       "youtube_upload_status": "pending"
     },
     "dkp-4230050": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-12T10:23:47.656301+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1901,
@@ -451981,10 +451981,10 @@
         "filo": "offerchin-dkp-4230050.mp4"
       },
       "video_generated_at": "2026-11-12T00:04:55.479287+00:00",
-      "video_generation_status": "generated",
+      "video_generation_status": "skipped_expiring_soon",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-4253558": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -457549,13 +457549,21 @@
       "ts": 1794409895.455776,
       "video_file_name": "offerchin-dkp-7397777.mp4",
       "video_file_names": {
-        "filo": "offerchin-dkp-7397777.mp4"
+        "filo": "offerchin-dkp-7397777.mp4",
+        "youtube": "offerchin-dkp-7397777.mp4"
       },
-      "video_generated_at": "2026-11-12T00:34:24.567770+00:00",
+      "video_generated_at": "2026-11-12T10:53:14.637853+00:00",
       "video_generation_status": "generated",
       "video_style_version": 7,
-      "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-12T10:53:20.238190+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-12T10:53:22.166409+00:00",
+      "youtube_video_id": "Qen9JpiqTYg",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/Qen9JpiqTYg",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-7427078": {
       "aparat_upload_status": "pending",
@@ -460335,7 +460343,7 @@
       "discount_vs_30d_median_pct": 0,
       "distribution_queue_id": "dkp-8720946:2026-11-09T04:51:14.194185+00:00",
       "expired_deleted_at": "2026-11-09T17:13:29.197927+00:00",
-      "expires_at": "2026-11-12T20:30:01.099316+00:00",
+      "expires_at": "2026-11-12T20:35:00.789846+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -473272,7 +473280,7 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 15,
   "snappshop_retry_after": "2026-11-13T10:19:22.710996+00:00",
-  "youtube_last_upload_success_at": "2026-11-12T07:51:06.463388+00:00",
-  "youtube_next_upload_at": "2026-11-12T10:51:06.463388+00:00",
+  "youtube_last_upload_success_at": "2026-11-12T10:53:22.166409+00:00",
+  "youtube_next_upload_at": "2026-11-12T13:53:22.166409+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
