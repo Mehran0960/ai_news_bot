@@ -9859,7 +9859,6 @@ def process_pending_short_video(
         aparat_ready and aparat_upload_due
         and aparat_status in PENDING_APARAT_STATUSES
         and not APARAT_SHORTS_ONLY
-        and verified_expiry
     ):
         aparat_started_at = datetime.now(timezone.utc)
         record["aparat_upload_status"] = "uploading"
