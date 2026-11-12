@@ -42,7 +42,6 @@ GENERALITY_SCORES = {
     "arts_crafts": 34,
     "general": 22,
     "catalog_taxonomy_other": 30,
-    "general": 22,
     "unknown": 18,
 }
 
@@ -350,8 +349,8 @@ def four_factor_evidence_gate(row: dict) -> tuple[bool, list[str]]:
 def four_factor_sort_key(row: dict) -> tuple:
     score = row.get("offerchin_four_factor") if isinstance(row, dict) else None
     score = score if isinstance(score, dict) else {}
-    # Incomplete legacy/test cards must fall back to the pre-existing demand/deal
-    # order rather than being spuriously rearranged by partial four-factor data.
+    # Diagnostic sorts put incomplete records last. Public selectors must apply
+    # four_factor_evidence_gate before sorting; there is no public legacy fallback.
     if any(
         _number(score.get(key)) <= 0
         for key in ("live_demand", "affordability", "generality", "discount_attractiveness")
