@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-12T10:52:00.729933+00:00",
+  "generated_at": "2026-11-12T10:59:55.159623+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار آشپزی": 1,
@@ -119,7 +119,6 @@
       "پیچ گوشتی و فازمتر": 1,
       "ژل و صابون ابرو": 1,
       "ژل و کرم ترمیم کننده": 1,
-      "کرم دور چشم": 1,
       "کرم ضد چروک": 1,
       "کنسرو حبوبات و سبزیجات": 1,
       "کوه‌ نوردی و صخره نوردی": 1,
@@ -134,30 +133,30 @@
       "lighting": 1,
       "mobile_devices": 1,
       "other": 9,
-      "personal_care": 7
+      "personal_care": 6
     },
     "category_share_percent": {
-      "audio_wearables": 4.2,
-      "automotive": 4.2,
-      "beauty_fragrance": 4.2,
-      "grocery_food": 4.2,
-      "home": 8.3,
-      "lighting": 4.2,
-      "mobile_devices": 4.2,
-      "other": 37.5,
-      "personal_care": 29.2
+      "audio_wearables": 4.3,
+      "automotive": 4.3,
+      "beauty_fragrance": 4.3,
+      "grocery_food": 4.3,
+      "home": 8.7,
+      "lighting": 4.3,
+      "mobile_devices": 4.3,
+      "other": 39.1,
+      "personal_care": 26.1
     },
-    "distinct_catalog_categories": 24,
+    "distinct_catalog_categories": 23,
     "distinct_categories": 9,
-    "distinct_families": 24,
+    "distinct_families": 23,
     "distinct_retailers": 1,
     "distinct_use_cases": 11,
     "known_brand_posts": 0,
-    "posts": 24,
+    "posts": 23,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 24
+      "digikala": 23
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -170,7 +169,7 @@
       "home_living": 1,
       "kitchen_food": 2,
       "lighting_electrical": 1,
-      "mobile_productivity": 6,
+      "mobile_productivity": 5,
       "office_study": 1,
       "personal_care": 3,
       "tools_industrial": 1
@@ -392,64 +391,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 883,
+    "all_time_count": 886,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-12T09:56:12.973533+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-6808740",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-12T10:04:29.263663+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-12T10:04:29.263663+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-6808740",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-12T10:04:29.263663+00:00",
         "brand": "",
@@ -738,6 +686,57 @@
         ],
         "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
         "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-12T10:59:55.159623+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4184133",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل شستشوی صورت دیپ سنس مدل درخت چای و بامبو مناسب پوست‌های چرب حجم 250 میلی‌ لیتر",
+        "use_case": "home_cleaning"
+      },
+      {
+        "at": "2026-11-12T10:59:55.159623+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-6808740",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-12T10:59:55.159623+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12935579",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
       }
     ]
   }
