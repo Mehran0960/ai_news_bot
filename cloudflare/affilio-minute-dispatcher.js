@@ -18,6 +18,8 @@ const RUNS_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
 const FILO_REPO = "Goushibaaz";
 const FILO_WORKFLOW = "filo-native-republish.yml";
 const FILO_API = `https://api.github.com/repos/${OWNER}/${FILO_REPO}/actions/workflows/${FILO_WORKFLOW}`;
+const VIDEO_PUBLISHER_WORKFLOW = "offerchin-video-publisher.yml";
+const VIDEO_PUBLISHER_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${VIDEO_PUBLISHER_WORKFLOW}`;
 
 function response(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -354,8 +356,6 @@ async function dispatchPublisherWhenDue(env, tick, state) {
   );
 }
 
-const VIDEO_WORKFLOW_RETRY_GAP_MS = 5 * 60 * 1000;
-const VIDEO_UPLOAD_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const VIDEO_PENDING_STATUSES = new Set([
   "pending", "pending_credentials", "retry", "skipped_unverified_deadline"
 ]);
@@ -387,17 +387,12 @@ function hasVideoDispatchEligibility(record) {
 export function videoRecordDue(record, platform, now) {
   if (!hasVideoDispatchEligibility(record)) return false;
   const publishedAt = Number(record.ts || 0) * 1000;
-  if (!Number.isFinite(publishedAt) || publishedAt <= 0 || now - publishedAt > VIDEO_UPLOAD_MAX_AGE_MS) return false;
+  if (!Number.isFinite(publishedAt) || publishedAt <= 0) return false;
   const status = String(record[platform + "_upload_status"] || "pending");
   if (!VIDEO_PENDING_STATUSES.has(status)) return false;
   const generation = String(record.video_generation_status || "pending");
   if (!["", "pending", "generated"].includes(generation) &&
       !(platform === "filo" && generation === "skipped_unverified_deadline")) return false;
-
-  const generationRetry = dateValue(record.video_generation_next_attempt_at);
-  if (generationRetry !== null && generationRetry > now) return false;
-  const platformRetry = dateValue(record[platform + "_next_attempt_at"]);
-  if (platformRetry !== null && platformRetry > now) return false;
 
   const expiry = dateValue(record.expires_at);
   if (expiry !== null && expiry <= now + 10 * 60 * 1000) return false;
@@ -445,49 +440,23 @@ async function readLatestWorkflowAttempt(api, token) {
   }
 }
 
-// A successful channel delivery is the content event: its canonical product record
-// becomes video-eligible immediately. The rolling platform slot below is only a
-// target-side rate limiter; it must never trigger an independent product selection.
-async function dispatchVideoPlatformWhenDue(env, tick, state, platform) {
-  const config = platform === "youtube"
-    ? { api: YOUTUBE_VIDEO_API, workflow: YOUTUBE_VIDEO_WORKFLOW, slot: "youtube_next_upload_at", pause: "youtube_uploads_paused_until" }
-    : platform === "aparat"
-      ? { api: APARAT_VIDEO_API, workflow: APARAT_VIDEO_WORKFLOW, slot: "aparat_next_upload_at", pause: null }
-      : { api: OFFERCHIN_FILO_VIDEO_API, workflow: OFFERCHIN_FILO_VIDEO_WORKFLOW, slot: "filo_next_upload_at", pause: null };
-
-  const now = tick.getTime();
-  if (platform === "filo" && !isFiloLoginVerified(state, now)) {
-    console.log("OFFERCHIN_FILO_VIDEO_DISPATCH_NOT_DUE reason=login_not_verified_or_stale");
-    return;
-  }
-  const nextSlot = dateValue(state && state[config.slot]);
-  const pauseUntil = config.pause ? dateValue(state && state[config.pause]) : null;
-  if (nextSlot !== null && now < nextSlot) return;
-  if (pauseUntil !== null && now < pauseUntil) return;
-  if (!hasDueVideoRecord(state, platform, now)) return;
-
-  const latestAttempt = await readLatestWorkflowAttempt(config.api, env.GITHUB_TOKEN);
-  const attemptAt = dateValue(latestAttempt &&
-    (latestAttempt.updated_at || latestAttempt.run_started_at || latestAttempt.created_at));
-  if (attemptAt !== null && now - attemptAt < VIDEO_WORKFLOW_RETRY_GAP_MS) return;
-
-  // Each platform owns its own workflow and saved due slot. Video jobs share
-  // the channel publisher's state-writer lock to prevent concurrent state loss.
-  await dispatchWorkflowIfIdle(config.api, env.GITHUB_TOKEN, config.workflow, 35, 30);
-}
-
+// Every selected product is fanned out from one shared canonical queue. The unified
+// workflow serializes YouTube, Aparat and Filo over the same FIFO, then records each
+// platform's own success, rejection, retry exhaustion or uncertain outcome.
 async function dispatchVideoUploadsWhenDue(env, tick, state) {
-  if (!state) return;
-  for (const platform of ["youtube", "aparat", "filo"]) {
-    try {
-      await dispatchVideoPlatformWhenDue(env, tick, state, platform);
-    } catch (error) {
-      console.error(
-        "OFFERCHIN_" + platform.toUpperCase() + "_VIDEO_DISPATCH_FAILED",
-        String(error).slice(0, 700)
-      );
-    }
-  }
+  if (!state || !env.GITHUB_TOKEN) return;
+  const now = tick.getTime();
+  const hasPendingVideo = ["youtube", "aparat", "filo"].some((platform) =>
+    hasDueVideoRecord(state, platform, now)
+  );
+  if (!hasPendingVideo) return;
+  await dispatchWorkflowIfIdle(
+    VIDEO_PUBLISHER_API,
+    env.GITHUB_TOKEN,
+    VIDEO_PUBLISHER_WORKFLOW,
+    45,
+    30
+  );
 }
 
 async function runScheduledCheck(env, scheduledTime) {
@@ -547,8 +516,8 @@ async function runScheduledCheck(env, scheduledTime) {
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 
-  // Inspect the channel-created video queue on every minute tick. The product event
-  // is immediate; each destination's own rolling safety slot controls actual dispatch.
+  // One unified event-driven video workflow consumes the shared FIFO; the minute
+  // poll is a recovery path for any queue items left after a bounded workflow batch.
   await dispatchVideoUploadsWhenDue(env, tick, state);
 }
 
