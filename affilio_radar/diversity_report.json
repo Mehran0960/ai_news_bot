@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-12T13:10:08.737184+00:00",
+  "generated_at": "2026-11-12T13:17:44.725835+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار آشپزی": 1,
@@ -114,7 +114,6 @@
       "لوازم اتو": 1,
       "لوازم اداری": 1,
       "نظافت و نگهداری خودرو": 1,
-      "پیچ گوشتی و فازمتر": 1,
       "ژل و کرم ترمیم کننده": 1,
       "کرم ضد چروک": 1,
       "کنسرو حبوبات و سبزیجات": 1,
@@ -129,38 +128,38 @@
       "home": 1,
       "lighting": 1,
       "mobile_devices": 1,
-      "other": 7,
+      "other": 6,
       "personal_care": 6
     },
     "category_share_percent": {
-      "audio_wearables": 5.0,
-      "automotive": 5.0,
-      "beauty_fragrance": 5.0,
-      "grocery_food": 5.0,
-      "home": 5.0,
-      "lighting": 5.0,
-      "mobile_devices": 5.0,
-      "other": 35.0,
-      "personal_care": 30.0
+      "audio_wearables": 5.3,
+      "automotive": 5.3,
+      "beauty_fragrance": 5.3,
+      "grocery_food": 5.3,
+      "home": 5.3,
+      "lighting": 5.3,
+      "mobile_devices": 5.3,
+      "other": 31.6,
+      "personal_care": 31.6
     },
-    "distinct_catalog_categories": 20,
+    "distinct_catalog_categories": 19,
     "distinct_categories": 9,
-    "distinct_families": 20,
+    "distinct_families": 19,
     "distinct_retailers": 1,
     "distinct_use_cases": 10,
     "known_brand_posts": 0,
-    "posts": 20,
+    "posts": 19,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 20
+      "digikala": 19
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
       "automotive": 3,
-      "catalog_taxonomy_other": 3,
+      "catalog_taxonomy_other": 2,
       "grocery_food": 1,
       "home_cleaning": 1,
       "kitchen_food": 1,
@@ -386,81 +385,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 938,
+    "all_time_count": 942,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-12T12:31:35.474804+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-6808740",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-12T12:31:35.474804+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-14194589",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم پوست ویتالیر مدل گلایکولیک اسید ٪7 مناسب برای پوست مختلط حجم 30 میلی لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-12T12:31:35.474804+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-11776655",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ژل آبرسان پرایم مدل Ultra-Hydrating حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-12T12:39:12.942466+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-12T12:39:12.942466+00:00",
         "brand": "",
@@ -718,6 +649,74 @@
       },
       {
         "at": "2026-11-12T13:10:08.737184+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-11776655",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل آبرسان پرایم مدل Ultra-Hydrating حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-12T13:17:44.725835+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4184133",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل شستشوی صورت دیپ سنس مدل درخت چای و بامبو مناسب پوست‌های چرب حجم 250 میلی‌ لیتر",
+        "use_case": "home_cleaning"
+      },
+      {
+        "at": "2026-11-12T13:17:44.725835+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-6808740",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-12T13:17:44.725835+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-20682942",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-12T13:17:44.725835+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
