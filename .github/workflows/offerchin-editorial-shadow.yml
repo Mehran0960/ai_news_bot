@@ -1,0 +1,49 @@
+name: OfferChin Editorial Shadow Diagnostics
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offerchin-editorial-shadow
+  cancel-in-progress: false
+
+jobs:
+  shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out current production state
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install read-only diagnostic dependencies
+        run: python -m pip install -r affilio_radar/requirements.txt
+      - name: Build read-only editorial shadow report
+        env:
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          OFFERCHIN_EDITORIAL_GAP_MINUTES: "55"
+          PYTHONUNBUFFERED: "1"
+        run: |
+          mkdir -p editorial-shadow-artifacts
+          python affilio_radar/editorial_publisher.py \
+            --shadow-report \
+            --report-path editorial-shadow-artifacts/editorial-shadow-report.json \
+            | tee editorial-shadow-artifacts/editorial-shadow.log
+      - name: Preserve diagnostic report (no public post or state write)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offerchin-editorial-shadow-${{ github.run_id }}
+          path: editorial-shadow-artifacts/*
+          if-no-files-found: error
+          retention-days: 30

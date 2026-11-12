@@ -4924,7 +4924,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
 
     fields = (
         "youtube_upload_status", "aparat_upload_status", "filo_upload_status", "video_generation_status",
-        "distribution_queue_id",
+        "distribution_queue_id", "content_id", "content_type", "sequence_number",
         "video_generation_next_attempt_at", "youtube_next_attempt_at",
         "aparat_next_attempt_at", "filo_next_attempt_at", "expires_at", "expiry_source", "expiry_estimated",
         "expiry_deadline_verified_directly", "expiry_deadline_verified_from_site_card",
@@ -9341,7 +9341,14 @@ def _video_upload_candidate_sort_key(row: tuple) -> tuple:
     """
     timestamp = float(row[0]) if isinstance(row, tuple) and row else 0.0
     product_id_value = str(row[1]) if isinstance(row, tuple) and len(row) > 1 else ""
-    return (timestamp, product_id_value)
+    record = row[2] if isinstance(row, tuple) and len(row) > 2 and isinstance(row[2], dict) else {}
+    try:
+        sequence_number = int(record.get("sequence_number") or 0)
+    except (TypeError, ValueError, OverflowError):
+        sequence_number = 0
+    # Preserve chronological ordering for legacy rows, then use the canonical
+    # sequence to break same-timestamp ties deterministically across media.
+    return (timestamp, sequence_number or 2**63 - 1, product_id_value)
 
 
 def process_pending_short_video(

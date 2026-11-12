@@ -1,0 +1,109 @@
+name: OfferChin Editorial Contract Tests
+
+on:
+  pull_request:
+    paths:
+      - "affilio_radar/editorial_content.py"
+      - "affilio_radar/editorial_publisher.py"
+      - "affilio_radar/editorial_video.py"
+      - "affilio_radar/content_delivery.py"
+      - "affilio_radar/publisher.py"
+      - "affilio_radar/affilio_radar.py"
+      - "affilio_radar/editorial_bank.json"
+      - "affilio_radar/test_content_delivery.py"
+      - "affilio_radar/test_editorial_content.py"
+      - "affilio_radar/test_editorial_publisher.py"
+      - ".github/workflows/offerchin-editorial-shadow.yml"
+      - ".github/workflows/offerchin-editorial-contract.yml"
+  push:
+    branches:
+      - "feat/offerchin-hourly-editorial-fallback-20261112"
+    paths:
+      - "affilio_radar/editorial_content.py"
+      - "affilio_radar/editorial_publisher.py"
+      - "affilio_radar/editorial_video.py"
+      - "affilio_radar/content_delivery.py"
+      - "affilio_radar/publisher.py"
+      - "affilio_radar/editorial_bank.json"
+      - "affilio_radar/test_editorial_content.py"
+      - "affilio_radar/test_editorial_publisher.py"
+      - ".github/workflows/offerchin-editorial-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  editorial-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project dependencies
+        run: python -m pip install -r affilio_radar/requirements.txt
+      - name: Compile editorial delivery modules
+        run: |
+          python -m py_compile \
+            affilio_radar/editorial_content.py \
+            affilio_radar/editorial_publisher.py \
+            affilio_radar/editorial_video.py \
+            affilio_radar/content_delivery.py \
+            affilio_radar/publisher.py
+      - name: Validate the reviewed evergreen content bank
+        working-directory: affilio_radar
+        run: |
+          python - <<'PY'
+          import json
+          from editorial_content import validate_editorial_item
+          from datetime import datetime, timezone
+          with open("editorial_bank.json", encoding="utf-8") as handle:
+              bank = json.load(handle)
+          assert len(bank) >= 30
+          assert len({item.get('editorial_id') for item in bank}) == len(bank)
+          failures = [(item.get("editorial_id"), validate_editorial_item(item, now=datetime.now(timezone.utc))) for item in bank]
+          invalid = [(name, result) for name, result in failures if not result[0]]
+          assert not invalid, invalid
+          print(f"EDITORIAL_BANK_VALID count={len(bank)}")
+          PY
+      - name: Verify public editorial publishing is feature-flagged off by default
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          channel = Path(".github/workflows/offerchin-publisher.yml").read_text(encoding="utf-8")
+          video = Path(".github/workflows/offerchin-video-publisher.yml").read_text(encoding="utf-8")
+          shadow = Path(".github/workflows/offerchin-editorial-shadow.yml").read_text(encoding="utf-8")
+          expected = "vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'false'"
+          assert expected in channel and expected in video
+          assert "EDITORIAL_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED" in channel
+          assert "EDITORIAL_VIDEO_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED" in video
+          assert "--shadow-report" in shadow
+          assert "--publish" not in shadow
+          print("EDITORIAL_PUBLIC_PUBLISH_DEFAULTS_OFF")
+          PY
+      - name: Run the read-only shadow report and prove state is untouched
+        run: |
+          before="$(sha256sum affilio_radar/state.json | cut -d' ' -f1)"
+          python affilio_radar/editorial_publisher.py \
+            --shadow-report \
+            --report-path "${RUNNER_TEMP}/editorial-shadow-report.json"
+          after="$(sha256sum affilio_radar/state.json | cut -d' ' -f1)"
+          test "$before" = "$after"
+          python - "${RUNNER_TEMP}/editorial-shadow-report.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          assert report["public_publish_performed"] is False
+          assert report["state_mutated"] is False
+          assert report["editorial_bank_valid"] >= 30
+          print("EDITORIAL_SHADOW_READ_ONLY_OK")
+          PY
+      - name: Run editorial content, queue, render and retry tests
+        working-directory: affilio_radar
+        run: |
+          python -m unittest -v \
+            test_editorial_content.py \
+            test_editorial_publisher.py \
+            test_content_delivery.py

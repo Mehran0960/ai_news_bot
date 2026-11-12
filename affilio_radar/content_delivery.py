@@ -307,6 +307,44 @@ def due_unpublished_selection(state: dict, *, now: datetime | None = None) -> st
     return None
 
 
+def allocate_publication_sequence(state: dict) -> int:
+    """Allocate one monotonically increasing sequence shared by product and editorial items."""
+    if not isinstance(state, dict):
+        raise TypeError("publication_state_must_be_a_dictionary")
+    highest = 0
+    try:
+        highest = max(0, int(state.get("publication_sequence_counter") or 0))
+    except (TypeError, ValueError, OverflowError):
+        highest = 0
+    for key in (
+        "content_delivery_queue", "content_delivery_history",
+        "editorial_delivery_queue", "editorial_delivery_history",
+        "editorial_delivery_attempts",
+    ):
+        collection = state.get(key)
+        rows = collection.values() if isinstance(collection, dict) else (
+            collection if isinstance(collection, list) else []
+        )
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            try:
+                highest = max(highest, int(row.get("sequence_number") or 0))
+            except (TypeError, ValueError, OverflowError):
+                continue
+    published = state.get("published")
+    if isinstance(published, dict):
+        for row in published.values():
+            if isinstance(row, dict):
+                try:
+                    highest = max(highest, int(row.get("sequence_number") or 0))
+                except (TypeError, ValueError, OverflowError):
+                    pass
+    next_value = highest + 1
+    state["publication_sequence_counter"] = next_value
+    return next_value
+
+
 def enqueue_selected_content(
     state: dict,
     items: list[dict],
@@ -394,8 +432,13 @@ def enqueue_selected_content(
         # adapters can consume this contract without importing the discovery module.
         payload = json.loads(json.dumps(item, ensure_ascii=False, default=str))
         payload["title"] = title
+        sequence_number = allocate_publication_sequence(state)
+        payload["content_id"] = product_id
+        payload["sequence_number"] = sequence_number
         queue[product_id] = {
             "content_id": product_id,
+            "sequence_number": sequence_number,
+            "content_type": "product",
             "product_id": product_id,
             "selected_at": now.isoformat(),
             "scheduled_at": scheduled.isoformat(),
@@ -544,8 +587,29 @@ def promote_fallback_selection(
             value for value in candidates[index + 1:]
             if isinstance(value, dict)
         ][:5]
+        # A last-mile replacement inherits the failed slot's sequence when available;
+        # it must not overtake or be overtaken by content selected after that slot.
+        history = state.get("content_delivery_history")
+        previous_sequence = None
+        if isinstance(history, list) and history:
+            previous = history[-1]
+            if (
+                isinstance(previous, dict)
+                and previous.get("status") == "stale_selection"
+                and str(previous.get("last_detail") or "") == str(reason or "")
+            ):
+                try:
+                    previous_sequence = int(previous.get("sequence_number") or 0) or None
+                except (TypeError, ValueError, OverflowError):
+                    previous_sequence = None
+        sequence_number = previous_sequence or allocate_publication_sequence(state)
+        item["content_id"] = product_id
+        item["content_type"] = "product"
+        item["sequence_number"] = sequence_number
         queue[product_id] = {
             "content_id": product_id,
+            "content_type": "product",
+            "sequence_number": sequence_number,
             "product_id": product_id,
             "selected_at": current.isoformat(),
             "scheduled_at": current.isoformat(),

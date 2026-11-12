@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from content_delivery import (
     due_content, due_unpublished_selection, enqueue_selected_content,
     finish_queue_item, get_last_channel_published_at, has_fresh_unpublished_selection,
-    promote_fallback_selection,
+    allocate_publication_sequence, promote_fallback_selection,
     refresh_unpublished_selections, selection_cadence_anchor,
 )
 from platform_registry import CORE_PHOTO_PLATFORMS, PHOTO_PLATFORMS, PLATFORM_NAMES
@@ -44,6 +44,49 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "selection_discount_floor": 50,
             "deal_expires_at": deadline.isoformat() if deadline else "",
         }
+
+
+    def test_product_and_editorial_share_one_monotonic_sequence(self):
+        state = {}
+        summary = enqueue_selected_content(
+            state, [self.item("dkp-sequence")], now=self.now,
+            minimum_runway_minutes=0,
+        )
+        self.assertEqual(summary["added"], 1)
+        product_entry = state["content_delivery_queue"]["dkp-sequence"]
+        self.assertEqual(product_entry["content_type"], "product")
+        self.assertEqual(product_entry["sequence_number"], 1)
+        self.assertEqual(product_entry["payload"]["sequence_number"], 1)
+        self.assertEqual(product_entry["content_id"], "dkp-sequence")
+        self.assertEqual(allocate_publication_sequence(state), 2)
+
+    def test_sequence_allocator_recovers_from_failed_editorial_attempt_ledger(self):
+        state = {
+            "publication_sequence_counter": 2,
+            "editorial_delivery_attempts": [
+                {"content_id": "editorial:failed-first", "sequence_number": 7}
+            ],
+        }
+        self.assertEqual(allocate_publication_sequence(state), 8)
+
+    def test_last_mile_product_fallback_inherits_failed_slot_sequence(self):
+        state = {
+            "content_delivery_history": [{
+                "content_id": "dkp-primary",
+                "status": "stale_selection",
+                "sequence_number": 9,
+                "last_detail": "live_product_details_incomplete",
+            }]
+        }
+        backup = self.item("dkp-1234")
+        promoted = promote_fallback_selection(
+            state, [backup], now=self.now, reason="live_product_details_incomplete"
+        )
+        self.assertEqual(promoted, "dkp-1234")
+        entry = state["content_delivery_queue"]["dkp-1234"]
+        self.assertEqual(entry["sequence_number"], 9)
+        self.assertEqual(entry["payload"]["sequence_number"], 9)
+        self.assertEqual(entry["content_type"], "product")
 
     def test_default_interval_is_23_minutes_from_last_channel_publication(self):
         state = {}
