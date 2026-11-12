@@ -73,6 +73,33 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
             "delivery_status": {"rubika": "sent"}
         }))
 
+    def test_dispatch_sidecar_keeps_oldest_pending_canonical_products_and_drops_terminal_ones(self):
+        state = {
+            "published": {
+                "newer_terminal": {
+                    "ts": 300,
+                    "distribution_queue_id": "newer-terminal",
+                    "youtube_upload_status": "uploaded",
+                    "aparat_upload_status": "skipped_unverified_deadline",
+                    "filo_upload_status": "skipped_after_retries",
+                },
+                "newer_pending": {
+                    "ts": 200,
+                    "distribution_queue_id": "newer-pending",
+                    "youtube_upload_status": "pending",
+                },
+                "oldest_pending": {
+                    "ts": 100,
+                    "distribution_queue_id": "oldest-pending",
+                    "aparat_upload_status": "pending",
+                },
+            }
+        }
+        sidecar = radar.build_video_upload_dispatch_state(state)
+        self.assertEqual(list(sidecar["published"]), ["oldest_pending", "newer_pending"])
+        self.assertEqual(sidecar["published"]["oldest_pending"]["ts"], 100)
+        self.assertEqual(sidecar["published"]["newer_pending"]["ts"], 200)
+
     def test_unified_video_run_dispatches_all_platform_fifo_workers_in_order(self):
         called = []
         with (
