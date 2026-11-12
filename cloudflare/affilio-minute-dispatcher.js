@@ -8,12 +8,8 @@ const CATALOG_WORKFLOW = "offerchin-digikala-catalog-sweep.yml";
 const CATALOG_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${CATALOG_WORKFLOW}`;
 const AUDIT_WORKFLOW = "offerchin-integrity-audit.yml";
 const AUDIT_API = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/actions/workflows/" + AUDIT_WORKFLOW;
-const YOUTUBE_VIDEO_WORKFLOW = "youtube-video-upload.yml";
-const YOUTUBE_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${YOUTUBE_VIDEO_WORKFLOW}`;
-const APARAT_VIDEO_WORKFLOW = "aparat-video-upload.yml";
-const APARAT_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${APARAT_VIDEO_WORKFLOW}`;
-const OFFERCHIN_FILO_VIDEO_WORKFLOW = "filo-video-upload.yml";
-const OFFERCHIN_FILO_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${OFFERCHIN_FILO_VIDEO_WORKFLOW}`;
+const VIDEO_FANOUT_WORKFLOW = "offerchin-video-fanout.yml";
+const VIDEO_FANOUT_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${VIDEO_FANOUT_WORKFLOW}`;
 const RUNS_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
 const FILO_REPO = "Goushibaaz";
 const FILO_WORKFLOW = "filo-native-republish.yml";
@@ -432,60 +428,25 @@ export function hasDueVideoRecord(state, platform, now) {
   return Object.values(published).some(record => videoRecordDue(record, platform, now));
 }
 
-async function readLatestWorkflowAttempt(api, token) {
-  try {
-    const query = new URLSearchParams({ branch: "main", per_page: "10" });
-    const data = await githubRequest(`${api}/runs?${query}`, token);
-    const rows = Array.isArray(data.workflow_runs) ? data.workflow_runs : [];
-    return rows.find(run => run && run.event === "workflow_dispatch" && run.head_branch === "main") || null;
-  } catch (error) {
-    console.error("OFFERCHIN_VIDEO_ATTEMPT_READ_FAILED", String(error).slice(0, 400));
-    return null;
-  }
+export function hasDueVideoFanout(state, now) {
+  // A single job consumes all destinations from one canonical oldest-first queue.
+  return hasDueVideoRecord(state, "youtube", now) ||
+    hasDueVideoRecord(state, "aparat", now) ||
+    (isFiloLoginVerified(state, now) && hasDueVideoRecord(state, "filo", now));
 }
 
-// A successful channel delivery is the content event: its canonical product record
-// becomes video-eligible immediately. The rolling platform slot below is only a
-// target-side rate limiter; it must never trigger an independent product selection.
-async function dispatchVideoPlatformWhenDue(env, tick, state, platform) {
-  const config = platform === "youtube"
-    ? { api: YOUTUBE_VIDEO_API, workflow: YOUTUBE_VIDEO_WORKFLOW, slot: "youtube_next_upload_at", pause: "youtube_uploads_paused_until" }
-    : platform === "aparat"
-      ? { api: APARAT_VIDEO_API, workflow: APARAT_VIDEO_WORKFLOW, slot: "aparat_next_upload_at", pause: null }
-      : { api: OFFERCHIN_FILO_VIDEO_API, workflow: OFFERCHIN_FILO_VIDEO_WORKFLOW, slot: "filo_next_upload_at", pause: null };
-
-  const now = tick.getTime();
-  if (platform === "filo" && !isFiloLoginVerified(state, now)) {
-    console.log("OFFERCHIN_FILO_VIDEO_DISPATCH_NOT_DUE reason=login_not_verified_or_stale");
-    return;
-  }
-  const nextSlot = dateValue(state && state[config.slot]);
-  const pauseUntil = config.pause ? dateValue(state && state[config.pause]) : null;
-  if (nextSlot !== null && now < nextSlot) return;
-  if (pauseUntil !== null && now < pauseUntil) return;
-  if (!hasDueVideoRecord(state, platform, now)) return;
-
-  const latestAttempt = await readLatestWorkflowAttempt(config.api, env.GITHUB_TOKEN);
-  const attemptAt = dateValue(latestAttempt &&
-    (latestAttempt.updated_at || latestAttempt.run_started_at || latestAttempt.created_at));
-  if (attemptAt !== null && now - attemptAt < VIDEO_WORKFLOW_RETRY_GAP_MS) return;
-
-  // Each platform owns its own workflow and saved due slot. Video jobs share
-  // the channel publisher's state-writer lock to prevent concurrent state loss.
-  await dispatchWorkflowIfIdle(config.api, env.GITHUB_TOKEN, config.workflow, 35, 30);
-}
 
 async function dispatchVideoUploadsWhenDue(env, tick, state) {
-  if (!state) return;
-  for (const platform of ["youtube", "aparat", "filo"]) {
-    try {
-      await dispatchVideoPlatformWhenDue(env, tick, state, platform);
-    } catch (error) {
-      console.error(
-        "OFFERCHIN_" + platform.toUpperCase() + "_VIDEO_DISPATCH_FAILED",
-        String(error).slice(0, 700)
-      );
-    }
+  if (!state || !hasDueVideoFanout(state, tick.getTime())) return;
+
+  // One workflow owns YouTube, Aparat and Filo in the same canonical FIFO.
+  // This prevents separate platform dispatches from competing for the shared state lock.
+  try {
+    await dispatchWorkflowIfIdle(
+      VIDEO_FANOUT_API, env.GITHUB_TOKEN, VIDEO_FANOUT_WORKFLOW, 45, 30
+    );
+  } catch (error) {
+    console.error("OFFERCHIN_VIDEO_FANOUT_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 }
 
@@ -546,8 +507,8 @@ async function runScheduledCheck(env, scheduledTime) {
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 
-  // Inspect the channel-created video queue on every minute tick. The product event
-  // is immediate; each destination's own rolling safety slot controls actual dispatch.
+  // The main channel-publisher's workflow_run event starts video fan-out immediately.
+  // This minute-level check is a recovery path if GitHub misses or delays that event.
   await dispatchVideoUploadsWhenDue(env, tick, state);
 }
 
