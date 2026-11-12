@@ -132,12 +132,7 @@ MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2
 # Independent Telegram/Bale volume guard, counted by Iran's calendar day; never reserve or gate channel posts on YouTube API quota.
 MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "72"))))
 # Current channel uploadLimitExceeded behavior is consistent with ~8/day; keep Shorts evenly spaced.
-YOUTUBE_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS", "3"))))
-# Aparat has an independent cadence and remains eligible during a YouTube quota pause.
-APARAT_UPLOAD_INTERVAL_HOURS = max(1, min(24, int(os.getenv("AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS", "3"))))
-# Filo mirrors the 27-minute channel cadence; its slot remains independent of other video platforms.
-FILO_UPLOAD_INTERVAL_HOURS = max(1 / 60, min(24.0, float(os.getenv("AFFILIO_FILO_UPLOAD_INTERVAL_HOURS", "0.45"))))
-FILO_UPLOAD_INTERVAL_POLICY_VERSION = 2
+# Video outlets are event-driven; only the platforms' own external limits remain.
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(250, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "250"))))
@@ -4898,7 +4893,6 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     if isinstance(state, dict):
         # Migrate the legacy three-hour Filo slot while building the sidecar;
         # Cloudflare reads this projection before dispatching the Python workflow.
-        _initialize_filo_upload_slot(state)
     published = state.get("published") if isinstance(state, dict) else {}
     candidates = []
     if isinstance(published, dict):
@@ -9217,127 +9211,6 @@ def _next_youtube_daily_upload_retry_at(now: datetime | None = None) -> datetime
     return current.astimezone(timezone.utc) + timedelta(hours=24, minutes=15)
 
 
-def _initialize_aparat_upload_slot(state: dict) -> datetime | None:
-    """Load Aparat's next-upload slot or migrate it from Aparat upload history."""
-    next_slot = _parse_utc_datetime(state.get("aparat_next_upload_at"))
-    if next_slot is not None:
-        return next_slot
-
-    published = state.get("published", {})
-    candidates: list[datetime] = []
-    if isinstance(published, dict):
-        for record in published.values():
-            if not isinstance(record, dict):
-                continue
-            if str(record.get("aparat_upload_status") or "") != "uploaded":
-                continue
-            uploaded_at = _parse_utc_datetime(record.get("aparat_uploaded_at"))
-            if uploaded_at is not None:
-                candidates.append(uploaded_at)
-
-    for key in ("aparat_last_upload_success_at", "aparat_last_upload_outcome_unknown_at"):
-        timestamp = _parse_utc_datetime(state.get(key))
-        if timestamp is not None:
-            candidates.append(timestamp)
-
-    if not candidates:
-        return None
-
-    next_slot = max(candidates) + timedelta(hours=APARAT_UPLOAD_INTERVAL_HOURS)
-    state["aparat_next_upload_at"] = next_slot.isoformat()
-    return next_slot
-
-
-def _aparat_upload_slot_due(
-    state: dict,
-    now: datetime | None = None,
-    credentials_ready: bool = True,
-) -> bool:
-    """Check Aparat's upload slot independently of YouTube status and credentials."""
-    if not credentials_ready:
-        return False
-    current = now or datetime.now(timezone.utc)
-    if current.tzinfo is None:
-        current = current.replace(tzinfo=timezone.utc)
-    current = current.astimezone(timezone.utc)
-    next_slot = _initialize_aparat_upload_slot(state)
-    return next_slot is None or current >= next_slot
-
-
-def _initialize_filo_upload_slot(state: dict) -> datetime | None:
-    """Load Filo's slot and migrate legacy three-hour reservations to the 27-minute policy."""
-    next_slot = _parse_utc_datetime(state.get("filo_next_upload_at"))
-    try:
-        policy_version = int(state.get("filo_upload_interval_policy_version") or 0)
-    except (TypeError, ValueError, OverflowError):
-        policy_version = 0
-    if next_slot is not None and policy_version >= FILO_UPLOAD_INTERVAL_POLICY_VERSION:
-        return next_slot
-
-    timestamps: list[datetime] = []
-    if isinstance(state.get("published"), dict):
-        for record in state["published"].values():
-            if not isinstance(record, dict):
-                continue
-            status = str(record.get("filo_upload_status") or "")
-            if status not in {"published", "submitted_pending_approval", "submitted_unconfirmed", "upload_result_unknown"}:
-                continue
-            timestamp = _parse_utc_datetime(
-                record.get("filo_submitted_at") or record.get("filo_uploaded_at") or
-                record.get("filo_upload_started_at")
-            )
-            if timestamp is not None:
-                timestamps.append(timestamp)
-
-    for key in ("filo_last_upload_success_at", "filo_last_upload_outcome_unknown_at",
-                "filo_last_upload_attempt_at"):
-        timestamp = _parse_utc_datetime(state.get(key))
-        if timestamp is not None:
-            timestamps.append(timestamp)
-
-    if timestamps:
-        # Recalculate legacy slots from the latest known attempt/submission. This
-        # shortens old three-hour waits without bypassing the new 27-minute minimum.
-        next_slot = max(timestamps) + timedelta(hours=FILO_UPLOAD_INTERVAL_HOURS)
-        state["filo_next_upload_at"] = next_slot.isoformat()
-    elif next_slot is None:
-        return None
-
-    state["filo_upload_interval_policy_version"] = FILO_UPLOAD_INTERVAL_POLICY_VERSION
-    return next_slot
-
-
-def _filo_login_verified(state: dict, now: datetime | None = None) -> bool:
-    """Require a recent, explicit non-publishing login check before Filo can publish."""
-    if not isinstance(state, dict) or state.get("filo_login_verification_status") != "verified":
-        return False
-    verified_at = _parse_utc_datetime(state.get("filo_login_verified_at"))
-    if verified_at is None:
-        return False
-    current = now or datetime.now(timezone.utc)
-    if current.tzinfo is None:
-        current = current.replace(tzinfo=timezone.utc)
-    current = current.astimezone(timezone.utc)
-    age = (current - verified_at).total_seconds()
-    return 0 <= age <= 7 * 24 * 60 * 60
-
-
-def _filo_upload_slot_due(
-    state: dict,
-    now: datetime | None = None,
-    credentials_ready: bool = True,
-) -> bool:
-    """Check Filo's cadence independently from YouTube and Aparat."""
-    if not credentials_ready:
-        return False
-    current = now or datetime.now(timezone.utc)
-    if current.tzinfo is None:
-        current = current.replace(tzinfo=timezone.utc)
-    current = current.astimezone(timezone.utc)
-    next_slot = _initialize_filo_upload_slot(state)
-    return next_slot is None or current >= next_slot
-
-
 def video_deadline_allows_upload(platform: str, verified_expiry: bool) -> bool:
     """Allow every outlet to use the same live-validated selection; real expiry is checked separately."""
     return True
@@ -9385,7 +9258,6 @@ def process_pending_short_video(
     retry_immediately: bool = False,
     only_product_id: str | None = None,
     candidate_limit: int | None = None,
-    max_age_hours: int | None = None,
 ) -> bool:
     """Generate and submit a vertical artifact for the requested video destinations.
 
@@ -9615,13 +9487,6 @@ def process_pending_short_video(
             continue
         if only_product_id is not None and str(pid) != str(only_product_id):
             continue
-        if max_age_hours is not None:
-            try:
-                record_ts = float(record.get("ts") or 0)
-            except (TypeError, ValueError, OverflowError):
-                record_ts = 0
-            if record_ts <= 0 or current.timestamp() - record_ts > max(1, int(max_age_hours)) * 3600:
-                continue
         generation_status = str(record.get("video_generation_status") or "")
         if generation_status == "generated":
             try:
