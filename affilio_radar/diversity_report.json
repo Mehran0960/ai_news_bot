@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-12T07:12:39.235523+00:00",
+  "generated_at": "2026-11-12T07:19:02.995140+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار آشپزی": 1,
@@ -408,30 +408,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 833,
+    "all_time_count": 834,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-11T15:46:54.196330+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-708421",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12564010",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فلوئید ضدآفتاب بی‌رنگ ویتالیر SPF50 مدل Whitevit مناسب انواع پوست، حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-11T15:46:54.196330+00:00",
         "brand": "",
@@ -753,6 +736,23 @@
           "similarity_repeat"
         ],
         "title": "فوم اصلاح کاسپین مدل کامفورت مناسب پوست های معمولی حجم 200 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-12T07:19:02.995140+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12935579",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
         "use_case": "personal_care"
       }
     ]
