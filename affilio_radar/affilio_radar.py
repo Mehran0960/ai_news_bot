@@ -8161,8 +8161,24 @@ def select_urgent_publication_candidate(
     current = current.astimezone(timezone.utc)
     eligible_rows = [product for product in (eligible or []) if isinstance(product, dict)]
     _apply_offerchin_four_factor_scores(eligible_rows, now=current)
+    evidence_passed = []
+    evidence_rejections: dict[str, int] = {}
+    for product in eligible_rows:
+        allowed, gaps = _four_factor_evidence_gate(product)
+        if allowed:
+            evidence_passed.append(product)
+        else:
+            for gap in gaps:
+                evidence_rejections[gap] = evidence_rejections.get(gap, 0) + 1
+    if evidence_rejections:
+        print(
+            "FOUR_FACTOR_URGENT_GATE "
+            f"passed={len(evidence_passed)} rejected={len(eligible_rows) - len(evidence_passed)} "
+            f"reasons={json.dumps(evidence_rejections, ensure_ascii=False, sort_keys=True)} "
+            "legacy_public_fallback=false"
+        )
     ranked = sorted(
-        eligible_rows,
+        evidence_passed,
         key=lambda record: deal_sort_key(record, now=current),
         reverse=True,
     )
