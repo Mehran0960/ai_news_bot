@@ -35,7 +35,7 @@ jobs:
   deliver:
     if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[publisher-run-now]') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     steps:
       - name: Check out current queue and delivery state
         uses: actions/checkout@v4
@@ -192,7 +192,7 @@ jobs:
           AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "250"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --select-only
-      - name: Publish due selections to Telegram and Bale only
+      - name: Publish each selected product to all active media destinations
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
@@ -205,11 +205,18 @@ jobs:
           EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
           EITAA_CHANNEL_URL: ${{ vars.EITAA_CHANNEL_URL || '' }}
           EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'false' }}
-          # Video publication is deliberately excluded from the channel worker.
-          AFFILIO_APARAT_UPLOAD_ENABLED: "false"
+          # The same selected-product event is fanned out here to all configured video outlets.
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_PRIVACY_STATUS: "public"
+          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
+          AFFILIO_APARAT_UPLOAD_ENABLED: "true"
           APARAT_SHORTS_ONLY: "false"
           APARAT_VIDEO_PASS: "0"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
+          FILO_USER: ${{ secrets.FILO_USER }}
+          FILO_PASS: ${{ secrets.FILO_PASS }}
           AFFILIO_PUBLISHER_BATCH_SIZE: "1"
           AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "6"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
