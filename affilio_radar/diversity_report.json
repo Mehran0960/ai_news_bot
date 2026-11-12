@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-12T20:47:29.697389+00:00",
+  "generated_at": "2026-11-12T20:57:46.803595+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار حمام": 1,
@@ -271,7 +271,7 @@
       "lighting": 1,
       "mobile_devices": 3,
       "other": 77,
-      "personal_care": 36,
+      "personal_care": 35,
       "power_backup": 5,
       "sports_outdoor": 11,
       "tv_audio_video": 1
@@ -283,7 +283,7 @@
       "books_stationery": 3.2,
       "computer_network": 1.8,
       "digital_accessories": 0.9,
-      "fashion": 9.0,
+      "fashion": 9.1,
       "gaming": 0.5,
       "grocery_food": 4.5,
       "home": 2.3,
@@ -293,8 +293,8 @@
       "large_appliances": 1.8,
       "lighting": 0.5,
       "mobile_devices": 1.4,
-      "other": 34.8,
-      "personal_care": 16.3,
+      "other": 35.0,
+      "personal_care": 15.9,
       "power_backup": 2.3,
       "sports_outdoor": 5.0,
       "tv_audio_video": 0.5
@@ -304,8 +304,8 @@
     "distinct_families": 137,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
-    "known_brand_posts": 16,
-    "posts": 221,
+    "known_brand_posts": 15,
+    "posts": 220,
     "repeated_brand_count": 8,
     "repeated_brands": {
       "ai_javaher": 2,
@@ -315,7 +315,7 @@
       "ufc": 2
     },
     "retailer_post_counts": {
-      "digikala": 221
+      "digikala": 220
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -338,7 +338,7 @@
       "kitchen_food": 5,
       "lighting_electrical": 6,
       "local_goods": 2,
-      "mobile_productivity": 34,
+      "mobile_productivity": 33,
       "office_study": 11,
       "outdoor_travel": 4,
       "personal_care": 27,
@@ -360,7 +360,7 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1093,
+    "all_time_count": 1094,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
@@ -375,23 +375,6 @@
         "category": "personal_care",
         "compared_to_product_id": "dkp-4184133",
         "family": "personal_care:skincare",
-        "product_id": "dkp-6808740",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-12T19:25:23.451887+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
         "product_id": "dkp-12232692",
         "reason": "family_repeat,similarity_repeat",
         "reasons": [
@@ -705,6 +688,23 @@
           "similarity_repeat"
         ],
         "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-12T20:57:46.803595+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-12232692",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم ضد لک ویتالیر مدل آربوتین حجم 30 میلی لیتر",
         "use_case": "mobile_productivity"
       }
     ]
