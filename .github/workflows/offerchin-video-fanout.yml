@@ -64,7 +64,7 @@ jobs:
           python -m py_compile affilio_radar/affilio_radar.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py affilio_radar/filo_uploader.py affilio_radar/offerchin_visuals.py
           python -c "from pathlib import Path; s=Path('affilio_radar/affilio_radar.py').read_text(encoding='utf-8'); assert '--video-fanout-only' in s; assert 'destinations = {' + chr(34) + 'youtube' + chr(34) + ', ' + chr(34) + 'aparat' + chr(34) + ', ' + chr(34) + 'filo' + chr(34) + '}' in s; assert 'YOUTUBE_UPLOAD_INTERVAL_HOURS' not in s; assert 'APARAT_UPLOAD_INTERVAL_HOURS' not in s; assert 'FILO_UPLOAD_INTERVAL_HOURS' not in s; w=Path('cloudflare/affilio-minute-dispatcher.js').read_text(encoding='utf-8'); assert 'offerchin-video-fanout.yml' in w; assert 'dispatchVideoPlatformWhenDue' not in w; print('OFFERCHIN_UNIFIED_VIDEO_FANOUT_SOURCE_VALIDATED')"
           cd affilio_radar
-          python -m unittest -v test_aparat_upload_schedule.py test_filo_upload_schedule.py test_filo_uploader.py test_shared_selection_media_routing.py test_short_video.py
+          python -m unittest -v test_aparat_upload_schedule.py test_filo_upload_schedule.py test_filo_uploader.py test_shared_selection_media_routing.py test_short_video.py test_content_delivery.py test_delivery_retry_policy.py
           cd ..
           node --test cloudflare/affilio-minute-dispatcher.test.mjs
 
