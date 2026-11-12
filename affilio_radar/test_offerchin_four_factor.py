@@ -71,7 +71,7 @@ class OfferChinFourFactorTests(unittest.TestCase):
             "discount_percent": 50,
             "savings_toman": 500_000,
             "test_live_demand": 80,
-            "test_group": "kitchen_food",,
+            "test_group": "kitchen_food",
             "history_status": "verified",
             "historical_deal_eligible": True,
             "history_checked_at": self.now.isoformat()
@@ -304,7 +304,7 @@ class OfferChinFourFactorTests(unittest.TestCase):
             "current_price": 500_000,
             "original_price": 1_000_000,
             "discount_percent": 50,
-            "savings_toman": 500_000,,
+            "savings_toman": 500_000,
             "history_status": "verified",
             "historical_deal_eligible": True,
             "history_checked_at": self.now.isoformat()
@@ -350,7 +350,7 @@ class OfferChinFourFactorTests(unittest.TestCase):
             "current_price": 500_000,
             "original_price": 1_000_000,
             "discount_percent": 50,
-            "savings_toman": 500_000,,
+            "savings_toman": 500_000,
             "history_status": "verified",
             "historical_deal_eligible": True,
             "history_checked_at": self.now.isoformat()
@@ -397,7 +397,7 @@ class OfferChinFourFactorTests(unittest.TestCase):
             "original_price": 1_000_000,
             "discount_percent": 50,
             "savings_toman": 500_000,
-            "selection_discount_floor": 1,,
+            "selection_discount_floor": 1,
             "history_status": "verified",
             "historical_deal_eligible": True,
             "history_checked_at": self.now.isoformat()
