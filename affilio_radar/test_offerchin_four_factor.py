@@ -247,6 +247,64 @@ class OfferChinFourFactorTests(unittest.TestCase):
             POLICY_VERSION,
         )
 
+    def test_fallback_selector_blocks_unverified_store_markdown(self):
+        product = {
+            "product_id": "dkp-fallback-900",
+            "product_url": "https://www.digikala.com/product/dkp-fallback-900/",
+            "title": "چای ساز کاربردی مدل معتبر",
+            "availability": "in_stock",
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+        }
+        with patch.object(radar, "is_product_suppressed", return_value=False), \
+             patch.object(radar, "is_discount_publish_eligible", return_value=True), \
+             patch.object(radar, "has_publishable_expiry_or_open_offer", return_value=True), \
+             patch.object(radar, "has_verified_market_demand", return_value=True), \
+             patch.object(radar, "is_selection_candidate_rejected", return_value=False), \
+             patch.object(radar, "is_fresh_selection_candidate", return_value=True), \
+             patch.object(radar, "has_attractive_discount_value", return_value=False), \
+             patch.object(radar, "_publication_use_case_group", return_value="kitchen_food"), \
+             patch.object(radar, "_offerchin_live_demand_score", return_value=80):
+            selected, floor, quality = radar.select_discount_fallback_candidates(
+                [product],
+                {"published": {}, "recent_publications": []},
+                now=self.now,
+            )
+        self.assertEqual(selected, [])
+        self.assertIsNone(floor)
+        self.assertEqual(quality, [])
+
+    def test_fallback_selector_allows_independently_verified_candidate(self):
+        product = {
+            "product_id": "dkp-fallback-901",
+            "product_url": "https://www.digikala.com/product/dkp-fallback-901/",
+            "title": "چای ساز کاربردی مدل معتبر",
+            "availability": "in_stock",
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+        }
+        with patch.object(radar, "is_product_suppressed", return_value=False), \
+             patch.object(radar, "is_discount_publish_eligible", return_value=True), \
+             patch.object(radar, "has_publishable_expiry_or_open_offer", return_value=True), \
+             patch.object(radar, "has_verified_market_demand", return_value=True), \
+             patch.object(radar, "is_selection_candidate_rejected", return_value=False), \
+             patch.object(radar, "is_fresh_selection_candidate", return_value=True), \
+             patch.object(radar, "has_attractive_discount_value", return_value=True), \
+             patch.object(radar, "_publication_use_case_group", return_value="kitchen_food"), \
+             patch.object(radar, "_offerchin_live_demand_score", return_value=80):
+            selected, floor, quality = radar.select_discount_fallback_candidates(
+                [product],
+                {"published": {}, "recent_publications": []},
+                now=self.now,
+            )
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-fallback-901"])
+        self.assertEqual(floor, 50)
+        self.assertEqual(len(quality), 1)
+
     def test_live_publication_selector_blocks_unverified_store_markdown(self):
         product = {
             "product_id": "dkp-900",
