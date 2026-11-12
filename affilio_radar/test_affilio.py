@@ -6117,12 +6117,7 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(record["youtube_upload_status"], "uploaded")
             self.assertEqual(record["youtube_video_id"], "yt_test_123")
             self.assertEqual(record["youtube_video_url"], "https://www.youtube.com/shorts/yt_test_123")
-            uploaded_at = datetime.fromisoformat(record["youtube_uploaded_at"])
-            next_upload_at = datetime.fromisoformat(state["youtube_next_upload_at"])
-            self.assertEqual(
-                next_upload_at,
-                uploaded_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS),
-            )
+            self.assertNotIn("youtube_next_upload_at", state)
             self.assertEqual(state["youtube_last_upload_success_at"], record["youtube_uploaded_at"])
 
 
@@ -6233,7 +6228,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(record["youtube_upload_status"], "uploaded")
         self.assertEqual(record["youtube_video_id"], "yt_no_expiry_123")
 
-    def test_public_aparat_upload_stays_blocked_without_verified_expiry(self):
+    def test_public_aparat_upload_does_not_require_a_retailer_expiry_timer(self):
         now = datetime.now(timezone.utc)
         pid = "dkp-aparat-needs-expiry"
         record = {
@@ -6259,22 +6254,29 @@ class AffilioRadarTests(unittest.TestCase):
             patch("affilio_radar.APARAT_UPLOAD_ENABLED", True),
             patch("short_video.youtube_credentials_available", return_value=True),
             patch("aparat_uploader.aparat_credentials_available", return_value=True),
-            patch("short_video.render_short_video") as render,
-            patch("aparat_uploader.upload_aparat_video") as upload_aparat,
+            patch("short_video.render_short_video", return_value=Path(output_dir) / "no-deadline.mp4") as render,
+            patch("aparat_uploader.upload_aparat_video", return_value={
+                "video_id": "aparat_no_deadline",
+                "video_hash": "aparatnodeadline",
+                "url": "https://www.aparat.com/v/aparatnodeadline",
+                "visibility": "public",
+            }) as upload_aparat,
         ):
-            self.assertFalse(process_pending_short_video(state, now=now, output_dir=output_dir))
+            fake_path = Path(output_dir) / "no-deadline.mp4"
+            fake_path.write_bytes(b"fake-mp4")
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
 
-        fetch_image.assert_not_called()
-        render.assert_not_called()
-        upload_aparat.assert_not_called()
-        self.assertEqual(record["aparat_upload_status"], "pending")
+        fetch_image.assert_called_once()
+        render.assert_called_once()
+        upload_aparat.assert_called_once()
+        self.assertEqual(record["aparat_upload_status"], "uploaded")
 
-    def test_aparat_only_run_skips_manual_youtube_artifact_candidates_and_uses_verified_expiry(self):
+    def test_aparat_upload_uses_fifo_selection_without_requiring_verified_expiry(self):
         now = datetime.now(timezone.utc)
         unverified_id = "dkp-aparat-unverified-high-discount"
         verified_id = "dkp-aparat-verified-lower-discount"
         unverified = {
-            "ts": now.timestamp(),
+            "ts": now.timestamp() - 2,
             "title": "پیشنهاد با تخفیف بیشتر اما بدون زمان انقضای تأییدشده",
             "product_url": f"https://www.digikala.com/product/{unverified_id}/",
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
@@ -6333,15 +6335,15 @@ class AffilioRadarTests(unittest.TestCase):
             ))
 
         render.assert_called_once()
-        self.assertEqual(render.call_args.kwargs["title"], verified["title"])
+        self.assertEqual(render.call_args.kwargs["title"], unverified["title"])
         upload_aparat.assert_called_once()
-        self.assertEqual(unverified["video_generation_status"], "pending")
-        self.assertEqual(unverified["aparat_upload_status"], "pending")
-        self.assertEqual(verified["video_generation_status"], "generated")
-        self.assertEqual(verified["aparat_upload_status"], "uploaded")
-        self.assertEqual(verified["aparat_video_url"], "https://www.aparat.com/v/aparatverified123")
+        self.assertEqual(unverified["video_generation_status"], "generated")
+        self.assertEqual(unverified["aparat_upload_status"], "uploaded")
+        self.assertEqual(verified["video_generation_status"], "pending")
+        self.assertEqual(verified["aparat_upload_status"], "pending")
+        self.assertEqual(unverified["aparat_video_url"], "https://www.aparat.com/v/aparatverified123")
 
-    def test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record(self):
+    def test_all_configured_video_destinations_use_the_same_fifo_selected_product(self):
         now = datetime.now(timezone.utc)
         no_timer_id = "dkp-youtube-first-choice"
         verified_id = "dkp-aparat-lower-demand"
@@ -6398,19 +6400,25 @@ class AffilioRadarTests(unittest.TestCase):
                 "video_id": "yt_selected_without_timer",
                 "url": "https://www.youtube.com/shorts/yt_selected_without_timer",
             }) as upload_youtube,
-            patch("aparat_uploader.upload_aparat_video") as upload_aparat,
+            patch("aparat_uploader.upload_aparat_video", return_value={
+                "video_id": "aparat_same_product",
+                "video_hash": "aparat_same_product",
+                "url": "https://www.aparat.com/v/aparat_same_product",
+                "visibility": "public",
+            }) as upload_aparat,
         ):
             self.assertTrue(process_pending_short_video(
                 state, now=now, output_dir=output_dir, force_due=True
             ))
 
         upload_youtube.assert_called_once()
-        upload_aparat.assert_not_called()
+        upload_aparat.assert_called_once()
         self.assertEqual(no_timer["youtube_upload_status"], "uploaded")
+        self.assertEqual(no_timer["aparat_upload_status"], "uploaded")
         self.assertEqual(no_timer["video_generation_status"], "generated")
         self.assertEqual(verified_lower_demand["aparat_upload_status"], "pending")
 
-    def test_youtube_upload_waits_three_hours_after_previous_success_and_selects_late(self):
+    def test_youtube_upload_ignores_legacy_next_slot_and_processes_selected_product(self):
         now = datetime.now(timezone.utc)
         prior_uploaded_at = now - timedelta(hours=1)
         prior_id = "dkp-previous-youtube-success"
@@ -6451,12 +6459,13 @@ class AffilioRadarTests(unittest.TestCase):
             patch("short_video.render_short_video") as render,
             patch("short_video.upload_youtube_video") as upload,
         ):
-            self.assertFalse(process_pending_short_video(state, now=now, output_dir=output_dir))
+            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
 
-        self.assertEqual(state["youtube_next_upload_at"], expected_next.isoformat())
-        fetch_image.assert_not_called()
-        render.assert_not_called()
-        upload.assert_not_called()
+        self.assertNotIn("youtube_next_upload_at", state)
+        fetch_image.assert_called_once()
+        render.assert_called_once()
+        upload.assert_called_once()
+        self.assertEqual(pending["youtube_upload_status"], "uploaded")
 
     def test_youtube_upload_failure_preserves_http_diagnostic_for_retry(self):
         now = datetime.now(timezone.utc)
@@ -6497,18 +6506,14 @@ class AffilioRadarTests(unittest.TestCase):
         ):
             self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
 
-        self.assertEqual(record["youtube_upload_status"], "retry")
+        self.assertEqual(record["youtube_upload_status"], "skipped_platform_quota")
         self.assertIn("HTTP 429", record["youtube_last_error"])
         self.assertIn("rateLimitExceeded", record["youtube_last_error"])
         self.assertIn("Video Uploads per day", record["youtube_last_error"])
-        self.assertIsNotNone(record.get("youtube_next_attempt_at"))
-        retry_at = datetime.fromisoformat(record["youtube_next_attempt_at"])
-        self.assertGreaterEqual(retry_at, now + timedelta(hours=24))
-        self.assertLess(retry_at, now + timedelta(hours=25))
-        self.assertEqual(state["youtube_uploads_paused_until"], record["youtube_next_attempt_at"])
-        self.assertEqual(state["youtube_upload_pause_reason"], "daily_upload_limit")
+        self.assertNotIn("youtube_next_attempt_at", record)
+        self.assertNotIn("youtube_uploads_paused_until", state)
 
-    def test_youtube_daily_limit_pause_does_not_block_aparat_shorts_queue(self):
+    def test_external_youtube_quota_skip_does_not_block_aparat_shorts_queue(self):
         now = datetime.now(timezone.utc)
         pid = "dkp-youtube-daily-pause"
         record = {
@@ -6523,15 +6528,14 @@ class AffilioRadarTests(unittest.TestCase):
             "posted_discount_percent": 45,
             "delivery_status": {"telegram": "sent"},
             "video_generation_status": "pending",
-            "youtube_upload_status": "pending",
+            "youtube_upload_status": "skipped_platform_quota",
         }
         record["youtube_last_error"] = (
             "HTTPError: YouTube resumable upload initialization HTTP 400 "
             "reason=uploadLimitExceeded message=The user has exceeded the number of videos they may upload."
         )
         record["youtube_upload_attempts"] = 1
-        pause_until = (now + timedelta(hours=24, minutes=15)).isoformat()
-        # Simulate persisted state written by the old code before the global pause existed.
+        # The platform quota applies only to this destination; other outlets continue.
         state = {"published": {pid: record}}
 
         with (
@@ -6552,9 +6556,8 @@ class AffilioRadarTests(unittest.TestCase):
         upload.assert_not_called()
         self.assertEqual(record["aparat_upload_status"], "waiting_shorts_uploader")
         self.assertEqual(record["aparat_shorts_upload_status"], "queued")
-        self.assertEqual(state["youtube_uploads_paused_until"], pause_until)
-        self.assertEqual(state["youtube_upload_pause_reason"], "daily_upload_limit")
-        self.assertTrue(state["youtube_upload_pause_diagnostic_migrated"])
+        self.assertNotIn("youtube_uploads_paused_until", state)
+        self.assertNotIn("youtube_upload_pause_reason", state)
 
     @unittest.skipUnless(shutil.which("ffmpeg"), "ffmpeg is installed by the publishing workflow")
     def test_real_short_video_renderer_creates_vertical_mp4(self):
