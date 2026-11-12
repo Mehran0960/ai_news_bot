@@ -391,8 +391,7 @@ export function videoRecordDue(record, platform, now) {
   const status = String(record[platform + "_upload_status"] || "pending");
   if (!VIDEO_PENDING_STATUSES.has(status)) return false;
   const generation = String(record.video_generation_status || "pending");
-  if (!["", "pending", "generated"].includes(generation) &&
-      !(platform === "filo" && generation === "skipped_unverified_deadline")) return false;
+  if (!["", "pending", "generated"].includes(generation)) return false;
 
   const expiry = dateValue(record.expires_at);
   if (expiry !== null && expiry <= now + 10 * 60 * 1000) return false;
