@@ -303,9 +303,11 @@ def apply_four_factor_scores(
                 row.get("recent_review_growth_window", row.get("recent_review_growth_7d"))
             )
             demand_observation_unit = "reviews_per_observation_window"
-        demand_confidence = str(
-            row.get("live_demand_confidence") or demand_quality
-        ).strip()
+        demand_confidence = (
+            "direct_relative_sales_rank_not_units_sold"
+            if rank > 0
+            else str(row.get("live_demand_confidence") or demand_quality).strip()
+        )
 
         taxonomy_evidence = {
             "category_id": str(
