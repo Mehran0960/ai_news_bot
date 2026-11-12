@@ -1815,3 +1815,20 @@
 **ریسک/بازگشت:** اشتراک `state.json` همچنان مستلزم قفل مشترک است؛ یک Workflow ترتیبی عمداً جایگزین سه workflow موازی شد. محدودیت سهمیهٔ واقعی YouTube یا عدم تأیید deadline/credential می‌تواند برای همان مقصد skip ایجاد کند. نتیجهٔ unknown به‌صورت دستی بررسی می‌شود تا duplicate نشود. بازگشت با revert PR ممکن است؛ state/صف موجود reset نمی‌شود.
 
 **وضعیت:** کد و مستندات در شاخهٔ feature انجام‌شده؛ PR و CI در مرحلهٔ بعد؛ تا ادغام و deploy خودکار Worker روی main فعال production نیستند.
+
+
+## ۲۰۲۶-۱۱-۱۲ — اتصال مسیر اضطراری دستی به fan-out ویدئویی
+
+**هدف:** هیچ مسیر محصولیِ ارسال Telegram/Bale بدون صدور دستور مشترک برای YouTube، Aparat و Filo باقی نماند.
+
+**تغییر/اقدام:** مسیر اضطراری دستی `affilio-publisher.yml` نیز پس از ذخیرهٔ موفق وضعیت تحویل، Workflow واحد `offerchin-video-publisher.yml` را dispatch می‌کند. مجوز `actions: write` و شرط موفقیت مرحلهٔ persistence اضافه شد؛ بنابراین مسیر اصلی و مسیر اضطراری هر دو از یک صف ویدئویی مشترک استفاده می‌کنند. مسیر کمپین دستی بدون SKU عمداً خارج از این قرارداد محصولی باقی می‌ماند.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/affilio-publisher.yml`، `docs/OFFERCHIN_SHARED_SELECTION_MEDIA_ROUTING_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md` و همین changelog.
+
+**آزمون و نتیجه:** تغییر به PR شمارهٔ ۱۶۳ اضافه شد؛ CI مربوط به نسخهٔ نهایی پس از push اجرا می‌شود. هیچ ارسال عمومی دستی اجرا نشد.
+
+**شواهد/شناسه:** PR #163؛ شاخهٔ `feature/offerchin-video-fanout-no-throttle-20261112`؛ commit اتصال مسیر اضطراری `bf95787ee244c94e1b7cc7231097de60f974d310`.
+
+**ریسک/بازگشت:** اگر مرحلهٔ persistence شکست بخورد، dispatch ویدئو انجام نمی‌شود و Worker با خواندن صف pending بازیابی می‌کند. بازگشت با revert همین تغییر workflow ممکن است؛ state صف نباید پاک شود.
+
+**وضعیت:** در شاخهٔ PR انجام‌شده؛ تا ادغام PR فعال production نیست.
