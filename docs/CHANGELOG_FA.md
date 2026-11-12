@@ -1808,10 +1808,10 @@
 **تغییر/اقدام:**
 - نسخهٔ سیاست به `offerchin_four_factor_evidence_gated_v2` ارتقا یافت تا امتیازهای v1 در اجرای جدید دوباره محاسبه شوند.
 - توابع امتیازدهی اکنون provenance هر عامل را ذخیره می‌کنند: status، source، زمان مشاهدهٔ تقاضا/تاریخچه/بازار، کیفیت سیگنال، مبنای قیمت ورودی، و taxonomy/use-case.
-- تابع `four_factor_evidence_gate` به‌صورت fail-closed اضافه شد. گیت‌های عمومی در انتخاب عادی و انتخاب fallback اجرا می‌شوند؛ محصول retailer-markdown-only، بدون تقاضای تازه، قیمت ورودی معتبر یا طبقه‌بندی کاربردی از صف انتشار عمومی حذف می‌شود.
+- تابع `four_factor_evidence_gate` به‌صورت fail-closed اضافه شد. گیت‌های عمومی در انتخاب عادی، انتخاب fallback و مسیر urgent اجرا می‌شوند؛ هیچ مسیر انتشار عمومی برای عبور از گیت وجود ندارد. محصول retailer-markdown-only، بدون تقاضای تازه، قیمت ورودی معتبر یا طبقه‌بندی کاربردی از صف انتشار عمومی حذف می‌شود.
 - قیمت بازار مستقل فقط زمانی مدرک محسوب می‌شود که مرجع همان محصول و نوع `seller_median` با وضعیت و زمان تازه معتبر باشد؛ history نیز باید verified و واجدشرایط باشد. تخفیف اسمی فروشگاه به‌تنهایی کافی نیست.
 - شمارنده‌های گیت، دلیل رد را machine-readable ثبت می‌کنند. نبود آفر واجدشرایط باعث توقف slot می‌شود؛ هیچ fallback ضعیف برای پرکردن تعداد پست‌ها اجرا نمی‌شود.
-- تست‌های اختصاصی برای gate، provenance، رد markdown تأییدنشده و رد گروه کاربردی ناشناخته اضافه شدند.
+- تست‌های اختصاصی برای gate، provenance، رد markdown تأییدنشده، رد گروه کاربردی ناشناخته و بستن مسیر urgent نیز اضافه شدند.
 
 **فایل‌ها/سامانه‌ها:** `affilio_radar/offerchin_four_factor.py`، `affilio_radar/affilio_radar.py`، `affilio_radar/test_offerchin_four_factor.py`، `docs/OFFERCHIN_FOUR_FACTOR_RANKING_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md` و همین changelog.
 
