@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-12T10:43:20.690330+00:00",
+  "generated_at": "2026-11-12T10:52:00.729933+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار آشپزی": 1,
@@ -201,7 +201,6 @@
       "تریمر و شیور فویلی": 1,
       "تونر": 1,
       "تی شرت مردانه": 3,
-      "تی شرت ورزشی مردانه": 1,
       "جانبی خودرو": 1,
       "خانه و آشپزخانه": 1,
       "خمیر دندان": 1,
@@ -306,7 +305,7 @@
       "other": 81,
       "personal_care": 37,
       "power_backup": 6,
-      "sports_outdoor": 12,
+      "sports_outdoor": 11,
       "tv_audio_video": 1
     },
     "category_share_percent": {
@@ -326,29 +325,29 @@
       "large_appliances": 2.4,
       "lighting": 0.4,
       "mobile_devices": 1.6,
-      "other": 32.7,
-      "personal_care": 14.9,
+      "other": 32.8,
+      "personal_care": 15.0,
       "power_backup": 2.4,
-      "sports_outdoor": 4.8,
+      "sports_outdoor": 4.5,
       "tv_audio_video": 0.4
     },
-    "distinct_catalog_categories": 107,
+    "distinct_catalog_categories": 106,
     "distinct_categories": 21,
-    "distinct_families": 145,
+    "distinct_families": 144,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
-    "known_brand_posts": 22,
-    "posts": 248,
-    "repeated_brand_count": 12,
+    "known_brand_posts": 21,
+    "posts": 247,
+    "repeated_brand_count": 11,
     "repeated_brands": {
       "ai_javaher": 3,
       "eurovital": 2,
       "habsan": 3,
       "sangboo_climy": 6,
-      "ufc": 3
+      "ufc": 2
     },
     "retailer_post_counts": {
-      "digikala": 248
+      "digikala": 247
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -375,7 +374,7 @@
       "office_study": 11,
       "outdoor_travel": 4,
       "personal_care": 30,
-      "sports_fitness": 9,
+      "sports_fitness": 8,
       "tabletop_games": 1,
       "tools_industrial": 13
     }
@@ -393,64 +392,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 880,
+    "all_time_count": 883,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-12T09:48:56.501366+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-6808740",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-12T09:48:56.501366+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12935579",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-12T09:56:12.973533+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-12T09:56:12.973533+00:00",
         "brand": "",
@@ -738,6 +686,57 @@
           "similarity_repeat"
         ],
         "title": "سرم پوست ویتالیر مدل گلایکولیک اسید ٪7 مناسب برای پوست مختلط حجم 30 میلی لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-12T10:52:00.729933+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4184133",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-12T10:52:00.729933+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4184133",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-6808740",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-12T10:52:00.729933+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4184133",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-20682942",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
         "use_case": "mobile_productivity"
       }
     ]
