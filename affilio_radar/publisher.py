@@ -488,7 +488,7 @@ def _process_photo_destination(
     target = _target(entry, destination)
     record_status = record.setdefault("delivery_status", {})
     status = str(target.get("status") or "pending")
-    if status == "sent":
+    if status in {"sent", "manual_review"}:
         return
     if status == "sending":
         started = _utc(target.get("attempt_started_at"))
