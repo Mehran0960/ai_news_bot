@@ -8,12 +8,6 @@ const CATALOG_WORKFLOW = "offerchin-digikala-catalog-sweep.yml";
 const CATALOG_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${CATALOG_WORKFLOW}`;
 const AUDIT_WORKFLOW = "offerchin-integrity-audit.yml";
 const AUDIT_API = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/actions/workflows/" + AUDIT_WORKFLOW;
-const YOUTUBE_VIDEO_WORKFLOW = "youtube-video-upload.yml";
-const YOUTUBE_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${YOUTUBE_VIDEO_WORKFLOW}`;
-const APARAT_VIDEO_WORKFLOW = "aparat-video-upload.yml";
-const APARAT_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${APARAT_VIDEO_WORKFLOW}`;
-const OFFERCHIN_FILO_VIDEO_WORKFLOW = "filo-video-upload.yml";
-const OFFERCHIN_FILO_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${OFFERCHIN_FILO_VIDEO_WORKFLOW}`;
 const RUNS_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
 const FILO_REPO = "Goushibaaz";
 const FILO_WORKFLOW = "filo-native-republish.yml";
@@ -282,7 +276,7 @@ async function readLatestPublisherAttempt(token) {
 
 async function dispatchPublisherWhenDue(env, tick, state) {
   const active = await recoverStaleWorkflow(
-    PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 28, 28
+    PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 50, 50
   );
   if (active) {
     console.log("OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=active_workflow_" + active.status);
@@ -354,142 +348,6 @@ async function dispatchPublisherWhenDue(env, tick, state) {
   );
 }
 
-const VIDEO_WORKFLOW_RETRY_GAP_MS = 5 * 60 * 1000;
-const VIDEO_UPLOAD_MAX_AGE_MS = 24 * 60 * 60 * 1000;
-const VIDEO_PENDING_STATUSES = new Set([
-  "pending", "pending_credentials", "retry", "skipped_unverified_deadline"
-]);
-
-function dateValue(value) {
-  const parsed = Date.parse(String(value || ""));
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function hasChannelDelivery(record) {
-  const delivery = record && record.delivery_status && typeof record.delivery_status === "object"
-    ? record.delivery_status : {};
-  return ["telegram", "bale", "rubika", "eitaa"].some(platform => delivery[platform] === "sent") ||
-    ["telegram_message_id", "bale_message_id", "rubika_message_id", "eitaa_message_id"]
-      .some(field => /^\d+$/.test(String(record[field] || "")));
-}
-
-function hasVideoDispatchEligibility(record) {
-  return Boolean(
-    record && typeof record === "object" &&
-    (
-      record.video_dispatch_eligible === true ||
-      String(record.distribution_queue_id || "").trim() ||
-      hasChannelDelivery(record)
-    )
-  );
-}
-
-export function videoRecordDue(record, platform, now) {
-  if (!hasVideoDispatchEligibility(record)) return false;
-  const publishedAt = Number(record.ts || 0) * 1000;
-  if (!Number.isFinite(publishedAt) || publishedAt <= 0 || now - publishedAt > VIDEO_UPLOAD_MAX_AGE_MS) return false;
-  const status = String(record[platform + "_upload_status"] || "pending");
-  if (!VIDEO_PENDING_STATUSES.has(status)) return false;
-  const generation = String(record.video_generation_status || "pending");
-  if (!["", "pending", "generated"].includes(generation) &&
-      !(platform === "filo" && generation === "skipped_unverified_deadline")) return false;
-
-  const generationRetry = dateValue(record.video_generation_next_attempt_at);
-  if (generationRetry !== null && generationRetry > now) return false;
-  const platformRetry = dateValue(record[platform + "_next_attempt_at"]);
-  if (platformRetry !== null && platformRetry > now) return false;
-
-  const expiry = dateValue(record.expires_at);
-  if (expiry !== null && expiry <= now + 10 * 60 * 1000) return false;
-
-  if (platform === "aparat") {
-    const verifiedExpiry =
-      record.expiry_deadline_verified_directly === true ||
-      (record.expiry_source === "digikala_mcp_offer_card" &&
-        record.expiry_deadline_verified_from_site_card === true);
-    if (!verifiedExpiry) return false;
-  }
-  return true;
-}
-
-export function isFiloLoginVerified(state, now) {
-  const verifiedAt = dateValue(state && state.filo_login_verified_at);
-  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
-  const age = verifiedAt === null ? -1 : timestamp - verifiedAt;
-  return Boolean(
-    state &&
-    state.filo_login_verification_status === "verified" &&
-    age >= 0 &&
-    age <= 7 * 24 * 60 * 60 * 1000
-  );
-}
-
-export function hasDueVideoRecord(state, platform, now) {
-  const published = state && state.published && typeof state.published === "object"
-    ? state.published : {};
-  // The compact dispatcher sidecar already caps this at the 250 most recent
-  // selected-product records. Do not inspect only the newest six: that can
-  // hide an older pending upload behind six newer completed uploads.
-  return Object.values(published).some(record => videoRecordDue(record, platform, now));
-}
-
-async function readLatestWorkflowAttempt(api, token) {
-  try {
-    const query = new URLSearchParams({ branch: "main", per_page: "10" });
-    const data = await githubRequest(`${api}/runs?${query}`, token);
-    const rows = Array.isArray(data.workflow_runs) ? data.workflow_runs : [];
-    return rows.find(run => run && run.event === "workflow_dispatch" && run.head_branch === "main") || null;
-  } catch (error) {
-    console.error("OFFERCHIN_VIDEO_ATTEMPT_READ_FAILED", String(error).slice(0, 400));
-    return null;
-  }
-}
-
-// A successful channel delivery is the content event: its canonical product record
-// becomes video-eligible immediately. The rolling platform slot below is only a
-// target-side rate limiter; it must never trigger an independent product selection.
-async function dispatchVideoPlatformWhenDue(env, tick, state, platform) {
-  const config = platform === "youtube"
-    ? { api: YOUTUBE_VIDEO_API, workflow: YOUTUBE_VIDEO_WORKFLOW, slot: "youtube_next_upload_at", pause: "youtube_uploads_paused_until" }
-    : platform === "aparat"
-      ? { api: APARAT_VIDEO_API, workflow: APARAT_VIDEO_WORKFLOW, slot: "aparat_next_upload_at", pause: null }
-      : { api: OFFERCHIN_FILO_VIDEO_API, workflow: OFFERCHIN_FILO_VIDEO_WORKFLOW, slot: "filo_next_upload_at", pause: null };
-
-  const now = tick.getTime();
-  if (platform === "filo" && !isFiloLoginVerified(state, now)) {
-    console.log("OFFERCHIN_FILO_VIDEO_DISPATCH_NOT_DUE reason=login_not_verified_or_stale");
-    return;
-  }
-  const nextSlot = dateValue(state && state[config.slot]);
-  const pauseUntil = config.pause ? dateValue(state && state[config.pause]) : null;
-  if (nextSlot !== null && now < nextSlot) return;
-  if (pauseUntil !== null && now < pauseUntil) return;
-  if (!hasDueVideoRecord(state, platform, now)) return;
-
-  const latestAttempt = await readLatestWorkflowAttempt(config.api, env.GITHUB_TOKEN);
-  const attemptAt = dateValue(latestAttempt &&
-    (latestAttempt.updated_at || latestAttempt.run_started_at || latestAttempt.created_at));
-  if (attemptAt !== null && now - attemptAt < VIDEO_WORKFLOW_RETRY_GAP_MS) return;
-
-  // Each platform owns its own workflow and saved due slot. Video jobs share
-  // the channel publisher's state-writer lock to prevent concurrent state loss.
-  await dispatchWorkflowIfIdle(config.api, env.GITHUB_TOKEN, config.workflow, 35, 30);
-}
-
-async function dispatchVideoUploadsWhenDue(env, tick, state) {
-  if (!state) return;
-  for (const platform of ["youtube", "aparat", "filo"]) {
-    try {
-      await dispatchVideoPlatformWhenDue(env, tick, state, platform);
-    } catch (error) {
-      console.error(
-        "OFFERCHIN_" + platform.toUpperCase() + "_VIDEO_DISPATCH_FAILED",
-        String(error).slice(0, 700)
-      );
-    }
-  }
-}
-
 async function runScheduledCheck(env, scheduledTime) {
   const hasOfferChinToken = Boolean(env.GITHUB_TOKEN);
   const hasFiloToken = Boolean(env.FILO_GITHUB_TOKEN);
@@ -547,9 +405,6 @@ async function runScheduledCheck(env, scheduledTime) {
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 
-  // Inspect the channel-created video queue on every minute tick. The product event
-  // is immediate; each destination's own rolling safety slot controls actual dispatch.
-  await dispatchVideoUploadsWhenDue(env, tick, state);
 }
 
 export default {
