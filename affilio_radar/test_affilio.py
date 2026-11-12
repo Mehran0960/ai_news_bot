@@ -1395,12 +1395,9 @@ class AffilioRadarTests(unittest.TestCase):
         )
 
 
-    def test_video_dispatch_state_is_compact_and_keeps_due_delivery_signals(self):
+    def test_video_audit_sidecar_is_compact_and_has_no_legacy_time_gates(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         state = {
-            "youtube_next_upload_at": "2026-11-05T11:00:00+00:00",
-            "youtube_uploads_paused_until": None,
-            "aparat_next_upload_at": "2026-11-05T10:00:00+00:00",
             "published": {
                 "dkp-video-ready": {
                     "ts": now.timestamp(),
@@ -1423,8 +1420,12 @@ class AffilioRadarTests(unittest.TestCase):
             },
         }
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
-        self.assertEqual(compact["youtube_next_upload_at"], state["youtube_next_upload_at"])
-        self.assertEqual(compact["aparat_next_upload_at"], state["aparat_next_upload_at"])
+        for legacy_gate in (
+            "youtube_next_upload_at", "youtube_uploads_paused_until",
+            "aparat_next_upload_at", "filo_next_upload_at",
+            "filo_login_verified_at", "filo_login_verification_status",
+        ):
+            self.assertNotIn(legacy_gate, compact)
         self.assertIn("dkp-video-ready", compact["published"])
         self.assertNotIn("dkp-not-delivered", compact["published"])
         item = compact["published"]["dkp-video-ready"]
