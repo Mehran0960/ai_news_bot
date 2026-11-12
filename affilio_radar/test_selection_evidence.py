@@ -9,6 +9,14 @@ from publisher import _eligible_fallback_candidates
 class OfferChinSelectionEvidenceTests(unittest.TestCase):
     def setUp(self):
         self.now = datetime(2026, 11, 8, 12, 0, tzinfo=timezone.utc)
+        # This suite verifies demand ordering and repeat-family behavior. The strict
+        # four-factor publication gate has dedicated end-to-end tests in
+        # test_offerchin_four_factor.py.
+        self._four_factor_evidence_patch = patch.object(
+            radar, "_four_factor_evidence_gate", return_value=(True, [])
+        )
+        self._four_factor_evidence_patch.start()
+        self.addCleanup(self._four_factor_evidence_patch.stop)
 
     def _verified_review_growth(self, **overrides):
         record = {
