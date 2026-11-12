@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: write
   contents: write
 
 concurrency:
@@ -83,6 +84,7 @@ jobs:
         run: python affilio_radar/publisher.py
 
       - name: Persist queue and per-platform delivery outcomes
+        id: persist_delivery_state
         if: always()
         run: |
           git config user.name "github-actions[bot]"
@@ -95,3 +97,13 @@ jobs:
           git commit -m "chore(offerchin): persist platform delivery outcomes [skip ci]"
           git pull --rebase origin main
           git push
+
+      - name: Dispatch unified video fan-out for the same canonical product queue
+        if: ${{ always() && steps.persist_delivery_state.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/actions/workflows/offerchin-video-publisher.yml/dispatches" \
+            -f ref=main
+          echo "OFFERCHIN_VIDEO_FANOUT_DISPATCHED source=manual_emergency_publisher"
