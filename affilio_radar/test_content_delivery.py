@@ -681,7 +681,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertIsNone(due_unpublished_selection(state, now=self.now))
 
 
-    def test_fresh_unpublished_content_outranks_old_partial_delivery(self):
+    def test_old_partial_delivery_remains_ahead_of_newer_content_until_terminal(self):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-old-partial", demand=90)],
@@ -697,7 +697,27 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
 
         due = due_content(state, now=self.now, limit=1)
-        self.assertEqual([pid for pid, _entry in due], ["dkp-fresh"])
+        self.assertEqual([pid for pid, _entry in due], ["dkp-old-partial"])
+
+    def test_retrying_oldest_partial_blocks_newer_content_until_retry_is_due(self):
+        state = {}
+        enqueue_selected_content(
+            state, [self.item("dkp-old-retry")],
+            now=self.now - timedelta(minutes=30), interval_seconds=1200,
+        )
+        old = state["content_delivery_queue"]["dkp-old-retry"]
+        old["status"] = "partial"
+        old["next_attempt_at"] = (self.now + timedelta(minutes=10)).isoformat()
+        enqueue_selected_content(
+            state, [self.item("dkp-newer")],
+            now=self.now, interval_seconds=1200,
+        )
+
+        self.assertEqual(due_content(state, now=self.now, limit=1), [])
+        due_after_retry = due_content(
+            state, now=self.now + timedelta(minutes=11), limit=1
+        )
+        self.assertEqual([pid for pid, _entry in due_after_retry], ["dkp-old-retry"])
 
 
     def test_publisher_blocks_stale_queued_copy_when_current_publication_is_active(self):
