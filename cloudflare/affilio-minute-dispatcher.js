@@ -507,9 +507,8 @@ async function runScheduledCheck(env, scheduledTime) {
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 
-  // The main channel-publisher's workflow_run event starts video fan-out immediately.
-  // This minute-level check is a recovery path if GitHub misses or delays that event.
-  await dispatchVideoUploadsWhenDue(env, tick, state);
+  // Video fan-out is event-driven by offerchin-video-fanout.yml's workflow_run trigger.
+  // Do not dispatch a second copy here: this Worker only schedules discovery and channel publication.
 }
 
 export default {
