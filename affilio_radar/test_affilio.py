@@ -6447,7 +6447,12 @@ class AffilioRadarTests(unittest.TestCase):
             "video_generation_status": "pending",
             "youtube_upload_status": "pending",
         }
-        state = {"published": {prior_id: prior, pending_id: pending}}
+        state = {
+            "published": {prior_id: prior, pending_id: pending},
+            # Legacy timestamp deliberately blocks until tomorrow; new event-driven
+            # processing must ignore it rather than delaying this product.
+            "youtube_next_upload_at": (now + timedelta(hours=24)).isoformat(),
+        }
         with (
             TemporaryDirectory() as output_dir,
             patch("affilio_radar._fetch_image") as fetch_image,
@@ -6460,7 +6465,10 @@ class AffilioRadarTests(unittest.TestCase):
         ):
             self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
 
-        self.assertNotIn("youtube_next_upload_at", state)
+        self.assertEqual(
+            state["youtube_next_upload_at"],
+            (now + timedelta(hours=24)).isoformat(),
+        )
         fetch_image.assert_called_once()
         render.assert_called_once()
         upload.assert_called_once()
