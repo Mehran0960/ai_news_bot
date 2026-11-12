@@ -445,9 +445,9 @@ def due_content(state: dict, *, now: datetime | None = None, limit: int = 1) -> 
             continue
         ordered.append((scheduled, str(product_id), entry))
 
-    # Selection order is canonical: no platform success, popularity signal, or retry
-    # can promote a newer product ahead of an older unresolved product.
-    ordered.sort(key=lambda row: (row[0], row[1]))
+    # Python's stable sort preserves the original selector/dict insertion order on
+    # identical scheduled_at timestamps; product IDs must not break a genuine tie.
+    ordered.sort(key=lambda row: row[0])
     due = []
     for scheduled, product_id, entry in ordered:
         if scheduled > now:
