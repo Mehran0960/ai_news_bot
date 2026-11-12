@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-12T10:20:54.561612+00:00",
+  "generated_at": "2026-11-12T10:28:30.598107+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار آشپزی": 1,
@@ -211,7 +211,6 @@
       "دستگاه هویه": 1,
       "دهان‌شویه و خمیردندان کودک و نوزاد": 1,
       "روشنایی و الکتریکی": 2,
-      "زانو بند طبی": 1,
       "زنانه": 1,
       "ساختنی": 1,
       "ساعت هوشمند": 1,
@@ -294,7 +293,7 @@
       "books_stationery": 9,
       "computer_network": 4,
       "digital_accessories": 2,
-      "fashion": 28,
+      "fashion": 27,
       "gaming": 1,
       "grocery_food": 10,
       "home": 8,
@@ -312,12 +311,12 @@
     },
     "category_share_percent": {
       "audio_wearables": 3.2,
-      "automotive": 6.8,
+      "automotive": 6.9,
       "beauty_fragrance": 1.6,
       "books_stationery": 3.6,
       "computer_network": 1.6,
       "digital_accessories": 0.8,
-      "fashion": 11.2,
+      "fashion": 10.9,
       "gaming": 0.4,
       "grocery_food": 4.0,
       "home": 3.2,
@@ -327,19 +326,19 @@
       "large_appliances": 2.4,
       "lighting": 0.4,
       "mobile_devices": 1.6,
-      "other": 32.5,
+      "other": 32.7,
       "personal_care": 14.9,
       "power_backup": 2.4,
       "sports_outdoor": 4.8,
       "tv_audio_video": 0.4
     },
-    "distinct_catalog_categories": 108,
+    "distinct_catalog_categories": 107,
     "distinct_categories": 21,
-    "distinct_families": 146,
+    "distinct_families": 145,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
     "known_brand_posts": 22,
-    "posts": 249,
+    "posts": 248,
     "repeated_brand_count": 12,
     "repeated_brands": {
       "ai_javaher": 3,
@@ -349,7 +348,7 @@
       "ufc": 3
     },
     "retailer_post_counts": {
-      "digikala": 249
+      "digikala": 248
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -376,7 +375,7 @@
       "office_study": 11,
       "outdoor_travel": 4,
       "personal_care": 30,
-      "sports_fitness": 10,
+      "sports_fitness": 9,
       "tabletop_games": 1,
       "tools_industrial": 13
     }
@@ -394,7 +393,7 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 873,
+    "all_time_count": 875,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
@@ -402,40 +401,6 @@
     },
     "recent_events": [
       {
-        "at": "2026-11-12T09:27:49.786200+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-14194589",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم پوست ویتالیر مدل گلایکولیک اسید ٪7 مناسب برای پوست مختلط حجم 30 میلی لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-12T09:35:48.005625+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
         "at": "2026-11-12T09:35:48.005625+00:00",
         "brand": "",
         "catalog_category_id": "",
@@ -740,6 +705,40 @@
         ],
         "title": "فوم شست‌وشوی صورت ویتالیر مدل تایم ویت مناسب انواع پوست حجم 150 میلی‌لیتر",
         "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-12T10:28:30.598107+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4184133",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-12T10:28:30.598107+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4184133",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-6808740",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
+        "use_case": "mobile_productivity"
       }
     ]
   }
