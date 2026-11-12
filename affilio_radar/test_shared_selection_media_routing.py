@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 import affilio_radar as radar
 
@@ -71,6 +72,29 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
         self.assertTrue(radar._has_video_dispatch_eligibility({
             "delivery_status": {"rubika": "sent"}
         }))
+
+    def test_unified_video_run_dispatches_all_platform_fifo_workers_in_order(self):
+        called = []
+        with (
+            patch.object(radar, "run_youtube_uploads_only", side_effect=lambda: called.append("youtube") or 0),
+            patch.object(radar, "run_aparat_uploads_only", side_effect=lambda: called.append("aparat") or 0),
+            patch.object(radar, "run_filo_uploads_only", side_effect=lambda: called.append("filo") or 0),
+        ):
+            self.assertEqual(radar.run_all_video_uploads_only(), 0)
+        self.assertEqual(called, ["youtube", "aparat", "filo"])
+
+    def test_unified_video_run_continues_after_one_destination_error(self):
+        called = []
+        with (
+            patch.object(radar, "run_youtube_uploads_only", side_effect=RuntimeError("quota")),
+            patch.object(radar, "run_aparat_uploads_only", side_effect=lambda: called.append("aparat") or 0),
+            patch.object(radar, "run_filo_uploads_only", side_effect=lambda: called.append("filo") or 0),
+        ):
+            self.assertEqual(radar.run_all_video_uploads_only(), 0)
+        self.assertEqual(called, ["aparat", "filo"])
+
+    def test_video_retry_budget_is_bounded(self):
+        self.assertEqual(radar.MAX_VIDEO_UPLOAD_ATTEMPTS, 3)
 
     def test_video_sorting_uses_shared_selection_timestamp_and_product_id_tiebreak(self):
         later = self.row(100, "dkp-b", 90, {"filo"})
