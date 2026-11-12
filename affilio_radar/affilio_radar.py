@@ -84,6 +84,7 @@ CONFIG = ROOT / "config" / "products.json"
 STATE = ROOT / "state.json"
 VIDEO_DISPATCH_STATE = ROOT / "video_upload_dispatch_state.json"
 VIDEO_DISPATCH_STATE_RECORD_LIMIT = 250
+VIDEO_DESTINATION_PENDING_STATUSES = {"pending", "pending_credentials", "retry"}
 REPORT = ROOT / "candidates.json"
 DIVERSITY_REPORT = ROOT / "diversity_report.json"
 CATALOG_SWEEP_CANDIDATES = ROOT / "catalog_sweep_completed_candidates.json"
@@ -4908,6 +4909,12 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             video_dispatch_eligible = _has_video_dispatch_eligibility(raw)
             if not video_dispatch_eligible:
                 continue
+            if not any(
+                str(raw.get(f"{platform}_upload_status") or "pending").strip().lower()
+                in VIDEO_DESTINATION_PENDING_STATUSES
+                for platform in ("youtube", "aparat", "filo")
+            ):
+                continue
             try:
                 ts = float(raw.get("ts") or 0)
             except (TypeError, ValueError, OverflowError):
@@ -4915,7 +4922,9 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             if ts <= 0:
                 continue
             candidates.append((ts, str(product_id_value), raw, delivery))
-    candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    # Keep the oldest still-pending products visible first; terminal records must
+    # not consume the bounded Cloudflare projection and hide the live FIFO tail.
+    candidates.sort(key=lambda item: (item[0], item[1]))
 
     fields = (
         "youtube_upload_status", "aparat_upload_status", "filo_upload_status", "video_generation_status",
@@ -9610,7 +9619,6 @@ def process_pending_short_video(
         limit = max(1, min(VIDEO_DISPATCH_STATE_RECORD_LIMIT, int(candidate_limit)))
         candidate_records.sort(
             key=lambda item: _int_value(item[1].get("ts")) or 0,
-            reverse=True,
         )
         candidate_records = candidate_records[:limit]
 
