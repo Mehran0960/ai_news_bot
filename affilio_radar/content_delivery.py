@@ -17,7 +17,7 @@ from product_quality import is_publishable_product_title
 
 
 TERMINAL_QUEUE_STATUSES = {"published", "cancelled", "stale_selection"}
-TERMINAL_PLATFORM_STATUSES = {"sent", "not_connected", "manual_review"}
+TERMINAL_PLATFORM_STATUSES = {"sent", "not_connected", "manual_review", "skipped"}
 PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
 
 
