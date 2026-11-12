@@ -10110,6 +10110,9 @@ def process_pending_short_video(
                 print(f"APARAT_UPLOAD_RESULT_UNKNOWN id={pid} error={type(exc).__name__}; no automatic duplicate retry")
             else:
                 status_code = getattr(getattr(exc, "response", None), "status_code", None)
+                if status_code is None:
+                    match = re.search(r"\bHTTP\s+(\d{3})\b", str(exc), flags=re.IGNORECASE)
+                    status_code = int(match.group(1)) if match else None
                 if status_code == 429:
                     record["aparat_upload_status"] = "skipped_platform_limit"
                     record["aparat_skip_reason"] = "aparat_http_429_rate_limited"
@@ -10309,6 +10312,9 @@ def process_pending_short_video(
                 ))
                 failure_time = datetime.now(timezone.utc)
                 http_status = getattr(getattr(exc, "response", None), "status_code", None)
+                if http_status is None:
+                    match = re.search(r"\bHTTP\s+(\d{3})\b", error_detail, flags=re.IGNORECASE)
+                    http_status = int(match.group(1)) if match else None
                 if daily_upload_limit:
                     next_attempt = _next_youtube_daily_upload_retry_at(failure_time)
                     state["youtube_uploads_paused_until"] = next_attempt.isoformat()
