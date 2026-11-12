@@ -4890,7 +4890,6 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    if isinstance(state, dict):
     published = state.get("published") if isinstance(state, dict) else {}
     candidates = []
     if isinstance(published, dict):
