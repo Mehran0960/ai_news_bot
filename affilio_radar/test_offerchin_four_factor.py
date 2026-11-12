@@ -23,6 +23,17 @@ class OfferChinFourFactorTests(unittest.TestCase):
 
     def _score(self, rows, independent=None):
         independent = independent or set()
+        for row in rows:
+            if row.get("test_live_demand", 80) > 0:
+                row.setdefault("demand_signal_source", "digikala_recent_review_growth")
+                row.setdefault("demand_observed_at", self.now.isoformat())
+                row.setdefault("live_demand_observation_value", 5)
+                row.setdefault("live_demand_observation_unit", "reviews_per_observation_window")
+                row.setdefault("live_demand_confidence", "indirect_review_growth_proxy_not_sales")
+            if row.get("product_id") in independent:
+                row.setdefault("history_status", "verified")
+                row.setdefault("historical_deal_eligible", True)
+                row.setdefault("history_checked_at", self.now.isoformat())
         return apply_four_factor_scores(
             rows,
             live_demand_score_fn=lambda row: row.get("test_live_demand", 80),
@@ -60,7 +71,10 @@ class OfferChinFourFactorTests(unittest.TestCase):
             "discount_percent": 50,
             "savings_toman": 500_000,
             "test_live_demand": 80,
-            "test_group": "kitchen_food",
+            "test_group": "kitchen_food",,
+            "history_status": "verified",
+            "historical_deal_eligible": True,
+            "history_checked_at": self.now.isoformat()
         }
         unverified_discount = {**verified, "product_id": "dkp-unverified"}
         unclassified = {**verified, "product_id": "dkp-unclassified", "test_group": "general"}
@@ -230,6 +244,11 @@ class OfferChinFourFactorTests(unittest.TestCase):
                 "selection_discount_floor": 1,
                 "test_group": "kitchen_food",
                 "test_live_demand": 80,
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": index + 1,
+                "catalog_rank_observed_at": self.now.isoformat(),
+                "catalog_best_selling_category_id": "101",
+                "catalog_best_selling_category_name": "لوازم آشپزخانه",
             })
         queue = {row["product_id"]: {} for row in products}
         eligible = {row["product_id"]: row for row in products}
@@ -285,7 +304,10 @@ class OfferChinFourFactorTests(unittest.TestCase):
             "current_price": 500_000,
             "original_price": 1_000_000,
             "discount_percent": 50,
-            "savings_toman": 500_000,
+            "savings_toman": 500_000,,
+            "history_status": "verified",
+            "historical_deal_eligible": True,
+            "history_checked_at": self.now.isoformat()
         }
         with patch.object(radar, "is_product_suppressed", return_value=False), \
              patch.object(radar, "is_discount_publish_eligible", return_value=True), \
@@ -328,7 +350,10 @@ class OfferChinFourFactorTests(unittest.TestCase):
             "current_price": 500_000,
             "original_price": 1_000_000,
             "discount_percent": 50,
-            "savings_toman": 500_000,
+            "savings_toman": 500_000,,
+            "history_status": "verified",
+            "historical_deal_eligible": True,
+            "history_checked_at": self.now.isoformat()
         }
         with patch.object(radar, "has_attractive_discount_value", return_value=True), \
              patch.object(radar, "_publication_use_case_group", return_value="kitchen_food"), \
@@ -372,7 +397,10 @@ class OfferChinFourFactorTests(unittest.TestCase):
             "original_price": 1_000_000,
             "discount_percent": 50,
             "savings_toman": 500_000,
-            "selection_discount_floor": 1,
+            "selection_discount_floor": 1,,
+            "history_status": "verified",
+            "historical_deal_eligible": True,
+            "history_checked_at": self.now.isoformat()
         }
         with patch.object(radar, "has_verified_market_demand", return_value=True), \
              patch.object(radar, "has_attractive_discount_value", return_value=True), \
