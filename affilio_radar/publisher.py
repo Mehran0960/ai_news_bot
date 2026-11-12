@@ -26,6 +26,9 @@ from integrity_audit_state import apply_integrity_audit_ledger
 
 RETRY_BASE_SECONDS = max(60, int(os.getenv("AFFILIO_PUBLISH_RETRY_BASE_SECONDS", "300")))
 MAX_ITEMS_PER_RUN = max(1, min(3, int(os.getenv("AFFILIO_PUBLISHER_BATCH_SIZE", "1"))))
+MAX_PLATFORM_DELIVERY_ATTEMPTS = max(
+    1, min(5, int(os.getenv("AFFILIO_MAX_PLATFORM_DELIVERY_ATTEMPTS", "3")))
+)
 MAX_INLINE_FALLBACK_ATTEMPTS = 50
 TERMINAL_PLATFORM = {"sent", "not_connected", "manual_review"}
 
@@ -173,15 +176,26 @@ def _set_target(entry: dict, name: str, status: str, now: datetime, detail: str 
 def _target_retry(entry: dict, name: str, now: datetime, detail: str = "") -> None:
     target = _target(entry, name)
     try:
-        attempts = int(target.get("attempts") or 0) + 1
+        attempts = int(target.get("attempts") or 0)
     except (TypeError, ValueError, OverflowError):
-        attempts = 1
+        attempts = 0
+    # _process_photo_destination increments before the network call. A target still
+    # marked "sending" has already consumed that attempt; revalidation failures have not.
+    if target.get("status") != "sending":
+        attempts += 1
+    attempts = max(1, attempts)
     target["attempts"] = attempts
-    target["status"] = "failed"
     target["last_error"] = str(detail or "delivery_failed")[:300]
-    target["next_attempt_at"] = (
-        now + timedelta(seconds=min(3600, RETRY_BASE_SECONDS * (2 ** min(attempts - 1, 4))))
-    ).isoformat()
+    if attempts >= MAX_PLATFORM_DELIVERY_ATTEMPTS:
+        target["status"] = "manual_review"
+        target["resolved_at"] = now.isoformat()
+        target["skip_reason"] = "max_delivery_attempts_reached"
+        target.pop("next_attempt_at", None)
+    else:
+        target["status"] = "failed"
+        target["next_attempt_at"] = (
+            now + timedelta(seconds=min(3600, RETRY_BASE_SECONDS * (2 ** min(attempts - 1, 4))))
+        ).isoformat()
 
 
 def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: str) -> dict:
@@ -536,15 +550,22 @@ def _process_photo_destination(
         )
     except Exception as exc:
         safe_detail = _safe_delivery_error(exc)
-        _target_retry(entry, destination, _now(), f"{type(exc).__name__}: {safe_detail}"[:180])
-        record_status[destination] = "failed"
+        failed_at = _now()
+        _target_retry(entry, destination, failed_at, f"{type(exc).__name__}: {safe_detail}"[:180])
+        record_status[destination] = str(target.get("status") or "failed")
         record.setdefault("delivery_attempts", {})[destination] = target["attempts"]
-        record["delivery_last_attempt_at"] = _now().isoformat()
+        record["delivery_last_attempt_at"] = failed_at.isoformat()
         _save(state)
-        print(
-            f"PLATFORM_DELIVERY_FAILED product_id={entry['product_id']} platform={destination} "
-            f"error={type(exc).__name__} detail={safe_detail}"
-        )
+        if target.get("status") == "manual_review":
+            print(
+                f"PLATFORM_DELIVERY_SKIPPED product_id={entry['product_id']} platform={destination} "
+                f"attempts={target['attempts']} reason=max_delivery_attempts detail={safe_detail}"
+            )
+        else:
+            print(
+                f"PLATFORM_DELIVERY_FAILED product_id={entry['product_id']} platform={destination} "
+                f"attempts={target['attempts']} error={type(exc).__name__} detail={safe_detail}"
+            )
 
 
 def _process_video_destinations(state: dict, entry: dict, record: dict, now: datetime) -> None:
