@@ -9895,7 +9895,7 @@ def process_pending_short_video(
             # review destination remain eligible.
             continue
         if not (yt_need or public_aparat_need or shorts_queue_need or filo_need or review_need or manual_artifact_need):
-            # Don't render/select public YouTube content before its next scheduled slot.
+            # No selected video destination (or private review task) needs work.
             continue
         if generation_status == "generated" and not (yt_need or public_aparat_need or shorts_queue_need or filo_need or review_need or manual_artifact_need):
             # A previously generated MP4 has no configured destination needing work.
@@ -10060,8 +10060,8 @@ def process_pending_short_video(
             print(f"TELEGRAM_VIDEO_REVIEW_FAILED id={pid} error={type(exc).__name__}")
         save_json(STATE, state)
 
-    # Aparat public uploads use their own slot and status fields; all errors are caught
-    # locally so they cannot interrupt the YouTube publication attempt below.
+    # Aparat public uploads use their own status and verified-expiry gate; errors are
+    # isolated locally so they cannot interrupt Filo or YouTube for this same product.
     aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
     if (
         aparat_ready and aparat_upload_due
@@ -10148,8 +10148,8 @@ def process_pending_short_video(
         print(f"APARAT_SHORTS_QUEUED id={pid} format=9:16 generic_public_upload=disabled")
         save_json(STATE, state)
 
-    # Filo has its own authenticated uploader, status, schedule and failure boundary.
-    # It is isolated from both YouTube quota errors and Aparat API failures.
+    # Filo has its own authenticated uploader and status/failure boundary. It is isolated
+    # from YouTube quota errors and Aparat API failures for this same canonical product.
     filo_status = str(record.get("filo_upload_status") or "pending_credentials")
     if filo_ready and filo_upload_due and filo_status in pending_filo and not filo_in_flight:
         filo_started_at = datetime.now(timezone.utc)
