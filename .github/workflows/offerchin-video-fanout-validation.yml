@@ -1,0 +1,91 @@
+name: OfferChin Unified Video Fan-out Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "affilio_radar/affilio_radar.py"
+      - "affilio_radar/short_video.py"
+      - "affilio_radar/aparat_uploader.py"
+      - "affilio_radar/filo_uploader.py"
+      - "affilio_radar/test_shared_selection_media_routing.py"
+      - "affilio_radar/test_aparat_upload_schedule.py"
+      - "affilio_radar/test_filo_upload_schedule.py"
+      - "affilio_radar/test_filo_uploader.py"
+      - "affilio_radar/test_short_video.py"
+      - "affilio_radar/offerchin_four_factor.py"
+      - "cloudflare/affilio-minute-dispatcher.js"
+      - "cloudflare/affilio-minute-dispatcher.test.mjs"
+      - ".github/workflows/offerchin-video-publisher.yml"
+      - ".github/workflows/offerchin-publisher.yml"
+      - ".github/workflows/offerchin-video-fanout-validation.yml"
+      - "docs/OFFERCHIN_SHARED_SELECTION_MEDIA_ROUTING_FA.md"
+      - "docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md"
+      - "docs/CHANGELOG_FA.md"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: affilio_radar/requirements.txt
+
+      - name: Install test dependencies
+        run: python -m pip install -r affilio_radar/requirements.txt
+
+      - name: Compile all video publisher modules
+        run: |
+          python -m py_compile \
+            affilio_radar/affilio_radar.py \
+            affilio_radar/short_video.py \
+            affilio_radar/offerchin_visuals.py \
+            affilio_radar/aparat_uploader.py \
+            affilio_radar/filo_uploader.py \
+            affilio_radar/offerchin_four_factor.py
+
+      - name: Run unified FIFO, retry, platform and four-factor regressions
+        working-directory: affilio_radar
+        run: |
+          python -m unittest -v \
+            test_shared_selection_media_routing.py \
+            test_aparat_upload_schedule.py \
+            test_filo_upload_schedule.py \
+            test_filo_uploader.py \
+            test_short_video.py \
+            test_offerchin_four_factor.py
+
+      - name: Validate workflow wiring and absence of legacy video pacing
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          source = Path("affilio_radar/affilio_radar.py").read_text(encoding="utf-8")
+          worker = Path("cloudflare/affilio-minute-dispatcher.js").read_text(encoding="utf-8")
+          publisher = Path(".github/workflows/offerchin-publisher.yml").read_text(encoding="utf-8")
+          emergency = Path(".github/workflows/affilio-publisher.yml").read_text(encoding="utf-8")
+          unified = Path(".github/workflows/offerchin-video-publisher.yml").read_text(encoding="utf-8")
+
+          assert "--all-video-upload-only" in source
+          assert "run_all_video_uploads_only" in source
+          assert "offerchin-video-publisher.yml" in publisher
+          assert "offerchin-video-publisher.yml" in emergency
+          assert "actions: write" in publisher
+          assert "actions: write" in emergency
+          assert "--all-video-upload-only" in unified
+          assert "VIDEO_WORKFLOW_RETRY_GAP_MS" not in worker
+          assert "VIDEO_UPLOAD_MAX_AGE_MS" not in worker
+          assert "dispatchVideoPlatformWhenDue" not in worker
+          assert "VIDEO_PUBLISHER_API" in worker
+          print("UNIFIED_VIDEO_FANOUT_WORKFLOW_WIRING_OK")
+          PY

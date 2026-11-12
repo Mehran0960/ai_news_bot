@@ -5,6 +5,7 @@ import {
   isInitialCatalogWarmup,
   isDegradedLiveFallbackAvailable,
   hasDueVideoRecord,
+  hasPendingVideoQueue,
   videoRecordDue,
   isFiloLoginVerified,
   PUBLISHER_INTERVAL_MS,
@@ -318,13 +319,13 @@ test("Filo accepts every confirmed channel delivery without requiring a retailer
   );
   assert.equal(
     hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" }, video_generation_status: "skipped_unverified_deadline" } } }, "filo", now),
-    true,
-    "Filo must be able to reprocess records held only by the old deadline gate"
+    false,
+    "a skipped deadline is terminal and must not create a minute-by-minute dispatch loop"
   );
   assert.equal(
-    hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" }, ts: (now - 25 * 60 * 60_000) / 1000 } } }, "filo", now),
-    false,
-    "stale videos remain blocked after 24 hours"
+    hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" }, ts: (now - 10 * 24 * 60 * 60_000) / 1000 } } }, "filo", now),
+    true,
+    "old selected items remain eligible; only actual offer expiry blocks them"
   );
   assert.equal(
     hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" } } } }, "aparat", now),
@@ -354,17 +355,84 @@ test("Filo does not retry accepted or outcome-unknown submissions", () => {
   }
 });
 
-test("video dispatcher still excludes products older than the 24-hour freshness window", () => {
-  const now = Date.now();
+test("pending video projection dispatches old items regardless of platform preflight gates", () => {
+  const oldTs = (Date.now() - 60 * 24 * 60 * 60 * 1000) / 1000;
   const state = {
     published: {
-      stale: {
-        ts: (now - 25 * 60 * 60 * 1000) / 1000,
-        delivery_status: { telegram: "sent" },
-        youtube_upload_status: "pending",
-        video_generation_status: "pending",
+      oldest: {
+        ts: oldTs,
+        video_dispatch_eligible: true,
+        video_generation_status: "generated",
+        aparat_upload_status: "pending",
+        youtube_upload_status: "uploaded",
+        filo_upload_status: "skipped_unavailable",
+        expiry_deadline_verified_directly: false,
       },
     },
   };
-  assert.equal(hasDueVideoRecord(state, "youtube", now), false);
+  assert.equal(hasPendingVideoQueue(state), true);
+});
+
+test("pending video projection ignores terminal statuses so completed queue entries do not occupy the sidecar", () => {
+  const ts = Date.now() / 1000;
+  const state = {
+    published: {
+      skipped: {
+        ts,
+        video_dispatch_eligible: true,
+        youtube_upload_status: "skipped_platform_limit",
+        aparat_upload_status: "skipped_unverified_deadline",
+        filo_upload_status: "skipped_after_retries",
+      },
+      uploaded: {
+        ts: ts - 1,
+        video_dispatch_eligible: true,
+        youtube_upload_status: "uploaded",
+        aparat_upload_status: "uploaded",
+        filo_upload_status: "published",
+      },
+    },
+  };
+  assert.equal(hasPendingVideoQueue(state), false);
+});
+
+test("unified video queue ignores legacy age and retry timestamps for all platforms", () => {
+  const now = Date.now();
+  const oldRecord = {
+    ts: (now - 10 * 24 * 60 * 60 * 1000) / 1000,
+    delivery_status: { telegram: "sent" },
+    youtube_upload_status: "pending",
+    aparat_upload_status: "pending",
+    filo_upload_status: "pending",
+    video_generation_status: "generated",
+    youtube_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
+    aparat_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
+    filo_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
+    video_generation_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
+    expiry_deadline_verified_directly: true,
+    expires_at: new Date(now + 48 * 60 * 60 * 1000).toISOString(),
+  };
+  const state = { published: { old_but_valid: oldRecord } };
+  for (const platform of ["youtube", "aparat", "filo"]) {
+    assert.equal(videoRecordDue(oldRecord, platform, now), true, platform);
+    assert.equal(hasDueVideoRecord(state, platform, now), true, platform);
+  }
+});
+
+test("terminally skipped video destinations are not redispatched", () => {
+  const now = Date.now();
+  const base = {
+    ts: (now - 30 * 24 * 60 * 60 * 1000) / 1000,
+    delivery_status: { telegram: "sent" },
+    video_generation_status: "generated",
+    expiry_deadline_verified_directly: true,
+    expires_at: new Date(now + 48 * 60 * 60 * 1000).toISOString(),
+  };
+  for (const status of ["skipped_after_retries", "skipped_unavailable", "skipped_platform_limit", "skipped_generation_failed"]) {
+    assert.equal(
+      hasDueVideoRecord({ published: { item: { ...base, youtube_upload_status: status } } }, "youtube", now),
+      false,
+      status
+    );
+  }
 });
