@@ -555,7 +555,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             next_slot,
         )
 
-    def test_retry_queue_is_bounded_and_prefers_fresh_selections(self):
+    def test_retry_queue_is_bounded_without_evicting_older_unresolved_items(self):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-1")], now=self.now,
@@ -570,10 +570,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             interval_seconds=1200, max_items=1, max_active_items=2,
         )
         self.assertEqual(result["queue_size"], 2)
-        self.assertEqual(set(state["content_delivery_queue"]), {"dkp-2", "dkp-3"})
-        self.assertEqual(state["content_delivery_history"][0]["product_id"], "dkp-1")
-        self.assertEqual(state["content_delivery_history"][0]["status"], "cancelled")
-        self.assertIn("bounded_retry_queue_eviction", state["content_delivery_history"][0]["last_detail"])
+        self.assertEqual(set(state["content_delivery_queue"]), {"dkp-1", "dkp-2"})
+        self.assertEqual(result["added"], 0)
+        self.assertEqual(result["skipped"], 1)
+        self.assertEqual(state.get("content_delivery_history", []), [])
 
     def test_queue_rejects_past_minimum_runway(self):
         state = {}
