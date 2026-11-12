@@ -279,12 +279,45 @@ def apply_four_factor_scores(
         if history_verified:
             discount_source = "verified_same_product_price_history"
             discount_observed_at = str(row.get("history_checked_at") or "").strip() or None
+            discount_confidence = "verified_same_sku_history"
         elif market_verified:
             discount_source = "verified_same_product_market_median"
             discount_observed_at = str(row.get("market_price_checked_at") or "").strip() or None
+            discount_confidence = "verified_comparable_seller_median"
         else:
             discount_source = "retailer_markdown_only_unverified"
             discount_observed_at = None
+            discount_confidence = "retailer_claim_only"
+
+        demand_observation_value = _number(
+            row.get("live_demand_observation_value")
+        )
+        demand_observation_unit = str(
+            row.get("live_demand_observation_unit") or ""
+        ).strip()
+        if demand_observation_value <= 0 and rank > 0:
+            demand_observation_value = rank
+            demand_observation_unit = "category_rank"
+        elif demand_observation_value <= 0 and demand > 0:
+            demand_observation_value = _number(
+                row.get("recent_review_growth_window", row.get("recent_review_growth_7d"))
+            )
+            demand_observation_unit = "reviews_per_observation_window"
+        demand_confidence = str(
+            row.get("live_demand_confidence") or demand_quality
+        ).strip()
+
+        taxonomy_evidence = {
+            "category_id": str(
+                row.get("catalog_category_id")
+                or row.get("catalog_best_selling_category_id") or ""
+            ).strip() or None,
+            "category_name": str(
+                row.get("catalog_category_name")
+                or row.get("catalog_best_selling_category_name") or ""
+            ).strip() or None,
+            "product_title": str(row.get("title") or "").strip() or None,
+        }
 
         row["offerchin_four_factor"] = {
             "policy_version": POLICY_VERSION,
@@ -308,18 +341,32 @@ def apply_four_factor_scores(
                     "score": round(demand, 2),
                     "source": demand_source,
                     "observed_at": demand_observed_at,
+                    "value": demand_observation_value if demand_observation_value > 0 else None,
+                    "unit": demand_observation_unit or "validated_score_0_100",
                     "quality": demand_quality,
+                    "confidence": demand_confidence,
                 },
                 "affordability": {
                     "status": "verified" if affordability_verified else "missing",
                     "score": round(_clamp(affordability), 2),
                     "source": affordability_basis,
+                    "value": round(entry_price) if entry_price > 0 else None,
                     "entry_price_toman": round(entry_price) if entry_price > 0 else None,
+                    "unit": "toman",
+                    "confidence": (
+                        "sku_installment_terms_verified"
+                        if affordability_basis == "verified_installment_down_payment"
+                        else "live_current_cash_price"
+                    ),
                 },
                 "generality": {
                     "status": "verified" if generality_classified else "unclassified",
                     "score": round(generality, 2),
                     "source": "taxonomy_and_use_case_classifier",
+                    "value": generality_group,
+                    "unit": "use_case_class",
+                    "confidence": "heuristic_taxonomy_mapping_not_market_survey",
+                    "taxonomy": taxonomy_evidence,
                     "use_case_group": generality_group,
                 },
                 "discount_attractiveness": {
@@ -327,6 +374,14 @@ def apply_four_factor_scores(
                     "score": discount,
                     "source": discount_source,
                     "observed_at": discount_observed_at,
+                    "value": {
+                        "current_price_toman": round(_number(row.get("current_price"))),
+                        "original_price_toman": round(_number(row.get("original_price"))),
+                        "discount_percent": round(_number(row.get("discount_percent")), 2),
+                        "savings_toman": round(_number(row.get("savings_toman"))),
+                    },
+                    "unit": "toman_and_percent",
+                    "confidence": discount_confidence,
                 },
             },
             "score_interpretation": "heuristic_priority_index_not_conversion_probability",
@@ -334,13 +389,72 @@ def apply_four_factor_scores(
     return rows
 
 
+def _valid_observation_timestamp(value: object) -> bool:
+    try:
+        parsed = datetime.fromisoformat(str(value or "").replace("Z", "+00:00"))
+    except (TypeError, ValueError, OverflowError):
+        return False
+    return parsed.tzinfo is not None
+
+
 def four_factor_evidence_gate(row: dict) -> tuple[bool, list[str]]:
-    """Fail closed unless all four dimensions carry the minimum required evidence."""
+    """Fail closed unless all four dimensions carry source, unit, confidence and observations."""
     score = row.get("offerchin_four_factor") if isinstance(row, dict) else None
     if not isinstance(score, dict) or score.get("policy_version") != POLICY_VERSION:
         return False, ["four_factor_score_missing_or_stale"]
     gaps = score.get("evidence_gaps")
     gaps = [str(item) for item in gaps if item] if isinstance(gaps, list) else []
+    evidence = score.get("factor_evidence")
+    evidence = evidence if isinstance(evidence, dict) else {}
+
+    demand = evidence.get("live_demand") if isinstance(evidence.get("live_demand"), dict) else {}
+    if (
+        demand.get("status") != "verified"
+        or not str(demand.get("source") or "").strip()
+        or not _valid_observation_timestamp(demand.get("observed_at"))
+        or _number(demand.get("value")) <= 0
+        or not str(demand.get("unit") or "").strip()
+        or not str(demand.get("confidence") or "").strip()
+    ):
+        gaps.append("live_demand_provenance_incomplete")
+
+    affordability = evidence.get("affordability") if isinstance(evidence.get("affordability"), dict) else {}
+    if (
+        affordability.get("status") != "verified"
+        or not str(affordability.get("source") or "").strip()
+        or _number(affordability.get("entry_price_toman")) <= 0
+        or affordability.get("unit") != "toman"
+        or not str(affordability.get("confidence") or "").strip()
+    ):
+        gaps.append("affordability_provenance_incomplete")
+
+    generality = evidence.get("generality") if isinstance(evidence.get("generality"), dict) else {}
+    if (
+        generality.get("status") != "verified"
+        or not str(generality.get("source") or "").strip()
+        or generality.get("use_case_group") in {None, "", "general", "unknown"}
+        or generality.get("unit") != "use_case_class"
+        or not str(generality.get("confidence") or "").strip()
+    ):
+        gaps.append("generality_provenance_incomplete")
+
+    discount = evidence.get("discount_attractiveness") if isinstance(evidence.get("discount_attractiveness"), dict) else {}
+    discount_value = discount.get("value") if isinstance(discount.get("value"), dict) else {}
+    if (
+        discount.get("status") != "independently_verified"
+        or not str(discount.get("source") or "").startswith("verified_same_product_")
+        or not _valid_observation_timestamp(discount.get("observed_at"))
+        or discount.get("unit") != "toman_and_percent"
+        or not str(discount.get("confidence") or "").strip()
+        or _number(discount_value.get("current_price_toman")) <= 0
+        or _number(discount_value.get("original_price_toman")) <= _number(discount_value.get("current_price_toman"))
+        or _number(discount_value.get("discount_percent")) <= 0
+        or _number(discount_value.get("savings_toman")) <= 0
+    ):
+        gaps.append("discount_provenance_incomplete")
+
+    # Keep rejection reasons unique and deterministic for metrics.
+    gaps = list(dict.fromkeys(gaps))
     if score.get("evidence_complete") is not True and not gaps:
         gaps = ["four_factor_evidence_incomplete"]
     return not gaps and score.get("evidence_complete") is True, gaps
