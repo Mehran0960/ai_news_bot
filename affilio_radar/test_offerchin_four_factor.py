@@ -305,6 +305,40 @@ class OfferChinFourFactorTests(unittest.TestCase):
         self.assertEqual(floor, radar.MIN_DISCOUNT_FALLBACK_PERCENT)
         self.assertEqual(len(quality), 1)
 
+    def test_urgent_selector_blocks_unverified_store_markdown(self):
+        product = {
+            "product_id": "dkp-urgent-unverified",
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+        }
+        with patch.object(radar, "has_attractive_discount_value", return_value=False), \
+             patch.object(radar, "_publication_use_case_group", return_value="kitchen_food"), \
+             patch.object(radar, "_offerchin_live_demand_score", return_value=80), \
+             patch.object(radar, "is_urgent_priority_deal", return_value=True):
+            selected = radar.select_urgent_publication_candidate(
+                [product], now=self.now, published={}, recent_publications=[]
+            )
+        self.assertIsNone(selected)
+
+    def test_urgent_selector_allows_four_factor_verified_candidate(self):
+        product = {
+            "product_id": "dkp-urgent-verified",
+            "current_price": 500_000,
+            "original_price": 1_000_000,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+        }
+        with patch.object(radar, "has_attractive_discount_value", return_value=True), \
+             patch.object(radar, "_publication_use_case_group", return_value="kitchen_food"), \
+             patch.object(radar, "_offerchin_live_demand_score", return_value=80), \
+             patch.object(radar, "is_urgent_priority_deal", return_value=True):
+            selected = radar.select_urgent_publication_candidate(
+                [product], now=self.now, published={}, recent_publications=[]
+            )
+        self.assertEqual(selected["product_id"], "dkp-urgent-verified")
+
     def test_live_publication_selector_blocks_unverified_store_markdown(self):
         product = {
             "product_id": "dkp-900",
