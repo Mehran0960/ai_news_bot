@@ -1,8 +1,11 @@
 import unittest
 from datetime import datetime, timezone
 
+from unittest.mock import patch
+
 from publisher import (
     MAX_PLATFORM_DELIVERY_ATTEMPTS,
+    _process_photo_destination,
     _target_retry,
 )
 
@@ -42,6 +45,24 @@ class PlatformDeliveryRetryPolicyTests(unittest.TestCase):
         target = entry["platforms"]["bale"]
         self.assertEqual(target["attempts"], 1)
         self.assertEqual(target["status"], "failed")
+
+    def test_manual_review_is_terminal_and_never_retried_automatically(self):
+        entry = {
+            "product_id": "dkp-123",
+            "platforms": {
+                "telegram": {
+                    "status": "manual_review",
+                    "attempts": MAX_PLATFORM_DELIVERY_ATTEMPTS,
+                }
+            },
+        }
+        with patch("publisher._target_ready") as target_ready, patch("publisher._save") as save:
+            _process_photo_destination(
+                {}, entry, {}, {}, b"", "telegram", self.now
+            )
+        target_ready.assert_not_called()
+        save.assert_not_called()
+        self.assertEqual(entry["platforms"]["telegram"]["status"], "manual_review")
 
     def test_exhausting_one_destination_does_not_skip_other_destinations(self):
         entry = {
