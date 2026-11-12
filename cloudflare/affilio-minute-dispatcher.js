@@ -442,13 +442,27 @@ async function readLatestWorkflowAttempt(api, token) {
 // Every selected product is fanned out from one shared canonical queue. The unified
 // workflow serializes YouTube, Aparat and Filo over the same FIFO, then records each
 // platform's own success, rejection, retry exhaustion or uncertain outcome.
+export function hasPendingVideoQueue(state) {
+  if (!state || typeof state !== "object" || !state.published || typeof state.published !== "object") {
+    return false;
+  }
+  return Object.values(state.published).some((record) => {
+    if (!record || typeof record !== "object" || record.video_dispatch_eligible !== true) return false;
+    const ts = Number(record.ts || 0);
+    if (!Number.isFinite(ts) || ts <= 0) return false;
+    return ["youtube", "aparat", "filo"].some((platform) =>
+      VIDEO_PENDING_STATUSES.has(String(record[platform + "_upload_status"] || "pending").trim().toLowerCase())
+    );
+  });
+}
+
 async function dispatchVideoUploadsWhenDue(env, tick, state) {
   if (!state || !env.GITHUB_TOKEN) return;
-  const now = tick.getTime();
-  const hasPendingVideo = ["youtube", "aparat", "filo"].some((platform) =>
-    hasDueVideoRecord(state, platform, now)
-  );
-  if (!hasPendingVideo) return;
+  // The unified Python workflow performs fresh per-platform preflight checks,
+  // including Filo login verification and Aparat deadline checks. Dispatch based
+  // on persisted pending statuses so those checks can terminally skip unavailable
+  // destinations instead of making an ineligible record block the FIFO forever.
+  if (!hasPendingVideoQueue(state)) return;
   await dispatchWorkflowIfIdle(
     VIDEO_PUBLISHER_API,
     env.GITHUB_TOKEN,
