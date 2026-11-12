@@ -600,7 +600,6 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
                 force_due=True,
                 retry_immediately=attempt_index > 0,
                 only_product_id=product_id,
-                max_age_hours=None,
             )
         except Exception as exc:
             record["video_delivery_last_error"] = f"{type(exc).__name__}: {str(exc)[:180]}"
