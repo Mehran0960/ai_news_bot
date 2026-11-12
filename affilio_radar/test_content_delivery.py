@@ -957,8 +957,14 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             max_items=1,
         )
         self.assertEqual(fresh["added"], 1)
+        # The retry is still not due at +21 minutes, so no newer item is returned.
         due = due_content(state, now=self.now + timedelta(minutes=21), limit=1)
-        self.assertEqual([product_id for product_id, _entry in due], ["dkp-rubika-retry"])
+        self.assertEqual(due, [])
+        due_after_retry = due_content(state, now=self.now + timedelta(minutes=31), limit=1)
+        self.assertEqual(
+            [product_id for product_id, _entry in due_after_retry],
+            ["dkp-rubika-retry"],
+        )
 
     def test_terminal_queue_item_moves_to_bounded_history(self):
         state = {}
