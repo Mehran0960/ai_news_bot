@@ -10079,25 +10079,32 @@ def process_pending_short_video(
                 state["aparat_last_upload_outcome_unknown_at"] = aparat_failure_at.isoformat()
                 print(f"APARAT_UPLOAD_RESULT_UNKNOWN id={pid} error={type(exc).__name__}; no automatic duplicate retry")
             else:
-                try:
-                    attempts = int(record.get("aparat_upload_attempts", 0) or 0) + 1
-                except (TypeError, ValueError, OverflowError):
-                    attempts = 1
-                record["aparat_upload_attempts"] = attempts
-                record["aparat_last_error"] = type(exc).__name__
-                if attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS:
-                    record["aparat_upload_status"] = "skipped_after_retries"
-                    record["aparat_skip_reason"] = "retry_budget_exhausted"
-                    record.pop("aparat_next_attempt_at", None)
-                else:
-                    record["aparat_upload_status"] = "retry"
-                    record["aparat_next_attempt_at"] = datetime.now(timezone.utc).isoformat()
                 status_code = getattr(getattr(exc, "response", None), "status_code", None)
-                print(
-                    f"APARAT_UPLOAD_FAILED id={pid} error={type(exc).__name__} "
-                    f"http_status={status_code or 'unknown'} attempts={attempts}/{MAX_VIDEO_UPLOAD_ATTEMPTS} "
-                    f"skipped={attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS}"
-                )
+                if status_code == 429:
+                    record["aparat_upload_status"] = "skipped_platform_limit"
+                    record["aparat_skip_reason"] = "aparat_http_429_rate_limited"
+                    record["aparat_last_error"] = "HTTP 429 rate limited"
+                    record.pop("aparat_next_attempt_at", None)
+                    print(f"APARAT_UPLOAD_SKIPPED_PLATFORM_LIMIT id={pid} http_status=429")
+                else:
+                    try:
+                        attempts = int(record.get("aparat_upload_attempts", 0) or 0) + 1
+                    except (TypeError, ValueError, OverflowError):
+                        attempts = 1
+                    record["aparat_upload_attempts"] = attempts
+                    record["aparat_last_error"] = type(exc).__name__
+                    if attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS:
+                        record["aparat_upload_status"] = "skipped_after_retries"
+                        record["aparat_skip_reason"] = "retry_budget_exhausted"
+                        record.pop("aparat_next_attempt_at", None)
+                    else:
+                        record["aparat_upload_status"] = "retry"
+                        record["aparat_next_attempt_at"] = datetime.now(timezone.utc).isoformat()
+                    print(
+                        f"APARAT_UPLOAD_FAILED id={pid} error={type(exc).__name__} "
+                        f"http_status={status_code or 'unknown'} attempts={attempts}/{MAX_VIDEO_UPLOAD_ATTEMPTS} "
+                        f"skipped={attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS}"
+                    )
         save_json(STATE, state)
     elif aparat_status in PENDING_APARAT_STATUSES and APARAT_SHORTS_ONLY:
         # Never send a vertical MP4 to the generic website uploader and assume it becomes
@@ -10154,22 +10161,31 @@ def process_pending_short_video(
                 state["filo_last_upload_outcome_unknown_at"] = unknown_at.isoformat()
                 print(f"FILO_UPLOAD_RESULT_UNKNOWN id={pid} no_automatic_duplicate_retry=true")
             elif filo_result_status == "retry":
-                try:
-                    attempts = int(record.get("filo_upload_attempts", 0) or 0) + 1
-                except (TypeError, ValueError, OverflowError):
-                    attempts = 1
-                record["filo_upload_attempts"] = attempts
-                if attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS:
-                    record["filo_upload_status"] = "skipped_after_retries"
-                    record["filo_skip_reason"] = "retry_budget_exhausted"
+                status_code = int(filo_result.get("http_status") or 0)
+                if status_code == 429:
+                    record["filo_upload_status"] = "skipped_platform_limit"
+                    record["filo_skip_reason"] = "filo_http_429_rate_limited"
+                    record["filo_review_required"] = False
                     record.pop("filo_next_attempt_at", None)
+                    print(f"FILO_UPLOAD_SKIPPED_PLATFORM_LIMIT id={pid} http_status=429")
                 else:
-                    record["filo_upload_status"] = "retry"
-                    record["filo_next_attempt_at"] = datetime.now(timezone.utc).isoformat()
-                print(
-                    f"FILO_UPLOAD_RETRY id={pid} error={record['filo_last_error'] or 'retryable_failure'} "
-                    f"attempts={attempts}/{MAX_VIDEO_UPLOAD_ATTEMPTS} skipped={attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS}"
-                )
+                    try:
+                        attempts = int(record.get("filo_upload_attempts", 0) or 0) + 1
+                    except (TypeError, ValueError, OverflowError):
+                        attempts = 1
+                    record["filo_upload_attempts"] = attempts
+                    if attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS:
+                        record["filo_upload_status"] = "skipped_after_retries"
+                        record["filo_skip_reason"] = "retry_budget_exhausted"
+                        record.pop("filo_next_attempt_at", None)
+                    else:
+                        record["filo_upload_status"] = "retry"
+                        record["filo_next_attempt_at"] = datetime.now(timezone.utc).isoformat()
+                    print(
+                        f"FILO_UPLOAD_RETRY id={pid} error={record['filo_last_error'] or 'retryable_failure'} "
+                        f"attempts={attempts}/{MAX_VIDEO_UPLOAD_ATTEMPTS} "
+                        f"skipped={attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS}"
+                    )
             else:
                 record["filo_review_required"] = True
                 print(f"FILO_UPLOAD_REJECTED id={pid} error={record['filo_last_error'] or 'rejected_by_filo'}")
