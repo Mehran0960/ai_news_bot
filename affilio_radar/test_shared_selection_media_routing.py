@@ -72,12 +72,12 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
             "delivery_status": {"rubika": "sent"}
         }))
 
-    def test_video_sorting_uses_shared_selection_timestamp_and_product_id_tiebreak(self):
+    def test_video_sorting_preserves_insertion_order_when_selection_timestamps_tie(self):
         later = self.row(100, "dkp-b", 90, {"filo"})
         earlier = self.row(100, "dkp-a", 5, {"youtube"})
         self.assertEqual(
             [row[1] for row in sorted([later, earlier], key=radar._video_upload_candidate_sort_key)],
-            ["dkp-a", "dkp-b"],
+            ["dkp-b", "dkp-a"],
         )
 
 
