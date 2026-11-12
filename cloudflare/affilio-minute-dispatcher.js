@@ -357,7 +357,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
 }
 
 const VIDEO_PENDING_STATUSES = new Set([
-  "pending", "pending_credentials", "retry", "skipped_unverified_deadline"
+  "pending", "pending_credentials", "retry"
 ]);
 
 function dateValue(value) {
