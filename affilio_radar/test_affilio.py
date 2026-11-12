@@ -104,7 +104,6 @@ from affilio_radar import (
     process_pending_short_video,
     _retain_superseded_youtube_video,
     VIDEO_STYLE_VERSION,
-    YOUTUBE_UPLOAD_INTERVAL_HOURS,
     MIN_POST_INTERVAL_HOURS,
     VIDEO_DISPATCH_STATE_RECORD_LIMIT,
     VIDEO_UPLOAD_CANDIDATE_LIMIT,
@@ -6264,7 +6263,9 @@ class AffilioRadarTests(unittest.TestCase):
         ):
             fake_path = Path(output_dir) / "no-deadline.mp4"
             fake_path.write_bytes(b"fake-mp4")
-            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
+            self.assertTrue(process_pending_short_video(
+                state, now=now, output_dir=output_dir, destinations={"aparat"}
+            ))
 
         fetch_image.assert_called_once()
         render.assert_called_once()
@@ -6447,8 +6448,6 @@ class AffilioRadarTests(unittest.TestCase):
             "youtube_upload_status": "pending",
         }
         state = {"published": {prior_id: prior, pending_id: pending}}
-        expected_next = prior_uploaded_at + timedelta(hours=YOUTUBE_UPLOAD_INTERVAL_HOURS)
-
         with (
             TemporaryDirectory() as output_dir,
             patch("affilio_radar._fetch_image") as fetch_image,
