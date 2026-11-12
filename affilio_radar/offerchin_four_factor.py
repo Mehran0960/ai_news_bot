@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from typing import Callable
 
 
-POLICY_VERSION = "offerchin_four_factor_harmonic_v1"
+POLICY_VERSION = "offerchin_four_factor_evidence_gated_v2"
 MIN_PRICE_COHORT_SIZE = 8
 
 # Heuristic reach scores, not market-share claims. Missing taxonomy is deliberately
@@ -40,6 +40,8 @@ GENERALITY_SCORES = {
     "tabletop_games": 38,
     "events_decor": 36,
     "arts_crafts": 34,
+    "general": 22,
+    "catalog_taxonomy_other": 30,
     "general": 22,
     "unknown": 18,
 }
@@ -220,6 +222,71 @@ def apply_four_factor_scores(
         discount, discount_evidence = discount_attractiveness_score(row, independently_verified)
         components = [demand, affordability, generality, discount]
         balanced = harmonic_mean(components)
+
+        rank = _number(row.get("catalog_best_selling_rank"))
+        rank_observed_at = str(row.get("catalog_rank_observed_at") or "").strip()
+        demand_source = str(row.get("demand_signal_source") or "").strip()
+        if rank > 0:
+            demand_source = "digikala_native_bestseller_rank"
+            demand_quality = "direct_relative_sales_rank_not_units_sold"
+            demand_observed_at = rank_observed_at or None
+        elif demand_source in {
+            "digikala_recent_review_growth",
+            "snappshop_recent_review_growth",
+        }:
+            demand_quality = "indirect_review_growth_not_sales"
+            demand_observed_at = str(row.get("demand_observed_at") or "").strip() or None
+        elif demand > 0:
+            demand_source = str(
+                row.get("live_demand_evidence_source") or "validated_live_demand_callback"
+            )
+            demand_quality = "callback_validated_live_signal"
+            demand_observed_at = (
+                str(row.get("demand_observed_at") or "").strip()
+                or rank_observed_at or None
+            )
+        else:
+            demand_source = "none"
+            demand_quality = "missing"
+            demand_observed_at = None
+
+        generality_group = groups[index]
+        generality_classified = (
+            generality_group in GENERALITY_SCORES
+            and generality_group not in {"unknown", "general"}
+        )
+        affordability_verified = bool(
+            _number(row.get("current_price")) > 0 and entry_price > 0
+        )
+        discount_verified = independently_verified is True
+        evidence_gaps = []
+        if demand <= 0:
+            evidence_gaps.append("live_demand_missing")
+        if not affordability_verified:
+            evidence_gaps.append("current_entry_price_missing")
+        if not generality_classified:
+            evidence_gaps.append("generality_taxonomy_unclassified")
+        if not discount_verified:
+            evidence_gaps.append("independent_discount_proof_missing")
+
+        history_verified = (
+            row.get("history_status") == "verified"
+            and row.get("historical_deal_eligible") is True
+        )
+        market_verified = (
+            row.get("market_status") == "verified"
+            and row.get("market_reference_kind") == "seller_median"
+        )
+        if history_verified:
+            discount_source = "verified_same_product_price_history"
+            discount_observed_at = str(row.get("history_checked_at") or "").strip() or None
+        elif market_verified:
+            discount_source = "verified_same_product_market_median"
+            discount_observed_at = str(row.get("market_price_checked_at") or "").strip() or None
+        else:
+            discount_source = "retailer_markdown_only_unverified"
+            discount_observed_at = None
+
         row["offerchin_four_factor"] = {
             "policy_version": POLICY_VERSION,
             "scored_at": current_iso,
@@ -229,14 +296,55 @@ def apply_four_factor_scores(
             "discount_attractiveness": discount,
             "balanced_score": balanced,
             "weakest_factor_score": round(min(components), 2),
-            "generality_group": groups[index],
+            "generality_group": generality_group,
             "affordability_basis": affordability_basis,
             "price_cohort_size": cohort_sizes.get(price_groups[index], 0) if relative is not None else 0,
             "price_cohort_key": price_groups[index],
             "discount_evidence": discount_evidence,
+            "evidence_complete": not evidence_gaps,
+            "evidence_gaps": evidence_gaps,
+            "factor_evidence": {
+                "live_demand": {
+                    "status": "verified" if demand > 0 else "missing",
+                    "score": round(demand, 2),
+                    "source": demand_source,
+                    "observed_at": demand_observed_at,
+                    "quality": demand_quality,
+                },
+                "affordability": {
+                    "status": "verified" if affordability_verified else "missing",
+                    "score": round(_clamp(affordability), 2),
+                    "source": affordability_basis,
+                    "entry_price_toman": round(entry_price) if entry_price > 0 else None,
+                },
+                "generality": {
+                    "status": "verified" if generality_classified else "unclassified",
+                    "score": round(generality, 2),
+                    "source": "taxonomy_and_use_case_classifier",
+                    "use_case_group": generality_group,
+                },
+                "discount_attractiveness": {
+                    "status": "independently_verified" if discount_verified else "unverified",
+                    "score": discount,
+                    "source": discount_source,
+                    "observed_at": discount_observed_at,
+                },
+            },
             "score_interpretation": "heuristic_priority_index_not_conversion_probability",
         }
     return rows
+
+
+def four_factor_evidence_gate(row: dict) -> tuple[bool, list[str]]:
+    """Fail closed unless all four dimensions carry the minimum required evidence."""
+    score = row.get("offerchin_four_factor") if isinstance(row, dict) else None
+    if not isinstance(score, dict) or score.get("policy_version") != POLICY_VERSION:
+        return False, ["four_factor_score_missing_or_stale"]
+    gaps = score.get("evidence_gaps")
+    gaps = [str(item) for item in gaps if item] if isinstance(gaps, list) else []
+    if score.get("evidence_complete") is not True and not gaps:
+        gaps = ["four_factor_evidence_incomplete"]
+    return not gaps and score.get("evidence_complete") is True, gaps
 
 
 def four_factor_sort_key(row: dict) -> tuple:
