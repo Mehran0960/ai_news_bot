@@ -5,6 +5,7 @@ import {
   isInitialCatalogWarmup,
   isDegradedLiveFallbackAvailable,
   hasDueVideoRecord,
+  hasPendingVideoQueue,
   videoRecordDue,
   isFiloLoginVerified,
   PUBLISHER_INTERVAL_MS,
@@ -352,6 +353,47 @@ test("Filo does not retry accepted or outcome-unknown submissions", () => {
       false
     );
   }
+});
+
+test("pending video projection dispatches old items regardless of platform preflight gates", () => {
+  const oldTs = (Date.now() - 60 * 24 * 60 * 60 * 1000) / 1000;
+  const state = {
+    published: {
+      oldest: {
+        ts: oldTs,
+        video_dispatch_eligible: true,
+        video_generation_status: "generated",
+        aparat_upload_status: "pending",
+        youtube_upload_status: "uploaded",
+        filo_upload_status: "skipped_unavailable",
+        expiry_deadline_verified_directly: false,
+      },
+    },
+  };
+  assert.equal(hasPendingVideoQueue(state), true);
+});
+
+test("pending video projection ignores terminal statuses so completed queue entries do not occupy the sidecar", () => {
+  const ts = Date.now() / 1000;
+  const state = {
+    published: {
+      skipped: {
+        ts,
+        video_dispatch_eligible: true,
+        youtube_upload_status: "skipped_platform_limit",
+        aparat_upload_status: "skipped_unverified_deadline",
+        filo_upload_status: "skipped_after_retries",
+      },
+      uploaded: {
+        ts: ts - 1,
+        video_dispatch_eligible: true,
+        youtube_upload_status: "uploaded",
+        aparat_upload_status: "uploaded",
+        filo_upload_status: "published",
+      },
+    },
+  };
+  assert.equal(hasPendingVideoQueue(state), false);
 });
 
 test("unified video queue ignores legacy age and retry timestamps for all platforms", () => {
