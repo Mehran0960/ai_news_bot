@@ -303741,11 +303741,11 @@
     "unchanged": 9,
     "updated": 0
   },
-  "filo_last_upload_attempt_at": "2026-11-12T18:15:41.730532+00:00",
-  "filo_last_upload_success_at": "2026-11-12T18:16:18.440391+00:00",
-  "filo_login_verification_attempted_at": "2026-11-12T18:13:15.132549+00:00",
+  "filo_last_upload_attempt_at": "2026-11-12T18:25:47.903584+00:00",
+  "filo_last_upload_success_at": "2026-11-12T18:26:16.539465+00:00",
+  "filo_login_verification_attempted_at": "2026-11-12T18:23:22.833658+00:00",
   "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-12T18:13:15.132549+00:00",
+  "filo_login_verified_at": "2026-11-12T18:23:22.833658+00:00",
   "filo_upload_interval_policy_version": 3,
   "growth_tracking": {
     "daily_member_counts": {
@@ -384897,7 +384897,8 @@
       "title": "فیس موتورسواری مدل پروفشنال",
       "ts": 1793735715.077645,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-11015252": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -385059,7 +385060,8 @@
       "title": "قطره زادیرون یوروویتال - 30 میلی لیتر",
       "ts": 1794134275.223538,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-11062252": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -385240,7 +385242,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-112107": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1909,
       "bale_posted_at": "2026-11-11T17:40:33.320510+00:00",
@@ -385380,7 +385383,8 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-1131240": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -385789,7 +385793,8 @@
       "title": "هویه 130 وات صنایع هویه سازان کد 107",
       "ts": 1793871931.202468,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-11522600": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -385828,6 +385833,14 @@
       "expiry_estimated": false,
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
+      "filo_last_error": "filo_publish_accepted_public_url_unconfirmed",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-12T18:26:16.539465+00:00",
+      "filo_upload_started_at": "2026-11-12T18:25:47.903584+00:00",
+      "filo_upload_status": "submitted_unconfirmed",
+      "filo_video_code": "",
+      "filo_video_url": "",
+      "filo_visibility": "unknown",
       "historical_popularity_score": 27,
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/5c45d3c7e9e278a50b353c95edf196c783a7f43a_1786870249.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 7065000,
@@ -385841,8 +385854,15 @@
       "telegram_message_id": 1020,
       "title": "کوله پشتی مدل A-514",
       "ts": 1793602398.028162,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-11522600.mp4",
+      "video_file_names": {
+        "filo": "offerchin-dkp-11522600.mp4"
+      },
+      "video_generated_at": "2026-11-12T18:25:39.937178+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-11577433": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -386964,7 +386984,8 @@
       "title": "فوم شناور سازی ماهیگیری کومهو مدل 312",
       "ts": 1793842684.056808,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-11954931": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -388179,7 +388200,8 @@
       "title": "شربت تاش کاف بنیان کسری سرشت سلامت - 120 میلی لیتر",
       "ts": 1794170832.778239,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-12557376": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -389058,7 +389080,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-13144140": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1911,
       "bale_posted_at": "2026-11-11T18:52:10.038020+00:00",
@@ -389192,7 +389215,8 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-13154147": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -389737,7 +389761,8 @@
       "title": "شورت اسلیپ مردانه اسپست کد ASP-SLIP-BLK",
       "ts": 1794265179.439247,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-13357639": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -390055,7 +390080,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-13626206": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1913,
       "bale_posted_at": "2026-11-11T20:06:18.675308+00:00",
@@ -390219,7 +390245,8 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-13643432": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -390958,7 +390985,8 @@
       "title": "آباژور رومیزی نورهام مدل NHM-LU100B-21",
       "ts": 1794045513.887823,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-14021895": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -392091,7 +392119,8 @@
       "title": "ماژیک علامت گذار پلیکان مدل TEXTO",
       "ts": 1793970213.757277,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-14568675": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -392884,7 +392913,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-15215572": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1912,
       "bale_posted_at": "2026-11-11T19:29:39.157987+00:00",
@@ -393030,7 +393060,8 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-15215596": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -393240,7 +393271,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-1533363": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1908,
       "bale_posted_at": "2026-11-11T17:07:25.154771+00:00",
@@ -393628,7 +393660,8 @@
       "title": "ساعت مچی دیجیتال مردانه مدل جهانی کد AB1",
       "ts": 1794039650.665149,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-15422869": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -393899,7 +393932,8 @@
       "title": "اسپری تمیز کننده برد الکترونیکی دوپلی کالر مدل dupli2 حجم 400 میلی لیتر مجموعه 2 عددی",
       "ts": 1793828599.879513,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-154556": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -395235,7 +395269,8 @@
       "title": "پرچم مدل غدیر طرح من کنت مولاه فهذا علی مولاه کد 103411",
       "ts": 1793987855.492425,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-15839194": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -396112,7 +396147,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-16350252": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1910,
       "bale_posted_at": "2026-11-11T18:16:11.442487+00:00",
@@ -396282,7 +396318,8 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-16375639": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -397801,7 +397838,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-16835001": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1917,
       "bale_posted_at": "2026-11-11T22:21:33.167316+00:00",
@@ -397940,7 +397978,8 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-16929212": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -397979,6 +398018,14 @@
       "expiry_estimated": false,
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-12T18:25:38.705004+00:00",
+      "filo_upload_started_at": "2026-11-12T18:25:06.613576+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "7Ei3Ldv",
+      "filo_video_url": "https://ifilo.net/v/7Ei3Ldv",
+      "filo_visibility": "pending_review",
       "historical_popularity_score": 30,
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/f03215f4c3c4473d5cd5065c19492cc3b16a9023_1786575882.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 229000,
@@ -397992,8 +398039,15 @@
       "telegram_message_id": 1002,
       "title": "کابل تبدیل USB به USB-C اچ تی ام مدل Fast charge طول یک متر",
       "ts": 1793578127.023841,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-16929212.mp4",
+      "video_file_names": {
+        "filo": "offerchin-dkp-16929212.mp4"
+      },
+      "video_generated_at": "2026-11-12T18:24:59.027937+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-16942029": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -398546,7 +398600,8 @@
       "title": "پیمانه قهوه مدل پلاستیکی u12",
       "ts": 1793950280.891613,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-17247934": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -398764,7 +398819,8 @@
       "title": "سنباده فلاپ دیسک وادفو مدل WYL1301",
       "ts": 1793928717.377279,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-17288007": {
       "aparat_expiry_attempts": 107,
@@ -398890,6 +398946,14 @@
       "expiry_estimated": false,
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-12T18:24:10.129166+00:00",
+      "filo_upload_started_at": "2026-11-12T18:23:32.533829+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "6qjhCon",
+      "filo_video_url": "https://ifilo.net/v/6qjhCon",
+      "filo_visibility": "pending_review",
       "historical_popularity_score": 34,
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/3a4879c98ec134f413273056ee6a883fa8648fef_1731564242.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 600100,
@@ -398903,8 +398967,23 @@
       "telegram_message_id": 970,
       "title": "عینک موتور سواری برانت مدل هارلی",
       "ts": 1793531932.760811,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-17330975-filo.mp4",
+      "video_file_names": {
+        "filo": "offerchin-dkp-17330975-filo.mp4",
+        "youtube": "offerchin-dkp-17330975.mp4"
+      },
+      "video_generated_at": "2026-11-12T18:23:24.031943+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-12T18:24:10.670450+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-12T18:24:12.775784+00:00",
+      "youtube_video_id": "QFsNPykyJFM",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/QFsNPykyJFM",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-17339315": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -400467,7 +400546,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-17990275": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1924,
       "bale_posted_at": "2026-11-12T05:30:35.725903+00:00",
@@ -400619,7 +400699,8 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-17993393": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -402395,7 +402476,8 @@
       "title": "زنگوله ماهیگیری برکلی مدل فلزی بسته 2 عددی",
       "ts": 1793869590.221277,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-18623492": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -402794,7 +402876,8 @@
       "title": "جوراب مردانه کد 14041NM مجموعه 2 عددی",
       "ts": 1793822666.221297,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-18766147": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -403793,7 +403876,8 @@
       "title": "مهر مدل تشویقی دانش آموز طرح فرشته بهشتی چقد قشنگ نوشتی کد T-1178",
       "ts": 1794139995.344862,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-19157707": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -403869,7 +403953,8 @@
       "title": "پتو آقای طرح مدل پلیسه سایز 150x200سانتی متر",
       "ts": 1794147669.341278,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-19265201": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -407334,6 +407419,7 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-20465182": {
+      "aparat_expiry_status": "tracked",
       "aparat_upload_started_at": "2026-11-12T18:04:40.805314+00:00",
       "aparat_upload_status": "uploaded",
       "aparat_uploaded_at": "2026-11-12T18:04:50.109250+00:00",
@@ -407359,7 +407445,7 @@
       },
       "delivery_version": 1,
       "demand_score": 48,
-      "expires_at": "2026-11-13T20:30:01.868959+00:00",
+      "expires_at": "2026-11-13T20:35:00.638300+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -407412,6 +407498,7 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_description_version": 5,
+      "youtube_expiry_status": "tracked",
       "youtube_review_required": false,
       "youtube_upload_started_at": "2026-11-12T18:05:24.592858+00:00",
       "youtube_upload_status": "uploaded",
@@ -409736,7 +409823,8 @@
       "title": "اجاق گاز کابینتی سه شعله رینوزیت استار مدل RU3M",
       "ts": 1793819206.472285,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-20744153": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -410934,7 +411022,8 @@
       "title": "خودکار 0.5 میلی متری دکین مدل labubu بسته 4 عددی",
       "ts": 1794042614.037818,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-20894773": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -412558,6 +412647,14 @@
       "expiry_estimated": false,
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-12T18:24:56.725621+00:00",
+      "filo_upload_started_at": "2026-11-12T18:24:21.217760+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "foUUPXC",
+      "filo_video_url": "https://ifilo.net/v/foUUPXC",
+      "filo_visibility": "pending_review",
       "historical_popularity_score": 25,
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/cbc4e1809754d4f54b741f8837633272fa5ce607_1766492556.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "posted_current_price": 3933000,
@@ -412571,8 +412668,19 @@
       "telegram_message_id": 980,
       "title": "ست گیمینگ تکنو میشن مدل BUNDLE_4_IN_1_BACKLIT",
       "ts": 1793546033.865797,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21139277-filo.mp4",
+      "video_file_names": {
+        "filo": "offerchin-dkp-21139277-filo.mp4",
+        "youtube": "offerchin-dkp-21139277.mp4"
+      },
+      "video_generated_at": "2026-11-12T18:24:13.488288+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "HTTPError: YouTube resumable upload initialization HTTP 400 reason=uploadLimitExceeded message=The user has exceeded the number of videos they may upload.",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_attempts": 1,
+      "youtube_upload_started_at": "2026-11-12T18:24:57.266246+00:00",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21139580": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -412642,7 +412750,8 @@
       "title": "اسکاچ سانگبو کلایمی مدل High Clean کد 1010",
       "ts": 1793862167.425908,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21151486": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -413670,7 +413779,8 @@
       "title": "بازی فکری کارتی مدل اونو ماینکرافت، مناسب 2 تا 4 نفر، سبک آسان، تقویت حافظه و تصمیم‌گیری سریع، ساخت ایران، با طراحی کارت‌های الهام‌گرفته از ماینکرافت، تجربه سرگرمی جمعی و تاکتیک جم",
       "ts": 1794143861.496608,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21202006": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -413905,7 +414015,8 @@
       "title": "جوراب ساق بلند زنانه جیلاردینو مدل ساده بسته 2 عددی",
       "ts": 1793832144.855301,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21240900": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -414256,7 +414367,8 @@
       "title": "مهر مدل تشویقی زنده باشی و سالم",
       "ts": 1793957728.515513,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21241051": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -414322,7 +414434,8 @@
       "title": "مهر مدل تشویقی طرح خلاقی و مهربون همیشه اینطور بمون",
       "ts": 1793981545.352761,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21241067": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -414388,7 +414501,8 @@
       "title": "مهر مدل تشویقی طرح هزاران آفرین بر پیشرفت تو",
       "ts": 1793931139.752395,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-2125057": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -415075,7 +415189,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21419949": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1922,
       "bale_posted_at": "2026-11-12T00:02:11.698264+00:00",
@@ -415221,7 +415336,8 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21421531": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -416474,7 +416590,8 @@
       "title": "تشک طبی فنری داتیس بافت مدل ویچکرافت دو نفره سایز 160×200 سانتی متر",
       "ts": 1793738383.881662,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21579774": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -416540,7 +416657,8 @@
       "title": "میکروفن یقه ای یوشیتا مدل YG-05 با درگاه اتصال Type-C",
       "ts": 1793989128.536614,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21590676": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -416586,7 +416704,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21600058": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1919,
       "bale_posted_at": "2026-11-11T22:55:59.138034+00:00",
@@ -416720,7 +416839,8 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21608180": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -417145,7 +417265,8 @@
       "title": "اسکاچ سانگبو کلایمی مدل High Clean کد 2525",
       "ts": 1793880586.175936,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21641890": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -418227,7 +418348,8 @@
       "title": "ماسک آبرسان صورت بایو آکوا مدل Acid Moisturizing مناسب برای انواع پوست حجم 25 میلی لیتر",
       "ts": 1794145763.214502,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21788110": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -418521,7 +418643,8 @@
       "title": "دستمال نظافت صندلی خودرو سانگبو کلایمی مدل Nano MAX سایز 30x15 سانتی‌متر",
       "ts": 1793945401.24249,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21842646": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -418836,7 +418959,8 @@
       "title": "مهر مدل مذهبی السلام علیک مجموعه 14 عددی",
       "ts": 1793978979.40839,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21855329": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -419670,7 +419794,8 @@
       "title": "خودکار 0.7 میلی متری آریا کد 9002",
       "ts": 1794132303.513261,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21920289": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -420243,7 +420368,8 @@
       "title": "پارافین جامد شمع مدل K1 وزن 250 گرم",
       "ts": 1794044277.737658,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21961802": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -421119,7 +421245,8 @@
       "title": "دستگیره کمپرسور مدل SH-5024-31",
       "ts": 1793835732.889293,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22083786": {
       "aparat_upload_started_at": "2026-10-30T23:42:22.847706+00:00",
@@ -421560,6 +421687,7 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22119374": {
+      "aparat_expiry_status": "tracked",
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
       "aparat_shorts_queued_at": "2026-10-23T19:09:32.265380+00:00",
       "aparat_shorts_upload_status": "superseded_by_regular_video_upload",
@@ -421589,7 +421717,7 @@
       },
       "delivery_version": 1,
       "demand_score": 49,
-      "expires_at": "2026-11-13T20:30:01.868959+00:00",
+      "expires_at": "2026-11-13T20:35:00.638300+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -421642,6 +421770,7 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_description_version": 5,
+      "youtube_expiry_status": "tracked",
       "youtube_review_required": false,
       "youtube_upload_attempts": 3,
       "youtube_upload_started_at": "2026-11-12T18:04:30.058866+00:00",
@@ -421905,7 +422034,8 @@
       "title": "پیچ کارواش مدل SH-151535",
       "ts": 1793984049.749747,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22127809": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -422304,7 +422434,8 @@
       "title": "دستمال نظافت صندلی خودرو سانگبو کلایمی مدل NanoMAX سایز 15x15 سانتی‌متر",
       "ts": 1793947827.600507,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22138789": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -422455,7 +422586,8 @@
       "title": "دستمال نظافت صندلی خودرو سانگبو کلایمی مدل NanoMAX سایز 25x50 سانتی‌متر",
       "ts": 1793821493.678346,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22138796": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -422525,7 +422657,8 @@
       "title": "دستمال نظافت صندلی خودرو سانگبو کلایمی مدل NanoMAX سایز 30x30 سانتی‌متر",
       "ts": 1793867139.650436,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22138803": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -422595,7 +422728,8 @@
       "title": "دستمال نظافت صندلی خودرو سانگبو کلایمی مدل NanoMAX سایز 30x60 سانتی‌متر",
       "ts": 1793852352.900312,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22138895": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -422665,7 +422799,8 @@
       "title": "دستمال نظافت صندلی خودرو سانگبو کلایمی مدل NanoMAX سایز 37x37 سانتی‌متر",
       "ts": 1793836857.258704,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22139012": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -423300,7 +423435,8 @@
       "title": "واشر پروفیل بر مدل SH-203551",
       "ts": 1794153524.309531,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22178916": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -423440,7 +423576,8 @@
       "title": "بادگیر مینی فرز مدل SH-808023",
       "ts": 1794155397.682718,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22230202": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -425173,7 +425310,8 @@
       "title": "نخ مکرومه مدل تابیده کد 500G",
       "ts": 1793934932.865763,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22355722": {
       "aparat_upload_started_at": "2026-10-27T04:22:03.437516+00:00",
@@ -428936,7 +429074,8 @@
       "title": "دمکنی تولیدی داشاب طرح چهار پر مدل چهارخانه",
       "ts": 1793752281.185858,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22545022": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -429354,7 +429493,8 @@
       "title": "اسکاچ سانگبو کلایمی مدل SUPER SOFT",
       "ts": 1793829860.436169,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22564502": {
       "aparat_upload_started_at": "2026-11-05T14:22:47.561576+00:00",
@@ -431481,7 +431621,8 @@
       "title": "نرم افزار Windows 11 21H2 + AutoDriver 64bit نشر گردو",
       "ts": 1793768523.637873,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22741357": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -432027,7 +432168,8 @@
       "title": "شلوارک ورزشی مردانه تکنیک+07 مدل SH129 SO",
       "ts": 1793820285.76694,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22752708": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -432359,7 +432501,8 @@
       "title": "سم‌پاش دوشی اکتیو تولز مدل AC1009LS گنجایش 9 لیتر با نازل مخروطی توپر و بدنه پلاستیکی، مناسب برای درختان",
       "ts": 1793971501.178717,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22781732": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -432434,7 +432577,8 @@
       "title": "ضربه گیر راکت مدل بافت دار، با ابعاد 39x4x1 سانتی‌متر و خاصیت ضد لغزش",
       "ts": 1794161215.236865,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22783265": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -432512,7 +432656,8 @@
       "title": "سرویس ملاقه استیل 6 پارچه مدل نقلی کد01",
       "ts": 1794130378.758698,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22783516": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -433205,7 +433350,8 @@
       "title": "کتاب داستان‌های مثنوی معنوی کلاغ و هدهد اثر علی میرزایی، انتشارات گوهر پنهان",
       "ts": 1793952723.462671,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22814736": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -433443,7 +433589,8 @@
       "title": "اور گریپ زارسیا مدل مارین با قابلیت ضد لغزش",
       "ts": 1793784178.187836,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22841216": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -433512,7 +433659,8 @@
       "title": "اور گریپ مدل تنیس با ابعاد 8x4x2 و خاصیت ضد لغزش",
       "ts": 1793785646.346421,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22841237": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -433581,7 +433729,8 @@
       "title": "اور گریپ مدل چشم نظر با خاصیت ضد لغزش و ابعاد 8x4x2 سانتی‌متر",
       "ts": 1793787267.510191,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22841451": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -433650,7 +433799,8 @@
       "title": "اور گریپ مدل چهارخونه با خاصیت ضد لغزش و ابعاد 8x4x2 سانتی‌متر",
       "ts": 1793789064.315447,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22841932": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -433761,7 +433911,8 @@
       "title": "کاور راکت ناکس مدل شمعی با ابعاد 50x30x10 سانتی‌متر",
       "ts": 1793801744.391488,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22847300": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -434562,7 +434713,8 @@
       "title": "ادوپرفیوم زنانه ویکتوری مدل جورجیو آرمانی مای وی با رایحه معتدل حجم 55 میل لیتر",
       "ts": 1793878086.334191,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22878178": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -436448,7 +436600,8 @@
       "title": "هدفون بلوتوثی مدل TWS",
       "ts": 1794046789.885343,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22925031": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -437588,7 +437741,8 @@
       "title": "سیم ظرفشویی تریستار مدل TR بسته 10 عددی",
       "ts": 1793876949.69438,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22958312": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -437654,7 +437808,8 @@
       "title": "اسکاچ پاک استار مدل SM بسته 10 عددی",
       "ts": 1793967715.845503,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22958957": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -438632,7 +438787,8 @@
       "title": "هدفون بلوتوثی مدل ENC",
       "ts": 1793960226.606407,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22991114": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -441236,7 +441392,8 @@
       "title": "عسل طبیعی اویشن حکیم انلاین - ۵۰۰ گرم",
       "ts": 1794165092.600977,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-23114409": {
       "aparat_expiry_status": "tracked",
@@ -441401,7 +441558,8 @@
       "title": "شیره انگور مخصوص طراوت - ۵۰۰ گرم",
       "ts": 1794166981.466228,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-23126855": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -443381,7 +443539,8 @@
       "title": "کاور لباس مدل G-1 بسته 10 عددی",
       "ts": 1793747857.665309,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-2996104": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -444051,7 +444210,8 @@
       "title": "استون فدک مدل 24501 حجم 60 میلی لیتر",
       "ts": 1793944101.687034,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-3404025": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -445357,7 +445517,8 @@
       "title": "کش مو زنانه آی جواهر مدل R12 مجموعه 12 عددی",
       "ts": 1793856218.375711,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-3891440": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -445424,7 +445585,8 @@
       "title": "دستگاه تصفیه کننده آب آکوآ اسپرینگ مدل UF - SF4800 کد 01 به همراه فیلتر تصفیه آب",
       "ts": 1793664857.767841,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-3977438": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -445493,7 +445655,8 @@
       "title": "برس ابرو مدل v2 مجموعه 2 عددی",
       "ts": 1793796899.228816,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-3986553": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -445834,7 +445997,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-4012333": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1914,
       "bale_posted_at": "2026-11-11T21:08:07.777814+00:00",
@@ -445974,7 +446138,8 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-4085561": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -446205,7 +446370,8 @@
       "title": "استند بادکنک طرح گل کد sa20",
       "ts": 1793833369.022098,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-4230050": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -446955,7 +447121,8 @@
       "title": "بند سیلیکونی مناسب برای اپل واچ 42 میلی متری",
       "ts": 1793781011.522585,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-4637647": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -447166,7 +447333,8 @@
       "title": "ترمز عمق سنج دريل مدل SH-101334 مناسب برای دریل شيلدر",
       "ts": 1793816720.032755,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-4698620": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -447847,7 +448015,8 @@
       "title": "پودر جوانه گندم گلها - 200 گرم",
       "ts": 1793736155.365369,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-5131948": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -447917,7 +448086,8 @@
       "title": "رينگ لاستيکي پروفيل بر شمشيري مدل SH-203510",
       "ts": 1793859785.267996,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-514309": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -448139,7 +448309,8 @@
       "title": "پرچم طرح یا ثارالله مدل تذهیب کد 00201318",
       "ts": 1794136211.590821,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-5264418": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -448385,7 +448556,8 @@
       "title": "پرچم طرح علی ولی الله مدل گوشواره کد 002014120",
       "ts": 1794009070.978263,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-5425055": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -450149,7 +450321,8 @@
       "title": "کیسه زباله مدل ضخیم کد 55.45 بسته 30 عددی",
       "ts": 1793817919.856826,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-6551967": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -450655,7 +450828,8 @@
       "title": "پرچم طرح سیدی شباب مدل اسلیمی کد201227",
       "ts": 1793961432.136603,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-6866113": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -452409,7 +452583,8 @@
       "title": "کافی میت لیبارو - 250 گرم",
       "ts": 1793756689.966601,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-7512232": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -452700,7 +452875,8 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-7738933": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -453267,7 +453443,8 @@
       "title": "فیوز خودرو الپا مدل EL-6805 مجموعه 10 عددی به همراه تستر فیوز",
       "ts": 1793963947.090463,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-81997": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -453635,7 +453812,8 @@
       "title": "کش ورزشی موها فیتنس مدل X-HEAVY.2.0M",
       "ts": 1794244370.585232,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-8258601": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -454153,7 +454331,8 @@
       "title": "مجموعه 110 عددی ابزار مدل HAND_TOOLS_SET",
       "ts": 1793942430.482311,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-8478740": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -454584,7 +454763,8 @@
       "title": "تیغ ابرو مدل تینکل کد li-0001b3",
       "ts": 1793866064.23566,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-8594877": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -455672,7 +455852,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-9409536": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 1916,
       "bale_posted_at": "2026-11-11T21:46:29.308671+00:00",
@@ -455859,7 +456040,8 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-9488546": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -467887,6 +468069,8 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 15,
   "snappshop_retry_after": "2026-11-13T10:19:22.710996+00:00",
-  "youtube_last_upload_success_at": "2026-11-12T18:16:21.653797+00:00",
-  "youtube_upload_pause_diagnostic_migrated": true
+  "youtube_last_upload_success_at": "2026-11-12T18:24:12.775784+00:00",
+  "youtube_upload_pause_diagnostic_migrated": true,
+  "youtube_upload_pause_reason": "daily_upload_limit",
+  "youtube_uploads_paused_until": "2026-11-13T18:39:58.251293+00:00"
 }
