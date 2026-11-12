@@ -6258,7 +6258,7 @@ class AffilioRadarTests(unittest.TestCase):
         fetch_image.assert_not_called()
         render.assert_not_called()
         upload_aparat.assert_not_called()
-        self.assertEqual(record["aparat_upload_status"], "pending")
+        self.assertEqual(record["aparat_upload_status"], "skipped_unverified_deadline")
 
     def test_aparat_only_run_skips_manual_youtube_artifact_candidates_and_uses_verified_expiry(self):
         now = datetime.now(timezone.utc)
@@ -6327,7 +6327,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(render.call_args.kwargs["title"], verified["title"])
         upload_aparat.assert_called_once()
         self.assertEqual(unverified["video_generation_status"], "pending")
-        self.assertEqual(unverified["aparat_upload_status"], "pending")
+        self.assertEqual(unverified["aparat_upload_status"], "skipped_unverified_deadline")
         self.assertEqual(verified["video_generation_status"], "generated")
         self.assertEqual(verified["aparat_upload_status"], "uploaded")
         self.assertEqual(verified["aparat_video_url"], "https://www.aparat.com/v/aparatverified123")
@@ -6495,15 +6495,15 @@ class AffilioRadarTests(unittest.TestCase):
         ):
             self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
 
-        self.assertEqual(record["youtube_upload_status"], "retry")
+        self.assertEqual(record["youtube_upload_status"], "skipped_platform_quota")
+        self.assertEqual(record["youtube_skip_reason"], "provider_daily_upload_quota_pause")
         self.assertIn("HTTP 429", record["youtube_last_error"])
         self.assertIn("rateLimitExceeded", record["youtube_last_error"])
         self.assertIn("Video Uploads per day", record["youtube_last_error"])
-        self.assertIsNotNone(record.get("youtube_next_attempt_at"))
-        retry_at = datetime.fromisoformat(record["youtube_next_attempt_at"])
-        self.assertGreaterEqual(retry_at, now + timedelta(hours=24))
-        self.assertLess(retry_at, now + timedelta(hours=25))
-        self.assertEqual(state["youtube_uploads_paused_until"], record["youtube_next_attempt_at"])
+        self.assertNotIn("youtube_next_attempt_at", record)
+        pause_at = datetime.fromisoformat(state["youtube_uploads_paused_until"])
+        self.assertGreaterEqual(pause_at, now + timedelta(hours=24))
+        self.assertLess(pause_at, now + timedelta(hours=25))
         self.assertEqual(state["youtube_upload_pause_reason"], "daily_upload_limit")
 
     def test_youtube_daily_limit_pause_does_not_block_aparat_shorts_queue(self):
