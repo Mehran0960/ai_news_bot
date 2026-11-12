@@ -144,7 +144,6 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             patch("publisher._fresh_selected_item", return_value=(self.item("dkp-video-pending"), "")),
             patch("publisher.radar._fetch_image", return_value=b"image"),
             patch("publisher._process_photo_destination") as send_photo,
-            patch("publisher._process_video_destinations"),
         ):
             publisher.publish_due_queue()
 
@@ -852,11 +851,6 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             record.setdefault("delivery_status", {})[destination] = "sent"
             record[f"{destination}_message_id"] = 100 + len(destination)
 
-        def fake_video(state_arg, entry, record, now):
-            for destination in ("youtube", "aparat"):
-                entry["platforms"][destination]["status"] = "not_connected"
-                record.setdefault("delivery_status", {})[destination] = "not_connected"
-
         with (
             patch("publisher._now", return_value=self.now),
             patch("publisher.radar.load_state", return_value=state),
@@ -871,7 +865,6 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             ) as revalidate,
             patch("publisher.radar._fetch_image", return_value=b"image"),
             patch("publisher._process_photo_destination", side_effect=fake_photo),
-            patch("publisher._process_video_destinations", side_effect=fake_video),
         ):
             self.assertEqual(publish_due_queue(), 0)
 
@@ -944,7 +937,6 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             patch("publisher._fresh_selected_item", return_value=(self.item("dkp-rubika-retry"), "")),
             patch("publisher.radar._fetch_image", return_value=b"image"),
             patch("publisher._process_photo_destination", side_effect=fake_photo),
-            patch("publisher._process_video_destinations"),
         ):
             self.assertEqual(publisher.publish_due_queue(), 0)
 
@@ -957,7 +949,8 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertNotIn("dkp-rubika-retry", state.get("pending_queue", {}))
         self.assertEqual(state["last_channel_published_at"], self.now.isoformat())
 
-        # The partial optional retry remains bounded but does not stop a new selection.
+        # The newer selection may queue, but strict FIFO prevents it overtaking
+        # the unresolved older Rubika item.
         fresh = enqueue_selected_content(
             state, [self.item("dkp-after-rubika")],
             now=self.now + timedelta(minutes=1), interval_seconds=1200,
@@ -965,7 +958,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         self.assertEqual(fresh["added"], 1)
         due = due_content(state, now=self.now + timedelta(minutes=21), limit=1)
-        self.assertEqual([product_id for product_id, _entry in due], ["dkp-after-rubika"])
+        self.assertEqual([product_id for product_id, _entry in due], ["dkp-rubika-retry"])
 
     def test_terminal_queue_item_moves_to_bounded_history(self):
         state = {}
