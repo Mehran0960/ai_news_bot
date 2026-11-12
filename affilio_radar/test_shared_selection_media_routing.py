@@ -73,6 +73,26 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
             "delivery_status": {"rubika": "sent"}
         }))
 
+    def test_pending_video_helper_filters_by_destination_and_terminal_status(self):
+        self.assertTrue(
+            radar._has_pending_video_destination(
+                {"youtube_upload_status": "uploaded", "filo_upload_status": "retry"},
+                {"filo"},
+            )
+        )
+        self.assertFalse(
+            radar._has_pending_video_destination(
+                {"youtube_upload_status": "uploaded", "filo_upload_status": "retry"},
+                {"youtube"},
+            )
+        )
+        self.assertFalse(
+            radar._has_pending_video_destination(
+                {"youtube_upload_status": "skipped_platform_limit"},
+                {"youtube"},
+            )
+        )
+
     def test_dispatch_sidecar_keeps_oldest_pending_canonical_products_and_drops_terminal_ones(self):
         state = {
             "published": {
