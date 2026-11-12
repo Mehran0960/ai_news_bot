@@ -3175,9 +3175,28 @@ def _apply_offerchin_four_factor_scores(records: list[dict], now: datetime | Non
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
+    def live_demand_score_with_evidence(row: dict) -> float:
+        bestseller = _fresh_digikala_bestseller_evidence(row, now=current)
+        if bestseller:
+            row["live_demand_evidence_source"] = bestseller.get("evidence_source")
+            row["live_demand_observation_value"] = bestseller.get("best_rank_across_categories")
+            row["live_demand_observation_unit"] = "category_rank"
+            row["live_demand_confidence"] = "direct_relative_sales_rank_not_units_sold"
+            row["demand_observed_at"] = bestseller.get("observed_at")
+        elif has_current_demand_signal(row, now=current):
+            row["live_demand_evidence_source"] = str(
+                row.get("demand_signal_source") or "verified_recent_review_growth"
+            )
+            row["live_demand_observation_value"] = max(
+                0, int(row.get("recent_review_growth_window", row.get("recent_review_growth_7d")) or 0)
+            )
+            row["live_demand_observation_unit"] = "reviews_per_observation_window"
+            row["live_demand_confidence"] = "indirect_review_growth_proxy_not_sales"
+        return _offerchin_live_demand_score(row, now=current)
+
     return _apply_four_factor_scores(
         records,
-        live_demand_score_fn=lambda row: _offerchin_live_demand_score(row, now=current),
+        live_demand_score_fn=live_demand_score_with_evidence,
         use_case_group_fn=_publication_use_case_group,
         price_group_fn=lambda row: str(
             row.get("catalog_category_id") or row.get("catalog_best_selling_category_id")
