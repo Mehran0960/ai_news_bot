@@ -611,7 +611,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state = {}
         enqueue_selected_content(
             state,
-            [self.item("dkp-100", demand=0), self.item("dkp-200", demand=999)],
+            [self.item("dkp-200", demand=999), self.item("dkp-100", demand=0)],
             now=self.now,
             interval_seconds=1200,
             max_items=2,
@@ -624,7 +624,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state["content_delivery_queue"]["dkp-100"]["next_attempt_at"] = same_slot
         state["content_delivery_queue"]["dkp-200"]["next_attempt_at"] = same_slot
         due = due_content(state, now=self.now, limit=2)
-        self.assertEqual([pid for pid, _entry in due], ["dkp-100", "dkp-200"])
+        self.assertEqual([pid for pid, _entry in due], ["dkp-200", "dkp-100"])
 
     def test_future_selection_is_replaced_by_live_scan(self):
         state = {"last_published_at": self.now.isoformat()}
