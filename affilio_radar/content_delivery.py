@@ -192,30 +192,34 @@ def _active_queue_entries(queue: Any) -> list[tuple[str, dict]]:
     ]
 
 
-def _evict_oldest_active_queue_item(state: dict, now: datetime) -> bool:
-    """Drop the oldest unresolved hand-off when the bounded queue needs a slot."""
-    queue = state.get("content_delivery_queue")
-    entries = _active_queue_entries(queue)
+def _evict_newest_unstarted_queue_item(state: dict, now: datetime) -> bool:
+    """Trim legacy overflow without discarding an older item already in delivery."""
+    entries = _active_queue_entries(state.get("content_delivery_queue"))
     if not entries:
         return False
-
     minimum_time = datetime.min.replace(tzinfo=timezone.utc)
-
-    def selected_time(pair: tuple[str, dict]) -> datetime:
-        entry = pair[1]
-        return (
+    candidates = []
+    for product_id, entry in entries:
+        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+        reached_any = any(
+            isinstance(target, dict) and target.get("status") == "sent"
+            for target in platforms.values()
+        )
+        if reached_any or entry.get("status") == "partial":
+            continue
+        selected = (
             _utc(entry.get("selected_at"))
             or _utc(entry.get("scheduled_at"))
             or minimum_time
         )
-
-    product_id, _entry = min(entries, key=selected_time)
+        candidates.append((selected, product_id))
+    if not candidates:
+        return False
+    # Evict the newest unstarted item, never an older partial delivery.
+    _selected, product_id = max(candidates, key=lambda item: item[0])
     finish_queue_item(
-        state,
-        product_id,
-        "cancelled",
-        now=now,
-        detail="bounded_retry_queue_eviction: oldest unresolved selection dropped to protect fresh slots",
+        state, product_id, "cancelled", now=now,
+        detail="bounded_retry_queue_eviction: newest unstarted selection dropped to preserve FIFO",
     )
     return True
 
@@ -226,7 +230,7 @@ def enforce_queue_limit(
     now: datetime | None = None,
     max_active_items: int | None = None,
 ) -> int:
-    """Keep the hand-off/retry queue bounded; never replay a long publication backlog."""
+    """Trim overflow only from newest unstarted items; preserve FIFO retries."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -234,7 +238,7 @@ def enforce_queue_limit(
     limit = _configured_queue_limit(max_active_items)
     evicted = 0
     while len(_active_queue_entries(state.get("content_delivery_queue"))) > limit:
-        if not _evict_oldest_active_queue_item(state, current):
+        if not _evict_newest_unstarted_queue_item(state, current):
             break
         evicted += 1
     return evicted
@@ -382,13 +386,11 @@ def enqueue_selected_content(
             skipped += 1
             continue
 
-        # Make room for the fresh selection rather than building a long retry backlog.
-        # Partial deliveries remain retryable until evicted by this bound or rejected
-        # by live price/stock/deadline validation in the publisher.
-        while len(_active_queue_entries(queue)) >= queue_limit:
-            if not _evict_oldest_active_queue_item(state, now):
-                break
-            queue_evicted += 1
+        # Never evict an older unresolved/partially delivered selection to admit a newer
+        # one. When full, skip this candidate and let the next scan retry admission.
+        if len(_active_queue_entries(queue)) >= queue_limit:
+            skipped += 1
+            continue
 
         # Keep only JSON-compatible fields in the hand-off record. New platform
         # adapters can consume this contract without importing the discovery module.
