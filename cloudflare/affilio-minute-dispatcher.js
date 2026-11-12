@@ -354,7 +354,6 @@ async function dispatchPublisherWhenDue(env, tick, state) {
   );
 }
 
-const VIDEO_WORKFLOW_RETRY_GAP_MS = 5 * 60 * 1000;
 const VIDEO_UPLOAD_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const VIDEO_PENDING_STATUSES = new Set([
   "pending", "pending_credentials", "retry", "skipped_unverified_deadline"
