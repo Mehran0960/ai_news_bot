@@ -7,6 +7,11 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "affilio_radar/**"
+      - "cloudflare/**"
+      - ".github/workflows/offerchin-video-fanout.yml"
 
 permissions:
   contents: write
@@ -17,7 +22,7 @@ concurrency:
 
 jobs:
   fanout:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion != 'cancelled' }}
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -69,6 +74,7 @@ jobs:
           node --test cloudflare/affilio-minute-dispatcher.test.mjs
 
       - name: Publish all configured video destinations from one shared FIFO
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
@@ -98,7 +104,7 @@ jobs:
           retention-days: 3
 
       - name: Persist unified video delivery state
-        if: always()
+        if: ${{ always() && github.event_name != 'pull_request' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
