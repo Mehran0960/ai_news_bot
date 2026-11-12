@@ -13,24 +13,6 @@
 - **ریسک/بازگشت:** خطر احتمالی و روش rollback/feature flag.
 - **وضعیت:** انجام‌شده، در انتظار، مسدود یا لغوشده.
 
-
-## ۲۰۲۶-۱۱-۱۲ — حذف فاصله‌های مصنوعی و fan-out ترتیبی مشترک ویدئو
-
-**هدف:** با هر رویداد انتخاب/انتشار محصول، یک دستور واحد برای YouTube، Aparat و Filo صادر شود؛ ترتیب محصول در هر مقصد با صف canonical سایر مقصدها یکسان بماند و خرابی یک مقصد باعث توقف بقیه نشود.
-
-**تغییر/اقدام:** فاصله‌های داخلی ۳ساعتهٔ YouTube/Aparat، ۲۷دقیقه‌ای Filo، retry backoff و TTL بیست‌وچهارساعتهٔ صف ویدئو حذف شدند. یک Workflow واحد `offerchin-video-publisher.yml` اضافه شد که هر محصول را در یک پردازش مشترک به هر سه مقصد fan-out می‌کند و تا ثبت وضعیت همان SKU به محصول بعدی نمی‌رود. ناشر کانالی پس از persist رکورد یک dispatch واحد صادر می‌کند؛ Worker نیز برای recovery هر دقیقه همان Workflow را dispatch می‌کند. retryهای قابل‌تکرار هر مقصد به ۳ تلاش محدود و سپس terminal skip می‌شوند؛ نتیجهٔ نامعلوم پس از آغاز upload به manual review می‌رود و کورکورانه retry نمی‌شود. گیت‌های واقعی quota YouTube، deadline تأییدشدهٔ Aparat، نشست Filo و انقضای واقعی پیشنهاد حفظ شده‌اند.
-
-**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `affilio_radar/test_shared_selection_media_routing.py`، `affilio_radar/test_aparat_upload_schedule.py`، `affilio_radar/test_filo_upload_schedule.py`، `.github/workflows/offerchin-publisher.yml`، `.github/workflows/offerchin-video-publisher.yml`، `docs/OFFERCHIN_SHARED_SELECTION_MEDIA_ROUTING_FA.md`، `docs/OFFERCHIN_FOUR_FACTOR_RANKING_FA.md` و همین handbook/changelog.
-
-**آزمون و نتیجه:** regression tests مربوط به FIFO واحد، عبور مقصد از خطای مقصد دیگر، حذف slotها، dispatch قدیمی بدون محدودیت زمانی و terminal skip افزوده/اصلاح شده‌اند. نتایج CI هنوز در انتظار اجرای PR هستند؛ موفقیت production یا انتشار عمومی جدید ادعا نمی‌شود.
-
-**شواهد/شناسه:** شاخهٔ `feature/offerchin-video-fanout-no-throttle-20261112`. commitهای اصلی: Python `3f4439cae7855c3c56e3f47c52cc8a4d219e4f9c`؛ Worker `4a0f6852ba04f1d62e26327b82082798b6b8bed8` و اصلاح terminal status `fdedc45af301f38e0ec56776c2547d3cab322c14`؛ dispatch ناشر `7117c087f8c321160fa80c86e7588cd732fa1813`؛ Workflow واحد `0bafe9d828167e719d9c99a9957a3d4601b29669` و اصلاح login Filo `2fe63fcd67c85c392b2a7fa3c6794435547ae0db`. تست‌ها و اسناد نیز در commitهای بعدی همین شاخه به‌روز شده‌اند.
-
-**ریسک/بازگشت:** اشتراک `state.json` همچنان مستلزم قفل مشترک است؛ یک Workflow ترتیبی عمداً جایگزین سه workflow موازی شد. محدودیت سهمیهٔ واقعی YouTube یا عدم تأیید deadline/credential می‌تواند برای همان مقصد skip ایجاد کند. نتیجهٔ unknown به‌صورت دستی بررسی می‌شود تا duplicate نشود. بازگشت با revert PR ممکن است؛ state/صف موجود reset نمی‌شود.
-
-**وضعیت:** کد و مستندات در شاخهٔ feature انجام‌شده؛ PR و CI در مرحلهٔ بعد؛ تا ادغام و deploy خودکار Worker روی main فعال production نیستند.
-
-
 ## ۲۰۲۶-۱۱-۱۱ — یکسان‌سازی ترتیب و منبع انتخاب در انتشار چندرسانه‌ای
 
 **هدف:** تضمین اینکه ویدئوهای OfferChin دقیقاً از محصولات انتخاب‌شده و اعتبارسنجی‌شدهٔ مسیر اصلی کانال‌ها ساخته شوند؛ نه از یک مسیر کشف/رتبه‌بندی موازی.
@@ -1817,3 +1799,19 @@
 **ریسک/بازگشت:** fan-out ویدئو حتی در صورت شکست همهٔ کانال‌های تصویری ممکن است ادامه یابد؛ این مطابق سیاست استقلال است، مشروط به اینکه رکورد canonical و گیت‌های زنده معتبر باشند. بازگشت با revert تغییر helper واجدشرایط‌بودن، projection Worker، تست‌ها و layout ویدئو انجام می‌شود؛ state/صف موجود reset یا migrate نمی‌شود.
 
 **وضعیت:** تغییرات در شاخهٔ `feature/offerchin-event-driven-video-sync-20261111` و PR شمارهٔ ۱۶۰؛ تا زمان CI سبز و ادغام، production فعال اعلام نمی‌شود.
+
+## ۲۰۲۶-۱۱-۱۲ — حذف فاصله‌های مصنوعی و fan-out ترتیبی مشترک ویدئو
+
+**هدف:** با هر رویداد انتخاب/انتشار محصول، یک دستور واحد برای YouTube، Aparat و Filo صادر شود؛ ترتیب محصول در هر مقصد با صف canonical سایر مقصدها یکسان بماند و خرابی یک مقصد باعث توقف بقیه نشود.
+
+**تغییر/اقدام:** فاصله‌های داخلی ۳ساعتهٔ YouTube/Aparat، ۲۷دقیقه‌ای Filo، retry backoff و TTL بیست‌وچهارساعتهٔ صف ویدئو حذف شدند. یک Workflow واحد `offerchin-video-publisher.yml` اضافه شد که هر محصول را در یک پردازش مشترک به هر سه مقصد fan-out می‌کند و تا ثبت وضعیت همان SKU به محصول بعدی نمی‌رود. ناشر کانالی پس از persist رکورد یک dispatch واحد صادر می‌کند؛ Worker نیز برای recovery هر دقیقه همان Workflow را dispatch می‌کند. retryهای قابل‌تکرار هر مقصد به ۳ تلاش محدود و سپس terminal skip می‌شوند؛ نتیجهٔ نامعلوم پس از آغاز upload به manual review می‌رود و کورکورانه retry نمی‌شود. گیت‌های واقعی quota YouTube، deadline تأییدشدهٔ Aparat، نشست Filo و انقضای واقعی پیشنهاد حفظ شده‌اند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `affilio_radar/test_shared_selection_media_routing.py`، `affilio_radar/test_aparat_upload_schedule.py`، `affilio_radar/test_filo_upload_schedule.py`، `.github/workflows/offerchin-publisher.yml`، `.github/workflows/offerchin-video-publisher.yml`، `docs/OFFERCHIN_SHARED_SELECTION_MEDIA_ROUTING_FA.md`، `docs/OFFERCHIN_FOUR_FACTOR_RANKING_FA.md` و همین handbook/changelog.
+
+**آزمون و نتیجه:** regression tests مربوط به FIFO واحد، عبور مقصد از خطای مقصد دیگر، حذف slotها، dispatch قدیمی بدون محدودیت زمانی و terminal skip افزوده/اصلاح شده‌اند. نتایج CI هنوز در انتظار اجرای PR هستند؛ موفقیت production یا انتشار عمومی جدید ادعا نمی‌شود.
+
+**شواهد/شناسه:** شاخهٔ `feature/offerchin-video-fanout-no-throttle-20261112`. commitهای اصلی: Python `3f4439cae7855c3c56e3f47c52cc8a4d219e4f9c`؛ Worker `4a0f6852ba04f1d62e26327b82082798b6b8bed8` و اصلاح terminal status `fdedc45af301f38e0ec56776c2547d3cab322c14`؛ dispatch ناشر `7117c087f8c321160fa80c86e7588cd732fa1813`؛ Workflow واحد `0bafe9d828167e719d9c99a9957a3d4601b29669` و اصلاح login Filo `2fe63fcd67c85c392b2a7fa3c6794435547ae0db`. تست‌ها و اسناد نیز در commitهای بعدی همین شاخه به‌روز شده‌اند.
+
+**ریسک/بازگشت:** اشتراک `state.json` همچنان مستلزم قفل مشترک است؛ یک Workflow ترتیبی عمداً جایگزین سه workflow موازی شد. محدودیت سهمیهٔ واقعی YouTube یا عدم تأیید deadline/credential می‌تواند برای همان مقصد skip ایجاد کند. نتیجهٔ unknown به‌صورت دستی بررسی می‌شود تا duplicate نشود. بازگشت با revert PR ممکن است؛ state/صف موجود reset نمی‌شود.
+
+**وضعیت:** کد و مستندات در شاخهٔ feature انجام‌شده؛ PR و CI در مرحلهٔ بعد؛ تا ادغام و deploy خودکار Worker روی main فعال production نیستند.
