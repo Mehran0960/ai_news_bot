@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-12T21:46:03.273488+00:00",
+  "generated_at": "2026-11-12T21:56:19.902299+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار حمام": 1,
@@ -105,36 +105,33 @@
       "سمپاش": 1,
       "سکه پارسیان (گرمی)": 1,
       "عطر و ادکلن زنانه": 1,
-      "ژل و کرم ترمیم کننده": 1,
-      "گوشی پوکو": 1
+      "ژل و کرم ترمیم کننده": 1
     },
     "category_post_counts": {
       "audio_wearables": 1,
       "beauty_fragrance": 1,
       "home": 1,
-      "mobile_devices": 1,
       "other": 2,
       "personal_care": 1
     },
     "category_share_percent": {
-      "audio_wearables": 14.3,
-      "beauty_fragrance": 14.3,
-      "home": 14.3,
-      "mobile_devices": 14.3,
-      "other": 28.6,
-      "personal_care": 14.3
+      "audio_wearables": 16.7,
+      "beauty_fragrance": 16.7,
+      "home": 16.7,
+      "other": 33.3,
+      "personal_care": 16.7
     },
-    "distinct_catalog_categories": 7,
-    "distinct_categories": 6,
-    "distinct_families": 7,
+    "distinct_catalog_categories": 6,
+    "distinct_categories": 5,
+    "distinct_families": 6,
     "distinct_retailers": 1,
     "distinct_use_cases": 5,
     "known_brand_posts": 0,
-    "posts": 7,
+    "posts": 6,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 7
+      "digikala": 6
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -142,7 +139,7 @@
     "use_case_post_counts": {
       "automotive": 1,
       "catalog_taxonomy_other": 1,
-      "mobile_productivity": 3,
+      "mobile_productivity": 2,
       "personal_care": 1,
       "tools_industrial": 1
     }
@@ -359,30 +356,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1096,
+    "all_time_count": 1097,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-12T19:34:19.205463+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-12T19:34:19.205463+00:00",
         "brand": "",
@@ -705,6 +685,23 @@
         ],
         "title": "ژل آبرسان پرایم مدل Ultra-Hydrating حجم 50 میلی‌لیتر",
         "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-12T21:56:19.902299+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4184133",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل شستشوی صورت دیپ سنس مدل درخت چای و بامبو مناسب پوست‌های چرب حجم 250 میلی‌ لیتر",
+        "use_case": "home_cleaning"
       }
     ]
   }
