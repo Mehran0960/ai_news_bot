@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-12T14:26:56.046271+00:00",
+  "generated_at": "2026-11-12T14:34:37.340310+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار آشپزی": 1,
@@ -112,7 +112,6 @@
       "عطر و ادکلن زنانه": 1,
       "لایه بردار پوست و اسکراب": 1,
       "لوازم اتو": 1,
-      "نظافت و نگهداری خودرو": 1,
       "ژل و کرم ترمیم کننده": 1,
       "کرم ضد چروک": 1,
       "کنسرو حبوبات و سبزیجات": 1,
@@ -121,7 +120,6 @@
     },
     "category_post_counts": {
       "audio_wearables": 1,
-      "automotive": 1,
       "beauty_fragrance": 1,
       "grocery_food": 1,
       "home": 1,
@@ -131,33 +129,32 @@
       "personal_care": 6
     },
     "category_share_percent": {
-      "audio_wearables": 5.6,
-      "automotive": 5.6,
-      "beauty_fragrance": 5.6,
-      "grocery_food": 5.6,
-      "home": 5.6,
-      "lighting": 5.6,
-      "mobile_devices": 5.6,
-      "other": 27.8,
-      "personal_care": 33.3
+      "audio_wearables": 5.9,
+      "beauty_fragrance": 5.9,
+      "grocery_food": 5.9,
+      "home": 5.9,
+      "lighting": 5.9,
+      "mobile_devices": 5.9,
+      "other": 29.4,
+      "personal_care": 35.3
     },
-    "distinct_catalog_categories": 18,
-    "distinct_categories": 9,
-    "distinct_families": 18,
+    "distinct_catalog_categories": 17,
+    "distinct_categories": 8,
+    "distinct_families": 17,
     "distinct_retailers": 1,
     "distinct_use_cases": 9,
     "known_brand_posts": 0,
-    "posts": 18,
+    "posts": 17,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 18
+      "digikala": 17
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
-      "automotive": 3,
+      "automotive": 2,
       "catalog_taxonomy_other": 2,
       "grocery_food": 1,
       "home_cleaning": 1,
@@ -288,7 +285,7 @@
       "home": 7,
       "home_cleaning": 2,
       "jewelry": 2,
-      "kids_sports": 5,
+      "kids_sports": 4,
       "large_appliances": 4,
       "lighting": 1,
       "mobile_devices": 4,
@@ -300,23 +297,23 @@
     },
     "category_share_percent": {
       "audio_wearables": 3.4,
-      "automotive": 6.7,
+      "automotive": 6.8,
       "beauty_fragrance": 1.3,
       "books_stationery": 3.8,
       "computer_network": 1.7,
       "digital_accessories": 0.8,
-      "fashion": 10.9,
+      "fashion": 11.0,
       "gaming": 0.4,
       "grocery_food": 4.2,
-      "home": 2.9,
+      "home": 3.0,
       "home_cleaning": 0.8,
       "jewelry": 0.8,
-      "kids_sports": 2.1,
+      "kids_sports": 1.7,
       "large_appliances": 1.7,
       "lighting": 0.4,
       "mobile_devices": 1.7,
-      "other": 33.6,
-      "personal_care": 15.1,
+      "other": 33.8,
+      "personal_care": 15.2,
       "power_backup": 2.5,
       "sports_outdoor": 4.6,
       "tv_audio_video": 0.4
@@ -326,8 +323,8 @@
     "distinct_families": 142,
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
-    "known_brand_posts": 17,
-    "posts": 238,
+    "known_brand_posts": 16,
+    "posts": 237,
     "repeated_brand_count": 8,
     "repeated_brands": {
       "ai_javaher": 2,
@@ -337,7 +334,7 @@
       "ufc": 2
     },
     "retailer_post_counts": {
-      "digikala": 238
+      "digikala": 237
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -346,7 +343,7 @@
       "arts_crafts": 1,
       "audio_visual": 8,
       "automotive": 25,
-      "baby_care": 4,
+      "baby_care": 3,
       "books_learning": 7,
       "catalog_taxonomy_other": 10,
       "events_decor": 3,
@@ -382,64 +379,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 972,
+    "all_time_count": 975,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-12T13:49:13.435792+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4996879",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-6808740",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-12T13:49:13.435792+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4996879",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-14194589",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم پوست ویتالیر مدل گلایکولیک اسید ٪7 مناسب برای پوست مختلط حجم 30 میلی لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-12T13:49:13.435792+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4996879",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-11776655",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ژل آبرسان پرایم مدل Ultra-Hydrating حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-12T13:58:03.941276+00:00",
         "brand": "",
@@ -714,6 +660,57 @@
       },
       {
         "at": "2026-11-12T14:26:56.046271+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-11776655",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل آبرسان پرایم مدل Ultra-Hydrating حجم 50 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-12T14:34:37.340310+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4184133",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل شستشوی صورت دیپ سنس مدل درخت چای و بامبو مناسب پوست‌های چرب حجم 250 میلی‌ لیتر",
+        "use_case": "home_cleaning"
+      },
+      {
+        "at": "2026-11-12T14:34:37.340310+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-6808740",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-12T14:34:37.340310+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
