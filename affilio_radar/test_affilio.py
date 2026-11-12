@@ -195,6 +195,14 @@ class AffilioRadarTests(unittest.TestCase):
         self._demand_gate_patch = patch("affilio_radar.has_verified_market_demand", return_value=True)
         self._demand_gate_patch.start()
         self.addCleanup(self._demand_gate_patch.stop)
+        # These legacy integration tests isolate repeat guards, delivery retries and
+        # ranking mechanics. Strict four-factor evidence is exercised in its dedicated
+        # suite so fixture-only products do not masquerade as real market observations.
+        self._four_factor_evidence_patch = patch(
+            "affilio_radar._four_factor_evidence_gate", return_value=(True, [])
+        )
+        self._four_factor_evidence_patch.start()
+        self.addCleanup(self._four_factor_evidence_patch.stop)
 
     def test_demand_context_precedes_discount_but_clicks_and_synthetic_scores_are_ignored(self):
         now = datetime(2026, 10, 28, tzinfo=timezone.utc)
