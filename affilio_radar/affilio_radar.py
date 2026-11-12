@@ -9248,15 +9248,14 @@ def _has_video_dispatch_eligibility(record: dict) -> bool:
 
 
 def _video_upload_candidate_sort_key(row: tuple) -> tuple:
-    """Preserve the canonical product-selection order on every video destination.
+    """Preserve canonical selection order; stable sort keeps insertion order on ties.
 
     The publisher has already made the discovery, four-factor ranking, diversity
-    choice and last-mile live validation. Every destination consumes the same selected
-    hand-off FIFO; markdown must not reorder it independently.
+    choice and last-mile live validation. Product ID and discount values must not
+    break ties or reorder the selected hand-off sequence.
     """
     timestamp = float(row[0]) if isinstance(row, tuple) and row else 0.0
-    product_id_value = str(row[1]) if isinstance(row, tuple) and len(row) > 1 else ""
-    return (timestamp, product_id_value)
+    return (timestamp,)
 
 
 def process_pending_short_video(
@@ -9533,8 +9532,9 @@ def process_pending_short_video(
             reverse=True,
         )
         candidate_records = candidate_records[:limit]
+    # Stable timestamp sort preserves the canonical dict/selector order on ties.
     candidate_records.sort(
-        key=lambda item: (_int_value(item[1].get("ts")) or 0, str(item[0]))
+        key=lambda item: _int_value(item[1].get("ts")) or 0
     )
 
     for pid, record in candidate_records:
