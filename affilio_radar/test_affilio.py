@@ -1398,9 +1398,7 @@ class AffilioRadarTests(unittest.TestCase):
     def test_video_dispatch_state_is_compact_and_keeps_due_delivery_signals(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         state = {
-            "youtube_next_upload_at": "2026-11-05T11:00:00+00:00",
             "youtube_uploads_paused_until": None,
-            "aparat_next_upload_at": "2026-11-05T10:00:00+00:00",
             "published": {
                 "dkp-video-ready": {
                     "ts": now.timestamp(),
@@ -1423,8 +1421,9 @@ class AffilioRadarTests(unittest.TestCase):
             },
         }
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
-        self.assertEqual(compact["youtube_next_upload_at"], state["youtube_next_upload_at"])
-        self.assertEqual(compact["aparat_next_upload_at"], state["aparat_next_upload_at"])
+        self.assertNotIn("youtube_next_upload_at", compact)
+        self.assertNotIn("aparat_next_upload_at", compact)
+        self.assertNotIn("filo_next_upload_at", compact)
         self.assertIn("dkp-video-ready", compact["published"])
         self.assertNotIn("dkp-not-delivered", compact["published"])
         item = compact["published"]["dkp-video-ready"]
@@ -6240,10 +6239,7 @@ class AffilioRadarTests(unittest.TestCase):
             "youtube_upload_status": "pending",
             "aparat_upload_status": "pending",
         }
-        state = {
-            "published": {pid: record},
-            "youtube_next_upload_at": (now + timedelta(hours=1)).isoformat(),
-        }
+        state = {"published": {pid: record}}
 
         with (
             TemporaryDirectory() as output_dir,
@@ -6255,7 +6251,9 @@ class AffilioRadarTests(unittest.TestCase):
             patch("short_video.render_short_video") as render,
             patch("aparat_uploader.upload_aparat_video") as upload_aparat,
         ):
-            self.assertFalse(process_pending_short_video(state, now=now, output_dir=output_dir))
+            self.assertFalse(process_pending_short_video(
+                state, now=now, output_dir=output_dir, destinations={"aparat"}
+            ))
 
         fetch_image.assert_not_called()
         render.assert_not_called()
