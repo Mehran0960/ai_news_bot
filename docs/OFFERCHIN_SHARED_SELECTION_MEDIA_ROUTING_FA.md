@@ -100,7 +100,7 @@ OfferChin فقط **یک مسیر انتخاب محصول** دارد. تلگرا�
 
 ## ثبت وضعیت و sidecar
 
-`build_video_upload_dispatch_state` فقط projection کوچک موردنیاز Worker را می‌سازد. رکوردهای canonical منتخب، حتی با وضعیت تصویری `pending`، با `video_dispatch_eligible=true` در این sidecar قرار می‌گیرند. Worker هر دقیقه فقط Workflow واحد ویدئویی را dispatch می‌کند؛ خود Workflow هر سه صف FIFO را به‌ترتیب اجرا می‌کند. timestamp قدیمی و retry timestampهای legacy دیگر سبب تعویق نیستند. وضعیت‌های terminal نظیر `skipped_after_retries`، `skipped_unavailable` و `skipped_platform_limit` دوباره dispatch نمی‌شوند.
+`build_video_upload_dispatch_state` فقط projection کوچک موردنیاز Worker را می‌سازد. فقط رکوردهای canonical دارای مقصد واقعاً pending وارد sidecar می‌شوند؛ رکوردهای terminal فضا نمی‌گیرند و حداکثر پنجرهٔ ۲۵۰تایی با قدیمی‌ترین محصول pending آغاز می‌شود. اسکن Python نیز ابتدا terminalها را فیلتر و سپس سقف ۲۵۰تایی را روی FIFO قدیمی‌ترین‌ها اعمال می‌کند. Worker هر دقیقه فقط Workflow واحد ویدئویی را dispatch می‌کند؛ خود Workflow هر سه صف FIFO را به‌ترتیب اجرا می‌کند. timestamp قدیمی و retry timestampهای legacy دیگر سبب تعویق نیستند. وضعیت‌های terminal نظیر `skipped_after_retries`، `skipped_unavailable` و `skipped_platform_limit` دوباره dispatch نمی‌شوند.
 
 Dispatch به‌معنی انتشار عمومی نیست. وضعیت‌های `uploaded`، `submitted_pending_approval`، `public`، `upload_result_unknown` و `rejected` باید از هم تفکیک شوند. یکسان بودن دقیق کپشن، قالب و رسانهٔ خلاقه ترجیح ظاهری است؛ الزام سخت فقط یکسان ماندن شناسه و ترتیب محصولات است.
 
