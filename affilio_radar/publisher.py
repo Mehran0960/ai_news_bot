@@ -189,6 +189,9 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
     same_delivery = isinstance(old, dict) and str(old.get("distribution_queue_id") or "") == delivery_id
     record = {
         "ts": now.timestamp(),
+        "content_type": str(item.get("content_type") or "product"),
+        "content_id": str(item.get("content_id") or item.get("product_id") or ""),
+        "sequence_number": item.get("sequence_number"),
         "title": str(item.get("title") or "پیشنهاد منتخب آفرچین"),
         "brand": str(item.get("brand") or item.get("brand_name") or ""),
         "publication_category": radar._publication_diversity_group(item)[0],
@@ -629,6 +632,23 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
     _save(state)
 
 
+def editorial_fifo_lock_entry(state: dict) -> dict | None:
+    """Return the oldest editorial lock only while public editorial publishing is enabled."""
+    enabled = os.getenv("OFFERCHIN_EDITORIAL_PUBLISH_ENABLED", "false").strip().lower() in {
+        "1", "true", "yes", "on"
+    }
+    if not enabled:
+        return None
+    queue = state.get("editorial_delivery_queue")
+    active = [
+        value for value in (queue.values() if isinstance(queue, dict) else [])
+        if isinstance(value, dict) and value.get("status") not in {"completed", "cancelled", "failed"}
+    ]
+    if not active:
+        return None
+    return min(active, key=lambda value: int(value.get("sequence_number") or 0))
+
+
 def publish_due_queue(_fallback_depth: int = 0) -> int:
     validate_registry()
     state = radar.load_state(apply_integrity_ledger=False)
@@ -636,6 +656,15 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         _save(state)
         print("PUBLISHER_INTEGRITY_LEDGER_APPLIED")
     now = _now()
+    oldest_editorial = editorial_fifo_lock_entry(state)
+    if oldest_editorial:
+        print(
+            "PUBLISHER_EDITORIAL_FIFO_LOCK "
+            f"content_id={oldest_editorial.get('content_id', 'unknown')} "
+            f"sequence={oldest_editorial.get('sequence_number', 'unknown')}; "
+            "newer product selections remain queued until editorial destinations are terminal"
+        )
+        return 0
     catalog_context = radar.publication_catalog_context()
     evicted = enforce_queue_limit(state, now=now)
     if evicted:
@@ -775,6 +804,11 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             print(f"CONTENT_REVALIDATION_DEFERRED product_id={product_id} reason={reason}")
             continue
 
+        # The product-detail API response is a fresh SKU snapshot, not the hand-off
+        # envelope. Reattach immutable queue identity/order before creating a video record.
+        fresh["content_type"] = "product"
+        fresh["content_id"] = str(entry.get("content_id") or payload.get("content_id") or product_id)
+        fresh["sequence_number"] = entry.get("sequence_number") or payload.get("sequence_number")
         old = state.get("published", {}).get(product_id)
         if not isinstance(old, dict):
             old = {}
