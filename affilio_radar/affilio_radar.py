@@ -4890,9 +4890,8 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    if isinstance(state, dict):
-        # Migrate the legacy three-hour Filo slot while building the sidecar;
-        # Cloudflare reads this projection before dispatching the Python workflow.
+    # The sidecar is retained for audit/diagnostics only. Video dispatch now runs
+    # directly in publisher.py and has no platform-specific time slots or login-age gate.
     published = state.get("published") if isinstance(state, dict) else {}
     candidates = []
     if isinstance(published, dict):
@@ -4943,14 +4942,6 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         "schema_version": 1,
         "generated_at": current.isoformat(),
         "last_channel_published_at": value("last_channel_published_at"),
-        "youtube_next_upload_at": value("youtube_next_upload_at"),
-        "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
-        "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
-        "aparat_next_upload_at": value("aparat_next_upload_at"),
-        "filo_next_upload_at": value("filo_next_upload_at"),
-        "filo_upload_interval_policy_version": value("filo_upload_interval_policy_version"),
-        "filo_login_verified_at": value("filo_login_verified_at"),
-        "filo_login_verification_status": value("filo_login_verification_status"),
         "published": compact_published,
     }
 
@@ -9203,19 +9194,6 @@ def repair_persian_text_video_uploads() -> int:
     return 0 if len(repaired) + already_current == len(PERSIAN_TEXT_REPAIR_PRODUCT_IDS) else 1
 
 
-def _next_youtube_daily_upload_retry_at(now: datetime | None = None) -> datetime:
-    """Defer a channel daily-upload-limit error for 24 hours, plus a small safety buffer."""
-    current = now or datetime.now(timezone.utc)
-    if current.tzinfo is None:
-        current = current.replace(tzinfo=timezone.utc)
-    return current.astimezone(timezone.utc) + timedelta(hours=24, minutes=15)
-
-
-def video_deadline_allows_upload(platform: str, verified_expiry: bool) -> bool:
-    """Allow every outlet to use the same live-validated selection; real expiry is checked separately."""
-    return True
-
-
 def _has_video_dispatch_eligibility(record: dict) -> bool:
     """Accept a canonical selected-product event without waiting for a photo destination.
 
@@ -9626,8 +9604,8 @@ def process_pending_short_video(
             print(f"SHORT_VIDEO_SKIP id={pid} reason=inside_expiry_removal_buffer")
             continue
 
-        # Re-enable Youtube items that were previously held only for lacking an expiry
-        # timer. Aparat remains stricter: public Aparat uploads require a verified timer.
+        # Re-enable items previously held only by old deadline policies; actual expiry
+        # safety is evaluated immediately below and applies equally to every destination.
         if generation_status == "skipped_expiring_soon":
             generation_status = "pending"
             record["video_generation_status"] = "pending"
@@ -9642,17 +9620,14 @@ def process_pending_short_video(
             state_changed = True
         if filo_status == "skipped_unverified_deadline":
             # A channel-published offer may have no retailer timer; Filo still gets
-            # the matching video while the 24-hour freshness and expiry checks hold.
+            # the matching video while the genuine expiry safety check still holds.
             filo_status = "pending"
             record["filo_upload_status"] = "pending"
             state_changed = True
 
-        # The shared publisher already completed last-mile price/stock/discount
-        # validation before creating this canonical record. YouTube does not wait for
-        # Telegram/Bale success; the independent integrity audit continues to invalidate
-        # videos when the live offer changes.
-        # Public Aparat still requires a directly verified expiry because its current
-        # cleanup path has weaker recovery guarantees.
+        # The shared publisher completed last-mile price/stock/discount validation before
+        # creating this canonical record. All three video destinations use that same
+        # validation event; only a known, genuinely near-expired offer is blocked below.
         if expiry is None:
             # For ordering only: an open-ended offer is lower urgency than a known expiry.
             # This synthetic value is never saved as a retailer deadline or shown publicly.
@@ -9685,8 +9660,7 @@ def process_pending_short_video(
         )
         manual_artifact_need = (
             # A manual MP4 artifact is a YouTube fallback, not an Aparat destination.
-            # In an Aparat-only run, treating it as work would let unverified-expiry
-            # YouTube items consume the batch before eligible public Aparat candidates.
+            # Manual MP4 export is a fallback artifact, not an additional public destination.
             "youtube" in selected_destinations
             and not youtube_ready
             and upload_status in pending_youtube
@@ -9697,7 +9671,7 @@ def process_pending_short_video(
             review_next and current < review_next
         )
         if not (yt_need or public_aparat_need or shorts_queue_need or filo_need or review_need or manual_artifact_need):
-            # Don't render/select public YouTube content before its next scheduled slot.
+            # No connected destination has a pending attempt for this canonical product.
             continue
         if generation_status == "generated" and not (yt_need or public_aparat_need or shorts_queue_need or filo_need or review_need or manual_artifact_need):
             # A previously generated MP4 has no configured destination needing work.
@@ -9852,8 +9826,7 @@ def process_pending_short_video(
             print(f"TELEGRAM_VIDEO_REVIEW_FAILED id={pid} error={type(exc).__name__}")
         save_json(STATE, state)
 
-    # Aparat public uploads use their own slot and status fields; all errors are caught
-    # locally so they cannot interrupt the YouTube publication attempt below.
+    # Aparat failures are caught locally and cannot interrupt YouTube or Filo.
     aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
     if (
         aparat_ready and aparat_upload_due
@@ -9925,8 +9898,7 @@ def process_pending_short_video(
         print(f"APARAT_SHORTS_QUEUED id={pid} format=9:16 generic_public_upload=disabled")
         save_json(STATE, state)
 
-    # Filo has its own authenticated uploader, status, schedule and failure boundary.
-    # It is isolated from both YouTube quota errors and Aparat API failures.
+    # Filo uses the same selected-product event with its own credentials and failure boundary.
     filo_status = str(record.get("filo_upload_status") or "pending_credentials")
     if filo_ready and filo_upload_due and filo_status in pending_filo and not filo_in_flight:
         filo_started_at = datetime.now(timezone.utc)
@@ -10006,7 +9978,7 @@ def process_pending_short_video(
                 print(f"FILO_UPLOAD_FAILED id={pid} error={type(exc).__name__} retry_attempt={attempts}")
         save_json(STATE, state)
 
-    # Existing official YouTube upload stays independent from Aparat and Filo.
+    # YouTube uses the same selected-product event and preserves its own result status.
     upload_status = str(record.get("youtube_upload_status") or "pending_credentials")
     if youtube_upload_due and upload_status in pending_youtube:
         record["youtube_upload_status"] = "uploading"
