@@ -10077,7 +10077,7 @@ def process_pending_short_video(
         save_json(STATE, state)
         try:
             aparat_result = upload_aparat_video(
-                render_for_destination("aparat"),
+                output_path if preferred_destination == "aparat" else render_for_destination("aparat"),
                 str(record.get("title") or "پیشنهاد آفِرچین"),
                 description=build_video_channel_description(state, "aparat", record=record),
             )
@@ -10160,7 +10160,7 @@ def process_pending_short_video(
         save_json(STATE, state)
         try:
             filo_result = upload_filo_video(
-                render_for_destination("filo"),
+                output_path if preferred_destination == "filo" else render_for_destination("filo"),
                 str(record.get("title") or "پیشنهاد ویژه دیجی‌کالا"),
                 build_video_channel_description(state, "filo", record=record),
             )
@@ -10255,7 +10255,7 @@ def process_pending_short_video(
         save_json(STATE, state)
         try:
             result = upload_youtube_video(
-                render_for_destination("youtube"),
+                output_path if preferred_destination == "youtube" else render_for_destination("youtube"),
                 str(record.get("title") or "پیشنهاد آفِرچین"),
                 record.get("posted_discount_percent"),
                 description=build_video_channel_description(state, "youtube", record=record),
