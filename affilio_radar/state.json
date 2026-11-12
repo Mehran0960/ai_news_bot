@@ -384558,13 +384558,21 @@
       "ts": 1794412018.80082,
       "video_file_name": "offerchin-dkp-10671811.mp4",
       "video_file_names": {
-        "filo": "offerchin-dkp-10671811.mp4"
+        "filo": "offerchin-dkp-10671811.mp4",
+        "youtube": "offerchin-dkp-10671811.mp4"
       },
-      "video_generated_at": "2026-11-12T01:07:04.230532+00:00",
+      "video_generated_at": "2026-11-12T13:59:38.937160+00:00",
       "video_generation_status": "generated",
       "video_style_version": 7,
-      "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-12T13:59:45.458086+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-12T13:59:47.748811+00:00",
+      "youtube_video_id": "QpsDa1YkPyY",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/QpsDa1YkPyY",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-10694202": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -407047,7 +407055,7 @@
       },
       "delivery_version": 1,
       "demand_score": 48,
-      "expires_at": "2026-11-13T20:31:06.945714+00:00",
+      "expires_at": "2026-11-13T20:30:00.970622+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -421011,7 +421019,7 @@
       },
       "delivery_version": 1,
       "demand_score": 49,
-      "expires_at": "2026-11-13T20:31:06.945714+00:00",
+      "expires_at": "2026-11-13T20:30:00.970622+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -444558,7 +444566,7 @@
       "youtube_upload_status": "skipped_unverified_deadline"
     },
     "dkp-3995841": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "skipped_expiring_soon",
       "bale_expired_deleted_at": "2026-11-12T10:59:23.441672+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1925,
@@ -444747,10 +444755,10 @@
         "filo": "offerchin-dkp-3995841.mp4"
       },
       "video_generated_at": "2026-11-12T09:00:29.315419+00:00",
-      "video_generation_status": "generated",
+      "video_generation_status": "skipped_expiring_soon",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending_credentials"
+      "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-4008857": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -453738,7 +453746,7 @@
       "discount_vs_30d_median_pct": 0,
       "distribution_queue_id": "dkp-8720946:2026-11-09T04:51:14.194185+00:00",
       "expired_deleted_at": "2026-11-09T17:13:29.197927+00:00",
-      "expires_at": "2026-11-12T20:31:06.945714+00:00",
+      "expires_at": "2026-11-12T20:30:00.970622+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -466675,7 +466683,7 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 15,
   "snappshop_retry_after": "2026-11-13T10:19:22.710996+00:00",
-  "youtube_last_upload_success_at": "2026-11-12T10:53:22.166409+00:00",
-  "youtube_next_upload_at": "2026-11-12T13:53:22.166409+00:00",
+  "youtube_last_upload_success_at": "2026-11-12T13:59:47.748811+00:00",
+  "youtube_next_upload_at": "2026-11-12T16:59:47.748811+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
