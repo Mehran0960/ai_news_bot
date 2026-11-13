@@ -212,6 +212,49 @@ def _has_channel_success(entry: dict) -> bool:
     )
 
 
+def next_product_start_at(
+    state: dict,
+    *,
+    now: datetime,
+    interval_minutes: int = DEFAULT_INTERVAL_MINUTES,
+) -> datetime:
+    """Keep the earliest future product reservation anchored across repeated re-plans."""
+    current = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    interval = timedelta(minutes=max(1, int(interval_minutes)))
+    last_channel = parse_utc(state.get("last_channel_published_at"))
+    start = max(current, last_channel + interval) if last_channel else current
+    queue = state.get("content_delivery_queue")
+    rows = [
+        row for row in (queue.values() if isinstance(queue, dict) else [])
+        if isinstance(row, dict)
+        and row.get("status") not in {"published", "cancelled", "stale_selection"}
+        and not _has_channel_success(row)
+    ]
+
+    due_retry = False
+    due_unattempted = False
+    future_unattempted = []
+    for row in rows:
+        scheduled = parse_utc(row.get("scheduled_at"))
+        if scheduled is None or scheduled <= start:
+            if int(row.get("attempt_count") or 0) > 0:
+                due_retry = True
+            else:
+                due_unattempted = True
+        elif int(row.get("attempt_count") or 0) == 0:
+            future_unattempted.append(scheduled)
+
+    if due_retry and not due_unattempted:
+        # A previously attempted product owns this slot until its retry is resolved.
+        return start + interval
+    if due_unattempted:
+        return start
+    if future_unattempted:
+        return max(start, min(future_unattempted))
+    return start
+
+
 def apply_product_publication_schedule(
     state: dict,
     *,
@@ -242,10 +285,13 @@ def apply_product_publication_schedule(
             continue
         active.append((str(product_id), entry))
 
-    last_channel = parse_utc(state.get("last_channel_published_at"))
     current = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    start = max(current, last_channel + timedelta(minutes=interval_minutes)) if last_channel else current
+    start = next_product_start_at(
+        state,
+        now=current,
+        interval_minutes=interval_minutes,
+    )
 
     plan = spread_product_slots(
         [product_id for product_id, _entry in active],
@@ -265,6 +311,24 @@ def apply_product_publication_schedule(
         entry["publication_plan_slot_index"] = item["slot_index"]
         entry["publication_plan_scan_deadline_at"] = scan_deadline.astimezone(timezone.utc).isoformat()
 
+    # If the scan horizon contracts or the selected set grows beyond the number
+    # of remaining slots, retain overflow in the queue after the in-window plan.
+    # It is not silently dropped, and editorial must not consume an already-full
+    # product schedule.
+    overflow_ids = plan["deferred_ids"]
+    last_scheduled = (
+        parse_utc(plan["items"][-1]["scheduled_at"])
+        if plan["items"] else start - timedelta(minutes=interval_minutes)
+    )
+    for offset, product_id in enumerate(overflow_ids, start=1):
+        entry = by_id[product_id]
+        scheduled = last_scheduled + timedelta(minutes=interval_minutes * offset)
+        entry["scheduled_at"] = scheduled.isoformat()
+        entry["next_attempt_at"] = scheduled.isoformat()
+        entry["publication_plan_cycle_id"] = str(cycle_id)
+        entry["publication_plan_overflow"] = True
+        entry["publication_plan_scan_deadline_at"] = scan_deadline.astimezone(timezone.utc).isoformat()
+
     summary = {
         "schema_version": 1,
         "cycle_id": str(cycle_id),
@@ -276,8 +340,12 @@ def apply_product_publication_schedule(
         "product_count": plan["planned_count"],
         "product_candidates_seen": plan["candidate_count"],
         "deferred_product_ids": plan["deferred_ids"],
+        "product_capacity_deficit": len(plan["deferred_ids"]),
         "product_spacing_minutes": plan["product_spacing_minutes"],
-        "editorial_slots_available": max(0, plan["available_slots"] - plan["planned_count"]),
+        "editorial_slots_available": (
+            max(0, plan["available_slots"] - plan["planned_count"])
+            if not plan["deferred_ids"] else 0
+        ),
     }
     state["publication_mix_plan"] = summary
     return summary
