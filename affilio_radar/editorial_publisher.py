@@ -64,25 +64,58 @@ def _load_bank() -> list[dict]:
     return value
 
 
-def _active_editorial_entries(state: dict) -> list[dict]:
+def _entry_has_pending_destinations(entry: dict, destinations: tuple[str, ...]) -> bool:
+    platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+    return any(
+        not (
+            isinstance(platforms.get(name), dict)
+            and platforms[name].get("status") in TERMINAL
+        )
+        for name in destinations
+    )
+
+
+def _active_editorial_entries(
+    state: dict,
+    *,
+    mode: str = "channels",
+) -> list[dict]:
     queue = state.get("editorial_delivery_queue")
     if not isinstance(queue, dict):
         return []
+    destinations = CHANNEL_DESTINATIONS if mode == "channels" else VIDEO_DESTINATIONS
     rows = [
         row for row in queue.values()
-        if isinstance(row, dict) and row.get("status") not in {"completed", "cancelled", "failed"}
+        if isinstance(row, dict)
+        and row.get("status") not in {"completed", "cancelled", "failed"}
+        and _entry_has_pending_destinations(row, destinations)
     ]
     return sorted(rows, key=lambda row: int(row.get("sequence_number") or 0))
 
 
-def _pending_product_video_exists(state: dict) -> bool:
+def _pending_product_video_exists(
+    state: dict,
+    *,
+    before_sequence: int | None = None,
+) -> bool:
     published = state.get("published")
     if not isinstance(published, dict):
         return False
     checker = getattr(radar, "_has_pending_video_destination", None)
     if not callable(checker):
         return False
-    return any(checker(row) for row in published.values() if isinstance(row, dict))
+    for row in published.values():
+        if not isinstance(row, dict) or not checker(row):
+            continue
+        if before_sequence is None:
+            return True
+        try:
+            sequence = int(row.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            sequence = 0
+        if sequence and sequence < int(before_sequence):
+            return True
+    return False
 
 
 def _recent_attempt_anchor(state: dict) -> datetime | None:
@@ -113,7 +146,7 @@ def queue_editorial_if_due(
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
 
-    active = _active_editorial_entries(state)
+    active = _active_editorial_entries(state, mode="channels")
     if active:
         return active[0]
 
@@ -165,10 +198,6 @@ def queue_editorial_if_due(
             f"due_products={len(due_unpublished_products)}"
         )
         return None
-    if _pending_product_video_exists(state):
-        print("EDITORIAL_FALLBACK_WAIT reason=older_product_video_fifo_pending")
-        return None
-
     anchor = _recent_attempt_anchor(state)
     if anchor and current - anchor < timedelta(minutes=MINIMUM_GAP_MINUTES):
         remaining = max(0, int((timedelta(minutes=MINIMUM_GAP_MINUTES) - (current - anchor)).total_seconds()))
@@ -709,7 +738,8 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         else:
             invalid_items.append({"editorial_id": str(item.get("editorial_id") or ""), "reason": reason})
 
-    active = _active_editorial_entries(state)
+    active = _active_editorial_entries(state, mode="channels")
+    active_video_entries = _active_editorial_entries(state, mode="videos")
     product_queue = state.get("content_delivery_queue")
     active_products = [
         row for row in (product_queue.values() if isinstance(product_queue, dict) else [])
@@ -793,7 +823,8 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "editorial_bank_total": len(bank),
         "editorial_bank_valid": len(valid_items),
         "editorial_bank_invalid": invalid_items,
-        "active_editorial_queue_items": len(active),
+        "active_editorial_channel_items": len(active),
+        "active_editorial_video_items": len(active_video_entries),
         "active_product_photo_queue_items": len(active_products),
         "older_product_video_pending": bool(pending_videos),
         "destination_credentials_present": destination_config,
@@ -813,7 +844,11 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
     current = now or _now()
     state = radar.load_state(apply_integrity_ledger=False)
     bank = _load_bank()
-    entry = queue_editorial_if_due(state, bank, now=current)
+    if mode == "channels":
+        entry = queue_editorial_if_due(state, bank, now=current)
+    else:
+        video_entries = _active_editorial_entries(state, mode="videos")
+        entry = video_entries[0] if video_entries else None
     if publish:
         # Persist the canonical id and allocated sequence before rendering or any
         # outbound request, so a runner restart cannot allocate a duplicate sequence.
@@ -841,8 +876,15 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         for destination in CHANNEL_DESTINATIONS:
             _handle_channel_destination(state, entry, destination, image_bytes, message, _now())
     else:
-        # Keep all older product videos ahead of a newer editorial video.
-        if _pending_product_video_exists(state):
+        # Keep only chronologically older product videos ahead of this editorial.
+        try:
+            editorial_sequence = int(entry.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            editorial_sequence = 0
+        if _pending_product_video_exists(
+            state,
+            before_sequence=editorial_sequence or None,
+        ):
             print("EDITORIAL_VIDEO_WAIT reason=older_product_video_fifo_pending")
             _save(state)
             return 0
