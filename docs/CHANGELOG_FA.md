@@ -6,11 +6,11 @@
 
 **هدف:** استفاده از آمار واقعی کلیک، سبد درآمد، درآمد تأییدشده/درحال‌بررسی و عملکرد محصول/رسانه برای تصمیم‌های OfferChin؛ عدم تفسیر مقدار null گزارش محلی به‌عنوان فروش صفر.
 
-**تغییر/اقدام:** شاخهٔ audit/affilio-dashboard-readonly ایجاد شد؛ workflow فقط‌خواندنی، اسکریپت Playwright برای ورود SSO و دریافت endpointهای گزارش، و اسکریپت‌های رمزگذاری/رمزگشایی artifact ساخته شدند. بعد از تشخیص اینکه مخزن عمومی است، ذخیرهٔ artifact خام متوقف شد: workflow جدید گزارش را با AES-256-GCM و کلید مشتق‌شده از AFFILIO_PASS رمز می‌کند و فقط ciphertext یک‌روزه را ذخیره می‌کند. plaintext از runner پاک می‌شود. رمزگشایی فقط به‌صورت محلی توسط کاربر انجام می‌شود.
+**تغییر/اقدام:** شاخهٔ audit/affilio-dashboard-readonly ایجاد شد؛ workflow فقط‌خواندنی، اسکریپت Playwright برای ورود SSO و دریافت endpointهای گزارش، و اسکریپت‌های رمزگذاری/رمزگشایی artifact ساخته شدند. بعد از تشخیص اینکه مخزن عمومی است، ذخیرهٔ artifact خام متوقف شد: workflow جدید گزارش را با AES-256-GCM و کلید مشتق‌شده از AFFILIO_PASS رمز می‌کند و فقط ciphertext هفت‌روزه را ذخیره می‌کند. پس از ادغام، اجرای روزانه ساعت ۰۹:۳۰ به وقت ایران برنامه‌ریزی شده است. plaintext از runner پاک می‌شود. رمزگشایی فقط به‌صورت محلی توسط کاربر انجام می‌شود.
 
 **فایل‌ها/سامانه‌ها:** .github/workflows/affilio-dashboard-readonly.yml، scripts/audit_affilio_dashboard.mjs، scripts/encrypt_affilio_dashboard_report.mjs، scripts/decrypt_affilio_dashboard_report.mjs، affilio_radar/AFFILIO_REPORTING_ACCESS.md، docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md؛ GitHub Secrets: AFFILIO_USER و AFFILIO_PASS.
 
-**آزمون و نتیجه:** ورود SSO موفق؛ run 43398019426 و run 43398655439 موفق. run دوم دریافت ۲۸ پاسخ JSON از api.affilio.ir را ثبت کرد. پیشخوان در بازهٔ ۱۶ تا ۲۲ آبان ۱۴۰۵ باز بود. خلاصهٔ آمار و محصولات پردرآمد استخراج شد؛ مسیر عملکرد لینک‌ها شناسایی شد اما جدول‌های تفکیک رسانه/لینک هنوز کامل نشده‌اند. اجرای بعدی پس از رمزگذاری در انتظار تأیید است.
+**آزمون و نتیجه:** ورود SSO موفق؛ run 43398019426 و run 43398655439 موفق. run دوم دریافت ۲۸ پاسخ JSON از api.affilio.ir را ثبت کرد. پیشخوان در بازهٔ ۱۶ تا ۲۲ آبان ۱۴۰۵ باز بود. خلاصهٔ آمار و محصولات پردرآمد استخراج شد؛ مسیر عملکرد لینک‌ها شناسایی شد اما جدول‌های تفکیک رسانه/لینک هنوز کامل نشده‌اند. اجرای رمزگذاری‌شدهٔ run 43399968220 با موفقیت انجام شد؛ artifact خروجی فقط ciphertext است و هیچ دادهٔ مالی خوانا در آن ذخیره نمی‌شود.
 
 **شواهد/شناسه:** شاخه audit/affilio-dashboard-readonly؛ script commit 60c49361fba7cacf9298ef831726dc6a16fba053؛ workflow security commit 79fb1bf065c283ce530b4ccfb227203dc99f3e6f؛ runهای 43398019426 و 43398655439.
 
