@@ -85,14 +85,31 @@ def _active_editorial_entries(state: dict) -> list[dict]:
     return sorted(rows, key=lambda row: int(row.get("sequence_number") or 0))
 
 
-def _pending_product_video_exists(state: dict) -> bool:
+def _pending_product_video_exists(
+    state: dict,
+    *,
+    before_sequence_number: int | None = None,
+) -> bool:
+    """Check only product videos that precede a given editorial FIFO sequence."""
     published = state.get("published")
     if not isinstance(published, dict):
         return False
     checker = getattr(radar, "_has_pending_video_destination", None)
     if not callable(checker):
         return False
-    return any(checker(row) for row in published.values() if isinstance(row, dict))
+    for row in published.values():
+        if not isinstance(row, dict) or not checker(row):
+            continue
+        if before_sequence_number is None:
+            return True
+        try:
+            product_sequence = int(row.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            product_sequence = 0
+        # Missing legacy sequence numbers are conservatively treated as older.
+        if product_sequence <= 0 or product_sequence < before_sequence_number:
+            return True
+    return False
 
 
 def _recent_attempt_anchor(state: dict) -> datetime | None:
@@ -137,9 +154,8 @@ def queue_editorial_if_due(
     ):
         print("EDITORIAL_FALLBACK_WAIT reason=product_photo_fifo_not_terminal")
         return None
-    if _pending_product_video_exists(state):
-        print("EDITORIAL_FALLBACK_WAIT reason=older_product_video_fifo_pending")
-        return None
+    # Product videos may still be pending, but that must not reserve a photo-channel
+    # slot. The editorial's later video pass independently waits for older sequences.
 
     try:
         product_posts_since_editorial = max(
@@ -804,10 +820,6 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         decision = "wait_for_older_product_photo_fifo"
         item_id = None
         sequence = None
-    elif pending_videos:
-        decision = "wait_for_older_product_video_fifo"
-        item_id = None
-        sequence = None
     elif products_until_editorial:
         decision = "wait_for_product_post_quota"
         item_id = None
@@ -850,7 +862,8 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "editorial_bank_invalid": invalid_items,
         "active_editorial_queue_items": len(active),
         "active_product_photo_queue_items": len(active_products),
-        "older_product_video_pending": bool(pending_videos),
+        "older_product_video_pending_before_next_editorial": bool(pending_videos),
+        "editorial_video_waits_for_older_product_video_fifo": True,
         "destination_credentials_present": destination_config,
         "platform_quota_and_upload_health_probed": False,
         "state_mutated": False,
@@ -907,7 +920,13 @@ def run_editorial_publisher(
             _handle_channel_destination(state, entry, destination, image_bytes, message, _now())
     else:
         # Keep all older product videos ahead of a newer editorial video.
-        if _pending_product_video_exists(state):
+        try:
+            editorial_sequence = int(entry.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            editorial_sequence = 0
+        if _pending_product_video_exists(
+            state, before_sequence_number=editorial_sequence or None
+        ):
             print("EDITORIAL_VIDEO_WAIT reason=older_product_video_fifo_pending")
             _save(state)
             return 0
