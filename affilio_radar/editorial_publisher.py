@@ -117,6 +117,14 @@ def queue_editorial_if_due(
     if active:
         return active[0]
 
+    mix_plan = state.get("publication_mix_plan")
+    if isinstance(mix_plan, dict) and int(mix_plan.get("product_capacity_deficit") or 0) > 0:
+        print(
+            "EDITORIAL_FALLBACK_WAIT reason=product_plan_over_capacity "
+            f"deferred_products={mix_plan.get('product_capacity_deficit')}"
+        )
+        return None
+
     # Old, never-delivered product selections are retired after the same short
     # reservation window used by the product delivery contract.
     current_plan = state.get("publication_mix_plan")
