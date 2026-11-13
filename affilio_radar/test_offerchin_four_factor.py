@@ -92,30 +92,44 @@ class OfferChinFourFactorTests(unittest.TestCase):
         )
         self.assertEqual(four_factor_sort_key(row), (0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
 
-    def test_affordability_uses_transparent_cash_ticket_anchors(self):
-        self.assertEqual(affordability_absolute_score(100_000), 100)
-        self.assertEqual(affordability_absolute_score(1_000_000), 85)
-        self.assertEqual(affordability_absolute_score(10_000_000), 70)
+    def test_affordability_uses_final_price_as_share_of_household_spending(self):
+        self.assertEqual(affordability_absolute_score(150_000), 100)
+        self.assertEqual(affordability_absolute_score(300_000), 90)
+        self.assertEqual(affordability_absolute_score(600_000), 80)
+        self.assertEqual(affordability_absolute_score(1_200_000), 70)
+        self.assertEqual(affordability_absolute_score(2_400_000), 60)
+        self.assertEqual(affordability_absolute_score(4_800_000), 50)
+        self.assertEqual(affordability_absolute_score(9_600_000), 40)
         self.assertEqual(affordability_absolute_score(0), 0)
 
-    def test_installment_entry_payment_counts_only_when_terms_are_verified(self):
-        unverified = {
+    def test_installment_down_payment_never_replaces_the_final_cash_price(self):
+        cash_only = {
             "current_price": 10_000_000,
             "installment_down_payment_toman": 1_000_000,
             "installment_terms_verified": False,
         }
-        verified = {
-            **unverified,
+        verified_installment = {
+            **cash_only,
             "installment_terms_verified": True,
         }
-        rows = [unverified, verified]
+        rows = [cash_only, verified_installment]
         self._score(rows)
         first, second = rows
-        self.assertEqual(first["offerchin_four_factor"]["affordability_basis"], "cash_price")
-        self.assertEqual(second["offerchin_four_factor"]["affordability_basis"], "verified_installment_down_payment")
-        self.assertGreater(
-            second["offerchin_four_factor"]["affordability"],
+        self.assertEqual(
+            first["offerchin_four_factor"]["affordability_basis"],
+            "final_cash_price_vs_household_spend_proxy",
+        )
+        self.assertEqual(
+            second["offerchin_four_factor"]["affordability_basis"],
+            "final_cash_price_vs_household_spend_proxy",
+        )
+        self.assertEqual(
             first["offerchin_four_factor"]["affordability"],
+            second["offerchin_four_factor"]["affordability"],
+        )
+        self.assertEqual(
+            second["offerchin_four_factor"]["affordability_price_to_monthly_spend_percent"],
+            33.333,
         )
 
     def test_unknown_use_case_is_not_mistaken_for_general_mass_market(self):
