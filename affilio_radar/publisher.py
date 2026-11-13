@@ -633,20 +633,8 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
 
 
 def editorial_fifo_lock_entry(state: dict) -> dict | None:
-    """Return the oldest editorial lock only while public editorial publishing is enabled."""
-    enabled = os.getenv("OFFERCHIN_EDITORIAL_PUBLISH_ENABLED", "false").strip().lower() in {
-        "1", "true", "yes", "on"
-    }
-    if not enabled:
-        return None
-    queue = state.get("editorial_delivery_queue")
-    active = [
-        value for value in (queue.values() if isinstance(queue, dict) else [])
-        if isinstance(value, dict) and value.get("status") not in {"completed", "cancelled", "failed"}
-    ]
-    if not active:
-        return None
-    return min(active, key=lambda value: int(value.get("sequence_number") or 0))
+    """Deprecated compatibility shim: editorial content must never block products."""
+    return None
 
 
 def publish_due_queue(_fallback_depth: int = 0) -> int:
@@ -656,15 +644,6 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         _save(state)
         print("PUBLISHER_INTEGRITY_LEDGER_APPLIED")
     now = _now()
-    oldest_editorial = editorial_fifo_lock_entry(state)
-    if oldest_editorial:
-        print(
-            "PUBLISHER_EDITORIAL_FIFO_LOCK "
-            f"content_id={oldest_editorial.get('content_id', 'unknown')} "
-            f"sequence={oldest_editorial.get('sequence_number', 'unknown')}; "
-            "newer product selections remain queued until editorial destinations are terminal"
-        )
-        return 0
     catalog_context = radar.publication_catalog_context()
     evicted = enforce_queue_limit(state, now=now)
     if evicted:
