@@ -17,7 +17,7 @@ MIN_PRICE_COHORT_SIZE = 8
 # It is a conservative public purchasing-power proxy, not an individual's disposable income.
 AFFORDABILITY_REFERENCE_MONTHLY_INCOME_TOMAN = 16_625_550
 AFFORDABILITY_REFERENCE_BASIS = "iran_1405_minimum_base_wage_30day_month"
-AFFORDABILITY_FULL_SCORE_PRICE_SHARE = 0.03
+AFFORDABILITY_FULL_SCORE_PRICE_SHARE = 0.01
 AFFORDABILITY_LOG_SENSITIVITY = 25.0
 # A weak discount cannot be compensated for by demand, affordability or generality.
 MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE = 40.0
