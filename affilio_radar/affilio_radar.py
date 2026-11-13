@@ -9393,6 +9393,19 @@ def _video_upload_candidate_sort_key(row: tuple) -> tuple:
     return (timestamp, sequence_number or 2**63 - 1, product_id_value)
 
 
+def _video_record_sequence_for_fifo(record: dict) -> int:
+    try:
+        value = int(record.get("sequence_number") or 0)
+    except (TypeError, ValueError, OverflowError):
+        value = 0
+    if value > 0:
+        return value
+    try:
+        return max(0, int(float(record.get("ts") or 0)))
+    except (TypeError, ValueError, OverflowError):
+        return 0
+
+
 def oldest_pending_editorial_video_sequence(state: dict) -> int | None:
     """Return the earliest editorial video barrier after a confirmed channel post."""
     queue = state.get("editorial_delivery_queue") if isinstance(state, dict) else {}
@@ -9724,10 +9737,7 @@ def process_pending_short_video(
         )
         and (
             editorial_video_barrier is None
-            or (
-                int(record.get("sequence_number") or record.get("ts") or 0)
-                < editorial_video_barrier
-            )
+            or _video_record_sequence_for_fifo(record) < editorial_video_barrier
         )
     ]
     if editorial_video_barrier is not None and not candidate_records:
