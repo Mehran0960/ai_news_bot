@@ -2942,6 +2942,51 @@ class AffilioRadarTests(unittest.TestCase):
             int(now.timestamp()),
         )
 
+    def test_optional_only_editorial_channel_send_does_not_start_video_fifo(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:rubika-only": {
+                    "sequence_number": 100,
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "not_connected"},
+                        "bale": {"status": "not_connected"},
+                        "rubika": {"status": "sent"},
+                        "youtube": {"status": "pending"},
+                    },
+                }
+            }
+        }
+        self.assertIsNone(radar_module.oldest_pending_editorial_video_sequence(state))
+        sidecar = radar_module.build_video_upload_dispatch_state(
+            state,
+            now=datetime(2026, 11, 13, 12, 0, tzinfo=timezone.utc),
+        )
+        self.assertEqual(sidecar["editorial_delivery_queue"], {})
+
+    def test_primary_editorial_channel_send_projects_video_fifo_to_worker(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:primary-sent": {
+                    "sequence_number": 200,
+                    "scheduled_at": "2026-11-13T12:00:00+00:00",
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "not_connected"},
+                        "youtube": {"status": "pending"},
+                        "aparat": {"status": "not_connected"},
+                        "filo": {"status": "manual_review"},
+                    },
+                }
+            }
+        }
+        sidecar = radar_module.build_video_upload_dispatch_state(
+            state,
+            now=datetime(2026, 11, 13, 12, 0, tzinfo=timezone.utc),
+        )
+        self.assertIn("editorial:primary-sent", sidecar["editorial_delivery_queue"])
+
     def test_terminal_editorial_video_does_not_block_product_fifo(self):
         state = {
             "editorial_delivery_queue": {
