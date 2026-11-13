@@ -38,6 +38,8 @@ except ImportError:
         acknowledge_catalog_candidates_handoff,
         defer_catalog_candidates_handoff,
         discover_categories,
+        refresh_categories,
+        CatalogSweepError,
         extract_categories,
         extract_product_rows,
         extract_total_pages,
