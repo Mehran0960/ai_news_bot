@@ -1916,3 +1916,19 @@
 **ریسک/بازگشت:** گیت جدید تعداد کاندیدهای واجد شرایط را کاهش می‌دهد؛ این رفتار عمدی است و جای آن با تحریریهٔ منبع‌دار یا فاصلهٔ خالی پر می‌شود، نه تخفیف ضعیف. taxonomy cache فقط تا ۹۶ ساعت مجاز است و snapshot سالم قبلی را به‌عنوان چرخهٔ جدید جا نمی‌زند. در صورت اثر بیش‌ازحد، threshold با backtest روی خرید/کمیسیون واقعی تنظیم شود؛ درصد تخفیف به‌تنهایی پایین آورده نشود.
 
 **وضعیت:** پیاده‌سازی و تست‌ها روی شاخه؛ CI و تأیید آمار واقعی پس از ادغام در انتظار.
+
+## ۲۰۲۶-۱۱-۱۳ — آماده‌سازی Conversion Postback افیلیو و انتساب SubID
+
+**هدف:** سنجش سفارش واقعی، مبلغ فروش و کمیسیون تأییدشده به تفکیک محصول و رسانه؛ تفکیک این داده‌ها از کلیک و جلوگیری از دوباره‌شماری retryهای افیلیو.
+
+**تغییر/اقدام:** endpointهای Worker برای POST /affilio/postback و GET /affilio/report اضافه شدند. postback با X-Affilio-Token و گزارش با Bearer token مستقل محافظت می‌شوند. جدول D1 affilio_conversions رخدادها را با کلید یکتای conversion_id + status نگه می‌دارد؛ latest-state با timestamp انتخاب می‌شود. لینک‌های CTA پارامتر aff_sub و UTM مخصوص medium می‌گیرند، بدون عبور مسیر خرید از دامنهٔ OfferChin. مستندات رسمی postback، سؤالات cookie/attribution و محدودیت‌های استفاده از media link به‌روز شدند.
+
+**فایل‌ها/سامانه‌ها:** affilio_radar/affiliate-deal-radar-worker.js، affilio_radar/test_affiliate_deal_radar_worker.mjs، affilio_radar/affilio_radar.py، affilio_radar/test_affilio.py، affilio_radar/migrations/0001_affilio_conversions.sql، affilio_radar/AFFILIO_REPORTING_ACCESS.md، docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md.
+
+**آزمون و نتیجه:** تست‌های postback authentication، payload validation، duplicate idempotency، pending→approved، رخداد out-of-order و گزارش به تفکیک source/product/aff_sub افزوده شدند. اجرای CI در PR پس از ایجاد انجام می‌شود.
+
+**شواهد/شناسه:** branch feat/affilio-conversion-postback-d1-attribution-20261113; commits 6c375772ea074e1af9edd666a65f358e81951b61, 4934dbb86657227cb397fb080e64cfa7a307fa14, 629d167aa44e45a450f7f86beb5c0e962d059a92.
+
+**ریسک/بازگشت:** binding فعلی Worker فقط CLICKS است؛ D1 و secrets باید صریحاً پیکربندی شوند. پشتیبانی باید endpoint را ثبت و توکن را صادر کند؛ cookie duration، overwrite attribution و media_uidها هنوز تأیید نشده‌اند. تا آن زمان هیچ endpoint جدیدی deploy نمی‌شود و هیچ خریدی از روی کلیک تخمین زده نمی‌شود.
+
+**وضعیت:** پیاده‌سازی روی شاخه؛ CI، تأیید افیلیو، migration، binding، secrets و end-to-end test در انتظار.
