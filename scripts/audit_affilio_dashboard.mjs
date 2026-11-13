@@ -364,18 +364,29 @@ try {
             const tabCount = await tab.count().catch(() => 0);
             const suffix = label === "فاکتورها" ? "invoices" :
               label === "جزئیات درآمد" ? "details" : "overview";
-            if (tabCount === 0) {
-              output.notes.push("Read-only tab not found: " + suffix);
-              output.pages.push({
-                label: "tab_diagnostic_" + suffix,
-                url: safePath(page.url()),
-                exact_text_matches: []
-              });
-              continue;
-            }
             const beforeUrl = safePath(page.url());
             const beforeMatch = await inspectExactVisibleText(page, label).catch(() => []);
-            const clickResult = await tab.click({ timeout: 4000 }).then(() => "clicked").catch(error => "click_failed:" + String(error?.name || "Error"));
+            let clickResult = "not_found";
+            if (tabCount > 0) {
+              clickResult = await tab.click({ timeout: 4000 })
+                .then(() => "playwright_locator_clicked")
+                .catch(error => "locator_click_failed:" + String(error?.name || "Error"));
+            } else if (beforeMatch.length > 0) {
+              clickResult = await page.evaluate(target => {
+                const normalized = value => String(value || "").trim().replace(/\s+/g, " ");
+                const candidates = [...document.querySelectorAll("body *")]
+                  .filter(el => el.childElementCount === 0 && normalized(el.textContent) === target)
+                  .filter(el => {
+                    const rect = el.getBoundingClientRect();
+                    const style = getComputedStyle(el);
+                    return rect.width > 0 && rect.height > 0 && style.visibility !== "hidden" && style.display !== "none";
+                  });
+                const element = candidates[candidates.length - 1];
+                if (!element) return "visible_exact_text_not_clickable";
+                element.click();
+                return "dom_leaf_click_dispatched";
+              }, label).catch(error => "dom_click_failed:" + String(error?.name || "Error"));
+            }
             await page.waitForTimeout(1800);
             const afterUrl = safePath(page.url());
             const afterMatch = await inspectExactVisibleText(page, label).catch(() => []);
@@ -387,6 +398,7 @@ try {
               exact_text_matches_before: beforeMatch,
               exact_text_matches_after: afterMatch
             });
+            if (clickResult === "not_found") output.notes.push("Read-only tab not found: " + suffix);
             await snapshotPage(page, (target.url.includes("/performance") ? "performance_tab_" : "income_tab_") + suffix);
           }
         }
