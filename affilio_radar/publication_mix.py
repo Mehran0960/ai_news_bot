@@ -17,7 +17,7 @@ STATUS_PATH = ROOT / "catalog_sweep_status.json"
 DEFAULT_INTERVAL_MINUTES = 27
 DEFAULT_SCAN_HORIZON_HOURS = 30
 MAX_SCAN_HORIZON_HOURS = 72
-DEFAULT_QUEUE_LIMIT = 100
+DEFAULT_QUEUE_LIMIT = 250
 
 
 def parse_utc(value: Any) -> datetime | None:
