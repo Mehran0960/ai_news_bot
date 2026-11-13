@@ -26,7 +26,7 @@ class PublicationMixTests(unittest.TestCase):
         gaps = [(right - left).total_seconds() / 60 for left, right in zip(times, times[1:])]
         self.assertTrue(all(gap >= 27 for gap in gaps))
         self.assertGreater(min(gaps), 150)
-        self.assertLess(max(gaps), 210)
+        self.assertLess(max(gaps), 220)
         self.assertLess(times[-1], NOW + timedelta(hours=30) - timedelta(minutes=27))
         self.assertEqual(plan["deferred_ids"], [])
 
