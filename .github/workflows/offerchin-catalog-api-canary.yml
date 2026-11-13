@@ -90,17 +90,23 @@ jobs:
               ("v1_search_legacy", "https://api.digikala.com/v1/search/", {
                   "categories[]": "83", "page": 1, "sort": 7
               }),
-              ("v2_category_83_empty_q_sort5", "https://api.digikala.com/v2/category/83/", {
+              ("v2_category_mobile_objectid_empty_q_sort5", "https://api.digikala.com/v2/category/63c462fc879cdfa42f81cc40/", {
                   "q": "", "page": 1, "sort": 5
               }),
-              ("v2_category_83_keyword_sort5", "https://api.digikala.com/v2/category/83/", {
-                  "q": "هدفون", "page": 1, "sort": 5
+              ("v2_category_mobile_objectid_keyword_sort5", "https://api.digikala.com/v2/category/63c462fc879cdfa42f81cc40/", {
+                  "q": "گوشی", "page": 1, "sort": 5
               }),
-              ("v2_category_22_empty_q_sort5", "https://api.digikala.com/v2/category/22/", {
+              ("v2_category_digital_objectid_empty_q_sort5", "https://api.digikala.com/v2/category/63c462d0879cdfa42f81cc3f/", {
                   "q": "", "page": 1, "sort": 5
               }),
-              ("v2_category_83_empty_q_sort7", "https://api.digikala.com/v2/category/83/", {
+              ("v2_category_top_objectid_empty_q_sort5", "https://api.digikala.com/v2/category/63c46153879cdfa42f81cc3e/", {
+                  "q": "", "page": 1, "sort": 5
+              }),
+              ("v2_category_mobile_objectid_empty_q_sort7", "https://api.digikala.com/v2/category/63c462fc879cdfa42f81cc40/", {
                   "q": "", "page": 1, "sort": 7
+              }),
+              ("v1_search_mobile_objectid", "https://api.digikala.com/v1/search/", {
+                  "categories[]": "63c462fc879cdfa42f81cc40", "page": 1, "sort": 5
               }),
               ("v3_search_category_83_sort5", "https://api.digikala.com/v3/search/", {
                   "categories[]": "83", "page": 1, "sort": 5
