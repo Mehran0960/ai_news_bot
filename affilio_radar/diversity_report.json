@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-13T23:05:41.656720+00:00",
+  "generated_at": "2026-11-13T23:16:18.972808+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "اسپری حالت دهنده مو": 1,
@@ -288,18 +288,18 @@
       "mobile_devices": 2,
       "other": 61,
       "personal_care": 33,
-      "power_backup": 4,
+      "power_backup": 3,
       "sports_outdoor": 10
     },
     "category_share_percent": {
       "audio_wearables": 3.6,
       "automotive": 3.0,
       "beauty_fragrance": 1.8,
-      "books_stationery": 4.1,
+      "books_stationery": 4.2,
       "computer_network": 1.2,
       "digital_accessories": 0.6,
       "fashion": 8.3,
-      "grocery_food": 4.1,
+      "grocery_food": 4.2,
       "home": 3.0,
       "home_cleaning": 0.6,
       "jewelry": 0.6,
@@ -307,10 +307,10 @@
       "large_appliances": 1.2,
       "lighting": 0.6,
       "mobile_devices": 1.2,
-      "other": 36.1,
-      "personal_care": 19.5,
-      "power_backup": 2.4,
-      "sports_outdoor": 5.9
+      "other": 36.3,
+      "personal_care": 19.6,
+      "power_backup": 1.8,
+      "sports_outdoor": 6.0
     },
     "distinct_catalog_categories": 101,
     "distinct_categories": 19,
@@ -318,7 +318,7 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 22,
     "known_brand_posts": 12,
-    "posts": 169,
+    "posts": 168,
     "repeated_brand_count": 4,
     "repeated_brands": {
       "eurovital": 2,
@@ -326,7 +326,7 @@
       "sangboo_climy": 2
     },
     "retailer_post_counts": {
-      "digikala": 169
+      "digikala": 168
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -345,7 +345,7 @@
       "home_cleaning": 2,
       "home_living": 3,
       "kitchen_food": 6,
-      "lighting_electrical": 5,
+      "lighting_electrical": 4,
       "local_goods": 2,
       "mobile_productivity": 29,
       "office_study": 5,
@@ -370,30 +370,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1194,
+    "all_time_count": 1195,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 489,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-13T18:43:04.476712+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-714799",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-13T18:43:04.476712+00:00",
         "brand": "art_vina",
@@ -699,6 +682,23 @@
       },
       {
         "at": "2026-11-13T23:05:41.656720+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-714799",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-13T23:16:18.972808+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
