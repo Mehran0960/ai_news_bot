@@ -57,6 +57,9 @@ DICTIONARY_URL = f"{API_ROOT}/v1/dictionaries/"
 SEARCH_URL = f"{API_ROOT}/v1/search/"
 REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
+# A previously verified taxonomy may bridge a temporary API outage, but only for four days.
+CATEGORY_CACHE_MAX_FALLBACK_AGE_HOURS = 96
+CATEGORY_DISCOVERY_RETRY_MINUTES = 60
 CANDIDATE_TTL_HOURS = 72
 MIN_CANDIDATE_DISCOUNT = 1
 # DigiKala's live data.sort_options maps id=7 to پرفروش‌ترین and id=4 to پربازدیدترین.
@@ -285,6 +288,23 @@ def _request_json(session: requests.Session, url: str, params=None) -> dict:
     return payload
 
 
+def _category_discovery_error_label(source: str, exc: Exception) -> str:
+    """Preserve HTTP status in bounded diagnostics without logging response bodies."""
+    response = getattr(exc, "response", None)
+    status = getattr(response, "status_code", None)
+    try:
+        status = int(status) if status is not None else None
+    except (TypeError, ValueError, OverflowError):
+        status = None
+    if status:
+        return f"{source}_http_{status}"
+    if isinstance(exc, requests.exceptions.Timeout):
+        return f"{source}_timeout"
+    if isinstance(exc, requests.exceptions.ConnectionError):
+        return f"{source}_connection_error"
+    return f"{source}_{type(exc).__name__}"
+
+
 def discover_categories(session: requests.Session | None = None) -> list[dict]:
     """Refresh category IDs from DigiKala's public dictionaries, then search facets."""
     http = session or SESSION
@@ -305,7 +325,7 @@ def discover_categories(session: requests.Session | None = None) -> list[dict]:
             return categories
         errors.append("dictionaries_no_category_nodes")
     except Exception as exc:
-        errors.append(f"dictionaries_{type(exc).__name__}")
+        errors.append(_category_discovery_error_label("dictionaries", exc))
 
     try:
         payload = _request_json(http, SEARCH_URL, params={"page": 1})
@@ -314,7 +334,7 @@ def discover_categories(session: requests.Session | None = None) -> list[dict]:
             return categories
         errors.append("search_filters_no_category_nodes")
     except Exception as exc:
-        errors.append(f"search_{type(exc).__name__}")
+        errors.append(_category_discovery_error_label("search", exc))
 
     raise CatalogSweepError("category_discovery_failed:" + ",".join(errors))
 
@@ -1064,25 +1084,94 @@ def _advance_cursor(state: dict, category_count: int, total_pages: int | None, p
         state["page"] = page
 
 
+def _category_cache_age_hours(refreshed_at: Any, now: datetime) -> float | None:
+    if not refreshed_at:
+        return None
+    try:
+        stamp = datetime.fromisoformat(str(refreshed_at).replace("Z", "+00:00"))
+        if stamp.tzinfo is None:
+            stamp = stamp.replace(tzinfo=timezone.utc)
+        return max(0.0, (now - stamp.astimezone(timezone.utc)).total_seconds() / 3600)
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def _category_cache_is_usable(categories: Any, age_hours: float | None) -> bool:
+    return bool(
+        isinstance(categories, list)
+        and categories
+        and all(
+            isinstance(row, dict) and str(row.get("id") or "").isdigit()
+            for row in categories
+        )
+        and age_hours is not None
+        and age_hours <= CATEGORY_CACHE_MAX_FALLBACK_AGE_HOURS
+    )
+
+
+def _category_discovery_retry_minutes(error: Exception) -> int:
+    detail = str(error or "").lower()
+    if "_http_403" in detail or "_http_401" in detail:
+        return 360
+    if "_http_429" in detail:
+        return 60
+    if "_http_5" in detail or "timeout" in detail or "connection_error" in detail:
+        return 20
+    return CATEGORY_DISCOVERY_RETRY_MINUTES
+
+
 def refresh_categories(state: dict, session: requests.Session, force: bool = False) -> None:
     now = utc_now()
     current = state.get("categories")
     refreshed = state.get("categories_refreshed_at")
-    stale = True
-    if refreshed:
-        try:
-            stamp = datetime.fromisoformat(str(refreshed).replace("Z", "+00:00"))
-            if stamp.tzinfo is None:
-                stamp = stamp.replace(tzinfo=timezone.utc)
-            stale = now - stamp >= timedelta(hours=CATEGORY_REFRESH_HOURS)
-        except (TypeError, ValueError):
-            stale = True
+    age_hours = _category_cache_age_hours(refreshed, now)
+    stale = age_hours is None or age_hours >= CATEGORY_REFRESH_HOURS
     if current and not force and not stale:
         return
 
-    categories = discover_categories(session)
-    if not categories:
-        raise CatalogSweepError("category_tree_empty")
+    retry_after = None
+    try:
+        retry_after_raw = state.get("category_discovery_retry_after")
+        if retry_after_raw:
+            retry_after = datetime.fromisoformat(str(retry_after_raw).replace("Z", "+00:00"))
+            if retry_after.tzinfo is None:
+                retry_after = retry_after.replace(tzinfo=timezone.utc)
+            retry_after = retry_after.astimezone(timezone.utc)
+    except (TypeError, ValueError, OverflowError):
+        retry_after = None
+
+    cache_usable = _category_cache_is_usable(current, age_hours)
+    if (
+        cache_usable and not force and retry_after is not None and retry_after > now
+    ):
+        print(
+            "CATALOG_CATEGORY_DISCOVERY_BACKOFF "
+            f"retry_after={retry_after.isoformat()} cached_categories={len(current)} "
+            f"cache_age_hours={age_hours:.1f} continuing_with_last_verified_taxonomy=true"
+        )
+        return
+
+    try:
+        categories = discover_categories(session)
+        if not categories:
+            raise CatalogSweepError("category_tree_empty")
+    except Exception as exc:
+        if cache_usable:
+            retry_minutes = _category_discovery_retry_minutes(exc)
+            retry_at = now + timedelta(minutes=retry_minutes)
+            state["category_discovery_last_failed_at"] = now.isoformat()
+            state["category_discovery_last_error"] = str(exc)[:220]
+            state["category_discovery_retry_after"] = retry_at.isoformat()
+            state["category_discovery_fallback_used"] = True
+            print(
+                "CATALOG_CATEGORY_DISCOVERY_FALLBACK "
+                f"reason={str(exc)[:180]!r} cached_categories={len(current)} "
+                f"cache_age_hours={age_hours:.1f} retry_minutes={retry_minutes} "
+                "continuing_with_last_verified_taxonomy=true"
+            )
+            return
+        raise
+
     previous_id = None
     old_categories = current if isinstance(current, list) else []
     old_index = max(0, _normal_int(state.get("category_index")))
@@ -1094,6 +1183,10 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
     ids = [str(row["id"]) for row in categories]
     state["category_count"] = len(categories)
     state["category_ids_hash"] = str(hash(tuple(ids)))
+    state.pop("category_discovery_last_failed_at", None)
+    state.pop("category_discovery_last_error", None)
+    state.pop("category_discovery_retry_after", None)
+    state["category_discovery_fallback_used"] = False
     if previous_id and previous_id in ids:
         state["category_index"] = ids.index(previous_id)
     else:
