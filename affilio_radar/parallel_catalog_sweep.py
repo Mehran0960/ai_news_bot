@@ -126,13 +126,10 @@ def _fetch_page(task: dict) -> dict:
         }
 
     try:
+        url, params = base._category_page_url(category_id, page)
         response = _session().get(
-            base.SEARCH_URL,
-            params={
-                "categories[]": category_id,
-                "page": page,
-                "sort": base.BEST_SELLING_SORT_VALUE,
-            },
+            url,
+            params=params,
             timeout=base.REQUEST_TIMEOUT,
         )
         if response.status_code in (400, 404):
