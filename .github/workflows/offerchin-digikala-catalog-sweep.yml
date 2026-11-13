@@ -52,6 +52,41 @@ jobs:
           python-version: "3.12"
       - name: Install lightweight crawler dependency
         run: python -m pip install --disable-pip-version-check requests
+      - name: Probe live DigiKala category endpoints (read-only)
+        run: |
+          python - <<'PY'
+          import requests
+          session = requests.Session()
+          session.headers.update({
+              "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36",
+              "Accept": "application/json,text/plain,*/*",
+              "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
+              "Referer": "https://www.digikala.com/",
+          })
+          probes = [
+              ("v2_category_no_query", "https://api.digikala.com/v2/category/19/", {"page": 1, "sort": 5}),
+              ("v2_category_with_query", "https://api.digikala.com/v2/category/19/", {"q": "گوشی پوکو", "page": 1, "sort": 5}),
+              ("v1_search_legacy", "https://api.digikala.com/v1/search/", {"categories[]": "19", "page": 1, "sort": 7}),
+          ]
+          for label, url, params in probes:
+              try:
+                  response = session.get(url, params=params, timeout=(5, 18))
+                  shape = {"status": response.status_code, "content_type": response.headers.get("content-type", "")}
+                  try:
+                      payload = response.json()
+                      data = payload.get("data", {}) if isinstance(payload, dict) else {}
+                      widgets = data.get("widgets", []) if isinstance(data, dict) else []
+                      listing = next((w for w in widgets if isinstance(w, dict) and w.get("type") == "vertical_product_listing"), {})
+                      nested = listing.get("data", {}) if isinstance(listing, dict) else {}
+                      product_widgets = [w for w in nested.get("widgets", []) if isinstance(w, dict) and w.get("type") == "product"] if isinstance(nested, dict) else []
+                      pager = data.get("pager") if isinstance(data, dict) else None
+                      shape.update({"data_keys": sorted(data.keys())[:20] if isinstance(data, dict) else [], "widget_types": [w.get("type") for w in widgets[:20] if isinstance(w, dict)], "product_widget_count": len(product_widgets), "pager_keys": sorted(pager.keys()) if isinstance(pager, dict) else []})
+                  except Exception as exc:
+                      shape["json_error"] = type(exc).__name__
+                  print("DIGIKALA_ENDPOINT_PROBE " + label + " " + str(shape))
+              except Exception as exc:
+                  print("DIGIKALA_ENDPOINT_PROBE " + label + " error=" + type(exc).__name__)
+          PY
       - name: Validate catalog scanner and status snapshot
         run: |
           python -m py_compile affilio_radar/catalog_sweep.py affilio_radar/catalog_status_snapshot.py affilio_radar/parallel_catalog_sweep.py affilio_radar/catalog_sweep_batch_window.py affilio_radar/product_quality.py
