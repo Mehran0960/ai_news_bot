@@ -11161,10 +11161,10 @@ def run(publish=False, selection_only=False):
             if not has_photo_success:
                 active_unpublished_ids.add(pid)
 
-        next_slot = max(
-            selection_now,
-            last_channel_published + timedelta(seconds=interval_seconds)
-            if last_channel_published else selection_now,
+        next_slot = publication_mix.next_product_start_at(
+            state,
+            now=selection_now,
+            interval_minutes=interval_minutes,
         )
         available_slots = publication_mix.available_slot_count(
             next_slot,
