@@ -114,4 +114,6 @@ jobs:
             test_content_delivery.py \
             test_publication_mix.py
       - name: Test Cloudflare mixed-media dispatch contract
-        run: node --test cloudflare/affilio-minute-dispatcher.test.mjs
+        run: |
+          cp cloudflare/affilio-minute-dispatcher.js cloudflare/affilio-minute-dispatcher.mjs
+          node --test cloudflare/affilio-minute-dispatcher.test.mjs
