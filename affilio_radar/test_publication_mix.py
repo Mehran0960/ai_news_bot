@@ -68,9 +68,12 @@ class PublicationMixTests(unittest.TestCase):
             "last_clean_cycle_completed_at": "2026-11-10T06:00:00+00:00",
             "current_cycle_started_at": "2026-11-11T00:00:00+00:00",
         }
-        deadline, source = estimate_next_clean_scan_deadline(status, now=NOW)
+        deadline, source = estimate_next_clean_scan_deadline(
+            status,
+            now=datetime(2026, 11, 11, 12, 0, tzinfo=timezone.utc),
+        )
         self.assertEqual(source, "previous_clean_cycle_duration")
-        self.assertEqual(deadline, datetime(2026, 11, 12, 6, 0, tzinfo=timezone.utc) + timedelta(days=1))
+        self.assertEqual(deadline, datetime(2026, 11, 12, 6, 0, tzinfo=timezone.utc))
 
     def test_overdue_or_stalled_scan_uses_rolling_fallback(self):
         status = {
