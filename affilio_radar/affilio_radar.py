@@ -9393,6 +9393,42 @@ def _video_upload_candidate_sort_key(row: tuple) -> tuple:
     return (timestamp, sequence_number or 2**63 - 1, product_id_value)
 
 
+def oldest_pending_editorial_video_sequence(state: dict) -> int | None:
+    """Return the earliest editorial video barrier after a confirmed channel post."""
+    queue = state.get("editorial_delivery_queue") if isinstance(state, dict) else {}
+    if not isinstance(queue, dict):
+        return None
+    terminal = {"sent", "not_connected", "manual_review", "skipped_limit"}
+    pending = {"pending", "failed", "retry"}
+    sequences = []
+    for entry in queue.values():
+        if not isinstance(entry, dict) or entry.get("status") in {"completed", "cancelled", "failed"}:
+            continue
+        try:
+            sequence = int(entry.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            sequence = 0
+        if sequence <= 0:
+            continue
+        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+        channel_sent = any(
+            isinstance(platforms.get(name), dict)
+            and platforms[name].get("status") == "sent"
+            for name in ("telegram", "bale", "rubika", "eitaa")
+        )
+        if not channel_sent:
+            continue
+        video_pending = any(
+            isinstance(platforms.get(name), dict)
+            and str(platforms[name].get("status") or "pending").lower() in pending
+            and str(platforms[name].get("status") or "pending").lower() not in terminal
+            for name in ("youtube", "aparat", "filo")
+        )
+        if video_pending:
+            sequences.append(sequence)
+    return min(sequences) if sequences else None
+
+
 def process_pending_short_video(
     state: dict,
     now: datetime | None = None,
@@ -9677,6 +9713,7 @@ def process_pending_short_video(
                 print(f"APARAT_VIDEO_RECONCILE_FAILED id={pid} error={type(exc).__name__}")
             break  # One lookup per scan; other posting and video tasks remain independent.
 
+    editorial_video_barrier = oldest_pending_editorial_video_sequence(state)
     candidate_records = [
         (pid, record)
         for pid, record in published.items()
@@ -9685,7 +9722,19 @@ def process_pending_short_video(
             _has_pending_video_destination(record, selected_destinations)
             or (review_ready and not record.get("video_review_sent"))
         )
+        and (
+            editorial_video_barrier is None
+            or (
+                int(record.get("sequence_number") or record.get("ts") or 0)
+                < editorial_video_barrier
+            )
+        )
     ]
+    if editorial_video_barrier is not None and not candidate_records:
+        print(
+            "PRODUCT_VIDEO_FIFO_PAUSED_FOR_EDITORIAL "
+            f"editorial_sequence={editorial_video_barrier}"
+        )
     if candidate_limit is not None and only_product_id is None:
         limit = max(1, min(VIDEO_DISPATCH_STATE_RECORD_LIMIT, int(candidate_limit)))
         candidate_records.sort(
