@@ -741,7 +741,7 @@ class CatalogSweepTests(unittest.TestCase):
             self.assertEqual(state["stats"]["catalog_candidate_cards_found_total"], 3)
             self.assertEqual(state["stats"]["discounted_candidates_found_total"], 1)
             self.assertEqual(session.calls[1][0], "https://api.digikala.com/v2/category/10/")
-        self.assertEqual(dict(session.calls[1][1]).get("sort"), 5)
+            self.assertEqual(dict(session.calls[1][1]).get("sort"), 5)
             by_id = {row["product_id"]: row for row in candidates["candidates"]}
             self.assertEqual(set(by_id), {"dkp-777"})
             self.assertEqual(by_id["dkp-777"]["catalog_sort_mode"], "best_selling")
