@@ -9332,6 +9332,60 @@ def _has_pending_video_destination(
     )
 
 
+def _oldest_pending_editorial_video_sequence(
+    state: dict,
+    destinations: set[str] | None = None,
+) -> int | None:
+    """Return the oldest editorial sequence still pending for selected video destinations."""
+    queue = state.get("editorial_delivery_queue")
+    if not isinstance(queue, dict):
+        return None
+    selected = {"youtube", "aparat", "filo"} if destinations is None else {
+        str(item).strip().lower() for item in destinations
+    }
+    terminal = {"sent", "not_connected", "manual_review", "skipped_limit"}
+    pending_sequences: list[int] = []
+    for entry in queue.values():
+        if not isinstance(entry, dict) or entry.get("status") in {
+            "completed", "cancelled", "failed"
+        }:
+            continue
+        try:
+            sequence = int(entry.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            sequence = 0
+        if sequence <= 0:
+            # A malformed sequence must not silently release the editorial barrier.
+            sequence = 1
+        targets = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+        pending_for_selected = any(
+            name in selected
+            and (
+                not isinstance(targets.get(name), dict)
+                or str(targets[name].get("status") or "pending").strip().lower() not in terminal
+            )
+            for name in ("youtube", "aparat", "filo")
+        )
+        if pending_for_selected:
+            pending_sequences.append(sequence)
+    return min(pending_sequences) if pending_sequences else None
+
+
+def _product_video_blocked_by_editorial_sequence(
+    record: dict,
+    editorial_sequence: int | None,
+) -> bool:
+    """Do not let a newer product video pass an older editorial video in FIFO."""
+    if editorial_sequence is None:
+        return False
+    try:
+        product_sequence = int(record.get("sequence_number") or 0)
+    except (TypeError, ValueError, OverflowError):
+        product_sequence = 0
+    # Legacy product records without sequence are treated as older and drain first.
+    return product_sequence > 0 and product_sequence > editorial_sequence
+
+
 def _video_upload_candidate_sort_key(row: tuple) -> tuple:
     """Preserve the canonical product-selection order on every video destination.
 
@@ -9635,15 +9689,27 @@ def process_pending_short_video(
                 print(f"APARAT_VIDEO_RECONCILE_FAILED id={pid} error={type(exc).__name__}")
             break  # One lookup per scan; other posting and video tasks remain independent.
 
+    editorial_video_barrier = _oldest_pending_editorial_video_sequence(
+        state, selected_destinations
+    )
     candidate_records = [
         (pid, record)
         for pid, record in published.items()
         if isinstance(record, dict)
+        and not _product_video_blocked_by_editorial_sequence(
+            record, editorial_video_barrier
+        )
         and (
             _has_pending_video_destination(record, selected_destinations)
             or (review_ready and not record.get("video_review_sent"))
         )
     ]
+    if editorial_video_barrier is not None:
+        print(
+            "EDITORIAL_VIDEO_FIFO_BARRIER "
+            f"sequence={editorial_video_barrier} "
+            "newer_product_videos=held_until_editorial_video_terminal"
+        )
     if candidate_limit is not None and only_product_id is None:
         limit = max(1, min(VIDEO_DISPATCH_STATE_RECORD_LIMIT, int(candidate_limit)))
         candidate_records.sort(
