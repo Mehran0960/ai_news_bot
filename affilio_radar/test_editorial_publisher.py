@@ -45,14 +45,14 @@ class EditorialPublisherTests(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=True):
             self.assertIsNone(editorial_fifo_lock_entry(state))
 
-    def test_editorial_fifo_lock_activates_only_with_explicit_flag(self):
+    def test_editorial_never_locks_product_publisher_even_when_enabled(self):
         state = {
             "editorial_delivery_queue": {
                 "editorial:test": {"content_id": "editorial:test", "sequence_number": 4, "status": "partial"}
             }
         }
         with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
-            self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
+            self.assertIsNone(editorial_fifo_lock_entry(state))
 
     def test_editorial_gets_shared_monotonic_sequence(self):
         state = {"publication_sequence_counter": 12}
@@ -73,11 +73,59 @@ class EditorialPublisherTests(unittest.TestCase):
         }}
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
 
-    def test_editorial_waits_for_older_product_video_fifo(self):
+    def test_editorial_channel_fallback_does_not_wait_for_product_video_retry(self):
         state = {"published": {
             "dkp-1": {"youtube_upload_status": "retry", "aparat_upload_status": "uploaded", "filo_upload_status": "uploaded"}
         }}
-        self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+        entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry["content_type"], "editorial")
+
+    def test_active_product_channel_queue_preempts_an_unpublished_editorial(self):
+        editorial = {
+            "content_id": "editorial:older",
+            "sequence_number": 5,
+            "status": "queued",
+            "platforms": {name: {"status": "pending"} for name in PLATFORM_NAMES},
+            "payload": editorial_item("older"),
+        }
+        state = {
+            "editorial_delivery_queue": {"editorial:older": editorial},
+            "content_delivery_queue": {
+                "dkp-1": {
+                    "status": "queued",
+                    "selected_at": (NOW - timedelta(minutes=1)).isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                }
+            },
+        }
+        self.assertIsNone(queue_editorial_if_due(state, [editorial_item("newer")], now=NOW))
+        self.assertIn("editorial:older", state["editorial_delivery_queue"])
+
+    def test_active_editorial_retry_obeys_global_27_minute_spacing(self):
+        editorial = {
+            "content_id": "editorial:retry",
+            "sequence_number": 6,
+            "status": "partial",
+            "platforms": {
+                **{name: {"status": "not_connected"} for name in PLATFORM_NAMES},
+                "telegram": {"status": "sent"},
+                "bale": {"status": "pending"},
+            },
+            "payload": editorial_item("retry"),
+        }
+        state = {
+            "editorial_delivery_queue": {"editorial:retry": editorial},
+            "last_channel_published_at": (NOW - timedelta(minutes=10)).isoformat(),
+        }
+        self.assertIsNone(queue_editorial_if_due(state, [editorial_item("retry")], now=NOW))
+        resumed = queue_editorial_if_due(
+            state, [editorial_item("retry")], now=NOW + timedelta(minutes=17)
+        )
+        self.assertIs(resumed, editorial)
 
     def test_editorial_message_contains_sources(self):
         message = _format_message(editorial_item())

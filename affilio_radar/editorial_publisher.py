@@ -23,7 +23,7 @@ from content_delivery import (
     refresh_unpublished_selections,
 )
 from editorial_content import record_editorial_delivery, select_editorial_fallback
-from platform_registry import PLATFORM_NAMES
+from platform_registry import CORE_PHOTO_PLATFORMS, PLATFORM_NAMES
 
 ROOT = Path(__file__).resolve().parent
 EDITORIAL_BANK = ROOT / "editorial_bank.json"
@@ -32,6 +32,9 @@ VIDEO_DESTINATIONS = ("youtube", "aparat", "filo")
 TERMINAL = {"sent", "not_connected", "manual_review", "skipped_limit"}
 RETRYABLE = {"pending", "failed", "retry"}
 MINIMUM_GAP_MINUTES = max(50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55"))))
+CHANNEL_MINIMUM_GAP_MINUTES = max(
+    27, int(round(float(getattr(radar, "MIN_POST_INTERVAL_HOURS", 0.45)) * 60))
+)
 RETRY_BASE_SECONDS = max(60, min(1800, int(os.getenv("OFFERCHIN_EDITORIAL_RETRY_SECONDS", "300"))))
 MAX_ATTEMPTS = max(1, min(5, int(os.getenv("OFFERCHIN_EDITORIAL_MAX_ATTEMPTS", "3"))))
 
@@ -101,36 +104,69 @@ def _recent_attempt_anchor(state: dict) -> datetime | None:
     return max(valid) if valid else None
 
 
+def _pending_product_channel_entries(state: dict) -> list[dict]:
+    """Only product photo-channel hand-offs block editorial channel fallback."""
+    queue = state.get("content_delivery_queue")
+    if not isinstance(queue, dict):
+        return []
+    pending = []
+    for row in queue.values():
+        if not isinstance(row, dict) or row.get("status") in {"published", "cancelled", "stale_selection"}:
+            continue
+        platforms = row.get("platforms")
+        for destination in CORE_PHOTO_PLATFORMS:
+            target = platforms.get(destination) if isinstance(platforms, dict) else None
+            status = str(target.get("status") or "") if isinstance(target, dict) else ""
+            if status not in TERMINAL:
+                pending.append(row)
+                break
+    return pending
+
+
+def _channel_gap_remaining_seconds(state: dict, now: datetime) -> int:
+    """Return the remaining global photo-channel spacing before any next post."""
+    anchor = get_last_channel_published_at(state)
+    if anchor is None:
+        return 0
+    due_at = anchor + timedelta(minutes=CHANNEL_MINIMUM_GAP_MINUTES)
+    return max(0, int((due_at - now).total_seconds()))
+
+
 def queue_editorial_if_due(
     state: dict,
     bank: list[dict],
     *,
     now: datetime | None = None,
 ) -> dict | None:
-    """Reuse the active editorial item or allocate a new one after product FIFO is clear."""
+    """Queue editorial only into a genuine product-free channel slot."""
     current = now or _now()
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
 
+    # Retire only stale, never-delivered selections before deciding who owns the slot.
+    refresh_unpublished_selections(state, now=current, stale_after_minutes=8)
+    pending_products = _pending_product_channel_entries(state)
     active = _active_editorial_entries(state)
+
+    if pending_products:
+        print(
+            "EDITORIAL_FALLBACK_WAIT reason=product_channel_fifo_pending "
+            f"pending_product_items={len(pending_products)}"
+        )
+        return None
+
+    # A partially delivered editorial item may resume, but never inside the
+    # global 27-minute channel spacing. A product post resets this clock too.
+    channel_gap_remaining = _channel_gap_remaining_seconds(state, current)
+    if channel_gap_remaining:
+        print(f"EDITORIAL_FALLBACK_WAIT reason=channel_27_minute_spacing remaining_seconds={channel_gap_remaining}")
+        return None
     if active:
         return active[0]
 
-    # Old, never-delivered product selections are retired after the same short
-    # reservation window used by the product delivery contract.
-    refresh_unpublished_selections(state, now=current, stale_after_minutes=8)
-    product_queue = state.get("content_delivery_queue")
-    if isinstance(product_queue, dict) and any(
-        isinstance(row, dict) and row.get("status") not in {"published", "cancelled", "stale_selection"}
-        for row in product_queue.values()
-    ):
-        print("EDITORIAL_FALLBACK_WAIT reason=product_photo_fifo_not_terminal")
-        return None
-    if _pending_product_video_exists(state):
-        print("EDITORIAL_FALLBACK_WAIT reason=older_product_video_fifo_pending")
-        return None
-
+    # New editorial is deliberately less frequent than products: one attempt no
+    # more often than every 55 minutes, and only when no product channel slot waits.
     anchor = _recent_attempt_anchor(state)
     if anchor and current - anchor < timedelta(minutes=MINIMUM_GAP_MINUTES):
         remaining = max(0, int((timedelta(minutes=MINIMUM_GAP_MINUTES) - (current - anchor)).total_seconds()))
@@ -665,13 +701,10 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
             invalid_items.append({"editorial_id": str(item.get("editorial_id") or ""), "reason": reason})
 
     active = _active_editorial_entries(state)
-    product_queue = state.get("content_delivery_queue")
-    active_products = [
-        row for row in (product_queue.values() if isinstance(product_queue, dict) else [])
-        if isinstance(row, dict) and row.get("status") not in {"published", "cancelled", "stale_selection"}
-    ]
+    active_products = _pending_product_channel_entries(state)
     pending_videos = _pending_product_video_exists(state)
     shadow_state_for_anchor = json.loads(json.dumps(state, ensure_ascii=False, default=str))
+    channel_gap_remaining = _channel_gap_remaining_seconds(shadow_state_for_anchor, current)
     anchor = _recent_attempt_anchor(shadow_state_for_anchor)
     elapsed = (current - anchor) if anchor else None
     remaining = (
@@ -706,19 +739,19 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     except Exception:
         destination_config["filo"] = False
 
-    if active:
+    if active_products:
+        decision = "wait_for_product_channel_fifo"
+        item_id = None
+        sequence = None
+    elif channel_gap_remaining:
+        decision = "wait_for_27_minute_channel_spacing"
+        item_id = None
+        sequence = None
+    elif active:
         selected = active[0]
         decision = "resume_active_editorial"
         item_id = str(selected.get("content_id") or "")
         sequence = selected.get("sequence_number")
-    elif active_products:
-        decision = "wait_for_older_product_photo_fifo"
-        item_id = None
-        sequence = None
-    elif pending_videos:
-        decision = "wait_for_older_product_video_fifo"
-        item_id = None
-        sequence = None
     elif remaining:
         decision = "wait_for_55_minute_fallback_interval"
         item_id = None
@@ -745,6 +778,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "would_allocate_sequence_number": sequence,
         "fallback_interval_minutes": MINIMUM_GAP_MINUTES,
         "seconds_until_fallback_due": remaining,
+        "seconds_until_channel_slot_due": channel_gap_remaining,
         "editorial_bank_total": len(bank),
         "editorial_bank_valid": len(valid_items),
         "editorial_bank_invalid": invalid_items,

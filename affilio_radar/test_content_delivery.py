@@ -88,7 +88,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(entry["payload"]["sequence_number"], 9)
         self.assertEqual(entry["content_type"], "product")
 
-    def test_default_interval_is_23_minutes_from_last_channel_publication(self):
+    def test_default_interval_is_27_minutes_from_last_channel_publication(self):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-first")], now=self.now, minimum_runway_minutes=0
@@ -96,13 +96,13 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state["last_channel_published_at"] = self.now.isoformat()
         enqueue_selected_content(
             state, [self.item("dkp-second")],
-            now=self.now + timedelta(minutes=22),
+            now=self.now + timedelta(minutes=26),
             minimum_runway_minutes=0,
         )
         scheduled = datetime.fromisoformat(
             state["content_delivery_queue"]["dkp-second"]["scheduled_at"]
         )
-        self.assertEqual(scheduled, self.now + timedelta(minutes=23))
+        self.assertEqual(scheduled, self.now + timedelta(minutes=27))
 
 
     def test_enqueue_persists_platform_neutral_payload_without_delivery(self):
