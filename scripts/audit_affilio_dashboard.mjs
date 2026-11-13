@@ -24,8 +24,11 @@ const output = {
     revenue_trend: [],
     revenue_basket_trend: [],
     link_rows: [],
+    link_rows_total: null,
+    link_rows_total_is_capped: null,
     media_totals: [],
-    top_earning_products: []
+    top_earning_products: [],
+    selected_period_labels: []
   },
   notes: [
     "Read-only diagnostic: login plus GET navigation and report-tab inspection only.",
@@ -116,14 +119,21 @@ function captureKnownMetrics(path, payload) {
       total_income_baskets: val(x, "total_incomes")
     }));
   } else if (path === "/api/v1/links/analytics" && Array.isArray(d.items)) {
+    output.report_data.link_rows_total = val(d, "total");
+    output.report_data.link_rows_total_is_capped = d.total_is_capped === true;
     output.report_data.link_rows = d.items.slice(0, 200).map(x => ({
+      link_uid: typeof x.link_uid === "string" ? x.link_uid : null,
+      media_uid: typeof x.media_uid === "string" ? x.media_uid : null,
       media_name: typeof x.media_name === "string" ? x.media_name : null,
       link_title: typeof x.link_title === "string" ? x.link_title : null,
       advertiser_name: typeof x.advertiser_name === "string" ? x.advertiser_name : null,
+      link_type: typeof x.link_type === "string" ? x.link_type : null,
+      link_kind: typeof x.link_kind === "string" ? x.link_kind : null,
       click_count: val(x, "click_count"),
       income_items_count: val(x, "income_items_count"),
       total_income_toman: val(x, "total_income"),
       conversion_rate: val(x, "conversion_rate"),
+      revenue_share: val(x, "revenue_share"),
       first_click_date: typeof x.first_click_date === "string" ? x.first_click_date : null
     }));
   } else if (path === "/api/v1/dashboard/top-earning-products" && Array.isArray(d.products)) {
@@ -277,6 +287,10 @@ try {
   await writeFile("affilio-dashboard-diagnostic.json", JSON.stringify(output, null, 2));
 }
 
+output.report_data.selected_period_labels = [
+  ...new Set(output.pages.flatMap(page => Array.isArray(page.date_range_labels) ? page.date_range_labels : []))
+];
+
 const mediaTotals = new Map();
 for (const row of output.report_data.link_rows) {
   const name = row.media_name || "نامشخص";
@@ -299,6 +313,16 @@ const endpointSchemas = output.api_responses.map(row => ({
   shape: row.shape
 }));
 console.log("AFFILIO_ENDPOINT_SCHEMAS=" + JSON.stringify(endpointSchemas));
+console.log("AFFILIO_PAGE_SUMMARY=" + JSON.stringify(output.pages.map(page => ({
+  label: page.label,
+  path: page.url?.path,
+  title: page.title,
+  headings: page.headings,
+  date_range_labels: page.date_range_labels,
+  report_controls: (page.controls || []).filter(item => REPORT_WORDS.test(item.label))
+}))));
+console.log("AFFILIO_LINK_ROWS_TOTAL=" + (output.report_data.link_rows_total ?? "unknown"));
+console.log("AFFILIO_LINK_ROWS_EXTRACTED=" + output.report_data.link_rows.length);
 console.log("AFFILIO_DIAGNOSTIC_STATUS=" + output.authentication);
 console.log("AFFILIO_DIAGNOSTIC_PAGES=" + output.pages.length);
 console.log("AFFILIO_DIAGNOSTIC_JSON_ENDPOINTS=" + output.api_responses.length);
