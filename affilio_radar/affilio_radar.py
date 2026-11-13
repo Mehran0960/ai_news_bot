@@ -9343,7 +9343,8 @@ def _oldest_pending_editorial_video_sequence(
     selected = {"youtube", "aparat", "filo"} if destinations is None else {
         str(item).strip().lower() for item in destinations
     }
-    terminal = {"sent", "not_connected", "manual_review", "skipped_limit"}
+    # manual_review remains a sequence barrier until a human resolves the outcome.
+    terminal = {"sent", "not_connected", "skipped_limit"}
     pending_sequences: list[int] = []
     for entry in queue.values():
         if not isinstance(entry, dict) or entry.get("status") in {
