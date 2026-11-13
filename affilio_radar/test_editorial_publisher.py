@@ -54,13 +54,13 @@ class EditorialPublisherTests(unittest.TestCase):
         with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
             self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
 
-    def test_editorial_gets_shared_monotonic_sequence(self):
+    def test_editorial_sequence_matches_its_actual_publication_slot(self):
         state = {"publication_sequence_counter": 12}
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
-        self.assertEqual(entry["sequence_number"], 13)
+        self.assertEqual(entry["sequence_number"], int(NOW.timestamp()))
         self.assertEqual(entry["content_type"], "editorial")
         self.assertEqual(entry["payload"]["content_id"], "editorial:test-guide")
-        self.assertEqual(state["publication_sequence_counter"], 13)
+        self.assertEqual(state["publication_sequence_counter"], int(NOW.timestamp()))
 
     def test_editorial_does_not_preempt_recent_channel_publication(self):
         state = {"last_channel_published_at": (NOW - timedelta(minutes=20)).isoformat()}
