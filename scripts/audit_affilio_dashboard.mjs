@@ -28,7 +28,15 @@ const output = {
     link_rows_total_is_capped: null,
     media_totals: [],
     top_earning_products: [],
-    selected_period_labels: []
+    selected_period_labels: [],
+    report_window: { start_date: null, end_date: null, source: "not_inferred" },
+    order_metrics: {
+      confirmed_orders: null,
+      registered_orders: null,
+      cancelled_orders: null,
+      rejected_orders: null,
+      semantics: "not_exposed_by_the_report_endpoints_observed"
+    }
   },
   notes: [
     "Read-only diagnostic: login plus GET navigation and report-tab inspection only.",
@@ -291,15 +299,34 @@ output.report_data.selected_period_labels = [
   ...new Set(output.pages.flatMap(page => Array.isArray(page.date_range_labels) ? page.date_range_labels : []))
 ];
 
+const trendDates = [
+  ...output.report_data.clicks_trend.map(row => row.date),
+  ...output.report_data.revenue_trend.map(row => row.date)
+].filter(value => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)).sort();
+if (trendDates.length) {
+  output.report_data.report_window = {
+    start_date: trendDates[0],
+    end_date: trendDates[trendDates.length - 1],
+    source: "min_max_dates_from_affilio_trend_endpoints"
+  };
+}
+
 const mediaTotals = new Map();
 for (const row of output.report_data.link_rows) {
-  const name = row.media_name || "نامشخص";
-  const current = mediaTotals.get(name) || { media_name: name, links: 0, clicks: 0, income_items_count: 0, total_income_toman: 0 };
-  current.links += 1;
-  current.clicks += row.click_count || 0;
+  const key = row.media_uid || row.media_name || "unknown_media";
+  const current = mediaTotals.get(key) || {
+    media_uid: row.media_uid,
+    media_name: row.media_name || "نامشخص",
+    link_count: 0,
+    click_count: 0,
+    income_items_count: 0,
+    total_income_toman: 0
+  };
+  current.link_count += 1;
+  current.click_count += row.click_count || 0;
   current.income_items_count += row.income_items_count || 0;
   current.total_income_toman += row.total_income_toman || 0;
-  mediaTotals.set(name, current);
+  mediaTotals.set(key, current);
 }
 output.report_data.media_totals = [...mediaTotals.values()];
 
@@ -323,6 +350,9 @@ console.log("AFFILIO_PAGE_SUMMARY=" + JSON.stringify(output.pages.map(page => ({
 }))));
 console.log("AFFILIO_LINK_ROWS_TOTAL=" + (output.report_data.link_rows_total ?? "unknown"));
 console.log("AFFILIO_LINK_ROWS_EXTRACTED=" + output.report_data.link_rows.length);
+console.log("AFFILIO_LINK_ROWS_TOTAL_IS_CAPPED=" + String(output.report_data.link_rows_total_is_capped));
+console.log("AFFILIO_REPORT_WINDOW=" + JSON.stringify(output.report_data.report_window));
+console.log("AFFILIO_ORDER_METRICS_AVAILABLE=false");
 console.log("AFFILIO_DIAGNOSTIC_STATUS=" + output.authentication);
 console.log("AFFILIO_DIAGNOSTIC_PAGES=" + output.pages.length);
 console.log("AFFILIO_DIAGNOSTIC_JSON_ENDPOINTS=" + output.api_responses.length);
