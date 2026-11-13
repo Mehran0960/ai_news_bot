@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-13T19:42:54.324228+00:00",
+  "generated_at": "2026-11-13T20:22:04.532386+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "اسپری حالت دهنده مو": 1,
@@ -114,6 +114,7 @@
       "متر": 1,
       "مجموعه شمش و پلاک طلا و نقره": 1,
       "نمک حمام": 1,
+      "کاپوچینو": 1,
       "کتاب رمان و ادبیات داستانی و نمایشی": 1,
       "کرم ترک پا": 1,
       "کرم و ژل ضد جوش": 1,
@@ -123,29 +124,29 @@
       "books_stationery": 1,
       "fashion": 2,
       "home": 2,
-      "other": 6,
+      "other": 7,
       "personal_care": 6,
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "books_stationery": 5.6,
-      "fashion": 11.1,
-      "home": 11.1,
-      "other": 33.3,
-      "personal_care": 33.3,
-      "sports_outdoor": 5.6
+      "books_stationery": 5.3,
+      "fashion": 10.5,
+      "home": 10.5,
+      "other": 36.8,
+      "personal_care": 31.6,
+      "sports_outdoor": 5.3
     },
-    "distinct_catalog_categories": 18,
+    "distinct_catalog_categories": 19,
     "distinct_categories": 6,
-    "distinct_families": 18,
+    "distinct_families": 19,
     "distinct_retailers": 1,
     "distinct_use_cases": 8,
     "known_brand_posts": 1,
-    "posts": 18,
+    "posts": 19,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 18
+      "digikala": 19
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -156,7 +157,7 @@
       "catalog_taxonomy_other": 4,
       "fashion_lifestyle": 1,
       "kitchen_food": 1,
-      "mobile_productivity": 7,
+      "mobile_productivity": 8,
       "outdoor_travel": 1,
       "personal_care": 2
     }
@@ -246,6 +247,7 @@
       "ژل و صابون ابرو": 1,
       "ژل و کرم ترمیم کننده": 1,
       "کالای خوراکی و اساسی": 1,
+      "کاپوچینو": 1,
       "کتاب رمان و ادبیات داستانی و نمایشی": 2,
       "کتاب روانشناسی": 1,
       "کرم آبرسان و مرطوب کننده": 1,
@@ -270,7 +272,6 @@
       "computer_network": 2,
       "digital_accessories": 1,
       "fashion": 14,
-      "gaming": 1,
       "grocery_food": 7,
       "home": 5,
       "home_cleaning": 1,
@@ -279,7 +280,7 @@
       "large_appliances": 2,
       "lighting": 1,
       "mobile_devices": 2,
-      "other": 59,
+      "other": 60,
       "personal_care": 36,
       "power_backup": 4,
       "sports_outdoor": 11
@@ -292,7 +293,6 @@
       "computer_network": 1.2,
       "digital_accessories": 0.6,
       "fashion": 8.1,
-      "gaming": 0.6,
       "grocery_food": 4.0,
       "home": 2.9,
       "home_cleaning": 0.6,
@@ -301,16 +301,16 @@
       "large_appliances": 1.2,
       "lighting": 0.6,
       "mobile_devices": 1.2,
-      "other": 34.1,
+      "other": 34.7,
       "personal_care": 20.8,
       "power_backup": 2.3,
       "sports_outdoor": 6.4
     },
-    "distinct_catalog_categories": 98,
-    "distinct_categories": 20,
+    "distinct_catalog_categories": 99,
+    "distinct_categories": 19,
     "distinct_families": 125,
     "distinct_retailers": 1,
-    "distinct_use_cases": 23,
+    "distinct_use_cases": 22,
     "known_brand_posts": 12,
     "posts": 173,
     "repeated_brand_count": 4,
@@ -333,7 +333,6 @@
       "catalog_taxonomy_other": 12,
       "events_decor": 2,
       "fashion_lifestyle": 9,
-      "gaming": 1,
       "general": 19,
       "grocery_food": 5,
       "health_wellness": 4,
@@ -342,7 +341,7 @@
       "kitchen_food": 6,
       "lighting_electrical": 5,
       "local_goods": 2,
-      "mobile_productivity": 30,
+      "mobile_productivity": 31,
       "office_study": 6,
       "outdoor_travel": 5,
       "personal_care": 24,
@@ -365,30 +364,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1190,
+    "all_time_count": 1191,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 489,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-13T18:06:29.290693+00:00",
-        "brand": "art_vina",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-17081684",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم ضد آفتاب بدون رنگ آرت وینا SPF 50 مدل Highly Effective ‌محافظ UVA ،UVB و PA+++، ضد حساسیت، ضد چروک و ضد پیری مناسب انواع پوست‌ حجم 50 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-13T18:06:29.290693+00:00",
         "brand": "",
@@ -693,6 +675,23 @@
       },
       {
         "at": "2026-11-13T19:42:54.324228+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-714799",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-13T20:22:04.532386+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",

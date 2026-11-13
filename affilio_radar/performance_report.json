@@ -22,30 +22,30 @@
       "clicks_per_published_post": null,
       "ctr": null,
       "orders": null,
-      "published_posts": 43,
+      "published_posts": 44,
       "sales_amount": null,
       "tracked_clicks_30d": null
     }
   },
   "ctr": null,
-  "experiment_assignment_coverage_percent": 9.52,
+  "experiment_assignment_coverage_percent": 9.62,
   "experiment_attribution_active": true,
   "experiment_attribution_available": true,
   "experiment_attribution_supported_by_worker": true,
   "experiment_measurement_status": "awaiting_first_tagged_click",
   "experiment_publication_status": "partially_assigned",
-  "generated_at": "2026-11-13T19:42:54.324228+00:00",
+  "generated_at": "2026-11-13T20:22:04.532386+00:00",
   "impressions": null,
   "interpretation": "Tracked clicks and clicks per published post are descriptive signals, not CTR or causal lift. Impressions, orders, sales and commission are not inferred from clicks.",
   "orders": null,
   "published_caption_experiment_posts": 0,
-  "published_experiment_posts": 92,
+  "published_experiment_posts": 93,
   "published_posts_by_caption_variant": {},
   "published_posts_by_platform": {
     "aparat": 41,
-    "bale": 956,
-    "telegram": 963,
-    "youtube": 137
+    "bale": 957,
+    "telegram": 964,
+    "youtube": 138
   },
   "published_posts_by_product": {
     "dkp-1002646": {
@@ -2664,6 +2664,23 @@
       "discount_percent": 21,
       "selection_demand_evidence": null,
       "selection_demand_quality": null
+    },
+    "dkp-16268329": {
+      "bestseller_category_count": 0,
+      "bestseller_rank": null,
+      "caption_experiment_id": "",
+      "caption_variant": "A",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "B",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "discount_percent": 40,
+      "selection_demand_evidence": "digikala_recent_review_growth_proxy",
+      "selection_demand_quality": "indirect_review_growth_proxy_not_sales"
     },
     "dkp-16350252": {
       "bestseller_category_count": 0,
@@ -15894,9 +15911,9 @@
   },
   "published_posts_by_variant": {
     "offerchin-creative-v1:A": 49,
-    "offerchin-creative-v1:B": 43
+    "offerchin-creative-v1:B": 44
   },
-  "published_product_count": 966,
+  "published_product_count": 967,
   "sales_amount": null,
   "sales_data_status": "unavailable_until_official_Affilio_report_or_export_is_connected",
   "source_attribution_available": true,
@@ -16124,7 +16141,7 @@
   "tracked_clicks_with_experiment_attribution": 0,
   "tracked_clicks_without_caption_experiment_attribution": 107,
   "tracked_clicks_without_experiment_attribution": 107,
-  "unassigned_caption_experiment_posts": 966,
+  "unassigned_caption_experiment_posts": 967,
   "unassigned_published_posts": 874,
   "window_days": 30
 }
