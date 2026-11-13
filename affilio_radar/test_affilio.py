@@ -3850,7 +3850,9 @@ class AffilioRadarTests(unittest.TestCase):
             _send_bale_photo(b"photo-bytes", "caption", link)
         markup = json.loads(post.call_args.kwargs["data"]["reply_markup"])
         self.assertEqual(markup["inline_keyboard"][0][0]["text"], purchase_action_label("اسنپ‌شاپ"))
-        self.assertEqual(markup["inline_keyboard"][0][0]["url"], link)
+        expected_url = tracked_affiliate_button_url(link, "bale")
+        self.assertEqual(markup["inline_keyboard"][0][0]["url"], expected_url)
+        self.assertEqual(parse_qs(urlsplit(expected_url).query).get("utm_medium"), ["bale"])
 
     def test_original_price_is_never_shown_in_telegram_or_bale_caption(self):
         product = {"title": "محصول نمونه", "current_price": 123_200, "original_price": 1_108_800, "discount_percent": 89}
