@@ -11,8 +11,14 @@ from datetime import datetime, timezone
 from typing import Callable
 
 
-POLICY_VERSION = "offerchin_four_factor_harmonic_v2_discount_gate"
+POLICY_VERSION = "offerchin_four_factor_harmonic_v3_final_price_affordability"
 MIN_PRICE_COHORT_SIZE = 8
+# Versioned, offline benchmark: 1405 minimum base daily wage x 30 / 10 Rial per Toman.
+# It is a conservative public purchasing-power proxy, not an individual's disposable income.
+AFFORDABILITY_REFERENCE_MONTHLY_INCOME_TOMAN = 16_625_550
+AFFORDABILITY_REFERENCE_BASIS = "iran_1405_minimum_base_wage_30day_month"
+AFFORDABILITY_FULL_SCORE_PRICE_SHARE = 0.01
+AFFORDABILITY_LOG_SENSITIVITY = 25.0
 # A weak discount cannot be compensated for by demand, affordability or generality.
 MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE = 40.0
 
@@ -101,12 +107,20 @@ def generality_score(use_case_group: object) -> float:
 
 
 def affordability_absolute_score(price_toman: object) -> float:
-    """A cash-ticket-size proxy; never represents the buyer's actual income."""
+    """Score the final listed cash price against a versioned conservative income benchmark.
+
+    This is a market-level proxy only. It does not infer a buyer's personal income,
+    disposable budget, eligibility for credit, or checkout/shipping fees.
+    """
     price = _number(price_toman)
     if price <= 0:
         return 0.0
-    # Anchors: 100k=100, 1m=85, 10m=70, 100m=55, 1bn=40 toman.
-    return _clamp(100.0 - 15.0 * math.log10(max(price, 100_000.0) / 100_000.0))
+    reference_price = (
+        AFFORDABILITY_REFERENCE_MONTHLY_INCOME_TOMAN
+        * AFFORDABILITY_FULL_SCORE_PRICE_SHARE
+    )
+    ratio = price / max(1.0, reference_price)
+    return _clamp(100.0 - AFFORDABILITY_LOG_SENSITIVITY * math.log10(max(ratio, 0.01)))
 
 
 def _relative_price_scores(records: list[dict], groups: list[str]) -> dict[int, float]:
@@ -134,23 +148,12 @@ def _relative_price_scores(records: list[dict], groups: list[str]) -> dict[int, 
     return result
 
 
-def _entry_price_toman(row: dict) -> tuple[float, str]:
+def _final_cash_price_toman(row: dict) -> tuple[float, str]:
+    """Use the currently listed cash purchase price, never an installment down payment."""
     price = _number(row.get("current_price"))
     if price <= 0:
-        return 0.0, "missing_cash_price"
-
-    # A lower entry ticket is counted only when the record explicitly marks the
-    # terms verified and provides the initial payment. Generic installment copy
-    # or a product-level DigiPay mention is not proof of an applicable plan.
-    if row.get("installment_terms_verified") is True:
-        entry = _number(
-            row.get("installment_down_payment_toman")
-            or row.get("installment_entry_payment_toman")
-        )
-        if entry > 0 and entry <= price:
-            return entry, "verified_installment_down_payment"
-    return price, "cash_price"
-
+        return 0.0, "missing_listed_final_cash_price"
+    return price, "listed_final_cash_price_excluding_unverified_delivery_fees"
 
 def discount_attractiveness_score(
     row: dict,
@@ -227,8 +230,8 @@ def apply_four_factor_scores(
     }
     for index, row in enumerate(rows):
         demand = _clamp(_number(live_demand_score_fn(row)))
-        entry_price, affordability_basis = _entry_price_toman(row)
-        absolute = affordability_absolute_score(entry_price)
+        final_cash_price, affordability_basis = _final_cash_price_toman(row)
+        absolute = affordability_absolute_score(final_cash_price)
         relative = relative_prices.get(index)
         affordability = absolute if relative is None else 0.65 * absolute + 0.35 * relative
         generality = generality_score(groups[index])
@@ -247,6 +250,9 @@ def apply_four_factor_scores(
             "weakest_factor_score": round(min(components), 2),
             "generality_group": groups[index],
             "affordability_basis": affordability_basis,
+            "affordability_reference_monthly_income_toman": AFFORDABILITY_REFERENCE_MONTHLY_INCOME_TOMAN,
+            "affordability_reference_basis": AFFORDABILITY_REFERENCE_BASIS,
+            "affordability_reference_full_score_price_share": AFFORDABILITY_FULL_SCORE_PRICE_SHARE,
             "price_cohort_size": cohort_sizes.get(price_groups[index], 0) if relative is not None else 0,
             "price_cohort_key": price_groups[index],
             "discount_evidence": discount_evidence,

@@ -10999,7 +10999,7 @@ def run(publish=False, selection_only=False):
             "version": OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
             "aggregation": "equal_weight_harmonic_mean",
             "dimensions": ["live_demand", "affordability", "generality", "discount_attractiveness"],
-            "affordability": "cash_ticket_absolute_proxy_plus_within_use_case_price_percentile_when_cohort_size_at_least_8",
+            "affordability": "listed_final_cash_price_vs_versioned_1405_minimum_wage_proxy_plus_within_use_case_price_percentile_when_cohort_size_at_least_8",
             "verified_installment_terms_required": True,
             "generality": "taxonomy_and_use_case_reach_heuristic; unknown_taxonomy_scored_low",
             "discount_attractiveness": "verified_percent_and_cash_savings_plus_fresh_history_or_market_evidence_confidence",
