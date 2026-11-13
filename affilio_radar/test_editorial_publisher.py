@@ -220,6 +220,26 @@ class EditorialPublisherTests(unittest.TestCase):
             "api_accepted_without_public_message_id_unverified",
         )
 
+    def test_unconfirmed_editorial_channel_error_does_not_retry_after_newer_fifo_slot(self):
+        state = {}
+        entry = {
+            "content_id": "editorial:test-guide",
+            "platforms": {"telegram": {"status": "pending", "attempts": 0}},
+        }
+        with (
+            patch("editorial_publisher._destination_ready", return_value=(True, "")),
+            patch("editorial_publisher._send_bot_message", side_effect=RuntimeError("bad request")),
+            patch("editorial_publisher._save"),
+        ):
+            _handle_channel_destination(
+                state, entry, "telegram", b"", "editorial test", NOW
+            )
+        self.assertEqual(entry["platforms"]["telegram"]["status"], "manual_review")
+        self.assertIn(
+            "editorial_delivery_not_confirmed_no_late_retry",
+            entry["platforms"]["telegram"]["last_error"],
+        )
+
     def test_network_timeout_is_manual_review_not_blind_retry(self):
         state = {"status": "sending", "attempts": 1}
         entry = {"platforms": {"youtube": state}}
