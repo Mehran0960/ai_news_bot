@@ -11222,14 +11222,9 @@ def run(publish=False, selection_only=False):
             str(item.get("product_id") or product_id(item.get("product_url") or ""))
             for item in selected_batch if isinstance(item, dict)
         }
-        fallback_pool = [
-            dict(item) for item in new_candidates
-            if str(item.get("product_id") or product_id(item.get("product_url") or "")) not in newly_selected_ids
-        ][:50]
-        for pid in newly_selected_ids:
-            entry = queue.get(pid)
-            if isinstance(entry, dict) and int(entry.get("attempt_count") or 0) == 0:
-                entry["fallback_candidates"] = fallback_pool
+        # Every ranked candidate already has its own durable queue reservation.
+        # Duplicating the same large backup pool on every row only bloats state
+        # and risks hiding later records from the compact operational sidecars.
 
         mix_plan = publication_mix.apply_product_publication_schedule(
             state,
@@ -11259,7 +11254,7 @@ def run(publish=False, selection_only=False):
             f"product_spacing_minutes={mix_plan.get('product_spacing_minutes')} "
             f"editorial_slots={mix_plan.get('editorial_slots_available')} "
             f"deferred={mix_plan.get('new_candidates_deferred')} "
-            f"fallback_pool={len(fallback_pool)}"
+            f"fallback_pool=0"
         )
         return 0
 
