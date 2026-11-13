@@ -11128,13 +11128,16 @@ def run(publish=False, selection_only=False):
         remaining = max(0, interval_seconds - int(elapsed))
 
         if remaining > 0:
+            preserved_planned = sum(
+                1 for row in state.get("content_delivery_queue", {}).values()
+                if isinstance(row, dict)
+                and row.get("publication_plan_cycle_id") == plan_cycle_id
+            )
             save_json(STATE, state)
             print(
                 "CONTENT_SELECTION_SLOT_NOT_DUE "
                 f"seconds_remaining={remaining} live_candidates={len(eligible)} "
-                f"preserved_planned={sum(1 for row in state.get('content_delivery_queue', {}).values() "
-                "if isinstance(row, dict) and row.get('publication_plan_cycle_id') == plan_cycle_id)} "
-                f"replaced_stale={replaced}"
+                f"preserved_planned={preserved_planned} replaced_stale={replaced}"
             )
             return 0
 
