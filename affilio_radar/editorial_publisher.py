@@ -708,6 +708,19 @@ def _finalize_if_terminal(state: dict, entry: dict, now: datetime) -> bool:
     ):
         entry["status"] = "partial"
         return False
+    # A manual-review result is ambiguous for FIFO: the destination may have
+    # accepted the content even though public delivery was not confirmed. Keep the
+    # canonical sequence alive until a human resolves that destination.
+    if any(
+        targets[name].get("status") == "manual_review"
+        for name in PLATFORM_NAMES
+    ):
+        entry["status"] = "manual_review"
+        entry["updated_at"] = now.isoformat()
+        entry["terminal_summary"] = {
+            name: targets[name].get("status") for name in PLATFORM_NAMES
+        }
+        return False
     success = any(targets[name].get("status") == "sent" for name in PLATFORM_NAMES)
     entry["status"] = "completed" if success else "failed"
     entry["updated_at"] = now.isoformat()
