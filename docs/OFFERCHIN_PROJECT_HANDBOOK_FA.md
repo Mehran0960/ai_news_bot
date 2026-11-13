@@ -1200,3 +1200,8 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 ## تکمیل گزارش واقعی افیلیو — وضعیت ۱۳ نوامبر ۲۰۲۶
 
 ورود داشبورد از SSO با GitHub Secrets انجام شده است، اما extraction تفکیک لینک/رسانه هنوز کامل نیست. نسخهٔ دوم workflow، فقط ساختار نام فیلدها و نوع پاسخ‌های JSON را به‌صورت sanitized log می‌کند؛ مقادیر مالی، شناسه‌های مشتری، cookie، token، query string و header ذخیره/لاگ نمی‌شوند. خروجی کامل فقط رمزگذاری‌شده نگه‌داری می‌شود. تا زمانی که API/گزارش رسمی رسانه و سفارش تأیید نشود، click، income basket و pending commission را معادل سفارش تأییدشده یا فروش نهایی ندانید. مستندات عملیاتی: `affilio_radar/AFFILIO_REPORTING_ACCESS.md`.
+
+
+## وضعیت گزارش واقعی افیلیو پس از کشف schema لینک‌ها
+
+اجرای read-only در ۱۳ نوامبر احراز هویت موفق، ۶ snapshot صفحه و ۳۰ پاسخ JSON ثبت کرد؛ endpoint عملکرد لینک `/api/v1/links/analytics` شامل ۹ ردیف با `media_uid` و `link_uid`، کلیک، income items، total income، conversion rate و revenue share است. Parser اکنون این فیلدها را حفظ و گزارش تجمعی را به تفکیک media UID تولید می‌کند. با این حال، شناسهٔ سفارش و وضعیت approved/declined/cancelled در این ردیف‌ها وجود ندارد؛ بنابراین income items و total income به‌تنهایی سفارش قطعی یا کمیسیون تأییدشده نیستند. برای نهایی‌سازی، باید endpoint رسمی فاکتور/سفارش و status به‌ازای رسانه از افیلیو تأیید شود. جزئیات در `affilio_radar/AFFILIO_REPORTING_ACCESS.md`.
