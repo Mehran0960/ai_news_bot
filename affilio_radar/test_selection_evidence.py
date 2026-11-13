@@ -335,10 +335,10 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "product_url": "https://www.digikala.com/product/dkp-no-demand/",
             "title": "پاوربانک تخفیف‌دار آزمایشی",
             "availability": "in_stock",
-            "current_price": 900_000,
+            "current_price": 700_000,
             "original_price": 1_000_000,
-            "discount_percent": 10,
-            "savings_toman": 100_000,
+            "discount_percent": 30,
+            "savings_toman": 300_000,
             "image_url": "https://example.com/product.webp",
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-no-demand%2F",
         }
