@@ -350,7 +350,7 @@ def enqueue_selected_content(
     items: list[dict],
     *,
     now: datetime | None = None,
-    interval_seconds: int = 1380,
+    interval_seconds: int = 1620,
     max_items: int = 1,
     minimum_runway_minutes: int = 0,
     max_active_items: int | None = None,
