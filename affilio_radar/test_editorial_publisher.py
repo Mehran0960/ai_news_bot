@@ -78,7 +78,9 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
 
     def test_editorial_fills_a_gap_before_a_future_product_slot(self):
-        state = {"content_delivery_queue": {
+        state = {
+            "publication_mix_plan": {"cycle_id": "clean-cycle-1"},
+            "content_delivery_queue": {
             "dkp-1": {
                 "status": "queued",
                 "attempt_count": 0,
