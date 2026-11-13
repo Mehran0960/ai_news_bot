@@ -16,9 +16,21 @@ const output = {
   report_links: [],
   api_responses: [],
   metric_observations: [],
+  report_data: {
+    dashboard_summary: null,
+    wallet_summary: null,
+    revenue_status: null,
+    clicks_trend: [],
+    revenue_trend: [],
+    revenue_basket_trend: [],
+    link_rows: [],
+    media_totals: [],
+    top_earning_products: []
+  },
   notes: [
-    "Read-only diagnostic: login plus GET navigation to report pages only.",
-    "No cookies, tokens, headers, usernames, account identifiers or full page bodies are stored."
+    "Read-only diagnostic: login plus GET navigation and report-tab inspection only.",
+    "No cookies, tokens, headers, usernames, account identifiers or full page bodies are stored.",
+    "Income-basket and income-item counts are retained under their panel field names and are not re-labelled as confirmed orders."
   ]
 };
 
@@ -34,7 +46,8 @@ function safePath(rawUrl) {
 function numericValue(value) {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string") {
-    const normalized = value.replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+    const normalized = value
+      .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
       .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
       .replace(/[٬,\s]/g, "");
     if (/^-?\d+(\.\d+)?$/.test(normalized)) return Number(normalized);
@@ -42,23 +55,86 @@ function numericValue(value) {
   return null;
 }
 
+function val(obj, key) {
+  return obj && typeof obj === "object" ? numericValue(obj[key]) : null;
+}
+
 function walkMetrics(value, parent = "", depth = 0) {
-  if (!value || typeof value !== "object" || depth > 8 || output.metric_observations.length >= 120) return;
+  if (!value || typeof value !== "object" || depth > 8 || output.metric_observations.length >= 180) return;
   if (Array.isArray(value)) {
-    value.slice(0, 100).forEach((item, index) => walkMetrics(item, parent, depth + 1));
+    value.slice(0, 100).forEach(item => walkMetrics(item, parent, depth + 1));
     return;
   }
   for (const [key, child] of Object.entries(value)) {
     if (METRIC_KEY.test(key)) {
       const number = numericValue(child);
       if (number !== null) {
-        output.metric_observations.push({
-          field: parent ? parent + "." + key : key,
-          value: number
-        });
+        output.metric_observations.push({ field: parent ? parent + "." + key : key, value: number });
       }
     }
     if (child && typeof child === "object") walkMetrics(child, parent ? parent + "." + key : key, depth + 1);
+  }
+}
+
+function captureKnownMetrics(path, payload) {
+  const d = payload?.data || {};
+  if (path === "/api/v1/dashboard/summary-statistics") {
+    output.report_data.dashboard_summary = {
+      total_income_toman: val(d.total_income, "current_value"),
+      income_basket_count: val(d.total_income_count, "current_value"),
+      total_clicks: val(d.total_clicks, "current_value"),
+      previous_total_income_toman: val(d.total_income, "previous_value"),
+      previous_income_basket_count: val(d.total_income_count, "previous_value"),
+      previous_total_clicks: val(d.total_clicks, "previous_value")
+    };
+  } else if (path === "/api/v1/users/me/wallet-summary") {
+    output.report_data.wallet_summary = {
+      finalized_income_toman: val(d, "finalized_income_amount"),
+      wallet_balance_toman: val(d, "wallet_balance_amount")
+    };
+  } else if (path === "/api/v1/dashboard/statistics") {
+    output.report_data.revenue_status = {
+      approved_revenue_toman: val(d.approved_revenue, "amount"),
+      pending_revenue_toman: val(d.pending_revenue, "amount"),
+      bonus_revenue_toman: val(d.bonus_revenue, "amount")
+    };
+  } else if (path === "/api/v1/dashboard/clicks-trend" && Array.isArray(d.clicks_trend)) {
+    output.report_data.clicks_trend = d.clicks_trend.map(x => ({
+      date: typeof x.date === "string" ? x.date : null,
+      total_clicks: val(x, "total_clicks")
+    }));
+  } else if (path === "/api/v1/dashboard/revenue-trend" && Array.isArray(d.revenue_trend)) {
+    output.report_data.revenue_trend = d.revenue_trend.map(x => ({
+      date: typeof x.date === "string" ? x.date : null,
+      approved_revenue_toman: val(x, "approved_revenue"),
+      pending_revenue_toman: val(x, "pending_revenue"),
+      total_revenue_toman: val(x, "total_revenue")
+    }));
+  } else if (path === "/api/v1/dashboard/revenue-basket" && Array.isArray(d.revenue_basket)) {
+    output.report_data.revenue_basket_trend = d.revenue_basket.map(x => ({
+      date: typeof x.date === "string" ? x.date : null,
+      total_income_baskets: val(x, "total_incomes")
+    }));
+  } else if (path === "/api/v1/links/analytics" && Array.isArray(d.items)) {
+    output.report_data.link_rows = d.items.slice(0, 200).map(x => ({
+      media_name: typeof x.media_name === "string" ? x.media_name : null,
+      link_title: typeof x.link_title === "string" ? x.link_title : null,
+      advertiser_name: typeof x.advertiser_name === "string" ? x.advertiser_name : null,
+      click_count: val(x, "click_count"),
+      income_items_count: val(x, "income_items_count"),
+      total_income_toman: val(x, "total_income"),
+      conversion_rate: val(x, "conversion_rate"),
+      first_click_date: typeof x.first_click_date === "string" ? x.first_click_date : null
+    }));
+  } else if (path === "/api/v1/dashboard/top-earning-products" && Array.isArray(d.products)) {
+    output.report_data.top_earning_products = d.products.slice(0, 30).map(x => ({
+      product_code: typeof x.product_code === "string" ? x.product_code : null,
+      product_name: typeof x.product_name === "string" ? x.product_name : null,
+      advertiser_name: typeof x.advertiser_name === "string" ? x.advertiser_name : null,
+      media_name: typeof x.media_name === "string" ? x.media_name : null,
+      total_earnings_toman: val(x, "total_earnings"),
+      revenue_share_percentage: val(x, "revenue_share_percentage")
+    }));
   }
 }
 
@@ -75,13 +151,16 @@ function shapeOf(value, depth = 0) {
 
 async function snapshotPage(page, label) {
   const info = await page.evaluate(() => {
-    const text = el => (el.innerText || el.getAttribute("aria-label") || el.getAttribute("title") || "").trim().replace(/\s+/g, " ").slice(0, 100);
+    const text = el => (el.innerText || el.getAttribute("aria-label") || el.getAttribute("title") || "")
+      .trim().replace(/\s+/g, " ").slice(0, 100);
     const headings = [...document.querySelectorAll("h1,h2,h3,[role=heading]")]
       .map(text).filter(Boolean).slice(0, 30);
-    const controls = [...document.querySelectorAll("a[href],button,[role=menuitem]")]
-      .map(el => ({ label: text(el), href: el.tagName === "A" ? el.getAttribute("href") : null }))
-      .filter(x => x.label).slice(0, 120);
-    return { title: document.title || "", pathname: location.pathname, headings, controls };
+    const controls = [...document.querySelectorAll("a[href],button,[role=menuitem],[role=tab]")]
+      .map(el => ({ label: text(el), href: el.tagName === "A" ? el.getAttribute("href") : null, role: el.getAttribute("role") || "" }))
+      .filter(x => x.label).slice(0, 150);
+    const dateLabels = controls.map(x => x.label)
+      .filter(x => /\d{1,2}\s*(مهر|آبان|آذر|دی|بهمن|اسفند|فروردین|اردیبهشت|خرداد|تیر|مرداد|شهریور)/.test(x));
+    return { title: document.title || "", pathname: location.pathname, headings, controls, dateLabels };
   });
   const reportLinks = [];
   for (const item of info.controls) {
@@ -89,13 +168,19 @@ async function snapshotPage(page, label) {
     if (!item.href) continue;
     try {
       const target = new URL(item.href, page.url());
-      if (target.origin === "https://publisher.affilio.ir" &&
-          !EXCLUDED_PATH.test(target.pathname)) {
+      if (target.origin === "https://publisher.affilio.ir" && !EXCLUDED_PATH.test(target.pathname)) {
         reportLinks.push({ label: item.label, url: target.origin + target.pathname });
       }
     } catch {}
   }
-  output.pages.push({ label, url: safePath(page.url()), title: info.title, headings: info.headings, controls: info.controls });
+  output.pages.push({
+    label,
+    url: safePath(page.url()),
+    title: info.title,
+    headings: info.headings,
+    date_range_labels: info.dateLabels,
+    controls: info.controls
+  });
   output.report_links.push(...reportLinks);
 }
 
@@ -122,12 +207,8 @@ try {
       if (!allowedHost || EXCLUDED_PATH.test(path.path) || !contentType.includes("application/json")) return;
       let payload;
       try { payload = await response.json(); } catch { return; }
-      output.api_responses.push({
-        host: path.host,
-        path: path.path,
-        status,
-        shape: shapeOf(payload)
-      });
+      output.api_responses.push({ host: path.host, path: path.path, status, shape: shapeOf(payload) });
+      captureKnownMetrics(path.path, payload);
       walkMetrics(payload);
     })().catch(() => {}));
   });
@@ -159,10 +240,22 @@ try {
       try {
         await page.goto(target.url, { waitUntil: "domcontentloaded", timeout: 30000 });
         await page.waitForTimeout(1800);
-        if (/^sso\./i.test(safePath(page.url()).host)) continue;
-        await snapshotPage(page, "report_navigation");
+        if (!/^sso\./i.test(safePath(page.url()).host)) {
+          await snapshotPage(page, "report_navigation");
+          // Income detail and invoice sections are tabs in this panel. Click only
+          // their explicit tab controls; never click buttons that mutate account data.
+          for (const label of ["جزئیات درآمد", "فاکتورها"]) {
+            const tab = page.getByText(label, { exact: true }).first();
+            if (await tab.count().catch(() => 0) === 0) continue;
+            const isTabControl = await tab.evaluate(el => Boolean(el.closest('[role="tab"],button,a'))).catch(() => false);
+            if (!isTabControl) continue;
+            await tab.click().catch(() => {});
+            await page.waitForTimeout(1500);
+            await snapshotPage(page, "income_tab_" + (label === "فاکتورها" ? "invoices" : "details"));
+          }
+        }
       } catch {
-        output.notes.push("A report route could not be opened; no account data was changed.");
+        output.notes.push("A report route or read-only tab could not be opened.");
       }
     }
   }
@@ -179,10 +272,23 @@ try {
   await writeFile("affilio-dashboard-diagnostic.json", JSON.stringify(output, null, 2));
 }
 
+const mediaTotals = new Map();
+for (const row of output.report_data.link_rows) {
+  const name = row.media_name || "نامشخص";
+  const current = mediaTotals.get(name) || { media_name: name, links: 0, clicks: 0, income_items_count: 0, total_income_toman: 0 };
+  current.links += 1;
+  current.clicks += row.click_count || 0;
+  current.income_items_count += row.income_items_count || 0;
+  current.total_income_toman += row.total_income_toman || 0;
+  mediaTotals.set(name, current);
+}
+output.report_data.media_totals = [...mediaTotals.values()];
+
+// Re-write after all aggregation has completed.
+await writeFile("affilio-dashboard-diagnostic.json", JSON.stringify(output, null, 2));
 console.log("AFFILIO_DIAGNOSTIC_STATUS=" + output.authentication);
 console.log("AFFILIO_DIAGNOSTIC_PAGES=" + output.pages.length);
 console.log("AFFILIO_DIAGNOSTIC_JSON_ENDPOINTS=" + output.api_responses.length);
 console.log("AFFILIO_DIAGNOSTIC_METRIC_OBSERVATIONS=" + output.metric_observations.length);
-if (output.authentication !== "authenticated_session_established") {
-  process.exitCode = 1;
-}
+console.log("AFFILIO_DIAGNOSTIC_MEDIA_ROWS=" + output.report_data.link_rows.length);
+if (output.authentication !== "authenticated_session_established") process.exitCode = 1;
