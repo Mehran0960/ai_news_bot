@@ -67,9 +67,263 @@ function jsonResponse(body, status = 200) {
     }
   });
 }
+
+function constantTimeEqual(leftValue, rightValue) {
+  const left = new TextEncoder().encode(String(leftValue || ""));
+  const right = new TextEncoder().encode(String(rightValue || ""));
+  const length = Math.max(left.length, right.length);
+  let difference = left.length ^ right.length;
+  for (let index = 0; index < length; index++) {
+    difference |= (left[index] || 0) ^ (right[index] || 0);
+  }
+  return difference === 0;
+}
+
+function parseAffilioPostback(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+  const conversionId = String(payload.conversion_id || "").trim();
+  const type = String(payload.type || "").trim().toLowerCase();
+  const status = String(payload.status || "").trim().toLowerCase();
+  const timestampRaw = String(payload.timestamp || "").trim();
+  const timestampDate = new Date(timestampRaw);
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(conversionId)) return null;
+  if (!new Set(["sale", "lead", "action"]).has(type)) return null;
+  if (!new Set(["pending", "approved", "declined"]).has(status)) return null;
+  if (!timestampRaw || !Number.isFinite(timestampDate.getTime())) return null;
+
+  const affSub = payload.aff_sub == null ? "" : String(payload.aff_sub).trim();
+  if (affSub && !/^[A-Za-z0-9_-]{1,255}$/.test(affSub)) return null;
+  const payout = payload.payout == null ? null : Number(payload.payout);
+  if (payout !== null && (!Number.isSafeInteger(payout) || payout < 0)) return null;
+  if (status === "approved" && payout === null) return null;
+  const amount = payload.amount == null ? null : Number(payload.amount);
+  if (amount !== null && (!Number.isSafeInteger(amount) || amount < 0)) return null;
+  if (type === "sale" && amount === null) return null;
+
+  const itemsRaw = payload.items == null ? [] : payload.items;
+  if (!Array.isArray(itemsRaw) || itemsRaw.length > 100) return null;
+  const items = [];
+  for (const item of itemsRaw) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+    const quantity = Number(item.quantity);
+    const unitPrice = Number(item.unit_price);
+    if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 10000) return null;
+    if (!Number.isSafeInteger(unitPrice) || unitPrice < 0) return null;
+    items.push({ quantity, unit_price: unitPrice });
+  }
+
+  return {
+    conversion_id: conversionId,
+    type,
+    status,
+    timestamp: timestampDate.toISOString(),
+    aff_sub: affSub,
+    payout_toman: payout,
+    amount_toman: amount,
+    items
+  };
+}
+
+function parseOfferChinAffSub(value) {
+  const match = String(value || "").match(
+    /^oc1_(telegram|bale|youtube|aparat)_((?:dkp-\d{1,12})|(?:snp-\\d{1,20}))(?:_([A-Za-z0-9_-]{1,120}))?$/
+  );
+  if (!match) return { source: "unknown", product_id: "unknown", campaign: "" };
+  return { source: match[1], product_id: match[2], campaign: match[3] || "" };
+}
+
+async function receiveAffilioPostback(request, env) {
+  if (request.method !== "POST") {
+    return new Response("Method not allowed", { status: 405, headers: { "Allow": "POST" } });
+  }
+  if (!env.AFFILIO_POSTBACK_TOKEN) {
+    return jsonResponse({ ok: false, error: "postback_not_configured" }, 503);
+  }
+  if (!constantTimeEqual(request.headers.get("X-Affilio-Token"), env.AFFILIO_POSTBACK_TOKEN)) {
+    return jsonResponse({ ok: false, error: "unauthorized" }, 401);
+  }
+  if (!env.DB) return jsonResponse({ ok: false, error: "conversion_database_unavailable" }, 503);
+  const declaredLength = Number(request.headers.get("content-length") || 0);
+  if (declaredLength > 65536) return jsonResponse({ ok: false, error: "payload_too_large" }, 413);
+
+  let raw;
+  try {
+    const body = await request.text();
+    if (new TextEncoder().encode(body).byteLength > 65536) {
+      return jsonResponse({ ok: false, error: "payload_too_large" }, 413);
+    }
+    raw = JSON.parse(body);
+  } catch (_) {
+    return jsonResponse({ ok: false, error: "invalid_json" }, 400);
+  }
+
+  const conversion = parseAffilioPostback(raw);
+  if (!conversion) return jsonResponse({ ok: false, error: "invalid_conversion_payload" }, 400);
+  const receivedAt = new Date().toISOString();
+  try {
+    const result = await env.DB.prepare(
+      `INSERT INTO affilio_conversions (
+        conversion_id, status, type, timestamp, aff_sub,
+        payout_toman, amount_toman, items_json, received_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(conversion_id, status) DO UPDATE SET
+        type = excluded.type,
+        timestamp = excluded.timestamp,
+        aff_sub = excluded.aff_sub,
+        payout_toman = excluded.payout_toman,
+        amount_toman = excluded.amount_toman,
+        items_json = excluded.items_json,
+        received_at = excluded.received_at
+      WHERE excluded.timestamp > affilio_conversions.timestamp`
+    ).bind(
+      conversion.conversion_id,
+      conversion.status,
+      conversion.type,
+      conversion.timestamp,
+      conversion.aff_sub || null,
+      conversion.payout_toman,
+      conversion.amount_toman,
+      JSON.stringify(conversion.items),
+      receivedAt
+    ).run();
+    const changes = Number(result?.meta?.changes || 0);
+    return jsonResponse({
+      ok: true,
+      stored: changes > 0,
+      duplicate_or_older_event: changes === 0,
+      conversion_id: conversion.conversion_id,
+      status: conversion.status
+    });
+  } catch (error) {
+    console.error("AFFILIO_POSTBACK_WRITE_FAILED", String(error).slice(0, 160));
+    return jsonResponse({ ok: false, error: "conversion_storage_failed" }, 503);
+  }
+}
+
+async function readAffilioConversionReport(request, env) {
+  if (request.method !== "GET") {
+    return new Response("Method not allowed", { status: 405, headers: { "Allow": "GET" } });
+  }
+  if (!env.AFFILIO_REPORT_TOKEN) {
+    return jsonResponse({ ok: false, error: "conversion_reporting_not_configured" }, 503);
+  }
+  const authorization = request.headers.get("authorization") || "";
+  if (!constantTimeEqual(authorization, "Bearer " + env.AFFILIO_REPORT_TOKEN)) {
+    return jsonResponse({ ok: false, error: "unauthorized" }, 401);
+  }
+  if (!env.DB) return jsonResponse({ ok: false, error: "conversion_database_unavailable" }, 503);
+
+  const url = new URL(request.url);
+  const rawDays = Number(url.searchParams.get("days") || 30);
+  const days = Number.isFinite(rawDays) ? Math.max(1, Math.min(365, Math.floor(rawDays))) : 30;
+  const since = new Date(Date.now() - days * 86400000).toISOString();
+  try {
+    const result = await env.DB.prepare(
+      `SELECT conversion_id, type, status, timestamp, aff_sub, payout_toman, amount_toman
+       FROM (
+         SELECT conversion_id, type, status, timestamp, aff_sub, payout_toman, amount_toman,
+           ROW_NUMBER() OVER (
+             PARTITION BY conversion_id
+             ORDER BY timestamp DESC,
+               CASE status WHEN 'approved' THEN 3 WHEN 'declined' THEN 2 ELSE 1 END DESC
+           ) AS latest_rank
+         FROM affilio_conversions
+         WHERE timestamp >= ?
+       )
+       WHERE latest_rank = 1
+       ORDER BY timestamp DESC`
+    ).bind(since).all();
+    const rows = Array.isArray(result?.results) ? result.results : [];
+    const totals = {
+      conversions: rows.length,
+      sales_pending: 0,
+      sales_approved: 0,
+      sales_declined: 0,
+      sales_amount_pending_toman: 0,
+      sales_amount_approved_toman: 0,
+      commission_pending_toman: 0,
+      commission_approved_toman: 0,
+      commission_declined_toman: 0,
+      commission_unknown_count: 0
+    };
+    const bySource = Object.create(null);
+    const byProduct = Object.create(null);
+    const byAffSub = Object.create(null);
+    const getGroup = (container, key) => {
+      if (!container[key]) {
+        container[key] = {
+          conversions: 0, sales_pending: 0, sales_approved: 0, sales_declined: 0,
+          sales_amount_approved_toman: 0, commission_approved_toman: 0,
+          commission_pending_toman: 0
+        };
+      }
+      return container[key];
+    };
+    for (const row of rows) {
+      const attribution = parseOfferChinAffSub(row.aff_sub);
+      const source = attribution.source;
+      const productId = attribution.product_id;
+      const groups = [
+        getGroup(bySource, source),
+        getGroup(byProduct, productId),
+        getGroup(byAffSub, row.aff_sub || "unattributed")
+      ];
+      totals.conversions += 0;
+      for (const group of groups) group.conversions += 1;
+      if (row.type === "sale") {
+        const statusKey = row.status === "approved" ? "sales_approved"
+          : row.status === "declined" ? "sales_declined" : "sales_pending";
+        totals[statusKey] += 1;
+        for (const group of groups) group[statusKey] += 1;
+        if (row.amount_toman != null) {
+          if (row.status === "approved") {
+            totals.sales_amount_approved_toman += Number(row.amount_toman) || 0;
+            for (const group of groups) group.sales_amount_approved_toman += Number(row.amount_toman) || 0;
+          } else if (row.status === "pending") {
+            totals.sales_amount_pending_toman += Number(row.amount_toman) || 0;
+          }
+        }
+      }
+      if (row.payout_toman == null) {
+        totals.commission_unknown_count += 1;
+      } else if (row.status === "approved") {
+        totals.commission_approved_toman += Number(row.payout_toman) || 0;
+        for (const group of groups) group.commission_approved_toman += Number(row.payout_toman) || 0;
+      } else if (row.status === "pending") {
+        totals.commission_pending_toman += Number(row.payout_toman) || 0;
+        for (const group of groups) group.commission_pending_toman += Number(row.payout_toman) || 0;
+      } else if (row.status === "declined") {
+        totals.commission_declined_toman += Number(row.payout_toman) || 0;
+      }
+    }
+    return jsonResponse({
+      ok: true,
+      source: "affilio_conversion_postback",
+      currency: "Toman",
+      days,
+      since,
+      generated_at: new Date().toISOString(),
+      totals,
+      by_source: bySource,
+      by_product: byProduct,
+      by_aff_sub: byAffSub,
+      note: "Approved commission only; pending and declined conversions are reported separately."
+    });
+  } catch (error) {
+    console.error("AFFILIO_CONVERSION_REPORT_FAILED", String(error).slice(0, 160));
+    return jsonResponse({ ok: false, error: "conversion_report_unavailable" }, 503);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/affilio/postback") {
+      return receiveAffilioPostback(request, env);
+    }
+    if (url.pathname === "/affilio/report") {
+      return readAffilioConversionReport(request, env);
+    }
     if (request.method !== "GET" && request.method !== "HEAD") {
       return new Response("Method not allowed", { status: 405, headers: { "Allow": "GET, HEAD" } });
     }
@@ -80,8 +334,10 @@ export default {
         clickStoreReady: !!env.CLICKS,
         experimentAttribution: true,
         captionExperimentAttribution: true,
-        routes: ["/health", "/stats", "/p/<dkp-or-snp-product-id>?u=<verified-aflo-link>&src=<telegram|bale|youtube|aparat>&exp=<visual-experiment>&variant=<a|b>&cexp=<caption-experiment>&cvariant=<a|b>"],
-        stats: "Aggregated product and source click counts for the last 30 days only"
+        conversionPostbackReady: !!env.DB && !!env.AFFILIO_POSTBACK_TOKEN,
+        conversionReportingReady: !!env.DB && !!env.AFFILIO_REPORT_TOKEN,
+        routes: ["/health", "/stats", "/affilio/postback (POST)", "/affilio/report (authenticated GET)", "/p/<dkp-or-snp-product-id>?u=<verified-aflo-link>&src=<telegram|bale|youtube|aparat>&exp=<visual-experiment>&variant=<a|b>&cexp=<caption-experiment>&cvariant=<a|b>"],
+        stats: "Clicks remain separate from Affilio orders, sales and approved commission"
       });
     }
     if (url.pathname === "/stats") {
