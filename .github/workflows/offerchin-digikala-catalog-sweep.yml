@@ -63,29 +63,62 @@ jobs:
               "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
               "Referer": "https://www.digikala.com/",
           })
-          probes = [
-              ("v2_category_no_query", "https://api.digikala.com/v2/category/19/", {"page": 1, "sort": 5}),
-              ("v2_category_with_query", "https://api.digikala.com/v2/category/19/", {"q": "گوشی پوکو", "page": 1, "sort": 5}),
-              ("v1_search_legacy", "https://api.digikala.com/v1/search/", {"categories[]": "19", "page": 1, "sort": 7}),
-          ]
-          for label, url, params in probes:
+          def probe(label, url, params=None):
               try:
-                  response = session.get(url, params=params, timeout=(5, 18))
-                  shape = {"status": response.status_code, "content_type": response.headers.get("content-type", "")}
+                  response = session.get(url, params=params or {}, timeout=(5, 18))
+                  result = {"status": response.status_code, "content_type": response.headers.get("content-type", "")}
                   try:
                       payload = response.json()
-                      data = payload.get("data", {}) if isinstance(payload, dict) else {}
-                      widgets = data.get("widgets", []) if isinstance(data, dict) else []
-                      listing = next((w for w in widgets if isinstance(w, dict) and w.get("type") == "vertical_product_listing"), {})
-                      nested = listing.get("data", {}) if isinstance(listing, dict) else {}
-                      product_widgets = [w for w in nested.get("widgets", []) if isinstance(w, dict) and w.get("type") == "product"] if isinstance(nested, dict) else []
-                      pager = data.get("pager") if isinstance(data, dict) else None
-                      shape.update({"data_keys": sorted(data.keys())[:20] if isinstance(data, dict) else [], "widget_types": [w.get("type") for w in widgets[:20] if isinstance(w, dict)], "product_widget_count": len(product_widgets), "pager_keys": sorted(pager.keys()) if isinstance(pager, dict) else []})
+                      result["top_keys"] = sorted(payload.keys())[:20] if isinstance(payload, dict) else []
+                      if isinstance(payload, dict):
+                          for key in ("message", "detail", "error", "status"):
+                              value = payload.get(key)
+                              if isinstance(value, (str, int, bool)):
+                                  result[key] = str(value)[:100]
+                          data = payload.get("data")
+                          if isinstance(data, dict):
+                              result["data_keys"] = sorted(data.keys())[:20]
+                              pager = data.get("pager")
+                              result["pager_keys"] = sorted(pager.keys()) if isinstance(pager, dict) else []
+                              widgets = data.get("widgets")
+                              result["widget_types"] = [w.get("type") for w in widgets[:20] if isinstance(w, dict)] if isinstance(widgets, list) else []
+                              count = 0
+                              if isinstance(widgets, list):
+                                  for item in widgets:
+                                      nested = item.get("data", {}) if isinstance(item, dict) else {}
+                                      nested_widgets = nested.get("widgets", []) if isinstance(nested, dict) else []
+                                      count += sum(1 for w in nested_widgets if isinstance(w, dict) and w.get("type") == "product") if isinstance(nested_widgets, list) else 0
+                              result["product_widget_count"] = count
                   except Exception as exc:
-                      shape["json_error"] = type(exc).__name__
-                  print("DIGIKALA_ENDPOINT_PROBE " + label + " " + str(shape))
+                      result["json_error"] = type(exc).__name__
+                  print("DIGIKALA_ENDPOINT_PROBE " + label + " " + str(result))
+                  return response, payload if 'payload' in locals() else None
               except Exception as exc:
                   print("DIGIKALA_ENDPOINT_PROBE " + label + " error=" + type(exc).__name__)
+                  return None, None
+
+          dict_params = [("types[0]", "category_tree"), ("hashes[0]", "")]
+          dict_response, dict_payload = probe("category_dictionary", "https://api.digikala.com/v1/dictionaries/", dict_params)
+          category_ids = []
+          def walk(value):
+              if isinstance(value, dict):
+                  raw = value.get("id")
+                  if raw is not None and str(raw).isdigit():
+                      category_ids.append(str(raw))
+                  for child in value.values():
+                      walk(child)
+              elif isinstance(value, list):
+                  for child in value:
+                      walk(child)
+          if isinstance(dict_payload, dict):
+              walk(dict_payload.get("data", {}).get("category_tree", []))
+          category_ids = list(dict.fromkeys(category_ids))
+          selected_ids = category_ids[:8] if category_ids else ["14", "19", "20", "77"]
+          print("DIGIKALA_CATEGORY_DICTIONARY_IDS " + str(selected_ids))
+          for category_id in selected_ids:
+              probe("v2_no_q_" + category_id, "https://api.digikala.com/v2/category/" + category_id + "/", {"page": 1, "sort": 5})
+          probe("v2_q_19", "https://api.digikala.com/v2/category/19/", {"q": "گوشی پوکو", "page": 1, "sort": 5})
+          probe("v1_search_19", "https://api.digikala.com/v1/search/", {"categories[]": "19", "page": 1, "sort": 7})
           PY
       - name: Validate catalog scanner and status snapshot
         run: |
