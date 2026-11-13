@@ -4970,11 +4970,13 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                 }
                 if status in {"pending", "failed", "retry"}:
                     pending_video = True
-            channel_platforms = ("telegram", "bale", "rubika", "eitaa")
+            # Editorial video starts only after a primary channel confirms the post.
+            # An optional Rubika/Eitaa-only receipt must not dispatch a video that
+            # the editorial FIFO runner will correctly keep waiting.
             channel_success = any(
                 isinstance(platforms.get(name), dict)
                 and str(platforms[name].get("status") or "").lower() == "sent"
-                for name in channel_platforms
+                for name in ("telegram", "bale")
             )
             if pending_video and channel_success:
                 editorial_queue[str(content_id)] = {
@@ -9427,7 +9429,7 @@ def oldest_pending_editorial_video_sequence(state: dict) -> int | None:
         channel_sent = any(
             isinstance(platforms.get(name), dict)
             and platforms[name].get("status") == "sent"
-            for name in ("telegram", "bale", "rubika", "eitaa")
+            for name in ("telegram", "bale")
         )
         if not channel_sent:
             continue
