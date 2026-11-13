@@ -495100,11 +495100,11 @@
     "unchanged": 9,
     "updated": 0
   },
-  "filo_last_upload_attempt_at": "2026-11-12T22:13:08.193164+00:00",
-  "filo_last_upload_success_at": "2026-11-12T22:13:37.806386+00:00",
-  "filo_login_verification_attempted_at": "2026-11-13T01:30:19.722095+00:00",
+  "filo_last_upload_attempt_at": "2026-11-13T01:42:21.133780+00:00",
+  "filo_last_upload_success_at": "2026-11-13T01:42:50.235691+00:00",
+  "filo_login_verification_attempted_at": "2026-11-13T01:42:10.662336+00:00",
   "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-13T01:30:19.722095+00:00",
+  "filo_login_verified_at": "2026-11-13T01:42:10.662336+00:00",
   "filo_upload_interval_policy_version": 3,
   "growth_tracking": {
     "daily_member_counts": {
@@ -604729,7 +604729,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-20621503": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_message_id": 1926,
       "bale_posted_at": "2026-11-13T01:39:03.177911+00:00",
       "brand": "",
@@ -604827,7 +604828,14 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
-      "filo_upload_status": "pending",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-13T01:42:50.235691+00:00",
+      "filo_upload_started_at": "2026-11-13T01:42:21.133780+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "WcEnhiL",
+      "filo_video_url": "https://ifilo.net/v/WcEnhiL",
+      "filo_visibility": "pending_review",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-13T01:38:45.199979+00:00",
       "history_days": 5,
@@ -604867,8 +604875,15 @@
       "telegram_posted_at": "2026-11-13T01:38:59.243828+00:00",
       "title": "سکه گرمی طلا 18 عیار ماربر مدل NM",
       "ts": 1794533929.560194,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-20621503.mp4",
+      "video_file_names": {
+        "filo": "offerchin-dkp-20621503.mp4"
+      },
+      "video_generated_at": "2026-11-13T01:42:12.191684+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-20627373": {
       "aparat_skip_reason": "verified_expiry_required",
