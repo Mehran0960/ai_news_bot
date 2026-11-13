@@ -3280,10 +3280,10 @@ class AffilioRadarTests(unittest.TestCase):
             "title": "محصول پرنظر اما بدون تقاضای تازه",
             "availability": "in_stock",
             "availability_source": "digikala_api",
-            "current_price": 850_000,
-            "original_price": 1_000_000,
+            "current_price": 5_666_667,
+            "original_price": 6_666_667,
             "discount_percent": 15,
-            "savings_toman": 150_000,
+            "savings_toman": 1_000_000,
             "review_count": 250_000,
             "rating": 4.9,
             "image_url": "https://example.com/product.webp",
@@ -3320,12 +3320,13 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(
             [row["product_id"] for row in selected],
-            ["dkp-95502", "dkp-95503", "dkp-95501"],
+            ["dkp-95502"],
         )
         self.assertEqual(
             {row["product_id"] for row in quality},
-            {"dkp-95501", "dkp-95502", "dkp-95503"},
+            {"dkp-95502"},
         )
+        self.assertNotIn("dkp-95503", {row["product_id"] for row in selected})
 
     def test_open_ended_discovery_candidates_are_not_rejected_before_live_detail_check(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
@@ -3349,7 +3350,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual([pid for pid, _ in queued_rechecks], ["dkp-95401"])
 
 
-    def test_fifteen_percent_discount_is_rejected_by_fifty_percent_floor(self):
+    def test_fifteen_percent_discount_with_small_saving_fails_standalone_gate(self):
         product = {
             "title": "چراغ مطالعه مدل تست",
             "current_price": 850_000,
@@ -3363,7 +3364,7 @@ class AffilioRadarTests(unittest.TestCase):
         scored = score_product(product)
         self.assertEqual(scored["discount_percent"], 15)
         self.assertEqual(scored["savings_toman"], 150_000)
-        self.assertTrue(is_discount_publish_eligible(scored))
+        self.assertFalse(is_discount_publish_eligible(scored))
 
 
     def test_discovery_ranks_market_demand_before_discount(self):
