@@ -11,8 +11,12 @@ from datetime import datetime, timezone
 from typing import Callable
 
 
-POLICY_VERSION = "offerchin_four_factor_harmonic_v2_discount_gate"
+POLICY_VERSION = "offerchin_four_factor_harmonic_v3_market_affordability"
 MIN_PRICE_COHORT_SIZE = 8
+# 1404 (2025/26) average urban household spending was ~32.66m toman/month.
+# Round down for a conservative nationwide proxy; this is not an individual income estimate.
+AFFORDABILITY_MONTHLY_HOUSEHOLD_SPEND_BENCHMARK_TOMAN = 30_000_000
+AFFORDABILITY_BENCHMARK_SOURCE = "Iran Statistical Center 1404 household expenditure survey; urban average rounded down"
 # A weak discount cannot be compensated for by demand, affordability or generality.
 MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE = 40.0
 
@@ -101,12 +105,21 @@ def generality_score(use_case_group: object) -> float:
 
 
 def affordability_absolute_score(price_toman: object) -> float:
-    """A cash-ticket-size proxy; never represents the buyer's actual income."""
+    """Score the final cash price against a conservative monthly household-spend benchmark.
+
+    Every doubling of the share of monthly household expenditure lowers the score by
+    10 points. Installment down-payments are intentionally excluded: the customer
+    ultimately commits to the full final product price, not just the initial payment.
+    """
     price = _number(price_toman)
     if price <= 0:
         return 0.0
-    # Anchors: 100k=100, 1m=85, 10m=70, 100m=55, 1bn=40 toman.
-    return _clamp(100.0 - 15.0 * math.log10(max(price, 100_000.0) / 100_000.0))
+    benchmark = float(AFFORDABILITY_MONTHLY_HOUSEHOLD_SPEND_BENCHMARK_TOMAN)
+    # 0.5% of monthly spending is the 100-point anchor; 1%, 2%, 4%, ... decline
+    # by ten points per doubling. Clamp at 10 so only missing/invalid price is zero.
+    share = price / benchmark
+    score = 100.0 - 10.0 * math.log2(max(share / 0.005, 1.0))
+    return _clamp(score, 10.0, 100.0)
 
 
 def _relative_price_scores(records: list[dict], groups: list[str]) -> dict[int, float]:
@@ -135,21 +148,11 @@ def _relative_price_scores(records: list[dict], groups: list[str]) -> dict[int, 
 
 
 def _entry_price_toman(row: dict) -> tuple[float, str]:
+    """Use the final cash price as the primary affordability measure, never the down-payment."""
     price = _number(row.get("current_price"))
     if price <= 0:
-        return 0.0, "missing_cash_price"
-
-    # A lower entry ticket is counted only when the record explicitly marks the
-    # terms verified and provides the initial payment. Generic installment copy
-    # or a product-level DigiPay mention is not proof of an applicable plan.
-    if row.get("installment_terms_verified") is True:
-        entry = _number(
-            row.get("installment_down_payment_toman")
-            or row.get("installment_entry_payment_toman")
-        )
-        if entry > 0 and entry <= price:
-            return entry, "verified_installment_down_payment"
-    return price, "cash_price"
+        return 0.0, "missing_final_cash_price"
+    return price, "final_cash_price_vs_household_spend_proxy"
 
 
 def discount_attractiveness_score(
@@ -247,6 +250,12 @@ def apply_four_factor_scores(
             "weakest_factor_score": round(min(components), 2),
             "generality_group": groups[index],
             "affordability_basis": affordability_basis,
+            "affordability_monthly_household_spend_benchmark_toman": AFFORDABILITY_MONTHLY_HOUSEHOLD_SPEND_BENCHMARK_TOMAN,
+            "affordability_benchmark_source": AFFORDABILITY_BENCHMARK_SOURCE,
+            "affordability_price_to_monthly_spend_percent": round(
+                100.0 * _number(row.get("current_price")) / AFFORDABILITY_MONTHLY_HOUSEHOLD_SPEND_BENCHMARK_TOMAN,
+                3,
+            ),
             "price_cohort_size": cohort_sizes.get(price_groups[index], 0) if relative is not None else 0,
             "price_cohort_key": price_groups[index],
             "discount_evidence": discount_evidence,
