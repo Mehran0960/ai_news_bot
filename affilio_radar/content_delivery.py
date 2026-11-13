@@ -281,13 +281,17 @@ def refresh_unpublished_selections(
         selected = _utc(entry.get("selected_at"), scheduled)
         future_scheduled = scheduled is not None and scheduled > now
         stale_due = selected is not None and now - selected >= stale_after
+        # A selected product belongs to a durable publication promise, even
+        # when a newer clean scan completes earlier than the estimated deadline.
+        # Keep it until last-mile validation publishes/rejects it explicitly.
+        has_publication_reservation = bool(
+            str(entry.get("publication_plan_cycle_id") or "").strip()
+        )
         same_active_plan = bool(
             plan_cycle_id
             and str(entry.get("publication_plan_cycle_id") or "") == str(plan_cycle_id)
         )
-        # Planned products are intentionally held for hours between their
-        # distributed slots. Their age alone is not a reason to discard them.
-        if same_active_plan:
+        if has_publication_reservation or same_active_plan:
             continue
         if not future_scheduled and not stale_due:
             continue
