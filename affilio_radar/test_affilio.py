@@ -2905,6 +2905,60 @@ class AffilioRadarTests(unittest.TestCase):
         ))
 
 
+    def test_oldest_editorial_video_reserves_shared_media_fifo(self):
+        now = datetime(2026, 11, 13, 12, 0, tzinfo=timezone.utc)
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:later": {
+                    "sequence_number": int(now.timestamp()) + 3600,
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "youtube": {"status": "pending"},
+                        "aparat": {"status": "not_connected"},
+                        "filo": {"status": "manual_review"},
+                    },
+                },
+                "editorial:earlier": {
+                    "sequence_number": int(now.timestamp()),
+                    "status": "partial",
+                    "platforms": {
+                        "bale": {"status": "sent"},
+                        "youtube": {"status": "retry"},
+                    },
+                },
+                "editorial:not-yet-channel-published": {
+                    "sequence_number": int(now.timestamp()) - 100,
+                    "status": "queued",
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "youtube": {"status": "pending"},
+                    },
+                },
+            }
+        }
+        self.assertEqual(
+            radar_module.oldest_pending_editorial_video_sequence(state),
+            int(now.timestamp()),
+        )
+
+    def test_terminal_editorial_video_does_not_block_product_fifo(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:done": {
+                    "sequence_number": 100,
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "youtube": {"status": "sent"},
+                        "aparat": {"status": "not_connected"},
+                        "filo": {"status": "manual_review"},
+                    },
+                }
+            }
+        }
+        self.assertIsNone(radar_module.oldest_pending_editorial_video_sequence(state))
+
     def test_video_upload_queue_preserves_channel_publication_order(self):
         now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
         lower_discount_repair = (
