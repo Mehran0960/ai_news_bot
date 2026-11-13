@@ -10,6 +10,7 @@ from offerchin_four_factor import (
     affordability_absolute_score,
     apply_four_factor_scores,
     discount_attractiveness_score,
+    discount_publish_gate,
     four_factor_sort_key,
     generality_score,
     harmonic_mean,
@@ -29,6 +30,46 @@ class OfferChinFourFactorTests(unittest.TestCase):
             discount_verified_fn=lambda row: row.get("product_id") in independent,
             now=self.now,
         )
+
+    def test_low_percentage_and_low_savings_are_rejected_without_independent_price_evidence(self):
+        row = {
+            "current_price": 9_500_000,
+            "original_price": 10_000_000,
+            "discount_percent": 5,
+            "savings_toman": 500_000,
+        }
+        eligible, score, evidence = discount_publish_gate(row, independently_verified=False)
+        self.assertFalse(eligible)
+        self.assertLess(score, 40)
+        self.assertEqual(evidence, "live_retailer_markdown_only")
+
+    def test_small_percentage_can_pass_only_when_independently_verified_and_savings_are_real(self):
+        row = {
+            "current_price": 9_500_000,
+            "original_price": 10_000_000,
+            "discount_percent": 5,
+            "savings_toman": 500_000,
+        }
+        eligible, score, evidence = discount_publish_gate(row, independently_verified=True)
+        self.assertTrue(eligible)
+        self.assertGreaterEqual(score, 40)
+        self.assertEqual(evidence, "fresh_independent_history_or_market")
+
+    def test_other_strong_factors_cannot_override_a_weak_discount_gate(self):
+        row = {
+            "current_price": 9_500_000,
+            "original_price": 10_000_000,
+            "discount_percent": 5,
+            "savings_toman": 500_000,
+            "test_live_demand": 100,
+            "test_group": "home_cleaning",
+        }
+        self._score([row])
+        self.assertGreater(row["offerchin_four_factor"]["live_demand"], 90)
+        self.assertGreater(row["offerchin_four_factor"]["generality"], 90)
+        self.assertLess(row["offerchin_four_factor"]["discount_attractiveness"], 40)
+        eligible, _, _ = discount_publish_gate(row, independently_verified=False)
+        self.assertFalse(eligible)
 
     def test_harmonic_mean_penalizes_a_single_weak_dimension(self):
         balanced = harmonic_mean([100, 100, 100, 10])
