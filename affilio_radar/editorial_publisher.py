@@ -156,6 +156,11 @@ def _pending_product_video_exists(
             sequence = int(row.get("sequence_number") or 0)
         except (TypeError, ValueError, OverflowError):
             sequence = 0
+        if sequence <= 0:
+            try:
+                sequence = max(0, int(float(row.get("ts") or 0)))
+            except (TypeError, ValueError, OverflowError):
+                sequence = 0
         if sequence and sequence < int(before_sequence):
             return True
     return False
