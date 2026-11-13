@@ -126,7 +126,7 @@ function parseAffilioPostback(payload) {
 
 function parseOfferChinAffSub(value) {
   const match = String(value || "").match(
-    /^oc1_(telegram|bale|youtube|aparat)_((?:dkp-\\d{1,12})|(?:snp-\\d{1,20}))(?:_([A-Za-z0-9_-]{1,120}))?$/
+    /^oc1_(telegram|bale|youtube|aparat)_((?:dkp-\d{1,12})|(?:snp-\\d{1,20}))(?:_([A-Za-z0-9_-]{1,120}))?$/
   );
   if (!match) return { source: "unknown", product_id: "unknown", campaign: "" };
   return { source: match[1], product_id: match[2], campaign: match[3] || "" };
