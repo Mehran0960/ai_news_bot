@@ -41,18 +41,21 @@ def load_catalog_status(path: Path = STATUS_PATH) -> dict:
 
 
 def catalog_cycle_id(status: dict) -> str:
-    """Use the immutable clean snapshot identity; fall back only during warm-up."""
+    """Identify both the running scan attempt and the latest immutable clean snapshot."""
     if not isinstance(status, dict):
         return "warmup"
-    for key in (
-        "completed_candidates_cycle_at",
-        "last_clean_cycle_completed_at",
-        "current_cycle_started_at",
-        "last_cycle_started_at",
-    ):
-        value = str(status.get(key) or "").strip()
-        if value:
-            return value
+    running = str(
+        status.get("current_cycle_started_at")
+        or status.get("last_cycle_started_at")
+        or ""
+    ).strip()
+    clean = str(
+        status.get("completed_candidates_cycle_at")
+        or status.get("last_clean_cycle_completed_at")
+        or ""
+    ).strip()
+    if running or clean:
+        return f"scan={running or 'none'}|clean={clean or 'none'}"
     return "warmup"
 
 
@@ -61,6 +64,8 @@ def estimate_next_clean_scan_deadline(
     *,
     now: datetime | None = None,
     fallback_hours: float | None = None,
+    previous_plan: dict | None = None,
+    cycle_id: str | None = None,
 ) -> tuple[datetime, str]:
     """Estimate the next clean snapshot; fall back safely when the live scan is stalled.
 
@@ -86,6 +91,20 @@ def estimate_next_clean_scan_deadline(
 
     if not isinstance(status, dict):
         return fallback, "rolling_fallback"
+
+    # Freeze the forecast for this scan cycle. Recomputing "now + 30h" on every
+    # 27-minute publisher run would continually move the deadline and starve
+    # products by pushing their slots farther into the future.
+    previous_plan = previous_plan if isinstance(previous_plan, dict) else {}
+    expected_cycle_id = str(cycle_id or catalog_cycle_id(status))
+    if str(previous_plan.get("cycle_id") or "") == expected_cycle_id:
+        previous_deadline = parse_utc(previous_plan.get("scan_deadline_at"))
+        if (
+            previous_deadline
+            and previous_deadline > current + timedelta(minutes=30)
+            and previous_deadline <= current + timedelta(hours=MAX_SCAN_HORIZON_HOURS)
+        ):
+            return previous_deadline, "persisted_cycle_deadline"
 
     clean_start = parse_utc(status.get("last_clean_cycle_started_at"))
     clean_end = parse_utc(status.get("last_clean_cycle_completed_at"))
