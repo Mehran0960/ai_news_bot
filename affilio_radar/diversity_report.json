@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-13T01:01:14.154536+00:00",
+  "generated_at": "2026-11-13T01:13:43.060140+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار حمام": 1,
@@ -252,20 +252,20 @@
       "large_appliances": 4,
       "lighting": 1,
       "mobile_devices": 3,
-      "other": 74,
+      "other": 72,
       "personal_care": 34,
       "power_backup": 4,
       "sports_outdoor": 11,
       "tv_audio_video": 1
     },
     "category_share_percent": {
-      "audio_wearables": 3.3,
+      "audio_wearables": 3.4,
       "automotive": 7.2,
       "beauty_fragrance": 1.4,
-      "books_stationery": 3.3,
+      "books_stationery": 3.4,
       "computer_network": 1.4,
       "digital_accessories": 1.0,
-      "fashion": 8.6,
+      "fashion": 8.7,
       "gaming": 0.5,
       "grocery_food": 4.3,
       "home": 2.4,
@@ -275,8 +275,8 @@
       "large_appliances": 1.9,
       "lighting": 0.5,
       "mobile_devices": 1.4,
-      "other": 35.4,
-      "personal_care": 16.3,
+      "other": 34.8,
+      "personal_care": 16.4,
       "power_backup": 1.9,
       "sports_outdoor": 5.3,
       "tv_audio_video": 0.5
@@ -287,7 +287,7 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 24,
     "known_brand_posts": 15,
-    "posts": 209,
+    "posts": 207,
     "repeated_brand_count": 8,
     "repeated_brands": {
       "ai_javaher": 2,
@@ -297,7 +297,7 @@
       "ufc": 2
     },
     "retailer_post_counts": {
-      "digikala": 209
+      "digikala": 207
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -320,7 +320,7 @@
       "kitchen_food": 5,
       "lighting_electrical": 5,
       "local_goods": 2,
-      "mobile_productivity": 30,
+      "mobile_productivity": 28,
       "office_study": 11,
       "outdoor_travel": 4,
       "personal_care": 26,
@@ -342,30 +342,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1102,
+    "all_time_count": 1103,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-12T19:53:05.581243+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-11776655",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ژل آبرسان پرایم مدل Ultra-Hydrating حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-12T20:03:54.498942+00:00",
         "brand": "",
@@ -674,6 +657,23 @@
       },
       {
         "at": "2026-11-12T23:56:28.588516+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4996879",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4184133",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ژل شستشوی صورت دیپ سنس مدل درخت چای و بامبو مناسب پوست‌های چرب حجم 250 میلی‌ لیتر",
+        "use_case": "home_cleaning"
+      },
+      {
+        "at": "2026-11-13T01:13:43.060140+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
