@@ -92,13 +92,16 @@ class OfferChinFourFactorTests(unittest.TestCase):
         )
         self.assertEqual(four_factor_sort_key(row), (0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
 
-    def test_affordability_uses_transparent_cash_ticket_anchors(self):
+    def test_affordability_uses_full_price_as_share_of_household_monthly_income(self):
         self.assertEqual(affordability_absolute_score(100_000), 100)
-        self.assertEqual(affordability_absolute_score(1_000_000), 85)
-        self.assertEqual(affordability_absolute_score(10_000_000), 70)
+        self.assertEqual(affordability_absolute_score(250_000), 100)
+        self.assertEqual(affordability_absolute_score(625_000), 90)
+        self.assertEqual(affordability_absolute_score(1_000_000), 80)
+        self.assertEqual(affordability_absolute_score(10_000_000), 10)
         self.assertEqual(affordability_absolute_score(0), 0)
 
-    def test_installment_entry_payment_counts_only_when_terms_are_verified(self):
+
+    def test_affordability_uses_full_final_price_not_installment_down_payment(self):
         unverified = {
             "current_price": 10_000_000,
             "installment_down_payment_toman": 1_000_000,
@@ -111,12 +114,15 @@ class OfferChinFourFactorTests(unittest.TestCase):
         rows = [unverified, verified]
         self._score(rows)
         first, second = rows
-        self.assertEqual(first["offerchin_four_factor"]["affordability_basis"], "cash_price")
-        self.assertEqual(second["offerchin_four_factor"]["affordability_basis"], "verified_installment_down_payment")
-        self.assertGreater(
-            second["offerchin_four_factor"]["affordability"],
-            first["offerchin_four_factor"]["affordability"],
+        self.assertEqual(first["offerchin_four_factor"]["affordability_basis"], "full_final_cash_price")
+        self.assertEqual(second["offerchin_four_factor"]["affordability_basis"], "full_final_cash_price")
+        self.assertEqual(first["offerchin_four_factor"]["affordability"], 10)
+        self.assertEqual(second["offerchin_four_factor"]["affordability"], 10)
+        self.assertEqual(
+            first["offerchin_four_factor"]["affordability_reference_monthly_income_toman"],
+            second["offerchin_four_factor"]["affordability_reference_monthly_income_toman"],
         )
+
 
     def test_unknown_use_case_is_not_mistaken_for_general_mass_market(self):
         self.assertGreater(generality_score("kitchen_food"), generality_score("tabletop_games"))
@@ -162,7 +168,9 @@ class OfferChinFourFactorTests(unittest.TestCase):
         cheapest, most_expensive = rows[0], rows[-1]
         cheap_scores = cheapest["offerchin_four_factor"]
         high_scores = most_expensive["offerchin_four_factor"]
-        self.assertEqual(cheap_scores["price_cohort_size"], 8)
+        self.assertEqual(cheap_scores["price_cohort_size"], 0)
+        self.assertEqual(high_scores["price_cohort_size"], 0)
+        self.assertEqual(cheap_scores["affordability_basis"], "full_final_cash_price")
         self.assertGreater(cheap_scores["affordability"], high_scores["affordability"])
         self.assertGreater(
             four_factor_sort_key(cheapest),
