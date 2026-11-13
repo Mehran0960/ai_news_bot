@@ -1916,3 +1916,19 @@
 **ریسک/بازگشت:** گیت جدید تعداد کاندیدهای واجد شرایط را کاهش می‌دهد؛ این رفتار عمدی است و جای آن با تحریریهٔ منبع‌دار یا فاصلهٔ خالی پر می‌شود، نه تخفیف ضعیف. taxonomy cache فقط تا ۹۶ ساعت مجاز است و snapshot سالم قبلی را به‌عنوان چرخهٔ جدید جا نمی‌زند. در صورت اثر بیش‌ازحد، threshold با backtest روی خرید/کمیسیون واقعی تنظیم شود؛ درصد تخفیف به‌تنهایی پایین آورده نشود.
 
 **وضعیت:** پیاده‌سازی و تست‌ها روی شاخه؛ CI و تأیید آمار واقعی پس از ادغام در انتظار.
+
+## ۲۰۲۶-۱۱-۱۳ — تشخیص امن schema گزارش افیلیو
+
+**هدف:** تکمیل استخراج سفارش و کمیسیون واقعی و رفع خالی‌بودن تفکیک لینک/رسانه، بدون انتشار دادهٔ محرمانه یا اتکا به parser حدسی.
+
+**تغییر/اقدام:** workflow فقط‌خواندنی داشبورد روی شاخهٔ مستقل جدید بازسازی شد. اسکریپت Playwright ورود SSO و tabهای گزارش را می‌خواند؛ URLها به host/path محدود می‌شوند و query string نگه‌داری نمی‌شود. log جدید صرفاً endpoint path، HTTP status و key/type/array-length shape پاسخ را ثبت می‌کند تا مسیر واقعی دادهٔ لینک‌ها کشف شود. JSON خام با AES-256-GCM رمز می‌شود و plaintext از runner حذف می‌شود؛ فقط ciphertext با retention هفت روز ذخیره می‌شود. ثبت سفارش/کمیسیون تا یافتن mapping معتبر همچنان null/unknown می‌ماند. سیاست کوکی ۳۰روزه، first/last-click و overwrite ناشر قبلی تأیید نشده است؛ سند تاریخی ۱۳۹۹ از کوکی ۱۰روزه در سازوکار قدیمی سخن می‌گوید و به افیلیو فعلی تعمیم داده نمی‌شود.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/affilio-dashboard-readonly.yml`، `scripts/audit_affilio_dashboard.mjs`، `scripts/encrypt_affilio_dashboard_report.mjs`، `scripts/decrypt_affilio_dashboard_report.mjs`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** اجرای read-only با Secrets موجود آغاز شده؛ تأیید نهایی ورود، artifact رمزگذاری‌شده و schemaهای گزارش پس از پایان workflow انجام می‌شود. هیچ endpoint write یا تغییر حساب اجرا نمی‌شود.
+
+**شواهد/شناسه:** branch `fix/affilio-readonly-dashboard-shape-and-attribution-20261113`; initial workflow run `43440002978`; script commit `2a673e737227572f64ad8550eeb00866438ab241`; workflow commit `336d07be9c15fa03fb7ec67c53f564d2c3808603`.
+
+**ریسک/بازگشت:** endpointهای داخلی پنل هنوز API رسمی/پایدار تلقی نمی‌شوند؛ استفادهٔ دائمی فقط پس از تأیید کتبی افیلیو. در نبود schema معتبر، attribution رسانه unknown باقی می‌ماند و هیچ سفارش یا درآمدی از روی کلیک حدس زده نمی‌شود. با خاموش‌کردن workflow یا revert شاخه می‌توان مسیر را متوقف کرد؛ state ناشر و مسیر CTA تغییر نکرده است.
+
+**وضعیت:** branch و اجرای read-only ساخته شده؛ استخراج تفکیک رسانه، گزارش سفارش و تأیید endpoint رسمی در انتظار.
