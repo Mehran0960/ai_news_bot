@@ -259,22 +259,28 @@ def next_product_start_at(
         and not _has_channel_success(row)
     ]
 
-    due_retry = False
+    retry_deadlines = []
     due_unattempted = False
     future_unattempted = []
     for row in rows:
         scheduled = parse_utc(row.get("scheduled_at"))
-        if scheduled is None or scheduled <= start:
-            if int(row.get("attempt_count") or 0) > 0:
-                due_retry = True
-            else:
-                due_unattempted = True
-        elif int(row.get("attempt_count") or 0) == 0:
+        try:
+            attempts = max(0, int(row.get("attempt_count") or 0))
+        except (TypeError, ValueError, OverflowError):
+            attempts = 0
+        if attempts > 0:
+            retry_at = parse_utc(row.get("next_attempt_at")) or current
+            retry_deadlines.append(max(current, retry_at))
+        elif scheduled is None or scheduled <= start:
+            due_unattempted = True
+        else:
             future_unattempted.append(scheduled)
 
-    if due_retry and not due_unattempted:
-        # A previously attempted product owns this slot until its retry is resolved.
-        return start + interval
+    if retry_deadlines:
+        # A product with no primary-channel success retains the next slot for its
+        # retry; place new content at least one full interval after the latest
+        # outstanding retry window to avoid compressing the actual send cadence.
+        return max(start, max(retry_deadlines)) + interval
     if due_unattempted:
         return start
     if future_unattempted:
