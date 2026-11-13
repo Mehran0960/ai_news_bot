@@ -180,7 +180,7 @@ jobs:
           AFFILIO_MAX_QUEUED_RECHECKS: "16"
           AFFILIO_PENDING_QUEUE_LIMIT: "200"
           AFFILIO_DISCOVERY_QUEUE_LIMIT: "5000"
-          # Only a small rolling set of publication hand-offs/retries may be retained.
+          # Retain the product reservations spanning the active clean-scan publication window.
           AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "100"
           AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN: "250"
           AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
