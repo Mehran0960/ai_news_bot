@@ -31,7 +31,7 @@ CHANNEL_DESTINATIONS = ("telegram", "bale", "rubika", "eitaa")
 VIDEO_DESTINATIONS = ("youtube", "aparat", "filo")
 TERMINAL = {"sent", "not_connected", "manual_review", "skipped_limit"}
 RETRYABLE = {"pending", "failed", "retry"}
-MINIMUM_GAP_MINUTES = max(50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55"))))
+MINIMUM_GAP_MINUTES = 27
 RETRY_BASE_SECONDS = max(60, min(1800, int(os.getenv("OFFERCHIN_EDITORIAL_RETRY_SECONDS", "300"))))
 MAX_ATTEMPTS = max(1, min(5, int(os.getenv("OFFERCHIN_EDITORIAL_MAX_ATTEMPTS", "3"))))
 
@@ -119,13 +119,43 @@ def queue_editorial_if_due(
 
     # Old, never-delivered product selections are retired after the same short
     # reservation window used by the product delivery contract.
-    refresh_unpublished_selections(state, now=current, stale_after_minutes=8)
+    current_plan = state.get("publication_mix_plan")
+    current_plan_id = (
+        str(current_plan.get("cycle_id") or "")
+        if isinstance(current_plan, dict) else None
+    )
+    refresh_unpublished_selections(
+        state,
+        now=current,
+        stale_after_minutes=8,
+        plan_cycle_id=current_plan_id,
+    )
     product_queue = state.get("content_delivery_queue")
-    if isinstance(product_queue, dict) and any(
-        isinstance(row, dict) and row.get("status") not in {"published", "cancelled", "stale_selection"}
-        for row in product_queue.values()
-    ):
-        print("EDITORIAL_FALLBACK_WAIT reason=product_photo_fifo_not_terminal")
+    due_unpublished_products = []
+    if isinstance(product_queue, dict):
+        for row in product_queue.values():
+            if not isinstance(row, dict) or row.get("status") in {
+                "published", "cancelled", "stale_selection"
+            }:
+                continue
+            platforms = row.get("platforms") if isinstance(row.get("platforms"), dict) else {}
+            photo_already_sent = any(
+                isinstance(platforms.get(name), dict)
+                and platforms[name].get("status") == "sent"
+                for name in ("telegram", "bale", "rubika", "eitaa")
+            )
+            if photo_already_sent:
+                continue
+            scheduled = _utc(row.get("scheduled_at"))
+            # Unknown or already-due product reservations retain priority. A
+            # future product reservation leaves this 27-minute slot for editorial.
+            if scheduled is None or scheduled <= current:
+                due_unpublished_products.append(row)
+    if due_unpublished_products:
+        print(
+            "EDITORIAL_FALLBACK_WAIT reason=product_slot_due "
+            f"due_products={len(due_unpublished_products)}"
+        )
         return None
     if _pending_product_video_exists(state):
         print("EDITORIAL_FALLBACK_WAIT reason=older_product_video_fifo_pending")
