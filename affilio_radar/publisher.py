@@ -671,13 +671,13 @@ def editorial_fifo_lock_entry(state: dict) -> dict | None:
         return None
     oldest = min(active, key=lambda value: int(value.get("sequence_number") or 0))
     targets = oldest.get("platforms") if isinstance(oldest.get("platforms"), dict) else {}
-    terminal_channel_statuses = {"sent", "not_connected", "manual_review", "skipped_limit"}
+    # manual_review is not terminal for sequence ordering: the post may have gone public.
     # Only an unfinished core channel hand-off may reserve the next channel slot.
     # Editorial video retries must never stop the product-photo publisher.
     for name in CORE_PHOTO_PLATFORMS:
         target = targets.get(name)
         status = str(target.get("status") or "pending") if isinstance(target, dict) else "pending"
-        if status not in terminal_channel_statuses:
+        if status not in {"sent", "not_connected", "skipped_limit"}:
             return oldest
     return None
 
