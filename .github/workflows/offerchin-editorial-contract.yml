@@ -15,6 +15,7 @@ on:
       - "affilio_radar/test_editorial_publisher.py"
       - ".github/workflows/offerchin-editorial-shadow.yml"
       - ".github/workflows/offerchin-editorial-contract.yml"
+      - ".github/workflows/offerchin-video-publisher.yml"
   push:
     branches:
       - "feat/offerchin-hourly-editorial-fallback-20261112"
@@ -80,7 +81,13 @@ jobs:
           assert "EDITORIAL_VIDEO_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED" in video
           assert "--shadow-report" in shadow
           assert "--publish" not in shadow
+          fanout = video.index("Resume an older editorial video before newer product videos")
+          product = video.index("Fan out the same FIFO to YouTube, Aparat and Filo")
+          assert fanout < product
+          assert "--videos-only --resume-active-only --publish" in video
+          assert "--videos-only --resume-active-only" in video
           print("EDITORIAL_PUBLIC_PUBLISH_DEFAULTS_OFF")
+          print("EDITORIAL_VIDEO_FIFO_PREPASS_BEFORE_NEWER_PRODUCTS_OK")
           PY
       - name: Run the read-only shadow report and prove state is untouched
         run: |
