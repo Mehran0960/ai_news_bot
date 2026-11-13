@@ -288,7 +288,13 @@ class AffilioRadarTests(unittest.TestCase):
             patch.object(radar_module, "_click_tracker_is_healthy", return_value=True),
             patch.object(radar_module, "build_click_tracking_link", side_effect=AssertionError("tracker must not be called")),
         ):
-            self.assertEqual(radar_module.tracked_affiliate_button_url(affiliate, "bale"), affiliate)
+            tagged = radar_module.tracked_affiliate_button_url(affiliate, "bale")
+        tagged_query = parse_qs(urlsplit(tagged).query)
+        self.assertEqual(tagged_query.get("p"), [canonical])
+        self.assertEqual(tagged_query.get("aff_sub"), ["oc1_bale_snp-2097083854"])
+        self.assertEqual(tagged_query.get("utm_source"), ["offerchin"])
+        self.assertEqual(tagged_query.get("utm_medium"), ["bale"])
+        self.assertEqual(urlsplit(tagged).netloc, "aflo.ir")
 
 
     def test_fetch_product_record_uses_snappshop_internal_api_id_mapping(self):
@@ -759,12 +765,17 @@ class AffilioRadarTests(unittest.TestCase):
             patch("affilio_radar._click_tracker_is_healthy", return_value=True),
             patch("affilio_radar.build_click_tracking_link", side_effect=AssertionError("purchase CTA must bypass tracker")),
         ):
-            self.assertEqual(
-                tracked_affiliate_button_url(
-                    affiliate, "telegram", "creative-test-1", "B", "caption-test-1", "A"
-                ),
-                affiliate,
+            tagged = tracked_affiliate_button_url(
+                affiliate, "telegram", "creative-test-1", "B", "caption-test-1", "A"
             )
+        tagged_query = parse_qs(urlsplit(tagged).query)
+        self.assertEqual(tagged_query.get("aff_sub"), [
+            "oc1_telegram_snp-2097083854_vcreative-test-1-b_ccaption-test-1-a"
+        ])
+        self.assertEqual(tagged_query.get("utm_source"), ["offerchin"])
+        self.assertEqual(tagged_query.get("utm_medium"), ["telegram"])
+        self.assertEqual(tagged_query.get("p"), [product])
+        self.assertEqual(urlsplit(tagged).netloc, "aflo.ir")
         self.assertEqual(tracked_affiliate_button_url("https://example.com/not-affiliate", "bale"), "")
 
     def test_click_statistics_include_aggregate_counts_for_both_stores(self):
