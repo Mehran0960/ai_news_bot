@@ -497,7 +497,7 @@ def _handle_channel_destination(
         target["updated_at"] = now.isoformat()
         _save(state)
         return
-    if target.get("status") == "failed":
+    if target.get("status") in {"failed", "retry"}:
         # A delayed editorial retry could appear after a newer product on this
         # destination. Terminalize the unconfirmed editorial attempt instead.
         target["status"] = "manual_review"
@@ -568,10 +568,11 @@ def _handle_video_destination(
         target.update({"status": "pending"})
         target.pop("last_error", None)
     if not ready:
-        target["status"] = _terminal_skip_reason(destination, unavailable_reason)
-        target["last_error"] = unavailable_reason
-        target["updated_at"] = now.isoformat()
-        _save(state)
+        if target.get("status") not in TERMINAL:
+            target["status"] = _terminal_skip_reason(destination, unavailable_reason)
+            target["last_error"] = unavailable_reason
+            target["updated_at"] = now.isoformat()
+            _save(state)
         return
     if target.get("status") in TERMINAL:
         return
@@ -581,7 +582,7 @@ def _handle_video_destination(
         target["updated_at"] = now.isoformat()
         _save(state)
         return
-    if target.get("status") == "failed":
+    if target.get("status") in {"failed", "retry"}:
         # Preserve destination FIFO: never retry this editorial after a newer
         # product-video dispatch may have started.
         target["status"] = "manual_review"
