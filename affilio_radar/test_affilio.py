@@ -3810,7 +3810,9 @@ class AffilioRadarTests(unittest.TestCase):
         data = post.call_args.kwargs["data"]
         markup = json.loads(data["reply_markup"])
         self.assertEqual(markup["inline_keyboard"][0][0]["text"], purchase_action_label("دیجی‌کالا"))
-        self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
+        expected_url = tracked_affiliate_button_url(direct_affiliate_url, "telegram")
+        self.assertEqual(markup["inline_keyboard"][0][0]["url"], expected_url)
+        self.assertEqual(parse_qs(urlsplit(expected_url).query).get("utm_medium"), ["telegram"])
         self.assertEqual(urlsplit(markup["inline_keyboard"][0][0]["url"]).netloc, "aflo.ir")
 
     def test_send_bale_photo_adds_channel_and_purchase_button(self):
@@ -3831,7 +3833,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(data["caption"], "bale caption")
         self.assertNotIn("parse_mode", data)
         self.assertEqual(markup["inline_keyboard"][0][0]["text"], purchase_action_label("دیجی‌کالا"))
-        self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
+        expected_url = tracked_affiliate_button_url(direct_affiliate_url, "bale")
+        self.assertEqual(markup["inline_keyboard"][0][0]["url"], expected_url)
+        self.assertEqual(parse_qs(urlsplit(expected_url).query).get("utm_medium"), ["bale"])
         self.assertEqual(result["message_id"], 88)
 
     def test_snappshop_bale_purchase_button_uses_correct_store_name(self):
@@ -4232,7 +4236,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(data["parse_mode"], "HTML")
         markup = json.loads(data["reply_markup"])
         self.assertEqual(markup["inline_keyboard"][0][0]["text"], purchase_action_label("دیجی‌کالا"))
-        self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
+        expected_url = tracked_affiliate_button_url(direct_affiliate_url, "telegram")
+        self.assertEqual(markup["inline_keyboard"][0][0]["url"], expected_url)
+        self.assertEqual(parse_qs(urlsplit(expected_url).query).get("utm_medium"), ["telegram"])
         self.assertEqual(result["message_id"], 39)
 
     def test_repair_all_published_captions_edits_in_place_on_both_platforms(self):
@@ -4403,7 +4409,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(data["caption"], "fixed caption")
         self.assertNotIn("parse_mode", data)
         markup = json.loads(data["reply_markup"])
-        self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
+        expected_url = tracked_affiliate_button_url(direct_affiliate_url, "bale")
+        self.assertEqual(markup["inline_keyboard"][0][0]["url"], expected_url)
+        self.assertEqual(parse_qs(urlsplit(expected_url).query).get("utm_medium"), ["bale"])
         self.assertEqual(result["message_id"], 2)
 
     def test_failed_bale_delivery_is_retried_without_reposting_to_telegram(self):
