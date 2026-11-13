@@ -4945,6 +4945,41 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                 item[key] = value
         compact_published[product_id_value] = item
 
+    editorial_queue = {}
+    raw_editorial_queue = state.get("editorial_delivery_queue") if isinstance(state, dict) else {}
+    if isinstance(raw_editorial_queue, dict):
+        for content_id, entry in sorted(
+            raw_editorial_queue.items(),
+            key=lambda pair: (
+                float(pair[1].get("sequence_number") or 0)
+                if isinstance(pair[1], dict) else float("inf"),
+                str(pair[0]),
+            ),
+        ):
+            if not isinstance(entry, dict) or entry.get("status") in {"completed", "cancelled", "failed"}:
+                continue
+            platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+            video_targets = {}
+            pending_video = False
+            for name in ("youtube", "aparat", "filo"):
+                target = platforms.get(name) if isinstance(platforms.get(name), dict) else {}
+                status = str(target.get("status") or "pending").lower()
+                video_targets[name] = {
+                    "status": status,
+                    "next_attempt_at": target.get("next_attempt_at"),
+                }
+                if status in {"pending", "failed", "retry"}:
+                    pending_video = True
+            if pending_video:
+                editorial_queue[str(content_id)] = {
+                    "status": str(entry.get("status") or "queued"),
+                    "sequence_number": entry.get("sequence_number"),
+                    "scheduled_at": entry.get("scheduled_at"),
+                    "platforms": video_targets,
+                }
+            if len(editorial_queue) >= 100:
+                break
+
     def value(key):
         raw = state.get(key) if isinstance(state, dict) else None
         return raw if isinstance(raw, (str, int, float, bool)) or raw is None else None
@@ -4962,6 +4997,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         "filo_login_verified_at": value("filo_login_verified_at"),
         "filo_login_verification_status": value("filo_login_verification_status"),
         "published": compact_published,
+        "editorial_delivery_queue": editorial_queue,
     }
 
 
@@ -11045,8 +11081,8 @@ def run(publish=False, selection_only=False):
     }
     save_json(REPORT, report)
     if selection_only:
-        # Keep discovery live on every scan, but only select a new product when a
-        # publication slot is due. Never build a long queue of products chosen early.
+        # Select a ranked batch, then distribute its products across the estimated
+        # clean-catalog scan window. Editorial publishing fills the free 27-minute slots.
         from content_delivery import (
             enqueue_selected_content,
             get_last_channel_published_at,
@@ -11054,15 +11090,27 @@ def run(publish=False, selection_only=False):
             refresh_unpublished_selections,
             selection_cadence_anchor,
         )
-        selection_now = datetime.now(timezone.utc)
-        replaced = refresh_unpublished_selections(
-            state, now=selection_now, stale_after_minutes=8
-        )
-        interval_seconds = max(60, int(MIN_POST_INTERVAL_HOURS * 3600))
+        import publication_mix
 
-        # Cadence follows the last selection and an actual Telegram/Bale send.
-        # Retries to YouTube/Aparat cannot move the public-channel slot forward.
-        # The helper also recovers older state from immutable per-platform send times.
+        selection_now = datetime.now(timezone.utc)
+        scan_status = publication_mix.load_catalog_status()
+        scan_deadline, scan_deadline_source = publication_mix.estimate_next_clean_scan_deadline(
+            scan_status, now=selection_now
+        )
+        plan_cycle_id = publication_mix.catalog_cycle_id(scan_status)
+        interval_seconds = max(60, int(MIN_POST_INTERVAL_HOURS * 3600))
+        interval_minutes = max(1, int(round(interval_seconds / 60)))
+        queue_limit = 100
+
+        replaced = refresh_unpublished_selections(
+            state,
+            now=selection_now,
+            stale_after_minutes=8,
+            plan_cycle_id=plan_cycle_id,
+        )
+
+        # The existing 27-minute selector gate remains in place; it now gates
+        # batch additions/rebalancing, not one product per publication slot.
         last_selected = _parse_utc_datetime(state.get("last_content_selection_at"))
         last_channel_published = get_last_channel_published_at(state)
         fresh_unpublished_selection = has_fresh_unpublished_selection(
@@ -11079,54 +11127,131 @@ def run(publish=False, selection_only=False):
         )
         remaining = max(0, interval_seconds - int(elapsed))
 
-        # A daily cap or an unexpired cooldown is a normal no-op, not a failed scan.
         if remaining > 0:
             save_json(STATE, state)
             print(
                 "CONTENT_SELECTION_SLOT_NOT_DUE "
                 f"seconds_remaining={remaining} live_candidates={len(eligible)} "
+                f"preserved_planned={sum(1 for row in state.get('content_delivery_queue', {}).values() "
+                "if isinstance(row, dict) and row.get('publication_plan_cycle_id') == plan_cycle_id)} "
                 f"replaced_stale={replaced}"
             )
             return 0
+
+        queue = state.get("content_delivery_queue")
+        if not isinstance(queue, dict):
+            queue = {}
+            state["content_delivery_queue"] = queue
+        active_queue = {
+            str(pid): row for pid, row in queue.items()
+            if isinstance(row, dict) and row.get("status") not in {"published", "cancelled", "stale_selection"}
+        }
+        active_unpublished_ids = set()
+        active_count = len(active_queue)
+        for pid, row in active_queue.items():
+            platforms = row.get("platforms") if isinstance(row.get("platforms"), dict) else {}
+            has_photo_success = any(
+                isinstance(platforms.get(name), dict)
+                and platforms[name].get("status") == "sent"
+                for name in ("telegram", "bale", "rubika", "eitaa")
+            )
+            if not has_photo_success:
+                active_unpublished_ids.add(pid)
+
+        next_slot = max(
+            selection_now,
+            last_channel_published + timedelta(seconds=interval_seconds)
+            if last_channel_published else selection_now,
+        )
+        available_slots = publication_mix.available_slot_count(
+            next_slot,
+            scan_deadline,
+            interval_minutes=interval_minutes,
+            safety_slots=1,
+        )
+        remaining_product_capacity = max(
+            0,
+            min(queue_limit, available_slots) - len(active_unpublished_ids),
+            )
+        remaining_queue_capacity = max(0, queue_limit - active_count)
+        new_candidates = []
+        candidate_ids_seen = set(active_queue)
+        for candidate in eligible:
+            if not isinstance(candidate, dict):
+                continue
+            pid = str(candidate.get("product_id") or product_id(candidate.get("product_url") or "")).strip()
+            if not pid or pid in candidate_ids_seen:
+                continue
+            candidate_ids_seen.add(pid)
+            new_candidates.append(candidate)
+
+        add_capacity = min(
+            remaining_product_capacity,
+            remaining_queue_capacity,
+            len(new_candidates),
+        )
+        selected_batch = new_candidates[:add_capacity]
+
         if daily_channel_posts_count(state, selection_now) >= MAX_DAILY_CHANNEL_POSTS:
-            save_json(STATE, state)
+            selected_batch = []
             print(
                 "CONTENT_SELECTION_DAILY_CAP_REACHED "
-                f"limit={MAX_DAILY_CHANNEL_POSTS} live_candidates={len(eligible)}"
+                f"limit={MAX_DAILY_CHANNEL_POSTS} queued_products={len(active_unpublished_ids)}"
             )
-            return 0
 
-        # Store one due primary plus a compact ranked backup pool.
-        # Backups preserve global discount/savings order. The publisher
-        # repeats live stock, price, identity, title, and affiliate checks.
-        primary = eligible[:1]
         summary = enqueue_selected_content(
             state,
-            primary,
+            selected_batch,
             now=selection_now,
             interval_seconds=interval_seconds,
-            max_items=1,
+            max_items=len(selected_batch) or 1,
+            max_active_items=queue_limit,
             minimum_runway_minutes=MIN_PUBLICATION_RUNWAY_MINUTES,
         )
-        fallback_count = 0
-        if summary["added"] and primary:
-            primary_id = str(primary[0].get("product_id") or product_id(primary[0].get("product_url") or ""))
-            primary_entry = state.get("content_delivery_queue", {}).get(primary_id)
-            if isinstance(primary_entry, dict):
-                primary_entry["fallback_candidates"] = [
-                    dict(candidate) for candidate in eligible[1:51]
-                    if isinstance(candidate, dict)
-                ]
-                fallback_count = len(primary_entry["fallback_candidates"])
+
+        newly_selected_ids = {
+            str(item.get("product_id") or product_id(item.get("product_url") or ""))
+            for item in selected_batch if isinstance(item, dict)
+        }
+        fallback_pool = [
+            dict(item) for item in new_candidates
+            if str(item.get("product_id") or product_id(item.get("product_url") or "")) not in newly_selected_ids
+        ][:50]
+        for pid in newly_selected_ids:
+            entry = queue.get(pid)
+            if isinstance(entry, dict) and int(entry.get("attempt_count") or 0) == 0:
+                entry["fallback_candidates"] = fallback_pool
+
+        mix_plan = publication_mix.apply_product_publication_schedule(
+            state,
+            now=selection_now,
+            scan_deadline=scan_deadline,
+            cycle_id=plan_cycle_id,
+            interval_minutes=interval_minutes,
+            safety_slots=1,
+            max_items=queue_limit,
+        )
+        mix_plan["scan_deadline_source"] = scan_deadline_source
+        mix_plan["new_products_queued"] = int(summary.get("added") or 0)
+        mix_plan["new_candidates_deferred"] = max(0, len(new_candidates) - int(summary.get("added") or 0))
+        mix_plan["queue_replaced_stale"] = replaced
+        state["publication_mix_plan"] = mix_plan
+
+        if summary["added"]:
             state["last_content_selection_at"] = selection_now.isoformat()
         save_json(STATE, state)
         print(
             "CONTENT_SELECTION_HANDOFF "
             f"queued={summary['added']} skipped={summary['skipped']} "
-            f"queue_size={summary['queue_size']} live_candidates={len(eligible)} "
-            f"fallback_pool={fallback_count} replaced_stale={replaced} publisher_invoked=false"
+            f"active_products={len(active_unpublished_ids) + summary['added']} "
+            f"scan_deadline={scan_deadline.isoformat()} "
+            f"deadline_source={scan_deadline_source} "
+            f"publication_slots={available_slots} "
+            f"product_spacing_minutes={mix_plan.get('product_spacing_minutes')} "
+            f"editorial_slots={mix_plan.get('editorial_slots_available')} "
+            f"deferred={mix_plan.get('new_candidates_deferred')} "
+            f"fallback_pool={len(fallback_pool)}"
         )
-        # No eligible offer is a normal outcome. The next scan refreshes the pool.
         return 0
 
     state.setdefault("published", {})
