@@ -489337,11 +489337,11 @@
     "unchanged": 9,
     "updated": 0
   },
-  "filo_last_upload_attempt_at": "2026-11-13T11:18:10.689239+00:00",
-  "filo_last_upload_success_at": "2026-11-13T10:41:50.513426+00:00",
-  "filo_login_verification_attempted_at": "2026-11-13T11:42:02.625926+00:00",
+  "filo_last_upload_attempt_at": "2026-11-13T11:56:04.633385+00:00",
+  "filo_last_upload_success_at": "2026-11-13T11:56:40.177309+00:00",
+  "filo_login_verification_attempted_at": "2026-11-13T11:55:54.438636+00:00",
   "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-13T11:42:02.625926+00:00",
+  "filo_login_verified_at": "2026-11-13T11:55:54.438636+00:00",
   "filo_upload_interval_policy_version": 3,
   "growth_tracking": {
     "daily_member_counts": {
@@ -582400,7 +582400,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-14234271": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_message_id": 1939,
       "bale_posted_at": "2026-11-13T11:52:39.134592+00:00",
       "brand": "",
@@ -582510,7 +582511,14 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
-      "filo_upload_status": "pending",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-13T11:56:40.177309+00:00",
+      "filo_upload_started_at": "2026-11-13T11:56:04.633385+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "1UxLzKE",
+      "filo_video_url": "https://ifilo.net/v/1UxLzKE",
+      "filo_visibility": "pending_review",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-13T11:52:12.727503+00:00",
       "history_days": 4,
@@ -582550,8 +582558,15 @@
       "telegram_posted_at": "2026-11-13T11:52:34.817946+00:00",
       "title": "دمبل رادیس فیت مدل RPHF-2000 وزن 2 کیلوگرم بسته 2 عددی",
       "ts": 1794570747.679263,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-14234271.mp4",
+      "video_file_names": {
+        "filo": "offerchin-dkp-14234271.mp4"
+      },
+      "video_generated_at": "2026-11-13T11:55:55.923705+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-14243300": {
       "aparat_expiry_attempts": 454,
