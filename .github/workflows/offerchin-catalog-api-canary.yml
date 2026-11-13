@@ -79,6 +79,14 @@ jobs:
               return out
 
           probes = [
+              ("www_home", "https://www.digikala.com/", None),
+              ("www_recent_product", "https://www.digikala.com/product/dkp-20639847/", None),
+              ("v1_autocomplete", "https://api.digikala.com/v1/autocomplete/", {"q": "هدفون"}),
+              ("v1_dictionaries_category_tree", "https://api.digikala.com/v1/dictionaries/", {
+                  "types[0]": "category_tree"
+              }),
+              ("v2_product_recent", "https://api.digikala.com/v2/product/20639847/", None),
+              ("v1_incredible_offers", "https://api.digikala.com/v1/incredible-offers/", {"page": 1}),
               ("v1_search_legacy", "https://api.digikala.com/v1/search/", {
                   "categories[]": "83", "page": 1, "sort": 7
               }),
@@ -104,6 +112,9 @@ jobs:
               try:
                   response = session.get(url, params=params, timeout=(5, 18))
                   shape = response_shape(response)
+                  if label.startswith("www_") and response.status_code < 400:
+                      shape["html_title_present"] = "<title" in response.text[:10000].lower()
+                      shape["html_body_bytes"] = len(response.content)
                   print("DIGIKALA_API_CANARY=" + json.dumps({
                       "probe": label,
                       **shape
