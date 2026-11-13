@@ -12,6 +12,7 @@ from editorial_publisher import (
     _handle_channel_destination,
     _record_failure,
     _record_success,
+    _pending_product_video_exists,
     _format_message,
     queue_editorial_if_due,
 )
@@ -104,7 +105,10 @@ class EditorialPublisherTests(unittest.TestCase):
         ))
 
     def test_editorial_gets_shared_monotonic_sequence(self):
-        state = {"publication_sequence_counter": 12}
+        state = {
+            "publication_sequence_counter": 12,
+            "product_channel_posts_since_editorial": 4,
+        }
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
         self.assertEqual(entry["sequence_number"], 13)
         self.assertEqual(entry["content_type"], "editorial")
@@ -151,11 +155,31 @@ class EditorialPublisherTests(unittest.TestCase):
         }}
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
 
-    def test_editorial_waits_for_older_product_video_fifo(self):
+    def test_editorial_photo_slot_is_not_blocked_by_older_product_video(self):
+        state = {
+            "product_channel_posts_since_editorial": 4,
+            "last_channel_published_at": (NOW - timedelta(minutes=30)).isoformat(),
+            "published": {
+                "dkp-1": {
+                    "sequence_number": 2,
+                    "youtube_upload_status": "retry",
+                    "aparat_upload_status": "uploaded",
+                    "filo_upload_status": "uploaded",
+                }
+            },
+        }
+        entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry["content_type"], "editorial")
+
+    def test_editorial_video_waits_only_for_older_product_sequences(self):
         state = {"published": {
-            "dkp-1": {"youtube_upload_status": "retry", "aparat_upload_status": "uploaded", "filo_upload_status": "uploaded"}
+            "dkp-older": {"sequence_number": 2, "youtube_upload_status": "retry"},
+            "dkp-newer": {"sequence_number": 9, "youtube_upload_status": "pending"},
         }}
-        self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+        self.assertTrue(_pending_product_video_exists(state, before_sequence_number=5))
+        self.assertFalse(_pending_product_video_exists(state, before_sequence_number=2))
+        self.assertTrue(_pending_product_video_exists(state, before_sequence_number=12))
 
     def test_confirmed_editorial_channel_delivery_resets_product_counter(self):
         item = editorial_item()
