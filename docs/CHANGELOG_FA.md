@@ -1932,3 +1932,19 @@
 **ریسک/بازگشت:** endpointهای داخلی پنل هنوز API رسمی/پایدار تلقی نمی‌شوند؛ استفادهٔ دائمی فقط پس از تأیید کتبی افیلیو. در نبود schema معتبر، attribution رسانه unknown باقی می‌ماند و هیچ سفارش یا درآمدی از روی کلیک حدس زده نمی‌شود. با خاموش‌کردن workflow یا revert شاخه می‌توان مسیر را متوقف کرد؛ state ناشر و مسیر CTA تغییر نکرده است.
 
 **وضعیت:** branch و اجرای read-only ساخته شده؛ استخراج تفکیک رسانه، گزارش سفارش و تأیید endpoint رسمی در انتظار.
+
+## ۲۰۲۶-۱۱-۱۳ — استخراج ردیف‌های رسانه از داشبورد افیلیو
+
+**هدف:** رفع خالی‌بودن ردیف‌های performance و حفظ mapping پایدار رسانه/لینک، بدون فرض‌کردن سفارش قطعی.
+
+**تغییر/اقدام:** اجرای read-only workflow `43440002978` با SSO موفق شد؛ ۶ snapshot صفحه و ۳۰ endpoint JSON ثبت شد. `/api/v1/links/analytics` نه ردیف شامل `link_uid`، `media_uid`، کلیک، `income_items_count`، `total_income`، `conversion_rate` و `revenue_share` ارائه کرد. parser توسعه یافت تا شناسه‌های لینک/رسانه، UTM، نوع لینک، نرخ تبدیل، و روندهای روزانه/هفتگی/ماهانهٔ approved/pending/bonus را نگه دارد؛ aggregate رسانه با media UID ساخته می‌شود و نرخ تبدیل به‌صورت weighted-by-click محاسبه می‌شود. log شامل فقط schema و labels/routes است. artifact فقط encrypted است.
+
+**فایل‌ها/سامانه‌ها:** `scripts/audit_affilio_dashboard.mjs`، `.github/workflows/affilio-dashboard-readonly.yml`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md` و `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** Run `43440002978` احراز هویت، extraction، AES-256-GCM encryption و artifact upload را با موفقیت انجام داد. چون این اجرا پیش از آخرین توسعهٔ parser و UI route summaries بوده، اجرای مجدد پس از commit نهایی لازم است. هیچ سفارش/تنظیم حساب تغییر نکرد.
+
+**شواهد/شناسه:** branch `fix/affilio-readonly-dashboard-shape-and-attribution-20261113`; run `43440002978`; parser update commit `4c2dee39a2573b8a2ce9a7fec4350685f00aa9a2`; diagnostics commit `4505f4cf7feaac0d9037489f9981cc868d4d10d2`.
+
+**ریسک/بازگشت:** analytics endpoint هنوز API رسمی تأییدشده نیست. `income_items_count` الزاماً تعداد سفارش و `total_income` الزاماً کمیسیون approved نیست؛ endpoint تفکیک وضعیت سفارش به‌ازای رسانه ارائه نکرده است. attribution ردیف لینک فقط گزارش‌شده است، نه تأییدشدهٔ قراردادی. در صورت تغییر schema، parser با shape جدید باید اصلاح شود؛ دادهٔ خام فقط encrypted باقی می‌ماند.
+
+**وضعیت:** schema ردیف‌های media/link کشف و parser توسعه یافت؛ اجرای workflow روی آخرین commit، order-status mapping و تأیید رسمی API/attribution همچنان در انتظار.
