@@ -606,15 +606,56 @@ def tracked_affiliate_button_url(
     caption_experiment_id: str = "",
     caption_variant: str = "",
 ) -> str:
-    """Return the verified Affilio URL unchanged; purchase clicks never visit an intermediary.
+    """Append Affilio-supported SubID/UTM labels without routing the buyer through OfferChin.
 
-    The tracking parameters remain in the signature for backwards compatibility with
-    callers, but click analytics, experiment attribution, and tracker health are not
-    allowed to alter the user's purchase route. This keeps the CTA independent of
-    OfferChin/Cloudflare availability and resilient to an Iran-wide internet split.
+    The SubID attributes a conversion to the OfferChin product and destination medium.
+    It contains no user identifier and is deliberately independent of the click-tracker
+    Worker, so a Worker outage never interrupts the purchase route.
     """
     original = str(affiliate_url or "").strip()
-    return original if _is_valid_affilio_tracking_url(original) else ""
+    if not _is_valid_affilio_tracking_url(original):
+        return ""
+    channel = str(source or "").strip().lower()
+    allowed_sources = {"telegram", "bale", "youtube", "aparat"}
+    if channel not in allowed_sources:
+        return original
+
+    destination = _affiliate_product_destination(original)
+    pid = product_id(destination)
+    if not re.fullmatch(r"(?:dkp-\\d{1,12}|snp-\\d{1,20})", pid):
+        return original
+
+    sub_parts = ["oc1", channel, pid]
+    visual_experiment = re.sub(
+        r"[^a-z0-9_-]", "-", str(experiment_id or "").strip().lower()
+    )[:32]
+    visual_variant = str(variant or "").strip().lower()
+    if visual_experiment and re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,31}", visual_experiment) and visual_variant in {"a", "b"}:
+        sub_parts.append("v" + visual_experiment + "-" + visual_variant)
+
+    copy_experiment = re.sub(
+        r"[^a-z0-9_-]", "-", str(caption_experiment_id or "").strip().lower()
+    )[:32]
+    copy_variant = str(caption_variant or "").strip().lower()
+    if copy_experiment and re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,31}", copy_experiment) and copy_variant in {"a", "b"}:
+        sub_parts.append("c" + copy_experiment + "-" + copy_variant)
+
+    aff_sub = "_".join(sub_parts)
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,255}", aff_sub):
+        return original
+    try:
+        parsed = urlsplit(original)
+        params = parse_qs(parsed.query, keep_blank_values=True)
+        params["aff_sub"] = [aff_sub]
+        params["utm_source"] = ["offerchin"]
+        params["utm_medium"] = [channel]
+        tagged = urlunsplit((
+            parsed.scheme, parsed.netloc, parsed.path,
+            urlencode(params, doseq=True), parsed.fragment,
+        ))
+        return tagged if _is_valid_affilio_tracking_url(tagged) else original
+    except (TypeError, ValueError):
+        return original
 
 
 def creative_experiment_assignment(product_id_value: str) -> tuple[str, str]:
