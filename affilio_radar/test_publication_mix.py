@@ -129,6 +129,40 @@ class PublicationMixTests(unittest.TestCase):
         self.assertEqual(source, "previous_clean_cycle_duration")
         self.assertEqual(deadline, datetime(2026, 11, 12, 6, 0, tzinfo=timezone.utc))
 
+    def test_scan_deadline_stays_fixed_for_repeated_runs_in_same_cycle(self):
+        deadline = NOW + timedelta(hours=19)
+        status = {
+            "current_cycle_started_at": "2026-11-11T00:00:00+00:00",
+            "completed_candidates_cycle_at": "2026-11-10T06:00:00+00:00",
+        }
+        cycle = __import__("publication_mix").catalog_cycle_id(status)
+        previous_plan = {
+            "cycle_id": cycle,
+            "scan_deadline_at": deadline.isoformat(),
+        }
+        next_run_now = NOW + timedelta(minutes=27)
+        projected, source = estimate_next_clean_scan_deadline(
+            status,
+            now=next_run_now,
+            fallback_hours=30,
+            previous_plan=previous_plan,
+            cycle_id=cycle,
+        )
+        self.assertEqual(source, "persisted_cycle_deadline")
+        self.assertEqual(projected, deadline)
+
+    def test_new_scan_attempt_gets_a_new_cycle_identity(self):
+        from publication_mix import catalog_cycle_id
+        first = {
+            "current_cycle_started_at": "2026-11-11T00:00:00+00:00",
+            "completed_candidates_cycle_at": "2026-11-10T06:00:00+00:00",
+        }
+        second = {
+            **first,
+            "current_cycle_started_at": "2026-11-13T09:00:00+00:00",
+        }
+        self.assertNotEqual(catalog_cycle_id(first), catalog_cycle_id(second))
+
     def test_overdue_or_stalled_scan_uses_rolling_fallback(self):
         status = {
             "last_clean_cycle_started_at": "2026-11-09T00:00:00+00:00",
