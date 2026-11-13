@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import requests
 import tempfile
 from datetime import datetime, timedelta, timezone
 import unittest
@@ -17,6 +18,8 @@ try:
         acknowledge_catalog_candidates_handoff,
         defer_catalog_candidates_handoff,
         discover_categories,
+        refresh_categories,
+        CatalogSweepError,
         extract_categories,
         extract_product_rows,
         extract_total_pages,
@@ -35,6 +38,8 @@ except ImportError:
         acknowledge_catalog_candidates_handoff,
         defer_catalog_candidates_handoff,
         discover_categories,
+        refresh_categories,
+        CatalogSweepError,
         extract_categories,
         extract_product_rows,
         extract_total_pages,
@@ -53,7 +58,7 @@ class FakeResponse:
 
     def raise_for_status(self):
         if self.status_code >= 400:
-            raise RuntimeError(f"http_{self.status_code}")
+            raise requests.HTTPError(f"http_{self.status_code}", response=self)
 
     def json(self):
         return self._payload
@@ -141,6 +146,71 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(categories[0]["id"], "5")
         self.assertIn("types[5]", dict(session.calls[0][1]))
         self.assertEqual(dict(session.calls[0][1])["types[5]"], "category_tree")
+
+    def test_discover_categories_preserves_http_status_for_both_public_endpoints(self):
+        session = FakeSession([
+            FakeResponse({}, status_code=403),
+            FakeResponse({}, status_code=403),
+        ])
+        with self.assertRaises(CatalogSweepError) as raised:
+            discover_categories(session)
+        self.assertIn("dictionaries_http_403", str(raised.exception))
+        self.assertIn("search_http_403", str(raised.exception))
+
+    def test_refresh_categories_uses_recent_verified_cache_during_api_outage(self):
+        categories = [
+            {"id": "10", "name": "خانه", "parent_id": "", "depth": 0},
+            {"id": "11", "name": "آشپزخانه", "parent_id": "10", "depth": 1},
+        ]
+        refreshed = (datetime.now(timezone.utc) - timedelta(hours=48)).isoformat()
+        state = {
+            "categories": categories,
+            "categories_refreshed_at": refreshed,
+            "category_index": 1,
+            "page": 7,
+        }
+        session = FakeSession([
+            FakeResponse({}, status_code=403),
+            FakeResponse({}, status_code=403),
+        ])
+        refresh_categories(state, session)
+        self.assertEqual(state["categories"], categories)
+        self.assertEqual(state["category_index"], 1)
+        self.assertEqual(state["page"], 7)
+        self.assertTrue(state["category_discovery_fallback_used"])
+        self.assertIn("dictionaries_http_403", state["category_discovery_last_error"])
+        self.assertIn("search_http_403", state["category_discovery_last_error"])
+        self.assertGreater(
+            datetime.fromisoformat(state["category_discovery_retry_after"]),
+            datetime.now(timezone.utc),
+        )
+
+    def test_refresh_categories_respects_retry_backoff_without_repeating_api_calls(self):
+        now = datetime.now(timezone.utc)
+        state = {
+            "categories": [{"id": "10", "name": "خانه", "parent_id": "", "depth": 0}],
+            "categories_refreshed_at": (now - timedelta(hours=48)).isoformat(),
+            "category_discovery_retry_after": (now + timedelta(hours=2)).isoformat(),
+            "category_index": 0,
+            "page": 4,
+        }
+        session = FakeSession([])
+        refresh_categories(state, session)
+        self.assertEqual(session.calls, [])
+        self.assertEqual(state["page"], 4)
+
+    def test_refresh_categories_does_not_use_expired_taxonomy_cache_after_api_failure(self):
+        refreshed = (datetime.now(timezone.utc) - timedelta(hours=120)).isoformat()
+        state = {
+            "categories": [{"id": "10", "name": "خانه", "parent_id": "", "depth": 0}],
+            "categories_refreshed_at": refreshed,
+        }
+        session = FakeSession([
+            FakeResponse({}, status_code=403),
+            FakeResponse({}, status_code=403),
+        ])
+        with self.assertRaises(CatalogSweepError):
+            refresh_categories(state, session)
 
     def test_extract_product_rows_parses_prices_reviews_and_product_id(self):
         payload = {

@@ -11,8 +11,10 @@ from datetime import datetime, timezone
 from typing import Callable
 
 
-POLICY_VERSION = "offerchin_four_factor_harmonic_v1"
+POLICY_VERSION = "offerchin_four_factor_harmonic_v2_discount_gate"
 MIN_PRICE_COHORT_SIZE = 8
+# A weak discount cannot be compensated for by demand, affordability or generality.
+MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE = 40.0
 
 # Heuristic reach scores, not market-share claims. Missing taxonomy is deliberately
 # scored low rather than being mistaken for a mass-market product.
@@ -174,6 +176,20 @@ def discount_attractiveness_score(
     evidence_component = 100.0 if independently_verified else 45.0
     score = 0.50 * percent_component + 0.20 * savings_component + 0.30 * evidence_component
     return round(_clamp(score), 2), evidence
+
+
+def discount_publish_gate(
+    row: dict,
+    independently_verified: bool = False,
+    minimum_score: float = MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE,
+) -> tuple[bool, float, str]:
+    """Hard publication gate for discount value; other factors cannot compensate for a weak deal."""
+    score, evidence = discount_attractiveness_score(row, independently_verified)
+    try:
+        floor = _clamp(float(minimum_score))
+    except (TypeError, ValueError, OverflowError):
+        floor = MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE
+    return score >= floor, score, evidence
 
 
 def harmonic_mean(scores: list[float]) -> float:

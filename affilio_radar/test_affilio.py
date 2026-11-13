@@ -2682,7 +2682,7 @@ class AffilioRadarTests(unittest.TestCase):
         }
         ten_percent = score_product(dict(base))
         self.assertEqual(ten_percent["discount_percent"], 10)
-        self.assertTrue(is_discount_publish_eligible(ten_percent))
+        self.assertFalse(is_discount_publish_eligible(ten_percent))
 
         just_below_floor = score_product({**base, "current_price": 510_000})
         self.assertEqual(just_below_floor["discount_percent"], 49)
@@ -2697,7 +2697,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         small_saving = score_product({**base, "current_price": 990_000})
         self.assertEqual(small_saving["discount_percent"], 1)
-        self.assertTrue(is_discount_publish_eligible(small_saving))
+        self.assertFalse(is_discount_publish_eligible(small_saving))
         no_real_drop = score_product({**base, "current_price": 1_000_000})
         self.assertFalse(is_discount_publish_eligible(no_real_drop))
         missing_stock = dict(strong_discount, availability="unknown")
@@ -2775,9 +2775,12 @@ class AffilioRadarTests(unittest.TestCase):
             candidates, {"published": {}}, now
         )
         self.assertEqual(floor, 1)
-        self.assertEqual(len(selected), 6)
+        self.assertEqual(len(selected), 5)
         self.assertTrue(all(item["selection_discount_floor"] == 1 for item in selected))
-        self.assertEqual({item["product_id"] for item in quality}, {item["product_id"] for item in candidates})
+        # The 3% listing markdown with only a small cash saving fails the hard
+        # attractiveness gate even though a same-product market comparison exists.
+        self.assertNotIn("dkp-95006", {item["product_id"] for item in selected})
+        self.assertNotIn("dkp-95006", {item["product_id"] for item in quality})
 
         publish_queue = {item["product_id"]: {} for item in candidates}
         eligible = {item["product_id"]: item for item in selected}
@@ -2792,7 +2795,7 @@ class AffilioRadarTests(unittest.TestCase):
             [row["product_id"] for row in expected_order],
         )
         self.assertTrue(all(
-            row.get("offerchin_four_factor", {}).get("policy_version") == "offerchin_four_factor_harmonic_v1"
+            row.get("offerchin_four_factor", {}).get("policy_version") == "offerchin_four_factor_harmonic_v2_discount_gate"
             for row in published_order
         ))
         self.assertGreater(
@@ -3296,6 +3299,10 @@ class AffilioRadarTests(unittest.TestCase):
             "catalog_sort_mode": "best_selling",
             "catalog_best_selling_rank": 12,
             "catalog_rank_observed_at": now.isoformat(),
+            "current_price": 5_666_667,
+            "original_price": 6_666_667,
+            "discount_percent": 15,
+            "savings_toman": 1_000_000,
         }
         _with_verified_market_value(recent_ranked, now)
         weak_discount = {
@@ -3317,12 +3324,13 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(
             [row["product_id"] for row in selected],
-            ["dkp-95502", "dkp-95503", "dkp-95501"],
+            ["dkp-95502"],
         )
         self.assertEqual(
             {row["product_id"] for row in quality},
-            {"dkp-95501", "dkp-95502", "dkp-95503"},
+            {"dkp-95502"},
         )
+        self.assertNotIn("dkp-95503", {row["product_id"] for row in selected})
 
     def test_open_ended_discovery_candidates_are_not_rejected_before_live_detail_check(self):
         now = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
@@ -3346,7 +3354,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual([pid for pid, _ in queued_rechecks], ["dkp-95401"])
 
 
-    def test_fifteen_percent_discount_is_rejected_by_fifty_percent_floor(self):
+    def test_fifteen_percent_discount_with_small_saving_fails_standalone_gate(self):
         product = {
             "title": "چراغ مطالعه مدل تست",
             "current_price": 850_000,
@@ -3360,7 +3368,7 @@ class AffilioRadarTests(unittest.TestCase):
         scored = score_product(product)
         self.assertEqual(scored["discount_percent"], 15)
         self.assertEqual(scored["savings_toman"], 150_000)
-        self.assertTrue(is_discount_publish_eligible(scored))
+        self.assertFalse(is_discount_publish_eligible(scored))
 
 
     def test_discovery_ranks_market_demand_before_discount(self):

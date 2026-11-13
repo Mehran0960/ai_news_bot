@@ -314,6 +314,11 @@ def build_status_snapshot(
         if isinstance(item, dict) and _integer(item.get("attempts")) > 0
     )
     generated = generated_at or datetime.now(timezone.utc).isoformat()
+    category_refreshed = _parse_timestamp(state.get("categories_refreshed_at"))
+    category_cache_age_hours = (
+        round(max(0.0, (status_time - category_refreshed).total_seconds() / 3600), 2)
+        if category_refreshed is not None else None
+    )
 
     return {
         "schema_version": 2,
@@ -346,6 +351,12 @@ def build_status_snapshot(
         "last_clean_cycle_product_rows_success": snapshot["product_rows_success"] if snapshot_valid else 0,
         "catalog_category_ids": current_ids,
         "catalog_category_count": len(current_ids),
+        "category_cache_refreshed_at": state.get("categories_refreshed_at"),
+        "category_cache_age_hours": category_cache_age_hours,
+        "category_discovery_fallback_used": bool(state.get("category_discovery_fallback_used")),
+        "category_discovery_last_failed_at": state.get("category_discovery_last_failed_at"),
+        "category_discovery_last_error": str(state.get("category_discovery_last_error") or "")[:220],
+        "category_discovery_retry_after": state.get("category_discovery_retry_after"),
         "completed_cycles": cycles,
         "completed_candidates_snapshot_present": bool(
             snapshot["present"] and snapshot["cycle_completed_at"]
