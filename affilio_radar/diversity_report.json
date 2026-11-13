@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-13T23:27:29.045351+00:00",
+  "generated_at": "2026-11-13T23:35:32.833614+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "اسپری حالت دهنده مو": 1,
@@ -289,7 +289,7 @@
       "other": 61,
       "personal_care": 33,
       "power_backup": 3,
-      "sports_outdoor": 10
+      "sports_outdoor": 9
     },
     "category_share_percent": {
       "audio_wearables": 3.6,
@@ -298,7 +298,7 @@
       "books_stationery": 4.2,
       "computer_network": 1.2,
       "digital_accessories": 0.6,
-      "fashion": 8.3,
+      "fashion": 8.4,
       "grocery_food": 4.2,
       "home": 3.0,
       "home_cleaning": 0.6,
@@ -307,10 +307,10 @@
       "large_appliances": 1.2,
       "lighting": 0.6,
       "mobile_devices": 1.2,
-      "other": 36.3,
-      "personal_care": 19.6,
+      "other": 36.5,
+      "personal_care": 19.8,
       "power_backup": 1.8,
-      "sports_outdoor": 6.0
+      "sports_outdoor": 5.4
     },
     "distinct_catalog_categories": 101,
     "distinct_categories": 19,
@@ -318,7 +318,7 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 22,
     "known_brand_posts": 12,
-    "posts": 168,
+    "posts": 167,
     "repeated_brand_count": 4,
     "repeated_brands": {
       "eurovital": 2,
@@ -326,7 +326,7 @@
       "sangboo_climy": 2
     },
     "retailer_post_counts": {
-      "digikala": 168
+      "digikala": 167
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -351,7 +351,7 @@
       "office_study": 5,
       "outdoor_travel": 5,
       "personal_care": 22,
-      "sports_fitness": 6,
+      "sports_fitness": 5,
       "tabletop_games": 1,
       "tools_industrial": 4
     }
@@ -370,30 +370,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1196,
+    "all_time_count": 1197,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 489,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-13T18:43:04.476712+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-17590342",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم ضد چروک ویتالیر مدل Multi Peptide",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-13T18:43:04.476712+00:00",
         "brand": "",
@@ -699,6 +682,23 @@
       },
       {
         "at": "2026-11-13T23:27:29.045351+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-714799",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-13T23:35:32.833614+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
