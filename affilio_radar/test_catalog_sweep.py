@@ -335,10 +335,8 @@ class CatalogSweepTests(unittest.TestCase):
 
     def test_category_search_requests_best_selling_sort(self):
         url, params = _category_page_url("123", 2)
-        self.assertIn("/v1/search/", url)
-        self.assertEqual(params["categories[]"], "123")
-        self.assertEqual(params["page"], 2)
-        self.assertEqual(params["sort"], 7)
+        self.assertEqual(url, "https://api.digikala.com/v2/category/123/")
+        self.assertEqual(params, {"page": 2, "sort": 5})
 
     def test_fresh_digikala_bestseller_rank_outranks_a_larger_discount(self):
         now = datetime.now(timezone.utc)
@@ -740,7 +738,7 @@ class CatalogSweepTests(unittest.TestCase):
             self.assertEqual(candidates["candidate_count"], 1)
             self.assertEqual(state["stats"]["catalog_candidate_cards_found_total"], 3)
             self.assertEqual(state["stats"]["discounted_candidates_found_total"], 1)
-            self.assertEqual(session.calls[1][0], "https://api.digikala.com/v2/category/10/")
+            self.assertEqual(session.calls[1][0], "https://api.digikala.com/v2/category/7/")
             self.assertEqual(dict(session.calls[1][1]).get("sort"), 5)
             by_id = {row["product_id"]: row for row in candidates["candidates"]}
             self.assertEqual(set(by_id), {"dkp-777"})
