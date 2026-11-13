@@ -68,6 +68,34 @@ class EditorialPublisherTests(unittest.TestCase):
         with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
             self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
 
+    def test_older_editorial_video_blocks_only_newer_product_video_sequences(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:guide": {
+                    "sequence_number": 5,
+                    "status": "partial",
+                    "platforms": {
+                        "youtube": {"status": "sent"},
+                        "aparat": {"status": "pending"},
+                        "filo": {"status": "not_connected"},
+                    },
+                }
+            }
+        }
+        barrier = radar._oldest_pending_editorial_video_sequence(state)
+        self.assertEqual(barrier, 5)
+        self.assertIsNone(radar._oldest_pending_editorial_video_sequence(
+            state, {"youtube"}
+        ))
+        self.assertFalse(radar._product_video_blocked_by_editorial_sequence(
+            {"sequence_number": 3}, barrier
+        ))
+        self.assertTrue(radar._product_video_blocked_by_editorial_sequence(
+            {"sequence_number": 8}, barrier
+        ))
+        # A legacy product record with no sequence is drained before the barrier.
+        self.assertFalse(radar._product_video_blocked_by_editorial_sequence({}, barrier))
+
     def test_editorial_video_backlog_does_not_lock_product_channel_publisher(self):
         state = {
             "editorial_delivery_queue": {
