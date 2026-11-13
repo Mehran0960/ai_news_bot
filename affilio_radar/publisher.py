@@ -672,9 +672,9 @@ def editorial_fifo_lock_entry(state: dict) -> dict | None:
     oldest = min(active, key=lambda value: int(value.get("sequence_number") or 0))
     targets = oldest.get("platforms") if isinstance(oldest.get("platforms"), dict) else {}
     # manual_review is not terminal for sequence ordering: the post may have gone public.
-    # Only an unfinished core channel hand-off may reserve the next channel slot.
-    # Editorial video retries must never stop the product-photo publisher.
-    for name in CORE_PHOTO_PLATFORMS:
+    # Any unresolved photo destination may have accepted the editorial post.
+    # Video-only editorial backlog is handled by the independent video FIFO barrier.
+    for name in PHOTO_PLATFORMS:
         target = targets.get(name)
         status = str(target.get("status") or "pending") if isinstance(target, dict) else "pending"
         if status not in {"sent", "not_connected", "skipped_limit"}:
