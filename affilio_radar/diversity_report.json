@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-13T16:26:48.403586+00:00",
+  "generated_at": "2026-11-13T16:37:06.265077+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "اسپری حالت دهنده مو": 1,
@@ -207,7 +207,6 @@
       "عطر و ادکلن زنانه": 1,
       "عینک محافظ چشم": 1,
       "لایه بردار پوست و اسکراب": 1,
-      "لباس زنانه": 1,
       "لباس زیر و جوراب زنانه": 1,
       "لوازم اتو": 1,
       "لوازم اداری": 3,
@@ -266,7 +265,7 @@
       "books_stationery": 7,
       "computer_network": 2,
       "digital_accessories": 1,
-      "fashion": 15,
+      "fashion": 14,
       "gaming": 1,
       "grocery_food": 7,
       "home": 3,
@@ -282,13 +281,13 @@
       "sports_outdoor": 11
     },
     "category_share_percent": {
-      "audio_wearables": 3.3,
+      "audio_wearables": 3.4,
       "automotive": 5.0,
       "beauty_fragrance": 1.7,
       "books_stationery": 3.9,
       "computer_network": 1.1,
       "digital_accessories": 0.6,
-      "fashion": 8.3,
+      "fashion": 7.8,
       "gaming": 0.6,
       "grocery_food": 3.9,
       "home": 1.7,
@@ -298,18 +297,18 @@
       "large_appliances": 1.1,
       "lighting": 0.6,
       "mobile_devices": 1.7,
-      "other": 35.0,
-      "personal_care": 20.0,
+      "other": 35.2,
+      "personal_care": 20.1,
       "power_backup": 2.2,
       "sports_outdoor": 6.1
     },
-    "distinct_catalog_categories": 101,
+    "distinct_catalog_categories": 100,
     "distinct_categories": 20,
-    "distinct_families": 129,
+    "distinct_families": 128,
     "distinct_retailers": 1,
     "distinct_use_cases": 23,
     "known_brand_posts": 12,
-    "posts": 180,
+    "posts": 179,
     "repeated_brand_count": 4,
     "repeated_brands": {
       "eurovital": 2,
@@ -317,7 +316,7 @@
       "sangboo_climy": 2
     },
     "retailer_post_counts": {
-      "digikala": 180
+      "digikala": 179
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -340,7 +339,7 @@
       "lighting_electrical": 5,
       "local_goods": 2,
       "mobile_productivity": 30,
-      "office_study": 7,
+      "office_study": 6,
       "outdoor_travel": 5,
       "personal_care": 25,
       "sports_fitness": 7,
@@ -362,98 +361,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1136,
+    "all_time_count": 1141,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 499,
+      "family_repeat": 498,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-13T12:28:42.307539+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-13T12:28:42.307539+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-17590342",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم ضد چروک ویتالیر مدل Multi Peptide",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-13T13:03:38.480872+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-13T13:03:38.480872+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-17590342",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم ضد چروک ویتالیر مدل Multi Peptide",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-13T13:43:19.547937+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-13T13:43:19.547937+00:00",
         "brand": "",
@@ -707,6 +621,90 @@
         ],
         "title": "سرم ضد چروک ویتالیر مدل Multi Peptide",
         "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-13T16:37:06.265077+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-13T16:37:06.265077+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-714799",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-13T16:37:06.265077+00:00",
+        "brand": "art_vina",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-17081684",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم ضد آفتاب بدون رنگ آرت وینا SPF 50 مدل Highly Effective ‌محافظ UVA ،UVB و PA+++، ضد حساسیت، ضد چروک و ضد پیری مناسب انواع پوست‌ حجم 50 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-13T16:37:06.265077+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-17590342",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم ضد چروک ویتالیر مدل Multi Peptide",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-13T16:37:06.265077+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "other",
+        "compared_to_product_id": "dkp-126163",
+        "family": "other",
+        "product_id": "dkp-126151",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "رول ضد تعریق مردانه شون مدل Black Forest حجم 50 میلی لیتر",
+        "use_case": "general"
       }
     ]
   }
