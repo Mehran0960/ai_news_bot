@@ -31,7 +31,17 @@ CHANNEL_DESTINATIONS = ("telegram", "bale", "rubika", "eitaa")
 VIDEO_DESTINATIONS = ("youtube", "aparat", "filo")
 TERMINAL = {"sent", "not_connected", "manual_review", "skipped_limit"}
 RETRYABLE = {"pending", "failed", "retry"}
-MINIMUM_GAP_MINUTES = max(50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55"))))
+PRODUCTS_PER_EDITORIAL = max(1, min(20, int(os.getenv("OFFERCHIN_EDITORIAL_PRODUCTS_PER_POST", "4"))))
+MINIMUM_GAP_MINUTES = max(
+    27,
+    min(59, int(os.getenv(
+        "OFFERCHIN_EDITORIAL_CHANNEL_GAP_MINUTES",
+        str(round(float(radar.MIN_POST_INTERVAL_HOURS) * 60)),
+    ))),
+)
+EDITORIAL_ATTEMPT_COOLDOWN_MINUTES = max(
+    50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55")))
+)
 RETRY_BASE_SECONDS = max(60, min(1800, int(os.getenv("OFFERCHIN_EDITORIAL_RETRY_SECONDS", "300"))))
 MAX_ATTEMPTS = max(1, min(5, int(os.getenv("OFFERCHIN_EDITORIAL_MAX_ATTEMPTS", "3"))))
 
@@ -86,8 +96,8 @@ def _pending_product_video_exists(state: dict) -> bool:
 
 
 def _recent_attempt_anchor(state: dict) -> datetime | None:
+    """Return the last editorial attempt/success, excluding ordinary product posts."""
     candidates = [
-        get_last_channel_published_at(state),
         _utc(state.get("last_editorial_confirmed_at")),
         _utc(state.get("last_editorial_attempt_at")),
     ]
@@ -131,10 +141,39 @@ def queue_editorial_if_due(
         print("EDITORIAL_FALLBACK_WAIT reason=older_product_video_fifo_pending")
         return None
 
-    anchor = _recent_attempt_anchor(state)
-    if anchor and current - anchor < timedelta(minutes=MINIMUM_GAP_MINUTES):
-        remaining = max(0, int((timedelta(minutes=MINIMUM_GAP_MINUTES) - (current - anchor)).total_seconds()))
-        print(f"EDITORIAL_FALLBACK_NOT_DUE remaining_seconds={remaining}")
+    try:
+        product_posts_since_editorial = max(
+            0, int(state.get("product_channel_posts_since_editorial") or 0)
+        )
+    except (TypeError, ValueError, OverflowError):
+        product_posts_since_editorial = 0
+    if product_posts_since_editorial < PRODUCTS_PER_EDITORIAL:
+        print(
+            "EDITORIAL_FALLBACK_WAIT reason=product_post_quota "
+            f"observed={product_posts_since_editorial} required={PRODUCTS_PER_EDITORIAL}"
+        )
+        return None
+
+    channel_anchor = get_last_channel_published_at(state)
+    if channel_anchor and current - channel_anchor < timedelta(minutes=MINIMUM_GAP_MINUTES):
+        remaining = max(
+            0,
+            int((
+                timedelta(minutes=MINIMUM_GAP_MINUTES) - (current - channel_anchor)
+            ).total_seconds()),
+        )
+        print(f"EDITORIAL_FALLBACK_NOT_DUE reason=minimum_channel_spacing remaining_seconds={remaining}")
+        return None
+
+    attempt_anchor = _recent_attempt_anchor(state)
+    if attempt_anchor and current - attempt_anchor < timedelta(minutes=EDITORIAL_ATTEMPT_COOLDOWN_MINUTES):
+        remaining = max(
+            0,
+            int((
+                timedelta(minutes=EDITORIAL_ATTEMPT_COOLDOWN_MINUTES) - (current - attempt_anchor)
+            ).total_seconds()),
+        )
+        print(f"EDITORIAL_FALLBACK_NOT_DUE reason=editorial_attempt_cooldown remaining_seconds={remaining}")
         return None
 
     item = select_editorial_fallback(bank, state, now=current)
@@ -360,6 +399,8 @@ def _record_success(state: dict, entry: dict, destination: str, receipt: dict, n
     if destination in {"telegram", "bale"}:
         state["last_channel_published_at"] = now.isoformat()
         state["last_published_at"] = now.isoformat()
+        state["last_editorial_channel_published_at"] = now.isoformat()
+        state["product_channel_posts_since_editorial"] = 0
     state["last_editorial_confirmed_at"] = now.isoformat()
     payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
     try:
@@ -440,8 +481,13 @@ def _handle_channel_destination(
         target["updated_at"] = now.isoformat()
         _save(state)
         return
-    retry_at = _utc(target.get("next_attempt_at"))
-    if target.get("status") == "failed" and retry_at and retry_at > now:
+    if target.get("status") == "failed":
+        # A delayed editorial retry could appear after a newer product on this
+        # destination. Terminalize the unconfirmed editorial attempt instead.
+        target["status"] = "manual_review"
+        target["last_error"] = "editorial_retry_suppressed_to_preserve_destination_fifo"
+        target["updated_at"] = now.isoformat()
+        _save(state)
         return
 
     target["status"] = "sending"
@@ -474,6 +520,13 @@ def _handle_channel_destination(
         print(f"EDITORIAL_DESTINATION_SENT content_id={entry['content_id']} platform={destination}")
     except Exception as exc:
         _record_failure(entry, destination, exc, _now())
+        if target.get("status") == "failed":
+            target["status"] = "manual_review"
+            target["last_error"] = (
+                "editorial_delivery_not_confirmed_no_late_retry:"
+                + str(target.get("last_error") or type(exc).__name__)
+            )[:300]
+            target["updated_at"] = _now().isoformat()
         _save(state)
         print(
             f"EDITORIAL_DESTINATION_FAILED content_id={entry['content_id']} "
@@ -512,8 +565,13 @@ def _handle_video_destination(
         target["updated_at"] = now.isoformat()
         _save(state)
         return
-    retry_at = _utc(target.get("next_attempt_at"))
-    if target.get("status") == "failed" and retry_at and retry_at > now:
+    if target.get("status") == "failed":
+        # Preserve destination FIFO: never retry this editorial after a newer
+        # product-video dispatch may have started.
+        target["status"] = "manual_review"
+        target["last_error"] = "editorial_video_retry_suppressed_to_preserve_destination_fifo"
+        target["updated_at"] = now.isoformat()
+        _save(state)
         return
 
     target["status"] = "sending"
@@ -594,6 +652,13 @@ def _handle_video_destination(
             target["updated_at"] = _now().isoformat()
         else:
             _record_failure(entry, destination, exc, _now())
+            if target.get("status") == "failed":
+                target["status"] = "manual_review"
+                target["last_error"] = (
+                    "editorial_video_not_confirmed_no_late_retry:"
+                    + str(target.get("last_error") or type(exc).__name__)
+                )[:300]
+                target["updated_at"] = _now().isoformat()
         _save(state)
         print(
             f"EDITORIAL_VIDEO_FAILED content_id={entry['content_id']} "
@@ -672,13 +737,37 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     ]
     pending_videos = _pending_product_video_exists(state)
     shadow_state_for_anchor = json.loads(json.dumps(state, ensure_ascii=False, default=str))
-    anchor = _recent_attempt_anchor(shadow_state_for_anchor)
-    elapsed = (current - anchor) if anchor else None
-    remaining = (
-        max(0, int((timedelta(minutes=MINIMUM_GAP_MINUTES) - elapsed).total_seconds()))
-        if elapsed is not None and elapsed < timedelta(minutes=MINIMUM_GAP_MINUTES)
+    attempt_anchor = _recent_attempt_anchor(shadow_state_for_anchor)
+    attempt_elapsed = (current - attempt_anchor) if attempt_anchor else None
+    attempt_remaining = (
+        max(
+            0,
+            int((
+                timedelta(minutes=EDITORIAL_ATTEMPT_COOLDOWN_MINUTES) - attempt_elapsed
+            ).total_seconds()),
+        )
+        if attempt_elapsed is not None
+        and attempt_elapsed < timedelta(minutes=EDITORIAL_ATTEMPT_COOLDOWN_MINUTES)
         else 0
     )
+    channel_anchor = get_last_channel_published_at(shadow_state_for_anchor)
+    channel_elapsed = (current - channel_anchor) if channel_anchor else None
+    channel_remaining = (
+        max(
+            0,
+            int((timedelta(minutes=MINIMUM_GAP_MINUTES) - channel_elapsed).total_seconds()),
+        )
+        if channel_elapsed is not None and channel_elapsed < timedelta(minutes=MINIMUM_GAP_MINUTES)
+        else 0
+    )
+    remaining = max(attempt_remaining, channel_remaining)
+    try:
+        product_posts_since_editorial = max(
+            0, int(state.get("product_channel_posts_since_editorial") or 0)
+        )
+    except (TypeError, ValueError, OverflowError):
+        product_posts_since_editorial = 0
+    products_until_editorial = max(0, PRODUCTS_PER_EDITORIAL - product_posts_since_editorial)
 
     destination_config = {
         "telegram": bool(radar.BOT_TOKEN and radar.TARGET_CHAT),
@@ -719,8 +808,15 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         decision = "wait_for_older_product_video_fifo"
         item_id = None
         sequence = None
+    elif products_until_editorial:
+        decision = "wait_for_product_post_quota"
+        item_id = None
+        sequence = None
     elif remaining:
-        decision = "wait_for_55_minute_fallback_interval"
+        decision = (
+            "wait_for_minimum_channel_spacing"
+            if channel_remaining else "wait_for_editorial_attempt_cooldown"
+        )
         item_id = None
         sequence = None
     else:
@@ -744,6 +840,10 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "would_select_content_id": item_id,
         "would_allocate_sequence_number": sequence,
         "fallback_interval_minutes": MINIMUM_GAP_MINUTES,
+        "editorial_attempt_cooldown_minutes": EDITORIAL_ATTEMPT_COOLDOWN_MINUTES,
+        "products_per_editorial": PRODUCTS_PER_EDITORIAL,
+        "product_channel_posts_since_editorial": product_posts_since_editorial,
+        "product_posts_until_editorial_due": products_until_editorial,
         "seconds_until_fallback_due": remaining,
         "editorial_bank_total": len(bank),
         "editorial_bank_valid": len(valid_items),
@@ -762,13 +862,23 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     }
 
 
-def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = None) -> int:
+def run_editorial_publisher(
+    *,
+    mode: str,
+    publish: bool,
+    now: datetime | None = None,
+    resume_active_only: bool = False,
+) -> int:
     if mode not in {"channels", "videos"}:
         raise ValueError("mode_must_be_channels_or_videos")
     current = now or _now()
     state = radar.load_state(apply_integrity_ledger=False)
     bank = _load_bank()
-    entry = queue_editorial_if_due(state, bank, now=current)
+    if resume_active_only:
+        active = _active_editorial_entries(state)
+        entry = active[0] if active else None
+    else:
+        entry = queue_editorial_if_due(state, bank, now=current)
     if publish:
         # Persist the canonical id and allocated sequence before rendering or any
         # outbound request, so a runner restart cannot allocate a duplicate sequence.
@@ -839,6 +949,11 @@ def main() -> int:
     parser.add_argument("--channels-only", action="store_true")
     parser.add_argument("--videos-only", action="store_true")
     parser.add_argument("--publish", action="store_true", help="perform external publishing; otherwise dry-run only")
+    parser.add_argument(
+        "--resume-active-only",
+        action="store_true",
+        help="resume an existing editorial item without allocating a new sequence",
+    )
     parser.add_argument("--shadow-report", action="store_true", help="write a read-only shadow report; never publish or mutate state")
     parser.add_argument("--report-path", default="editorial_shadow_report.json")
     args = parser.parse_args()
@@ -854,6 +969,7 @@ def main() -> int:
     return run_editorial_publisher(
         mode="channels" if args.channels_only else "videos",
         publish=args.publish,
+        resume_active_only=args.resume_active_only,
     )
 
 
