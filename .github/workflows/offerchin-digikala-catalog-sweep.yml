@@ -66,7 +66,13 @@ jobs:
           def probe(label, url, params=None):
               try:
                   response = session.get(url, params=params or {}, timeout=(5, 18))
-                  result = {"status": response.status_code, "content_type": response.headers.get("content-type", "")}
+                  result = {
+                      "status": response.status_code,
+                      "content_type": response.headers.get("content-type", ""),
+                      "server": response.headers.get("server", ""),
+                      "via": response.headers.get("via", ""),
+                      "response_preview": response.text[:180].replace("\\n", " ")
+                  }
                   try:
                       payload = response.json()
                       result["top_keys"] = sorted(payload.keys())[:20] if isinstance(payload, dict) else []
