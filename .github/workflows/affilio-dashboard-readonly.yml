@@ -32,6 +32,12 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Validate local report scripts
+        run: |
+          node --check scripts/audit_affilio_dashboard.mjs
+          node --check scripts/encrypt_affilio_dashboard_report.mjs
+          node --check scripts/decrypt_affilio_dashboard_report.mjs
+
       - name: Install isolated browser runtime
         run: |
           npm install --no-save --no-package-lock playwright@1.53.2
