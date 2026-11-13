@@ -181,7 +181,14 @@ def queue_editorial_if_due(
         print("EDITORIAL_FALLBACK_EMPTY reason=no_valid_nonrepeating_reviewed_item")
         return None
 
-    sequence_number = allocate_publication_sequence(state)
+    # Product reservations use their scheduled UTC timestamp as sequence.
+    # Editorial items use their actual current slot, preserving one FIFO order
+    # across products and editorial posts even when products were batch-selected.
+    sequence_number = int(current.timestamp())
+    state["publication_sequence_counter"] = max(
+        int(state.get("publication_sequence_counter") or 0),
+        sequence_number,
+    )
     item["sequence_number"] = sequence_number
     queue = state.setdefault("editorial_delivery_queue", {})
     if not isinstance(queue, dict):
