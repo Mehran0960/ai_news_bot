@@ -622,7 +622,7 @@ def tracked_affiliate_button_url(
 
     destination = _affiliate_product_destination(original)
     pid = product_id(destination)
-    if not re.fullmatch(r"(?:dkp-\\d{1,12}|snp-\\d{1,20})", pid):
+    if not re.fullmatch(r"(?:dkp-\d{1,12}|snp-\\d{1,20})", pid):
         return original
 
     sub_parts = ["oc1", channel, pid]
