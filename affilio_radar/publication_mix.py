@@ -2,7 +2,7 @@
 
 Products are distributed across the available 27-minute slots. Editorial items
 are created just-in-time for the unoccupied slots by editorial_publisher.py.
-The estimate is deliberately refreshed on every selection run.
+The forecast is frozen for each scan cycle and refreshed when that cycle changes.
 """
 from __future__ import annotations
 
@@ -101,7 +101,7 @@ def estimate_next_clean_scan_deadline(
         previous_deadline = parse_utc(previous_plan.get("scan_deadline_at"))
         if (
             previous_deadline
-            and previous_deadline > current + timedelta(minutes=30)
+            and previous_deadline > current
             and previous_deadline <= current + timedelta(hours=MAX_SCAN_HORIZON_HOURS)
         ):
             return previous_deadline, "persisted_cycle_deadline"
