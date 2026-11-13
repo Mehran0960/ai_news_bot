@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-13T18:43:04.476712+00:00",
+  "generated_at": "2026-11-13T19:18:23.570254+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "اسپری حالت دهنده مو": 1,
@@ -109,6 +109,7 @@
       "رژ لب مایع و لیپ گلاس": 1,
       "ضد تعریق": 1,
       "لباس زیر و جوراب زنانه": 1,
+      "لوازم مکمل آشپزخانه": 1,
       "لوسیون و روغن بدن": 1,
       "متر": 1,
       "مجموعه شمش و پلاک طلا و نقره": 1,
@@ -121,30 +122,30 @@
     "category_post_counts": {
       "books_stationery": 1,
       "fashion": 2,
-      "home": 1,
+      "home": 2,
       "other": 6,
       "personal_care": 6,
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "books_stationery": 5.9,
-      "fashion": 11.8,
-      "home": 5.9,
-      "other": 35.3,
-      "personal_care": 35.3,
-      "sports_outdoor": 5.9
+      "books_stationery": 5.6,
+      "fashion": 11.1,
+      "home": 11.1,
+      "other": 33.3,
+      "personal_care": 33.3,
+      "sports_outdoor": 5.6
     },
-    "distinct_catalog_categories": 17,
+    "distinct_catalog_categories": 18,
     "distinct_categories": 6,
-    "distinct_families": 17,
+    "distinct_families": 18,
     "distinct_retailers": 1,
-    "distinct_use_cases": 7,
+    "distinct_use_cases": 8,
     "known_brand_posts": 1,
-    "posts": 17,
+    "posts": 18,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 17
+      "digikala": 18
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -154,6 +155,7 @@
       "books_learning": 1,
       "catalog_taxonomy_other": 4,
       "fashion_lifestyle": 1,
+      "kitchen_food": 1,
       "mobile_productivity": 7,
       "outdoor_travel": 1,
       "personal_care": 2
@@ -217,6 +219,7 @@
       "لوازم خانگی برقی": 1,
       "لوازم سفر و کمپینگ": 1,
       "لوازم ماهیگیری": 1,
+      "لوازم مکمل آشپزخانه": 1,
       "لوازم یدکی ابزار برقی": 2,
       "لوسیون و روغن بدن": 1,
       "ماسک صورت و بدن": 1,
@@ -240,7 +243,6 @@
       "پرچم": 2,
       "پولوشرت مردانه": 1,
       "پیچ گوشتی و فازمتر": 1,
-      "چادر خودرو": 1,
       "ژل و صابون ابرو": 1,
       "ژل و کرم ترمیم کننده": 1,
       "کالای خوراکی و اساسی": 1,
@@ -263,7 +265,7 @@
     },
     "category_post_counts": {
       "audio_wearables": 6,
-      "automotive": 8,
+      "automotive": 7,
       "beauty_fragrance": 3,
       "books_stationery": 7,
       "computer_network": 2,
@@ -271,7 +273,7 @@
       "fashion": 14,
       "gaming": 1,
       "grocery_food": 7,
-      "home": 4,
+      "home": 5,
       "home_cleaning": 1,
       "jewelry": 1,
       "kids_sports": 4,
@@ -285,7 +287,7 @@
     },
     "category_share_percent": {
       "audio_wearables": 3.4,
-      "automotive": 4.6,
+      "automotive": 4.0,
       "beauty_fragrance": 1.7,
       "books_stationery": 4.0,
       "computer_network": 1.1,
@@ -293,7 +295,7 @@
       "fashion": 8.0,
       "gaming": 0.6,
       "grocery_food": 4.0,
-      "home": 2.3,
+      "home": 2.9,
       "home_cleaning": 0.6,
       "jewelry": 0.6,
       "kids_sports": 2.3,
@@ -326,7 +328,7 @@
     },
     "use_case_post_counts": {
       "audio_visual": 5,
-      "automotive": 14,
+      "automotive": 13,
       "baby_care": 3,
       "books_learning": 6,
       "catalog_taxonomy_other": 12,
@@ -338,7 +340,7 @@
       "health_wellness": 4,
       "home_cleaning": 2,
       "home_living": 3,
-      "kitchen_food": 5,
+      "kitchen_food": 6,
       "lighting_electrical": 5,
       "local_goods": 2,
       "mobile_productivity": 31,
@@ -364,97 +366,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1178,
+    "all_time_count": 1183,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 491,
+      "family_repeat": 490,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-13T17:45:35.559764+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-714799",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-13T17:45:35.559764+00:00",
-        "brand": "art_vina",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-17081684",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم ضد آفتاب بدون رنگ آرت وینا SPF 50 مدل Highly Effective ‌محافظ UVA ،UVB و PA+++، ضد حساسیت، ضد چروک و ضد پیری مناسب انواع پوست‌ حجم 50 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-13T17:45:35.559764+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-17590342",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم ضد چروک ویتالیر مدل Multi Peptide",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-13T17:45:35.559764+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "other",
-        "compared_to_product_id": "dkp-126163",
-        "family": "other",
-        "product_id": "dkp-126151",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "رول ضد تعریق مردانه شون مدل Black Forest حجم 50 میلی لیتر",
-        "use_case": "general"
-      },
-      {
-        "at": "2026-11-13T17:55:49.379690+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-13T17:55:49.379690+00:00",
         "brand": "",
@@ -693,6 +611,90 @@
       },
       {
         "at": "2026-11-13T18:43:04.476712+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "other",
+        "compared_to_product_id": "dkp-126163",
+        "family": "other",
+        "product_id": "dkp-126151",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "رول ضد تعریق مردانه شون مدل Black Forest حجم 50 میلی لیتر",
+        "use_case": "general"
+      },
+      {
+        "at": "2026-11-13T19:18:23.570254+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-13T19:18:23.570254+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-714799",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-13T19:18:23.570254+00:00",
+        "brand": "art_vina",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-17081684",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم ضد آفتاب بدون رنگ آرت وینا SPF 50 مدل Highly Effective ‌محافظ UVA ،UVB و PA+++، ضد حساسیت، ضد چروک و ضد پیری مناسب انواع پوست‌ حجم 50 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-13T19:18:23.570254+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-17590342",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم ضد چروک ویتالیر مدل Multi Peptide",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-13T19:18:23.570254+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
