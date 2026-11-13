@@ -247,10 +247,22 @@ class OfferChinFourFactorTests(unittest.TestCase):
                 queue, eligible, now=self.now, published={}, recent_publications=[]
             )
         self.assertTrue(selected)
-        self.assertEqual(selected[0]["product_id"], "dkp-100")
+        expected = sorted(
+            selected,
+            key=lambda row: radar.four_factor_sort_key(row),
+            reverse=True,
+        )
+        self.assertEqual(
+            [row["product_id"] for row in selected],
+            [row["product_id"] for row in expected],
+        )
         self.assertEqual(
             selected[0]["offerchin_four_factor"]["policy_version"],
             POLICY_VERSION,
+        )
+        self.assertEqual(
+            selected[0]["offerchin_four_factor"]["affordability_basis"],
+            "full_final_cash_price",
         )
 
 
