@@ -989,5 +989,363 @@
     ],
     "reviewed_at": "2026-11-12T18:00:00Z",
     "review_due_at": "2027-02-10T18:00:00Z"
+  },
+  {
+    "editorial_id": "subscription-renewal-cost",
+    "topic": "digital-services",
+    "priority": "normal",
+    "title": "قبل از فعال‌کردن اشتراک، هزینه تمدید را پیدا کن",
+    "body": "در سرویس‌های دیجیتال فقط مبلغ دوره آزمایشی یا ماه اول را نبین. بررسی کن بعد از پایان دوره چه مبلغی و با چه فاصله‌ای برداشت می‌شود، تمدید خودکار چگونه کار می‌کند و لغو اشتراک از کجا انجام می‌شود. تاریخ پایان دوره را یادداشت کن و رسید فعال‌سازی و لغو را نگه دار.",
+    "sources": [
+      {
+        "source_id": "ftc-subscriptions",
+        "title": "Getting In and Out of Free Trials and Auto-Renewals – FTC",
+        "url": "https://consumer.ftc.gov/articles/getting-and-out-free-trials-auto-renewals-and-negative-option-subscriptions"
+      }
+    ],
+    "claims": [
+      {
+        "text": "دوره آزمایشی ممکن است پس از پایان به پرداخت تکرارشونده تبدیل شود",
+        "source_ids": [
+          "ftc-subscriptions"
+        ]
+      },
+      {
+        "text": "هزینه، زمان تمدید و روش لغو را پیش از ثبت‌نام بررسی کن",
+        "source_ids": [
+          "ftc-subscriptions"
+        ]
+      }
+    ],
+    "reviewed_at": "2026-11-12T18:00:00Z",
+    "review_due_at": "2027-02-10T18:00:00Z"
+  },
+  {
+    "editorial_id": "check-product-recalls",
+    "topic": "product-safety",
+    "priority": "normal",
+    "title": "برای کالاهای حساس، سابقه فراخوان ایمنی را بررسی کن",
+    "body": "برای بعضی کالاها، به‌ویژه وسایل برقی، باتری‌دار و محصولات کودک، مدل دقیق و نام سازنده را با اطلاعیه‌های ایمنی و فراخوان‌ها تطبیق بده. اگر اطلاعیه‌ای پیدا کردی، شماره مدل و سری ساخت را دقیق بخوان؛ شباهت ظاهری به‌تنهایی کافی نیست. این بررسی را از منبع رسمی کشور یا سازنده انجام بده.",
+    "sources": [
+      {
+        "source_id": "cpsc-recalls",
+        "title": "Recalls and Product Safety Warnings – CPSC",
+        "url": "https://www.cpsc.gov/Recalls"
+      }
+    ],
+    "claims": [
+      {
+        "text": "اطلاعیه‌های فراخوان با نام و مدل مشخص کالا منتشر می‌شوند",
+        "source_ids": [
+          "cpsc-recalls"
+        ]
+      },
+      {
+        "text": "برای تطبیق فراخوان، مدل و مشخصات دقیق محصول را بررسی کن",
+        "source_ids": [
+          "cpsc-recalls"
+        ]
+      }
+    ],
+    "reviewed_at": "2026-11-12T18:00:00Z",
+    "review_due_at": "2027-02-10T18:00:00Z"
+  },
+  {
+    "editorial_id": "battery-and-charger-match",
+    "topic": "device-safety",
+    "priority": "normal",
+    "title": "برای وسایل باتری‌دار، شارژر و باتری سازگار را جداگانه بررسی کن",
+    "body": "در خرید ابزار، اسکوتر، پاوربانک و تجهیزات باتری‌دار، فقط به شکل فیش یا ظرفیت اسمی توجه نکن. ولتاژ، توان، نوع باتری، سازگاری شارژر و توصیه سازنده را بررسی کن. باتری یا شارژر نامتناسب و قطعات تغییر‌یافته می‌توانند خطرساز باشند؛ از جایگزین تأییدنشده استفاده نکن.",
+    "sources": [
+      {
+        "source_id": "cpsc-batteries",
+        "title": "Batteries – Consumer Product Safety Commission",
+        "url": "https://www.cpsc.gov/Regulations-Laws--Standards/Voluntary-Standards/Topics/Batteries"
+      }
+    ],
+    "claims": [
+      {
+        "text": "ناسازگاری باتری و شارژر می‌تواند خطر داغ‌شدن، آتش‌سوزی یا برق‌گرفتگی ایجاد کند",
+        "source_ids": [
+          "cpsc-batteries"
+        ]
+      },
+      {
+        "text": "سازگاری باتری، شارژر و دستگاه را به‌صورت یک مجموعه بررسی کن",
+        "source_ids": [
+          "cpsc-batteries"
+        ]
+      }
+    ],
+    "reviewed_at": "2026-11-12T18:00:00Z",
+    "review_due_at": "2027-02-10T18:00:00Z"
+  },
+  {
+    "editorial_id": "toy-age-grading",
+    "topic": "children-products",
+    "priority": "normal",
+    "title": "در خرید اسباب‌بازی، هشدار سنی را فقط یک عدد تزئینی نبین",
+    "body": "رده سنی، قطعات کوچک، آهنرباها، باتری‌های دکمه‌ای و دستورالعمل مونتاژ را بررسی کن. محصولی که از نظر ظاهر جذاب است لزوماً برای سن یا شرایط استفاده کودک مناسب نیست. اطلاعات بسته‌بندی و هشدارهای سازنده را بخوان و در صورت ابهام، خرید را به بعد از دریافت پاسخ معتبر موکول کن.",
+    "sources": [
+      {
+        "source_id": "cpsc-toys",
+        "title": "Toy Safety Business Guidance – CPSC",
+        "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Toy-Safety"
+      }
+    ],
+    "claims": [
+      {
+        "text": "برخی اسباب‌بازی‌ها هشدارها و الزامات برچسب‌گذاری ویژه دارند",
+        "source_ids": [
+          "cpsc-toys"
+        ]
+      },
+      {
+        "text": "رده‌بندی سنی و دستورالعمل محصول را پیش از خرید بررسی کن",
+        "source_ids": [
+          "cpsc-toys"
+        ]
+      }
+    ],
+    "reviewed_at": "2026-11-12T18:00:00Z",
+    "review_due_at": "2027-02-10T18:00:00Z"
+  },
+  {
+    "editorial_id": "read-textile-care-label",
+    "topic": "textile-care",
+    "priority": "normal",
+    "title": "برای پوشاک، جنس پارچه و روش نگهداری را قبل از سفارش بخوان",
+    "body": "ظاهر و عکس لباس تمام ماجرا نیست. ترکیب الیاف، روش شست‌وشو، دمای مجاز، امکان خشک‌کن و محدودیت اتوکشی روی دوام و هزینه نگهداری اثر می‌گذارد. اگر اطلاعات مراقبت از پارچه در صفحه کالا روشن نیست، قبل از سفارش آن را از فروشنده بخواه.",
+    "sources": [
+      {
+        "source_id": "ftc-care-label",
+        "title": "Clothes Captioning: Complying with the Care Labeling Rule – FTC",
+        "url": "https://www.ftc.gov/business-guidance/resources/clothes-captioning-complying-care-labeling-rule"
+      }
+    ],
+    "claims": [
+      {
+        "text": "اطلاعات نگهداری پارچه باید روش مراقبت و هشدارهای لازم را روشن کند",
+        "source_ids": [
+          "ftc-care-label"
+        ]
+      },
+      {
+        "text": "دستورالعمل مراقبت از پارچه می‌تواند در جلوگیری از آسیب محصول مؤثر باشد",
+        "source_ids": [
+          "ftc-care-label"
+        ]
+      }
+    ],
+    "reviewed_at": "2026-11-12T18:00:00Z",
+    "review_due_at": "2027-02-10T18:00:00Z"
+  },
+  {
+    "editorial_id": "clearance-return-conditions",
+    "topic": "shipping-and-returns",
+    "priority": "normal",
+    "title": "شرایط مرجوعی کالای حراجی را جداگانه بخوان",
+    "body": "در بعضی فروشگاه‌ها شرایط بازگشت کالای حراجی، فروش نهایی یا کالاهای خاص با سایر محصولات فرق دارد. پیش از پرداخت، مهلت بازگشت، هزینه ارسال برگشتی، کارمزد احتمالی و استثناهای مرجوعی را پیدا کن و نسخه شرایط را نگه دار. عبارت «فروش ویژه» به‌تنهایی معنی شرایط یکسان یا متفاوت نمی‌دهد.",
+    "sources": [
+      {
+        "source_id": "ftc-online-shopping",
+        "title": "Online Shopping – FTC Consumer Advice",
+        "url": "https://consumer.ftc.gov/articles/online-shopping"
+      }
+    ],
+    "claims": [
+      {
+        "text": "شرایط بازپرداخت اقلام حراجی ممکن است با سایر کالاها متفاوت باشد",
+        "source_ids": [
+          "ftc-online-shopping"
+        ]
+      },
+      {
+        "text": "هزینه برگشت و مهلت مرجوعی را قبل از خرید بخوان",
+        "source_ids": [
+          "ftc-online-shopping"
+        ]
+      }
+    ],
+    "reviewed_at": "2026-11-12T18:00:00Z",
+    "review_due_at": "2027-02-10T18:00:00Z"
+  },
+  {
+    "editorial_id": "track-delivery-promises",
+    "topic": "shipping-and-returns",
+    "priority": "normal",
+    "title": "وعده زمان ارسال را ثبت کن تا بعداً قابل پیگیری باشد",
+    "body": "اگر زمان تحویل برایت مهم است، زمان اعلام‌شده، روش ارسال و شماره پیگیری را نگه دار. تفاوت میان «آماده‌سازی»، «تحویل به شرکت حمل» و «تحویل نهایی» را در وضعیت سفارش بررسی کن. برای خریدهای زمان‌دار، به وعده شفاهی یا تصویر تبلیغاتی بسنده نکن.",
+    "sources": [
+      {
+        "source_id": "ftc-online-shopping",
+        "title": "Online Shopping – FTC Consumer Advice",
+        "url": "https://consumer.ftc.gov/articles/online-shopping"
+      }
+    ],
+    "claims": [
+      {
+        "text": "ثبت وعده ارسال و سوابق سفارش به پیگیری مشکل کمک می‌کند",
+        "source_ids": [
+          "ftc-online-shopping"
+        ]
+      },
+      {
+        "text": "اطلاعات سفارش و مکاتبات فروشنده را نگه دار",
+        "source_ids": [
+          "ftc-online-shopping"
+        ]
+      }
+    ],
+    "reviewed_at": "2026-11-12T18:00:00Z",
+    "review_due_at": "2027-02-10T18:00:00Z"
+  },
+  {
+    "editorial_id": "digital-license-limits",
+    "topic": "digital-products",
+    "priority": "normal",
+    "title": "در خرید نرم‌افزار و محتوای دیجیتال، حق استفاده را بررسی کن",
+    "body": "پیش از خرید نسخه دیجیتال، مشخص کن مجوز برای چند دستگاه است، روی چه سیستم‌عاملی کار می‌کند، محدودیت منطقه‌ای یا زمانی دارد یا نه و انتقال آن به حساب دیگر ممکن است یا خیر. «دریافت فوری» به‌تنهایی نشان نمی‌دهد که مجوز با نیاز تو سازگار است.",
+    "sources": [
+      {
+        "source_id": "ftc-online-shopping",
+        "title": "Online Shopping – FTC Consumer Advice",
+        "url": "https://consumer.ftc.gov/articles/online-shopping"
+      },
+      {
+        "source_id": "ftc-marketplace",
+        "title": "Buying From an Online Marketplace – FTC Consumer Advice",
+        "url": "https://consumer.ftc.gov/articles/buying-online-marketplace"
+      }
+    ],
+    "claims": [
+      {
+        "text": "شرح کالا و شرایط معامله را پیش از پرداخت بررسی کن",
+        "source_ids": [
+          "ftc-online-shopping"
+        ]
+      },
+      {
+        "text": "نقش فروشنده و پلتفرم در بازارگاه را از هم تفکیک کن",
+        "source_ids": [
+          "ftc-marketplace"
+        ]
+      }
+    ],
+    "reviewed_at": "2026-11-12T18:00:00Z",
+    "review_due_at": "2027-02-10T18:00:00Z"
+  },
+  {
+    "editorial_id": "check-consumables-availability",
+    "topic": "lifetime-cost",
+    "priority": "normal",
+    "title": "هزینه قطعات مصرفی را پیش از خرید دستگاه حساب کن",
+    "body": "برای پرینتر، تصفیه‌هوا، ابزار و بعضی لوازم خانه، قیمت اولیه تنها بخشی از هزینه است. فیلتر، کارتریج، تیغه، باتری یا قطعات مصرفی را شناسایی کن و ببین جایگزین سازگار و قابل تهیه وجود دارد یا نه. دستگاه ارزان با قطعات کمیاب می‌تواند در ادامه انتخاب پرهزینه‌ای باشد.",
+    "sources": [
+      {
+        "source_id": "ftc-online-shopping",
+        "title": "Online Shopping – FTC Consumer Advice",
+        "url": "https://consumer.ftc.gov/articles/online-shopping"
+      }
+    ],
+    "claims": [
+      {
+        "text": "هزینه‌های جانبی و نیازهای استفاده را در تصمیم خرید در نظر بگیر",
+        "source_ids": [
+          "ftc-online-shopping"
+        ]
+      }
+    ],
+    "reviewed_at": "2026-11-12T18:00:00Z",
+    "review_due_at": "2027-02-10T18:00:00Z"
+  },
+  {
+    "editorial_id": "verify-authentic-model",
+    "topic": "product-authenticity",
+    "priority": "normal",
+    "title": "برای تشخیص اصالت، مدل و شناسه کالا را با مرجع سازنده تطبیق بده",
+    "body": "نام برند یا تصویر لوگو به‌تنهایی اصالت را ثابت نمی‌کند. مدل دقیق، شناسه محصول، مشخصات بسته‌بندی و شرایط ضمانت را با اطلاعات منتشرشده از سوی سازنده مقایسه کن. اگر شماره مدل در چند بخش صفحه یا بسته‌بندی متفاوت است، قبل از پرداخت توضیح مکتوب بخواه.",
+    "sources": [
+      {
+        "source_id": "ftc-marketplace",
+        "title": "Buying From an Online Marketplace – FTC Consumer Advice",
+        "url": "https://consumer.ftc.gov/articles/buying-online-marketplace"
+      },
+      {
+        "source_id": "ftc-online-shopping",
+        "title": "Online Shopping – FTC Consumer Advice",
+        "url": "https://consumer.ftc.gov/articles/online-shopping"
+      }
+    ],
+    "claims": [
+      {
+        "text": "اطلاعات فروشنده و جزئیات معامله را از منابع مختلف بررسی کن",
+        "source_ids": [
+          "ftc-marketplace"
+        ]
+      },
+      {
+        "text": "توضیحات و مشخصات کالا را پیش از پرداخت بخوان",
+        "source_ids": [
+          "ftc-online-shopping"
+        ]
+      }
+    ],
+    "reviewed_at": "2026-11-12T18:00:00Z",
+    "review_due_at": "2027-02-10T18:00:00Z"
+  },
+  {
+    "editorial_id": "installation-requirements",
+    "topic": "installation-planning",
+    "priority": "normal",
+    "title": "قبل از خرید وسیله، شرایط نصب و راه‌اندازی را بررسی کن",
+    "body": "برای تجهیزات خانه و دستگاه‌های بزرگ، محل نصب، فضای تهویه، اتصال آب یا برق، نیاز به نصاب و هزینه راه‌اندازی را از قبل بررسی کن. ابعاد خود کالا کافی نیست؛ مسیر حمل، فضای بازشدن درها و دسترسی به پریز یا اتصالات هم اهمیت دارد.",
+    "sources": [
+      {
+        "source_id": "ftc-online-shopping",
+        "title": "Online Shopping – FTC Consumer Advice",
+        "url": "https://consumer.ftc.gov/articles/online-shopping"
+      }
+    ],
+    "claims": [
+      {
+        "text": "جزئیات محصول و هزینه‌های جانبی را پیش از نهایی‌کردن خرید بررسی کن",
+        "source_ids": [
+          "ftc-online-shopping"
+        ]
+      }
+    ],
+    "reviewed_at": "2026-11-12T18:00:00Z",
+    "review_due_at": "2027-02-10T18:00:00Z"
+  },
+  {
+    "editorial_id": "bundle-value-check",
+    "topic": "product-comparison",
+    "priority": "normal",
+    "title": "در خرید بسته‌های چندتایی، اقلام داخل بسته را جزءبه‌جزء مقایسه کن",
+    "body": "دو بسته با عنوان مشابه ممکن است از نظر تعداد، مدل، ظرفیت یا لوازم همراه تفاوت داشته باشند. تعداد واقعی اقلام، نسخه هر قطعه و مواردی که جداگانه فروخته می‌شوند را بخوان. برای مقایسه، هزینه هر واحد قابل استفاده را حساب کن؛ نه فقط قیمت کل بسته را.",
+    "sources": [
+      {
+        "source_id": "ftc-online-shopping",
+        "title": "Online Shopping – FTC Consumer Advice",
+        "url": "https://consumer.ftc.gov/articles/online-shopping"
+      }
+    ],
+    "claims": [
+      {
+        "text": "شرح کالا و اقلام همراه را پیش از خرید بررسی کن",
+        "source_ids": [
+          "ftc-online-shopping"
+        ]
+      },
+      {
+        "text": "هزینه کل و اجزای معامله را برای مقایسه در نظر بگیر",
+        "source_ids": [
+          "ftc-online-shopping"
+        ]
+      }
+    ],
+    "reviewed_at": "2026-11-12T18:00:00Z",
+    "review_due_at": "2027-02-10T18:00:00Z"
   }
 ]
