@@ -11,12 +11,16 @@ from editorial_publisher import (
     _finalize_if_terminal,
     _handle_channel_destination,
     _record_failure,
+    _record_success,
     _format_message,
     queue_editorial_if_due,
 )
 from editorial_video import render_editorial_poster, render_editorial_video
 import affilio_radar as radar
-from publisher import editorial_fifo_lock_entry
+from publisher import (
+    editorial_fifo_lock_entry,
+    _record_product_channel_publication_for_editorial,
+)
 from platform_registry import PLATFORM_NAMES
 
 NOW = datetime(2026, 11, 12, 18, 0, tzinfo=timezone.utc)
@@ -45,14 +49,59 @@ class EditorialPublisherTests(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=True):
             self.assertIsNone(editorial_fifo_lock_entry(state))
 
-    def test_editorial_fifo_lock_activates_only_with_explicit_flag(self):
+    def test_editorial_fifo_lock_activates_only_while_core_channel_targets_are_pending(self):
         state = {
             "editorial_delivery_queue": {
-                "editorial:test": {"content_id": "editorial:test", "sequence_number": 4, "status": "partial"}
+                "editorial:test": {
+                    "content_id": "editorial:test",
+                    "sequence_number": 4,
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                        "youtube": {"status": "pending"},
+                    },
+                }
             }
         }
         with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
             self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
+
+    def test_editorial_video_backlog_does_not_lock_product_channel_publisher(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:test": {
+                    "content_id": "editorial:test",
+                    "sequence_number": 4,
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "skipped_limit"},
+                        "youtube": {"status": "pending"},
+                        "aparat": {"status": "retry"},
+                        "filo": {"status": "pending"},
+                    },
+                }
+            }
+        }
+        with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
+            self.assertIsNone(editorial_fifo_lock_entry(state))
+
+    def test_product_publication_counter_counts_once_per_confirmed_delivery(self):
+        state = {"product_channel_posts_since_editorial": 3}
+        entry = {"content_id": "dkp-counter-test"}
+        self.assertTrue(_record_product_channel_publication_for_editorial(
+            state, entry, new_public_delivery=True
+        ))
+        self.assertEqual(state["product_channel_posts_since_editorial"], 4)
+        self.assertTrue(entry["counted_for_editorial_cadence"])
+        self.assertFalse(_record_product_channel_publication_for_editorial(
+            state, entry, new_public_delivery=True
+        ))
+        self.assertEqual(state["product_channel_posts_since_editorial"], 4)
+        self.assertFalse(_record_product_channel_publication_for_editorial(
+            state, {}, new_public_delivery=False
+        ))
 
     def test_editorial_gets_shared_monotonic_sequence(self):
         state = {"publication_sequence_counter": 12}
@@ -62,8 +111,37 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertEqual(entry["payload"]["content_id"], "editorial:test-guide")
         self.assertEqual(state["publication_sequence_counter"], 13)
 
+    def test_editorial_waits_until_four_confirmed_product_posts(self):
+        state = {
+            "product_channel_posts_since_editorial": 3,
+            "last_channel_published_at": (NOW - timedelta(hours=2)).isoformat(),
+        }
+        self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+        self.assertFalse(state.get("editorial_delivery_queue"))
+
+    def test_editorial_queues_after_four_products_when_channel_slot_is_free(self):
+        state = {
+            "product_channel_posts_since_editorial": 4,
+            "last_channel_published_at": (NOW - timedelta(minutes=30)).isoformat(),
+        }
+        entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry["content_type"], "editorial")
+        self.assertEqual(entry["payload"]["editorial_id"], "test-guide")
+
+    def test_editorial_respects_minimum_channel_spacing(self):
+        state = {
+            "product_channel_posts_since_editorial": 4,
+            "last_channel_published_at": (NOW - timedelta(minutes=26)).isoformat(),
+        }
+        self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+        self.assertFalse(state.get("editorial_delivery_queue"))
+
     def test_editorial_does_not_preempt_recent_channel_publication(self):
-        state = {"last_channel_published_at": (NOW - timedelta(minutes=20)).isoformat()}
+        state = {
+            "product_channel_posts_since_editorial": 4,
+            "last_channel_published_at": (NOW - timedelta(minutes=20)).isoformat(),
+        }
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
         self.assertFalse(state.get("editorial_delivery_queue"))
 
@@ -78,6 +156,21 @@ class EditorialPublisherTests(unittest.TestCase):
             "dkp-1": {"youtube_upload_status": "retry", "aparat_upload_status": "uploaded", "filo_upload_status": "uploaded"}
         }}
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+
+    def test_confirmed_editorial_channel_delivery_resets_product_counter(self):
+        item = editorial_item()
+        item.update({"content_id": "editorial:test-guide", "sequence_number": 5})
+        state = {"product_channel_posts_since_editorial": 4}
+        entry = {
+            "content_id": "editorial:test-guide",
+            "sequence_number": 5,
+            "payload": item,
+            "platforms": {"telegram": {"status": "sent"}},
+        }
+        with patch("editorial_publisher._save"):
+            _record_success(state, entry, "telegram", {"message_id": "12345"}, NOW)
+        self.assertEqual(state["product_channel_posts_since_editorial"], 0)
+        self.assertEqual(state["last_editorial_channel_published_at"], NOW.isoformat())
 
     def test_editorial_message_contains_sources(self):
         message = _format_message(editorial_item())
