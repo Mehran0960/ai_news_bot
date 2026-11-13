@@ -1916,3 +1916,19 @@
 **ریسک/بازگشت:** گیت جدید تعداد کاندیدهای واجد شرایط را کاهش می‌دهد؛ این رفتار عمدی است و جای آن با تحریریهٔ منبع‌دار یا فاصلهٔ خالی پر می‌شود، نه تخفیف ضعیف. taxonomy cache فقط تا ۹۶ ساعت مجاز است و snapshot سالم قبلی را به‌عنوان چرخهٔ جدید جا نمی‌زند. در صورت اثر بیش‌ازحد، threshold با backtest روی خرید/کمیسیون واقعی تنظیم شود؛ درصد تخفیف به‌تنهایی پایین آورده نشود.
 
 **وضعیت:** پیاده‌سازی و تست‌ها روی شاخه؛ CI و تأیید آمار واقعی پس از ادغام در انتظار.
+
+## ۲۰۲۶-۱۱-۱۳ — مهاجرت آزمایشی اسکن دسته‌ها به Search API V2
+
+**هدف:** رفع ۴۰۴ سراسری در صفحه‌بندی دسته‌های کاتالوگ که باعث شده بود batchهای ۴۸۰صفحه‌ای با صفر محصول پایان یابند.
+
+**تغییر/اقدام:** مسیر قبلی V1 با پارامتر `categories[]` برای هر ۴۸۰ صفحهٔ بررسی‌شده ۴۰۴ می‌داد. crawler اکنون برای آزمایش به `/v2/category/{category_id}/` با `page` و `sort=5` منتقل شده است؛ این route و مقدار sort در پیاده‌سازی جاری یک کلاینت DigiKala MCP نیز به‌کار رفته است. parser ساختار V2 شامل `data.widgets`، `vertical_product_listing` و widgetهای `product` را می‌خواند؛ فیلدهای `default_variant.price` و `rating` و `url.uri` پشتیبانی شده و parser قدیمی V1 نیز حفظ شده است. در CI مربوط به PR یک probe فقط‌خواندنی برای مقایسهٔ endpointهای V1/V2 و شکل پاسخ اضافه شد.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/catalog_sweep.py`، `affilio_radar/parallel_catalog_sweep.py`، `affilio_radar/test_catalog_sweep.py`، `affilio_radar/test_parallel_catalog_sweep.py`، `.github/workflows/offerchin-digikala-catalog-sweep.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** تست‌های محلی برای مسیر V2، sort=5، parse کردن widgetهای محصول و pagination اضافه شده‌اند. probe زندهٔ runner روی PR در انتظار است؛ تا تأیید پاسخ ۲۰۰ و شمارش محصولات، احیای اسکن جامع اعلام نمی‌شود.
+
+**شواهد/شناسه:** اجرای قبلی main run `43421001305`: ۴۸۰/۴۸۰ صفحه terminal 404، صفر محصول، ۴۹۱۹ دسته و ۴۶۷۳ برگ؛ branch `fix/offerchin-catalog-v2-category-endpoint-20261113`. مرجع فنی مسیر V2: کد public repository `rezashahnazar/digikala-mcp-server` (Search API V2 category endpoint).
+
+**ریسک/بازگشت:** پاسخ V2 ممکن است به keyword، شناسهٔ دستهٔ فعال یا محدودیت‌های دیگر وابسته باشد؛ probe بدون فرض موفقیت این موارد را جداگانه می‌سنجد. در صورت عدم تأیید، workflow تولیدی تغییر نمی‌کند؛ بازگشت با revert همین PR ممکن است و هیچ cursor/state در این branch به main منتقل نمی‌شود.
+
+**وضعیت:** پیاده‌سازی و تست‌های قراردادی روی شاخه؛ probe زنده، CI و merge در انتظار.
