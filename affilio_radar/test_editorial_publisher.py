@@ -117,6 +117,24 @@ class EditorialPublisherTests(unittest.TestCase):
         with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
             self.assertIsNone(editorial_fifo_lock_entry(state))
 
+    def test_ambiguous_optional_photo_destination_keeps_product_fifo_locked(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:test": {
+                    "sequence_number": 4,
+                    "status": "manual_review",
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "sent"},
+                        "rubika": {"status": "manual_review"},
+                        "eitaa": {"status": "not_connected"},
+                    },
+                }
+            }
+        }
+        with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
+            self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
+
     def test_ambiguous_editorial_channel_manual_review_keeps_product_fifo_locked(self):
         state = {
             "editorial_delivery_queue": {
