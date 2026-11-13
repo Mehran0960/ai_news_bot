@@ -200,6 +200,10 @@ def queue_editorial_if_due(
             f"deferred_products={mix_plan.get('product_capacity_deficit')}"
         )
         return None
+    scan_deadline = _utc(mix_plan.get("scan_deadline_at")) if isinstance(mix_plan, dict) else None
+    if scan_deadline and current >= scan_deadline - timedelta(minutes=MINIMUM_GAP_MINUTES):
+        print("EDITORIAL_FALLBACK_WAIT reason=reserved_pre_scan_safety_window")
+        return None
 
     # Old, never-delivered product selections are retired after the same short
     # reservation window used by the product delivery contract.
@@ -838,7 +842,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         item_id = None
         sequence = None
     elif remaining:
-        decision = "wait_for_55_minute_fallback_interval"
+        decision = "wait_for_27_minute_fallback_interval"
         item_id = None
         sequence = None
     else:
