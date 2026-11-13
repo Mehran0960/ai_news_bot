@@ -173,12 +173,26 @@ async function snapshotPage(page, label) {
       .trim().replace(/\s+/g, " ").slice(0, 100);
     const headings = [...document.querySelectorAll("h1,h2,h3,[role=heading]")]
       .map(text).filter(Boolean).slice(0, 30);
-    const controls = [...document.querySelectorAll("a[href],button,[role=menuitem],[role=tab]")]
-      .map(el => ({ label: text(el), href: el.tagName === "A" ? el.getAttribute("href") : null, role: el.getAttribute("role") || "" }))
-      .filter(x => x.label).slice(0, 150);
+    const controls = [...document.querySelectorAll("a[href],button,[role=menuitem],[role=tab],[role=button],input[type=button],input[type=submit]")]
+      .map(el => ({
+        label: text(el),
+        href: el.tagName === "A" ? el.getAttribute("href") : null,
+        role: el.getAttribute("role") || "",
+        type: el.getAttribute("type") || "",
+        ariaSelected: el.getAttribute("aria-selected") || "",
+        ariaControls: el.getAttribute("aria-controls") || "",
+        dataTestId: el.getAttribute("data-testid") || ""
+      }))
+      .filter(x => x.label).slice(0, 200);
+    const tables = [...document.querySelectorAll("table,[role=table],[role=grid]")].slice(0, 30).map(table => ({
+      role: table.getAttribute("role") || "",
+      headers: [...table.querySelectorAll("thead th,[role=columnheader]")].map(text).filter(Boolean).slice(0, 30),
+      row_count: table.querySelectorAll("tbody tr,[role=row]").length,
+      caption: text(table.querySelector("caption"))
+    }));
     const dateLabels = controls.map(x => x.label)
       .filter(x => /\d{1,2}\s*(مهر|آبان|آذر|دی|بهمن|اسفند|فروردین|اردیبهشت|خرداد|تیر|مرداد|شهریور)/.test(x));
-    return { title: document.title || "", pathname: location.pathname, headings, controls, dateLabels };
+    return { title: document.title || "", pathname: location.pathname, headings, controls, tables, dateLabels };
   });
   const reportLinks = [];
   for (const item of info.controls) {
@@ -198,8 +212,7 @@ async function snapshotPage(page, label) {
     headings: info.headings,
     date_range_labels: info.dateLabels,
     controls: info.controls,
-    tables: info.tables,
-    interactive: info.interactive
+    tables: info.tables || []
   });
   output.report_links.push(...reportLinks);
 }
@@ -270,8 +283,9 @@ try {
           for (const label of tabs) {
             const tab = page.getByText(label, { exact: true }).last();
             if (await tab.count().catch(() => 0) === 0) continue;
-            await tab.click({ timeout: 4000 }).catch(() => {});
-            await page.waitForTimeout(1800);
+            await tab.click({ timeout: 6000 }).catch(() => {});
+            await page.waitForLoadState("domcontentloaded", { timeout: 6000 }).catch(() => {});
+            await page.waitForTimeout(2500);
             const suffix = label === "فاکتورها" ? "invoices" :
               label === "جزئیات درآمد" ? "details" : "overview";
             await snapshotPage(page, (target.url.includes("/performance") ? "performance_tab_" : "income_tab_") + suffix);
@@ -344,13 +358,18 @@ console.log("AFFILIO_PAGE_SUMMARY=" + JSON.stringify(output.pages.map(page => ({
   label: page.label,
   path: page.url?.path,
   title: page.title,
-  headings: page.headings,
-  date_range_labels: page.date_range_labels,
-  // Keep dynamic product titles out of Actions logs; the encrypted artifact retains detail.
+  // Keep dynamic product names and all cell values inside the encrypted artifact.
   headings: (page.headings || []).filter(value =>
-    /^(اعلان‌ها|پیشخوان|کل درآمد \(تومانءء\)|تعداد سبد درآمد|تعداد کلیک‌ها|عملکرد لینک‌ها|درآمد من|درآمد نهایی شده \(تومان\)|درآمد در حال بررسی \(تومان\)|پاداش \(تومان\)|پر درآمد‌های شما|آمار کلی|جزئیات درآمد)$/.test(value)
+    /^(اعلان‌ها|پیشخوان|کل درآمد \(تومانءء\)|تعداد سبد درآمد|تعداد کلیک‌ها|عملکرد لینک‌ها|درآمد من|درآمد نهایی شده \(تومان\)|درآمد در حال بررسی \(تومان\)|پاداش \(تومان\)|پر درآمد‌های شما|آمار کلی|جزئیات درآمد|فاکتورها)$/.test(value)
   ),
-  report_controls: (page.controls || []).filter(item => REPORT_WORDS.test(item.label))
+  date_range_labels: page.date_range_labels,
+  report_controls: (page.controls || []).filter(item => REPORT_WORDS.test(item.label)).map(item => ({
+    label: item.label, href: item.href, role: item.role, type: item.type,
+    ariaSelected: item.ariaSelected, ariaControls: item.ariaControls, dataTestId: item.dataTestId
+  })),
+  tables: (page.tables || []).map(table => ({
+    role: table.role, headers: table.headers, row_count: table.row_count, caption: table.caption
+  }))
 }))));
 console.log("AFFILIO_LINK_ROWS_TOTAL=" + (output.report_data.link_rows_total ?? "unknown"));
 console.log("AFFILIO_LINK_ROWS_EXTRACTED=" + output.report_data.link_rows.length);
