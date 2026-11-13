@@ -11168,7 +11168,7 @@ def run(publish=False, selection_only=False):
         )
         interval_seconds = max(60, int(MIN_POST_INTERVAL_HOURS * 3600))
         interval_minutes = max(1, int(round(interval_seconds / 60)))
-        queue_limit = 100
+        queue_limit = 250
 
         replaced = refresh_unpublished_selections(
             state,
