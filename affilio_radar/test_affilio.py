@@ -3280,10 +3280,10 @@ class AffilioRadarTests(unittest.TestCase):
             "title": "محصول پرنظر اما بدون تقاضای تازه",
             "availability": "in_stock",
             "availability_source": "digikala_api",
-            "current_price": 5_666_667,
-            "original_price": 6_666_667,
+            "current_price": 850_000,
+            "original_price": 1_000_000,
             "discount_percent": 15,
-            "savings_toman": 1_000_000,
+            "savings_toman": 150_000,
             "review_count": 250_000,
             "rating": 4.9,
             "image_url": "https://example.com/product.webp",
@@ -3299,6 +3299,10 @@ class AffilioRadarTests(unittest.TestCase):
             "catalog_sort_mode": "best_selling",
             "catalog_best_selling_rank": 12,
             "catalog_rank_observed_at": now.isoformat(),
+            "current_price": 5_666_667,
+            "original_price": 6_666_667,
+            "discount_percent": 15,
+            "savings_toman": 1_000_000,
         }
         _with_verified_market_value(recent_ranked, now)
         weak_discount = {
