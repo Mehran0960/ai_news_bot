@@ -13,6 +13,7 @@ from editorial_publisher import (
     _record_failure,
     _format_message,
     queue_editorial_if_due,
+    _pending_product_video_exists,
 )
 from editorial_video import render_editorial_poster, render_editorial_video
 import affilio_radar as radar
@@ -94,11 +95,24 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertEqual(entry["content_type"], "editorial")
         self.assertEqual(entry["scheduled_at"], NOW.isoformat())
 
-    def test_editorial_waits_for_older_product_video_fifo(self):
+    def test_editorial_channel_fills_gap_but_video_waits_for_older_product_video(self):
         state = {"published": {
-            "dkp-1": {"youtube_upload_status": "retry", "aparat_upload_status": "uploaded", "filo_upload_status": "uploaded"}
+            "dkp-1": {
+                "sequence_number": int(NOW.timestamp()) - 600,
+                "youtube_upload_status": "retry",
+                "aparat_upload_status": "uploaded",
+                "filo_upload_status": "uploaded",
+            }
         }}
-        self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+        entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+        self.assertIsNotNone(entry)
+        self.assertGreater(entry["sequence_number"], state["published"]["dkp-1"]["sequence_number"])
+        self.assertTrue(
+            _pending_product_video_exists(
+                state,
+                before_sequence=entry["sequence_number"],
+            )
+        )
 
     def test_editorial_message_contains_sources(self):
         message = _format_message(editorial_item())
