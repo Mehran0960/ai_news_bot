@@ -11149,10 +11149,13 @@ def run(publish=False, selection_only=False):
 
         selection_now = datetime.now(timezone.utc)
         scan_status = publication_mix.load_catalog_status()
-        scan_deadline, scan_deadline_source = publication_mix.estimate_next_clean_scan_deadline(
-            scan_status, now=selection_now
-        )
         plan_cycle_id = publication_mix.catalog_cycle_id(scan_status)
+        scan_deadline, scan_deadline_source = publication_mix.estimate_next_clean_scan_deadline(
+            scan_status,
+            now=selection_now,
+            previous_plan=state.get("publication_mix_plan"),
+            cycle_id=plan_cycle_id,
+        )
         interval_seconds = max(60, int(MIN_POST_INTERVAL_HOURS * 3600))
         interval_minutes = max(1, int(round(interval_seconds / 60)))
         queue_limit = 100
