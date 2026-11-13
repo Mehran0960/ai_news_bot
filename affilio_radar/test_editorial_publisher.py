@@ -10,6 +10,7 @@ from PIL import Image
 from editorial_publisher import (
     _finalize_if_terminal,
     _handle_channel_destination,
+    _handle_video_destination,
     _record_failure,
     _record_success,
     _pending_product_video_exists,
@@ -77,7 +78,7 @@ class EditorialPublisherTests(unittest.TestCase):
                     "platforms": {
                         "youtube": {"status": "sent"},
                         "aparat": {"status": "pending"},
-                        "filo": {"status": "not_connected"},
+                        "filo": {"status": "manual_review"},
                     },
                 }
             }
@@ -115,6 +116,22 @@ class EditorialPublisherTests(unittest.TestCase):
         }
         with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
             self.assertIsNone(editorial_fifo_lock_entry(state))
+
+    def test_ambiguous_editorial_channel_manual_review_keeps_product_fifo_locked(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:test": {
+                    "sequence_number": 4,
+                    "status": "manual_review",
+                    "platforms": {
+                        "telegram": {"status": "manual_review"},
+                        "bale": {"status": "sent"},
+                    },
+                }
+            }
+        }
+        with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
+            self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
 
     def test_product_publication_counter_counts_once_per_confirmed_delivery(self):
         state = {"product_channel_posts_since_editorial": 3}
@@ -304,6 +321,29 @@ class EditorialPublisherTests(unittest.TestCase):
         entry = {"platforms": {"rubika": state}}
         _record_failure(entry, "rubika", RuntimeError("Rubika sendFile: network failure"), NOW)
         self.assertEqual(state["status"], "manual_review")
+
+    def test_ambiguous_editorial_destination_stays_in_queue_until_manual_resolution(self):
+        entry = {
+            "content_id": "editorial:test-guide",
+            "sequence_number": 2,
+            "platforms": {name: {"status": "not_connected"} for name in PLATFORM_NAMES},
+        }
+        entry["platforms"]["youtube"]["status"] = "manual_review"
+        state = {"editorial_delivery_queue": {entry["content_id"]: entry}}
+        self.assertFalse(_finalize_if_terminal(state, entry, NOW))
+        self.assertIn(entry["content_id"], state["editorial_delivery_queue"])
+        self.assertEqual(entry["status"], "manual_review")
+
+    def test_successful_video_receipt_is_not_overwritten_when_credentials_are_missing(self):
+        entry = {
+            "content_id": "editorial:test-guide",
+            "platforms": {"youtube": {"status": "sent", "message_id": "video-123"}},
+        }
+        with patch("editorial_publisher._destination_ready", return_value=(False, "youtube_credentials_missing")), \
+             patch("editorial_publisher._save"):
+            _handle_video_destination({}, entry, "youtube", Path("unused.mp4"), NOW)
+        self.assertEqual(entry["platforms"]["youtube"]["status"], "sent")
+        self.assertEqual(entry["platforms"]["youtube"]["message_id"], "video-123")
 
     def test_queue_finalizes_only_when_every_destination_is_terminal(self):
         entry = {
