@@ -9,6 +9,8 @@ on:
       - "scripts/audit_affilio_dashboard.mjs"
       - "scripts/encrypt_affilio_dashboard_report.mjs"
   workflow_dispatch:
+  schedule:
+    - cron: "30 6 * * *" # 09:30 Asia/Tehran daily; read-only reporting only.
 
 permissions:
   contents: read
@@ -56,4 +58,4 @@ jobs:
           name: affilio-dashboard-diagnostic-encrypted
           path: affilio-dashboard-diagnostic.enc.json
           if-no-files-found: ignore
-          retention-days: 1
+          retention-days: 7
