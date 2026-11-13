@@ -71,7 +71,7 @@ class EditorialPublisherTests(unittest.TestCase):
         state = {"content_delivery_queue": {
             "dkp-1": {
                 "status": "queued",
-                "selected_at": (NOW - timedelta(hours=3)).isoformat(),
+                "selected_at": (NOW - timedelta(minutes=3)).isoformat(),
                 "scheduled_at": (NOW - timedelta(minutes=1)).isoformat(),
             }
         }}
