@@ -11,8 +11,10 @@ from datetime import datetime, timezone
 from typing import Callable
 
 
-POLICY_VERSION = "offerchin_four_factor_harmonic_v2_discount_gate"
-MIN_PRICE_COHORT_SIZE = 8
+POLICY_VERSION = "offerchin_four_factor_v3_final_price_affordability"
+# Conservative proxy: 1404 average rural household income was about 297.1m Toman/year
+# (~24.76m/month), lower than the urban average. This is not a median or disposable income.
+AFFORDABILITY_REFERENCE_MONTHLY_HOUSEHOLD_INCOME_TOMAN = 25_000_000
 # A weak discount cannot be compensated for by demand, affordability or generality.
 MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE = 40.0
 
@@ -100,56 +102,40 @@ def generality_score(use_case_group: object) -> float:
     return float(GENERALITY_SCORES.get(group, GENERALITY_SCORES["unknown"]))
 
 
-def affordability_absolute_score(price_toman: object) -> float:
-    """A cash-ticket-size proxy; never represents the buyer's actual income."""
+def affordability_absolute_score(
+    price_toman: object,
+    reference_monthly_income_toman: object = AFFORDABILITY_REFERENCE_MONTHLY_HOUSEHOLD_INCOME_TOMAN,
+) -> float:
+    """Score the full cash price against a conservative monthly household-income proxy."""
     price = _number(price_toman)
-    if price <= 0:
+    reference = _number(reference_monthly_income_toman)
+    if price <= 0 or reference <= 0:
         return 0.0
-    # Anchors: 100k=100, 1m=85, 10m=70, 100m=55, 1bn=40 toman.
-    return _clamp(100.0 - 15.0 * math.log10(max(price, 100_000.0) / 100_000.0))
 
-
-def _relative_price_scores(records: list[dict], groups: list[str]) -> dict[int, float]:
-    buckets: dict[str, list[tuple[int, float]]] = {}
-    for index, row in enumerate(records):
-        price = _number(row.get("current_price"))
-        if price > 0:
-            buckets.setdefault(groups[index], []).append((index, price))
-    result: dict[int, float] = {}
-    for items in buckets.values():
-        if len(items) < MIN_PRICE_COHORT_SIZE:
-            continue
-        ordered = sorted(items, key=lambda pair: pair[1])
-        # Mid-rank handles tied prices without arbitrary ordering.
-        cursor = 0
-        while cursor < len(ordered):
-            end = cursor + 1
-            while end < len(ordered) and ordered[end][1] == ordered[cursor][1]:
-                end += 1
-            average_rank = (cursor + end - 1) / 2
-            score = 100.0 * (1.0 - average_rank / max(1, len(ordered) - 1))
-            for position in range(cursor, end):
-                result[ordered[position][0]] = _clamp(score)
-            cursor = end
-    return result
+    share = price / reference
+    # The score falls as the final cash ticket consumes a larger share of monthly
+    # household income. This is deliberately absolute: no category-cohort ranking
+    # and no installment down-payment substitution.
+    bands = (
+        (0.01, 100.0),
+        (0.025, 90.0),
+        (0.05, 80.0),
+        (0.10, 65.0),
+        (0.20, 45.0),
+        (0.35, 25.0),
+    )
+    for maximum_share, score in bands:
+        if share <= maximum_share:
+            return score
+    return 10.0
 
 
 def _entry_price_toman(row: dict) -> tuple[float, str]:
+    """Return the full final cash price; installments never replace product affordability."""
     price = _number(row.get("current_price"))
     if price <= 0:
-        return 0.0, "missing_cash_price"
-
-    # A lower entry ticket is counted only when the record explicitly marks the
-    # terms verified and provides the initial payment. Generic installment copy
-    # or a product-level DigiPay mention is not proof of an applicable plan.
-    if row.get("installment_terms_verified") is True:
-        entry = _number(
-            row.get("installment_down_payment_toman")
-            or row.get("installment_entry_payment_toman")
-        )
-        if entry > 0 and entry <= price:
-            return entry, "verified_installment_down_payment"
-    return price, "cash_price"
+        return 0.0, "missing_final_cash_price"
+    return price, "full_final_cash_price"
 
 
 def discount_attractiveness_score(
@@ -210,27 +196,15 @@ def apply_four_factor_scores(
     """Annotate a candidate cohort in place and return it, preserving input order."""
     rows = [row for row in records if isinstance(row, dict)]
     groups = [str(use_case_group_fn(row) or "unknown") for row in rows]
-    price_groups = [
-        str((price_group_fn(row) if price_group_fn else groups[index]) or groups[index])
-        for index, row in enumerate(rows)
-    ]
-    relative_prices = _relative_price_scores(rows, price_groups)
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current_iso = current.astimezone(timezone.utc).isoformat()
 
-    cohort_sizes = {
-        group: sum(1 for index, candidate in enumerate(rows)
-                   if price_groups[index] == group and _number(candidate.get("current_price")) > 0)
-        for group in price_groups
-    }
     for index, row in enumerate(rows):
         demand = _clamp(_number(live_demand_score_fn(row)))
-        entry_price, affordability_basis = _entry_price_toman(row)
-        absolute = affordability_absolute_score(entry_price)
-        relative = relative_prices.get(index)
-        affordability = absolute if relative is None else 0.65 * absolute + 0.35 * relative
+        final_cash_price, affordability_basis = _entry_price_toman(row)
+        affordability = affordability_absolute_score(final_cash_price)
         generality = generality_score(groups[index])
         independently_verified = bool(discount_verified_fn(row))
         discount, discount_evidence = discount_attractiveness_score(row, independently_verified)
@@ -247,8 +221,9 @@ def apply_four_factor_scores(
             "weakest_factor_score": round(min(components), 2),
             "generality_group": groups[index],
             "affordability_basis": affordability_basis,
-            "price_cohort_size": cohort_sizes.get(price_groups[index], 0) if relative is not None else 0,
-            "price_cohort_key": price_groups[index],
+            "affordability_reference_monthly_income_toman": AFFORDABILITY_REFERENCE_MONTHLY_HOUSEHOLD_INCOME_TOMAN,
+            "price_cohort_size": 0,
+            "price_cohort_key": "absolute_final_cash_price",
             "discount_evidence": discount_evidence,
             "score_interpretation": "heuristic_priority_index_not_conversion_probability",
         }
