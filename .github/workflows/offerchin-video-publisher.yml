@@ -88,6 +88,32 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --filo-login-check-only
 
+      - name: Resume an older editorial video before newer product videos
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_PRIVACY_STATUS: "public"
+          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
+          AFFILIO_APARAT_UPLOAD_ENABLED: "true"
+          APARAT_VIDEO_PASS: "0"
+          APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
+          FILO_USER: ${{ secrets.FILO_USER }}
+          FILO_PASS: ${{ secrets.FILO_PASS }}
+          OFFERCHIN_EDITORIAL_PRODUCTS_PER_POST: "4"
+          OFFERCHIN_EDITORIAL_GAP_MINUTES: "55"
+          OFFERCHIN_EDITORIAL_CHANNEL_GAP_MINUTES: "27"
+          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: ${{ vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'false' }}
+          PYTHONUNBUFFERED: "1"
+        run: |
+          if [[ "${OFFERCHIN_EDITORIAL_PUBLISH_ENABLED,,}" == "true" ]]; then
+            echo "EDITORIAL_VIDEO_FIFO_RESUME_BEFORE_NEWER_PRODUCTS"
+            python affilio_radar/editorial_publisher.py --videos-only --resume-active-only --publish
+          else
+            echo "EDITORIAL_VIDEO_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED"
+            python affilio_radar/editorial_publisher.py --videos-only --resume-active-only
+          fi
+
       - name: Fan out the same FIFO to YouTube, Aparat and Filo
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
