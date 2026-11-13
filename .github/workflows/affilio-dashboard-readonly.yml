@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/affilio-dashboard-readonly.yml"
       - "scripts/audit_affilio_dashboard.mjs"
+      - "scripts/encrypt_affilio_dashboard_report.mjs"
   workflow_dispatch:
 
 permissions:
@@ -40,11 +41,19 @@ jobs:
           AFFILIO_PASS: ${{ secrets.AFFILIO_PASS }}
         run: node scripts/audit_affilio_dashboard.mjs
 
-      - name: Upload redacted diagnostic artifact
+      - name: Encrypt private dashboard report before artifact storage
         if: always() && hashFiles('affilio-dashboard-diagnostic.json') != ''
+        env:
+          AFFILIO_PASS: ${{ secrets.AFFILIO_PASS }}
+        run: |
+          node scripts/encrypt_affilio_dashboard_report.mjs
+          rm -f affilio-dashboard-diagnostic.json
+
+      - name: Upload encrypted diagnostic artifact only
+        if: always() && hashFiles('affilio-dashboard-diagnostic.enc.json') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: affilio-dashboard-diagnostic
-          path: affilio-dashboard-diagnostic.json
+          name: affilio-dashboard-diagnostic-encrypted
+          path: affilio-dashboard-diagnostic.enc.json
           if-no-files-found: ignore
-          retention-days: 3
+          retention-days: 1
