@@ -54,7 +54,8 @@ PUBLISHER_STATE_PATH = ROOT / "state.json"
 
 API_ROOT = "https://api.digikala.com"
 DICTIONARY_URL = f"{API_ROOT}/v1/dictionaries/"
-SEARCH_URL = f"{API_ROOT}/v1/search/"
+SEARCH_URL = f"{API_ROOT}/v1/search/"  # category discovery fallback only
+CATEGORY_SEARCH_URL_TEMPLATE = f"{API_ROOT}/v2/category/{{category_id}}/"
 REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
 # A previously verified taxonomy may bridge a temporary API outage, but only for four days.
@@ -62,9 +63,10 @@ CATEGORY_CACHE_MAX_FALLBACK_AGE_HOURS = 96
 CATEGORY_DISCOVERY_RETRY_MINUTES = 60
 CANDIDATE_TTL_HOURS = 72
 MIN_CANDIDATE_DISCOUNT = 1
-# DigiKala's live data.sort_options maps id=7 to پرفروش‌ترین and id=4 to پربازدیدترین.
-# This controls only upstream page order; it is not a page-depth or product eligibility limit.
-BEST_SELLING_SORT_VALUE = 7
+# Search API v2 category pages use sort=5 for Best Selling (verified against the
+# live DigiKala API integration used by the current Digikala MCP client).
+# This is only the upstream sort order; it does not cap page depth.
+BEST_SELLING_SORT_VALUE = 5
 BEST_SELLING_PAGE_SIZE = 20
 BEST_SELLING_MAX_PAGES_PER_CATEGORY = 3
 BEST_SELLING_MAX_AGE_HOURS = 24
@@ -454,15 +456,49 @@ def _listing_rating(product: dict) -> tuple[float, int]:
     return round(score, 2), reviews
 
 
-def extract_product_rows(payload: Any) -> list[dict]:
-    """Return compact listing cards, not deep product-detail records."""
+def _extract_product_nodes(payload: Any) -> list[dict]:
+    """Support both legacy V1 products and current V2 category-page widgets."""
     data = payload.get("data") if isinstance(payload, dict) else None
-    if not isinstance(data, dict) or "products" not in data:
-        raise CatalogSweepError("search_payload_missing_data_products")
-    products = data.get("products")
-    if not isinstance(products, list):
-        raise CatalogSweepError("search_payload_products_not_list")
+    if not isinstance(data, dict):
+        raise CatalogSweepError("search_payload_missing_data_object")
 
+    if "products" in data:
+        products = data.get("products")
+        if not isinstance(products, list):
+            raise CatalogSweepError("search_payload_products_not_list")
+        return [row for row in products if isinstance(row, dict)]
+
+    widgets = data.get("widgets")
+    if not isinstance(widgets, list):
+        raise CatalogSweepError("search_payload_missing_products_or_widgets")
+
+    products: list[dict] = []
+    listing_seen = False
+    for widget in widgets:
+        if not isinstance(widget, dict) or widget.get("type") != "vertical_product_listing":
+            continue
+        listing_seen = True
+        nested = widget.get("data")
+        nested_widgets = nested.get("widgets") if isinstance(nested, dict) else None
+        if not isinstance(nested_widgets, list):
+            raise CatalogSweepError("v2_vertical_product_listing_missing_widgets")
+        for product_widget in nested_widgets:
+            if not isinstance(product_widget, dict) or product_widget.get("type") != "product":
+                continue
+            product_data = product_widget.get("data")
+            if isinstance(product_data, dict):
+                # A V2 product card is marketable only when Digikala explicitly
+                # marks it as such; live product detail remains the final gate.
+                if product_data.get("status") == "marketable":
+                    products.append(product_data)
+    if not listing_seen:
+        raise CatalogSweepError("v2_category_payload_missing_vertical_product_listing")
+    return products
+
+
+def extract_product_rows(payload: Any) -> list[dict]:
+    """Return compact listing cards from both legacy V1 and current V2 responses."""
+    products = _extract_product_nodes(payload)
     rows = []
     seen = set()
     for product in products:
@@ -493,6 +529,8 @@ def extract_product_rows(payload: Any) -> list[dict]:
             title = f"محصول دیجی‌کالا {product_id}"
         current, original, discount, savings = _listing_prices(product)
         availability = _listing_availability(product)
+        if availability == "unknown" and product.get("status") == "marketable":
+            availability = "marketable_unverified_stock"
         rating, review_count = _listing_rating(product)
         rows.append({
             "product_id": product_id,
@@ -704,9 +742,11 @@ def retain_diverse_candidates(
     return ranked[:cap]
 
 def _category_page_url(category_id: str, page: int) -> tuple[str, dict]:
-    return SEARCH_URL, {
-        "categories[]": str(category_id),
-        "page": int(page),
+    """Build the live Search API V2 category route for full category pagination."""
+    return CATEGORY_SEARCH_URL_TEMPLATE.format(
+        category_id=str(category_id)
+    ), {
+        "page": max(1, int(page)),
         "sort": BEST_SELLING_SORT_VALUE,
     }
 
