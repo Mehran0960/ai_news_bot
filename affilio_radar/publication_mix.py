@@ -201,6 +201,14 @@ def spread_product_slots(
     }
 
 
+def publication_sequence_for_slot(value: Any) -> int:
+    """Encode the scheduled UTC instant as a monotonic, cross-content sequence."""
+    scheduled = parse_utc(value)
+    if scheduled is None:
+        raise ValueError("publication_slot_timestamp_required")
+    return int(scheduled.timestamp())
+
+
 def _has_channel_success(entry: dict) -> bool:
     platforms = entry.get("platforms")
     if not isinstance(platforms, dict):
@@ -306,6 +314,9 @@ def apply_product_publication_schedule(
         entry = by_id[item["product_id"]]
         entry["scheduled_at"] = item["scheduled_at"]
         entry["next_attempt_at"] = item["scheduled_at"]
+        entry["sequence_number"] = publication_sequence_for_slot(item["scheduled_at"])
+        if isinstance(entry.get("payload"), dict):
+            entry["payload"]["sequence_number"] = entry["sequence_number"]
         entry["publication_plan_cycle_id"] = str(cycle_id)
         entry["publication_plan_rank"] = item["rank"]
         entry["publication_plan_slot_index"] = item["slot_index"]
@@ -325,6 +336,9 @@ def apply_product_publication_schedule(
         scheduled = last_scheduled + timedelta(minutes=interval_minutes * offset)
         entry["scheduled_at"] = scheduled.isoformat()
         entry["next_attempt_at"] = scheduled.isoformat()
+        entry["sequence_number"] = publication_sequence_for_slot(scheduled)
+        if isinstance(entry.get("payload"), dict):
+            entry["payload"]["sequence_number"] = entry["sequence_number"]
         entry["publication_plan_cycle_id"] = str(cycle_id)
         entry["publication_plan_overflow"] = True
         entry["publication_plan_scan_deadline_at"] = scan_deadline.astimezone(timezone.utc).isoformat()
