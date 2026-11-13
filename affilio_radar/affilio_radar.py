@@ -30,12 +30,16 @@ try:
         POLICY_VERSION as OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
         apply_four_factor_scores as _apply_four_factor_scores,
         four_factor_sort_key as _four_factor_sort_key,
+        discount_publish_gate as _discount_publish_gate,
+        MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE,
     )
 except ImportError:
     from offerchin_four_factor import (
         POLICY_VERSION as OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
         apply_four_factor_scores as _apply_four_factor_scores,
         four_factor_sort_key as _four_factor_sort_key,
+        discount_publish_gate as _discount_publish_gate,
+        MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE,
     )
 try:
     from .catalog_sweep import (
@@ -5000,15 +5004,28 @@ def is_discount_publish_eligible(
     minimum_discount_percent: int | None = None,
     now: datetime | None = None,
 ) -> bool:
-    """Require verified stock/price/image, a valid product, and a genuine markdown."""
-    return bool(
+    """Require valid stock/price plus a discount score strong enough to stand on its own."""
+    if not (
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
         and is_publishable_product_title(product.get("title", ""))
         and has_meaningful_discount(product, minimum_discount_percent)
         and is_market_value_publish_eligible(product, now=now)
         and not is_fresh_verified_history_contradiction(product, now=now)
+    ):
+        return False
+
+    independently_verified = has_attractive_discount_value(product, now=now)
+    discount_ok, discount_score, discount_evidence = _discount_publish_gate(
+        product,
+        independently_verified=independently_verified,
     )
+    product["discount_attractiveness_score"] = discount_score
+    product["discount_attractiveness_evidence"] = discount_evidence
+    product["discount_attractiveness_minimum_for_publication"] = (
+        MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE
+    )
+    return discount_ok
 
 
 def _shape(text: str) -> str:
@@ -7758,6 +7775,7 @@ def build_publication_diversity_report(
             "preferred_discount_floor_percent": MIN_DISCOUNT_PERCENT,
             "discount_fallback_floors": list(DISCOUNT_FALLBACK_FLOORS),
             "minimum_savings_toman": MIN_SAVINGS_TOMAN,
+            "minimum_discount_attractiveness_score": MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE,
             "family_repeat_cooldown_hours": FAMILY_REPEAT_COOLDOWN_HOURS,
             "brand_repeat_cooldown_hours": BRAND_REPEAT_COOLDOWN_HOURS,
             "similar_product_repeat_cooldown_hours": PUBLICATION_SIMILARITY_COOLDOWN_HOURS,
