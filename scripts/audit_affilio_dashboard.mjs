@@ -24,6 +24,8 @@ const output = {
     revenue_trend: [],
     revenue_basket_trend: [],
     link_rows: [],
+    link_analytics_total: null,
+    link_analytics_total_is_capped: null,
     media_totals: [],
     top_earning_products: []
   },
@@ -93,10 +95,20 @@ function captureKnownMetrics(path, payload) {
       wallet_balance_toman: val(d, "wallet_balance_amount")
     };
   } else if (path === "/api/v1/dashboard/statistics") {
+    const normalizeTrend = rows => Array.isArray(rows) ? rows.map(x => ({
+      date: typeof x.date === "string" ? x.date : null,
+      approved_revenue_toman: val(x, "approved_revenue"),
+      pending_revenue_toman: val(x, "pending_revenue"),
+      bonus_revenue_toman: val(x, "bonus_revenue"),
+      total_revenue_toman: val(x, "total_revenue")
+    })) : [];
     output.report_data.revenue_status = {
       approved_revenue_toman: val(d.approved_revenue, "amount"),
       pending_revenue_toman: val(d.pending_revenue, "amount"),
-      bonus_revenue_toman: val(d.bonus_revenue, "amount")
+      bonus_revenue_toman: val(d.bonus_revenue, "amount"),
+      daily: normalizeTrend(d.daily_revenue),
+      weekly: normalizeTrend(d.weekly_revenue),
+      monthly: normalizeTrend(d.monthly_revenue)
     };
   } else if (path === "/api/v1/dashboard/clicks-trend" && Array.isArray(d.clicks_trend)) {
     output.report_data.clicks_trend = d.clicks_trend.map(x => ({
@@ -116,15 +128,27 @@ function captureKnownMetrics(path, payload) {
       total_income_baskets: val(x, "total_incomes")
     }));
   } else if (path === "/api/v1/links/analytics" && Array.isArray(d.items)) {
+    output.report_data.link_analytics_total = val(d, "total");
+    output.report_data.link_analytics_total_is_capped = d.total_is_capped === true;
     output.report_data.link_rows = d.items.slice(0, 200).map(x => ({
+      link_uid: typeof x.link_uid === "string" ? x.link_uid : null,
+      media_uid: typeof x.media_uid === "string" ? x.media_uid : null,
       media_name: typeof x.media_name === "string" ? x.media_name : null,
+      publisher_name: typeof x.publisher_name === "string" ? x.publisher_name : null,
       link_title: typeof x.link_title === "string" ? x.link_title : null,
+      title_is_fallback: x.title_is_fallback === true,
       advertiser_name: typeof x.advertiser_name === "string" ? x.advertiser_name : null,
+      link_type: typeof x.link_type === "string" ? x.link_type : null,
+      link_kind: typeof x.link_kind === "string" ? x.link_kind : null,
+      utm_campaign: typeof x.utm_campaign === "string" ? x.utm_campaign : null,
+      utm_content: typeof x.utm_content === "string" ? x.utm_content : null,
       click_count: val(x, "click_count"),
       income_items_count: val(x, "income_items_count"),
       total_income_toman: val(x, "total_income"),
       conversion_rate: val(x, "conversion_rate"),
-      first_click_date: typeof x.first_click_date === "string" ? x.first_click_date : null
+      revenue_share_percentage: val(x, "revenue_share"),
+      first_click_date: typeof x.first_click_date === "string" ? x.first_click_date : null,
+      created_at: typeof x.created_at === "string" ? x.created_at : null
     }));
   } else if (path === "/api/v1/dashboard/top-earning-products" && Array.isArray(d.products)) {
     output.report_data.top_earning_products = d.products.slice(0, 30).map(x => ({
@@ -132,6 +156,7 @@ function captureKnownMetrics(path, payload) {
       product_name: typeof x.product_name === "string" ? x.product_name : null,
       advertiser_name: typeof x.advertiser_name === "string" ? x.advertiser_name : null,
       media_name: typeof x.media_name === "string" ? x.media_name : null,
+      landing_url: typeof x.landing_url === "string" ? x.landing_url : null,
       total_earnings_toman: val(x, "total_earnings"),
       revenue_share_percentage: val(x, "revenue_share_percentage")
     }));
@@ -310,15 +335,35 @@ try {
 
 const mediaTotals = new Map();
 for (const row of output.report_data.link_rows) {
-  const name = row.media_name || "نامشخص";
-  const current = mediaTotals.get(name) || { media_name: name, links: 0, clicks: 0, income_items_count: 0, total_income_toman: 0 };
+  const key = row.media_uid || row.media_name || "unknown_media";
+  const current = mediaTotals.get(key) || {
+    media_uid: row.media_uid,
+    media_name: row.media_name || "نامشخص",
+    links: 0,
+    clicks: 0,
+    income_items_count: 0,
+    total_income_toman: 0,
+    weighted_conversion_rate_numerator: 0,
+    weighted_conversion_rate_denominator: 0,
+    weighted_conversion_rate: null
+  };
+  const clicks = row.click_count || 0;
   current.links += 1;
-  current.clicks += row.click_count || 0;
+  current.clicks += clicks;
   current.income_items_count += row.income_items_count || 0;
   current.total_income_toman += row.total_income_toman || 0;
-  mediaTotals.set(name, current);
+  if (row.conversion_rate !== null && clicks > 0) {
+    current.weighted_conversion_rate_numerator += row.conversion_rate * clicks;
+    current.weighted_conversion_rate_denominator += clicks;
+  }
+  mediaTotals.set(key, current);
 }
-output.report_data.media_totals = [...mediaTotals.values()];
+output.report_data.media_totals = [...mediaTotals.values()].map(row => ({
+  ...row,
+  weighted_conversion_rate: row.weighted_conversion_rate_denominator
+    ? row.weighted_conversion_rate_numerator / row.weighted_conversion_rate_denominator
+    : null
+}));
 
 // Re-write after all aggregation has completed.
 await writeFile("affilio-dashboard-diagnostic.json", JSON.stringify(output, null, 2));
