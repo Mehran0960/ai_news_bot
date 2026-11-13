@@ -23,12 +23,12 @@ PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
 
 def _configured_queue_limit(value: Any = None) -> int:
     """Bound the rolling publication plan without truncating a normal scan window."""
-    raw = value if value is not None else os.getenv("AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT", "100")
+    raw = value if value is not None else os.getenv("AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT", "250")
     try:
         parsed = int(raw)
     except (TypeError, ValueError, OverflowError):
-        parsed = 100
-    return max(1, min(100, parsed))
+        parsed = 250
+    return max(1, min(250, parsed))
 
 
 def _utc(value: Any, default: datetime | None = None) -> datetime | None:
