@@ -2795,7 +2795,7 @@ class AffilioRadarTests(unittest.TestCase):
             [row["product_id"] for row in expected_order],
         )
         self.assertTrue(all(
-            row.get("offerchin_four_factor", {}).get("policy_version") == "offerchin_four_factor_harmonic_v2_discount_gate"
+            row.get("offerchin_four_factor", {}).get("policy_version") == radar_module.OFFERCHIN_FOUR_FACTOR_POLICY_VERSION
             for row in published_order
         ))
         self.assertGreater(
