@@ -216,7 +216,25 @@ async function snapshotPage(page, label) {
       .filter(x => x.label).slice(0, 150);
     const dateLabels = controls.map(x => x.label)
       .filter(x => /\d{1,2}\s*(مهر|آبان|آذر|دی|بهمن|اسفند|فروردین|اردیبهشت|خرداد|تیر|مرداد|شهریور)/.test(x));
-    return { title: document.title || "", pathname: location.pathname, headings, controls, dateLabels };
+    const tabs = [...document.querySelectorAll('[role="tab"],[role="tablist"] button,button[aria-selected],button[aria-current]')]
+      .map(el => ({
+        label: text(el),
+        role: el.getAttribute("role") || "",
+        selected: el.getAttribute("aria-selected"),
+        current: el.getAttribute("aria-current"),
+        disabled: Boolean(el.disabled)
+      }))
+      .filter(x => x.label).slice(0, 50);
+    const tables = [...document.querySelectorAll("table")].slice(0, 20).map(table => ({
+      headers: [...table.querySelectorAll("thead th,thead td")].map(text).filter(Boolean).slice(0, 30),
+      body_row_count: table.querySelectorAll("tbody tr").length
+    }));
+    const grids = [...document.querySelectorAll('[role="grid"],[role="table"]')].slice(0, 10).map(grid => ({
+      role: grid.getAttribute("role"),
+      row_count: grid.querySelectorAll('[role="row"]').length,
+      headers: [...grid.querySelectorAll('[role="columnheader"]')].map(text).filter(Boolean).slice(0, 30)
+    }));
+    return { title: document.title || "", pathname: location.pathname, headings, controls, dateLabels, tabs, tables, grids };
   });
   const reportLinks = [];
   for (const item of info.controls) {
@@ -389,6 +407,9 @@ for (const snapshot of output.pages.slice(0, 30)) {
     url: snapshot.url,
     title: snapshot.title,
     headings: snapshot.headings,
+    tabs: snapshot.tabs || [],
+    tables: snapshot.tables || [],
+    grids: snapshot.grids || [],
     controls: (snapshot.controls || []).map(item => ({
       label: item.label,
       role: item.role,
