@@ -31,7 +31,7 @@ CHANNEL_DESTINATIONS = ("telegram", "bale", "rubika", "eitaa")
 VIDEO_DESTINATIONS = ("youtube", "aparat", "filo")
 TERMINAL = {"sent", "not_connected", "manual_review", "skipped_limit"}
 RETRYABLE = {"pending", "failed", "retry"}
-MINIMUM_GAP_MINUTES = max(50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55"))))
+MINIMUM_GAP_MINUTES = 27
 RETRY_BASE_SECONDS = max(60, min(1800, int(os.getenv("OFFERCHIN_EDITORIAL_RETRY_SECONDS", "300"))))
 MAX_ATTEMPTS = max(1, min(5, int(os.getenv("OFFERCHIN_EDITORIAL_MAX_ATTEMPTS", "3"))))
 
@@ -64,26 +64,108 @@ def _load_bank() -> list[dict]:
     return value
 
 
-def _active_editorial_entries(state: dict) -> list[dict]:
+def _entry_has_pending_destinations(entry: dict, destinations: tuple[str, ...]) -> bool:
+    platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+    return any(
+        not (
+            isinstance(platforms.get(name), dict)
+            and platforms[name].get("status") in TERMINAL
+        )
+        for name in destinations
+    )
+
+def _primary_channel_sent(entry: dict) -> bool:
+    platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+    return any(
+        isinstance(platforms.get(name), dict)
+        and platforms[name].get("status") == "sent"
+        for name in ("telegram", "bale")
+    )
+
+def _active_editorial_entries(
+    state: dict,
+    *,
+    mode: str = "channels",
+) -> list[dict]:
     queue = state.get("editorial_delivery_queue")
     if not isinstance(queue, dict):
         return []
-    rows = [
-        row for row in queue.values()
-        if isinstance(row, dict) and row.get("status") not in {"completed", "cancelled", "failed"}
-    ]
+    destinations = CHANNEL_DESTINATIONS if mode == "channels" else VIDEO_DESTINATIONS
+    rows = []
+    for row in (queue.values() if isinstance(queue, dict) else []):
+        if not isinstance(row, dict) or row.get("status") in {"completed", "cancelled", "failed"}:
+            continue
+        if not _entry_has_pending_destinations(row, destinations):
+            continue
+        # The channel cadence can move on once Telegram or Bale confirms the post.
+        # Video FIFO starts only after that primary-channel confirmation.
+        primary_sent = _primary_channel_sent(row)
+        if mode == "channels" and primary_sent:
+            continue
+        if mode == "videos" and not primary_sent:
+            continue
+        rows.append(row)
     return sorted(rows, key=lambda row: int(row.get("sequence_number") or 0))
 
 
-def _pending_product_video_exists(state: dict) -> bool:
+
+
+def _pending_product_video_exists(
+    state: dict,
+    *,
+    before_sequence: int | None = None,
+) -> bool:
     published = state.get("published")
     if not isinstance(published, dict):
         return False
     checker = getattr(radar, "_has_pending_video_destination", None)
     if not callable(checker):
         return False
-    return any(checker(row) for row in published.values() if isinstance(row, dict))
+    for row in published.values():
+        if not isinstance(row, dict) or not checker(row):
+            continue
+        if before_sequence is None:
+            return True
+        try:
+            sequence = int(row.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            sequence = 0
+        if sequence <= 0:
+            try:
+                sequence = max(0, int(float(row.get("ts") or 0)))
+            except (TypeError, ValueError, OverflowError):
+                sequence = 0
+        if sequence and sequence < int(before_sequence):
+            return True
+    return False
 
+
+
+
+def _pending_editorial_channel_retries(state: dict) -> list[dict]:
+    queue = state.get("editorial_delivery_queue")
+    if not isinstance(queue, dict):
+        return []
+    rows = []
+    for entry in queue.values():
+        if not isinstance(entry, dict) or entry.get("status") in {"completed", "cancelled", "failed"}:
+            continue
+        if not _primary_channel_sent(entry):
+            continue
+        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+        pending = False
+        for name in CHANNEL_DESTINATIONS:
+            target = platforms.get(name) if isinstance(platforms.get(name), dict) else {}
+            status = str(target.get("status") or "pending").lower()
+            if status not in {"pending", "failed", "retry"}:
+                continue
+            retry_at = _utc(target.get("next_attempt_at"))
+            if retry_at is None or retry_at <= _now():
+                pending = True
+                break
+        if pending:
+            rows.append(entry)
+    return sorted(rows, key=lambda row: int(row.get("sequence_number") or 0))
 
 def _recent_attempt_anchor(state: dict) -> datetime | None:
     candidates = [
@@ -113,24 +195,62 @@ def queue_editorial_if_due(
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
 
-    active = _active_editorial_entries(state)
+    active = _active_editorial_entries(state, mode="channels")
     if active:
         return active[0]
 
-    # Old, never-delivered product selections are retired after the same short
-    # reservation window used by the product delivery contract.
-    refresh_unpublished_selections(state, now=current, stale_after_minutes=8)
-    product_queue = state.get("content_delivery_queue")
-    if isinstance(product_queue, dict) and any(
-        isinstance(row, dict) and row.get("status") not in {"published", "cancelled", "stale_selection"}
-        for row in product_queue.values()
-    ):
-        print("EDITORIAL_FALLBACK_WAIT reason=product_photo_fifo_not_terminal")
+    mix_plan = state.get("publication_mix_plan")
+    if isinstance(mix_plan, dict) and int(mix_plan.get("product_capacity_deficit") or 0) > 0:
+        print(
+            "EDITORIAL_FALLBACK_WAIT reason=product_plan_over_capacity "
+            f"deferred_products={mix_plan.get('product_capacity_deficit')}"
+        )
         return None
-    if _pending_product_video_exists(state):
-        print("EDITORIAL_FALLBACK_WAIT reason=older_product_video_fifo_pending")
+    scan_deadline = _utc(mix_plan.get("scan_deadline_at")) if isinstance(mix_plan, dict) else None
+    if scan_deadline and current >= scan_deadline - timedelta(minutes=MINIMUM_GAP_MINUTES):
+        print("EDITORIAL_FALLBACK_WAIT reason=reserved_pre_scan_safety_window")
         return None
 
+    # Old, never-delivered product selections are retired after the same short
+    # reservation window used by the product delivery contract.
+    current_plan = state.get("publication_mix_plan")
+    current_plan_id = (
+        str(current_plan.get("cycle_id") or "")
+        if isinstance(current_plan, dict) else None
+    )
+    refresh_unpublished_selections(
+        state,
+        now=current,
+        stale_after_minutes=8,
+        plan_cycle_id=current_plan_id,
+    )
+    product_queue = state.get("content_delivery_queue")
+    due_unpublished_products = []
+    if isinstance(product_queue, dict):
+        for row in product_queue.values():
+            if not isinstance(row, dict) or row.get("status") in {
+                "published", "cancelled", "stale_selection"
+            }:
+                continue
+            platforms = row.get("platforms") if isinstance(row.get("platforms"), dict) else {}
+            photo_already_sent = any(
+                isinstance(platforms.get(name), dict)
+                and platforms[name].get("status") == "sent"
+                for name in ("telegram", "bale", "rubika", "eitaa")
+            )
+            if photo_already_sent:
+                continue
+            scheduled = _utc(row.get("scheduled_at"))
+            # Unknown or already-due product reservations retain priority. A
+            # future product reservation leaves this 27-minute slot for editorial.
+            if scheduled is None or scheduled <= current:
+                due_unpublished_products.append(row)
+    if due_unpublished_products:
+        print(
+            "EDITORIAL_FALLBACK_WAIT reason=product_slot_due "
+            f"due_products={len(due_unpublished_products)}"
+        )
+        return None
     anchor = _recent_attempt_anchor(state)
     if anchor and current - anchor < timedelta(minutes=MINIMUM_GAP_MINUTES):
         remaining = max(0, int((timedelta(minutes=MINIMUM_GAP_MINUTES) - (current - anchor)).total_seconds()))
@@ -143,7 +263,14 @@ def queue_editorial_if_due(
         print("EDITORIAL_FALLBACK_EMPTY reason=no_valid_nonrepeating_reviewed_item")
         return None
 
-    sequence_number = allocate_publication_sequence(state)
+    # Product reservations use their scheduled UTC timestamp as sequence.
+    # Editorial items use their actual current slot, preserving one FIFO order
+    # across products and editorial posts even when products were batch-selected.
+    sequence_number = int(current.timestamp())
+    state["publication_sequence_counter"] = max(
+        int(state.get("publication_sequence_counter") or 0),
+        sequence_number,
+    )
     item["sequence_number"] = sequence_number
     queue = state.setdefault("editorial_delivery_queue", {})
     if not isinstance(queue, dict):
@@ -168,6 +295,8 @@ def queue_editorial_if_due(
     state["last_editorial_attempt_at"] = current.isoformat()
     print(f"EDITORIAL_FALLBACK_QUEUED content_id={item['content_id']} sequence={sequence_number}")
     return entry
+
+
 
 
 def _format_message(item: dict) -> str:
@@ -762,19 +891,48 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     }
 
 
+def _retry_existing_editorial_channel_deliveries(state: dict, *, now: datetime) -> None:
+    """Retry optional channel destinations without reserving the next publication slot."""
+    entries = _pending_editorial_channel_retries(state)[:5]
+    for entry in entries:
+        payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+        try:
+            from editorial_video import render_editorial_poster
+            image_bytes = render_editorial_poster(payload)
+        except Exception as exc:
+            print(
+                f"EDITORIAL_RETRY_POSTER_FAILED content_id={entry.get('content_id')} "
+                f"error={type(exc).__name__}"
+            )
+            continue
+        message = _format_message(payload)
+        for destination in CHANNEL_DESTINATIONS:
+            target = _target(entry, destination)
+            if target.get("status") not in {"pending", "failed", "retry"}:
+                continue
+            _handle_channel_destination(state, entry, destination, image_bytes, message, now)
+        _refresh_delivery_history(state, entry, _now())
+        _finalize_if_terminal(state, entry, _now())
+        _save(state)
+
 def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = None) -> int:
     if mode not in {"channels", "videos"}:
         raise ValueError("mode_must_be_channels_or_videos")
     current = now or _now()
     state = radar.load_state(apply_integrity_ledger=False)
     bank = _load_bank()
-    entry = queue_editorial_if_due(state, bank, now=current)
+    if mode == "channels":
+        entry = queue_editorial_if_due(state, bank, now=current)
+    else:
+        video_entries = _active_editorial_entries(state, mode="videos")
+        entry = video_entries[0] if video_entries else None
     if publish:
         # Persist the canonical id and allocated sequence before rendering or any
         # outbound request, so a runner restart cannot allocate a duplicate sequence.
         _save(state)
     if not entry:
-        if publish:
+        if publish and mode == "channels":
+            _retry_existing_editorial_channel_deliveries(state, now=current)
             _save(state)
         return 0
     payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
@@ -790,14 +948,32 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
             from editorial_video import render_editorial_poster
             image_bytes = render_editorial_poster(payload)
         except Exception as exc:
+            for destination in CHANNEL_DESTINATIONS:
+                target = _target(entry, destination)
+                if target.get("status") not in TERMINAL:
+                    target["status"] = "manual_review"
+                    target["last_error"] = f"editorial_poster_render_failed:{type(exc).__name__}"
+            _refresh_delivery_history(state, entry, _now())
+            _finalize_if_terminal(state, entry, _now())
+            _save(state)
             print(f"EDITORIAL_POSTER_RENDER_FAILED error={type(exc).__name__}")
             return 1
         message = _format_message(payload)
         for destination in CHANNEL_DESTINATIONS:
             _handle_channel_destination(state, entry, destination, image_bytes, message, _now())
+        _refresh_delivery_history(state, entry, _now())
+        _finalize_if_terminal(state, entry, _now())
+        _retry_existing_editorial_channel_deliveries(state, now=_now())
     else:
-        # Keep all older product videos ahead of a newer editorial video.
-        if _pending_product_video_exists(state):
+        # Keep only chronologically older product videos ahead of this editorial.
+        try:
+            editorial_sequence = int(entry.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            editorial_sequence = 0
+        if _pending_product_video_exists(
+            state,
+            before_sequence=editorial_sequence or None,
+        ):
             print("EDITORIAL_VIDEO_WAIT reason=older_product_video_fifo_pending")
             _save(state)
             return 0
@@ -832,6 +1008,8 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         )
     _save(state)
     return 0
+
+
 
 
 def main() -> int:
