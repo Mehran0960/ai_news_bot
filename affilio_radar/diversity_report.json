@@ -97,33 +97,34 @@
       }
     ]
   },
-  "generated_at": "2026-11-13T09:21:27.887710+00:00",
+  "generated_at": "2026-11-13T09:58:50.178518+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "اصلاح موی صورت": 1,
       "ضد تعریق": 1,
       "مجموعه شمش و پلاک طلا و نقره": 1,
-      "کرم ترک پا": 1
+      "کرم ترک پا": 1,
+      "کرم و ژل ضد جوش": 1
     },
     "category_post_counts": {
       "other": 2,
-      "personal_care": 2
+      "personal_care": 3
     },
     "category_share_percent": {
-      "other": 50.0,
-      "personal_care": 50.0
+      "other": 40.0,
+      "personal_care": 60.0
     },
-    "distinct_catalog_categories": 4,
+    "distinct_catalog_categories": 5,
     "distinct_categories": 2,
-    "distinct_families": 4,
+    "distinct_families": 5,
     "distinct_retailers": 1,
     "distinct_use_cases": 3,
     "known_brand_posts": 0,
-    "posts": 4,
+    "posts": 5,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 4
+      "digikala": 5
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -131,7 +132,7 @@
     "use_case_post_counts": {
       "automotive": 1,
       "catalog_taxonomy_other": 1,
-      "mobile_productivity": 2
+      "mobile_productivity": 3
     }
   },
   "last_7_days": {
@@ -189,13 +190,12 @@
       "لوازم اتو": 1,
       "لوازم اداری": 5,
       "لوازم بهداشتی": 1,
-      "لوازم تحریر": 2,
+      "لوازم تحریر": 1,
       "لوازم خانگی برقی": 1,
       "لوازم سفر و کمپینگ": 1,
       "لوازم ماهیگیری": 1,
       "لوازم یدکی ابزار برقی": 2,
       "ماسک صورت و بدن": 1,
-      "مته و سری": 1,
       "مجموعه شمش و پلاک طلا و نقره": 1,
       "محصولات بومی و محلی": 2,
       "مد و پوشاک": 1,
@@ -228,6 +228,7 @@
       "کرم دور چشم": 1,
       "کرم ضد آفتاب": 1,
       "کرم ضد چروک": 1,
+      "کرم و ژل ضد جوش": 1,
       "کرم، اسپری و پودر موبر": 1,
       "کفش زنانه": 1,
       "کلمبیا": 1,
@@ -253,14 +254,14 @@
       "large_appliances": 4,
       "lighting": 1,
       "mobile_devices": 3,
-      "other": 65,
-      "personal_care": 35,
+      "other": 63,
+      "personal_care": 36,
       "power_backup": 4,
       "sports_outdoor": 11
     },
     "category_share_percent": {
       "audio_wearables": 3.7,
-      "automotive": 6.3,
+      "automotive": 6.4,
       "beauty_fragrance": 1.6,
       "books_stationery": 3.2,
       "computer_network": 1.1,
@@ -268,17 +269,17 @@
       "fashion": 8.5,
       "gaming": 0.5,
       "grocery_food": 3.7,
-      "home": 2.6,
+      "home": 2.7,
       "home_cleaning": 0.5,
       "jewelry": 0.5,
       "kids_sports": 2.1,
       "large_appliances": 2.1,
       "lighting": 0.5,
       "mobile_devices": 1.6,
-      "other": 34.4,
-      "personal_care": 18.5,
+      "other": 33.5,
+      "personal_care": 19.1,
       "power_backup": 2.1,
-      "sports_outdoor": 5.8
+      "sports_outdoor": 5.9
     },
     "distinct_catalog_categories": 99,
     "distinct_categories": 20,
@@ -286,7 +287,7 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 23,
     "known_brand_posts": 13,
-    "posts": 189,
+    "posts": 188,
     "repeated_brand_count": 6,
     "repeated_brands": {
       "ai_javaher": 2,
@@ -296,7 +297,7 @@
       "ufc": 2
     },
     "retailer_post_counts": {
-      "digikala": 189
+      "digikala": 188
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -318,13 +319,13 @@
       "kitchen_food": 5,
       "lighting_electrical": 5,
       "local_goods": 2,
-      "mobile_productivity": 28,
-      "office_study": 10,
+      "mobile_productivity": 29,
+      "office_study": 9,
       "outdoor_travel": 4,
       "personal_care": 25,
       "sports_fitness": 8,
       "tabletop_games": 1,
-      "tools_industrial": 8
+      "tools_industrial": 7
     }
   },
   "policy": {
@@ -340,30 +341,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1111,
+    "all_time_count": 1112,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-12T20:31:50.334304+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-11776655",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ژل آبرسان پرایم مدل Ultra-Hydrating حجم 50 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-12T20:31:50.334304+00:00",
         "brand": "",
@@ -672,6 +656,23 @@
       },
       {
         "at": "2026-11-13T09:21:27.887710+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-13T09:58:50.178518+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
