@@ -1,0 +1,122 @@
+name: OfferChin DigiKala Catalog API Canary
+
+on:
+  push:
+    branches:
+      - "fix/offerchin-catalog-v2-category-adapter-20261113"
+    paths:
+      - ".github/workflows/offerchin-catalog-api-canary.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-only-api-canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install HTTP client
+        run: python -m pip install --disable-pip-version-check requests
+      - name: Probe read-only DigiKala category APIs
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          python - <<'PY'
+          import json
+          import requests
+          from urllib.parse import urlencode
+
+          session = requests.Session()
+          session.headers.update({
+              "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36",
+              "Accept": "application/json,text/plain,*/*",
+              "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
+              "Referer": "https://www.digikala.com/",
+          })
+
+          def response_shape(response):
+              out = {
+                  "status": response.status_code,
+                  "content_type": response.headers.get("content-type", "").split(";")[0],
+              }
+              try:
+                  payload = response.json()
+              except Exception:
+                  out["json"] = False
+                  return out
+              out["json"] = True
+              data = payload.get("data") if isinstance(payload, dict) else None
+              out["top_keys"] = sorted(payload.keys())[:40] if isinstance(payload, dict) else []
+              if isinstance(data, dict):
+                  out["data_keys"] = sorted(data.keys())[:60]
+                  widgets = data.get("widgets")
+                  if isinstance(widgets, list):
+                      out["widget_types"] = [
+                          str(w.get("type") or "") for w in widgets[:30] if isinstance(w, dict)
+                      ]
+                      out["product_widget_count"] = sum(
+                          1 for w in widgets if isinstance(w, dict) and w.get("type") == "product"
+                      )
+                      nested = []
+                      for widget in widgets:
+                          if not isinstance(widget, dict) or widget.get("type") != "vertical_product_listing":
+                              continue
+                          children = widget.get("data", {}).get("widgets", [])
+                          if isinstance(children, list):
+                              nested.extend(
+                                  c for c in children
+                                  if isinstance(c, dict) and c.get("type") == "product"
+                              )
+                      out["nested_product_widget_count"] = len(nested)
+                  pager = data.get("pager")
+                  if isinstance(pager, dict):
+                      out["pager_keys"] = sorted(pager.keys())[:40]
+              return out
+
+          probes = [
+              ("v1_search_legacy", "https://api.digikala.com/v1/search/", {
+                  "categories[]": "83", "page": 1, "sort": 7
+              }),
+              ("v2_category_83_empty_q_sort5", "https://api.digikala.com/v2/category/83/", {
+                  "q": "", "page": 1, "sort": 5
+              }),
+              ("v2_category_83_keyword_sort5", "https://api.digikala.com/v2/category/83/", {
+                  "q": "هدفون", "page": 1, "sort": 5
+              }),
+              ("v2_category_22_empty_q_sort5", "https://api.digikala.com/v2/category/22/", {
+                  "q": "", "page": 1, "sort": 5
+              }),
+              ("v2_category_83_empty_q_sort7", "https://api.digikala.com/v2/category/83/", {
+                  "q": "", "page": 1, "sort": 7
+              }),
+              ("v3_search_category_83_sort5", "https://api.digikala.com/v3/search/", {
+                  "categories[]": "83", "page": 1, "sort": 5
+              }),
+          ]
+
+          failures = []
+          for label, url, params in probes:
+              try:
+                  response = session.get(url, params=params, timeout=(5, 18))
+                  shape = response_shape(response)
+                  print("DIGIKALA_API_CANARY=" + json.dumps({
+                      "probe": label,
+                      **shape
+                  }, ensure_ascii=False, sort_keys=True))
+              except Exception as exc:
+                  failures.append(label)
+                  print("DIGIKALA_API_CANARY=" + json.dumps({
+                      "probe": label,
+                      "error_type": type(exc).__name__
+                  }, ensure_ascii=False, sort_keys=True))
+
+          print("DIGIKALA_API_CANARY_SUMMARY=" + json.dumps({
+              "probe_count": len(probes),
+              "transport_failures": failures
+          }, sort_keys=True))
+          PY
