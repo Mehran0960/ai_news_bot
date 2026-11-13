@@ -126,48 +126,55 @@ jobs:
           probe("v2_q_19", "https://api.digikala.com/v2/category/19/", {"q": "گوشی پوکو", "page": 1, "sort": 5})
           probe("v1_search_19", "https://api.digikala.com/v1/search/", {"categories[]": "19", "page": 1, "sort": 7})
 
-          try:
-              mcp_response = session.post(
-                  "https://digikala-mcp.mmdju.workers.dev/mcp",
-                  headers={"content-type": "application/json", "accept": "application/json, text/event-stream"},
-                  json={
-                      "jsonrpc": "2.0",
-                      "id": 1,
-                      "method": "tools/call",
-                      "params": {
-                          "name": "browse_category",
-                          "arguments": {"category_id": 19, "sort": "best_selling", "page": 1, "limit": 3}
-                      }
-                  },
-                  timeout=(8, 25),
-              )
-              result_summary = {"status": mcp_response.status_code, "content_type": mcp_response.headers.get("content-type", ""), "body_length": len(mcp_response.text)}
-              raw_text = mcp_response.text
-              payload = None
-              for line in raw_text.splitlines():
-                  if line.startswith("data:"):
+          def mcp_probe(label, tool_name, arguments_):
+              try:
+                  response = session.post(
+                      "https://digikala-mcp.mmdju.workers.dev/mcp",
+                      headers={"content-type": "application/json", "accept": "application/json, text/event-stream"},
+                      json={
+                          "jsonrpc": "2.0",
+                          "id": 1,
+                          "method": "tools/call",
+                          "params": {"name": tool_name, "arguments": arguments_},
+                      },
+                      timeout=(8, 25),
+                  )
+                  payload = None
+                  for line in response.text.splitlines():
+                      if line.startswith("data:"):
+                          try:
+                              payload = __import__("json").loads(line[5:].strip())
+                              break
+                          except Exception:
+                              pass
+                  if payload is None:
                       try:
-                          payload = __import__("json").loads(line[5:].strip())
-                          break
+                          payload = response.json()
                       except Exception:
-                          pass
-              if payload is None:
-                  try:
-                      payload = mcp_response.json()
-                  except Exception:
-                      payload = None
-              if isinstance(payload, dict):
-                  result = payload.get("result", {})
-                  result_summary["jsonrpc_error"] = payload.get("error", {}).get("message") if isinstance(payload.get("error"), dict) else None
-                  if isinstance(result, dict):
-                      result_summary["result_keys"] = sorted(result.keys())
-                      content = result.get("content", [])
-                      result_summary["content_types"] = [item.get("type") for item in content if isinstance(item, dict)]
-                      text_content = " ".join(item.get("text", "") for item in content if isinstance(item, dict) and isinstance(item.get("text"), str))
-                      result_summary["product_url_count"] = text_content.count("digikala.com/product/dkp-")
-              print("DIGIKALA_PUBLIC_MCP_PROXY_PROBE " + str(result_summary))
-          except Exception as exc:
-              print("DIGIKALA_PUBLIC_MCP_PROXY_PROBE error=" + type(exc).__name__)
+                          payload = None
+                  summary = {
+                      "status": response.status_code,
+                      "content_type": response.headers.get("content-type", ""),
+                      "body_length": len(response.text),
+                  }
+                  if isinstance(payload, dict):
+                      summary["jsonrpc_error"] = payload.get("error")
+                      result = payload.get("result", {})
+                      if isinstance(result, dict):
+                          summary["is_error"] = result.get("isError")
+                          content = result.get("content", [])
+                          summary["content_types"] = [item.get("type") for item in content if isinstance(item, dict)]
+                          text_content = " ".join(item.get("text", "") for item in content if isinstance(item, dict) and isinstance(item.get("text"), str))
+                          summary["product_url_count"] = text_content.count("digikala.com/product/dkp-")
+                          summary["text_preview"] = text_content[:220].replace("\n", " ")
+                  print("DIGIKALA_PUBLIC_MCP_PROXY_PROBE " + label + " " + str(summary))
+              except Exception as exc:
+                  print("DIGIKALA_PUBLIC_MCP_PROXY_PROBE " + label + " error=" + type(exc).__name__)
+
+          mcp_probe("suggest_phones", "digikala_suggest", {"query": "گوشی", "limit": 5})
+          mcp_probe("search_headphones", "search_digikala", {"query": "هدفون بی سیم", "sort": "best_selling", "page": 1, "limit": 3})
+          mcp_probe("browse_mobile_11", "browse_category", {"category_id": 11, "sort": "best_selling", "page": 1, "limit": 3})
+          mcp_probe("browse_poco_19", "browse_category", {"category_id": 19, "sort": "best_selling", "page": 1, "limit": 3})
           PY
       - name: Validate catalog scanner and status snapshot
         run: |
