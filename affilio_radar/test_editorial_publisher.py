@@ -67,11 +67,30 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
         self.assertFalse(state.get("editorial_delivery_queue"))
 
-    def test_editorial_does_not_preempt_active_product_photo_fifo(self):
+    def test_editorial_does_not_preempt_active_due_product_photo_slot(self):
         state = {"content_delivery_queue": {
-            "dkp-1": {"status": "partial", "selected_at": (NOW - timedelta(minutes=5)).isoformat()}
+            "dkp-1": {
+                "status": "queued",
+                "selected_at": (NOW - timedelta(hours=3)).isoformat(),
+                "scheduled_at": (NOW - timedelta(minutes=1)).isoformat(),
+            }
         }}
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+
+    def test_editorial_fills_a_gap_before_a_future_product_slot(self):
+        state = {"content_delivery_queue": {
+            "dkp-1": {
+                "status": "queued",
+                "attempt_count": 0,
+                "selected_at": (NOW - timedelta(hours=3)).isoformat(),
+                "scheduled_at": (NOW + timedelta(hours=2, minutes=33)).isoformat(),
+                "publication_plan_cycle_id": "clean-cycle-1",
+            }
+        }}
+        entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry["content_type"], "editorial")
+        self.assertEqual(entry["scheduled_at"], NOW.isoformat())
 
     def test_editorial_waits_for_older_product_video_fifo(self):
         state = {"published": {
