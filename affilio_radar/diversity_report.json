@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-13T06:18:50.410426+00:00",
+  "generated_at": "2026-11-13T06:28:55.041465+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "اصلاح موی صورت": 1,
@@ -338,30 +338,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1108,
+    "all_time_count": 1109,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-12T20:22:33.184235+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4184133",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-6808740",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده ویتالیر مدل Activit حجم 40 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-12T20:22:33.184235+00:00",
         "brand": "",
@@ -670,6 +653,23 @@
       },
       {
         "at": "2026-11-13T05:51:38.940056+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4184133",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-13T06:28:55.041465+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
