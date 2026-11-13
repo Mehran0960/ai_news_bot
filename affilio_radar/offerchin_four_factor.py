@@ -14,7 +14,7 @@ from typing import Callable
 POLICY_VERSION = "offerchin_four_factor_harmonic_v2_discount_gate"
 MIN_PRICE_COHORT_SIZE = 8
 # A weak discount cannot be compensated for by demand, affordability or generality.
-MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE = 45.0
+MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE = 40.0
 
 # Heuristic reach scores, not market-share claims. Missing taxonomy is deliberately
 # scored low rather than being mistaken for a mass-market product.
