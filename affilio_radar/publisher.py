@@ -38,6 +38,29 @@ def _save(state: dict) -> None:
     radar.save_json(radar.STATE, state)
 
 
+def _record_product_channel_publication_for_editorial(
+    state: dict,
+    entry: dict,
+    *,
+    new_public_delivery: bool,
+) -> bool:
+    """Count each product once after its first confirmed Telegram/Bale delivery."""
+    if not new_public_delivery or entry.get("counted_for_editorial_cadence") is True:
+        return False
+    try:
+        previous = max(0, int(state.get("product_channel_posts_since_editorial") or 0))
+    except (TypeError, ValueError, OverflowError):
+        previous = 0
+    state["product_channel_posts_since_editorial"] = previous + 1
+    entry["counted_for_editorial_cadence"] = True
+    print(
+        "EDITORIAL_PRODUCT_CADENCE_COUNTER "
+        f"count={state['product_channel_posts_since_editorial']} "
+        f"content_id={entry.get('content_id') or entry.get('product_id') or 'unknown'}"
+    )
+    return True
+
+
 def _utc(value: Any) -> datetime | None:
     if not value:
         return None
@@ -646,7 +669,17 @@ def editorial_fifo_lock_entry(state: dict) -> dict | None:
     ]
     if not active:
         return None
-    return min(active, key=lambda value: int(value.get("sequence_number") or 0))
+    oldest = min(active, key=lambda value: int(value.get("sequence_number") or 0))
+    targets = oldest.get("platforms") if isinstance(oldest.get("platforms"), dict) else {}
+    terminal_channel_statuses = {"sent", "not_connected", "manual_review", "skipped_limit"}
+    # Only an unfinished core channel hand-off may reserve the next channel slot.
+    # Editorial video retries must never stop the product-photo publisher.
+    for name in CORE_PHOTO_PLATFORMS:
+        target = targets.get(name)
+        status = str(target.get("status") or "pending") if isinstance(target, dict) else "pending"
+        if status not in terminal_channel_statuses:
+            return oldest
+    return None
 
 
 def publish_due_queue(_fallback_depth: int = 0) -> int:
@@ -855,6 +888,9 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         new_public_delivery = any(
             prior_public_status.get(name) != "sent" and platforms.get(name) == "sent"
             for name in CORE_PHOTO_PLATFORMS
+        )
+        _record_product_channel_publication_for_editorial(
+            state, entry, new_public_delivery=new_public_delivery
         )
         if new_public_delivery:
             public_posted_at = _now().isoformat()
