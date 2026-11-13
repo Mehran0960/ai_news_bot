@@ -41,6 +41,8 @@ jobs:
         env:
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           OFFERCHIN_EDITORIAL_GAP_MINUTES: "55"
+          OFFERCHIN_EDITORIAL_PRODUCTS_PER_POST: "4"
+          OFFERCHIN_EDITORIAL_CHANNEL_GAP_MINUTES: "27"
           PYTHONUNBUFFERED: "1"
         run: |
           mkdir -p editorial-shadow-artifacts
