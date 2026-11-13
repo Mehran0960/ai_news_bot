@@ -179,7 +179,9 @@ async function snapshotPage(page, label) {
     title: info.title,
     headings: info.headings,
     date_range_labels: info.dateLabels,
-    controls: info.controls
+    controls: info.controls,
+    tables: info.tables,
+    interactive: info.interactive
   });
   output.report_links.push(...reportLinks);
 }
@@ -244,14 +246,17 @@ try {
           await snapshotPage(page, "report_navigation");
           // Income detail and invoice sections are tabs in this panel. Click only
           // their explicit tab controls; never click buttons that mutate account data.
-          for (const label of ["جزئیات درآمد", "فاکتورها"]) {
-            const tab = page.getByText(label, { exact: true }).first();
+          const tabs = target.url.endsWith("/performance") || target.url.endsWith("/performance/links")
+            ? ["نگاه کلی"]
+            : ["جزئیات درآمد", "فاکتورها"];
+          for (const label of tabs) {
+            const tab = page.getByText(label, { exact: true }).last();
             if (await tab.count().catch(() => 0) === 0) continue;
-            const isTabControl = await tab.evaluate(el => Boolean(el.closest('[role="tab"],button,a'))).catch(() => false);
-            if (!isTabControl) continue;
-            await tab.click().catch(() => {});
-            await page.waitForTimeout(1500);
-            await snapshotPage(page, "income_tab_" + (label === "فاکتورها" ? "invoices" : "details"));
+            await tab.click({ timeout: 4000 }).catch(() => {});
+            await page.waitForTimeout(1800);
+            const suffix = label === "فاکتورها" ? "invoices" :
+              label === "جزئیات درآمد" ? "details" : "overview";
+            await snapshotPage(page, (target.url.includes("/performance") ? "performance_tab_" : "income_tab_") + suffix);
           }
         }
       } catch {
