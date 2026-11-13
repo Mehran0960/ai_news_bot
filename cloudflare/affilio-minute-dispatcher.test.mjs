@@ -373,6 +373,41 @@ test("pending video projection dispatches old items regardless of platform prefl
   assert.equal(hasPendingVideoQueue(state), true);
 });
 
+test("pending editorial video queue entries trigger the shared video workflow", () => {
+  const state = {
+    editorial_delivery_queue: {
+      "editorial:buyer-checklist": {
+        status: "partial",
+        scheduled_at: new Date(Date.now() - 60_000).toISOString(),
+        sequence_number: 12,
+        platforms: {
+          youtube: { status: "pending" },
+          aparat: { status: "not_connected" },
+          filo: { status: "manual_review" },
+        },
+      },
+    },
+  };
+  assert.equal(hasPendingVideoQueue(state), true);
+});
+
+test("future editorial retry timestamps do not trigger premature video dispatch", () => {
+  const state = {
+    editorial_delivery_queue: {
+      "editorial:buyer-checklist": {
+        status: "partial",
+        scheduled_at: new Date(Date.now() - 60_000).toISOString(),
+        platforms: {
+          youtube: { status: "retry", next_attempt_at: new Date(Date.now() + 60 * 60_000).toISOString() },
+          aparat: { status: "not_connected" },
+          filo: { status: "manual_review" },
+        },
+      },
+    },
+  };
+  assert.equal(hasPendingVideoQueue(state), false);
+});
+
 test("pending video projection ignores terminal statuses so completed queue entries do not occupy the sidecar", () => {
   const ts = Date.now() / 1000;
   const state = {
