@@ -646,6 +646,15 @@ def editorial_fifo_lock_entry(state: dict) -> dict | None:
         if not isinstance(value, dict) or value.get("status") in {"completed", "cancelled", "failed"}:
             continue
         platforms = value.get("platforms") if isinstance(value.get("platforms"), dict) else {}
+        # Once at least one primary channel confirms the editorial post,
+        # later optional-platform retries must not freeze the 27-minute cadence.
+        primary_sent = any(
+            isinstance(platforms.get(name), dict)
+            and platforms[name].get("status") == "sent"
+            for name in ("telegram", "bale")
+        )
+        if primary_sent:
+            continue
         if any(
             not (
                 isinstance(platforms.get(name), dict)
