@@ -97,10 +97,11 @@
       }
     ]
   },
-  "generated_at": "2026-11-13T10:37:38.038270+00:00",
+  "generated_at": "2026-11-13T11:14:10.912203+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "اصلاح موی صورت": 1,
+      "خط چشم": 1,
       "ضد تعریق": 1,
       "مجموعه شمش و پلاک طلا و نقره": 1,
       "کتاب رمان و ادبیات داستانی و نمایشی": 1,
@@ -109,25 +110,25 @@
     },
     "category_post_counts": {
       "books_stationery": 1,
-      "other": 2,
+      "other": 3,
       "personal_care": 3
     },
     "category_share_percent": {
-      "books_stationery": 16.7,
-      "other": 33.3,
-      "personal_care": 50.0
+      "books_stationery": 14.3,
+      "other": 42.9,
+      "personal_care": 42.9
     },
-    "distinct_catalog_categories": 6,
+    "distinct_catalog_categories": 7,
     "distinct_categories": 3,
-    "distinct_families": 6,
+    "distinct_families": 7,
     "distinct_retailers": 1,
     "distinct_use_cases": 4,
     "known_brand_posts": 0,
-    "posts": 6,
+    "posts": 7,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 6
+      "digikala": 7
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -135,7 +136,7 @@
     "use_case_post_counts": {
       "automotive": 1,
       "books_learning": 1,
-      "catalog_taxonomy_other": 1,
+      "catalog_taxonomy_other": 2,
       "mobile_productivity": 3
     }
   },
@@ -163,6 +164,7 @@
       "تی شرت مردانه": 2,
       "جانبی خودرو": 1,
       "خانه و آشپزخانه": 1,
+      "خط چشم": 1,
       "خمیر دندان": 1,
       "خواب": 1,
       "خودرو و موتورسیکلت": 1,
@@ -212,7 +214,7 @@
       "نظافت و نگهداری خودرو": 1,
       "نوشیدنی ساز": 1,
       "ورزش های توپی": 1,
-      "ورزشی مردانه": 2,
+      "ورزشی مردانه": 1,
       "ویتامین‌ها و مواد معدنی": 1,
       "پتو": 1,
       "پرچم": 3,
@@ -257,10 +259,10 @@
       "large_appliances": 4,
       "lighting": 1,
       "mobile_devices": 3,
-      "other": 62,
+      "other": 63,
       "personal_care": 36,
       "power_backup": 4,
-      "sports_outdoor": 11
+      "sports_outdoor": 10
     },
     "category_share_percent": {
       "audio_wearables": 3.2,
@@ -279,25 +281,24 @@
       "large_appliances": 2.1,
       "lighting": 0.5,
       "mobile_devices": 1.6,
-      "other": 33.2,
+      "other": 33.7,
       "personal_care": 19.3,
       "power_backup": 2.1,
-      "sports_outdoor": 5.9
+      "sports_outdoor": 5.3
     },
-    "distinct_catalog_categories": 98,
+    "distinct_catalog_categories": 99,
     "distinct_categories": 20,
-    "distinct_families": 129,
+    "distinct_families": 130,
     "distinct_retailers": 1,
     "distinct_use_cases": 23,
-    "known_brand_posts": 13,
+    "known_brand_posts": 12,
     "posts": 187,
-    "repeated_brand_count": 6,
+    "repeated_brand_count": 5,
     "repeated_brands": {
       "ai_javaher": 2,
       "eurovital": 2,
       "habsan": 3,
-      "sangboo_climy": 2,
-      "ufc": 2
+      "sangboo_climy": 2
     },
     "retailer_post_counts": {
       "digikala": 187
@@ -310,7 +311,7 @@
       "automotive": 20,
       "baby_care": 3,
       "books_learning": 6,
-      "catalog_taxonomy_other": 10,
+      "catalog_taxonomy_other": 11,
       "events_decor": 3,
       "fashion_lifestyle": 10,
       "gaming": 1,
@@ -326,7 +327,7 @@
       "office_study": 9,
       "outdoor_travel": 4,
       "personal_care": 25,
-      "sports_fitness": 8,
+      "sports_fitness": 7,
       "tabletop_games": 1,
       "tools_industrial": 7
     }
@@ -344,30 +345,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1113,
+    "all_time_count": 1114,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 500,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-12T20:57:46.803595+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4996879",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-12232692",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم ضد لک ویتالیر مدل آربوتین حجم 30 میلی لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-12T21:18:08.459610+00:00",
         "brand": "",
@@ -676,6 +660,23 @@
       },
       {
         "at": "2026-11-13T10:37:38.038270+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-4996879",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-13T11:14:10.912203+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
