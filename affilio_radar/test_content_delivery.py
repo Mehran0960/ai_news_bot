@@ -5,7 +5,8 @@ from datetime import datetime, timedelta, timezone
 from content_delivery import (
     due_content, due_unpublished_selection, enqueue_selected_content,
     finish_queue_item, get_last_channel_published_at, has_fresh_unpublished_selection,
-    allocate_publication_sequence, promote_fallback_selection,
+    allocate_publication_sequence, promote_fallback_selection, enforce_queue_limit,
+    _configured_queue_limit,
     refresh_unpublished_selections, selection_cadence_anchor,
 )
 from platform_registry import CORE_PHOTO_PLATFORMS, PHOTO_PLATFORMS, PLATFORM_NAMES
@@ -45,6 +46,56 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "deal_expires_at": deadline.isoformat() if deadline else "",
         }
 
+
+    def test_configured_queue_limit_supports_scan_window_reservations(self):
+        with patch.dict("os.environ", {"AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT": "160"}):
+            self.assertEqual(_configured_queue_limit(), 160)
+
+    def test_planned_product_survives_newer_catalog_cycle_refresh(self):
+        state = {
+            "content_delivery_queue": {
+                "dkp-planned": {
+                    "status": "queued",
+                    "selected_at": (self.now - timedelta(hours=4)).isoformat(),
+                    "scheduled_at": (self.now + timedelta(hours=2)).isoformat(),
+                    "publication_plan_cycle_id": "older-cycle",
+                    "publication_plan_scan_deadline_at": (self.now - timedelta(minutes=5)).isoformat(),
+                    "attempt_count": 0,
+                    "platforms": {},
+                }
+            }
+        }
+        replaced = refresh_unpublished_selections(
+            state,
+            now=self.now,
+            stale_after_minutes=8,
+            plan_cycle_id="newer-cycle",
+        )
+        self.assertEqual(replaced, 0)
+        self.assertIn("dkp-planned", state["content_delivery_queue"])
+
+    def test_queue_eviction_never_discards_a_reserved_product(self):
+        state = {
+            "content_delivery_queue": {
+                "dkp-unplanned": {
+                    "status": "queued",
+                    "selected_at": (self.now - timedelta(hours=5)).isoformat(),
+                },
+                "dkp-reserved": {
+                    "status": "queued",
+                    "selected_at": (self.now - timedelta(hours=4)).isoformat(),
+                    "publication_plan_cycle_id": "cycle-1",
+                },
+            }
+        }
+        evicted = enforce_queue_limit(
+            state,
+            now=self.now,
+            max_active_items=1,
+        )
+        self.assertEqual(evicted, 1)
+        self.assertNotIn("dkp-unplanned", state["content_delivery_queue"])
+        self.assertIn("dkp-reserved", state["content_delivery_queue"])
 
     def test_product_and_editorial_share_one_monotonic_sequence(self):
         state = {}
