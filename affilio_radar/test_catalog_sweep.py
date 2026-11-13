@@ -212,6 +212,66 @@ class CatalogSweepTests(unittest.TestCase):
         with self.assertRaises(CatalogSweepError):
             refresh_categories(state, session)
 
+    def test_category_page_url_uses_current_v2_category_route_and_best_selling_sort(self):
+        url, params = _category_page_url("19", 3)
+        self.assertEqual(url, "https://api.digikala.com/v2/category/19/")
+        self.assertEqual(params, {"page": 3, "sort": 5})
+
+    def test_extract_product_rows_parses_v2_vertical_product_listing_widgets(self):
+        payload = {
+            "data": {
+                "pager": {"current_page": 1, "total_pages": 17, "total_items": 321},
+                "widgets": [{
+                    "type": "vertical_product_listing",
+                    "data": {
+                        "widgets": [
+                            {
+                                "type": "product",
+                                "data": {
+                                    "id": 777,
+                                    "title_fa": "گوشی پوکو مدل آزمایشی",
+                                    "url": {"uri": "/product/dkp-777/sample/"},
+                                    "status": "marketable",
+                                    "default_variant": {
+                                        "price": {
+                                            "selling_price": 8_000_000,
+                                            "rrp_price": 12_000_000,
+                                            "discount_percent": 33,
+                                        }
+                                    },
+                                    "rating": {"rate": 90, "count": 200},
+                                },
+                            },
+                            {
+                                "type": "product",
+                                "data": {
+                                    "id": 778,
+                                    "title_fa": "محصول ناموجود",
+                                    "url": {"uri": "/product/dkp-778/sample/"},
+                                    "status": "unavailable",
+                                    "default_variant": {"price": {
+                                        "selling_price": 8_000_000,
+                                        "rrp_price": 12_000_000,
+                                        "discount_percent": 33,
+                                    }},
+                                },
+                            },
+                        ]
+                    },
+                }],
+            }
+        }
+        rows = extract_product_rows(payload)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["product_id"], "dkp-777")
+        self.assertEqual(rows[0]["current_price"], 800_000)
+        self.assertEqual(rows[0]["original_price"], 1_200_000)
+        self.assertEqual(rows[0]["discount_percent"], 33)
+        self.assertEqual(rows[0]["rating"], 4.5)
+        self.assertEqual(rows[0]["review_count"], 200)
+        self.assertEqual(rows[0]["availability"], "marketable_unverified_stock")
+        self.assertEqual(extract_total_pages(payload, 1, len(rows)), 17)
+
     def test_extract_product_rows_parses_prices_reviews_and_product_id(self):
         payload = {
             "data": {
