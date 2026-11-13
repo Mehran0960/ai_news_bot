@@ -7,7 +7,11 @@ on:
       - "affilio_radar/editorial_publisher.py"
       - "affilio_radar/editorial_video.py"
       - "affilio_radar/content_delivery.py"
+      - "affilio_radar/publication_mix.py"
+      - "affilio_radar/test_publication_mix.py"
       - "affilio_radar/publisher.py"
+      - "cloudflare/affilio-minute-dispatcher.js"
+      - "cloudflare/affilio-minute-dispatcher.test.mjs"
       - "affilio_radar/affilio_radar.py"
       - "affilio_radar/editorial_bank.json"
       - "affilio_radar/test_content_delivery.py"
@@ -50,6 +54,7 @@ jobs:
             affilio_radar/editorial_publisher.py \
             affilio_radar/editorial_video.py \
             affilio_radar/content_delivery.py \
+            affilio_radar/publication_mix.py \
             affilio_radar/publisher.py
       - name: Validate the reviewed evergreen content bank
         working-directory: affilio_radar
@@ -106,4 +111,7 @@ jobs:
           python -m unittest -v \
             test_editorial_content.py \
             test_editorial_publisher.py \
-            test_content_delivery.py
+            test_content_delivery.py \
+            test_publication_mix.py
+      - name: Test Cloudflare mixed-media dispatch contract
+        run: node --test cloudflare/affilio-minute-dispatcher.test.mjs
