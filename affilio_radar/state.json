@@ -489033,11 +489033,11 @@
     "unchanged": 9,
     "updated": 0
   },
-  "filo_last_upload_attempt_at": "2026-11-13T10:41:21.893200+00:00",
+  "filo_last_upload_attempt_at": "2026-11-13T11:18:10.689239+00:00",
   "filo_last_upload_success_at": "2026-11-13T10:41:50.513426+00:00",
-  "filo_login_verification_attempted_at": "2026-11-13T11:06:04.946746+00:00",
+  "filo_login_verification_attempted_at": "2026-11-13T11:18:01.293578+00:00",
   "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-13T11:06:04.946746+00:00",
+  "filo_login_verified_at": "2026-11-13T11:18:01.293578+00:00",
   "filo_upload_interval_policy_version": 3,
   "growth_tracking": {
     "daily_member_counts": {
@@ -635309,7 +635309,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-2912813": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_message_id": 1937,
       "bale_posted_at": "2026-11-13T11:14:21.421142+00:00",
       "brand": "",
@@ -635455,7 +635456,13 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
-      "filo_upload_status": "pending",
+      "filo_last_error": "filo_publish_not_accepted",
+      "filo_review_required": true,
+      "filo_upload_started_at": "2026-11-13T11:18:10.689239+00:00",
+      "filo_upload_status": "rejected_by_filo",
+      "filo_video_code": "",
+      "filo_video_url": "",
+      "filo_visibility": "unknown",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-13T11:13:59.996562+00:00",
       "history_days": 4,
@@ -635495,8 +635502,15 @@
       "telegram_posted_at": "2026-11-13T11:14:18.595960+00:00",
       "title": "اسپری حالت دهنده مو کاسپین 250 میلی لیتری مدل کلاسیک با ویژگی نگهدارندگی بالا و پوشش قوی بدون ایجاد چسبندگی مو",
       "ts": 1794568453.811317,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-2912813.mp4",
+      "video_file_names": {
+        "filo": "offerchin-dkp-2912813.mp4"
+      },
+      "video_generated_at": "2026-11-13T11:18:02.534453+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-294012": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -637478,7 +637492,7 @@
       "discount_vs_30d_median_pct": -24,
       "distribution_queue_id": "dkp-369675:2026-11-07T10:40:58.805995+00:00",
       "expired_deleted_at": "2026-11-07T20:43:28.837382+00:00",
-      "expires_at": "2026-11-13T20:30:00.972221+00:00",
+      "expires_at": "2026-11-13T20:34:27.352010+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -647985,7 +647999,7 @@
       "discount_vs_30d_median_pct": 0,
       "distribution_queue_id": "dkp-8720946:2026-11-09T04:51:14.194185+00:00",
       "expired_deleted_at": "2026-11-09T17:13:29.197927+00:00",
-      "expires_at": "2026-11-13T20:30:00.972221+00:00",
+      "expires_at": "2026-11-13T20:34:27.352010+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
