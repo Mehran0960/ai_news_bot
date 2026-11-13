@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 concurrency:
   group: affilio-dashboard-readonly-audit
@@ -50,6 +51,25 @@ jobs:
         run: |
           node scripts/encrypt_affilio_dashboard_report.mjs
           rm -f affilio-dashboard-diagnostic.json
+
+
+      - name: Remove two initial plaintext diagnostic artifacts once
+        if: github.ref == 'refs/heads/audit/affilio-dashboard-readonly'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for artifact_id in 14023144392 14024735501; do
+            status=$(curl --silent --show-error -o /dev/null -w '%{http_code}' \\
+              -X DELETE \\
+              -H "Accept: application/vnd.github+json" \\
+              -H "Authorization: Bearer $GH_TOKEN" \\
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id")
+            case "$status" in
+              204|404) echo "LEGACY_AFFILIO_ARTIFACT_CLEANUP id=$artifact_id status=$status" ;;
+              *) echo "LEGACY_AFFILIO_ARTIFACT_CLEANUP_FAILED id=$artifact_id status=$status"; exit 1 ;;
+            esac
+          done
 
       - name: Upload encrypted diagnostic artifact only
         if: always() && hashFiles('affilio-dashboard-diagnostic.enc.json') != ''
