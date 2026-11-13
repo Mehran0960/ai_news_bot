@@ -196,6 +196,42 @@ function summarizeShape(value, prefix = "$", output = [], limit = 120) {
   return output;
 }
 
+async function inspectExactVisibleText(page, label) {
+  return page.evaluate(target => {
+    const normalized = value => String(value || "").trim().replace(/\s+/g, " ");
+    const elements = [...document.querySelectorAll("body *")]
+      .filter(el => normalized(el.childElementCount === 0 ? el.textContent : "") === target)
+      .filter(el => {
+        const rect = el.getBoundingClientRect();
+        const style = getComputedStyle(el);
+        return rect.width > 0 && rect.height > 0 && style.visibility !== "hidden" && style.display !== "none";
+      })
+      .slice(0, 12);
+    return elements.map(el => {
+      let node = el;
+      const ancestors = [];
+      for (let depth = 0; node && depth < 4; depth++, node = node.parentElement) {
+        ancestors.push({
+          tag: node.tagName.toLowerCase(),
+          role: node.getAttribute("role") || "",
+          tabindex: node.getAttribute("tabindex"),
+          ariaSelected: node.getAttribute("aria-selected"),
+          ariaCurrent: node.getAttribute("aria-current"),
+          dataState: node.getAttribute("data-state"),
+          hasOnclick: typeof node.onclick === "function",
+          classTokens: String(node.className || "").split(/\s+/).filter(Boolean).slice(0, 5)
+        });
+      }
+      return {
+        tag: el.tagName.toLowerCase(),
+        role: el.getAttribute("role") || "",
+        tabindex: el.getAttribute("tabindex"),
+        ancestors
+      };
+    });
+  }, label);
+}
+
 async function snapshotPage(page, label) {
   const info = await page.evaluate(() => {
     const text = el => (el.innerText || el.getAttribute("aria-label") || el.getAttribute("title") || "")
@@ -325,11 +361,32 @@ try {
             : ["جزئیات درآمد", "فاکتورها"];
           for (const label of tabs) {
             const tab = page.getByText(label, { exact: true }).last();
-            if (await tab.count().catch(() => 0) === 0) continue;
-            await tab.click({ timeout: 4000 }).catch(() => {});
-            await page.waitForTimeout(1800);
+            const tabCount = await tab.count().catch(() => 0);
             const suffix = label === "فاکتورها" ? "invoices" :
               label === "جزئیات درآمد" ? "details" : "overview";
+            if (tabCount === 0) {
+              output.notes.push("Read-only tab not found: " + suffix);
+              output.pages.push({
+                label: "tab_diagnostic_" + suffix,
+                url: safePath(page.url()),
+                exact_text_matches: []
+              });
+              continue;
+            }
+            const beforeUrl = safePath(page.url());
+            const beforeMatch = await inspectExactVisibleText(page, label).catch(() => []);
+            const clickResult = await tab.click({ timeout: 4000 }).then(() => "clicked").catch(error => "click_failed:" + String(error?.name || "Error"));
+            await page.waitForTimeout(1800);
+            const afterUrl = safePath(page.url());
+            const afterMatch = await inspectExactVisibleText(page, label).catch(() => []);
+            output.pages.push({
+              label: "tab_diagnostic_" + suffix,
+              url_before: beforeUrl,
+              url_after: afterUrl,
+              click_result: clickResult,
+              exact_text_matches_before: beforeMatch,
+              exact_text_matches_after: afterMatch
+            });
             await snapshotPage(page, (target.url.includes("/performance") ? "performance_tab_" : "income_tab_") + suffix);
           }
         }
