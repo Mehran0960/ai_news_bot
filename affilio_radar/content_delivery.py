@@ -22,13 +22,13 @@ PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
 
 
 def _configured_queue_limit(value: Any = None) -> int:
-    """Return a defensive upper bound for live content hand-off/retry records."""
-    raw = value if value is not None else os.getenv("AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT", "6")
+    """Bound the scan-window publication plan without truncating a normal cycle."""
+    raw = value if value is not None else os.getenv("AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT", "160")
     try:
         parsed = int(raw)
     except (TypeError, ValueError, OverflowError):
-        parsed = 6
-    return max(1, min(20, parsed))
+        parsed = 160
+    return max(1, min(160, parsed))
 
 
 def _utc(value: Any, default: datetime | None = None) -> datetime | None:
@@ -195,7 +195,13 @@ def _active_queue_entries(queue: Any) -> list[tuple[str, dict]]:
 def _evict_oldest_active_queue_item(state: dict, now: datetime) -> bool:
     """Drop the oldest unresolved hand-off when the bounded queue needs a slot."""
     queue = state.get("content_delivery_queue")
-    entries = _active_queue_entries(queue)
+    entries = [
+        (product_id, entry)
+        for product_id, entry in _active_queue_entries(queue)
+        # A product explicitly reserved in a catalog-cycle plan is a durable
+        # publication promise; never evict it for a later discovery batch.
+        if not str(entry.get("publication_plan_cycle_id") or "").strip()
+    ]
     if not entries:
         return False
 
@@ -245,6 +251,7 @@ def refresh_unpublished_selections(
     *,
     now: datetime | None = None,
     stale_after_minutes: int = 8,
+    plan_cycle_id: str | None = None,
 ) -> int:
     """Discard future or stale selections that have not reached any destination.
 
@@ -274,6 +281,17 @@ def refresh_unpublished_selections(
         selected = _utc(entry.get("selected_at"), scheduled)
         future_scheduled = scheduled is not None and scheduled > now
         stale_due = selected is not None and now - selected >= stale_after
+        # Keep scheduled products that belong to a publication plan. A newer clean
+        # scan does not silently revoke a promised slot; last-mile checks decide it.
+        has_publication_reservation = bool(
+            str(entry.get("publication_plan_cycle_id") or "").strip()
+        )
+        same_active_plan = bool(
+            plan_cycle_id
+            and str(entry.get("publication_plan_cycle_id") or "") == str(plan_cycle_id)
+        )
+        if has_publication_reservation or same_active_plan:
+            continue
         if not future_scheduled and not stale_due:
             continue
 
