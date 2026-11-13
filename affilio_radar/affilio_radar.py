@@ -4970,7 +4970,13 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                 }
                 if status in {"pending", "failed", "retry"}:
                     pending_video = True
-            if pending_video:
+            channel_platforms = ("telegram", "bale", "rubika", "eitaa")
+            channel_success = any(
+                isinstance(platforms.get(name), dict)
+                and str(platforms[name].get("status") or "").lower() == "sent"
+                for name in channel_platforms
+            )
+            if pending_video and channel_success:
                 editorial_queue[str(content_id)] = {
                     "status": str(entry.get("status") or "queued"),
                     "sequence_number": entry.get("sequence_number"),
