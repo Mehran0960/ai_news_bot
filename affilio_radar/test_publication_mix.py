@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 from publication_mix import (
     apply_product_publication_schedule,
+    catalog_cycle_id,
     estimate_next_clean_scan_deadline,
     next_product_start_at,
     spread_product_slots,
@@ -135,7 +136,7 @@ class PublicationMixTests(unittest.TestCase):
             "current_cycle_started_at": "2026-11-11T00:00:00+00:00",
             "completed_candidates_cycle_at": "2026-11-10T06:00:00+00:00",
         }
-        cycle = __import__("publication_mix").catalog_cycle_id(status)
+        cycle = catalog_cycle_id(status)
         previous_plan = {
             "cycle_id": cycle,
             "scan_deadline_at": deadline.isoformat(),
@@ -152,7 +153,6 @@ class PublicationMixTests(unittest.TestCase):
         self.assertEqual(projected, deadline)
 
     def test_new_scan_attempt_gets_a_new_cycle_identity(self):
-        from publication_mix import catalog_cycle_id
         first = {
             "current_cycle_started_at": "2026-11-11T00:00:00+00:00",
             "completed_candidates_cycle_at": "2026-11-10T06:00:00+00:00",
