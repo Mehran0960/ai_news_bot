@@ -2,6 +2,22 @@
 
 > این دفتر append-only است: ورودی‌های قبلی پاک یا بازنویسی نمی‌شوند. هر تغییر فنی/تنظیمی/عملیاتیِ دستی باید یک ورودی تازه داشته باشد. اجرای زمان‌بندی‌شدهٔ عادی که فقط state یا cursor تولید می‌کند، به‌جای ثبت روزانهٔ تک‌تک رویدادها از GitHub Actions و artifact/state ledger قابل ردیابی است.
 
+## ۲۰۲۶-۱۱-۱۳ — آماده‌سازی اتصال فقط‌خواندنی گزارش‌های داشبورد افیلیو
+
+**هدف:** استفاده از آمار واقعی پنل افیلیو برای سنجش کلیک، سفارش، مبلغ فروش و کمیسیون؛ جلوگیری از تفسیر فیلدهای محلیِ ثبت‌نشده به‌عنوان فروش صفر.
+
+**تغییر/اقدام:** workflow محدود و فقط‌خواندنی .github/workflows/affilio-dashboard-readonly.yml و اسکریپت scripts/audit_affilio_dashboard.mjs روی شاخهٔ مستقل audit/affilio-dashboard-readonly ایجاد شد. ورود از SSO رسمی پنل انجام می‌شود و فقط مسیرهای گزارش با درخواست خواندنی باز می‌شوند. مقادیر محرمانه در کد، log و artifact ذخیره نمی‌شوند. workflow در این مرحله برای تشخیص ساختار پنل و endpointهای گزارش است، نه اتصال نهایی به گزارش تولیدی.
+
+**فایل‌ها/سامانه‌ها:** .github/workflows/affilio-dashboard-readonly.yml، scripts/audit_affilio_dashboard.mjs، affilio_radar/AFFILIO_REPORTING_ACCESS.md، docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md، GitHub Actions Secrets با نام‌های اعلام‌شدهٔ AFFILIO_USER و AFFILIO_PASS.
+
+**آزمون و نتیجه:** اجرای push با run ID 43398019426 آغاز شده است؛ نتیجهٔ ورود، صفحات قابل‌دسترسی و استخراج شاخص‌ها تا زمان تکمیل run در انتظار است. وجود یا مقدار Secretها از طریق API مخزن قابل خواندن نیست.
+
+**شواهد/شناسه:** شاخهٔ audit/affilio-dashboard-readonly؛ commit workflow 7091e2c37866eaff74d9c8c83fbcafc34f73800f؛ commit اسکریپت 6696c952bf87ed08d416fbcaf48cc3f20129cfb9؛ Actions run 43398019426.
+
+**ریسک/بازگشت:** SSO ممکن است OTP/CAPTCHA یا سیاست دسترسی دیگری اعمال کند. هیچ راه دورزدنی استفاده نمی‌شود. با بستن شاخه/PR می‌توان کد آزمایشی را حذف کرد؛ هیچ state انتشار یا تنظیم production تغییر نکرده است.
+
+**وضعیت:** شاخهٔ آزمایشی ایجاد شد؛ نتیجهٔ احراز هویت و artifact در انتظار.
+
 ## قالب اجباری هر ورودی
 
 هر ورودی باید این موارد را داشته باشد:
