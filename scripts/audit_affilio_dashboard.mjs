@@ -346,6 +346,10 @@ console.log("AFFILIO_PAGE_SUMMARY=" + JSON.stringify(output.pages.map(page => ({
   title: page.title,
   headings: page.headings,
   date_range_labels: page.date_range_labels,
+  // Keep dynamic product titles out of Actions logs; the encrypted artifact retains detail.
+  headings: (page.headings || []).filter(value =>
+    /^(اعلان‌ها|پیشخوان|کل درآمد \(تومانءء\)|تعداد سبد درآمد|تعداد کلیک‌ها|عملکرد لینک‌ها|درآمد من|درآمد نهایی شده \(تومان\)|درآمد در حال بررسی \(تومان\)|پاداش \(تومان\)|پر درآمد‌های شما|آمار کلی|جزئیات درآمد)$/.test(value)
+  ),
   report_controls: (page.controls || []).filter(item => REPORT_WORDS.test(item.label))
 }))));
 console.log("AFFILIO_LINK_ROWS_TOTAL=" + (output.report_data.link_rows_total ?? "unknown"));
