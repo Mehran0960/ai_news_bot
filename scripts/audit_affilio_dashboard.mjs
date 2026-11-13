@@ -382,4 +382,21 @@ for (const response of output.api_responses.slice(0, 80)) {
     fields: summarizeShape(response.shape)
   }));
 }
+// Page/route discovery is also sanitized: only labels, headings and same-origin route paths.
+for (const snapshot of output.pages.slice(0, 30)) {
+  console.log("AFFILIO_PAGE_SHAPE=" + JSON.stringify({
+    label: snapshot.label,
+    url: snapshot.url,
+    title: snapshot.title,
+    headings: snapshot.headings,
+    controls: (snapshot.controls || []).map(item => ({
+      label: item.label,
+      role: item.role,
+      path: item.href && typeof item.href.pathname === "string" ? item.href.pathname : null
+    })).slice(0, 80)
+  }));
+}
+console.log("AFFILIO_REPORT_ROUTES=" + JSON.stringify(
+  output.report_links.slice(0, 30).map(item => ({ label: item.label, url: item.url }))
+));
 if (output.authentication !== "authenticated_session_established") process.exitCode = 1;
