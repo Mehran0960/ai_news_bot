@@ -6,6 +6,7 @@ from content_delivery import (
     due_content, due_unpublished_selection, enqueue_selected_content,
     finish_queue_item, get_last_channel_published_at, has_fresh_unpublished_selection,
     allocate_publication_sequence, promote_fallback_selection, enforce_queue_limit,
+    _configured_queue_limit,
     refresh_unpublished_selections, selection_cadence_anchor,
 )
 from platform_registry import CORE_PHOTO_PLATFORMS, PHOTO_PLATFORMS, PLATFORM_NAMES
@@ -45,6 +46,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "deal_expires_at": deadline.isoformat() if deadline else "",
         }
 
+
+    def test_configured_queue_limit_supports_full_catalog_handoff_batch(self):
+        with patch.dict("os.environ", {"AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT": "250"}):
+            self.assertEqual(_configured_queue_limit(), 250)
 
     def test_planned_product_survives_early_clean_scan_replacement(self):
         state = {
