@@ -1,0 +1,62 @@
+name: Affilio Dashboard Read-Only Audit
+
+on:
+  push:
+    branches:
+      - fix/affilio-dashboard-reporting-v2-20261113
+    paths:
+      - ".github/workflows/affilio-dashboard-readonly.yml"
+      - "scripts/audit_affilio_dashboard.mjs"
+      - "scripts/encrypt_affilio_dashboard_report.mjs"
+  workflow_dispatch:
+  schedule:
+    - cron: "30 6 * * *" # 09:30 Asia/Tehran daily; read-only reporting only.
+
+permissions:
+  contents: read
+
+concurrency:
+  group: affilio-dashboard-readonly-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out audit branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install isolated browser runtime
+        run: |
+          npm install --no-save --no-package-lock playwright@1.53.2
+          npx playwright install --with-deps chromium
+
+      - name: Read dashboard metrics without changing account state
+        env:
+          AFFILIO_USER: ${{ secrets.AFFILIO_USER }}
+          AFFILIO_PASS: ${{ secrets.AFFILIO_PASS }}
+        run: node scripts/audit_affilio_dashboard.mjs
+
+      - name: Encrypt private dashboard report before artifact storage
+        if: always() && hashFiles('affilio-dashboard-diagnostic.json') != ''
+        env:
+          AFFILIO_PASS: ${{ secrets.AFFILIO_PASS }}
+        run: |
+          node scripts/encrypt_affilio_dashboard_report.mjs
+          rm -f affilio-dashboard-diagnostic.json
+
+
+      - name: Upload encrypted diagnostic artifact only
+        if: always() && hashFiles('affilio-dashboard-diagnostic.enc.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: affilio-dashboard-diagnostic-encrypted
+          path: affilio-dashboard-diagnostic.enc.json
+          if-no-files-found: ignore
+          retention-days: 7
