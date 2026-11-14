@@ -11199,88 +11199,177 @@ def run(publish=False, selection_only=False):
     }
     save_json(REPORT, report)
     if selection_only:
-        # Keep discovery live on every scan, but only select a new product when a
-        # publication slot is due. Never build a long queue of products chosen early.
         from content_delivery import (
+            TERMINAL_QUEUE_STATUSES,
             enqueue_selected_content,
-            get_last_channel_published_at,
-            has_fresh_unpublished_selection,
-            refresh_unpublished_selections,
-            selection_cadence_anchor,
         )
+        from editorial_content import enqueue_editorial_entry
+
         selection_now = datetime.now(timezone.utc)
         replaced = refresh_unpublished_selections(
             state, now=selection_now, stale_after_minutes=8
         )
-        interval_seconds = max(60, int(MIN_POST_INTERVAL_HOURS * 3600))
-
-        # Cadence follows the last selection and an actual Telegram/Bale send.
-        # Retries to YouTube/Aparat cannot move the public-channel slot forward.
-        # The helper also recovers older state from immutable per-platform send times.
-        last_selected = _parse_utc_datetime(state.get("last_content_selection_at"))
-        last_channel_published = get_last_channel_published_at(state)
-        fresh_unpublished_selection = has_fresh_unpublished_selection(
-            state, now=selection_now, stale_after_minutes=8
-        )
-        last_slot_anchor = selection_cadence_anchor(
-            last_selected,
-            last_channel_published,
-            has_fresh_unpublished_selection=fresh_unpublished_selection,
-        )
-        elapsed = (
-            (selection_now - last_slot_anchor).total_seconds()
-            if last_slot_anchor is not None else interval_seconds
-        )
-        remaining = max(0, interval_seconds - int(elapsed))
-
-        # A daily cap or an unexpired cooldown is a normal no-op, not a failed scan.
-        if remaining > 0:
+        product_queue = state.get("content_delivery_queue")
+        editorial_queue = state.get("editorial_delivery_queue")
+        active_products = [
+            row for row in (product_queue.values() if isinstance(product_queue, dict) else [])
+            if isinstance(row, dict) and row.get("status") not in TERMINAL_QUEUE_STATUSES
+        ]
+        active_editorials = [
+            row for row in (editorial_queue.values() if isinstance(editorial_queue, dict) else [])
+            if isinstance(row, dict) and row.get("status") not in {"completed", "cancelled", "failed"}
+        ]
+        if active_products or active_editorials:
             save_json(STATE, state)
             print(
-                "CONTENT_SELECTION_SLOT_NOT_DUE "
-                f"seconds_remaining={remaining} live_candidates={len(eligible)} "
+                "FLOATING_SELECTION_BATCH_REUSED "
+                f"active_products={len(active_products)} active_editorials={len(active_editorials)} "
                 f"replaced_stale={replaced}"
             )
             return 0
-        if daily_channel_posts_count(state, selection_now) >= MAX_DAILY_CHANNEL_POSTS:
-            save_json(STATE, state)
-            print(
-                "CONTENT_SELECTION_DAILY_CAP_REACHED "
-                f"limit={MAX_DAILY_CHANNEL_POSTS} live_candidates={len(eligible)}"
-            )
-            return 0
 
-        # Store one due primary plus a compact ranked backup pool.
-        # Backups preserve global discount/savings order. The publisher
-        # repeats live stock, price, identity, title, and affiliate checks.
-        primary = eligible[:1]
-        summary = enqueue_selected_content(
-            state,
-            primary,
-            now=selection_now,
-            interval_seconds=interval_seconds,
-            max_items=1,
-            minimum_runway_minutes=MIN_PUBLICATION_RUNWAY_MINUTES,
+        horizon_seconds = floating_catalog_horizon_seconds(selection_now)
+        minimum_product_spacing = 15 * 60
+        queue_limit = max(1, min(6, int(os.getenv("AFFILIO_FLOATING_MAX_PRODUCTS_PER_CYCLE", "6"))))
+        maximum_spread_products = max(1, int(horizon_seconds // minimum_product_spacing) - 1)
+        remaining_daily_capacity = max(
+            0,
+            MAX_DAILY_CHANNEL_POSTS - daily_channel_posts_count(state, selection_now),
         )
-        fallback_count = 0
-        if summary["added"] and primary:
-            primary_id = str(primary[0].get("product_id") or product_id(primary[0].get("product_url") or ""))
-            primary_entry = state.get("content_delivery_queue", {}).get(primary_id)
-            if isinstance(primary_entry, dict):
-                primary_entry["fallback_candidates"] = [
-                    dict(candidate) for candidate in eligible[1:51]
-                    if isinstance(candidate, dict)
-                ]
-                fallback_count = len(primary_entry["fallback_candidates"])
-            state["last_content_selection_at"] = selection_now.isoformat()
+        candidate_rows = []
+        candidate_ids = set()
+        for item in eligible:
+            pid = str(item.get("product_id") or product_id(item.get("product_url") or "")).strip().lower()
+            if not pid or pid in candidate_ids:
+                continue
+            candidate_ids.add(pid)
+            candidate_rows.append(item)
+
+        selected_count = min(
+            len(candidate_rows),
+            queue_limit,
+            maximum_spread_products,
+            remaining_daily_capacity,
+        )
+        bank = []
+        try:
+            bank = json.loads((ROOT / "editorial_bank.json").read_text(encoding="utf-8"))
+            if not isinstance(bank, list):
+                bank = []
+        except (OSError, ValueError, TypeError) as exc:
+            print(f"EDITORIAL_BANK_READ_FAILED error={type(exc).__name__}")
+
+        cycle_id = "unknown"
+        try:
+            catalog_status = json.loads(CATALOG_SWEEP_STATUS.read_text(encoding="utf-8"))
+            cycle_id = str(
+                catalog_status.get("last_cycle_started_at")
+                or catalog_status.get("current_cycle_started_at")
+                or catalog_status.get("last_clean_cycle_completed_at")
+                or "unknown"
+            )
+        except (OSError, ValueError, TypeError):
+            pass
+
+        queued_products = 0
+        queued_editorials = 0
+        product_gap_seconds = None
+        if selected_count:
+            product_gap_seconds = max(
+                minimum_product_spacing,
+                int(horizon_seconds / (selected_count + 1)),
+            )
+            product_slots = [
+                selection_now + timedelta(seconds=product_gap_seconds * (index + 1))
+                for index in range(selected_count)
+            ]
+
+            # With a single product, put a relevant editorial before it. With a
+            # multi-product batch, place one editorial in every gap, matched to the
+            # product that follows it whenever the approved bank has a useful match.
+            if selected_count == 1 and bank:
+                editorial_time = product_slots[0] - timedelta(seconds=max(60, product_gap_seconds // 2))
+                if enqueue_editorial_entry(
+                    state, bank, scheduled_at=editorial_time, now=selection_now,
+                    product_context=candidate_rows[0],
+                ):
+                    queued_editorials += 1
+
+            for index in range(selected_count):
+                item = candidate_rows[index]
+                product_id_value = str(item.get("product_id") or product_id(item.get("product_url") or "")).strip().lower()
+                summary = enqueue_selected_content(
+                    state,
+                    [item],
+                    now=selection_now,
+                    interval_seconds=product_gap_seconds,
+                    max_items=1,
+                    minimum_runway_minutes=MIN_PUBLICATION_RUNWAY_MINUTES,
+                    max_active_items=queue_limit,
+                    scheduled_at_values=[product_slots[index].isoformat()],
+                )
+                if summary["added"]:
+                    queued_products += 1
+                    entry = state.get("content_delivery_queue", {}).get(product_id_value)
+                    if index == 0 and isinstance(entry, dict):
+                        entry["fallback_candidates"] = [
+                            dict(candidate)
+                            for candidate in candidate_rows[selected_count:selected_count + 50]
+                            if isinstance(candidate, dict)
+                        ]
+                if index < selected_count - 1 and bank:
+                    editorial_time = product_slots[index] + (
+                        product_slots[index + 1] - product_slots[index]
+                    ) / 2
+                    if enqueue_editorial_entry(
+                        state, bank, scheduled_at=editorial_time, now=selection_now,
+                        product_context=candidate_rows[index + 1],
+                    ):
+                        queued_editorials += 1
+        elif remaining_daily_capacity > 0 and bank:
+            # When no product survives the hard gates, reviewed Persian editorial
+            # content keeps the channel alive until the next catalog scan.
+            editorial_count = min(
+                4,
+                max(1, int(horizon_seconds // minimum_product_spacing) - 1),
+                remaining_daily_capacity,
+            )
+            editorial_gap = max(minimum_product_spacing, int(horizon_seconds / (editorial_count + 1)))
+            for index in range(editorial_count):
+                scheduled = selection_now + timedelta(seconds=editorial_gap * (index + 1))
+                if enqueue_editorial_entry(
+                    state, bank, scheduled_at=scheduled, now=selection_now,
+                ):
+                    queued_editorials += 1
+
+        state["last_content_selection_at"] = selection_now.isoformat()
+        state["publication_schedule_version"] = "floating_catalog_cycle_v1"
+        state["publication_schedule_cycle_id"] = cycle_id
+        state["publication_schedule_mode"] = (
+            "emergency_discount_first" if emergency_recovery and queued_products
+            else "floating_four_factor" if queued_products
+            else "editorial_only_until_catalog_scan"
+        )
+        state["publication_schedule_product_count"] = queued_products
+        state["publication_schedule_editorial_count"] = queued_editorials
+        state["publication_schedule_interval_seconds"] = product_gap_seconds or (
+            max(minimum_product_spacing, int(horizon_seconds / (queued_editorials + 1)))
+            if queued_editorials else None
+        )
+        state["publication_schedule_horizon_seconds"] = horizon_seconds
+        state["publication_schedule_next_catalog_scan_at"] = (
+            selection_now + timedelta(seconds=horizon_seconds)
+        ).isoformat()
+        state["publication_schedule_created_at"] = selection_now.isoformat()
         save_json(STATE, state)
         print(
-            "CONTENT_SELECTION_HANDOFF "
-            f"queued={summary['added']} skipped={summary['skipped']} "
-            f"queue_size={summary['queue_size']} live_candidates={len(eligible)} "
-            f"fallback_pool={fallback_count} replaced_stale={replaced} publisher_invoked=false"
+            "FLOATING_PUBLICATION_PLAN "
+            f"cycle={cycle_id} horizon_seconds={horizon_seconds} "
+            f"products_queued={queued_products} editorials_queued={queued_editorials} "
+            f"equal_product_gap_seconds={product_gap_seconds or 'none'} "
+            f"emergency_recovery={emergency_recovery} daily_capacity_left={remaining_daily_capacity} "
+            f"replaced_stale={replaced}"
         )
-        # No eligible offer is a normal outcome. The next scan refreshes the pool.
         return 0
 
     state.setdefault("published", {})
