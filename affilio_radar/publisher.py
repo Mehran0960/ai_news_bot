@@ -244,6 +244,14 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "caption_variant": str(item.get("caption_variant") or "A").upper(),
         "selection_demand_evidence": str(item.get("selection_demand_evidence") or "none"),
         "selection_demand_quality": str(item.get("selection_demand_quality") or "unknown"),
+        "selection_continuity_mode": str(item.get("selection_continuity_mode") or ""),
+        "emergency_continuity_snapshot_sha256": str(item.get("emergency_continuity_snapshot_sha256") or ""),
+        "emergency_continuity_baseline_completed_at": str(item.get("emergency_continuity_baseline_completed_at") or ""),
+        "selection_four_factor": (
+            dict(item.get("selection_four_factor"))
+            if isinstance(item.get("selection_four_factor"), dict) else {}
+        ),
+        "emergency_continuity_quality_score": item.get("emergency_continuity_quality_score"),
         "selection_bestseller_rank": item.get("selection_bestseller_rank"),
         "selection_bestseller_category_count": int(item.get("selection_bestseller_category_count") or 0),
         "selection_bestseller_rank_improvement": int(item.get("selection_bestseller_rank_improvement") or 0),
@@ -306,12 +314,73 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
     return record
 
 
+def _valid_emergency_continuity_override(
+    payload: dict,
+    state: dict | None,
+    now: datetime,
+) -> bool:
+    """Verify a demand-only exception against the active, hash-pinned lead snapshot."""
+    if not isinstance(state, dict):
+        return False
+    if (
+        payload.get("selection_continuity_mode") != "temporary_three_factor_demand_relaxation"
+        or payload.get("selection_demand_evidence") != "not_verified_emergency_continuity_override"
+        or payload.get("selection_demand_quality") != "demand_not_verified_three_factor_proxy_only"
+    ):
+        return False
+    record = state.get("emergency_continuity")
+    if not isinstance(record, dict) or record.get("status") != "active":
+        return False
+    expires = _utc(record.get("expires_at"))
+    if expires is None or expires <= now:
+        return False
+    snapshot_sha = str(record.get("baseline_snapshot_sha256") or "").strip()
+    baseline_completed = str(record.get("baseline_clean_cycle_completed_at") or "").strip()
+    if (
+        not re.fullmatch(r"[a-f0-9]{64}", snapshot_sha)
+        or payload.get("emergency_continuity_snapshot_sha256") != snapshot_sha
+        or payload.get("emergency_continuity_baseline_completed_at") != baseline_completed
+    ):
+        return False
+    factors = payload.get("selection_four_factor")
+    if not isinstance(factors, dict):
+        factors = payload.get("offerchin_four_factor")
+    if not isinstance(factors, dict):
+        return False
+    try:
+        discount = float(factors.get("discount_attractiveness") or 0)
+        affordability = float(factors.get("affordability") or 0)
+        generality = float(factors.get("generality") or 0)
+    except (TypeError, ValueError, OverflowError):
+        return False
+    if min(discount, affordability, generality) <= 0:
+        return False
+    harmonic = 3 / (1 / discount + 1 / affordability + 1 / generality)
+    if discount < 55 or affordability < 40 or generality < 50 or harmonic < 55:
+        return False
+    try:
+        verified_leads = radar.load_emergency_continuity_candidates(
+            record,
+            radar.CATALOG_SWEEP_CANDIDATES,
+            now=now,
+            limit=1,
+            required_product_id=str(payload.get("product_id") or ""),
+        )
+    except Exception as exc:
+        print(f"EMERGENCY_CONTINUITY_VERIFY_FAILED error={type(exc).__name__}")
+        return False
+    if not verified_leads or not verified_leads.get("candidates"):
+        return False
+    return True
+
+
 def _fresh_selected_item(
     entry: dict,
     now: datetime,
     catalog_context: dict | None = None,
     *,
     require_catalog_membership: bool = True,
+    state: dict | None = None,
 ) -> tuple[dict | None, str]:
     payload = entry.get("payload")
     if not isinstance(payload, dict):
@@ -319,12 +388,19 @@ def _fresh_selected_item(
     # New products need fresh demand evidence. Once any destination has been
     # successfully delivered, retries only finish that same publication; do not
     # strand already-sent Telegram/Bale posts because the evidence later ages out.
+    emergency_override = _valid_emergency_continuity_override(payload, state, now)
     if (
         not radar.has_verified_market_demand(payload, now=now)
+        and not emergency_override
         and not _has_successful_destination(entry)
     ):
         return None, "selection_demand_evidence_missing_or_stale"
-    if require_catalog_membership and catalog_context is not None and not radar.catalog_candidate_is_publishable(payload, catalog_context):
+    if (
+        require_catalog_membership
+        and catalog_context is not None
+        and not emergency_override
+        and not radar.catalog_candidate_is_publishable(payload, catalog_context)
+    ):
         return None, "catalog_snapshot_candidate_stale"
     product_url = radar.safe_product_url(str(payload.get("product_url") or ""))
     product_id = str(payload.get("product_id") or "").lower()
@@ -379,6 +455,9 @@ def _fresh_selected_item(
         "catalog_best_selling_category_id", "catalog_best_selling_category_name",
         "catalog_rank_observed_at", "catalog_cycle_completed_at", "catalog_cycle_snapshot_rank",
         "publication_policy", "selection_demand_evidence", "selection_demand_quality",
+        "selection_continuity_mode", "emergency_continuity_snapshot_sha256",
+        "emergency_continuity_baseline_completed_at", "selection_four_factor",
+        "emergency_continuity_quality_score",
         "selection_bestseller_rank", "selection_bestseller_category_count",
         "selection_bestseller_rank_improvement", "selection_review_growth_evidence",
         "selection_value_evidence", "selection_fallback_mode",
@@ -819,6 +898,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             now,
             catalog_context,
             require_catalog_membership=not already_partially_delivered,
+            state=state,
         )
         if fresh is None:
             # A selected item that no longer matches its live price is removed
