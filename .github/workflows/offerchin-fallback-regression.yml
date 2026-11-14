@@ -8,6 +8,9 @@ on:
       - "affilio_radar/publisher.py"
       - "affilio_radar/platform_registry.py"
       - "affilio_radar/test_content_delivery.py"
+      - "affilio_radar/digikala_mag_discovery.py"
+      - "affilio_radar/test_digikala_mag_discovery.py"
+      - ".github/workflows/offerchin-mag-source-discovery.yml"
       - ".github/workflows/offerchin-fallback-regression.yml"
   push:
     branches:
