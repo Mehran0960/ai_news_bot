@@ -4954,12 +4954,41 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         raw = state.get(key) if isinstance(state, dict) else None
         return raw if isinstance(raw, (str, int, float, bool)) or raw is None else None
 
+    next_channel_due = []
+    terminal_queue_statuses = {
+        "published", "completed", "cancelled", "stale_selection", "rejected", "failed"
+    }
+    if isinstance(state, dict):
+        for collection_name in ("content_delivery_queue", "editorial_delivery_queue"):
+            collection = state.get(collection_name)
+            if not isinstance(collection, dict):
+                continue
+            for entry in collection.values():
+                if not isinstance(entry, dict):
+                    continue
+                status = str(entry.get("status") or "").strip().lower()
+                if status in terminal_queue_statuses:
+                    continue
+                target = _parse_utc_datetime(
+                    entry.get("next_attempt_at") or entry.get("scheduled_at")
+                )
+                if target is not None:
+                    next_channel_due.append(target.astimezone(timezone.utc))
+    next_channel_due_at = (
+        min(next_channel_due).isoformat() if next_channel_due else None
+    )
+    cadence = state.get("product_publication_cadence") if isinstance(state, dict) else {}
+    cadence = cadence if isinstance(cadence, dict) else {}
+
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": current.isoformat(),
         "last_channel_published_at": value("last_channel_published_at"),
         "last_product_channel_published_at": value("last_product_channel_published_at"),
         "product_publication_interval_seconds": value("product_publication_interval_seconds"),
+        "product_publication_plan_cycle_id": value("product_publication_plan_cycle_id"),
+        "product_publication_cadence_cycle_id": cadence.get("catalog_cycle_id"),
+        "next_channel_content_due_at": next_channel_due_at,
         "youtube_next_upload_at": value("youtube_next_upload_at"),
         "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
         "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
