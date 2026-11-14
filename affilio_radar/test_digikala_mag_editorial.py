@@ -5,8 +5,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+from editorial_content import validate_editorial_item
 from digikala_mag_editorial import (
     EditorialDraftError,
+    _make_editorial_draft,
     extract_article_text,
     run_pipeline,
     validate_generated_summary,
@@ -163,6 +165,15 @@ class DigiKalaMagEditorialTests(unittest.TestCase):
             validate_generated_summary(copied, article_text=ARTICLE_BODY)[1],
             "source_copy_overlap_too_high",
         )
+
+    def test_category_topic_is_normalized_to_live_editorial_contract(self):
+        candidate = {**CANDIDATE, "topic": "home_kitchen"}
+        draft = _make_editorial_draft(candidate, PERSIAN_DRAFT, NOW)
+        self.assertEqual(draft["topic"], "home-kitchen")
+        draft["reviewed_at"] = NOW.isoformat()
+        draft["review_due_at"] = "2027-02-01T09:00:00+00:00"
+        valid, reason = validate_editorial_item(draft, now=NOW)
+        self.assertTrue(valid, reason)
 
     def test_pending_cap_keeps_highest_ranked_candidates(self):
         candidates = [
