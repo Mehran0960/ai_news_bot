@@ -9,6 +9,8 @@ import {
   videoRecordDue,
   isFiloLoginVerified,
   PUBLISHER_INTERVAL_MS,
+  PUBLISHER_STANDALONE_EDITORIAL_GAP_MS,
+  nextPublisherDueAt,
   readLastChannelPublicationAt,
 } from "./affilio-minute-dispatcher.mjs";
 
@@ -183,8 +185,32 @@ test("fails closed on missing, stale-schema, or partial-scan status", () => {
 });
 
 
-test("uses a 27-minute channel publication interval", () => {
+test("uses a 27-minute minimum channel publication interval", () => {
   assert.equal(PUBLISHER_INTERVAL_MS, 27 * 60 * 1000);
+});
+
+test("floating publisher waits for the next scheduled product or editorial slot", () => {
+  const now = Date.now();
+  const scheduled = now + 3 * 60 * 60 * 1000;
+  const state = { next_channel_content_due_at: new Date(scheduled).toISOString() };
+  assert.equal(nextPublisherDueAt(state, now), scheduled);
+});
+
+test("floating publisher never violates the 27-minute minimum after a channel post", () => {
+  const now = Date.now();
+  const tooSoon = now + 10 * 60 * 1000;
+  const state = { next_channel_content_due_at: new Date(tooSoon).toISOString() };
+  assert.equal(nextPublisherDueAt(state, now), now + PUBLISHER_INTERVAL_MS);
+});
+
+test("standalone editorial fallback uses its own 55-minute gap when no queue slot exists", () => {
+  const now = Date.now();
+  assert.equal(PUBLISHER_STANDALONE_EDITORIAL_GAP_MS, 55 * 60 * 1000);
+  assert.equal(nextPublisherDueAt({}, now), now + 55 * 60 * 1000);
+});
+
+test("publisher bootstraps immediately when neither a post nor a scheduled slot exists", () => {
+  assert.equal(nextPublisherDueAt({}, null), null);
 });
 
 test("channel cadence clock recognizes every active publishing channel", () => {
