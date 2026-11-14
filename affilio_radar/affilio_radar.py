@@ -11022,6 +11022,12 @@ def run(publish=False, selection_only=False):
                         "title": str(lead.get("title") or "")[:180],
                         "brand": str(lead.get("brand") or "")[:100],
                         "source": "digikala_emergency_last_clean_snapshot",
+                        "emergency_continuity_snapshot_sha256": str(
+                            record.get("baseline_snapshot_sha256") or ""
+                        ),
+                        "emergency_continuity_baseline_completed_at": str(
+                            record.get("baseline_clean_cycle_completed_at") or ""
+                        ),
                         "first_seen_at": datetime.now(timezone.utc).isoformat(),
                         "last_seen_at": datetime.now(timezone.utc).isoformat(),
                         "last_check_status": "emergency_snapshot_lead",
@@ -11080,6 +11086,16 @@ def run(publish=False, selection_only=False):
                     if catalog_record.get(field) not in (None, ""):
                         item[field] = catalog_record[field]
             item["merchant"] = "اسنپ‌شاپ" if product_id(canonical).startswith("snp-") else "دیجی‌کالا"
+            if (
+                isinstance(catalog_record, dict)
+                and catalog_record.get("source") == "digikala_emergency_last_clean_snapshot"
+            ):
+                item["emergency_continuity_snapshot_sha256"] = str(
+                    catalog_record.get("emergency_continuity_snapshot_sha256") or ""
+                )
+                item["emergency_continuity_baseline_completed_at"] = str(
+                    catalog_record.get("emergency_continuity_baseline_completed_at") or ""
+                )
             mcp_deadline_hint = deal_expiries.get(pid, "")
             direct_feed_deadline = direct_feed_expiries.get(pid, "")
             mcp_card_deadline = mcp_card_expiries.get(pid, "")
@@ -11293,7 +11309,7 @@ def run(publish=False, selection_only=False):
     )
     eligible_by_id = {
         str(p.get("product_id") or product_id(p.get("product_url", ""))): p
-        for p in quality_eligible
+        for p in [*quality_eligible, *eligible]
     }
     # Retain the band metadata before ranking replaces this list with the
     # original quality records. Restore it now so retries and final ranking both
