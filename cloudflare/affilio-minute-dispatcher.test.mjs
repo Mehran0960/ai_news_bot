@@ -11,6 +11,7 @@ import {
   PUBLISHER_INTERVAL_MS,
   PUBLISHER_STANDALONE_EDITORIAL_GAP_MS,
   isEmergencyContinuityAvailable,
+  isPublisherAttemptRun,
   nextPublisherDueAt,
   readLastChannelPublicationAt,
 } from "./affilio-minute-dispatcher.mjs";
@@ -219,6 +220,14 @@ test("standalone editorial fallback uses its own 55-minute gap when no queue slo
   const now = Date.now();
   assert.equal(PUBLISHER_STANDALONE_EDITORIAL_GAP_MS, 55 * 60 * 1000);
   assert.equal(nextPublisherDueAt({}, now), now + 55 * 60 * 1000);
+});
+
+test("publisher retry cooldown recognizes guarded push and workflow_dispatch attempts", () => {
+  assert.equal(isPublisherAttemptRun({ event: "push", head_branch: "main" }), true);
+  assert.equal(isPublisherAttemptRun({ event: "workflow_dispatch", head_branch: "main" }), true);
+  assert.equal(isPublisherAttemptRun({ event: "push", head_branch: "feature/preview" }), false);
+  assert.equal(isPublisherAttemptRun({ event: "schedule", head_branch: "main" }), false);
+  assert.equal(isPublisherAttemptRun(null), false);
 });
 
 test("emergency continuity retries discovery instead of waiting for standalone editorial", () => {
