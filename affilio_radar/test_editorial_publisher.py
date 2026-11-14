@@ -39,7 +39,14 @@ class EditorialPublisherTests(unittest.TestCase):
     def test_editorial_fifo_lock_is_disabled_by_default(self):
         state = {
             "editorial_delivery_queue": {
-                "editorial:test": {"content_id": "editorial:test", "sequence_number": 4, "status": "partial"}
+                "editorial:test": {
+                    "content_id": "editorial:test", "sequence_number": 4, "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                        "youtube": {"status": "pending"},
+                    },
+                }
             }
         }
         with patch.dict(os.environ, {}, clear=True):
@@ -48,36 +55,146 @@ class EditorialPublisherTests(unittest.TestCase):
     def test_editorial_fifo_lock_activates_only_with_explicit_flag(self):
         state = {
             "editorial_delivery_queue": {
-                "editorial:test": {"content_id": "editorial:test", "sequence_number": 4, "status": "partial"}
+                "editorial:test": {
+                    "content_id": "editorial:test", "sequence_number": 4, "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                        "youtube": {"status": "pending"},
+                    },
+                }
+            }
+        }
+        with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
+            self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
+
+    def test_editorial_lock_releases_after_core_photo_channels_are_terminal(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:test": {
+                    "content_id": "editorial:test",
+                    "sequence_number": 4,
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "sent"},
+                        "youtube": {"status": "pending"},
+                        "aparat": {"status": "retry"},
+                        "filo": {"status": "pending"},
+                    },
+                }
+            }
+        }
+        with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
+            self.assertIsNone(editorial_fifo_lock_entry(state))
+
+    def test_editorial_lock_still_waits_for_a_core_photo_channel(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:test": {
+                    "content_id": "editorial:test",
+                    "sequence_number": 4,
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "pending"},
+                        "youtube": {"status": "uploaded"},
+                        "aparat": {"status": "uploaded"},
+                        "filo": {"status": "uploaded"},
+                    },
+                }
             }
         }
         with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
             self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
 
     def test_editorial_gets_shared_monotonic_sequence(self):
-        state = {"publication_sequence_counter": 12}
+        state = {
+            "publication_sequence_counter": 12,
+            "last_channel_published_at": (NOW - timedelta(minutes=60)).isoformat(),
+        }
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
         self.assertEqual(entry["sequence_number"], 13)
         self.assertEqual(entry["content_type"], "editorial")
         self.assertEqual(entry["payload"]["content_id"], "editorial:test-guide")
         self.assertEqual(state["publication_sequence_counter"], 13)
 
+    def test_editorial_fallback_obeys_shared_daily_channel_post_cap(self):
+        state = {}
+        with patch("editorial_publisher._pending_product_video_exists", return_value=False), \
+             patch("editorial_publisher.radar.daily_channel_posts_count", return_value=72), \
+             patch("editorial_publisher.radar.MAX_DAILY_CHANNEL_POSTS", 72):
+            self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+        self.assertFalse(state.get("editorial_delivery_queue"))
+
     def test_editorial_does_not_preempt_recent_channel_publication(self):
         state = {"last_channel_published_at": (NOW - timedelta(minutes=20)).isoformat()}
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
         self.assertFalse(state.get("editorial_delivery_queue"))
 
-    def test_editorial_does_not_preempt_active_product_photo_fifo(self):
-        state = {"content_delivery_queue": {
-            "dkp-1": {"status": "partial", "selected_at": (NOW - timedelta(minutes=5)).isoformat()}
-        }}
+    def test_editorial_does_not_preempt_a_due_product_slot(self):
+        state = {
+            "last_channel_published_at": (NOW - timedelta(hours=2)).isoformat(),
+            "content_delivery_queue": {
+                "dkp-1": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "selected_at": (NOW - timedelta(minutes=5)).isoformat(),
+                    "scheduled_at": (NOW - timedelta(minutes=1)).isoformat(),
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
+        }
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
 
-    def test_editorial_waits_for_older_product_video_fifo(self):
-        state = {"published": {
-            "dkp-1": {"youtube_upload_status": "retry", "aparat_upload_status": "uploaded", "filo_upload_status": "uploaded"}
-        }}
-        self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+    def test_pending_product_video_does_not_hold_back_editorial_channel_post(self):
+        state = {
+            "last_channel_published_at": (NOW - timedelta(minutes=60)).isoformat(),
+            "published": {
+                "dkp-1": {
+                    "video_generation_status": "pending",
+                    "youtube_upload_status": "retry",
+                    "aparat_upload_status": "uploaded",
+                    "filo_upload_status": "uploaded",
+                }
+            },
+        }
+        entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry["status"], "queued")
+
+    def test_related_editorial_is_scheduled_midway_before_its_product(self):
+        product_at = NOW + timedelta(hours=2)
+        product = {
+            "product_id": "dkp-related",
+            "title": "گوشی هوشمند",
+            "offerchin_four_factor": {"generality_group": "mobile_productivity"},
+        }
+        state = {
+            "last_channel_published_at": NOW.isoformat(),
+            "content_delivery_queue": {
+                "dkp-related": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "selected_at": NOW.isoformat(),
+                    "scheduled_at": product_at.isoformat(),
+                    "payload": product,
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
+        }
+        bank = [
+            editorial_item("fashion-fit", "fit-and-size"),
+            editorial_item("device-fit", "device-compatibility"),
+        ]
+        entry = queue_editorial_if_due(state, bank, now=NOW)
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry["related_product_id"], "dkp-related")
+        self.assertEqual(entry["payload"]["editorial_id"], "device-fit")
+        self.assertEqual(
+            datetime.fromisoformat(entry["scheduled_at"]),
+            NOW + timedelta(hours=1),
+        )
 
     def test_editorial_message_contains_sources(self):
         message = _format_message(editorial_item())

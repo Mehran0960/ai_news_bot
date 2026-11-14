@@ -67,20 +67,22 @@ jobs:
           assert not invalid, invalid
           print(f"EDITORIAL_BANK_VALID count={len(bank)}")
           PY
-      - name: Verify public editorial publishing is feature-flagged off by default
+      - name: Verify scheduled Persian editorial fallback and read-only shadow separation
         run: |
           python - <<'PY'
           from pathlib import Path
           channel = Path(".github/workflows/offerchin-publisher.yml").read_text(encoding="utf-8")
           video = Path(".github/workflows/offerchin-video-publisher.yml").read_text(encoding="utf-8")
           shadow = Path(".github/workflows/offerchin-editorial-shadow.yml").read_text(encoding="utf-8")
-          expected = "vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'false'"
-          assert expected in channel and expected in video
+          enabled = 'OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"'
+          assert channel.count(enabled) == 2
+          assert enabled in video
+          assert 'OFFERCHIN_EDITORIAL_GAP_MINUTES: "55"' in channel
           assert "EDITORIAL_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED" in channel
           assert "EDITORIAL_VIDEO_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED" in video
           assert "--shadow-report" in shadow
           assert "--publish" not in shadow
-          print("EDITORIAL_PUBLIC_PUBLISH_DEFAULTS_OFF")
+          print("EDITORIAL_PUBLIC_FALLBACK_ENABLED_WITH_55M_GAP_AND_READ_ONLY_SHADOW")
           PY
       - name: Run the read-only shadow report and prove state is untouched
         run: |

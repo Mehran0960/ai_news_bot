@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -452,6 +452,137 @@ def load_completed_candidates_snapshot(
         "status": status,
     }
 
+
+
+
+def load_emergency_continuity_candidates(
+    continuity_record: Any,
+    candidates_path: Path = COMPLETED_CANDIDATES_PATH,
+    *,
+    now: datetime | None = None,
+    limit: int = 50,
+    required_product_id: str | None = None,
+) -> dict[str, Any] | None:
+    """Load a frozen last-known-good catalog as lead IDs only during one emergency window.
+
+    The emergency record pins the exact SHA and scan timestamps. Snapshot price, discount,
+    availability, and expiry are deliberately not returned: every lead must be fetched and
+    revalidated against live product data before it can enter the publication queue.
+    """
+    if not isinstance(continuity_record, dict) or continuity_record.get("status") != "active":
+        return None
+
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    try:
+        expires_at = datetime.fromisoformat(
+            str(continuity_record.get("expires_at") or "").replace("Z", "+00:00")
+        )
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError):
+        return None
+    if expires_at.astimezone(timezone.utc) <= current:
+        return None
+
+    expected_started = str(continuity_record.get("baseline_clean_cycle_started_at") or "").strip()
+    expected_completed = str(continuity_record.get("baseline_clean_cycle_completed_at") or "").strip()
+    expected_sha = str(continuity_record.get("baseline_snapshot_sha256") or "").strip()
+    try:
+        expected_count = max(0, int(continuity_record.get("baseline_snapshot_candidate_count") or 0))
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not expected_started or not expected_completed or not re.fullmatch(r"[a-f0-9]{64}", expected_sha) or expected_count <= 0:
+        return None
+
+    try:
+        payload = json.loads(candidates_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    details = _candidate_snapshot_details(payload)
+    if (
+        not details.get("valid")
+        or details.get("cycle_started_at") != expected_started
+        or details.get("cycle_completed_at") != expected_completed
+        or details.get("sha256") != expected_sha
+        or details.get("candidate_count") != expected_count
+    ):
+        return None
+
+    rows = payload.get("candidates") if isinstance(payload, dict) else None
+    if not isinstance(rows, list) or not rows:
+        return None
+    if required_product_id:
+        wanted_id = str(required_product_id).strip()
+        selected_rows = [
+            row for row in rows
+            if isinstance(row, dict) and str(row.get("product_id") or "").strip() == wanted_id
+        ][:1]
+        if not selected_rows:
+            return None
+        try:
+            cursor = max(0, int(continuity_record.get("candidate_cursor") or 0)) % len(rows)
+        except (TypeError, ValueError, OverflowError):
+            cursor = 0
+    else:
+        try:
+            batch_limit = max(1, min(250, int(limit)))
+        except (TypeError, ValueError, OverflowError):
+            batch_limit = 50
+        try:
+            cursor = max(0, int(continuity_record.get("candidate_cursor") or 0)) % len(rows)
+        except (TypeError, ValueError, OverflowError):
+            cursor = 0
+        selected_rows = [rows[(cursor + offset) % len(rows)] for offset in range(min(batch_limit, len(rows)))]
+
+    leads = []
+    for row in selected_rows:
+        if not isinstance(row, dict):
+            continue
+        pid = str(row.get("product_id") or "").strip()
+        url = str(row.get("product_url") or "").strip()
+        if not re.fullmatch(r"dkp-\d{1,12}", pid) or not url.endswith(f"/{pid}/"):
+            continue
+        # Explicit allow-list: do not leak historical price, discount, stock or expiry
+        # into live publication eligibility through the emergency hand-off.
+        lead = {
+            "product_id": pid,
+            "product_url": url,
+            "title": str(row.get("title") or "")[:180],
+            "brand": str(row.get("brand") or row.get("brand_name") or "")[:100],
+            "source": "digikala_emergency_last_clean_snapshot",
+        }
+        for field in (
+            "catalog_sort_mode",
+            "catalog_best_selling_rank",
+            "catalog_best_selling_category_id",
+            "catalog_best_selling_category_name",
+            "catalog_rank_observed_at",
+            "catalog_best_selling_ranks_by_category",
+            "catalog_cycle_completed_at",
+            "catalog_cycle_snapshot_rank",
+            "catalog_category_ids",
+            "catalog_category_name",
+            "catalog_category_path",
+        ):
+            if row.get(field) not in (None, ""):
+                lead[field] = row[field]
+        leads.append(lead)
+
+    return {
+        "candidates": leads,
+        "candidate_count": len(rows),
+        "cursor": cursor,
+        "next_cursor": (
+            cursor if required_product_id else (cursor + len(selected_rows)) % len(rows)
+        ),
+        "cycle_started_at": expected_started,
+        "cycle_completed_at": expected_completed,
+        "sha256": expected_sha,
+        "expires_at": expires_at.astimezone(timezone.utc).isoformat(),
+    }
 
 
 def is_degraded_live_fallback_available(status: Any) -> bool:

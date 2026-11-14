@@ -212,7 +212,38 @@ export function isInitialCatalogWarmup(status) {
 }
 
 export const PUBLISHER_INTERVAL_MS = 27 * 60 * 1000;
+export const PUBLISHER_STANDALONE_EDITORIAL_GAP_MS = 55 * 60 * 1000;
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
+
+export function isEmergencyContinuityAvailable(state, now = Date.now()) {
+  const expiresAt = Date.parse(String(state && state.emergency_continuity_expires_at || ""));
+  return Boolean(
+    state &&
+    state.emergency_continuity_active === true &&
+    /^[a-f0-9]{64}$/.test(String(state.emergency_continuity_snapshot_sha256 || "")) &&
+    String(state.emergency_continuity_baseline_completed_at || "").trim() &&
+    Number.isFinite(expiresAt) &&
+    expiresAt > now
+  );
+}
+
+export function nextPublisherDueAt(state, lastPublishedAt) {
+  const scheduledAt = Date.parse(String(state && state.next_channel_content_due_at || ""));
+  const editorialPlanningAt = Date.parse(String(state && state.next_editorial_planning_at || ""));
+  const lastPost = Number.isFinite(lastPublishedAt) ? lastPublishedAt : null;
+  const plannedTimes = [scheduledAt, editorialPlanningAt].filter(Number.isFinite);
+
+  let dueAt = plannedTimes.length
+    ? Math.min(...plannedTimes)
+    : lastPost !== null
+      ? lastPost + PUBLISHER_STANDALONE_EDITORIAL_GAP_MS
+      : null;
+
+  if (dueAt !== null && lastPost !== null) {
+    dueAt = Math.max(dueAt, lastPost + PUBLISHER_INTERVAL_MS);
+  }
+  return dueAt;
+}
 
 async function readOfferChinState(token) {
   try {
@@ -301,6 +332,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     readCatalogSweepStatus(env.GITHUB_TOKEN),
   ]);
   const lastPublishedAt = readLastChannelPublicationAt(state);
+  const emergencyContinuityFallback = isEmergencyContinuityAvailable(state);
   let degradedLiveFallback = false;
   if (!isUsableCleanCatalogSnapshot(catalogStatus)) {
     if (isInitialCatalogWarmup(catalogStatus)) {
@@ -314,6 +346,13 @@ async function dispatchPublisherWhenDue(env, tick, state) {
       console.warn(
         "OFFERCHIN_PUBLISHER_DEGRADED_LIVE_FALLBACK taxonomy_registry_valid=true" +
         " full_catalog_snapshot_valid=false; live_product_revalidation_required=true"
+      );
+    } else if (emergencyContinuityFallback) {
+      console.warn(
+        "OFFERCHIN_PUBLISHER_EMERGENCY_CONTINUITY_FALLBACK " +
+        "snapshot_lead_only=true live_price_stock_discount_affiliate_recheck_required=true " +
+        "baseline=" + String(state.emergency_continuity_baseline_completed_at) +
+        " retry_gap_minutes=3"
       );
     } else {
       console.log(
@@ -335,8 +374,33 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     );
   }
   const now = tick.getTime();
-  if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
+  const nextDueAt = nextPublisherDueAt(state, lastPublishedAt);
+  const latestCleanCycleAt = Date.parse(String(
+    catalogStatus && catalogStatus.last_clean_cycle_completed_at || ""
+  ));
+  const plannedCleanCycleAt = Date.parse(String(
+    state.product_publication_plan_cycle_id ||
+    state.product_publication_cadence_cycle_id ||
+    ""
+  ));
+  const newCleanCycleReady = Boolean(
+    isUsableCleanCatalogSnapshot(catalogStatus) &&
+    Number.isFinite(latestCleanCycleAt) &&
+    (!Number.isFinite(plannedCleanCycleAt) || latestCleanCycleAt > plannedCleanCycleAt)
+  );
+
+  // A clean new catalog cycle refreshes the product cohort even while the next
+  // product slot is in the future. This reflows the floating plan without posting early.
+  if (!newCleanCycleReady && nextDueAt !== null && now < nextDueAt) {
     console.log("OFFERCHIN_PUBLISHER_NOT_DUE seconds_remaining=" +
+      Math.ceil((nextDueAt - now) / 1000) +
+      " next_content_due_at=" + new Date(nextDueAt).toISOString());
+    return;
+  }
+  // New-scan refreshes may happen before a product slot, but never bypass the
+  // hard minimum spacing between two public channel posts.
+  if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
+    console.log("OFFERCHIN_PUBLISHER_MINIMUM_GAP seconds_remaining=" +
       Math.ceil((PUBLISHER_INTERVAL_MS - (now - lastPublishedAt)) / 1000));
     return;
   }
@@ -384,26 +448,62 @@ function hasVideoDispatchEligibility(record) {
   );
 }
 
+function hasVerifiedVideoExpiry(record) {
+  const expiry = dateValue(record && record.expires_at);
+  if (expiry === null || record.expiry_estimated === true) return false;
+  return (
+    (
+      ["digikala_live_deals_feed", "digikala_product_detail_api"].includes(record.expiry_source) &&
+      record.expiry_deadline_verified_directly === true
+    ) ||
+    (
+      record.expiry_source === "digikala_mcp_offer_card" &&
+      record.expiry_deadline_verified_from_site_card === true
+    )
+  );
+}
+
 export function videoRecordDue(record, platform, now) {
   if (!hasVideoDispatchEligibility(record)) return false;
   const publishedAt = Number(record.ts || 0) * 1000;
   if (!Number.isFinite(publishedAt) || publishedAt <= 0) return false;
-  const status = String(record[platform + "_upload_status"] || "pending");
-  if (!VIDEO_PENDING_STATUSES.has(status)) return false;
-  const generation = String(record.video_generation_status || "pending");
-  if (!["", "pending", "generated"].includes(generation)) return false;
+
+  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
+  const status = String(record[platform + "_upload_status"] || "").trim().toLowerCase();
+  const generation = String(record.video_generation_status || "").trim().toLowerCase();
+  if (!["pending", "generated", "skipped_expiring_soon", "skipped_unverified_deadline"].includes(generation)) {
+    return false;
+  }
 
   const expiry = dateValue(record.expires_at);
-  if (expiry !== null && expiry <= now + 10 * 60 * 1000) return false;
+  if (expiry !== null && expiry <= timestamp + 10 * 60 * 1000) return false;
+  const verifiedExpiry = hasVerifiedVideoExpiry(record);
 
-  if (platform === "aparat") {
-    const verifiedExpiry =
-      record.expiry_deadline_verified_directly === true ||
-      (record.expiry_source === "digikala_mcp_offer_card" &&
-        record.expiry_deadline_verified_from_site_card === true);
-    if (!verifiedExpiry) return false;
+  if (platform === "aparat" && !verifiedExpiry) return false;
+
+  if (generation === "skipped_expiring_soon") {
+    // Only a directly verified, still-live deadline can reactivate an old skip.
+    return verifiedExpiry && (
+      VIDEO_PENDING_STATUSES.has(status) || status === "skipped_expiring_soon"
+    );
   }
-  return true;
+
+  if (generation === "skipped_unverified_deadline") {
+    // YouTube's policy changed: its already-published channel item can be uploaded
+    // without a retailer timer. Aparat remains deadline-gated; Filo is not awakened
+    // from this terminal generation state by the minute dispatcher.
+    if (platform === "youtube") {
+      return VIDEO_PENDING_STATUSES.has(status) || status === "skipped_unverified_deadline";
+    }
+    if (platform === "aparat") {
+      return verifiedExpiry && (
+        VIDEO_PENDING_STATUSES.has(status) || status === "skipped_unverified_deadline"
+      );
+    }
+    return false;
+  }
+
+  return VIDEO_PENDING_STATUSES.has(status);
 }
 
 export function isFiloLoginVerified(state, now) {
@@ -442,17 +542,38 @@ async function readLatestWorkflowAttempt(api, token) {
 // Every selected product is fanned out from one shared canonical queue. The unified
 // workflow serializes YouTube, Aparat and Filo over the same FIFO, then records each
 // platform's own success, rejection, retry exhaustion or uncertain outcome.
-export function hasPendingVideoQueue(state) {
+export function hasPendingVideoQueue(state, now = Date.now()) {
   if (!state || typeof state !== "object" || !state.published || typeof state.published !== "object") {
     return false;
   }
+  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
   return Object.values(state.published).some((record) => {
-    if (!record || typeof record !== "object" || record.video_dispatch_eligible !== true) return false;
-    const ts = Number(record.ts || 0);
-    if (!Number.isFinite(ts) || ts <= 0) return false;
-    return ["youtube", "aparat", "filo"].some((platform) =>
-      VIDEO_PENDING_STATUSES.has(String(record[platform + "_upload_status"] || "pending").trim().toLowerCase())
-    );
+    if (!hasVideoDispatchEligibility(record)) return false;
+    const created = Number(record.ts || 0) * 1000;
+    if (!Number.isFinite(created) || created <= 0) return false;
+    const generation = String(record.video_generation_status || "").trim().toLowerCase();
+    if (!["pending", "generated", "skipped_expiring_soon", "skipped_unverified_deadline"].includes(generation)) {
+      return false;
+    }
+    const expiry = dateValue(record.expires_at);
+    if (expiry !== null && expiry <= timestamp + 10 * 60 * 1000) return false;
+    const verifiedExpiry = hasVerifiedVideoExpiry(record);
+    return ["youtube", "aparat", "filo"].some((platform) => {
+      const status = String(record[platform + "_upload_status"] || "").trim().toLowerCase();
+      if (generation === "pending" || generation === "generated") {
+        // Dispatch even when a platform-specific preflight will skip it; Python
+        // records that terminal result and still advances the other destinations.
+        return VIDEO_PENDING_STATUSES.has(status);
+      }
+      if (generation === "skipped_expiring_soon") {
+        return verifiedExpiry && (
+          VIDEO_PENDING_STATUSES.has(status) || status === "skipped_expiring_soon"
+        );
+      }
+      return platform === "youtube" && (
+        VIDEO_PENDING_STATUSES.has(status) || status === "skipped_unverified_deadline"
+      );
+    });
   });
 }
 

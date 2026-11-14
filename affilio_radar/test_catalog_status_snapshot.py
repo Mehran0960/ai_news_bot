@@ -9,6 +9,7 @@ from pathlib import Path
 try:
     from .catalog_status_snapshot import (
         build_status_snapshot,
+        load_emergency_continuity_candidates,
         upgrade_legacy_demand_first_snapshot,
         candidate_matches_completed_snapshot,
         load_completed_candidates_snapshot,
@@ -21,6 +22,7 @@ try:
 except ImportError:
     from catalog_status_snapshot import (
         build_status_snapshot,
+        load_emergency_continuity_candidates,
         upgrade_legacy_demand_first_snapshot,
         candidate_matches_completed_snapshot,
         load_completed_candidates_snapshot,
@@ -570,6 +572,98 @@ class CatalogStatusSnapshotTests(unittest.TestCase):
         )
         self.assertFalse(status["completed_candidates_snapshot_valid"])
         self.assertEqual(status["last_clean_cycle_status"], "unavailable")
+
+
+
+    def test_emergency_snapshot_is_hash_pinned_and_exposes_only_live_recheck_leads(self):
+        with tempfile.TemporaryDirectory() as temp:
+            candidates_path = Path(temp) / "completed.json"
+            payload = {
+                **self.candidates,
+                "candidates": [
+                    {
+                        **self.candidates["candidates"][0],
+                        "product_url": "https://www.digikala.com/product/dkp-100/",
+                        "title": "پاوربانک نمونه",
+                        "brand": "نمونه",
+                        "catalog_best_selling_rank": 1,
+                        "catalog_rank_observed_at": self.completed_at,
+                    },
+                    {
+                        **self.candidates["candidates"][1],
+                        "product_url": "https://www.digikala.com/product/dkp-200/",
+                        "title": "شارژر نمونه",
+                        "brand": "برند نمونه",
+                        "current_price": 1,
+                        "original_price": 999999,
+                        "availability": "in_stock",
+                        "catalog_best_selling_rank": 2,
+                        "catalog_rank_observed_at": self.completed_at,
+                    },
+                ],
+            }
+            status = build_status_snapshot(
+                self.state, self.status_time.isoformat(), completed_candidates=payload
+            )
+            self.assertTrue(status["completed_candidates_snapshot_valid"])
+            candidates_path.write_text(json.dumps(payload), encoding="utf-8")
+            record = {
+                "status": "active",
+                "started_at": self.status_time.isoformat(),
+                "expires_at": (self.status_time + timedelta(hours=72)).isoformat(),
+                "baseline_clean_cycle_started_at": self.started_at,
+                "baseline_clean_cycle_completed_at": self.completed_at,
+                "baseline_snapshot_sha256": status["completed_candidates_sha256"],
+                "baseline_snapshot_candidate_count": status["completed_candidates_count"],
+                "candidate_cursor": 1,
+            }
+
+            loaded = load_emergency_continuity_candidates(
+                record,
+                candidates_path,
+                now=self.status_time + timedelta(hours=8),
+                limit=1,
+            )
+            self.assertIsNotNone(loaded)
+            self.assertEqual(loaded["candidate_count"], 2)
+            self.assertEqual(loaded["candidates"][0]["product_id"], "dkp-200")
+            self.assertEqual(loaded["next_cursor"], 0)
+            self.assertEqual(loaded["candidates"][0]["source"], "digikala_emergency_last_clean_snapshot")
+            for stale_field in (
+                "current_price", "original_price", "discount_percent",
+                "savings_toman", "availability", "expires_at", "deal_expires_at",
+            ):
+                self.assertNotIn(stale_field, loaded["candidates"][0])
+
+            expired = load_emergency_continuity_candidates(
+                record,
+                candidates_path,
+                now=self.status_time + timedelta(hours=73),
+                limit=1,
+            )
+            self.assertIsNone(expired)
+
+    def test_emergency_snapshot_rejects_payload_replacement(self):
+        with tempfile.TemporaryDirectory() as temp:
+            candidates_path = Path(temp) / "completed.json"
+            candidates_path.write_text(json.dumps(self.candidates), encoding="utf-8")
+            status = build_status_snapshot(
+                self.state, self.status_time.isoformat(), completed_candidates=self.candidates
+            )
+            record = {
+                "status": "active",
+                "expires_at": (self.status_time + timedelta(hours=72)).isoformat(),
+                "baseline_clean_cycle_started_at": self.started_at,
+                "baseline_clean_cycle_completed_at": self.completed_at,
+                "baseline_snapshot_sha256": status["completed_candidates_sha256"],
+                "baseline_snapshot_candidate_count": status["completed_candidates_count"],
+            }
+            changed = {**self.candidates, "candidates": list(reversed(self.candidates["candidates"]))}
+            candidates_path.write_text(json.dumps(changed), encoding="utf-8")
+            loaded = load_emergency_continuity_candidates(
+                record, candidates_path, now=self.status_time + timedelta(hours=1)
+            )
+            self.assertIsNone(loaded)
 
     def test_sweep_workflow_persists_the_immutable_candidate_snapshot(self):
         workflow_path = (

@@ -9,6 +9,9 @@ import {
   videoRecordDue,
   isFiloLoginVerified,
   PUBLISHER_INTERVAL_MS,
+  PUBLISHER_STANDALONE_EDITORIAL_GAP_MS,
+  isEmergencyContinuityAvailable,
+  nextPublisherDueAt,
   readLastChannelPublicationAt,
 } from "./affilio-minute-dispatcher.mjs";
 
@@ -183,8 +186,60 @@ test("fails closed on missing, stale-schema, or partial-scan status", () => {
 });
 
 
-test("uses a 27-minute channel publication interval", () => {
+test("uses a 27-minute minimum channel publication interval", () => {
   assert.equal(PUBLISHER_INTERVAL_MS, 27 * 60 * 1000);
+});
+
+test("floating publisher waits for the next scheduled product or editorial slot", () => {
+  const now = Date.now();
+  const scheduled = now + 3 * 60 * 60 * 1000;
+  const state = { next_channel_content_due_at: new Date(scheduled).toISOString() };
+  assert.equal(nextPublisherDueAt(state, now), scheduled);
+});
+
+test("publisher wakes 27 minutes after the last post to plan an editorial midpoint before a product", () => {
+  const now = Date.now();
+  const productAt = now + 2 * 60 * 60 * 1000;
+  const planningAt = now + PUBLISHER_INTERVAL_MS;
+  const state = {
+    next_channel_content_due_at: new Date(productAt).toISOString(),
+    next_editorial_planning_at: new Date(planningAt).toISOString(),
+  };
+  assert.equal(nextPublisherDueAt(state, now), planningAt);
+});
+
+test("floating publisher never violates the 27-minute minimum after a channel post", () => {
+  const now = Date.now();
+  const tooSoon = now + 10 * 60 * 1000;
+  const state = { next_channel_content_due_at: new Date(tooSoon).toISOString() };
+  assert.equal(nextPublisherDueAt(state, now), now + PUBLISHER_INTERVAL_MS);
+});
+
+test("standalone editorial fallback uses its own 55-minute gap when no queue slot exists", () => {
+  const now = Date.now();
+  assert.equal(PUBLISHER_STANDALONE_EDITORIAL_GAP_MS, 55 * 60 * 1000);
+  assert.equal(nextPublisherDueAt({}, now), now + 55 * 60 * 1000);
+});
+
+test("emergency Worker dispatch requires a pinned hash and an unexpired window", () => {
+  const now = Date.now();
+  const active = {
+    emergency_continuity_active: true,
+    emergency_continuity_snapshot_sha256: "a".repeat(64),
+    emergency_continuity_baseline_completed_at: new Date(now - 90 * 60 * 60 * 1000).toISOString(),
+    emergency_continuity_expires_at: new Date(now + 60 * 60 * 1000).toISOString(),
+  };
+  assert.equal(isEmergencyContinuityAvailable(active, now), true);
+  assert.equal(isEmergencyContinuityAvailable({
+    ...active, emergency_continuity_expires_at: new Date(now - 1).toISOString(),
+  }, now), false);
+  assert.equal(isEmergencyContinuityAvailable({
+    ...active, emergency_continuity_snapshot_sha256: "invalid",
+  }, now), false);
+});
+
+test("publisher bootstraps immediately when neither a post nor a scheduled slot exists", () => {
+  assert.equal(nextPublisherDueAt({}, null), null);
 });
 
 test("channel cadence clock recognizes every active publishing channel", () => {
@@ -247,6 +302,7 @@ test("video destinations accept the canonical selected product without waiting f
     aparat_upload_status: "pending",
     filo_upload_status: "pending",
     video_generation_status: "pending",
+    expiry_source: "digikala_live_deals_feed",
     expiry_deadline_verified_directly: true,
     expires_at: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
   };
@@ -288,6 +344,7 @@ test("a successful channel post immediately makes the same product eligible for 
     aparat_upload_status: "pending",
     filo_upload_status: "pending",
     video_generation_status: "pending",
+    expiry_source: "digikala_live_deals_feed",
     expiry_deadline_verified_directly: true,
     expires_at: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
   };
@@ -296,6 +353,53 @@ test("a successful channel post immediately makes the same product eligible for 
     assert.equal(videoRecordDue(record, platform, now), true, platform);
     assert.equal(hasDueVideoRecord(state, platform, now), true, platform);
   }
+});
+
+test("previously skipped expiry records are redispatched only while the verified offer remains live", () => {
+  const now = Date.now();
+  const active = {
+    ts: (now - 60_000) / 1000,
+    video_dispatch_eligible: true,
+    delivery_status: { telegram: "sent" },
+    video_generation_status: "skipped_expiring_soon",
+    youtube_upload_status: "skipped_expiring_soon",
+    aparat_upload_status: "skipped_expiring_soon",
+    expiry_source: "digikala_live_deals_feed",
+    expiry_deadline_verified_directly: true,
+    expiry_estimated: false,
+    expires_at: new Date(now + 20 * 60_000).toISOString(),
+  };
+  assert.equal(videoRecordDue(active, "youtube", now), true);
+  assert.equal(videoRecordDue(active, "aparat", now), true);
+  assert.equal(hasPendingVideoQueue({ published: { active } }, now), true);
+
+  const expired = {
+    ...active,
+    expires_at: new Date(now + 5 * 60_000).toISOString(),
+  };
+  assert.equal(videoRecordDue(expired, "youtube", now), false);
+  assert.equal(hasPendingVideoQueue({ published: { expired } }, now), false);
+
+  const unverified = {
+    ...active,
+    expiry_deadline_verified_directly: false,
+  };
+  assert.equal(videoRecordDue(unverified, "youtube", now), false);
+});
+
+test("the no-expiry correction requeues YouTube only, not Filo", () => {
+  const now = Date.now();
+  const record = {
+    ts: (now - 60_000) / 1000,
+    video_dispatch_eligible: true,
+    delivery_status: { telegram: "sent" },
+    video_generation_status: "skipped_unverified_deadline",
+    youtube_upload_status: "skipped_unverified_deadline",
+    filo_upload_status: "pending",
+  };
+  assert.equal(videoRecordDue(record, "youtube", now), true);
+  assert.equal(videoRecordDue(record, "filo", now), false);
+  assert.equal(hasPendingVideoQueue({ published: { record } }, now), true);
 });
 
 test("Filo accepts every confirmed channel delivery without requiring a retailer expiry timer", () => {
@@ -333,7 +437,14 @@ test("Filo accepts every confirmed channel delivery without requiring a retailer
     "Aparat's stricter verified-expiry rule must remain in place"
   );
   assert.equal(
-    hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" }, expiry_deadline_verified_directly: true } } }, "aparat", now),
+    hasDueVideoRecord({ published: { item: {
+      ...base,
+      delivery_status: { telegram: "sent" },
+      expiry_source: "digikala_product_detail_api",
+      expiry_deadline_verified_directly: true,
+      expires_at: new Date(now + 60 * 60_000).toISOString(),
+      aparat_upload_status: "pending",
+    } } }, "aparat", now),
     true
   );
 });
@@ -409,6 +520,7 @@ test("unified video queue ignores legacy age and retry timestamps for all platfo
     aparat_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
     filo_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
     video_generation_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
+    expiry_source: "digikala_live_deals_feed",
     expiry_deadline_verified_directly: true,
     expires_at: new Date(now + 48 * 60 * 60 * 1000).toISOString(),
   };

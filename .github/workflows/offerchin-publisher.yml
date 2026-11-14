@@ -16,7 +16,7 @@ on:
       - main
     paths:
       - ".github/workflows/offerchin-publisher.yml"
-  # Cloudflare checks every minute and dispatches 27 minutes after the previous channel post.
+  # Cloudflare checks every minute and dispatches at the next queued product/editorial slot, respecting 27 minutes minimum.
   # [publisher-run-now] One-time resume after channel-publication clock repair.
   # [publisher-run-now] One-time retry after transient image-fetch and stale-selection fixes.
   # [publisher-run-now] One-time verify active-queue cadence repair.
@@ -134,6 +134,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_public_aparat_upload_stays_blocked_without_verified_expiry \
             test_affilio.AffilioRadarTests.test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record -v
           python -m unittest test_selection_evidence -v
+          python -m unittest -v test_content_delivery.py
           python -m unittest -v test_shared_selection_media_routing.py
           node --test test_affiliate_deal_radar_worker.mjs
 
@@ -180,9 +181,10 @@ jobs:
           AFFILIO_PENDING_QUEUE_LIMIT: "200"
           AFFILIO_DISCOVERY_QUEUE_LIMIT: "5000"
           # Only a small rolling set of publication hand-offs/retries may be retained.
-          AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "6"
+          AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "250"
           AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN: "250"
           AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
+          OFFERCHIN_EMERGENCY_CONTINUITY_ENABLED: "true"
           AFFILIO_DISCOVERY_QUEUE_TTL_HOURS: "24"
           AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "250"
           AFFILIO_MCP_PAGES_PER_SCAN: "5"
@@ -212,11 +214,11 @@ jobs:
           APARAT_VIDEO_PASS: "0"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
           AFFILIO_PUBLISHER_BATCH_SIZE: "1"
-          AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "6"
+          AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "250"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.45"
           AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
-          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: ${{ vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'false' }}
+          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/publisher.py
 
@@ -233,7 +235,7 @@ jobs:
           EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
           EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'false' }}
           OFFERCHIN_EDITORIAL_GAP_MINUTES: "55"
-          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: ${{ vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'false' }}
+          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
           PYTHONUNBUFFERED: "1"
         run: |
           if [[ "${OFFERCHIN_EDITORIAL_PUBLISH_ENABLED,,}" == "true" ]]; then

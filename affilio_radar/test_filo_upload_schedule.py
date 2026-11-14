@@ -138,6 +138,8 @@ class FiloUploadScheduleTests(unittest.TestCase):
                 "sample": {
                     "ts": self.now.timestamp(),
                     "delivery_status": {"telegram": "sent"},
+                    "video_generation_status": "pending",
+                    "youtube_upload_status": "pending",
                     "filo_upload_status": "submitted_pending_approval",
                     "filo_next_attempt_at": (self.now + timedelta(minutes=20)).isoformat(),
                     "expiry_deadline_verified_directly": True,
@@ -160,11 +162,13 @@ class FiloUploadScheduleTests(unittest.TestCase):
                 "rubika-only": {
                     "ts": self.now.timestamp(),
                     "delivery_status": {"rubika": "sent"},
+                    "video_generation_status": "pending",
                     "filo_upload_status": "pending",
                 },
                 "eitaa-only": {
                     "ts": self.now.timestamp() - 10,
                     "delivery_status": {"eitaa": "sent"},
+                    "video_generation_status": "pending",
                     "filo_upload_status": "pending",
                 },
                 "not-sent": {

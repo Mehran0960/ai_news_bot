@@ -43,13 +43,19 @@ class EditorialContentTests(unittest.TestCase):
         value["review_due_at"] = (NOW - timedelta(seconds=1)).isoformat()
         self.assertEqual(validate_editorial_item(value, now=NOW)[1], "editorial_review_expired")
 
-    def test_selector_skips_recent_item_and_topic(self):
-        state = {"editorial_delivery_history": [{
-            "editorial_id": "old",
-            "topic": "buying-guide",
-            "published_at": (NOW - timedelta(hours=1)).isoformat(),
-        }]}
-        self.assertIsNone(select_editorial_fallback([item()], state, now=NOW))
+    def test_bank_exhaustion_starts_a_new_cycle_instead_of_stopping(self):
+        state = {
+            "editorial_cycle": {
+                "bank_ids": ["buying-checklist"],
+                "used_ids": ["buying-checklist"],
+                "cycle_number": 1,
+                "last_editorial_id": "buying-checklist",
+            }
+        }
+        chosen = select_editorial_fallback([item()], state, now=NOW)
+        self.assertEqual(chosen["editorial_id"], "buying-checklist")
+        self.assertEqual(state["editorial_cycle"]["cycle_number"], 2)
+        self.assertEqual(state["editorial_cycle"]["used_ids"], [])
 
     def test_item_can_be_reused_after_24_hour_cooldown(self):
         state = {"editorial_delivery_history": [{
@@ -67,6 +73,48 @@ class EditorialContentTests(unittest.TestCase):
         self.assertEqual(chosen["content_type"], "editorial")
         self.assertEqual(chosen["content_id"], "editorial:buying-checklist")
         self.assertEqual(chosen["delivery_status"], "selected_not_published")
+
+    def test_newly_approved_item_joins_the_active_rotation(self):
+        state = {
+            "editorial_cycle": {
+                "bank_ids": ["buying-checklist"],
+                "used_ids": ["buying-checklist"],
+                "cycle_number": 3,
+            }
+        }
+        chosen = select_editorial_fallback(
+            [item(), item("new-mag-guide", "device-compatibility")],
+            state,
+            now=NOW,
+        )
+        self.assertEqual(chosen["editorial_id"], "new-mag-guide")
+        self.assertEqual(state["editorial_cycle"]["cycle_number"], 3)
+
+    def test_related_editorial_topic_is_preferred_for_product(self):
+        state = {}
+        bank = [
+            item("fashion-guide", "fit-and-size"),
+            item("device-guide", "device-compatibility"),
+        ]
+        product = {
+            "product_id": "dkp-123",
+            "offerchin_four_factor": {"generality_group": "mobile_productivity"},
+        }
+        chosen = select_editorial_fallback(
+            bank, state, now=NOW, related_product=product
+        )
+        self.assertEqual(chosen["editorial_id"], "device-guide")
+        self.assertEqual(chosen["related_product_id"], "dkp-123")
+
+    def test_confirmed_delivery_marks_item_used_in_current_cycle(self):
+        state = {}
+        chosen = select_editorial_fallback([item()], state, now=NOW)
+        record_editorial_delivery(
+            state, chosen, published_at=NOW,
+            destinations={"telegram": {"status": "sent"}},
+        )
+        self.assertIn("buying-checklist", state["editorial_cycle"]["used_ids"])
+        self.assertEqual(state["editorial_cycle"]["last_editorial_id"], "buying-checklist")
 
     def test_delivery_history_requires_confirmed_destination(self):
         state = {}

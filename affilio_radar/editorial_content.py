@@ -92,6 +92,30 @@ def _history_rows(state: dict) -> list[dict]:
     return [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
 
 
+def editorial_topics_for_product(product: Any) -> set[str]:
+    """Return reviewed editorial topics that can support a nearby product decision."""
+    if not isinstance(product, dict):
+        return set()
+    factors = product.get("offerchin_four_factor")
+    group = str(factors.get("generality_group") or "").strip().lower() if isinstance(factors, dict) else ""
+    mapping = {
+        "mobile_productivity": {"device-compatibility", "warranty-and-service", "privacy-and-security", "product-inspection", "purchase-planning"},
+        "audio_visual": {"device-compatibility", "warranty-and-service", "privacy-and-security", "product-inspection", "review-literacy"},
+        "home_cleaning": {"maintenance-and-care", "product-safety", "total-cost", "product-inspection"},
+        "kitchen_food": {"maintenance-and-care", "product-safety", "total-cost", "product-inspection"},
+        "grocery_food": {"product-safety", "product-condition", "total-cost", "seller-check"},
+        "personal_care": {"product-safety", "product-condition", "product-inspection", "purchase-planning"},
+        "home_living": {"fit-and-size", "product-inspection", "total-cost", "purchase-planning"},
+        "fashion_lifestyle": {"fit-and-size", "product-condition", "product-inspection", "purchase-planning"},
+        "baby_care": {"product-safety", "product-condition", "seller-check"},
+        "tools_industrial": {"product-safety", "maintenance-and-care", "warranty-and-service"},
+        "automotive": {"maintenance-and-care", "warranty-and-service", "product-safety"},
+        "office_study": {"device-compatibility", "fit-and-size", "product-inspection"},
+        "books_learning": {"review-literacy", "purchase-planning"},
+    }
+    return set(mapping.get(group, {"purchase-planning", "review-literacy", "seller-check"}))
+
+
 def select_editorial_fallback(
     bank: list[dict],
     state: dict,
@@ -99,48 +123,97 @@ def select_editorial_fallback(
     now: datetime | None = None,
     cooldown_hours: int = DEFAULT_COOLDOWN_HOURS,
     topic_cooldown_hours: int = DEFAULT_TOPIC_COOLDOWN_HOURS,
+    related_product: dict | None = None,
 ) -> dict | None:
-    """Select a reviewed, non-recent item with a shorter topic cooldown."""
+    """Select a reviewed item from a repeating bank cycle, preferring product relevance.
+
+    Each valid item is used once per cycle. When the current bank is exhausted, all
+    currently valid items become eligible again. New IDs are added to the active cycle
+    immediately, so approved additions are not lost behind an older rotation.
+    """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
     history = _history_rows(state if isinstance(state, dict) else {})
-    item_cutoff = current - timedelta(hours=max(1, int(cooldown_hours)))
-    topic_cutoff = current - timedelta(hours=max(1, int(topic_cooldown_hours)))
-    recent_items = [
-        row for row in history
-        if (_utc(row.get("published_at")) or datetime.min.replace(tzinfo=timezone.utc)) >= item_cutoff
-    ]
-    recent_topics = [
-        row for row in history
-        if (_utc(row.get("published_at")) or datetime.min.replace(tzinfo=timezone.utc)) >= topic_cutoff
-    ]
-    recent_ids = {str(row.get("editorial_id") or "") for row in recent_items}
-    recent_topic_ids = {str(row.get("topic") or "") for row in recent_topics}
-    last_used: dict[str, datetime] = {}
-    for row in history:
-        topic = str(row.get("topic") or "")
-        published_at = _utc(row.get("published_at"))
-        if topic and published_at and (topic not in last_used or published_at > last_used[topic]):
-            last_used[topic] = published_at
-    eligible = []
+
+    valid_items = []
     for raw in bank if isinstance(bank, list) else []:
         ok, _reason = validate_editorial_item(raw, now=current)
-        if not ok:
-            continue
-        editorial_id = str(raw["editorial_id"])
-        topic = str(raw["topic"]).lower()
-        if editorial_id in recent_ids or topic in recent_topic_ids:
-            continue
-        eligible.append(raw)
-    if not eligible:
+        if ok:
+            valid_items.append(raw)
+    if not valid_items:
         return None
+
+    current_ids = sorted({str(item["editorial_id"]) for item in valid_items})
+    cycle = state.setdefault("editorial_cycle", {})
+    if not isinstance(cycle, dict):
+        cycle = {}
+        state["editorial_cycle"] = cycle
+    old_used = cycle.get("used_ids")
+    old_used = old_used if isinstance(old_used, list) else []
+    used_ids = set(str(value) for value in old_used).intersection(current_ids)
+    cycle["bank_ids"] = current_ids
+    cycle["used_ids"] = sorted(used_ids)
+    cycle.setdefault("cycle_number", 1)
+
+    eligible = [item for item in valid_items if str(item["editorial_id"]) not in used_ids]
+    if not eligible:
+        try:
+            cycle["cycle_number"] = max(1, int(cycle.get("cycle_number") or 1)) + 1
+        except (TypeError, ValueError, OverflowError):
+            cycle["cycle_number"] = 2
+        cycle["used_ids"] = []
+        cycle["cycle_started_at"] = current.isoformat()
+        eligible = list(valid_items)
+
+    recent_topics = {
+        str(row.get("topic") or "").lower()
+        for row in history[-3:]
+        if isinstance(row, dict)
+    }
+    last_id = str(cycle.get("last_editorial_id") or "")
+    if len(eligible) > 1:
+        eligible = [
+            item for item in eligible
+            if str(item.get("editorial_id") or "") != last_id
+        ] or eligible
+
+    relevant_topics = editorial_topics_for_product(related_product)
+    last_used: dict[str, datetime] = {}
+    for row in history:
+        topic = str(row.get("topic") or "").lower()
+        published_at = _utc(row.get("published_at"))
+        if topic and published_at and (
+            topic not in last_used or published_at > last_used[topic]
+        ):
+            last_used[topic] = published_at
+
+    def relevance(item: dict) -> int:
+        topic = str(item.get("topic") or "").lower()
+        if not related_product:
+            return 0
+        return 2 if topic in relevant_topics else 0
+
+    priority_rank = {"high": 0, "normal": 1, "low": 2}
     eligible.sort(key=lambda row: (
-        str(row.get("priority") or "normal"),
+        -relevance(row),
+        priority_rank.get(str(row.get("priority") or "normal").lower(), 1),
         last_used.get(str(row.get("topic") or "").lower(), datetime.min.replace(tzinfo=timezone.utc)),
         str(row["editorial_id"]),
     ))
+
+    # Avoid adjacent topics where alternatives exist, but never strand the queue
+    # because a topic cooldown or the finite bank has been exhausted.
+    if len(eligible) > 1 and str(eligible[0].get("topic") or "").lower() in recent_topics:
+        alternative = next(
+            (row for row in eligible if str(row.get("topic") or "").lower() not in recent_topics),
+            None,
+        )
+        if alternative is not None:
+            eligible.remove(alternative)
+            eligible.insert(0, alternative)
+
     chosen = eligible[0]
     canonical = "editorial:" + str(chosen["editorial_id"])
     digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
@@ -157,6 +230,8 @@ def select_editorial_fallback(
         "review_due_at": str(chosen["review_due_at"]),
         "sequence_number": None,
         "delivery_status": "selected_not_published",
+        "related_product_id": str((related_product or {}).get("product_id") or ""),
+        "editorial_cycle_number": int(cycle.get("cycle_number") or 1),
     }
 
 
@@ -178,11 +253,27 @@ def record_editorial_delivery(state: dict, item: dict, *, published_at: datetime
         state["editorial_delivery_history"] = history
     if any(str(row.get("content_id") or "") == str(item.get("content_id") or "") for row in history if isinstance(row, dict)):
         return
+    cycle = state.setdefault("editorial_cycle", {})
+    if not isinstance(cycle, dict):
+        cycle = {}
+        state["editorial_cycle"] = cycle
+    used = cycle.setdefault("used_ids", [])
+    if not isinstance(used, list):
+        used = []
+        cycle["used_ids"] = used
+    editorial_id = str(item["editorial_id"])
+    if editorial_id not in used:
+        used.append(editorial_id)
+    cycle["used_ids"] = sorted(set(str(value) for value in used))
+    cycle["last_editorial_id"] = editorial_id
+    cycle["last_topic"] = str(item["topic"]).lower()
+
     history.append({
         "editorial_id": str(item["editorial_id"]),
         "content_id": str(item["content_id"]),
         "sequence_number": item.get("sequence_number"),
         "topic": str(item["topic"]),
+        "related_product_id": str(item.get("related_product_id") or ""),
         "published_at": timestamp.astimezone(timezone.utc).isoformat(),
         "destinations": destinations,
     })

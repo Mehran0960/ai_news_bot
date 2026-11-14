@@ -59,6 +59,7 @@ except ImportError:
 try:
     from .catalog_status_snapshot import (
         load_publication_catalog_context,
+        load_emergency_continuity_candidates,
         candidate_allowed_by_publication_context,
     )
 except ImportError:
@@ -4953,10 +4954,155 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         raw = state.get(key) if isinstance(state, dict) else None
         return raw if isinstance(raw, (str, int, float, bool)) or raw is None else None
 
+    next_channel_due = []
+    terminal_queue_statuses = {
+        "published", "completed", "cancelled", "stale_selection", "rejected", "failed"
+    }
+    if isinstance(state, dict):
+        for collection_name in ("content_delivery_queue", "editorial_delivery_queue"):
+            collection = state.get(collection_name)
+            if not isinstance(collection, dict):
+                continue
+            for entry in collection.values():
+                if not isinstance(entry, dict):
+                    continue
+                status = str(entry.get("status") or "").strip().lower()
+                if status in terminal_queue_statuses:
+                    continue
+                target = _parse_utc_datetime(
+                    entry.get("next_attempt_at") or entry.get("scheduled_at")
+                )
+                if target is not None:
+                    next_channel_due.append(target.astimezone(timezone.utc))
+    next_channel_due_at = (
+        min(next_channel_due).isoformat() if next_channel_due else None
+    )
+
+    # Wake the publisher early enough to place one related editorial in the safe
+    # midpoint gap before the next product. This is a planning wake-up, not a post.
+    next_editorial_planning_at = None
+    next_product = None
+    if isinstance(state, dict):
+        product_queue = state.get("content_delivery_queue")
+        product_queue = product_queue if isinstance(product_queue, dict) else {}
+        due_products = []
+        future_products = []
+        for queued_id, entry in product_queue.items():
+            if not isinstance(entry, dict):
+                continue
+            if str(entry.get("status") or "").lower() in terminal_queue_statuses:
+                continue
+            if str(entry.get("content_type") or "product") != "product":
+                continue
+            platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+            if any(
+                isinstance(platforms.get(name), dict)
+                and str(platforms[name].get("status") or "").lower() == "sent"
+                for name in ("telegram", "bale", "rubika", "eitaa")
+            ):
+                continue
+            product_at = _parse_utc_datetime(entry.get("scheduled_at"))
+            if product_at is None:
+                continue
+            row = (str(queued_id), entry, product_at.astimezone(timezone.utc))
+            (due_products if row[2] <= current else future_products).append(row)
+
+        next_product = (
+            min(due_products, key=lambda row: row[2])
+            if due_products else
+            min(future_products, key=lambda row: row[2]) if future_products else None
+        )
+        if next_product is not None:
+            related_product_id, _product_entry, product_at = next_product
+            anchor_at = _parse_utc_datetime(state.get("last_channel_published_at")) or current
+            gap_seconds = int((product_at - anchor_at).total_seconds())
+            minimum_gap_seconds = 27 * 60
+            already_linked = any(
+                isinstance(row, dict)
+                and str(row.get("related_product_id") or "") == related_product_id
+                for row in (
+                    state.get("editorial_delivery_history")
+                    if isinstance(state.get("editorial_delivery_history"), list) else []
+                )
+            )
+            editorial_queue = state.get("editorial_delivery_queue")
+            if isinstance(editorial_queue, dict):
+                already_linked = already_linked or any(
+                    isinstance(row, dict)
+                    and str(row.get("related_product_id") or "") == related_product_id
+                    and str(row.get("status") or "").lower() not in terminal_queue_statuses
+                    for row in editorial_queue.values()
+                )
+            last_empty_check = _parse_utc_datetime(state.get("last_editorial_empty_bank_check_at"))
+            bank_empty_backoff_active = bool(
+                last_empty_check and current - last_empty_check < timedelta(minutes=55)
+            )
+            if (
+                not already_linked
+                and not bank_empty_backoff_active
+                and gap_seconds >= 2 * minimum_gap_seconds
+                and product_at - current >= timedelta(seconds=minimum_gap_seconds)
+            ):
+                planning_at = max(
+                    current,
+                    anchor_at + timedelta(seconds=minimum_gap_seconds),
+                )
+                if planning_at < product_at - timedelta(seconds=minimum_gap_seconds):
+                    next_editorial_planning_at = planning_at.isoformat()
+
+    if next_product is None and isinstance(state, dict):
+        # With no product slot, preserve a standalone editorial check at 55 minutes.
+        # A recent empty-bank check moves the next retry forward rather than causing
+        # a minute-by-minute dispatch loop.
+        last_post_at = _parse_utc_datetime(state.get("last_channel_published_at"))
+        empty_check_at = _parse_utc_datetime(state.get("last_editorial_empty_bank_check_at"))
+        if last_post_at is not None:
+            standalone_at = last_post_at + timedelta(minutes=55)
+            if empty_check_at is not None and empty_check_at > last_post_at:
+                standalone_at = max(standalone_at, empty_check_at + timedelta(minutes=55))
+            next_editorial_planning_at = standalone_at.isoformat()
+
+    emergency_record = state.get("emergency_continuity") if isinstance(state, dict) else None
+    emergency_expires = (
+        _parse_utc_datetime(emergency_record.get("expires_at"))
+        if isinstance(emergency_record, dict) else None
+    )
+    emergency_sha = (
+        str(emergency_record.get("baseline_snapshot_sha256") or "").strip()
+        if isinstance(emergency_record, dict) else ""
+    )
+    emergency_continuity_active = bool(
+        isinstance(emergency_record, dict)
+        and emergency_record.get("status") == "active"
+        and emergency_record.get("snapshot_lead_fallback_enabled") is True
+        and re.fullmatch(r"[a-f0-9]{64}", emergency_sha)
+        and emergency_record.get("baseline_clean_cycle_completed_at")
+        and emergency_expires is not None
+        and emergency_expires > current
+    )
+
+    cadence = state.get("product_publication_cadence") if isinstance(state, dict) else {}
+    cadence = cadence if isinstance(cadence, dict) else {}
+
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": current.isoformat(),
         "last_channel_published_at": value("last_channel_published_at"),
+        "last_product_channel_published_at": value("last_product_channel_published_at"),
+        "product_publication_interval_seconds": value("product_publication_interval_seconds"),
+        "product_publication_plan_cycle_id": value("product_publication_plan_cycle_id"),
+        "product_publication_cadence_cycle_id": cadence.get("catalog_cycle_id"),
+        "next_channel_content_due_at": next_channel_due_at,
+        "next_editorial_planning_at": next_editorial_planning_at,
+        "emergency_continuity_active": emergency_continuity_active,
+        "emergency_continuity_snapshot_sha256": emergency_sha if emergency_continuity_active else None,
+        "emergency_continuity_baseline_completed_at": (
+            str(emergency_record.get("baseline_clean_cycle_completed_at") or "")
+            if emergency_continuity_active else None
+        ),
+        "emergency_continuity_expires_at": (
+            emergency_expires.isoformat() if emergency_continuity_active and emergency_expires else None
+        ),
         "youtube_next_upload_at": value("youtube_next_upload_at"),
         "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
         "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
@@ -8594,11 +8740,188 @@ def is_selection_candidate_rejected(
     return True
 
 
+def _emergency_continuity_window_active(
+    state: dict,
+    catalog_status: dict,
+    *,
+    now: datetime | None = None,
+) -> bool:
+    """Pin one last-known-good snapshot for lead-only use until the next clean scan."""
+    if os.getenv("OFFERCHIN_EMERGENCY_CONTINUITY_ENABLED", "false").strip().lower() not in {
+        "1", "true", "yes", "on"
+    }:
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    status = catalog_status if isinstance(catalog_status, dict) else {}
+    latest_clean = str(status.get("last_clean_cycle_completed_at") or "").strip()
+    record = state.get("emergency_continuity") if isinstance(state.get("emergency_continuity"), dict) else None
+    if record is None:
+        baseline_started = str(status.get("last_clean_cycle_started_at") or "").strip()
+        baseline_completed = latest_clean
+        baseline_sha = str(status.get("completed_candidates_sha256") or "").strip()
+        try:
+            baseline_count = max(0, int(status.get("completed_candidates_count") or 0))
+        except (TypeError, ValueError, OverflowError):
+            baseline_count = 0
+        cycle_seconds = 0
+        try:
+            started = datetime.fromisoformat(baseline_started.replace("Z", "+00:00"))
+            completed = datetime.fromisoformat(baseline_completed.replace("Z", "+00:00"))
+            if started.tzinfo is None:
+                started = started.replace(tzinfo=timezone.utc)
+            if completed.tzinfo is None:
+                completed = completed.replace(tzinfo=timezone.utc)
+            observed = int((completed - started).total_seconds())
+            if 3600 <= observed <= 72 * 3600:
+                cycle_seconds = observed
+        except (TypeError, ValueError):
+            cycle_seconds = 0
+        snapshot_verified = bool(
+            status.get("completed_candidates_snapshot_valid") is True
+            and status.get("last_clean_cycle_status") == "complete"
+            and len(baseline_sha) == 64
+            and baseline_count > 0
+            and baseline_started
+            and baseline_completed
+        )
+        record = {
+            "status": "active",
+            "baseline_clean_cycle_started_at": baseline_started,
+            "baseline_clean_cycle_completed_at": baseline_completed,
+            "baseline_snapshot_sha256": baseline_sha if snapshot_verified else "",
+            "baseline_snapshot_candidate_count": baseline_count if snapshot_verified else 0,
+            "baseline_clean_cycle_duration_seconds": cycle_seconds,
+            "started_at": current.isoformat(),
+            "expires_at": (current + timedelta(hours=72)).isoformat(),
+            "candidate_cursor": 0,
+            "reason": "temporary_live_rechecked_product_leads_until_next_clean_catalog_scan",
+            "snapshot_lead_fallback_enabled": snapshot_verified,
+        }
+        state["emergency_continuity"] = record
+        print(
+            "EMERGENCY_CONTINUITY_STARTED "
+            f"baseline_clean_cycle={baseline_completed or 'none'} "
+            f"hash_pinned_snapshot={snapshot_verified} "
+            "lead_only_live_price_stock_discount_affiliate_recheck=true "
+            "hard_safety_and_repeat_gates=preserved"
+        )
+    elif record.get("status") == "active":
+        baseline = str(record.get("baseline_clean_cycle_completed_at") or "").strip()
+        if not baseline and latest_clean:
+            try:
+                started_at = datetime.fromisoformat(
+                    str(record.get("started_at") or "").replace("Z", "+00:00")
+                )
+                clean_at = datetime.fromisoformat(latest_clean.replace("Z", "+00:00"))
+                if started_at.tzinfo is None:
+                    started_at = started_at.replace(tzinfo=timezone.utc)
+                if clean_at.tzinfo is None:
+                    clean_at = clean_at.replace(tzinfo=timezone.utc)
+                if clean_at <= started_at:
+                    baseline = latest_clean
+                    record["baseline_clean_cycle_completed_at"] = latest_clean
+                    record["baseline_clean_cycle_started_at"] = str(
+                        status.get("last_clean_cycle_started_at") or ""
+                    )
+            except (TypeError, ValueError):
+                pass
+        if latest_clean and latest_clean != baseline:
+            record["status"] = "ended"
+            record["ended_at"] = current.isoformat()
+            record["ended_by_clean_cycle_completed_at"] = latest_clean
+            print(
+                "EMERGENCY_CONTINUITY_ENDED "
+                f"new_clean_cycle_completed_at={latest_clean}"
+            )
+        else:
+            # Migrate an active record created by an earlier deployment of this PR.
+            # Pin its existing baseline before the normal snapshot-age gate expires.
+            try:
+                started_at = datetime.fromisoformat(
+                    str(record.get("started_at") or "").replace("Z", "+00:00")
+                )
+                if started_at.tzinfo is None:
+                    started_at = started_at.replace(tzinfo=timezone.utc)
+            except (TypeError, ValueError):
+                started_at = current
+                record["started_at"] = current.isoformat()
+            if not record.get("expires_at"):
+                record["expires_at"] = (started_at + timedelta(hours=72)).astimezone(timezone.utc).isoformat()
+            if (
+                not record.get("baseline_snapshot_sha256")
+                and baseline
+                and status.get("completed_candidates_snapshot_valid") is True
+                and str(status.get("last_clean_cycle_completed_at") or "") == baseline
+            ):
+                record["baseline_snapshot_sha256"] = str(
+                    status.get("completed_candidates_sha256") or ""
+                )
+                record["baseline_snapshot_candidate_count"] = int(
+                    status.get("completed_candidates_count") or 0
+                )
+                record["baseline_clean_cycle_started_at"] = str(
+                    status.get("last_clean_cycle_started_at") or ""
+                )
+                try:
+                    started = datetime.fromisoformat(
+                        record["baseline_clean_cycle_started_at"].replace("Z", "+00:00")
+                    )
+                    completed = datetime.fromisoformat(baseline.replace("Z", "+00:00"))
+                    if started.tzinfo is None:
+                        started = started.replace(tzinfo=timezone.utc)
+                    if completed.tzinfo is None:
+                        completed = completed.replace(tzinfo=timezone.utc)
+                    duration = int((completed - started).total_seconds())
+                    if 3600 <= duration <= 72 * 3600:
+                        record["baseline_clean_cycle_duration_seconds"] = duration
+                except (TypeError, ValueError):
+                    pass
+                record["snapshot_lead_fallback_enabled"] = bool(
+                    record["baseline_snapshot_sha256"]
+                    and record["baseline_snapshot_candidate_count"] > 0
+                    and record.get("baseline_clean_cycle_started_at")
+                )
+                record.setdefault("candidate_cursor", 0)
+                print(
+                    "EMERGENCY_CONTINUITY_SNAPSHOT_PINNED "
+                    f"candidates={record['baseline_snapshot_candidate_count']} "
+                    f"sha_pinned={record['snapshot_lead_fallback_enabled']}"
+                )
+            if _parse_utc_datetime(record.get("expires_at")) and _parse_utc_datetime(record.get("expires_at")) <= current:
+                record["status"] = "expired"
+                record["ended_at"] = current.isoformat()
+                record["end_reason"] = "72_hour_emergency_safety_limit"
+                print("EMERGENCY_CONTINUITY_ENDED reason=72_hour_safety_limit")
+    return str(record.get("status") or "") == "active"
+
+
+def _emergency_continuity_quality_score(product: dict) -> float:
+    """Score affordability, generality and discount only; never invent a demand score."""
+    factors = product.get("offerchin_four_factor")
+    if not isinstance(factors, dict):
+        return 0.0
+    try:
+        values = [
+            float(factors.get("affordability") or 0),
+            float(factors.get("generality") or 0),
+            float(factors.get("discount_attractiveness") or 0),
+        ]
+    except (TypeError, ValueError, OverflowError):
+        return 0.0
+    if any(value <= 0 for value in values):
+        return 0.0
+    return round(len(values) / sum(1.0 / value for value in values), 2)
+
+
 def select_discount_fallback_candidates(
     products: list[dict],
     state: dict,
     now: datetime | None = None,
     include_fallback_bands: bool = False,
+    allow_emergency_demand_relaxation: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
     """Rank live-valid candidates by DigiKala demand evidence, then verified deal value.
 
@@ -8622,6 +8945,7 @@ def select_discount_fallback_candidates(
     }
     quality_eligible: list[dict] = []
     fresh_candidates: list[dict] = []
+    emergency_candidates: list[dict] = []
     seen_ids: set[str] = set()
     demand_rejected = 0
     published_records = state.get("published", {})
@@ -8639,10 +8963,19 @@ def select_discount_fallback_candidates(
             continue
         if not has_publishable_expiry_or_open_offer(product, current):
             continue
+        seen_ids.add(pid)
         if not has_verified_market_demand(product, now=current):
             demand_rejected += 1
+            # Temporary exception: relax only the demand-evidence gate. Every other
+            # hard offer gate above and the same freshness/repeat controls still apply.
+            if (
+                allow_emergency_demand_relaxation
+                and not is_selection_candidate_rejected(state, pid, product, current)
+                and is_fresh_selection_candidate(state, pid, product, current)
+                and not _has_active_publication_or_delivery(state, pid)
+            ):
+                emergency_candidates.append(product)
             continue
-        seen_ids.add(pid)
         quality_eligible.append(product)
         if (
             not is_selection_candidate_rejected(state, pid, product, current)
@@ -8651,13 +8984,61 @@ def select_discount_fallback_candidates(
             fresh_candidates.append(product)
 
     fallback_mode = "normal"
+    if allow_emergency_demand_relaxation:
+        _apply_offerchin_four_factor_scores(emergency_candidates, now=current)
+        approved_emergency = []
+        for product in emergency_candidates:
+            factors = product.get("offerchin_four_factor") if isinstance(product.get("offerchin_four_factor"), dict) else {}
+            quality_score = _emergency_continuity_quality_score(product)
+            try:
+                discount_score = float(factors.get("discount_attractiveness") or 0)
+                affordability_score = float(factors.get("affordability") or 0)
+                generality_score = float(factors.get("generality") or 0)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            # This is deliberately stricter than the ordinary four-factor ranking:
+            # a missing demand signal is disclosed, while weak markdown/fit is rejected.
+            if (
+                discount_score < 55
+                or affordability_score < 40
+                or generality_score < 50
+                or quality_score < 55
+            ):
+                continue
+            product["emergency_continuity_quality_score"] = quality_score
+            product["selection_continuity_mode"] = "temporary_three_factor_demand_relaxation"
+            approved_emergency.append(product)
+
+        approved_emergency.sort(
+            key=lambda row: (
+                float(row.get("emergency_continuity_quality_score") or 0),
+                float((row.get("offerchin_four_factor") or {}).get("discount_attractiveness") or 0),
+                int(row.get("savings_toman") or 0),
+            ),
+            reverse=True,
+        )
+        emergency_candidates = approved_emergency
+        if emergency_candidates:
+            print(
+                "EMERGENCY_CONTINUITY_CANDIDATES "
+                f"available={len(quality_eligible)} approved={len(emergency_candidates)} "
+                "ranking=affordability_generality_discount_harmonic "
+                "fresh_demand_claim=false"
+            )
+            fresh_candidates.extend(emergency_candidates)
+            fallback_mode = "normal_plus_emergency_continuity" if len(fresh_candidates) > len(emergency_candidates) else "emergency_continuity"
+
     if not fresh_candidates:
-        # Reuse a product only after every prior Telegram/Bale post is confirmed
-        # removed and no active publication or delivery record remains.
+        # Reuse is permitted only for previously demand-qualified products. The
+        # emergency rule above is separate and has its own stricter score thresholds.
         reusable = []
         for product in quality_eligible:
             pid = str(product.get("product_id") or product_id(product.get("product_url") or "")).strip()
-            if not pid or _has_active_publication_or_delivery(state, pid):
+            if not pid or not has_verified_market_demand(product, now=current):
+                continue
+            if is_selection_candidate_rejected(state, pid, product, current):
+                continue
+            if _has_active_publication_or_delivery(state, pid):
                 continue
             if not previous_publication_posts_removed(published_records.get(pid)):
                 continue
@@ -8682,7 +9063,7 @@ def select_discount_fallback_candidates(
         f"hard_eligible={len(quality_eligible)} demand_rejected={demand_rejected} "
         f"fresh={len(fresh_candidates)} "
         "demand_gate=true click_count_used=false "
-        f"fallback_mode={fallback_mode}"
+        f"emergency_approved={len(emergency_candidates)} fallback_mode={fallback_mode}"
     )
 
     if not fresh_candidates:
@@ -8717,18 +9098,22 @@ def select_discount_fallback_candidates(
             if isinstance(selected.get("offerchin_four_factor"), dict) else {}
         )
         bestseller_evidence = _fresh_digikala_bestseller_evidence(product, now=current)
-        selected["selection_demand_evidence"] = (
-            "digikala_native_bestseller_rank" if bestseller_evidence
-            else "digikala_recent_review_growth_proxy" if has_current_demand_signal(product, now=current)
-            else "digiKala_lifetime_reviews_and_rating_context" if (
-                product.get("review_count") or product.get("rating")
-            ) else "no_current_demand_evidence"
-        )
-        selected["selection_demand_quality"] = (
-            bestseller_evidence.get("evidence_quality") if bestseller_evidence
-            else "indirect_review_growth_proxy_not_sales" if has_current_demand_signal(product, now=current)
-            else "historical_quality_context_only"
-        )
+        if selected.get("selection_continuity_mode") == "temporary_three_factor_demand_relaxation":
+            selected["selection_demand_evidence"] = "not_verified_emergency_continuity_override"
+            selected["selection_demand_quality"] = "demand_not_verified_three_factor_proxy_only"
+        else:
+            selected["selection_demand_evidence"] = (
+                "digikala_native_bestseller_rank" if bestseller_evidence
+                else "digikala_recent_review_growth_proxy" if has_current_demand_signal(product, now=current)
+                else "digiKala_lifetime_reviews_and_rating_context" if (
+                    product.get("review_count") or product.get("rating")
+                ) else "no_current_demand_evidence"
+            )
+            selected["selection_demand_quality"] = (
+                bestseller_evidence.get("evidence_quality") if bestseller_evidence
+                else "indirect_review_growth_proxy_not_sales" if has_current_demand_signal(product, now=current)
+                else "historical_quality_context_only"
+            )
         selected["selection_bestseller_rank"] = bestseller_evidence.get("best_rank_across_categories")
         selected["selection_bestseller_category_count"] = bestseller_evidence.get("fresh_category_count", 0)
         selected["selection_bestseller_rank_improvement"] = bestseller_evidence.get("rank_improvement", 0)
@@ -9030,6 +9415,32 @@ def daily_channel_posts_count(state: dict, now: datetime | None = None) -> int:
             continue
         if posted_day == channel_day:
             count += 1
+
+    # Editorial records live outside state["published"]; count a confirmed channel
+    # delivery once per editorial item so the shared daily limit covers both content types.
+    editorial_history = state.get("editorial_delivery_history", []) if isinstance(state, dict) else []
+    if isinstance(editorial_history, list):
+        for entry in editorial_history:
+            if not isinstance(entry, dict):
+                continue
+            destinations = entry.get("destinations")
+            if not isinstance(destinations, dict) or not any(
+                isinstance(destinations.get(name), dict)
+                and destinations[name].get("status") == "sent"
+                for name in ("telegram", "bale", "rubika", "eitaa")
+            ):
+                continue
+            try:
+                published_at = datetime.fromisoformat(
+                    str(entry.get("published_at") or "").replace("Z", "+00:00")
+                )
+                if published_at.tzinfo is None:
+                    published_at = published_at.replace(tzinfo=timezone.utc)
+                posted_day = published_at.astimezone(IRAN_TIMEZONE).date()
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if posted_day == channel_day:
+                count += 1
     return count
 
 
@@ -9335,19 +9746,81 @@ def _has_video_dispatch_eligibility(record: dict) -> bool:
 def _has_pending_video_destination(
     record: dict,
     destinations: set[str] | None = None,
+    now: datetime | None = None,
 ) -> bool:
-    """Return whether this canonical product still needs an attempted video delivery."""
+    """Return whether a canonical product still has video work the uploader can resume.
+
+    Explicitly pending work is actionable. Old skip states are actionable only when
+    the current uploader has a documented requeue path: verified future expiry for
+    skipped-expiring records, and YouTube's no-expiry-timer correction for
+    skipped-unverified-deadline records. Unknown legacy records never default to pending.
+    """
     if not isinstance(record, dict):
         return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
     selected = {"youtube", "aparat", "filo"} if destinations is None else {
         str(item).strip().lower() for item in destinations
     }
-    return any(
-        platform in selected
-        and str(record.get(f"{platform}_upload_status") or "pending").strip().lower()
-        in VIDEO_DESTINATION_PENDING_STATUSES
-        for platform in ("youtube", "aparat", "filo")
+    generation = str(record.get("video_generation_status") or "").strip().lower()
+    if generation not in {
+        "pending", "generated", "skipped_expiring_soon", "skipped_unverified_deadline"
+    }:
+        return False
+
+    expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("expires_at")))
+    if expiry is not None and expiry <= current + timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES):
+        return False
+
+    source = str(record.get("expiry_source") or "")
+    verified_expiry = bool(
+        expiry is not None
+        and record.get("expiry_estimated") is not True
+        and (
+            (
+                source in {"digikala_live_deals_feed", "digikala_product_detail_api"}
+                and record.get("expiry_deadline_verified_directly") is True
+            )
+            or (
+                source == "digikala_mcp_offer_card"
+                and record.get("expiry_deadline_verified_from_site_card") is True
+            )
+        )
     )
+
+    for platform in ("youtube", "aparat", "filo"):
+        if platform not in selected:
+            continue
+        status = str(record.get(f"{platform}_upload_status") or "").strip().lower()
+        if (
+            platform == "aparat"
+            and APARAT_SHORTS_ONLY
+            and not status
+            and generation in {"pending", "generated"}
+        ):
+            # Older selected records may predate the dedicated Aparat status field.
+            # In Shorts-only mode, an explicit pending generation with no Aparat
+            # outcome is a valid unattempted hand-off, not a terminal unknown record.
+            status = "pending"
+        if generation in {"pending", "generated"} and status in VIDEO_DESTINATION_PENDING_STATUSES:
+            return True
+        if generation == "skipped_expiring_soon" and verified_expiry:
+            if status in VIDEO_DESTINATION_PENDING_STATUSES or status == "skipped_expiring_soon":
+                return True
+        if generation == "skipped_unverified_deadline":
+            if platform == "youtube" and status in {
+                "pending", "pending_credentials", "retry", "skipped_unverified_deadline"
+            }:
+                return True
+            if platform == "aparat" and verified_expiry and status in {
+                "pending", "pending_credentials", "retry", "skipped_unverified_deadline"
+            }:
+                return True
+
+    return False
 
 
 def _video_upload_candidate_sort_key(row: tuple) -> tuple:
@@ -9757,6 +10230,9 @@ def process_pending_short_video(
                 if aparat_status == "skipped_expiring_soon":
                     record["aparat_upload_status"] = "pending"
                     aparat_status = "pending"
+                if filo_status == "skipped_expiring_soon":
+                    record["filo_upload_status"] = "pending"
+                    filo_status = "pending"
                 state_changed = True
                 print(f"SHORT_VIDEO_REQUEUED id={pid} reason=active_deadline_after_policy_change")
 
@@ -10614,7 +11090,16 @@ def run(publish=False, selection_only=False):
     # page remain eligible for a live recheck on the next scan.
     state = load_state()
     catalog_context = publication_catalog_context()
-    if selection_only and catalog_context.get("mode") == "blocked":
+    try:
+        catalog_status = json.loads(CATALOG_SWEEP_STATUS.read_text(encoding="utf-8"))
+        if not isinstance(catalog_status, dict):
+            catalog_status = {}
+    except (OSError, ValueError, TypeError):
+        catalog_status = {}
+    emergency_continuity_active = _emergency_continuity_window_active(
+        state, catalog_status, now=datetime.now(timezone.utc)
+    )
+    if selection_only and catalog_context.get("mode") == "blocked" and not emergency_continuity_active:
         print("CONTENT_SELECTION_BLOCKED reason=no_verified_fresh_full_catalog_snapshot")
         return 0
     if prune_suppressed_product_queues(state):
@@ -10637,6 +11122,96 @@ def run(publish=False, selection_only=False):
         discovery_queue,
         state,
     )
+    if selection_only and emergency_continuity_active:
+        continuity_record = state.get("emergency_continuity")
+        # Reserve part of the bounded live-check budget for the pinned last-clean
+        # snapshot, otherwise ordinary discovery can fill the entire batch and
+        # starve the emergency clause even when the old snapshot has good leads.
+        lead_limit = min(50, MAX_PRODUCT_CHECKS)
+        ordinary_discovery_limit = max(0, MAX_PRODUCT_CHECKS - lead_limit)
+        if len(urls) > ordinary_discovery_limit:
+            print(
+                "EMERGENCY_DISCOVERY_BUDGET_RESERVED "
+                f"ordinary_before={len(urls)} ordinary_kept={ordinary_discovery_limit} "
+                f"snapshot_lead_budget={lead_limit}"
+            )
+            urls = urls[:ordinary_discovery_limit]
+        if lead_limit > 0:
+            emergency_snapshot = load_emergency_continuity_candidates(
+                continuity_record,
+                CATALOG_SWEEP_CANDIDATES,
+                now=datetime.now(timezone.utc),
+                limit=lead_limit,
+            )
+            if emergency_snapshot:
+                record = continuity_record if isinstance(continuity_record, dict) else {}
+                record["candidate_cursor"] = emergency_snapshot["next_cursor"]
+                record["last_lead_batch_at"] = datetime.now(timezone.utc).isoformat()
+                known_urls = {safe_product_url(url) for url in urls}
+                added_leads = 0
+                for lead in emergency_snapshot["candidates"]:
+                    canonical = safe_product_url(lead.get("product_url") or "")
+                    pid = product_id(canonical)
+                    if (
+                        not canonical
+                        or not pid
+                        or canonical in known_urls
+                        or is_product_suppressed(state, pid)
+                        or _has_active_publication_or_delivery(state, pid)
+                    ):
+                        continue
+                    catalog_fields = {
+                        key: lead[key]
+                        for key in (
+                            "catalog_sort_mode",
+                            "catalog_best_selling_rank",
+                            "catalog_best_selling_category_id",
+                            "catalog_best_selling_category_name",
+                            "catalog_rank_observed_at",
+                            "catalog_best_selling_ranks_by_category",
+                            "catalog_cycle_completed_at",
+                            "catalog_cycle_snapshot_rank",
+                            "catalog_category_ids",
+                            "catalog_category_name",
+                            "catalog_category_path",
+                        )
+                        if lead.get(key) not in (None, "")
+                    }
+                    # Deliberately discard historical commercial fields: only the URL and
+                    # taxonomy/rank provenance are retained for a fresh product-detail fetch.
+                    discovery_queue[pid] = {
+                        "product_id": pid,
+                        "product_url": canonical,
+                        "title": str(lead.get("title") or "")[:180],
+                        "brand": str(lead.get("brand") or "")[:100],
+                        "source": "digikala_emergency_last_clean_snapshot",
+                        "emergency_continuity_snapshot_sha256": str(
+                            record.get("baseline_snapshot_sha256") or ""
+                        ),
+                        "emergency_continuity_baseline_completed_at": str(
+                            record.get("baseline_clean_cycle_completed_at") or ""
+                        ),
+                        "first_seen_at": datetime.now(timezone.utc).isoformat(),
+                        "last_seen_at": datetime.now(timezone.utc).isoformat(),
+                        "last_check_status": "emergency_snapshot_lead",
+                        "check_count": 0,
+                        "last_checked_at": "",
+                        "next_check_at": "",
+                        "deal_expires_at": "",
+                        **catalog_fields,
+                    }
+                    urls.append(canonical)
+                    known_urls.add(canonical)
+                    added_leads += 1
+                print(
+                    "EMERGENCY_SNAPSHOT_LEADS "
+                    f"snapshot_candidates={emergency_snapshot['candidate_count']} "
+                    f"batch={len(emergency_snapshot['candidates'])} "
+                    f"added={added_leads} cursor={emergency_snapshot['next_cursor']} "
+                    "commercial_fields_from_snapshot=discarded live_recheck=required"
+                )
+            else:
+                print("EMERGENCY_SNAPSHOT_LEADS unavailable_or_hash_mismatch=true")
     prune_suppressed_product_queues(state)
     # Write the discovery queue before per-product page checks; the workflow's final
     # state-commit step also runs on failed validation/check steps so these sightings survive.
@@ -10674,6 +11249,16 @@ def run(publish=False, selection_only=False):
                     if catalog_record.get(field) not in (None, ""):
                         item[field] = catalog_record[field]
             item["merchant"] = "اسنپ‌شاپ" if product_id(canonical).startswith("snp-") else "دیجی‌کالا"
+            if (
+                isinstance(catalog_record, dict)
+                and catalog_record.get("source") == "digikala_emergency_last_clean_snapshot"
+            ):
+                item["emergency_continuity_snapshot_sha256"] = str(
+                    catalog_record.get("emergency_continuity_snapshot_sha256") or ""
+                )
+                item["emergency_continuity_baseline_completed_at"] = str(
+                    catalog_record.get("emergency_continuity_baseline_completed_at") or ""
+                )
             mcp_deadline_hint = deal_expiries.get(pid, "")
             direct_feed_deadline = direct_feed_expiries.get(pid, "")
             mcp_card_deadline = mcp_card_expiries.get(pid, "")
@@ -10774,7 +11359,11 @@ def run(publish=False, selection_only=False):
     )
     market_blocked_count = sum(is_market_price_uncompetitive(p) for p in products)
     eligible, selected_discount_floor, quality_eligible = select_discount_fallback_candidates(
-        products, state, now=queue_now, include_fallback_bands=selection_only
+        products,
+        state,
+        now=queue_now,
+        include_fallback_bands=selection_only,
+        allow_emergency_demand_relaxation=bool(selection_only and emergency_continuity_active),
     )
     if catalog_context.get("mode") == "full_catalog":
         before_catalog_gate = len(eligible)
@@ -10792,10 +11381,15 @@ def run(publish=False, selection_only=False):
             f"snapshot_candidates={catalog_context['snapshot']['candidate_count']} "
             "ranking_source=verified_full_catalog_snapshot"
         )
-    elif catalog_context.get("mode") == "blocked":
+    elif catalog_context.get("mode") == "blocked" and not emergency_continuity_active:
         eligible = []
         quality_eligible = []
         print("CATALOG_PUBLICATION_FILTER blocked=true reason=no_verified_full_catalog_snapshot")
+    elif catalog_context.get("mode") == "blocked" and emergency_continuity_active:
+        print(
+            "CATALOG_PUBLICATION_FILTER mode=emergency_lead_only "
+            "source=hash_pinned_last_clean_snapshot live_product_revalidation_required=true"
+        )
     elif catalog_context.get("mode") == "degraded_live_fallback":
         print(
             "CATALOG_PUBLICATION_FILTER mode=degraded_live_fallback "
@@ -10878,7 +11472,7 @@ def run(publish=False, selection_only=False):
     )
     eligible_by_id = {
         str(p.get("product_id") or product_id(p.get("product_url", ""))): p
-        for p in quality_eligible
+        for p in [*quality_eligible, *eligible]
     }
     # Retain the band metadata before ranking replaces this list with the
     # original quality records. Restore it now so retries and final ranking both
@@ -11063,88 +11657,136 @@ def run(publish=False, selection_only=False):
     }
     save_json(REPORT, report)
     if selection_only:
-        # Keep discovery live on every scan, but only select a new product when a
-        # publication slot is due. Never build a long queue of products chosen early.
         from content_delivery import (
+            calculate_product_publication_cadence,
             enqueue_selected_content,
-            get_last_channel_published_at,
-            has_fresh_unpublished_selection,
+            reschedule_product_queue_evenly,
             refresh_unpublished_selections,
-            selection_cadence_anchor,
         )
         selection_now = datetime.now(timezone.utc)
+        cadence_catalog_status = dict(catalog_status)
+        continuity_record = state.get("emergency_continuity")
+        if emergency_continuity_active and isinstance(continuity_record, dict):
+            frozen_started = str(continuity_record.get("baseline_clean_cycle_started_at") or "")
+            frozen_completed = str(continuity_record.get("baseline_clean_cycle_completed_at") or "")
+            if frozen_started and frozen_completed:
+                cadence_catalog_status["last_clean_cycle_started_at"] = frozen_started
+                cadence_catalog_status["last_clean_cycle_completed_at"] = frozen_completed
         replaced = refresh_unpublished_selections(
             state, now=selection_now, stale_after_minutes=8
         )
-        interval_seconds = max(60, int(MIN_POST_INTERVAL_HOURS * 3600))
 
-        # Cadence follows the last selection and an actual Telegram/Bale send.
-        # Retries to YouTube/Aparat cannot move the public-channel slot forward.
-        # The helper also recovers older state from immutable per-platform send times.
-        last_selected = _parse_utc_datetime(state.get("last_content_selection_at"))
-        last_channel_published = get_last_channel_published_at(state)
-        fresh_unpublished_selection = has_fresh_unpublished_selection(
-            state, now=selection_now, stale_after_minutes=8
-        )
-        last_slot_anchor = selection_cadence_anchor(
-            last_selected,
-            last_channel_published,
-            has_fresh_unpublished_selection=fresh_unpublished_selection,
-        )
-        elapsed = (
-            (selection_now - last_slot_anchor).total_seconds()
-            if last_slot_anchor is not None else interval_seconds
-        )
-        remaining = max(0, interval_seconds - int(elapsed))
-
-        # A daily cap or an unexpired cooldown is a normal no-op, not a failed scan.
-        if remaining > 0:
-            save_json(STATE, state)
-            print(
-                "CONTENT_SELECTION_SLOT_NOT_DUE "
-                f"seconds_remaining={remaining} live_candidates={len(eligible)} "
-                f"replaced_stale={replaced}"
+        queue = state.get("content_delivery_queue")
+        queue = queue if isinstance(queue, dict) else {}
+        active_product_entries = []
+        active_product_ids = set()
+        for queued_id, entry in queue.items():
+            if not isinstance(entry, dict) or entry.get("status") in {"published", "cancelled", "stale_selection"}:
+                continue
+            if str(entry.get("content_type") or "product") != "product":
+                continue
+            platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+            core_sent = any(
+                isinstance(platforms.get(name), dict)
+                and platforms[name].get("status") == "sent"
+                for name in ("telegram", "bale", "rubika", "eitaa")
             )
-            return 0
+            if core_sent:
+                continue
+            active_product_entries.append(entry)
+            active_product_ids.add(str(queued_id))
+
+        # The live-validated list grows as the current catalog snapshot is rechecked.
+        # Only add candidates that are not already planned, and keep the queue bounded.
+        new_candidates = []
+        seen_new_ids = set()
+        for item in eligible:
+            pid = str(item.get("product_id") or product_id(item.get("product_url") or "")).strip()
+            if not pid or pid in active_product_ids or pid in seen_new_ids:
+                continue
+            seen_new_ids.add(pid)
+            new_candidates.append(item)
+
+        total_pending = len(active_product_entries) + len(new_candidates)
+        cadence = calculate_product_publication_cadence(
+            state,
+            cadence_catalog_status,
+            total_pending,
+            now=selection_now,
+            max_daily_posts=MAX_DAILY_CHANNEL_POSTS,
+        )
+        available_slots = max(0, int(cadence["planned_product_slots"]) - len(active_product_entries))
         if daily_channel_posts_count(state, selection_now) >= MAX_DAILY_CHANNEL_POSTS:
-            save_json(STATE, state)
+            available_slots = 0
             print(
                 "CONTENT_SELECTION_DAILY_CAP_REACHED "
-                f"limit={MAX_DAILY_CHANNEL_POSTS} live_candidates={len(eligible)}"
+                f"limit={MAX_DAILY_CHANNEL_POSTS} pending_products={len(active_product_entries)}"
             )
-            return 0
 
-        # Store one due primary plus a compact ranked backup pool.
-        # Backups preserve global discount/savings order. The publisher
-        # repeats live stock, price, identity, title, and affiliate checks.
-        primary = eligible[:1]
-        summary = enqueue_selected_content(
+        summary = {"added": 0, "skipped": 0, "queue_size": len(active_product_entries), "queue_evicted": 0}
+        selected_batch = new_candidates[:available_slots]
+        if selected_batch:
+            summary = enqueue_selected_content(
+                state,
+                selected_batch,
+                now=selection_now,
+                interval_seconds=int(cadence["interval_seconds"]),
+                max_items=len(selected_batch),
+                minimum_runway_minutes=MIN_PUBLICATION_RUNWAY_MINUTES,
+                max_active_items=250,
+            )
+            if summary["added"]:
+                state["last_content_selection_at"] = selection_now.isoformat()
+
+        # Recalculate after the hand-off, then reflow the entire still-unpublished
+        # product cohort. Editorial messages never enter this clock or move product slots.
+        queue = state.get("content_delivery_queue")
+        queue = queue if isinstance(queue, dict) else {}
+        pending_after = 0
+        for queued_id, entry in queue.items():
+            if not isinstance(entry, dict) or entry.get("status") in {"published", "cancelled", "stale_selection"}:
+                continue
+            if str(entry.get("content_type") or "product") != "product":
+                continue
+            platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+            if any(
+                isinstance(platforms.get(name), dict)
+                and platforms[name].get("status") == "sent"
+                for name in ("telegram", "bale", "rubika", "eitaa")
+            ):
+                continue
+            pending_after += 1
+
+        cadence = calculate_product_publication_cadence(
             state,
-            primary,
+            cadence_catalog_status,
+            pending_after,
             now=selection_now,
-            interval_seconds=interval_seconds,
-            max_items=1,
-            minimum_runway_minutes=MIN_PUBLICATION_RUNWAY_MINUTES,
+            max_daily_posts=MAX_DAILY_CHANNEL_POSTS,
         )
-        fallback_count = 0
-        if summary["added"] and primary:
-            primary_id = str(primary[0].get("product_id") or product_id(primary[0].get("product_url") or ""))
-            primary_entry = state.get("content_delivery_queue", {}).get(primary_id)
-            if isinstance(primary_entry, dict):
-                primary_entry["fallback_candidates"] = [
-                    dict(candidate) for candidate in eligible[1:51]
-                    if isinstance(candidate, dict)
-                ]
-                fallback_count = len(primary_entry["fallback_candidates"])
-            state["last_content_selection_at"] = selection_now.isoformat()
+        schedule = reschedule_product_queue_evenly(
+            state, cadence, now=selection_now
+        )
+        cadence["scheduled_product_count"] = schedule["scheduled"]
+        cadence["deferred_product_count"] = schedule["deferred"]
+        state["product_publication_cadence"] = cadence
         save_json(STATE, state)
+        print(
+            "PRODUCT_PUBLICATION_CADENCE "
+            f"pending={pending_after} newly_selected={summary['added']} "
+            f"interval_minutes={cadence['interval_minutes']} "
+            f"next_clean_scan_at={cadence['estimated_next_clean_scan_at']} "
+            f"planned_slots={cadence['planned_product_slots']} "
+            f"plan_anchor={cadence['plan_anchor_kind']} "
+            f"emergency_continuity={bool(emergency_continuity_active)}"
+        )
         print(
             "CONTENT_SELECTION_HANDOFF "
             f"queued={summary['added']} skipped={summary['skipped']} "
             f"queue_size={summary['queue_size']} live_candidates={len(eligible)} "
-            f"fallback_pool={fallback_count} replaced_stale={replaced} publisher_invoked=false"
+            f"planned_products={pending_after} available_slots={available_slots} "
+            f"replaced_stale={replaced} publisher_invoked=false"
         )
-        # No eligible offer is a normal outcome. The next scan refreshes the pool.
         return 0
 
     state.setdefault("published", {})

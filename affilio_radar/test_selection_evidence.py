@@ -360,6 +360,96 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         self.assertEqual(quality, [])
         self.assertEqual(queued, [])
 
+    def test_emergency_continuity_relaxes_only_the_demand_gate_for_strong_live_deals(self):
+        product = {
+            "product_id": "dkp-emergency-strong",
+            "product_url": "https://www.digikala.com/product/dkp-emergency-strong/",
+            "title": "پاوربانک پرظرفیت مدل نمونه",
+            "availability": "in_stock",
+            "current_price": 400_000,
+            "original_price": 1_000_000,
+            "discount_percent": 60,
+            "savings_toman": 600_000,
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-emergency-strong%2F",
+        }
+
+        def score(rows, now=None):
+            for row in rows:
+                row["offerchin_four_factor"] = {
+                    "affordability": 75,
+                    "generality": 80,
+                    "discount_attractiveness": 90,
+                    "balanced_score": 81,
+                }
+
+        common_patches = (
+            patch.object(radar, "is_product_suppressed", return_value=False),
+            patch.object(radar, "is_discount_publish_eligible", return_value=True),
+            patch.object(radar, "has_publishable_expiry_or_open_offer", return_value=True),
+            patch.object(radar, "has_verified_market_demand", return_value=False),
+            patch.object(radar, "is_selection_candidate_rejected", return_value=False),
+            patch.object(radar, "is_fresh_selection_candidate", return_value=True),
+            patch.object(radar, "_has_active_publication_or_delivery", return_value=False),
+            patch.object(radar, "_apply_offerchin_four_factor_scores", side_effect=score),
+            patch.object(radar, "_filter_recent_publication_repeats", side_effect=lambda rows, *args, **kwargs: rows),
+            patch.object(radar, "deal_sort_key", side_effect=lambda row, **kwargs: (
+                row["offerchin_four_factor"]["balanced_score"],
+                row["discount_percent"],
+                row["savings_toman"],
+            )),
+        )
+        with common_patches[0], common_patches[1], common_patches[2], common_patches[3], common_patches[4], common_patches[5], common_patches[6], common_patches[7], common_patches[8], common_patches[9]:
+            selected, _floor, quality = radar.select_discount_fallback_candidates(
+                [product], {}, now=self.now, allow_emergency_demand_relaxation=True
+            )
+        self.assertEqual(quality, [], "demand-relaxed products must not be mislabeled as demand-qualified")
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-emergency-strong"])
+        self.assertEqual(
+            selected[0]["selection_demand_evidence"],
+            "not_verified_emergency_continuity_override",
+        )
+        self.assertEqual(
+            selected[0]["selection_demand_quality"],
+            "demand_not_verified_three_factor_proxy_only",
+        )
+
+    def test_emergency_continuity_still_rejects_weak_discount_score(self):
+        product = {
+            "product_id": "dkp-emergency-weak",
+            "product_url": "https://www.digikala.com/product/dkp-emergency-weak/",
+            "title": "کالای نمونه با تخفیف ناکافی",
+            "availability": "in_stock",
+            "current_price": 900_000,
+            "original_price": 1_000_000,
+            "discount_percent": 10,
+            "savings_toman": 100_000,
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-emergency-weak%2F",
+        }
+
+        def score(rows, now=None):
+            for row in rows:
+                row["offerchin_four_factor"] = {
+                    "affordability": 75,
+                    "generality": 80,
+                    "discount_attractiveness": 54,
+                    "balanced_score": 67,
+                }
+
+        with (
+            patch.object(radar, "is_product_suppressed", return_value=False),
+            patch.object(radar, "is_discount_publish_eligible", return_value=True),
+            patch.object(radar, "has_publishable_expiry_or_open_offer", return_value=True),
+            patch.object(radar, "has_verified_market_demand", return_value=False),
+            patch.object(radar, "is_selection_candidate_rejected", return_value=False),
+            patch.object(radar, "is_fresh_selection_candidate", return_value=True),
+            patch.object(radar, "_has_active_publication_or_delivery", return_value=False),
+            patch.object(radar, "_apply_offerchin_four_factor_scores", side_effect=score),
+        ):
+            selected, _floor, _quality = radar.select_discount_fallback_candidates(
+                [product], {}, now=self.now, allow_emergency_demand_relaxation=True
+            )
+        self.assertEqual(selected, [])
+
     def test_demand_is_required_but_positive_market_or_history_confirmation_is_not(self):
         product = {
             "product_id": "dkp-1234567",

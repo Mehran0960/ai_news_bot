@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import patch
+from datetime import datetime, timedelta, timezone
 
 import affilio_radar as radar
 
@@ -74,24 +75,57 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
         }))
 
     def test_pending_video_helper_filters_by_destination_and_terminal_status(self):
-        self.assertTrue(
-            radar._has_pending_video_destination(
-                {"youtube_upload_status": "uploaded", "filo_upload_status": "retry"},
-                {"filo"},
-            )
-        )
+        pending = {
+            "video_generation_status": "pending",
+            "youtube_upload_status": "uploaded",
+            "filo_upload_status": "retry",
+        }
+        self.assertTrue(radar._has_pending_video_destination(pending, {"filo"}))
+        self.assertFalse(radar._has_pending_video_destination(pending, {"youtube"}))
+        self.assertFalse(radar._has_pending_video_destination({
+            "video_generation_status": "pending",
+            "youtube_upload_status": "skipped_platform_limit",
+        }, {"youtube"}))
+
+    def test_expired_legacy_video_pending_status_does_not_block_editorial_fifo(self):
+        now = datetime(2026, 11, 14, 14, 30, tzinfo=timezone.utc)
+        record = {
+            "video_generation_status": "skipped_expiring_soon",
+            "youtube_upload_status": "skipped_expiring_soon",
+            "aparat_upload_status": "pending",
+            "expires_at": (now - timedelta(days=4)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+        }
+        self.assertFalse(radar._has_pending_video_destination(record, now=now))
+
+    def test_legacy_record_without_actionable_video_state_does_not_block_fifo(self):
+        # The old uploader cannot process a record that has no generation state or
+        # explicit destination status; do not let its implicit defaults block editorial.
+        record = {
+            "distribution_queue_id": "dkp-legacy",
+            "video_dispatch_eligible": True,
+            "expires_at": "2026-10-27T09:57:25+00:00",
+        }
         self.assertFalse(
             radar._has_pending_video_destination(
-                {"youtube_upload_status": "uploaded", "filo_upload_status": "retry"},
-                {"youtube"},
+                record,
+                now=datetime(2026, 11, 14, 14, 30, tzinfo=timezone.utc),
             )
         )
-        self.assertFalse(
-            radar._has_pending_video_destination(
-                {"youtube_upload_status": "skipped_platform_limit"},
-                {"youtube"},
-            )
-        )
+
+    def test_future_verified_expiry_keeps_skipped_video_requeueable(self):
+        now = datetime(2026, 11, 14, 14, 30, tzinfo=timezone.utc)
+        record = {
+            "video_generation_status": "skipped_expiring_soon",
+            "youtube_upload_status": "pending",
+            "expires_at": (now + timedelta(hours=3)).isoformat(),
+            "expiry_source": "digikala_live_deals_feed",
+            "expiry_deadline_verified_directly": True,
+            "expiry_estimated": False,
+        }
+        self.assertTrue(radar._has_pending_video_destination(record, {"youtube"}, now=now))
 
     def test_dispatch_sidecar_keeps_oldest_pending_canonical_products_and_drops_terminal_ones(self):
         state = {
@@ -106,11 +140,13 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
                 "newer_pending": {
                     "ts": 200,
                     "distribution_queue_id": "newer-pending",
+                    "video_generation_status": "pending",
                     "youtube_upload_status": "pending",
                 },
                 "oldest_pending": {
                     "ts": 100,
                     "distribution_queue_id": "oldest-pending",
+                    "video_generation_status": "pending",
                     "aparat_upload_status": "pending",
                 },
             }

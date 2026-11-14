@@ -1396,12 +1396,69 @@ class AffilioRadarTests(unittest.TestCase):
         )
 
 
+    def test_video_dispatch_state_schedules_standalone_editorial_after_55_minutes(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        state = {
+            "last_channel_published_at": now.isoformat(),
+            "last_editorial_empty_bank_check_at": (now + timedelta(minutes=10)).isoformat(),
+            "published": {},
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(
+            compact["next_editorial_planning_at"],
+            (now + timedelta(minutes=65)).isoformat(),
+        )
+
+    def test_video_dispatch_state_exposes_only_active_hash_pinned_emergency_continuity(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        state = {
+            "emergency_continuity": {
+                "status": "active",
+                "snapshot_lead_fallback_enabled": True,
+                "baseline_snapshot_sha256": "a" * 64,
+                "baseline_clean_cycle_completed_at": (now - timedelta(hours=80)).isoformat(),
+                "expires_at": (now + timedelta(hours=12)).isoformat(),
+            },
+            "published": {},
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertTrue(compact["emergency_continuity_active"])
+        self.assertEqual(compact["emergency_continuity_snapshot_sha256"], "a" * 64)
+
+        state["emergency_continuity"]["expires_at"] = (now - timedelta(seconds=1)).isoformat()
+        expired = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertFalse(expired["emergency_continuity_active"])
+        self.assertIsNone(expired["emergency_continuity_snapshot_sha256"])
+
     def test_video_dispatch_state_is_compact_and_keeps_due_delivery_signals(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         state = {
             "youtube_next_upload_at": "2026-11-05T11:00:00+00:00",
             "youtube_uploads_paused_until": None,
             "aparat_next_upload_at": "2026-11-05T10:00:00+00:00",
+            "product_publication_plan_cycle_id": "2026-11-05T09:00:00+00:00",
+            "product_publication_cadence": {
+                "catalog_cycle_id": "2026-11-05T09:00:00+00:00",
+            },
+            "last_channel_published_at": now.isoformat(),
+            "content_delivery_queue": {
+                "dkp-scheduled": {
+                    "status": "queued",
+                    "scheduled_at": "2026-11-05T14:00:00+00:00",
+                    "next_attempt_at": "2026-11-05T13:00:00+00:00",
+                    "content_type": "product",
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+            },
+            "editorial_delivery_queue": {
+                "editorial:scheduled": {
+                    "status": "queued",
+                    "scheduled_at": "2026-11-05T13:30:00+00:00",
+                },
+            },
             "published": {
                 "dkp-video-ready": {
                     "ts": now.timestamp(),
@@ -1424,6 +1481,10 @@ class AffilioRadarTests(unittest.TestCase):
             },
         }
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(
+            compact["next_editorial_planning_at"],
+            "2026-11-05T12:27:00+00:00",
+        )
         self.assertEqual(compact["youtube_next_upload_at"], state["youtube_next_upload_at"])
         self.assertEqual(compact["aparat_next_upload_at"], state["aparat_next_upload_at"])
         self.assertIn("dkp-video-ready", compact["published"])
@@ -1445,7 +1506,15 @@ class AffilioRadarTests(unittest.TestCase):
             ):
                 radar_module.save_json(state_path, state)
             saved = json.loads(dispatch_path.read_text(encoding="utf-8"))
-            self.assertEqual(saved["schema_version"], 1)
+            self.assertEqual(saved["schema_version"], 2)
+            self.assertEqual(
+                saved["product_publication_plan_cycle_id"],
+                "2026-11-05T09:00:00+00:00",
+            )
+            self.assertEqual(
+                saved["next_channel_content_due_at"],
+                "2026-11-05T13:00:00+00:00",
+            )
             self.assertIn("dkp-video-ready", saved["published"])
 
     def test_regular_and_sport_eyewear_share_one_global_family(self):
@@ -6554,8 +6623,16 @@ class AffilioRadarTests(unittest.TestCase):
             patch("affilio_radar._fetch_image") as fetch_image,
             patch("affilio_radar.save_json"),
             patch("affilio_radar.APARAT_SHORTS_ONLY", True),
+            patch("affilio_radar.APARAT_UPLOAD_ENABLED", True),
             patch("short_video.youtube_credentials_available", return_value=True),
-            patch("aparat_uploader.aparat_credentials_available", return_value=True),
+            patch.dict("sys.modules", {
+                "aparat_uploader": SimpleNamespace(
+                    aparat_credentials_available=lambda: True,
+                    upload_aparat_video=lambda *args, **kwargs: {},
+                    find_uploaded_aparat_video=lambda *args, **kwargs: {},
+                    PENDING_APARAT_STATUSES={"pending", "pending_credentials", "retry"},
+                )
+            }),
             patch("short_video.render_short_video") as render,
             patch("short_video.upload_youtube_video") as upload,
         ):
