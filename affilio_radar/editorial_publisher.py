@@ -180,7 +180,6 @@ def _recent_attempt_anchor(state: dict) -> datetime | None:
     candidates = [
         get_last_channel_published_at(state),
         _utc(state.get("last_editorial_confirmed_at")),
-        _utc(state.get("last_editorial_attempt_at")),
     ]
     history = state.get("editorial_delivery_history")
     if isinstance(history, list):
@@ -293,7 +292,6 @@ def queue_editorial_if_due(
         payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
         payload["sequence_number"] = entry["sequence_number"]
         entry["payload"] = payload
-        state["last_editorial_attempt_at"] = due_at.isoformat()
         return entry
 
     slot = _next_editorial_slot(state, now=current)
@@ -339,7 +337,6 @@ def queue_editorial_if_due(
         "platforms": {name: {"status": "pending", "attempts": 0} for name in PLATFORM_NAMES},
     }
     queue[item["content_id"]] = entry
-    state["last_editorial_attempt_at"] = due_at.isoformat()
     print(
         f"EDITORIAL_FALLBACK_QUEUED content_id={item['content_id']} "
         f"sequence={sequence_number} boundary={boundary.isoformat()} "
@@ -362,7 +359,7 @@ def _channel_slot_gap_remaining_seconds(state: dict, now: datetime) -> int:
 
 def _retry_existing_editorial_channel_deliveries(state: dict, *, now: datetime) -> None:
     """Retry optional channel destinations only when the shared slot is free."""
-    if _pending_product_channel_entries(state, now=now) or _channel_slot_gap_remaining_seconds(state, now):
+    if _pending_product_channel_entries(state, now=now):
         return
     for entry in _pending_editorial_channel_retries(state, now=now)[:5]:
         payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
@@ -671,6 +668,7 @@ def _handle_channel_destination(
 
     target["status"] = "sending"
     target["attempt_started_at"] = now.isoformat()
+    state["last_editorial_attempt_at"] = now.isoformat()
     target["attempts"] = int(target.get("attempts") or 0) + 1
     entry["status"] = "publishing"
     _save(state)
