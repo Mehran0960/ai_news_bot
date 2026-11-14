@@ -16,7 +16,7 @@ on:
       - main
     paths:
       - ".github/workflows/offerchin-publisher.yml"
-  # Cloudflare checks every minute and dispatches 27 minutes after the previous channel post.
+  # Cloudflare checks every minute and dispatches at the next queued product/editorial slot, respecting 27 minutes minimum.
   # [publisher-run-now] One-time resume after channel-publication clock repair.
   # [publisher-run-now] One-time retry after transient image-fetch and stale-selection fixes.
   # [publisher-run-now] One-time verify active-queue cadence repair.
