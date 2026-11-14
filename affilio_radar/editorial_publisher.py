@@ -792,8 +792,8 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     anchor = _recent_attempt_anchor(shadow_state_for_anchor)
     elapsed = (current - anchor) if anchor else None
     remaining = (
-        max(0, int((timedelta(minutes=MINIMUM_GAP_MINUTES) - elapsed).total_seconds()))
-        if elapsed is not None and elapsed < timedelta(minutes=MINIMUM_GAP_MINUTES)
+        max(0, int((timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES) - elapsed).total_seconds()))
+        if elapsed is not None and elapsed < timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES)
         else 0
     )
 
@@ -860,7 +860,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "decision": decision,
         "would_select_content_id": item_id,
         "would_allocate_sequence_number": sequence,
-        "fallback_interval_minutes": MINIMUM_GAP_MINUTES,
+        "fallback_interval_minutes": STANDALONE_EDITORIAL_GAP_MINUTES,
         "seconds_until_fallback_due": remaining,
         "editorial_bank_total": len(bank),
         "editorial_bank_valid": len(valid_items),
