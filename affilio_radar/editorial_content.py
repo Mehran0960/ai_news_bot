@@ -8,8 +8,8 @@ from typing import Any
 from urllib.parse import urlparse
 
 EDITORIAL_ID = re.compile(r"^[a-z0-9][a-z0-9-]{2,63}$")
-PERSIAN_SCRIPT = re.compile(r"[\\u0600-\\u06FF]")
-LATIN_LETTERS = re.compile(r"[A-Za-z\\u00C0-\\u024F]")
+PERSIAN_SCRIPT = re.compile(r"[\u0600-\u06FF]")
+LATIN_LETTERS = re.compile(r"[A-Za-z\u00C0-\u024F]")
 MAX_TITLE = 110
 MAX_BODY = 1800
 DEFAULT_COOLDOWN_HOURS = 24
