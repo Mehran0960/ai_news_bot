@@ -534,10 +534,10 @@ def refresh_unpublished_selections(
 ) -> int:
     """Discard future or stale selections that have not reached any destination.
 
-    Discovery runs more often than the publication cadence. A future-scheduled item
-    must not pin the next slot to an old product; an already-due failed selection is
-    given a short delivery window before the next live scan replaces it. Items that
-    reached even one platform are retained for independent destination retries.
+    Discovery runs more often than the publication cadence. Future-scheduled items
+    are retained as deliberate slots in the product plan; only an already-due failed
+    selection is given a short delivery window before the next live scan replaces it.
+    Items that reached even one platform are retained for independent destination retries.
     """
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
@@ -557,15 +557,22 @@ def refresh_unpublished_selections(
             continue
 
         scheduled = _utc(entry.get("scheduled_at"))
+        # A future slot is now an intentional part of the floating catalog-cycle plan.
+        # Only retire an item after its scheduled time has arrived and its delivery
+        # reservation has remained unresolved beyond the short recovery window.
+        if scheduled is not None and scheduled > now:
+            continue
         selected = _utc(entry.get("selected_at"), scheduled)
-        future_scheduled = scheduled is not None and scheduled > now
-        stale_due = selected is not None and now - selected >= stale_after
-        if not future_scheduled and not stale_due:
+        stale_due = selected is not None and now - max(selected, scheduled or selected) >= stale_after
+        if not stale_due:
             continue
 
-        detail = "future_selection_replaced_by_live_scan" if future_scheduled else "stale_unpublished_selection_replaced_by_live_scan"
         finish_queue_item(
-            state, str(product_id), "stale_selection", now=now, detail=detail
+            state,
+            str(product_id),
+            "stale_selection",
+            now=now,
+            detail="stale_due_unpublished_selection_replaced_by_live_scan",
         )
         if isinstance(pending, dict):
             pending.pop(str(product_id), None)
