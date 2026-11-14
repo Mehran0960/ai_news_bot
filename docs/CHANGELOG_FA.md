@@ -2089,12 +2089,23 @@
 
 **وضعیت:** کد روی شاخهٔ PR پیاده‌سازی شده و CI اصلی سبز است؛ گیت مستندسازی، ادغام PR و استقرار production/تأیید پست واقعی هنوز جداگانه لازم‌اند.
 
-## ۲۰۲۶-۱۱-۱۴ — بیدارباش پیش‌برنامه‌ریزی تحریریه پیش از محصول
+## ۲۰۲۶-۱۱-۱۴ — بیدارباش پیش‌برنامه‌ریزی تحریریه و مجوز اضطراری Worker
 
-**تکمیل تغییر PR #184:** صرفاً محاسبهٔ midpoint کافی نبود؛ اگر Worker فقط نزدیک‌ترین slot نهایی را dispatch می‌کرد، ممکن بود هیچ workflowای پیش از محصول اجرا نشود تا تحریریه را در آن midpoint قرار دهد. بنابراین sidecar اکنون `next_editorial_planning_at` را جداگانه محاسبه می‌کند: ۲۷ دقیقه پس از آخرین پست کانالی، مشروط به اینکه تا محصول بعدی حداقل یک شکاف ۵۴دقیقه‌ای امن وجود داشته باشد و قبلاً تحریریه‌ای برای همان محصول ثبت نشده باشد. Worker نزدیک‌ترِ میان زمان برنامه‌ریزی تحریریه و slotهای واقعی صف را انتخاب می‌کند؛ حداقل فاصلهٔ ۲۷ دقیقه پابرجاست. اگر بانک تحریریه خالی/نامعتبر باشد، بررسی مجدد برای آن محصول تا ۵۵ دقیقه backoff می‌گیرد و محصول due معطل نمی‌شود.
+**هدف:** اطمینان از اینکه تحریریهٔ مرتبط پیش از محصول در فاصلهٔ امن به صف اضافه شود و Cloudflare در پنجرهٔ اضطراری، ناشر را پیش از اجرای منطق راستی‌آزمایی Python مسدود نکند.
 
-**فایل‌ها:** `affilio_radar/affilio_radar.py`، `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `affilio_radar/test_affilio.py`، handbook.
+**تغییر/اقدام:**
+- sidecar زمان مستقل `next_editorial_planning_at` را محاسبه می‌کند: ۲۷ دقیقه پس از آخرین پست کانالی، فقط وقتی تا محصول بعدی شکاف حداقل ۵۴ دقیقه وجود دارد و قبلاً تحریریه‌ای برای همان محصول ثبت نشده است. این زمان یک بیدارباش برای برنامه‌ریزی است، نه مجوز ارسال فوری.
+- اگر صف محصولی وجود ندارد، زمان بررسی مستقل تحریریه ۵۵ دقیقه پس از آخرین پست یا آخرین بررسی بانک خالی است تا workflow بی‌وقفه dispatch نشود.
+- پرچم اضطراری فقط وقتی در sidecar فعال می‌شود که state دارای snapshot hash‌شده، timestamp مبنا، پنجرهٔ منقضی‌نشده و `snapshot_lead_fallback_enabled=true` باشد. Worker همین SHA و زمان انقضا را کنترل می‌کند و در صورت معتبر بودن فقط dispatch محدود می‌دهد؛ عضویت دقیق محصول در snapshot، انقضا و داده‌های تجاری زنده همچنان در Python و ناشر آخرین‌مرحله بررسی می‌شود.
+- حداکثر ۵۰ lead از snapshot قدیمی در هر batch بررسی می‌شود و برای آن‌ها ظرفیت واکشی زنده رزرو می‌شود تا کشف معمول نتواند بودجهٔ بررسی را کاملاً پر و مسیر اضطراری را گرسنه کند.
+- سقف ۷۲ پست روزانه، فاصلهٔ حداقل ۲۷ دقیقه، گیت‌های تجاری/ایمنی و چرخش بانک تحریریه حفظ شده‌اند.
 
-**آزمون و نتیجه:** PR #184 روی SHA `4b3eaff60b380ec45b6733884a3bd9196b1e12f3`؛ Catalog Sweep Regression، Video Fan-out، Fallback Regression و Editorial Contract موفق‌اند؛ Node/Cloudflare و sidecar projection نیز به تست‌های همان SHA اضافه شده‌اند. تست‌های باقیمانده و Documentation Gate در حال اجرا هستند.
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/catalog_status_snapshot.py`، `affilio_radar/publisher.py`، `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `affilio_radar/test_affilio.py`، `affilio_radar/test_catalog_status_snapshot.py`، handbook و همین changelog.
 
-**وضعیت:** پیاده‌سازی روی شاخهٔ PR؛ ادغام و rollout production هنوز انجام نشده است.
+**آزمون و نتیجه:** روی SHA `82d73085c635b0f766a4f7ac1151ed01dcea71b7`، تست‌های Python ranking/fallback/top-100/catalog/editorial/adapters/video و تست Node/Cloudflare موفق شدند؛ Worker syntax و Wrangler dry-run نیز موفق شدند. Documentation Gate در اجرای نخست شکست خورد، چون همین ورودی کوتاه فاقد برچسب‌های الزامی بود؛ این ورودی ساختاریافته شد تا گیت دوباره اجرا شود. هیچ اجرای production یا انتشار عمومی با این SHA ادعا نمی‌شود.
+
+**شواهد/شناسه:** PR #184؛ شاخهٔ `fix/offerchin-editorial-continuity-dynamic-cadence-20261114`؛ آخرین SHA آزموده‌شده `82d73085c635b0f766a4f7ac1151ed01dcea71b7`؛ CIهای Python/Worker با runهای `43619322741`، `43619322758`، `43619322778`، `43619322805`، `43619322806`، `43619322837` و گیت مستندات `43619322796`.
+
+**ریسک/بازگشت:** ETA چرخهٔ بعدی تخمینی است. اگر snapshot سالم hash-verified یا state اضطراری منقضی/ناسازگار باشد، محصول قدیمی از تبصره پذیرفته نمی‌شود و تحریریهٔ تأییدشده مسیر استمرار می‌ماند. انتشار عمومی تا ادغام PR، موفقیت deploy واقعی Cloudflare و مشاهدهٔ رسید عمومی کانال تأیید نشده است. بازگشت با revert کردن PR #184 انجام می‌شود؛ state و رسیدهای موجود نباید reset شوند.
+
+**وضعیت:** پیاده‌سازی در شاخهٔ PR است؛ گیت مستندات پس از این اصلاح باید دوباره بررسی شود؛ PR هنوز open و production rollout تأییدنشده است.
