@@ -185,6 +185,7 @@ def parse_feed(
         "already_seen": 0,
     }
     candidates: list[dict[str, Any]] = []
+    encountered_ids: set[str] = set()
     oldest_seen = current - timedelta(days=SEEN_RETENTION_DAYS)
     seen_map = {
         key: stamp for key, stamp in seen_map.items()
@@ -218,11 +219,12 @@ def parse_feed(
             continue
 
         candidate_id = hashlib.sha256(url.encode("utf-8")).hexdigest()[:20]
-        if candidate_id in seen_map:
+        if candidate_id in seen_map or candidate_id in encountered_ids:
             counts["already_seen"] += 1
             continue
+        encountered_ids.add(candidate_id)
 
-        candidates.append({
+        candidates.append({}
             "candidate_id": candidate_id,
             "source": SOURCE_LABEL_FA,
             "source_url": url,
@@ -241,7 +243,12 @@ def parse_feed(
         seen_map[candidate_id] = current.isoformat()
 
     candidates.sort(key=lambda item: (item["published_at"], item["editorial_relevance_score"]), reverse=True)
-    return candidates[: max(1, int(max_candidates))], counts, seen_map
+    selected = candidates[: max(1, int(max_candidates))]
+    # Mark only returned candidates as seen. Items beyond this run's output cap
+    # must remain eligible for the next run rather than being silently dropped.
+    for candidate in selected:
+        seen_map[candidate["candidate_id"]] = current.isoformat()
+    return selected, counts, seen_map
 
 
 def _load_state(path: Path) -> dict[str, Any]:
