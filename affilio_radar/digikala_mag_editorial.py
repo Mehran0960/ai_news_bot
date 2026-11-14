@@ -577,7 +577,7 @@ def run_pipeline(
         "publisher_queue_modified": False,
         "public_publication_performed": False,
         "article_text_or_images_stored": False,
-        "evidence_quotes_stored": False,
+        "source_evidence_persisted": False,
         "drafts": review_queue,
         "pending_candidates": [
             {
