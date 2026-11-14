@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import re
 import time
@@ -31,7 +32,7 @@ CHANNEL_DESTINATIONS = ("telegram", "bale", "rubika", "eitaa")
 VIDEO_DESTINATIONS = ("youtube", "aparat", "filo")
 TERMINAL = {"sent", "not_connected", "manual_review", "skipped_limit"}
 RETRYABLE = {"pending", "failed", "retry"}
-MINIMUM_GAP_MINUTES = 27
+MAXIMUM_PUBLICATION_GAP_MINUTES = 27
 RETRY_BASE_SECONDS = max(60, min(1800, int(os.getenv("OFFERCHIN_EDITORIAL_RETRY_SECONDS", "300"))))
 MAX_ATTEMPTS = max(1, min(5, int(os.getenv("OFFERCHIN_EDITORIAL_MAX_ATTEMPTS", "3"))))
 
@@ -192,26 +193,63 @@ def _recent_attempt_anchor(state: dict) -> datetime | None:
 
 
 
+
+def _next_editorial_slot(state: dict, *, now: datetime) -> tuple[datetime, datetime, float] | None:
+    """Return the next equal-spacing editorial slot before the next product or scan."""
+    anchor = _recent_attempt_anchor(state)
+    if anchor is None:
+        return None
+    mix_plan = state.get("publication_mix_plan")
+    if not isinstance(mix_plan, dict):
+        return None
+    boundaries: list[datetime] = []
+    product_queue = state.get("content_delivery_queue")
+    if isinstance(product_queue, dict):
+        for row in product_queue.values():
+            if not isinstance(row, dict) or row.get("status") in {"published", "cancelled", "stale_selection"}:
+                continue
+            platforms = row.get("platforms") if isinstance(row.get("platforms"), dict) else {}
+            if any(
+                isinstance(platforms.get(name), dict)
+                and platforms[name].get("status") == "sent"
+                for name in CORE_PHOTO_PLATFORMS
+            ):
+                continue
+            scheduled = _utc(row.get("scheduled_at"))
+            if scheduled and scheduled > anchor and scheduled > now:
+                boundaries.append(scheduled)
+    scan_deadline = _utc(mix_plan.get("scan_deadline_at"))
+    if scan_deadline and scan_deadline > anchor and scan_deadline > now:
+        boundaries.append(scan_deadline)
+    if not boundaries:
+        return None
+    boundary = min(boundaries)
+    gap_seconds = (boundary - anchor).total_seconds()
+    max_gap_seconds = MAXIMUM_PUBLICATION_GAP_MINUTES * 60
+    if gap_seconds <= max_gap_seconds:
+        return None
+    editorial_count = max(1, math.ceil(gap_seconds / max_gap_seconds) - 1)
+    equal_spacing_seconds = gap_seconds / (editorial_count + 1)
+    return anchor + timedelta(seconds=equal_spacing_seconds), boundary, equal_spacing_seconds
+
+
+
 def queue_editorial_if_due(
     state: dict,
     bank: list[dict],
     *,
     now: datetime | None = None,
 ) -> dict | None:
-    """Fill a real product-free slot while preserving the global 27-minute cadence."""
+    """Fill the next equally spaced editorial slot without delaying a product."""
     current = now or _now()
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-
     mix_plan = state.get("publication_mix_plan")
     current_plan_id = str(mix_plan.get("cycle_id") or "") if isinstance(mix_plan, dict) else None
     refresh_unpublished_selections(
         state, now=current, stale_after_minutes=8, plan_cycle_id=current_plan_id
     )
-
-    # A due or unresolved product always owns the next slot. Future product
-    # reservations leave this current slot available for a Persian editorial item.
     pending_products = _pending_product_channel_entries(state, now=current)
     if pending_products:
         print(
@@ -219,41 +257,39 @@ def queue_editorial_if_due(
             f"pending_product_items={len(pending_products)}"
         )
         return None
-
     if isinstance(mix_plan, dict) and int(mix_plan.get("product_capacity_deficit") or 0) > 0:
         print(
             "EDITORIAL_FALLBACK_WAIT reason=product_plan_over_capacity "
             f"deferred_products={mix_plan.get('product_capacity_deficit')}"
         )
         return None
-
-    scan_deadline = _utc(mix_plan.get("scan_deadline_at")) if isinstance(mix_plan, dict) else None
-    if scan_deadline and current >= scan_deadline - timedelta(minutes=MINIMUM_GAP_MINUTES):
-        print("EDITORIAL_FALLBACK_WAIT reason=reserved_pre_scan_safety_window")
+    slot = _next_editorial_slot(state, now=current)
+    if slot is None:
+        print("EDITORIAL_FALLBACK_WAIT reason=no_gap_exceeding_27_minutes")
         return None
-
-    anchor = _recent_attempt_anchor(state)
-    if anchor and current - anchor < timedelta(minutes=MINIMUM_GAP_MINUTES):
-        remaining = max(
-            0,
-            int((timedelta(minutes=MINIMUM_GAP_MINUTES) - (current - anchor)).total_seconds()),
+    due_at, boundary, spacing_seconds = slot
+    if current < due_at:
+        remaining = max(0, int((due_at - current).total_seconds()))
+        print(
+            "EDITORIAL_FALLBACK_NOT_DUE "
+            f"seconds_remaining={remaining} equal_spacing_seconds={int(spacing_seconds)}"
         )
-        print(f"EDITORIAL_FALLBACK_NOT_DUE remaining_seconds={remaining}")
         return None
-
     active = _active_editorial_entries(state, mode="channels")
     if active:
-        return active[0]
-
+        entry = active[0]
+        entry["scheduled_at"] = due_at.isoformat()
+        entry["sequence_number"] = int(due_at.timestamp())
+        payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+        payload["sequence_number"] = entry["sequence_number"]
+        entry["payload"] = payload
+        return entry
     item = select_editorial_fallback(bank, state, now=current)
     if not item:
         state["last_editorial_empty_bank_check_at"] = current.isoformat()
         print("EDITORIAL_FALLBACK_EMPTY reason=no_valid_nonrepeating_reviewed_item")
         return None
-
-    # Product reservations encode scheduled UTC time as sequence. Editorial uses
-    # the actual free-slot timestamp, keeping one FIFO order across media.
-    sequence_number = int(current.timestamp())
+    sequence_number = int(due_at.timestamp())
     try:
         state["publication_sequence_counter"] = max(
             int(state.get("publication_sequence_counter") or 0), sequence_number
@@ -270,25 +306,33 @@ def queue_editorial_if_due(
         "content_type": "editorial",
         "sequence_number": sequence_number,
         "selected_at": current.isoformat(),
-        "scheduled_at": current.isoformat(),
-        "next_attempt_at": current.isoformat(),
+        "scheduled_at": due_at.isoformat(),
+        "next_attempt_at": due_at.isoformat(),
         "status": "queued",
         "attempt_count": 0,
         "payload": item,
         "platforms": {name: {"status": "pending", "attempts": 0} for name in PLATFORM_NAMES},
     }
     queue[item["content_id"]] = entry
-    state["last_editorial_attempt_at"] = current.isoformat()
-    print(f"EDITORIAL_FALLBACK_QUEUED content_id={item['content_id']} sequence={sequence_number}")
+    state["last_editorial_attempt_at"] = due_at.isoformat()
+    print(
+        f"EDITORIAL_FALLBACK_QUEUED content_id={item['content_id']} "
+        f"sequence={sequence_number} boundary={boundary.isoformat()} "
+        f"equal_spacing_minutes={spacing_seconds / 60:.2f}"
+    )
     return entry
 
 
+
+
+
 def _channel_slot_gap_remaining_seconds(state: dict, now: datetime) -> int:
-    anchor = _recent_attempt_anchor(state)
-    if anchor is None:
+    slot = _next_editorial_slot(state, now=now)
+    if slot is None:
         return 0
-    due_at = anchor + timedelta(minutes=MINIMUM_GAP_MINUTES)
+    due_at, _boundary, _spacing_seconds = slot
     return max(0, int((due_at - now).total_seconds()))
+
 
 
 def _retry_existing_editorial_channel_deliveries(state: dict, *, now: datetime) -> None:
@@ -827,7 +871,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     anchor = _recent_attempt_anchor(shadow_state_for_anchor)
     elapsed = (current - anchor) if anchor else None
     remaining = (
-        max(0, int((timedelta(minutes=MINIMUM_GAP_MINUTES) - elapsed).total_seconds()))
+        max(0, int((timedelta(minutes=MAXIMUM_PUBLICATION_GAP_MINUTES) - elapsed).total_seconds()))
         if elapsed is not None and elapsed < timedelta(minutes=MINIMUM_GAP_MINUTES)
         else 0
     )
