@@ -195,12 +195,13 @@ def select_editorial_fallback(
             return 0
         return 2 if topic in relevant_topics else 0
 
+    priority_rank = {"high": 0, "normal": 1, "low": 2}
     eligible.sort(key=lambda row: (
-        relevance(row),
-        str(row.get("priority") or "normal"),
+        -relevance(row),
+        priority_rank.get(str(row.get("priority") or "normal").lower(), 1),
         last_used.get(str(row.get("topic") or "").lower(), datetime.min.replace(tzinfo=timezone.utc)),
         str(row["editorial_id"]),
-    ), reverse=True)
+    ))
 
     # Avoid adjacent topics where alternatives exist, but never strand the queue
     # because a topic cooldown or the finite bank has been exhausted.
