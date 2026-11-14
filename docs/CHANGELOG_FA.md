@@ -2138,6 +2138,7 @@
 - حداقل ۲۷ دقیقه از آخرین پست عمومیِ تأییدشده و اولویت slotهای از قبل زمان‌بندی‌شده حفظ می‌شود؛ retry سه‌دقیقه‌ای صرفاً cadence بررسی/انتخاب است، نه cadence انتشار.
 - در sidecar، بیدارباش تحریریه از ۲۷ دقیقه پس از آخرین پست به نقطهٔ میانی واقعی بین آخرین پست کانالی و محصول بعدی منتقل شد؛ اگر در دو سوی آن حداقل فاصلهٔ ایمن جا نشود، بیدارباش تحریریه ساخته نمی‌شود.
 - فایل Workflow ناشر با marker محافظت‌شدهٔ `[publisher-run-now]` برای یک اجرای کنترل‌شده پس از merge علامت‌گذاری شد؛ این فقط شروع تبصرهٔ یک‌باره است و cadence جاری همچنان از صف و تعداد محصولات منتخب محاسبه می‌شود.
+- cooldown خواندن آخرین اجرای ناشر اکنون رویدادهای guarded `push` و `workflow_dispatch` را هر دو می‌شناسد؛ بنابراین اجرای یک‌بارهٔ پس از merge باعث dispatch یک‌دقیقه‌ای تکراری نمی‌شود.
 - سیاست ماده‌به‌مادهٔ تبصره اضطراری، توزیع مساوی محصولات در پنجرهٔ دو اسکن، قرارگیری تحریریهٔ مرتبط قبل از محصول و چرخش مجدد بانک به‌روز مستند شد. بانک اصلی و بانک تأییدهای تازه در هر اجرا ادغام می‌شوند؛ cooldown و اعتبار منبع همچنان اجباری‌اند.
 
 **فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-publisher.yml`، `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `affilio_radar/affilio_radar.py`، `affilio_radar/content_delivery.py`، `affilio_radar/test_affilio.py`، `affilio_radar/test_content_delivery.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md` و `docs/OFFERCHIN_FLOATING_PUBLICATION_POLICY_FA.md`.
