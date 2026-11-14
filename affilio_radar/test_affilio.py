@@ -1402,6 +1402,23 @@ class AffilioRadarTests(unittest.TestCase):
             "youtube_next_upload_at": "2026-11-05T11:00:00+00:00",
             "youtube_uploads_paused_until": None,
             "aparat_next_upload_at": "2026-11-05T10:00:00+00:00",
+            "product_publication_plan_cycle_id": "2026-11-05T09:00:00+00:00",
+            "product_publication_cadence": {
+                "catalog_cycle_id": "2026-11-05T09:00:00+00:00",
+            },
+            "content_delivery_queue": {
+                "dkp-scheduled": {
+                    "status": "queued",
+                    "scheduled_at": "2026-11-05T14:00:00+00:00",
+                    "next_attempt_at": "2026-11-05T13:00:00+00:00",
+                },
+            },
+            "editorial_delivery_queue": {
+                "editorial:scheduled": {
+                    "status": "queued",
+                    "scheduled_at": "2026-11-05T13:30:00+00:00",
+                },
+            },
             "published": {
                 "dkp-video-ready": {
                     "ts": now.timestamp(),
@@ -1445,7 +1462,15 @@ class AffilioRadarTests(unittest.TestCase):
             ):
                 radar_module.save_json(state_path, state)
             saved = json.loads(dispatch_path.read_text(encoding="utf-8"))
-            self.assertEqual(saved["schema_version"], 1)
+            self.assertEqual(saved["schema_version"], 2)
+            self.assertEqual(
+                saved["product_publication_plan_cycle_id"],
+                "2026-11-05T09:00:00+00:00",
+            )
+            self.assertEqual(
+                saved["next_channel_content_due_at"],
+                "2026-11-05T13:00:00+00:00",
+            )
             self.assertIn("dkp-video-ready", saved["published"])
 
     def test_regular_and_sport_eyewear_share_one_global_family(self):
