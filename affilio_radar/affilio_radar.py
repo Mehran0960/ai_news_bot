@@ -8663,6 +8663,7 @@ def select_discount_fallback_candidates(
     state: dict,
     now: datetime | None = None,
     include_fallback_bands: bool = False,
+    allow_emergency_demand_relaxation: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
     """Rank live-valid candidates by DigiKala demand evidence, then verified deal value.
 
