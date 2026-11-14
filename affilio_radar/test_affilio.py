@@ -1481,6 +1481,10 @@ class AffilioRadarTests(unittest.TestCase):
             },
         }
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(
+            compact["next_editorial_planning_at"],
+            "2026-11-05T12:27:00+00:00",
+        )
         self.assertEqual(compact["youtube_next_upload_at"], state["youtube_next_upload_at"])
         self.assertEqual(compact["aparat_next_upload_at"], state["aparat_next_upload_at"])
         self.assertIn("dkp-video-ready", compact["published"])
@@ -1510,10 +1514,6 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(
                 saved["next_channel_content_due_at"],
                 "2026-11-05T13:00:00+00:00",
-            )
-            self.assertEqual(
-                saved["next_editorial_planning_at"],
-                "2026-11-05T12:27:00+00:00",
             )
             self.assertIn("dkp-video-ready", saved["published"])
 
