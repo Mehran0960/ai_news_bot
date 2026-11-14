@@ -1,6 +1,6 @@
 {
   "aparat_last_upload_attempt_at": "2026-11-14T17:19:55.882293+00:00",
-  "aparat_last_upload_success_at": "2026-11-14T18:29:46.168128+00:00",
+  "aparat_last_upload_success_at": "2026-11-14T19:24:16.416514+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-13T10:31:20.893746+00:00",
@@ -291280,11 +291280,12 @@
       "warranty-terms"
     ],
     "cycle_number": 1,
-    "last_editorial_id": "account-security",
-    "last_topic": "privacy-and-security",
+    "last_editorial_id": "care-instructions",
+    "last_topic": "maintenance-and-care",
     "used_ids": [
       "accessories-compatibility",
-      "account-security"
+      "account-security",
+      "care-instructions"
     ]
   },
   "editorial_delivery_attempts": [
@@ -291441,9 +291442,135 @@
       "related_product_id": "",
       "sequence_number": 26,
       "topic": "privacy-and-security"
+    },
+    {
+      "content_id": "editorial:care-instructions",
+      "destinations": {
+        "aparat": {
+          "attempt_started_at": "2026-11-14T19:24:12.820856+00:00",
+          "attempts": 1,
+          "message_id": "ukr221t",
+          "status": "sent",
+          "updated_at": "2026-11-14T19:24:16.416474+00:00",
+          "url": "https://www.aparat.com/v/ukr221t"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempt_started_at": "2026-11-14T19:24:16.940753+00:00",
+          "attempts": 1,
+          "last_error": "filo_submitted_pending_approval_not_public",
+          "status": "manual_review",
+          "updated_at": "2026-11-14T19:24:46.042226+00:00",
+          "url": "https://ifilo.net/v/dFlcOs0"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempt_started_at": "2026-11-14T19:24:10.253466+00:00",
+          "attempts": 1,
+          "message_id": "gZyVcJeW3qE",
+          "status": "sent",
+          "updated_at": "2026-11-14T19:24:12.293122+00:00",
+          "url": "https://www.youtube.com/shorts/gZyVcJeW3qE"
+        }
+      },
+      "editorial_id": "care-instructions",
+      "published_at": "2026-11-14T19:24:12.293122+00:00",
+      "related_product_id": "",
+      "sequence_number": 27,
+      "topic": "maintenance-and-care"
     }
   ],
-  "editorial_delivery_queue": {},
+  "editorial_delivery_queue": {
+    "editorial:care-instructions": {
+      "attempt_count": 0,
+      "content_id": "editorial:care-instructions",
+      "content_type": "editorial",
+      "next_attempt_at": "2026-11-14T19:24:05.276666+00:00",
+      "payload": {
+        "body": "برای محصولات بادوام، روش تمیزکاری، محدودیت استفاده، مواد مصرفی و شرایط نگهداری را بررسی کن. بعضی کالاها به مراقبت منظم یا قطعات مصرفی نیاز دارند؛ دانستن این موارد کمک می‌کند انتخابت با سبک استفاده‌ات هماهنگ باشد.",
+        "content_id": "editorial:care-instructions",
+        "content_type": "editorial",
+        "delivery_status": "selected_not_published",
+        "editorial_cycle_number": 1,
+        "editorial_id": "care-instructions",
+        "idempotency_key": "262d8a10cf96eaab",
+        "related_product_id": "",
+        "review_due_at": "2027-02-10T18:00:00Z",
+        "reviewed_at": "2026-11-12T18:00:00Z",
+        "sequence_number": 27,
+        "sources": [
+          {
+            "source_id": "ftc-online-shopping",
+            "title": "راهنمای خرید اینترنتی FTC",
+            "url": "https://consumer.ftc.gov/articles/online-shopping"
+          }
+        ],
+        "title": "دفترچه نگهداری را پیش از خرید مرور کن",
+        "topic": "maintenance-and-care"
+      },
+      "platforms": {
+        "aparat": {
+          "attempt_started_at": "2026-11-14T19:24:12.820856+00:00",
+          "attempts": 1,
+          "message_id": "ukr221t",
+          "status": "sent",
+          "updated_at": "2026-11-14T19:24:16.416474+00:00",
+          "url": "https://www.aparat.com/v/ukr221t"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempt_started_at": "2026-11-14T19:24:16.940753+00:00",
+          "attempts": 1,
+          "last_error": "filo_submitted_pending_approval_not_public",
+          "status": "manual_review",
+          "updated_at": "2026-11-14T19:24:46.042226+00:00",
+          "url": "https://ifilo.net/v/dFlcOs0"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempt_started_at": "2026-11-14T19:24:10.253466+00:00",
+          "attempts": 1,
+          "message_id": "gZyVcJeW3qE",
+          "status": "sent",
+          "updated_at": "2026-11-14T19:24:12.293122+00:00",
+          "url": "https://www.youtube.com/shorts/gZyVcJeW3qE"
+        }
+      },
+      "related_product_id": "",
+      "scheduled_at": "2026-11-14T19:24:05.276666+00:00",
+      "selected_at": "2026-11-14T19:24:05.276666+00:00",
+      "sequence_number": 27,
+      "status": "partial"
+    }
+  },
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -291469,9 +291596,9 @@
   },
   "filo_last_upload_attempt_at": "2026-11-14T17:20:05.324497+00:00",
   "filo_last_upload_success_at": "2026-11-14T17:20:43.441934+00:00",
-  "filo_login_verification_attempted_at": "2026-11-14T19:13:40.089426+00:00",
+  "filo_login_verification_attempted_at": "2026-11-14T19:24:04.416391+00:00",
   "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-14T19:13:40.089426+00:00",
+  "filo_login_verified_at": "2026-11-14T19:24:04.416391+00:00",
   "filo_upload_interval_policy_version": 3,
   "growth_tracking": {
     "daily_member_counts": {
@@ -291729,8 +291856,8 @@
   },
   "last_channel_published_at": "2026-11-14T18:26:43.613976+00:00",
   "last_content_selection_at": "2026-11-13T22:13:58.676719+00:00",
-  "last_editorial_attempt_at": "2026-11-14T18:26:39.512209+00:00",
-  "last_editorial_confirmed_at": "2026-11-14T18:29:46.168089+00:00",
+  "last_editorial_attempt_at": "2026-11-14T19:24:05.276666+00:00",
+  "last_editorial_confirmed_at": "2026-11-14T19:24:16.416474+00:00",
   "last_product_channel_published_at": "2026-11-13T22:14:18.640320+00:00",
   "last_published_at": "2026-11-14T18:26:43.613976+00:00",
   "market_price_api_checks": {
@@ -378123,7 +378250,7 @@
       "ts": 1793119008.409393
     }
   },
-  "publication_sequence_counter": 26,
+  "publication_sequence_counter": 27,
   "published": {
     "dkp-1002646": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -388824,7 +388951,7 @@
       },
       "delivery_version": 1,
       "demand_score": 42,
-      "expires_at": "2026-11-14T20:30:02.690250+00:00",
+      "expires_at": "2026-11-14T20:34:51.888351+00:00",
       "expiry_deadline_verified_directly": false,
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
@@ -468939,6 +469066,6 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 17,
   "snappshop_retry_after": "2026-11-15T10:36:57.728076+00:00",
-  "youtube_last_upload_success_at": "2026-11-14T18:29:42.450543+00:00",
+  "youtube_last_upload_success_at": "2026-11-14T19:24:12.293179+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
