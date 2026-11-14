@@ -16,7 +16,7 @@ on:
       - main
     paths:
       - ".github/workflows/offerchin-publisher.yml"
-  # Cloudflare checks every minute and dispatches 27 minutes after the previous channel post.
+  # Cloudflare checks every minute and dispatches each product/editorial queue slot at its floating scheduled time.
   # [publisher-run-now] One-time resume after channel-publication clock repair.
   # [publisher-run-now] One-time retry after transient image-fetch and stale-selection fixes.
   # [publisher-run-now] One-time verify active-queue cadence repair.
@@ -187,6 +187,7 @@ jobs:
           AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "250"
           AFFILIO_MCP_PAGES_PER_SCAN: "5"
           AFFILIO_AUTOPUBLISH: "false"
+          AFFILIO_EMERGENCY_DEAL_RECOVERY: "true"
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.45"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
@@ -216,7 +217,7 @@ jobs:
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.45"
           AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
-          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: ${{ vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'false' }}
+          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: ${{ vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'true' }}
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/publisher.py
 
@@ -232,8 +233,8 @@ jobs:
           EITAA_BOT_TOKEN: ${{ secrets.EITAA_BOT_TOKEN }}
           EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
           EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'false' }}
-          OFFERCHIN_EDITORIAL_GAP_MINUTES: "55"
-          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: ${{ vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'false' }}
+          OFFERCHIN_EDITORIAL_GAP_MINUTES: "0"
+          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: ${{ vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'true' }}
           PYTHONUNBUFFERED: "1"
         run: |
           if [[ "${OFFERCHIN_EDITORIAL_PUBLISH_ENABLED,,}" == "true" ]]; then
