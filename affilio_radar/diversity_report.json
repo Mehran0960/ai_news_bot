@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-14T02:02:09.180010+00:00",
+  "generated_at": "2026-11-14T02:12:57.903227+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "اسپری حالت دهنده مو": 1,
@@ -230,7 +230,6 @@
       "متر": 1,
       "مجموعه شمش و پلاک طلا و نقره": 1,
       "محصولات بومی و محلی": 2,
-      "مد و پوشاک": 1,
       "مداد چشم": 1,
       "مراقبت پوست": 1,
       "مهر و استامپ": 1,
@@ -275,7 +274,7 @@
       "books_stationery": 6,
       "computer_network": 1,
       "digital_accessories": 1,
-      "fashion": 13,
+      "fashion": 12,
       "grocery_food": 7,
       "home": 5,
       "home_cleaning": 1,
@@ -289,32 +288,32 @@
       "sports_outdoor": 9
     },
     "category_share_percent": {
-      "audio_wearables": 3.7,
+      "audio_wearables": 3.8,
       "automotive": 3.1,
       "beauty_fragrance": 1.9,
-      "books_stationery": 3.7,
+      "books_stationery": 3.8,
       "computer_network": 0.6,
       "digital_accessories": 0.6,
-      "fashion": 8.1,
-      "grocery_food": 4.3,
+      "fashion": 7.5,
+      "grocery_food": 4.4,
       "home": 3.1,
       "home_cleaning": 0.6,
       "kids_sports": 2.5,
       "large_appliances": 1.2,
       "lighting": 0.6,
       "mobile_devices": 1.2,
-      "other": 37.3,
-      "personal_care": 20.5,
+      "other": 37.5,
+      "personal_care": 20.6,
       "power_backup": 1.2,
       "sports_outdoor": 5.6
     },
-    "distinct_catalog_categories": 100,
+    "distinct_catalog_categories": 99,
     "distinct_categories": 18,
-    "distinct_families": 123,
+    "distinct_families": 122,
     "distinct_retailers": 1,
     "distinct_use_cases": 22,
     "known_brand_posts": 12,
-    "posts": 161,
+    "posts": 160,
     "repeated_brand_count": 4,
     "repeated_brands": {
       "eurovital": 2,
@@ -322,7 +321,7 @@
       "sangboo_climy": 2
     },
     "retailer_post_counts": {
-      "digikala": 161
+      "digikala": 160
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -334,7 +333,7 @@
       "books_learning": 5,
       "catalog_taxonomy_other": 16,
       "events_decor": 1,
-      "fashion_lifestyle": 8,
+      "fashion_lifestyle": 7,
       "general": 17,
       "grocery_food": 5,
       "health_wellness": 4,
@@ -366,30 +365,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1217,
+    "all_time_count": 1218,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 489,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-13T23:43:33.257647+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-4996879",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "فوم شست‌وشوی صورت ویتالیر مدل سنسی ویت مناسب پوست حساس حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-13T23:43:33.257647+00:00",
         "brand": "",
@@ -698,6 +680,23 @@
       },
       {
         "at": "2026-11-14T02:02:09.180010+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-714799",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-14T02:12:57.903227+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
