@@ -22,6 +22,7 @@ try:
 except ImportError:
     from catalog_status_snapshot import (
         build_status_snapshot,
+        load_emergency_continuity_candidates,
         upgrade_legacy_demand_first_snapshot,
         candidate_matches_completed_snapshot,
         load_completed_candidates_snapshot,
