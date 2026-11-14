@@ -95,6 +95,8 @@ class _ArticleHTMLParser(HTMLParser):
         self._body_depth = 0
         self._paragraph_depth = 0
         self._skip_depth = 0
+        self._tag_counts: dict[str, int] = {}
+        self._body_boundaries: list[tuple[str, int]] = []
         self._paragraph_chunks: list[str] = []
         self.paragraphs: list[str] = []
 
@@ -105,6 +107,7 @@ class _ArticleHTMLParser(HTMLParser):
             self._script_capture = True
             self._script_chunks = []
             return
+        self._tag_counts[name] = self._tag_counts.get(name, 0) + 1
         if name in self.SKIP_TAGS:
             self._skip_depth += 1
             return
@@ -113,7 +116,8 @@ class _ArticleHTMLParser(HTMLParser):
         if name == "article":
             self._article_depth += 1
         if "articlebody" in values.get("itemprop", "").lower():
-            self._body_depth += 1
+            self._body_boundaries.append((name, self._tag_counts[name]))
+            self._body_depth = len(self._body_boundaries)
         if name == "p" and (self._article_depth or self._body_depth):
             self._paragraph_depth += 1
             if self._paragraph_chunks:
@@ -128,22 +132,25 @@ class _ArticleHTMLParser(HTMLParser):
             self._script_capture = False
             self._script_chunks = []
             return
+        tag_depth = self._tag_counts.get(name, 0)
         if name in self.SKIP_TAGS:
             if self._skip_depth:
                 self._skip_depth -= 1
+            self._tag_counts[name] = max(0, tag_depth - 1)
             return
         if self._skip_depth:
+            self._tag_counts[name] = max(0, tag_depth - 1)
             return
         if name == "p" and self._paragraph_depth:
             self._paragraph_depth -= 1
             if self._paragraph_chunks:
                 self._paragraph_chunks.append("\n")
+        if self._body_boundaries and self._body_boundaries[-1] == (name, tag_depth):
+            self._body_boundaries.pop()
+            self._body_depth = len(self._body_boundaries)
         if name == "article" and self._article_depth:
             self._article_depth -= 1
-        if name in {"div", "section"} and self._body_depth:
-            # itemprop articleBody may be nested; the counter is closed below by
-            # matching start tags recorded in a separate stack in normal pages.
-            pass
+        self._tag_counts[name] = max(0, tag_depth - 1)
 
     def handle_data(self, data: str) -> None:
         if self._script_capture:
@@ -488,7 +495,12 @@ def run_pipeline(
     for candidate_id in existing_draft_ids:
         pending.pop(candidate_id, None)
 
-    config = _provider_config(settings)
+    configuration_error = ""
+    try:
+        config = _provider_config(settings)
+    except EditorialDraftError as exc:
+        config = None
+        configuration_error = str(exc)[:100]
     generated_now = 0
     fetch_attempts = 0
     failed = 0
@@ -549,10 +561,12 @@ def run_pipeline(
         "mode": "persian_editorial_draft_generation",
         "status": (
             "drafts_generated" if generated_now else
+            "invalid_provider_configuration" if configuration_error else
             "waiting_for_provider_configuration" if not configured else
             "no_valid_drafts_generated"
         ),
         "provider_configured": configured,
+        "configuration_error": configuration_error or None,
         "candidates_received": incoming,
         "candidates_waiting": len(pending_list),
         "article_fetch_attempts": fetch_attempts,
