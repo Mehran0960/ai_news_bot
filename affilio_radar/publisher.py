@@ -841,7 +841,12 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             isinstance(target, dict) and target.get("status") == "sent"
             for target in delivery_targets.values()
         )
-        if not already_partially_delivered and catalog_context.get("mode") == "blocked":
+        emergency_override = _valid_emergency_continuity_override(payload, state, now)
+        if (
+            not already_partially_delivered
+            and catalog_context.get("mode") == "blocked"
+            and not emergency_override
+        ):
             entry["status"] = "queued"
             entry["last_detail"] = "verified_full_catalog_snapshot_unavailable"
             entry["next_attempt_at"] = (now + timedelta(minutes=5)).isoformat()
