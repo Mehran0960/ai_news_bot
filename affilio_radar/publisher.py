@@ -633,7 +633,12 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
 
 
 def editorial_fifo_lock_entry(state: dict) -> dict | None:
-    """Return the oldest editorial lock only while public editorial publishing is enabled."""
+    """Lock new product photos only until the older editorial core-channel posts are terminal.
+
+    Editorial video destinations retain their own FIFO in the video workflow. A slow
+    video upload must not hold back a premium product photo once Telegram/Bale have
+    already received (or terminally rejected) the older editorial item.
+    """
     enabled = os.getenv("OFFERCHIN_EDITORIAL_PUBLISH_ENABLED", "false").strip().lower() in {
         "1", "true", "yes", "on"
     }
@@ -644,9 +649,21 @@ def editorial_fifo_lock_entry(state: dict) -> dict | None:
         value for value in (queue.values() if isinstance(queue, dict) else [])
         if isinstance(value, dict) and value.get("status") not in {"completed", "cancelled", "failed"}
     ]
-    if not active:
+    locks = []
+    for entry in active:
+        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+        core_pending = False
+        for destination in CORE_PHOTO_PLATFORMS:
+            target = platforms.get(destination)
+            status = str(target.get("status") or "pending").strip().lower() if isinstance(target, dict) else "pending"
+            if status not in TERMINAL_PLATFORM:
+                core_pending = True
+                break
+        if core_pending:
+            locks.append(entry)
+    if not locks:
         return None
-    return min(active, key=lambda value: int(value.get("sequence_number") or 0))
+    return min(locks, key=lambda value: int(value.get("sequence_number") or 0))
 
 
 def publish_due_queue(_fallback_depth: int = 0) -> int:
@@ -859,6 +876,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         if new_public_delivery:
             public_posted_at = _now().isoformat()
             state["last_channel_published_at"] = public_posted_at
+            state["last_product_channel_published_at"] = public_posted_at
             state["last_published_at"] = public_posted_at
 
         # Preserve the original post timestamp when retrying pending channel platforms.

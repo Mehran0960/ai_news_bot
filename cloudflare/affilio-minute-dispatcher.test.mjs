@@ -247,6 +247,7 @@ test("video destinations accept the canonical selected product without waiting f
     aparat_upload_status: "pending",
     filo_upload_status: "pending",
     video_generation_status: "pending",
+    expiry_source: "digikala_live_deals_feed",
     expiry_deadline_verified_directly: true,
     expires_at: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
   };
@@ -288,6 +289,7 @@ test("a successful channel post immediately makes the same product eligible for 
     aparat_upload_status: "pending",
     filo_upload_status: "pending",
     video_generation_status: "pending",
+    expiry_source: "digikala_live_deals_feed",
     expiry_deadline_verified_directly: true,
     expires_at: new Date(now + 4 * 60 * 60 * 1000).toISOString(),
   };
@@ -296,6 +298,53 @@ test("a successful channel post immediately makes the same product eligible for 
     assert.equal(videoRecordDue(record, platform, now), true, platform);
     assert.equal(hasDueVideoRecord(state, platform, now), true, platform);
   }
+});
+
+test("previously skipped expiry records are redispatched only while the verified offer remains live", () => {
+  const now = Date.now();
+  const active = {
+    ts: (now - 60_000) / 1000,
+    video_dispatch_eligible: true,
+    delivery_status: { telegram: "sent" },
+    video_generation_status: "skipped_expiring_soon",
+    youtube_upload_status: "skipped_expiring_soon",
+    aparat_upload_status: "skipped_expiring_soon",
+    expiry_source: "digikala_live_deals_feed",
+    expiry_deadline_verified_directly: true,
+    expiry_estimated: false,
+    expires_at: new Date(now + 20 * 60_000).toISOString(),
+  };
+  assert.equal(videoRecordDue(active, "youtube", now), true);
+  assert.equal(videoRecordDue(active, "aparat", now), true);
+  assert.equal(hasPendingVideoQueue({ published: { active } }, now), true);
+
+  const expired = {
+    ...active,
+    expires_at: new Date(now + 5 * 60_000).toISOString(),
+  };
+  assert.equal(videoRecordDue(expired, "youtube", now), false);
+  assert.equal(hasPendingVideoQueue({ published: { expired } }, now), false);
+
+  const unverified = {
+    ...active,
+    expiry_deadline_verified_directly: false,
+  };
+  assert.equal(videoRecordDue(unverified, "youtube", now), false);
+});
+
+test("the no-expiry correction requeues YouTube only, not Filo", () => {
+  const now = Date.now();
+  const record = {
+    ts: (now - 60_000) / 1000,
+    video_dispatch_eligible: true,
+    delivery_status: { telegram: "sent" },
+    video_generation_status: "skipped_unverified_deadline",
+    youtube_upload_status: "skipped_unverified_deadline",
+    filo_upload_status: "pending",
+  };
+  assert.equal(videoRecordDue(record, "youtube", now), true);
+  assert.equal(videoRecordDue(record, "filo", now), false);
+  assert.equal(hasPendingVideoQueue({ published: { record } }, now), true);
 });
 
 test("Filo accepts every confirmed channel delivery without requiring a retailer expiry timer", () => {
@@ -409,6 +458,7 @@ test("unified video queue ignores legacy age and retry timestamps for all platfo
     aparat_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
     filo_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
     video_generation_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
+    expiry_source: "digikala_live_deals_feed",
     expiry_deadline_verified_directly: true,
     expires_at: new Date(now + 48 * 60 * 60 * 1000).toISOString(),
   };

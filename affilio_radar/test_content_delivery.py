@@ -3,9 +3,10 @@ from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 
 from content_delivery import (
+    calculate_product_publication_cadence,
     due_content, due_unpublished_selection, enqueue_selected_content,
-    finish_queue_item, get_last_channel_published_at, has_fresh_unpublished_selection,
-    allocate_publication_sequence, promote_fallback_selection,
+    finish_queue_item, get_last_channel_published_at, get_last_product_channel_published_at,
+    has_fresh_unpublished_selection, allocate_publication_sequence, promote_fallback_selection,
     refresh_unpublished_selections, selection_cadence_anchor,
 )
 from platform_registry import CORE_PHOTO_PLATFORMS, PHOTO_PLATFORMS, PLATFORM_NAMES
@@ -997,6 +998,81 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertNotIn("dkp-123", state["content_delivery_queue"])
         self.assertEqual(state["content_delivery_history"][0]["status"], "published")
 
+
+    def test_product_publication_clock_is_independent_from_editorial_posts(self):
+        product_at = self.now - timedelta(hours=3)
+        editorial_at = self.now - timedelta(minutes=12)
+        state = {
+            "last_product_channel_published_at": product_at.isoformat(),
+            "last_channel_published_at": editorial_at.isoformat(),
+            "editorial_delivery_history": [{
+                "content_id": "editorial:buying-guide",
+                "published_at": editorial_at.isoformat(),
+                "destinations": {"telegram": {"status": "sent"}},
+            }],
+        }
+        self.assertEqual(get_last_product_channel_published_at(state), product_at)
+
+    def test_legacy_product_clock_migrates_from_product_receipt_not_editorial_clock(self):
+        product_at = self.now - timedelta(hours=4)
+        editorial_at = self.now - timedelta(minutes=8)
+        state = {
+            "last_channel_published_at": editorial_at.isoformat(),
+            "editorial_delivery_history": [{
+                "content_id": "editorial:legacy-guide",
+                "published_at": editorial_at.isoformat(),
+                "destinations": {"bale": {"status": "sent"}},
+            }],
+            "published": {
+                "dkp-123456": {
+                    "ts": product_at.timestamp(),
+                    "delivery_status": {"telegram": "sent", "bale": "sent"},
+                }
+            },
+        }
+        self.assertEqual(get_last_product_channel_published_at(state), product_at)
+        self.assertEqual(state["last_product_channel_published_at"], product_at.isoformat())
+
+    def test_product_cadence_spreads_candidates_over_the_next_clean_scan_window(self):
+        clean_started = self.now - timedelta(hours=42)
+        clean_completed = self.now - timedelta(hours=8)
+        current_scan_started = self.now - timedelta(minutes=10)
+        cycle_seconds = int((clean_completed - clean_started).total_seconds())
+        status = {
+            "last_clean_cycle_started_at": clean_started.isoformat(),
+            "last_clean_cycle_completed_at": clean_completed.isoformat(),
+            "current_cycle_started_at": current_scan_started.isoformat(),
+            "last_cycle_status": "in_progress",
+        }
+
+        sparse_state = {}
+        sparse = calculate_product_publication_cadence(
+            sparse_state, status, 5, now=self.now, max_daily_posts=72
+        )
+        dense = calculate_product_publication_cadence(
+            {}, status, 60, now=self.now, max_daily_posts=72
+        )
+        self.assertEqual(sparse["estimated_clean_cycle_seconds"], cycle_seconds)
+        self.assertLess(dense["interval_seconds"], sparse["interval_seconds"])
+        self.assertGreaterEqual(dense["interval_seconds"], 27 * 60)
+        self.assertLessEqual(sparse["interval_seconds"], 6 * 60 * 60)
+        expected_scan = current_scan_started + timedelta(seconds=cycle_seconds)
+        self.assertEqual(
+            sparse["estimated_next_clean_scan_at"],
+            expected_scan.isoformat(),
+        )
+        self.assertEqual(
+            sparse_state["product_publication_interval_seconds"],
+            sparse["interval_seconds"],
+        )
+
+    def test_product_cadence_uses_safe_default_when_no_product_is_eligible(self):
+        result = calculate_product_publication_cadence(
+            {}, {}, 0, now=self.now, max_daily_posts=72
+        )
+        self.assertEqual(result["candidate_count"], 0)
+        self.assertEqual(result["planned_product_slots"], 0)
+        self.assertEqual(result["interval_seconds"], 27 * 60)
 
 if __name__ == "__main__":
     unittest.main()

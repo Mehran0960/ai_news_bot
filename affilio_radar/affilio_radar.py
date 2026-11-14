@@ -4957,6 +4957,8 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         "schema_version": 1,
         "generated_at": current.isoformat(),
         "last_channel_published_at": value("last_channel_published_at"),
+        "last_product_channel_published_at": value("last_product_channel_published_at"),
+        "product_publication_interval_seconds": value("product_publication_interval_seconds"),
         "youtube_next_upload_at": value("youtube_next_upload_at"),
         "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
         "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
@@ -9030,6 +9032,32 @@ def daily_channel_posts_count(state: dict, now: datetime | None = None) -> int:
             continue
         if posted_day == channel_day:
             count += 1
+
+    # Editorial records live outside state["published"]; count a confirmed channel
+    # delivery once per editorial item so the shared daily limit covers both content types.
+    editorial_history = state.get("editorial_delivery_history", []) if isinstance(state, dict) else []
+    if isinstance(editorial_history, list):
+        for entry in editorial_history:
+            if not isinstance(entry, dict):
+                continue
+            destinations = entry.get("destinations")
+            if not isinstance(destinations, dict) or not any(
+                isinstance(destinations.get(name), dict)
+                and destinations[name].get("status") == "sent"
+                for name in ("telegram", "bale", "rubika", "eitaa")
+            ):
+                continue
+            try:
+                published_at = datetime.fromisoformat(
+                    str(entry.get("published_at") or "").replace("Z", "+00:00")
+                )
+                if published_at.tzinfo is None:
+                    published_at = published_at.replace(tzinfo=timezone.utc)
+                posted_day = published_at.astimezone(IRAN_TIMEZONE).date()
+            except (TypeError, ValueError, OverflowError):
+                continue
+            if posted_day == channel_day:
+                count += 1
     return count
 
 
@@ -9335,19 +9363,71 @@ def _has_video_dispatch_eligibility(record: dict) -> bool:
 def _has_pending_video_destination(
     record: dict,
     destinations: set[str] | None = None,
+    now: datetime | None = None,
 ) -> bool:
-    """Return whether this canonical product still needs an attempted video delivery."""
+    """Return whether a canonical product still has video work the uploader can resume.
+
+    Explicitly pending work is actionable. Old skip states are actionable only when
+    the current uploader has a documented requeue path: verified future expiry for
+    skipped-expiring records, and YouTube's no-expiry-timer correction for
+    skipped-unverified-deadline records. Unknown legacy records never default to pending.
+    """
     if not isinstance(record, dict):
         return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
     selected = {"youtube", "aparat", "filo"} if destinations is None else {
         str(item).strip().lower() for item in destinations
     }
-    return any(
-        platform in selected
-        and str(record.get(f"{platform}_upload_status") or "pending").strip().lower()
-        in VIDEO_DESTINATION_PENDING_STATUSES
-        for platform in ("youtube", "aparat", "filo")
+    generation = str(record.get("video_generation_status") or "").strip().lower()
+    if generation not in {
+        "pending", "generated", "skipped_expiring_soon", "skipped_unverified_deadline"
+    }:
+        return False
+
+    expiry = _parse_utc_datetime(_parse_deal_expiry_value(record.get("expires_at")))
+    if expiry is not None and expiry <= current + timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES):
+        return False
+
+    source = str(record.get("expiry_source") or "")
+    verified_expiry = bool(
+        expiry is not None
+        and record.get("expiry_estimated") is not True
+        and (
+            (
+                source in {"digikala_live_deals_feed", "digikala_product_detail_api"}
+                and record.get("expiry_deadline_verified_directly") is True
+            )
+            or (
+                source == "digikala_mcp_offer_card"
+                and record.get("expiry_deadline_verified_from_site_card") is True
+            )
+        )
     )
+
+    for platform in ("youtube", "aparat", "filo"):
+        if platform not in selected:
+            continue
+        status = str(record.get(f"{platform}_upload_status") or "").strip().lower()
+        if generation in {"pending", "generated"} and status in VIDEO_DESTINATION_PENDING_STATUSES:
+            return True
+        if generation == "skipped_expiring_soon" and verified_expiry:
+            if status in VIDEO_DESTINATION_PENDING_STATUSES or status == "skipped_expiring_soon":
+                return True
+        if generation == "skipped_unverified_deadline":
+            if platform == "youtube" and status in {
+                "pending", "pending_credentials", "retry", "skipped_unverified_deadline"
+            }:
+                return True
+            if platform == "aparat" and verified_expiry and status in {
+                "pending", "pending_credentials", "retry", "skipped_unverified_deadline"
+            }:
+                return True
+
+    return False
 
 
 def _video_upload_candidate_sort_key(row: tuple) -> tuple:
@@ -9757,6 +9837,9 @@ def process_pending_short_video(
                 if aparat_status == "skipped_expiring_soon":
                     record["aparat_upload_status"] = "pending"
                     aparat_status = "pending"
+                if filo_status == "skipped_expiring_soon":
+                    record["filo_upload_status"] = "pending"
+                    filo_status = "pending"
                 state_changed = True
                 print(f"SHORT_VIDEO_REQUEUED id={pid} reason=active_deadline_after_policy_change")
 
@@ -11066,8 +11149,9 @@ def run(publish=False, selection_only=False):
         # Keep discovery live on every scan, but only select a new product when a
         # publication slot is due. Never build a long queue of products chosen early.
         from content_delivery import (
+            calculate_product_publication_cadence,
             enqueue_selected_content,
-            get_last_channel_published_at,
+            get_last_product_channel_published_at,
             has_fresh_unpublished_selection,
             refresh_unpublished_selections,
             selection_cadence_anchor,
@@ -11076,13 +11160,33 @@ def run(publish=False, selection_only=False):
         replaced = refresh_unpublished_selections(
             state, now=selection_now, stale_after_minutes=8
         )
-        interval_seconds = max(60, int(MIN_POST_INTERVAL_HOURS * 3600))
+        try:
+            catalog_status = json.loads(CATALOG_SWEEP_STATUS.read_text(encoding="utf-8"))
+            if not isinstance(catalog_status, dict):
+                catalog_status = {}
+        except (OSError, ValueError, TypeError):
+            catalog_status = {}
+        cadence = calculate_product_publication_cadence(
+            state,
+            catalog_status,
+            len(eligible),
+            now=selection_now,
+            max_daily_posts=MAX_DAILY_CHANNEL_POSTS,
+        )
+        interval_seconds = int(cadence["interval_seconds"])
+        print(
+            "PRODUCT_PUBLICATION_CADENCE "
+            f"candidates={cadence['candidate_count']} "
+            f"interval_minutes={cadence['interval_minutes']} "
+            f"estimated_next_clean_scan_at={cadence['estimated_next_clean_scan_at']} "
+            f"planned_slots={cadence['planned_product_slots']} "
+            f"daily_limit={cadence['daily_post_limit']}"
+        )
 
-        # Cadence follows the last selection and an actual Telegram/Bale send.
-        # Retries to YouTube/Aparat cannot move the public-channel slot forward.
-        # The helper also recovers older state from immutable per-platform send times.
+        # Product cadence is independent from editorial sends. A Persian editorial
+        # fallback must not reset the product clock or push selected products back.
         last_selected = _parse_utc_datetime(state.get("last_content_selection_at"))
-        last_channel_published = get_last_channel_published_at(state)
+        last_channel_published = get_last_product_channel_published_at(state)
         fresh_unpublished_selection = has_fresh_unpublished_selection(
             state, now=selection_now, stale_after_minutes=8
         )

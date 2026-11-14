@@ -384,26 +384,62 @@ function hasVideoDispatchEligibility(record) {
   );
 }
 
+function hasVerifiedVideoExpiry(record) {
+  const expiry = dateValue(record && record.expires_at);
+  if (expiry === null || record.expiry_estimated === true) return false;
+  return (
+    (
+      ["digikala_live_deals_feed", "digikala_product_detail_api"].includes(record.expiry_source) &&
+      record.expiry_deadline_verified_directly === true
+    ) ||
+    (
+      record.expiry_source === "digikala_mcp_offer_card" &&
+      record.expiry_deadline_verified_from_site_card === true
+    )
+  );
+}
+
 export function videoRecordDue(record, platform, now) {
   if (!hasVideoDispatchEligibility(record)) return false;
   const publishedAt = Number(record.ts || 0) * 1000;
   if (!Number.isFinite(publishedAt) || publishedAt <= 0) return false;
-  const status = String(record[platform + "_upload_status"] || "pending");
-  if (!VIDEO_PENDING_STATUSES.has(status)) return false;
-  const generation = String(record.video_generation_status || "pending");
-  if (!["", "pending", "generated"].includes(generation)) return false;
+
+  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
+  const status = String(record[platform + "_upload_status"] || "").trim().toLowerCase();
+  const generation = String(record.video_generation_status || "").trim().toLowerCase();
+  if (!["pending", "generated", "skipped_expiring_soon", "skipped_unverified_deadline"].includes(generation)) {
+    return false;
+  }
 
   const expiry = dateValue(record.expires_at);
-  if (expiry !== null && expiry <= now + 10 * 60 * 1000) return false;
+  if (expiry !== null && expiry <= timestamp + 10 * 60 * 1000) return false;
+  const verifiedExpiry = hasVerifiedVideoExpiry(record);
 
-  if (platform === "aparat") {
-    const verifiedExpiry =
-      record.expiry_deadline_verified_directly === true ||
-      (record.expiry_source === "digikala_mcp_offer_card" &&
-        record.expiry_deadline_verified_from_site_card === true);
-    if (!verifiedExpiry) return false;
+  if (platform === "aparat" && !verifiedExpiry) return false;
+
+  if (generation === "skipped_expiring_soon") {
+    // Only a directly verified, still-live deadline can reactivate an old skip.
+    return verifiedExpiry && (
+      VIDEO_PENDING_STATUSES.has(status) || status === "skipped_expiring_soon"
+    );
   }
-  return true;
+
+  if (generation === "skipped_unverified_deadline") {
+    // YouTube's policy changed: its already-published channel item can be uploaded
+    // without a retailer timer. Aparat remains deadline-gated; Filo is not awakened
+    // from this terminal generation state by the minute dispatcher.
+    if (platform === "youtube") {
+      return VIDEO_PENDING_STATUSES.has(status) || status === "skipped_unverified_deadline";
+    }
+    if (platform === "aparat") {
+      return verifiedExpiry && (
+        VIDEO_PENDING_STATUSES.has(status) || status === "skipped_unverified_deadline"
+      );
+    }
+    return false;
+  }
+
+  return VIDEO_PENDING_STATUSES.has(status);
 }
 
 export function isFiloLoginVerified(state, now) {
@@ -442,17 +478,38 @@ async function readLatestWorkflowAttempt(api, token) {
 // Every selected product is fanned out from one shared canonical queue. The unified
 // workflow serializes YouTube, Aparat and Filo over the same FIFO, then records each
 // platform's own success, rejection, retry exhaustion or uncertain outcome.
-export function hasPendingVideoQueue(state) {
+export function hasPendingVideoQueue(state, now = Date.now()) {
   if (!state || typeof state !== "object" || !state.published || typeof state.published !== "object") {
     return false;
   }
+  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
   return Object.values(state.published).some((record) => {
-    if (!record || typeof record !== "object" || record.video_dispatch_eligible !== true) return false;
-    const ts = Number(record.ts || 0);
-    if (!Number.isFinite(ts) || ts <= 0) return false;
-    return ["youtube", "aparat", "filo"].some((platform) =>
-      VIDEO_PENDING_STATUSES.has(String(record[platform + "_upload_status"] || "pending").trim().toLowerCase())
-    );
+    if (!hasVideoDispatchEligibility(record)) return false;
+    const created = Number(record.ts || 0) * 1000;
+    if (!Number.isFinite(created) || created <= 0) return false;
+    const generation = String(record.video_generation_status || "").trim().toLowerCase();
+    if (!["pending", "generated", "skipped_expiring_soon", "skipped_unverified_deadline"].includes(generation)) {
+      return false;
+    }
+    const expiry = dateValue(record.expires_at);
+    if (expiry !== null && expiry <= timestamp + 10 * 60 * 1000) return false;
+    const verifiedExpiry = hasVerifiedVideoExpiry(record);
+    return ["youtube", "aparat", "filo"].some((platform) => {
+      const status = String(record[platform + "_upload_status"] || "").trim().toLowerCase();
+      if (generation === "pending" || generation === "generated") {
+        // Dispatch even when a platform-specific preflight will skip it; Python
+        // records that terminal result and still advances the other destinations.
+        return VIDEO_PENDING_STATUSES.has(status);
+      }
+      if (generation === "skipped_expiring_soon") {
+        return verifiedExpiry && (
+          VIDEO_PENDING_STATUSES.has(status) || status === "skipped_expiring_soon"
+        );
+      }
+      return platform === "youtube" && (
+        VIDEO_PENDING_STATUSES.has(status) || status === "skipped_unverified_deadline"
+      );
+    });
   });
 }
 

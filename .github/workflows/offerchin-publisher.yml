@@ -134,6 +134,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_public_aparat_upload_stays_blocked_without_verified_expiry \
             test_affilio.AffilioRadarTests.test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record -v
           python -m unittest test_selection_evidence -v
+          python -m unittest -v test_content_delivery.py
           python -m unittest -v test_shared_selection_media_routing.py
           node --test test_affiliate_deal_radar_worker.mjs
 
@@ -216,7 +217,7 @@ jobs:
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.45"
           AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
-          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: ${{ vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'false' }}
+          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/publisher.py
 
@@ -233,7 +234,7 @@ jobs:
           EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
           EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'false' }}
           OFFERCHIN_EDITORIAL_GAP_MINUTES: "55"
-          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: ${{ vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'false' }}
+          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
           PYTHONUNBUFFERED: "1"
         run: |
           if [[ "${OFFERCHIN_EDITORIAL_PUBLISH_ENABLED,,}" == "true" ]]; then

@@ -137,6 +137,13 @@ def queue_editorial_if_due(
         print(f"EDITORIAL_FALLBACK_NOT_DUE remaining_seconds={remaining}")
         return None
 
+    if radar.daily_channel_posts_count(state, current) >= radar.MAX_DAILY_CHANNEL_POSTS:
+        print(
+            "EDITORIAL_FALLBACK_DAILY_CAP_REACHED "
+            f"limit={radar.MAX_DAILY_CHANNEL_POSTS}"
+        )
+        return None
+
     item = select_editorial_fallback(bank, state, now=current)
     if not item:
         state["last_editorial_empty_bank_check_at"] = current.isoformat()

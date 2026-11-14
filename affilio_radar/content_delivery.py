@@ -7,6 +7,7 @@ perform product discovery, and discovery never calls a platform publishing adapt
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 from datetime import datetime, timedelta, timezone
@@ -19,6 +20,16 @@ from product_quality import is_publishable_product_title
 TERMINAL_QUEUE_STATUSES = {"published", "cancelled", "stale_selection"}
 TERMINAL_PLATFORM_STATUSES = {"sent", "not_connected", "manual_review"}
 PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
+
+# The overall publisher is checked every 27 minutes so editorial fallback can run.
+# Product selections get their own adaptive interval, bounded by the 72-post daily cap.
+PRODUCT_DEFAULT_SELECTION_INTERVAL_SECONDS = 27 * 60
+PRODUCT_MIN_SELECTION_INTERVAL_SECONDS = 27 * 60  # Preserve the project's minimum inter-post spacing
+PRODUCT_MAX_SELECTION_INTERVAL_SECONDS = 6 * 60 * 60
+DEFAULT_CATALOG_CYCLE_SECONDS = 24 * 60 * 60
+MIN_CATALOG_CYCLE_SECONDS = 60 * 60
+MAX_CATALOG_CYCLE_SECONDS = 72 * 60 * 60
+PRODUCT_ID_PATTERN = re.compile(r"^(?:dkp|snp)-\d{1,12}$", re.IGNORECASE)
 
 
 def _configured_queue_limit(value: Any = None) -> int:
@@ -41,6 +52,161 @@ def _utc(value: Any, default: datetime | None = None) -> datetime | None:
         return parsed.astimezone(timezone.utc)
     except (TypeError, ValueError, OverflowError):
         return default
+
+
+def get_last_product_channel_published_at(state: dict) -> datetime | None:
+    """Return the last confirmed product-channel send, excluding editorial posts.
+
+    New state stores this clock explicitly. Older state is recovered from product
+    receipts; only pre-editorial legacy state may fall back to the global channel clock.
+    """
+    if not isinstance(state, dict):
+        return None
+
+    stored = _utc(state.get("last_product_channel_published_at"))
+    observed: list[datetime] = []
+
+    published = state.get("published")
+    if isinstance(published, dict):
+        for product_key, record in published.items():
+            if not PRODUCT_ID_PATTERN.fullmatch(str(product_key or "")) or not isinstance(record, dict):
+                continue
+            delivery = record.get("delivery_status") if isinstance(record.get("delivery_status"), dict) else {}
+            has_channel_send = (
+                any(delivery.get(name) == "sent" for name in ("telegram", "bale", "rubika", "eitaa"))
+                or any(
+                    str(record.get(f"{name}_message_id") or "").isdigit()
+                    for name in ("telegram", "bale", "rubika", "eitaa")
+                )
+            )
+            if not has_channel_send:
+                continue
+            try:
+                timestamp = float(record.get("ts") or 0)
+                if timestamp > 0:
+                    observed.append(datetime.fromtimestamp(timestamp, timezone.utc))
+            except (TypeError, ValueError, OverflowError, OSError):
+                continue
+
+    history = state.get("content_delivery_history")
+    rows = history.values() if isinstance(history, dict) else (history if isinstance(history, list) else [])
+    for entry in rows:
+        if not isinstance(entry, dict):
+            continue
+        content_id = str(entry.get("content_id") or entry.get("product_id") or "")
+        if not PRODUCT_ID_PATTERN.fullmatch(content_id):
+            continue
+        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+        for destination in ("telegram", "bale", "rubika", "eitaa"):
+            target = platforms.get(destination)
+            if isinstance(target, dict) and target.get("status") == "sent":
+                sent_at = _utc(target.get("updated_at"))
+                if sent_at is not None:
+                    observed.append(sent_at)
+
+    candidates = [value for value in (stored, max(observed) if observed else None) if value is not None]
+    if candidates:
+        anchor = max(candidates)
+        if stored is None or anchor != stored:
+            state["last_product_channel_published_at"] = anchor.isoformat()
+        return anchor
+
+    # Migration fallback is safe only before editorial history exists. Once it does,
+    # last_channel_published_at may point to an editorial item, not a product.
+    editorial_history = state.get("editorial_delivery_history")
+    if not isinstance(editorial_history, list) or not editorial_history:
+        return get_last_channel_published_at(state)
+    return None
+
+
+def calculate_product_publication_cadence(
+    state: dict,
+    catalog_status: dict,
+    candidate_count: int,
+    *,
+    now: datetime | None = None,
+    max_daily_posts: int = 72,
+) -> dict:
+    """Spread currently eligible products across the estimated next clean catalog cycle.
+
+    The 20-minute floor respects the configured 72-post/day ceiling. The six-hour
+    ceiling prevents a sparse candidate pool from being held back for an entire day.
+    """
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    status = catalog_status if isinstance(catalog_status, dict) else {}
+
+    try:
+        candidates = max(0, int(candidate_count))
+    except (TypeError, ValueError, OverflowError):
+        candidates = 0
+    try:
+        daily_limit = max(1, min(90, int(max_daily_posts)))
+    except (TypeError, ValueError, OverflowError):
+        daily_limit = 72
+
+    clean_started = _utc(status.get("last_clean_cycle_started_at"))
+    clean_completed = _utc(status.get("last_clean_cycle_completed_at"))
+    cycle_seconds = DEFAULT_CATALOG_CYCLE_SECONDS
+    if clean_started and clean_completed:
+        observed_duration = int((clean_completed - clean_started).total_seconds())
+        if MIN_CATALOG_CYCLE_SECONDS <= observed_duration <= MAX_CATALOG_CYCLE_SECONDS:
+            cycle_seconds = observed_duration
+
+    current_cycle_started = _utc(
+        status.get("current_cycle_started_at") or status.get("last_cycle_started_at")
+    )
+    if current_cycle_started is None or (
+        clean_completed is not None and current_cycle_started <= clean_completed
+    ):
+        current_cycle_started = current
+
+    expected_next = current_cycle_started + timedelta(seconds=cycle_seconds)
+    seconds_remaining = max(0, int((expected_next - current).total_seconds()))
+
+    if candidates <= 0:
+        interval_seconds = PRODUCT_DEFAULT_SELECTION_INTERVAL_SECONDS
+        planned_slots = 0
+    else:
+        # A stale/overdue scan must not stop products indefinitely. Continue at the
+        # highest safe rate until a newer clean-cycle timestamp arrives.
+        planning_horizon = max(PRODUCT_MIN_SELECTION_INTERVAL_SECONDS, seconds_remaining)
+        daily_capacity = max(
+            1,
+            int(planning_horizon * daily_limit // (24 * 60 * 60)),
+        )
+        cadence_capacity = max(
+            1,
+            int(planning_horizon // PRODUCT_MIN_SELECTION_INTERVAL_SECONDS),
+        )
+        capacity = min(daily_capacity, cadence_capacity)
+        planned_slots = min(candidates, capacity)
+        raw_interval = int(math.ceil(planning_horizon / max(1, planned_slots)))
+        interval_seconds = max(
+            PRODUCT_MIN_SELECTION_INTERVAL_SECONDS,
+            min(PRODUCT_MAX_SELECTION_INTERVAL_SECONDS, raw_interval),
+        )
+
+    result = {
+        "calculated_at": current.isoformat(),
+        "candidate_count": candidates,
+        "last_clean_cycle_completed_at": clean_completed.isoformat() if clean_completed else "",
+        "current_cycle_started_at": current_cycle_started.isoformat(),
+        "estimated_next_clean_scan_at": expected_next.isoformat(),
+        "seconds_until_estimated_next_clean_scan": seconds_remaining,
+        "estimated_clean_cycle_seconds": cycle_seconds,
+        "planned_product_slots": planned_slots,
+        "daily_post_limit": daily_limit,
+        "interval_seconds": interval_seconds,
+        "interval_minutes": round(interval_seconds / 60, 2),
+        "policy": "spread_eligible_products_until_next_estimated_clean_scan_with_daily_cap",
+    }
+    if isinstance(state, dict):
+        state["product_publication_interval_seconds"] = interval_seconds
+        state["product_publication_cadence"] = result
+    return result
 
 
 def has_fresh_unpublished_selection(
@@ -378,7 +544,7 @@ def enqueue_selected_content(
     # Existing retry entries do not reserve future publication slots. A slow or
     # unavailable destination must never push fresh selections into a long queue.
     queue_evicted = enforce_queue_limit(state, now=now, max_active_items=queue_limit)
-    last_channel_published = get_last_channel_published_at(state)
+    last_channel_published = get_last_product_channel_published_at(state)
     next_slot = (
         max(now, last_channel_published + timedelta(seconds=interval_seconds))
         if last_channel_published else now

@@ -39,7 +39,14 @@ class EditorialPublisherTests(unittest.TestCase):
     def test_editorial_fifo_lock_is_disabled_by_default(self):
         state = {
             "editorial_delivery_queue": {
-                "editorial:test": {"content_id": "editorial:test", "sequence_number": 4, "status": "partial"}
+                "editorial:test": {
+                    "content_id": "editorial:test", "sequence_number": 4, "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                        "youtube": {"status": "pending"},
+                    },
+                }
             }
         }
         with patch.dict(os.environ, {}, clear=True):
@@ -48,7 +55,54 @@ class EditorialPublisherTests(unittest.TestCase):
     def test_editorial_fifo_lock_activates_only_with_explicit_flag(self):
         state = {
             "editorial_delivery_queue": {
-                "editorial:test": {"content_id": "editorial:test", "sequence_number": 4, "status": "partial"}
+                "editorial:test": {
+                    "content_id": "editorial:test", "sequence_number": 4, "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                        "youtube": {"status": "pending"},
+                    },
+                }
+            }
+        }
+        with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
+            self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
+
+    def test_editorial_lock_releases_after_core_photo_channels_are_terminal(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:test": {
+                    "content_id": "editorial:test",
+                    "sequence_number": 4,
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "sent"},
+                        "youtube": {"status": "pending"},
+                        "aparat": {"status": "retry"},
+                        "filo": {"status": "pending"},
+                    },
+                }
+            }
+        }
+        with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
+            self.assertIsNone(editorial_fifo_lock_entry(state))
+
+    def test_editorial_lock_still_waits_for_a_core_photo_channel(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:test": {
+                    "content_id": "editorial:test",
+                    "sequence_number": 4,
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "pending"},
+                        "youtube": {"status": "uploaded"},
+                        "aparat": {"status": "uploaded"},
+                        "filo": {"status": "uploaded"},
+                    },
+                }
             }
         }
         with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
@@ -61,6 +115,14 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertEqual(entry["content_type"], "editorial")
         self.assertEqual(entry["payload"]["content_id"], "editorial:test-guide")
         self.assertEqual(state["publication_sequence_counter"], 13)
+
+    def test_editorial_fallback_obeys_shared_daily_channel_post_cap(self):
+        state = {}
+        with patch("editorial_publisher._pending_product_video_exists", return_value=False), \
+             patch("editorial_publisher.radar.daily_channel_posts_count", return_value=72), \
+             patch("editorial_publisher.radar.MAX_DAILY_CHANNEL_POSTS", 72):
+            self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+        self.assertFalse(state.get("editorial_delivery_queue"))
 
     def test_editorial_does_not_preempt_recent_channel_publication(self):
         state = {"last_channel_published_at": (NOW - timedelta(minutes=20)).isoformat()}
@@ -75,7 +137,12 @@ class EditorialPublisherTests(unittest.TestCase):
 
     def test_editorial_waits_for_older_product_video_fifo(self):
         state = {"published": {
-            "dkp-1": {"youtube_upload_status": "retry", "aparat_upload_status": "uploaded", "filo_upload_status": "uploaded"}
+            "dkp-1": {
+                "video_generation_status": "pending",
+                "youtube_upload_status": "retry",
+                "aparat_upload_status": "uploaded",
+                "filo_upload_status": "uploaded",
+            }
         }}
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
 
