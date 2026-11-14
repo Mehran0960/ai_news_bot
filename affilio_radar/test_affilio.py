@@ -6556,7 +6556,7 @@ class AffilioRadarTests(unittest.TestCase):
             patch("affilio_radar.APARAT_SHORTS_ONLY", True),
             patch("affilio_radar.APARAT_UPLOAD_ENABLED", True),
             patch("short_video.youtube_credentials_available", return_value=True),
-            patch("aparat_uploader.aparat_credentials_available", return_value=True),
+            patch.dict("os.environ", {"APARAT_COOKIE_HEADER": "AuthV1=test.header.signature"}),
             patch("short_video.render_short_video") as render,
             patch("short_video.upload_youtube_video") as upload,
         ):
