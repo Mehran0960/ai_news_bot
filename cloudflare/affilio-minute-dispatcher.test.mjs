@@ -196,6 +196,17 @@ test("floating publisher waits for the next scheduled product or editorial slot"
   assert.equal(nextPublisherDueAt(state, now), scheduled);
 });
 
+test("publisher wakes 27 minutes after the last post to plan an editorial midpoint before a product", () => {
+  const now = Date.now();
+  const productAt = now + 2 * 60 * 60 * 1000;
+  const planningAt = now + PUBLISHER_INTERVAL_MS;
+  const state = {
+    next_channel_content_due_at: new Date(productAt).toISOString(),
+    next_editorial_planning_at: new Date(planningAt).toISOString(),
+  };
+  assert.equal(nextPublisherDueAt(state, now), planningAt);
+});
+
 test("floating publisher never violates the 27-minute minimum after a channel post", () => {
   const now = Date.now();
   const tooSoon = now + 10 * 60 * 1000;
