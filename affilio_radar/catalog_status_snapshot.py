@@ -529,7 +529,7 @@ def load_emergency_continuity_candidates(
             continue
         pid = str(row.get("product_id") or "").strip()
         url = str(row.get("product_url") or "").strip()
-        if not re.fullmatch(r"dkp-\\d{1,12}", pid) or not url.endswith(f"/{pid}/"):
+        if not re.fullmatch(r"dkp-\d{1,12}", pid) or not url.endswith(f"/{pid}/"):
             continue
         # Explicit allow-list: do not leak historical price, discount, stock or expiry
         # into live publication eligibility through the emergency hand-off.
