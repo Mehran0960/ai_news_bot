@@ -354,6 +354,7 @@ def enqueue_selected_content(
     max_items: int = 1,
     minimum_runway_minutes: int = 0,
     max_active_items: int | None = None,
+    scheduled_at_values: list[str] | None = None,
 ) -> dict:
     """Persist ranked selections for a separate publisher; never publish from here."""
     now = now or datetime.now(timezone.utc)
@@ -385,7 +386,7 @@ def enqueue_selected_content(
     )
 
     added = skipped = 0
-    for item in items:
+    for item_index, item in enumerate(items):
         if added >= max_items:
             break
         if not isinstance(item, dict):
@@ -415,7 +416,10 @@ def enqueue_selected_content(
             continue
 
         deadline = _utc(item.get("deal_expires_at"))
-        scheduled = max(now, next_slot)
+        requested_slot = None
+        if isinstance(scheduled_at_values, list) and item_index < len(scheduled_at_values):
+            requested_slot = _utc(scheduled_at_values[item_index])
+        scheduled = max(now, requested_slot or next_slot)
         if deadline and deadline <= scheduled + timedelta(minutes=minimum_runway_minutes):
             skipped += 1
             continue
@@ -452,7 +456,7 @@ def enqueue_selected_content(
             },
         }
         added += 1
-        next_slot = scheduled + timedelta(seconds=interval_seconds)
+        next_slot = max(next_slot, scheduled) + timedelta(seconds=interval_seconds)
 
     summary = {
         "added": added,
