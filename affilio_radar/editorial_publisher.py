@@ -868,12 +868,10 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     active_products = _pending_product_channel_entries(state, now=current)
     pending_videos = _pending_product_video_exists(state)
     shadow_state_for_anchor = json.loads(json.dumps(state, ensure_ascii=False, default=str))
-    anchor = _recent_attempt_anchor(shadow_state_for_anchor)
-    elapsed = (current - anchor) if anchor else None
+    planned_slot = _next_editorial_slot(shadow_state_for_anchor, now=current)
     remaining = (
-        max(0, int((timedelta(minutes=MAXIMUM_PUBLICATION_GAP_MINUTES) - elapsed).total_seconds()))
-        if elapsed is not None and elapsed < timedelta(minutes=MINIMUM_GAP_MINUTES)
-        else 0
+        max(0, int((planned_slot[0] - current).total_seconds()))
+        if planned_slot is not None else 0
     )
 
     destination_config = {
@@ -906,27 +904,30 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         decision = "wait_for_product_channel_slot"
         item_id = None
         sequence = None
-    elif remaining:
-        decision = "wait_for_27_minute_publication_spacing"
+    elif planned_slot is not None and remaining > 0:
+        decision = "wait_for_equal_spacing_editorial_slot"
         item_id = None
-        sequence = None
+        sequence = int(planned_slot[0].timestamp())
     elif active:
         selected = active[0]
         decision = "resume_active_editorial"
         item_id = str(selected.get("content_id") or "")
         sequence = selected.get("sequence_number")
     else:
-        # Simulate enqueue against a JSON copy only. The live state and queue are read-only.
         shadow_state = json.loads(json.dumps(state, ensure_ascii=False, default=str))
         candidate = select_editorial_fallback(bank, shadow_state, now=current)
         if candidate is None:
             decision = "no_valid_nonrepeating_reviewed_item"
             item_id = None
             sequence = None
+        elif planned_slot is None:
+            decision = "no_gap_exceeding_27_minutes"
+            item_id = None
+            sequence = None
         else:
-            sequence = allocate_publication_sequence(shadow_state)
             decision = "would_queue_editorial"
             item_id = str(candidate.get("content_id") or "")
+            sequence = int(planned_slot[0].timestamp())
 
     return {
         "observed_at": current.astimezone(timezone.utc).isoformat(),
@@ -935,7 +936,8 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "decision": decision,
         "would_select_content_id": item_id,
         "would_allocate_sequence_number": sequence,
-        "fallback_interval_minutes": MINIMUM_GAP_MINUTES,
+        "maximum_global_publication_gap_minutes": MAXIMUM_PUBLICATION_GAP_MINUTES,
+        "planned_equal_spacing_minutes": round(planned_slot[2] / 60, 2) if planned_slot else None,
         "maximum_global_publication_gap_minutes": 27,
         "editorial_public_language": "Persian-only",
         "seconds_until_fallback_due": remaining,
@@ -943,6 +945,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "editorial_bank_valid": len(valid_items),
         "editorial_bank_invalid": invalid_items,
         "active_editorial_queue_items": len(active),
+        "active_editorial_video_queue_items": len(active_video_entries),
         "active_editorial_video_queue_items": len(active_video_entries),
         "active_product_photo_queue_items": len(active_products),
         "older_product_video_pending": bool(pending_videos),
