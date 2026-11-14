@@ -11132,10 +11132,15 @@ def run(publish=False, selection_only=False):
             f"snapshot_candidates={catalog_context['snapshot']['candidate_count']} "
             "ranking_source=verified_full_catalog_snapshot"
         )
-    elif catalog_context.get("mode") == "blocked":
+    elif catalog_context.get("mode") == "blocked" and not emergency_continuity_active:
         eligible = []
         quality_eligible = []
         print("CATALOG_PUBLICATION_FILTER blocked=true reason=no_verified_full_catalog_snapshot")
+    elif catalog_context.get("mode") == "blocked" and emergency_continuity_active:
+        print(
+            "CATALOG_PUBLICATION_FILTER mode=emergency_lead_only "
+            "source=hash_pinned_last_clean_snapshot live_product_revalidation_required=true"
+        )
     elif catalog_context.get("mode") == "degraded_live_fallback":
         print(
             "CATALOG_PUBLICATION_FILTER mode=degraded_live_fallback "
