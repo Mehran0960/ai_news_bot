@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import patch
+import math
 from datetime import datetime, timedelta, timezone
 
 from content_delivery import (
@@ -1104,6 +1105,37 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         self.assertEqual(result["plan_anchor_kind"], "cycle_start")
         self.assertEqual(result["plan_anchor_at"], self.now.isoformat())
+
+    def test_new_cycle_preserves_a_product_published_after_the_scan_started_as_spacing_anchor(self):
+        clean_started = self.now - timedelta(hours=42)
+        clean_completed = self.now - timedelta(hours=8)
+        current_scan_started = self.now - timedelta(hours=6)
+        last_product = self.now - timedelta(hours=4)
+        cycle_seconds = int((clean_completed - clean_started).total_seconds())
+        status = {
+            "last_clean_cycle_started_at": clean_started.isoformat(),
+            "last_clean_cycle_completed_at": clean_completed.isoformat(),
+            "current_cycle_started_at": current_scan_started.isoformat(),
+            "last_cycle_status": "complete",
+        }
+        state = {
+            "last_product_channel_published_at": last_product.isoformat(),
+            "product_publication_plan_cycle_id": "older-cycle",
+        }
+
+        result = calculate_product_publication_cadence(
+            state, status, 4, now=self.now, max_daily_posts=72
+        )
+
+        expected_next_scan = current_scan_started + timedelta(seconds=cycle_seconds)
+        expected_interval = int(math.ceil(
+            (expected_next_scan - last_product).total_seconds() / 5
+        ))
+        self.assertEqual(result["plan_anchor_kind"], "last_product")
+        self.assertEqual(result["plan_anchor_at"], last_product.isoformat())
+        self.assertEqual(result["estimated_next_clean_scan_at"], expected_next_scan.isoformat())
+        self.assertEqual(result["planned_product_slots"], 4)
+        self.assertEqual(result["interval_seconds"], expected_interval)
 
     def test_product_queue_slots_are_evenly_rescheduled(self):
         last_product = self.now - timedelta(minutes=10)

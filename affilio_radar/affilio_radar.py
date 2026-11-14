@@ -5044,11 +5044,15 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                 and gap_seconds >= 2 * minimum_gap_seconds
                 and product_at - current >= timedelta(seconds=minimum_gap_seconds)
             ):
-                planning_at = max(
-                    current,
-                    anchor_at + timedelta(seconds=minimum_gap_seconds),
-                )
-                if planning_at < product_at - timedelta(seconds=minimum_gap_seconds):
+                # Wake the publisher at the actual editorial midpoint, not at the
+                # earliest legal channel slot. queue_editorial_if_due uses the same
+                # midpoint, so this avoids premature wakeups and keeps products on plan.
+                midpoint_at = anchor_at + timedelta(seconds=gap_seconds // 2)
+                planning_at = max(current, midpoint_at)
+                if (
+                    (planning_at - anchor_at).total_seconds() >= minimum_gap_seconds
+                    and (product_at - planning_at).total_seconds() >= minimum_gap_seconds
+                ):
                     next_editorial_planning_at = planning_at.isoformat()
 
     if next_product is None and isinstance(state, dict):

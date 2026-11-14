@@ -1412,6 +1412,51 @@ class AffilioRadarTests(unittest.TestCase):
             (now + timedelta(minutes=65)).isoformat(),
         )
 
+    def test_video_dispatch_state_wakes_at_related_editorial_midpoint(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        product_at = now + timedelta(hours=2)
+        state = {
+            "last_channel_published_at": now.isoformat(),
+            "content_delivery_queue": {
+                "dkp-midpoint": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+            },
+            "published": {},
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(
+            compact["next_editorial_planning_at"],
+            (now + timedelta(hours=1)).isoformat(),
+        )
+
+    def test_video_dispatch_state_skips_editorial_midpoint_when_gap_is_too_short(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        product_at = now + timedelta(minutes=50)
+        state = {
+            "last_channel_published_at": now.isoformat(),
+            "content_delivery_queue": {
+                "dkp-tight-gap": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+            },
+            "published": {},
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertIsNone(compact["next_editorial_planning_at"])
+
     def test_video_dispatch_state_exposes_only_active_hash_pinned_emergency_continuity(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         state = {
@@ -1486,7 +1531,7 @@ class AffilioRadarTests(unittest.TestCase):
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
         self.assertEqual(
             compact["next_editorial_planning_at"],
-            "2026-11-05T12:27:00+00:00",
+            "2026-11-05T13:00:00+00:00",
         )
         self.assertEqual(compact["youtube_next_upload_at"], state["youtube_next_upload_at"])
         self.assertEqual(compact["aparat_next_upload_at"], state["aparat_next_upload_at"])

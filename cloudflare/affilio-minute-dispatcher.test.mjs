@@ -11,6 +11,7 @@ import {
   PUBLISHER_INTERVAL_MS,
   PUBLISHER_STANDALONE_EDITORIAL_GAP_MS,
   isEmergencyContinuityAvailable,
+  isPublisherAttemptRun,
   nextPublisherDueAt,
   readLastChannelPublicationAt,
 } from "./affilio-minute-dispatcher.mjs";
@@ -219,6 +220,47 @@ test("standalone editorial fallback uses its own 55-minute gap when no queue slo
   const now = Date.now();
   assert.equal(PUBLISHER_STANDALONE_EDITORIAL_GAP_MS, 55 * 60 * 1000);
   assert.equal(nextPublisherDueAt({}, now), now + 55 * 60 * 1000);
+});
+
+test("publisher retry cooldown recognizes guarded push and workflow_dispatch attempts", () => {
+  assert.equal(isPublisherAttemptRun({ event: "push", head_branch: "main" }), true);
+  assert.equal(isPublisherAttemptRun({ event: "workflow_dispatch", head_branch: "main" }), true);
+  assert.equal(isPublisherAttemptRun({ event: "push", head_branch: "feature/preview" }), false);
+  assert.equal(isPublisherAttemptRun({ event: "schedule", head_branch: "main" }), false);
+  assert.equal(isPublisherAttemptRun(null), false);
+});
+
+test("emergency continuity retries discovery instead of waiting for standalone editorial", () => {
+  const now = Date.now();
+  const lastPost = now - PUBLISHER_INTERVAL_MS - 60_000;
+  const state = {
+    next_editorial_planning_at: new Date(now + 20 * 60 * 1000).toISOString(),
+  };
+  assert.equal(
+    nextPublisherDueAt(state, lastPost, { emergencyContinuityFallback: true }),
+    lastPost + PUBLISHER_INTERVAL_MS
+  );
+
+  const recentPost = now - 10 * 60 * 1000;
+  assert.equal(
+    nextPublisherDueAt(state, recentPost, { emergencyContinuityFallback: true }),
+    recentPost + PUBLISHER_INTERVAL_MS,
+    "emergency discovery must not weaken the public-post minimum gap"
+  );
+});
+
+test("emergency continuity still respects an already queued product or editorial slot", () => {
+  const now = Date.now();
+  const lastPost = now - 60 * 60 * 1000;
+  const scheduled = now + 40 * 60 * 1000;
+  const state = {
+    next_channel_content_due_at: new Date(scheduled).toISOString(),
+    next_editorial_planning_at: new Date(now + 55 * 60 * 1000).toISOString(),
+  };
+  assert.equal(
+    nextPublisherDueAt(state, lastPost, { emergencyContinuityFallback: true }),
+    scheduled
+  );
 });
 
 test("emergency Worker dispatch requires a pinned hash and an unexpired window", () => {

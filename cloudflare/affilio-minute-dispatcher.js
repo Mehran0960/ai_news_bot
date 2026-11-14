@@ -227,12 +227,22 @@ export function isEmergencyContinuityAvailable(state, now = Date.now()) {
   );
 }
 
-export function nextPublisherDueAt(state, lastPublishedAt) {
+export function nextPublisherDueAt(state, lastPublishedAt, options = {}) {
   const scheduledAt = Date.parse(String(state && state.next_channel_content_due_at || ""));
   const editorialPlanningAt = Date.parse(String(state && state.next_editorial_planning_at || ""));
   const lastPost = Number.isFinite(lastPublishedAt) ? lastPublishedAt : null;
-  const plannedTimes = [scheduledAt, editorialPlanningAt].filter(Number.isFinite);
 
+  // While the pinned emergency snapshot is being consumed, an empty queue is a
+  // discovery problem, not a reason to wait for the slower standalone editorial slot.
+  // Re-run selection on the normal retry cadence, while preserving the hard minimum
+  // gap after the last confirmed public post. Any queued product/editorial slot wins.
+  if (options.emergencyContinuityFallback === true && !Number.isFinite(scheduledAt)) {
+    return lastPost !== null
+      ? lastPost + PUBLISHER_INTERVAL_MS
+      : null;
+  }
+
+  const plannedTimes = [scheduledAt, editorialPlanningAt].filter(Number.isFinite);
   let dueAt = plannedTimes.length
     ? Math.min(...plannedTimes)
     : lastPost !== null
@@ -301,12 +311,20 @@ export function readLastChannelPublicationAt(state) {
   return latest > 0 ? latest : null;
 }
 
+export function isPublisherAttemptRun(run) {
+  return Boolean(
+    run &&
+    run.head_branch === "main" &&
+    (run.event === "workflow_dispatch" || run.event === "push")
+  );
+}
+
 async function readLatestPublisherAttempt(token) {
   try {
     const query = new URLSearchParams({ branch: "main", per_page: "10" });
     const data = await githubRequest(`${PUBLISHER_API}/runs?${query}`, token);
     const rows = Array.isArray(data.workflow_runs) ? data.workflow_runs : [];
-    return rows.find(run => run && run.event === "workflow_dispatch" && run.head_branch === "main") || null;
+    return rows.find(isPublisherAttemptRun) || null;
   } catch (error) {
     console.error("OFFERCHIN_PUBLISHER_ATTEMPT_READ_FAILED", String(error).slice(0, 500));
     return null;
@@ -374,7 +392,9 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     );
   }
   const now = tick.getTime();
-  const nextDueAt = nextPublisherDueAt(state, lastPublishedAt);
+  const nextDueAt = nextPublisherDueAt(state, lastPublishedAt, {
+    emergencyContinuityFallback,
+  });
   const latestCleanCycleAt = Date.parse(String(
     catalogStatus && catalogStatus.last_clean_cycle_completed_at || ""
   ));
