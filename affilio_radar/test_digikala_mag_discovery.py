@@ -78,6 +78,64 @@ class DigikalaMagDiscoveryTests(unittest.TestCase):
         self.assertEqual(counts["rejected_invalid_url"], 1)
         self.assertEqual(counts["rejected_out_of_window"], 1)
 
+    def test_candidate_filter_rejects_non_actionable_tech_news_and_speculation(self):
+        feed = """<?xml version="1.0" encoding="UTF-8"?>
+        <rss version="2.0"><channel>
+          <item><title>بررسی کارت گرافیک RTX 5050؛ ارزش خرید دارد؟</title>
+            <link>https://www.digikala.com/mag/rtx-5050-review/</link>
+            <pubDate>Fri, 13 Nov 2026 08:00:00 +0000</pubDate><category>تکنولوژی</category></item>
+          <item><title>مقایسه گوشی سامسونگ A07 و A08؛ کدام را بخریم؟</title>
+            <link>https://www.digikala.com/mag/a07-vs-a08/</link>
+            <pubDate>Fri, 13 Nov 2026 09:00:00 +0000</pubDate><category>تکنولوژی</category></item>
+          <item><title>جنسن هوانگ از مدیرعاملی انویدیا استعفا کرد</title>
+            <link>https://www.digikala.com/mag/ceo-resigns/</link>
+            <pubDate>Fri, 13 Nov 2026 10:00:00 +0000</pubDate><category>تکنولوژی</category></item>
+          <item><title>سفر به مریخ چقدر طول می‌کشد؟</title>
+            <link>https://www.digikala.com/mag/mars-trip/</link>
+            <pubDate>Fri, 13 Nov 2026 11:00:00 +0000</pubDate><category>تکنولوژی</category></item>
+          <item><title>تعداد کاربران فعال پلی‌استیشن رکورد زد</title>
+            <link>https://www.digikala.com/mag/console-users/</link>
+            <pubDate>Fri, 13 Nov 2026 12:00:00 +0000</pubDate><category>تکنولوژی</category></item>
+          <item><title>ماکت آیفون جدید لو رفت؛ نمایشگر بزرگ‌تر در راه است</title>
+            <link>https://www.digikala.com/mag/iphone-dummy-leak/</link>
+            <pubDate>Fri, 13 Nov 2026 13:00:00 +0000</pubDate><category>تکنولوژی</category></item>
+          <item><title>اپلیکیشن ایکس‌باکس روی کامپیوتر به‌روزرسانی شد</title>
+            <link>https://www.digikala.com/mag/xbox-app-update/</link>
+            <pubDate>Fri, 13 Nov 2026 14:00:00 +0000</pubDate><category>تکنولوژی</category></item>
+          <item><title>بهترین شامپو ضد ریزش مو؛ راهنمای انتخاب</title>
+            <link>https://www.digikala.com/mag/anti-hair-loss-shampoo/</link>
+            <pubDate>Fri, 13 Nov 2026 15:00:00 +0000</pubDate><category>زیبایی</category></item>
+        </channel></rss>""".encode("utf-8")
+        candidates, counts, _seen = parse_feed(feed, now=NOW, max_candidates=20)
+        self.assertEqual(
+            {row["title"] for row in candidates},
+            {
+                "بررسی کارت گرافیک RTX 5050؛ ارزش خرید دارد؟",
+                "مقایسه گوشی سامسونگ A07 و A08؛ کدام را بخریم؟",
+            },
+        )
+        self.assertEqual(counts["rejected_speculative_or_low_signal"], 1)
+        self.assertEqual(counts["rejected_low_actionability"], 1)
+        self.assertEqual(counts["rejected_irrelevant_or_excluded"], 6)
+
+    def test_actionable_buying_content_is_ranked_before_less_direct_guidance(self):
+        feed = """<?xml version="1.0" encoding="UTF-8"?>
+        <rss version="2.0"><channel>
+          <item><title>ترفندهای استفاده بهتر از هدفون بی‌سیم</title>
+            <link>https://www.digikala.com/mag/headphone-tips/</link>
+            <pubDate>Fri, 13 Nov 2026 08:00:00 +0000</pubDate><category>گجت</category></item>
+          <item><title>راهنمای خرید هدفون بی‌سیم؛ کدام مدل ارزش خرید دارد؟</title>
+            <link>https://www.digikala.com/mag/headphone-buying-guide/</link>
+            <pubDate>Thu, 12 Nov 2026 08:00:00 +0000</pubDate><category>گجت</category></item>
+        </channel></rss>""".encode("utf-8")
+        candidates, _counts, _seen = parse_feed(feed, now=NOW, max_candidates=20)
+        self.assertEqual(len(candidates), 2)
+        self.assertEqual(candidates[0]["title"], "راهنمای خرید هدفون بی‌سیم؛ کدام مدل ارزش خرید دارد؟")
+        self.assertGreaterEqual(
+            candidates[0]["editorial_relevance_score"],
+            candidates[1]["editorial_relevance_score"],
+        )
+
     def test_article_excerpt_and_image_are_not_stored(self):
         candidates, _counts, _seen = parse_feed(RSS, now=NOW)
         serialized = json.dumps(candidates, ensure_ascii=False)
