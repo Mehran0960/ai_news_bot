@@ -633,17 +633,25 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
 
 
 def editorial_fifo_lock_entry(state: dict) -> dict | None:
-    """Return the oldest editorial lock only while public editorial publishing is enabled."""
+    """Lock product delivery only when the oldest editorial slot is actually due."""
     enabled = os.getenv("OFFERCHIN_EDITORIAL_PUBLISH_ENABLED", "false").strip().lower() in {
         "1", "true", "yes", "on"
     }
     if not enabled:
         return None
     queue = state.get("editorial_delivery_queue")
-    active = [
-        value for value in (queue.values() if isinstance(queue, dict) else [])
-        if isinstance(value, dict) and value.get("status") not in {"completed", "cancelled", "failed"}
-    ]
+    now = _now()
+    active = []
+    for value in (queue.values() if isinstance(queue, dict) else []):
+        if not isinstance(value, dict) or value.get("status") in {"completed", "cancelled", "failed"}:
+            continue
+        scheduled = _utc(value.get("scheduled_at"))
+        retry_at = _utc(value.get("next_attempt_at"))
+        if scheduled is not None and scheduled > now:
+            continue
+        if retry_at is not None and retry_at > now:
+            continue
+        active.append(value)
     if not active:
         return None
     return min(active, key=lambda value: int(value.get("sequence_number") or 0))
