@@ -1,6 +1,6 @@
 {
   "aparat_last_upload_attempt_at": "2026-11-14T17:19:55.882293+00:00",
-  "aparat_last_upload_success_at": "2026-11-14T20:27:55.307162+00:00",
+  "aparat_last_upload_success_at": "2026-11-14T21:50:14.356972+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-13T10:31:20.893746+00:00",
@@ -316360,6 +316360,21 @@
         "youtube": "sent"
       },
       "updated_at": "2026-11-14T20:34:05.148374+00:00"
+    },
+    {
+      "content_id": "editorial:compare-total-cost",
+      "sequence_number": 29,
+      "status": "completed",
+      "terminal_summary": {
+        "aparat": "sent",
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "filo": "manual_review",
+        "rubika": "sent",
+        "telegram": "sent",
+        "youtube": "sent"
+      },
+      "updated_at": "2026-11-14T21:50:44.458480+00:00"
     }
   ],
   "editorial_delivery_history": [
@@ -316611,8 +316626,12 @@
       "content_id": "editorial:compare-total-cost",
       "destinations": {
         "aparat": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-14T21:50:09.592594+00:00",
+          "attempts": 1,
+          "message_id": "hnqs43x",
+          "status": "sent",
+          "updated_at": "2026-11-14T21:50:14.356930+00:00",
+          "url": "https://www.aparat.com/v/hnqs43x"
         },
         "bale": {
           "attempt_started_at": "2026-11-14T21:46:32.531658+00:00",
@@ -316628,8 +316647,12 @@
           "updated_at": "2026-11-14T21:46:37.656211+00:00"
         },
         "filo": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-14T21:50:14.901370+00:00",
+          "attempts": 1,
+          "last_error": "filo_submitted_pending_approval_not_public",
+          "status": "manual_review",
+          "updated_at": "2026-11-14T21:50:43.902557+00:00",
+          "url": "https://ifilo.net/v/Z9B4EQw"
         },
         "rubika": {
           "attempt_started_at": "2026-11-14T21:46:33.868643+00:00",
@@ -316646,8 +316669,12 @@
           "updated_at": "2026-11-14T21:46:32.184814+00:00"
         },
         "youtube": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-14T21:50:06.949617+00:00",
+          "attempts": 1,
+          "message_id": "5flNjln0U2U",
+          "status": "sent",
+          "updated_at": "2026-11-14T21:50:09.045834+00:00",
+          "url": "https://www.youtube.com/shorts/5flNjln0U2U"
         }
       },
       "editorial_id": "compare-total-cost",
@@ -316657,87 +316684,7 @@
       "topic": "total-cost"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:compare-total-cost": {
-      "attempt_count": 0,
-      "content_id": "editorial:compare-total-cost",
-      "content_type": "editorial",
-      "next_attempt_at": "2026-11-14T21:46:30.761451+00:00",
-      "payload": {
-        "body": "برای مقایسه دو گزینه، هزینه ارسال، لوازم جانبی ضروری، هزینه نصب یا راه‌اندازی و شرایط بازگشت را هم حساب کن. ممکن است گزینه‌ای با قیمت اولیه پایین‌تر، بعد از اضافه‌شدن هزینه‌های جانبی انتخاب بهتری نباشد. قیمت و شرایط را در لحظه تصمیم‌گیری از صفحه همان فروشنده بررسی کن.",
-        "content_id": "editorial:compare-total-cost",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "compare-total-cost",
-        "idempotency_key": "362874f5f630b516",
-        "related_product_id": "",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 29,
-        "sources": [
-          {
-            "source_id": "ftc-infographic",
-            "title": "Shopping Online – Federal Trade Commission",
-            "url": "https://consumer.ftc.gov/sites/default/files/articles/pdf/0041-shopping-online-infographic.pdf"
-          },
-          {
-            "source_id": "ftc-security-tips",
-            "title": "Online Shopping – Security Tips, Federal Trade Commission",
-            "url": "https://www.ftc.gov/media/79929"
-          }
-        ],
-        "title": "قیمت نهایی مهم است، نه فقط عدد بزرگ روی صفحه",
-        "topic": "total-cost"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-14T21:46:32.531658+00:00",
-          "attempts": 1,
-          "message_id": "1967",
-          "status": "sent",
-          "updated_at": "2026-11-14T21:46:33.524253+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "eitaa_not_enabled_or_credentials_missing",
-          "status": "not_connected",
-          "updated_at": "2026-11-14T21:46:37.656211+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-14T21:46:33.868643+00:00",
-          "attempts": 1,
-          "message_id": "1972262767795588651",
-          "status": "sent",
-          "updated_at": "2026-11-14T21:46:37.310011+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-14T21:46:31.462569+00:00",
-          "attempts": 1,
-          "message_id": "1481",
-          "status": "sent",
-          "updated_at": "2026-11-14T21:46:32.184814+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "",
-      "scheduled_at": "2026-11-14T21:46:30.761451+00:00",
-      "selected_at": "2026-11-14T21:46:30.761451+00:00",
-      "sequence_number": 29,
-      "status": "partial"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -316763,9 +316710,9 @@
   },
   "filo_last_upload_attempt_at": "2026-11-14T17:20:05.324497+00:00",
   "filo_last_upload_success_at": "2026-11-14T17:20:43.441934+00:00",
-  "filo_login_verification_attempted_at": "2026-11-14T21:11:27.918880+00:00",
+  "filo_login_verification_attempted_at": "2026-11-14T21:50:01.025933+00:00",
   "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-14T21:11:27.918880+00:00",
+  "filo_login_verified_at": "2026-11-14T21:50:01.025933+00:00",
   "filo_upload_interval_policy_version": 3,
   "growth_tracking": {
     "daily_member_counts": {
@@ -317034,7 +316981,7 @@
   "last_channel_published_at": "2026-11-14T21:46:33.524253+00:00",
   "last_content_selection_at": "2026-11-13T22:13:58.676719+00:00",
   "last_editorial_attempt_at": "2026-11-14T21:46:30.761451+00:00",
-  "last_editorial_confirmed_at": "2026-11-14T21:46:37.310011+00:00",
+  "last_editorial_confirmed_at": "2026-11-14T21:50:14.356930+00:00",
   "last_product_channel_published_at": "2026-11-13T22:14:18.640320+00:00",
   "last_published_at": "2026-11-14T21:46:33.524253+00:00",
   "market_price_api_checks": {
@@ -494243,6 +494190,6 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 17,
   "snappshop_retry_after": "2026-11-15T10:36:57.728076+00:00",
-  "youtube_last_upload_success_at": "2026-11-14T20:27:50.839880+00:00",
+  "youtube_last_upload_success_at": "2026-11-14T21:50:09.045882+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
