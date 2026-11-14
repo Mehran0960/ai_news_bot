@@ -64,9 +64,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache/offerchin-mag/seen.json
-          key: offerchin-mag-seen-v2-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: offerchin-mag-seen-v3-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            offerchin-mag-seen-v2-${{ runner.os }}-
+            offerchin-mag-seen-v3-${{ runner.os }}-
       - name: Discover new shopping-adjacent DigiKala Mag articles
         run: |
           mkdir -p .cache/offerchin-mag editorial-mag-artifacts
