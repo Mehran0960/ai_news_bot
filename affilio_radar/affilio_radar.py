@@ -11124,8 +11124,18 @@ def run(publish=False, selection_only=False):
     )
     if selection_only and emergency_continuity_active:
         continuity_record = state.get("emergency_continuity")
-        remaining_checks = max(0, MAX_PRODUCT_CHECKS - len(urls))
-        lead_limit = min(50, remaining_checks)
+        # Reserve part of the bounded live-check budget for the pinned last-clean
+        # snapshot, otherwise ordinary discovery can fill the entire batch and
+        # starve the emergency clause even when the old snapshot has good leads.
+        lead_limit = min(50, MAX_PRODUCT_CHECKS)
+        ordinary_discovery_limit = max(0, MAX_PRODUCT_CHECKS - lead_limit)
+        if len(urls) > ordinary_discovery_limit:
+            print(
+                "EMERGENCY_DISCOVERY_BUDGET_RESERVED "
+                f"ordinary_before={len(urls)} ordinary_kept={ordinary_discovery_limit} "
+                f"snapshot_lead_budget={lead_limit}"
+            )
+            urls = urls[:ordinary_discovery_limit]
         if lead_limit > 0:
             emergency_snapshot = load_emergency_continuity_candidates(
                 continuity_record,
