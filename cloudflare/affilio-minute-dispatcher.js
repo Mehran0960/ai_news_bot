@@ -212,7 +212,25 @@ export function isInitialCatalogWarmup(status) {
 }
 
 export const PUBLISHER_INTERVAL_MS = 27 * 60 * 1000;
+export const PUBLISHER_STANDALONE_EDITORIAL_GAP_MS = 55 * 60 * 1000;
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
+
+export function nextPublisherDueAt(state, lastPublishedAt) {
+  const scheduledAt = Date.parse(String(state && state.next_channel_content_due_at || ""));
+  const hasScheduledContent = Number.isFinite(scheduledAt);
+  const lastPost = Number.isFinite(lastPublishedAt) ? lastPublishedAt : null;
+
+  let dueAt = hasScheduledContent
+    ? scheduledAt
+    : lastPost !== null
+      ? lastPost + PUBLISHER_STANDALONE_EDITORIAL_GAP_MS
+      : null;
+
+  if (dueAt !== null && lastPost !== null) {
+    dueAt = Math.max(dueAt, lastPost + PUBLISHER_INTERVAL_MS);
+  }
+  return dueAt;
+}
 
 async function readOfferChinState(token) {
   try {
@@ -335,8 +353,33 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     );
   }
   const now = tick.getTime();
-  if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
+  const nextDueAt = nextPublisherDueAt(state, lastPublishedAt);
+  const latestCleanCycleAt = Date.parse(String(
+    catalogStatus && catalogStatus.last_clean_cycle_completed_at || ""
+  ));
+  const plannedCleanCycleAt = Date.parse(String(
+    state.product_publication_plan_cycle_id ||
+    state.product_publication_cadence_cycle_id ||
+    ""
+  ));
+  const newCleanCycleReady = Boolean(
+    isUsableCleanCatalogSnapshot(catalogStatus) &&
+    Number.isFinite(latestCleanCycleAt) &&
+    (!Number.isFinite(plannedCleanCycleAt) || latestCleanCycleAt > plannedCleanCycleAt)
+  );
+
+  // A clean new catalog cycle refreshes the product cohort even while the next
+  // product slot is in the future. This reflows the floating plan without posting early.
+  if (!newCleanCycleReady && nextDueAt !== null && now < nextDueAt) {
     console.log("OFFERCHIN_PUBLISHER_NOT_DUE seconds_remaining=" +
+      Math.ceil((nextDueAt - now) / 1000) +
+      " next_content_due_at=" + new Date(nextDueAt).toISOString());
+    return;
+  }
+  // New-scan refreshes may happen before a product slot, but never bypass the
+  // hard minimum spacing between two public channel posts.
+  if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
+    console.log("OFFERCHIN_PUBLISHER_MINIMUM_GAP seconds_remaining=" +
       Math.ceil((PUBLISHER_INTERVAL_MS - (now - lastPublishedAt)) / 1000));
     return;
   }
