@@ -5094,9 +5094,13 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         "next_channel_content_due_at": next_channel_due_at,
         "next_editorial_planning_at": next_editorial_planning_at,
         "emergency_continuity_active": emergency_continuity_active,
+        "emergency_continuity_snapshot_sha256": emergency_sha if emergency_continuity_active else None,
         "emergency_continuity_baseline_completed_at": (
             str(emergency_record.get("baseline_clean_cycle_completed_at") or "")
             if emergency_continuity_active else None
+        ),
+        "emergency_continuity_expires_at": (
+            emergency_expires.isoformat() if emergency_continuity_active and emergency_expires else None
         ),
         "youtube_next_upload_at": value("youtube_next_upload_at"),
         "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
