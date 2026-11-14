@@ -8667,6 +8667,24 @@ def _emergency_continuity_window_active(
         )
     elif record.get("status") == "active":
         baseline = str(record.get("baseline_clean_cycle_completed_at") or "").strip()
+        if not baseline and latest_clean:
+            try:
+                started_at = datetime.fromisoformat(
+                    str(record.get("started_at") or "").replace("Z", "+00:00")
+                )
+                clean_at = datetime.fromisoformat(latest_clean.replace("Z", "+00:00"))
+                if started_at.tzinfo is None:
+                    started_at = started_at.replace(tzinfo=timezone.utc)
+                if clean_at.tzinfo is None:
+                    clean_at = clean_at.replace(tzinfo=timezone.utc)
+                if clean_at <= started_at:
+                    baseline = latest_clean
+                    record["baseline_clean_cycle_completed_at"] = latest_clean
+                    record["baseline_clean_cycle_started_at"] = str(
+                        status.get("last_clean_cycle_started_at") or ""
+                    )
+            except (TypeError, ValueError):
+                pass
         if latest_clean and latest_clean != baseline:
             record["status"] = "ended"
             record["ended_at"] = current.isoformat()
@@ -8675,6 +8693,65 @@ def _emergency_continuity_window_active(
                 "EMERGENCY_CONTINUITY_ENDED "
                 f"new_clean_cycle_completed_at={latest_clean}"
             )
+        else:
+            # Migrate an active record created by an earlier deployment of this PR.
+            # Pin its existing baseline before the normal snapshot-age gate expires.
+            try:
+                started_at = datetime.fromisoformat(
+                    str(record.get("started_at") or "").replace("Z", "+00:00")
+                )
+                if started_at.tzinfo is None:
+                    started_at = started_at.replace(tzinfo=timezone.utc)
+            except (TypeError, ValueError):
+                started_at = current
+                record["started_at"] = current.isoformat()
+            if not record.get("expires_at"):
+                record["expires_at"] = (started_at + timedelta(hours=72)).astimezone(timezone.utc).isoformat()
+            if (
+                not record.get("baseline_snapshot_sha256")
+                and baseline
+                and status.get("completed_candidates_snapshot_valid") is True
+                and str(status.get("last_clean_cycle_completed_at") or "") == baseline
+            ):
+                record["baseline_snapshot_sha256"] = str(
+                    status.get("completed_candidates_sha256") or ""
+                )
+                record["baseline_snapshot_candidate_count"] = int(
+                    status.get("completed_candidates_count") or 0
+                )
+                record["baseline_clean_cycle_started_at"] = str(
+                    status.get("last_clean_cycle_started_at") or ""
+                )
+                try:
+                    started = datetime.fromisoformat(
+                        record["baseline_clean_cycle_started_at"].replace("Z", "+00:00")
+                    )
+                    completed = datetime.fromisoformat(baseline.replace("Z", "+00:00"))
+                    if started.tzinfo is None:
+                        started = started.replace(tzinfo=timezone.utc)
+                    if completed.tzinfo is None:
+                        completed = completed.replace(tzinfo=timezone.utc)
+                    duration = int((completed - started).total_seconds())
+                    if 3600 <= duration <= 72 * 3600:
+                        record["baseline_clean_cycle_duration_seconds"] = duration
+                except (TypeError, ValueError):
+                    pass
+                record["snapshot_lead_fallback_enabled"] = bool(
+                    record["baseline_snapshot_sha256"]
+                    and record["baseline_snapshot_candidate_count"] > 0
+                    and record.get("baseline_clean_cycle_started_at")
+                )
+                record.setdefault("candidate_cursor", 0)
+                print(
+                    "EMERGENCY_CONTINUITY_SNAPSHOT_PINNED "
+                    f"candidates={record['baseline_snapshot_candidate_count']} "
+                    f"sha_pinned={record['snapshot_lead_fallback_enabled']}"
+                )
+            if _parse_utc_datetime(record.get("expires_at")) and _parse_utc_datetime(record.get("expires_at")) <= current:
+                record["status"] = "expired"
+                record["ended_at"] = current.isoformat()
+                record["end_reason"] = "72_hour_emergency_safety_limit"
+                print("EMERGENCY_CONTINUITY_ENDED reason=72_hour_safety_limit")
         else:
             expires = _parse_utc_datetime(record.get("expires_at"))
             if expires and expires <= current:
