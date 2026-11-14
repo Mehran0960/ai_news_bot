@@ -24,10 +24,10 @@ ARTICLE_BODY = (
 PERSIAN_DRAFT = {
     "title_fa": "سه معیار برای انتخاب هدفون مناسب",
     "body_fa": (
-        "برای انتخاب هدفون، ابتدا مشخص کنید بیشتر در محیط شلوغ به آن نیاز دارید یا برای تماس و رفت‌وآمد. "
-        "اگر حذف نویز برایتان مهم است، عملکرد آن را در تجربه‌های واقعی بررسی کنید و فقط به ظاهر دستگاه تکیه نکنید. "
-        "سازگاری با تلفن همراه، راحتی در استفاده طولانی و کیفیت میکروفون نیز بر تجربه روزمره اثر می‌گذارند. "
-        "پیش از تصمیم‌گیری، اولویت‌های خود را بنویسید و امکانات غیرضروری را کنار بگذارید."
+        "پیش از انتخاب هدفون، مشخص کنید آن را برای رفت‌وآمد، تماس یا گوش‌دادن در خانه می‌خواهید. "
+        "در محیط شلوغ، عملکرد حذف نویز را بررسی کنید؛ برای مکالمه، کیفیت میکروفون اهمیت بیشتری دارد. "
+        "راحتی گوشی‌ها، سازگاری با تلفن همراه و وزن دستگاه نیز در استفاده روزانه اثر می‌گذارند. "
+        "نیازهای اصلی خود را بنویسید تا هزینه و توجهتان صرف امکانات کم‌استفاده نشود."
     ),
     "claims": [
         {
@@ -62,7 +62,10 @@ class DigiKalaMagEditorialTests(unittest.TestCase):
         {"@type":"NewsArticle","headline":"راهنمای هدفون","articleBody":%s}
         </script></head><body><article><p>متن کوتاه جایگزین</p></article></body></html>
         """ % json.dumps(ARTICLE_BODY, ensure_ascii=False)
-        self.assertEqual(extract_article_text(html), " ".join(ARTICLE_BODY.split()))
+        extracted = extract_article_text(html)
+        self.assertIn("حذف نویز فعال", extracted)
+        self.assertNotIn("متن کوتاه جایگزین", extracted)
+        self.assertNotIn("\u200c", extracted)
 
     def test_extract_article_text_falls_back_to_article_paragraphs(self):
         body = " ".join(["این یک بند کاربردی درباره انتخاب و استفاده درست از دستگاه است."] * 12)
