@@ -9681,6 +9681,16 @@ def _has_pending_video_destination(
         if platform not in selected:
             continue
         status = str(record.get(f"{platform}_upload_status") or "").strip().lower()
+        if (
+            platform == "aparat"
+            and APARAT_SHORTS_ONLY
+            and not status
+            and generation in {"pending", "generated"}
+        ):
+            # Older selected records may predate the dedicated Aparat status field.
+            # In Shorts-only mode, an explicit pending generation with no Aparat
+            # outcome is a valid unattempted hand-off, not a terminal unknown record.
+            status = "pending"
         if generation in {"pending", "generated"} and status in VIDEO_DESTINATION_PENDING_STATUSES:
             return True
         if generation == "skipped_expiring_soon" and verified_expiry:
