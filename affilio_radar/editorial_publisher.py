@@ -26,12 +26,14 @@ from editorial_content import record_editorial_delivery, select_editorial_fallba
 from platform_registry import PLATFORM_NAMES
 
 ROOT = Path(__file__).resolve().parent
-EDITORIAL_BANK = ROOT / "editorial_bank.json"\nEDITORIAL_APPROVED_ITEMS = ROOT / "editorial_approved_items.json"
+EDITORIAL_BANK = ROOT / "editorial_bank.json"
+EDITORIAL_APPROVED_ITEMS = ROOT / "editorial_approved_items.json"
 CHANNEL_DESTINATIONS = ("telegram", "bale", "rubika", "eitaa")
 VIDEO_DESTINATIONS = ("youtube", "aparat", "filo")
 TERMINAL = {"sent", "not_connected", "manual_review", "skipped_limit"}
 RETRYABLE = {"pending", "failed", "retry"}
-STANDALONE_EDITORIAL_GAP_MINUTES = max(50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55"))))\nMINIMUM_PRODUCT_GAP_MINUTES = 27
+STANDALONE_EDITORIAL_GAP_MINUTES = max(50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55"))))
+MINIMUM_PRODUCT_GAP_MINUTES = 27
 RETRY_BASE_SECONDS = max(60, min(1800, int(os.getenv("OFFERCHIN_EDITORIAL_RETRY_SECONDS", "300"))))
 MAX_ATTEMPTS = max(1, min(5, int(os.getenv("OFFERCHIN_EDITORIAL_MAX_ATTEMPTS", "3"))))
 
