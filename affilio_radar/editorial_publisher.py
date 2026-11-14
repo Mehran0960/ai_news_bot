@@ -339,14 +339,12 @@ def _format_message(item: dict) -> str:
     ]
     for source in item.get("sources") or []:
         if isinstance(source, dict):
-            title = str(source.get("title") or "منبع")
+            title = str(source.get("display_title_fa") or "منبع فارسی")
             url = str(source.get("url") or "")
             if url.startswith("https://"):
                 lines.append(f"• {title}: {url}")
-    lines.extend(["", "آفِرچین | t.me/OfferChin"])
-    message = "\n".join(lines)
-    return message[:3900]
-
+    lines.extend(["", "آفِرچین؛ راهنمای خرید آگاهانه"])
+    return "\n".join(lines)[:3900]
 
 def _send_bot_message(platform: str, message: str) -> dict:
     if platform == "telegram":
@@ -642,10 +640,9 @@ def _video_description(item: dict) -> str:
     parts = [str(item.get("body") or "").strip(), "", "منابع:"]
     for source in item.get("sources") or []:
         if isinstance(source, dict) and str(source.get("url") or "").startswith("https://"):
-            parts.append(f"{source.get('title')}: {source.get('url')}")
-    parts.extend(["", "t.me/OfferChin", "ble.ir/OfferChin"])
+            parts.append(f"{source.get('display_title_fa')}: {source.get('url')}")
+    parts.extend(["", "برای نکته‌های بیشتر، آفِرچین را دنبال کنید"])
     return "\n".join(parts)[:2900]
-
 
 def _handle_video_destination(
     state: dict, entry: dict, destination: str, video_path: Path, now: datetime
@@ -821,12 +818,9 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         else:
             invalid_items.append({"editorial_id": str(item.get("editorial_id") or ""), "reason": reason})
 
-    active = _active_editorial_entries(state)
-    product_queue = state.get("content_delivery_queue")
-    active_products = [
-        row for row in (product_queue.values() if isinstance(product_queue, dict) else [])
-        if isinstance(row, dict) and row.get("status") not in {"published", "cancelled", "stale_selection"}
-    ]
+    active = _active_editorial_entries(state, mode="channels")
+    active_video_entries = _active_editorial_entries(state, mode="videos")
+    active_products = _pending_product_channel_entries(state)
     pending_videos = _pending_product_video_exists(state)
     shadow_state_for_anchor = json.loads(json.dumps(state, ensure_ascii=False, default=str))
     anchor = _recent_attempt_anchor(shadow_state_for_anchor)
@@ -863,23 +857,19 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     except Exception:
         destination_config["filo"] = False
 
-    if active:
+    if active_products:
+        decision = "wait_for_product_channel_slot"
+        item_id = None
+        sequence = None
+    elif remaining:
+        decision = "wait_for_27_minute_publication_spacing"
+        item_id = None
+        sequence = None
+    elif active:
         selected = active[0]
         decision = "resume_active_editorial"
         item_id = str(selected.get("content_id") or "")
         sequence = selected.get("sequence_number")
-    elif active_products:
-        decision = "wait_for_older_product_photo_fifo"
-        item_id = None
-        sequence = None
-    elif pending_videos:
-        decision = "wait_for_older_product_video_fifo"
-        item_id = None
-        sequence = None
-    elif remaining:
-        decision = "wait_for_55_minute_fallback_interval"
-        item_id = None
-        sequence = None
     else:
         # Simulate enqueue against a JSON copy only. The live state and queue are read-only.
         shadow_state = json.loads(json.dumps(state, ensure_ascii=False, default=str))
@@ -901,11 +891,14 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "would_select_content_id": item_id,
         "would_allocate_sequence_number": sequence,
         "fallback_interval_minutes": MINIMUM_GAP_MINUTES,
+        "maximum_global_publication_gap_minutes": 27,
+        "editorial_public_language": "Persian-only",
         "seconds_until_fallback_due": remaining,
         "editorial_bank_total": len(bank),
         "editorial_bank_valid": len(valid_items),
         "editorial_bank_invalid": invalid_items,
         "active_editorial_queue_items": len(active),
+        "active_editorial_video_queue_items": len(active_video_entries),
         "active_product_photo_queue_items": len(active_products),
         "older_product_video_pending": bool(pending_videos),
         "destination_credentials_present": destination_config,
@@ -925,16 +918,35 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
     current = now or _now()
     state = radar.load_state(apply_integrity_ledger=False)
     bank = _load_bank()
-    entry = queue_editorial_if_due(state, bank, now=current)
+    if mode == "channels":
+        entry = queue_editorial_if_due(state, bank, now=current)
+    else:
+        video_entries = _active_editorial_entries(state, mode="videos")
+        entry = video_entries[0] if video_entries else None
     if publish:
         # Persist the canonical id and allocated sequence before rendering or any
         # outbound request, so a runner restart cannot allocate a duplicate sequence.
         _save(state)
     if not entry:
-        if publish:
+        if publish and mode == "channels":
+            _retry_existing_editorial_channel_deliveries(state, now=current)
             _save(state)
         return 0
     payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+    valid, invalid_reason = validate_editorial_item(payload, now=current)
+    if not valid:
+        destinations = CHANNEL_DESTINATIONS if mode == "channels" else VIDEO_DESTINATIONS
+        for destination in destinations:
+            target = _target(entry, destination)
+            if target.get("status") not in TERMINAL:
+                target["status"] = "manual_review"
+                target["last_error"] = f"editorial_content_rejected:{invalid_reason}"
+        _refresh_delivery_history(state, entry, _now())
+        _finalize_if_terminal(state, entry, _now())
+        if publish:
+            _save(state)
+        print(f"EDITORIAL_CONTENT_REJECTED content_id={entry.get('content_id')} reason={invalid_reason}")
+        return 0
     if not publish:
         print(
             f"EDITORIAL_DRY_RUN mode={mode} content_id={entry.get('content_id')} "
@@ -952,9 +964,16 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         message = _format_message(payload)
         for destination in CHANNEL_DESTINATIONS:
             _handle_channel_destination(state, entry, destination, image_bytes, message, _now())
+        _refresh_delivery_history(state, entry, _now())
+        _finalize_if_terminal(state, entry, _now())
+        _retry_existing_editorial_channel_deliveries(state, now=_now())
     else:
-        # Keep all older product videos ahead of a newer editorial video.
-        if _pending_product_video_exists(state):
+        # Keep only chronologically older product videos ahead of this editorial.
+        try:
+            editorial_sequence = int(entry.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            editorial_sequence = 0
+        if _pending_product_video_exists(state, before_sequence=editorial_sequence or None):
             print("EDITORIAL_VIDEO_WAIT reason=older_product_video_fifo_pending")
             _save(state)
             return 0
