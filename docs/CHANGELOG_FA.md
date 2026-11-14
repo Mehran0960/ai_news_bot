@@ -2089,3 +2089,12 @@
 
 **وضعیت:** کد روی شاخهٔ PR پیاده‌سازی شده و CI اصلی سبز است؛ گیت مستندسازی، ادغام PR و استقرار production/تأیید پست واقعی هنوز جداگانه لازم‌اند.
 
+## ۲۰۲۶-۱۱-۱۴ — بیدارباش پیش‌برنامه‌ریزی تحریریه پیش از محصول
+
+**تکمیل تغییر PR #184:** صرفاً محاسبهٔ midpoint کافی نبود؛ اگر Worker فقط نزدیک‌ترین slot نهایی را dispatch می‌کرد، ممکن بود هیچ workflowای پیش از محصول اجرا نشود تا تحریریه را در آن midpoint قرار دهد. بنابراین sidecar اکنون `next_editorial_planning_at` را جداگانه محاسبه می‌کند: ۲۷ دقیقه پس از آخرین پست کانالی، مشروط به اینکه تا محصول بعدی حداقل یک شکاف ۵۴دقیقه‌ای امن وجود داشته باشد و قبلاً تحریریه‌ای برای همان محصول ثبت نشده باشد. Worker نزدیک‌ترِ میان زمان برنامه‌ریزی تحریریه و slotهای واقعی صف را انتخاب می‌کند؛ حداقل فاصلهٔ ۲۷ دقیقه پابرجاست. اگر بانک تحریریه خالی/نامعتبر باشد، بررسی مجدد برای آن محصول تا ۵۵ دقیقه backoff می‌گیرد و محصول due معطل نمی‌شود.
+
+**فایل‌ها:** `affilio_radar/affilio_radar.py`، `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `affilio_radar/test_affilio.py`، handbook.
+
+**آزمون و نتیجه:** PR #184 روی SHA `4b3eaff60b380ec45b6733884a3bd9196b1e12f3`؛ Catalog Sweep Regression، Video Fan-out، Fallback Regression و Editorial Contract موفق‌اند؛ Node/Cloudflare و sidecar projection نیز به تست‌های همان SHA اضافه شده‌اند. تست‌های باقیمانده و Documentation Gate در حال اجرا هستند.
+
+**وضعیت:** پیاده‌سازی روی شاخهٔ PR؛ ادغام و rollout production هنوز انجام نشده است.
