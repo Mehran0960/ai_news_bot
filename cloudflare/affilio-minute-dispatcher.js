@@ -443,10 +443,11 @@ async function readLatestWorkflowAttempt(api, token) {
 // workflow serializes YouTube, Aparat and Filo over the same FIFO, then records each
 // platform's own success, rejection, retry exhaustion or uncertain outcome.
 export function hasPendingVideoQueue(state) {
-  if (!state || typeof state !== "object" || !state.published || typeof state.published !== "object") {
-    return false;
-  }
-  return Object.values(state.published).some((record) => {
+  if (!state || typeof state !== "object") return false;
+
+  const published = state.published && typeof state.published === "object"
+    ? state.published : {};
+  const productPending = Object.values(published).some((record) => {
     if (!record || typeof record !== "object" || record.video_dispatch_eligible !== true) return false;
     const ts = Number(record.ts || 0);
     if (!Number.isFinite(ts) || ts <= 0) return false;
@@ -454,6 +455,28 @@ export function hasPendingVideoQueue(state) {
       VIDEO_PENDING_STATUSES.has(String(record[platform + "_upload_status"] || "pending").trim().toLowerCase())
     );
   });
+
+  // Editorial videos share the same media workflow/FIFO, but are represented in
+  // their own durable queue rather than the product "published" records.
+  const editorialQueue = state.editorial_delivery_queue && typeof state.editorial_delivery_queue === "object"
+    ? state.editorial_delivery_queue : {};
+  const now = Date.now();
+  const editorialPending = Object.values(editorialQueue).some((entry) => {
+    if (!entry || typeof entry !== "object" ||
+        ["completed", "cancelled", "failed"].includes(String(entry.status || "").toLowerCase())) return false;
+    const scheduledAt = dateValue(entry.scheduled_at);
+    if (scheduledAt !== null && scheduledAt > now) return false;
+    const platforms = entry.platforms && typeof entry.platforms === "object" ? entry.platforms : {};
+    return ["youtube", "aparat", "filo"].some((platform) => {
+      const target = platforms[platform] && typeof platforms[platform] === "object"
+        ? platforms[platform] : {};
+      const status = String(target.status || "pending").toLowerCase();
+      if (!VIDEO_PENDING_STATUSES.has(status)) return false;
+      const retryAt = dateValue(target.next_attempt_at);
+      return retryAt === null || retryAt <= now;
+    });
+  });
+  return productPending || editorialPending;
 }
 
 async function dispatchVideoUploadsWhenDue(env, tick, state) {

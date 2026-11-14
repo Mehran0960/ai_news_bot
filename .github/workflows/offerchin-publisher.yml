@@ -86,7 +86,7 @@ jobs:
 
       - name: Validate the delivery-only path
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/messenger_adapters.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/publication_mix.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/messenger_adapters.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py affilio_radar/editorial_publisher.py
           python - <<'PY'
           from pathlib import Path
           source = Path("affilio_radar/publisher.py").read_text(encoding="utf-8")
@@ -133,6 +133,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_youtube_upload_allows_published_product_without_official_expiry_timer \
             test_affilio.AffilioRadarTests.test_public_aparat_upload_stays_blocked_without_verified_expiry \
             test_affilio.AffilioRadarTests.test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record -v
+          python -m unittest test_publication_mix -v
           python -m unittest test_selection_evidence -v
           python -m unittest -v test_shared_selection_media_routing.py
           node --test test_affiliate_deal_radar_worker.mjs
@@ -179,11 +180,11 @@ jobs:
           AFFILIO_MAX_QUEUED_RECHECKS: "16"
           AFFILIO_PENDING_QUEUE_LIMIT: "200"
           AFFILIO_DISCOVERY_QUEUE_LIMIT: "5000"
-          # Only a small rolling set of publication hand-offs/retries may be retained.
-          AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "6"
+          # Retain the product reservations spanning the active clean-scan publication window.
+          AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "250"
           AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN: "250"
           AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
-          AFFILIO_DISCOVERY_QUEUE_TTL_HOURS: "24"
+          AFFILIO_DISCOVERY_QUEUE_TTL_HOURS: "72"
           AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "250"
           AFFILIO_MCP_PAGES_PER_SCAN: "5"
           AFFILIO_AUTOPUBLISH: "false"
@@ -212,7 +213,7 @@ jobs:
           APARAT_VIDEO_PASS: "0"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
           AFFILIO_PUBLISHER_BATCH_SIZE: "1"
-          AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "6"
+          AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "250"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
           AFFILIO_MIN_POST_INTERVAL_HOURS: "0.45"
           AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
@@ -232,7 +233,7 @@ jobs:
           EITAA_BOT_TOKEN: ${{ secrets.EITAA_BOT_TOKEN }}
           EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
           EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'false' }}
-          OFFERCHIN_EDITORIAL_GAP_MINUTES: "55"
+          OFFERCHIN_EDITORIAL_GAP_MINUTES: "27"
           OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: ${{ vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'false' }}
           PYTHONUNBUFFERED: "1"
         run: |

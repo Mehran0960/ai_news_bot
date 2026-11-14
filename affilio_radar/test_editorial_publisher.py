@@ -13,6 +13,7 @@ from editorial_publisher import (
     _record_failure,
     _format_message,
     queue_editorial_if_due,
+    _pending_product_video_exists,
 )
 from editorial_video import render_editorial_poster, render_editorial_video
 import affilio_radar as radar
@@ -54,30 +55,64 @@ class EditorialPublisherTests(unittest.TestCase):
         with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
             self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
 
-    def test_editorial_gets_shared_monotonic_sequence(self):
+    def test_editorial_sequence_matches_its_actual_publication_slot(self):
         state = {"publication_sequence_counter": 12}
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
-        self.assertEqual(entry["sequence_number"], 13)
+        self.assertEqual(entry["sequence_number"], int(NOW.timestamp()))
         self.assertEqual(entry["content_type"], "editorial")
         self.assertEqual(entry["payload"]["content_id"], "editorial:test-guide")
-        self.assertEqual(state["publication_sequence_counter"], 13)
+        self.assertEqual(state["publication_sequence_counter"], int(NOW.timestamp()))
 
     def test_editorial_does_not_preempt_recent_channel_publication(self):
         state = {"last_channel_published_at": (NOW - timedelta(minutes=20)).isoformat()}
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
         self.assertFalse(state.get("editorial_delivery_queue"))
 
-    def test_editorial_does_not_preempt_active_product_photo_fifo(self):
+    def test_editorial_does_not_preempt_active_due_product_photo_slot(self):
         state = {"content_delivery_queue": {
-            "dkp-1": {"status": "partial", "selected_at": (NOW - timedelta(minutes=5)).isoformat()}
+            "dkp-1": {
+                "status": "queued",
+                "selected_at": (NOW - timedelta(minutes=3)).isoformat(),
+                "scheduled_at": (NOW - timedelta(minutes=1)).isoformat(),
+            }
         }}
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
 
-    def test_editorial_waits_for_older_product_video_fifo(self):
-        state = {"published": {
-            "dkp-1": {"youtube_upload_status": "retry", "aparat_upload_status": "uploaded", "filo_upload_status": "uploaded"}
+    def test_editorial_fills_a_gap_before_a_future_product_slot(self):
+        state = {
+            "publication_mix_plan": {"cycle_id": "clean-cycle-1"},
+            "content_delivery_queue": {
+            "dkp-1": {
+                "status": "queued",
+                "attempt_count": 0,
+                "selected_at": (NOW - timedelta(hours=3)).isoformat(),
+                "scheduled_at": (NOW + timedelta(hours=2, minutes=33)).isoformat(),
+                "publication_plan_cycle_id": "clean-cycle-1",
+            }
         }}
-        self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+        entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry["content_type"], "editorial")
+        self.assertEqual(entry["scheduled_at"], NOW.isoformat())
+
+    def test_editorial_channel_fills_gap_but_video_waits_for_older_product_video(self):
+        state = {"published": {
+            "dkp-1": {
+                "sequence_number": int(NOW.timestamp()) - 600,
+                "youtube_upload_status": "retry",
+                "aparat_upload_status": "uploaded",
+                "filo_upload_status": "uploaded",
+            }
+        }}
+        entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+        self.assertIsNotNone(entry)
+        self.assertGreater(entry["sequence_number"], state["published"]["dkp-1"]["sequence_number"])
+        self.assertTrue(
+            _pending_product_video_exists(
+                state,
+                before_sequence=entry["sequence_number"],
+            )
+        )
 
     def test_editorial_message_contains_sources(self):
         message = _format_message(editorial_item())

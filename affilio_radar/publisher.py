@@ -633,17 +633,36 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
 
 
 def editorial_fifo_lock_entry(state: dict) -> dict | None:
-    """Return the oldest editorial lock only while public editorial publishing is enabled."""
+    """Lock newer products only while an older editorial channel delivery is unresolved."""
     enabled = os.getenv("OFFERCHIN_EDITORIAL_PUBLISH_ENABLED", "false").strip().lower() in {
         "1", "true", "yes", "on"
     }
     if not enabled:
         return None
     queue = state.get("editorial_delivery_queue")
-    active = [
-        value for value in (queue.values() if isinstance(queue, dict) else [])
-        if isinstance(value, dict) and value.get("status") not in {"completed", "cancelled", "failed"}
-    ]
+    channel_destinations = ("telegram", "bale", "rubika", "eitaa")
+    active = []
+    for value in (queue.values() if isinstance(queue, dict) else []):
+        if not isinstance(value, dict) or value.get("status") in {"completed", "cancelled", "failed"}:
+            continue
+        platforms = value.get("platforms") if isinstance(value.get("platforms"), dict) else {}
+        # Once at least one primary channel confirms the editorial post,
+        # later optional-platform retries must not freeze the 27-minute cadence.
+        primary_sent = any(
+            isinstance(platforms.get(name), dict)
+            and platforms[name].get("status") == "sent"
+            for name in ("telegram", "bale")
+        )
+        if primary_sent:
+            continue
+        if any(
+            not (
+                isinstance(platforms.get(name), dict)
+                and platforms[name].get("status") in TERMINAL_PLATFORM | {"skipped_limit"}
+            )
+            for name in channel_destinations
+        ):
+            active.append(value)
     if not active:
         return None
     return min(active, key=lambda value: int(value.get("sequence_number") or 0))
