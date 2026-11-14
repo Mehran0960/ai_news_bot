@@ -118,6 +118,19 @@ class DigikalaMagDiscoveryTests(unittest.TestCase):
         self.assertEqual(counts["rejected_low_actionability"], 1)
         self.assertEqual(counts["rejected_irrelevant_or_excluded"], 6)
 
+    def test_product_leak_headline_is_rejected_as_speculation(self):
+        feed = """<?xml version="1.0" encoding="UTF-8"?>
+        <rss version="2.0"><channel>
+          <item><title>دوربین‌های گلکسی S27 فاش شدند؛ احتمال حذف یک لنز</title>
+            <link>https://www.digikala.com/mag/galaxy-s27-camera-leak/</link>
+            <pubDate>Tue, 10 Nov 2026 08:00:00 +0000</pubDate>
+            <category>تکنولوژی</category></item>
+        </channel></rss>""".encode("utf-8")
+        candidates, counts, _seen = parse_feed(feed, now=NOW)
+        self.assertEqual(candidates, [])
+        self.assertEqual(counts["rejected_speculative_or_low_signal"], 1)
+        self.assertEqual(counts["rejected_irrelevant_or_excluded"], 1)
+
     def test_actionable_buying_content_is_ranked_before_less_direct_guidance(self):
         feed = """<?xml version="1.0" encoding="UTF-8"?>
         <rss version="2.0"><channel>
