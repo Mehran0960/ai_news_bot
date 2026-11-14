@@ -154,11 +154,11 @@ class DigiKalaMagEditorialTests(unittest.TestCase):
         copied = dict(PERSIAN_DRAFT)
         copied["body_fa"] = (
             "انتخاب هدفون مناسب فقط به ظاهر یا اندازهٔ باتری وابسته نیست. "
-            + PERSIAN_DRAFT["body_fa"]
+            + " ".join(PERSIAN_DRAFT["body_fa"].split()[:30])
         )
         self.assertEqual(
             validate_generated_summary(copied, article_text=ARTICLE_BODY)[1],
-            "body_word_count_out_of_range",
+            "source_copy_overlap_too_high",
         )
 
     def test_unofficial_article_url_is_rejected_before_network_access(self):
