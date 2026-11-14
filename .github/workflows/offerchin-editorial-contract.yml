@@ -5,6 +5,9 @@ on:
     paths:
       - "affilio_radar/editorial_content.py"
       - "affilio_radar/editorial_publisher.py"
+      - "affilio_radar/publication_mix.py"
+      - "affilio_radar/test_publication_mix.py"
+      - "affilio_radar/content_delivery.py"
       - "affilio_radar/editorial_video.py"
       - "affilio_radar/content_delivery.py"
       - "affilio_radar/publisher.py"
@@ -50,6 +53,7 @@ jobs:
             affilio_radar/editorial_publisher.py \
             affilio_radar/editorial_video.py \
             affilio_radar/content_delivery.py \
+            affilio_radar/publication_mix.py \
             affilio_radar/publisher.py
       - name: Validate the reviewed evergreen content bank
         working-directory: affilio_radar
@@ -65,7 +69,9 @@ jobs:
           failures = [(item.get("editorial_id"), validate_editorial_item(item, now=datetime.now(timezone.utc))) for item in bank]
           invalid = [(name, result) for name, result in failures if not result[0]]
           assert not invalid, invalid
-          print(f"EDITORIAL_BANK_VALID count={len(bank)}")
+          assert all(not any("A" <= ch <= "Z" or "a" <= ch <= "z" for field in ("title", "body") for ch in item.get(field, "")) for item in bank)
+          assert all("display_title_fa" in source for item in bank for source in item.get("sources", []))
+          print(f"EDITORIAL_BANK_VALID_PERSIAN_ONLY count={len(bank)}")
           PY
       - name: Verify public editorial publishing is feature-flagged off by default
         run: |
@@ -106,4 +112,5 @@ jobs:
           python -m unittest -v \
             test_editorial_content.py \
             test_editorial_publisher.py \
-            test_content_delivery.py
+            test_content_delivery.py \
+            test_publication_mix.py
