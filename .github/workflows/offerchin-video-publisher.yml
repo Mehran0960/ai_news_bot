@@ -125,7 +125,7 @@ jobs:
           FILO_USER: ${{ secrets.FILO_USER }}
           FILO_PASS: ${{ secrets.FILO_PASS }}
           OFFERCHIN_EDITORIAL_MAX_ATTEMPTS: "3"
-          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: ${{ vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'false' }}
+          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: ${{ vars.OFFERCHIN_EDITORIAL_PUBLISH_ENABLED || 'true' }}
           PYTHONUNBUFFERED: "1"
         run: |
           if [[ "${OFFERCHIN_EDITORIAL_PUBLISH_ENABLED,,}" == "true" ]]; then
