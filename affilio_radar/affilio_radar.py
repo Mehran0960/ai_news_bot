@@ -59,6 +59,7 @@ except ImportError:
 try:
     from .catalog_status_snapshot import (
         load_publication_catalog_context,
+        load_emergency_continuity_candidates,
         candidate_allowed_by_publication_context,
     )
 except ImportError:
@@ -8602,7 +8603,7 @@ def _emergency_continuity_window_active(
     *,
     now: datetime | None = None,
 ) -> bool:
-    """Enable a one-time demand-gate relaxation only until the next clean catalog cycle."""
+    """Pin one last-known-good snapshot for lead-only use until the next clean scan."""
     if os.getenv("OFFERCHIN_EMERGENCY_CONTINUITY_ENABLED", "false").strip().lower() not in {
         "1", "true", "yes", "on"
     }:
@@ -8615,17 +8616,54 @@ def _emergency_continuity_window_active(
     latest_clean = str(status.get("last_clean_cycle_completed_at") or "").strip()
     record = state.get("emergency_continuity") if isinstance(state.get("emergency_continuity"), dict) else None
     if record is None:
+        baseline_started = str(status.get("last_clean_cycle_started_at") or "").strip()
+        baseline_completed = latest_clean
+        baseline_sha = str(status.get("completed_candidates_sha256") or "").strip()
+        try:
+            baseline_count = max(0, int(status.get("completed_candidates_count") or 0))
+        except (TypeError, ValueError, OverflowError):
+            baseline_count = 0
+        cycle_seconds = 0
+        try:
+            started = datetime.fromisoformat(baseline_started.replace("Z", "+00:00"))
+            completed = datetime.fromisoformat(baseline_completed.replace("Z", "+00:00"))
+            if started.tzinfo is None:
+                started = started.replace(tzinfo=timezone.utc)
+            if completed.tzinfo is None:
+                completed = completed.replace(tzinfo=timezone.utc)
+            observed = int((completed - started).total_seconds())
+            if 3600 <= observed <= 72 * 3600:
+                cycle_seconds = observed
+        except (TypeError, ValueError):
+            cycle_seconds = 0
+        snapshot_verified = bool(
+            status.get("completed_candidates_snapshot_valid") is True
+            and status.get("last_clean_cycle_status") == "complete"
+            and len(baseline_sha) == 64
+            and baseline_count > 0
+            and baseline_started
+            and baseline_completed
+        )
         record = {
             "status": "active",
-            "baseline_clean_cycle_completed_at": latest_clean,
+            "baseline_clean_cycle_started_at": baseline_started,
+            "baseline_clean_cycle_completed_at": baseline_completed,
+            "baseline_snapshot_sha256": baseline_sha if snapshot_verified else "",
+            "baseline_snapshot_candidate_count": baseline_count if snapshot_verified else 0,
+            "baseline_clean_cycle_duration_seconds": cycle_seconds,
             "started_at": current.isoformat(),
-            "reason": "temporary_product_continuity_until_next_clean_catalog_scan",
+            "expires_at": (current + timedelta(hours=72)).isoformat(),
+            "candidate_cursor": 0,
+            "reason": "temporary_live_rechecked_product_leads_until_next_clean_catalog_scan",
+            "snapshot_lead_fallback_enabled": snapshot_verified,
         }
         state["emergency_continuity"] = record
         print(
             "EMERGENCY_CONTINUITY_STARTED "
-            f"baseline_clean_cycle={latest_clean or 'none'} "
-            "hard_price_stock_link_safety_and_repeat_gates=preserved"
+            f"baseline_clean_cycle={baseline_completed or 'none'} "
+            f"hash_pinned_snapshot={snapshot_verified} "
+            "lead_only_live_price_stock_discount_affiliate_recheck=true "
+            "hard_safety_and_repeat_gates=preserved"
         )
     elif record.get("status") == "active":
         baseline = str(record.get("baseline_clean_cycle_completed_at") or "").strip()
@@ -8637,6 +8675,13 @@ def _emergency_continuity_window_active(
                 "EMERGENCY_CONTINUITY_ENDED "
                 f"new_clean_cycle_completed_at={latest_clean}"
             )
+        else:
+            expires = _parse_utc_datetime(record.get("expires_at"))
+            if expires and expires <= current:
+                record["status"] = "expired"
+                record["ended_at"] = current.isoformat()
+                record["end_reason"] = "72_hour_emergency_safety_limit"
+                print("EMERGENCY_CONTINUITY_ENDED reason=72_hour_safety_limit")
     return str(record.get("status") or "") == "active"
 
 
@@ -8687,6 +8732,7 @@ def select_discount_fallback_candidates(
     }
     quality_eligible: list[dict] = []
     fresh_candidates: list[dict] = []
+    emergency_candidates: list[dict] = []
     seen_ids: set[str] = set()
     demand_rejected = 0
     published_records = state.get("published", {})
@@ -8704,10 +8750,19 @@ def select_discount_fallback_candidates(
             continue
         if not has_publishable_expiry_or_open_offer(product, current):
             continue
+        seen_ids.add(pid)
         if not has_verified_market_demand(product, now=current):
             demand_rejected += 1
+            # Temporary exception: relax only the demand-evidence gate. Every other
+            # hard offer gate above and the same freshness/repeat controls still apply.
+            if (
+                allow_emergency_demand_relaxation
+                and not is_selection_candidate_rejected(state, pid, product, current)
+                and is_fresh_selection_candidate(state, pid, product, current)
+                and not _has_active_publication_or_delivery(state, pid)
+            ):
+                emergency_candidates.append(product)
             continue
-        seen_ids.add(pid)
         quality_eligible.append(product)
         if (
             not is_selection_candidate_rejected(state, pid, product, current)
@@ -8716,20 +8771,7 @@ def select_discount_fallback_candidates(
             fresh_candidates.append(product)
 
     fallback_mode = "normal"
-    emergency_candidates: list[dict] = []
     if allow_emergency_demand_relaxation:
-        for product in quality_eligible:
-            pid = str(product.get("product_id") or product_id(product.get("product_url") or "")).strip()
-            if not pid or has_verified_market_demand(product, now=current):
-                continue
-            if is_selection_candidate_rejected(state, pid, product, current):
-                continue
-            if not is_fresh_selection_candidate(state, pid, product, current):
-                continue
-            if _has_active_publication_or_delivery(state, pid):
-                continue
-            emergency_candidates.append(product)
-
         _apply_offerchin_four_factor_scores(emergency_candidates, now=current)
         approved_emergency = []
         for product in emergency_candidates:
@@ -10834,7 +10876,7 @@ def run(publish=False, selection_only=False):
     emergency_continuity_active = _emergency_continuity_window_active(
         state, catalog_status, now=datetime.now(timezone.utc)
     )
-    if selection_only and catalog_context.get("mode") == "blocked":
+    if selection_only and catalog_context.get("mode") == "blocked" and not emergency_continuity_active:
         print("CONTENT_SELECTION_BLOCKED reason=no_verified_fresh_full_catalog_snapshot")
         return 0
     if prune_suppressed_product_queues(state):
@@ -10857,6 +10899,80 @@ def run(publish=False, selection_only=False):
         discovery_queue,
         state,
     )
+    if selection_only and emergency_continuity_active:
+        continuity_record = state.get("emergency_continuity")
+        remaining_checks = max(0, MAX_PRODUCT_CHECKS - len(urls))
+        lead_limit = min(50, remaining_checks)
+        if lead_limit > 0:
+            emergency_snapshot = load_emergency_continuity_candidates(
+                continuity_record,
+                CATALOG_SWEEP_CANDIDATES,
+                now=datetime.now(timezone.utc),
+                limit=lead_limit,
+            )
+            if emergency_snapshot:
+                record = continuity_record if isinstance(continuity_record, dict) else {}
+                record["candidate_cursor"] = emergency_snapshot["next_cursor"]
+                record["last_lead_batch_at"] = datetime.now(timezone.utc).isoformat()
+                known_urls = {safe_product_url(url) for url in urls}
+                added_leads = 0
+                for lead in emergency_snapshot["candidates"]:
+                    canonical = safe_product_url(lead.get("product_url") or "")
+                    pid = product_id(canonical)
+                    if (
+                        not canonical
+                        or not pid
+                        or canonical in known_urls
+                        or is_product_suppressed(state, pid)
+                        or _has_active_publication_or_delivery(state, pid)
+                    ):
+                        continue
+                    catalog_fields = {
+                        key: lead[key]
+                        for key in (
+                            "catalog_sort_mode",
+                            "catalog_best_selling_rank",
+                            "catalog_best_selling_category_id",
+                            "catalog_best_selling_category_name",
+                            "catalog_rank_observed_at",
+                            "catalog_best_selling_ranks_by_category",
+                            "catalog_cycle_completed_at",
+                            "catalog_cycle_snapshot_rank",
+                            "catalog_category_ids",
+                            "catalog_category_name",
+                            "catalog_category_path",
+                        )
+                        if lead.get(key) not in (None, "")
+                    }
+                    # Deliberately discard historical commercial fields: only the URL and
+                    # taxonomy/rank provenance are retained for a fresh product-detail fetch.
+                    discovery_queue[pid] = {
+                        "product_id": pid,
+                        "product_url": canonical,
+                        "title": str(lead.get("title") or "")[:180],
+                        "brand": str(lead.get("brand") or "")[:100],
+                        "source": "digikala_emergency_last_clean_snapshot",
+                        "first_seen_at": datetime.now(timezone.utc).isoformat(),
+                        "last_seen_at": datetime.now(timezone.utc).isoformat(),
+                        "last_check_status": "emergency_snapshot_lead",
+                        "check_count": 0,
+                        "last_checked_at": "",
+                        "next_check_at": "",
+                        "deal_expires_at": "",
+                        **catalog_fields,
+                    }
+                    urls.append(canonical)
+                    known_urls.add(canonical)
+                    added_leads += 1
+                print(
+                    "EMERGENCY_SNAPSHOT_LEADS "
+                    f"snapshot_candidates={emergency_snapshot['candidate_count']} "
+                    f"batch={len(emergency_snapshot['candidates'])} "
+                    f"added={added_leads} cursor={emergency_snapshot['next_cursor']} "
+                    "commercial_fields_from_snapshot=discarded live_recheck=required"
+                )
+            else:
+                print("EMERGENCY_SNAPSHOT_LEADS unavailable_or_hash_mismatch=true")
     prune_suppressed_product_queues(state)
     # Write the discovery queue before per-product page checks; the workflow's final
     # state-commit step also runs on failed validation/check steps so these sightings survive.
@@ -11294,6 +11410,14 @@ def run(publish=False, selection_only=False):
             refresh_unpublished_selections,
         )
         selection_now = datetime.now(timezone.utc)
+        cadence_catalog_status = dict(catalog_status)
+        continuity_record = state.get("emergency_continuity")
+        if emergency_continuity_active and isinstance(continuity_record, dict):
+            frozen_started = str(continuity_record.get("baseline_clean_cycle_started_at") or "")
+            frozen_completed = str(continuity_record.get("baseline_clean_cycle_completed_at") or "")
+            if frozen_started and frozen_completed:
+                cadence_catalog_status["last_clean_cycle_started_at"] = frozen_started
+                cadence_catalog_status["last_clean_cycle_completed_at"] = frozen_completed
         replaced = refresh_unpublished_selections(
             state, now=selection_now, stale_after_minutes=8
         )
@@ -11332,7 +11456,7 @@ def run(publish=False, selection_only=False):
         total_pending = len(active_product_entries) + len(new_candidates)
         cadence = calculate_product_publication_cadence(
             state,
-            catalog_status,
+            cadence_catalog_status,
             total_pending,
             now=selection_now,
             max_daily_posts=MAX_DAILY_CHANNEL_POSTS,
@@ -11381,7 +11505,7 @@ def run(publish=False, selection_only=False):
 
         cadence = calculate_product_publication_cadence(
             state,
-            catalog_status,
+            cadence_catalog_status,
             pending_after,
             now=selection_now,
             max_daily_posts=MAX_DAILY_CHANNEL_POSTS,
