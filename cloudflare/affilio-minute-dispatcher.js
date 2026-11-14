@@ -215,6 +215,15 @@ export const PUBLISHER_INTERVAL_MS = 27 * 60 * 1000;
 export const PUBLISHER_STANDALONE_EDITORIAL_GAP_MS = 55 * 60 * 1000;
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
 
+export function isEmergencyContinuityAvailable(state) {
+  return Boolean(
+    state &&
+    state.emergency_continuity_active === true &&
+    /^[a-f0-9]{64}$/.test(String(state.emergency_continuity_snapshot_sha256 || "")) &&
+    String(state.emergency_continuity_baseline_completed_at || "").trim()
+  );
+}
+
 export function nextPublisherDueAt(state, lastPublishedAt) {
   const scheduledAt = Date.parse(String(state && state.next_channel_content_due_at || ""));
   const editorialPlanningAt = Date.parse(String(state && state.next_editorial_planning_at || ""));
@@ -320,6 +329,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     readCatalogSweepStatus(env.GITHUB_TOKEN),
   ]);
   const lastPublishedAt = readLastChannelPublicationAt(state);
+  const emergencyContinuityFallback = isEmergencyContinuityAvailable(state);
   let degradedLiveFallback = false;
   if (!isUsableCleanCatalogSnapshot(catalogStatus)) {
     if (isInitialCatalogWarmup(catalogStatus)) {
@@ -333,6 +343,13 @@ async function dispatchPublisherWhenDue(env, tick, state) {
       console.warn(
         "OFFERCHIN_PUBLISHER_DEGRADED_LIVE_FALLBACK taxonomy_registry_valid=true" +
         " full_catalog_snapshot_valid=false; live_product_revalidation_required=true"
+      );
+    } else if (emergencyContinuityFallback) {
+      console.warn(
+        "OFFERCHIN_PUBLISHER_EMERGENCY_CONTINUITY_FALLBACK " +
+        "snapshot_lead_only=true live_price_stock_discount_affiliate_recheck_required=true " +
+        "baseline=" + String(state.emergency_continuity_baseline_completed_at) +
+        " retry_gap_minutes=3"
       );
     } else {
       console.log(
