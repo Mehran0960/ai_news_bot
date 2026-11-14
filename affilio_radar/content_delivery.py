@@ -21,11 +21,10 @@ TERMINAL_QUEUE_STATUSES = {"published", "cancelled", "stale_selection"}
 TERMINAL_PLATFORM_STATUSES = {"sent", "not_connected", "manual_review"}
 PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
 
-# The overall publisher is checked every 27 minutes so editorial fallback can run.
-# Product selections get their own adaptive interval, bounded by the 72-post daily cap.
+# The publisher heartbeat is separate from content timing. Product slots are adaptive.
+# 27 minutes is a hard minimum; the catalog horizon and shared daily cap determine the actual gap.
 PRODUCT_DEFAULT_SELECTION_INTERVAL_SECONDS = 27 * 60
-PRODUCT_MIN_SELECTION_INTERVAL_SECONDS = 27 * 60  # Preserve the project's minimum inter-post spacing
-PRODUCT_MAX_SELECTION_INTERVAL_SECONDS = 6 * 60 * 60
+PRODUCT_MIN_SELECTION_INTERVAL_SECONDS = 27 * 60  # Minimum product-to-product spacing
 DEFAULT_CATALOG_CYCLE_SECONDS = 24 * 60 * 60
 MIN_CATALOG_CYCLE_SECONDS = 60 * 60
 MAX_CATALOG_CYCLE_SECONDS = 72 * 60 * 60
