@@ -1396,6 +1396,40 @@ class AffilioRadarTests(unittest.TestCase):
         )
 
 
+    def test_video_dispatch_state_schedules_standalone_editorial_after_55_minutes(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        state = {
+            "last_channel_published_at": now.isoformat(),
+            "last_editorial_empty_bank_check_at": (now + timedelta(minutes=10)).isoformat(),
+            "published": {},
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(
+            compact["next_editorial_planning_at"],
+            (now + timedelta(minutes=65)).isoformat(),
+        )
+
+    def test_video_dispatch_state_exposes_only_active_hash_pinned_emergency_continuity(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        state = {
+            "emergency_continuity": {
+                "status": "active",
+                "snapshot_lead_fallback_enabled": True,
+                "baseline_snapshot_sha256": "a" * 64,
+                "baseline_clean_cycle_completed_at": (now - timedelta(hours=80)).isoformat(),
+                "expires_at": (now + timedelta(hours=12)).isoformat(),
+            },
+            "published": {},
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertTrue(compact["emergency_continuity_active"])
+        self.assertEqual(compact["emergency_continuity_snapshot_sha256"], "a" * 64)
+
+        state["emergency_continuity"]["expires_at"] = (now - timedelta(seconds=1)).isoformat()
+        expired = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertFalse(expired["emergency_continuity_active"])
+        self.assertIsNone(expired["emergency_continuity_snapshot_sha256"])
+
     def test_video_dispatch_state_is_compact_and_keeps_due_delivery_signals(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         state = {
