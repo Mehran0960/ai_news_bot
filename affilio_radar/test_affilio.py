@@ -196,6 +196,9 @@ class AffilioRadarTests(unittest.TestCase):
         self._demand_gate_patch.start()
         self.addCleanup(self._demand_gate_patch.stop)
 
+    def test_emergency_continuity_snapshot_loader_is_available_for_direct_script_import(self):
+        self.assertTrue(callable(radar_module.load_emergency_continuity_candidates))
+
     def test_demand_context_precedes_discount_but_clicks_and_synthetic_scores_are_ignored(self):
         now = datetime(2026, 10, 28, tzinfo=timezone.utc)
         stronger_quality_context = {

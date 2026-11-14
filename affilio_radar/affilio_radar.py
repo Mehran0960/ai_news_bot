@@ -65,6 +65,7 @@ try:
 except ImportError:
     from catalog_status_snapshot import (
         load_publication_catalog_context,
+        load_emergency_continuity_candidates,
         candidate_allowed_by_publication_context,
     )
 from bs4 import BeautifulSoup
