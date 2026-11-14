@@ -7,7 +7,7 @@ from content_delivery import (
     due_content, due_unpublished_selection, enqueue_selected_content,
     finish_queue_item, get_last_channel_published_at, get_last_product_channel_published_at,
     has_fresh_unpublished_selection, allocate_publication_sequence, promote_fallback_selection,
-    refresh_unpublished_selections, selection_cadence_anchor,
+    refresh_unpublished_selections, selection_cadence_anchor, reschedule_product_queue_evenly,
 )
 from platform_registry import CORE_PHOTO_PLATFORMS, PHOTO_PLATFORMS, PLATFORM_NAMES
 from publisher import (
@@ -670,21 +670,19 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         due = due_content(state, now=self.now, limit=2)
         self.assertEqual([pid for pid, _entry in due], ["dkp-100", "dkp-200"])
 
-    def test_future_selection_is_replaced_by_live_scan(self):
-        state = {"last_published_at": self.now.isoformat()}
+    def test_future_product_slot_is_retained_by_live_scan(self):
+        state = {"last_product_channel_published_at": (self.now - timedelta(minutes=5)).isoformat()}
         enqueue_selected_content(
-            state, [self.item("dkp-old")], now=self.now,
+            state, [self.item("dkp-future")], now=self.now,
             interval_seconds=1200, max_items=1,
         )
-        old = state["content_delivery_queue"]["dkp-old"]
-        self.assertGreater(datetime.fromisoformat(old["scheduled_at"]), self.now)
+        future = state["content_delivery_queue"]["dkp-future"]
+        self.assertGreater(datetime.fromisoformat(future["scheduled_at"]), self.now)
 
         replaced = refresh_unpublished_selections(state, now=self.now)
-        self.assertEqual(replaced, 1)
-        self.assertNotIn("dkp-old", state["content_delivery_queue"])
-        self.assertEqual(
-            state["content_delivery_history"][-1]["status"], "stale_selection"
-        )
+        self.assertEqual(replaced, 0)
+        self.assertIn("dkp-future", state["content_delivery_queue"])
+        self.assertNotIn("content_delivery_history", state)
 
     def test_partial_delivery_does_not_prevent_fresh_content_selection(self):
         state = {}
@@ -1055,7 +1053,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(sparse["estimated_clean_cycle_seconds"], cycle_seconds)
         self.assertLess(dense["interval_seconds"], sparse["interval_seconds"])
         self.assertGreaterEqual(dense["interval_seconds"], 27 * 60)
-        self.assertLessEqual(sparse["interval_seconds"], 6 * 60 * 60)
+        self.assertGreater(sparse["interval_seconds"], 6 * 60 * 60)
         expected_scan = current_scan_started + timedelta(seconds=cycle_seconds)
         self.assertEqual(
             sparse["estimated_next_clean_scan_at"],
@@ -1073,6 +1071,70 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(result["candidate_count"], 0)
         self.assertEqual(result["planned_product_slots"], 0)
         self.assertEqual(result["interval_seconds"], 27 * 60)
+
+
+    def test_product_cadence_is_not_capped_at_six_hours_for_sparse_cycles(self):
+        clean_started = self.now - timedelta(hours=50)
+        clean_completed = self.now - timedelta(hours=8)
+        current_scan_started = self.now - timedelta(minutes=5)
+        status = {
+            "last_clean_cycle_started_at": clean_started.isoformat(),
+            "last_clean_cycle_completed_at": clean_completed.isoformat(),
+            "current_cycle_started_at": current_scan_started.isoformat(),
+            "last_cycle_status": "in_progress",
+        }
+        result = calculate_product_publication_cadence(
+            {}, status, 2, now=self.now, max_daily_posts=72
+        )
+        self.assertGreater(result["interval_seconds"], 6 * 60 * 60)
+        self.assertEqual(result["planned_product_slots"], 2)
+
+    def test_product_plan_anchor_ignores_editorial_publication_clock(self):
+        editorial_at = self.now - timedelta(minutes=2)
+        state = {
+            "last_channel_published_at": editorial_at.isoformat(),
+            "editorial_delivery_history": [{
+                "content_id": "editorial:test-guide",
+                "published_at": editorial_at.isoformat(),
+                "destinations": {"telegram": {"status": "sent"}},
+            }],
+        }
+        result = calculate_product_publication_cadence(
+            state, {}, 3, now=self.now, max_daily_posts=72
+        )
+        self.assertEqual(result["plan_anchor_kind"], "cycle_start")
+        self.assertEqual(result["plan_anchor_at"], self.now.isoformat())
+
+    def test_product_queue_slots_are_evenly_rescheduled(self):
+        last_product = self.now - timedelta(minutes=10)
+        state = {
+            "last_product_channel_published_at": last_product.isoformat(),
+            "product_publication_plan_cycle_id": "cycle-1",
+            "product_publication_plan_anchor_at": last_product.isoformat(),
+            "product_publication_plan_anchor_kind": "last_product",
+            "content_delivery_queue": {},
+        }
+        items = [self.item(f"dkp-plan-{i}") for i in range(3)]
+        summary = enqueue_selected_content(
+            state, items, now=self.now, interval_seconds=3600,
+            max_items=3, max_active_items=250,
+        )
+        self.assertEqual(summary["added"], 3)
+        schedule = {
+            "catalog_cycle_id": "cycle-1",
+            "interval_seconds": 3600,
+            "estimated_next_clean_scan_at": (self.now + timedelta(hours=6)).isoformat(),
+        }
+        result = reschedule_product_queue_evenly(state, schedule, now=self.now)
+        self.assertEqual(result["scheduled"], 3)
+        ordered = [
+            datetime.fromisoformat(state["content_delivery_queue"][f"dkp-plan-{i}"]["scheduled_at"])
+            for i in range(3)
+        ]
+        self.assertEqual(
+            [(ordered[i + 1] - ordered[i]).total_seconds() for i in range(2)],
+            [3600, 3600],
+        )
 
 if __name__ == "__main__":
     unittest.main()
