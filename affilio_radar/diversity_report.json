@@ -97,11 +97,10 @@
       }
     ]
   },
-  "generated_at": "2026-11-14T11:51:39.108324+00:00",
+  "generated_at": "2026-11-14T11:58:20.702711+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "دستگاه ذوب وکس": 1,
-      "دمبل": 1,
       "روغن مو": 1,
       "رژ لب مایع و لیپ گلاس": 1,
       "سمپاش": 1,
@@ -120,27 +119,25 @@
       "fashion": 2,
       "home": 2,
       "other": 8,
-      "personal_care": 2,
-      "sports_outdoor": 1
+      "personal_care": 2
     },
     "category_share_percent": {
-      "fashion": 13.3,
-      "home": 13.3,
-      "other": 53.3,
-      "personal_care": 13.3,
-      "sports_outdoor": 6.7
+      "fashion": 14.3,
+      "home": 14.3,
+      "other": 57.1,
+      "personal_care": 14.3
     },
-    "distinct_catalog_categories": 15,
-    "distinct_categories": 5,
-    "distinct_families": 15,
+    "distinct_catalog_categories": 14,
+    "distinct_categories": 4,
+    "distinct_families": 14,
     "distinct_retailers": 1,
     "distinct_use_cases": 6,
-    "known_brand_posts": 1,
-    "posts": 15,
+    "known_brand_posts": 0,
+    "posts": 14,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 15
+      "digikala": 14
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -149,7 +146,7 @@
       "catalog_taxonomy_other": 6,
       "fashion_lifestyle": 1,
       "kitchen_food": 1,
-      "mobile_productivity": 5,
+      "mobile_productivity": 4,
       "outdoor_travel": 1,
       "personal_care": 1
     }
@@ -250,7 +247,7 @@
       "کلمبیا": 1,
       "کنسرو حبوبات و سبزیجات": 1,
       "کوه‌ نوردی و صخره نوردی": 1,
-      "کیف و کوله سفری": 2,
+      "کیف و کوله سفری": 1,
       "گوشی پوکو": 1
     },
     "category_post_counts": {
@@ -259,7 +256,7 @@
       "beauty_fragrance": 3,
       "books_stationery": 5,
       "digital_accessories": 1,
-      "fashion": 9,
+      "fashion": 8,
       "grocery_food": 5,
       "home": 4,
       "kids_sports": 4,
@@ -277,15 +274,15 @@
       "beauty_fragrance": 2.2,
       "books_stationery": 3.6,
       "digital_accessories": 0.7,
-      "fashion": 6.5,
+      "fashion": 5.8,
       "grocery_food": 3.6,
       "home": 2.9,
       "kids_sports": 2.9,
       "large_appliances": 0.7,
       "lighting": 0.7,
       "mobile_devices": 1.4,
-      "other": 39.6,
-      "personal_care": 23.0,
+      "other": 39.9,
+      "personal_care": 23.2,
       "power_backup": 1.4,
       "sports_outdoor": 5.8
     },
@@ -295,14 +292,14 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 22,
     "known_brand_posts": 10,
-    "posts": 139,
+    "posts": 138,
     "repeated_brand_count": 2,
     "repeated_brands": {
       "eurovital": 2,
       "habsan": 2
     },
     "retailer_post_counts": {
-      "digikala": 139
+      "digikala": 138
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -325,7 +322,7 @@
       "local_goods": 2,
       "mobile_productivity": 26,
       "office_study": 5,
-      "outdoor_travel": 4,
+      "outdoor_travel": 3,
       "personal_care": 20,
       "sports_fitness": 5,
       "tabletop_games": 1,
@@ -346,47 +343,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1284,
+    "all_time_count": 1286,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 489,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-14T09:24:47.297241+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-714799",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-14T09:38:08.200804+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-714799",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-14T09:46:58.863774+00:00",
         "brand": "",
@@ -678,6 +641,40 @@
       },
       {
         "at": "2026-11-14T11:51:39.108324+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-20682942",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-14T11:58:20.702711+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-714799",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-14T11:58:20.702711+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
