@@ -5014,10 +5014,43 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         raw = state.get(key) if isinstance(state, dict) else None
         return raw if isinstance(raw, (str, int, float, bool)) or raw is None else None
 
+    scheduled_publications = []
+    if isinstance(state, dict):
+        for queue_name in ("content_delivery_queue", "editorial_delivery_queue"):
+            queue = state.get(queue_name)
+            rows = queue.values() if isinstance(queue, dict) else []
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
+                terminal = (
+                    {"published", "cancelled", "stale_selection"}
+                    if queue_name == "content_delivery_queue"
+                    else {"completed", "cancelled", "failed"}
+                )
+                if str(row.get("status") or "").lower() in terminal:
+                    continue
+                scheduled = _parse_utc_datetime(
+                    row.get("scheduled_at") or row.get("next_attempt_at")
+                )
+                if scheduled is not None:
+                    scheduled_publications.append(scheduled)
+    next_channel_publication_at = (
+        min(scheduled_publications).isoformat() if scheduled_publications else None
+    )
+
     return {
         "schema_version": 1,
         "generated_at": current.isoformat(),
         "last_channel_published_at": value("last_channel_published_at"),
+        "next_channel_publication_at": next_channel_publication_at,
+        "publication_schedule_version": value("publication_schedule_version"),
+        "publication_schedule_cycle_id": value("publication_schedule_cycle_id"),
+        "publication_schedule_mode": value("publication_schedule_mode"),
+        "publication_schedule_product_count": value("publication_schedule_product_count"),
+        "publication_schedule_editorial_count": value("publication_schedule_editorial_count"),
+        "publication_schedule_interval_seconds": value("publication_schedule_interval_seconds"),
+        "publication_schedule_horizon_seconds": value("publication_schedule_horizon_seconds"),
+        "publication_schedule_next_catalog_scan_at": value("publication_schedule_next_catalog_scan_at"),
         "youtube_next_upload_at": value("youtube_next_upload_at"),
         "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
         "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
