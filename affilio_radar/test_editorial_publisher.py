@@ -109,7 +109,10 @@ class EditorialPublisherTests(unittest.TestCase):
             self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
 
     def test_editorial_gets_shared_monotonic_sequence(self):
-        state = {"publication_sequence_counter": 12}
+        state = {
+            "publication_sequence_counter": 12,
+            "last_channel_published_at": (NOW - timedelta(minutes=60)).isoformat(),
+        }
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
         self.assertEqual(entry["sequence_number"], 13)
         self.assertEqual(entry["content_type"], "editorial")
@@ -129,22 +132,69 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
         self.assertFalse(state.get("editorial_delivery_queue"))
 
-    def test_editorial_does_not_preempt_active_product_photo_fifo(self):
-        state = {"content_delivery_queue": {
-            "dkp-1": {"status": "partial", "selected_at": (NOW - timedelta(minutes=5)).isoformat()}
-        }}
+    def test_editorial_does_not_preempt_a_due_product_slot(self):
+        state = {
+            "last_channel_published_at": (NOW - timedelta(hours=2)).isoformat(),
+            "content_delivery_queue": {
+                "dkp-1": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "selected_at": (NOW - timedelta(minutes=5)).isoformat(),
+                    "scheduled_at": (NOW - timedelta(minutes=1)).isoformat(),
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
+        }
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
 
-    def test_editorial_waits_for_older_product_video_fifo(self):
-        state = {"published": {
-            "dkp-1": {
-                "video_generation_status": "pending",
-                "youtube_upload_status": "retry",
-                "aparat_upload_status": "uploaded",
-                "filo_upload_status": "uploaded",
-            }
-        }}
-        self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+    def test_pending_product_video_does_not_hold_back_editorial_channel_post(self):
+        state = {
+            "last_channel_published_at": (NOW - timedelta(minutes=60)).isoformat(),
+            "published": {
+                "dkp-1": {
+                    "video_generation_status": "pending",
+                    "youtube_upload_status": "retry",
+                    "aparat_upload_status": "uploaded",
+                    "filo_upload_status": "uploaded",
+                }
+            },
+        }
+        entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry["status"], "queued")
+
+    def test_related_editorial_is_scheduled_midway_before_its_product(self):
+        product_at = NOW + timedelta(hours=2)
+        product = {
+            "product_id": "dkp-related",
+            "title": "گوشی هوشمند",
+            "offerchin_four_factor": {"generality_group": "mobile_productivity"},
+        }
+        state = {
+            "last_channel_published_at": NOW.isoformat(),
+            "content_delivery_queue": {
+                "dkp-related": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "selected_at": NOW.isoformat(),
+                    "scheduled_at": product_at.isoformat(),
+                    "payload": product,
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
+        }
+        bank = [
+            editorial_item("fashion-fit", "fit-and-size"),
+            editorial_item("device-fit", "device-compatibility"),
+        ]
+        entry = queue_editorial_if_due(state, bank, now=NOW)
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry["related_product_id"], "dkp-related")
+        self.assertEqual(entry["payload"]["editorial_id"], "device-fit")
+        self.assertEqual(
+            datetime.fromisoformat(entry["scheduled_at"]),
+            NOW + timedelta(hours=1),
+        )
 
     def test_editorial_message_contains_sources(self):
         message = _format_message(editorial_item())
