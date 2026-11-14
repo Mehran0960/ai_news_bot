@@ -272,6 +272,7 @@ def record_editorial_delivery(state: dict, item: dict, *, published_at: datetime
         "content_id": str(item["content_id"]),
         "sequence_number": item.get("sequence_number"),
         "topic": str(item["topic"]),
+        "related_product_id": str(item.get("related_product_id") or ""),
         "published_at": timestamp.astimezone(timezone.utc).isoformat(),
         "destinations": destinations,
     })
