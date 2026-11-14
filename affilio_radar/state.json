@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-13T20:40:27.987427+00:00",
-  "aparat_last_upload_success_at": "2026-11-13T20:40:38.619896+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-14T17:19:55.882293+00:00",
+  "aparat_last_upload_success_at": "2026-11-14T17:20:04.818267+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-13T10:31:20.893746+00:00",
@@ -276708,6 +276708,113 @@
       "title": "خط چشم ضدآب ماژیکی مای مدل Dip Liner"
     }
   },
+  "editorial_cycle": {
+    "bank_ids": [
+      "accessories-compatibility",
+      "account-security",
+      "app-permissions",
+      "care-instructions",
+      "check-box-contents",
+      "check-model-number",
+      "check-replacement-parts",
+      "compare-total-cost",
+      "compatibility-before-buy",
+      "energy-use",
+      "extended-warranty-check",
+      "gift-card-warning",
+      "inspect-on-arrival",
+      "keep-purchase-records",
+      "location-sharing",
+      "marketplace-responsibility",
+      "measure-room-size",
+      "negative-review-balance",
+      "plan-before-buy",
+      "privacy-policy",
+      "product-description-details",
+      "recall-check",
+      "repairability",
+      "return-shipping-cost",
+      "review-patterns",
+      "reviews-beyond-stars",
+      "secure-checkout",
+      "seller-and-return-policy",
+      "seller-contact",
+      "seller-history",
+      "service-center-before-buy",
+      "shipping-window",
+      "sponsored-review",
+      "suspicious-links",
+      "used-refurbished",
+      "warranty-terms"
+    ],
+    "cycle_number": 1,
+    "used_ids": []
+  },
+  "editorial_delivery_queue": {
+    "editorial:accessories-compatibility": {
+      "attempt_count": 0,
+      "content_id": "editorial:accessories-compatibility",
+      "content_type": "editorial",
+      "next_attempt_at": "2026-11-14T17:19:46.887993+00:00",
+      "payload": {
+        "body": "دو کابل، باتری یا قطعه ممکن است شبیه هم باشند اما از نظر توان، ابعاد یا نوع اتصال تفاوت داشته باشند. مدل سازگار را از دفترچه یا وب‌سایت سازنده پیدا کن و همان مشخصات را با صفحه کالا تطبیق بده.",
+        "content_id": "editorial:accessories-compatibility",
+        "content_type": "editorial",
+        "delivery_status": "selected_not_published",
+        "editorial_cycle_number": 1,
+        "editorial_id": "accessories-compatibility",
+        "idempotency_key": "2857cd0b19cb9e5b",
+        "related_product_id": "",
+        "review_due_at": "2027-02-10T18:00:00Z",
+        "reviewed_at": "2026-11-12T18:00:00Z",
+        "sequence_number": 25,
+        "sources": [
+          {
+            "source_id": "ftc-online-shopping",
+            "title": "راهنمای خرید اینترنتی FTC",
+            "url": "https://consumer.ftc.gov/articles/online-shopping"
+          }
+        ],
+        "title": "برای خرید لوازم جانبی، فقط به ظاهر مشابه اکتفا نکن",
+        "topic": "device-compatibility"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "related_product_id": "",
+      "scheduled_at": "2026-11-14T17:19:46.887993+00:00",
+      "selected_at": "2026-11-14T17:19:46.887993+00:00",
+      "sequence_number": 25,
+      "status": "queued"
+    }
+  },
   "expiry_feed_last_attempt_at": "2026-10-26T17:22:24.040314+00:00",
   "expiry_feed_last_checked_at": "2026-10-26T17:22:24.040314+00:00",
   "expiry_feed_last_sync_summary": {
@@ -276717,11 +276824,11 @@
     "unchanged": 9,
     "updated": 0
   },
-  "filo_last_upload_attempt_at": "2026-11-13T22:17:51.580935+00:00",
-  "filo_last_upload_success_at": "2026-11-13T22:18:27.915006+00:00",
-  "filo_login_verification_attempted_at": "2026-11-14T17:11:23.205854+00:00",
+  "filo_last_upload_attempt_at": "2026-11-14T17:20:05.324497+00:00",
+  "filo_last_upload_success_at": "2026-11-14T17:20:43.441934+00:00",
+  "filo_login_verification_attempted_at": "2026-11-14T17:19:46.134828+00:00",
   "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-14T17:11:23.205854+00:00",
+  "filo_login_verified_at": "2026-11-14T17:19:46.134828+00:00",
   "filo_upload_interval_policy_version": 3,
   "growth_tracking": {
     "daily_member_counts": {
@@ -276979,6 +277086,7 @@
   },
   "last_channel_published_at": "2026-11-13T22:14:20.619215+00:00",
   "last_content_selection_at": "2026-11-13T22:13:58.676719+00:00",
+  "last_editorial_attempt_at": "2026-11-14T17:19:46.887993+00:00",
   "last_published_at": "2026-11-13T22:14:20.619215+00:00",
   "market_price_api_checks": {
     "dkp-1002646": {
@@ -363345,7 +363453,7 @@
       "ts": 1793119008.409393
     }
   },
-  "publication_sequence_counter": 24,
+  "publication_sequence_counter": 25,
   "published": {
     "dkp-1002646": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -369221,7 +369329,13 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-12733815": {
-      "aparat_upload_status": "skipped_expiring_soon",
+      "aparat_upload_started_at": "2026-11-14T17:19:55.882293+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-14T17:20:04.818267+00:00",
+      "aparat_video_hash": "kqh6qd4",
+      "aparat_video_record_id": "74222757",
+      "aparat_video_url": "https://www.aparat.com/v/kqh6qd4",
+      "aparat_visibility": "public",
       "bale_expired_deleted_at": "2026-11-07T19:28:35.456913+00:00",
       "bale_expiry_status": "deleted",
       "bale_message_id": 1442,
@@ -369263,7 +369377,14 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
-      "filo_upload_status": "skipped_expiring_soon",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-14T17:20:43.441934+00:00",
+      "filo_upload_started_at": "2026-11-14T17:20:05.324497+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "51SK8B9",
+      "filo_video_url": "https://ifilo.net/v/51SK8B9",
+      "filo_visibility": "pending_review",
       "historical_deal_eligible": false,
       "historical_popularity_score": 36,
       "history_checked_at": "2026-11-04T03:27:11.471801+00:00",
@@ -369303,8 +369424,24 @@
       "telegram_message_id": 1120,
       "title": "اکتان بوستر کانادا لوبریفنت مدل rich octane حجم 300 میلی لیتر",
       "ts": 1793762833.348282,
-      "video_generation_status": "skipped_expiring_soon",
-      "youtube_upload_status": "skipped_expiring_soon"
+      "video_file_name": "offerchin-dkp-12733815-filo.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-12733815-aparat.mp4",
+        "filo": "offerchin-dkp-12733815-filo.mp4",
+        "youtube": "offerchin-dkp-12733815.mp4"
+      },
+      "video_generated_at": "2026-11-14T17:19:48.332125+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-14T17:20:43.910733+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-14T17:20:46.597214+00:00",
+      "youtube_video_id": "JHQe00qb1dE",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/JHQe00qb1dE",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-12755767": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -454132,6 +454269,6 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 17,
   "snappshop_retry_after": "2026-11-15T10:36:57.728076+00:00",
-  "youtube_last_upload_success_at": "2026-11-13T22:18:30.871547+00:00",
+  "youtube_last_upload_success_at": "2026-11-14T17:20:46.597214+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
