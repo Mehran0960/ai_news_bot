@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-14T12:06:27.204405+00:00",
+  "generated_at": "2026-11-14T12:15:12.533032+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "دستگاه ذوب وکس": 1,
@@ -178,7 +178,6 @@
       "دستگاه ذوب وکس": 1,
       "دمبل": 1,
       "دهان‌شویه و خمیردندان کودک و نوزاد": 1,
-      "روشنایی و الکتریکی": 1,
       "روغن مو": 1,
       "رژ لب مایع و لیپ گلاس": 1,
       "ساعت هوشمند": 1,
@@ -266,7 +265,7 @@
       "other": 55,
       "personal_care": 32,
       "power_backup": 2,
-      "sports_outdoor": 8
+      "sports_outdoor": 7
     },
     "category_share_percent": {
       "audio_wearables": 2.9,
@@ -280,26 +279,26 @@
       "kids_sports": 2.9,
       "large_appliances": 0.7,
       "lighting": 0.7,
-      "mobile_devices": 1.4,
-      "other": 39.9,
-      "personal_care": 23.2,
-      "power_backup": 1.4,
-      "sports_outdoor": 5.8
+      "mobile_devices": 1.5,
+      "other": 40.1,
+      "personal_care": 23.4,
+      "power_backup": 1.5,
+      "sports_outdoor": 5.1
     },
-    "distinct_catalog_categories": 96,
+    "distinct_catalog_categories": 95,
     "distinct_categories": 16,
-    "distinct_families": 114,
+    "distinct_families": 113,
     "distinct_retailers": 1,
     "distinct_use_cases": 22,
     "known_brand_posts": 10,
-    "posts": 138,
+    "posts": 137,
     "repeated_brand_count": 2,
     "repeated_brands": {
       "eurovital": 2,
       "habsan": 2
     },
     "retailer_post_counts": {
-      "digikala": 138
+      "digikala": 137
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -318,7 +317,7 @@
       "home_cleaning": 2,
       "home_living": 2,
       "kitchen_food": 5,
-      "lighting_electrical": 3,
+      "lighting_electrical": 2,
       "local_goods": 2,
       "mobile_productivity": 26,
       "office_study": 5,
@@ -343,47 +342,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1288,
+    "all_time_count": 1290,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 489,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-14T09:55:29.537607+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-714799",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-14T10:06:10.262022+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-714799",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-14T10:14:49.930895+00:00",
         "brand": "",
@@ -675,6 +640,40 @@
       },
       {
         "at": "2026-11-14T12:06:27.204405+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-20682942",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-14T12:15:12.533032+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-714799",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-14T12:15:12.533032+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
