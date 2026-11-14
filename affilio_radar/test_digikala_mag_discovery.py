@@ -15,7 +15,7 @@ from digikala_mag_discovery import (
 
 NOW = datetime(2026, 11, 14, 9, 0, tzinfo=timezone.utc)
 
-RSS = b"""<?xml version="1.0" encoding="UTF-8"?>
+RSS = """<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
     <item>
@@ -51,7 +51,7 @@ RSS = b"""<?xml version="1.0" encoding="UTF-8"?>
     </item>
   </channel>
 </rss>
-"""
+""".encode("utf-8")
 
 
 class DigikalaMagDiscoveryTests(unittest.TestCase):
