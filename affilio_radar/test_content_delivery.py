@@ -1109,7 +1109,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
     def test_new_cycle_preserves_a_product_published_after_the_scan_started_as_spacing_anchor(self):
         clean_started = self.now - timedelta(hours=42)
         clean_completed = self.now - timedelta(hours=8)
-        current_scan_started = self.now - timedelta(hours=12)
+        current_scan_started = self.now - timedelta(hours=6)
         last_product = self.now - timedelta(hours=4)
         cycle_seconds = int((clean_completed - clean_started).total_seconds())
         status = {
