@@ -4981,6 +4981,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     # Wake the publisher early enough to place one related editorial in the safe
     # midpoint gap before the next product. This is a planning wake-up, not a post.
     next_editorial_planning_at = None
+    next_product = None
     if isinstance(state, dict):
         product_queue = state.get("content_delivery_queue")
         product_queue = product_queue if isinstance(product_queue, dict) else {}
