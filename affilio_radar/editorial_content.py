@@ -8,6 +8,8 @@ from typing import Any
 from urllib.parse import urlparse
 
 EDITORIAL_ID = re.compile(r"^[a-z0-9][a-z0-9-]{2,63}$")
+PERSIAN_SCRIPT = re.compile(r"[\\u0600-\\u06FF]")
+LATIN_LETTERS = re.compile(r"[A-Za-z\\u00C0-\\u024F]")
 MAX_TITLE = 110
 MAX_BODY = 1800
 DEFAULT_COOLDOWN_HOURS = 24
@@ -29,16 +31,28 @@ def _utc(value: Any) -> datetime | None:
         return None
 
 
+def is_persian_public_text(value: Any) -> bool:
+    """True only for non-empty Persian-script copy with no Latin letters."""
+    text = str(value or "").strip()
+    return bool(text and PERSIAN_SCRIPT.search(text) and not LATIN_LETTERS.search(text))
+
+
 def _safe_source(source: Any) -> bool:
     if not isinstance(source, dict):
         return False
     url = str(source.get("url") or "").strip()
     title = str(source.get("title") or "").strip()
+    display_title_fa = source.get("display_title_fa")
     try:
         parsed = urlparse(url)
     except ValueError:
         return False
-    return parsed.scheme == "https" and bool(parsed.netloc) and bool(title)
+    return (
+        parsed.scheme == "https"
+        and bool(parsed.netloc)
+        and bool(title)
+        and is_persian_public_text(display_title_fa)
+    )
 
 
 def validate_editorial_item(item: Any, *, now: datetime | None = None) -> tuple[bool, str]:
@@ -53,6 +67,10 @@ def validate_editorial_item(item: Any, *, now: datetime | None = None) -> tuple[
     topic = str(item.get("topic") or "").strip().lower()
     if not title or len(title) > MAX_TITLE or not body or len(body) > MAX_BODY:
         return False, "invalid_title_or_body_length"
+    if not is_persian_public_text(title):
+        return False, "editorial_title_must_be_persian_only"
+    if not is_persian_public_text(body):
+        return False, "editorial_body_must_be_persian_only"
     if not re.fullmatch(r"[a-z0-9-]{2,40}", topic):
         return False, "invalid_topic"
     if FORBIDDEN_COMMERCE_TERMS.search(title + "\n" + body):
@@ -81,6 +99,8 @@ def validate_editorial_item(item: Any, *, now: datetime | None = None) -> tuple[
     for claim in claims:
         if not isinstance(claim, dict) or not str(claim.get("text") or "").strip():
             return False, "invalid_claim"
+        if not is_persian_public_text(claim.get("text")):
+            return False, "editorial_claim_must_be_persian_only"
         refs = claim.get("source_ids")
         if not isinstance(refs, list) or not refs or any(str(ref) not in source_ids for ref in refs):
             return False, "claim_without_source"
