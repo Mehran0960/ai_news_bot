@@ -311,12 +311,20 @@ export function readLastChannelPublicationAt(state) {
   return latest > 0 ? latest : null;
 }
 
+export function isPublisherAttemptRun(run) {
+  return Boolean(
+    run &&
+    run.head_branch === "main" &&
+    (run.event === "workflow_dispatch" || run.event === "push")
+  );
+}
+
 async function readLatestPublisherAttempt(token) {
   try {
     const query = new URLSearchParams({ branch: "main", per_page: "10" });
     const data = await githubRequest(`${PUBLISHER_API}/runs?${query}`, token);
     const rows = Array.isArray(data.workflow_runs) ? data.workflow_runs : [];
-    return rows.find(run => run && run.event === "workflow_dispatch" && run.head_branch === "main") || null;
+    return rows.find(isPublisherAttemptRun) || null;
   } catch (error) {
     console.error("OFFERCHIN_PUBLISHER_ATTEMPT_READ_FAILED", String(error).slice(0, 500));
     return null;
