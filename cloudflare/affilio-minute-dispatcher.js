@@ -215,12 +215,15 @@ export const PUBLISHER_INTERVAL_MS = 27 * 60 * 1000;
 export const PUBLISHER_STANDALONE_EDITORIAL_GAP_MS = 55 * 60 * 1000;
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
 
-export function isEmergencyContinuityAvailable(state) {
+export function isEmergencyContinuityAvailable(state, now = Date.now()) {
+  const expiresAt = Date.parse(String(state && state.emergency_continuity_expires_at || ""));
   return Boolean(
     state &&
     state.emergency_continuity_active === true &&
     /^[a-f0-9]{64}$/.test(String(state.emergency_continuity_snapshot_sha256 || "")) &&
-    String(state.emergency_continuity_baseline_completed_at || "").trim()
+    String(state.emergency_continuity_baseline_completed_at || "").trim() &&
+    Number.isFinite(expiresAt) &&
+    expiresAt > now
   );
 }
 
