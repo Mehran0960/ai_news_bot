@@ -31,7 +31,26 @@ SEEN_RETENTION_DAYS = 45
 EXCLUDED = re.compile(
     r"سیاست|انتخابات|فوتبال|ورزش|بسکتبال|والیبال|سینما|فیلم|سریال|بازیگر|"
     r"موسیقی|خواننده|کنسرت|رمزارز|ارز دیجیتال|بیت.?کوین|بورس|سرمایه.?گذاری|"
-    r"درمان|بیماری|دارو|نسخه پزشکی|تشخیص پزشکی",
+    r"درمان|بیماری|دارو|نسخه پزشکی|تشخیص پزشکی|ریزش مو|ضد.?ریزش|آکنه|جوش پوستی|"
+    r"مدیرعامل|استعفا|برکناری|جانشین|بیوگرافی|زندگی.?نامه|جنسن هوانگ|"
+    r"بحران مدیریتی|هیئت مدیره|مریخ|سیاره سرخ|فضاپیما|سفر فضایی|"
+    r"تعداد کاربران فعال|رکوردشکنی کاربران|آمار کاربران",
+    re.IGNORECASE,
+)
+
+# The editorial queue is not a technology-news digest. Require an explicit
+# practical/buying intent in the title before a topic can become a candidate.
+ACTIONABLE_TITLE = re.compile(
+    r"راهنمای خرید|راهنمای انتخاب|مقایسه|بررسی|بهترین|ارزش خرید|خرید اقتصادی|"
+    r"کدام.{0,30}(?:بخریم|بهتر|انتخاب)|چه بخریم|چطور.{0,25}(?:بخریم|انتخاب)|"
+    r"تفاوت|فرق|ارتقا|نکات خرید|ترفند|روش استفاده|آموزش کاربردی|"
+    r"به.?صرفه|اقتصادی.?تر|ارزان.?تر",
+    re.IGNORECASE,
+)
+
+SPECULATIVE_TITLE = re.compile(
+    r"شایعه|لو رفت|ماکت|احتمالاً|احتمالا|به دنبال ساخت|قصد ساخت|"
+    r"در راه است|احتمال عرضه|طرح ساخت|تصاویر لو رفته",
     re.IGNORECASE,
 )
 
@@ -130,13 +149,24 @@ def canonical_article_url(value: str) -> str | None:
 
 def _classify(title: str, categories: list[str]) -> tuple[str | None, int]:
     combined = " ".join([title, *categories])
-    if EXCLUDED.search(combined):
+    if EXCLUDED.search(combined) or SPECULATIVE_TITLE.search(title):
         return None, 0
+    if not ACTIONABLE_TITLE.search(title):
+        return None, 0
+
     for topic, pattern in TOPIC_PATTERNS:
         if pattern.search(combined):
             matches = len(pattern.findall(combined))
-            category_bonus = 10 if any(pattern.search(category) for category in categories) else 0
-            return topic, min(100, 45 + min(matches, 4) * 8 + category_bonus)
+            category_bonus = 8 if any(pattern.search(category) for category in categories) else 0
+            if re.search(r"راهنمای خرید|راهنمای انتخاب|چه بخریم|نکات خرید", title):
+                intent_bonus = 28
+            elif re.search(r"مقایسه|تفاوت|فرق|کدام", title):
+                intent_bonus = 26
+            elif re.search(r"بررسی|ارزش خرید|خرید اقتصادی", title):
+                intent_bonus = 24
+            else:
+                intent_bonus = 18
+            return topic, min(100, 35 + min(matches, 3) * 6 + category_bonus + intent_bonus)
     return None, 0
 
 
@@ -182,6 +212,8 @@ def parse_feed(
         "rejected_missing_title_or_date": 0,
         "rejected_out_of_window": 0,
         "rejected_irrelevant_or_excluded": 0,
+        "rejected_low_actionability": 0,
+        "rejected_speculative_or_low_signal": 0,
         "already_seen": 0,
     }
     candidates: list[dict[str, Any]] = []
@@ -213,6 +245,18 @@ def parse_feed(
             for child in list(node)
             if _tag_name(child.tag) == "category"
         ]
+        if EXCLUDED.search(" ".join([title, *categories])):
+            counts["rejected_irrelevant_or_excluded"] += 1
+            continue
+        if SPECULATIVE_TITLE.search(title):
+            counts["rejected_speculative_or_low_signal"] += 1
+            counts["rejected_irrelevant_or_excluded"] += 1
+            continue
+        if not ACTIONABLE_TITLE.search(title):
+            counts["rejected_low_actionability"] += 1
+            counts["rejected_irrelevant_or_excluded"] += 1
+            continue
+
         topic, score = _classify(title, categories)
         if topic is None:
             counts["rejected_irrelevant_or_excluded"] += 1
@@ -241,7 +285,12 @@ def parse_feed(
             "public_copy_generated": False,
         })
 
-    candidates.sort(key=lambda item: (item["published_at"], item["editorial_relevance_score"]), reverse=True)
+    # Prioritize practical buying value first; recency breaks ties within the
+    # seven-day window instead of allowing generic news to outrank guides.
+    candidates.sort(
+        key=lambda item: (item["editorial_relevance_score"], item["published_at"]),
+        reverse=True,
+    )
     selected = candidates[: max(1, int(max_candidates))]
     # Mark only returned candidates as seen. Items beyond this run's output cap
     # must remain eligible for the next run rather than being silently dropped.
