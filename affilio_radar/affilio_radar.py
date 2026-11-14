@@ -5049,6 +5049,37 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                 if planning_at < product_at - timedelta(seconds=minimum_gap_seconds):
                     next_editorial_planning_at = planning_at.isoformat()
 
+    if next_product is None and isinstance(state, dict):
+        # With no product slot, preserve a standalone editorial check at 55 minutes.
+        # A recent empty-bank check moves the next retry forward rather than causing
+        # a minute-by-minute dispatch loop.
+        last_post_at = _parse_utc_datetime(state.get("last_channel_published_at"))
+        empty_check_at = _parse_utc_datetime(state.get("last_editorial_empty_bank_check_at"))
+        if last_post_at is not None:
+            standalone_at = last_post_at + timedelta(minutes=55)
+            if empty_check_at is not None and empty_check_at > last_post_at:
+                standalone_at = max(standalone_at, empty_check_at + timedelta(minutes=55))
+            next_editorial_planning_at = standalone_at.isoformat()
+
+    emergency_record = state.get("emergency_continuity") if isinstance(state, dict) else None
+    emergency_expires = (
+        _parse_utc_datetime(emergency_record.get("expires_at"))
+        if isinstance(emergency_record, dict) else None
+    )
+    emergency_sha = (
+        str(emergency_record.get("baseline_snapshot_sha256") or "").strip()
+        if isinstance(emergency_record, dict) else ""
+    )
+    emergency_continuity_active = bool(
+        isinstance(emergency_record, dict)
+        and emergency_record.get("status") == "active"
+        and emergency_record.get("snapshot_lead_fallback_enabled") is True
+        and re.fullmatch(r"[a-f0-9]{64}", emergency_sha)
+        and emergency_record.get("baseline_clean_cycle_completed_at")
+        and emergency_expires is not None
+        and emergency_expires > current
+    )
+
     cadence = state.get("product_publication_cadence") if isinstance(state, dict) else {}
     cadence = cadence if isinstance(cadence, dict) else {}
 
@@ -5062,6 +5093,11 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         "product_publication_cadence_cycle_id": cadence.get("catalog_cycle_id"),
         "next_channel_content_due_at": next_channel_due_at,
         "next_editorial_planning_at": next_editorial_planning_at,
+        "emergency_continuity_active": emergency_continuity_active,
+        "emergency_continuity_baseline_completed_at": (
+            str(emergency_record.get("baseline_clean_cycle_completed_at") or "")
+            if emergency_continuity_active else None
+        ),
         "youtube_next_upload_at": value("youtube_next_upload_at"),
         "youtube_uploads_paused_until": value("youtube_uploads_paused_until"),
         "youtube_upload_pause_reason": value("youtube_upload_pause_reason"),
