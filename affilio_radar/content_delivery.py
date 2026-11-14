@@ -245,6 +245,7 @@ def refresh_unpublished_selections(
     *,
     now: datetime | None = None,
     stale_after_minutes: int = 8,
+    plan_cycle_id: str | None = None,
 ) -> int:
     """Discard future or stale selections that have not reached any destination.
 
@@ -274,6 +275,17 @@ def refresh_unpublished_selections(
         selected = _utc(entry.get("selected_at"), scheduled)
         future_scheduled = scheduled is not None and scheduled > now
         stale_due = selected is not None and now - selected >= stale_after
+        # A selected product belongs to a durable publication promise. A later
+        # discovery run must not erase its reserved slot before last-mile delivery.
+        has_publication_reservation = bool(
+            str(entry.get("publication_plan_cycle_id") or "").strip()
+        )
+        same_active_plan = bool(
+            plan_cycle_id
+            and str(entry.get("publication_plan_cycle_id") or "") == str(plan_cycle_id)
+        )
+        if has_publication_reservation or same_active_plan:
+            continue
         if not future_scheduled and not stale_due:
             continue
 
@@ -350,7 +362,7 @@ def enqueue_selected_content(
     items: list[dict],
     *,
     now: datetime | None = None,
-    interval_seconds: int = 1380,
+    interval_seconds: int = 1620,
     max_items: int = 1,
     minimum_runway_minutes: int = 0,
     max_active_items: int | None = None,
