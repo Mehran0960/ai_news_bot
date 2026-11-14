@@ -633,17 +633,18 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
 
 
 def editorial_fifo_lock_entry(state: dict) -> dict | None:
-    """Lock new product photos only until the older editorial core-channel posts are terminal.
+    """Apply the editorial FIFO only when its scheduled gap has arrived.
 
-    Editorial video destinations retain their own FIFO in the video workflow. A slow
-    video upload must not hold back a premium product photo once Telegram/Bale have
-    already received (or terminally rejected) the older editorial item.
+    Products whose slots precede the editorial remain first. Editorial items whose
+    slots are later than the upcoming editorial are not allowed to block those products.
+    Video uploads retain their own FIFO and never hold back channel publication.
     """
     enabled = os.getenv("OFFERCHIN_EDITORIAL_PUBLISH_ENABLED", "false").strip().lower() in {
         "1", "true", "yes", "on"
     }
     if not enabled:
         return None
+    now = _now()
     queue = state.get("editorial_delivery_queue")
     active = [
         value for value in (queue.values() if isinstance(queue, dict) else [])
@@ -652,18 +653,46 @@ def editorial_fifo_lock_entry(state: dict) -> dict | None:
     locks = []
     for entry in active:
         platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
-        core_pending = False
-        for destination in CORE_PHOTO_PLATFORMS:
-            target = platforms.get(destination)
-            status = str(target.get("status") or "pending").strip().lower() if isinstance(target, dict) else "pending"
-            if status not in TERMINAL_PLATFORM:
-                core_pending = True
-                break
-        if core_pending:
-            locks.append(entry)
+        core_pending = any(
+            (str((platforms.get(destination) or {}).get("status") or "pending").strip().lower()
+             if isinstance(platforms.get(destination), dict) else "pending")
+            not in TERMINAL_PLATFORM
+            for destination in CORE_PHOTO_PLATFORMS
+        )
+        if not core_pending:
+            continue
+        scheduled = _utc(entry.get("scheduled_at")) or _utc(entry.get("selected_at")) or now
+        if scheduled <= now:
+            locks.append((scheduled, entry))
     if not locks:
         return None
-    return min(locks, key=lambda value: int(value.get("sequence_number") or 0))
+
+    editorial_at, editorial = min(
+        locks,
+        key=lambda row: (row[0], int(row[1].get("sequence_number") or 0)),
+    )
+    product_queue = state.get("content_delivery_queue")
+    for product_id, entry in (product_queue.items() if isinstance(product_queue, dict) else []):
+        if not isinstance(entry, dict) or entry.get("status") in {"published", "cancelled", "stale_selection"}:
+            continue
+        if str(entry.get("content_type") or "product") != "product":
+            continue
+        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+        if any(
+            isinstance(platforms.get(name), dict) and platforms[name].get("status") == "sent"
+            for name in CORE_PHOTO_PLATFORMS
+        ):
+            continue
+        product_at = _utc(entry.get("scheduled_at"))
+        if product_at is not None and product_at <= editorial_at:
+            print(
+                "PUBLISHER_EDITORIAL_WAIT_FOR_EARLIER_PRODUCT "
+                f"editorial_id={editorial.get('content_id', 'unknown')} "
+                f"product_id={product_id} product_slot={product_at.isoformat()} "
+                f"editorial_slot={editorial_at.isoformat()}"
+            )
+            return None
+    return editorial
 
 
 def publish_due_queue(_fallback_depth: int = 0) -> int:
