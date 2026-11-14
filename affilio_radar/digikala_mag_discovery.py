@@ -245,6 +245,9 @@ def parse_feed(
             for child in list(node)
             if _tag_name(child.tag) == "category"
         ]
+        if EXCLUDED.search(" ".join([title, *categories])):
+            counts["rejected_irrelevant_or_excluded"] += 1
+            continue
         if SPECULATIVE_TITLE.search(title):
             counts["rejected_speculative_or_low_signal"] += 1
             counts["rejected_irrelevant_or_excluded"] += 1
