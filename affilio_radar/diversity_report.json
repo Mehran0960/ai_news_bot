@@ -97,11 +97,10 @@
       }
     ]
   },
-  "generated_at": "2026-11-14T04:16:06.411022+00:00",
+  "generated_at": "2026-11-14T04:26:04.135953+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "اسپری حالت دهنده مو": 1,
-      "اصلاح موی صورت": 1,
       "خط چشم": 1,
       "دستگاه ذوب وکس": 1,
       "دمبل": 1,
@@ -128,34 +127,33 @@
       "fashion": 2,
       "home": 2,
       "other": 10,
-      "personal_care": 6,
+      "personal_care": 5,
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "books_stationery": 4.5,
-      "fashion": 9.1,
-      "home": 9.1,
-      "other": 45.5,
-      "personal_care": 27.3,
-      "sports_outdoor": 4.5
+      "books_stationery": 4.8,
+      "fashion": 9.5,
+      "home": 9.5,
+      "other": 47.6,
+      "personal_care": 23.8,
+      "sports_outdoor": 4.8
     },
-    "distinct_catalog_categories": 22,
+    "distinct_catalog_categories": 21,
     "distinct_categories": 6,
-    "distinct_families": 22,
+    "distinct_families": 21,
     "distinct_retailers": 1,
-    "distinct_use_cases": 8,
+    "distinct_use_cases": 7,
     "known_brand_posts": 1,
-    "posts": 22,
+    "posts": 21,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 22
+      "digikala": 21
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
-      "automotive": 1,
       "books_learning": 1,
       "catalog_taxonomy_other": 8,
       "fashion_lifestyle": 1,
@@ -365,30 +363,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1232,
+    "all_time_count": 1233,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 489,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-14T01:32:40.629324+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-714799",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-14T01:32:40.629324+00:00",
         "brand": "",
@@ -697,6 +678,23 @@
       },
       {
         "at": "2026-11-14T04:16:06.411022+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-714799",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-14T04:26:04.135953+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
