@@ -1406,11 +1406,17 @@ class AffilioRadarTests(unittest.TestCase):
             "product_publication_cadence": {
                 "catalog_cycle_id": "2026-11-05T09:00:00+00:00",
             },
+            "last_channel_published_at": now.isoformat(),
             "content_delivery_queue": {
                 "dkp-scheduled": {
                     "status": "queued",
                     "scheduled_at": "2026-11-05T14:00:00+00:00",
                     "next_attempt_at": "2026-11-05T13:00:00+00:00",
+                    "content_type": "product",
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
                 },
             },
             "editorial_delivery_queue": {
@@ -1470,6 +1476,10 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(
                 saved["next_channel_content_due_at"],
                 "2026-11-05T13:00:00+00:00",
+            )
+            self.assertEqual(
+                saved["next_editorial_planning_at"],
+                "2026-11-05T12:27:00+00:00",
             )
             self.assertIn("dkp-video-ready", saved["published"])
 
