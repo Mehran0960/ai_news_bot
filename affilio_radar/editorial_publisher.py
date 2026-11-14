@@ -26,12 +26,12 @@ from editorial_content import record_editorial_delivery, select_editorial_fallba
 from platform_registry import PLATFORM_NAMES
 
 ROOT = Path(__file__).resolve().parent
-EDITORIAL_BANK = ROOT / "editorial_bank.json"
+EDITORIAL_BANK = ROOT / "editorial_bank.json"\nEDITORIAL_APPROVED_ITEMS = ROOT / "editorial_approved_items.json"
 CHANNEL_DESTINATIONS = ("telegram", "bale", "rubika", "eitaa")
 VIDEO_DESTINATIONS = ("youtube", "aparat", "filo")
 TERMINAL = {"sent", "not_connected", "manual_review", "skipped_limit"}
 RETRYABLE = {"pending", "failed", "retry"}
-MINIMUM_GAP_MINUTES = max(50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55"))))
+STANDALONE_EDITORIAL_GAP_MINUTES = max(50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55"))))\nMINIMUM_PRODUCT_GAP_MINUTES = 27
 RETRY_BASE_SECONDS = max(60, min(1800, int(os.getenv("OFFERCHIN_EDITORIAL_RETRY_SECONDS", "300"))))
 MAX_ATTEMPTS = max(1, min(5, int(os.getenv("OFFERCHIN_EDITORIAL_MAX_ATTEMPTS", "3"))))
 
@@ -61,7 +61,29 @@ def _load_bank() -> list[dict]:
         raise RuntimeError(f"editorial_bank_unavailable:{type(exc).__name__}") from exc
     if not isinstance(value, list):
         raise RuntimeError("editorial_bank_must_be_a_list")
-    return value
+
+    # Newly reviewed Persian summaries from the editorial-source pipeline can be
+    # appended here without editing the evergreen bank. Raw RSS metadata is never
+    # accepted as a publishable item because validate_editorial_item requires claims,
+    # source provenance, review timestamps and an original Persian body.
+    dynamic = []
+    if EDITORIAL_APPROVED_ITEMS.is_file():
+        try:
+            loaded = json.loads(EDITORIAL_APPROVED_ITEMS.read_text(encoding="utf-8"))
+            if not isinstance(loaded, list):
+                raise RuntimeError("editorial_approved_items_must_be_a_list")
+            dynamic = loaded
+        except (OSError, ValueError, TypeError) as exc:
+            raise RuntimeError(f"editorial_approved_items_unavailable:{type(exc).__name__}") from exc
+
+    by_id = {}
+    for item in value + dynamic:
+        if not isinstance(item, dict):
+            continue
+        editorial_id = str(item.get("editorial_id") or "").strip()
+        if editorial_id:
+            by_id[editorial_id] = item
+    return list(by_id.values())
 
 
 def _active_editorial_entries(state: dict) -> list[dict]:
@@ -101,13 +123,49 @@ def _recent_attempt_anchor(state: dict) -> datetime | None:
     return max(valid) if valid else None
 
 
+def _product_has_core_channel_success(entry: dict) -> bool:
+    platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+    return any(
+        isinstance(platforms.get(name), dict)
+        and platforms[name].get("status") == "sent"
+        for name in ("telegram", "bale", "rubika", "eitaa")
+    )
+
+
+def _next_product_slot(state: dict, now: datetime) -> tuple[str, dict, datetime] | None:
+    queue = state.get("content_delivery_queue")
+    if not isinstance(queue, dict):
+        return None
+    due_products = []
+    future_products = []
+    for product_id, entry in queue.items():
+        if not isinstance(entry, dict) or entry.get("status") in {"published", "cancelled", "stale_selection"}:
+            continue
+        if str(entry.get("content_type") or "product") != "product":
+            continue
+        if _product_has_core_channel_success(entry):
+            continue
+        scheduled = _utc(entry.get("scheduled_at"))
+        if scheduled is None:
+            continue
+        row = (str(product_id), entry, scheduled)
+        if scheduled <= now:
+            due_products.append(row)
+        else:
+            future_products.append(row)
+    if due_products:
+        # A due product always takes precedence; editorial must never preempt it.
+        return min(due_products, key=lambda row: row[2])
+    return min(future_products, key=lambda row: row[2]) if future_products else None
+
+
 def queue_editorial_if_due(
     state: dict,
     bank: list[dict],
     *,
     now: datetime | None = None,
 ) -> dict | None:
-    """Reuse the active editorial item or allocate a new one after product FIFO is clear."""
+    """Place one reviewed editorial in the gap before the next product, if space permits."""
     current = now or _now()
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -117,25 +175,64 @@ def queue_editorial_if_due(
     if active:
         return active[0]
 
-    # Old, never-delivered product selections are retired after the same short
-    # reservation window used by the product delivery contract.
     refresh_unpublished_selections(state, now=current, stale_after_minutes=8)
-    product_queue = state.get("content_delivery_queue")
-    if isinstance(product_queue, dict) and any(
-        isinstance(row, dict) and row.get("status") not in {"published", "cancelled", "stale_selection"}
-        for row in product_queue.values()
-    ):
-        print("EDITORIAL_FALLBACK_WAIT reason=product_photo_fifo_not_terminal")
-        return None
-    if _pending_product_video_exists(state):
-        print("EDITORIAL_FALLBACK_WAIT reason=older_product_video_fifo_pending")
+    next_product = _next_product_slot(state, current)
+    if next_product and next_product[2] <= current:
+        print("EDITORIAL_FALLBACK_WAIT reason=product_slot_due")
         return None
 
-    anchor = _recent_attempt_anchor(state)
-    if anchor and current - anchor < timedelta(minutes=MINIMUM_GAP_MINUTES):
-        remaining = max(0, int((timedelta(minutes=MINIMUM_GAP_MINUTES) - (current - anchor)).total_seconds()))
-        print(f"EDITORIAL_FALLBACK_NOT_DUE remaining_seconds={remaining}")
-        return None
+    anchor = get_last_channel_published_at(state) or current
+    related_product = None
+    related_product_id = ""
+    if next_product:
+        related_product_id, product_entry, product_at = next_product
+        related_product = (
+            product_entry.get("payload")
+            if isinstance(product_entry.get("payload"), dict) else {}
+        )
+        # Only one editorial may be attached to a given product slot.
+        history = state.get("editorial_delivery_history")
+        history = history if isinstance(history, list) else []
+        already_linked = any(
+            str(row.get("related_product_id") or "") == related_product_id
+            for row in history if isinstance(row, dict)
+        )
+        active_queue = state.get("editorial_delivery_queue")
+        if isinstance(active_queue, dict):
+            already_linked = already_linked or any(
+                isinstance(row, dict)
+                and str(row.get("related_product_id") or "") == related_product_id
+                and row.get("status") not in {"completed", "cancelled", "failed"}
+                for row in active_queue.values()
+            )
+        if already_linked:
+            return None
+
+        gap_seconds = int((product_at - anchor).total_seconds())
+        minimum_gap = MINIMUM_PRODUCT_GAP_MINUTES * 60
+        if gap_seconds < 2 * minimum_gap:
+            print(
+                "EDITORIAL_FALLBACK_NO_ROOM "
+                f"product_id={related_product_id} gap_minutes={round(gap_seconds / 60, 1)}"
+            )
+            return None
+        scheduled_at = anchor + timedelta(seconds=gap_seconds // 2)
+        if scheduled_at < current:
+            scheduled_at = current
+        if (scheduled_at - anchor).total_seconds() < minimum_gap or (
+            product_at - scheduled_at
+        ).total_seconds() < minimum_gap:
+            return None
+    else:
+        # When no product is waiting, use the reviewed bank at a slower standalone pace.
+        if anchor and current - anchor < timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES):
+            remaining = max(
+                0,
+                int((timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES) - (current - anchor)).total_seconds()),
+            )
+            print(f"EDITORIAL_FALLBACK_NOT_DUE remaining_seconds={remaining}")
+            return None
+        scheduled_at = current
 
     if radar.daily_channel_posts_count(state, current) >= radar.MAX_DAILY_CHANNEL_POSTS:
         print(
@@ -144,14 +241,19 @@ def queue_editorial_if_due(
         )
         return None
 
-    item = select_editorial_fallback(bank, state, now=current)
+    item = select_editorial_fallback(
+        bank, state, now=current, related_product=related_product
+    )
     if not item:
         state["last_editorial_empty_bank_check_at"] = current.isoformat()
-        print("EDITORIAL_FALLBACK_EMPTY reason=no_valid_nonrepeating_reviewed_item")
+        print("EDITORIAL_FALLBACK_EMPTY reason=no_valid_reviewed_item_or_bank_cycle")
         return None
 
     sequence_number = allocate_publication_sequence(state)
     item["sequence_number"] = sequence_number
+    if related_product_id:
+        item["related_product_id"] = related_product_id
+        item["related_product_title"] = str(related_product.get("title") or "")[:180]
     queue = state.setdefault("editorial_delivery_queue", {})
     if not isinstance(queue, dict):
         queue = {}
@@ -161,11 +263,12 @@ def queue_editorial_if_due(
         "content_type": "editorial",
         "sequence_number": sequence_number,
         "selected_at": current.isoformat(),
-        "scheduled_at": current.isoformat(),
-        "next_attempt_at": current.isoformat(),
+        "scheduled_at": scheduled_at.isoformat(),
+        "next_attempt_at": scheduled_at.isoformat(),
         "status": "queued",
         "attempt_count": 0,
         "payload": item,
+        "related_product_id": related_product_id,
         "platforms": {
             name: {"status": "pending", "attempts": 0}
             for name in PLATFORM_NAMES
@@ -173,7 +276,12 @@ def queue_editorial_if_due(
     }
     queue[item["content_id"]] = entry
     state["last_editorial_attempt_at"] = current.isoformat()
-    print(f"EDITORIAL_FALLBACK_QUEUED content_id={item['content_id']} sequence={sequence_number}")
+    print(
+        "EDITORIAL_FALLBACK_QUEUED "
+        f"content_id={item['content_id']} sequence={sequence_number} "
+        f"related_product_id={related_product_id or 'none'} "
+        f"scheduled_at={scheduled_at.isoformat()}"
+    )
     return entry
 
 
@@ -781,6 +889,15 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         # outbound request, so a runner restart cannot allocate a duplicate sequence.
         _save(state)
     if not entry:
+        if publish:
+            _save(state)
+        return 0
+    scheduled_at = _utc(entry.get("scheduled_at"))
+    if scheduled_at is not None and scheduled_at > current.astimezone(timezone.utc):
+        print(
+            "EDITORIAL_NOT_DUE "
+            f"content_id={entry.get('content_id')} scheduled_at={scheduled_at.isoformat()}"
+        )
         if publish:
             _save(state)
         return 0
