@@ -1,0 +1,80 @@
+name: OfferChin DigiKala Mag Source Discovery
+
+on:
+  # Check the official public RSS feed twice an hour after deployment.
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "affilio_radar/digikala_mag_discovery.py"
+      - "affilio_radar/test_digikala_mag_discovery.py"
+      - ".github/workflows/offerchin-mag-source-discovery.yml"
+      - "docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md"
+  pull_request:
+    paths:
+      - "affilio_radar/digikala_mag_discovery.py"
+      - "affilio_radar/test_digikala_mag_discovery.py"
+      - ".github/workflows/offerchin-mag-source-discovery.yml"
+      - "docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offerchin-digikala-mag-source-discovery
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run the isolated RSS parsing and safety tests
+        run: |
+          python -m py_compile affilio_radar/digikala_mag_discovery.py
+          cd affilio_radar
+          python -m unittest -v test_digikala_mag_discovery.py
+
+  discover:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore deduplication state
+        uses: actions/cache@v4
+        with:
+          path: .cache/offerchin-mag/seen.json
+          key: offerchin-mag-seen-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            offerchin-mag-seen-${{ runner.os }}-
+      - name: Discover new shopping-adjacent DigiKala Mag articles
+        run: |
+          mkdir -p .cache/offerchin-mag editorial-mag-artifacts
+          python affilio_radar/digikala_mag_discovery.py \
+            --state-path .cache/offerchin-mag/seen.json \
+            --output editorial-mag-artifacts/source-candidates.json \
+            --max-age-hours 168 \
+            --max-candidates 20
+      - name: Upload metadata-only editorial review candidates
+        uses: actions/upload-artifact@v4
+        with:
+          name: offerchin-digikala-mag-candidates-${{ github.run_id }}
+          path: editorial-mag-artifacts/source-candidates.json
+          if-no-files-found: error
+          retention-days: 14
