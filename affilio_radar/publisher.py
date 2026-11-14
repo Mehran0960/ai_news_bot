@@ -653,15 +653,27 @@ def editorial_fifo_lock_entry(state: dict) -> dict | None:
     locks = []
     for entry in active:
         platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
-        core_pending = any(
+        core_statuses = [
             (str((platforms.get(destination) or {}).get("status") or "pending").strip().lower()
              if isinstance(platforms.get(destination), dict) else "pending")
-            not in TERMINAL_PLATFORM
             for destination in CORE_PHOTO_PLATFORMS
-        )
-        if not core_pending:
+        ]
+        core_sent = any(status == "sent" for status in core_statuses)
+        core_pending = any(status not in TERMINAL_PLATFORM for status in core_statuses)
+        # A confirmed post to at least one core channel is enough to release the next
+        # premium product; retries on another channel must not hold the product slot.
+        if not core_pending or core_sent:
             continue
         scheduled = _utc(entry.get("scheduled_at")) or _utc(entry.get("selected_at")) or now
+        attempt_anchor = _utc(entry.get("last_attempt_at")) or _utc(entry.get("selected_at")) or scheduled
+        max_block = max(1, min(30, int(os.getenv("OFFERCHIN_EDITORIAL_PRODUCT_BLOCK_MAX_MINUTES", "8"))))
+        if now - attempt_anchor > timedelta(minutes=max_block):
+            print(
+                "PUBLISHER_EDITORIAL_LOCK_RELEASED "
+                f"content_id={entry.get('content_id', 'unknown')} reason=max_block_wait_exceeded "
+                f"minutes={max_block}"
+            )
+            continue
         if scheduled <= now:
             locks.append((scheduled, entry))
     if not locks:
