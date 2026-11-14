@@ -99,6 +99,67 @@ def publication_catalog_context() -> dict:
     return load_publication_catalog_context(CATALOG_SWEEP_STATUS, CATALOG_SWEEP_CANDIDATES)
 
 
+def emergency_deal_recovery_active(state: dict, now: datetime | None = None) -> bool:
+    """One-time demand-gate waiver that expires after the next completed catalog cycle."""
+    enabled = os.getenv("AFFILIO_EMERGENCY_DEAL_RECOVERY", "false").strip().lower() in {"1", "true", "yes", "on"}
+    if not enabled or not isinstance(state, dict) or state.get("emergency_recovery_disabled_at"):
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    try:
+        status = json.loads(CATALOG_SWEEP_STATUS.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        status = {}
+    completed_at = _parse_utc_datetime(status.get("last_cycle_completed_at"))
+    activated_at = _parse_utc_datetime(state.get("emergency_recovery_activated_at"))
+    if (
+        activated_at is not None
+        and completed_at is not None
+        and completed_at > activated_at
+        and str(status.get("last_cycle_status") or "") in {"complete", "complete_with_gaps"}
+    ):
+        state["emergency_recovery_disabled_at"] = current.isoformat()
+        state["emergency_recovery_status"] = "disabled_after_next_catalog_cycle"
+        print("EMERGENCY_DEAL_RECOVERY_DISABLED reason=next_catalog_cycle_completed")
+        return False
+    if activated_at is None:
+        state["emergency_recovery_activated_at"] = current.isoformat()
+        state["emergency_recovery_catalog_cycle_at_activation"] = status.get("last_cycle_completed_at")
+        state["emergency_recovery_status"] = "active_until_next_catalog_cycle"
+        print(
+            "EMERGENCY_DEAL_RECOVERY_ACTIVATED "
+            f"last_catalog_cycle={status.get('last_cycle_completed_at') or 'unknown'}"
+        )
+    return True
+
+
+def floating_catalog_horizon_seconds(now: datetime | None = None) -> int:
+    """Estimate the remaining catalog window from persisted scanner progress and throughput."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    try:
+        status = json.loads(CATALOG_SWEEP_STATUS.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        status = {}
+    try:
+        pending_pages = max(0, int(status.get("pending_page_count") or 0))
+        rate = max(0.0, float(status.get("last_batch_pages_per_second") or 0))
+        eta_seconds = pending_pages / rate if pending_pages and rate > 0 else 0
+    except (TypeError, ValueError, OverflowError):
+        eta_seconds = 0
+    retry_at = _parse_utc_datetime(status.get("category_discovery_retry_after"))
+    if retry_at and retry_at > current:
+        eta_seconds = max(eta_seconds, (retry_at - current).total_seconds())
+    # A scanner's last batch can finish in seconds while category/API discovery is
+    # still recovering. Keep a one-hour minimum window and a 12-hour upper bound;
+    # the count of selected products then determines the actual publication spacing.
+    return int(max(3600, min(12 * 3600, eta_seconds or 3600)))
+
+
 def catalog_candidate_is_publishable(candidate: dict, context: dict | None = None) -> bool:
     """Enforce current full-catalog membership; non-DigiKala partners remain live-verified."""
     active_context = context if isinstance(context, dict) else publication_catalog_context()
@@ -8207,6 +8268,7 @@ def select_publish_candidates(
     now: datetime | None = None,
     published: dict | None = None,
     recent_publications: list | None = None,
+    allow_demand_waiver: bool = False,
 ) -> list[dict]:
     """Return ready publication candidates in global DigiKala demand-evidence order."""
     current = now or datetime.now(timezone.utc)
@@ -8220,7 +8282,10 @@ def select_publish_candidates(
         product = eligible_by_id.get(str(pid)) if isinstance(eligible_by_id, dict) else None
         if not isinstance(record, dict) or not isinstance(product, dict):
             continue
-        if not has_verified_market_demand(product, now=current):
+        if not has_verified_market_demand(product, now=current) and not (
+            allow_demand_waiver
+            and product.get("selection_fallback_mode") == "emergency_discount_first_no_verified_demand"
+        ):
             demand_rejected += 1
             continue
         retry_at = _parse_utc_datetime(record.get("next_publish_attempt_at"))
@@ -8251,9 +8316,16 @@ def select_publish_candidates(
         for product in tier
     ]
     _apply_offerchin_four_factor_scores(ready_products, now=current)
+    emergency_only = bool(ready_products) and all(
+        row.get("selection_fallback_mode") == "emergency_discount_first_no_verified_demand"
+        for row in ready_products
+    )
     ordered = sorted(
         ready_products,
-        key=lambda record: deal_sort_key(record, now=current),
+        key=(
+            (lambda record: emergency_discount_first_sort_key(record, now=current))
+            if emergency_only else (lambda record: deal_sort_key(record, now=current))
+        ),
         reverse=True,
     )
     return _filter_recent_publication_repeats(
@@ -8594,11 +8666,29 @@ def is_selection_candidate_rejected(
     return True
 
 
+def emergency_discount_first_sort_key(record: dict, now: datetime | None = None) -> tuple:
+    """Rank an exception candidate only on the three verified non-demand dimensions."""
+    score = record.get("offerchin_four_factor") if isinstance(record, dict) else {}
+    score = score if isinstance(score, dict) else {}
+    affordability = max(0.0, float(score.get("affordability") or 0))
+    generality = max(0.0, float(score.get("generality") or 0))
+    discount_value = max(0.0, float(score.get("discount_attractiveness") or 0))
+    return (
+        min(affordability, generality, discount_value),
+        discount_value,
+        generality,
+        affordability,
+        _discount_percentage_sort_value(record),
+        int(record.get("savings_toman") or 0),
+    )
+
+
 def select_discount_fallback_candidates(
     products: list[dict],
     state: dict,
     now: datetime | None = None,
     include_fallback_bands: bool = False,
+    allow_demand_waiver: bool = False,
 ) -> tuple[list[dict], int | None, list[dict]]:
     """Rank live-valid candidates by DigiKala demand evidence, then verified deal value.
 
@@ -8622,6 +8712,7 @@ def select_discount_fallback_candidates(
     }
     quality_eligible: list[dict] = []
     fresh_candidates: list[dict] = []
+    emergency_candidates: list[dict] = []
     seen_ids: set[str] = set()
     demand_rejected = 0
     published_records = state.get("published", {})
@@ -8639,10 +8730,12 @@ def select_discount_fallback_candidates(
             continue
         if not has_publishable_expiry_or_open_offer(product, current):
             continue
+        seen_ids.add(pid)
         if not has_verified_market_demand(product, now=current):
             demand_rejected += 1
+            if allow_demand_waiver:
+                emergency_candidates.append(product)
             continue
-        seen_ids.add(pid)
         quality_eligible.append(product)
         if (
             not is_selection_candidate_rejected(state, pid, product, current)
@@ -8651,6 +8744,31 @@ def select_discount_fallback_candidates(
             fresh_candidates.append(product)
 
     fallback_mode = "normal"
+    if not fresh_candidates and allow_demand_waiver:
+        emergency_fresh = [
+            product for product in emergency_candidates
+            if not is_selection_candidate_rejected(
+                state,
+                str(product.get("product_id") or product_id(product.get("product_url") or "")),
+                product,
+                current,
+            )
+            and is_fresh_selection_candidate(
+                state,
+                str(product.get("product_id") or product_id(product.get("product_url") or "")),
+                product,
+                current,
+            )
+        ]
+        if emergency_fresh:
+            _apply_offerchin_four_factor_scores(emergency_fresh, now=current)
+            emergency_fresh.sort(
+                key=lambda row: emergency_discount_first_sort_key(row, now=current),
+                reverse=True,
+            )
+            fresh_candidates = emergency_fresh
+            quality_eligible.extend(emergency_fresh)
+            fallback_mode = "emergency_discount_first_no_verified_demand"
     if not fresh_candidates:
         # Reuse a product only after every prior Telegram/Bale post is confirmed
         # removed and no active publication or delivery record remains.
@@ -8696,7 +8814,11 @@ def select_discount_fallback_candidates(
     _apply_offerchin_four_factor_scores(fresh_candidates, now=current)
     ranked = sorted(
         fresh_candidates,
-        key=lambda record: deal_sort_key(record, now=current),
+        key=(
+            (lambda record: emergency_discount_first_sort_key(record, now=current))
+            if fallback_mode == "emergency_discount_first_no_verified_demand"
+            else (lambda record: deal_sort_key(record, now=current))
+        ),
         reverse=True,
     )
     handoff = []
@@ -8717,18 +8839,22 @@ def select_discount_fallback_candidates(
             if isinstance(selected.get("offerchin_four_factor"), dict) else {}
         )
         bestseller_evidence = _fresh_digikala_bestseller_evidence(product, now=current)
-        selected["selection_demand_evidence"] = (
-            "digikala_native_bestseller_rank" if bestseller_evidence
-            else "digikala_recent_review_growth_proxy" if has_current_demand_signal(product, now=current)
-            else "digiKala_lifetime_reviews_and_rating_context" if (
-                product.get("review_count") or product.get("rating")
-            ) else "no_current_demand_evidence"
-        )
-        selected["selection_demand_quality"] = (
-            bestseller_evidence.get("evidence_quality") if bestseller_evidence
-            else "indirect_review_growth_proxy_not_sales" if has_current_demand_signal(product, now=current)
-            else "historical_quality_context_only"
-        )
+        if fallback_mode == "emergency_discount_first_no_verified_demand":
+            selected["selection_demand_evidence"] = "unverified_emergency_exception"
+            selected["selection_demand_quality"] = "not_verified_and_not_used_for_ranking"
+        else:
+            selected["selection_demand_evidence"] = (
+                "digikala_native_bestseller_rank" if bestseller_evidence
+                else "digikala_recent_review_growth_proxy" if has_current_demand_signal(product, now=current)
+                else "digiKala_lifetime_reviews_and_rating_context" if (
+                    product.get("review_count") or product.get("rating")
+                ) else "no_current_demand_evidence"
+            )
+            selected["selection_demand_quality"] = (
+                bestseller_evidence.get("evidence_quality") if bestseller_evidence
+                else "indirect_review_growth_proxy_not_sales" if has_current_demand_signal(product, now=current)
+                else "historical_quality_context_only"
+            )
         selected["selection_bestseller_rank"] = bestseller_evidence.get("best_rank_across_categories")
         selected["selection_bestseller_category_count"] = bestseller_evidence.get("fresh_category_count", 0)
         selected["selection_bestseller_rank_improvement"] = bestseller_evidence.get("rank_improvement", 0)
@@ -10614,7 +10740,8 @@ def run(publish=False, selection_only=False):
     # page remain eligible for a live recheck on the next scan.
     state = load_state()
     catalog_context = publication_catalog_context()
-    if selection_only and catalog_context.get("mode") == "blocked":
+    emergency_recovery = emergency_deal_recovery_active(state) if selection_only else False
+    if selection_only and catalog_context.get("mode") == "blocked" and not emergency_recovery:
         print("CONTENT_SELECTION_BLOCKED reason=no_verified_fresh_full_catalog_snapshot")
         return 0
     if prune_suppressed_product_queues(state):
@@ -10774,7 +10901,8 @@ def run(publish=False, selection_only=False):
     )
     market_blocked_count = sum(is_market_price_uncompetitive(p) for p in products)
     eligible, selected_discount_floor, quality_eligible = select_discount_fallback_candidates(
-        products, state, now=queue_now, include_fallback_bands=selection_only
+        products, state, now=queue_now, include_fallback_bands=selection_only,
+        allow_demand_waiver=emergency_recovery,
     )
     if catalog_context.get("mode") == "full_catalog":
         before_catalog_gate = len(eligible)
@@ -10793,9 +10921,15 @@ def run(publish=False, selection_only=False):
             "ranking_source=verified_full_catalog_snapshot"
         )
     elif catalog_context.get("mode") == "blocked":
-        eligible = []
-        quality_eligible = []
-        print("CATALOG_PUBLICATION_FILTER blocked=true reason=no_verified_full_catalog_snapshot")
+        if emergency_recovery:
+            print(
+                "CATALOG_PUBLICATION_FILTER mode=emergency_live_only "
+                "full_catalog_snapshot_valid=false; all product last-mile checks remain mandatory"
+            )
+        else:
+            eligible = []
+            quality_eligible = []
+            print("CATALOG_PUBLICATION_FILTER blocked=true reason=no_verified_full_catalog_snapshot")
     elif catalog_context.get("mode") == "degraded_live_fallback":
         print(
             "CATALOG_PUBLICATION_FILTER mode=degraded_live_fallback "
@@ -10967,7 +11101,7 @@ def run(publish=False, selection_only=False):
 
     eligible = select_publish_candidates(
         pending_queue, eligible_by_id, queue_now, state.get("published"),
-        state.get("recent_publications"),
+        state.get("recent_publications"), allow_demand_waiver=emergency_recovery,
     )
     record_publication_diversity_report(state, now=queue_now)
     save_json(PERFORMANCE_REPORT, build_performance_report(state, now=queue_now))
@@ -11004,7 +11138,9 @@ def run(publish=False, selection_only=False):
             "generality": "taxonomy_and_use_case_reach_heuristic; unknown_taxonomy_scored_low",
             "discount_attractiveness": "verified_percent_and_cash_savings_plus_fresh_history_or_market_evidence_confidence",
             "missing_factor_behavior": "no_invented_values; incomplete legacy cards retain prior fallback order",
-            "demand_gate_remains_hard": True,
+            "demand_gate_remains_hard": not emergency_recovery_active(state),
+            "temporary_emergency_waiver": bool(emergency_recovery_active(state)),
+            "emergency_waiver_rank_dimensions": ["affordability", "generality", "discount_attractiveness"],
             "clicks_affect_demand_or_four_factor_score": False,
             "score_is_conversion_probability": False,
         },
