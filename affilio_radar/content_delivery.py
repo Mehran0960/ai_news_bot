@@ -303,10 +303,11 @@ def reschedule_product_queue_evenly(
     for index, (_sequence, _product_id, entry) in enumerate(pending):
         scheduled = next_slot + timedelta(seconds=index * interval)
         entry["scheduled_at"] = scheduled.isoformat()
-        entry["next_attempt_at"] = max(
-            scheduled,
-            _utc(entry.get("next_attempt_at")) or scheduled,
-        ).isoformat()
+        retry_at = _utc(entry.get("next_attempt_at"))
+        if entry.get("status") in {"failed", "retry", "partial"} and retry_at and retry_at > current:
+            entry["next_attempt_at"] = max(scheduled, retry_at).isoformat()
+        else:
+            entry["next_attempt_at"] = scheduled.isoformat()
         entry["product_plan_cycle_id"] = str((cadence or {}).get("catalog_cycle_id") or "")
 
     plan = state.setdefault("product_publication_plan", {})
