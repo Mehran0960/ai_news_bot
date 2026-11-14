@@ -388,6 +388,7 @@ test("Filo accepts every confirmed channel delivery without requiring a retailer
       expiry_source: "digikala_product_detail_api",
       expiry_deadline_verified_directly: true,
       expires_at: new Date(now + 60 * 60_000).toISOString(),
+      aparat_upload_status: "pending",
     } } }, "aparat", now),
     true
   );
