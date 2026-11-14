@@ -6554,6 +6554,7 @@ class AffilioRadarTests(unittest.TestCase):
             patch("affilio_radar._fetch_image") as fetch_image,
             patch("affilio_radar.save_json"),
             patch("affilio_radar.APARAT_SHORTS_ONLY", True),
+            patch("affilio_radar.APARAT_UPLOAD_ENABLED", True),
             patch("short_video.youtube_credentials_available", return_value=True),
             patch("aparat_uploader.aparat_credentials_available", return_value=True),
             patch("short_video.render_short_video") as render,
