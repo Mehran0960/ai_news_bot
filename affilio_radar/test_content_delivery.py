@@ -682,7 +682,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         replaced = refresh_unpublished_selections(state, now=self.now)
         self.assertEqual(replaced, 0)
         self.assertIn("dkp-future", state["content_delivery_queue"])
-        self.assertNotIn("content_delivery_history", state)
+        self.assertEqual(state.get("content_delivery_history"), [])
 
     def test_partial_delivery_does_not_prevent_fresh_content_selection(self):
         state = {}
