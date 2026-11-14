@@ -10824,6 +10824,15 @@ def run(publish=False, selection_only=False):
     # page remain eligible for a live recheck on the next scan.
     state = load_state()
     catalog_context = publication_catalog_context()
+    try:
+        catalog_status = json.loads(CATALOG_SWEEP_STATUS.read_text(encoding="utf-8"))
+        if not isinstance(catalog_status, dict):
+            catalog_status = {}
+    except (OSError, ValueError, TypeError):
+        catalog_status = {}
+    emergency_continuity_active = _emergency_continuity_window_active(
+        state, catalog_status, now=datetime.now(timezone.utc)
+    )
     if selection_only and catalog_context.get("mode") == "blocked":
         print("CONTENT_SELECTION_BLOCKED reason=no_verified_fresh_full_catalog_snapshot")
         return 0
@@ -10984,7 +10993,11 @@ def run(publish=False, selection_only=False):
     )
     market_blocked_count = sum(is_market_price_uncompetitive(p) for p in products)
     eligible, selected_discount_floor, quality_eligible = select_discount_fallback_candidates(
-        products, state, now=queue_now, include_fallback_bands=selection_only
+        products,
+        state,
+        now=queue_now,
+        include_fallback_bands=selection_only,
+        allow_emergency_demand_relaxation=bool(selection_only and emergency_continuity_active),
     )
     if catalog_context.get("mode") == "full_catalog":
         before_catalog_gate = len(eligible)
@@ -11273,109 +11286,128 @@ def run(publish=False, selection_only=False):
     }
     save_json(REPORT, report)
     if selection_only:
-        # Keep discovery live on every scan, but only select a new product when a
-        # publication slot is due. Never build a long queue of products chosen early.
         from content_delivery import (
             calculate_product_publication_cadence,
             enqueue_selected_content,
-            get_last_product_channel_published_at,
-            has_fresh_unpublished_selection,
+            reschedule_product_queue_evenly,
             refresh_unpublished_selections,
-            selection_cadence_anchor,
         )
         selection_now = datetime.now(timezone.utc)
         replaced = refresh_unpublished_selections(
             state, now=selection_now, stale_after_minutes=8
         )
-        try:
-            catalog_status = json.loads(CATALOG_SWEEP_STATUS.read_text(encoding="utf-8"))
-            if not isinstance(catalog_status, dict):
-                catalog_status = {}
-        except (OSError, ValueError, TypeError):
-            catalog_status = {}
+
+        queue = state.get("content_delivery_queue")
+        queue = queue if isinstance(queue, dict) else {}
+        active_product_entries = []
+        active_product_ids = set()
+        for queued_id, entry in queue.items():
+            if not isinstance(entry, dict) or entry.get("status") in {"published", "cancelled", "stale_selection"}:
+                continue
+            if str(entry.get("content_type") or "product") != "product":
+                continue
+            platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+            core_sent = any(
+                isinstance(platforms.get(name), dict)
+                and platforms[name].get("status") == "sent"
+                for name in ("telegram", "bale", "rubika", "eitaa")
+            )
+            if core_sent:
+                continue
+            active_product_entries.append(entry)
+            active_product_ids.add(str(queued_id))
+
+        # The live-validated list grows as the current catalog snapshot is rechecked.
+        # Only add candidates that are not already planned, and keep the queue bounded.
+        new_candidates = []
+        seen_new_ids = set()
+        for item in eligible:
+            pid = str(item.get("product_id") or product_id(item.get("product_url") or "")).strip()
+            if not pid or pid in active_product_ids or pid in seen_new_ids:
+                continue
+            seen_new_ids.add(pid)
+            new_candidates.append(item)
+
+        total_pending = len(active_product_entries) + len(new_candidates)
         cadence = calculate_product_publication_cadence(
             state,
             catalog_status,
-            len(eligible),
+            total_pending,
             now=selection_now,
             max_daily_posts=MAX_DAILY_CHANNEL_POSTS,
         )
-        interval_seconds = int(cadence["interval_seconds"])
-        print(
-            "PRODUCT_PUBLICATION_CADENCE "
-            f"candidates={cadence['candidate_count']} "
-            f"interval_minutes={cadence['interval_minutes']} "
-            f"estimated_next_clean_scan_at={cadence['estimated_next_clean_scan_at']} "
-            f"planned_slots={cadence['planned_product_slots']} "
-            f"daily_limit={cadence['daily_post_limit']}"
-        )
-
-        # Product cadence is independent from editorial sends. A Persian editorial
-        # fallback must not reset the product clock or push selected products back.
-        last_selected = _parse_utc_datetime(state.get("last_content_selection_at"))
-        last_channel_published = get_last_product_channel_published_at(state)
-        fresh_unpublished_selection = has_fresh_unpublished_selection(
-            state, now=selection_now, stale_after_minutes=8
-        )
-        last_slot_anchor = selection_cadence_anchor(
-            last_selected,
-            last_channel_published,
-            has_fresh_unpublished_selection=fresh_unpublished_selection,
-        )
-        elapsed = (
-            (selection_now - last_slot_anchor).total_seconds()
-            if last_slot_anchor is not None else interval_seconds
-        )
-        remaining = max(0, interval_seconds - int(elapsed))
-
-        # A daily cap or an unexpired cooldown is a normal no-op, not a failed scan.
-        if remaining > 0:
-            save_json(STATE, state)
-            print(
-                "CONTENT_SELECTION_SLOT_NOT_DUE "
-                f"seconds_remaining={remaining} live_candidates={len(eligible)} "
-                f"replaced_stale={replaced}"
-            )
-            return 0
+        available_slots = max(0, int(cadence["planned_product_slots"]) - len(active_product_entries))
         if daily_channel_posts_count(state, selection_now) >= MAX_DAILY_CHANNEL_POSTS:
-            save_json(STATE, state)
+            available_slots = 0
             print(
                 "CONTENT_SELECTION_DAILY_CAP_REACHED "
-                f"limit={MAX_DAILY_CHANNEL_POSTS} live_candidates={len(eligible)}"
+                f"limit={MAX_DAILY_CHANNEL_POSTS} pending_products={len(active_product_entries)}"
             )
-            return 0
 
-        # Store one due primary plus a compact ranked backup pool.
-        # Backups preserve global discount/savings order. The publisher
-        # repeats live stock, price, identity, title, and affiliate checks.
-        primary = eligible[:1]
-        summary = enqueue_selected_content(
+        summary = {"added": 0, "skipped": 0, "queue_size": len(active_product_entries), "queue_evicted": 0}
+        selected_batch = new_candidates[:available_slots]
+        if selected_batch:
+            summary = enqueue_selected_content(
+                state,
+                selected_batch,
+                now=selection_now,
+                interval_seconds=int(cadence["interval_seconds"]),
+                max_items=len(selected_batch),
+                minimum_runway_minutes=MIN_PUBLICATION_RUNWAY_MINUTES,
+                max_active_items=250,
+            )
+            if summary["added"]:
+                state["last_content_selection_at"] = selection_now.isoformat()
+
+        # Recalculate after the hand-off, then reflow the entire still-unpublished
+        # product cohort. Editorial messages never enter this clock or move product slots.
+        queue = state.get("content_delivery_queue")
+        queue = queue if isinstance(queue, dict) else {}
+        pending_after = 0
+        for queued_id, entry in queue.items():
+            if not isinstance(entry, dict) or entry.get("status") in {"published", "cancelled", "stale_selection"}:
+                continue
+            if str(entry.get("content_type") or "product") != "product":
+                continue
+            platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+            if any(
+                isinstance(platforms.get(name), dict)
+                and platforms[name].get("status") == "sent"
+                for name in ("telegram", "bale", "rubika", "eitaa")
+            ):
+                continue
+            pending_after += 1
+
+        cadence = calculate_product_publication_cadence(
             state,
-            primary,
+            catalog_status,
+            pending_after,
             now=selection_now,
-            interval_seconds=interval_seconds,
-            max_items=1,
-            minimum_runway_minutes=MIN_PUBLICATION_RUNWAY_MINUTES,
+            max_daily_posts=MAX_DAILY_CHANNEL_POSTS,
         )
-        fallback_count = 0
-        if summary["added"] and primary:
-            primary_id = str(primary[0].get("product_id") or product_id(primary[0].get("product_url") or ""))
-            primary_entry = state.get("content_delivery_queue", {}).get(primary_id)
-            if isinstance(primary_entry, dict):
-                primary_entry["fallback_candidates"] = [
-                    dict(candidate) for candidate in eligible[1:51]
-                    if isinstance(candidate, dict)
-                ]
-                fallback_count = len(primary_entry["fallback_candidates"])
-            state["last_content_selection_at"] = selection_now.isoformat()
+        schedule = reschedule_product_queue_evenly(
+            state, cadence, now=selection_now
+        )
+        cadence["scheduled_product_count"] = schedule["scheduled"]
+        cadence["deferred_product_count"] = schedule["deferred"]
+        state["product_publication_cadence"] = cadence
         save_json(STATE, state)
+        print(
+            "PRODUCT_PUBLICATION_CADENCE "
+            f"pending={pending_after} newly_selected={summary['added']} "
+            f"interval_minutes={cadence['interval_minutes']} "
+            f"next_clean_scan_at={cadence['estimated_next_clean_scan_at']} "
+            f"planned_slots={cadence['planned_product_slots']} "
+            f"plan_anchor={cadence['plan_anchor_kind']} "
+            f"emergency_continuity={bool(emergency_continuity_active)}"
+        )
         print(
             "CONTENT_SELECTION_HANDOFF "
             f"queued={summary['added']} skipped={summary['skipped']} "
             f"queue_size={summary['queue_size']} live_candidates={len(eligible)} "
-            f"fallback_pool={fallback_count} replaced_stale={replaced} publisher_invoked=false"
+            f"planned_products={pending_after} available_slots={available_slots} "
+            f"replaced_stale={replaced} publisher_invoked=false"
         )
-        # No eligible offer is a normal outcome. The next scan refreshes the pool.
         return 0
 
     state.setdefault("published", {})
