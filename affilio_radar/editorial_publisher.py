@@ -127,8 +127,9 @@ def _pending_editorial_channel_retries(state: dict, *, now: datetime) -> list[di
     return sorted(rows, key=lambda row: int(row.get("sequence_number") or 0))
 
 
-def _pending_product_channel_entries(state: dict) -> list[dict]:
+def _pending_product_channel_entries(state: dict, *, now: datetime | None = None) -> list[dict]:
     """Only overdue/unresolved primary-channel product deliveries pre-empt editorial."""
+    current = now or _now()
     queue = state.get("content_delivery_queue")
     if not isinstance(queue, dict):
         return []
@@ -138,7 +139,7 @@ def _pending_product_channel_entries(state: dict) -> list[dict]:
             continue
         platforms = row.get("platforms") if isinstance(row.get("platforms"), dict) else {}
         scheduled = _utc(row.get("scheduled_at"))
-        if scheduled is not None and scheduled > _now():
+        if scheduled is not None and scheduled > current:
             continue
         if any(
             not (isinstance(platforms.get(name), dict) and platforms[name].get("status") in TERMINAL)
@@ -211,7 +212,7 @@ def queue_editorial_if_due(
 
     # A due or unresolved product always owns the next slot. Future product
     # reservations leave this current slot available for a Persian editorial item.
-    pending_products = _pending_product_channel_entries(state)
+    pending_products = _pending_product_channel_entries(state, now=current)
     if pending_products:
         print(
             "EDITORIAL_FALLBACK_WAIT reason=product_channel_slot_pending "
@@ -292,7 +293,7 @@ def _channel_slot_gap_remaining_seconds(state: dict, now: datetime) -> int:
 
 def _retry_existing_editorial_channel_deliveries(state: dict, *, now: datetime) -> None:
     """Retry optional channel destinations only when the shared slot is free."""
-    if _pending_product_channel_entries(state) or _channel_slot_gap_remaining_seconds(state, now):
+    if _pending_product_channel_entries(state, now=now) or _channel_slot_gap_remaining_seconds(state, now):
         return
     for entry in _pending_editorial_channel_retries(state, now=now)[:5]:
         payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
@@ -820,7 +821,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
 
     active = _active_editorial_entries(state, mode="channels")
     active_video_entries = _active_editorial_entries(state, mode="videos")
-    active_products = _pending_product_channel_entries(state)
+    active_products = _pending_product_channel_entries(state, now=current)
     pending_videos = _pending_product_video_exists(state)
     shadow_state_for_anchor = json.loads(json.dumps(state, ensure_ascii=False, default=str))
     anchor = _recent_attempt_anchor(shadow_state_for_anchor)
