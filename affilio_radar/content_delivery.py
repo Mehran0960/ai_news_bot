@@ -176,8 +176,12 @@ def calculate_product_publication_cadence(
     last_product = get_last_product_channel_published_at(state)
 
     if previous_cycle_id != cycle_id:
-        anchor = max(current, last_product) if last_product else current
-        anchor_kind = "last_product" if last_product and last_product >= current else "cycle_start"
+        # A product sent after this scan cycle began remains the spacing anchor,
+        # even when it was published before this planning run. Only a product from
+        # before the current scan allows the first slot to start immediately.
+        last_product_in_cycle = bool(last_product and last_product >= scan_anchor)
+        anchor = last_product if last_product_in_cycle else current
+        anchor_kind = "last_product" if last_product_in_cycle else "cycle_start"
         state["product_publication_plan_cycle_id"] = cycle_id
         state["product_publication_plan_anchor_at"] = anchor.isoformat()
         state["product_publication_plan_anchor_kind"] = anchor_kind
