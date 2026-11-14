@@ -8752,13 +8752,6 @@ def _emergency_continuity_window_active(
                 record["ended_at"] = current.isoformat()
                 record["end_reason"] = "72_hour_emergency_safety_limit"
                 print("EMERGENCY_CONTINUITY_ENDED reason=72_hour_safety_limit")
-        else:
-            expires = _parse_utc_datetime(record.get("expires_at"))
-            if expires and expires <= current:
-                record["status"] = "expired"
-                record["ended_at"] = current.isoformat()
-                record["end_reason"] = "72_hour_emergency_safety_limit"
-                print("EMERGENCY_CONTINUITY_ENDED reason=72_hour_safety_limit")
     return str(record.get("status") or "") == "active"
 
 
