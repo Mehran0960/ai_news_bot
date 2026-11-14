@@ -439551,7 +439551,7 @@
     "dkp-5400901": {
       "aparat_skip_reason": "verified_expiry_required",
       "aparat_upload_status": "skipped_unverified_deadline",
-      "bale_expiry_status": "unknown",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 1712,
       "bale_posted_at": "2026-11-06T23:51:21.109617+00:00",
       "brand": "",
@@ -439629,7 +439629,11 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_skip_reason": "youtube_daily_quota_pause",
-      "youtube_upload_status": "skipped_platform_limit"
+      "youtube_upload_status": "skipped_platform_limit",
+      "bale_retention_status": "deleted",
+      "bale_retention_started_at": "2026-11-14T02:39:52.500818+00:00",
+      "bale_retention_deleted_at": "2026-11-14T02:39:52.500818+00:00",
+      "bale_retention_last_attempt_at": "2026-11-14T02:39:52.500818+00:00"
     },
     "dkp-5425055": {
       "aparat_skip_reason": "verified_expiry_required",
