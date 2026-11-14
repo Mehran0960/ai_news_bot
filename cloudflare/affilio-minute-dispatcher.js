@@ -217,11 +217,12 @@ const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
 
 export function nextPublisherDueAt(state, lastPublishedAt) {
   const scheduledAt = Date.parse(String(state && state.next_channel_content_due_at || ""));
-  const hasScheduledContent = Number.isFinite(scheduledAt);
+  const editorialPlanningAt = Date.parse(String(state && state.next_editorial_planning_at || ""));
   const lastPost = Number.isFinite(lastPublishedAt) ? lastPublishedAt : null;
+  const plannedTimes = [scheduledAt, editorialPlanningAt].filter(Number.isFinite);
 
-  let dueAt = hasScheduledContent
-    ? scheduledAt
+  let dueAt = plannedTimes.length
+    ? Math.min(...plannedTimes)
     : lastPost !== null
       ? lastPost + PUBLISHER_STANDALONE_EDITORIAL_GAP_MS
       : null;
