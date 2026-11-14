@@ -8596,6 +8596,68 @@ def is_selection_candidate_rejected(
     return True
 
 
+def _emergency_continuity_window_active(
+    state: dict,
+    catalog_status: dict,
+    *,
+    now: datetime | None = None,
+) -> bool:
+    """Enable a one-time demand-gate relaxation only until the next clean catalog cycle."""
+    if os.getenv("OFFERCHIN_EMERGENCY_CONTINUITY_ENABLED", "false").strip().lower() not in {
+        "1", "true", "yes", "on"
+    }:
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    status = catalog_status if isinstance(catalog_status, dict) else {}
+    latest_clean = str(status.get("last_clean_cycle_completed_at") or "").strip()
+    record = state.get("emergency_continuity") if isinstance(state.get("emergency_continuity"), dict) else None
+    if record is None:
+        record = {
+            "status": "active",
+            "baseline_clean_cycle_completed_at": latest_clean,
+            "started_at": current.isoformat(),
+            "reason": "temporary_product_continuity_until_next_clean_catalog_scan",
+        }
+        state["emergency_continuity"] = record
+        print(
+            "EMERGENCY_CONTINUITY_STARTED "
+            f"baseline_clean_cycle={latest_clean or 'none'} "
+            "hard_price_stock_link_safety_and_repeat_gates=preserved"
+        )
+    elif record.get("status") == "active":
+        baseline = str(record.get("baseline_clean_cycle_completed_at") or "").strip()
+        if latest_clean and latest_clean != baseline:
+            record["status"] = "ended"
+            record["ended_at"] = current.isoformat()
+            record["ended_by_clean_cycle_completed_at"] = latest_clean
+            print(
+                "EMERGENCY_CONTINUITY_ENDED "
+                f"new_clean_cycle_completed_at={latest_clean}"
+            )
+    return str(record.get("status") or "") == "active"
+
+
+def _emergency_continuity_quality_score(product: dict) -> float:
+    """Score affordability, generality and discount only; never invent a demand score."""
+    factors = product.get("offerchin_four_factor")
+    if not isinstance(factors, dict):
+        return 0.0
+    try:
+        values = [
+            float(factors.get("affordability") or 0),
+            float(factors.get("generality") or 0),
+            float(factors.get("discount_attractiveness") or 0),
+        ]
+    except (TypeError, ValueError, OverflowError):
+        return 0.0
+    if any(value <= 0 for value in values):
+        return 0.0
+    return round(len(values) / sum(1.0 / value for value in values), 2)
+
+
 def select_discount_fallback_candidates(
     products: list[dict],
     state: dict,
@@ -8653,13 +8715,74 @@ def select_discount_fallback_candidates(
             fresh_candidates.append(product)
 
     fallback_mode = "normal"
+    emergency_candidates: list[dict] = []
+    if allow_emergency_demand_relaxation:
+        for product in quality_eligible:
+            pid = str(product.get("product_id") or product_id(product.get("product_url") or "")).strip()
+            if not pid or has_verified_market_demand(product, now=current):
+                continue
+            if is_selection_candidate_rejected(state, pid, product, current):
+                continue
+            if not is_fresh_selection_candidate(state, pid, product, current):
+                continue
+            if _has_active_publication_or_delivery(state, pid):
+                continue
+            emergency_candidates.append(product)
+
+        _apply_offerchin_four_factor_scores(emergency_candidates, now=current)
+        approved_emergency = []
+        for product in emergency_candidates:
+            factors = product.get("offerchin_four_factor") if isinstance(product.get("offerchin_four_factor"), dict) else {}
+            quality_score = _emergency_continuity_quality_score(product)
+            try:
+                discount_score = float(factors.get("discount_attractiveness") or 0)
+                affordability_score = float(factors.get("affordability") or 0)
+                generality_score = float(factors.get("generality") or 0)
+            except (TypeError, ValueError, OverflowError):
+                continue
+            # This is deliberately stricter than the ordinary four-factor ranking:
+            # a missing demand signal is disclosed, while weak markdown/fit is rejected.
+            if (
+                discount_score < 55
+                or affordability_score < 40
+                or generality_score < 50
+                or quality_score < 55
+            ):
+                continue
+            product["emergency_continuity_quality_score"] = quality_score
+            product["selection_continuity_mode"] = "temporary_three_factor_demand_relaxation"
+            approved_emergency.append(product)
+
+        approved_emergency.sort(
+            key=lambda row: (
+                float(row.get("emergency_continuity_quality_score") or 0),
+                float((row.get("offerchin_four_factor") or {}).get("discount_attractiveness") or 0),
+                int(row.get("savings_toman") or 0),
+            ),
+            reverse=True,
+        )
+        emergency_candidates = approved_emergency
+        if emergency_candidates:
+            print(
+                "EMERGENCY_CONTINUITY_CANDIDATES "
+                f"available={len(quality_eligible)} approved={len(emergency_candidates)} "
+                "ranking=affordability_generality_discount_harmonic "
+                "fresh_demand_claim=false"
+            )
+            fresh_candidates.extend(emergency_candidates)
+            fallback_mode = "normal_plus_emergency_continuity" if len(fresh_candidates) > len(emergency_candidates) else "emergency_continuity"
+
     if not fresh_candidates:
-        # Reuse a product only after every prior Telegram/Bale post is confirmed
-        # removed and no active publication or delivery record remains.
+        # Reuse is permitted only for previously demand-qualified products. The
+        # emergency rule above is separate and has its own stricter score thresholds.
         reusable = []
         for product in quality_eligible:
             pid = str(product.get("product_id") or product_id(product.get("product_url") or "")).strip()
-            if not pid or _has_active_publication_or_delivery(state, pid):
+            if not pid or not has_verified_market_demand(product, now=current):
+                continue
+            if is_selection_candidate_rejected(state, pid, product, current):
+                continue
+            if _has_active_publication_or_delivery(state, pid):
                 continue
             if not previous_publication_posts_removed(published_records.get(pid)):
                 continue
@@ -8684,7 +8807,7 @@ def select_discount_fallback_candidates(
         f"hard_eligible={len(quality_eligible)} demand_rejected={demand_rejected} "
         f"fresh={len(fresh_candidates)} "
         "demand_gate=true click_count_used=false "
-        f"fallback_mode={fallback_mode}"
+        f"emergency_approved={len(emergency_candidates)} fallback_mode={fallback_mode}"
     )
 
     if not fresh_candidates:
@@ -8719,18 +8842,22 @@ def select_discount_fallback_candidates(
             if isinstance(selected.get("offerchin_four_factor"), dict) else {}
         )
         bestseller_evidence = _fresh_digikala_bestseller_evidence(product, now=current)
-        selected["selection_demand_evidence"] = (
-            "digikala_native_bestseller_rank" if bestseller_evidence
-            else "digikala_recent_review_growth_proxy" if has_current_demand_signal(product, now=current)
-            else "digiKala_lifetime_reviews_and_rating_context" if (
-                product.get("review_count") or product.get("rating")
-            ) else "no_current_demand_evidence"
-        )
-        selected["selection_demand_quality"] = (
-            bestseller_evidence.get("evidence_quality") if bestseller_evidence
-            else "indirect_review_growth_proxy_not_sales" if has_current_demand_signal(product, now=current)
-            else "historical_quality_context_only"
-        )
+        if selected.get("selection_continuity_mode") == "temporary_three_factor_demand_relaxation":
+            selected["selection_demand_evidence"] = "not_verified_emergency_continuity_override"
+            selected["selection_demand_quality"] = "demand_not_verified_three_factor_proxy_only"
+        else:
+            selected["selection_demand_evidence"] = (
+                "digikala_native_bestseller_rank" if bestseller_evidence
+                else "digikala_recent_review_growth_proxy" if has_current_demand_signal(product, now=current)
+                else "digiKala_lifetime_reviews_and_rating_context" if (
+                    product.get("review_count") or product.get("rating")
+                ) else "no_current_demand_evidence"
+            )
+            selected["selection_demand_quality"] = (
+                bestseller_evidence.get("evidence_quality") if bestseller_evidence
+                else "indirect_review_growth_proxy_not_sales" if has_current_demand_signal(product, now=current)
+                else "historical_quality_context_only"
+            )
         selected["selection_bestseller_rank"] = bestseller_evidence.get("best_rank_across_categories")
         selected["selection_bestseller_category_count"] = bestseller_evidence.get("fresh_category_count", 0)
         selected["selection_bestseller_rank_improvement"] = bestseller_evidence.get("rank_improvement", 0)
