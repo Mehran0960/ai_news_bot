@@ -263,11 +263,38 @@ def queue_editorial_if_due(
             f"deferred_products={mix_plan.get('product_capacity_deficit')}"
         )
         return None
-    # Resume an already-reserved item after the product-priority check.
-    # Retries must not wait for the next editorial slot.
+    # Resume an already-reserved item immediately only when no newer product
+    # publication has changed the interval anchor since its slot was reserved.
     active = _active_editorial_entries(state, mode="channels")
+    current_anchor = _recent_attempt_anchor(state)
     if active:
-        return active[0]
+        entry = active[0]
+        reserved_anchor = _utc(entry.get("interval_anchor_at"))
+        if reserved_anchor is None or current_anchor is None or current_anchor <= reserved_anchor:
+            return entry
+        # A product was delivered after this editorial slot was reserved. Re-plan
+        # the same item against the new product timestamp rather than bunching posts.
+        slot = _next_editorial_slot(state, now=current)
+        if slot is None:
+            print("EDITORIAL_FALLBACK_WAIT reason=product_delivery_replanned_editorial_slot")
+            return None
+        due_at, boundary, spacing_seconds = slot
+        if current < due_at:
+            remaining = max(0, int((due_at - current).total_seconds()))
+            print(
+                "EDITORIAL_FALLBACK_REPLAN_WAIT "
+                f"seconds_remaining={remaining} equal_spacing_seconds={int(spacing_seconds)}"
+            )
+            return None
+        entry["scheduled_at"] = due_at.isoformat()
+        entry["next_attempt_at"] = due_at.isoformat()
+        entry["sequence_number"] = int(due_at.timestamp())
+        entry["interval_anchor_at"] = current_anchor.isoformat()
+        payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+        payload["sequence_number"] = entry["sequence_number"]
+        entry["payload"] = payload
+        state["last_editorial_attempt_at"] = due_at.isoformat()
+        return entry
 
     slot = _next_editorial_slot(state, now=current)
     if slot is None:
@@ -303,6 +330,7 @@ def queue_editorial_if_due(
         "content_type": "editorial",
         "sequence_number": sequence_number,
         "selected_at": current.isoformat(),
+        "interval_anchor_at": _recent_attempt_anchor(state).isoformat() if _recent_attempt_anchor(state) else due_at.isoformat(),
         "scheduled_at": due_at.isoformat(),
         "next_attempt_at": due_at.isoformat(),
         "status": "queued",
