@@ -11,12 +11,16 @@ on:
     paths:
       - "affilio_radar/digikala_mag_discovery.py"
       - "affilio_radar/test_digikala_mag_discovery.py"
+      - "affilio_radar/digikala_mag_editorial.py"
+      - "affilio_radar/test_digikala_mag_editorial.py"
       - ".github/workflows/offerchin-mag-source-discovery.yml"
       - "docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md"
   pull_request:
     paths:
       - "affilio_radar/digikala_mag_discovery.py"
       - "affilio_radar/test_digikala_mag_discovery.py"
+      - "affilio_radar/digikala_mag_editorial.py"
+      - "affilio_radar/test_digikala_mag_editorial.py"
       - ".github/workflows/offerchin-mag-source-discovery.yml"
       - "docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md"
 
@@ -41,9 +45,13 @@ jobs:
         run: python -m pip install "requests>=2.32,<3"
       - name: Run the isolated RSS parsing and safety tests
         run: |
-          python -m py_compile affilio_radar/digikala_mag_discovery.py
+          python -m py_compile \
+            affilio_radar/digikala_mag_discovery.py \
+            affilio_radar/digikala_mag_editorial.py \
+            affilio_radar/test_digikala_mag_discovery.py \
+            affilio_radar/test_digikala_mag_editorial.py
           cd affilio_radar
-          python -m unittest -v test_digikala_mag_discovery.py
+          python -m unittest -v test_digikala_mag_discovery.py test_digikala_mag_editorial.py
 
   discover:
     if: ${{ github.event_name != 'pull_request' }}
@@ -63,9 +71,12 @@ jobs:
       - name: Restore deduplication state
         uses: actions/cache@v4
         with:
-          path: .cache/offerchin-mag/seen.json
-          key: offerchin-mag-seen-v3-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .cache/offerchin-mag/seen.json
+            .cache/offerchin-mag/pending-editorial.json
+          key: offerchin-mag-state-v4-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
+            offerchin-mag-state-v4-${{ runner.os }}-
             offerchin-mag-seen-v3-${{ runner.os }}-
       - name: Discover new shopping-adjacent DigiKala Mag articles
         run: |
@@ -75,10 +86,28 @@ jobs:
             --output editorial-mag-artifacts/source-candidates.json \
             --max-age-hours 168 \
             --max-candidates 20
+      - name: Generate independent Persian editorial drafts for human review
+        env:
+          OFFERCHIN_EDITORIAL_API_URL: ${{ vars.OFFERCHIN_EDITORIAL_API_URL }}
+          OFFERCHIN_EDITORIAL_MODEL: ${{ vars.OFFERCHIN_EDITORIAL_MODEL }}
+          OFFERCHIN_EDITORIAL_API_KEY: ${{ secrets.OFFERCHIN_EDITORIAL_API_KEY }}
+        run: |
+          python affilio_radar/digikala_mag_editorial.py \
+            --input editorial-mag-artifacts/source-candidates.json \
+            --state .cache/offerchin-mag/pending-editorial.json \
+            --output editorial-mag-artifacts/editorial-drafts.json \
+            --max-candidates 10
       - name: Upload metadata-only editorial review candidates
         uses: actions/upload-artifact@v4
         with:
           name: offerchin-digikala-mag-candidates-${{ github.run_id }}
           path: editorial-mag-artifacts/source-candidates.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload Persian editorial drafts awaiting human review
+        uses: actions/upload-artifact@v4
+        with:
+          name: offerchin-digikala-mag-editorial-drafts-${{ github.run_id }}
+          path: editorial-mag-artifacts/editorial-drafts.json
           if-no-files-found: error
           retention-days: 14
