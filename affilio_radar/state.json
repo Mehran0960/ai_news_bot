@@ -1,6 +1,6 @@
 {
   "aparat_last_upload_attempt_at": "2026-11-14T17:19:55.882293+00:00",
-  "aparat_last_upload_success_at": "2026-11-14T19:24:16.416514+00:00",
+  "aparat_last_upload_success_at": "2026-11-14T20:27:55.307162+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-13T10:31:20.893746+00:00",
@@ -304310,12 +304310,13 @@
       "warranty-terms"
     ],
     "cycle_number": 1,
-    "last_editorial_id": "care-instructions",
-    "last_topic": "maintenance-and-care",
+    "last_editorial_id": "check-box-contents",
+    "last_topic": "fit-and-size",
     "used_ids": [
       "accessories-compatibility",
       "account-security",
-      "care-instructions"
+      "care-instructions",
+      "check-box-contents"
     ]
   },
   "editorial_delivery_attempts": [
@@ -304548,9 +304549,135 @@
       "related_product_id": "",
       "sequence_number": 27,
       "topic": "maintenance-and-care"
+    },
+    {
+      "content_id": "editorial:check-box-contents",
+      "destinations": {
+        "aparat": {
+          "attempt_started_at": "2026-11-14T20:27:51.392001+00:00",
+          "attempts": 1,
+          "message_id": "ewx296c",
+          "status": "sent",
+          "updated_at": "2026-11-14T20:27:55.307123+00:00",
+          "url": "https://www.aparat.com/v/ewx296c"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempt_started_at": "2026-11-14T20:27:55.839785+00:00",
+          "attempts": 1,
+          "last_error": "filo_submitted_pending_approval_not_public",
+          "status": "manual_review",
+          "updated_at": "2026-11-14T20:28:26.136360+00:00",
+          "url": "https://ifilo.net/v/4CrSEpJ"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempt_started_at": "2026-11-14T20:27:48.916307+00:00",
+          "attempts": 1,
+          "message_id": "Ul479KHrir8",
+          "status": "sent",
+          "updated_at": "2026-11-14T20:27:50.839796+00:00",
+          "url": "https://www.youtube.com/shorts/Ul479KHrir8"
+        }
+      },
+      "editorial_id": "check-box-contents",
+      "published_at": "2026-11-14T20:27:50.839796+00:00",
+      "related_product_id": "",
+      "sequence_number": 28,
+      "topic": "fit-and-size"
     }
   ],
-  "editorial_delivery_queue": {},
+  "editorial_delivery_queue": {
+    "editorial:check-box-contents": {
+      "attempt_count": 0,
+      "content_id": "editorial:check-box-contents",
+      "content_type": "editorial",
+      "next_attempt_at": "2026-11-14T20:27:43.939803+00:00",
+      "payload": {
+        "body": "پیش از سفارش، فهرست اقلام همراه را بخوان: شارژر، کابل، باتری، پایه، قطعات نصب یا دفترچه. اگر وسیله برای استفاده به لوازم جداگانه نیاز دارد، آن‌ها را در برنامه خریدت در نظر بگیر.",
+        "content_id": "editorial:check-box-contents",
+        "content_type": "editorial",
+        "delivery_status": "selected_not_published",
+        "editorial_cycle_number": 1,
+        "editorial_id": "check-box-contents",
+        "idempotency_key": "03b9b588e586212c",
+        "related_product_id": "",
+        "review_due_at": "2027-02-10T18:00:00Z",
+        "reviewed_at": "2026-11-12T18:00:00Z",
+        "sequence_number": 28,
+        "sources": [
+          {
+            "source_id": "ftc-online-shopping",
+            "title": "راهنمای خرید اینترنتی FTC",
+            "url": "https://consumer.ftc.gov/articles/online-shopping"
+          }
+        ],
+        "title": "ببین داخل جعبه دقیقاً چه چیزهایی قرار دارد",
+        "topic": "fit-and-size"
+      },
+      "platforms": {
+        "aparat": {
+          "attempt_started_at": "2026-11-14T20:27:51.392001+00:00",
+          "attempts": 1,
+          "message_id": "ewx296c",
+          "status": "sent",
+          "updated_at": "2026-11-14T20:27:55.307123+00:00",
+          "url": "https://www.aparat.com/v/ewx296c"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempt_started_at": "2026-11-14T20:27:55.839785+00:00",
+          "attempts": 1,
+          "last_error": "filo_submitted_pending_approval_not_public",
+          "status": "manual_review",
+          "updated_at": "2026-11-14T20:28:26.136360+00:00",
+          "url": "https://ifilo.net/v/4CrSEpJ"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempt_started_at": "2026-11-14T20:27:48.916307+00:00",
+          "attempts": 1,
+          "message_id": "Ul479KHrir8",
+          "status": "sent",
+          "updated_at": "2026-11-14T20:27:50.839796+00:00",
+          "url": "https://www.youtube.com/shorts/Ul479KHrir8"
+        }
+      },
+      "related_product_id": "",
+      "scheduled_at": "2026-11-14T20:27:43.939803+00:00",
+      "selected_at": "2026-11-14T20:27:43.939803+00:00",
+      "sequence_number": 28,
+      "status": "partial"
+    }
+  },
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -304576,9 +304703,9 @@
   },
   "filo_last_upload_attempt_at": "2026-11-14T17:20:05.324497+00:00",
   "filo_last_upload_success_at": "2026-11-14T17:20:43.441934+00:00",
-  "filo_login_verification_attempted_at": "2026-11-14T20:19:13.088605+00:00",
+  "filo_login_verification_attempted_at": "2026-11-14T20:27:43.083016+00:00",
   "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-14T20:19:13.088605+00:00",
+  "filo_login_verified_at": "2026-11-14T20:27:43.083016+00:00",
   "filo_upload_interval_policy_version": 3,
   "growth_tracking": {
     "daily_member_counts": {
@@ -304836,8 +304963,8 @@
   },
   "last_channel_published_at": "2026-11-14T19:30:41.019912+00:00",
   "last_content_selection_at": "2026-11-13T22:13:58.676719+00:00",
-  "last_editorial_attempt_at": "2026-11-14T19:24:05.276666+00:00",
-  "last_editorial_confirmed_at": "2026-11-14T19:30:46.497397+00:00",
+  "last_editorial_attempt_at": "2026-11-14T20:27:43.939803+00:00",
+  "last_editorial_confirmed_at": "2026-11-14T20:27:55.307123+00:00",
   "last_product_channel_published_at": "2026-11-13T22:14:18.640320+00:00",
   "last_published_at": "2026-11-14T19:30:41.019912+00:00",
   "market_price_api_checks": {
@@ -391230,7 +391357,7 @@
       "ts": 1793119008.409393
     }
   },
-  "publication_sequence_counter": 27,
+  "publication_sequence_counter": 28,
   "published": {
     "dkp-1002646": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -482046,6 +482173,6 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 17,
   "snappshop_retry_after": "2026-11-15T10:36:57.728076+00:00",
-  "youtube_last_upload_success_at": "2026-11-14T19:24:12.293179+00:00",
+  "youtube_last_upload_success_at": "2026-11-14T20:27:50.839880+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
