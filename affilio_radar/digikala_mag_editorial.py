@@ -417,7 +417,7 @@ def _make_editorial_draft(candidate: dict[str, Any], generated: dict[str, Any], 
     return {
         "editorial_id": "mag-" + re.sub(r"[^a-z0-9-]", "-", candidate_id.lower())[:24],
         "candidate_id": candidate_id,
-        "topic": str(candidate.get("topic") or "buying-guides"),
+        "topic": re.sub(r"[^a-z0-9-]+", "-", str(candidate.get("topic") or "buying-guides").lower().replace("_", "-")).strip("-"),
         "priority": "normal",
         "title": str(generated["title_fa"]).strip(),
         "body": str(generated["body_fa"]).strip(),
