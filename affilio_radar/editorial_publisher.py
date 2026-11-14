@@ -31,7 +31,8 @@ CHANNEL_DESTINATIONS = ("telegram", "bale", "rubika", "eitaa")
 VIDEO_DESTINATIONS = ("youtube", "aparat", "filo")
 TERMINAL = {"sent", "not_connected", "manual_review", "skipped_limit"}
 RETRYABLE = {"pending", "failed", "retry"}
-MINIMUM_GAP_MINUTES = max(50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55"))))
+# Editorial slots are scheduled from the floating catalog-cycle plan; no fixed 55-minute gate.
+MINIMUM_GAP_MINUTES = 0
 RETRY_BASE_SECONDS = max(60, min(1800, int(os.getenv("OFFERCHIN_EDITORIAL_RETRY_SECONDS", "300"))))
 MAX_ATTEMPTS = max(1, min(5, int(os.getenv("OFFERCHIN_EDITORIAL_MAX_ATTEMPTS", "3"))))
 
@@ -131,12 +132,8 @@ def queue_editorial_if_due(
         print("EDITORIAL_FALLBACK_WAIT reason=older_product_video_fifo_pending")
         return None
 
-    anchor = _recent_attempt_anchor(state)
-    if anchor and current - anchor < timedelta(minutes=MINIMUM_GAP_MINUTES):
-        remaining = max(0, int((timedelta(minutes=MINIMUM_GAP_MINUTES) - (current - anchor)).total_seconds()))
-        print(f"EDITORIAL_FALLBACK_NOT_DUE remaining_seconds={remaining}")
-        return None
-
+    # The shared floating schedule owns timing. An editorial fallback is not
+    # delayed by a second fixed wall-clock interval here.
     item = select_editorial_fallback(bank, state, now=current)
     if not item:
         state["last_editorial_empty_bank_check_at"] = current.isoformat()
@@ -778,6 +775,26 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
             _save(state)
         return 0
     payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+    scheduled_at = _utc(entry.get("scheduled_at") or entry.get("next_attempt_at"))
+    if scheduled_at is not None and scheduled_at > current.astimezone(timezone.utc):
+        remaining = max(0, int((scheduled_at - current.astimezone(timezone.utc)).total_seconds()))
+        print(
+            "EDITORIAL_NOT_DUE "
+            f"content_id={entry.get('content_id')} seconds_remaining={remaining}"
+        )
+        if publish:
+            _save(state)
+        return 0
+    next_attempt_at = _utc(entry.get("next_attempt_at"))
+    if next_attempt_at is not None and next_attempt_at > current.astimezone(timezone.utc):
+        if publish:
+            _save(state)
+        print(
+            "EDITORIAL_RETRY_NOT_DUE "
+            f"content_id={entry.get('content_id')} "
+            f"seconds_remaining={int((next_attempt_at - current.astimezone(timezone.utc)).total_seconds())}"
+        )
+        return 0
     if not publish:
         print(
             f"EDITORIAL_DRY_RUN mode={mode} content_id={entry.get('content_id')} "
