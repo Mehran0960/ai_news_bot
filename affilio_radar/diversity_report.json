@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-14T07:15:04.303560+00:00",
+  "generated_at": "2026-11-14T07:25:10.136309+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "اسپری حالت دهنده مو": 1,
@@ -195,7 +195,7 @@
       "روغن مو": 1,
       "رژ لب مایع و لیپ گلاس": 1,
       "ساعت هوشمند": 1,
-      "سایر لوازم خودرو": 3,
+      "سایر لوازم خودرو": 2,
       "سایر محصولات بهداشت جنسی": 1,
       "سرم و اسپری مراقبت مو": 1,
       "سرم پوست": 1,
@@ -266,7 +266,7 @@
     },
     "category_post_counts": {
       "audio_wearables": 5,
-      "automotive": 5,
+      "automotive": 4,
       "beauty_fragrance": 3,
       "books_stationery": 6,
       "computer_network": 1,
@@ -284,21 +284,21 @@
       "sports_outdoor": 9
     },
     "category_share_percent": {
-      "audio_wearables": 3.3,
-      "automotive": 3.3,
+      "audio_wearables": 3.4,
+      "automotive": 2.7,
       "beauty_fragrance": 2.0,
       "books_stationery": 4.0,
       "computer_network": 0.7,
       "digital_accessories": 0.7,
-      "fashion": 7.3,
+      "fashion": 7.4,
       "grocery_food": 4.0,
-      "home": 3.3,
+      "home": 3.4,
       "kids_sports": 2.7,
       "large_appliances": 0.7,
       "lighting": 0.7,
       "mobile_devices": 1.3,
-      "other": 37.3,
-      "personal_care": 21.3,
+      "other": 37.6,
+      "personal_care": 21.5,
       "power_backup": 1.3,
       "sports_outdoor": 6.0
     },
@@ -308,21 +308,21 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 22,
     "known_brand_posts": 11,
-    "posts": 150,
+    "posts": 149,
     "repeated_brand_count": 3,
     "repeated_brands": {
       "eurovital": 2,
       "habsan": 3
     },
     "retailer_post_counts": {
-      "digikala": 150
+      "digikala": 149
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
       "audio_visual": 4,
-      "automotive": 9,
+      "automotive": 8,
       "baby_care": 3,
       "books_learning": 5,
       "catalog_taxonomy_other": 16,
@@ -359,30 +359,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1251,
+    "all_time_count": 1252,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 489,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-14T04:16:06.411022+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-714799",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-14T04:26:04.135953+00:00",
         "brand": "",
@@ -691,6 +674,23 @@
       },
       {
         "at": "2026-11-14T07:15:04.303560+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-714799",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-14T07:25:10.136309+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
