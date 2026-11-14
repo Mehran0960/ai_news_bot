@@ -53,3 +53,8 @@ jobs:
             test_affilio.AffilioRadarTests.test_live_page_price_verification_rejects_mismatched_site_price \
             test_affilio.AffilioRadarTests.test_fresh_bestseller_demand_outranks_deadline_urgency_and_a_larger_discount \
             test_affilio.AffilioRadarTests.test_discovery_checks_prioritize_bestseller_demand_before_deadline_and_discount
+
+      - name: Test DigiKala Mag metadata discovery
+        working-directory: affilio_radar
+        run: python -m unittest -v test_digikala_mag_discovery.py
+
