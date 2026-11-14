@@ -461,6 +461,7 @@ def load_emergency_continuity_candidates(
     *,
     now: datetime | None = None,
     limit: int = 50,
+    required_product_id: str | None = None,
 ) -> dict[str, Any] | None:
     """Load a frozen last-known-good catalog as lead IDs only during one emergency window.
 
@@ -513,15 +514,28 @@ def load_emergency_continuity_candidates(
     rows = payload.get("candidates") if isinstance(payload, dict) else None
     if not isinstance(rows, list) or not rows:
         return None
-    try:
-        batch_limit = max(1, min(250, int(limit)))
-    except (TypeError, ValueError, OverflowError):
-        batch_limit = 50
-    try:
-        cursor = max(0, int(continuity_record.get("candidate_cursor") or 0)) % len(rows)
-    except (TypeError, ValueError, OverflowError):
-        cursor = 0
-    selected_rows = [rows[(cursor + offset) % len(rows)] for offset in range(min(batch_limit, len(rows)))]
+    if required_product_id:
+        wanted_id = str(required_product_id).strip()
+        selected_rows = [
+            row for row in rows
+            if isinstance(row, dict) and str(row.get("product_id") or "").strip() == wanted_id
+        ][:1]
+        if not selected_rows:
+            return None
+        try:
+            cursor = max(0, int(continuity_record.get("candidate_cursor") or 0)) % len(rows)
+        except (TypeError, ValueError, OverflowError):
+            cursor = 0
+    else:
+        try:
+            batch_limit = max(1, min(250, int(limit)))
+        except (TypeError, ValueError, OverflowError):
+            batch_limit = 50
+        try:
+            cursor = max(0, int(continuity_record.get("candidate_cursor") or 0)) % len(rows)
+        except (TypeError, ValueError, OverflowError):
+            cursor = 0
+        selected_rows = [rows[(cursor + offset) % len(rows)] for offset in range(min(batch_limit, len(rows)))]
 
     leads = []
     for row in selected_rows:
@@ -561,7 +575,9 @@ def load_emergency_continuity_candidates(
         "candidates": leads,
         "candidate_count": len(rows),
         "cursor": cursor,
-        "next_cursor": (cursor + len(selected_rows)) % len(rows),
+        "next_cursor": (
+            cursor if required_product_id else (cursor + len(selected_rows)) % len(rows)
+        ),
         "cycle_started_at": expected_started,
         "cycle_completed_at": expected_completed,
         "sha256": expected_sha,
