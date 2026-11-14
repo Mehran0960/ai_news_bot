@@ -137,6 +137,50 @@ class EditorialPublisherTests(unittest.TestCase):
             entry["scheduled_at"], (NOW + timedelta(minutes=20)).isoformat()
         )
 
+
+    def test_active_editorial_is_rescheduled_after_newer_product_publication(self):
+        state = {
+            "last_channel_published_at": NOW.isoformat(),
+            "publication_mix_plan": {
+                "cycle_id": "cycle-1",
+                "scan_deadline_at": (NOW + timedelta(minutes=90)).isoformat(),
+                "product_capacity_deficit": 0,
+            },
+        }
+        first = queue_editorial_if_due(
+            state, [editorial_item()], now=NOW + timedelta(minutes=22, seconds=30)
+        )
+        self.assertIsNotNone(first)
+        state["last_channel_published_at"] = (NOW + timedelta(minutes=25)).isoformat()
+        state["content_delivery_queue"] = {
+            "dkp-next": {
+                "status": "queued",
+                "attempt_count": 0,
+                "scheduled_at": (NOW + timedelta(minutes=60)).isoformat(),
+                "publication_plan_cycle_id": "cycle-1",
+                "platforms": {
+                    "telegram": {"status": "pending"},
+                    "bale": {"status": "pending"},
+                },
+            }
+        }
+        self.assertIsNone(
+            queue_editorial_if_due(
+                state, [editorial_item("unused", "unused-topic")],
+                now=NOW + timedelta(minutes=25),
+            )
+        )
+        resumed = queue_editorial_if_due(
+            state, [editorial_item("unused", "unused-topic")],
+            now=NOW + timedelta(minutes=43),
+        )
+        self.assertIsNotNone(resumed)
+        self.assertEqual(resumed["content_id"], first["content_id"])
+        self.assertEqual(
+            resumed["scheduled_at"],
+            (NOW + timedelta(minutes=42, seconds=30)).isoformat(),
+        )
+
     def test_equal_spacing_for_a_ninety_minute_gap_is_twenty_two_and_a_half_minutes(self):
         from editorial_publisher import _next_editorial_slot
         state = {
