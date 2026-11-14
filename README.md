@@ -11,6 +11,7 @@
 - [استاندارد برندینگ تصویر/ویدئو](affilio_radar/VISUAL_BRANDING.md)
 - [پکیج بهینه‌سازی OfferChin — سیاست و وضعیت اجرایی](docs/OFFERCHIN_OPTIMIZATION_PACKAGE_FA.md)\n- [سیاست رتبه‌بندی چهارعاملی — تقاضا، استطاعت، عمومیت و تخفیف](docs/OFFERCHIN_FOUR_FACTOR_RANKING_FA.md)
 - [قرارداد انتخاب مشترک و انتشار چندرسانه‌ای](docs/OFFERCHIN_SHARED_SELECTION_MEDIA_ROUTING_FA.md) — یک مسیر واحد انتخاب محصول برای کانال‌ها و مقصدهای ویدئویی، با صف‌های انتشار مستقل
+- [سیاست تحریریه و فاصله‌گذاری انتشار](docs/OFFERCHIN_EDITORIAL_FALLBACK_FA.md) — بانک محتوای فارسی، قاعدهٔ حداکثر ۲۷ دقیقه و جای‌گذاری مساوی مطالب میان محصولات
 - [طرح یک آفر ممتاز روزانه برای دیوار در OfferChin](docs/OFFERCHIN_DAILY_FEATURED_OFFER_FA.md) — یک انتخاب استثنایی یا اعلام نبود گزینهٔ واجد شرایط
 
 ## شکارچی فرصت‌های درآمدی (مستقل)
