@@ -224,7 +224,7 @@ def parse_feed(
             continue
         encountered_ids.add(candidate_id)
 
-        candidates.append({}
+        candidates.append({
             "candidate_id": candidate_id,
             "source": SOURCE_LABEL_FA,
             "source_url": url,
@@ -240,7 +240,6 @@ def parse_feed(
             ),
             "public_copy_generated": False,
         })
-        seen_map[candidate_id] = current.isoformat()
 
     candidates.sort(key=lambda item: (item["published_at"], item["editorial_relevance_score"]), reverse=True)
     selected = candidates[: max(1, int(max_candidates))]
