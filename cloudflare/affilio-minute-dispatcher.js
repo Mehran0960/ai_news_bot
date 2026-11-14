@@ -211,8 +211,20 @@ export function isInitialCatalogWarmup(status) {
   return Number(status.completed_cycles) === 0;
 }
 
+// Legacy compatibility only. New publication timing comes from the shared queue.
 export const PUBLISHER_INTERVAL_MS = 27 * 60 * 1000;
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
+const FLOATING_QUEUE_RETRY_GAP_MS = 60 * 1000;
+
+export function nextFloatingPublicationAt(state) {
+  const parsed = Date.parse(String(state && state.next_channel_publication_at || ""));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function floatingPublicationIsDue(state, now = Date.now()) {
+  const nextAt = nextFloatingPublicationAt(state);
+  return nextAt !== null && nextAt <= Number(now);
+}
 
 async function readOfferChinState(token) {
   try {
@@ -296,13 +308,25 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     return;
   }
 
+  const now = tick.getTime();
+  const nextQueuedPublicationAt = nextFloatingPublicationAt(state);
+  const scheduledQueueDue = (
+    nextQueuedPublicationAt !== null && nextQueuedPublicationAt <= now
+  );
   const [latestAttempt, catalogStatus] = await Promise.all([
     readLatestPublisherAttempt(env.GITHUB_TOKEN),
     readCatalogSweepStatus(env.GITHUB_TOKEN),
   ]);
   const lastPublishedAt = readLastChannelPublicationAt(state);
   let degradedLiveFallback = false;
-  if (!isUsableCleanCatalogSnapshot(catalogStatus)) {
+  if (scheduledQueueDue && !isUsableCleanCatalogSnapshot(catalogStatus)) {
+    // A previously selected, reserved queue item no longer depends on a clean scan.
+    // Publisher last-mile validation still checks price, stock, link, deadline and identity.
+    console.warn(
+      "OFFERCHIN_FLOATING_SLOT_DELIVERY_WITH_STALE_CATALOG " +
+      "live_product_revalidation_required=true"
+    );
+  } else if (!isUsableCleanCatalogSnapshot(catalogStatus)) {
     if (isInitialCatalogWarmup(catalogStatus)) {
       // Initial bootstrap: live discovery remains available until the first full snapshot.
       console.log("OFFERCHIN_PUBLISHER_WARMUP_FALLBACK reason=no_clean_snapshot_yet");
@@ -334,17 +358,26 @@ async function dispatchPublisherWhenDue(env, tick, state) {
       "/" + String(catalogStatus.unscanned_new_category_budget || 0)
     );
   }
-  const now = tick.getTime();
-  if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
-    console.log("OFFERCHIN_PUBLISHER_NOT_DUE seconds_remaining=" +
+  if (!scheduledQueueDue && lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
+    console.log("OFFERCHIN_PUBLISHER_LEGACY_EMPTY_QUEUE_RETRY_NOT_DUE seconds_remaining=" +
       Math.ceil((PUBLISHER_INTERVAL_MS - (now - lastPublishedAt)) / 1000));
+    return;
+  }
+
+  if (nextQueuedPublicationAt !== null && nextQueuedPublicationAt > now) {
+    console.log(
+      "OFFERCHIN_FLOATING_PUBLICATION_NOT_DUE seconds_remaining=" +
+      Math.ceil((nextQueuedPublicationAt - now) / 1000)
+    );
     return;
   }
 
   const attemptAt = Date.parse(String(
     latestAttempt && (latestAttempt.updated_at || latestAttempt.run_started_at || latestAttempt.created_at) || ""
   ));
-  const retryGap = degradedLiveFallback ? PUBLISHER_INTERVAL_MS : PUBLISHER_RETRY_GAP_MS;
+  const retryGap = scheduledQueueDue
+    ? FLOATING_QUEUE_RETRY_GAP_MS
+    : degradedLiveFallback ? PUBLISHER_INTERVAL_MS : PUBLISHER_RETRY_GAP_MS;
   if (Number.isFinite(attemptAt) && now - attemptAt < retryGap) {
     console.log("OFFERCHIN_PUBLISHER_RETRY_WINDOW seconds_remaining=" +
       Math.ceil((retryGap - (now - attemptAt)) / 1000));
