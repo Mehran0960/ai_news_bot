@@ -88,7 +88,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(entry["payload"]["sequence_number"], 9)
         self.assertEqual(entry["content_type"], "product")
 
-    def test_default_interval_is_23_minutes_from_last_channel_publication(self):
+    def test_default_interval_is_27_minutes_from_last_channel_publication(self):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-first")], now=self.now, minimum_runway_minutes=0
@@ -102,7 +102,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         scheduled = datetime.fromisoformat(
             state["content_delivery_queue"]["dkp-second"]["scheduled_at"]
         )
-        self.assertEqual(scheduled, self.now + timedelta(minutes=23))
+        self.assertEqual(scheduled, self.now + timedelta(minutes=27))
 
 
     def test_enqueue_persists_platform_neutral_payload_without_delivery(self):
@@ -684,6 +684,25 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(
             state["content_delivery_history"][-1]["status"], "stale_selection"
         )
+
+
+    def test_scan_plan_reservation_is_not_evicted_by_later_discovery(self):
+        state = {
+            "content_delivery_queue": {
+                "dkp-reserved": {
+                    "status": "queued",
+                    "selected_at": (self.now - timedelta(hours=4)).isoformat(),
+                    "scheduled_at": (self.now + timedelta(hours=2)).isoformat(),
+                    "publication_plan_cycle_id": "scan-cycle-1",
+                    "platforms": {},
+                }
+            }
+        }
+        replaced = refresh_unpublished_selections(
+            state, now=self.now, stale_after_minutes=8, plan_cycle_id="scan-cycle-1"
+        )
+        self.assertEqual(replaced, 0)
+        self.assertIn("dkp-reserved", state["content_delivery_queue"])
 
     def test_partial_delivery_does_not_prevent_fresh_content_selection(self):
         state = {}

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import re
 import time
@@ -22,8 +23,8 @@ from content_delivery import (
     get_last_channel_published_at,
     refresh_unpublished_selections,
 )
-from editorial_content import record_editorial_delivery, select_editorial_fallback
-from platform_registry import PLATFORM_NAMES
+from editorial_content import record_editorial_delivery, select_editorial_fallback, validate_editorial_item
+from platform_registry import CORE_PHOTO_PLATFORMS, PLATFORM_NAMES
 
 ROOT = Path(__file__).resolve().parent
 EDITORIAL_BANK = ROOT / "editorial_bank.json"
@@ -31,7 +32,7 @@ CHANNEL_DESTINATIONS = ("telegram", "bale", "rubika", "eitaa")
 VIDEO_DESTINATIONS = ("youtube", "aparat", "filo")
 TERMINAL = {"sent", "not_connected", "manual_review", "skipped_limit"}
 RETRYABLE = {"pending", "failed", "retry"}
-MINIMUM_GAP_MINUTES = max(50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55"))))
+MAXIMUM_PUBLICATION_GAP_MINUTES = 27
 RETRY_BASE_SECONDS = max(60, min(1800, int(os.getenv("OFFERCHIN_EDITORIAL_RETRY_SECONDS", "300"))))
 MAX_ATTEMPTS = max(1, min(5, int(os.getenv("OFFERCHIN_EDITORIAL_MAX_ATTEMPTS", "3"))))
 
@@ -64,32 +65,121 @@ def _load_bank() -> list[dict]:
     return value
 
 
-def _active_editorial_entries(state: dict) -> list[dict]:
+
+def _entry_has_pending_destinations(entry: dict, destinations: tuple[str, ...]) -> bool:
+    platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+    return any(
+        not (isinstance(platforms.get(name), dict) and platforms[name].get("status") in TERMINAL)
+        for name in destinations
+    )
+
+
+def _primary_channel_sent(entry: dict) -> bool:
+    platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+    return any(
+        isinstance(platforms.get(name), dict) and platforms[name].get("status") == "sent"
+        for name in ("telegram", "bale")
+    )
+
+
+def _active_editorial_entries(state: dict, *, mode: str = "channels") -> list[dict]:
     queue = state.get("editorial_delivery_queue")
     if not isinstance(queue, dict):
         return []
-    rows = [
-        row for row in queue.values()
-        if isinstance(row, dict) and row.get("status") not in {"completed", "cancelled", "failed"}
-    ]
+    destinations = CHANNEL_DESTINATIONS if mode == "channels" else VIDEO_DESTINATIONS
+    rows = []
+    for row in queue.values():
+        if not isinstance(row, dict) or row.get("status") in {"completed", "cancelled", "failed"}:
+            continue
+        if not _entry_has_pending_destinations(row, destinations):
+            continue
+        primary_sent = _primary_channel_sent(row)
+        if mode == "channels" and primary_sent:
+            continue
+        if mode == "videos" and not primary_sent:
+            continue
+        rows.append(row)
     return sorted(rows, key=lambda row: int(row.get("sequence_number") or 0))
 
 
-def _pending_product_video_exists(state: dict) -> bool:
+def _pending_editorial_channel_retries(state: dict, *, now: datetime) -> list[dict]:
+    queue = state.get("editorial_delivery_queue")
+    if not isinstance(queue, dict):
+        return []
+    rows = []
+    for entry in queue.values():
+        if not isinstance(entry, dict) or entry.get("status") in {"completed", "cancelled", "failed"}:
+            continue
+        if not _primary_channel_sent(entry):
+            continue
+        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+        due = False
+        for name in CHANNEL_DESTINATIONS:
+            target = platforms.get(name) if isinstance(platforms.get(name), dict) else {}
+            status = str(target.get("status") or "pending").lower()
+            if status not in RETRYABLE:
+                continue
+            retry_at = _utc(target.get("next_attempt_at"))
+            if retry_at is None or retry_at <= now:
+                due = True
+                break
+        if due:
+            rows.append(entry)
+    return sorted(rows, key=lambda row: int(row.get("sequence_number") or 0))
+
+
+def _pending_product_channel_entries(state: dict, *, now: datetime | None = None) -> list[dict]:
+    """Only overdue/unresolved primary-channel product deliveries pre-empt editorial."""
+    current = now or _now()
+    queue = state.get("content_delivery_queue")
+    if not isinstance(queue, dict):
+        return []
+    pending = []
+    for row in queue.values():
+        if not isinstance(row, dict) or row.get("status") in {"published", "cancelled", "stale_selection"}:
+            continue
+        platforms = row.get("platforms") if isinstance(row.get("platforms"), dict) else {}
+        scheduled = _utc(row.get("scheduled_at"))
+        if scheduled is not None and scheduled > current:
+            continue
+        if any(
+            not (isinstance(platforms.get(name), dict) and platforms[name].get("status") in TERMINAL)
+            for name in CORE_PHOTO_PLATFORMS
+        ):
+            pending.append(row)
+    return pending
+
+
+def _pending_product_video_exists(state: dict, *, before_sequence: int | None = None) -> bool:
     published = state.get("published")
     if not isinstance(published, dict):
         return False
     checker = getattr(radar, "_has_pending_video_destination", None)
     if not callable(checker):
         return False
-    return any(checker(row) for row in published.values() if isinstance(row, dict))
+    for row in published.values():
+        if not isinstance(row, dict) or not checker(row):
+            continue
+        if before_sequence is None:
+            return True
+        try:
+            sequence = int(row.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            sequence = 0
+        if sequence <= 0:
+            try:
+                sequence = max(0, int(float(row.get("ts") or 0)))
+            except (TypeError, ValueError, OverflowError):
+                sequence = 0
+        if sequence and sequence < int(before_sequence):
+            return True
+    return False
 
 
 def _recent_attempt_anchor(state: dict) -> datetime | None:
     candidates = [
         get_last_channel_published_at(state),
         _utc(state.get("last_editorial_confirmed_at")),
-        _utc(state.get("last_editorial_attempt_at")),
     ]
     history = state.get("editorial_delivery_history")
     if isinstance(history, list):
@@ -101,49 +191,133 @@ def _recent_attempt_anchor(state: dict) -> datetime | None:
     return max(valid) if valid else None
 
 
+
+
+def _next_editorial_slot(state: dict, *, now: datetime) -> tuple[datetime, datetime, float] | None:
+    """Return the next equal-spacing editorial slot before the next product or scan."""
+    anchor = _recent_attempt_anchor(state)
+    if anchor is None:
+        return None
+    mix_plan = state.get("publication_mix_plan")
+    if not isinstance(mix_plan, dict):
+        return None
+    boundaries: list[datetime] = []
+    product_queue = state.get("content_delivery_queue")
+    if isinstance(product_queue, dict):
+        for row in product_queue.values():
+            if not isinstance(row, dict) or row.get("status") in {"published", "cancelled", "stale_selection"}:
+                continue
+            platforms = row.get("platforms") if isinstance(row.get("platforms"), dict) else {}
+            if any(
+                isinstance(platforms.get(name), dict)
+                and platforms[name].get("status") == "sent"
+                for name in CORE_PHOTO_PLATFORMS
+            ):
+                continue
+            scheduled = _utc(row.get("scheduled_at"))
+            if scheduled and scheduled > anchor and scheduled > now:
+                boundaries.append(scheduled)
+    scan_deadline = _utc(mix_plan.get("scan_deadline_at"))
+    if scan_deadline and scan_deadline > anchor and scan_deadline > now:
+        boundaries.append(scan_deadline)
+    if not boundaries:
+        return None
+    boundary = min(boundaries)
+    gap_seconds = (boundary - anchor).total_seconds()
+    max_gap_seconds = MAXIMUM_PUBLICATION_GAP_MINUTES * 60
+    if gap_seconds <= max_gap_seconds:
+        return None
+    editorial_count = max(1, math.ceil(gap_seconds / max_gap_seconds) - 1)
+    equal_spacing_seconds = gap_seconds / (editorial_count + 1)
+    return anchor + timedelta(seconds=equal_spacing_seconds), boundary, equal_spacing_seconds
+
+
+
 def queue_editorial_if_due(
     state: dict,
     bank: list[dict],
     *,
     now: datetime | None = None,
 ) -> dict | None:
-    """Reuse the active editorial item or allocate a new one after product FIFO is clear."""
+    """Fill the next equally spaced editorial slot without delaying a product."""
     current = now or _now()
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-
-    active = _active_editorial_entries(state)
+    mix_plan = state.get("publication_mix_plan")
+    current_plan_id = str(mix_plan.get("cycle_id") or "") if isinstance(mix_plan, dict) else None
+    refresh_unpublished_selections(
+        state, now=current, stale_after_minutes=8, plan_cycle_id=current_plan_id
+    )
+    pending_products = _pending_product_channel_entries(state, now=current)
+    if pending_products:
+        print(
+            "EDITORIAL_FALLBACK_WAIT reason=product_channel_slot_pending "
+            f"pending_product_items={len(pending_products)}"
+        )
+        return None
+    if isinstance(mix_plan, dict) and int(mix_plan.get("product_capacity_deficit") or 0) > 0:
+        print(
+            "EDITORIAL_FALLBACK_WAIT reason=product_plan_over_capacity "
+            f"deferred_products={mix_plan.get('product_capacity_deficit')}"
+        )
+        return None
+    # Resume an already-reserved item immediately only when no newer product
+    # publication has changed the interval anchor since its slot was reserved.
+    active = _active_editorial_entries(state, mode="channels")
+    current_anchor = _recent_attempt_anchor(state)
     if active:
-        return active[0]
+        entry = active[0]
+        reserved_anchor = _utc(entry.get("interval_anchor_at"))
+        if reserved_anchor is None or current_anchor is None or current_anchor <= reserved_anchor:
+            return entry
+        # A product was delivered after this editorial slot was reserved. Re-plan
+        # the same item against the new product timestamp rather than bunching posts.
+        slot = _next_editorial_slot(state, now=current)
+        if slot is None:
+            print("EDITORIAL_FALLBACK_WAIT reason=product_delivery_replanned_editorial_slot")
+            return None
+        due_at, boundary, spacing_seconds = slot
+        if current < due_at:
+            remaining = max(0, int((due_at - current).total_seconds()))
+            print(
+                "EDITORIAL_FALLBACK_REPLAN_WAIT "
+                f"seconds_remaining={remaining} equal_spacing_seconds={int(spacing_seconds)}"
+            )
+            return None
+        entry["scheduled_at"] = due_at.isoformat()
+        entry["next_attempt_at"] = due_at.isoformat()
+        entry["sequence_number"] = int(due_at.timestamp())
+        entry["interval_anchor_at"] = current_anchor.isoformat()
+        payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+        payload["sequence_number"] = entry["sequence_number"]
+        entry["payload"] = payload
+        return entry
 
-    # Old, never-delivered product selections are retired after the same short
-    # reservation window used by the product delivery contract.
-    refresh_unpublished_selections(state, now=current, stale_after_minutes=8)
-    product_queue = state.get("content_delivery_queue")
-    if isinstance(product_queue, dict) and any(
-        isinstance(row, dict) and row.get("status") not in {"published", "cancelled", "stale_selection"}
-        for row in product_queue.values()
-    ):
-        print("EDITORIAL_FALLBACK_WAIT reason=product_photo_fifo_not_terminal")
+    slot = _next_editorial_slot(state, now=current)
+    if slot is None:
+        print("EDITORIAL_FALLBACK_WAIT reason=no_gap_exceeding_27_minutes")
         return None
-    if _pending_product_video_exists(state):
-        print("EDITORIAL_FALLBACK_WAIT reason=older_product_video_fifo_pending")
+    due_at, boundary, spacing_seconds = slot
+    if current < due_at:
+        remaining = max(0, int((due_at - current).total_seconds()))
+        print(
+            "EDITORIAL_FALLBACK_NOT_DUE "
+            f"seconds_remaining={remaining} equal_spacing_seconds={int(spacing_seconds)}"
+        )
         return None
-
-    anchor = _recent_attempt_anchor(state)
-    if anchor and current - anchor < timedelta(minutes=MINIMUM_GAP_MINUTES):
-        remaining = max(0, int((timedelta(minutes=MINIMUM_GAP_MINUTES) - (current - anchor)).total_seconds()))
-        print(f"EDITORIAL_FALLBACK_NOT_DUE remaining_seconds={remaining}")
-        return None
-
     item = select_editorial_fallback(bank, state, now=current)
     if not item:
         state["last_editorial_empty_bank_check_at"] = current.isoformat()
         print("EDITORIAL_FALLBACK_EMPTY reason=no_valid_nonrepeating_reviewed_item")
         return None
-
-    sequence_number = allocate_publication_sequence(state)
+    sequence_number = int(due_at.timestamp())
+    try:
+        state["publication_sequence_counter"] = max(
+            int(state.get("publication_sequence_counter") or 0), sequence_number
+        )
+    except (TypeError, ValueError, OverflowError):
+        state["publication_sequence_counter"] = sequence_number
     item["sequence_number"] = sequence_number
     queue = state.setdefault("editorial_delivery_queue", {})
     if not isinstance(queue, dict):
@@ -154,20 +328,70 @@ def queue_editorial_if_due(
         "content_type": "editorial",
         "sequence_number": sequence_number,
         "selected_at": current.isoformat(),
-        "scheduled_at": current.isoformat(),
-        "next_attempt_at": current.isoformat(),
+        "interval_anchor_at": _recent_attempt_anchor(state).isoformat() if _recent_attempt_anchor(state) else due_at.isoformat(),
+        "scheduled_at": due_at.isoformat(),
+        "next_attempt_at": due_at.isoformat(),
         "status": "queued",
         "attempt_count": 0,
         "payload": item,
-        "platforms": {
-            name: {"status": "pending", "attempts": 0}
-            for name in PLATFORM_NAMES
-        },
+        "platforms": {name: {"status": "pending", "attempts": 0} for name in PLATFORM_NAMES},
     }
     queue[item["content_id"]] = entry
-    state["last_editorial_attempt_at"] = current.isoformat()
-    print(f"EDITORIAL_FALLBACK_QUEUED content_id={item['content_id']} sequence={sequence_number}")
+    print(
+        f"EDITORIAL_FALLBACK_QUEUED content_id={item['content_id']} "
+        f"sequence={sequence_number} boundary={boundary.isoformat()} "
+        f"equal_spacing_minutes={spacing_seconds / 60:.2f}"
+    )
     return entry
+
+
+
+
+
+def _channel_slot_gap_remaining_seconds(state: dict, now: datetime) -> int:
+    slot = _next_editorial_slot(state, now=now)
+    if slot is None:
+        return 0
+    due_at, _boundary, _spacing_seconds = slot
+    return max(0, int((due_at - now).total_seconds()))
+
+
+
+def _retry_existing_editorial_channel_deliveries(state: dict, *, now: datetime) -> None:
+    """Retry optional channel destinations only when the shared slot is free."""
+    if _pending_product_channel_entries(state, now=now):
+        return
+    for entry in _pending_editorial_channel_retries(state, now=now)[:5]:
+        payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+        valid, reason = validate_editorial_item(payload, now=now)
+        if not valid:
+            for destination in CHANNEL_DESTINATIONS:
+                target = _target(entry, destination)
+                if target.get("status") not in TERMINAL:
+                    target["status"] = "manual_review"
+                    target["last_error"] = f"editorial_content_rejected:{reason}"
+            _save(state)
+            continue
+        try:
+            from editorial_video import render_editorial_poster
+            image_bytes = render_editorial_poster(payload)
+        except Exception as exc:
+            print(
+                f"EDITORIAL_RETRY_POSTER_FAILED content_id={entry.get('content_id')} "
+                f"error={type(exc).__name__}"
+            )
+            continue
+        message = _format_message(payload)
+        for destination in CHANNEL_DESTINATIONS:
+            target = _target(entry, destination)
+            if target.get("status") not in RETRYABLE:
+                continue
+            _handle_channel_destination(state, entry, destination, image_bytes, message, now)
+        _refresh_delivery_history(state, entry, _now())
+        _finalize_if_terminal(state, entry, _now())
+        _save(state)
+
+
 
 
 def _format_message(item: dict) -> str:
@@ -182,14 +406,12 @@ def _format_message(item: dict) -> str:
     ]
     for source in item.get("sources") or []:
         if isinstance(source, dict):
-            title = str(source.get("title") or "منبع")
+            title = str(source.get("display_title_fa") or "منبع فارسی")
             url = str(source.get("url") or "")
             if url.startswith("https://"):
                 lines.append(f"• {title}: {url}")
-    lines.extend(["", "آفِرچین | t.me/OfferChin"])
-    message = "\n".join(lines)
-    return message[:3900]
-
+    lines.extend(["", "آفِرچین؛ راهنمای خرید آگاهانه"])
+    return "\n".join(lines)[:3900]
 
 def _send_bot_message(platform: str, message: str) -> dict:
     if platform == "telegram":
@@ -446,6 +668,7 @@ def _handle_channel_destination(
 
     target["status"] = "sending"
     target["attempt_started_at"] = now.isoformat()
+    state["last_editorial_attempt_at"] = now.isoformat()
     target["attempts"] = int(target.get("attempts") or 0) + 1
     entry["status"] = "publishing"
     _save(state)
@@ -485,10 +708,9 @@ def _video_description(item: dict) -> str:
     parts = [str(item.get("body") or "").strip(), "", "منابع:"]
     for source in item.get("sources") or []:
         if isinstance(source, dict) and str(source.get("url") or "").startswith("https://"):
-            parts.append(f"{source.get('title')}: {source.get('url')}")
-    parts.extend(["", "t.me/OfferChin", "ble.ir/OfferChin"])
+            parts.append(f"{source.get('display_title_fa')}: {source.get('url')}")
+    parts.extend(["", "برای نکته‌های بیشتر، آفِرچین را دنبال کنید"])
     return "\n".join(parts)[:2900]
-
 
 def _handle_video_destination(
     state: dict, entry: dict, destination: str, video_path: Path, now: datetime
@@ -664,20 +886,15 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         else:
             invalid_items.append({"editorial_id": str(item.get("editorial_id") or ""), "reason": reason})
 
-    active = _active_editorial_entries(state)
-    product_queue = state.get("content_delivery_queue")
-    active_products = [
-        row for row in (product_queue.values() if isinstance(product_queue, dict) else [])
-        if isinstance(row, dict) and row.get("status") not in {"published", "cancelled", "stale_selection"}
-    ]
+    active = _active_editorial_entries(state, mode="channels")
+    active_video_entries = _active_editorial_entries(state, mode="videos")
+    active_products = _pending_product_channel_entries(state, now=current)
     pending_videos = _pending_product_video_exists(state)
     shadow_state_for_anchor = json.loads(json.dumps(state, ensure_ascii=False, default=str))
-    anchor = _recent_attempt_anchor(shadow_state_for_anchor)
-    elapsed = (current - anchor) if anchor else None
+    planned_slot = _next_editorial_slot(shadow_state_for_anchor, now=current)
     remaining = (
-        max(0, int((timedelta(minutes=MINIMUM_GAP_MINUTES) - elapsed).total_seconds()))
-        if elapsed is not None and elapsed < timedelta(minutes=MINIMUM_GAP_MINUTES)
-        else 0
+        max(0, int((planned_slot[0] - current).total_seconds()))
+        if planned_slot is not None else 0
     )
 
     destination_config = {
@@ -706,35 +923,34 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     except Exception:
         destination_config["filo"] = False
 
-    if active:
+    if active_products:
+        decision = "wait_for_product_channel_slot"
+        item_id = None
+        sequence = None
+    elif planned_slot is not None and remaining > 0:
+        decision = "wait_for_equal_spacing_editorial_slot"
+        item_id = None
+        sequence = int(planned_slot[0].timestamp())
+    elif active:
         selected = active[0]
         decision = "resume_active_editorial"
         item_id = str(selected.get("content_id") or "")
         sequence = selected.get("sequence_number")
-    elif active_products:
-        decision = "wait_for_older_product_photo_fifo"
-        item_id = None
-        sequence = None
-    elif pending_videos:
-        decision = "wait_for_older_product_video_fifo"
-        item_id = None
-        sequence = None
-    elif remaining:
-        decision = "wait_for_55_minute_fallback_interval"
-        item_id = None
-        sequence = None
     else:
-        # Simulate enqueue against a JSON copy only. The live state and queue are read-only.
         shadow_state = json.loads(json.dumps(state, ensure_ascii=False, default=str))
         candidate = select_editorial_fallback(bank, shadow_state, now=current)
         if candidate is None:
             decision = "no_valid_nonrepeating_reviewed_item"
             item_id = None
             sequence = None
+        elif planned_slot is None:
+            decision = "no_gap_exceeding_27_minutes"
+            item_id = None
+            sequence = None
         else:
-            sequence = allocate_publication_sequence(shadow_state)
             decision = "would_queue_editorial"
             item_id = str(candidate.get("content_id") or "")
+            sequence = int(planned_slot[0].timestamp())
 
     return {
         "observed_at": current.astimezone(timezone.utc).isoformat(),
@@ -743,12 +959,17 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "decision": decision,
         "would_select_content_id": item_id,
         "would_allocate_sequence_number": sequence,
-        "fallback_interval_minutes": MINIMUM_GAP_MINUTES,
+        "maximum_global_publication_gap_minutes": MAXIMUM_PUBLICATION_GAP_MINUTES,
+        "planned_equal_spacing_minutes": round(planned_slot[2] / 60, 2) if planned_slot else None,
+        "maximum_global_publication_gap_minutes": 27,
+        "editorial_public_language": "Persian-only",
         "seconds_until_fallback_due": remaining,
         "editorial_bank_total": len(bank),
         "editorial_bank_valid": len(valid_items),
         "editorial_bank_invalid": invalid_items,
         "active_editorial_queue_items": len(active),
+        "active_editorial_video_queue_items": len(active_video_entries),
+        "active_editorial_video_queue_items": len(active_video_entries),
         "active_product_photo_queue_items": len(active_products),
         "older_product_video_pending": bool(pending_videos),
         "destination_credentials_present": destination_config,
@@ -768,16 +989,35 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
     current = now or _now()
     state = radar.load_state(apply_integrity_ledger=False)
     bank = _load_bank()
-    entry = queue_editorial_if_due(state, bank, now=current)
+    if mode == "channels":
+        entry = queue_editorial_if_due(state, bank, now=current)
+    else:
+        video_entries = _active_editorial_entries(state, mode="videos")
+        entry = video_entries[0] if video_entries else None
     if publish:
         # Persist the canonical id and allocated sequence before rendering or any
         # outbound request, so a runner restart cannot allocate a duplicate sequence.
         _save(state)
     if not entry:
-        if publish:
+        if publish and mode == "channels":
+            _retry_existing_editorial_channel_deliveries(state, now=current)
             _save(state)
         return 0
     payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+    valid, invalid_reason = validate_editorial_item(payload, now=current)
+    if not valid:
+        destinations = CHANNEL_DESTINATIONS if mode == "channels" else VIDEO_DESTINATIONS
+        for destination in destinations:
+            target = _target(entry, destination)
+            if target.get("status") not in TERMINAL:
+                target["status"] = "manual_review"
+                target["last_error"] = f"editorial_content_rejected:{invalid_reason}"
+        _refresh_delivery_history(state, entry, _now())
+        _finalize_if_terminal(state, entry, _now())
+        if publish:
+            _save(state)
+        print(f"EDITORIAL_CONTENT_REJECTED content_id={entry.get('content_id')} reason={invalid_reason}")
+        return 0
     if not publish:
         print(
             f"EDITORIAL_DRY_RUN mode={mode} content_id={entry.get('content_id')} "
@@ -795,9 +1035,16 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         message = _format_message(payload)
         for destination in CHANNEL_DESTINATIONS:
             _handle_channel_destination(state, entry, destination, image_bytes, message, _now())
+        _refresh_delivery_history(state, entry, _now())
+        _finalize_if_terminal(state, entry, _now())
+        _retry_existing_editorial_channel_deliveries(state, now=_now())
     else:
-        # Keep all older product videos ahead of a newer editorial video.
-        if _pending_product_video_exists(state):
+        # Keep only chronologically older product videos ahead of this editorial.
+        try:
+            editorial_sequence = int(entry.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            editorial_sequence = 0
+        if _pending_product_video_exists(state, before_sequence=editorial_sequence or None):
             print("EDITORIAL_VIDEO_WAIT reason=older_product_video_fifo_pending")
             _save(state)
             return 0

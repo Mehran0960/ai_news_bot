@@ -67,7 +67,7 @@ def render_editorial_poster(item: dict, output_path: str | Path | None = None) -
     source_count = len(item.get("sources") or [])
     _draw_centered(draw, f"مبنای مطلب: {source_count} منبع", HEIGHT - 218, _font(24, False), MUTED)
     draw.line((100, HEIGHT - 176, WIDTH - 100, HEIGHT - 176), fill=(70, 91, 119), width=2)
-    _draw_centered(draw, "t.me/OfferChin  |  ble.ir/OfferChin", HEIGHT - 142, _font(23, True), TEXT)
+    _draw_centered(draw, "برای نکته‌های بیشتر، آفِرچین را دنبال کنید", HEIGHT - 142, _font(23, True), TEXT)
 
     output = BytesIO()
     canvas.save(output, format="PNG", optimize=True)
