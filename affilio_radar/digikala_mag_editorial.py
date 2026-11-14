@@ -545,7 +545,7 @@ def run_pipeline(
                 candidate["retry_after"] = (current + timedelta(hours=4)).isoformat()
                 failed += 1
 
-    pending_list = sorted(pending.values(), key=_candidate_sort_key)[-MAX_PENDING_CANDIDATES:]
+    pending_list = sorted(pending.values(), key=_candidate_sort_key)[:MAX_PENDING_CANDIDATES]
     review_queue = review_queue[-MAX_REVIEW_DRAFTS:]
     state_out = {
         "updated_at": current.isoformat(),
