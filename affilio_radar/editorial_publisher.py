@@ -263,6 +263,12 @@ def queue_editorial_if_due(
             f"deferred_products={mix_plan.get('product_capacity_deficit')}"
         )
         return None
+    # Resume an already-reserved item after the product-priority check.
+    # Retries must not wait for the next editorial slot.
+    active = _active_editorial_entries(state, mode="channels")
+    if active:
+        return active[0]
+
     slot = _next_editorial_slot(state, now=current)
     if slot is None:
         print("EDITORIAL_FALLBACK_WAIT reason=no_gap_exceeding_27_minutes")
@@ -275,15 +281,6 @@ def queue_editorial_if_due(
             f"seconds_remaining={remaining} equal_spacing_seconds={int(spacing_seconds)}"
         )
         return None
-    active = _active_editorial_entries(state, mode="channels")
-    if active:
-        entry = active[0]
-        entry["scheduled_at"] = due_at.isoformat()
-        entry["sequence_number"] = int(due_at.timestamp())
-        payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
-        payload["sequence_number"] = entry["sequence_number"]
-        entry["payload"] = payload
-        return entry
     item = select_editorial_fallback(bank, state, now=current)
     if not item:
         state["last_editorial_empty_bank_check_at"] = current.isoformat()
