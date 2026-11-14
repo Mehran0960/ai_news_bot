@@ -10,6 +10,7 @@ import {
   isFiloLoginVerified,
   PUBLISHER_INTERVAL_MS,
   PUBLISHER_STANDALONE_EDITORIAL_GAP_MS,
+  isEmergencyContinuityAvailable,
   nextPublisherDueAt,
   readLastChannelPublicationAt,
 } from "./affilio-minute-dispatcher.mjs";
@@ -218,6 +219,23 @@ test("standalone editorial fallback uses its own 55-minute gap when no queue slo
   const now = Date.now();
   assert.equal(PUBLISHER_STANDALONE_EDITORIAL_GAP_MS, 55 * 60 * 1000);
   assert.equal(nextPublisherDueAt({}, now), now + 55 * 60 * 1000);
+});
+
+test("emergency Worker dispatch requires a pinned hash and an unexpired window", () => {
+  const now = Date.now();
+  const active = {
+    emergency_continuity_active: true,
+    emergency_continuity_snapshot_sha256: "a".repeat(64),
+    emergency_continuity_baseline_completed_at: new Date(now - 90 * 60 * 60 * 1000).toISOString(),
+    emergency_continuity_expires_at: new Date(now + 60 * 60 * 1000).toISOString(),
+  };
+  assert.equal(isEmergencyContinuityAvailable(active, now), true);
+  assert.equal(isEmergencyContinuityAvailable({
+    ...active, emergency_continuity_expires_at: new Date(now - 1).toISOString(),
+  }, now), false);
+  assert.equal(isEmergencyContinuityAvailable({
+    ...active, emergency_continuity_snapshot_sha256: "invalid",
+  }, now), false);
 });
 
 test("publisher bootstraps immediately when neither a post nor a scheduled slot exists", () => {
