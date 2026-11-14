@@ -164,6 +164,30 @@ class DigiKalaMagEditorialTests(unittest.TestCase):
             "source_copy_overlap_too_high",
         )
 
+    def test_pending_cap_keeps_highest_ranked_candidates(self):
+        candidates = [
+            {
+                **CANDIDATE,
+                "candidate_id": f"candidate-{index:03d}",
+                "editorial_relevance_score": 100 - index,
+            }
+            for index in range(101)
+        ]
+        with tempfile.TemporaryDirectory() as folder:
+            source, state, output = self._files(Path(folder), candidates=candidates)
+            report = run_pipeline(
+                input_path=source,
+                state_path=state,
+                output_path=output,
+                env={},
+                now=NOW,
+            )
+            saved = json.loads(state.read_text(encoding="utf-8"))
+            self.assertEqual(report["candidates_waiting"], 100)
+            self.assertEqual(len(saved["pending_candidates"]), 100)
+            self.assertIn("candidate-000", {row["candidate_id"] for row in saved["pending_candidates"]})
+            self.assertNotIn("candidate-100", {row["candidate_id"] for row in saved["pending_candidates"]})
+
     def test_unofficial_article_url_is_rejected_before_network_access(self):
         with self.assertRaises(EditorialDraftError):
             run_pipeline(
