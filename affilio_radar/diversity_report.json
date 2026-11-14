@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-14T09:55:29.537607+00:00",
+  "generated_at": "2026-11-14T10:06:10.262022+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "اسپری حالت دهنده مو": 1,
@@ -116,11 +116,9 @@
       "پادری": 1,
       "پرایمر": 1,
       "کاپوچینو": 1,
-      "کتاب رمان و ادبیات داستانی و نمایشی": 1,
       "کیف و کوله سفری": 1
     },
     "category_post_counts": {
-      "books_stationery": 1,
       "fashion": 2,
       "home": 2,
       "other": 9,
@@ -128,30 +126,28 @@
       "sports_outdoor": 1
     },
     "category_share_percent": {
-      "books_stationery": 5.6,
-      "fashion": 11.1,
-      "home": 11.1,
-      "other": 50.0,
-      "personal_care": 16.7,
-      "sports_outdoor": 5.6
+      "fashion": 11.8,
+      "home": 11.8,
+      "other": 52.9,
+      "personal_care": 17.6,
+      "sports_outdoor": 5.9
     },
-    "distinct_catalog_categories": 18,
-    "distinct_categories": 6,
-    "distinct_families": 18,
+    "distinct_catalog_categories": 17,
+    "distinct_categories": 5,
+    "distinct_families": 17,
     "distinct_retailers": 1,
-    "distinct_use_cases": 7,
+    "distinct_use_cases": 6,
     "known_brand_posts": 1,
-    "posts": 18,
+    "posts": 17,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 18
+      "digikala": 17
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
-      "books_learning": 1,
       "catalog_taxonomy_other": 7,
       "fashion_lifestyle": 1,
       "kitchen_food": 1,
@@ -187,7 +183,7 @@
       "دستگاه ذوب وکس": 1,
       "دمبل": 1,
       "دهان‌شویه و خمیردندان کودک و نوزاد": 1,
-      "روشنایی و الکتریکی": 2,
+      "روشنایی و الکتریکی": 1,
       "روغن مو": 1,
       "رژ لب مایع و لیپ گلاس": 1,
       "ساعت هوشمند": 1,
@@ -275,7 +271,7 @@
       "other": 56,
       "personal_care": 32,
       "power_backup": 2,
-      "sports_outdoor": 9
+      "sports_outdoor": 8
     },
     "category_share_percent": {
       "audio_wearables": 3.5,
@@ -283,17 +279,17 @@
       "beauty_fragrance": 2.1,
       "books_stationery": 4.2,
       "digital_accessories": 0.7,
-      "fashion": 6.2,
+      "fashion": 6.3,
       "grocery_food": 3.5,
       "home": 2.8,
       "kids_sports": 2.8,
       "large_appliances": 0.7,
       "lighting": 0.7,
       "mobile_devices": 1.4,
-      "other": 38.9,
-      "personal_care": 22.2,
+      "other": 39.2,
+      "personal_care": 22.4,
       "power_backup": 1.4,
-      "sports_outdoor": 6.2
+      "sports_outdoor": 5.6
     },
     "distinct_catalog_categories": 96,
     "distinct_categories": 16,
@@ -301,14 +297,14 @@
     "distinct_retailers": 1,
     "distinct_use_cases": 22,
     "known_brand_posts": 11,
-    "posts": 144,
+    "posts": 143,
     "repeated_brand_count": 3,
     "repeated_brands": {
       "eurovital": 2,
       "habsan": 3
     },
     "retailer_post_counts": {
-      "digikala": 144
+      "digikala": 143
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -327,7 +323,7 @@
       "home_cleaning": 2,
       "home_living": 2,
       "kitchen_food": 5,
-      "lighting_electrical": 4,
+      "lighting_electrical": 3,
       "local_goods": 2,
       "mobile_productivity": 26,
       "office_study": 5,
@@ -352,30 +348,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1269,
+    "all_time_count": 1270,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 489,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-14T07:06:35.212828+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-714799",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-14T07:15:04.303560+00:00",
         "brand": "",
@@ -684,6 +663,23 @@
       },
       {
         "at": "2026-11-14T09:55:29.537607+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-4623902",
+        "family": "personal_care:skincare",
+        "product_id": "dkp-714799",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-14T10:06:10.262022+00:00",
         "brand": "",
         "catalog_category_id": "",
         "catalog_category_name": "",
