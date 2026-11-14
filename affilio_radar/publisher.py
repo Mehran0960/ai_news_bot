@@ -660,9 +660,9 @@ def editorial_fifo_lock_entry(state: dict) -> dict | None:
         ]
         core_sent = any(status == "sent" for status in core_statuses)
         core_pending = any(status not in TERMINAL_PLATFORM for status in core_statuses)
-        # A confirmed post to at least one core channel is enough to release the next
-        # premium product; retries on another channel must not hold the product slot.
-        if not core_pending or core_sent:
+        # Keep the related editorial ahead of its product until both core photo
+        # channels are terminal, but the bounded max-block timeout below prevents a stall.
+        if not core_pending:
             continue
         scheduled = _utc(entry.get("scheduled_at")) or _utc(entry.get("selected_at")) or now
         attempt_anchor = _utc(entry.get("last_attempt_at")) or _utc(entry.get("selected_at")) or scheduled
