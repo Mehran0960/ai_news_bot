@@ -221,6 +221,39 @@ test("standalone editorial fallback uses its own 55-minute gap when no queue slo
   assert.equal(nextPublisherDueAt({}, now), now + 55 * 60 * 1000);
 });
 
+test("emergency continuity retries discovery instead of waiting for standalone editorial", () => {
+  const now = Date.now();
+  const lastPost = now - PUBLISHER_INTERVAL_MS - 60_000;
+  const state = {
+    next_editorial_planning_at: new Date(now + 20 * 60 * 1000).toISOString(),
+  };
+  assert.equal(
+    nextPublisherDueAt(state, lastPost, { emergencyContinuityFallback: true }),
+    lastPost + PUBLISHER_INTERVAL_MS
+  );
+
+  const recentPost = now - 10 * 60 * 1000;
+  assert.equal(
+    nextPublisherDueAt(state, recentPost, { emergencyContinuityFallback: true }),
+    recentPost + PUBLISHER_INTERVAL_MS,
+    "emergency discovery must not weaken the public-post minimum gap"
+  );
+});
+
+test("emergency continuity still respects an already queued product or editorial slot", () => {
+  const now = Date.now();
+  const lastPost = now - 60 * 60 * 1000;
+  const scheduled = now + 40 * 60 * 1000;
+  const state = {
+    next_channel_content_due_at: new Date(scheduled).toISOString(),
+    next_editorial_planning_at: new Date(now + 55 * 60 * 1000).toISOString(),
+  };
+  assert.equal(
+    nextPublisherDueAt(state, lastPost, { emergencyContinuityFallback: true }),
+    scheduled
+  );
+});
+
 test("emergency Worker dispatch requires a pinned hash and an unexpired window", () => {
   const now = Date.now();
   const active = {
