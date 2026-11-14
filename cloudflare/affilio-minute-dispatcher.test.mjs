@@ -382,7 +382,13 @@ test("Filo accepts every confirmed channel delivery without requiring a retailer
     "Aparat's stricter verified-expiry rule must remain in place"
   );
   assert.equal(
-    hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" }, expiry_deadline_verified_directly: true } } }, "aparat", now),
+    hasDueVideoRecord({ published: { item: {
+      ...base,
+      delivery_status: { telegram: "sent" },
+      expiry_source: "digikala_product_detail_api",
+      expiry_deadline_verified_directly: true,
+      expires_at: new Date(now + 60 * 60_000).toISOString(),
+    } } }, "aparat", now),
     true
   );
 });
