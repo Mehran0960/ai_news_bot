@@ -113,7 +113,7 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIn("https://consumer.ftc.gov/articles/online-shopping", message)
         self.assertIn("راهنمای خرید اینترنتی", message)
         self.assertIn("راهنمای کوتاه خرید آگاهانه", message)
-        plain_copy = re.sub(r"https://\\S+", "", message)
+        plain_copy = re.sub(r"https://\S+", "", message)
         self.assertNotRegex(plain_copy, r"[A-Za-z]")
 
 
@@ -203,7 +203,7 @@ class EditorialPublisherTests(unittest.TestCase):
 
     def test_video_description_uses_persian_source_label_and_persian_footer(self):
         description = _video_description(editorial_item())
-        plain_copy = re.sub(r"https://\\S+", "", description)
+        plain_copy = re.sub(r"https://\S+", "", description)
         self.assertIn("راهنمای خرید اینترنتی", plain_copy)
         self.assertIn("برای نکته‌های بیشتر، آفِرچین را دنبال کنید", plain_copy)
         self.assertNotRegex(plain_copy, r"[A-Za-z]")
