@@ -68,7 +68,6 @@ class EditorialPublisherTests(unittest.TestCase):
         entry = queue_editorial_if_due(
             state, [editorial_item()], now=NOW + timedelta(minutes=20)
         )
-        expected_sequence = int(NOW.timestamp())
         expected_sequence = int((NOW + timedelta(minutes=20)).timestamp())
         self.assertEqual(entry["sequence_number"], expected_sequence)
         self.assertEqual(entry["content_type"], "editorial")
