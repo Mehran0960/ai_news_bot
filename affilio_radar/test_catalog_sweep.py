@@ -21,6 +21,7 @@ try:
         refresh_categories,
         CatalogSweepError,
         validate_discovery_api,
+        catalog_category_is_consistent,
         DISCOVERY_SEARCH_URL,
         DISCOVERY_AUTOCOMPLETE_URL,
         SESSION,
@@ -46,6 +47,7 @@ except ImportError:
         refresh_categories,
         CatalogSweepError,
         validate_discovery_api,
+        catalog_category_is_consistent,
         DISCOVERY_SEARCH_URL,
         DISCOVERY_AUTOCOMPLETE_URL,
         SESSION,
@@ -495,7 +497,7 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(session.calls[0][1]["q"], "گوشی")
         self.assertTrue(session.calls[1][0].endswith("/discovery/api/v1/search"))
         self.assertEqual(session.calls[1][1], {
-            "categories[0]": "11", "page": 1, "sort": 7
+            "q": "موبایل", "categories[0]": "11", "page": 1, "sort": 7
         })
 
     def test_discovery_preflight_rejects_http_200_with_no_marketable_products(self):
@@ -533,13 +535,32 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(SESSION.headers.get("Origin"), "https://www.digikala.com")
         self.assertEqual(SESSION.headers.get("X-Web-Optimize-Response"), "1")
 
+    def test_catalog_category_consistency_blocks_conflicting_known_taxonomy(self):
+        self.assertFalse(
+            catalog_category_is_consistent(
+                {"category": "[MA,نرم افزار]"}, "گوشی 512 گیگابایت"
+            )
+        )
+        self.assertFalse(
+            catalog_category_is_consistent(
+                {"category": "[HW,دکوراتیو]"}, "دانگل بلوتوث"
+            )
+        )
+        self.assertTrue(
+            catalog_category_is_consistent(
+                {"category": "[MA,نرم افزار]"}, "نرم افزار ویندوز"
+            )
+        )
+        # Missing taxonomy is not treated as a conflict.
+        self.assertTrue(catalog_category_is_consistent({"category": ""}, "گوشی"))
+
     def test_category_search_requests_current_discovery_api_category_filter(self):
         url, params = _category_page_url("123", 2, "گوشی موبایل")
         self.assertTrue(url.endswith("/discovery/api/v1/search"))
         self.assertEqual(params["categories[0]"], "123")
         self.assertEqual(params["page"], 2)
         self.assertEqual(params["sort"], 7)
-        self.assertNotIn("q", params)
+        self.assertEqual(params["q"], "گوشی موبایل")
 
     def test_fresh_digikala_bestseller_rank_outranks_a_larger_discount(self):
         now = datetime.now(timezone.utc)
