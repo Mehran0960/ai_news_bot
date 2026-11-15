@@ -342293,6 +342293,21 @@
         "youtube": "sent"
       },
       "updated_at": "2026-11-15T00:01:35.525786+00:00"
+    },
+    {
+      "content_id": "editorial:inspect-on-arrival",
+      "sequence_number": 32,
+      "status": "completed",
+      "terminal_summary": {
+        "aparat": "sent",
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "filo": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent",
+        "youtube": "sent"
+      },
+      "updated_at": "2026-11-15T02:23:00.298183+00:00"
     }
   ],
   "editorial_delivery_history": [
@@ -342748,10 +342763,10 @@
         "filo": {
           "attempt_started_at": "2026-11-15T01:44:19.303542+00:00",
           "attempts": 2,
-          "last_error": "FiloUploadError:[redacted-id]",
+          "last_error": "filo_login_not_verified",
           "next_attempt_at": "2026-11-15T01:54:36.583366+00:00",
-          "status": "failed",
-          "updated_at": "2026-11-15T01:44:36.583366+00:00"
+          "status": "not_connected",
+          "updated_at": "2026-11-15T02:22:59.773657+00:00"
         },
         "rubika": {
           "attempt_started_at": "2026-11-15T01:06:52.146531+00:00",
@@ -342783,99 +342798,7 @@
       "topic": "shipping-and-returns"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:inspect-on-arrival": {
-      "attempt_count": 0,
-      "content_id": "editorial:inspect-on-arrival",
-      "content_type": "editorial",
-      "next_attempt_at": "2026-11-15T01:06:48.233940+00:00",
-      "payload": {
-        "body": "هنگام دریافت، وضعیت بسته‌بندی، مدل و اقلام همراه را با سفارش تطبیق بده. اگر آسیب یا مغایرت دیدی، از بسته و کالا عکس بگیر و موضوع را از مسیر پشتیبانی رسمی و در مهلت مقرر پیگیری کن.",
-        "content_id": "editorial:inspect-on-arrival",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "inspect-on-arrival",
-        "idempotency_key": "c545b6ebbce3d5dc",
-        "related_product_id": "",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 32,
-        "sources": [
-          {
-            "source_id": "ftc-online-shopping",
-            "title": "راهنمای خرید اینترنتی FTC",
-            "url": "https://consumer.ftc.gov/articles/online-shopping"
-          },
-          {
-            "source_id": "ftc-marketplace",
-            "title": "راهنمای خرید از بازارگاه آنلاین FTC",
-            "url": "https://consumer.ftc.gov/articles/buying-online-marketplace"
-          }
-        ],
-        "title": "بعد از تحویل، بسته را همان ابتدا بررسی کن",
-        "topic": "shipping-and-returns"
-      },
-      "platforms": {
-        "aparat": {
-          "attempt_started_at": "2026-11-15T01:09:56.015704+00:00",
-          "attempts": 1,
-          "message_id": "hde6cl4",
-          "status": "sent",
-          "updated_at": "2026-11-15T01:10:01.478051+00:00",
-          "url": "https://www.aparat.com/v/hde6cl4"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-15T01:06:50.146761+00:00",
-          "attempts": 1,
-          "message_id": "1971",
-          "status": "sent",
-          "updated_at": "2026-11-15T01:06:51.765757+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "eitaa_not_enabled_or_credentials_missing",
-          "status": "not_connected",
-          "updated_at": "2026-11-15T01:06:56.960014+00:00"
-        },
-        "filo": {
-          "attempt_started_at": "2026-11-15T01:44:19.303542+00:00",
-          "attempts": 2,
-          "last_error": "FiloUploadError:[redacted-id]",
-          "next_attempt_at": "2026-11-15T01:54:36.583366+00:00",
-          "status": "failed",
-          "updated_at": "2026-11-15T01:44:36.583366+00:00"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-15T01:06:52.146531+00:00",
-          "attempts": 1,
-          "message_id": "1972320792676588651",
-          "status": "sent",
-          "updated_at": "2026-11-15T01:06:56.575454+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-15T01:06:49.006485+00:00",
-          "attempts": 1,
-          "message_id": "1484",
-          "status": "sent",
-          "updated_at": "2026-11-15T01:06:49.764200+00:00"
-        },
-        "youtube": {
-          "attempt_started_at": "2026-11-15T01:09:53.222034+00:00",
-          "attempts": 1,
-          "message_id": "JCSuYYTN_eI",
-          "status": "sent",
-          "updated_at": "2026-11-15T01:09:55.443278+00:00",
-          "url": "https://www.youtube.com/shorts/JCSuYYTN_eI"
-        }
-      },
-      "related_product_id": "",
-      "scheduled_at": "2026-11-15T01:06:48.233940+00:00",
-      "selected_at": "2026-11-15T01:06:48.233940+00:00",
-      "sequence_number": 32,
-      "status": "partial"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -342901,9 +342824,8 @@
   },
   "filo_last_upload_attempt_at": "2026-11-14T17:20:05.324497+00:00",
   "filo_last_upload_success_at": "2026-11-14T17:20:43.441934+00:00",
-  "filo_login_verification_attempted_at": "2026-11-15T01:44:14.396119+00:00",
-  "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-15T01:44:14.396119+00:00",
+  "filo_login_verification_attempted_at": "2026-11-15T02:22:54.631173+00:00",
+  "filo_login_verification_status": "failed",
   "filo_upload_interval_policy_version": 3,
   "growth_tracking": {
     "daily_member_counts": {
