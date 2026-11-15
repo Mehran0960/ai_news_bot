@@ -345,7 +345,7 @@ def category_search_request(category: dict, page: int) -> tuple[str, dict]:
     return CATEGORY_SEARCH_URL.format(category_id=category_id), {
         "q": keyword,
         "page": max(1, int(page)),
-        "sort": 5,  # DigiKala Search API v2: 5=best selling.
+        "sort": BEST_SELLING_SORT_VALUE,  # DigiKala Search API v2 bestseller order.
     }
 
 
@@ -571,10 +571,24 @@ def extract_product_rows(payload: Any) -> list[dict]:
         raise CatalogSweepError("search_payload_missing_data")
 
     products = data.get("products")
-    if not isinstance(products, list):
+    if isinstance(products, list):
+        # Legacy payloads expose an explicit product array, including an empty page.
+        pass
+    else:
+        widgets = data.get("widgets")
+        listing_widgets = [
+            widget for widget in widgets
+            if isinstance(widget, dict) and widget.get("type") == "vertical_product_listing"
+        ] if isinstance(widgets, list) else []
+        if not listing_widgets or not any(
+            isinstance(widget.get("data"), dict)
+            and isinstance(widget["data"].get("widgets"), list)
+            for widget in listing_widgets
+        ):
+            # Never treat a changed/invalid API shape as a successful empty page;
+            # that would incorrectly advance the full-catalog cursor.
+            raise CatalogSweepError("search_payload_missing_products_or_v2_widgets")
         products = _v2_listing_products(payload)
-    if not isinstance(products, list):
-        raise CatalogSweepError("search_payload_missing_products_or_v2_widgets")
 
     rows = []
     seen = set()
@@ -826,7 +840,7 @@ def _category_page_url(category_id: str, page: int, category_name: str = "") -> 
     return CATEGORY_SEARCH_URL.format(category_id=str(category_id)), {
         "q": str(category_name or category_id),
         "page": int(page),
-        "sort": 5,
+        "sort": BEST_SELLING_SORT_VALUE,
     }
 
 
