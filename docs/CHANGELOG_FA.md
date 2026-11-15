@@ -2418,3 +2418,18 @@
 **شواهد/شناسه:** شاخهٔ `fix/offerchin-trusted-taxonomy-guard-main-sync-20261115`، PR #196؛ policy cache `discovery_explicit_category_roots_v2`.
 
 **ریسک/بازگشت:** اگر Discovery API برای مدت طولانی taxonomy قابل‌خواندن ارائه نکند، اسکن تا بازیابی منبع دسته متوقف می‌شود؛ این توقف عمدی و ایمن‌تر از رتبه‌دهی بر پایهٔ cache آلوده است.
+
+
+## ۲۰۲۶-۱۱-۱۵ — علامت‌گذاری fixtureهای taxonomy معتبر در regressionهای صف قدیمی
+
+**هدف:** تفکیک تست‌هایی که عمداً رفتار عادی cache معتبر را بررسی می‌کنند از تست مهاجرت cache قدیمی و غیرقابل‌اعتماد.
+
+**تغییر/اقدام:** fixture تست پیمایش ترتیبی و تست صف موازی، نشانگر `category_taxonomy_policy_version` را دریافت کردند. بنابراین این تست‌ها رفتار صفحه‌بندی عادی را بدون refresh اجباری مهاجرت می‌سنجند؛ تست‌های مستقل جدید همچنان ثابت می‌کنند cache فاقد نشانگر در خطای API پذیرفته نمی‌شود و در موفقیت زنده جایگزین می‌شود.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/test_catalog_sweep.py`، `affilio_radar/test_parallel_catalog_sweep.py`، همین دفتر تغییرات.
+
+**آزمون و نتیجه:** دو regression قبلی که به‌علت استفاده از fixture فاقد policy marker وارد مسیر migration می‌شدند اصلاح شدند؛ اجرای کامل Catalog Sweep Regression، Four-Factor Ranking، Top-100، Video Fan-out و Documentation Gate روی آخرین head لازم است.
+
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-trusted-taxonomy-guard-main-sync-20261115`، PR #196.
+
+**ریسک/بازگشت:** منطق تولیدی تغییر نکرده است؛ فقط fixtureهایی که ادعای «cache معتبر قبلی» دارند این وضعیت را صریح اعلام می‌کنند.
