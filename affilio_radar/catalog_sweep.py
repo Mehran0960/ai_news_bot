@@ -444,7 +444,7 @@ def category_search_request(category: dict, page: int) -> tuple[str, dict]:
 
 
 def _v2_listing_products(payload: Any) -> list[dict]:
-    """Unwrap DigiKala Search API v2 vertical_product_listing widgets."""
+    """Unwrap Discovery vertical_product_listing widgets with variant-level stock."""
     data = payload.get("data") if isinstance(payload, dict) else None
     widgets = data.get("widgets") if isinstance(data, dict) else None
     rows = []
@@ -459,8 +459,14 @@ def _v2_listing_products(payload: Any) -> list[dict]:
             product = product_widget.get("data")
             if not isinstance(product, dict):
                 continue
-            # Only explicitly marketable cards enter the snapshot candidate set.
-            if str(product.get("status") or "").lower() != "marketable":
+            product_status = str(product.get("status") or "").strip().lower()
+            variant_stock = _listing_availability(product)
+            # Discovery payloads moved stock from the legacy price object to the
+            # variant row. Admit only explicit marketable/in-stock cards; unknown
+            # or unavailable products remain excluded rather than being guessed.
+            if product_status != "marketable" and variant_stock != "in_stock":
+                continue
+            if product_status in {"not_marketable", "out_of_stock", "unavailable"} and variant_stock != "in_stock":
                 continue
             rows.append(product)
     return rows
@@ -558,12 +564,18 @@ def _money_to_toman(raw: Any, currency: str = "") -> int:
 
 def _price_source_rows(product: dict) -> list[dict]:
     sources = []
-    for key in ("price", "default_variant", "variant"):
+    # Keep the default variant first so the displayed price matches DigiKala's
+    # default card offer. Variant rows are also searched because Discovery v1
+    # moved availability/status out of the legacy price object.
+    for key in ("default_variant", "variant", "price"):
         value = product.get(key)
         if isinstance(value, dict):
             if isinstance(value.get("price"), dict):
                 sources.append(value["price"])
             sources.append(value)
+    variants = product.get("variants")
+    if isinstance(variants, list):
+        sources.extend(value for value in variants if isinstance(value, dict))
     sources.append(product)
     return sources
 
@@ -618,15 +630,15 @@ def _listing_availability(product: dict) -> str:
                 return "in_stock" if value else "out_of_stock"
             if isinstance(value, (int, float)) and value in (0, 1):
                 return "in_stock" if bool(value) else "out_of_stock"
-        for key in ("availability", "stock_status", "availability_status"):
+        for key in ("availability", "stock_status", "availability_status", "status"):
             value = source.get(key)
             if isinstance(value, dict):
                 value = value.get("title") or value.get("status") or value.get("label")
             if isinstance(value, str):
                 normalized = re.sub(r"\s+", "_", value.strip().lower().replace("-", "_"))
-                if normalized in in_stock_words:
+                if normalized in in_stock_words or normalized == "marketable":
                     return "in_stock"
-                if normalized in out_of_stock_words:
+                if normalized in out_of_stock_words or normalized in {"not_marketable", "not_marketable"}:
                     return "out_of_stock"
         for key in ("stock_quantity", "available_quantity", "stock_count", "stock"):
             value = source.get(key)
