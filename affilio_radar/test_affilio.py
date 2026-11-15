@@ -1638,7 +1638,7 @@ class AffilioRadarTests(unittest.TestCase):
             "title": "هدفون بی سیم مدل Galaxy Buds",
             "brand": {"title_fa": "سامسونگ", "title_en": "Samsung"},
         })
-        self.assertEqual(brand, "samsung")
+        self.assertEqual(brand, "brand:samsung")
 
         parsed = radar_module.parse_product_api(
             {
@@ -2153,7 +2153,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
         self.assertEqual(
             [p["product_id"] for p in selected],
-            ["dkp-power-new", "dkp-fashion-new"],
+            ["dkp-fashion-new"],
         )
 
 
@@ -2425,7 +2425,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-book-comparable", "snp-book-comparable"],
+            ["dkp-book-comparable"],
         )
 
 
@@ -2501,9 +2501,9 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
 
         self.assertTrue(selected)
-        # Strict demand/discount priority outranks category variety and the
-        # 60% eyewear offer wins when current demand evidence is tied.
-        self.assertEqual(selected[0]["product_id"], "dkp-eyewear-0")
+        # The eyewear candidates repeat the recent fashion use-case, so the
+        # next highest-ranked distinct-use-case offer is selected.
+        self.assertEqual(selected[0]["product_id"], "dkp-late-fragrance")
 
 
     def test_distinct_catalog_leaf_in_same_broad_category_remains_eligible_after_short_cooldowns(self):
@@ -2581,7 +2581,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(day["category_share_percent"]["audio_wearables"], 66.7)
         self.assertEqual(day["category_share_percent"]["fashion"], 33.3)
         self.assertEqual(day["repeated_brand_count"], 1)
-        self.assertEqual(day["repeated_brands"], {"muzik_apollo": 2})
+        self.assertEqual(day["repeated_brands"], {"brand:muzik_apollo": 2})
         self.assertEqual(report["fallbacks"]["all_time_count"], 4)
         self.assertEqual(report["fallbacks"]["last_7_days_count"], 1)
 
@@ -3327,8 +3327,8 @@ class AffilioRadarTests(unittest.TestCase):
             product("dkp-95001", "هدفون بلوتوثی مدل برتر", 50),
             product("dkp-95002", "شارژر سریع مدل پرفروش", 45),
             product("dkp-95003", "کوله پشتی مسافرتی مدل تازه", 44),
-            product("dkp-95004", "ماوس بی سیم مدل کاربردی", 40),
-            product("dkp-95005", "اسپیکر بلوتوثی مدل کوچک", 35),
+            product("dkp-95004", "کتاب آموزش مهندسی نرم افزار", 40),
+            product("dkp-95005", "دستکش نظافت خانگی مدل کاربردی", 35),
             product("dkp-95006", "چراغ مطالعه شارژی مدل جدید", 3),
         ]
         for rank, candidate in enumerate(candidates, start=1):
