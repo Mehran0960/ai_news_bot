@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-15T21:04:15.801096+00:00",
+  "generated_at": "2026-11-15T21:11:56.100665+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -105,6 +105,7 @@
       "جو": 1,
       "حوله": 1,
       "دستکش نظافت": 1,
+      "رنگ": 1,
       "روغن ذرت": 1,
       "روغن زیتون": 1,
       "رژ لب جامد": 1,
@@ -152,35 +153,35 @@
       "large_appliances": 2,
       "lighting": 1,
       "mobile_devices": 1,
-      "other": 12,
+      "other": 13,
       "personal_care": 4,
       "sports_outdoor": 2
     },
     "category_share_percent": {
       "beauty_fragrance": 2.4,
-      "books_stationery": 12.2,
-      "fashion": 9.8,
-      "grocery_food": 12.2,
-      "home": 4.9,
-      "kids_sports": 4.9,
-      "large_appliances": 4.9,
+      "books_stationery": 11.9,
+      "fashion": 9.5,
+      "grocery_food": 11.9,
+      "home": 4.8,
+      "kids_sports": 4.8,
+      "large_appliances": 4.8,
       "lighting": 2.4,
       "mobile_devices": 2.4,
-      "other": 29.3,
-      "personal_care": 9.8,
-      "sports_outdoor": 4.9
+      "other": 31.0,
+      "personal_care": 9.5,
+      "sports_outdoor": 4.8
     },
-    "distinct_catalog_categories": 41,
+    "distinct_catalog_categories": 42,
     "distinct_categories": 12,
-    "distinct_families": 41,
+    "distinct_families": 42,
     "distinct_retailers": 1,
     "distinct_use_cases": 10,
     "known_brand_posts": 1,
-    "posts": 41,
+    "posts": 42,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 41
+      "digikala": 42
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -194,7 +195,7 @@
       "home_cleaning": 1,
       "home_living": 2,
       "kitchen_food": 2,
-      "mobile_productivity": 21,
+      "mobile_productivity": 22,
       "personal_care": 1
     }
   },
@@ -220,6 +221,7 @@
       "دستکش نظافت": 1,
       "دستگاه ذوب وکس": 1,
       "دمبل": 1,
+      "رنگ": 1,
       "روغن ذرت": 1,
       "روغن زیتون": 1,
       "روغن مو": 1,
@@ -315,7 +317,7 @@
       "large_appliances": 2,
       "lighting": 2,
       "mobile_devices": 3,
-      "other": 52,
+      "other": 53,
       "personal_care": 29,
       "power_backup": 2,
       "sports_outdoor": 7
@@ -324,33 +326,33 @@
       "audio_wearables": 2.8,
       "automotive": 1.4,
       "beauty_fragrance": 2.1,
-      "books_stationery": 5.0,
+      "books_stationery": 4.9,
       "digital_accessories": 0.7,
-      "fashion": 7.1,
-      "grocery_food": 5.7,
-      "home": 4.3,
+      "fashion": 7.0,
+      "grocery_food": 5.6,
+      "home": 4.2,
       "kids_sports": 2.1,
       "large_appliances": 1.4,
       "lighting": 1.4,
       "mobile_devices": 2.1,
-      "other": 36.9,
-      "personal_care": 20.6,
+      "other": 37.3,
+      "personal_care": 20.4,
       "power_backup": 1.4,
-      "sports_outdoor": 5.0
+      "sports_outdoor": 4.9
     },
-    "distinct_catalog_categories": 101,
+    "distinct_catalog_categories": 102,
     "distinct_categories": 16,
-    "distinct_families": 119,
+    "distinct_families": 120,
     "distinct_retailers": 1,
     "distinct_use_cases": 19,
     "known_brand_posts": 7,
-    "posts": 141,
+    "posts": 142,
     "repeated_brand_count": 1,
     "repeated_brands": {
       "habsan": 2
     },
     "retailer_post_counts": {
-      "digikala": 141
+      "digikala": 142
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -369,7 +371,7 @@
       "home_living": 3,
       "kitchen_food": 6,
       "lighting_electrical": 2,
-      "mobile_productivity": 47,
+      "mobile_productivity": 48,
       "office_study": 2,
       "outdoor_travel": 2,
       "personal_care": 13,
@@ -391,47 +393,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1336,
+    "all_time_count": 1338,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 483,
+      "family_repeat": 481,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-15T17:24:31.266957+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-21090992",
-        "family": "beauty_fragrance:fragrance",
-        "product_id": "dkp-22700244",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم زنانه زدفون مدل ویکتوریا سکرت بامب شل با رایحه خنک حجم 30 میلی لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-15T17:54:39.895866+00:00",
-        "brand": "",
-        "catalog_category_id": "11599",
-        "catalog_category_name": "کتاب موفقیت و رشد فردی",
-        "category": "books_stationery",
-        "compared_to_product_id": "dkp-19005437",
-        "family": "digikala_category:11599",
-        "product_id": "dkp-17582065",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کتاب معجزه شکر گزاری اثر راندا برن ترجمه راحیل سعیدی انتشارات آوای زرین کلک",
-        "use_case": "books_learning"
-      },
       {
         "at": "2026-11-15T17:54:39.895866+00:00",
         "brand": "",
@@ -731,6 +699,38 @@
         ],
         "title": "کفش زنانه سیی 1966 مدل اداری مجلسی نگین دار کد 2337",
         "use_case": "office_study"
+      },
+      {
+        "at": "2026-11-15T21:11:56.100665+00:00",
+        "brand": "",
+        "catalog_category_id": "9224",
+        "catalog_category_name": "گوشت گوسفند",
+        "category": "other",
+        "compared_to_product_id": "dkp-20502655",
+        "family": "digikala_category:9224",
+        "product_id": "dkp-21586430",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-15T21:11:56.100665+00:00",
+        "brand": "",
+        "catalog_category_id": "9473",
+        "catalog_category_name": "زیرپوش مردانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9473",
+        "product_id": "dkp-720533",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "زیرپوش مردانه آریان نخ باف کد 1211",
+        "use_case": "fashion_lifestyle"
       }
     ]
   }
