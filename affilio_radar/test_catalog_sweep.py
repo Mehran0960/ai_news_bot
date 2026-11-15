@@ -318,18 +318,38 @@ class CatalogSweepTests(unittest.TestCase):
                             "id": 981235, "title_fa": "کالای ناموجود",
                             "status": "not_marketable",
                         }},
+                        {"type": "product", "data": {
+                            "id": 981236,
+                            "title_fa": "کالای موجود با وضعیت variant",
+                            "default_variant": {
+                                "status": "marketable",
+                                "price": {
+                                    "selling_price": 9_000_000,
+                                    "rrp_price": 10_000_000,
+                                    "discount_percent": 10,
+                                },
+                            },
+                        }},
+                        {"type": "product", "data": {
+                            "id": 981237,
+                            "title_fa": "کالای ناموجود در variant",
+                            "default_variant": {"status": "out_of_stock"},
+                        }},
                     ]},
                 }],
                 "pager": {"total_pages": 12},
             }
         }
         rows = extract_product_rows(payload)
-        self.assertEqual(len(rows), 1)
+        self.assertEqual(len(rows), 2)
         self.assertEqual(rows[0]["product_id"], "dkp-981234")
         self.assertEqual(rows[0]["discount_percent"], 25)
         self.assertEqual(rows[0]["availability"], "in_stock")
         self.assertEqual(rows[0]["image_url"], "https://dkstatics-public.digikala.com/digikala-products/sample.jpg")
         self.assertEqual(rows[0]["review_count"], 120)
+        self.assertEqual(rows[1]["product_id"], "dkp-981236")
+        self.assertEqual(rows[1]["availability"], "in_stock")
+        self.assertEqual(rows[1]["current_price"], 900_000)
         self.assertEqual(extract_total_pages(payload, 1, len(rows)), 12)
 
     def test_extract_product_rows_parses_prices_reviews_and_product_id(self):
