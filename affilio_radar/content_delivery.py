@@ -21,10 +21,11 @@ TERMINAL_QUEUE_STATUSES = {"published", "cancelled", "stale_selection"}
 TERMINAL_PLATFORM_STATUSES = {"sent", "not_connected", "manual_review"}
 PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
 
-# The publisher heartbeat is separate from content timing. Product slots are adaptive.
-# 27 minutes is a hard minimum; the catalog horizon and shared daily cap determine the actual gap.
-PRODUCT_DEFAULT_SELECTION_INTERVAL_SECONDS = 27 * 60
-PRODUCT_MIN_SELECTION_INTERVAL_SECONDS = 27 * 60  # Minimum product-to-product spacing
+# Product timing is derived only from the live catalog-cycle horizon and selected cohort size.
+DEFAULT_CATALOG_CYCLE_SECONDS = 24 * 60 * 60
+MIN_CATALOG_CYCLE_SECONDS = 60 * 60
+MAX_CATALOG_CYCLE_SECONDS = 72 * 60 * 60
+PRODUCT_ID_PATTERN = re.compile(r"^(?:dkp|snp)-\d{1,12}$", re.IGNORECASE)
 DEFAULT_CATALOG_CYCLE_SECONDS = 24 * 60 * 60
 MIN_CATALOG_CYCLE_SECONDS = 60 * 60
 MAX_CATALOG_CYCLE_SECONDS = 72 * 60 * 60
@@ -126,11 +127,11 @@ def calculate_product_publication_cadence(
     now: datetime | None = None,
     max_daily_posts: int = 72,
 ) -> dict:
-    """Spread the pending product cohort evenly from its anchor to the next catalog scan.
+    """Spread every selected product evenly across the remaining catalog-cycle window.
 
-    A product publication advances this clock. Editorial posts do not. If no product
-    has yet been published in the current cycle, the first selected product may go now;
-    otherwise the next product must respect the minimum product-to-product interval.
+    A product publication advances this clock. Editorial posts do not. No minimum
+    product-to-product interval is imposed: the selected cohort and scan horizon alone
+    determine the interval.
     """
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
@@ -195,27 +196,17 @@ def calculate_product_publication_cadence(
             state["product_publication_plan_anchor_kind"] = anchor_kind
 
     horizon_seconds = max(0, int((expected_next - anchor).total_seconds()))
-    minimum_gap = PRODUCT_MIN_SELECTION_INTERVAL_SECONDS
     has_prior_product_anchor = anchor_kind == "last_product"
 
-    if candidates <= 0:
-        planned_slots = 0
-        interval_seconds = PRODUCT_DEFAULT_SELECTION_INTERVAL_SECONDS
+    # Every selected product gets a slot. With a product already published in this
+    # cycle, divide the remaining horizon into N+1 equal gaps; otherwise the first
+    # product can publish at the anchor and the N products span N equal gaps.
+    planned_slots = candidates
+    if planned_slots <= 0 or horizon_seconds <= 0:
+        interval_seconds = 0
     else:
-        # Leave one minimum-gap buffer on both sides of a previously published product;
-        # with no product yet, the first slot may be immediate and only inter-product gaps count.
-        cadence_capacity = max(
-            0,
-            int(horizon_seconds // minimum_gap) - (1 if has_prior_product_anchor else 0),
-        )
-        daily_capacity = max(0, int(horizon_seconds * daily_limit // (24 * 60 * 60)))
-        capacity = min(cadence_capacity, daily_capacity)
-        planned_slots = min(candidates, capacity)
-        if planned_slots <= 0:
-            interval_seconds = PRODUCT_DEFAULT_SELECTION_INTERVAL_SECONDS
-        else:
-            divisor = planned_slots + 1 if has_prior_product_anchor else planned_slots
-            interval_seconds = max(minimum_gap, int(math.ceil(horizon_seconds / max(1, divisor))))
+        divisor = planned_slots + 1 if has_prior_product_anchor else planned_slots
+        interval_seconds = int(math.ceil(horizon_seconds / max(1, divisor)))
 
     result = {
         "calculated_at": current.isoformat(),
@@ -230,8 +221,7 @@ def calculate_product_publication_cadence(
         "seconds_from_plan_anchor_to_next_scan": horizon_seconds,
         "estimated_clean_cycle_seconds": cycle_seconds,
         "planned_product_slots": planned_slots,
-        "daily_post_limit": daily_limit,
-        "minimum_product_gap_seconds": minimum_gap,
+        "daily_post_limit_reference_only": daily_limit,
         "interval_seconds": interval_seconds,
         "interval_minutes": round(interval_seconds / 60, 2),
         "policy": "equal_product_spacing_from_last_product_or_cycle_start_until_next_clean_scan",
@@ -294,10 +284,7 @@ def reschedule_product_queue_evenly(
         state["product_publication_plan_anchor_at"] = anchor.isoformat()
         state["product_publication_plan_anchor_kind"] = anchor_kind
 
-    interval = max(
-        PRODUCT_MIN_SELECTION_INTERVAL_SECONDS,
-        int((cadence or {}).get("interval_seconds") or PRODUCT_DEFAULT_SELECTION_INTERVAL_SECONDS),
-    )
+    interval = max(0, int((cadence or {}).get("interval_seconds") or 0))
     next_slot = (
         max(current, anchor + timedelta(seconds=interval))
         if anchor_kind == "last_product"
