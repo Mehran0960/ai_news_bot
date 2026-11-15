@@ -2593,3 +2593,19 @@
 **ریسک/بازگشت:** اگر projection خوانده نشود، گیت fail-open است و discovery اجرا می‌شود؛ در نتیجه محتوا به‌خاطر sidecar خراب مسدود نمی‌شود. ارسال هر محصول همچنان قیمت، موجودی، هویت، تخفیف، تقاضا، لینک افیلیت، انقضا و ضدتکرار را زنده بررسی می‌کند. سقف سه محصول فقط برای آیتم‌های موعدرسیده است و ترتیب FIFO حفظ می‌شود. بازگشت با revert گیت و تغییر batch ممکن است؛ صف یا state زنده نباید reset شود.
 
 **وضعیت:** تغییر کد، workflow و مستندات انجام‌شده؛ در انتظار CI و ادغام.
+
+## ۲۰۲۶-۱۱-۱۵ — تخلیهٔ صف کانال پیش از discovery بعدی
+
+**هدف:** جلوگیری از عقب‌افتادن ارسال‌های انتخاب‌شده در فاصلهٔ بین slotهای محصول، وقتی اجرای ناشر به discovery سنگین بعدی می‌رود.
+
+**تغییر/اقدام:** `publication_due_gate.py` علاوه بر موعدهای sidecar، اکنون صف پایدار محصول و تحریریه را نیز بررسی می‌کند. اگر هرکدام مقصد اصلی Telegram/Bale حل‌نشده داشته باشد، discovery جدید skip می‌شود؛ حتی اگر زمان slot بعدی هنوز در آینده باشد. workflow اول محصولات موعددار و سپس تحریریهٔ میانی را می‌فرستد، بعد سراغ تست‌های سنگینِ فقط-push و گیت discovery می‌رود. checkout ناشر به عمق ۲۰ commit محدود شد تا clone همهٔ branchها تأخیر ایجاد نکند. batch سه‌تایی FIFO و سقف بررسی ۱۰۰تایی موجود در main حفظ شدند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/publication_due_gate.py`، `affilio_radar/test_publication_due_gate.py`، `affilio_radar/test_shared_selection_media_routing.py`، `.github/workflows/offerchin-publisher.yml`، handbook و همین changelog.
+
+**آزمون و نتیجه:** regression برای صف محصول فعال، صف تحریریهٔ فعال، وضعیت‌های terminal و خطای قابل retry افزوده شد. تست سیم‌کشی workflow ترتیب انتشار قبل از suite سنگین و discovery، استفاده از state صف و shallow checkout را کنترل می‌کند. نتیجهٔ CI این PR پیش از ادغام بررسی می‌شود.
+
+**شواهد/شناسه:** مبنا commit `60a68c86390ecf2efa864baddd66a21d0105a56b` (گیت due-slot و batch سه‌تایی)؛ تکمیل فعلی روی branch `perf/offerchin-publisher-dispatch-fast-20261115` انجام شده است.
+
+**ریسک/بازگشت:** اگر state صف خوانده نشود، گیت مستقل از timestamp sidecar همچنان fail-open است؛ هیچ موردی از صف موجود حذف نمی‌شود. اگر یک مقصد اصلی retryable/failed بماند، discovery عقب می‌افتد تا تحویل/تعیین‌تکلیف آن مقصد انجام شود. rollback با revert تغییر due gate/workflow/tests ممکن است؛ state و رسیدها نباید reset شوند.
+
+**وضعیت:** تکمیل کد، تست و مستندات در شاخهٔ مستقل؛ در انتظار CI و رسید ارسال واقعی.
