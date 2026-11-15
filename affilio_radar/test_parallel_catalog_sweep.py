@@ -58,7 +58,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         args, kwargs = session.get.call_args
         self.assertIn("/v2/category/77/", args[0])
         self.assertEqual(kwargs["params"], {
-            "q": "گوشی سامسونگ", "page": 3, "sort": sweep.BEST_SELLING_SORT_VALUE
+            "q": "گوشی سامسونگ", "page": 3, "sort": 7
         })
 
     def test_legacy_worker_checkpoint_is_normalized_to_the_first_trial_level_once(self):
