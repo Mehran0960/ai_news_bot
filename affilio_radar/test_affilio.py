@@ -785,7 +785,10 @@ class AffilioRadarTests(unittest.TestCase):
         payload = {
             "data": {
                 "id": "42yeLw",
-                "content": {"title_fa": "گوشی نمونه"},
+                "content": {
+                    "title_fa": "گوشی نمونه",
+                    "brand": {"title_fa": "سامسونگ", "title_en": "Samsung"},
+                },
                 "images": ["https://cdn.snappshop.ir/products/phone-main.webp"],
                 "variants": [{
                     "variation_id": "v1",
