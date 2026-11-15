@@ -54,12 +54,15 @@ PUBLISHER_STATE_PATH = ROOT / "state.json"
 
 API_ROOT = "https://api.digikala.com"
 DICTIONARY_URL = f"{API_ROOT}/v1/dictionaries/"
-SEARCH_URL = f"{API_ROOT}/v1/search/"
+AUTOCOMPLETE_URL = f"{API_ROOT}/v1/autocomplete/"
+SEARCH_URL = f"{API_ROOT}/v1/search/"  # Legacy endpoint retained for compatibility tests only.
+CATEGORY_SEARCH_URL = f"{API_ROOT}/v2/category/{{category_id}}/"
 REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
-# A previously verified taxonomy may bridge a temporary API outage, but only for four days.
-CATEGORY_CACHE_MAX_FALLBACK_AGE_HOURS = 96
+# A verified taxonomy may bridge a temporary API change long enough to refresh it.
+CATEGORY_CACHE_MAX_FALLBACK_AGE_HOURS = 168
 CATEGORY_DISCOVERY_RETRY_MINUTES = 60
+CATEGORY_AUTOCOMPLETE_SEEDS = ("گوشی", "لپ تاپ", "خانه", "پوشاک", "کفش", "لوازم خانگی", "هدفون", "زیبایی")
 CANDIDATE_TTL_HOURS = 72
 MIN_CANDIDATE_DISCOUNT = 1
 # DigiKala's live data.sort_options maps id=7 to پرفروش‌ترین and id=4 to پربازدیدترین.
@@ -305,6 +308,106 @@ def _category_discovery_error_label(source: str, exc: Exception) -> str:
     return f"{source}_{type(exc).__name__}"
 
 
+def extract_autocomplete_categories(payload: Any, query: str = "") -> list[dict]:
+    """Extract real category IDs and query terms from DigiKala's public autocomplete."""
+    data = payload.get("data") if isinstance(payload, dict) else None
+    items = data.get("categories") if isinstance(data, dict) else None
+    rows = []
+    seen = set()
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, dict):
+            continue
+        category = item.get("category") if isinstance(item.get("category"), dict) else item
+        category_id = str(category.get("id") or category.get("category_id") or "").strip()
+        name = str(category.get("title_fa") or category.get("title") or "").strip()
+        if not category_id.isdigit() or not name or category_id in seen:
+            continue
+        seen.add(category_id)
+        keyword = str(item.get("keyword") or query or name).strip()
+        rows.append({
+            "id": category_id,
+            "name": name[:120],
+            "parent_id": "",
+            "depth": 0,
+            "slug": str(category.get("code") or category.get("slug") or "")[:160],
+            "query": keyword[:120],
+            "source": "digikala_v1_autocomplete",
+        })
+    return rows
+
+
+def category_search_request(category: dict, page: int) -> tuple[str, dict]:
+    """Build DigiKala Search API v2 URL/params from a discovered category."""
+    category_id = str(category.get("id") or "").strip()
+    if not category_id.isdigit():
+        raise CatalogSweepError("invalid_category_id")
+    keyword = str(category.get("query") or category.get("name") or category_id).strip()
+    return CATEGORY_SEARCH_URL.format(category_id=category_id), {
+        "q": keyword,
+        "page": max(1, int(page)),
+        "sort": 5,  # DigiKala Search API v2: 5=best selling.
+    }
+
+
+def _v2_listing_products(payload: Any) -> list[dict]:
+    """Unwrap DigiKala Search API v2 vertical_product_listing widgets."""
+    data = payload.get("data") if isinstance(payload, dict) else None
+    widgets = data.get("widgets") if isinstance(data, dict) else None
+    rows = []
+    for widget in widgets if isinstance(widgets, list) else []:
+        if not isinstance(widget, dict) or widget.get("type") != "vertical_product_listing":
+            continue
+        inner = widget.get("data") if isinstance(widget.get("data"), dict) else {}
+        product_widgets = inner.get("widgets")
+        for product_widget in product_widgets if isinstance(product_widgets, list) else []:
+            if not isinstance(product_widget, dict) or product_widget.get("type") != "product":
+                continue
+            product = product_widget.get("data")
+            if not isinstance(product, dict):
+                continue
+            # Only explicitly marketable cards enter the snapshot candidate set.
+            if str(product.get("status") or "").lower() != "marketable":
+                continue
+            rows.append(product)
+    return rows
+
+
+def _v2_image_url(product: dict) -> str:
+    sources = [product.get("images"), product.get("image"), product.get("default_variant")]
+    def walk(value: Any) -> str:
+        if isinstance(value, str):
+            candidate = value.strip()
+            if candidate.startswith("//"):
+                candidate = "https:" + candidate
+            if candidate.startswith("https://") and (
+                "digikala" in candidate.lower()
+                or candidate.lower().endswith((".jpg", ".jpeg", ".png", ".webp"))
+            ):
+                return candidate
+            return ""
+        if isinstance(value, dict):
+            for key in ("main", "webp_url", "url", "src", "image", "image_url", "large", "original"):
+                if key in value:
+                    result = walk(value[key])
+                    if result:
+                        return result
+            for child in value.values():
+                result = walk(child)
+                if result:
+                    return result
+        if isinstance(value, list):
+            for child in value:
+                result = walk(child)
+                if result:
+                    return result
+        return ""
+    for source in sources:
+        found = walk(source)
+        if found:
+            return found
+    return ""
+
+
 def discover_categories(session: requests.Session | None = None) -> list[dict]:
     """Refresh category IDs from DigiKala's public dictionaries, then search facets."""
     http = session or SESSION
@@ -327,15 +430,22 @@ def discover_categories(session: requests.Session | None = None) -> list[dict]:
     except Exception as exc:
         errors.append(_category_discovery_error_label("dictionaries", exc))
 
-    try:
-        payload = _request_json(http, SEARCH_URL, params={"page": 1})
-        categories = extract_categories(payload)
-        if categories:
-            return categories
-        errors.append("search_filters_no_category_nodes")
-    except Exception as exc:
-        errors.append(_category_discovery_error_label("search", exc))
-
+    autocomplete_categories: dict[str, dict] = {}
+    autocomplete_errors = []
+    # Search API v2 requires a category ID; discover those IDs from the public
+    # autocomplete endpoint instead of the retired v1 /search/ facets endpoint.
+    for seed in CATEGORY_AUTOCOMPLETE_SEEDS:
+        try:
+            payload = _request_json(http, AUTOCOMPLETE_URL, params={"q": seed})
+            for row in extract_autocomplete_categories(payload, seed):
+                previous = autocomplete_categories.get(row["id"])
+                if previous is None or not previous.get("query"):
+                    autocomplete_categories[row["id"]] = row
+        except Exception as exc:
+            autocomplete_errors.append(_category_discovery_error_label("autocomplete", exc))
+    if autocomplete_categories:
+        return sort_categories_for_sweep(autocomplete_categories.values())
+    errors.extend(autocomplete_errors or ["autocomplete_no_category_nodes"])
     raise CatalogSweepError("category_discovery_failed:" + ",".join(errors))
 
 
@@ -455,18 +565,23 @@ def _listing_rating(product: dict) -> tuple[float, int]:
 
 
 def extract_product_rows(payload: Any) -> list[dict]:
-    """Return compact listing cards, not deep product-detail records."""
+    """Normalize legacy product arrays and current DigiKala v2 product widgets."""
     data = payload.get("data") if isinstance(payload, dict) else None
-    if not isinstance(data, dict) or "products" not in data:
-        raise CatalogSweepError("search_payload_missing_data_products")
+    if not isinstance(data, dict):
+        raise CatalogSweepError("search_payload_missing_data")
+
     products = data.get("products")
     if not isinstance(products, list):
-        raise CatalogSweepError("search_payload_products_not_list")
+        products = _v2_listing_products(payload)
+    if not isinstance(products, list):
+        raise CatalogSweepError("search_payload_missing_products_or_v2_widgets")
 
     rows = []
     seen = set()
     for product in products:
         if not isinstance(product, dict):
+            continue
+        if product.get("status") is not None and str(product.get("status")).lower() not in {"marketable", "active", "available"}:
             continue
         raw_url = product.get("url") or product.get("product_url") or product.get("web_url")
         if isinstance(raw_url, dict):
@@ -487,17 +602,19 @@ def extract_product_rows(payload: Any) -> list[dict]:
             product.get("title_fa") or product.get("product_title")
             or product.get("title") or ""
         ).strip()[:180]
-        # Retain every identified product. The publisher fetches the canonical
-        # detail page and applies strict title/price/stock/discount checks later.
         if not is_publishable_product_title(title):
             title = f"محصول دیجی‌کالا {product_id}"
         current, original, discount, savings = _listing_prices(product)
         availability = _listing_availability(product)
+        if availability == "unknown" and str(product.get("status") or "").lower() == "marketable":
+            availability = "in_stock"
         rating, review_count = _listing_rating(product)
+        url = f"https://www.digikala.com/product/{product_id}/"
         rows.append({
             "product_id": product_id,
-            "product_url": f"https://www.digikala.com/product/{product_id}/",
+            "product_url": url,
             "title": title,
+            "image_url": _v2_image_url(product),
             "current_price": current,
             "original_price": original,
             "discount_percent": discount,
@@ -505,7 +622,9 @@ def extract_product_rows(payload: Any) -> list[dict]:
             "availability": availability,
             "rating": rating,
             "review_count": review_count,
-            "source": "digikala_catalog_sweep",
+            "brand": (product.get("data_layer") or {}).get("brand", "") if isinstance(product.get("data_layer"), dict) else "",
+            "category": (product.get("data_layer") or {}).get("category", "") if isinstance(product.get("data_layer"), dict) else "",
+            "source": "digikala_search_v2",
             "last_seen_at": iso_now(),
         })
     return rows
@@ -703,11 +822,11 @@ def retain_diverse_candidates(
     ranked = sorted(eligible, key=catalog_candidate_sort_key, reverse=True)
     return ranked[:cap]
 
-def _category_page_url(category_id: str, page: int) -> tuple[str, dict]:
-    return SEARCH_URL, {
-        "categories[]": str(category_id),
+def _category_page_url(category_id: str, page: int, category_name: str = "") -> tuple[str, dict]:
+    return CATEGORY_SEARCH_URL.format(category_id=str(category_id)), {
+        "q": str(category_name or category_id),
         "page": int(page),
-        "sort": BEST_SELLING_SORT_VALUE,
+        "sort": 5,
     }
 
 
