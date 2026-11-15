@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
-          fetch-depth: 0
+          fetch-depth: 100
 
       # All selected-channel/video delivery receipts are projected here. An empty
       # projection means there is no canonical video work to process; do not hold
