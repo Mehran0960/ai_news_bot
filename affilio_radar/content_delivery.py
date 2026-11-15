@@ -666,10 +666,13 @@ def enqueue_selected_content(
     # Existing retry entries do not reserve future publication slots. A slow or
     # unavailable destination must never push fresh selections into a long queue.
     queue_evicted = enforce_queue_limit(state, now=now, max_active_items=queue_limit)
-    last_channel_published = get_last_product_channel_published_at(state)
-    next_slot = (
-        max(now, last_channel_published) + timedelta(seconds=interval_seconds)
-        if last_channel_published else now + timedelta(seconds=interval_seconds)
+    last_product_published = get_last_product_channel_published_at(state)
+    # This is only an initial hand-off estimate. The catalog-aware planner
+    # subsequently reflows every unsent selection across the full scan window.
+    next_slot = max(
+        now,
+        last_product_published + timedelta(seconds=interval_seconds)
+        if last_product_published else now,
     )
 
     added = skipped = 0
