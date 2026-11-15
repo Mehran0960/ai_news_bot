@@ -2386,3 +2386,20 @@
 **ریسک/بازگشت:** فقط انتظار تست تغییر کرده است؛ rollback با بازگرداندن assertion قدیمی ممکن است، اما با منشأ فعلی parser سازگار نخواهد بود.
 
 **وضعیت:** اصلاح assertion و مستندسازی ثبت شد؛ اجرای CI دوباره لازم است.
+
+
+## ۲۰۲۶-۱۱-۱۵ — اصلاح آلودگی taxonomy و گیت رتبه‌بندی دسته‌ای
+
+**هدف:** جلوگیری از اینکه facetهای فروشنده/برند/ارسال یا محصولات nested به‌عنوان category شناخته شوند و محصولات نامرتبط رتبهٔ پرفروش یک دسته را به ارث ببرند.
+
+**تغییر/اقدام:** `extract_categories()` از پیمایش عمومی کل payload به خواندن محدود از فیلدهای صریح `category_tree`، `mega_menu` و filter groupهای دقیق category تبدیل شد. گروه‌های `seller_ids`، `brands` و delivery facets دیگر category محسوب نمی‌شوند. query-matched `query_attributes.category_ids` همچنان از مسیر اختصاصی خود ادغام می‌شود. گیت سازگاری محصول/دسته نیز یک طبقه‌بندی دقیق‌تر برای گوشی، لوازم جانبی کامپیوتر، حافظه، نمایشگر، شبکه، دوربین، قطعات کامپیوتر، اداری، جواهرات، پوشاک و کابل/مبدل اضافه کرد؛ mismatch روشن پیش از ثبت bestseller rank رد می‌شود. route policy به `digikala_discovery_api_v1_trusted_category_taxonomy_v4` ارتقا یافت تا تمام category taskها از صفحهٔ ۱ دوباره seed شوند. snapshot نامزدهای چرخهٔ قبلی به‌دلیل تفاوت شناسهٔ چرخه در چرخهٔ جدید مصرف نمی‌شود؛ تاریخچه و رسیدهای انتشار ناشر حفظ می‌شوند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/catalog_sweep.py`، `affilio_radar/parallel_catalog_sweep.py`، `affilio_radar/test_catalog_sweep.py`، `affilio_radar/test_parallel_catalog_sweep.py`، handbook و همین changelog.
+
+**آزمون و نتیجه:** regressionهای جدید، seller/brand/delivery facets و product widgets را به‌عنوان category رد می‌کنند، category tree/facet صریح را حفظ می‌کنند، و mismatchهای ماوس/فلش/مانیتور در دستهٔ گوشی و دوربین در دستهٔ عینک را رد می‌کنند. آزمون مهاجرت نیز seed مجدد صفحهٔ اول را بررسی می‌کند. CI و اسکن زندهٔ این نسخه پس از ثبت تغییرات باید موفق شوند؛ هیچ موفقیت snapshot یا انتشار پیشاپیش ادعا نمی‌شود.
+
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-trusted-taxonomy-guard-20261115` از `main`؛ سیاست مسیر `digikala_discovery_api_v1_trusted_category_taxonomy_v4`.
+
+**ریسک/بازگشت:** استخراج category محدودتر می‌شود؛ در صورت تغییر schema، صف خالی/ناقص می‌ماند تا parser برای ساختار واقعی اصلاح شود. گیت mismatch فقط زمانی محصول را رد می‌کند که هر دو سمت topic دقیق و متفاوت داشته باشند؛ طبقه‌بندی نامعلوم به‌تنهایی حذف‌کننده نیست. rollback با revert همین commitها ممکن است، اما parser عمومی قبلی نباید به‌عنوان fallback فعال شود.
+
+**وضعیت:** اصلاح کد، تست و مستندات روی شاخهٔ مستقل؛ CI، refresh زندهٔ taxonomy و چرخهٔ کامل بدون شکاف هنوز معیارهای پذیرش‌اند.
