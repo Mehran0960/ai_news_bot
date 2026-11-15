@@ -1,6 +1,6 @@
 {
   "approved_commission": null,
-  "caption_experiment_assignment_coverage_percent": 3.48,
+  "caption_experiment_assignment_coverage_percent": 3.57,
   "caption_experiment_attribution_active": true,
   "caption_experiment_attribution_supported_by_worker": true,
   "caption_experiment_measurement_status": "awaiting_first_tagged_click",
@@ -20,7 +20,7 @@
       "clicks_per_published_post": null,
       "ctr": null,
       "orders": null,
-      "published_posts": 18,
+      "published_posts": 19,
       "sales_amount": null,
       "tracked_clicks_30d": null
     }
@@ -41,32 +41,32 @@
       "clicks_per_published_post": null,
       "ctr": null,
       "orders": null,
-      "published_posts": 56,
+      "published_posts": 57,
       "sales_amount": null,
       "tracked_clicks_30d": null
     }
   },
   "ctr": null,
-  "experiment_assignment_coverage_percent": 13.12,
+  "experiment_assignment_coverage_percent": 13.21,
   "experiment_attribution_active": true,
   "experiment_attribution_available": true,
   "experiment_attribution_supported_by_worker": true,
   "experiment_measurement_status": "awaiting_first_tagged_click",
   "experiment_publication_status": "partially_assigned",
-  "generated_at": "2026-11-15T19:31:38.816693+00:00",
+  "generated_at": "2026-11-15T19:40:52.232760+00:00",
   "impressions": null,
   "interpretation": "Tracked clicks and clicks per published post are descriptive signals, not CTR or causal lift. Impressions, orders, sales and commission are not inferred from clicks.",
   "orders": null,
-  "published_caption_experiment_posts": 35,
-  "published_experiment_posts": 132,
+  "published_caption_experiment_posts": 36,
+  "published_experiment_posts": 133,
   "published_posts_by_caption_variant": {
     "offerchin-caption-v1:A": 17,
-    "offerchin-caption-v1:B": 18
+    "offerchin-caption-v1:B": 19
   },
   "published_posts_by_platform": {
     "aparat": 41,
-    "bale": 996,
-    "telegram": 1003,
+    "bale": 997,
+    "telegram": 1004,
     "youtube": 144
   },
   "published_posts_by_product": {
@@ -5833,6 +5833,23 @@
       "discount_percent": 18,
       "selection_demand_evidence": "digikala_recent_review_growth_proxy",
       "selection_demand_quality": "indirect_review_growth_proxy_not_sales"
+    },
+    "dkp-20701334": {
+      "bestseller_category_count": 1,
+      "bestseller_rank": 27,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "B",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "B",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "discount_percent": 45,
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold"
     },
     "dkp-20704496": {
       "bestseller_category_count": 0,
@@ -16596,9 +16613,9 @@
   },
   "published_posts_by_variant": {
     "offerchin-creative-v1:A": 76,
-    "offerchin-creative-v1:B": 56
+    "offerchin-creative-v1:B": 57
   },
-  "published_product_count": 1006,
+  "published_product_count": 1007,
   "sales_amount": null,
   "sales_data_status": "unavailable_until_official_Affilio_report_or_export_is_connected",
   "source_attribution_available": true,
