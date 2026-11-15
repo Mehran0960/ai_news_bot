@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-15T20:51:43.637085+00:00",
+  "generated_at": "2026-11-15T20:59:42.945871+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -391,30 +391,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1334,
+    "all_time_count": 1335,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 483,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-14T13:39:40.485617+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-20682942",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-14T13:39:40.485617+00:00",
         "brand": "",
@@ -730,6 +713,23 @@
           "similarity_repeat"
         ],
         "title": "کفش زنانه پاتکان کد NIC829",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-15T20:59:42.945871+00:00",
+        "brand": "",
+        "catalog_category_id": "9371",
+        "catalog_category_name": "کفش پاشنه دار زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-6223366",
+        "family": "digikala_category:9371",
+        "product_id": "dkp-21219236",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش پاشنه‌دار زنانه مدل jzi-852",
         "use_case": "fashion_lifestyle"
       }
     ]
