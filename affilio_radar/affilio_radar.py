@@ -328,6 +328,7 @@ DIGIKALA_BROWSER_HEADERS = {
 }
 DIGIKALA_DISCOVERY_SEARCH_URL = "https://api.digikala.com/discovery/api/v1/search"
 DIGIKALA_DISCOVERY_AUTOCOMPLETE_URL = "https://api.digikala.com/discovery/api/v1/autocomplete"
+DIGIKALA_PRODUCT_DETAIL_API_URL = "https://api.digikala.com/product/v1/products/{product_id}/"
 
 
 def _digikala_get(url: str, params=None, timeout=None, session=None):
@@ -1354,11 +1355,17 @@ def parse_product_api(payload: dict, url: str, now: datetime | None = None) -> d
         title = _clean_title(obj.get("title_fa") or obj.get("product_title") or obj.get("name_fa") or obj.get("title") or obj.get("name"))
         if not is_publishable_product_title(title):
             continue
-        obj_id = str(obj.get("product_id") or obj.get("id") or "")
+        obj_id = str(obj.get("product_id") or obj.get("id") or "").strip().lower()
+        if obj_id.startswith("dkp-"):
+            obj_id = obj_id[4:]
+        # A detail response must belong to the exact requested SKU. Never let a
+        # nested recommendation, seller, or unrelated product satisfy identity.
+        if not target_number or obj_id != target_number:
+            continue
         has_data = any(k in obj for k in ("default_variant", "variants", "images", "image", "price", "rating", "url"))
         if not has_data:
             continue
-        score = 5 + (12 if obj_id == target_number else 0)
+        score = 17
         score += 5 if "default_variant" in obj else 0
         score += 3 if "variants" in obj else 0
         score += 3 if "images" in obj or "image" in obj else 0
@@ -1517,25 +1524,28 @@ def verify_live_page_price(product: dict) -> dict:
     api_errors = []
     numeric_id = expected_id.replace("dkp-", "")
     if numeric_id.isdigit():
-        for api_version in ("v2", "v1"):
-            try:
-                response = _digikala_get(
-                    f"https://api.digikala.com/{api_version}/product/{numeric_id}/",
-                    timeout=HTTP_TIMEOUT,
+        try:
+            response = _digikala_get(
+                DIGIKALA_PRODUCT_DETAIL_API_URL.format(product_id=numeric_id),
+                timeout=HTTP_TIMEOUT,
+            )
+            if not response.ok:
+                api_errors.append(f"product_detail_http_{response.status_code}")
+                print(
+                    f"PRODUCT_DETAIL_API_HTTP id={expected_id} "
+                    f"status={response.status_code} endpoint=product/v1/products"
                 )
-                if not response.ok:
-                    api_errors.append(f"{api_version}_http_{response.status_code}")
-                    continue
+            else:
                 candidate = parse_product_api(response.json(), url)
-                if candidate and product_id(candidate.get("product_url") or url) != expected_id:
-                    api_errors.append(f"{api_version}_product_identity_mismatch")
-                    continue
-                if candidate.get("current_price"):
+                candidate_id = str(candidate.get("product_id") or "").strip().lower()
+                if candidate_id != expected_id:
+                    api_errors.append("product_detail_product_identity_mismatch")
+                elif candidate.get("current_price"):
                     live = candidate
-                    break
-                api_errors.append(f"{api_version}_price_unavailable")
-            except Exception as exc:
-                api_errors.append(f"{api_version}_{type(exc).__name__}")
+                else:
+                    api_errors.append("product_detail_price_unavailable")
+        except Exception as exc:
+            api_errors.append(f"product_detail_{type(exc).__name__}")
 
     price_source = "digikala_live_api" if live.get("current_price") else ""
     if live.get("availability") == "out_of_stock":
@@ -1821,30 +1831,41 @@ def fetch_product_record(url: str) -> dict:
     pid = product_id(url).replace("dkp-", "")
     api_product = {}
     if pid.isdigit():
-        for api_version in ("v2", "v1"):
-            api_url = f"https://api.digikala.com/{api_version}/product/{pid}/"
-            try:
-                response = _digikala_get(api_url, timeout=HTTP_TIMEOUT)
-                if not response.ok:
-                    print(
-                        f"PRODUCT_API_HTTP id={product_id(url)} version={api_version} "
-                        f"status={response.status_code}"
-                    )
-                    continue
+        api_url = DIGIKALA_PRODUCT_DETAIL_API_URL.format(product_id=pid)
+        try:
+            response = _digikala_get(api_url, timeout=HTTP_TIMEOUT)
+            if not response.ok:
+                print(
+                    f"PRODUCT_DETAIL_API_HTTP id={product_id(url)} "
+                    f"status={response.status_code} endpoint=product/v1/products"
+                )
+            else:
                 payload = response.json()
                 api_product = parse_product_api(payload, url)
+                candidate_id = str(api_product.get("product_id") or "").strip().lower()
+                if candidate_id and candidate_id != product_id(url):
+                    print(
+                        f"PRODUCT_DETAIL_API_IDENTITY_MISMATCH id={product_id(url)} "
+                        f"returned={candidate_id}"
+                    )
+                    api_product = {}
                 if not api_product:
                     data_node = payload.get("data") if isinstance(payload, dict) else None
                     print(
-                        f"PRODUCT_API_PARSE_EMPTY id={product_id(url)} version={api_version} "
+                        f"PRODUCT_DETAIL_API_PARSE_EMPTY id={product_id(url)} "
                         f"root_keys={','.join(sorted(payload.keys())[:12]) if isinstance(payload, dict) else 'non_object'} "
                         f"data_keys={','.join(sorted(data_node.keys())[:12]) if isinstance(data_node, dict) else 'none'}"
                     )
-                if api_product.get("title") or api_product.get("current_price") or api_product.get("availability") == "in_stock":
-                    print(f"PRODUCT_API id={product_id(url)} version={api_version} title={bool(api_product.get('title'))} price={bool(api_product.get('current_price'))} stock={api_product.get('availability')}")
-                    break
-            except Exception as exc:
-                print(f"PRODUCT_API_FAILED id={product_id(url)} version={api_version} error={type(exc).__name__}")
+                if api_product.get("title") and api_product.get("current_price"):
+                    print(
+                        f"PRODUCT_DETAIL_API id={product_id(url)} "
+                        f"title=True price=True stock={api_product.get('availability')}"
+                    )
+        except Exception as exc:
+            print(
+                f"PRODUCT_DETAIL_API_FAILED id={product_id(url)} "
+                f"error={type(exc).__name__}"
+            )
 
     needs_html = (
         not is_publishable_product_title(api_product.get("title"))
