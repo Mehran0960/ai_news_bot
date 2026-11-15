@@ -185,6 +185,34 @@ class EditorialPublisherTests(unittest.TestCase):
         )
         self.assertEqual(entry["dispatch_runway_seconds"], 90)
 
+    def test_missed_midpoint_starts_now_when_the_remaining_delivery_runway_fits(self):
+        product_at = NOW + timedelta(minutes=2)
+        state = {
+            "last_channel_published_at": (NOW - timedelta(minutes=2)).isoformat(),
+            "content_delivery_queue": {
+                "dkp-late-wakeup": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "payload": {"product_id": "dkp-late-wakeup", "title": "گوشی موبایل"},
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
+        }
+        with patch.dict(os.environ, {
+            "OFFERCHIN_EDITORIAL_DISPATCH_POLL_SECONDS": "60",
+            "OFFERCHIN_EDITORIAL_DEFAULT_DELIVERY_SECONDS": "30",
+        }, clear=True):
+            entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+
+        self.assertIsNotNone(entry)
+        self.assertEqual(datetime.fromisoformat(entry["scheduled_at"]), NOW)
+        self.assertEqual(
+            datetime.fromisoformat(entry["window_closes_at"]),
+            NOW + timedelta(seconds=90),
+        )
+        self.assertEqual(entry["delivery_runway_seconds"], 30)
+
     def test_editorial_is_skipped_when_real_send_runway_does_not_fit(self):
         product_at = NOW + timedelta(seconds=75)
         state = {
