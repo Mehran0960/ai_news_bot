@@ -56,16 +56,7 @@ def _session() -> requests.Session:
     """Give each worker its own HTTP session; never share mutable sessions."""
     session = getattr(_thread_local, "session", None)
     if session is None:
-        session = requests.Session()
-        session.headers.update({
-            "User-Agent": (
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/128 Safari/537.36"
-            ),
-            "Accept": "application/json,text/plain,*/*",
-            "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
-            "Referer": "https://www.digikala.com/",
-        })
+        session = base.new_digikala_session()
         _thread_local.session = session
     return session
 
@@ -86,6 +77,7 @@ def build_initial_page_queue(
         tasks.append({
             "category_id": category_id,
             "category_name": str(category.get("name") or category_id),
+            "category_code": str(category.get("code") or category.get("slug") or "").strip(),
             "category_query": str(category.get("query") or category.get("name") or category_id),
             "page": page if index == start_index else 1,
             "attempts": 0,
@@ -108,22 +100,18 @@ def _next_page_task(task: dict, total_pages: int | None, product_count: int) -> 
     return {
         "category_id": str(task.get("category_id") or ""),
         "category_name": str(task.get("category_name") or task.get("category_id") or ""),
+        "category_code": str(task.get("category_code") or ""),
+        "category_query": str(task.get("category_query") or task.get("category_name") or ""),
         "page": page + 1,
         "attempts": 0,
     }
 
 def _fetch_page(task: dict) -> dict:
-    """Try current and compatible public DigiKala category-list routes safely.
-
-    A 400/403/404 on one route is not treated as proof that the category itself
-    is unqueryable until the fallback routes have also been tried. 403 is kept
-    retryable because it can reflect runner/network access policy, not a missing
-    category. No product is accepted without the expected listing parse contract.
-    """
+    """Fetch one live category-code page through DigiKala's current public API."""
     request_started = time.monotonic()
     category_id = str(task.get("category_id") or "").strip()
+    category_code = str(task.get("category_code") or "").strip()
     page = max(1, base._normal_int(task.get("page"), 1))
-    category_query = str(task.get("category_query") or task.get("category_name") or category_id)
 
     def timed_result(kind: str, **fields: object) -> dict:
         return {
@@ -134,97 +122,79 @@ def _fetch_page(task: dict) -> dict:
 
     if not category_id.isdigit():
         return timed_result("terminal", status_code=400, rows=[], error="invalid_category_id")
-
-    primary_url, primary_params = base._category_page_url(category_id, page, category_query)
-    route_specs = [
-        ("search_api_v2_category", primary_url, primary_params),
-        (
-            "discovery_api_v2_category_products",
-            f"https://api.digikala.com/discovery/api/v2/categories/{category_id}/products/",
-            {"page": page, "sort": base.BEST_SELLING_SORT_VALUE, "q": category_query},
-        ),
-        (
-            "legacy_search_api_v1",
-            "https://api.digikala.com/v1/search/",
-            {"categories[]": category_id, "page": page, "sort": base.BEST_SELLING_SORT_VALUE},
-        ),
-    ]
-
-    http = _session()
-    route_errors = []
-    route_diagnostics = []
-    seen_statuses = []
-    for source, search_url, params in route_specs:
-        try:
-            response = http.get(search_url, params=params, timeout=base.REQUEST_TIMEOUT)
-            status_code = int(getattr(response, "status_code", 0) or 0)
-            seen_statuses.append(status_code)
-            response_url = str(getattr(response, "url", search_url) or search_url)
-            if status_code in (400, 403, 404):
-                body_excerpt = re.sub(r"\\s+", " ", str(getattr(response, "text", "") or ""))[:180]
-                route_diagnostics.append({
-                    "source": source, "status": status_code,
-                    "url": response_url[:260], "body": body_excerpt,
-                })
-            if status_code == 429:
-                return timed_result(
-                    "retry", status_code=429, rows=[], error="rate_limited",
-                    source=source, route_errors=route_errors,
-                )
-            if status_code in (400, 403, 404):
-                route_errors.append(f"{source}_http_{status_code}")
-                continue
-            response.raise_for_status()
-            if len(response.content) > 8_000_000:
-                route_errors.append(f"{source}_response_exceeded_8mb")
-                continue
-            try:
-                payload = response.json()
-            except ValueError:
-                route_errors.append(f"{source}_non_json")
-                continue
-            if not isinstance(payload, dict):
-                route_errors.append(f"{source}_payload_not_object")
-                continue
-            data_block = payload.get("data", {}) if isinstance(payload, dict) else {}
-            sort_options = data_block.get("sort_options") if isinstance(data_block, dict) else None
-            try:
-                rows = base.extract_product_rows(payload)
-            except Exception as exc:
-                route_errors.append(f"{source}_{type(exc).__name__}")
-                continue
-            total_pages = base.extract_total_pages(payload, page, len(rows))
-            return timed_result(
-                "ok", rows=rows, total_pages=total_pages, status_code=status_code,
-                source=source, route_errors=route_errors,
-                sort_options=sort_options if isinstance(sort_options, list) else None,
-            )
-        except Exception as exc:
-            status = getattr(getattr(exc, "response", None), "status_code", None)
-            route_errors.append(f"{source}_{type(exc).__name__}")
-            if status is not None:
-                try:
-                    seen_statuses.append(int(status))
-                except (TypeError, ValueError, OverflowError):
-                    pass
-
-    # Only an all-400/404 outcome proves the category route is absent. A 403
-    # remains retryable; it may be runner/IP policy rather than bad taxonomy.
-    terminal_statuses = {400, 404}
-    if seen_statuses and all(status in terminal_statuses for status in seen_statuses) and not any(
-        "non_json" in error or "payload_not_object" in error or "response_exceeded" in error
-        for error in route_errors
-    ):
+    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", category_code):
         return timed_result(
-            "terminal", status_code=seen_statuses[-1], rows=[],
-            error="all_category_routes_not_found", route_errors=route_errors,
-            route_diagnostics=route_diagnostics,
+            "terminal", status_code=400, rows=[],
+            error="missing_or_invalid_category_code",
         )
-    return timed_result(
-        "retry", rows=[], error=";".join(route_errors[-3:]) or "category_routes_failed",
-        status_code=seen_statuses[-1] if seen_statuses else None, route_errors=route_errors,
-        route_diagnostics=route_diagnostics,
-    )
+
+    search_url = f"https://api.digikala.com/v1/categories/{category_code}/search/"
+    params = {"page": page, "sort": 7, "has_selling_stock": 1}
+    try:
+        response = _session().get(search_url, params=params, timeout=base.REQUEST_TIMEOUT)
+        status_code = int(getattr(response, "status_code", 0) or 0)
+        if status_code == 429:
+            return timed_result(
+                "retry", status_code=429, rows=[], error="rate_limited",
+                source="digikala_v1_category_code_search",
+            )
+        if status_code == 403:
+            return timed_result(
+                "retry", status_code=403, rows=[], error="category_route_forbidden",
+                source="digikala_v1_category_code_search",
+            )
+        if status_code in (400, 404):
+            return timed_result(
+                "terminal", status_code=status_code, rows=[],
+                error="category_code_route_not_found",
+                source="digikala_v1_category_code_search",
+                route_diagnostics=[{
+                    "source": "digikala_v1_category_code_search",
+                    "status": status_code,
+                    "url": str(getattr(response, "url", search_url))[:260],
+                    "body": re.sub(r"\\s+", " ", str(getattr(response, "text", "") or ""))[:180],
+                }],
+            )
+        response.raise_for_status()
+        if len(response.content) > 8_000_000:
+            return timed_result(
+                "retry", status_code=status_code, rows=[],
+                error="category_response_exceeded_8mb",
+            )
+        try:
+            payload = response.json()
+        except ValueError:
+            return timed_result(
+                "retry", status_code=status_code, rows=[],
+                error="category_payload_non_json",
+            )
+        if not isinstance(payload, dict):
+            return timed_result(
+                "retry", status_code=status_code, rows=[],
+                error="category_payload_not_object",
+            )
+        try:
+            rows = base.extract_product_rows(payload)
+        except Exception as exc:
+            return timed_result(
+                "retry", status_code=status_code, rows=[],
+                error=f"category_parse_{type(exc).__name__}",
+            )
+        total_pages = base.extract_total_pages(payload, page, len(rows))
+        data = payload.get("data") if isinstance(payload.get("data"), dict) else {}
+        sort_options = data.get("sort_options") if isinstance(data.get("sort_options"), list) else None
+        return timed_result(
+            "ok", rows=rows, total_pages=total_pages, status_code=status_code,
+            source="digikala_v1_category_code_search",
+            sort_options=sort_options,
+        )
+    except Exception as exc:
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        return timed_result(
+            "retry", rows=[], status_code=status,
+            error=f"category_request_{type(exc).__name__}",
+            source="digikala_v1_category_code_search",
+        )
 
 
 def _percentile(values: list[float], percentile: float) -> float:
@@ -318,6 +288,8 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
                 queue.append({
                     "category_id": category_id,
                     "category_name": str(category.get("name") or category_id),
+                    "category_code": str(category.get("code") or category.get("slug") or "").strip(),
+                    "category_query": str(category.get("query") or category.get("name") or category_id),
                     "page": 1,
                     "attempts": 0,
                 })
@@ -338,6 +310,24 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
         if state.get("last_cycle_completed_at"):
             state["legacy_last_partial_sweep_at"] = state.pop("last_cycle_completed_at")
         state["parallel_full_cycle_counter_initialized"] = True
+
+    # The taxonomy refresh may add category codes to legacy cached ID-only tasks.
+    category_code_by_id = {
+        str(row.get("id") or ""): str(row.get("code") or row.get("slug") or "").strip()
+        for row in categories if isinstance(row, dict)
+    }
+    category_name_by_id = {
+        str(row.get("id") or ""): str(row.get("name") or "").strip()
+        for row in categories if isinstance(row, dict)
+    }
+    for task in queue:
+        if not isinstance(task, dict):
+            continue
+        category_id = str(task.get("category_id") or "")
+        if not task.get("category_code"):
+            task["category_code"] = category_code_by_id.get(category_id, "")
+        if not task.get("category_name"):
+            task["category_name"] = category_name_by_id.get(category_id, category_id)
 
     # De-duplicate persisted work without pruning any page depth or retry record.
     unique: list[dict] = []
