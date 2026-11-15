@@ -227,8 +227,7 @@ jobs:
           APARAT_SHORTS_ONLY: "false"
           APARAT_VIDEO_PASS: "0"
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
-          # Up to three already-due products per tick; FIFO order remains authoritative.
-          AFFILIO_PUBLISHER_BATCH_SIZE: "3"
+          # The publisher consumes one due content slot per dispatch; no catch-up bursts.
           AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "250"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
           AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
