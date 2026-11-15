@@ -10,6 +10,7 @@ from unittest.mock import Mock
 
 try:
     from .catalog_sweep import (
+        CATEGORY_TAXONOMY_POLICY_VERSION,
         _advance_cursor,
         _clean_old_candidates,
         catalog_handoff_fingerprint,
@@ -36,6 +37,7 @@ try:
     )
 except ImportError:
     from catalog_sweep import (
+        CATEGORY_TAXONOMY_POLICY_VERSION,
         _advance_cursor,
         _clean_old_candidates,
         catalog_handoff_fingerprint,
@@ -151,6 +153,101 @@ class CatalogSweepTests(unittest.TestCase):
             {"22", "23"},
         )
 
+    def test_extract_categories_rejects_seller_brand_and_delivery_facets(self):
+        payload = {
+            "data": {
+                "filters": [
+                    {
+                        "key": "seller_ids",
+                        "name": "فروشنده",
+                        "values": [
+                            {"id": 1, "title": "دیجی‌کالا"},
+                            {"id": 52394, "title": "فناوری یاری آرتمیس"},
+                        ],
+                    },
+                    {
+                        "key": "brands",
+                        "name": "برند",
+                        "values": [
+                            {"id": 18, "title": "سامسونگ"},
+                            {"id": 19, "title": "شیائومی"},
+                        ],
+                    },
+                    {
+                        "key": "has_ready_to_shipment",
+                        "name": "ارسال سریع",
+                        "values": [{"id": 101, "title": "ارسال امروز"}],
+                    },
+                ]
+            }
+        }
+        self.assertEqual(extract_categories(payload), [])
+
+    def test_extract_categories_reads_only_explicit_category_tree_and_facet(self):
+        payload = {
+            "data": {
+                "category_tree": [{
+                    "id": 10,
+                    "title_fa": "کالای دیجیتال",
+                    "children": [{"id": 11, "title_fa": "گوشی موبایل"}],
+                }],
+                "filters": [
+                    {
+                        "key": "categories",
+                        "title": "دسته‌بندی",
+                        "values": [{
+                            "id": 22,
+                            "title": "خانه",
+                            "children": [{"id": 23, "title": "آشپزخانه"}],
+                        }],
+                    },
+                    {
+                        "key": "seller_ids",
+                        "name": "فروشنده",
+                        "values": [{"id": 24, "title": "لوازم جانبی کامپیوتر"}],
+                    },
+                ],
+                "widgets": [{
+                    "type": "vertical_product_listing",
+                    "data": {"widgets": [{
+                        "type": "product",
+                        "data": {
+                            "id": 25,
+                            "title_fa": "ماوس بی‌سیم",
+                            "url": {"uri": "/product/dkp-25/"},
+                            "category": "[MC,لوازم جانبی کامپیوتر]",
+                        },
+                    }]},
+                }],
+            }
+        }
+        rows = extract_categories(payload)
+        by_id = {row["id"]: row for row in rows}
+        self.assertEqual(set(by_id), {"10", "11", "22", "23"})
+        self.assertEqual(by_id["23"]["parent_id"], "22")
+
+    def test_catalog_category_consistency_uses_fine_grained_topics(self):
+        self.assertFalse(catalog_category_is_consistent(
+            {"title": "ماوس بی‌سیم مدل Silent RGB", "category": "[MC,لوازم جانبی کامپیوتر]"},
+            "گوشی ریلمی",
+        ))
+        self.assertFalse(catalog_category_is_consistent(
+            {"title": "فلش مموری 64 گیگابایت", "category": "[MC,تجهیزات ذخیره سازی اطلاعات]"},
+            "گوشی نوکیا",
+        ))
+        self.assertFalse(catalog_category_is_consistent(
+            {"title": "مانیتور 24 اینچ", "category": "[MC,نمایشگر (مانیتور)]"},
+            "گوشی آنر",
+        ))
+        self.assertFalse(catalog_category_is_consistent(
+            {"title": "دوربین مداربسته", "category": "[MC,دوربین و تجهیزات امنیتی]"},
+            "عینک مردانه",
+        ))
+        self.assertTrue(catalog_category_is_consistent(
+            {"title": "گوشی سامسونگ", "category": "[MC,گوشی موبایل]"},
+            "گوشی ریلمی",
+        ))
+
     def test_discover_categories_uses_current_discovery_query_metadata(self):
         payload = {"data": {"query_attributes": {"category_ids": [{"id": 5, "title_fa": "خانه"}]}}}
         empty = {"data": {"query_attributes": {"category_ids": []}}}
@@ -209,7 +306,7 @@ class CatalogSweepTests(unittest.TestCase):
         mobile = next(row for row in categories if row["id"] == "77")
         self.assertEqual(mobile["name"], "موبایل")
         self.assertEqual(mobile["query"], "گوشی")
-        self.assertEqual(mobile["source"], "digikala_discovery_api_v1_search_taxonomy")
+        self.assertEqual(mobile["source"], "digikala_discovery_api_v1_query_categories")
         self.assertTrue(session.calls[0][0].endswith("/discovery/api/v1/search"))
         self.assertEqual(dict(session.calls[0][1])["q"], "گوشی")
 
@@ -226,6 +323,7 @@ class CatalogSweepTests(unittest.TestCase):
         ]
         refreshed = (datetime.now(timezone.utc) - timedelta(hours=48)).isoformat()
         state = {
+            "category_taxonomy_policy_version": CATEGORY_TAXONOMY_POLICY_VERSION,
             "categories": categories,
             "categories_refreshed_at": refreshed,
             "category_index": 1,
@@ -256,6 +354,7 @@ class CatalogSweepTests(unittest.TestCase):
         empty = {"data": {"query_attributes": {"category_ids": []}}}
         session = FakeSession([autocomplete] + [empty] * 14)
         state = {
+            "category_taxonomy_policy_version": CATEGORY_TAXONOMY_POLICY_VERSION,
             "categories": old_categories,
             "categories_refreshed_at": (datetime.now(timezone.utc) - timedelta(hours=48)).isoformat(),
             "category_index": 1,
@@ -270,6 +369,7 @@ class CatalogSweepTests(unittest.TestCase):
     def test_refresh_categories_respects_retry_backoff_without_repeating_api_calls(self):
         now = datetime.now(timezone.utc)
         state = {
+            "category_taxonomy_policy_version": CATEGORY_TAXONOMY_POLICY_VERSION,
             "categories": [{"id": "10", "name": "خانه", "parent_id": "", "depth": 0}],
             "categories_refreshed_at": (now - timedelta(hours=48)).isoformat(),
             "category_discovery_retry_after": (now + timedelta(hours=2)).isoformat(),
@@ -280,6 +380,48 @@ class CatalogSweepTests(unittest.TestCase):
         refresh_categories(state, session)
         self.assertEqual(session.calls, [])
         self.assertEqual(state["page"], 4)
+
+    def test_refresh_categories_rejects_legacy_taxonomy_cache_when_live_api_fails(self):
+        state = {
+            "categories": [
+                {"id": "1", "name": "دیجی‌کالا", "parent_id": "", "depth": 0},
+                {"id": "52394", "name": "فناوری یاری آرتمیس", "parent_id": "", "depth": 0},
+            ],
+            "categories_refreshed_at": datetime.now(timezone.utc).isoformat(),
+        }
+        session = FakeSession([FakeResponse({}, status_code=403)] * 32)
+        with self.assertRaises(CatalogSweepError) as raised:
+            refresh_categories(state, session)
+        self.assertIn("category_taxonomy_migration_requires_live_refresh", str(raised.exception))
+        self.assertFalse(state["category_discovery_fallback_used"])
+        self.assertTrue(state["category_taxonomy_migration_blocked"])
+        self.assertNotEqual(
+            state.get("category_taxonomy_policy_version"),
+            CATEGORY_TAXONOMY_POLICY_VERSION,
+        )
+
+    def test_refresh_categories_replaces_legacy_taxonomy_cache_after_live_discovery(self):
+        live = {
+            "data": {
+                "query_attributes": {
+                    "category_ids": [{"id": 211, "title_fa": "هدفون"}]
+                }
+            }
+        }
+        empty = {"data": {"query_attributes": {"category_ids": []}}}
+        state = {
+            "categories": [{"id": "1", "name": "دیجی‌کالا", "parent_id": "", "depth": 0}],
+            "categories_refreshed_at": datetime.now(timezone.utc).isoformat(),
+        }
+        session = FakeSession([live] + [empty] * 14)
+        refresh_categories(state, session)
+        self.assertEqual({row["id"] for row in state["categories"]}, {"211"})
+        self.assertEqual(
+            state["category_taxonomy_policy_version"],
+            CATEGORY_TAXONOMY_POLICY_VERSION,
+        )
+        self.assertNotIn("category_taxonomy_migration_blocked", state)
+        self.assertFalse(state["category_discovery_fallback_used"])
 
     def test_refresh_categories_does_not_use_expired_taxonomy_cache_after_api_failure(self):
         refreshed = (datetime.now(timezone.utc) - timedelta(hours=200)).isoformat()
@@ -497,7 +639,7 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(session.calls[0][1]["q"], "گوشی")
         self.assertTrue(session.calls[1][0].endswith("/discovery/api/v1/search"))
         self.assertEqual(session.calls[1][1], {
-            "q": "موبایل", "categories[0]": "11", "page": 1, "sort": 7
+            "q": "گوشی", "categories[0]": "11", "page": 1, "sort": 7
         })
 
     def test_discovery_preflight_rejects_http_200_with_no_marketable_products(self):
@@ -888,6 +1030,7 @@ class CatalogSweepTests(unittest.TestCase):
             candidates_path = base / "candidates.json"
             publisher_state_path = base / "publisher.json"
             state_path.write_text(json.dumps({
+                "category_taxonomy_policy_version": CATEGORY_TAXONOMY_POLICY_VERSION,
                 "categories": [{"id": "7", "name": "کالای دیجیتال"}],
                 "categories_refreshed_at": datetime.now(timezone.utc).isoformat(),
                 "category_index": 0,
