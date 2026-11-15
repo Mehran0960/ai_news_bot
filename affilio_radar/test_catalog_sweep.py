@@ -263,11 +263,31 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual([row["id"] for row in rows], ["101", "102"])
         self.assertEqual(rows[0]["query"], "گوشی سامسونگ")
         current = {
-            "data": {"query_attributes": {"category_ids": [211, {"id": 11, "title_fa": "گوشی موبایل"}]}}
+            "data": {
+                "widgets": [{
+                    "type": "vertical_product_listing",
+                    "data": {
+                        "query_attributes": {
+                            "category_ids": [211, {"id": 11, "title_fa": "گوشی موبایل"}]
+                        },
+                        "widgets": [],
+                    },
+                }]
+            }
         }
         current_rows = extract_autocomplete_categories(current, "گوشی")
         self.assertEqual([row["id"] for row in current_rows], ["211", "11"])
         self.assertEqual(current_rows[0]["name"], "گوشی")
+
+        autocomplete = {
+            "data": {"auto_complete": [
+                {"id": 11, "type": "category", "title": "گوشی موبایل"},
+                {"id": 555, "type": "keyword", "title": "گوشی سامسونگ"},
+            ]}
+        }
+        autocomplete_rows = extract_autocomplete_categories(autocomplete, "گوشی")
+        self.assertEqual([row["id"] for row in autocomplete_rows], ["11"])
+        self.assertEqual(autocomplete_rows[0]["name"], "گوشی موبایل")
 
     def test_extract_search_api_v2_product_widgets(self):
         payload = {
@@ -366,6 +386,12 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(state["category_index"], 0)
         self.assertEqual(state["page"], 1)
         self.assertEqual(state["completed_cycles"], 1)
+
+    def test_discovery_endpoints_use_operation_paths(self):
+        self.assertTrue(DISCOVERY_SEARCH_URL.endswith("/discovery/api/v1/search"))
+        self.assertTrue(DISCOVERY_AUTOCOMPLETE_URL.endswith("/discovery/api/v1/autocomplete"))
+        self.assertEqual(SESSION.headers.get("Origin"), "https://www.digikala.com")
+        self.assertEqual(SESSION.headers.get("X-Web-Optimize-Response"), "1")
 
     def test_category_search_requests_current_discovery_api_category_filter(self):
         url, params = _category_page_url("123", 2, "گوشی موبایل")
