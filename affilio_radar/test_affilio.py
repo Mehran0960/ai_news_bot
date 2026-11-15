@@ -342,7 +342,10 @@ class AffilioRadarTests(unittest.TestCase):
         payload = {
             "data": {
                 "id": "42yeLw",
-                "content": {"title_fa": "گوشی نمونه"},
+                "content": {
+                    "title_fa": "گوشی نمونه",
+                    "brand": {"title_fa": "سامسونگ", "title_en": "Samsung"},
+                },
                 "images": ["https://cdn.snappshop.ir/products/phone-main.webp"],
                 "variants": [{
                     "vendor": [{
@@ -782,7 +785,10 @@ class AffilioRadarTests(unittest.TestCase):
         payload = {
             "data": {
                 "id": "42yeLw",
-                "content": {"title_fa": "گوشی نمونه"},
+                "content": {
+                    "title_fa": "گوشی نمونه",
+                    "brand": {"title_fa": "سامسونگ", "title_en": "Samsung"},
+                },
                 "images": ["https://cdn.snappshop.ir/products/phone-main.webp"],
                 "variants": [{
                     "variation_id": "v1",
@@ -802,6 +808,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(parsed["current_price"], 3_398_000)
         self.assertEqual(parsed["original_price"], 4_900_000)
         self.assertEqual(parsed["availability"], "in_stock")
+        self.assertEqual(parsed["brand"], "سامسونگ")
+        self.assertEqual(parsed["brand_name"], "سامسونگ")
         self.assertIn("cdn.snappshop.ir", parsed["image_url"])
         self.assertEqual(parsed["expiry_source"], "snappshop_no_confirmed_expiry")
 
@@ -1551,6 +1559,110 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(radar_module.FAMILY_REPEAT_COOLDOWN_HOURS, 24)
         self.assertEqual(radar_module.BRAND_REPEAT_COOLDOWN_HOURS, 24)
         self.assertEqual(radar_module.PUBLICATION_SIMILARITY_COOLDOWN_HOURS, 24)
+        self.assertEqual(radar_module.PUBLICATION_CATEGORY_REPEAT_COOLDOWN_HOURS, 6)
+        self.assertEqual(radar_module.PUBLICATION_USE_CASE_REPEAT_COOLDOWN_HOURS, 2)
+
+    def test_catalog_category_guard_is_independent_and_expires_after_six_hours(self):
+        now = datetime(2026, 11, 16, 12, 0, tzinfo=timezone.utc)
+        previous = {
+            "product_id": "dkp-old-book",
+            "title": "کتاب آشپزی ایتالیایی با دستورهای سنتی",
+            "catalog_category_id": "book-leaf-17",
+            "catalog_category_name": "کتاب‌های آموزشی",
+            "ts": (now - timedelta(hours=3)).timestamp(),
+        }
+        candidate = {
+            "product_id": "dkp-new-book",
+            "title": "کتاب آموزش تعمیرات لپ تاپ و قطعات رایانه",
+            "catalog_category_id": "book-leaf-17",
+            "catalog_category_name": "کتاب‌های آموزشی",
+        }
+        self.assertEqual(radar_module._publication_family_guard_key(previous), "")
+        self.assertEqual(
+            radar_module._publication_category_guard_key(previous),
+            radar_module._publication_category_guard_key(candidate),
+        )
+        self.assertEqual(
+            radar_module._filter_recent_publication_repeats(
+                [candidate], {}, [previous], now
+            ),
+            [],
+        )
+
+        previous["ts"] = (now - timedelta(hours=7)).timestamp()
+        self.assertEqual(
+            radar_module._filter_recent_publication_repeats(
+                [candidate], {}, [previous], now
+            ),
+            [candidate],
+        )
+
+    def test_use_case_guard_blocks_different_families_for_two_hours_only(self):
+        now = datetime(2026, 11, 16, 12, 0, tzinfo=timezone.utc)
+        previous = {
+            "product_id": "dkp-old-phone",
+            "title": "گوشی موبایل سامسونگ Galaxy S24",
+            "catalog_category_id": "smartphone-leaf",
+            "catalog_category_name": "گوشی موبایل",
+            "ts": (now - timedelta(hours=1)).timestamp(),
+        }
+        candidate = {
+            "product_id": "dkp-new-laptop",
+            "title": "لپ تاپ ایسوس Zenbook 14",
+            "catalog_category_id": "laptop-leaf",
+            "catalog_category_name": "لپ تاپ",
+        }
+        self.assertNotEqual(
+            radar_module._publication_family_guard_key(previous),
+            radar_module._publication_family_guard_key(candidate),
+        )
+        self.assertNotEqual(
+            radar_module._publication_category_guard_key(previous),
+            radar_module._publication_category_guard_key(candidate),
+        )
+        self.assertEqual(radar_module._publication_use_case_group(previous), "mobile_productivity")
+        self.assertEqual(radar_module._publication_use_case_group(candidate), "mobile_productivity")
+        self.assertEqual(
+            radar_module._filter_recent_publication_repeats(
+                [candidate], {}, [previous], now
+            ),
+            [],
+        )
+
+        previous["ts"] = (now - timedelta(hours=3)).timestamp()
+        self.assertEqual(
+            radar_module._filter_recent_publication_repeats(
+                [candidate], {}, [previous], now
+            ),
+            [candidate],
+        )
+
+    def test_explicit_brand_metadata_is_normalized_for_repeat_guards(self):
+        self.assertEqual(
+            radar_module._extract_brand_name({"title_fa": "سامسونگ", "title_en": "Samsung"}),
+            "سامسونگ",
+        )
+        _category, _family, brand = radar_module._publication_diversity_group({
+            "title": "هدفون بی سیم مدل Galaxy Buds",
+            "brand": {"title_fa": "سامسونگ", "title_en": "Samsung"},
+        })
+        self.assertEqual(brand, "brand:samsung")
+
+        parsed = radar_module.parse_product_api(
+            {
+                "data": {
+                    "product": {
+                        "id": "123456",
+                        "title_fa": "گوشی موبایل سامسونگ مدل Galaxy S24",
+                        "brand": {"title_fa": "سامسونگ", "title_en": "Samsung"},
+                        "default_variant": {"id": 1, "price": {"selling_price_toman": 25_000_000}},
+                    }
+                }
+            },
+            "https://www.digikala.com/product/dkp-123456/",
+        )
+        self.assertEqual(parsed["brand"], "سامسونگ")
+        self.assertEqual(parsed["brand_name"], "سامسونگ")
 
     def test_recent_brand_is_blocked_for_24_hours_and_released_afterward(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
@@ -1562,9 +1674,9 @@ class AffilioRadarTests(unittest.TestCase):
                 "ts": (now - timedelta(hours=23, minutes=50)).timestamp(),
             }
         }
-        sony_speaker = {
-            "product_id": "dkp-new-speaker",
-            "title": "اسپیکر قابل حمل مدل تازه",
+        sony_laptop = {
+            "product_id": "dkp-new-laptop",
+            "title": "لپ تاپ قابل حمل مدل تازه",
             "brand": "Sony",
             "discount_percent": 75,
             "savings_toman": 700_000,
@@ -1576,7 +1688,7 @@ class AffilioRadarTests(unittest.TestCase):
             "discount_percent": 65,
             "savings_toman": 500_000,
         }
-        candidates = [sony_speaker, other_brand]
+        candidates = [sony_laptop, other_brand]
         queue = {item["product_id"]: {} for item in candidates}
         eligible = {item["product_id"]: item for item in candidates}
 
@@ -1587,7 +1699,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
         self.assertEqual(
             [row["product_id"] for row in selected],
-            ["dkp-new-speaker", "dkp-other-brand"],
+            ["dkp-new-laptop", "dkp-other-brand"],
         )
 
     def test_same_brand_or_family_is_blocked_within_a_single_publish_batch(self):
@@ -1659,6 +1771,72 @@ class AffilioRadarTests(unittest.TestCase):
             compact["next_editorial_planning_at"],
             (now + timedelta(hours=1)).isoformat(),
         )
+
+    def test_video_dispatch_state_uses_latest_safe_editorial_wakeup_for_short_gap(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        product_at = now + timedelta(minutes=2)
+        state = {
+            "last_channel_published_at": now.isoformat(),
+            "content_delivery_queue": {
+                "dkp-short-gap": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+            },
+            "published": {},
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(
+            compact["next_editorial_planning_at"],
+            (now + timedelta(seconds=30)).isoformat(),
+        )
+
+    def test_video_dispatch_state_keeps_a_missed_wakeup_due_while_delivery_window_is_open(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        product_at = now + timedelta(minutes=2)
+        state = {
+            "last_channel_published_at": (now - timedelta(minutes=2)).isoformat(),
+            "content_delivery_queue": {
+                "dkp-missed-wakeup": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+            },
+            "published": {},
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(compact["next_editorial_planning_at"], now.isoformat())
+
+    def test_video_dispatch_state_skips_editorial_when_dispatch_runway_cannot_fit(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        product_at = now + timedelta(seconds=75)
+        state = {
+            "last_channel_published_at": now.isoformat(),
+            "content_delivery_queue": {
+                "dkp-no-runway": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+            },
+            "published": {},
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertIsNone(compact["next_editorial_planning_at"])
 
     def test_video_dispatch_state_uses_midpoint_without_a_minimum_gap(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
@@ -1890,6 +2068,14 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(classify_category("توپ فوتبال مدل نمونه"), "sports_outdoor")
         self.assertEqual(classify_category("لیزر پوینتر ارائه مدل نمونه"), "presentation_tools")
         self.assertEqual(classify_category("لوازم نقاشی و طراحی مدل نمونه"), "arts_crafts")
+        self.assertEqual(classify_category("پودر سیر مثه خودته - 100 گرم"), "grocery_food")
+        self.assertEqual(classify_category("پاستا فوری گوجه ریحان"), "grocery_food")
+        self.assertEqual(classify_category("دستکش نظافت خانگی"), "home_cleaning")
+        self.assertEqual(classify_category("قلم لمسی Stylus برای تبلت"), "digital_accessories")
+        self.assertEqual(
+            radar_module._publication_use_case_group("پودر سیر مثه خودته - 100 گرم"),
+            "grocery_food",
+        )
 
     def test_sesame_cream_sweets_are_not_misclassified_as_skincare(self):
         food = {
@@ -1996,7 +2182,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
         self.assertEqual(
             [p["product_id"] for p in selected],
-            ["dkp-power-new", "dkp-fashion-new"],
+            ["dkp-fashion-new"],
         )
 
 
@@ -2268,7 +2454,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-book-comparable", "snp-book-comparable"],
+            ["dkp-book-comparable"],
         )
 
 
@@ -2344,23 +2530,27 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
 
         self.assertTrue(selected)
-        # Strict demand/discount priority outranks category variety and the
-        # 60% eyewear offer wins when current demand evidence is tied.
-        self.assertEqual(selected[0]["product_id"], "dkp-eyewear-0")
+        # The eyewear candidates repeat the recent fashion use-case, so the
+        # next highest-ranked distinct-use-case offer is selected.
+        self.assertEqual(selected[0]["product_id"], "dkp-late-fragrance")
 
 
-    def test_single_repeated_category_candidate_is_still_publishable(self):
+    def test_distinct_catalog_leaf_in_same_broad_category_remains_eligible_after_short_cooldowns(self):
         now = datetime(2026, 10, 29, 10, 0, tzinfo=timezone.utc)
         published = {
             "dkp-old-audio": {
                 "title": "هدفون بلوتوثی مدل قبلی",
+                "catalog_category_id": "audio-headphones",
+                "catalog_category_name": "هدفون",
                 "telegram_message_id": 1201,
-                "ts": now.timestamp() - 60,
+                "ts": now.timestamp() - timedelta(hours=3).total_seconds(),
             }
         }
         candidate = {
             "product_id": "dkp-only-audio",
             "title": "اسپیکر بلوتوثی مدل فعلی",
+            "catalog_category_id": "audio-speakers",
+            "catalog_category_name": "اسپیکر",
             "demand_score": 60,
             "discount_percent": 55,
             "review_count": 500,
@@ -2420,7 +2610,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(day["category_share_percent"]["audio_wearables"], 66.7)
         self.assertEqual(day["category_share_percent"]["fashion"], 33.3)
         self.assertEqual(day["repeated_brand_count"], 1)
-        self.assertEqual(day["repeated_brands"], {"muzik_apollo": 2})
+        self.assertEqual(day["repeated_brands"], {"brand:muzik_apollo": 2})
         self.assertEqual(report["fallbacks"]["all_time_count"], 4)
         self.assertEqual(report["fallbacks"]["last_7_days_count"], 1)
 
@@ -2592,15 +2782,15 @@ class AffilioRadarTests(unittest.TestCase):
 
         now = first_at + timedelta(hours=2)
         candidate = {
-            "product_id": "dkp-sony-speaker",
-            "title": "اسپیکر قابل حمل مدل تازه",
+            "product_id": "dkp-sony-laptop",
+            "title": "لپ تاپ قابل حمل مدل تازه",
             "brand": "Sony",
             "discount_percent": 90,
             "savings_toman": 1_000_000,
         }
         another_brand = {
-            "product_id": "dkp-other-speaker",
-            "title": "اسپیکر قابل حمل برند دیگر",
+            "product_id": "dkp-other-laptop",
+            "title": "لپ تاپ قابل حمل برند دیگر",
             "brand": "Anker",
             "discount_percent": 80,
             "savings_toman": 800_000,
@@ -2612,7 +2802,7 @@ class AffilioRadarTests(unittest.TestCase):
             queue, eligible, now, published={}, recent_publications=history
         )
 
-        self.assertEqual([item["product_id"] for item in selected], ["dkp-other-speaker"])
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-other-laptop"])
 
 
     def test_repeat_product_requires_real_price_drop_to_bypass_product_cooldown(self):
@@ -3166,8 +3356,8 @@ class AffilioRadarTests(unittest.TestCase):
             product("dkp-95001", "هدفون بلوتوثی مدل برتر", 50),
             product("dkp-95002", "شارژر سریع مدل پرفروش", 45),
             product("dkp-95003", "کوله پشتی مسافرتی مدل تازه", 44),
-            product("dkp-95004", "ماوس بی سیم مدل کاربردی", 40),
-            product("dkp-95005", "اسپیکر بلوتوثی مدل کوچک", 35),
+            product("dkp-95004", "کتاب آموزش مهندسی نرم افزار", 40),
+            product("dkp-95005", "دستکش نظافت خانگی مدل کاربردی", 35),
             product("dkp-95006", "چراغ مطالعه شارژی مدل جدید", 3),
         ]
         for rank, candidate in enumerate(candidates, start=1):
@@ -6051,8 +6241,13 @@ class AffilioRadarTests(unittest.TestCase):
     def test_discovery_check_budget_applies_24h_family_guard_before_budget(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
         recent = [
-            {"product_id": f"dkp-recent-audio-{i}", "title": f"هدفون بلوتوثی نمونه {i}",
-             "ts": now.timestamp() - 60 * (6 - i)}
+            {
+                "product_id": f"dkp-recent-audio-{i}",
+                "title": f"هدفون بلوتوثی نمونه {i}",
+                "catalog_category_id": "audio-headphones",
+                "catalog_category_name": "هدفون",
+                "ts": now.timestamp() - timedelta(hours=3).total_seconds() - 60 * (6 - i),
+            }
             for i in range(6)
         ]
         queue = {}
@@ -6065,6 +6260,16 @@ class AffilioRadarTests(unittest.TestCase):
                 "product_id": pid,
                 "product_url": f"https://www.digikala.com/product/{pid}/",
                 "title": title,
+                "catalog_category_id": {
+                    "dkp-93031": "audio-headphones",
+                    "dkp-93032": "audio-speakers",
+                    "dkp-93033": "fashion-shirts",
+                }[pid],
+                "catalog_category_name": {
+                    "dkp-93031": "هدفون",
+                    "dkp-93032": "اسپیکر",
+                    "dkp-93033": "تی شرت",
+                }[pid],
                 "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
                 "demand_score": demand,
                 "discount_percent": discount,

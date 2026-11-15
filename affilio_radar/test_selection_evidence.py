@@ -67,7 +67,10 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         )
         rejected = radar._LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS["rejection_events"]
         self.assertEqual(len(rejected), 2)
-        self.assertTrue(all("family_repeat" in row["reasons"] for row in rejected))
+        self.assertTrue(all(
+            set(row["reasons"]) & {"family_repeat", "category_repeat", "use_case_repeat", "similarity_repeat"}
+            for row in rejected
+        ))
         self.assertEqual({row["catalog_category_id"] for row in rejected}, {"812"})
         self.assertTrue(all(row["catalog_category_name"] == "پاوربانک" for row in rejected))
 
@@ -88,8 +91,8 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         travel_category, travel_family, _ = radar._publication_diversity_group(travel)
         self.assertNotEqual(auto_category, travel_category)
         self.assertNotEqual(auto_family, travel_family)
-        self.assertIn("digikala_category:91", auto_family)
-        self.assertIn("digikala_category:92", travel_family)
+        self.assertEqual(radar._publication_category_guard_key(automotive), "catalog_category:91")
+        self.assertEqual(radar._publication_category_guard_key(travel), "catalog_category:92")
 
 
     def test_live_digikala_taxonomy_categories_do_not_collapse_into_general(self):

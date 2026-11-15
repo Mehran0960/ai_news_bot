@@ -1,4 +1,5 @@
 import unittest
+import os
 from pathlib import Path
 from unittest.mock import patch
 import math
@@ -10,7 +11,7 @@ from content_delivery import (
     finish_queue_item, get_last_channel_published_at, get_last_product_channel_published_at,
     has_fresh_unpublished_selection, allocate_publication_sequence, promote_fallback_selection,
     refresh_unpublished_selections, selection_cadence_anchor, reschedule_product_queue_evenly,
-    reflow_product_queue_after_delivery,
+    reflow_product_queue_after_delivery, editorial_dispatch_runway_seconds,
 )
 from platform_registry import CORE_PHOTO_PLATFORMS, PHOTO_PLATFORMS, PLATFORM_NAMES
 from publisher import (
@@ -22,6 +23,18 @@ from publisher import (
 class ContentDeliveryQueueTests(unittest.TestCase):
     def setUp(self):
         self.now = datetime(2026, 10, 25, 12, 0, tzinfo=timezone.utc)
+
+    def test_editorial_dispatch_runway_uses_scheduler_poll_and_recent_p90_send_time(self):
+        state = {
+            "editorial_delivery_history": [
+                {"delivery_duration_seconds": 10},
+                {"delivery_duration_seconds": 35},
+                {"delivery_duration_seconds": 80},
+            ]
+        }
+        with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_DISPATCH_POLL_SECONDS": "45"}, clear=True):
+            self.assertEqual(editorial_dispatch_runway_seconds(state), 125)
+            self.assertEqual(editorial_dispatch_runway_seconds({}), 75)
 
     def test_publication_workflow_has_no_fixed_post_interval_setting(self):
         workflow = (
