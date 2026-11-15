@@ -83,6 +83,9 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_catalog_status_snapshot affilio_radar.test_parallel_catalog_sweep affilio_radar.test_catalog_sweep_batch_window -v
 
+      - name: Verify DigiKala Discovery API before touching catalog checkpoints
+        run: python -m affilio_radar.catalog_sweep --validate-api
+
       - name: Sweep catalog in three controlled 480-page batches (no page-depth cap)
         env:
           PYTHONUNBUFFERED: "1"
