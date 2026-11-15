@@ -2591,3 +2591,19 @@
 **ریسک/بازگشت:** اگر state فایل قابل‌خواندن نباشد، discovery به‌صورت fail-closed به تعویق می‌افتد و تحویل صف همچنان اجرا می‌شود. اگر یک کانال اصلی به وضعیت retry/failed بماند، discovery تا retry/رسید نهایی عقب می‌افتد تا صف تازه روی تحویل معوق سوار نشود. rollback با بازگرداندن ترتیب workflow و gate ممکن است؛ دادهٔ صف یا رسیدها نباید reset شوند.
 
 **وضعیت:** workflow، تست رگرسیون و مستندات در شاخهٔ مستقل ثبت شدند؛ پذیرش نهایی منوط به CI و رسید ارسال واقعی است.
+
+## تکمیل قرارداد وضعیت‌های gate صف کانال — ۱۵ نوامبر ۲۰۲۶
+
+**هدف:** اطمینان از اینکه gate کشف بعدی، وضعیت‌های retryable و terminal را برای صف محصول و تحریریه اشتباه تفسیر نکند.
+
+**تغییر/اقدام:** `channel_queue_gate.py` وضعیت‌های terminal را متناسب با قرارداد هر صف تفکیک می‌کند: صف محصول مطابق `content_delivery` و صف تحریریه مطابق قرارداد خود؛ `skipped_limit` فقط برای تحریریه terminal است. صف یا entry خراب fail-closed باقی می‌ماند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/channel_queue_gate.py`، `affilio_radar/test_shared_selection_media_routing.py`، handbook فنی و همین changelog.
+
+**آزمون و نتیجه:** تست‌های unit برای حالت pending یک مقصد، نبود receipt، وضعیت‌های نهایی کانال، retryable بودن محصول failed، terminal بودن تحریریه failed/skipped_limit و malformed queue افزوده شدند؛ CI در PR باید همه را اجرا کند.
+
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-due-first-publisher-20261115`؛ commits `9e22f627a8e34e727036f14cf0acd9618b5521a5` و `580e0b42be87ab9030048784b8336edcff273551`.
+
+**ریسک/بازگشت:** gate در صورت ابهام state، discovery را عقب می‌اندازد اما صف موجود را حذف یا ارسال آن را متوقف نمی‌کند. بازگشت با revert helper و تست‌های وابسته ممکن است.
+
+**وضعیت:** mapping و regressionها در شاخه ثبت شده‌اند؛ پذیرش نهایی پس از CI و merge.
