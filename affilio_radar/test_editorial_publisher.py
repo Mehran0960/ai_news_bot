@@ -244,6 +244,18 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIn("\nhttps://consumer.ftc.gov/articles/online-shopping", plain)
         self.assertIn("https://ble.ir/OfferChin", plain)
 
+    def test_known_ftc_sources_are_labeled_in_persian_with_clear_organization(self):
+        item = editorial_item()
+        item["sources"] = [{
+            "source_id": "ftc-online-shopping",
+            "title": "Online Shopping – Consumer Advice",
+            "url": "https://consumer.ftc.gov/articles/online-shopping",
+        }]
+        message = _format_message(item, html_mode=True, platform="telegram")
+        self.assertIn("کمیسیون تجارت فدرال آمریکا (FTC) — «راهنمای خرید اینترنتی»:", message)
+        self.assertIn('href="https://consumer.ftc.gov/articles/online-shopping"', message)
+        self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', message)
+
     def test_video_fifo_uses_canonical_sequence_for_timestamp_ties(self):
         same_timestamp = NOW.timestamp()
         later_sequence = (same_timestamp, "dkp-a", {"sequence_number": 12})
