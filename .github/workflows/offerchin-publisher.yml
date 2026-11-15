@@ -87,7 +87,7 @@ jobs:
 
       - name: Validate the delivery-only path
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/messenger_adapters.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/digikala_http.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/messenger_adapters.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
           python - <<'PY'
           from pathlib import Path
           source = Path("affilio_radar/publisher.py").read_text(encoding="utf-8")
@@ -193,7 +193,6 @@ jobs:
           AFFILIO_MCP_PAGES_PER_SCAN: "5"
           AFFILIO_AUTOPUBLISH: "false"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
-          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "250"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --select-only
