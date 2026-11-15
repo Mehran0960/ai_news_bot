@@ -220,7 +220,7 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual({row["id"] for row in state["categories"]}, {"10", "11", "12"})
         self.assertEqual(state["page"], 3)
         self.assertEqual(state["categories"][state["category_index"]]["id"], "11")
-        self.assertEqual(next(row for row in state["categories"] if row["id"] == "12")["query"], "موبایل")
+        self.assertEqual(next(row for row in state["categories"] if row["id"] == "12")["query"], "گوشی")
 
     def test_refresh_categories_respects_retry_backoff_without_repeating_api_calls(self):
         now = datetime.now(timezone.utc)
