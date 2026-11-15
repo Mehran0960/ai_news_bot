@@ -31,6 +31,7 @@ DEFAULT_PAGES_PER_RUN = 480
 DEFAULT_WORKERS = 16
 BEST_SELLING_SORT_VALUE = base.BEST_SELLING_SORT_VALUE
 WORKER_RAMP_POLICY_VERSION = "explicit_12_14_16_v1"
+API_ROUTE_POLICY_VERSION = "digikala_discovery_api_v1_categories_0_v1"
 _thread_local = threading.local()
 
 
@@ -135,16 +136,10 @@ def _fetch_page(task: dict) -> dict:
 
     primary_url, primary_params = base._category_page_url(category_id, page, category_query)
     route_specs = [
-        ("search_api_v2_category", primary_url, primary_params),
         (
-            "discovery_api_v2_category_products",
-            f"https://api.digikala.com/discovery/api/v2/categories/{category_id}/products/",
-            {"page": page, "sort": base.BEST_SELLING_SORT_VALUE, "q": category_query},
-        ),
-        (
-            "legacy_search_api_v1",
-            "https://api.digikala.com/v1/search/",
-            {"categories[]": category_id, "page": page, "sort": base.BEST_SELLING_SORT_VALUE},
+            "discovery_api_v1_category_search",
+            primary_url,
+            primary_params,
         ),
     ]
 
@@ -276,12 +271,22 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
         known = []
     known_ids = {str(value) for value in known}
 
+    route_policy_changed = (
+        state.get("parallel_api_route_policy_version") != API_ROUTE_POLICY_VERSION
+    )
     if (
         not state.get("parallel_queue_initialized")
         or state.get("parallel_scan_policy_version") != "all_categories_all_pages_v3_cycle_snapshot"
+        or route_policy_changed
     ):
-        # Legacy cursors AND previously initialized top-60 queues may have skipped
-        # already-processed categories/tail pages. Force one exhaustive restart.
+        # Legacy cursors, old top-60 queues, and categories marked unqueryable by
+        # the retired DigiKala endpoints all need one exhaustive restart.
+        previous_queue_count = len(queue)
+        previous_unqueryable_count = len(
+            state.get("parallel_cycle_unqueryable_category_ids", [])
+            if isinstance(state.get("parallel_cycle_unqueryable_category_ids"), list)
+            else []
+        )
         queue = build_initial_page_queue(categories, legacy_category_index=0, legacy_page=1)
         known_ids = {str(row.get("id")) for row in categories if isinstance(row, dict)}
         state["parallel_queue_initialized"] = True
@@ -292,6 +297,14 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
         state["parallel_cycle_product_rows_success"] = 0
         state["parallel_full_catalog_mode"] = "all_categories_all_pages"
         state["parallel_scan_policy_version"] = "all_categories_all_pages_v3_cycle_snapshot"
+        state["parallel_api_route_policy_version"] = API_ROUTE_POLICY_VERSION
+        if route_policy_changed:
+            print(
+                "CATALOG_API_ROUTE_MIGRATION_REQUEUED "
+                f"categories={len(known_ids)} previous_pending={previous_queue_count} "
+                f"previous_unqueryable={previous_unqueryable_count} "
+                f"policy={API_ROUTE_POLICY_VERSION}"
+            )
     else:
         # Category dictionary refreshes may introduce new categories. Append only
         # genuinely new IDs; do not reset progress for existing IDs.
