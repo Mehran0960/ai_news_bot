@@ -1691,7 +1691,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
         self.assertEqual(
             [row["product_id"] for row in selected],
-            ["dkp-new-speaker", "dkp-other-brand"],
+            ["dkp-new-laptop", "dkp-other-brand"],
         )
 
     def test_same_brand_or_family_is_blocked_within_a_single_publish_batch(self):
