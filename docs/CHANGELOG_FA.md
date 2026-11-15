@@ -2439,3 +2439,20 @@
 
 
 **وضعیت:** fixtureها و مستندات روی شاخهٔ PR به‌روزرسانی شدند؛ نتیجهٔ CI نهایی در انتظار ثبت است.
+
+
+## ۲۰۲۶-۱۱-۱۵ — مهاجرت کشف ناشر به Discovery API و سخت‌سازی HTTP دیجی‌کالا
+
+**هدف:** حذف خطاهای 404 از مسیر کشف داخل ناشر و بازیابی دسترسی قابل‌اتکا به جزئیات محصول، بدون پذیرفتن قیمت/موجودی نامعلوم.
+
+**تغییر/اقدام:** `search_digikala_v2_product_urls()` اکنون مستقیماً از `/discovery/api/v1/search` با `q`، `page=1` و `sort=7` استفاده می‌کند؛ مسیرهای `/v1/autocomplete/` و `/v2/category/{id}/` دیگر در جریان جاری ناشر فراخوانی نمی‌شوند. پاسخ فقط URL محصولاتی که `status=marketable` دارند را برای بررسی عمیق استخراج می‌کند. نشست HTTP نیز هدرهای Web Client/Origin/Referer و `X-Web-Optimize-Response` را می‌فرستد. helper مشترک `_digikala_get` پاسخ ۳۰۷ دارای `digicdn_cookie` را حداکثر یک بار با همان URL تکرار می‌کند؛ ۳۰۷ بدون cookie و حلقهٔ redirect با خطا متوقف می‌شوند. این helper در جست‌وجو، صفحهٔ محصول و کنترل مجدد قیمت به‌کار می‌رود.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/test_affilio.py`، handbook فنی و همین changelog.
+
+**آزمون و نتیجه:** regressionهای جدید، Search API فعلی و پارامتر sort=7، حذف endpointهای بازنشسته، انتخاب صرفاً محصول marketable، retry یک‌بارهٔ ۳۰۷ با cookie و fail-closed در نبود cookie را پوشش می‌دهند. CI کامل و smoke test زندهٔ جزئیات محصول پس از ثبت این تغییر لازم‌اند؛ موفقیت جست‌وجو به‌تنهایی به‌معنی تأیید قیمت یا موجودی نیست.
+
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-publisher-discovery-and-digikala-http-20261115`؛ endpoint جاری `/discovery/api/v1/search`؛ HTTP helper `_digikala_get`.
+
+**ریسک/بازگشت:** اگر دیجی‌کالا هدرها یا چالش cookie را تغییر دهد، درخواست جزئیات با خطای مشخص متوقف می‌شود و هیچ قیمت یا موجودی فرضی وارد انتشار نمی‌شود. rollback با revert commitهای همین PR ممکن است؛ endpointهای قدیمی نباید به‌عنوان fallback بازگردند.
+
+**وضعیت:** کد، regression و مستندات روی شاخهٔ مستقل ثبت شدند؛ اجرای CI و اثبات زندهٔ جزئیات محصول هنوز معیار پذیرش نهایی است.
