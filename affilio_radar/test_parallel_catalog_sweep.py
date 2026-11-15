@@ -508,6 +508,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             candidates_path = root / "candidates.json"
             publisher_state_path = root / "publisher.json"
             state_path.write_text(json.dumps({
+                "category_taxonomy_policy_version": sweep.base.CATEGORY_TAXONOMY_POLICY_VERSION,
                 "categories": [
                     {"id": "10", "name": "mobile"},
                     {"id": "20", "name": "accessories"},
