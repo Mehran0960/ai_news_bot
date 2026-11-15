@@ -1306,20 +1306,20 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 
 ### علت و دامنهٔ اصلاح
 
-در ۱۳ نوامبر ۲۰۲۶، دیجی‌کالا مسیرهای عمومی قدیمی `/v1/search/`، `/v1/autocomplete/` و `/v2/category/{id}/` را از دسترس خارج کرد؛ این مسیرها پاسخ HTTP 404 می‌دادند. جست‌وجو و استخراج شناسهٔ دسته اکنون از `https://api.digikala.com/discovery/api/v1/` انجام می‌شود. اسناد فنی عمومی که این مهاجرت را ثبت کرده‌اند: [CHANGELOG نسخهٔ 0.9.1 سرویس Digikala MCP](https://github.com/mmdju/digikala-mcp/blob/main/CHANGELOG.md).
+در ۱۳ نوامبر ۲۰۲۶، دیجی‌کالا مسیرهای عمومی قدیمی `/v1/search/`، `/v1/autocomplete/` و `/v2/category/{id}/` را از دسترس خارج کرد؛ این مسیرها پاسخ HTTP 404 می‌دادند. جست‌وجو و استخراج شناسهٔ دسته اکنون از `https://api.digikala.com/discovery/api/v1/search` برای جست‌وجو و `https://api.digikala.com/discovery/api/v1/autocomplete` برای autocomplete انجام می‌شود. اسناد فنی عمومی که این مهاجرت را ثبت کرده‌اند: [CHANGELOG نسخهٔ 0.9.1 سرویس Digikala MCP](https://github.com/mmdju/digikala-mcp/blob/main/CHANGELOG.md).
 
 ### قرارداد فعلی درخواست‌ها
 
-- کشف دسته‌ها: اجرای جست‌وجوی Discovery با عبارت‌های فارسی کنترل‌شده و خواندن شناسه‌ها از `data.query_attributes.category_ids`. قالب قدیمی `data.categories` فقط برای سازگاری با داده‌های قبلی/آزمون‌ها قابل‌خواندن نگه داشته شده است.
-- فهرست دسته: همان Discovery Search با فیلتر `categories[0]=<category_id>`، به‌علاوهٔ `page` و `sort=7`.
+- کشف دسته‌ها: اجرای `GET /discovery/api/v1/search` با عبارت‌های فارسی کنترل‌شده و خواندن شناسه‌ها از `data.widgets[].data.query_attributes.category_ids` در widget فهرست محصولات. اگر جست‌وجو metadata دسته را ندهد، `GET /discovery/api/v1/autocomplete` با `data.auto_complete` به‌عنوان مسیر ثانویه بررسی می‌شود. قالب قدیمی `data.categories` فقط برای سازگاری با پاسخ‌ها و داده‌های قبلی قابل‌خواندن نگه داشته شده است.
+- فهرست دسته: `GET /discovery/api/v1/search` با فیلتر `categories[0]=<category_id>`، به‌علاوهٔ `page` و `sort=7`. در درخواست‌ها headerهای `Origin` و `X-Web-Optimize-Response: 1` نیز مانند کلاینت مرجع ارسال می‌شوند.
 - مقدار sort برابر ۷، ترتیب بومی «پرفروش‌ترین» است؛ رتبهٔ تقاضا فقط زمانی معتبر شمرده می‌شود که درخواست واقعاً با همین sort انجام شده باشد.
 - endpoint دستهٔ قدیمی یا routeهای fallback منسوخ نباید دوباره به‌عنوان مسیر اصلی اضافه شوند. مسیر فعلی category-scoped search جایگزین صفحهٔ دسته‌بندی تا زمان ارائهٔ endpoint جدید از سوی دیجی‌کالا است.
 
 ### محافظت در برابر خرابی سراسری API
 
-- پیش از شروع چرخهٔ تولیدی، workflow باید `python -m affilio_radar.catalog_sweep --validate-api` را اجرا کند. اگر پاسخ Discovery ساختار شناخته‌شده نداشته باشد یا درخواست HTTP شکست بخورد، اسکن باید پیش از دست‌کاری صف متوقف شود.
+- پیش از شروع چرخهٔ تولیدی، workflow باید `python -m affilio_radar.catalog_sweep --validate-api` را اجرا کند. اگر پاسخ Discovery ساختار شناخته‌شده نداشته باشد یا درخواست HTTP شکست بخورد یا payload محصول/دستهٔ قابل‌شناسایی نداشته باشد، اسکن باید پیش از دست‌کاری صف متوقف شود.
 - پاسخ ۴۰۴ مسیر قدیمی، دلیل نامعتبر بودن تک‌تک دسته‌ها نیست. پس از تغییر قرارداد API، دسته‌هایی که در چرخهٔ قبلی به‌علت مسیر حذف‌شده unqueryable ثبت شده بودند باید دوباره از صفحهٔ ۱ بررسی شوند.
-- نسخهٔ مسیر `digikala_discovery_api_v1_categories_0_v1` در state موازی ذخیره می‌شود. تغییر این نشانگر صف کامل دسته‌ها را از صفحهٔ ۱ بازسازی و فهرست completed/unqueryable چرخهٔ جاری را پاک می‌کند؛ state ناشر، تاریخچهٔ پست‌ها، cooldown محصول و شناسه‌های منتشرشده reset نمی‌شوند.
+- نسخهٔ مسیر `digikala_discovery_api_v1_search_autocomplete_categories_0_v2` در state موازی ذخیره می‌شود. تغییر این نشانگر صف کامل دسته‌ها را از صفحهٔ ۱ بازسازی و فهرست completed/unqueryable چرخهٔ جاری را پاک می‌کند؛ state ناشر، تاریخچهٔ پست‌ها، cooldown محصول و شناسه‌های منتشرشده reset نمی‌شوند.
 - خطاهای preflight باید fail-closed باشند؛ وضعیت سبز صرفاً syntax یا عبور از یک batch، معادل پوشش کامل کاتالوگ نیست. گزارش سلامت باید شمار صفحات دارای ردیف، صفحات خالی، دسته‌های تکمیل‌شده، دسته‌های غیرقابل‌جست‌وجو، صف باقی‌مانده و تعداد کاندیداها را مستقل اعلام کند.
 - تا وقتی اجرای زنده روی endpoint جدید حداقل چند دستهٔ واقعی و صفحه‌های محصول معتبر تولید نکرده و چرخهٔ بدون شکاف تکمیل نشده، snapshot کامل جدید معتبر اعلام نمی‌شود. ناشر همچنان از گیت snapshot/کاندیدا و کنترل زندهٔ محصول استفاده می‌کند؛ نباید با کاهش گیت تقاضا یا تخفیف، خالی بودن فید را جبران کرد.
 
