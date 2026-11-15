@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-15T23:41:03.209145+00:00",
+  "generated_at": "2026-11-15T23:49:24.830368+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -399,30 +399,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1377,
+    "all_time_count": 1378,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 469,
+      "family_repeat": 468,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-15T22:29:04.042061+00:00",
-        "brand": "",
-        "catalog_category_id": "11044",
-        "catalog_category_name": "البسه طبی و پزشکی",
-        "category": "other",
-        "compared_to_product_id": "dkp-14396543",
-        "family": "digikala_category:11044",
-        "product_id": "dkp-14396631",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "روپوش پزشکی زنانه ناب تن کد 108",
-        "use_case": "health_wellness"
-      },
       {
         "at": "2026-11-15T22:29:04.042061+00:00",
         "brand": "",
@@ -737,6 +720,22 @@
           "similarity_repeat"
         ],
         "title": "شورت پسرانه آریان نخ باف مدل 4311",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-15T23:49:24.830368+00:00",
+        "brand": "",
+        "catalog_category_id": "9473",
+        "catalog_category_name": "زیرپوش مردانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9473",
+        "product_id": "dkp-720533",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "زیرپوش مردانه آریان نخ باف کد 1211",
         "use_case": "fashion_lifestyle"
       }
     ]
