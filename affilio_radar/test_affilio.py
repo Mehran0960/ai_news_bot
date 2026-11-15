@@ -366,7 +366,6 @@ class AffilioRadarTests(unittest.TestCase):
         ):
             record = fetch_product_record(url)
         self.assertEqual(record["availability"], "in_stock")
-        self.assertEqual(record["review_count"], 83)
         self.assertEqual(record["product_id"], "snp-25751584")
         self.assertEqual(get.call_args.args[0], "https://apix.snappshop.ir/products/v2/42yeLw")
         self.assertEqual(get.call_args.kwargs["headers"]["Origin"], "https://snappshop.ir")
@@ -423,6 +422,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(record["current_price"], 1_924_990)
         self.assertEqual(record["original_price"], 2_500_000)
         self.assertEqual(record["availability"], "in_stock")
+        self.assertEqual(record["review_count"], 83)
         self.assertTrue(record["image_url"].startswith("https://dkstatics-public.digikala.com/"))
         html_fetch.assert_not_called()
 
