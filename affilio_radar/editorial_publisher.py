@@ -288,11 +288,21 @@ def queue_editorial_if_due(
     latest_safe_dispatch_at = product_at - timedelta(seconds=dispatch_runway_seconds)
     scheduled_at = min(midpoint_at, latest_safe_dispatch_at)
     if scheduled_at <= current:
+        # The minute Worker can wake after the planned start. Keep the opportunity
+        # alive when the remaining real delivery runway still fits; start now.
+        if current + timedelta(seconds=delivery_runway_seconds) >= product_at:
+            print(
+                "EDITORIAL_DISPATCH_WINDOW_PASSED "
+                f"product_id={related_product_id} product_slot={product_at.isoformat()} "
+                f"delivery_runway_seconds={delivery_runway_seconds}"
+            )
+            return None
         print(
-            "EDITORIAL_MIDPOINT_PASSED "
-            f"product_id={related_product_id} product_slot={product_at.isoformat()}"
+            "EDITORIAL_LATE_WAKEUP_START_NOW "
+            f"product_id={related_product_id} product_slot={product_at.isoformat()} "
+            f"scheduled_target={scheduled_at.isoformat()}"
         )
-        return None
+        scheduled_at = current
 
     if radar.daily_channel_posts_count(state, current) >= radar.MAX_DAILY_CHANNEL_POSTS:
         print(
