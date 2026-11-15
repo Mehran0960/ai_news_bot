@@ -12,6 +12,7 @@ from editorial_publisher import (
     _handle_channel_destination,
     _record_failure,
     _format_message,
+    _send_bot_message,
     queue_editorial_if_due,
 )
 from editorial_video import render_editorial_poster, render_editorial_video
@@ -112,6 +113,15 @@ class EditorialPublisherTests(unittest.TestCase):
         state = {
             "publication_sequence_counter": 12,
             "last_channel_published_at": (NOW - timedelta(minutes=60)).isoformat(),
+            "content_delivery_queue": {
+                "dkp-next": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": (NOW + timedelta(hours=2)).isoformat(),
+                    "payload": {"product_id": "dkp-next", "title": "هدفون بی‌سیم"},
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
         }
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
         self.assertEqual(entry["sequence_number"], 13)
@@ -147,7 +157,7 @@ class EditorialPublisherTests(unittest.TestCase):
         }
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
 
-    def test_pending_product_video_does_not_hold_back_editorial_channel_post(self):
+    def test_pending_product_video_does_not_create_standalone_editorial(self):
         state = {
             "last_channel_published_at": (NOW - timedelta(minutes=60)).isoformat(),
             "published": {
@@ -160,8 +170,8 @@ class EditorialPublisherTests(unittest.TestCase):
             },
         }
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
-        self.assertIsNotNone(entry)
-        self.assertEqual(entry["status"], "queued")
+        self.assertIsNone(entry)
+        self.assertFalse(state.get("editorial_delivery_queue"))
 
     def test_related_editorial_is_scheduled_midway_before_its_product(self):
         product_at = NOW + timedelta(hours=2)
@@ -198,9 +208,10 @@ class EditorialPublisherTests(unittest.TestCase):
 
     def test_editorial_message_contains_sources(self):
         message = _format_message(editorial_item())
-        self.assertIn("منابع:", message)
-        self.assertIn("https://consumer.ftc.gov/articles/online-shopping", message)
-        self.assertIn("راهنمای کوتاه خرید آگاهانه", message)
+        self.assertIn("🔎 منابع:", message)
+        self.assertIn("• Online Shopping – Consumer Advice — کمیسیون تجارت فدرال آمریکا (FTC):\n  https://consumer.ftc.gov/articles/online-shopping", message)
+        self.assertIn("📌 راهنمای کوتاه خرید آگاهانه", message)
+        self.assertIn("🔔", message)
 
     def test_video_fifo_uses_canonical_sequence_for_timestamp_ties(self):
         same_timestamp = NOW.timestamp()
@@ -243,6 +254,21 @@ class EditorialPublisherTests(unittest.TestCase):
             target["last_error"],
             "api_accepted_without_public_message_id_unverified",
         )
+
+    def test_telegram_editorial_photo_has_clickable_membership_button(self):
+        response = Mock()
+        response.json.return_value = {"ok": True, "result": {"message_id": 123}}
+        response.raise_for_status.return_value = None
+        with patch.object(radar, "BOT_TOKEN", "test-token"), \
+             patch.object(radar, "TARGET_CHAT", "@OfferChin"), \
+             patch("editorial_publisher.requests.post", return_value=response) as post:
+            receipt = _send_bot_message("telegram", "🧭 راهنمای کاربردی\n\nمتن", b"fake-png")
+        self.assertEqual(receipt["message_id"], "123")
+        self.assertIn("/sendPhoto", post.call_args.args[0])
+        self.assertEqual(post.call_args.kwargs["data"]["caption"], "🧭 راهنمای کاربردی\n\nمتن")
+        keyboard = json.loads(post.call_args.kwargs["data"]["reply_markup"])
+        self.assertEqual(keyboard["inline_keyboard"][0][0]["url"], "https://t.me/OfferChin")
+        self.assertIn("photo", post.call_args.kwargs["files"])
 
     def test_network_timeout_is_manual_review_not_blind_retry(self):
         state = {"status": "sending", "attempts": 1}
