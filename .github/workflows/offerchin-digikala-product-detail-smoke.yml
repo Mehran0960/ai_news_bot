@@ -1,0 +1,130 @@
+name: OfferChin DigiKala Product Detail Live Smoke
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "affilio_radar/affilio_radar.py"
+      - "affilio_radar/test_affilio.py"
+      - ".github/workflows/offerchin-digikala-product-detail-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offerchin-digikala-product-detail-smoke
+  cancel-in-progress: true
+
+jobs:
+  live-detail-read-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out proposed code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: affilio_radar/requirements.txt
+
+      - name: Install parser and HTTP dependencies
+        run: python -m pip install -r affilio_radar/requirements.txt
+
+      - name: Verify one exact live product detail response (read-only)
+        run: |
+          python - <<'PY'
+          import sys
+          import time
+          from pathlib import Path
+
+          sys.path.insert(0, str(Path.cwd() / "affilio_radar"))
+          import affilio_radar as radar
+
+          candidate_ids = [
+              "1004135",
+              "10075714",
+              "10107940",
+              "1017690",
+              "1019826",
+              "11389543",
+              "16956739",
+              "20927368",
+              "18386345",
+              "1917472",
+          ]
+          verified = []
+          failures = []
+
+          for numeric_id in candidate_ids:
+              product_id = f"dkp-{numeric_id}"
+              product_url = f"https://www.digikala.com/product/{product_id}/"
+              endpoint = radar.DIGIKALA_PRODUCT_DETAIL_API_URL.format(product_id=numeric_id)
+              try:
+                  response = radar._digikala_get(endpoint, timeout=15)
+                  status = int(getattr(response, "status_code", 0) or 0)
+                  if not response.ok:
+                      failures.append(f"{product_id}:http_{status}")
+                      print(f"DETAIL_SMOKE_HTTP product={product_id} status={status}")
+                      time.sleep(0.35)
+                      continue
+
+                  payload = response.json()
+                  record = radar.parse_product_api(payload, product_url)
+                  exact_identity = record.get("product_id") == product_id
+                  has_title = radar.is_publishable_product_title(record.get("title"))
+                  has_price = int(record.get("current_price") or 0) > 0
+                  known_stock = record.get("availability") in {"in_stock", "out_of_stock"}
+
+                  if exact_identity and has_title and has_price and known_stock:
+                      verified.append({
+                          "product_id": product_id,
+                          "price_toman": record["current_price"],
+                          "availability": record["availability"],
+                          "review_count": record.get("review_count", 0),
+                      })
+                      print(
+                          "DETAIL_SMOKE_VERIFIED "
+                          f"product={product_id} price_present=true "
+                          f"stock={record['availability']} "
+                          f"review_count={record.get('review_count', 0)}"
+                      )
+                      break
+
+                  failures.append(
+                      f"{product_id}:schema_or_identity "
+                      f"identity={exact_identity} title={has_title} "
+                      f"price={has_price} stock={record.get('availability')}"
+                  )
+                  print(
+                      "DETAIL_SMOKE_UNUSABLE "
+                      f"product={product_id} identity={exact_identity} "
+                      f"title={has_title} price={has_price} "
+                      f"stock={record.get('availability')}"
+                  )
+              except Exception as exc:
+                  failures.append(f"{product_id}:{type(exc).__name__}")
+                  print(f"DETAIL_SMOKE_ERROR product={product_id} error={type(exc).__name__}")
+              time.sleep(0.35)
+
+          if not verified:
+              print("DETAIL_SMOKE_SUMMARY verified=0 attempted=" + str(len(candidate_ids)))
+              print("DETAIL_SMOKE_FAILURES " + ";".join(failures[:10]))
+              raise SystemExit(
+                  "No candidate returned a current, exact-identity product detail with "
+                  "a usable title, price and stock signal. Keep publication fail-closed."
+              )
+
+          print(
+              "DETAIL_SMOKE_SUMMARY verified="
+              + str(len(verified))
+              + " product="
+              + verified[0]["product_id"]
+          )
+          PY
