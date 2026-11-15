@@ -1727,6 +1727,16 @@ def parse_snappshop_product_api(payload: dict, url: str, search_card: dict | Non
     )
     if not is_publishable_product_title(title):
         return {}
+    brand = _extract_brand_name(
+        content.get("brand")
+        or content.get("brand_name")
+        or content.get("brand_fa")
+        or data.get("brand")
+        or data.get("brand_name")
+        or data.get("brand_fa")
+        or card.get("brand")
+        or card.get("brand_name")
+    )
 
     vendors_seen = 0
     availability_signals = []
@@ -4718,7 +4728,7 @@ def classify_category(title: str) -> str:
     # Specific product families first; "other" should be the true fallback.
     patterns = [
         # Keep dedicated families ahead of broad matches; otherwise the rotation can't see them as distinct.
-        ("digital_accessories", r"قلم لمسی|استایلوس|stylus"),
+        ("digital_accessories", r"قلم\s*(?:لمسی|دیجیتال)|استایلوس|stylus"),
         ("mobile_devices", r"گوشی\s*(?:موبایل|هوشمند)|گوشی\s+(?:سامسونگ|شیائومی|ردمی|پوکو|اپل|آیفون|هواوی|آنر|نوکیا|realme)|آیفون|iphone|smartphone|mobile phone|تبلت|آیپد|ipad"),
         ("tv_audio_video", r"تلویزیون|android\s*tv|smart\s*tv|پروژکتور|سینما خانگی|گیرنده دیجیتال|اندروید باکس|دوربین عکاسی|لنز دوربین|camcorder"),
         ("large_appliances", r"یخچال|فریزر|ماشین لباسشویی|لباسشویی|ماشین ظرفشویی|کولر گازی|اسپلیت|بخاری برقی|آبگرمکن|اجاق گاز|فر توکار|مایکروویو|آون توستر"),
@@ -7952,7 +7962,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ("zanama", r"زاناما"),
         ("dellbesto", r"دلبستو"),
     ]
-    brand = next((key for key, pattern in brand_hints if re.search(pattern, brand_search_text, re.I)), "")
+    brand = next((f"brand:{key}" for key, pattern in brand_hints if re.search(pattern, brand_search_text, re.I)), "")
     if not brand and explicit_brand:
         normalized_explicit_brand = explicit_brand.strip().lower()
         if normalized_explicit_brand.startswith("brand:"):
