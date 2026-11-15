@@ -255,9 +255,10 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             result = sweep._fetch_page({"category_id": "123", "page": 2})
 
         self.assertEqual(result["kind"], "terminal")
-        self.assertEqual(captured["params"]["categories[]"], "123")
+        self.assertIn("/v2/category/123/", captured["url"])
         self.assertEqual(captured["params"]["page"], 2)
         self.assertEqual(captured["params"]["sort"], 7)
+        self.assertIn("q", captured["params"])
 
     def test_persisted_page_queue_sweeps_leaf_page_one_before_parent_and_deeper_pages(self):
         state = {
