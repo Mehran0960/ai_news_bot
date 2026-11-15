@@ -4,6 +4,7 @@ from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 
 import affilio_radar as radar
+from channel_queue_gate import pending_core_deliveries
 
 
 class SharedSelectionMediaRoutingTests(unittest.TestCase):
@@ -18,6 +19,72 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
             False,
             list(destinations),
         )
+
+    def test_core_queue_gate_waits_for_telegram_and_bale_resolution(self):
+        state = {
+            "content_delivery_queue": {
+                "product_pending": {
+                    "status": "queued",
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+                "product_terminal": {
+                    "status": "published",
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+            },
+            "editorial_delivery_queue": {
+                "editorial_terminal_channels": {
+                    "status": "queued",
+                    "platforms": {
+                        "telegram": {"status": "not_connected"},
+                        "bale": {"status": "manual_review"},
+                    },
+                },
+            },
+        }
+        self.assertEqual(
+            pending_core_deliveries(state),
+            [("content_delivery_queue", "product_pending", ["bale"])],
+        )
+
+    def test_core_queue_gate_fails_closed_when_platform_receipts_are_missing(self):
+        self.assertEqual(
+            pending_core_deliveries({
+                "content_delivery_queue": {
+                    "product_without_receipts": {
+                        "status": "queued",
+                        "platforms": {},
+                    }
+                }
+            }),
+            [("content_delivery_queue", "product_without_receipts", ["telegram", "bale"])],
+        )
+
+    def test_core_queue_gate_accepts_only_terminal_core_destination_states(self):
+        self.assertEqual(
+            pending_core_deliveries({
+                "content_delivery_queue": {
+                    "product_done": {
+                        "status": "partial",
+                        "platforms": {
+                            "telegram": {"status": "sent"},
+                            "bale": {"status": "manual_review"},
+                        },
+                    }
+                }
+            }),
+            [],
+        )
+
+    def test_core_queue_gate_rejects_malformed_queue_state(self):
+        with self.assertRaises(ValueError):
+            pending_core_deliveries({"content_delivery_queue": []})
 
     def test_empty_video_projection_releases_shared_publisher_lock_before_setup(self):
         workflow = (
