@@ -2610,3 +2610,19 @@
 **ریسک/بازگشت:** در صورت ایجاد بیش از ۱۰۰ commit هم‌زمان بین checkout و persist، rebase ممکن است به تاریخچهٔ عمیق‌تر نیاز داشته باشد؛ retry باید شکست را گزارش کند و state را force-push نمی‌کند. rollback با بازگرداندن `fetch-depth: 0` ممکن است؛ این تغییر cadence یا محتوای انتشار را تغییر نمی‌دهد.
 
 **وضعیت:** تغییر workflow و مستندات انجام‌شده؛ در انتظار CI و ادغام.
+
+## ۲۰۲۶-۱۱-۱۵ — تخلیهٔ صف کانال پیش از discovery بعدی
+
+**هدف:** جلوگیری از عقب‌افتادن ارسال‌های انتخاب‌شده در فاصلهٔ بین slotهای محصول، وقتی اجرای ناشر به discovery سنگین بعدی می‌رود.
+
+**تغییر/اقدام:** `publication_due_gate.py` علاوه بر موعدهای sidecar، صف پایدار محصول و تحریریه را نیز بررسی می‌کند. اگر هرکدام مقصد اصلی Telegram/Bale حل‌نشده داشته باشد، discovery جدید skip می‌شود؛ حتی اگر زمان slot بعدی هنوز در آینده باشد. workflow ابتدا محصولات موعددار و سپس تحریریهٔ میانی را تحویل می‌دهد، بعد تست‌های سنگینِ فقط-push و گیت discovery را اجرا می‌کند. عمق checkout برابر ۱۰۰ commit باقی می‌ماند؛ تغییر قبلی main حفظ شده است.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/publication_due_gate.py`، `affilio_radar/test_publication_due_gate.py`، `affilio_radar/test_shared_selection_media_routing.py`، `.github/workflows/offerchin-publisher.yml`، handbook و همین changelog.
+
+**آزمون و نتیجه:** regression برای صف محصول فعال، صف تحریریهٔ فعال، وضعیت‌های terminal و خطای قابل retry افزوده شد. تست سیم‌کشی workflow ترتیب انتشار قبل از suite سنگین و discovery، استفاده از state صف و checkout محدود را کنترل می‌کند. نتیجهٔ CI این PR پیش از ادغام بررسی می‌شود.
+
+**شواهد/شناسه:** مبنا commit `60a68c86390ecf2efa864baddd66a21d0105a56b` (گیت موعد و batch سه‌تایی) و `aa3721eba77b720c15e64005003e6323cb92562c` (checkout عمق ۱۰۰)؛ تکمیل روی شاخهٔ `perf/offerchin-core-queue-drain-20261115`.
+
+**ریسک/بازگشت:** اگر state صف خوانده نشود، گیت مستقل از timestamp sidecar همچنان fail-open است؛ هیچ موردی از صف موجود حذف نمی‌شود. اگر یک مقصد اصلی retryable/failed بماند، discovery عقب می‌افتد تا تحویل/تعیین‌تکلیف آن مقصد انجام شود. rollback با revert تغییر due gate/workflow/tests ممکن است؛ state و رسیدها نباید reset شوند.
+
+**وضعیت:** تکمیل کد، تست و مستندات در شاخهٔ مستقل؛ در انتظار CI و رسید ارسال واقعی.
