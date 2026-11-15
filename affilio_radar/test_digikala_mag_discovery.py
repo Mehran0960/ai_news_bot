@@ -16,7 +16,7 @@ from digikala_mag_discovery import (
 NOW = datetime(2026, 11, 14, 9, 0, tzinfo=timezone.utc)
 
 RSS = """<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
     <item>
       <title>راهنمای خرید هدفون بی‌سیم؛ به چه نکاتی توجه کنیم؟</title>
@@ -24,6 +24,7 @@ RSS = """<?xml version="1.0" encoding="UTF-8"?>
       <pubDate>Sat, 14 Nov 2026 08:10:00 +0000</pubDate>
       <category>گجت</category>
       <description><![CDATA[اين متن نباید در گزارش ذخیره شود.]]></description>
+      <media:content url="https://www.digikala.com/mag/wp-content/uploads/editorial-guide.jpg" medium="image" />
     </item>
     <item>
       <title>راهنمای انتخاب صندلی اداری مناسب</title>
@@ -154,7 +155,11 @@ class DigikalaMagDiscoveryTests(unittest.TestCase):
         serialized = json.dumps(candidates, ensure_ascii=False)
         self.assertNotIn("اين متن نباید", serialized)
         self.assertNotIn("description", serialized)
-        self.assertNotIn("image", serialized)
+        self.assertNotIn("image_bytes", serialized)
+        self.assertEqual(
+            candidates[0]["image_url"],
+            "https://www.digikala.com/mag/wp-content/uploads/editorial-guide.jpg",
+        )
         self.assertTrue(all(row["public_copy_generated"] is False for row in candidates))
         self.assertTrue(all(row["status"] == "discovered_requires_original_persian_summary" for row in candidates))
 
