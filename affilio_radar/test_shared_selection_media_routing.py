@@ -82,6 +82,48 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
             [],
         )
 
+    def test_core_queue_gate_keeps_failed_product_retryable_but_ignores_failed_editorial(self):
+        state = {
+            "content_delivery_queue": {
+                "product_retry": {
+                    "status": "failed",
+                    "platforms": {
+                        "telegram": {"status": "failed"},
+                        "bale": {"status": "pending"},
+                    },
+                }
+            },
+            "editorial_delivery_queue": {
+                "editorial_failed": {
+                    "status": "failed",
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                }
+            },
+        }
+        self.assertEqual(
+            pending_core_deliveries(state),
+            [("content_delivery_queue", "product_retry", ["telegram", "bale"])],
+        )
+
+    def test_core_queue_gate_treats_editorial_skipped_limit_as_terminal(self):
+        self.assertEqual(
+            pending_core_deliveries({
+                "editorial_delivery_queue": {
+                    "editorial_limited": {
+                        "status": "partial",
+                        "platforms": {
+                            "telegram": {"status": "skipped_limit"},
+                            "bale": {"status": "sent"},
+                        },
+                    }
+                }
+            }),
+            [],
+        )
+
     def test_core_queue_gate_rejects_malformed_queue_state(self):
         with self.assertRaises(ValueError):
             pending_core_deliveries({"content_delivery_queue": []})
