@@ -6,8 +6,10 @@ import tempfile
 from io import BytesIO
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
-from PIL import Image, ImageDraw
+import requests
+from PIL import Image, ImageDraw, ImageOps
 
 from offerchin_audio import write_original_soundtrack
 from short_video import (
@@ -29,6 +31,40 @@ def _draw_centered(draw: ImageDraw.ImageDraw, text: str, y: int, font, fill) -> 
     width = bbox[2] - bbox[0]
     draw.text(((WIDTH - width) // 2, y), shaped, font=font, fill=fill, **_rtl_layout_kwargs())
 
+
+def _load_reviewed_source_image(item: dict) -> Image.Image | None:
+    """Fetch an explicitly attached DigiKala-hosted image only; never fetch arbitrary hosts."""
+    raw_url = str(item.get("image_url") or "").strip()
+    try:
+        parsed = urlsplit(raw_url)
+    except ValueError:
+        return None
+    host = (parsed.hostname or "").lower()
+    if parsed.scheme != "https" or host not in {"digikala.com", "www.digikala.com", "dkstatics-public.digikala.com"} or parsed.username or parsed.password:
+        return None
+    try:
+        response = requests.get(raw_url, headers={"User-Agent": "OfferChin-Editorial-Image/1.0"}, timeout=(5, 12), allow_redirects=False, stream=True)
+        response.raise_for_status()
+        content_type = str(response.headers.get("Content-Type") or "").split(";", 1)[0].lower()
+        if not content_type.startswith("image/"):
+            return None
+        payload = bytearray()
+        for chunk in response.iter_content(64 * 1024):
+            if not chunk:
+                continue
+            payload.extend(chunk)
+            if len(payload) > 4 * 1024 * 1024:
+                return None
+        if not payload:
+            return None
+        with Image.open(BytesIO(bytes(payload))) as source:
+            source.verify()
+        with Image.open(BytesIO(bytes(payload))) as source:
+            if source.width < 180 or source.height < 120 or source.width * source.height > 20_000_000:
+                return None
+            return ImageOps.fit(source.convert("RGB"), (WIDTH - 140, 250), method=Image.Resampling.LANCZOS)
+    except Exception:
+        return None
 
 def render_editorial_poster(item: dict, output_path: str | Path | None = None) -> bytes:
     """Create a Persian, non-product poster; never display DigiKala/DigiPay offer marks."""
