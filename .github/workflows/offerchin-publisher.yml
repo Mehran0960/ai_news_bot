@@ -101,7 +101,7 @@ jobs:
           assert workflow.index("name: Publish due selections to Telegram and Bale only") < workflow.index("name: Publish the same-sequence editorial fallback to photo channels") < workflow.index("name: Validate DigiKala demand-first ranking and publication gates") < workflow.index("name: Detect due product or editorial slots") < workflow.index("name: Discover and queue the next verified selection")
           assert "--queue-state-path affilio_radar/state.json" in workflow
           assert "fetch-depth: 100" in workflow
-          assert workflow.count("\\n        if: ${{ github.event_name == 'push' }}") == 2
+          assert workflow.count("\n        if: ${{ github.event_name == 'push' }}") == 2
           print("OFFERCHIN_DELIVERY_ONLY_PATH_VALIDATED")
           print("OFFERCHIN_STATE_PERSISTENCE_WORKTREE_RESET_VALIDATED")
           PY
