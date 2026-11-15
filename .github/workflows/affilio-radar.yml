@@ -308,6 +308,117 @@ jobs:
                   }, ensure_ascii=False, separators=(",", ":")))
           PY
 
+      - name: Probe DigiKala current API using Chrome TLS and XHR headers
+        if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' }}
+        run: |
+          python -m pip install --disable-pip-version-check "curl_cffi>=0.11,<1"
+          python - <<'PY'
+          import json
+          from curl_cffi import requests
+
+          base = "https://api.digikala.com"
+          headers = {
+              "Accept": "application/json",
+              "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.8",
+              "Origin": "https://www.digikala.com",
+              "x-web-client": "desktop",
+              "x-web-client-id": "web",
+              "sec-fetch-dest": "empty",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-site": "same-site",
+              "priority": "u=1, i",
+              "Referer": "https://www.digikala.com/",
+          }
+          session = requests.Session(impersonate="chrome")
+          session.headers.update(headers)
+
+          def summarize_product(p):
+              if not isinstance(p, dict):
+                  return None
+              variant = p.get("default_variant") or {}
+              price = variant.get("price") or {}
+              return {
+                  "id": p.get("id"),
+                  "title_fa": p.get("title_fa"),
+                  "status": p.get("status"),
+                  "default_variant": bool(variant),
+                  "price": {
+                      k: price.get(k) for k in
+                      ("selling_price", "rrp_price", "discount_percent", "marketable_stock", "is_incredible", "time")
+                      if k in price
+                  },
+                  "seller": (variant.get("seller") or {}).get("title"),
+                  "rating": p.get("rating"),
+                  "image": ((p.get("images") or {}).get("main") or {}).get("url", [])[:1],
+              }
+
+          probes = [
+              ("discovery_search_best_selling", "/discovery/api/v2/search",
+               {"q": "گوشی سامسونگ", "page": 1, "sort": 7, "has_selling_stock": 1}),
+              ("discovery_search_relevance", "/discovery/api/v2/search",
+               {"q": "گوشی", "page": 1, "sort": 22, "has_selling_stock": 1}),
+              ("category_tree", "/v1/category-tree/", {}),
+              ("category_products", "/v1/categories/mobile-phone/search/",
+               {"page": 1, "sort": 7, "has_selling_stock": 1}),
+              ("incredible_offers", "/v1/incredible-offers/products/",
+               {"page": 1, "sort": 26, "q": ""}),
+              ("product_detail_snapshot_id", "/product/v1/products/19691556/", {}),
+              ("product_detail_reference_id", "/product/v1/products/20109389/", {}),
+          ]
+
+          for name, path, params in probes:
+              try:
+                  response = session.get(base + path, params=params, timeout=25, allow_redirects=True)
+                  summary = {
+                      "probe": name, "http": response.status_code,
+                      "url": response.url, "bytes": len(response.content),
+                      "content_type": response.headers.get("content-type", ""),
+                  }
+                  try:
+                      body = response.json()
+                  except Exception:
+                      body = None
+                  if isinstance(body, dict):
+                      summary["body_status"] = body.get("status")
+                      data = body.get("data")
+                      if isinstance(data, dict):
+                          summary["data_keys"] = sorted(data.keys())[:30]
+                          products = data.get("products")
+                          if not isinstance(products, list):
+                              widgets = data.get("widgets") or []
+                              vertical = next((w.get("data") or {} for w in widgets
+                                               if w.get("type") == "vertical_product_listing"), {})
+                              products = [w.get("data") or {} for w in vertical.get("widgets") or []
+                                          if w.get("type") == "product"]
+                              summary["search_pager"] = vertical.get("pager")
+                          if isinstance(products, list):
+                              summary["products_count"] = len(products)
+                              summary["product_examples"] = [summarize_product(p) for p in products[:5]]
+                          if isinstance(data.get("categories"), list):
+                              summary["categories_count"] = len(data["categories"])
+                              summary["category_examples"] = [
+                                  {"id": (x.get("category") or {}).get("id"),
+                                   "code": (x.get("category") or {}).get("code"),
+                                   "title_fa": (x.get("category") or {}).get("title_fa"),
+                                   "parent_id": x.get("parent_id")}
+                                  for x in data["categories"][:6]
+                              ]
+                          if isinstance(data.get("product"), dict):
+                              summary["product_detail"] = summarize_product(data["product"])
+                          if isinstance(data.get("pager"), dict):
+                              summary["pager"] = data["pager"]
+                          if isinstance(data.get("sort_options"), list):
+                              summary["sort_options"] = data["sort_options"][:10]
+                      elif data is not None:
+                          summary["data_type"] = type(data).__name__
+                      summary["root_keys"] = sorted(body.keys())[:20]
+                  print("DIGIKALA_CHROME_API_PROBE " + json.dumps(summary, ensure_ascii=False, separators=(",", ":")))
+              except Exception as exc:
+                  print("DIGIKALA_CHROME_API_PROBE " + json.dumps({
+                      "probe": name, "error": type(exc).__name__, "detail": str(exc)[:180]
+                  }, ensure_ascii=False, separators=(",", ":")))
+          PY
+
       - name: Stage official DigiPay logo for video cards
         continue-on-error: true
         run: |
