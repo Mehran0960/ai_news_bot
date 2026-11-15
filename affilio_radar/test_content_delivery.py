@@ -10,10 +10,12 @@ from content_delivery import (
     finish_queue_item, get_last_channel_published_at, get_last_product_channel_published_at,
     has_fresh_unpublished_selection, allocate_publication_sequence, promote_fallback_selection,
     refresh_unpublished_selections, selection_cadence_anchor, reschedule_product_queue_evenly,
+    reflow_product_queue_after_delivery,
 )
 from platform_registry import CORE_PHOTO_PLATFORMS, PHOTO_PLATFORMS, PLATFORM_NAMES
 from publisher import (
     publish_due_queue, _fresh_selected_item, _eligible_fallback_candidates,
+    MAX_ITEMS_PER_RUN, _due_editorial_precedes_product,
 )
 
 
@@ -1047,6 +1049,133 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         }
         self.assertEqual(get_last_product_channel_published_at(state), product_at)
         self.assertEqual(state["last_product_channel_published_at"], product_at.isoformat())
+
+    def test_publisher_never_batches_multiple_public_content_items(self):
+        self.assertEqual(MAX_ITEMS_PER_RUN, 1)
+        workflow = (
+            Path(__file__).resolve().parents[1]
+            / ".github" / "workflows" / "offerchin-publisher.yml"
+        )
+        self.assertNotIn("AFFILIO_PUBLISHER_BATCH_SIZE", workflow.read_text(encoding="utf-8"))
+
+    def test_delivery_reflow_evenly_redistributes_pending_products_to_next_scan(self):
+        next_scan = self.now + timedelta(minutes=10)
+        state = {
+            "last_product_channel_published_at": self.now.isoformat(),
+            "product_publication_plan_anchor_at": (self.now - timedelta(minutes=2)).isoformat(),
+            "product_publication_plan_anchor_kind": "cycle_start",
+            "product_publication_cadence": {
+                "catalog_cycle_id": "cycle-2026-10-25",
+                "last_clean_cycle_completed_at": (self.now - timedelta(hours=8)).isoformat(),
+                "current_cycle_started_at": (self.now - timedelta(minutes=5)).isoformat(),
+                "estimated_next_clean_scan_at": next_scan.isoformat(),
+                "candidate_count": 3,
+                "planned_product_slots": 3,
+                "interval_seconds": 67.0,
+                "daily_post_limit": 72,
+            },
+            "content_delivery_queue": {
+                "dkp-already-sent": {
+                    "content_type": "product",
+                    "status": "partial",
+                    "sequence_number": 1,
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "sent"},
+                    },
+                },
+                "dkp-next-a": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "sequence_number": 2,
+                    "scheduled_at": (self.now + timedelta(seconds=2)).isoformat(),
+                    "next_attempt_at": (self.now + timedelta(seconds=2)).isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+                "dkp-next-b": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "sequence_number": 3,
+                    "scheduled_at": (self.now + timedelta(seconds=3)).isoformat(),
+                    "next_attempt_at": (self.now + timedelta(seconds=3)).isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+            },
+        }
+        result = reflow_product_queue_after_delivery(state, now=self.now)
+        self.assertEqual(result["pending_products"], 2)
+        self.assertEqual(result["scheduled"], 2)
+        self.assertEqual(result["interval_seconds"], 300)
+        self.assertEqual(
+            datetime.fromisoformat(state["content_delivery_queue"]["dkp-next-a"]["scheduled_at"]),
+            self.now + timedelta(minutes=5),
+        )
+        self.assertEqual(
+            datetime.fromisoformat(state["content_delivery_queue"]["dkp-next-b"]["scheduled_at"]),
+            next_scan,
+        )
+
+    def test_due_editorial_midpoint_precedes_later_product_slot_even_with_higher_sequence(self):
+        editorial_at = self.now - timedelta(seconds=40)
+        product_at = self.now - timedelta(seconds=5)
+        product = {
+            "content_type": "product",
+            "status": "queued",
+            "sequence_number": 4,
+            "scheduled_at": product_at.isoformat(),
+            "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+        }
+        editorial = {
+            "content_id": "editorial:midpoint",
+            "content_type": "editorial",
+            "status": "queued",
+            "sequence_number": 100,
+            "scheduled_at": editorial_at.isoformat(),
+            "next_attempt_at": editorial_at.isoformat(),
+            "related_product_id": "dkp-related",
+        }
+        state = {
+            "content_delivery_queue": {"dkp-related": product},
+            "editorial_delivery_queue": {"editorial:midpoint": editorial},
+        }
+        selected = _due_editorial_precedes_product(
+            state, self.now, [("dkp-related", product)]
+        )
+        self.assertIs(selected, editorial)
+
+    def test_due_editorial_does_not_precede_earlier_product_or_repeat_after_product_sent(self):
+        earlier_product_at = self.now - timedelta(seconds=50)
+        editorial_at = self.now - timedelta(seconds=30)
+        product = {
+            "content_type": "product",
+            "status": "queued",
+            "scheduled_at": earlier_product_at.isoformat(),
+            "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+        }
+        editorial = {
+            "content_id": "editorial:midpoint",
+            "status": "queued",
+            "scheduled_at": editorial_at.isoformat(),
+            "next_attempt_at": editorial_at.isoformat(),
+            "related_product_id": "dkp-related",
+        }
+        state = {
+            "content_delivery_queue": {"dkp-related": product},
+            "editorial_delivery_queue": {"editorial:midpoint": editorial},
+        }
+        self.assertIsNone(
+            _due_editorial_precedes_product(state, self.now, [("dkp-related", product)])
+        )
+        product["platforms"]["telegram"]["status"] = "sent"
+        self.assertIsNone(
+            _due_editorial_precedes_product(state, self.now, [])
+        )
 
     def test_product_cadence_spreads_candidates_over_the_next_clean_scan_window(self):
         clean_started = self.now - timedelta(hours=42)
