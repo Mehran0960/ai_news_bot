@@ -1149,6 +1149,46 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         self.assertIs(selected, editorial)
 
+    def test_editorial_photo_retry_never_preempts_its_related_due_product(self):
+        editorial_at = self.now - timedelta(seconds=40)
+        product_at = self.now - timedelta(seconds=5)
+        product = {
+            "content_type": "product",
+            "status": "queued",
+            "scheduled_at": product_at.isoformat(),
+            "platforms": {
+                "telegram": {"status": "pending"},
+                "bale": {"status": "pending"},
+            },
+        }
+        editorial = {
+            "content_id": "editorial:midpoint-retry",
+            "content_type": "editorial",
+            "status": "partial",
+            "scheduled_at": editorial_at.isoformat(),
+            "next_attempt_at": editorial_at.isoformat(),
+            "related_product_id": "dkp-related",
+            "platforms": {
+                "telegram": {"status": "sent", "attempts": 1},
+                "bale": {"status": "pending", "attempts": 0},
+                "youtube": {"status": "pending", "attempts": 0},
+            },
+        }
+        state = {
+            "content_delivery_queue": {"dkp-related": product},
+            "editorial_delivery_queue": {"editorial:midpoint-retry": editorial},
+        }
+        self.assertIsNone(
+            _due_editorial_precedes_product(state, self.now, [("dkp-related", product)])
+        )
+
+        # A render failure before any network send must also consume the one-time slot.
+        editorial["platforms"] = {}
+        editorial["photo_slot_attempted_at"] = editorial_at.isoformat()
+        self.assertIsNone(
+            _due_editorial_precedes_product(state, self.now, [("dkp-related", product)])
+        )
+
     def test_due_editorial_does_not_precede_earlier_product_or_repeat_after_product_sent(self):
         earlier_product_at = self.now - timedelta(seconds=50)
         editorial_at = self.now - timedelta(seconds=30)
