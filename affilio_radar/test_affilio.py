@@ -63,6 +63,7 @@ from affilio_radar import (
     unicode_strikethrough,
     _money_to_toman,
     api_search_product_urls,
+    search_digikala_v2_product_urls,
     api_incredible_offer_product_urls,
     api_incredible_offer_product_candidates,
     discover_product_urls,
@@ -893,6 +894,48 @@ class AffilioRadarTests(unittest.TestCase):
                 "https://www.digikala.com/product/dkp-67890/",
             ],
         )
+
+    def test_search_api_v2_resolves_autocomplete_category_and_fetches_marketable_cards(self):
+        class Response:
+            def __init__(self, payload):
+                self.payload = payload
+                self.status_code = 200
+                self.content = json.dumps(payload).encode("utf-8")
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return self.payload
+
+        class Session:
+            def __init__(self):
+                self.calls = []
+            def get(self, url, params=None, timeout=None):
+                self.calls.append((url, params))
+                if "/v1/autocomplete/" in url:
+                    return Response({"data": {"categories": [
+                        {"keyword": "گوشی سامسونگ", "category": {"id": 77, "title_fa": "موبایل"}},
+                    ]}})
+                return Response({"data": {"widgets": [{
+                    "type": "vertical_product_listing",
+                    "data": {"widgets": [
+                        {"type": "product", "data": {
+                            "id": 12345, "title_fa": "گوشی سامسونگ مدل آزمایشی",
+                            "url": {"uri": "/product/dkp-12345/test/"},
+                            "status": "marketable", "default_variant": {},
+                        }},
+                    ]},
+                }]}})
+
+        session = Session()
+        urls, diagnostics = search_digikala_v2_product_urls(
+            "گوشی سامسونگ", session=session, category_limit=2
+        )
+        self.assertEqual(urls, ["https://www.digikala.com/product/dkp-12345/"])
+        self.assertEqual(len(diagnostics), 1)
+        self.assertIn("/v1/autocomplete/", session.calls[0][0])
+        self.assertIn("/v2/category/77/", session.calls[1][0])
+        self.assertEqual(session.calls[1][1]["q"], "گوشی سامسونگ")
+        self.assertEqual(session.calls[1][1]["sort"], 5)
 
     def test_incredible_offers_parser_keeps_discounted_product_urls_only(self):
         payload = {
