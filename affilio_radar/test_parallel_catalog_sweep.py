@@ -56,7 +56,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual(result["rows"][0]["product_id"], "dkp-12345")
         self.assertEqual(result["total_pages"], 9)
         args, kwargs = session.get.call_args
-        self.assertIn("/discovery/api/v1/", args[0])
+        self.assertTrue(args[0].endswith("/discovery/api/v1/search"))
         self.assertEqual(kwargs["params"], {
             "categories[0]": "77", "page": 3, "sort": 7
         })
@@ -314,7 +314,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual(result["rows"][0]["product_id"], "dkp-12345")
         self.assertEqual(result["total_pages"], 4)
         self.assertEqual(len(captured), 1)
-        self.assertIn("/discovery/api/v1/", captured[0]["url"])
+        self.assertTrue(captured[0]["url"].endswith("/discovery/api/v1/search"))
         self.assertEqual(captured[0]["params"], {
             "categories[0]": "123", "page": 2, "sort": 7
         })
