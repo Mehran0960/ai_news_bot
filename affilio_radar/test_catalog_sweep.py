@@ -304,7 +304,7 @@ class CatalogSweepTests(unittest.TestCase):
         mobile = next(row for row in categories if row["id"] == "77")
         self.assertEqual(mobile["name"], "موبایل")
         self.assertEqual(mobile["query"], "گوشی")
-        self.assertEqual(mobile["source"], "digikala_discovery_api_v1_search_taxonomy")
+        self.assertEqual(mobile["source"], "digikala_discovery_api_v1_query_categories")
         self.assertTrue(session.calls[0][0].endswith("/discovery/api/v1/search"))
         self.assertEqual(dict(session.calls[0][1])["q"], "گوشی")
 
@@ -592,7 +592,7 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(session.calls[0][1]["q"], "گوشی")
         self.assertTrue(session.calls[1][0].endswith("/discovery/api/v1/search"))
         self.assertEqual(session.calls[1][1], {
-            "q": "موبایل", "categories[0]": "11", "page": 1, "sort": 7
+            "q": "گوشی", "categories[0]": "11", "page": 1, "sort": 7
         })
 
     def test_discovery_preflight_rejects_http_200_with_no_marketable_products(self):
